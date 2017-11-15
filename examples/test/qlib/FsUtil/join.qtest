@@ -1,0 +1,102 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class JoinTest
+
+public class JoinTest inherits QUnit::Test {
+
+    private {
+        list results_posix;
+        list results_win;
+    }
+
+    globalSetUp() {
+        results_posix = (
+            ('', '', ''),
+            ('/path/to', '', '/path/to'),
+            ('path/to', '', 'path/to'),
+            ('/path/to/', '', '/path/to/'),
+            ('path/to/', '', 'path/to/'),
+            ('', 'file.txt', 'file.txt'),
+            ('/', 'file.txt', '/file.txt'),
+            ('/path/to', 'file.txt', '/path/to/file.txt'),
+            ('/', '', '/'),
+            ('', '/', '/'),
+            ('', '/dir', '/dir'),
+            ('/path/to/file.txt', '/dir', '/dir'),
+            ('path/to/file.txt', '/dir', '/dir'),
+            ('file.txt', '/dir', '/dir'),
+            ('/', '/dir', '/dir'),
+            ('/path/to', '/dir', '/dir'),
+            ('/path/to/', '/dir', '/dir'),
+            ('/dir', '/dir', '/dir')
+           );
+
+        # All tests for POSIX should also pass in Windows
+        results_win = results_posix + (
+            ('C:\', 'file.txt', 'C:\file.txt'),
+            ('C:\', 'C:file.txt', 'C:\file.txt'),
+            ('C:\', 'c:file.txt', 'C:\file.txt'),
+            ('C:', 'file.txt', 'C:file.txt'),
+            ('C:', 'C:file.txt', 'C:file.txt'),
+            ('C:', 'c:file.txt', 'C:file.txt'),
+            ('C:\', 'D:\file.txt', 'D:\file.txt'),
+            ('C:', 'D:\file.txt', 'D:\file.txt'),
+            ('C:\', 'D:\file.txt', 'D:\file.txt'),
+            ('C:\', 'D:\file.txt', 'D:\file.txt'),
+
+            ('d:/path/dir/', 'd:efd', 'd:/path/dir/efd'),
+            ('c:/path/dir/', 'd:efd', 'd:efd'),
+            ('', '', ''),
+            ('', '', ''),
+            ('', '', ''),
+            ('', '', ''),
+            ('', '', ''),
+            ('', '', ''),
+            ('', '', ''),
+            ('', '', ''),
+            ('', '', ''),
+            ('', '', ''));
+    }
+
+    constructor() : Test ("JoinTest", "1.0") {
+        addTestCase("Join test", \test_join_paths());
+        addTestCase("Join test Posix", \test_join_paths_posix());
+        addTestCase("Join test Windows", \test_join_paths_win());
+        set_return_value(main());
+    }
+
+    test_join_paths() {
+        list results;
+        if (Platform.Windows)
+            results = results_win;
+        else
+            results = results_posix;
+
+        foreach list res in (results)
+            assertEq(res[2], join_paths(res[0], res[1]),
+                     sprintf("join_paths('%s', '%s')", res[0], res[1]));
+    }
+
+    test_join_paths_posix() {
+        PosixPathHandler ph = new PosixPathHandler();
+        foreach list res in (results_posix) {
+            assertEq(res[2], ph.join_paths(res[0], res[1]),
+                     sprintf("POSIX join_paths('%s', '%s')", res[0], res[1]));
+        }
+    }
+
+    test_join_paths_win() {
+        WinPathHandler ph = new WinPathHandler();
+        foreach list res in (results_win) {
+            assertEq(res[2], ph.join_paths(res[0], res[1]),
+                     sprintf("WIN join_paths('%s', '%s')", res[0], res[1]));
+        }
+    }
+}

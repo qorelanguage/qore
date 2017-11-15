@@ -109,6 +109,12 @@ public namespace FsUtil {
             }
             return tail;
         }
+
+        # to be implemented by platform-specific classes
+        public abstract string join_paths(string path1, string path2);
+        #public string join(string path1, string path2) {
+        #    throw "NOT-IMPLEMENTED-ERROR", "child classes should implement it";
+        #}
     }
 
     #! path handler implementing Windows specific functionality
@@ -117,7 +123,7 @@ public namespace FsUtil {
         #! creates the object and sets the delimiter
         constructor() {
             # both slashes can be used as path delimiters on Windows
-            Delimiters = ("\\", "/");
+            Delimiters = ("/", "\\");
         }
 
         #! separates and returns the drive and the rest of the path
@@ -150,6 +156,37 @@ public namespace FsUtil {
             }
             return tail;
         }
+
+        #! Returns path resulting from joining the given paths
+        /** @param path1 the first part of the path
+            @param path2 the second part of the path
+
+            @return the two paths joined into one valid path (i.e. delimiters
+            are added/removed as needed) except for cases when path2 is an
+            absolute path or if each path is on different drive - in such cases
+            path2 is returned as the result. Otherwise the resulting path is not
+            normalized (i.e. "/path/to/../../file.txt" is a correct result of
+            join("/path/to", "../../file.txt");).
+        */
+        public string join_paths(string path1, string path2) {
+            if (path2 == "")
+                return path1;
+
+            # if the first path is empty or if the second path is absolute or
+            # if both paths contain drive and the drives differ, return path2
+            list path1_split = split_drive(path1);
+            list path2_split = split_drive(path2);
+            if (path1 == "" ||
+                absolute_path_windows(path2) ||
+                (path2_split[0] != "" &&
+                 toupper(path1_split[0]) != toupper(path2_split[0])))
+                return path2;
+
+            # otherwise let's join both parts and return
+            if (path1_split[1] != "" && !inlist(path1[-1], self.Delimiters))
+                path1 += self.Delimiters[0];
+            return path1 + path2_split[1];
+        }
     }
 
     #! path handler implementing POSIX specific functionality
@@ -158,6 +195,34 @@ public namespace FsUtil {
         #! creates the object and sets the delimiter
         constructor() {
             Delimiters = ("/",);
+        }
+
+        #! Returns path resulting from joining the given paths
+        /** @param path1 the first part of the path
+            @param path2 the second part of the path
+
+            @return the two paths joined into one valid path (i.e. delimiters
+            are added/removed as needed) except for the case when path2 is an
+            absolute path - in such case path2 is returned as the result.
+            Otherwise the resulting path is not normalized (i.e.
+            "/path/to/../../file.txt" is a correct result of
+            join("/path/to", "../../file.txt");).
+        */
+        public string join_paths(string path1, string path2) {
+            if (path2 == "") {
+                return path1;
+            }
+
+            # if the second path is absolute or if both paths contain drive and
+            # the drives differ, return path2
+            if (absolute_path_unix(path2)) {
+                return path2;
+            }
+
+            if (path1 != "" && path1[-1] != self.Delimiters[0]) {
+                path1 += self.Delimiters[0];
+            }
+            return (path1 + path2);
         }
     }
 
@@ -170,6 +235,21 @@ public namespace FsUtil {
     */
     public string sub basename(string path) {
         return local_handler.basename(path);
+    }
+
+    #! Returns path resulting from joining the given paths
+    /** @param path1 the first part of the path
+        @param path2 the second part of the path
+
+        @return the two paths joined into one valid path (i.e. delimiters are
+        added/removed as needed) except for cases when path2 is an absolute path
+        or if each path is on different drive (Windows only) - in such cases
+        path2 is returned as the result. Otherwise the resulting path is not
+        normalized (i.e. "/path/to/../../file.txt" is a correct result of
+        join("/path/to", "../../file.txt");).
+    */
+    public string sub join_paths(string path1, string path2) {
+        return local_handler.join_paths(path1, path2);
     }
 
 } # FsUtil namespace
