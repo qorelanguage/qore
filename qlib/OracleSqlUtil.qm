@@ -1890,7 +1890,6 @@ auto v = c.name;
                             return cn + " in (" + (map "select column_value from table(%v)", xrange(1,count)).join(" union all ") + ")";
                         else
                             return "1 != 1";
-%endif
 %ifdef NO_ORACLE
                         throw "MISSING-ORACLE-DRIVER", "op_in requires oracle driver";
 %endif
