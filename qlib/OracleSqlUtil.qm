@@ -1865,7 +1865,6 @@ auto v = c.name;
                         # Split long array to chunks of no more than 32767 elements due to Oracle limitation
                         # "ORA-22165: OCI-22165: given index [32767] must be in the range of [0] to [32766]"
                         int count;
-%ifndef NO_ORACLE
                         while (arg.size()) {
                             ++count;
                             list chunk = extract arg, 0, 32767;
@@ -1884,14 +1883,12 @@ auto v = c.name;
                                     args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", chunk);
                             }
                         }
-%endif
 
                         if (count)
                             return cn + " in (" + (map "select column_value from table(%v)", xrange(1,count)).join(" union all ") + ")";
                         else
                             return "1 != 1";
-%endif
-%ifdef NO_ORACLE
+%else
                         throw "MISSING-ORACLE-DRIVER", "op_in requires oracle driver";
 %endif
                     },
