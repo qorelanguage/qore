@@ -22,7 +22,7 @@
 #pragma clang diagnostic warning "-W#warnings"
 #else
 #ifdef __GNUC__
-#if GNUC > 4
+#if __GNUC__ > 4
 #pragma GCC diagnostic warning "-Wcpp"
 #pragma GCC diagnostic ignored "-Wnoexcept-type"
 #endif
