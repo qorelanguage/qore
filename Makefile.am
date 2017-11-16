@@ -207,6 +207,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/astparser/src/QC_AstTree.qpp \
 	modules/astparser/src/QC_AstTreeSearcher.qpp \
+	modules/astparser/src/ql_ast.qpp \
 	modules/astparser/src/AstParseErrorLog.h \
 	modules/astparser/src/AstParser.h \
 	modules/astparser/src/AstParserHolder.h \
