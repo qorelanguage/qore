@@ -17,6 +17,10 @@
 #ifndef SCOPEGUARD_H_
 #define SCOPEGUARD_H_
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wnoexcept-type"
+#endif
+
 //! templated class for ScopeGuard to hold a c++ reference
 template <class T>
 class RefHolder
