@@ -46,6 +46,11 @@
 #include <ctype.h>
 #include <sys/types.h>
 
+#include <vector>
+
+//! signal vector
+typedef std::vector<int> sig_vec_t;
+
 /** @file QoreLib.h
     contains prototypes for various helper functions in the Qore library
  */
@@ -471,9 +476,57 @@ DLLEXPORT extern size_t qore_option_list_size;
 //! allows a module to take over ownership of a signal
 /** @param sig signal number
     @param name module name taking ownership of managing the signal
-    @return 0 for OK, non-zero for failed (error message)
+
+    @return nullptr for OK, non-zero for failed (error message); in case a QoreStringNode pointer is returned, the caller must dereference it
+
+    @see
+    - @ref qore_reassign_signals() to allocate multiple signals to a module atomically
+    - @ref qore_release_signal() to release a signal allocation manually
+    - @ref qore_release_signals() to release multiple signal allocations manually
  */
 DLLEXPORT QoreStringNode* qore_reassign_signal(int sig, const char* name);
+
+//! allows a module to take over ownership of multiple signals atomically
+/** @param sig_vec a vector of signal numbers to allocate to the module
+    @param name module name taking ownership of managing the signal
+
+    @return nullptr for OK (all signals were allocated to the module), non-zero for failed (error message; no signals were allocated); in case a QoreStringNode pointer is returned, the caller must dereference it
+
+    @note if any signal cannot be allocated to the module, no signals are allocated to the module; the call either succeeds for all or fails for all; no partial failures are possible; use this variant when allocating multiple signals to a module
+
+    @see
+    - @ref qore_reassign_signal() to allocate a single signal to a module
+    - @ref qore_release_signal() to release a signal allocation manually
+    - @ref qore_release_signals() to release multiple signal allocations manually
+
+    @since %Qore 0.8.13.1
+*/
+DLLEXPORT QoreStringNode* qore_reassign_signals(const sig_vec_t& sig_vec, const char* name);
+
+//! releases the signal allocated to the given module
+/** @param sig the signal number allocated to the module
+    @param name module name owning the signal
+
+    @return 0 = signal allocation released, -1 = no changes were made (module does not manage signal)
+
+    @see
+    - @ref qore_reassign_signal() to allocate a single signal to a module
+    - @ref qore_reassign_signals() to allocate multiple signals to a module atomically
+    - @ref qore_release_signals() to release multiple signal allocations manually
+
+    @since %Qore 0.8.13.1
+*/
+DLLEXPORT int qore_release_signal(int sig, const char* name);
+
+//! releases multiple signals allocated to the given module atomically
+/** @param sig_vec a vector of signal numbers to allocate to the module
+    @param name module name owning the signals
+
+    @return 0 = signal allocations released, -1 = no changes were made (module does not manage at least one signal)
+
+    @since %Qore 0.8.13.1
+*/
+DLLEXPORT int qore_release_signals(const sig_vec_t& sig_vec, const char* name);
 
 //! macro to return the maximum of 2 numbers
 #define QORE_MAX(a, b) ((a) > (b) ? (a) : (b))
