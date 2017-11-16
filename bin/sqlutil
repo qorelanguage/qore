@@ -3,7 +3,7 @@
 
 # @file sqlutil example program for the SqlUtil module
 
-/*  Copyright 2013 - 2016 David Nichols
+/*  Copyright 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -426,7 +426,7 @@ sub main() {
 
         done = True;
         Table table(source, opt.export_table);
-        SQLStatement sql = table.getRowIterator();
+        AbstractSQLStatement sql = table.getStatement();
         while (sql.next()) {
             hash row = sql.fetchRow();
             printf("%s", make_yaml(row));
