@@ -20,7 +20,7 @@
 
 %define module_dir %{_libdir}/qore-modules
 Name:           qore
-Version:        0.8.13
+Version:        0.8.13.1
 Release:        0
 Summary:        Multithreaded Programming Language
 License:        LGPL-2.1+ or GPL-2.0+ or MIT
@@ -60,6 +60,7 @@ Group:          Development/Languages/Other
 Provides:       qore-module(abi)%{?_isa} = 0.18
 Provides:       qore-module(abi)%{?_isa} = 0.19
 Provides:       qore-module(abi)%{?_isa} = 0.20
+Provides:       qore-module(abi)%{?_isa} = 0.21
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
 Provides:       qore-module-api-0.10
 Provides:       qore-module-api-0.11
@@ -156,6 +157,7 @@ Summary:        Miscellaneous user tools writen in Qore Programming Language
 License:        LGPL-2.0+ or GPL-2.0+ or MIT
 Group:          Development/Tools/Other
 Requires:       qore = %{version}-%{release}
+BuildArch:      noarch
 
 %description misc-tools
 This package contains tool for working with:
