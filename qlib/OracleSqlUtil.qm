@@ -2224,9 +2224,11 @@ auto v = c.name;
             *hash ret;
 
             # dbms_utility.name_resolve handled some Oracle EBS
-            # cryptic aliases and view-hideouts out of the box
+            # cryptic aliases and view-hideouts out of the box.
+            # select(), no exec(), is used here for reason:
+            # we don't want to grab the transaction lock here.
             try {
-                hash plsql = ds.exec("declare
+                hash plsql = ds.select("declare
                                         o_owner varchar2(30);
                                         o_table varchar2(30);
                                         o_db_link varchar2(30);
