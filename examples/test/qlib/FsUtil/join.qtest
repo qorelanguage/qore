@@ -12,20 +12,23 @@
 public class JoinTest inherits QUnit::Test {
 
     private {
+        list results_generic;
         list results_posix;
         list results_win;
     }
 
     globalSetUp() {
-        results_posix = (
+        # tests that should work on both platforms
+        results_generic = (
             ('', '', ''),
             ('/path/to', '', '/path/to'),
             ('path/to', '', 'path/to'),
             ('/path/to/', '', '/path/to/'),
             ('path/to/', '', 'path/to/'),
+            ('/path/to/', '..', '/path/to/..'),
+            ('/path/to/', '.', '/path/to/.'),
             ('', 'file.txt', 'file.txt'),
             ('/', 'file.txt', '/file.txt'),
-            ('/path/to', 'file.txt', '/path/to/file.txt'),
             ('/', '', '/'),
             ('', '/', '/'),
             ('', '/dir', '/dir'),
@@ -36,10 +39,17 @@ public class JoinTest inherits QUnit::Test {
             ('/path/to', '/dir', '/dir'),
             ('/path/to/', '/dir', '/dir'),
             ('/dir', '/dir', '/dir')
-           );
+        );
 
-        # All tests for POSIX should also pass in Windows
-        results_win = results_posix + (
+        # POSIX tests
+        results_posix = results_generic + (
+            ('/path/to', 'file.txt', '/path/to/file.txt'),
+            ('/path/to', '..', '/path/to/..'),
+            ('/path/to', '.', '/path/to/.'),
+        );
+
+        # Windows tests
+        results_win = results_generic + (
             ('C:\', 'file.txt', 'C:\file.txt'),
             ('C:\', 'C:file.txt', 'C:\file.txt'),
             ('C:\', 'c:file.txt', 'C:\file.txt'),
@@ -50,19 +60,15 @@ public class JoinTest inherits QUnit::Test {
             ('C:', 'D:\file.txt', 'D:\file.txt'),
             ('C:\', 'D:\file.txt', 'D:\file.txt'),
             ('C:\', 'D:\file.txt', 'D:\file.txt'),
-
             ('d:/path/dir/', 'd:efd', 'd:/path/dir/efd'),
             ('c:/path/dir/', 'd:efd', 'd:efd'),
-            ('', '', ''),
-            ('', '', ''),
-            ('', '', ''),
-            ('', '', ''),
-            ('', '', ''),
-            ('', '', ''),
-            ('', '', ''),
-            ('', '', ''),
-            ('', '', ''),
-            ('', '', ''));
+            ('path/to', 'file.txt', 'path/to\file.txt'),
+            ('path/to', '..', 'path/to\..'),
+            ('path/to', '.', 'path/to\.'),
+            ('A:\path/to', 'file.txt', 'A:\path/to\file.txt'),
+            ('B:\path/to', '..', 'B:\path/to\..'),
+            ('C:\path/to', '.', 'C:\path/to\.'),
+        );
     }
 
     constructor() : Test ("JoinTest", "1.0") {

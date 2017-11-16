@@ -123,7 +123,7 @@ public namespace FsUtil {
         #! creates the object and sets the delimiter
         constructor() {
             # both slashes can be used as path delimiters on Windows
-            Delimiters = ("/", "\\");
+            Delimiters = ("\\", "/");
         }
 
         #! separates and returns the drive and the rest of the path
