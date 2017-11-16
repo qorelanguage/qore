@@ -1,0 +1,545 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractSQLStatement.qpp AbstractSQLStatement class (interface) definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+
+class AbstractSQLStatement {};
+
+//! This class defines an abstract interface for the @ref Qore::SQL::SQLStatement "SQLStatement" class
+/** @since %Qore 0.9.0
+ */
+qclass AbstractSQLStatement [dom=DATABASE; arg=AbstractSQLStatement* ds; ns=Qore::SQL; vparent=AbstractIterator];
+
+//! Saves an SQL statement that will be prepared and executed later, along with optional arguments
+/** The statement is actually only prepared when used for the first time, this is so that SQLStatement objects created with DatasourcePool objects use the DatasourcePool more efficiently, as many drivers require the actual DB API prepare call to be made on the same connection as the connection the statement will be executed on as well.
+
+    @note This method parses the SQL string for placeholders and bind by value tokens (<tt>%%v</tt>); for a version of this method that does not parse the SQL string for placeholders and bind by value tokens, see AbstractSQLStatement::prepareRaw().
+
+    @param sql The SQL string to prepare for execution on the DB server
+
+    @par Example:
+    @code{.py}
+stmt.prepare("select * from table where id = %v");
+    @endcode
+*/
+abstract nothing AbstractSQLStatement::prepare(string sql, ...);
+
+//! Saves an SQL statement that will be prepared and executed later
+/** The statement is actually only prepared when used for the first time, this is so that SQLStatement objects created with DatasourcePool objects use the DatasourcePool more efficiently, as many drivers require the actual DB API prepare call to be made on the same connection as the connection the statement will be executed on as well.
+
+    @note This method does not parse the SQL string for placeholders and bind by value tokens (<tt>%%v</tt>); for a version of this method that does parse the SQL string for placeholders and bind by value tokens, see AbstractSQLStatement::prepare().
+
+    @param sql The SQL string to prepare for execution on the DB server
+
+    @par Example:
+    @code{.py}
+stmt.prepareRaw("select * from table");
+    @endcode
+*/
+abstract nothing AbstractSQLStatement::prepareRaw(string sql);
+
+//! Binds placeholder buffer specifications and values to buffers defined in AbstractSQLStatement::prepare()
+/** If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call. This means that this call will cause a connection to be dedicated from a DatasourcePool object or the transaction lock to be grabbed with a Datasource object, depending on the argument to AbstractSQLStatement::constructor().
+
+    Arguments to buffer specifications must be given in the same order as declared in the string given to the AbstractSQLStatement::prepare() method.
+
+    Any arguments previously bound will be released when this call is made.
+
+    @note You can also bind directly when calling AbstractSQLStatement::exec() or AbstractSQLStatement::execArgs() as a shortcut as well, in which case it's not necessary to make an extra call to this method.
+
+    @param ... Arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments
+
+    @par Example:
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    stmt.bind(h.id, h.name);
+    stmt.exec();
+}
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare()
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
+
+    @see AbstractSQLStatement::bindArgs(), AbstractSQLStatement::bindPlaceholders(), AbstractSQLStatement::bindPlaceholdersArgs(), AbstractSQLStatement::bindValues(), and AbstractSQLStatement::bindValuesArgs()
+*/
+abstract nothing AbstractSQLStatement::bind(...);
+
+//! Binds placeholder buffer specifications and values given as a list in the single argument to the method to buffers defined in AbstractSQLStatement::prepare()
+/** If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call. This means that this call will cause a connection to be dedicated from a DatasourcePool object or the transaction lock to be grabbed with a Datasource object, depending on the argument to AbstractSQLStatement::constructor().
+
+    Arguments to buffer specifications must be given in the same order as declared in the string given to the AbstractSQLStatement::prepare() method.
+
+    Any arguments previously bound will be released when this call is made.
+
+    @note You can also bind directly when calling AbstractSQLStatement::exec() or AbstractSQLStatement::execArgs() as a shortcut as well, in which case it's not necessary to make an extra call to this method.
+
+    @param vargs Arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments
+
+    @par Example:
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    list args = (h.id, h.name);
+    stmt.bindArgs(args);
+    stmt.exec();
+}
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare()
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
+
+    @see AbstractSQLStatement::bind(), AbstractSQLStatement::bindPlaceholders(), AbstractSQLStatement::bindPlaceholdersArgs(), AbstractSQLStatement::bindValues(), and AbstractSQLStatement::bindValuesArgs()
+*/
+abstract nothing AbstractSQLStatement::bindArgs(softlist vargs);
+
+//! Binds placeholder buffer specifications to buffers defined in AbstractSQLStatement::prepare()
+/** If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call. This means that this call will cause a connection to be dedicated from a DatasourcePool object or the transaction lock to be grabbed with a Datasource object, depending on the argument to AbstractSQLStatement::constructor().
+
+    Arguments to buffer specifications must be given in the same order as declared in the string given to the AbstractSQLStatement::prepare() method. Only placeholder buffer specifications will be processed; value buffer specifications will be skipped by this method.
+
+    Any buffer specifications previously defined will be released when this call is made.
+
+    @note You can also bind buffer specifications directly when calling AbstractSQLStatement::exec() or AbstractSQLStatement::execArgs() as a shortcut as well, in which case it's not necessary to make an extra call to this method.\n\n
+    Not all DBI drivers require binding placeholders specification.
+
+    @param ... Arguments to placeholder specifications (if required by the underlying DBI driver)
+
+    @par Example:
+    @code{.py}
+stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
+stmt.bindPlaceholders(Type::Date);
+date d = stmt.getOutput().sd;
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare()
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
+
+    @see AbstractSQLStatement::bind(), AbstractSQLStatement::bindArgs(), AbstractSQLStatement::bindPlaceholdersArgs(), AbstractSQLStatement::bindValues(), and AbstractSQLStatement::bindValuesArgs()
+*/
+abstract nothing AbstractSQLStatement::bindPlaceholders(...);
+
+//! Binds placeholder buffer specifications given as a list in the single argument to the method to buffers defined in AbstractSQLStatement::prepare()
+/** If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call. This means that this call will cause a connection to be dedicated from a DatasourcePool object or the transaction lock to be grabbed with a Datasource object, depending on the argument to AbstractSQLStatement::constructor().
+
+    Arguments to buffer specifications must be given in the same order as declared in the string given to the AbstractSQLStatement::prepare() method. Only placeholder buffer specifications will be processed; value buffer specifications will be skipped by this method.
+
+    Any buffer specifications previously defined will be released when this call is made.
+
+    @note You can also bind buffer specifications directly when calling AbstractSQLStatement::exec() or AbstractSQLStatement::execArgs() as a shortcut as well, in which case it's not necessary to make an extra call to this method.\n\n
+    Not all DBI drivers require binding placeholders specification.
+
+    @param vargs Arguments to placeholder specifications (if required by the underlying DBI driver)
+
+    @par Example:
+    @code{.py}
+stmt.prepare("begin select sysdate into :sd from dual", Type::Date); end;
+list l = list(Type::Date);
+stmt.bindPlaceholdersArgs(l);
+date d = stmt.getOutput().sd;
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare()
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
+
+    @see AbstractSQLStatement::bind(), AbstractSQLStatement::bindArgs(), AbstractSQLStatement::bindPlaceholders(), AbstractSQLStatement::bindValues(), and AbstractSQLStatement::bindValuesArgs()
+*/
+abstract nothing AbstractSQLStatement::bindPlaceholdersArgs(softlist vargs);
+
+//! Binds values to value buffer specifications to buffers defined in AbstractSQLStatement::prepare()
+/** If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call. This means that this call will cause a connection to be dedicated from a DatasourcePool object or the transaction lock to be grabbed with a Datasource object, depending on the argument to AbstractSQLStatement::constructor().
+
+    Arguments to buffer specifications must be given in the same order as declared in the string given to the AbstractSQLStatement::prepare() method.
+
+    Any values previously bound will be released when this call is made.
+
+    @note You can also bind directly when calling AbstractSQLStatement::exec() or AbstractSQLStatement::execArgs() as a shortcut as well, in which case it's not necessary to make an extra call to this method.
+
+    @param ... Arguments to bind by value arguments
+
+    @par Example:
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    stmt.bindValues(h.id, h.name);
+    stmt.exec();
+}
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare()
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
+
+    @see AbstractSQLStatement::bind(), AbstractSQLStatement::bindArgs(), AbstractSQLStatement::bindPlaceholders(), AbstractSQLStatement::bindPlaceholdersArgs(), and AbstractSQLStatement::bindValuesArgs().
+*/
+abstract nothing AbstractSQLStatement::bindValues(...);
+
+//! Binds values to value buffer specifications given as a list in the single argument to the method to value buffers defined in AbstractSQLStatement::prepare()
+/** If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call. This means that this call will cause a connection to be dedicated from a DatasourcePool object or the transaction lock to be grabbed with a Datasource object, depending on the argument to AbstractSQLStatement::constructor().
+
+    Arguments to buffer specifications must be given in the same order as declared in the string given to the AbstractSQLStatement::prepare() method.
+
+    Any values previously bound will be released when this call is made.
+
+    @note You can also bind directly when calling AbstractSQLStatement::exec() or AbstractSQLStatement::execArgs() as a shortcut as well, in which case it's not necessary to make an extra call to this method.
+
+    @param vargs Arguments to bind by value arguments
+
+    @par Example:
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    list args = (h.id, h.name);
+    stmt.bindValuesArgs(args);
+    stmt.exec();
+}
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare()
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications; see the relevant DBI driver docs for more information
+*/
+abstract nothing AbstractSQLStatement::bindValuesArgs(softlist vargs);
+
+//! Executes the bound statement with any bound buffers, also optionally allows binding placeholder buffer specifications and values to buffers defined in AbstractSQLStatement::prepare() before executing the statement
+/** If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call. This means that this call will cause a connection to be dedicated from a DatasourcePool object or the transaction lock to be grabbed with a Datasource object, depending on the argument to AbstractSQLStatement::constructor().
+
+    Optional arguments to buffer specifications must be given in the same order as declared in the string given to the AbstractSQLStatement::prepare() method.
+
+    If bind arguments are provided, any arguments previously bound will be released when this call is made.
+
+    After calling this method to execute the statement, to retrieve information about the call or output values bound in the call, call AbstractSQLStatement::affectedRows(), AbstractSQLStatement::getOutput(), or AbstractSQLStatement::getOutputRows() as needed.
+
+    To retrieve rows from a select statement call either AbstractSQLStatement::next() and AbstractSQLStatement::fetchRow(), or AbstractSQLStatement::fetchRows() or AbstractSQLStatement::fetchColumns() as needed.
+
+    @param ... Optional arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments can be given in the call to the method; if present, arguments are bound before the statement is executed
+
+    @par Example:
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    stmt.exec(h.id, h.name);
+}
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare(); the SQLStatement uses a DatasourcePool an the statement was prepared on another connection
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
+
+    @see AbstractSQLStatement::execArgs()
+*/
+abstract nothing AbstractSQLStatement::exec(...);
+
+//! Executes the bound statement with any bound buffers, also optionally allows binding placeholder buffer specifications and values given as a list in the single argument to the method to buffers defined in AbstractSQLStatement::prepare()
+/** If the statement has not previously been prepared with the DB API, it will be implicitly prepared by this method call. This means that this call will cause a connection to be dedicated from a DatasourcePool object or the transaction lock to be grabbed with a Datasource object, depending on the argument to AbstractSQLStatement::constructor().
+
+    Optional arguments to buffer specifications must be given in the same order as declared in the string given to the AbstractSQLStatement::prepare() method.
+
+    If bind arguments are provided, any arguments previously bound will be released when this call is made.
+
+    After calling this method to execute the statement, to retrieve information about the call or output values bound in the call, call AbstractSQLStatement::affectedRows(), AbstractSQLStatement::getOutput(), or AbstractSQLStatement::getOutputRows() as needed.
+
+    To retrieve rows from a select statement call either AbstractSQLStatement::next() and AbstractSQLStatement::fetchRow(), or AbstractSQLStatement::fetchRows() or AbstractSQLStatement::fetchColumns() as needed.
+
+    @param vargs Optional arguments to placeholder specifications (if required by the underlying DBI driver) and bind by value arguments can be given in the call to the method; if present, arguments are bound before the statement is executed
+
+    @par Example:
+    @code{.py}
+stmt.prepare("insert into table (id, name) values (%v, %v)");
+foreach hash h in (l) {
+    list args = (h.id, h.name);
+    stmt.execArgs(args);
+}
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw(); the SQLStatement uses a DatasourcePool an the statement was prepared on another connection
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
+
+    @see AbstractSQLStatement::exec()
+*/
+abstract nothing AbstractSQLStatement::execArgs(softlist vargs);
+
+//! Returns the number of rows affected by the last call to AbstractSQLStatement::exec()
+/** @return the number of rows affected by the last call to AbstractSQLStatement::exec()
+
+    @par Example:
+    @code{.py}
+int rc = stmt.affectedRows();
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
+*/
+abstract int AbstractSQLStatement::affectedRows();
+
+//! Retrieves output buffers as a hash; result sets will be returned as hashes of lists
+/** @return Returns a hash of output buffers; result sets will be returned as hashes of lists. Each key in the hash is the same as the name given to the placeholder specification in the call to AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
+
+    @par Example:
+    @code{.py}
+hash h = stmt.getOutput();
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when output values are retrieved; see the relevant DBI driver docs for more information
+*/
+abstract hash AbstractSQLStatement::getOutput();
+
+//! Retrieves output buffers as a hash; result sets will be returned as lists of hashes
+/** @return Retrieves output buffers as a hash; result sets will be returned as lists of hashes. Each key in the hash is the same as the name given to the placeholder specification in the call to AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
+
+    @par Example:
+    @code{.py}
+hash h = stmt.getOutputRows();
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when output values are retrieved; see the relevant DBI driver docs for more information
+*/
+abstract hash AbstractSQLStatement::getOutputRows();
+
+//! Performs an explicit define operation on the SQLStatement
+/** It is not encessary to call this method manually; define operations are implicitly executed when needed when retrieving values from a select statement
+
+    @par Example:
+    @code{.py}
+{
+    SQLStatement stmt(ds);
+    # release transaction lock on exit
+    on_exit stmt.commit();
+    stmt.prepare("select * from table");
+    stmt.exec();
+    stmt.define();
+    # note that the AbstractSQLStatement::next() would implicitly execute exec() and define()
+    while (stmt.next()) {
+        hash row = stmt.fetchRow();
+        do_something(row);
+    }
+}
+    @endcode
+*/
+abstract nothing AbstractSQLStatement::define();
+
+//! Closes the statement if it is open, however this method does not release the connection or transaction lock
+/**
+    @par Example:
+    @code{.py}
+stmt.close();
+    @endcode
+*/
+abstract nothing AbstractSQLStatement::close();
+
+//! Commits the transaction, releases the connection or the transaction lock according to the object used in the AbstractSQLStatement::constructor(), and closes the SQLStatement
+/**
+    @par Example:
+    @code{.py}
+stmt.commit();
+    @endcode
+
+    @note For possible exceptions; see DBI driver docs for the commit() method
+*/
+abstract nothing AbstractSQLStatement::commit();
+
+//! Closes the SQLStatement, performs a transaction rollback, and releases the connection or the transaction lock according to the object used in the AbstractSQLStatement::constructor(), and closes the SQLStatement
+/**
+    @par Example:
+    @code{.py}
+stmt.rollback();
+    @endcode
+
+    @note For possible exceptions; see DBI driver docs for the rollback() method
+*/
+abstract nothing AbstractSQLStatement::rollback();
+
+//! Manually starts a transaction and allocates a connection or grabs the transaction lock according to the object used in the AbstractSQLStatement::constructor()
+/**
+    @par Example:
+    @code{.py}
+stmt.beginTransaction();
+    @endcode
+*/
+abstract nothing AbstractSQLStatement::beginTransaction();
+
+//! Increments the row pointer when retrieving rows from a select statement; returns @ref True if there is a row to retrieve, @ref False if not
+/** If this method returns True, then call AbstractSQLStatement::fetchRow() afterwards to retrieve the row
+
+    @return @ref True if there is a row to retrieve, @ref False if not (no more rows to be retrieved)
+
+    @par Example:
+    @code{.py}
+while (stmt.next()) {
+    hash h = stmt.fetchRow();
+}
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed; see the relevant DBI driver docs for more information
+*/
+abstract bool AbstractSQLStatement::next();
+
+//! returns @ref Qore::True "True" if the object is currently pointing at a valid element, @ref Qore::False "False" if not (use when iterating with AbstractSQLStatement::next())
+/** @return @ref Qore::True "True" if the object is currently pointing at a valid element, @ref Qore::False "False" if not
+
+    @par Example:
+    @code{.py}
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
+    @endcode
+*/
+abstract bool AbstractSQLStatement::valid();
+
+//! Retrieves the current row as a hash where the keys are the column names and the values are the column values
+/** Use with AbstractSQLStatement::next() to iterate through the results of a select statement one row at a time
+
+    @return the current row as a hash where the keys are the column names and the values are the column values
+
+    @par Example:
+    @code{.py}
+while (stmt.next()) {
+    hash h = stmt.fetchRow();
+}
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
+
+    @note Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
+*/
+abstract *hash AbstractSQLStatement::fetchRow();
+
+//! Retrieves the current row as a hash where the keys are the column names and the values are the column values
+/** Use with AbstractSQLStatement::next() to iterate through the results of a select statement one row at a time
+
+    @return the current row as a hash where the keys are the column names and the values are the column values
+
+    @par Example:
+    @code{.py}
+while (stmt.next()) {
+    hash h = stmt.getValue();
+}
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
+
+    @note
+    - Equivalent to AbstractSQLStatement::fetchRow()
+    - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
+*/
+abstract *hash AbstractSQLStatement::getValue();
+
+//! Retrieves a block of rows as a list of hashes with the maximum number of rows determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call AbstractSQLStatement::next()
+/** If the argument passed is omitted or less than or equal to zero, then all available rows from the current row position are retrieved, also if fewer rows are available than requested then only the rows available are retrieved.
+
+    If no more rows are available then an empty list is returned.
+
+    @param rows The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved
+
+    @par Example:
+    @code{.py}
+list l = stmt.fetchRows(-1);
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
+
+    @note
+    - There is no need to call AbstractSQLStatement::next() when calling this method; the method automatically iterates through the given number of rows
+    - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
+*/
+abstract list AbstractSQLStatement::fetchRows(softint rows = -1);
+
+//! Retrieves a block of rows as a hash of lists with the maximum number of rows determined by the argument passed; automatically advances the row pointer; with this call it is not necessary to call AbstractSQLStatement::next().
+/** If the argument passed is omitted or less than or equal to zero, then all available rows from the current row position are retrieved, also if fewer rows are available than requested then only the rows available are retrieved.
+
+    @param rows The maximum number of rows to retrieve, if this argument is omitted, negative, or equal to zero, then all available rows from the current row position are retrieved
+
+    @return a hash (giving column names) of lists (giving row values for each column) of data returned; each list will have at most \a rows elements (unless \a rows is negative, in which case all available rows are returned).  If the total number of rows available is less than \a rows (if \a rows is positive), then the last data returned by this method may return short lists.  If no more rows are available, then an empty hash is returned
+
+    @par Example:
+    @code{.py}
+hash h = stmt.fetchColumns(-1);
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR No %SQL has been set with AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw()
+
+    @note
+    - There is no need to call AbstractSQLStatement::next() when calling this method; the method automatically iterates through the given number of rows
+    - Exceptions could be thrown by the DBI driver when the statement is prepared or when attempting to bind the given arguments to buffer specifications or when the statement is executed or when row values are retrieved; see the relevant DBI driver docs for more information
+*/
+abstract hash AbstractSQLStatement::fetchColumns(softint rows = -1);
+
+//! Describes columns in the statement result.
+/**
+    @return a hash with (<i>column_name</i>: <i>description_hash</i>) format, where each <i>description_hash</i> has the following keys:
+    - \c "name": (string) the column name
+    - \c "type": (integer) the column type code (as returned by <value>::typeCode())
+    - \c "maxsize": (integer) the maximum size of the column
+    - \c "native_type": (string) the database-specific name of the type
+    - \c "internal_id": (integer) the database-specific type code of the type
+*/
+abstract hash AbstractSQLStatement::describe();
+
+//! Returns the current SQL string set with the call to AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw() or @ref nothing if no SQL has been set
+/** @return Returns the current SQL string set with the call to AbstractSQLStatement::prepare() or AbstractSQLStatement::prepareRaw() or @ref nothing if no SQL has been set
+
+    @par Example:
+    @code{.py}
+*string sql = stmt.getSQL();
+    @endcode
+*/
+abstract *string AbstractSQLStatement::getSQL();
+
+//! Returns @ref True if the object is currently active and has a connection or transaction lock allocated to it, or @ref False if not
+/** @return @ref True if the object is currently active and has a connection or transaction lock allocated to it, or @ref False if not
+
+    @par Example:
+    @code{.py}
+if (stmt.active())
+    stmt.commit();
+    @endcode
+*/
+abstract bool AbstractSQLStatement::active();
+
+//! Returns @ref True if the current thread is in a transaction (i.e. holds the transaction lock), @ref False if not
+/** @return @ref True if the current thread is in a transaction (i.e. holds the transaction lock), @ref False if not
+
+    @par Example:
+    @code{.py}
+bool b = stmt.currentThreadInTransaction();
+    @endcode
+*/
+abstract bool AbstractSQLStatement::currentThreadInTransaction();
