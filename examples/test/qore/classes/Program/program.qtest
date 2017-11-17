@@ -9,6 +9,7 @@
 # to test ProgramControl::getProgram
 %allow-debugger
 
+%requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/QUnit.qm
 %exec-class ProgramTest
 
@@ -141,7 +142,11 @@ class Test inherits Socket {
     constructor(list dummy) { # overload test
         data = dummy;
     }
+
     destructor() {
+    }
+
+    copy(Test old) {
     }
 
     any getData(int elem) {
@@ -182,8 +187,6 @@ class Test inherits Socket {
     list funcTest(int a, binary b, *string c) {
         return list(a, b);
     }
-
-
 }
 
 class ProgramTest inherits QUnit::Test {
@@ -259,7 +262,7 @@ class ProgramTest inherits QUnit::Test {
         try {
             a.callFunction("deleteException");
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             assertEq("ACCESS-ERROR", ex.err);
         }
 
@@ -281,7 +284,7 @@ class ProgramTest inherits QUnit::Test {
         try {
             a.parse("const A = B; const B = A;", "rec");
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             assertEq("PARSE-EXCEPTION", ex.err);
         }
 
@@ -309,7 +312,7 @@ class ProgramTest inherits QUnit::Test {
             p4.parse("error", "error", 0, "source", 10);
             assertEq(True, False);
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             assertEq("source", ex.source);
             assertEq(10, ex.offset);
         }
@@ -626,12 +629,13 @@ class ProgramTest inherits QUnit::Test {
 
     programInfoTest() {
         Program a(PO_NEW_STYLE);
-        list pp = ProgramControl::getAllPrograms();
-        assertEq(True, a.getProgramId() > 0, "getProgramId()");
+        # sort by program ID otherwise tests may fail
+        list<auto> pp = sort(ProgramControl::getAllPrograms(), int sub (ProgramControl l, ProgramControl r) { return l.getProgramId() <=> r.getProgramId(); });
+        assertGt(1, a.getProgramId(), "getProgramId()");
         assertEq(True, pp.size()>=2, "getAllPrograms()");
-        assertEq(True, ProgramControl::getProgram().getProgramId() == pp[0].getProgramId(), "getProgramId(0)");
-        assertEq(True, a.getProgramId() == pp[pp.size()-1].getProgramId(), "getProgramId(1)");
-        assertEq(True, ProgramControl::resolveProgramId(a.getProgramId()).getProgramId() == a.getProgramId(), "resolveProgramId()");
+        assertEq(pp[0].getProgramId(), ProgramControl::getProgram().getProgramId(), "getProgramId(0)");
+        assertEq(a.getProgramId(), pp[pp.size()-1].getProgramId(), "getProgramId(1)");
+        assertEq(ProgramControl::resolveProgramId(a.getProgramId()).getProgramId(), a.getProgramId(), "resolveProgramId()");
     }
 
     testCV(*string ns, *string cls, string func, string name) {
@@ -639,9 +643,9 @@ class ProgramTest inherits QUnit::Test {
         if (exists cls) {
             s = cls + "::" + s;
         }
-        if (exists ns) {
+#        if (exists ns) {
 #            s = ns + "::" + s;   # namespace is ignored
-        }
+#        }
         ProgramControl p = ProgramControl::getProgram();
         list val = p.findFunctionVariants(name);
         list l;
@@ -655,7 +659,7 @@ class ProgramTest inherits QUnit::Test {
         testVS(name, val);
     }
 
-    testVS(string name, list val) {
+    testVS(string name, list<auto> val) {
         ProgramControl p = ProgramControl::getProgram();
         foreach hash v in (val) {
             int st = p.findFunctionStatementId(name, v.params);
@@ -676,18 +680,27 @@ class ProgramTest inherits QUnit::Test {
         testCV("NS", "TestNS", "funcTest", "NS::TestNS::funcTest");
 
         try {
-            /*
-            list val;
-            # TODO::constructor, destructor does not work
+            list<auto> val;
             val = p.findFunctionVariants("Test::constructor");
             assertEq(2, val.size(), "findFunctionVariants(Test::constructor)");
             testVS("Test::constructor", val);
             val = p.findFunctionVariants("Test::destructor");
             assertEq(1, val.size(), "findFunctionVariants(Test::destructor)");
             testVS("Test::destructor", val);
-            */
-        } catch (hash ex) {
-            printf("%y\n", ex);
+            val = p.findFunctionVariants("Test::copy");
+            assertEq(1, val.size(), "findFunctionVariants(Test::copy)");
+            testVS("Test::copy", val);
+            val = p.findFunctionVariants("Test::memberGate");
+            assertEq(1, val.size(), "findFunctionVariants(Test::memberGate)");
+            testVS("Test::memberGate", val);
+            val = p.findFunctionVariants("Test::methodGate");
+            assertEq(1, val.size(), "findFunctionVariants(Test::methodGate)");
+            testVS("Test::methodGate", val);
+            val = p.findFunctionVariants("Test::memberNotification");
+            assertEq(1, val.size(), "findFunctionVariants(Test::memberNotification)");
+            testVS("Test::memberNotification", val);
+        } catch (hash<ExceptionInfo> ex) {
+            printf("%s\n", get_exception_string(ex));
         }
 
         try {
@@ -702,8 +715,8 @@ class ProgramTest inherits QUnit::Test {
             val = p.findFunctionVariants("Test::memberNotification");
             assertEq(1, val.size(), "findFunctionVariants(Test::memberNotification)");
             testVS("Test::memberNotification", val);
-        } catch (hash ex) {
-            printf("%y\n", ex);
+        } catch (hash<ExceptionInfo> ex) {
+            printf("%s\n", get_exception_string(ex));
         }
 
         try {
@@ -712,8 +725,8 @@ class ProgramTest inherits QUnit::Test {
             assertThrows('PROGRAM-ERROR', \p.findFunctionVariants(), ("NS::Test::funcTest"), 'findFunctionVariants(NS::Test::funcTest)');
             assertThrows('PROGRAM-ERROR', \p.findFunctionVariants(), ("NSNOTEXIST::funcTest"), 'findFunctionVariants(NSNOTEXIST::funcTest)');
             #assertThrows('PROGRAM-ERROR', \p.findFunctionVariants(), ("TestNS3::funcTest"), 'findFunctionVariants(TestNS3::funcTest)');  # TODO: resolved function from inherited class
-        } catch (hash ex) {
-            printf("%y\n", ex);
+        } catch (hash<ExceptionInfo> ex) {
+            printf("%s\n", get_exception_string(ex));
         }
 
         list v = p.findFunctionVariants("funcParamTypeTest");
@@ -723,16 +736,16 @@ class ProgramTest inherits QUnit::Test {
                 "funcParamTypeTest(int i, *int i2, string s, *string s2, bool bo, *bool bo2, float f, *float f2, number n, *number n2, binary bi, *binary b2, list l, *list l2, hash h, *hash h2, object o, *object o2, any a, date d, *date d2, code co, *code co2, data da, *data da2, reference r, *reference r2, softint si, *softint si2, softfloat sf, *softfloat sf2, softnumber sn, *softnumber sn2, softbool sb, *softbool sb2, softstring ss, *softstring ss2, softdate sd, *softdate sd2, softlist sl, *softlist sl2, timeout t, *timeout t2, code cl, code cr, Test test, TestNS testns, TestNS nsttestns)",
                 v[0].desc # TODO: class: Test ????, *softlist,  namespaces ignored, closure, callref as code
             );
-        } catch (hash ex) {
-            printf("%y\n", ex);
+        } catch (hash<ExceptionInfo> ex) {
+            printf("%s\n", get_exception_string(ex));
         }
         try {
             assertEq(
                 ("int", "*int", "string", "*string", "bool", "*bool", "float", "*float", "number", "*number", "binary", "*binary", "list", "*list", "hash", "*hash", "object", "*object", "any", "date", "*date", "code", "*code", "data", "*data", "reference", "*reference", "softint", "*softint", "softfloat", "*softfloat", "softnumber", "*softnumber", "softbool", "*softbool", "softstring", "*softstring", "softdate", "*softdate", "softlist", "*softlist", "timeout", "*timeout", "code", "code", "object<Test>", "object<TestNS>", "object<TestNS>"),
                 v[0].params
             );
-        } catch (hash ex) {
-            printf("%y\n", ex);
+        } catch (hash<ExceptionInfo> ex) {
+            printf("%s\n", get_exception_string(ex));
         }
     }
 }

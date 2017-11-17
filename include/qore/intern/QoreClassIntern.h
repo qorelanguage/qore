@@ -295,7 +295,7 @@ public:
 class DestructorMethodVariant : public MethodVariantBase {
 protected:
 public:
-   DLLLOCAL DestructorMethodVariant(bool n_is_user = false) : MethodVariantBase(Public, QC_NO_FLAGS, n_is_user) {
+   DLLLOCAL DestructorMethodVariant(bool n_is_user = false) : MethodVariantBase(Public, false, QC_NO_FLAGS, n_is_user) {
    }
 
    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const = 0;
@@ -307,7 +307,7 @@ public:
 class CopyMethodVariant : public MethodVariantBase {
 protected:
 public:
-   DLLLOCAL CopyMethodVariant(ClassAccess n_access, bool n_is_user = false) : MethodVariantBase(n_access, QC_NO_FLAGS, n_is_user) {
+   DLLLOCAL CopyMethodVariant(ClassAccess n_access, bool n_is_user = false) : MethodVariantBase(n_access, false, QC_NO_FLAGS, n_is_user) {
    }
 
    DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const = 0;
@@ -2696,6 +2696,28 @@ public:
    DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
       access = Public;
       return runtimeFindCommittedMethodIntern(nme, access, class_ctx);
+   }
+
+   DLLLOCAL const QoreMethod* runtimeFindAnyCommittedMethod(const char* nme) const {
+      ClassAccess access = Public;
+      const qore_class_private* class_ctx = this;
+      const QoreMethod* m = runtimeFindCommittedMethodIntern(nme, access, class_ctx);
+      if (!m) {
+         // check for special methods
+         if (!strcmp(nme, "constructor"))
+            return constructor;
+         if (!strcmp(nme, "destructor"))
+            return destructor;
+         if (!strcmp(nme, "copy"))
+            return copyMethod;
+         if (!strcmp(nme, "methodGate"))
+            return copyMethod;
+         if (!strcmp(nme, "memberGate"))
+            return memberGate;
+         if (!strcmp(nme, "memberNotification"))
+            return memberNotification;
+      }
+      return m;
    }
 
    DLLLOCAL const QoreMethod* findMethod(const char* nme, ClassAccess& access) const {

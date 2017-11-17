@@ -1631,7 +1631,7 @@ public:
 
    DLLLOCAL void doThreadInit(ExceptionSink* xsink);
 
-   DLLLOCAL QoreClass* runtimeFindClass(const char* class_name, ExceptionSink* xsink) const;
+   DLLLOCAL const QoreClass* runtimeFindClass(const char* class_name, ExceptionSink* xsink) const;
 
    DLLLOCAL void setExternalData(const char* owner, AbstractQoreProgramExternalData* pud) {
       AutoLocker al(plock);
@@ -1663,7 +1663,7 @@ public:
    DLLLOCAL const QoreTypeInfo* getComplexSoftListType(const QoreTypeInfo* vti);
    DLLLOCAL const QoreTypeInfo* getComplexSoftListOrNothingType(const QoreTypeInfo* vti);
 
-   DLLLOCAL static QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
+   DLLLOCAL static const QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);
    }
 
