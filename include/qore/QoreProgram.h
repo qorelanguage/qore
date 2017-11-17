@@ -754,11 +754,6 @@ public:
     */
    DLLEXPORT AbstractStatement* findFunctionStatement(const char* functionName, const QoreValueList* params, ExceptionSink* xsink) const;
 
-   /** find statement related to particular method, TODO: remove
-    *
-    */
-   DLLEXPORT AbstractStatement* findMethodStatement(const char* className, const char* methodName, const QoreValueList* params, ExceptionSink* xsink) const;
-
    //! get the statement id
    /**
       @param statement MUST be statement of this Program instance!
