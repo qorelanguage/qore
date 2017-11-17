@@ -252,8 +252,12 @@ public namespace DebugProgramControl {
                                 }
                                 foreach hash bkpt in (pgm.breakpoints) {
                                     Breakpoint b = new Breakpoint();
-                                    b.setEnabled(AbstractDebugControl::boolStrings{bkpt.enabled});
-                                    b.setPolicy(AbstractDebugControl::policyStrings{bkpt.policy});
+                                    if (exists bkpt.enabled) {
+                                        b.setEnabled(AbstractDebugControl::boolStrings{bkpt.enabled});
+                                    }
+                                    if (exists bkpt.policy) {
+                                        b.setPolicy(AbstractDebugControl::policyStrings{bkpt.policy});
+                                    }
                                     if (bkpt.threads) {
                                         b.setThreadIds(bkpt.threads);
                                     }
