@@ -17,7 +17,6 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-
 %define module_dir %{_libdir}/qore-modules
 Name:           qore
 Version:        0.8.13.1
@@ -214,4 +213,3 @@ cp addon/freedesktop/qore.xml %{buildroot}/%{_datadir}/mime/packages
 %{_mandir}/man1/qore.1.*
 
 %changelog
-

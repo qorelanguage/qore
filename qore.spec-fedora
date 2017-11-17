@@ -85,7 +85,6 @@ modules.
 %files stdlib
 %{user_module_dir}
 %{module_dir}
-%{_libdir}/qore-modules/%{version}/astparser-api-0.21.qmod
 %doc COPYING.MIT README-LICENSE
 
 %package doc
