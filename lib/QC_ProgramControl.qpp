@@ -350,8 +350,11 @@ int ProgramControl::findFunctionStatementId(string function, *list params) {
       return 0;
    ReferenceHolder<QoreValueList> vl(new QoreValueList(params), xsink);
    AbstractStatement* s = p->findFunctionStatement(function->c_str(), *vl, xsink);
-   if (!s)
-      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for function \"%s\"", function->c_str());
+   if (!s) {
+      if (!*xsink)
+         xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for \"%s()\"", function->c_str());
+         return QoreValue();
+   }
    return p->getStatementId(s);
 }
 
@@ -368,6 +371,6 @@ list ProgramControl::findFunctionVariants(string function) {
       return QoreValue();
    ReferenceHolder<QoreValueList> vl(p->runtimeFindCallVariants(function->c_str(), xsink), xsink);
    if (!vl)
-      return xsink->raiseException("PROGRAM-ERROR", "cannot find any function \"%s\"", function->c_str());
+      return xsink->raiseException("PROGRAM-ERROR", "cannot find any function or method \"%s\"", function->c_str());
    return vl->getOldList();
 }

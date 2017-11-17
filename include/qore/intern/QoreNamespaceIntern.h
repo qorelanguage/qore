@@ -220,7 +220,7 @@ public:
       //printd(5, "qore_ns_private::findLoadClass('%s') this: %p ('%s') class_handler: %p found: %d\n", cname, this, name.c_str(), class_handler, classList.find(cname));
       QoreClass* qc = classList.find(cname);
       if (!qc && class_handler)
-	 qc = class_handler(ns, cname);
+         qc = class_handler(ns, cname);
       return qc;
    }
 
@@ -379,6 +379,7 @@ public:
    DLLLOCAL void parseCommit();
    DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
 
+   DLLLOCAL const QoreClass* runtimeMatchScopedClassWithMethod(const NamedScope& nscope) const;
    DLLLOCAL const QoreClass* runtimeMatchClass(const NamedScope& nscope, const qore_ns_private*& rns) const;
    DLLLOCAL const qore_ns_private* runtimeMatchAddClass(const NamedScope& nscope, bool& fnd) const;
 
@@ -1026,8 +1027,8 @@ protected:
       return fmap.find(name) != fmap.end();
    }
 
-   DLLLOCAL const QoreClass* runtimeFindClassIntern(const char* name, const qore_ns_private*& ns) {
-      clmap_t::iterator i = clmap.find(name);
+   DLLLOCAL const QoreClass* runtimeFindClassIntern(const char* name, const qore_ns_private*& ns) const {
+      clmap_t::const_iterator i = clmap.find(name);
 
       if (i != clmap.end()) {
          ns = i->second.ns;
@@ -1038,7 +1039,7 @@ protected:
       return nullptr;
    }
 
-   DLLLOCAL const QoreClass* runtimeFindClassIntern(const NamedScope& name, const qore_ns_private*& ns);
+   DLLLOCAL const QoreClass* runtimeFindClassIntern(const NamedScope& name, const qore_ns_private*& ns) const;
 
    DLLLOCAL const TypedHashDecl* runtimeFindHashDeclIntern(const char* name, const qore_ns_private*& ns) {
       thdmap_t::iterator i = thdmap.find(name);
@@ -1051,8 +1052,6 @@ protected:
 
       return nullptr;
    }
-
-   DLLLOCAL const TypedHashDecl* runtimeFindHashDeclIntern(const NamedScope& name, const qore_ns_private*& ns);
 
    DLLLOCAL const QoreFunction* runtimeFindFunctionIntern(const char* name, const qore_ns_private*& ns) {
       fmap_t::const_iterator i = fmap.find(name);
@@ -1288,9 +1287,12 @@ protected:
       if (ip != pend_thdmap.end())
          return ip->second.obj;
 
-      //printd(5, "qore_root_ns_private::parseFindClassIntern() this: %p '%s' not found\n", this, cname);
+      //printd(5, "qore_root_ns_private::parseFindHashDeclIntern() this: %p '%s' not found\n", this, cname);
       return nullptr;
    }
+
+   DLLLOCAL const QoreClass* runtimeFindScopedClassWithMethod(const NamedScope& name) const;
+   DLLLOCAL const QoreClass* runtimeFindScopedClassWithMethodIntern(const NamedScope& name) const;
 
    DLLLOCAL QoreClass* parseFindScopedClassIntern(const QoreProgramLocation& loc, const NamedScope& name);
    DLLLOCAL QoreClass* parseFindScopedClassIntern(const NamedScope& name, unsigned& matched);
@@ -1336,9 +1338,9 @@ protected:
       return nullptr;
    }
 
-   DLLLOCAL QoreClass* runtimeFindClass(const char* name) {
-      clmap_t::iterator i = clmap.find(name);
-      return i != clmap.end() ? i->second.obj : 0;
+   DLLLOCAL const QoreClass* runtimeFindClass(const char* name) const {
+      clmap_t::const_iterator i = clmap.find(name);
+      return i != clmap.end() ? i->second.obj : nullptr;
    }
 
    DLLLOCAL QoreNamespace* runtimeFindNamespaceForAddFunction(const NamedScope& name, ExceptionSink* xsink) {
@@ -1724,6 +1726,8 @@ public:
 
    DLLLOCAL TypedHashDecl* parseFindHashDecl(const QoreProgramLocation& loc, const NamedScope& name);
 
+   DLLLOCAL const TypedHashDecl* runtimeFindHashDeclIntern(const NamedScope& name, const qore_ns_private*& ns);
+
    DLLLOCAL QoreNamespace* runtimeFindCreateNamespacePath(const NamedScope& nspath, bool pub) {
       assert(nspath.size());
       bool is_new = false;
@@ -1936,6 +1940,8 @@ public:
       return getRootNS()->rpriv->parseResolveFunctionIntern(nscope);
    }
 
+   DLLLOCAL const QoreClass* runtimeFindScopedClass(const NamedScope& name) const;
+
    DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(RootQoreNamespace& rns, const char* name, ExceptionSink* xsink) {
       return rns.rpriv->runtimeGetCallReference(name, xsink);
    }
@@ -1992,7 +1998,7 @@ public:
    }
    */
 
-   DLLLOCAL static QoreClass* runtimeFindClass(RootQoreNamespace& rns, const char* name) {
+   DLLLOCAL static const QoreClass* runtimeFindClass(RootQoreNamespace& rns, const char* name) {
       return rns.rpriv->runtimeFindClass(name);
    }
 
