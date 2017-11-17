@@ -978,6 +978,131 @@ bool return_vec_compare(const q_return_vec_t& a, const q_return_vec_t& b) {
    return typespec_vec_compare<q_return_vec_t>(a, b);
 }
 
+const QoreTypeInfo* QoreParseTypeInfo::resolveRuntime() const {
+   if (!subtypes.empty())
+      return resolveRuntimeSubtype();
+
+   const QoreTypeInfo* rv = or_nothing ? getBuiltinUserOrNothingTypeInfo(cscope->ostr) : getBuiltinUserTypeInfo(cscope->ostr);
+   return rv ? rv : resolveRuntimeClass(*cscope, or_nothing);
+}
+
+const QoreTypeInfo* QoreParseTypeInfo::resolveRuntimeSubtype() const {
+   if (!strcmp(cscope->ostr, "hash")) {
+      if (subtypes.size() == 1) {
+         if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
+            return or_nothing ? autoHashOrNothingTypeInfo : autoHashTypeInfo;
+         // resolve hashdecl
+         const qore_ns_private* ns;
+         const TypedHashDecl* hd = qore_root_ns_private::get(*getRootNS())->runtimeFindHashDeclIntern(*subtypes[0]->cscope, ns);
+         if (!hd)
+            return nullptr;
+         return hd->getTypeInfo(or_nothing);
+      }
+      if (subtypes.size() == 2) {
+         if (strcmp(subtypes[0]->cscope->ostr, "string")) {
+            return nullptr;
+         }
+         else {
+            if (!strcmp(subtypes[1]->cscope->ostr, "auto"))
+               return or_nothing ? autoHashOrNothingTypeInfo : autoHashTypeInfo;
+
+            // resolve value type
+            const QoreTypeInfo* valueType = subtypes[1]->resolveRuntime();
+            if (!valueType)
+               return nullptr;
+            if (QoreTypeInfo::hasType(valueType)) {
+               return !or_nothing
+                  ? qore_program_private::get(*getProgram())->getComplexHashType(valueType)
+                  : qore_program_private::get(*getProgram())->getComplexHashOrNothingType(valueType);
+            }
+         }
+      }
+      else {
+         return nullptr;
+      }
+      return or_nothing ? hashOrNothingTypeInfo : hashTypeInfo;
+   }
+   if (!strcmp(cscope->ostr, "list")) {
+      if (subtypes.size() == 1) {
+         if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
+            return or_nothing ? autoListOrNothingTypeInfo : autoListTypeInfo;
+         // resolve value type
+         const QoreTypeInfo* valueType = subtypes[0]->resolveRuntime();
+         if (!valueType)
+            return nullptr;
+         if (QoreTypeInfo::hasType(valueType)) {
+            return !or_nothing
+            ? qore_program_private::get(*getProgram())->getComplexListType(valueType)
+            : qore_program_private::get(*getProgram())->getComplexListOrNothingType(valueType);
+         }
+      }
+      else {
+         return nullptr;
+      }
+      return or_nothing ? listOrNothingTypeInfo : listTypeInfo;
+   }
+   if (!strcmp(cscope->ostr, "softlist")) {
+      if (subtypes.size() == 1) {
+         if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
+            return or_nothing ? softAutoListOrNothingTypeInfo : softAutoListTypeInfo;
+         // resolve value type
+         const QoreTypeInfo* valueType = subtypes[0]->resolveRuntime();
+         if (!valueType)
+            return nullptr;
+         if (QoreTypeInfo::hasType(valueType)) {
+            return !or_nothing
+            ? qore_program_private::get(*getProgram())->getComplexSoftListType(valueType)
+            : qore_program_private::get(*getProgram())->getComplexSoftListOrNothingType(valueType);
+         }
+      }
+      else {
+         return nullptr;
+      }
+      return or_nothing ? softListOrNothingTypeInfo : softListTypeInfo;
+   }
+   if (!strcmp(cscope->ostr, "reference")) {
+      if (subtypes.size() == 1) {
+         if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
+            return or_nothing ? referenceOrNothingTypeInfo : referenceTypeInfo;
+         // resolve value type
+         const QoreTypeInfo* valueType = subtypes[0]->resolveRuntime();
+         if (!valueType)
+            return nullptr;
+         if (QoreTypeInfo::hasType(valueType)) {
+            return !or_nothing
+            ? qore_program_private::get(*getProgram())->getComplexReferenceType(valueType)
+            : qore_program_private::get(*getProgram())->getComplexReferenceOrNothingType(valueType);
+         }
+      }
+      else {
+         return nullptr;
+      }
+      return or_nothing ? referenceOrNothingTypeInfo : referenceTypeInfo;
+   }
+
+   if (!strcmp(cscope->ostr, "object")) {
+      if (subtypes.size() != 1) {
+         return nullptr;
+      }
+
+      if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
+         return or_nothing ? objectOrNothingTypeInfo : objectTypeInfo;
+
+      // resolve class
+      return resolveRuntimeClass(*subtypes[0]->cscope, or_nothing);
+   }
+   return nullptr;
+}
+
+const QoreTypeInfo* QoreParseTypeInfo::resolveRuntimeClass(const NamedScope& cscope, bool or_nothing) {
+   // resolve class
+   const QoreClass* qc = qore_root_ns_private::get(*getRootNS())->runtimeFindScopedClass(cscope);
+   if (!qc)
+      return nullptr;
+
+   return or_nothing ? qc->getOrNothingTypeInfo() : qc->getTypeInfo();
+}
+
 const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation& loc) const {
    if (!strcmp(cscope->ostr, "hash")) {
       if (subtypes.size() == 1) {

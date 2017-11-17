@@ -960,9 +960,9 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
 
 // finds a variant at runtime
 const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(ExceptionSink* xsink, const type_vec_t& args, const qore_class_private* class_ctx) const {
-   const AbstractQoreFunctionVariant* variant = 0;
+   const AbstractQoreFunctionVariant* variant = nullptr;
 
-   //printd(5, "QoreFunction::runtimeFindExactVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
+   //printd(5, "QoreFunction::runtimeFindExactVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args.size());
 
    const QoreFunction* aqf = nullptr;
    AbstractFunctionSignature* sig = nullptr;
@@ -1037,7 +1037,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(Excepti
       desc->concat(") can be found; ");
       desc->concat("the following variants are defined:");
 
-      last_class = 0;
+      last_class = nullptr;
       internal_access = false;
 
       // add variants tested
@@ -1075,7 +1075,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(Excepti
          //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) getProgram(): %p getProgram()->getParseOptions64(): %x variant->getFunctionality(): %x\n", this, getName(), variant->getSignature()->getSignatureText(), getProgram(), getProgram()->getParseOptions64(), variant->getFunctionality());
          const char* class_name = className();
          xsink->raiseException("INVALID-FUNCTION-ACCESS", "parse options do not allow access to builtin %s '%s%s%s(%s)'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", getName(), variant->getSignature()->getSignatureText());
-         return 0;
+         return nullptr;
       }
 
       assert(!(po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS)) || !(variant->getFlags() & QC_RUNTIME_NOOP));
@@ -1107,10 +1107,10 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
    //printd(5, "QoreFunction::parseFindVariant() this: %p %s() vlist: %d pend: %d ilist: %d num_args: %d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
 
-   QoreFunction* aqf = 0;
+   QoreFunction* aqf = nullptr;
 
    // parent class while iterating
-   const qore_class_private* last_class = 0;
+   const qore_class_private* last_class = nullptr;
    bool internal_access = false;
 
    int64 po = parse_get_parse_options();
