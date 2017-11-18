@@ -207,6 +207,8 @@ QoreValueList::QoreValueList(bool i) : AbstractQoreNode(NT_VALUE_LIST, !i, i), p
 */
 
 QoreValueList::QoreValueList(const QoreListNode* l) : AbstractQoreNode(NT_VALUE_LIST, true, false), priv(new qore_value_list_private) {
+   if (!l)
+      return;
    ConstListIterator li(l);
    while (li.next()) {
       const AbstractQoreNode* v = li.getValue();

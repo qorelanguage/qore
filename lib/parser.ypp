@@ -1026,7 +1026,7 @@ public:
       return new ParserTypeStruct(getParseType(loc, id, or_nothing));
    }
 
-   DLLLOCAL static void getSubTypes(const QoreProgramLocation& loc, const char* str, parse_type_vec_t& subtypes) {
+   DLLLOCAL static void getSubTypes(const QoreProgramLocation& loc, const char* str, parse_type_vec_t& subtypes, bool raise_error = true) {
       QoreString buf;
       bool or_nothing = false;
       bool comma = false;
@@ -1035,7 +1035,7 @@ public:
       while (true) {
          if (*p == '\0') {
             if (buf.empty()) {
-               if (comma)
+               if (comma && raise_error)
                   parse_error(loc, "empty subtype specification in type");
             }
             else
@@ -1045,12 +1045,14 @@ public:
          switch (*p) {
             case '<': {
                if (buf.empty()) {
-                  parse_error(loc, "invalid subtype specification in '%s'", str);
+                  if (raise_error)
+                     parse_error(loc, "invalid subtype specification in '%s'", str);
                   return;
                }
                const char* e = strrchr(str, '>');
                if (!e || e < p) {
-                  parse_error(loc, "unbalanced angle brackets in subtype specification in '%s'", str);
+                  if (raise_error)
+                     parse_error(loc, "unbalanced angle brackets in subtype specification in '%s'", str);
                   return;
                }
                buf.concat(p, e - p + 1);
@@ -1065,10 +1067,11 @@ public:
             case ',':
                buf.trim();
                if (buf.empty()) {
-                  parse_error(loc, "invalid subtype specification in '%s'", str);
+                  if (raise_error)
+                     parse_error(loc, "invalid subtype specification in '%s'", str);
                   return;
                }
-               subtypes.push_back(getParseType(loc, buf.giveBuffer(), or_nothing));
+               subtypes.push_back(getParseType(loc, buf.giveBuffer(), or_nothing, raise_error));
                buf.reset();
                or_nothing = false;
                comma = true;
@@ -1097,7 +1100,7 @@ public:
       }
    }
 
-   DLLLOCAL static QoreParseTypeInfo* getParseType(const QoreProgramLocation& loc, char* id, bool or_nothing) {
+   DLLLOCAL static QoreParseTypeInfo* getParseType(const QoreProgramLocation& loc, char* id, bool or_nothing, bool raise_error = true) {
       //printd(0, "gPT() '%s'\n", id);
       char* p0 = strchr(id, '<');
       if (p0) {
@@ -1109,13 +1112,41 @@ public:
             *p1 = '\0';
 
             parse_type_vec_t subtypes;
-            getSubTypes(loc, p0 + 1, subtypes);
+            getSubTypes(loc, p0 + 1, subtypes, raise_error);
             return new QoreParseTypeInfo(id, or_nothing, std::move(subtypes));
          }
       }
       return new QoreParseTypeInfo(id, or_nothing);
    }
+
+   DLLLOCAL static const QoreTypeInfo* getRuntimeType(const char* str) {
+      assert(str);
+      assert(str[0]);
+      char* p;
+      bool or_nothing;
+      if (str[0] == '*') {
+         or_nothing = true;
+         p = strdup(str + 1);
+      }
+      else {
+         or_nothing = false;
+         p = strdup(str);
+      }
+      std::unique_ptr<QoreParseTypeInfo> pt(ParserTypeStruct::getParseType(QoreProgramLocation(), p, or_nothing, false));
+      return QoreParseTypeInfo::resolveRuntime(pt.get());
+   }
 };
+
+const QoreTypeInfo* qore_get_type_from_string(const char* str) {
+    ExceptionSink xsink;
+    ProgramRuntimeParseAccessHelper pah(&xsink, getProgram());
+    if (xsink) {
+        xsink.clear();
+        return nullptr;
+    }
+
+    return ParserTypeStruct::getRuntimeType(str);
+}
 
 static AbstractQoreNode* process_dot(int sline, int eline, AbstractQoreNode* l, AbstractQoreNode* r) {
    qore_type_t rtype = r->getType();

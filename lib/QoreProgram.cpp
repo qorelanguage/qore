@@ -850,7 +850,7 @@ void qore_program_private::del(ExceptionSink* xsink) {
    statementByLabelIndex.clear();
 }
 
-QoreClass* qore_program_private::runtimeFindClass(const char* class_name, ExceptionSink* xsink) const {
+const QoreClass* qore_program_private::runtimeFindClass(const char* class_name, ExceptionSink* xsink) const {
    // acquire safe access to parse structures in the source program
    ProgramRuntimeParseAccessHelper rah(xsink, pgm);
    if (*xsink)
@@ -1511,7 +1511,7 @@ int QoreProgram::parseRollback(ExceptionSink* xsink) {
 
 void QoreProgram::runClass(const char* classname, ExceptionSink* xsink) {
    // find class
-   QoreClass* qc = qore_root_ns_private::runtimeFindClass(*priv->RootNS, classname);
+   const QoreClass* qc = qore_root_ns_private::runtimeFindClass(*priv->RootNS, classname);
    if (!qc) {
       xsink->raiseException("CLASS-NOT-FOUND", "cannot find any class '%s' in any namespace", classname);
       return;
@@ -1871,24 +1871,14 @@ AbstractStatement* QoreProgram::findStatement(const char* fileName, int line) co
    return priv->getStatementFromIndex(fileName, line);
 }
 
-// TODO: remove
-AbstractStatement* QoreProgram::findMethodStatement(const char* className, const char* methodName, const QoreValueList* params, ExceptionSink *xsink) const {
-
-   QoreClass* cl = qore_root_ns_private::runtimeFindClass(*(priv->RootNS), className);
-   if (!cl)
-      return 0;
-   // TODO: is class used as namespace ??
-   // const qore_class_private* class_ctx = cl->pric
-   return 0;
-}
-
 AbstractStatement* QoreProgram::findFunctionStatement(const char* functionName, const QoreValueList* params, ExceptionSink* xsink) const {
    const AbstractQoreFunctionVariant* uv = runtimeFindCall(functionName, params, xsink);
    if (!uv)
-      return 0;
+      return nullptr;
    const UserVariantBase* uvb = uv->getUserVariantBase();
+   //printd(5, "QoreProgram::findFunctionStatement() '%s' -> %p\n", functionName, uvb);
    if (!uvb)
-      return 0;
+      return nullptr;
    return uvb->getStatementBlock();
 }
 
