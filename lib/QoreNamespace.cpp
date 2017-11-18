@@ -97,6 +97,7 @@
 DLLLOCAL QoreClass* initReadOnlyFileClass(QoreNamespace& ns);
 
 DLLLOCAL QoreClass* initAbstractDatasourceClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initAbstractSQLStatementClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractQuantifiedIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractBidirectionalIteratorClass(QoreNamespace& ns);
@@ -1007,6 +1008,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    // create Qore::SQL namespace
    QoreNamespace* sqlns = new QoreNamespace("SQL");
 
+   sqlns->addSystemClass(initAbstractSQLStatementClass(*sqlns));
    sqlns->addSystemClass(initAbstractDatasourceClass(*sqlns));
    sqlns->addSystemClass(initDatasourceClass(*sqlns));
    sqlns->addSystemClass(initDatasourcePoolClass(*sqlns));
