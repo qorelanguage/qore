@@ -11,9 +11,15 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
        ON)
 
 set(VERSION_MAJOR 0)
-set(VERSION_MINOR 8)
-set(VERSION_SUB 13)
-set(VERSION_PATCH 1)
+set(VERSION_MINOR 9)
+set(VERSION_SUB 0)
+
+STRING(LENGTH ${VERSION_SUB} SUB_LEN)
+if (${SUB_LEN} EQUAL 1)
+    set(VERSION_FORMATTED_SUB 0${VERSION_SUB})
+else()
+    set(VERSION_FORMATTED_SUB ${VERSION_SUB})
+endif()
 
 if(DEFINED VERSION_PATCH)
     set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH})
@@ -103,6 +109,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_InputStreamLineIterator.qpp
     lib/QC_SingleValueIterator.qpp
     lib/QC_AbstractDatasource.qpp
+    lib/QC_AbstractSQLStatement.qpp
     lib/QC_RangeIterator.qpp
     lib/QC_Datasource.qpp
     lib/QC_DatasourcePool.qpp
