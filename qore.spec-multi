@@ -90,6 +90,7 @@ development but is also useful as a general purpose language.
 %package -n %{libname}
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
+Provides: qore-module(abi)%{?_isa} = 0.21
 Provides: qore-module(abi)%{?_isa} = 0.20
 Provides: qore-module(abi)%{?_isa} = 0.19
 Provides: qore-module(abi)%{?_isa} = 0.18
@@ -126,7 +127,7 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.14.0
+%{_libdir}/libqore.so.5.14.1
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
@@ -140,7 +141,7 @@ ldconfig %{_libdir}
 Summary: Standard library modules
 Group: System Environment/Libraries
 Requires: libqore = %{version}-%{release}
-Requires: qore-module(abi)%{?_isa} = 0.20
+Requires: qore-module(abi)%{?_isa} = 0.21
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -216,6 +217,26 @@ This package provides HTML documentation for the C++ API for the Qore library.
 %files devel-doc
 %defattr(-,root,root,-)
 %doc docs/library/html/*
+
+%package misc-tools
+Summary: Miscellaneous user tools writen in Qore Programming Language
+License: LGPL-2.0+ or GPL-2.0+ or MIT
+Group: Development/Tools/Other
+Requires: qore = %{version}-%{release}
+BuildArch: noarch
+
+%description misc-tools
+This package contains tool for working with:
+ - REST APIs
+ - SQL Databases
+
+%files misc-tools
+%defattr(-,root,root,-)
+%{_bindir}/qget
+%{_bindir}/rest
+%{_bindir}/sfrest
+%{_bindir}/sqlutil
+%{_bindir}/schema-reverse
 
 %prep
 %setup -q
