@@ -17,7 +17,6 @@
 # Please submit bugfixes or comments via http://bugs.opensuse.org/
 #
 
-
 %define module_dir %{_libdir}/qore-modules
 Name:           qore
 Version:        0.9
@@ -60,6 +59,7 @@ Group:          Development/Languages/Other
 Provides:       qore-module(abi)%{?_isa} = 0.18
 Provides:       qore-module(abi)%{?_isa} = 0.19
 Provides:       qore-module(abi)%{?_isa} = 0.20
+Provides:       qore-module(abi)%{?_isa} = 0.21
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
 Provides:       qore-module-api-0.10
 Provides:       qore-module-api-0.11
@@ -87,7 +87,7 @@ functionality.
 
 %files -n libqore5
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.14.0
+%{_libdir}/libqore.so.5.14.1
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
@@ -156,6 +156,7 @@ Summary:        Miscellaneous user tools writen in Qore Programming Language
 License:        LGPL-2.0+ or GPL-2.0+ or MIT
 Group:          Development/Tools/Other
 Requires:       qore = %{version}-%{release}
+BuildArch:      noarch
 
 %description misc-tools
 This package contains tool for working with:
@@ -207,9 +208,8 @@ cp addon/freedesktop/qore.xml %{buildroot}/%{_datadir}/mime/packages
 %{_bindir}/qdbg*
 %{module_dir}
 %dir %{_datadir}/qore-modules
-%{_datadir}/qore-modules/0.8.13
+%{_datadir}/qore-modules/0.9.0
 %{_datadir}/mime/packages/qore.xml
 %{_mandir}/man1/qore.1.*
 
 %changelog
-

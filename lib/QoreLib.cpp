@@ -1464,11 +1464,37 @@ QoreStringNode* q_strerror(int err) {
    return rv;
 }
 
-#ifdef HAVE_SIGNAL_HANDLING
 QoreStringNode* qore_reassign_signal(int sig, const char* name) {
-   return QSM.reassign_signal(sig, name);
-}
+#ifdef HAVE_SIGNAL_HANDLING
+   return QSM.reassignSignal(sig, name);
+#else
+   return nullptr;
 #endif
+}
+
+QoreStringNode* qore_reassign_signals(const sig_vec_t& sig_vec, const char* name) {
+#ifdef HAVE_SIGNAL_HANDLING
+   return QSM.reassignSignals(sig_vec, name);
+#else
+   return nullptr;
+#endif
+}
+
+int qore_release_signal(int sig, const char* name) {
+#ifdef HAVE_SIGNAL_HANDLING
+   return QSM.releaseSignal(sig, name);
+#else
+   return 0;
+#endif
+}
+
+int qore_release_signals(const sig_vec_t& sig_vec, const char* name) {
+#ifdef HAVE_SIGNAL_HANDLING
+    return QSM.releaseSignals(sig_vec, name);
+#else
+    return 0;
+#endif
+}
 
 // returns 0 for OK, -1 for error
 int check_lvalue(AbstractQoreNode* node, bool assignment) {

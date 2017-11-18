@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -193,7 +193,12 @@ public:
    // try to allow the signal to be managed externally (by a module)
    // sig = signal number, name = name of module to manage signal
    // returns 0 for OK, or an error string on error
-   DLLLOCAL QoreStringNode* reassign_signal(int sig, const char* name);
+   DLLLOCAL QoreStringNode* reassignSignal(int sig, const char* name);
+   // 0 = OK, -1 = no signals allocated (all or nothing)
+   DLLLOCAL QoreStringNode* reassignSignals(const sig_vec_t& sig_vec, const char* name);
+   DLLLOCAL int releaseSignal(int sig, const char* name);
+   // 0 = OK, -1 = no signals release (all or nothing)
+   DLLLOCAL int releaseSignals(const sig_vec_t& sig_vec, const char* name);
 };
 
 DLLLOCAL extern QoreSignalManager QSM;
