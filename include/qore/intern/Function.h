@@ -366,11 +366,11 @@ public:
 
    DLLLOCAL virtual UserVariantBase* getUserVariantBase() {
       return 0;
-   }
+    }
 
    DLLLOCAL const UserVariantBase* getUserVariantBase() const {
       // avoid the virtual function call if possible
-      return is_user ? const_cast<AbstractQoreFunctionVariant*>(this)->getUserVariantBase() : 0;
+      return is_user ? const_cast<AbstractQoreFunctionVariant*>(this)->getUserVariantBase() : nullptr;
    }
 
    DLLLOCAL virtual QoreValue evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {

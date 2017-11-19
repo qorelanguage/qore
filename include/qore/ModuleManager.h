@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -43,10 +43,10 @@
  */
 
 #define QORE_MODULE_API_MAJOR 0  //!< the major number of the Qore module API implemented
-#define QORE_MODULE_API_MINOR 20 //!< the minor number of the Qore module API implemented
+#define QORE_MODULE_API_MINOR 21 //!< the minor number of the Qore module API implemented
 
 #define QORE_MODULE_COMPAT_API_MAJOR 0  //!< the major number of the earliest recommended Qore module API
-#define QORE_MODULE_COMPAT_API_MINOR 20 //!< the minor number of the earliest recommended Qore module API 
+#define QORE_MODULE_COMPAT_API_MINOR 21 //!< the minor number of the earliest recommended Qore module API
 
 //! element of qore_mod_api_list;
 struct qore_mod_api_compat_s {
@@ -77,14 +77,14 @@ typedef void (*qore_module_delete_t)();
 //! signature of the module parse command function
 typedef void (*qore_module_parse_cmd_t)(const QoreString &cmd, ExceptionSink *xsink);
 
-enum mod_op_e { MOD_OP_NONE, MOD_OP_EQ, MOD_OP_GT, 
+enum mod_op_e { MOD_OP_NONE, MOD_OP_EQ, MOD_OP_GT,
 		MOD_OP_GE, MOD_OP_LT, MOD_OP_LE };
 
 //! manages the loading of Qore modules from feature or path names.  Also manages adding module changes into QoreProgram objects.
-/** in the case that a QoreProgram object is created before a module is loaded externally 
+/** in the case that a QoreProgram object is created before a module is loaded externally
     (either through another QoreProgram object or through a direct call to the appropriate
     ModuleManager function), if the QoreProgram object then requests the feature, the
-    ModuleManager will load in all namespace (class, constant, etc) changes into the 
+    ModuleManager will load in all namespace (class, constant, etc) changes into the
     QoreProgram object.
     All members and methods are static; there will always only be one of these...
 */

@@ -122,6 +122,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_InputStreamLineIterator.qpp \
 	lib/QC_SingleValueIterator.qpp \
 	lib/QC_AbstractDatasource.qpp \
+	lib/QC_AbstractSQLStatement.qpp \
 	lib/QC_RangeIterator.qpp \
 	lib/QC_Datasource.qpp \
 	lib/QC_DatasourcePool.qpp \
@@ -207,6 +208,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/astparser/src/QC_AstTree.qpp \
 	modules/astparser/src/QC_AstTreeSearcher.qpp \
+	modules/astparser/src/ql_ast.qpp \
 	modules/astparser/src/AstParseErrorLog.h \
 	modules/astparser/src/AstParser.h \
 	modules/astparser/src/AstParserHolder.h \
@@ -219,6 +221,13 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/astparser/src/QC_AstTreeSearcher.h \
 	modules/astparser/src/ast_scanner.lpp \
 	modules/astparser/src/ast_parser.ypp \
+	modules/astparser/src/ql_ast.h \
+	modules/astparser/src/ast/ASTSymbolKind.h \
+	modules/astparser/src/ast/ASTDeclarationKind.h \
+	modules/astparser/src/ast/ASTSymbolUsageKind.h \
+	modules/astparser/src/ast/ASTExpressionKind.h \
+	modules/astparser/src/ast/ASTStatementKind.h \
+	modules/astparser/src/ast/ASTNodeType.h \
 	modules/astparser/src/ast/ASTModifiers.h \
 	modules/astparser/src/ast/ASTTree.h \
 	modules/astparser/src/ast/ASTStatement.h \
@@ -229,6 +238,7 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/astparser/src/ast/ASTParseLocation.h \
 	modules/astparser/src/ast/ASTName.h \
 	modules/astparser/src/ast/AST.h \
+	modules/astparser/src/ast/expressions/ASTRangeExpression.h \
 	modules/astparser/src/ast/expressions/ASTImplicitElemExpression.h \
 	modules/astparser/src/ast/expressions/ASTContextModExpression.h \
 	modules/astparser/src/ast/expressions/ASTReturnsExpression.h \

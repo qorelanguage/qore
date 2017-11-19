@@ -190,13 +190,24 @@ DLLEXPORT qore_type_result_e typeInfoReturnsType(const QoreTypeInfo* typeInfo, c
 
 DLLEXPORT const QoreTypeInfo* qore_get_or_nothing_type(const QoreTypeInfo* typeInfo);
 
+// @since %Qore 0.8.13
 DLLEXPORT const QoreTypeInfo* qore_get_complex_hash_type(const QoreTypeInfo* valueTypeInfo);
+// @since %Qore 0.8.13
 DLLEXPORT const QoreTypeInfo* qore_get_complex_hash_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
+// @since %Qore 0.8.13
 DLLEXPORT const QoreTypeInfo* qore_get_complex_list_type(const QoreTypeInfo* valueTypeInfo);
+// @since %Qore 0.8.13
 DLLEXPORT const QoreTypeInfo* qore_get_complex_list_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
+// @since %Qore 0.8.13
 DLLEXPORT const QoreTypeInfo* qore_get_complex_softlist_type(const QoreTypeInfo* valueTypeInfo);
+// @since %Qore 0.8.13
 DLLEXPORT const QoreTypeInfo* qore_get_complex_softlist_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
+// @since %Qore 0.8.13
 DLLEXPORT const QoreTypeInfo* qore_get_complex_reference_type(const QoreTypeInfo* valueTypeInfo);
+// @since %Qore 0.8.13
 DLLEXPORT const QoreTypeInfo* qore_get_complex_reference_or_nothing_type(const QoreTypeInfo* valueTypeInfo);
+
+// @since %Qore 0.8.13.1
+DLLEXPORT const QoreTypeInfo* qore_get_type_from_string(const char* str);
 
 #endif // _QORE_QORETYPE_H

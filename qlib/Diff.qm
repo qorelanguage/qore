@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+# minimum Qore version
+%requires qore >= 0.8.13
 %require-types
 %enable-all-warnings
 %new-style

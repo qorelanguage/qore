@@ -1036,6 +1036,10 @@ public:
       return pti ? pti->resolveAny(loc) : nullptr;
    }
 
+   DLLLOCAL static const QoreTypeInfo* resolveRuntime(QoreParseTypeInfo* pti) {
+      return pti ? pti->resolveRuntime() : nullptr;
+   }
+
 #ifdef DEBUG
    DLLLOCAL const char* getCID() const { return cscope ? cscope->getIdentifier() : "n/a"; }
 
@@ -1101,6 +1105,10 @@ private:
    // resolves the current type to an QoreTypeInfo pointer and deletes itself
    DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation& loc);
    DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation& loc) const;
+
+   DLLLOCAL const QoreTypeInfo* resolveRuntime() const;
+   DLLLOCAL const QoreTypeInfo* resolveRuntimeSubtype() const;
+   DLLLOCAL static const QoreTypeInfo* resolveRuntimeClass(const NamedScope& cscope, bool or_nothing);
 
    DLLLOCAL const char* getName() const {
       return tname.c_str();
