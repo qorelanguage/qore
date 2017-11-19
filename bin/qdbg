@@ -118,7 +118,8 @@ class DebugWrapper {
         if (opt.verbose) {
             logger.verbose = opt.verbose;
         }
-        dcl = new DebugCommandLineLocal(new DebugProgramControlLocal());
+        DebugProgramControlLocal dpcl();
+        dcl = new DebugCommandLineLocal(dpcl);
         dcl.logger = logger;
         dcl.dpc.logger = logger;
         try {
@@ -132,6 +133,8 @@ class DebugWrapper {
             dcl.init(opt);
             dcl.runCmdLine();
 
+            # resume any blocked debug threads
+            dpcl.shutdown();
         } catch (hash e) {
             stderr.printf("%s: %s\n", e.err, e.desc);
             exit(-1);
