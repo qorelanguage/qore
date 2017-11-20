@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 
 #define _QORE_STATEMENT_BLOCK_H
 
-#include <qore/intern/AbstractStatement.h>
+#include "qore/intern/AbstractStatement.h"
 #include <qore/safe_dslist>
 
 #include <set>
@@ -108,26 +108,23 @@ protected:
    typedef safe_dslist<AbstractStatement*> statement_list_t;
    statement_list_t statement_list;
    block_list_t on_block_exit_list;
-   LVList* lvars;
+   LVList* lvars = nullptr;
 
    // start must be the element before the start position
    DLLLOCAL int parseInitIntern(LocalVar* oflag, int pflag, statement_list_t::iterator start);
+   DLLLOCAL void parseCommitIntern(statement_list_t::iterator start);
    DLLLOCAL bool hasLastReturn(AbstractStatement* as);
    DLLLOCAL void parseCheckReturn();
 
    DLLLOCAL int execIntern(QoreValue& return_value, ExceptionSink* xsink);
 
-   DLLLOCAL StatementBlock() : AbstractStatement(-1, -1), lvars(0) {
-   }
+   DLLLOCAL StatementBlock();
 
 public:
-   DLLLOCAL StatementBlock(int sline, int eline) : AbstractStatement(sline, eline), lvars(0) {
-   }
+   DLLLOCAL StatementBlock(int sline, int eline);
 
    // line numbers on statement blocks are set later
-   DLLLOCAL StatementBlock(int sline, int eline, AbstractStatement* s) : AbstractStatement(sline, eline), lvars(0) {
-      addStatement(s);
-   }
+   DLLLOCAL StatementBlock(int sline, int eline, AbstractStatement* s);
 
    DLLLOCAL virtual ~StatementBlock() {
       del();
@@ -152,6 +149,8 @@ public:
 
    // initialize closure blocks
    DLLLOCAL void parseInitClosure(UserVariantBase* uvb, UserClosureFunction* cf);
+
+   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 
    DLLLOCAL void exec();
 
@@ -192,9 +191,7 @@ public:
    using StatementBlock::parseInit;
    DLLLOCAL void parseInit(int64 po);
 
-   DLLLOCAL void parseCommit() {
-      hwm = statement_list.last();
-   }
+   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 
    DLLLOCAL void parseRollback() {
       // delete all statements after the high water mark (hwm) to the end of the list

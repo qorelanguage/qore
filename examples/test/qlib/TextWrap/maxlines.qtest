@@ -1,0 +1,109 @@
+#!/usr/bin/env qore
+
+%include common.q
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class MaxLinesTest
+
+#! Test TextWrap::TextWrapper
+public class MaxLinesTest inherits BaseTest {
+    constructor () : BaseTest ("MaxLinesTest", "1.0") {
+        addTestCase ("TextWrap - MaxLinesTest - test_simple", \test_simple());
+        addTestCase ("TextWrap - MaxLinesTest - test_spaces", \test_spaces());
+        addTestCase ("TextWrap - MaxLinesTest - test_placeholder", \test_placeholder());
+        set_return_value(main());
+    }
+
+    private {
+        string text = "Hello there, how are you this fine day?  I'm glad to hear it!";
+    }
+
+    test_simple () {
+        self.check_wrap(self.text, 12,
+                        ("Hello [...]",),
+                        ('max_lines': 0));
+        self.check_wrap(self.text, 12,
+                        ("Hello [...]",),
+                        ('max_lines': 1));
+        self.check_wrap(self.text, 12,
+                        ("Hello there,",
+                         "how [...]"),
+                        ('max_lines': 2));
+        self.check_wrap(self.text, 13,
+                        ("Hello there,",
+                         "how are [...]"),
+                        ('max_lines': 2));
+        self.check_wrap(self.text, 80, (self.text,), ('max_lines': 1));
+        self.check_wrap(self.text, 12,
+                        ("Hello there,",
+                         "how are you",
+                         "this fine",
+                         "day?  I'm",
+                         "glad to hear",
+                         "it!"),
+                        ('max_lines': 6));
+    }
+
+    test_spaces () {
+        # strip spaces before placeholder
+        self.check_wrap(self.text, 12,
+                        ("Hello there,",
+                         "how are you",
+                         "this fine",
+                         "day? [...]"),
+                        ('max_lines': 4));
+        # placeholder at the start of line
+        self.check_wrap(self.text, 6,
+                        ("Hello",
+                         "[...]"),
+                        ('max_lines': 2));
+        # final spaces
+        self.check_wrap(self.text + strmul(' ', 10), 12,
+                        ("Hello there,",
+                         "how are you",
+                         "this fine",
+                         "day?  I'm",
+                         "glad to hear",
+                         "it!"),
+                        ('max_lines': 6));
+    }
+
+    test_placeholder () {
+        self.check_wrap(self.text, 12,
+                        ("Hello...",),
+                        ('max_lines': 1,
+                         'placeholder': '...'));
+        self.check_wrap(self.text, 12,
+                        ("Hello there,",
+                         "how are..."),
+                        ('max_lines': 2,
+                         'placeholder': '...'));
+
+        # long placeholder and indentation
+        code kod = sub (hash opts) { wrap(self.text, 16, opts); };
+        assertThrows ("VALUE-ERROR", kod, (('initial_indent': '    ',
+                                            'max_lines': 1,
+                                            'placeholder': ' [truncated]...'),));
+        assertThrows ("VALUE-ERROR", kod, (('subsequent_indent': '    ',
+                                            'max_lines': 2,
+                                            'placeholder': ' [truncated]...'),));
+
+        self.check_wrap(self.text, 16,
+                        ("    Hello there,",
+                         "  [truncated]..."),
+                        ('max_lines': 2,
+                         'initial_indent': '    ',
+                         'subsequent_indent': '  ',
+                         'placeholder': ' [truncated]...'));
+        self.check_wrap(self.text, 16,
+                        ("  [truncated]...",),
+                        ('max_lines': 1,
+                         'initial_indent': '  ',
+                         'subsequent_indent': '    ',
+                         'placeholder': ' [truncated]...'));
+        self.check_wrap(self.text, 80, (self.text,), ('placeholder': strmul('.', 1000)));
+    }
+}

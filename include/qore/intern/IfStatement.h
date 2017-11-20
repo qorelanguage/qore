@@ -33,7 +33,7 @@
 
 #define _QORE_IFSTATEMENT_H
 
-#include <qore/intern/AbstractStatement.h>
+#include "qore/intern/AbstractStatement.h"
 
 class IfStatement : public AbstractStatement {
 private:
@@ -52,6 +52,7 @@ public:
    DLLLOCAL virtual bool hasFinalReturn() const {
       return if_code && if_code->hasFinalReturn() && else_code && else_code->hasFinalReturn();
    }
+   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 };
 
 #endif

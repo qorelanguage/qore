@@ -32,7 +32,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_dbi_private.h>
+#include "qore/intern/qore_dbi_private.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -68,6 +68,7 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_EVENTS,                 "Events" },
   { DBI_CAP_HAS_DESCRIBE,           "HasDescribe" },
   { DBI_CAP_HAS_ARRAY_BIND,         "HasArrayBind" },
+  { DBI_CAP_HAS_RESULTSET_OUTPUT,   "HasResultsetOutput" },
 };
 
 #define NUM_DBI_CAPS (sizeof(dbi_cap_list) / sizeof(dbi_cap_hash))
@@ -256,7 +257,9 @@ OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver
 
    tmp = true;
    val->ref();
-   val = QoreTypeInfo::acceptInputParam(ti, -1, "<dbi driver option>", val, xsink);
+   QoreValue qv(val);
+   QoreTypeInfo::acceptInputParam(ti, -1, "<dbi driver option>", qv, xsink);
+   val = qv.takeNode();
 }
 
 qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private& methods, int cps) {
@@ -565,8 +568,13 @@ void DBI_concat_numeric(QoreString* str, const AbstractQoreNode* v) {
    }
 
    qore_type_t t = v->getType();
-   if (t == NT_FLOAT || (t == NT_STRING && strchr((reinterpret_cast<const QoreStringNode*>(v))->getBuffer(), '.'))) {
+   if (t == NT_FLOAT || (t == NT_STRING && strchr((reinterpret_cast<const QoreStringNode*>(v))->c_str(), '.'))) {
+      size_t offset = str->size();
       str->sprintf("%g", v->getAsFloat());
+      // issue 1556: external modules that call setlocale() can change
+      // the decimal point character used here from '.' to ','
+      // only search the double added, QoreString::sprintf() concatenates
+      q_fix_decimal(str, offset);
       return;
    }
    else if (t == NT_NUMBER) {

@@ -2,7 +2,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file qget example program showing I/O event monitoring
 
-/*  get Copyright 2011 - 2016 David Nichols
+/*  qget Copyright 2011 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -51,13 +51,15 @@
 # size
 
 # ensure we have the minimum version of qore we need
-%requires qore >= 0.8.4
+%requires qore >= 0.8.13
 
 %require-our
 %enable-all-warnings
 %new-style
 %require-types
 %strict-args
+
+%requires ConnectionProvider
 
 our hash o; # global variable for options
 our int start; # global variable for start time
@@ -288,6 +290,13 @@ sub main() {
     *string url = shift ARGV;
     if (!exists url)
 	usage();
+
+    {
+        string orig_url = url;
+        url = get_connection_url(url);
+        if (url != orig_url)
+            printf("using connection: %y url: %y\n", orig_url, url);
+    }
 
     hash u = parse_url(url);
     any x;

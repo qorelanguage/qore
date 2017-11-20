@@ -1,10 +1,10 @@
 /*
   ComplexContextrefNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
-  
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -35,7 +35,7 @@ class CVNode {
 public:
    const char *name;
    CVNode *next;
-      
+
    DLLLOCAL CVNode(const char *n) : name(n), next(getCVarStack()) {
       updateCVarStack(this);
    }
@@ -52,7 +52,7 @@ void pop_cvar() {
    delete getCVarStack();
 }
 
-ComplexContextrefNode::ComplexContextrefNode(char *str) : ParseNode(NT_COMPLEXCONTEXTREF) {
+ComplexContextrefNode::ComplexContextrefNode(const QoreProgramLocation& loc, char *str) : ParseNode(loc, NT_COMPLEXCONTEXTREF) {
    char *c = strchr(str, ':');
    *c = '\0';
    name = strdup(str);
@@ -62,9 +62,9 @@ ComplexContextrefNode::ComplexContextrefNode(char *str) : ParseNode(NT_COMPLEXCO
 
 ComplexContextrefNode::~ComplexContextrefNode() {
    if (name)
-      free(name); 
+      free(name);
    if (member)
-      free(member); 
+      free(member);
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -105,10 +105,10 @@ AbstractQoreNode *ComplexContextrefNode::parseInitImpl(LocalVar *oflag, int pfla
    typeInfo = 0;
 
    if (!getCVarStack()) {
-      parse_error("complex context reference \"%s:%s\" encountered out of context", name, member);
+      parse_error(loc, "complex context reference \"%s:%s\" encountered out of context", name, member);
       return this;
    }
-      
+
    int cur_stack_offset = 0;
    bool found = false;
    CVNode *cvn = getCVarStack();
@@ -121,7 +121,7 @@ AbstractQoreNode *ComplexContextrefNode::parseInitImpl(LocalVar *oflag, int pfla
       cur_stack_offset++;
    }
    if (!found)
-      parse_error("\"%s\" does not match any current context", name);
+      parse_error(loc, "\"%s\" does not match any current context", name);
    else
       stack_offset = cur_stack_offset;
 

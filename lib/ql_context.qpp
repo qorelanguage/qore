@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/Context.h>
+#include "qore/intern/Context.h"
 
 static AbstractQoreNode* cx_err(const char* func, ExceptionSink* xsink) {
    return xsink->raiseException("CONTEXT-ERROR", "function %s() called without a current data iteration context", func);
@@ -48,7 +48,7 @@ static AbstractQoreNode* cx_err(const char* func, ExceptionSink* xsink) {
     @par Example:
     @code{.py}
 context (ds.select(sql)) {
-    any val = cx_value("column1");
+    auto val = cx_value("column1");
 }
     @endcode
 
@@ -57,7 +57,7 @@ context (ds.select(sql)) {
 
     @since %Qore 0.8.4
  */
-any cx_value(string key) [flags=RET_VALUE_ONLY] {
+auto cx_value(string key) [flags=RET_VALUE_ONLY] {
    Context* c = get_context_stack();
    if (!c)
       return cx_err("cx_value", xsink);

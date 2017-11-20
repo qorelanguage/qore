@@ -17,12 +17,9 @@ public class XrangeTest inherits QUnit::Test {
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
     }
-    
-    test_xrange(list correct, RangeIterator testing, string message) {
-        list lst;
-        foreach int i in (testing)
-            push lst, i;
 
+    test_xrange(list correct, RangeIterator testing, string message) {
+        list lst = map $1, testing;
         assertEq(correct, lst, message);
     }
 

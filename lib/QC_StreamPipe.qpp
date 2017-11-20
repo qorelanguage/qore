@@ -1,0 +1,140 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_StreamPipe.qpp StreamPipe class definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2016 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include "qore/Qore.h"
+#include "qore/intern/StreamPipe.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreClassIntern.h"
+
+DLLEXPORT extern QoreClass* QC_PIPEINPUTSTREAM;
+DLLEXPORT extern QoreClass* QC_PIPEOUTPUTSTREAM;
+
+//! This class provides a pair of streams connected through a buffer.
+/** The input stream provides the bytes that are written to the output stream. Data should be written to and read from
+    the streams by different threads. The pipe contains a buffer (the size can be specified in the constructor) - the
+    reading operations on the input stream are blocked if the buffer is empty and the writing operations on the
+    output stream are blocked if the buffer is full. The input stream reports the end of the stream once the output
+    stream is closed using @ref OutputStream::close() and all remaining data are read from the buffer. On the other
+    hand, the @ref OutputStream::close() method waits until @ref PipeInputStream::finishClose() is called on the StreamPipe object
+    which can be used to delay the main thread until all data are read from the pipe in the background thread.
+
+    @par Broken pipe
+    A broken pipe is a situation when one of the streams ceases to exist (goes out of scope). In that case, a
+    BROKEN-PIPE-ERROR is thrown by any operation on the other stream. This is particularly useful for unblocking the
+    background producer (or consumer) when the other end stops consuming data before the end of the stream is reached
+    (or stops producing data without closing the stream). For this to work as intended, it is important not to hold
+    on to the StreamPipe instance since it keeps references to both streams. See the examples below for templates
+    of correct usage and note that the StreamPipe instance goes out of scope as soon as possible.
+
+    @par Example: pulling data from a background producer
+    @code{.py}
+    InputStream sub example() {
+        StreamPipe pipe(False);         # False indicates that the output stream's close() will not block
+        PipeOutputStream os = pipe.getOutputStream();
+        background sub() {
+            try {
+                os.write(<01>);         # produce data and write bytes to the pipe using os.write()
+                os.close();             # causes the input stream's read() method to report the end of data
+            } catch (hash ex) {
+                os.reportError(ex);     # causes the input stream's read() method to throw the exception
+            }
+        }();
+        return pipe.getInputStream();
+    }
+
+    InputStream is = example();
+    *binary b;
+    while (b = is.read(4096)) {
+        # process the data
+    }
+    @endcode
+
+    @par Example: pushing data to a background consumer
+    @code{.py}
+    OutputStream sub example() {
+        StreamPipe pipe();
+        PipeInputStream is = pipe.getInputStream();
+        background sub() {
+            try {
+                binary *b;
+                while (b = is.read(4096)) {
+                    # process the data
+                }
+                # finish processing / cleanup
+                is.finishClose();       # wakeup PipeOutputStream::close()
+            } catch (hash ex) {
+                is.reportError(ex);     # causes the output stream's write() or close() methods to throw the exception
+            }
+        }();
+        return pipe.getOutputStream();
+    }
+
+    OutputStream os = example();
+    os.write(<01>);         # produce data
+    os.close();             # waits until the consumer is done or reports an error
+    @endcode
+
+    @since %Qore 0.8.13
+ */
+qclass StreamPipe [arg=StreamPipe* pipe; ns=Qore; flags=final; internal_members=OutputStream os,InputStream is];
+
+//! Creates the StreamPipe
+/** @param syncClose if True, then the output stream's close() method blocks until the input stream's @ref PipeInputStream::finishClose() "finishClose()" method is called
+    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
+           "relative date/time value"; integer arguments will be assumed to be milliseconds);
+           if not given or negative the operations will never time out
+    @param bufferSize the size of the internal buffer
+ */
+StreamPipe::constructor(bool syncClose = True, timeout timeout_ms = -1, int bufferSize = 4096) {
+   SimpleRefHolder<StreamPipe> pipe(new StreamPipe(syncClose, timeout_ms, bufferSize, xsink));
+   qore_object_private* o = qore_object_private::get(*self);
+   const qore_class_private* cls = qore_class_private::get(*QC_STREAMPIPE);
+   pipe->ref();
+   o->setValueIntern(cls, "is", new QoreObject(QC_PIPEINPUTSTREAM, getProgram(), new PipeInputStream(*pipe)), xsink);
+   pipe->ref();
+   o->setValueIntern(cls, "os", new QoreObject(QC_PIPEOUTPUTSTREAM, getProgram(), new PipeOutputStream(*pipe)), xsink);
+   self->setPrivate(CID_STREAMPIPE, pipe.release());
+}
+
+//! Returns the input stream connected to the pipe.
+/**
+    @return the input stream connected to the pipe
+ */
+PipeInputStream StreamPipe::getInputStream() {
+   return self->getReferencedMemberNoMethod("is", xsink);
+}
+
+//! Returns the output stream connected to the pipe.
+/**
+    @return the output stream connected to the pipe
+ */
+PipeOutputStream StreamPipe::getOutputStream() {
+   return self->getReferencedMemberNoMethod("os", xsink);
+}

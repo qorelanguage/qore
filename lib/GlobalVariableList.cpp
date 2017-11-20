@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/GlobalVariableList.h>
+#include "qore/intern/GlobalVariableList.h"
 
 #include <assert.h>
 
@@ -98,19 +98,19 @@ void GlobalVariableList::deleteAll(ExceptionSink* xsink) {
 
 Var* GlobalVariableList::runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo) {
    if (parseFindVar(name))
-      return 0;
+      return nullptr;
 
-   Var* var = new Var(name, typeInfo);
+   Var* var = new Var(get_runtime_location(), name, typeInfo);
    vmap[var->getName()] = var;
 
    printd(5, "GlobalVariableList::runtimeCreateVar(): %s (%p) added (resolved type %s)\n", name, var, QoreTypeInfo::getName(typeInfo));
    return var;
 }
 
-Var* GlobalVariableList::parseCreatePendingVar(const char* name, const QoreTypeInfo* typeInfo) {
+Var* GlobalVariableList::parseCreatePendingVar(const QoreProgramLocation& loc, const char* name, const QoreTypeInfo* typeInfo) {
    assert(!parseFindVar(name));
 
-   Var* var = new Var(name, typeInfo);
+   Var* var = new Var(loc, name, typeInfo);
    pending_vmap[var->getName()] = var;
 
    //printd(5, "GlobalVariableList::parseCreatePendingVar(): %s (%p) added (resolved type %s)\n", name, var, QoreTypeInfo::getName(typeInfo));
@@ -123,7 +123,7 @@ Var* GlobalVariableList::parseFindVar(const char* name) {
       return i->second;
 
    i = pending_vmap.find(name);
-   return i != pending_vmap.end() ? i->second : 0;
+   return i != pending_vmap.end() ? i->second : nullptr;
 }
 
 const Var* GlobalVariableList::parseFindVar(const char* name) const {
@@ -132,7 +132,7 @@ const Var* GlobalVariableList::parseFindVar(const char* name) const {
       return i->second;
 
    i = pending_vmap.find(name);
-   return i != pending_vmap.end() ? i->second : 0;
+   return i != pending_vmap.end() ? i->second : nullptr;
 }
 
 void GlobalVariableList::parseInit() {
@@ -168,4 +168,14 @@ QoreListNode *GlobalVariableList::getVarList() const {
 void GlobalVariableList::parseAdd(Var* v) {
    assert(!parseFindVar(v->getName()));
    pending_vmap[v->getName()] = v;
+}
+
+void GlobalVariableList::getGlobalVars(const std::string& path, QoreHashNode& h) const {
+   for (map_var_t::const_iterator i = vmap.begin(); i != vmap.end(); i++) {
+      std::string n = path;
+      if (!n.empty())
+         n.append("::");
+      n.append(i->first);
+      h.setKeyValue(n.c_str(), i->second->eval().takeNode(), nullptr);
+   }
 }
