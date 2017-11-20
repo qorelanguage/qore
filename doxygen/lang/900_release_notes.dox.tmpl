@@ -486,6 +486,7 @@
     - fixed a bug in <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> with column aliases that are reserved words (<a href="https://github.com/qorelanguage/qore/issues/2163">issue 2163</a>)
     - fixed a memory bug in the @ref splice "splice" operator with a binary operand (<a href="https://github.com/qorelanguage/qore/issues/2303">issue 2303</a>)
     - fixed a bug where calling any @ref Qore::SQL::SQLStatement "SQLStatement" method in another thread with an active connection from a @ref Qore::SQL::DatasourcePool "DatasourcePool" causes a crash (<a href="https://github.com/qorelanguage/qore/issues/2334">issue 2334</a>)
+    - fixed a bug in <a href="../../modules/RestHandler/html/index.html">RestHandler</a> regarding inconsistent handling of URI parameter arguments; the \c "action" key was only removed from the \c ah hash when there were no other arguments, introducing an inconsistency in argument handling in REST services (<a href="https://github.com/qorelanguage/qore/issues/2749">issue 2749</a>)
 
     @section qore_081211 Qore 0.8.12.11
 
