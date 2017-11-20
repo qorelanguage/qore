@@ -600,7 +600,7 @@ public namespace RestHandler {
         #! this method is called by the RestHandler class to match the right object with incoming requests
         hash handleRequest(HttpListenerInterface listener, RestHandler rh, Socket s, *list cl, string mn, hash cx, *hash args) {
             if (!args && cx.body.typeCode() == NT_HASH)
-                args = cx.body;
+                args = cx.body - "action";
             if (cl) {
                 string cname = shift cl;
                 *AbstractRestClass cls = subClass(cname, cx, args);
