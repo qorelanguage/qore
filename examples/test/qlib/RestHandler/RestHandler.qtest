@@ -24,6 +24,10 @@ class TestRestClass inherits AbstractRestClass {
         return RestHandler::makeResponse(200, cx.body);
     }
 
+    hash getEchoArgs(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, ah);
+    }
+
     hash putEcho(hash cx, *hash ah) {
         return RestHandler::makeResponse(200, cx.body);
     }
@@ -117,14 +121,22 @@ public class RestHandlerTest inherits QUnit::Test {
     testSerialization(string data, softlist values) {
         mClient.setSerialization(data);
 
+        hash info;
+        on_error printf("info: %N\n", info);
+
         foreach any val in (values) {
-            hash info;
-            on_error printf("info: %N\n", info);
             hash h = mClient.get("test?action=echo", val, \info);
             assertEq(val, h.body, sprintf("GET %s: %s", data, val.type()));
             h = mClient.put("test?action=echo", val, \info);
             assertEq(val, h.body, sprintf("PUT %s: %s", data, val.type()));
         }
+
+        hash h = mClient.get("test?action=echoArgs;arg=1", NOTHING, \info);
+        assertEq(("arg": "1"), h.body);
+        h = mClient.get("test?action=echoArgs", ("arg": "1"), \info);
+        assertEq(("arg": "1"), h.body);
+        h = mClient.get("test?action=echoArgs", NOTHING, \info);
+        assertEq({}, h.body);
     }
 
     log(string str) {
