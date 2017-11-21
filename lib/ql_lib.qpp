@@ -70,6 +70,9 @@
 #ifdef AF_LINK
 #include <net/if_dl.h>
 #endif
+#ifdef AF_PACKET
+#include <linux/if_packet.h>
+#endif
 #endif
 
 #ifndef SIGHUP

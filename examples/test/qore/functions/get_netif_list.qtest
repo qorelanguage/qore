@@ -20,6 +20,9 @@ public class GetNetIfList inherits QUnit::Test {
     }
 
     getNetIfListTest() {
+        if (!HAVE_GET_NETIF_LIST)
+            testSkip("missing get_netif_list() function");
+
         list<auto> l = get_netif_list();
         assertEq("list<hash<NetIfInfo>>", l.fullType());
     }
