@@ -33,6 +33,7 @@
 #include "qore/intern/ql_lib.h"
 #include "qore/intern/ExecArgList.h"
 #include "qore/intern/QoreSignal.h"
+#include "qore/intern/qore_socket_private.h"
 #include <qore/minitest.hpp>
 
 #include <errno.h>
@@ -57,6 +58,18 @@
 #include <glob.h>
 #else
 #include "qore/intern/glob.h"
+#endif
+
+#ifdef HAVE_GETIFADDRS
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <ifaddrs.h>
+#ifdef AF_LINK
+#include <net/if_dl.h>
+#endif
 #endif
 
 #ifndef SIGHUP
@@ -110,6 +123,26 @@ TEST() {
 }
 }
 #endif
+
+//! network interface info hash
+/** @since %Qore 0.9.0
+*/
+hashdecl NetIfInfo {
+    //! interface name
+    string interface;
+
+    //! interface address if available
+    *string address;
+
+    //! interface address description (if the address is available)
+    *string address_desc;
+
+    //! interface family type; see @ref network_address_family_constants for possible values
+    int family;
+
+    //! interface family type string
+    string familystr;
+}
 
 //! exception information hash
 /** @since %Qore 0.8.13
@@ -1026,4 +1059,82 @@ nothing close_all_fd(*softbool strd) [dom=PROCESS] {
    missing_function_error("close_all_fd", xsink);
 #endif // HAVE_UNISTD
 }
+
+//! returns a list of network interfaces
+/** @par Platform Availability:
+    @ref Qore::Option::HAVE_GET_NETIF_LIST
+
+    @par Example:
+    @code{.py}
+list<hash<NetIfInfo>> l = get_netif_list();
+    @endcode
+
+    @return returns a list of network interfaces available on the local machine
+*/
+list<hash<NetIfInfo>> get_netif_list() [dom=EXTERNAL_INFO] {
+#ifdef HAVE_GETIFADDRS
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(hashdeclNetIfInfo->getTypeInfo()), xsink);
+
+    struct ifaddrs* ifap;
+    if (getifaddrs(&ifap)) {
+        xsink->raiseErrnoException("GETGETIFLIST-ERROR", errno, "getidaddrs() failed");
+        return QoreValue();
+    }
+    ON_BLOCK_EXIT(freeifaddrs, ifap);
+
+    for (struct ifaddrs* ifa = ifap; ifa; ifa = ifa->ifa_next) {
+        // skip interfaces with no address
+        if (!ifa->ifa_addr)
+            continue;
+
+        ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclNetIfInfo), xsink);
+
+        h->setKeyValue("interface", new QoreStringNode(ifa->ifa_name), xsink);
+
+        switch (ifa->ifa_addr->sa_family) {
+            case AF_INET:
+            case AF_INET6: {
+                // get ipv4 or ipv6 address
+                char ifname[INET6_ADDRSTRLEN];
+                if (inet_ntop(ifa->ifa_addr->sa_family, qore_socket_private::get_in_addr(ifa->ifa_addr), ifname, sizeof(ifname))) {
+                    QoreStringNode* addrstr = new QoreStringNode(ifname);
+                    h->setKeyValue("address", addrstr, xsink);
+                    h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()), xsink);
+                }
+                break;
+            }
+#ifdef AF_PACKET
+            case AF_PACKET: {
+                struct sockaddr_ll* s = (struct sockaddr_ll*)ifa->ifa_addr;
+                QoreStringNode* addrstr = new QoreStringNode;
+                for (unsigned i = 0; i < s->sll_halen; ++i) {
+                    addrstr->sprintf("%02x%s", s->sll_addr[i], i < (s->sll_halen - 1) ? ":" : "");
+                }
+                h->setKeyValue("address", addrstr, xsink);
+                h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()), xsink);
+                break;
+            }
+#endif
+#ifdef AF_LINK
+            case AF_LINK: {
+                QoreStringNode* addrstr = new QoreStringNode(link_ntoa((struct sockaddr_dl*)ifa->ifa_addr));
+                h->setKeyValue("address", addrstr, xsink);
+                h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()), xsink);
+                break;
+            }
+#endif
+        }
+
+         h->setKeyValue("family", new QoreBigIntNode(ifa->ifa_addr->sa_family), xsink);
+         h->setKeyValue("familystr", new QoreStringNode(QoreAddrInfo::getFamilyName(ifa->ifa_addr->sa_family)), xsink);
+
+         rv->push(h.release());
+    }
+
+    return rv.release();
+#else
+    missing_function_error("getifaddrs", xsink);
+#endif
+}
+
 //@}

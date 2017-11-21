@@ -159,6 +159,14 @@ static const char* q_af_to_str(int af) {
          return "ipv6";
       case AF_UNIX:
          return "unix";
+#ifdef AF_PACKET
+      case AF_PACKET:
+         return "mac";
+#endif
+#ifdef AF_LINK
+      case AF_LINK:
+         return "mac";
+#endif
    }
    return "unknown";
 }
@@ -507,6 +515,17 @@ QoreStringNode* QoreAddrInfo::getAddressDesc(int family, const char* addr) {
       case AF_INET6:
          str->sprintf("ipv6[%s]", addr);
          break;
+      // process mac addresses if possible
+#ifdef AF_PACKET
+      case AF_PACKET:
+#endif
+#ifdef AF_LINK
+      case AF_LINK:
+#endif
+#if defined(AF_PACKET) || defined(AF_LINK)
+         str->sprintf("mac<%s>", addr);
+         break;
+#endif
       default:
          str->sprintf("%s:%s", getFamilyName(family), addr);
          break;

@@ -431,15 +431,25 @@ struct qore_socket_private {
    }
 
    DLLLOCAL static void *get_in_addr(struct sockaddr *sa) {
-      if (sa->sa_family == AF_INET)
-         return &(((struct sockaddr_in *)sa)->sin_addr);
-      return &(((struct sockaddr_in6 *)sa)->sin6_addr);
+      switch (sa->sa_family) {
+         case AF_INET:
+            return &(((struct sockaddr_in*)sa)->sin_addr);
+         case AF_INET6:
+            return &(((struct sockaddr_in6*)sa)->sin6_addr);
+      }
+      assert(false);
+      return nullptr;
    }
 
    DLLLOCAL static size_t get_in_len(struct sockaddr *sa) {
-      if (sa->sa_family == AF_INET)
-         return sizeof(struct sockaddr_in);
-      return sizeof(struct sockaddr_in6);
+      switch (sa->sa_family) {
+         case AF_INET:
+            return sizeof(struct sockaddr_in);
+         case AF_INET6:
+            return sizeof(struct sockaddr_in6);
+      }
+      assert(false);
+      return 0;
    }
 
    DLLLOCAL int listen(int backlog = 20) {
