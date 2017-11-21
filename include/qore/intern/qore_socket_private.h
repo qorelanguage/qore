@@ -105,6 +105,8 @@ DLLLOCAL int check_windows_rc(int rc);
 #define QORE_SOCKET_ERROR -1
 #endif
 
+class SocketSource;
+
 struct qore_socketsource_private {
    QoreStringNode* address;
    QoreStringNode* hostname;
