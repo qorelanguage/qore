@@ -1069,6 +1069,45 @@ nothing close_all_fd(*softbool strd) [dom=PROCESS] {
     @par Example:
     @code{.py}
 list<hash<NetIfInfo>> l = get_netif_list();
+
+results for example into:
+list: (8 elements)
+  [0]=hash: (5 members)
+    interface : "lo"
+    address : "00:00:00:00:00:00"
+    address_desc : "mac<00:00:00:00:00:00>"
+    family : 17
+    familystr : "mac"
+  [1]=hash: (5 members)
+    interface : "eth0"
+    address : "44:8a:5b:ba:13:50"
+    address_desc : "mac<44:8a:5b:ba:13:50>"
+    family : 17
+    familystr : "mac"
+  [2]=hash: (5 members)
+    interface : "lo"
+    address : "127.0.0.1"
+    address_desc : "ipv4(127.0.0.1)"
+    family : 2
+    familystr : "ipv4"
+  [3]=hash: (5 members)
+    interface : "eth0"
+    address : "192.168.20.4"
+    address_desc : "ipv4(192.168.20.4)"
+    family : 2
+    familystr : "ipv4"
+  [4]=hash: (5 members)
+    interface : "lo"
+    address : "::1"
+    address_desc : "ipv6[::1]"
+    family : 10
+    familystr : "ipv6"
+  [5]=hash: (5 members)
+    interface : "eth0"
+    address : "fe80::213:3bff:fe0f:d5e1"
+    address_desc : "ipv6[fe80::213:3bff:fe0f:d5e1]"
+    family : 10
+    familystr : "ipv6"
     @endcode
 
     @return returns a list of network interfaces available on the local machine
