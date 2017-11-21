@@ -35,10 +35,6 @@
 
 #define _QORE_SSLSOCKETHELPER_H
 
-#include <openssl/ssl.h>
-#include <openssl/x509v3.h>
-#include <openssl/evp.h>
-
 #ifdef NEED_SSL_CTX_NEW_CONST
 #define SSL_METHOD_CONST const
 #else

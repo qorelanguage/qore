@@ -532,3 +532,25 @@ QoreStringNode* QoreAddrInfo::getAddressDesc(int family, const char* addr) {
    }
    return str;
 }
+
+void* qore_get_in_addr(struct sockaddr *sa) {
+   switch (sa->sa_family) {
+      case AF_INET:
+         return &(((struct sockaddr_in*)sa)->sin_addr);
+      case AF_INET6:
+         return &(((struct sockaddr_in6*)sa)->sin6_addr);
+   }
+   assert(false);
+   return nullptr;
+}
+
+size_t qore_get_in_len(struct sockaddr *sa) {
+   switch (sa->sa_family) {
+      case AF_INET:
+         return sizeof(struct sockaddr_in);
+      case AF_INET6:
+         return sizeof(struct sockaddr_in6);
+   }
+   assert(false);
+   return 0;
+}

@@ -33,7 +33,6 @@
 #include "qore/intern/ql_lib.h"
 #include "qore/intern/ExecArgList.h"
 #include "qore/intern/QoreSignal.h"
-#include "qore/intern/qore_socket_private.h"
 #include <qore/minitest.hpp>
 
 #include <errno.h>
@@ -1099,7 +1098,7 @@ list<hash<NetIfInfo>> get_netif_list() [dom=EXTERNAL_INFO] {
             case AF_INET6: {
                 // get ipv4 or ipv6 address
                 char ifname[INET6_ADDRSTRLEN];
-                if (inet_ntop(ifa->ifa_addr->sa_family, qore_socket_private::get_in_addr(ifa->ifa_addr), ifname, sizeof(ifname))) {
+                if (inet_ntop(ifa->ifa_addr->sa_family, qore_get_in_addr(ifa->ifa_addr), ifname, sizeof(ifname))) {
                     QoreStringNode* addrstr = new QoreStringNode(ifname);
                     h->setKeyValue("address", addrstr, xsink);
                     h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()), xsink);
