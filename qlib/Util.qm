@@ -1397,7 +1397,7 @@ list z = zip ((1, 2, 3), (4, 5)); # returns ((1,4), (2,5), (3,NOTHING))
 check_ip_address(str, True);
         @endcode
 
-        @param ip the string in dot-notation (for IPv4 addresses) or colon notation (for IPv6 addresses) to check; the string should not contain any network component which would cause the comparison to fail
+        @param ip the string in dot-notation (for IPv4 addresses) or colon notation (for IPv6 addresses) to check; the string should not contain any network component which would cause the comparison to fail; note that IPv4 address components must be in the range of 0 - 255 and must not have leading zeros
         @param exception if @ref True an exception will be thrown if the string is not a valid IPv4 or IPv6 address, if @ref False the return value of the function indicates the string's validation status
 
         @return @ref True if the string is a valid IPv4 or IPv6 address, @ref False if not (note that if \c exception is @ref True then an \c INVALID-IP-ADDRESS exception is thrown if the string is invalid)
