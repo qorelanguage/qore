@@ -113,6 +113,9 @@ class StringTest inherits QUnit::Test {
         string ustr = str.upr();
         assertEq(ustr, "PŘÍLIŠ ŽLUŤOUČKÝ KŮŇ ÚPĚL ĎÁBELSKÉ ÓDY", "<string>::upr()");
         assertEq(ustr.lwr(), "příliš žluťoučký kůň úpěl ďábelské ódy", "<string>::lwr()");
+
+        assertThrows("ENCODING-CONVERSION-ERROR", \convert_encoding(), ("ß", "US-ASCII"));
+        assertThrows("ENCODING-CONVERSION-ERROR", \convert_encoding(), ("汉字", "ISO-8859-1"));
     }
 
     testBase64Hex() {
