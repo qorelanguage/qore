@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@
 
 #include <qore/AbstractPrivateData.h>
 #include <qore/Restrictions.h>
+//#include <qore/intern/qore_program_private.h>
 
 // warnings - must correspond with the string order in QoreProgram.cpp
 // new warnings must also be added as constants
@@ -51,7 +52,7 @@
 #define QP_WARN_INVALID_OPERATION        (1 << 7)   //!< when an expression always returns NOTHING, for example
 #define QP_WARN_CALL_WITH_TYPE_ERRORS    (1 << 8)   //!< when a function or method call always returns a fixed value due to type errors
 #define QP_WARN_RETURN_VALUE_IGNORED     (1 << 9)   //!< when a function or method call has no side effects and the return value is ignored
-#define QP_WARN_DEPRECATED               (1 << 10)  //!< when depcrecated functionality is accessed
+#define QP_WARN_DEPRECATED               (1 << 10)  //!< when deprecated functionality is accessed
 #define QP_WARN_EXCESS_ARGS              (1 << 11)  //!< when excess arguments are given to a function that does not access them
 #define QP_WARN_DUPLICATE_HASH_KEY       (1 << 12)  //!< when a hash key has been defined more than once in a literal hash
 #define QP_WARN_UNREFERENCED_VARIABLE    (1 << 13)  //!< when a variable is declared but not referenced
@@ -64,6 +65,12 @@
 
 #define QP_WARN_DEFAULT (QP_WARN_UNKNOWN_WARNING|QP_WARN_MODULES|QP_WARN_DEPRECATED)
 
+enum BreakpointPolicy : unsigned char {
+   BKP_PO_NONE = 0,
+   BKP_PO_ACCEPT = 1,
+   BKP_PO_REJECT = 2,
+};
+
 //! list of strings of warning codes
 DLLEXPORT extern const char** qore_warnings;
 
@@ -73,6 +80,7 @@ DLLEXPORT extern unsigned qore_num_warnings;
 //! returns the warning code corresponding to the string passed (0 if no match was made)
 DLLEXPORT int get_warning_code(const char* str);
 
+// forward references
 class AbstractCallReferenceNode;
 class LocalVar;
 class ExceptionSink;
@@ -87,11 +95,16 @@ class UnresolvedProgramCallReferenceNode;
 class Var;
 class LVList;
 class UserFunctionVariant;
-class QoreTypeInfo;
 class QoreParseTypeInfo;
 class ParamList;
 class AbstractQoreZoneInfo;
 class qore_program_private;
+class AbstractQoreProgramExternalData;
+class QoreBreakpoint;
+class AbstractQoreFunctionVariant;
+class QoreRWLock;
+
+typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -104,6 +117,8 @@ class qore_program_private;
 class QoreProgram : public AbstractPrivateData {
    friend class qore_program_private_base;
    friend class qore_program_private;
+   friend class qore_debug_program_private;
+   friend struct ThreadLocalProgramData;
 private:
    //! private implementation
    qore_program_private* priv;
@@ -597,14 +612,7 @@ public:
    */
    DLLEXPORT void parseDefine(const char* str, const char* val);
 
-   //! defines parse-time variables
-   /** @param defmap a map of variable names to values
-       @param xs exception sink for errors
-       @param ws exception sink for warnings
-       @param w warning mask
-
-       @deprecated use parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int w, const std::map<std::string, std::string>& defmap) instead
-   */
+   // @deprecated use parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int w, const std::map<std::string, std::string>& defmap) instead
    DLLEXPORT void parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int w);
 
    //! defines parse-time variables
@@ -614,6 +622,72 @@ public:
        @param defmap a map of variable names to values
    */
    DLLEXPORT void parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int w, const std::map<std::string, std::string>& defmap);
+
+   //! sets a pointer to external data in the Program
+   /** @param owner a unique string identifying the owner of the data; for modules this should be the module name
+       @param pud the external data
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT void setExternalData(const char* owner, AbstractQoreProgramExternalData* pud);
+
+   //! retrieves the external data pointer
+   /** @param owner a unique string identifying the owner of the data; for modules this should be the module name
+
+       @return the data if set otherwise nullptr is returned
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT AbstractQoreProgramExternalData* getExternalData(const char* owner) const;
+
+   //! retrieves a hash of global variables and their values
+   /** @return a hash of global variable information; keys are namespace-justified global variable names, values are the values
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT QoreHashNode* getGlobalVars() const;
+
+   //! sets the value of the given global variable
+   /** @param name the name of the variable
+       @param val the value to assign; the value must be already referenced for the assignment and will be dereferenced if the assignment fails
+       @param xsink for Qore-language exceptions
+
+       @return 0 for OK, -1 if an exception was raised
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT int setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink);
+
+   // finds a function or class method variant if possible
+   /** @param name the function or class method name; may also be namespace-justified
+       @param params a list of string parameters giving the types to match
+       @param xsink any errors finding the code are stored as Qore-language exceptions here; possible errors are as follows:
+       - \c FIND-CALL-ERROR: \a name cannot be resolved, invalid parameter (member of \a params has a non-string value, string cannot be resolved to a valid type)
+       - \c INVALID-FUNCTION-ACCESS: the resolved code is not accessible in the current QoreProgram's context
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const;
+
+   // finds all variants of a function or class method and returns a list of the results
+   /** @param name the function or class method name; may also be namespace-justified
+
+       @return a list of hashes or nullptr if the name cannot be resolved; when matched, each hash element has the following keys:
+       - \c desc: a string description of the call which includes the name and the full text call signature
+       - \c params: a QoreValueList object that gives the params in a format that can be used by runtimeFindCall()
+
+       @note the caller owns the reference count returned for non-nullptr values
+
+       @since %Qore 0.8.13
+   */
+   DLLEXPORT QoreValueList* runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const;
+
+   //! returns a list of threads active in this Program object
+   /** @return a list of threads active in this Program object
+
+       @since %Qore 0.8.13
+    */
+   DLLEXPORT QoreListNode* getThreadList() const;
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
 
@@ -644,6 +718,89 @@ public:
 
    // can only be called while parsing from the same thread doing the parsing
    DLLLOCAL bool parseExceptionRaised() const;
+
+
+   // TODO: implement !
+   /** returns the value of the local variable given (do not include the "$" symbol), the caller owns the reference count returned
+    * The variable is related to current frame. This function can be executed only when program is stopped
+
+    *   @param var the variable name to return (do not include the "$" symbol)
+    *   @param found returns true if the variable exists, false if not
+    *   @return the value of the global variable given; if a non-zero pointer is returned, the caller owns the reference count returned
+    */
+   DLLEXPORT QoreValue getLocalVariableVal(const char* var, bool &found) const;
+
+   /** Assign @ref QoreBreakpoint instance to @ref QoreProgram. If breakpoint has been assigned to an program then is unassigned in the first step.
+    */
+   DLLEXPORT void assignBreakpoint(QoreBreakpoint *bkpt, ExceptionSink *xsink);
+
+   /** delete all breakpoints from instance
+    *
+    */
+   DLLEXPORT void deleteAllBreakpoints();
+
+   /** get list of breakpoint assigned to program.
+    *
+    */
+   DLLEXPORT void getBreakpoints(QoreBreakpointList_t &bkptList);
+
+   /** find statement related to particular line in a source file
+    *
+    */
+   DLLEXPORT AbstractStatement* findStatement(const char* fileName, int line) const;
+
+   /** find statement related to particular function
+    *
+    */
+   DLLEXPORT AbstractStatement* findFunctionStatement(const char* functionName, const QoreValueList* params, ExceptionSink* xsink) const;
+
+   //! get the statement id
+   /**
+      @param statement MUST be statement of this Program instance!
+      @return the statement id which consist of pointer to both program and statement instances
+    */
+   DLLEXPORT unsigned long getStatementId(const AbstractStatement* statement) const;
+
+   //! get the statement from statement id
+   /**
+      @param statementId created by @ref Program::getStatementId
+
+      @return the original statement or null if statement cannot be resolved
+    */
+   DLLEXPORT AbstractStatement* resolveStatementId(unsigned long statementId) const;
+
+   //! get the program id
+   /**
+      @return the program id
+    */
+   DLLEXPORT unsigned getProgramId() const;
+
+   //! get the program from program id
+   /**
+      @param programId provided by @ref Program::getProgramId
+
+      @return the original program or null if program cannot be resolved
+    */
+   DLLEXPORT static QoreProgram* resolveProgramId(unsigned programId);
+
+   //! register link to Qore script object
+   DLLEXPORT void registerQoreObject(QoreObject *o, ExceptionSink* xsink) const;
+
+   //! unregister link to Qore script object
+   DLLEXPORT void unregisterQoreObject(QoreObject *o, ExceptionSink* xsink) const;
+
+   //! find Qore script object related to QoreProgram instance
+   DLLEXPORT QoreObject* findQoreObject() const;
+
+   //! get QoreObject of QoreProgram
+   DLLEXPORT static QoreObject* getQoreObject(QoreProgram* pgm);
+
+   //! list all programs as QoreObject list
+   DLLEXPORT static QoreListNode* getAllQoreObjects(ExceptionSink* xsink);
+
+   //! check if program can provide debugging stuff
+   DLLEXPORT bool checkAllowDebugging(ExceptionSink* xsink);
+
 };
 
 //! safely manages QoreProgram objects; note the the destructor will block until all background threads in the qore library terminate and until the current QoreProgram terminates
@@ -671,6 +828,190 @@ public:
 
    //! returns the QoreProgram object being managed
    DLLEXPORT QoreProgram* operator*();
+};
+
+//! allows for the parse lock for the current program to be acquired by binary modules
+/** @since %Qore 0.8.13
+ */
+class CurrentProgramRuntimeExternalParseContextHelper {
+public:
+   //! acquires the parse lock; if already acquired by another thread, then this call blocks until the lock can be acquired
+   DLLEXPORT CurrentProgramRuntimeExternalParseContextHelper();
+
+   //! releases the parse lock for the current program
+   DLLEXPORT ~CurrentProgramRuntimeExternalParseContextHelper();
+
+   //! returns true if the object is valid (lock acquired), false if not (program already deleted)
+   DLLEXPORT operator bool() const;
+
+private:
+   bool valid = true;
+
+   // not implemented
+   CurrentProgramRuntimeExternalParseContextHelper(const CurrentProgramRuntimeExternalParseContextHelper&) = delete;
+   void* operator new(size_t) = delete;
+};
+
+//! allows for external modules to set the current Program context explicitly
+/** @since %Qore 0.8.13
+ */
+class QoreProgramContextHelper {
+public:
+   //! sets the current Program context
+   DLLEXPORT QoreProgramContextHelper(QoreProgram* pgm);
+   //! restores the previous Program context
+   DLLEXPORT ~QoreProgramContextHelper();
+
+private:
+   QoreProgram* old_pgm;
+
+   // not implemented
+   QoreProgramContextHelper(const QoreProgramContextHelper&) = delete;
+   void* operator new(size_t) = delete;
+};
+
+//! an abstract class for program-specific external data
+/** This class can be used by binary modules to store custom data in a QoreProgram object
+
+    @see
+    - QoreProgram::getExternalData()
+    - QoreProgram::setExternalData()
+
+    @since %Qore 0.8.13
+ */
+class AbstractQoreProgramExternalData {
+public:
+   DLLEXPORT virtual ~AbstractQoreProgramExternalData();
+
+   //! for reference-counted classes, returns the same object with the reference count incremented
+   /** This function is called for external data when a new program object is created that inherits the configuration of the parent.
+       The call is made after the child program has been completely set up.
+
+       @param pgm the new (child) QoreProgram object after setup
+    */
+   virtual AbstractQoreProgramExternalData* copy(QoreProgram* pgm) const = 0;
+
+   //! for non-reference counted classes, deletes the object immediately
+   virtual void doDeref() = 0;
+};
+
+typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
+typedef std::list<AbstractStatement*> AbstractStatementList_t;
+typedef std::list<int> TidList_t;
+
+//! Class implementing breakpoint for debugging
+/** Breakpoint is assigned to one or more statements. When such a statement is executed then
+ *  breakpoint is probed using @ref checkBreak and program is potentially interrupted and
+ *  callback @ref QoreDebugProgram is triggered. The instance must be assigned to a @ref QoreProgram
+ */
+class QoreBreakpoint: public AbstractPrivateData {
+private:
+   qore_program_private* pgm;
+   AbstractStatementList_t statementList;
+   typedef std::map<int/*tid*/, int/*count*/> TidMap_t;
+   TidMap_t tidMap;
+   QoreObject* qo; // reference to Qore script object, it's private object but we cannot
+   typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
+   static QoreRWLock lck_breakpoint; // to protect breakpoint manipulation
+   static QoreBreakpointList_t breakpointList;
+   static volatile unsigned breakpointIdCounter;   // to generate breakpointId
+   unsigned breakpointId;
+
+   DLLLOCAL void unassignAllStatements();
+   DLLLOCAL bool isStatementAssigned(const AbstractStatement *statement) const;
+   DLLLOCAL bool checkPgm(ExceptionSink* xsink) const;
+
+   friend class qore_program_private;
+   friend class AbstractStatement;
+protected:
+   DLLLOCAL virtual ~QoreBreakpoint();
+   //! check if program flow should be interrupted
+   DLLLOCAL virtual bool checkBreak() const;
+public:
+   bool enabled;
+   /** Defines policy how thread list is evaluated. In the case of ACCEPT policy are considered all TIDs in list.
+    *  In case of REJECT policy are considered all TIDs not in the list.
+    */
+   BreakpointPolicy policy;
+
+   DLLEXPORT QoreBreakpoint();
+   /** Copy all props but object reference
+    *
+    */
+   DLLEXPORT QoreBreakpoint& operator=(const QoreBreakpoint& other);
+   /** Assign @ref QoreProgram to breakpoint.
+    *
+    *  @param new_pgm QoreProgram to be assigned, when NULL then unassigns Program and deletes all statement references
+    */
+   DLLEXPORT void assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink);
+   /* Get assigned program to breakpoint
+    *
+    */
+   DLLEXPORT QoreProgram* getProgram() const;
+   /** Assign breakpoint to a statement.
+    *
+    */
+   DLLEXPORT void assignStatement(AbstractStatement* statement, ExceptionSink* xsink);
+   /** Unassign breakpoint from statement
+    *
+    */
+   DLLEXPORT void unassignStatement(AbstractStatement* statement, ExceptionSink* xsink);
+   /** Get list of statements
+    *
+    */
+   DLLEXPORT void getStatements(AbstractStatementList_t &statList, ExceptionSink* xsink);
+   /** Get list of statement ids
+    *
+    */
+   DLLEXPORT QoreListNode* getStatementIds(ExceptionSink* xsink);
+   /** Resolve statement from statement id
+    *
+    */
+   DLLEXPORT AbstractStatement* resolveStatementId(unsigned long statementId, ExceptionSink* xsink) const;
+   /** Get list of the thread IDs
+    *
+    */
+   DLLEXPORT void getThreadIds(TidList_t &tidList, ExceptionSink* xsink);
+   /** Set list of the thread IDs
+    *
+    */
+   DLLEXPORT void setThreadIds(TidList_t tidList, ExceptionSink* xsink);
+   /** Add thread ID to the list
+    *
+    */
+   DLLEXPORT void addThreadId(int tid, ExceptionSink* xsink);
+   /** Remove thread ID from the list
+    *
+    */
+   DLLEXPORT void removeThreadId(int tid, ExceptionSink* xsink);
+   /** Check if thread is ID in list
+    *
+    */
+   DLLEXPORT bool isThreadId(int tid, ExceptionSink* xsink);
+   /** Clear list of the thread IDs
+    *
+    */
+   DLLEXPORT void clearThreadIds(ExceptionSink* xsink);
+
+   //! get the breakpoint id
+   /**
+      @return the breakpoint id which is unique number
+    */
+   DLLEXPORT unsigned getBreakpointId() const;
+
+   //! get the breakpoint from breakpoint id
+   /**
+      @param breakpointId provided by @ref Program::getBreakpointId
+
+      @return the original breakpoint or null if object cannot be resolved
+    */
+   DLLEXPORT static QoreBreakpoint* resolveBreakpointId(unsigned breakpointId);
+
+   DLLEXPORT void setQoreObject(QoreObject *n_qo) {
+      qo = n_qo;
+   }
+   DLLEXPORT QoreObject* getQoreObject();
+
 };
 
 #endif  // _QORE_QOREPROGRAM_H

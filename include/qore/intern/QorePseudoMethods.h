@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,7 @@ DLLLOCAL void pseudo_classes_del();
 DLLLOCAL QoreValue pseudo_classes_eval(const QoreValue n, const char* name, const QoreListNode* args, ExceptionSink* xsink);
 DLLLOCAL const QoreMethod* pseudo_classes_find_method(qore_type_t t, const char* mname, QoreClass*& qc);
 DLLLOCAL const QoreMethod* pseudo_classes_find_method(const QoreTypeInfo* typeInfo, const char* mname, QoreClass*& qc, bool& possible_match);
+DLLLOCAL void qore_pseudo_check_return_type_info(const QoreFunction* func, const QoreTypeInfo* pseudoTypeInfo, const QoreTypeInfo*& returnTypeInfo);
 
 #define NODE_ARRAY_LEN (NT_NUMBER + 1)
 //DLLLOCAL extern QoreBigIntNode* Node_NT_Array[NODE_ARRAY_LEN];

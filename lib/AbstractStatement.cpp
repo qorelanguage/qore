@@ -29,15 +29,28 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/AbstractStatement.h>
-#include <qore/intern/qore_program_private.h>
+#include "qore/intern/AbstractStatement.h"
+#include "qore/intern/qore_program_private.h"
 
 #include <typeinfo>
 
-AbstractStatement::AbstractStatement(int sline, int eline) : loc(sline, eline) {
+AbstractStatement::AbstractStatement(int sline, int eline) : breakpointFlag(false), breakpoints(0), loc(sline, eline)  {
    QoreProgram *pgm = getProgram();
    if (pgm)
       pwo = qore_program_private::getParseWarnOptions(pgm);
+}
+
+AbstractStatement::~AbstractStatement() {
+   if (breakpoints) {
+      // unassign all breakpoint, it is probably not needed because statement are deleted with program
+      std::list<QoreBreakpoint*>::iterator it = breakpoints->begin();
+      while (it != breakpoints->end()) {
+         QoreBreakpoint* bkpt = *it;
+         it++;  // will be removed by unassignBreakpoint()
+         bkpt->statementList.remove(this);
+      }
+      delete breakpoints;
+   }
 }
 
 int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
@@ -62,4 +75,38 @@ int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
    // set pgm position in case of errors
    update_parse_location(loc);
    return parseInitImpl(oflag, pflag);
+}
+
+QoreBreakpoint* AbstractStatement::getBreakpoint() const {
+   if (breakpointFlag) {
+      for (std::list<QoreBreakpoint*>::iterator it = breakpoints->begin(); it != breakpoints->end(); ++it) {
+         if ((*it)->checkBreak()) {
+            return *it;
+         }
+      }
+   }
+   return 0;
+}
+
+void AbstractStatement::assignBreakpoint(QoreBreakpoint *bkpt) {
+   if (!breakpoints) {
+      breakpoints = new QoreBreakpointList_t();
+      breakpoints->push_front(bkpt);
+   } else {
+      if (std::find(breakpoints->begin(), breakpoints->end(), bkpt) == breakpoints->end()) {
+         breakpoints->push_front(bkpt);
+      }
+   }
+   breakpointFlag = !breakpoints->empty();
+}
+
+void AbstractStatement::unassignBreakpoint(QoreBreakpoint *bkpt) {
+   if (breakpoints) {
+      breakpoints->remove(bkpt);
+      breakpointFlag = !breakpoints->empty();
+   }
+}
+
+void AbstractStatement::parseCommit(QoreProgram* pgm) {
+   qore_program_private::registerStatement(pgm, this, true);
 }

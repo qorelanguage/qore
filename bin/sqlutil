@@ -30,29 +30,32 @@
 %strict-args
 
 %requires SqlUtil
+%requires BulkSqlUtil
 %try-module yaml
 %define NoYaml
 %endtry
 
-const opts = (
-    "align_all": "A,align-all=s",
-    "align_data": "D,align-data=s",
-    "align_data_strict": "s,align-data-strict",
-    "align_table": "a,align-table=s",
-    "dump_table": "t,dump-table=s@",
-    "export_table": "export=s",
-    "import_table": "import=s",
-    "dump_sequence": "S,dump-sequence=s@",
-    "dump_object": "dump=s@",
-    "omit": "O,omit=s@",
-    "list_tables": "L,list-tables",
-    "list_objects": "list=s@",
+%requires DatasourceProvider
 
-    "data_tablespace": "d,data-tablespace=s",
-    "index_tablespace": "i,index-tablespace=s",
-    "target_ds": "T,target-ds=s",
-    "verbose": "v,verbose:i+",
-    "help": "h,help",
+const opts = (
+    "align_all":         "A,align-all=s",
+    "align_data":        "D,align-data=s",
+    "align_data_strict": "s,align-data-strict",
+    "align_table":       "a,align-table=s",
+    "dump_table":        "t,dump-table=s@",
+    "export_table":      "export=s",
+    "import_table":      "import=s",
+    "dump_sequence":     "S,dump-sequence=s@",
+    "dump_object":       "dump=s@",
+    "omit":              "O,omit=s@",
+    "list_tables":       "L,list-tables",
+    "list_objects":      "list=s@",
+
+    "data_tablespace":   "d,data-tablespace=s",
+    "index_tablespace":  "i,index-tablespace=s",
+    "target_ds":         "T,target-ds=s",
+    "verbose":           "v,verbose:i+",
+    "help":              "h,help",
     );
 
 # list of options that require a target datasource
@@ -137,7 +140,7 @@ sub usage() {
   -v,--verbose=ARG            increase verbosity level (more v's = more info)
      --export=ARG             export table data to standard output in YAML format
      --import=ARG:ARG         import YAML data into table (ARG 1) from file
-                              name (ARG 2). Batch commit per 1000 lines.
+                              name (ARG 2). Batch commit per 5000 lines.
 ", get_script_name(), LIST_OBJECTS.keys(), META_LIST_OBJECTS.keys(), DUMP_OBJECTS.keys());
     exit(1);
 }
@@ -302,7 +305,7 @@ sub main() {
     }
 
     # source datasource
-    Datasource source(ARGV[0]);
+    Datasource source(get_ds_string(ARGV[0]));
 
     # info callback closure and embedded variables
     int change_count = 0;
@@ -447,13 +450,35 @@ sub main() {
         done = True;
         Table table(source, arg[0]);
 
+        hash bulk_opts = (
+                "block_size" : 5000,
+            );
+
+        BulkSqlUtil::BulkInsertOperation bulk(table, bulk_opts);
+        on_success {
+            if (opts.verbose) {
+                printf("%n: import %s: cache: %d; count: %d\n",
+                       now(), arg[0], bulk.size(), bulk.getRowCount()
+                      );
+            }
+            bulk.flush();
+        }
+
+        on_error bulk.discard();
+
         FileLineIterator it(arg[1]);
         while (it.next()) {
             hash row = parse_yaml(it.getValue());
-            table.insert(row);
+            bulk.queueData(row);
 
-            if (it.index() % 1000 == 0)
-                source.commit();
+            if (it.index() % bulk_opts.block_size == 0) {
+                if (opt.verbose) {
+                    printf("%n: import %s: cache: %d; count: %d\n",
+                           now(), arg[0], bulk.size(), bulk.getRowCount()
+                          );
+                }
+                bulk.commit();
+            }
         }
 %endif
     }

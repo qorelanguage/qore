@@ -29,8 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/IfStatement.h>
-#include <qore/intern/StatementBlock.h>
+#include "qore/intern/IfStatement.h"
+#include "qore/intern/StatementBlock.h"
 
 IfStatement::IfStatement(int start_line, int end_line, AbstractQoreNode *c, class StatementBlock *i, class StatementBlock *e) : AbstractStatement(start_line, end_line) {
    cond = c;
@@ -83,4 +83,14 @@ int IfStatement::parseInitImpl(LocalVar *oflag, int pflag) {
       lvars = new LVList(lvids);
 
    return 0;
+}
+
+void IfStatement::parseCommit(QoreProgram* pgm) {
+   AbstractStatement::parseCommit(pgm);
+   if (if_code) {
+      if_code->parseCommit(pgm);
+   }
+   if (else_code) {
+      else_code->parseCommit(pgm);
+   }
 }

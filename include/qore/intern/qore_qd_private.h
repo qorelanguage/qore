@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -257,107 +257,7 @@ public:
       return 0;
    }
 
-   DLLLOCAL QoreListNode *list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options, bool full) const {
-      AutoLocker al(m);
-
-      if (dirname.empty()) {
-	 xsink->raiseException("DIR-READ-ERROR", "cannot list directory; no directory is set");
-	 return 0;
-      }
-
-      SimpleRefHolder<QoreRegexNode> re(0);
-
-      if (regex) {
-	 re = new QoreRegexNode(*regex, regex_options, xsink);
-	 if (*xsink)
-	    return 0;
-      }
-      // avoid memory leaks...
-      ReferenceHolder<QoreListNode> lst(new QoreListNode, xsink);
-
-      DIR *dptr = opendir(dirname.c_str());
-      if (!dptr) {
-	 xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "error opening directory '%s' for reading", dirname.c_str());
-	 return 0;
-      }
-      ON_BLOCK_EXIT(closedir, dptr);
-
-      struct dirent *de;
-      while ((de = readdir(dptr))) {
-	 if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
-	    continue;
-
-	 // if there is a regular expression, see if the name matches
-	 if (regex) {
-	    QoreString targ(de->d_name, enc);
-	    bool b = re->exec(&targ, xsink);
-	    if (*xsink)
-	       return 0;
-	    if (!b)
-	       continue;
-	 }
-
-	 // if we are filtering out directories, then we have to stat the file
-	 if (full || stat_filter != -1) {
-	    QoreString fname(dirname);
-	    fname.concat(QORE_DIR_SEP);
-	    fname.concat(de->d_name);
-	    struct stat buf;
-	    if (!full) {
-	       if (stat(fname.getBuffer(), buf, xsink))
-		  return 0;
-
-	       if (!(buf.st_mode & stat_filter))
-		  continue;
-
-	       lst->push(new QoreStringNode(de->d_name, enc));
-	       continue;
-	    }
-#ifdef HAVE_LSTAT
-	    if (lstat(fname.getBuffer(), buf, xsink))
-	       return 0;
-
-	    SimpleRefHolder<QoreStringNode> lpath;
-
-	    if (S_ISLNK(buf.st_mode)) {
-	       {
-		  char lbuf[QORE_PATH_MAX + 1];
-		  qore_offset_t len = readlink(fname.getBuffer(), lbuf, QORE_PATH_MAX);
-		  if (len < 0) {
-		     xsink->raiseErrnoException("DIR-READ-FAILURE", errno, "readlink('%s') failed", fname.getBuffer());
-		     return 0;
-		  }
-		  assert(len <= QORE_PATH_MAX);
-		  lbuf[len] = '\0';
-		  lpath = new QoreStringNode(lbuf);
-	       }
-
-	       if (stat(fname.getBuffer(), buf, xsink))
-		  return 0;
-	    }
-#else
-	    if (stat(fname.getBuffer(), buf, xsink))
-	       return 0;
-#endif
-	    if (stat_filter != -1 && !(buf.st_mode & stat_filter))
-	       continue;
-	    QoreHashNode* h = stat_to_hash(buf);
-	    h->setKeyValue("name", new QoreStringNode(de->d_name, enc), 0);
-#ifdef HAVE_LSTAT
-	    if (*lpath)
-	       h->setKeyValue("link", lpath.release(), 0);
-#endif
-	    lst->push(h);
-	    continue;
-	 }
-
-	 // not full, no filter
-	 lst->push(new QoreStringNode(de->d_name, enc));
-	 continue;
-      }
-
-      return lst.release();
-   }
+   DLLLOCAL QoreListNode *list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options, bool full) const;
 
    DLLLOCAL int create(int mode, ExceptionSink *xsink) const {
       AutoLocker al(m);
@@ -460,22 +360,7 @@ public:
       return stat_to_list(sbuf);
    }
 
-   DLLLOCAL QoreHashNode *hstat(ExceptionSink *xsink) const {
-      AutoLocker al(m);
-
-      if (dirname.empty()) {
-	 xsink->raiseException("DIR-HSTAT-ERROR", "cannot stat; no directory is set");
-	 return 0;
-      }
-
-      struct stat sbuf;
-      if (::stat(dirname.c_str(), &sbuf)) {
-	 xsink->raiseErrnoException("DIR-HSTAT-FAILURE", errno, "stat() call failed on '%s'", dirname.c_str());
-	 return 0;
-      }
-
-      return stat_to_hash(sbuf);
-   }
+   DLLLOCAL QoreHashNode *hstat(ExceptionSink *xsink) const;
 
 #ifdef Q_HAVE_STATVFS
    DLLLOCAL QoreHashNode *statvfs(ExceptionSink *xsink) const {

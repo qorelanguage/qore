@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols, Vaclav Pfeifer
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,11 +32,11 @@
 #ifndef _QORE_QOREHASHMAPOPERATORNODE_H
 #define _QORE_QOREHASHMAPOPERATORNODE_H
 
-#include <qore/intern/AbstractIteratorHelper.h>
+#include "qore/intern/AbstractIteratorHelper.h"
 
 class QoreHashMapOperatorNode : public QoreNOperatorNodeBase<3> {
 protected:
-   const QoreTypeInfo* returnTypeInfo;
+   const QoreTypeInfo* returnTypeInfo = nullptr;
 
    DLLLOCAL static QoreString map_str;
 
@@ -55,41 +55,35 @@ protected:
       return returnTypeInfo;
    }
 
-   inline DLLLOCAL virtual bool hasEffect() const {
-      // FIXME: check iterated expression to see if it really has an effect
-      return true;
-   }
-
    DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
 
 public:
-   /*
-    * Constructor
-    */
-   DLLLOCAL QoreHashMapOperatorNode(AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2) :
-      QoreNOperatorNodeBase<3>(p0, p1, p2), returnTypeInfo(0) {
+   DLLLOCAL QoreHashMapOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2) :
+      QoreNOperatorNodeBase<3>(loc, p0, p1, p2) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
    // returns the type name as a c string
-   inline DLLLOCAL virtual const char* getTypeName() const {
+   DLLLOCAL virtual const char* getTypeName() const {
       return map_str.getBuffer();
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
       ReferenceHolder<> n_e0(copy_and_resolve_lvar_refs(e[0], xsink), xsink);
       if (*xsink)
-         return 0;
+         return nullptr;
       ReferenceHolder<> n_e1(copy_and_resolve_lvar_refs(e[1], xsink), xsink);
       if (*xsink)
-         return 0;
+         return nullptr;
       ReferenceHolder<> n_e2(copy_and_resolve_lvar_refs(e[2], xsink), xsink);
       if (*xsink)
-         return 0;
-      return new QoreHashMapOperatorNode(n_e0.release(), n_e1.release(), n_e2.release());
+         return nullptr;
+      return new QoreHashMapOperatorNode(loc, n_e0.release(), n_e1.release(), n_e2.release());
    }
+
+   DLLLOCAL static const QoreTypeInfo* setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo2, const QoreTypeInfo* iteratorTypeInfo);
 };
 
 #endif // QOREHASHMAPOPERATORNODE_H

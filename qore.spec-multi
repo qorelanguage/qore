@@ -1,7 +1,7 @@
 # this spec file can be used for multiple RPM-based distributions including Fedora, RHEL, *SUSE, and others
 
 %{?_datarootdir: %global mydatarootdir %_datarootdir}
-%{!?_datarootdir: %global mydatarootdir /usr/share}
+%{!?_datarootdir: %global mydatarootdir %{buildroot}/usr/share}
 
 %global module_dir %{_libdir}/qore-modules
 %global user_module_dir %{mydatarootdir}/qore-modules/
@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.8.12.12
+Version: 0.8.13.1
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -90,6 +90,8 @@ development but is also useful as a general purpose language.
 %package -n %{libname}
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
+Provides: qore-module(abi)%{?_isa} = 0.21
+Provides: qore-module(abi)%{?_isa} = 0.20
 Provides: qore-module(abi)%{?_isa} = 0.19
 Provides: qore-module(abi)%{?_isa} = 0.18
 # provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
@@ -109,7 +111,7 @@ Provides: qore-module-api-0.6
 Provides: qore-module-api-0.5
 %if %{libname} == "libqore"
 Provides: libqore5 = %{version}
-Obsoletes: libqore5 < 0.8.12.12
+Obsoletes: libqore5 < 0.8.13.1
 %endif
 %if 0%{?sles_version}
 BuildArch: %{_target_cpu}
@@ -125,10 +127,9 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.13.0
+%{_libdir}/libqore.so.5.14.1
 %{_libdir}/libqore.so.5
-%{module_dir}
-%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES ChangeLog AUTHORS ABOUT
+%doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n %{libname}
 ldconfig %{_libdir}
@@ -139,19 +140,21 @@ ldconfig %{_libdir}
 %package stdlib
 Summary: Standard library modules
 Group: System Environment/Libraries
-BuildArch: noarch
 Requires: libqore = %{version}-%{release}
+Requires: qore-module(abi)%{?_isa} = 0.21
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
 for applying a flexible scripting-based approach to enterprise interface
 development but is also useful as a general purpose language.
 
-This package provides the Qore language standard library user modules.
+This package provides the Qore language standard library user and binary
+modules.
 
 %files stdlib
 %defattr(-,root,root,-)
 %{user_module_dir}
+%{module_dir}
 %doc COPYING.MIT README-LICENSE
 
 %package doc
@@ -196,6 +199,8 @@ Qore library.
 %dir %{_libdir}/cmake
 %{_libdir}/cmake/Qore
 %{_prefix}/include/*
+%{mydatarootdir}/qore
+%{mydatarootdir}/qore/*
 
 %package devel-doc
 Summary: C++ API documentation for the qore library
@@ -212,6 +217,26 @@ This package provides HTML documentation for the C++ API for the Qore library.
 %files devel-doc
 %defattr(-,root,root,-)
 %doc docs/library/html/*
+
+%package misc-tools
+Summary: Miscellaneous user tools writen in Qore Programming Language
+License: LGPL-2.0+ or GPL-2.0+ or MIT
+Group: Development/Tools/Other
+Requires: qore = %{version}-%{release}
+BuildArch: noarch
+
+%description misc-tools
+This package contains tool for working with:
+ - REST APIs
+ - SQL Databases
+
+%files misc-tools
+%defattr(-,root,root,-)
+%{_bindir}/qget
+%{_bindir}/rest
+%{_bindir}/sfrest
+%{_bindir}/sqlutil
+%{_bindir}/schema-reverse
 
 %prep
 %setup -q
@@ -247,6 +272,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/schema-reverse
 /usr/bin/sfrest
 /usr/bin/sqlutil
+/usr/bin/qdbg
+/usr/bin/qdbg-server
+/usr/bin/qdbg-remote
 %if 0%{?rh_dist}
 %if %{?rh_dist} <= 5
 /usr/man/man1/qore.1.*
@@ -260,6 +288,12 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Fri Sep 29 2017 David Nichols <david@qore.org> 0.8.13.1
+- updated version to 0.8.13.1
+
+* Fri Aug 4 2017 David Nichols <david@qore.org> 0.8.13
+- updated version to 0.8.13
+
 * Thu Aug 3 2017 David Nichols <david@qore.org> 0.8.12.12
 - updated to 0.8.12.12
 
