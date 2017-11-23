@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  qore_qf_private.h
+    qore_qf_private.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_INTERN_QORE_QF_PRIVATE_H
@@ -64,44 +64,63 @@
 #endif
 
 struct qore_qf_private {
-   int fd;
-   bool is_open;
-   bool special_file;
-   const QoreEncoding* charset;
-   std::string filename;
-   mutable QoreThreadLock m;
-   Queue* cb_queue;
+    int fd;
+    bool is_open;
+    bool special_file;
+    const QoreEncoding* charset;
+    std::string filename;
+    mutable QoreThreadLock m;
+    Queue* cb_queue;
 
-   DLLLOCAL qore_qf_private(const QoreEncoding* cs) : is_open(false),
-                                                      special_file(false),
-                                                      charset(cs),
-                                                      cb_queue(0) {
-   }
+    DLLLOCAL qore_qf_private(const QoreEncoding* cs) : is_open(false),
+                                                       special_file(false),
+                                                       charset(cs),
+                                                       cb_queue(0) {
+    }
 
-   DLLLOCAL ~qore_qf_private() {
-      close_intern();
+    DLLLOCAL ~qore_qf_private() {
+        close_intern();
 
-      // must be dereferenced and removed before deleting
-      assert(!cb_queue);
-   }
+        // must be dereferenced and removed before deleting
+        assert(!cb_queue);
+     }
 
-   DLLLOCAL int close_intern() {
-      filename.clear();
+    DLLLOCAL int close_intern() {
+        filename.clear();
 
-      int rc;
-      if (is_open) {
-         if (special_file)
-            rc = -1;
-         else {
-            rc = ::close(fd);
-            is_open = false;
-            do_close_event_unlocked();
-         }
-      }
-      else
-         rc = 0;
-      return rc;
-   }
+        int rc;
+        if (is_open) {
+            if (special_file)
+                rc = -1;
+            else {
+                rc = ::close(fd);
+                is_open = false;
+                do_close_event_unlocked();
+            }
+        }
+        else
+            rc = 0;
+        return rc;
+    }
+
+    DLLLOCAL int redirect(qore_qf_private& file, ExceptionSink* xsink) {
+        if (&file == this)
+             return 0;
+
+        // lock both files
+        AutoLocker al(m);
+        AutoLocker al2(file.m);
+
+        // dup2() will close this file descriptor
+        int rc = dup2(file.fd, fd);
+        if (rc == -1) {
+            xsink->raiseErrnoException("FILE-REDIRECT-ERROR", errno, "error in dup2()");
+            return -1;
+        }
+        filename = file.filename;
+
+        return 0;
+    }
 
    DLLLOCAL int open_intern(const char* fn, int flags, int mode, const QoreEncoding* cs) {
       close_intern();

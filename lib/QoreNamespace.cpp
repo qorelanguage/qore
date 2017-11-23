@@ -97,6 +97,7 @@
 DLLLOCAL QoreClass* initReadOnlyFileClass(QoreNamespace& ns);
 
 DLLLOCAL QoreClass* initAbstractDatasourceClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initAbstractSQLStatementClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractQuantifiedIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractBidirectionalIteratorClass(QoreNamespace& ns);
@@ -174,7 +175,8 @@ const TypedHashDecl* hashdeclStatInfo,
       * hashdeclIsoWeekInfo,
       * hashdeclCallStackInfo,
       * hashdeclExceptionInfo,
-      * hashdeclStatementInfo;
+      * hashdeclStatementInfo,
+      * hashdeclNetIfInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -897,6 +899,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    hashdeclCallStackInfo = init_hashdecl_CallStackInfo(qns);
    hashdeclExceptionInfo = init_hashdecl_ExceptionInfo(qns);
    hashdeclStatementInfo = init_hashdecl_StatementInfo(qns);
+   hashdeclNetIfInfo = init_hashdecl_NetIfInfo(qns);
 
    qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
@@ -1007,6 +1010,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    // create Qore::SQL namespace
    QoreNamespace* sqlns = new QoreNamespace("SQL");
 
+   sqlns->addSystemClass(initAbstractSQLStatementClass(*sqlns));
    sqlns->addSystemClass(initAbstractDatasourceClass(*sqlns));
    sqlns->addSystemClass(initDatasourceClass(*sqlns));
    sqlns->addSystemClass(initDatasourcePoolClass(*sqlns));
