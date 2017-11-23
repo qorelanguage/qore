@@ -353,35 +353,6 @@ static const struct code_table html_codes[] = {
 
 #define NUM_HTML_CODES (sizeof(html_codes) / sizeof (struct code_table))
 
-class IconvHelper {
-private:
-   iconv_t c;
-
-public:
-   DLLLOCAL IconvHelper(const QoreEncoding* to, const QoreEncoding* from, ExceptionSink* xsink) {
-#ifdef NEED_ICONV_TRANSLIT
-      QoreString to_code((char*)to->getCode());
-      to_code.concat("//TRANSLIT");
-      c = iconv_open(to_code.getBuffer(), from->getCode());
-#else
-      c = iconv_open(to->getCode(), from->getCode());
-#endif
-      if (c == (iconv_t)-1) {
-         if (errno == EINVAL)
-            xsink->raiseException("ENCODING-CONVERSION-ERROR", "cannot convert from \"%s\" to \"%s\"", from->getCode(), to->getCode());
-         else
-            xsink->raiseErrnoException("ENCODING-CONVERSION-ERROR", errno, "unknown error converting from \"%s\" to \"%s\"", from->getCode(), to->getCode());
-      }
-   }
-   DLLLOCAL ~IconvHelper() {
-      if (c != (iconv_t)-1)
-         iconv_close(c);
-   }
-   DLLLOCAL iconv_t operator*() {
-      return c;
-   }
-};
-
 void qore_string_init() {
    static int url_reserved_list[] = { '!', '*', '\'', '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '#', '[', ']' };
 #define URLIST_SIZE (sizeof(url_reserved_list) / sizeof(int))
