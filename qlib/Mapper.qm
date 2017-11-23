@@ -221,6 +221,7 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
 
     @subsection mapperv1_4 Mapper v1.4
     - added support for complex types
+    - fixed a bug in the \c STRING-TOO-LONG exception (<a href="https://github.com/qorelanguage/qore/issues/2495">issue 2405</a>)
 
     @subsection mapperv1_3_1 Mapper v1.3.1
     - fixed bugs handling mapper fields with no input records in list mode as passed from the \c TableMapper module (<a href="https://github.com/qorelanguage/qore/issues/1736">issue 1736</a>)
@@ -1117,7 +1118,7 @@ Mapper mapv(DataMap);
                             v = truncateField(key, v, 0, 0, m.maxlen);
                         }
                         else
-                            fieldLengthError(key, $1, 0, 0, m.maxlen, rec);
+                            fieldLengthError(key, v, 0, 0, m.maxlen, rec);
                     }
                 }
             }
