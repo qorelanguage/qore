@@ -633,7 +633,14 @@ int qore_string_private::convert_encoding_intern(const char* src, qore_size_t sr
                return -1;
             }
          }
-      } else {
+      }
+      else if (rc > 0) {
+         // issue #2500 non-reversible encoding executed (i.e. source char does not exist in target encoding)
+         c.reportIllegalSequence(ib - src, xsink);
+         targ.clear();
+         return -1;
+      }
+      else {
          // terminate string
          targ.priv->buf[al - olen] = '\0';
          targ.priv->len = al - olen;

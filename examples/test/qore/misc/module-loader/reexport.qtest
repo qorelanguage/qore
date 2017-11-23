@@ -24,7 +24,7 @@ class ReExportTest inherits QUnit::Test {
         assertEq(Type::Int, BV.type());
 
         if (Xml) {
-            assertEq("<?xml version=\"1.0\" encoding=\"UTF-8\"?><a>1</a>", call_function("make_xml", ("a": 1)));
+            assertEq("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<a>1</a>\n", call_function("make_xml", ("a": 1)));
         }
     }
 }
