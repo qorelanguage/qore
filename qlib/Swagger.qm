@@ -164,6 +164,7 @@ RestHandler handler(NOTHING, swagger);
     - fixed a bug where string value constraints were only enforced in requests but not responses (<a href="https://github.com/qorelanguage/qore/issues/2396">issue 2396</a>)
     - fixed a bug where invalid date, binary, and byte values would cause a <tt>500 Internal Server Error</tt> response to be returned instead of a <tt>400 Bad Request</tt> error (<a href="https://github.com/qorelanguage/qore/issues/2397">issue 2397</a>)
     - fixed a bug where date values were formatted incorrectly in Swagger responses (<a href="https://github.com/qorelanguage/qore/issues/2409">issue 2409</a>)
+    - fixed a bug which made it impossible to return data with other content/mime types than json, yamlrpc, FormUrlEncoded or MultipartFormData (<a href="https://github.com/qorelanguage/qore/issues/2497">issue 2497</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
@@ -1512,8 +1513,20 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         ));
 
         if (exists response_body) {
-            if (!exists content_types)
+            if (!exists content_types) {
+                # no content types mean "accept: */*" header was sent with the request
+                # so, if the response has already set content-type header, we assume
+                # that the body is in the right format
+                *list ct = map $1, keys headers, $1 =~ /content-type/i;
+                if (ct && ct.size() == 1) {
+                    return rv += (
+                        "body": response_body,
+                    );
+                }
+
+                # otherwise we continue with the default content types
                 content_types = MimeContentTypes;
+            }
             foreach string content in (content_types) {
                 if (!mime_types{content})
                     continue;
@@ -1533,12 +1546,20 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                         "hdr": rv.hdr + ("Content-Type": mh.hdr."Content-Type"),
                     );
                 }
-                if (!MimeDataTypes{content})
-                    continue;
-                return rv += (
-                    "body": compact_serialization ? MimeDataTypes{content}.serialize(response_body) : MimeDataTypes{content}.serialize_verbose(response_body),
-                    "hdr": rv.hdr + ("Content-Type": content),
-                );
+                if (MimeDataTypes{content}) {
+                    return rv += (
+                        "body": compact_serialization ? MimeDataTypes{content}.serialize(response_body) : MimeDataTypes{content}.serialize_verbose(response_body),
+                        "hdr": rv.hdr + ("Content-Type": content),
+                    );
+                }
+                else {
+                    *list ct = map $1, keys headers, $1 =~ /content-type/i;
+                    if (ct && ct.size() == 1) {
+                        return rv += (
+                            "body": response_body,
+                        );
+                    }
+                }
             }
             if (content_types == MimeContentTypes)
                 throw "ACCEPT-ERROR", sprintf("response to %s %s: message body cannot be serialized; available MIME type(s) for this call: %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules), ("types": mime_types);
