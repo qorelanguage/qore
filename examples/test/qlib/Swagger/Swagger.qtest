@@ -392,6 +392,7 @@ public class SwaggerTest inherits QUnit::Test {
         addTestCase("Test validation", \testValidation());
         addTestCase("Test examples", \testExamples());
         addTestCase("Test real msgs", \testRealMessages());
+        addTestCase("Test accept header", \testAcceptHeader());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -1807,6 +1808,26 @@ public class SwaggerTest inherits QUnit::Test {
                     ),
                 ),
             );
+            b.paths."/api/b2497" += (
+                "get": (
+                    "responses": (
+                        "200": (
+                            "description": "successful response",
+                            "schema": {
+                                "type": "string",
+                                "format": "binary",
+                            }
+                        ),
+                    ),
+                    "consumes": (
+                        MimeTypeJson,
+                    ),
+                    "produces": (
+                        "image/jpeg",
+                        "image/png",
+                    ),
+                ),
+            );
             remove b.parameters.a.type;
 
             SwaggerSchema so(b);
@@ -2038,6 +2059,101 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq(MimeTypeJson, res.hdr."Content-Type");
                 assertEq(now.format("\"YYYY-MM-DD\""), res.body);
             }
+
+            # issue #2497
+            so = new SwaggerSchema(b);
+            {
+                hash<HttpResponseInfo> res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/jpeg"}, NOTHING);
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/png"}, NOTHING);
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, NOTHING);
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, NOTHING);
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq(<feedface>, res.body);
+            }
+            {
+                hash<HttpResponseInfo> res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/jpeg"}, ("*/*",));
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/png"}, ("*/*",));
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, ("*/*",));
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, ("*/*",));
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq(<feedface>, res.body);
+            }
+            {
+                hash<HttpResponseInfo> res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/jpeg"}, ("image/*",));
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/png"}, ("image/*",));
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, ("image/*",));
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, ("image/*",));
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq(<feedface>, res.body);
+            }
+            {
+                list contentTypes = ("text/x-yaml","application/x-yaml","text/xml","application/xml","application/json","image/jpeg","image/png");
+                hash<HttpResponseInfo> res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/jpeg"}, contentTypes);
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/png"}, contentTypes);
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, contentTypes);
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, contentTypes);
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq(<feedface>, res.body);
+            }
+            {
+                list contentTypes = ("text/x-yaml","application/x-yaml","text/xml","application/xml","application/json","image/jpeg","image/png");
+                assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, NOTHING));
+                assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, ("*/*",)));
+                assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, ("image/*",)));
+                assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, contentTypes));
+            }
         }
 
         {
@@ -2267,5 +2383,9 @@ public class SwaggerTest inherits QUnit::Test {
         string json = my_make_json(b);
 
         return sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: application/json\r\nContent-Length: %d\r\nDate: %s GMT\r\n\r\n%s", json.size(), gmtime().format("Dy, DD Mon YYYY HH:mm:SS"), json);
+    }
+
+    testAcceptHeader() {
+        # TODO
     }
 }
