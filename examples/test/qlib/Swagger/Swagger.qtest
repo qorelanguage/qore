@@ -384,7 +384,6 @@ public class SwaggerTest inherits QUnit::Test {
         addTestCase("Test validation", \testValidation());
         addTestCase("Test examples", \testExamples());
         addTestCase("Test real msgs", \testRealMessages());
-        addTestCase("Test accept header", \testAcceptHeader());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -2354,9 +2353,5 @@ public class SwaggerTest inherits QUnit::Test {
         string json = my_make_json(b);
 
         return sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: application/json\r\nContent-Length: %d\r\nDate: %s GMT\r\n\r\n%s", json.size(), gmtime().format("Dy, DD Mon YYYY HH:mm:SS"), json);
-    }
-
-    testAcceptHeader() {
-        # TODO
     }
 }
