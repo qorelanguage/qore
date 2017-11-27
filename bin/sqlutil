@@ -3,7 +3,7 @@
 
 # @file sqlutil example program for the SqlUtil module
 
-/*  Copyright 2013 - 2016 David Nichols
+/*  Copyright 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 
 %requires SqlUtil
 %requires BulkSqlUtil
+%requires Util
 %try-module yaml
 %define NoYaml
 %endtry
@@ -50,6 +51,7 @@ const opts = (
     "omit":              "O,omit=s@",
     "list_tables":       "L,list-tables",
     "list_objects":      "list=s@",
+    "select":            "select=s",
 
     "data_tablespace":   "d,data-tablespace=s",
     "index_tablespace":  "i,index-tablespace=s",
@@ -136,6 +138,8 @@ sub usage() {
                                %y
                               or 'all' for all objects of this type.
                               With name ARG2.
+     --select=ARG             use ARG as the select hash for exporting data
+                              to be parsed with Util::parse_to_qore_value()
   -T,--target-ds=ARG          target datasource
   -v,--verbose=ARG            increase verbosity level (more v's = more info)
      --export=ARG             export table data to standard output in YAML format
@@ -421,12 +425,22 @@ sub main() {
 %ifdef NoYaml
         throw "YAML-ERROR", "the binary yaml module is not available";
 %else
+        hash sh;
+        # issue #2509 allow exported rows to be filtered
+        if (opt.select) {
+            auto v = parse_to_qore_value(opt.select);
+            if (exists v && v.typeCode() != NT_HASH)
+                throw "SELECT-ERROR", sprintf("the --select argument must be assigned to a value that parses to a hash; %y => type %y", opt.select, v.type());
+            if (v)
+                sh = v;
+        }
+
         on_success source.commit();
         on_error source.rollback();
 
         done = True;
         Table table(source, opt.export_table);
-        SQLStatement sql = table.getRowIterator();
+        SQLStatement sql = table.getRowIterator(sh);
         while (sql.next()) {
             hash row = sql.fetchRow();
             printf("%s", make_yaml(row));
