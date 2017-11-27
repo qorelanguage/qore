@@ -1126,7 +1126,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /** @param method the HTTP method (case-insensitive)
         @param path the URI path with any query arguments
         @param body the unserialized message body data
-        @param headers any headers to include in the request
+        @param headers any headers to include in the request; note that the \c Content-Type header should not be sent here as it will be overridden when the message is serialized
         @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
 
         @return a @ref RestSchemaValidator::RestRequestClientInfo "RestRequestClientInfo" hash with information about the request
@@ -1412,7 +1412,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /** @param method the HTTP method (case-insensitive)
         @param path the URI path with any query arguments
         @param body the unserialized message body data
-        @param headers any headers to include in the request
+        @param headers any headers to include in the request; note that the \c Content-Type header should not be sent here as it will be overridden when the message is serialized
         @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
         @param compact_serialization overrides the internal \c compact_serialization flag
 
@@ -2185,7 +2185,7 @@ public class OperationObject inherits ObjectBase {
     /** @param serialize if request arguments should be processed for serialization (client-side) or not (server-side)
         @param pio the PathItemObject corresponding to the URI path
         @param h a reference to the URI query info hash
-        @param body a reference to the HTTP message body data hash
+        @param body a reference to the deserialized HTTP message body data
         @param headers a reference to a hash of HTTP headers
         @param mime_types a reference to a hash of valid mime types for the operation
 
@@ -2235,7 +2235,7 @@ public class OperationObject inherits ObjectBase {
     #! parses and processes a REST request on the server side
     /** @param pio the PathItemObject corresponding to the URI path
         @param h a reference to the URI query info hash
-        @param body a reference to the HTTP message body data hash
+        @param body a reference to the deserialized HTTP message body data
         @param headers a reference to a hash of HTTP headers
 
         @throw DESERIALIZATION-ERROR invalid content-type

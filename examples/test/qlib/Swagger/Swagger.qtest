@@ -2162,13 +2162,27 @@ public class SwaggerTest inherits QUnit::Test {
             # issue #2507
             so = new SwaggerSchema(b);
             {
-                hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2507", {"a":"b"}, {"content-type": MimeTypeJson}, (MimeTypeJson,));
+                hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2507", {"a":"b"}, NOTHING, (MimeTypeJson,));
                 assertEq("/api/b2507", res.uri_path);
                 assertEq(MimeTypeJson, res.content);
                 assertEq('{"a": "b"}', res.body);
-            }
-            {
-                assertThrows("DESERIALIZATION-ERROR", \so.processRequest(), ("post", "/api/b2507", '{"a":"b"}', {"content-type": MimeTypeYaml}, (MimeTypeJson,)));
+
+                hash hdr = ("content-type": MimeTypeJson);
+                hash<RestRequestServerInfo> sh = so.parseRequest("post", res.uri_path, res.body, \hdr);
+                assertEq("/api/b2507", sh.path);
+                assertEq(("a": "b"), sh.body);
+
+                hdr = ("content-type": MimeTypeYamlRpc);
+                assertThrows("DESERIALIZATION-ERROR", \so.parseRequest(), ("post", res.uri_path, res.body, \hdr));
+
+                hdr = ("content-type": MimeTypeText);
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("post", res.uri_path, res.body, \hdr));
+
+                hash<RestResponseClientInfo> rsh = so.parseResponse("post", res.uri_path, 200, "\"string\"", ("content-type": MimeTypeJson));
+                assertEq(200, rsh.code);
+                assertEq(MimeTypeJson, rsh.hdr."content-type");
+                assertEq("string", rsh.body);
+                assertThrows("DESERIALIZATION-ERROR", \so.parseResponse(), ("post", res.uri_path, 200, "\"string\"", ("content-type": MimeTypeYamlRpc)));
             }
         }
 
