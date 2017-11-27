@@ -1145,12 +1145,14 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @return a @ref RestSchemaValidator::RestRequestServerInfo hash of request information
 
-        @throw DESERIALIZATION-ERROR the path does not match the basePath or the request body could not be deserialized
+        @throw DESERIALIZATION-ERROR the path does not match the basePath, the request body could not be deserialized or the \c Content-Type is missing or it is invalid for the operation
     */
     private hash<RestSchemaValidator::RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
         auto body;
         # deserialize body according to Content-Type
         if (exists http_body) {
+            if (!headers.hasKey("content-type"))
+                throw "DESERIALIZATION-ERROR", "message includes body but is missing Content-Type header";
             if (headers."content-type" =~ /^multipart\/form-data/) {
                 hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(headers."content-type", http_body.toString());
                 body = map {$1.key: $1.value.body}, h.pairIterator();
@@ -1158,7 +1160,6 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             else {
                 *code ds = MimeDataTypes.(headers."content-type").deserialize;
                 if (!ds) {
-                    #throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method.upr(), path, headers."content-type", MimeContentTypes, SerializationModules);
                     body = http_body;
                 }
                 else {
@@ -1219,7 +1220,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @return a @ref RestSchemaValidator::RestResponseClientInfo hash describing the response
 
-        @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
+        @throw DESERIALIZATION-ERROR the response body could not be deserialized or had an invalid \c Content-Type
     */
     private hash<RestSchemaValidator::RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr) {
         # remove basePath if present
@@ -2237,13 +2238,25 @@ public class OperationObject inherits ObjectBase {
         @param body a reference to the HTTP message body data hash
         @param headers a reference to a hash of HTTP headers
 
+        @throw DESERIALIZATION-ERROR invalid content-type
         @throws INVALID-PARAMETER-NAME invalid parameter name
         @throws INVALID-PARAMETER-LOCATION invalid parameter location
         @throws MISSING-PARAMETER missing parameter and parameter has no default value
     */
     parseRequest(PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<auto> body, reference<hash> headers) {
         # validate message
-        validateRequest(False, pio, \h, \body, \headers);
+        hash<string, bool> mime_types();
+        validateRequest(False, pio, \h, \body, \headers, \mime_types);
+
+        # check content-type
+        if (exists body && mime_types) {
+            string content = headers."content-type" ?? headers."Content-Type";
+            int pos = content.find(";");
+            if (pos != -1)
+                content = content.substr(0, pos);
+            if (!mime_types{content})
+                throw "DESERIALIZATION-ERROR", sprintf("%s: invalid Content-Type: %y; valid MIME types: %y", h.method, content, mime_types);
+        }
 
         # set default parameter values
         doDefaultParams(\h, \headers, \body, parameters);

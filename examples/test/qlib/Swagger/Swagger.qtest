@@ -1767,6 +1767,7 @@ public class SwaggerTest inherits QUnit::Test {
                         MimeTypeYamlRpc,
                         MimeTypeFormUrlEncoded,
                         MimeTypeMultipartFormData,
+                        "image/png",
                     ),
                     "produces": (
                         MimeTypeJson,
@@ -1818,6 +1819,39 @@ public class SwaggerTest inherits QUnit::Test {
                     ),
                 ),
             );
+            b.paths."/api/b2507" += (
+                "post": (
+                    "responses": (
+                        "200": (
+                            "description": "successful response",
+                            "schema": {
+                                "type": "string",
+                            }
+                        ),
+                    ),
+                    "consumes": (
+                        MimeTypeJson,
+                    ),
+                    "produces": (
+                        MimeTypeJson,
+                    ),
+                    "parameters": (
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "schema": (
+                                "type": "object",
+                                "properties": {
+                                    "a": {
+                                        "type": "string"
+                                    }
+                                }
+                            ),
+                        },
+                    )
+                ),
+            );
+
             remove b.parameters.a.type;
 
             SwaggerSchema so(b);
@@ -2123,6 +2157,18 @@ public class SwaggerTest inherits QUnit::Test {
                 assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, NOTHING));
                 assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, ("image/*",)));
                 assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, contentTypes));
+            }
+
+            # issue #2507
+            so = new SwaggerSchema(b);
+            {
+                hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2507", {"a":"b"}, {"content-type": MimeTypeJson}, (MimeTypeJson,));
+                assertEq("/api/b2507", res.uri_path);
+                assertEq(MimeTypeJson, res.content);
+                assertEq('{"a": "b"}', res.body);
+            }
+            {
+                assertThrows("DESERIALIZATION-ERROR", \so.processRequest(), ("post", "/api/b2507", '{"a":"b"}', {"content-type": MimeTypeYaml}, (MimeTypeJson,)));
             }
         }
 
