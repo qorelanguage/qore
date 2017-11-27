@@ -164,6 +164,8 @@ RestHandler handler(NOTHING, swagger);
     - fixed a bug where string value constraints were only enforced in requests but not responses (<a href="https://github.com/qorelanguage/qore/issues/2396">issue 2396</a>)
     - fixed a bug where invalid date, binary, and byte values would cause a <tt>500 Internal Server Error</tt> response to be returned instead of a <tt>400 Bad Request</tt> error (<a href="https://github.com/qorelanguage/qore/issues/2397">issue 2397</a>)
     - fixed a bug where date values were formatted incorrectly in Swagger responses (<a href="https://github.com/qorelanguage/qore/issues/2409">issue 2409</a>)
+    - fixed a bug which made it impossible to return data with other content/mime types than json, yamlrpc, FormUrlEncoded or MultipartFormData (<a href="https://github.com/qorelanguage/qore/issues/2497">issue 2497</a>)
+    - fixed handling of string/binary values (<a href="https://github.com/qorelanguage/qore/issues/2505">issue 2505</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
@@ -355,10 +357,11 @@ class SchemaBase {
                 case "string": {
                     switch (format) {
                         case "byte": return parse_base64_string(rv);
-                        case "binary": return parse_hex_string(rv);
                         case "date":
                         case "date-time":
                             return date(rv);
+                        default:
+                            break;
                     }
                 }
             }
@@ -520,8 +523,8 @@ class SchemaBase {
                     value = make_base64_string(v);
                     break;
                 case "binary":
-                    value = make_hex_string(v);
-                    break;
+                    value = v;
+                    return;
                 default:
                     throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a binary value to a string value with format %y", method.upr(), path, name, format);
             }
@@ -540,7 +543,7 @@ class SchemaBase {
                     value = make_base64_string(v);
                     break;
                 case "binary":
-                    value = make_hex_string(v);
+                    value = binary(v);
                     break;
                 case "date":
                 case "date-time":
@@ -561,7 +564,7 @@ class SchemaBase {
                 # NOTE: deserializes to a binary object
                 case "binary":
                     try {
-                        value = parse_hex_string(v);
+                        value = binary(v);
                     }
                     catch (hash<ExceptionInfo> ex) {
                         throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type %y is invalid; value provided: %y (%s)", name, path, method, format, v, ex.desc);
@@ -1123,7 +1126,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /** @param method the HTTP method (case-insensitive)
         @param path the URI path with any query arguments
         @param body the unserialized message body data
-        @param headers any headers to include in the request
+        @param headers any headers to include in the request; note that the \c Content-Type header should not be sent here as it will be overridden when the message is serialized
         @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
 
         @return a @ref RestSchemaValidator::RestRequestClientInfo "RestRequestClientInfo" hash with information about the request
@@ -1142,24 +1145,28 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @return a @ref RestSchemaValidator::RestRequestServerInfo hash of request information
 
-        @throw DESERIALIZATION-ERROR the path does not match the basePath or the request body could not be deserialized
+        @throw DESERIALIZATION-ERROR the path does not match the basePath, the request body could not be deserialized or the \c Content-Type is missing or it is invalid for the operation
     */
     private hash<RestSchemaValidator::RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
         auto body;
         # deserialize body according to Content-Type
         if (exists http_body) {
+            if (!headers.hasKey("content-type"))
+                throw "DESERIALIZATION-ERROR", "message includes body but is missing Content-Type header";
             if (headers."content-type" =~ /^multipart\/form-data/) {
                 hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(headers."content-type", http_body.toString());
                 body = map {$1.key: $1.value.body}, h.pairIterator();
             }
             else {
                 *code ds = MimeDataTypes.(headers."content-type").deserialize;
-                if (!ds)
-                    throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method.upr(), path, headers."content-type", MimeContentTypes, SerializationModules);
-
-                auto any_body = ds(http_body);
-                if (exists any_body)
-                    body = any_body;
+                if (!ds) {
+                    body = http_body;
+                }
+                else {
+                    auto any_body = ds(http_body);
+                    if (exists any_body)
+                        body = any_body;
+                }
             }
         }
 
@@ -1213,7 +1220,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @return a @ref RestSchemaValidator::RestResponseClientInfo hash describing the response
 
-        @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
+        @throw DESERIALIZATION-ERROR the response body could not be deserialized or had an invalid \c Content-Type
     */
     private hash<RestSchemaValidator::RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash hdr) {
         # remove basePath if present
@@ -1405,7 +1412,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /** @param method the HTTP method (case-insensitive)
         @param path the URI path with any query arguments
         @param body the unserialized message body data
-        @param headers any headers to include in the request
+        @param headers any headers to include in the request; note that the \c Content-Type header should not be sent here as it will be overridden when the message is serialized
         @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
         @param compact_serialization overrides the internal \c compact_serialization flag
 
@@ -1512,11 +1519,40 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         ));
 
         if (exists response_body) {
-            if (!exists content_types)
+            if (!exists content_types) {
+                # no content types mean "accept: */*" header was sent with the request
+                # so, if the response has already set content-type header, we assume
+                # that the body is in the right format
+                if (checkResponseContentTypeHeader(\rv, response_body, headers))
+                    return rv;
+
+                # otherwise we continue with the default content types
                 content_types = MimeContentTypes;
+            }
+
+            # there are content_types -> test them one by one
+            list mimeTypeKeys = keys mime_types;
             foreach string content in (content_types) {
-                if (!mime_types{content})
+                # test for the special asterisk case
+                if (content == "*/*") {
+                    if (checkResponseContentTypeHeader(\rv, response_body, headers))
+                        return rv;
+                }
+
+                # test if the content type contains asterisk and generate regex for it
+                bool asteriskCt = (content.find("*") != -1);
+                *string ctRegex = replace(content, "*", ".*");
+
+                # check that the content type is valid for the response
+                if (asteriskCt) {
+                    *list mt = map $1, mimeTypeKeys, $1.regex(ctRegex);
+                    if (!mt)
+                        continue;
+                }
+                else if (!mime_types{content})
                     continue;
+
+                # check for multipart-form-data case
                 if (content == MimeTypeMultipartFormData) {
                     if (response_body.typeCode() != NT_HASH)
                         throw "SERIALIZATION-ERROR", sprintf("response to %s %s: cannot serialize type %y to MIME type %y; expecing \"hash\"", method.upr(), path, response_body.type(), content);
@@ -1533,13 +1569,31 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                         "hdr": rv.hdr + ("Content-Type": mh.hdr."Content-Type"),
                     );
                 }
-                if (!MimeDataTypes{content})
-                    continue;
-                return rv += (
-                    "body": compact_serialization ? MimeDataTypes{content}.serialize(response_body) : MimeDataTypes{content}.serialize_verbose(response_body),
-                    "hdr": rv.hdr + ("Content-Type": content),
-                );
+
+                # check the default set of mime types
+                if (asteriskCt) {
+                    *list mt = map $1, MimeContentTypes, $1.regex(ctRegex);
+                    if (mt && mt.size()) {
+                        string mimeType = mt[0];
+                        return rv += (
+                            "body": compact_serialization ? MimeDataTypes{mimeType}.serialize(response_body) : MimeDataTypes{mimeType}.serialize_verbose(response_body),
+                            "hdr": rv.hdr + ("Content-Type": mimeType),
+                        );
+                    }
+                }
+                else if (MimeDataTypes{content}) {
+                    return rv += (
+                        "body": compact_serialization ? MimeDataTypes{content}.serialize(response_body) : MimeDataTypes{content}.serialize_verbose(response_body),
+                        "hdr": rv.hdr + ("Content-Type": content),
+                    );
+                }
+
+                # check if the content-type header is already set
+                if (checkResponseContentTypeHeader(\rv, response_body, headers))
+                    return rv;
             }
+
+            # none of the content types was ok
             if (content_types == MimeContentTypes)
                 throw "ACCEPT-ERROR", sprintf("response to %s %s: message body cannot be serialized; available MIME type(s) for this call: %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules), ("types": mime_types);
             else
@@ -1547,6 +1601,27 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         }
 
         return rv;
+    }
+
+    #! Check if the headers contain a content-type header and if so, modify the response hash
+    /** @param resp response hash
+        @param response_body the response body data (if any)
+        @param headers HTTP headers to include in the response
+
+        @return whether the headers contained a content-type header and the rv was modified
+
+        @note if there are more content-type headers, then @ref False is returned and response is not modified
+    */
+    private:internal bool checkResponseContentTypeHeader(reference<hash<HttpResponseInfo>> resp, auto response_body, *hash headers) {
+        *list ct = map $1, keys headers, $1 =~ /content-type/i;
+        if (ct && ct.size() == 1) {
+            resp += (
+                "body": response_body,
+                "hdr": resp.hdr + ("Content-Type": remove resp.hdr{ct[0]}),
+            );
+            return True;
+        }
+        return False;
     }
 }
 
@@ -2110,7 +2185,7 @@ public class OperationObject inherits ObjectBase {
     /** @param serialize if request arguments should be processed for serialization (client-side) or not (server-side)
         @param pio the PathItemObject corresponding to the URI path
         @param h a reference to the URI query info hash
-        @param body a reference to the HTTP message body data hash
+        @param body a reference to the deserialized HTTP message body data
         @param headers a reference to a hash of HTTP headers
         @param mime_types a reference to a hash of valid mime types for the operation
 
@@ -2160,16 +2235,28 @@ public class OperationObject inherits ObjectBase {
     #! parses and processes a REST request on the server side
     /** @param pio the PathItemObject corresponding to the URI path
         @param h a reference to the URI query info hash
-        @param body a reference to the HTTP message body data hash
+        @param body a reference to the deserialized HTTP message body data
         @param headers a reference to a hash of HTTP headers
 
+        @throw DESERIALIZATION-ERROR invalid content-type
         @throws INVALID-PARAMETER-NAME invalid parameter name
         @throws INVALID-PARAMETER-LOCATION invalid parameter location
         @throws MISSING-PARAMETER missing parameter and parameter has no default value
     */
     parseRequest(PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<auto> body, reference<hash> headers) {
         # validate message
-        validateRequest(False, pio, \h, \body, \headers);
+        hash<string, bool> mime_types();
+        validateRequest(False, pio, \h, \body, \headers, \mime_types);
+
+        # check content-type
+        if (exists body && mime_types) {
+            string content = headers."content-type" ?? headers."Content-Type";
+            int pos = content.find(";");
+            if (pos != -1)
+                content = content.substr(0, pos);
+            if (!mime_types{content})
+                throw "DESERIALIZATION-ERROR", sprintf("%s: invalid Content-Type: %y; valid MIME types: %y", h.method, content, mime_types);
+        }
 
         # set default parameter values
         doDefaultParams(\h, \headers, \body, parameters);
@@ -2706,7 +2793,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                             break;
                         case "binary":
                             try {
-                                value = parse_hex_string(value);
+                                value = binary(value);
                             }
                             catch (hash<ExceptionInfo> ex) {
                                 throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"binary\" is invalid; value provided: %y (%s)", name, path, method, value, ex.desc);

@@ -162,7 +162,7 @@ public namespace RestSchemaValidator {
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
             @param body the unserialized message body data
-            @param headers any headers to include in the request
+            @param headers any headers to include in the request; note that the \c Content-Type header should not be sent here as it will be overridden when the message is serialized
             @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
 
             @return a @ref RestRequestClientInfo hash with information about the request
@@ -303,7 +303,7 @@ public namespace RestSchemaValidator {
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
             @param body the unserialized message body data
-            @param headers any headers to include in the request
+            @param headers any headers to include in the request; note that the \c Content-Type header should not be sent here as it will be overridden when the message is serialized
             @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
 
             @return a @ref RestRequestClientInfo hash with information about the request
@@ -508,7 +508,7 @@ public namespace RestSchemaValidator {
         /** @param method the HTTP method (case-insensitive)
             @param path the URI path with any query arguments
             @param body the unserialized message body data
-            @param headers any headers to include in the request
+            @param headers any headers to include in the request; note that the \c Content-Type header should not be sent here as it will be overridden when the message is serialized
             @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown
 
             @return a @ref RestRequestClientInfo hash with information about the request

@@ -62,6 +62,8 @@
         - fixed a bug where string value constraints were only enforced in requests but not responses (<a href="https://github.com/qorelanguage/qore/issues/2396">issue 2396</a>)
         - fixed a bug where invalid date, binary, and byte values would cause a <tt>500 Internal Server Error</tt> response to be returned instead of a <tt>400 Bad Request</tt> error (<a href="https://github.com/qorelanguage/qore/issues/2397">issue 2397</a>)
         - fixed a bug where date values were formatted incorrectly in Swagger responses (<a href="https://github.com/qorelanguage/qore/issues/2409">issue 2409</a>)
+        - fixed a bug which made it impossible to return data with other content/mime types than json, yamlrpc, FormUrlEncoded or MultipartFormData (<a href="https://github.com/qorelanguage/qore/issues/2497">issue 2497</a>)
+        - fixed handling of string/binary values (<a href="https://github.com/qorelanguage/qore/issues/2505">issue 2505</a>)
     - fixed bugs affecting debugging matching function/method variants and finding statements with special methods and with complex types (<a href="https://github.com/qorelanguage/qore/issues/1865">issue 1865</a>)
     - fixed a bug in \c qpp generating hashdecl code in a specific namespace (<a href="https://github.com/qorelanguage/qore/issues/2255">issue 2255</a>)
     - fixed an error in a @ref hashdecl "hashdecl" documentation example (<a href="https://github.com/qorelanguage/qore/issues/2299">issue 2299</a>)
