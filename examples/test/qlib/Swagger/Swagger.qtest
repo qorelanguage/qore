@@ -136,14 +136,6 @@ public class SwaggerTest inherits QUnit::Test {
                     "type": "string",
                     "format": "date",
                 ),
-                "bin": (
-                    "name": "bin",
-                    "in": "query",
-                    "description": "desc",
-                    "required": False,
-                    "type": "string",
-                    "format": "binary",
-                ),
                 "byte": (
                     "name": "byte",
                     "in": "query",
@@ -1787,7 +1779,6 @@ public class SwaggerTest inherits QUnit::Test {
                         ("$ref": "#/parameters/enum",),
                         ("$ref": "#/parameters/int",),
                         ("$ref": "#/parameters/date",),
-                        ("$ref": "#/parameters/bin",),
                         ("$ref": "#/parameters/byte",),
                         ("$ref": "#/parameters/string",),
                     ),
@@ -1968,23 +1959,6 @@ public class SwaggerTest inherits QUnit::Test {
                 assertThrows("SCHEMA-VALIDATION-ERROR", "date.*invalid", \so.parseRequest(), ("put", "/api/smtg?date=2017-01-x1", h.body, \hdr));
             }
 
-            # issue #2388 bin parameter check
-            h = so.processRequest("put", "/api/smtg?bin=abcd", 3);
-            #printf("h: %y\n", h);
-            assertEq("/api/smtg?bin=abcd", h.uri_path);
-            assertEq(Type::String, h.body.type());
-
-            assertThrows("SCHEMA-VALIDATION-ERROR", "binary", \so.processRequest(), ("put", "/api/smtg?bin=xyz", 3));
-
-            {
-                hash hdr."content-type" = "application/json";
-                hash<RestRequestServerInfo> sh = so.parseRequest("put", h.uri_path, h.body, \hdr);
-                #printf("sh: %y\n", sh);
-                assertEq("/api/smtg", sh.path);
-                assertEq(<abcd>, sh.query.bin);
-                assertEq(3, sh.body);
-            }
-
             # issue #2388 byte parameter check
             h = so.processRequest("put", "/api/smtg?byte=YWJj", 3);
             #printf("h: %y\n", h);
@@ -2026,12 +2000,10 @@ public class SwaggerTest inherits QUnit::Test {
             so = new SwaggerSchema(b);
 
             {
-                hash hdr = ("content-type": h.content);
-                hash<RestRequestServerInfo> sh = so.parseRequest("post", "/api/smtg", "\"abcd\"", \hdr);
+                hash hdr = ("content-type": "image/png");
+                hash<RestRequestServerInfo> sh = so.parseRequest("post", "/api/smtg", <abcd>, \hdr);
                 assertEq("/api/smtg", sh.path);
                 assertEq(<abcd>, sh.body);
-
-                assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("post", "/api/smtg", "\"abcx\"", \hdr));
                 #printf("sh: %N\n", sh);
             }
 
@@ -2150,7 +2122,6 @@ public class SwaggerTest inherits QUnit::Test {
             {
                 list contentTypes = ("text/x-yaml","application/x-yaml","text/xml","application/xml","application/json","image/jpeg","image/png");
                 assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, NOTHING));
-                assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, ("*/*",)));
                 assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, ("image/*",)));
                 assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, contentTypes));
             }
