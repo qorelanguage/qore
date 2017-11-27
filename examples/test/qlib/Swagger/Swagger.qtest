@@ -136,14 +136,6 @@ public class SwaggerTest inherits QUnit::Test {
                     "type": "string",
                     "format": "date",
                 ),
-                "bin": (
-                    "name": "bin",
-                    "in": "query",
-                    "description": "desc",
-                    "required": False,
-                    "type": "string",
-                    "format": "binary",
-                ),
                 "byte": (
                     "name": "byte",
                     "in": "query",
@@ -1775,6 +1767,7 @@ public class SwaggerTest inherits QUnit::Test {
                         MimeTypeYamlRpc,
                         MimeTypeFormUrlEncoded,
                         MimeTypeMultipartFormData,
+                        "image/png",
                     ),
                     "produces": (
                         MimeTypeJson,
@@ -1786,7 +1779,6 @@ public class SwaggerTest inherits QUnit::Test {
                         ("$ref": "#/parameters/enum",),
                         ("$ref": "#/parameters/int",),
                         ("$ref": "#/parameters/date",),
-                        ("$ref": "#/parameters/bin",),
                         ("$ref": "#/parameters/byte",),
                         ("$ref": "#/parameters/string",),
                     ),
@@ -1807,6 +1799,59 @@ public class SwaggerTest inherits QUnit::Test {
                     ),
                 ),
             );
+            b.paths."/api/b2497" += (
+                "get": (
+                    "responses": (
+                        "200": (
+                            "description": "successful response",
+                            "schema": {
+                                "type": "string",
+                                "format": "binary",
+                            }
+                        ),
+                    ),
+                    "consumes": (
+                        MimeTypeJson,
+                    ),
+                    "produces": (
+                        "image/jpeg",
+                        "image/png",
+                    ),
+                ),
+            );
+            b.paths."/api/b2507" += (
+                "post": (
+                    "responses": (
+                        "200": (
+                            "description": "successful response",
+                            "schema": {
+                                "type": "string",
+                            }
+                        ),
+                    ),
+                    "consumes": (
+                        MimeTypeJson,
+                    ),
+                    "produces": (
+                        MimeTypeJson,
+                    ),
+                    "parameters": (
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "schema": (
+                                "type": "object",
+                                "properties": {
+                                    "a": {
+                                        "type": "string"
+                                    }
+                                }
+                            ),
+                        },
+                    )
+                ),
+            );
+
             remove b.parameters.a.type;
 
             SwaggerSchema so(b);
@@ -1947,23 +1992,6 @@ public class SwaggerTest inherits QUnit::Test {
                 assertThrows("SCHEMA-VALIDATION-ERROR", "date.*invalid", \so.parseRequest(), ("put", "/api/smtg?date=2017-01-x1", h.body, \hdr));
             }
 
-            # issue #2388 bin parameter check
-            h = so.processRequest("put", "/api/smtg?bin=abcd", 3);
-            #printf("h: %y\n", h);
-            assertEq("/api/smtg?bin=abcd", h.uri_path);
-            assertEq(Type::String, h.body.type());
-
-            assertThrows("SCHEMA-VALIDATION-ERROR", "binary", \so.processRequest(), ("put", "/api/smtg?bin=xyz", 3));
-
-            {
-                hash hdr."content-type" = "application/json";
-                hash<RestRequestServerInfo> sh = so.parseRequest("put", h.uri_path, h.body, \hdr);
-                #printf("sh: %y\n", sh);
-                assertEq("/api/smtg", sh.path);
-                assertEq(<abcd>, sh.query.bin);
-                assertEq(3, sh.body);
-            }
-
             # issue #2388 byte parameter check
             h = so.processRequest("put", "/api/smtg?byte=YWJj", 3);
             #printf("h: %y\n", h);
@@ -2005,12 +2033,10 @@ public class SwaggerTest inherits QUnit::Test {
             so = new SwaggerSchema(b);
 
             {
-                hash hdr = ("content-type": h.content);
-                hash<RestRequestServerInfo> sh = so.parseRequest("post", "/api/smtg", "\"abcd\"", \hdr);
+                hash hdr = ("content-type": "image/png");
+                hash<RestRequestServerInfo> sh = so.parseRequest("post", "/api/smtg", <abcd>, \hdr);
                 assertEq("/api/smtg", sh.path);
                 assertEq(<abcd>, sh.body);
-
-                assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("post", "/api/smtg", "\"abcx\"", \hdr));
                 #printf("sh: %N\n", sh);
             }
 
@@ -2037,6 +2063,126 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq(409, res.code);
                 assertEq(MimeTypeJson, res.hdr."Content-Type");
                 assertEq(now.format("\"YYYY-MM-DD\""), res.body);
+            }
+
+            # issue #2497
+            so = new SwaggerSchema(b);
+            {
+                hash<HttpResponseInfo> res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/jpeg"}, NOTHING);
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/png"}, NOTHING);
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, NOTHING);
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, NOTHING);
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq(<feedface>, res.body);
+            }
+            {
+                hash<HttpResponseInfo> res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/jpeg"}, ("*/*",));
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/png"}, ("*/*",));
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, ("*/*",));
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, ("*/*",));
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq(<feedface>, res.body);
+            }
+            {
+                hash<HttpResponseInfo> res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/jpeg"}, ("image/*",));
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/png"}, ("image/*",));
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, ("image/*",));
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, ("image/*",));
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq(<feedface>, res.body);
+            }
+            {
+                list contentTypes = ("text/x-yaml","application/x-yaml","text/xml","application/xml","application/json","image/jpeg","image/png");
+                hash<HttpResponseInfo> res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/jpeg"}, contentTypes);
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/png"}, contentTypes);
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."content-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, contentTypes);
+                assertEq(200, res.code);
+                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq(<feedface>, res.body);
+
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, contentTypes);
+                assertEq(200, res.code);
+                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq(<feedface>, res.body);
+            }
+            {
+                list contentTypes = ("text/x-yaml","application/x-yaml","text/xml","application/xml","application/json","image/jpeg","image/png");
+                assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, NOTHING));
+                assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, ("image/*",)));
+                assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, contentTypes));
+            }
+
+            # issue #2507
+            so = new SwaggerSchema(b);
+            {
+                hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2507", {"a":"b"}, NOTHING, (MimeTypeJson,));
+                assertEq("/api/b2507", res.uri_path);
+                assertEq(MimeTypeJson, res.content);
+                assertEq('{"a": "b"}', res.body);
+
+                hash hdr = ("content-type": MimeTypeJson);
+                hash<RestRequestServerInfo> sh = so.parseRequest("post", res.uri_path, res.body, \hdr);
+                assertEq("/api/b2507", sh.path);
+                assertEq(("a": "b"), sh.body);
+
+                hdr = ("content-type": MimeTypeYamlRpc);
+                assertThrows("DESERIALIZATION-ERROR", \so.parseRequest(), ("post", res.uri_path, res.body, \hdr));
+
+                hdr = ("content-type": MimeTypeText);
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.parseRequest(), ("post", res.uri_path, res.body, \hdr));
+
+                hash<RestResponseClientInfo> rsh = so.parseResponse("post", res.uri_path, 200, "\"string\"", ("content-type": MimeTypeJson));
+                assertEq(200, rsh.code);
+                assertEq(MimeTypeJson, rsh.hdr."content-type");
+                assertEq("string", rsh.body);
+                assertThrows("DESERIALIZATION-ERROR", \so.parseResponse(), ("post", res.uri_path, 200, "\"string\"", ("content-type": MimeTypeYamlRpc)));
             }
         }
 
