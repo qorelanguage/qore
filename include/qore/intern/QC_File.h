@@ -37,7 +37,7 @@ DLLLOCAL QoreClass *initFileClass(QoreNamespace &qorens);
 
 #include <qore/QoreFile.h>
 
-DLLLOCAL inline int check_terminal_io(QoreObject* self, const char* m, ExceptionSink* xsink) {
+DLLLOCAL inline int check_terminal_io(const QoreObject* self, const char* m, ExceptionSink* xsink) {
    // check for no-terminal-io at runtime with system objecs
    if (self->isSystemObject() && runtime_check_parse_option(PO_NO_TERMINAL_IO)) {
       xsink->raiseException("ILLEGAL-EXPRESSION", "%s() cannot be called with a system constant object when 'no-terminal-io' is set", m);
