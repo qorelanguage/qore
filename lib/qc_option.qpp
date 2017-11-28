@@ -199,6 +199,12 @@
 #define QORE_CONST_HAVE_CLOSE_ALL_FD 0
 #endif
 
+#ifdef HAVE_GETIFADDRS
+#define QORE_CONST_HAVE_GET_NETIF_LIST 1
+#else
+#define QORE_CONST_HAVE_GET_NETIF_LIST 0
+#endif
+
 /** @defgroup option_constants Option Constants
     Option constants
 */
@@ -330,4 +336,7 @@ const HAVE_DSS = bool(QORE_CONST_HAVE_DSS);
 
 //! Indicates if the close_all_fd() function is available
 const HAVE_CLOSE_ALL_FD = bool(QORE_CONST_HAVE_CLOSE_ALL_FD);
+
+//! Indicates if the get_netif_list() function is available
+const HAVE_GET_NETIF_LIST = bool(QORE_CONST_HAVE_GET_NETIF_LIST);
 //@}
