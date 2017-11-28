@@ -166,6 +166,7 @@ RestHandler handler(NOTHING, swagger);
     - fixed a bug where date values were formatted incorrectly in Swagger responses (<a href="https://github.com/qorelanguage/qore/issues/2409">issue 2409</a>)
     - fixed a bug which made it impossible to return data with other content/mime types than json, yamlrpc, FormUrlEncoded or MultipartFormData (<a href="https://github.com/qorelanguage/qore/issues/2497">issue 2497</a>)
     - fixed handling of string/binary values (<a href="https://github.com/qorelanguage/qore/issues/2505">issue 2505</a>)
+    - fixed a bug where consumes property of operations was sometimes ignored (<a href="https://github.com/qorelanguage/qore/issues/2507">issue 2507</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
