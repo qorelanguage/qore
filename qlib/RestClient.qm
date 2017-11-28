@@ -883,10 +883,10 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             #info."response-body" = h.body;
             *hash dh = NullRestSchemaValidator::DataDeserializationSupport.(h."content-type");
             if (!dh)
-                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y; types supported: %y; response body: %y", h."content-type", NullRestSchemaValidator::DataDeserializationSupport.keys(), h.body);
+                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y; types supported: %y; response body: %y", h."content-type", NullRestSchemaValidator::DataDeserializationSupport.keys(), h.body);
 
             if (h.body.typeCode() != NT_STRING)
-                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize request body; content-type is: %y but body type is %y", h."content-type", h.body.type());
+                throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y but body type is %y", h."content-type", h.body.type());
 
             string code = dh.code;
             h.body = dh.arg

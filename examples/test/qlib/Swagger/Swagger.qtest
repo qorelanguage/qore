@@ -2088,6 +2088,13 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq("image/png", res.hdr."ConteNt-TYpe");
                 assertEq(<feedface>, res.body);
             }
+            # issue #2497 test response parsing with Content-Types that cannot be deserialized
+            {
+                hash<RestResponseClientInfo> cres = so.parseResponse("get", "/api/b2497", 200, <feedface>, ("content-type": "image/jpeg"));
+                assertEq(200, cres.code);
+                assertEq(MimeTypeJpeg, cres.hdr."content-type");
+                assertEq(<feedface>, cres.body);
+            }
             {
                 hash<HttpResponseInfo> res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/jpeg"}, ("*/*",));
                 assertEq(200, res.code);

@@ -1248,10 +1248,9 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             }
             else {
                 *code ds = MimeDataTypes{content}.deserialize;
-                if (!ds)
-                    throw "DESERIALIZATION-ERROR", sprintf("%s %s: cannot deserialize message body with Content-Type: %y; supported MIME types: %y; available deserialization modules: %y", method, path, hdr."content-type", MimeContentTypes, SerializationModules);
-
-                rv.body = ds(response_body);
+                # if the content-type is unknown, then assume it is a type that cannot be deserialized
+                # the validity of the type is checked below in any case
+                rv.body = ds ? ds(response_body) : response_body;
             }
         }
 
