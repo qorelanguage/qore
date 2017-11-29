@@ -3,7 +3,7 @@
 
 # @file rest example program for the RestClient module
 
-/*  Copyright 2013 - 2017 David Nichols
+/*  Copyright 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -238,7 +238,7 @@ class RestCmd {
             if (!opt.lit)
                 printf("%N\n", h.body);
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             if (opt.fullex)
                 printf("%s\n", get_exception_string(ex));
             else {
@@ -317,7 +317,12 @@ class RestCmd {
                 case "yaml": str = trim(make_yaml(rv, opt.reformat ? YAML::BlockStyle : NOTHING)); break;
 %endif
                 case "url": str = mime_get_form_urlencoded_string(rv); break;
-                default: str = trim(info."response-body"); break;
+                default:
+                    if (info."response-body".typeCode() == NT_STRING)
+                        str = trim(info."response-body");
+                    else if (info."response-body".typeCode() == NT_BINARY)
+                        str = "<" + info."response-body".toHex() + ">";
+                    break;
             }
             printf("< %s\n", str);
         }
