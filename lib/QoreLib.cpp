@@ -400,6 +400,24 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
+   { QORE_OPT_FUNC_CLOSE_ALL_FD,
+     "HAVE_CLOSE_ALL_FD",
+     QO_FUNCTION,
+#if defined(HAVE_UNISTD_H) && defined(_SC_OPEN_MAX)
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_GET_NETIF_LIST,
+     "HAVE_GET_NETIF_LIST",
+     QO_FUNCTION,
+#ifdef HAVE_GETIFADDRS
+     true
+#else
+     false
+#endif
+   },
 };
 
 const qore_option_s* qore_option_list = qore_option_list_l;
