@@ -164,9 +164,10 @@ RestHandler handler(NOTHING, swagger);
     - fixed a bug where string value constraints were only enforced in requests but not responses (<a href="https://github.com/qorelanguage/qore/issues/2396">issue 2396</a>)
     - fixed a bug where invalid date, binary, and byte values would cause a <tt>500 Internal Server Error</tt> response to be returned instead of a <tt>400 Bad Request</tt> error (<a href="https://github.com/qorelanguage/qore/issues/2397">issue 2397</a>)
     - fixed a bug where date values were formatted incorrectly in Swagger responses (<a href="https://github.com/qorelanguage/qore/issues/2409">issue 2409</a>)
-    - fixed a bug which made it impossible to return data with other content/mime types than json, yamlrpc, FormUrlEncoded or MultipartFormData (<a href="https://github.com/qorelanguage/qore/issues/2497">issue 2497</a>)
+    - fixed a bug which made it impossible to send data with other content/mime types than json, yamlrpc, FormUrlEncoded or MultipartFormData (<a href="https://github.com/qorelanguage/qore/issues/2497">issue 2497</a>)
     - fixed handling of string/binary values (<a href="https://github.com/qorelanguage/qore/issues/2505">issue 2505</a>)
     - fixed a bug where consumes property of operations was sometimes ignored (<a href="https://github.com/qorelanguage/qore/issues/2507">issue 2507</a>)
+    - fixed parsing of responses without Content-Type header (<a href="https://github.com/qorelanguage/qore/issues/2517">issue 2517</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
@@ -1237,10 +1238,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             "hdr": hdr,
         ));
 
-        string content = hdr."content-type" ?? hdr."Content-Type";
+        *string content = hdr."content-type" ?? hdr."Content-Type";
 
         # deserialize body according to Content-Type
-        if (exists response_body) {
+        if (exists response_body && content) {
             if (content =~ /^multipart\/form-data/) {
                 hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(hdr."content-type", response_body.toString());
                 rv.body = map {$1.key: $1.value.body}, h.pairIterator();
@@ -1257,7 +1258,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         hash<string, bool> mime_types;
         op.validateResponse(method, path, pio, code, \rv.body, \mime_types);
 
-        if (!mime_types{content})
+        if (content && !mime_types{content})
             throw "DESERIALIZATION-ERROR", sprintf("%s %s: content type %y is not accepted by this operation; accepted content types: %y", method.upr(), path, content, mime_types);
 
         return rv;
@@ -1421,18 +1422,19 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throws SERIALIZATION-ERROR unsupported path, message body MIME type requested, or missing serialization module
     */
     private:internal hash<RestSchemaValidator::RestRequestClientInfo> processRequestIntern(string method, string path, auto body, *hash headers, *softlist<string> content_types, bool compact_serialization) {
-        hash<string, bool> mime_types;
-
         # remove basePath if present
         if (basePath.val() && regex(path, "^" + basePath))
             splice path, 0, basePath.length();
 
         hash<UriQueryInfo> h = parse_uri_query(path);
-        method = method.lwr();
 
+        # find path item object and operation
+        method = method.lwr();
         PathItemObject pio = paths.match(h.method);
         OperationObject op = pio.getOperation(method, h.method);
 
+        # perform validation
+        hash<string, bool> mime_types;
         op.validateRequest(True, pio, \h, \body, \headers, \mime_types);
 
         hash<RestRequestClientInfo> rv((
@@ -1453,8 +1455,15 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         if (!body)
             return rv;
 
-        if (!exists content_types)
+        if (!exists content_types) {
+            # if the request has already set \c Content-Type header, we assume
+            # that the body is in the right format
+            if (checkRequestContentTypeHeader(\rv, body, headers))
+                return rv;
+
+            # otherwise we continue with the default content types
             content_types = MimeContentTypes;
+        }
 
         foreach string content in (content_types) {
             if (!mime_types{content})
@@ -1473,19 +1482,22 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                     "content": mh.hdr."Content-Type",
                 );
             }
-            if (!MimeDataTypes{content})
-                continue;
-            return rv += (
-                "body": compact_serialization ? MimeDataTypes{content}.serialize(body) : MimeDataTypes{content}.serialize_verbose(body),
-                "content": content,
-            );
+            if (MimeDataTypes{content}) {
+                return rv += (
+                    "body": compact_serialization ? MimeDataTypes{content}.serialize(body) : MimeDataTypes{content}.serialize_verbose(body),
+                    "content": content,
+                );
+            }
         }
-        if (body)
-            if (content_types == MimeContentTypes)
-                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME type(s): %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
-            else
-                throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
-        return rv;
+
+        # check if the \c Content-Type header is already set
+        if (checkRequestContentTypeHeader(\rv, body, headers))
+            return rv;
+
+        if (content_types == MimeContentTypes)
+            throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME type(s): %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
+        else
+            throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules);
     }
 
     #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible
@@ -1506,10 +1518,12 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
     */
     private:internal hash<HttpResponseInfo> processResponseIntern(string method, string path, int code, auto response_body, *hash headers, *softlist<string> content_types, bool compact_serialization) {
+        # find path item object and operation
         method = method.lwr();
         PathItemObject pio = paths.match(path);
         OperationObject op = pio.getOperation(method, path);
 
+        # perform validation
         hash<string, bool> mime_types;
         op.validateResponse(method, path, pio, code, \response_body, \mime_types);
 
@@ -1521,7 +1535,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         if (exists response_body) {
             if (!exists content_types) {
                 # no content types mean "accept: */*" header was sent with the request
-                # so, if the response has already set content-type header, we assume
+                # so, if the response has already set \c Content-Type header, we assume
                 # that the body is in the right format
                 if (checkResponseContentTypeHeader(\rv, response_body, headers))
                     return rv;
@@ -1588,7 +1602,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                     );
                 }
 
-                # check if the content-type header is already set
+                # check if the \c Content-Type header is already set
                 if (checkResponseContentTypeHeader(\rv, response_body, headers))
                     return rv;
             }
@@ -1603,22 +1617,53 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         return rv;
     }
 
+    #! Check if the headers contain a content-type header and if so, modify the request hash
+    /** @param resp request hash
+        @param body request body data (if any)
+        @param headers HTTP headers to include in the request
+
+        @return whether the headers contained a \c Content-Type header and the rv was modified
+
+        @note if there are more \c Content-Type headers, then @ref False is returned and request is not modified
+    */
+    private:internal bool checkRequestContentTypeHeader(reference<hash<RestRequestClientInfo>> req, auto body, *hash headers) {
+        # quickly return if body is not in data format
+        if (body.typeCode() != NT_BINARY && body.typeCode() != NT_STRING)
+            return False;
+
+        # try to find \c Content-Type header
+        *list ct = map $1, keys headers, $1 =~ /content-type/i;
+
+        # if found and it's not one of the default ones, use it
+        if (ct && ct.size() == 1 && !MimeDataTypes{headers{ct[0]}}) {
+            req.body = body;
+            req.content = headers{ct[0]};
+            return True;
+        }
+        return False;
+    }
+
     #! Check if the headers contain a content-type header and if so, modify the response hash
     /** @param resp response hash
-        @param response_body the response body data (if any)
+        @param body response body data (if any)
         @param headers HTTP headers to include in the response
 
-        @return whether the headers contained a content-type header and the rv was modified
+        @return whether the headers contained a \c Content-Type header and the rv was modified
 
-        @note if there are more content-type headers, then @ref False is returned and response is not modified
+        @note if there are more \c Content-Type headers, then @ref False is returned and response is not modified
     */
-    private:internal bool checkResponseContentTypeHeader(reference<hash<HttpResponseInfo>> resp, auto response_body, *hash headers) {
+    private:internal bool checkResponseContentTypeHeader(reference<hash<HttpResponseInfo>> resp, auto body, *hash headers) {
+        # quickly return if body is not in data format
+        if (body.typeCode() != NT_BINARY && body.typeCode() != NT_STRING)
+            return False;
+
+        # try to find \c Content-Type header
         *list ct = map $1, keys headers, $1 =~ /content-type/i;
+
+        # if found, use it and don't serialize the body
         if (ct && ct.size() == 1) {
-            resp += (
-                "body": response_body,
-                "hdr": resp.hdr + ("Content-Type": remove resp.hdr{ct[0]}),
-            );
+            resp.body = body;
+            resp.hdr = resp.hdr + ("Content-Type": remove resp.hdr{ct[0]});
             return True;
         }
         return False;

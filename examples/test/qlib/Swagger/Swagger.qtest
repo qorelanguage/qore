@@ -1752,7 +1752,7 @@ public class SwaggerTest inherits QUnit::Test {
                     ),),
                     "responses": (
                         "200": (
-                            "description": "successful response",
+                            "description": "success",
                         ),
                         "409": (
                             "description": "error",
@@ -1784,7 +1784,7 @@ public class SwaggerTest inherits QUnit::Test {
                     ),
                     "responses": (
                         "200": (
-                            "description": "successful response",
+                            "description": "success",
                         ),
                     ),
                     "consumes": (
@@ -1803,38 +1803,46 @@ public class SwaggerTest inherits QUnit::Test {
                 "get": (
                     "responses": (
                         "200": (
-                            "description": "successful response",
+                            "description": "success",
                             "schema": {
                                 "type": "string",
                                 "format": "binary",
                             }
                         ),
                     ),
-                    "consumes": (
-                        MimeTypeJson,
+                    "consumes": (MimeTypeJson,),
+                    "produces": ("image/jpeg", "image/png"),
+                ),
+                "post": (
+                    "responses": (
+                        "200": ("description": "success",),
                     ),
-                    "produces": (
-                        "image/jpeg",
-                        "image/png",
-                    ),
+                    "consumes": ("image/png",),
+                    "produces": ("text/plain",),
+                    "parameters": (
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "schema": (
+                                "type": "string",
+                                "format": "binary",
+                            ),
+                        },
+                    )
                 ),
             );
             b.paths."/api/b2507" += (
                 "post": (
                     "responses": (
                         "200": (
-                            "description": "successful response",
+                            "description": "success",
                             "schema": {
                                 "type": "string",
                             }
                         ),
                     ),
-                    "consumes": (
-                        MimeTypeJson,
-                    ),
-                    "produces": (
-                        MimeTypeJson,
-                    ),
+                    "consumes": (MimeTypeJson,),
+                    "produces": (MimeTypeJson,),
                     "parameters": (
                         {
                             "in": "body",
@@ -1842,10 +1850,27 @@ public class SwaggerTest inherits QUnit::Test {
                             "schema": (
                                 "type": "object",
                                 "properties": {
-                                    "a": {
-                                        "type": "string"
-                                    }
+                                    "a": {"type": "string"}
                                 }
+                            ),
+                        },
+                    )
+                ),
+            );
+            b.paths."/api/b2517" += (
+                "post": (
+                    "responses": (
+                        "200": ("description": "success",),
+                    ),
+                    "consumes": ("image/jpeg","image/png"),
+                    "produces": ("text/plain",),
+                    "parameters": (
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "schema": (
+                                "type": "string",
+                                "format": "binary",
                             ),
                         },
                     )
@@ -2065,7 +2090,7 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq(now.format("\"YYYY-MM-DD\""), res.body);
             }
 
-            # issue #2497
+            # issue #2497 test response
             so = new SwaggerSchema(b);
             {
                 hash<HttpResponseInfo> res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"content-type": "image/jpeg"}, NOTHING);
@@ -2078,14 +2103,14 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq("image/png", res.hdr."content-type");
                 assertEq(<feedface>, res.body);
 
-                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, NOTHING);
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"Content-Type": "image/jpeg"}, NOTHING);
                 assertEq(200, res.code);
-                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq("image/jpeg", res.hdr."Content-Type");
                 assertEq(<feedface>, res.body);
 
-                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, NOTHING);
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"Content-Type": "image/png"}, NOTHING);
                 assertEq(200, res.code);
-                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq("image/png", res.hdr."Content-Type");
                 assertEq(<feedface>, res.body);
             }
             # issue #2497 test response parsing with Content-Types that cannot be deserialized
@@ -2106,14 +2131,14 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq("image/png", res.hdr."content-type");
                 assertEq(<feedface>, res.body);
 
-                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, ("*/*",));
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"Content-Type": "image/jpeg"}, ("*/*",));
                 assertEq(200, res.code);
-                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq("image/jpeg", res.hdr."Content-Type");
                 assertEq(<feedface>, res.body);
 
-                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, ("*/*",));
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"Content-Type": "image/png"}, ("*/*",));
                 assertEq(200, res.code);
-                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq("image/png", res.hdr."Content-Type");
                 assertEq(<feedface>, res.body);
             }
             {
@@ -2127,14 +2152,14 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq("image/png", res.hdr."content-type");
                 assertEq(<feedface>, res.body);
 
-                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, ("image/*",));
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"Content-Type": "image/jpeg"}, ("image/*",));
                 assertEq(200, res.code);
-                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq("image/jpeg", res.hdr."Content-Type");
                 assertEq(<feedface>, res.body);
 
-                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, ("image/*",));
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"Content-Type": "image/png"}, ("image/*",));
                 assertEq(200, res.code);
-                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq("image/png", res.hdr."Content-Type");
                 assertEq(<feedface>, res.body);
             }
             {
@@ -2149,14 +2174,14 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq("image/png", res.hdr."content-type");
                 assertEq(<feedface>, res.body);
 
-                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ContEnt-type": "image/jpeg"}, contentTypes);
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"Content-Type": "image/jpeg"}, contentTypes);
                 assertEq(200, res.code);
-                assertEq("image/jpeg", res.hdr."ContEnt-type");
+                assertEq("image/jpeg", res.hdr."Content-Type");
                 assertEq(<feedface>, res.body);
 
-                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"ConteNt-TYpe": "image/png"}, contentTypes);
+                res = so.processResponse("get", "/api/b2497", 200, <feedface>, {"Content-Type": "image/png"}, contentTypes);
                 assertEq(200, res.code);
-                assertEq("image/png", res.hdr."ConteNt-TYpe");
+                assertEq("image/png", res.hdr."Content-Type");
                 assertEq(<feedface>, res.body);
             }
             {
@@ -2164,6 +2189,30 @@ public class SwaggerTest inherits QUnit::Test {
                 assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, NOTHING));
                 assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, ("image/*",)));
                 assertThrows("ACCEPT-ERROR", \so.processResponse(), ("get", "/api/b2497", 200, <feedface>, NOTHING, contentTypes));
+            }
+
+            # issue #2497 test request
+            {
+                hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2497", <feedface>, {"content-type": "image/png"}, NOTHING);
+                assertEq("/api/b2497", res.uri_path);
+                assertEq("image/png", res.content);
+                assertEq(<feedface>, res.body);
+
+                res = so.processRequest("post", "/api/b2497", <feedface>, {"Content-Type": "image/png"}, NOTHING);
+                assertEq("/api/b2497", res.uri_path);
+                assertEq("image/png", res.content);
+                assertEq(<feedface>, res.body);
+            }
+            {
+                hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2497", <feedface>, {"content-type": "image/png"}, ("image/png",));
+                assertEq("/api/b2497", res.uri_path);
+                assertEq("image/png", res.content);
+                assertEq(<feedface>, res.body);
+
+                res = so.processRequest("post", "/api/b2497", <feedface>, {"Content-Type": "image/png"}, ("image/png",));
+                assertEq("/api/b2497", res.uri_path);
+                assertEq("image/png", res.content);
+                assertEq(<feedface>, res.body);
             }
 
             # issue #2507
@@ -2190,6 +2239,23 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq(MimeTypeJson, rsh.hdr."content-type");
                 assertEq("string", rsh.body);
                 assertThrows("DESERIALIZATION-ERROR", \so.parseResponse(), ("post", res.uri_path, 200, "\"string\"", ("content-type": MimeTypeYamlRpc)));
+            }
+
+            # issue #2517
+            so = new SwaggerSchema(b);
+            {
+                hash hdr = {
+                    "http_version": "1.1",
+                    "status_code": 200,
+                    "status_message": "OK",
+                    "server": "Qorus-HTTP-Server/0.3.11.1",
+                    "connection": "Keep-Alive",
+                    "date": "Thu, 30 Nov 2017 12:59:55 GMT",
+                    "content-length": "0",
+                };
+                hash<RestResponseClientInfo> res = so.parseResponse("post", "/api/b2517", 200, NOTHING, hdr);
+                assertEq(200, res.code);
+                assertEq(NOTHING, res.body);
             }
         }
 
