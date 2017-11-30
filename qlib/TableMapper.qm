@@ -221,6 +221,9 @@ on_error table1.rollback();
     - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement"
     - deprecated @ref TableMapper::AbstractSqlStatementOutboundMapper::getRowIterator() "AbstractSqlStatementOutboundMapper::getRowIterator()" for @ref AbstractSqlStatementOutboundMapper::getStatement() "AbstractSqlStatementOutboundMapper::getStatement()"
 
+    @subsection tablemapperv1_2_1 TableMapper v1.2.1
+    - fixed issues where where description fields of input and output records for automatically-generated options did not reflect column comments and could not be overridden with user input (<a href="https://github.com/qorelanguage/qore/issues/2520">issue 2520</a>)
+
     @subsection tablemapperv1_2 TableMapper v1.2
     - added support for upserts in @ref TableMapper::InboundTableMapper (<a href="https://github.com/qorelanguage/qore/issues/1067">issue 1067</a>)
     - added @ref TableMapper::InboundTableMapper::queueData(list, __7_ hash)
@@ -448,8 +451,7 @@ InboundTableMapper mapper(table, DbMapper);
                     default:
                         throw "TABLE-ERROR", sprintf("%scolumn '%s.%s' has unknown native type %y", mname ? sprintf("mapper %y: ", mname) : "", table.getSqlName(), cn, col.native_type);
                 }
-                if (col.comment)
-                    outf.desc = col.comment;
+                outf.desc = sprintf("%s%s%s", col.getNativeTypeString(), (col.comment ? "; " + col.comment : ""), (output{cn}.desc ? "; " + output{cn}.desc : ""));
             }
             return output;
         }
@@ -1305,14 +1307,14 @@ InboundIdentityTableMapper mapper(table, DbMapper);
         #! common constructor initialization
         private init(hash mapv, *hash opts) {
             # setup input description as equal to the output
-            opts.input = InboundIdentityTableMapper::getStaticInputRecord(table);
+            opts.input = InboundIdentityTableMapper::getStaticInputRecord(table, opts.input);
             mapv = (map {$1.name.lwr(): ("name": $1.name.lwr())}, table.describe().iterator()) + mapv;
             InboundTableMapper::init(mapv, opts);
         }
 
         #! returns a description of the input record based on the @ref SqlUtil::AbstractTable "AbstractTable" source
-        static hash getStaticInputRecord(SqlUtil::AbstractTable table) {
-            return map {$1.name.lwr(): $1.comment ? ("desc": $1.comment) : {}}, table.describe().iterator();
+        static hash getStaticInputRecord(SqlUtil::AbstractTable table, *hash input) {
+            return map {$1.key.lwr(): ("desc": sprintf("%s%s%s", $1.value.getNativeTypeString(), ($1.value.comment ? "; " + $1.value.comment : ""), (input{$1.key.lwr()}.desc ? "; " + input{$1.key.lwr()}.desc : "")))}, table.describe().pairIterator();
         }
     }
 
@@ -1966,14 +1968,14 @@ InboundTableMapperIterator i(input, mapper);
         }
 
         #! returns a description of the input record based on @ref Qore::SQL::AbstractSQLStatement::describe()
-        static *hash getStaticInputRecord(AbstractTable table, *hash select_hash, *reference<string> sql) {
+        static *hash getStaticInputRecord(AbstractTable table, *hash select_hash, *reference<string> sql, *hash input) {
             # both AbstractTable::getStatement() and AbstractSQLStatement::describe() implicitly start a transaction,
             # and we have to ensure that no transaction is started here if one is not already in progress
             bool trans = table.getDatasource().currentThreadInTransaction();
             on_exit if (!trans) table.rollback();
 
             AbstractSQLStatement stmt = table.getStatement(select_hash, \sql);
-            return map {$1.key.lwr(): ("desc": sprintf("%s: %s%s", $1.value.name, $1.value.native_type, $1.value.maxsize ? sprintf("(%d)", $1.value.maxsize) : ""))}, stmt.describe().pairIterator();
+            return map {$1.key.lwr(): ("desc": sprintf("%s%s%s", $1.value.native_type.lwr(), ($1.value.maxsize ? sprintf("(%d)", $1.value.maxsize) : ""), (input{$1.key.lwr()}.desc ? "; " + input{$1.key.lwr()}.desc : "")))}, stmt.describe().pairIterator();
         }
 
         #! initializes the internal statement object
@@ -1987,7 +1989,7 @@ InboundTableMapperIterator i(input, mapper);
             m_sh = opts.sh;
 
             string sql;
-            opts.input = getStaticInputRecord(m_table, m_sh, \sql);
+            opts.input = getStaticInputRecord(m_table, m_sh, \sql, opts.input);
 
             if (opts.info_log) {
                 opts.info_log("Mapper: %s: %y", self.className(), sql);
@@ -2045,7 +2047,7 @@ printf("%N\n", m.getDataRows());
         }
 
         #! returns a description of the input record based on @ref Qore::SQL::AbstractSQLStatement::describe()
-        static *hash getStaticInputRecord(Qore::SQL::AbstractDatasource ds, string sql, *softlist args) {
+        static *hash getStaticInputRecord(Qore::SQL::AbstractDatasource ds, string sql, *softlist args, *hash input) {
             # AbstractSQLStatement::describe() implicitly starts a transaction,
             # and we have to ensure that no transaction is started here if one is not already in progress
             bool trans = ds.currentThreadInTransaction();
@@ -2055,7 +2057,7 @@ printf("%N\n", m.getDataRows());
             stmt.prepare(sql);
             if (args)
                 stmt.bindArgs(args);
-            return map {$1.key.lwr(): ("desc": sprintf("%s: %s%s", $1.value.name, $1.value.native_type, $1.value.maxsize ? sprintf("(%d)", $1.value.maxsize) : ""))}, stmt.describe().pairIterator();
+            return map {$1.key.lwr(): ("desc": sprintf("%s%s%s", $1.value.native_type.lwr(), ($1.value.maxsize ? sprintf("(%d)", $1.value.maxsize) : ""), (input{$1.key.lwr()}.desc ? "; " + input{$1.key.lwr()}.desc : "")))}, stmt.describe().pairIterator();
         }
 
         #! initializes the internal statement object
