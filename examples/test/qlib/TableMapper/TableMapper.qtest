@@ -24,7 +24,7 @@ public class TableMapperTestSchema inherits AbstractSchema {
     public {
         const T_TableMapperTest = (
             "columns": (
-                "id": c_number(C_NOT_NULL),
+                "id": c_number(C_NOT_NULL, "test"),
                 "string": c_varchar(50, C_NULL),
                 "dte": c_timestamp(C_NOT_NULL),
                 "code1": c_varchar(50, C_NULL),
@@ -33,7 +33,7 @@ public class TableMapperTestSchema inherits AbstractSchema {
 
         const T_TableMapperUpsertTest = (
             "columns": (
-                "id": c_int(True),
+                "id": c_int(True, "test"),
                 "string": c_varchar(50, C_NOT_NULL),
             ),
             "primary_key": ("name": "pk_table_mapper_upsert_test", "columns": "id"),
@@ -538,10 +538,12 @@ public class TableMapperTest inherits QUnit::Test {
         {
             on_exit table.rollback();
 
-            InboundTableMapper mapper(table, Map1);
+            InboundTableMapper mapper(table, Map1, ("output": ("id": ("desc": "test1"))));
             checkMap((map mapper.insertRow($1), Input1), output1);
             checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, mapper.getCount());
+            # test for issue #2520
+            assertRegex("; test; test1$", mapper.getOutputRecord().id.desc);
         }
 
         # iterator() test
@@ -1129,7 +1131,7 @@ public class TableMapperTest inherits QUnit::Test {
         if (!table)
             testSkip("no DB connection");
 
-        SqlStatementOutboundMapper m(table, SelectHash, OutMap1);
+        SqlStatementOutboundMapper m(table, SelectHash, OutMap1, ("input": ("id": ("desc": "test"))));
         SqlStatementMapperIterator i = m.iterator();
         list l;
         while (list tl = i.mapBulk(2))
@@ -1138,6 +1140,8 @@ public class TableMapperTest inherits QUnit::Test {
         assertEq(Output2, l, "mapBulk");
         assertEq(3, i.getCount());
         assertEq(3, m.getCount());
+        # issue #2520
+        assertRegex("; test$", m.getInputRecord().id.desc);
     }
 
     # FIXME this is very ad-hoc checking - 'ol' used only
