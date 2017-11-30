@@ -40,7 +40,7 @@
 %requires SqlUtil
 
 module TableMapper {
-    version = "1.2";
+    version = "1.2.1";
     desc = "user module providing data mapping infrastructure to an SQL Table target";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -216,6 +216,9 @@ on_error table1.rollback();
     Additionally, the value is provided to any row code set with @ref TableMapper::InboundTableMapper::setRowCode(); see @ref tablemapper_bulk_insert_api for more information.
 
     @section tablemapperrelnotes Release Notes
+
+    @subsection tablemapperv1_2_1 TableMapper v1.2.1
+    - fixed issues where where description fields of input and output records for automatically-generated options did not reflect column comments and could not be overridden with user input (<a href="https://github.com/qorelanguage/qore/issues/2520">issue 2520</a>)
 
     @subsection tablemapperv1_2 TableMapper v1.2
     - added support for upserts in @ref TableMapper::InboundTableMapper (<a href="https://github.com/qorelanguage/qore/issues/1067">issue 1067</a>)
@@ -1948,26 +1951,15 @@ InboundTableMapperIterator i(input, mapper);
             return m_table.getDatasource();
         }
 
-<<<<<<< Updated upstream
         #! returns a description of the input record based on @ref Qore::SQL::SQLStatement::describe()
         static *hash getStaticInputRecord(AbstractTable table, *hash select_hash, *reference<string> sql) {
             # both AbstractTable::getRowIterator() and SQLStatement::describe() implicitly start a transaction,
-=======
-        #! returns a description of the input record based on @ref Qore::SQL::AbstractSQLStatement::describe()
-        static *hash getStaticInputRecord(AbstractTable table, *hash select_hash, *reference<string> sql, *hash input) {
-            # both AbstractTable::getStatement() and AbstractSQLStatement::describe() implicitly start a transaction,
->>>>>>> Stashed changes
             # and we have to ensure that no transaction is started here if one is not already in progress
             bool trans = table.getDatasource().currentThreadInTransaction();
             on_exit if (!trans) table.rollback();
 
-<<<<<<< Updated upstream
             SQLStatement stmt = table.getRowIterator(select_hash, \sql);
-            return map {$1.key.lwr(): ("desc": sprintf("%s: %s%s", $1.value.name, $1.value.native_type, $1.value.maxsize ? sprintf("(%d)", $1.value.maxsize) : ""))}, stmt.describe().pairIterator();
-=======
-            AbstractSQLStatement stmt = table.getStatement(select_hash, \sql);
             return map {$1.key.lwr(): ("desc": sprintf("%s%s%s", $1.value.native_type.lwr(), ($1.value.maxsize ? sprintf("(%d)", $1.value.maxsize) : ""), (input{$1.key.lwr()}.desc ? "; " + input{$1.key.lwr()}.desc : "")))}, stmt.describe().pairIterator();
->>>>>>> Stashed changes
         }
 
         #! initializes the internal statement object
@@ -2038,15 +2030,9 @@ printf("%N\n", m.getDataRows());
             return m_ds;
         }
 
-<<<<<<< Updated upstream
         #! returns a description of the input record based on @ref Qore::SQL::SQLStatement::describe()
-        static *hash getStaticInputRecord(Qore::SQL::AbstractDatasource ds, string sql, *softlist args) {
-            # SQLStatement::describe() implicitly starts a transaction,
-=======
-        #! returns a description of the input record based on @ref Qore::SQL::AbstractSQLStatement::describe()
         static *hash getStaticInputRecord(Qore::SQL::AbstractDatasource ds, string sql, *softlist args, *hash input) {
             # AbstractSQLStatement::describe() implicitly starts a transaction,
->>>>>>> Stashed changes
             # and we have to ensure that no transaction is started here if one is not already in progress
             bool trans = ds.currentThreadInTransaction();
             on_exit if (!trans) ds.rollback();
