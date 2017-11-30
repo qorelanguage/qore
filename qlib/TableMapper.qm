@@ -1952,7 +1952,7 @@ InboundTableMapperIterator i(input, mapper);
         }
 
         #! returns a description of the input record based on @ref Qore::SQL::SQLStatement::describe()
-        static *hash getStaticInputRecord(AbstractTable table, *hash select_hash, *reference<string> sql) {
+        static *hash getStaticInputRecord(AbstractTable table, *hash select_hash, *reference<string> sql, *hash input) {
             # both AbstractTable::getRowIterator() and SQLStatement::describe() implicitly start a transaction,
             # and we have to ensure that no transaction is started here if one is not already in progress
             bool trans = table.getDatasource().currentThreadInTransaction();
