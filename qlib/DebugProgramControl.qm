@@ -780,6 +780,7 @@ public namespace DebugProgramControl {
                 hash location = pgm.getStatementIdInfo(statementId);
                 sendData1.file = location.file;
                 sendData1.line = location.start_line;
+                sendData1.endline = location.end_line;
                 #sendData1.statement = location;
             }
             if (exists except) {
@@ -860,7 +861,7 @@ public namespace DebugProgramControl {
                                         break;
 
                                     case 'result':
-                                        result = ctxCT{varName};
+                                        result = serialize(ctxCT{varName});
                                         break;
                                     }
                                 } else {
@@ -878,15 +879,16 @@ public namespace DebugProgramControl {
                                 if (varName == refName) {
                                     switch (varName) {
                                     case 'flow':
-                                        ctxCT{varName} = resolveValue(varName, rd.value, flowStrings, ctxCT{rd.name});
+                                        ctxCT{varName} = resolveValue(varName, string(unserialize(rd.value)), flowStrings, ctxCT{rd.name});
                                         break;
 
                                     case 'dismiss':
-                                        ctxCT{varName} = resolveValue(varName, rd.value, boolStrings, ctxCT{rd.name});
+                                        any v = unserialize(rd.value);
+                                        ctxCT{varName} = v.typeCode() == NT_BOOLEAN ? v : resolveValue(varName, string(v), boolStrings, ctxCT{rd.name});
                                         break;
 
                                     case 'result':
-                                        ctxCT{varName} = rd.value;
+                                        ctxCT{varName} = unserialize(rd.value);
                                         break;
                                     }
                                 } else {
@@ -918,6 +920,24 @@ public namespace DebugProgramControl {
                                 shift stack;
                                 i--;
                             }
+                            if (ctxCT.frameId < stack.size()) {
+                                stack[ctxCT.frameId].current = True;
+                            }
+                            # FIXME: workaround for bug 2468
+                            stack[0].function = sprintf("interrupt: %s", sendData1.func);
+                            if (sendData1.statementid) {
+                                stack[0].file = sendData1.file;
+                                stack[0].line = sendData1.line;
+                                stack[0].endline = sendData1.endline;
+                                if (exists sendData1.source) {
+                                    stack[0].source = sendData1.source;
+                                    stack[0].offset = sendData1.offset;
+                                } else {
+                                    remove stack[0].source;
+                                    remove stack[0].offset;
+                                }
+                            }
+                            # END FIXME
                             result = stack;
                             break;
 

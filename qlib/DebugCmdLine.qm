@@ -143,6 +143,7 @@ public namespace DebugCmdLine {
             string ln_prompt = 'qdbg> ';
             hash cx;
             const defaultHistoryFileName = '.qdbg.history';
+            const defaultIndent = "  ";
         }
 
         private {
@@ -191,7 +192,7 @@ public namespace DebugCmdLine {
                                     printf("Aliases of %s: %s\n", cmd.cmd.name, sort(cmd.cmd.aliases).join(', '));
                                 }
                                 cmd = dcl.findCmd(fl + '', fcHelp);
-                                if (cmd.variants.typeCode()==NT_HASH) {
+                                if (cmd.variants.typeCode() == NT_HASH) {
                                     printf("\nSubcommand list: %s\n", dcl.listVariantCmds(cmd.variants));
                                 }
                             },
@@ -214,7 +215,7 @@ public namespace DebugCmdLine {
                                 res.host = dcl.doCommandImpl(data).result;
                             } catch (hash<ExceptionInfo> ex) {
                             }
-                            dcl.printData(res);
+                            dcl.printHuman(res);
                         },
                     ),
                     'history': (
@@ -267,7 +268,8 @@ public namespace DebugCmdLine {
                                 if (!data)
                                     stdout.printf("syntax: cmd <hash>\r\n");
                                 else {
-                                    dcl.doCommand(data);
+                                    any res = dcl.doCommandImpl(data).result;
+                                    stdout.printf("Result: %y\r\n", res);
                                 }
                             }
                             catch (hash<ExceptionInfo> ex) {
@@ -400,7 +402,7 @@ public namespace DebugCmdLine {
                                     if (!rh)
                                         stdout.printf("no program matching %y found out of %d programs\r\n", args[0], pgm_info.result.size());
                                     else {
-                                        DebugCommandLine::showPrograms(rh);
+                                        dcl.showPrograms(rh);
                                     }
                                 },
                             ),
@@ -419,7 +421,7 @@ public namespace DebugCmdLine {
                                     hash data.cmd = 'program//list';
                                     *hash pgm_info = dcl.doCommandImpl(data);
                                     if (pgm_info.result)
-                                        DebugCommandLine::showPrograms(pgm_info.result);
+                                        dcl.showPrograms(pgm_info.result);
                                     else
                                         stdout.printf("no results returned from server\n\r");
                                 },
@@ -451,7 +453,7 @@ public namespace DebugCmdLine {
                                     if (!exists v)
                                         stdout.printf("no current program set (pgm set <id> to set)\r\n");
                                     else
-                                        dcl.printData(v);
+                                        dcl.printHuman(v);
                                 },
                             ),
                             'add': (
@@ -487,16 +489,29 @@ public namespace DebugCmdLine {
                                         return sd.result ?? ();
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/global/'+pop path+'/';
+                                        string varName = pop path;
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/global/'+varName+'/';
                                         if (args) {
                                             data.cmd += 'set';
                                             data.value = call_function_args(\dcl.parseValue(), args);
+                                            dcl.doCommand(data);
                                         } else {
                                             data.cmd += 'get';
+                                            *hash vh = dcl.doCommandImpl(data);
+                                            if (!vh) {
+                                                stdout.printf("there is no global var %y; use \"pgm global\" to list global vars in this program\r\n", varName);
+                                            }
+                                            else {
+                                                dcl.printVar(varName, vh.result);
+                                            }
                                         }
-                                        dcl.doCommand(data);
                                     },
                                 ),
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/global//list';
+                                    *list tl = dcl.doCommandImpl(data).result;
+                                    stdout.printf("global vars: %s\r\n", (foldl $1 + ", " + $2, tl));
+                                },
                                 'desc': 'get/set global variable, args: varName [value]',
                             ),
                             'define': (
@@ -696,11 +711,16 @@ public namespace DebugCmdLine {
                     'stmt': (
                         '>': (
                             'list': (
+                                '*': (
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        return DebugCommandLine::enumBreakpointId(dcl, path, args);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/list';
+                                        dcl.doCommand(data);
+                                    },
+                                ),
                                 'desc': 'list statements, args: breakpointId', # duplicate to breakpoint/statement
-                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/list';
-                                    dcl.doCommand(data);
-                                },
                             ),
                             'assign': (
                                 '*': (
@@ -788,19 +808,20 @@ public namespace DebugCmdLine {
                                                 stdout.printf("there is no local var %y; use \"thread local\" to list local vars in this frame\r\n", var);
                                             }
                                             else {
-                                                stdout.printf("%s: type %y\r\nvalue: %y\r\n", var, vh.result.type, vh.result.value);
+                                                dcl.printVar(var, vh.result.value);
                                             }
                                         }
                                     },
                                 ),
+
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     hash data.cmd = 'thread/local//list';
                                     data.tid = dcl.checkThreadId();
                                     *list tl = dcl.doCommandImpl(data).result;
                                     if (tl)
-                                        stdout.printf("local vars: %s\r\n", (foldl $1 + ", " + $2, tl));
+                                        stdout.printf("local vars in frame %d: %s\r\n", data.tid, (foldl $1 + ", " + $2, tl));
                                     else
-                                        stdout.print("no local vars in this frame\r\n");
+                                        stdout.printf("no local vars in frame %d\r\n", data.tid);
                                 },
                                 'desc': 'get/set local variable, args: varName [value]',
                             ),
@@ -813,13 +834,23 @@ public namespace DebugCmdLine {
                                         return sd.result ?? ();
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'thread/debug/'+pop path+'/';
+                                        string varName = pop path;
+                                        hash data.cmd = 'thread/debug/'+varName+'/';
                                         data.tid = dcl.checkThreadId();
                                         if (args) {
                                             data.cmd += 'set';
                                             data.value = call_function_args(\dcl.parseValue(), args);
                                         } else {
                                             data.cmd += 'get';
+                                            if (varName == 'result') {
+                                                *hash vh = dcl.doCommandImpl(data);
+                                                if (vh.result) {
+                                                    dcl.printVar(varName, vh.result);
+                                                } else {
+                                                    dcl.printData(vh);
+                                                }
+                                                return;
+                                            }
                                         }
                                         dcl.doCommand(data);
                                     },
@@ -853,8 +884,8 @@ public namespace DebugCmdLine {
                             *hash th = dcl.doCommandImpl(data);
                             if (th) {
                                 stdout.printf("TID %d call stack:\r\n", th.tid);
-                                foreach hash lh in (th.result[1..]) {
-                                    string str = sprintf(" - %d: ", $#);
+                                foreach hash lh in (th.result) {
+                                    string str = sprintf(" - %d%s: ", $#, lh.current ? "*":" ");
                                     if (lh.function.val())
                                         str += sprintf("%s()", lh.function);
                                     else
@@ -916,7 +947,7 @@ public namespace DebugCmdLine {
             }
         }
 
-        static showPrograms(hash ph) {
+        public showPrograms(hash ph) {
             # get max name width
             int max = 1;
             foreach hash h in (ph.pairIterator()) {
@@ -933,10 +964,11 @@ public namespace DebugCmdLine {
                 if (len > max)
                     max = len;
             }
-            string fmt = sprintf(" %%4d: %%-%ds thr: %%2d dbg: %%d/%%d\r\n", max);
+            string fmt = sprintf(" %%4d%%s: %%-%ds thr: %%2d dbg: %%d/%%d\r\n", max);
+            auto pgmId = getContextValue('programId');
             foreach string id in (sort(keys ph, int sub (string l, string r) { return l.toInt() <=> r.toInt(); })) {
                 stdout.printf(fmt,
-                    id, ph{id}.scriptName, ph{id}.threads.size(), ph{id}.debugging, ph{id}.debugged);
+                    id, id == pgmId ? "*" : " ", ph{id}.scriptName, ph{id}.threads.size(), ph{id}.debugging, ph{id}.debugged);
             }
         }
 
@@ -1281,32 +1313,110 @@ public namespace DebugCmdLine {
             }
         }
 
+        private bool isOneLineArray(list x) {
+            foreach any i in (x) {
+                switch (i.typeCode()) {
+                    case NT_NUMBER:
+                    case NT_FLOAT:
+                    case NT_INT:
+                        break;
+                    default:
+                        return False;
+                }
+            }
+            return True;
+        }
+
+        public printVar(string name, hash value) {
+            stdout.printf("%s %s = %y\r\n", value.type, name, value.value);
+        }
+
+        public printHuman(hash x, string indent = defaultIndent) {
+            foreach string k in (keys x) {
+                switch (x{k}.typeCode()) {
+                    case NT_HASH:
+                        printLinenoise(sprintf("%s%s :\n", indent, k));
+                        printHuman(x{k}, indent + defaultIndent);
+                        break;
+                    case NT_LIST:
+                        if (isOneLineArray(x{k})) {
+                            printLinenoise(sprintf("%s%s : [%s]\n", indent, k, x{k}.join(", ")));
+                        } else {
+                            if (x{k}.size() > 1) {
+                                printLinenoise(sprintf("%s%s : [\n", indent, k));
+                                printHuman(x{k}, indent + defaultIndent);
+                                printLinenoise(indent + "]\n");
+                            } else {
+                                printLinenoise(sprintf("%s%s :\n", indent, k));
+                                printHuman(x{k}, defaultIndent + indent);
+                            }
+                        }
+                        break;
+                    default:
+                        printHuman(x{k}, sprintf("%s%s : ", indent, k));
+                }
+            }
+        }
+
+        public printHuman(list x, string indent = defaultIndent) {
+            foreach any i in (x) {
+                switch (i.typeCode()) {
+                    case NT_HASH:
+                        if (x.size() > 1) {
+                            printLinenoise(sprintf("%s{\n", indent));
+                            printHuman(i, defaultIndent + indent);
+                            printLinenoise(sprintf("%s}\n", indent));
+                        } else {
+                            printHuman(i, indent);
+                        }
+                        break;
+                    case NT_LIST:
+                        if (isOneLineArray(i)) {
+                            printLinenoise(sprintf("%s[%s]\n", indent, i.join(", ")));
+                        } else {
+                            printLinenoise(sprintf("%s[\n", indent));
+                            printHuman(i, indent + defaultIndent);
+                            printLinenoise(sprintf("%s]\n", indent));
+                        }
+                        break;
+                    default:
+                        printHuman(i, indent);
+                }
+            }
+        }
+
+        public printHuman(string x, string indent = defaultIndent) {
+            if (x =~ /^[A-Za-z0-9_]+$/) {
+                printLinenoise(sprintf("%s%s\n", indent, x));
+            } else {
+                printLinenoise(sprintf("%s%y\n", indent, x));
+            }
+        }
+        public printHuman(any x, string indent = defaultIndent) {
+            printLinenoise(sprintf("%s%y\n", indent, x));
+        }
+
         public printData(auto data) {
             string outs;
             if (data.typeCode() == NT_HASH) {
                 switch (data.type) {
                 case 'response':
-                    switch (data.result.typeCode()) {
-                    case NT_HASH:
-                    case NT_LIST:
-                        outs = sprintf("%N", data.result);
-                        break;
-                    case NT_STRING:
-                        outs = data.result;
-                        break;
-                    default:
-                        outs = sprintf("%y", data.result);
-                        break;
-                    }
-                    break;
+                    printHuman(data.result);
+                    return; # already printed
                 case 'event':
-                    outs = sprintf("%s: server event", data.stamp.format("YYYY-MM-DD HH:mm:SS.xx"));
+                    outs = sprintf("%s: %s", data.stamp.format("YYYY-MM-DD HH:mm:SS.xx"), data.cmd);
+                    if (data.cmd == 'run' && exists data.runstate) {
+                        outs += "/" + data.runstate;
+                    }
+                    if (data.func) {
+                        outs += "/" + data.func;
+                    }
                     if (data.pgmid)
-                        outs += sprintf(": pgm %d", data.pgmid);
+                        outs += sprintf(", pgm: %d", data.pgmid);
                     if (data.tid)
-                        outs += sprintf(": tid %d", data.tid);
+                        outs += sprintf(", tid: %d", data.tid);
                     if (data.file || data.line || data.statementid) {
-                        outs += " (";
+                        outs += ", (";
                         if (data.line) {
                             if (!data.file.val())
                                 data.file = "<unknown>";
@@ -1316,21 +1426,21 @@ public namespace DebugCmdLine {
                             outs += data.file;
                         if (data.statementid) {
                             if (data.line || data.file.val())
-                                outs += " ";
-                            outs += sprintf("stmtid %d", data.statementid);
+                                outs += ", ";
+                            outs += sprintf("stmtid: %d", data.statementid);
                         }
                         outs += ")";
                     }
-                    outs += sprintf(": cmd %y: action %y: run %y", data.cmd, data.func, data.runstate);
+                    #outs += sprintf(": action %y", data.func);
                     switch (data.cmd) {
                         case 'interrupt': {
                             if (!exists getContextValue('programId')) {
                                 setContextValue('programId', data.pgmid);
-                                outs += " [pgm ctx set]";
+                                outs += ", [pgm ctx set]";
                             }
                             if (!exists getContextValue('threadId')) {
                                 setContextValue('threadId', data.tid);
-                                outs += " [thread ctx set]";
+                                outs += ", [thread ctx set]";
                             }
                         }
                         break;
@@ -1361,6 +1471,10 @@ public namespace DebugCmdLine {
             } else {
                 outs = sprintf("%y", data);
             }
+            printLinenoise(outs);
+        }
+
+        public printLinenoise(*string outs) {
             if (exists outs) {
                 # linenoise terminal has somehow redefined CRLF so force \r (TODO: what is Qore line delimiter on Windows ?)
                 stdout.print(replace(outs, "\n", "\r\n"));
