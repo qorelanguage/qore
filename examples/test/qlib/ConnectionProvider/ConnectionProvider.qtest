@@ -29,7 +29,9 @@ public class ConnectionProviderTest inherits QUnit::Test {
         TestSslServer server();
         on_exit
             server.stop();
-        string url = "https://localhost:" + server.getPort();
+        # use IPv4 localhost to work around potential issues with localhost -> ::1 and IPv6 -> IPv4 mappings
+        # (ex: Windows)
+        string url = "https://127.0.0.1:" + server.getPort();
         hash urlh = parse_url(url);
         hash opts = (
             "ssl_cert_path": CertPath,

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,6 @@
   licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
   information.
 */
-
 
 #ifndef INCLUDE_QORE_QOREDEBUGPROGRAM_H_
 #define INCLUDE_QORE_QOREDEBUGPROGRAM_H_
@@ -92,36 +91,32 @@ public:
    DLLEXPORT void removeProgram(QoreProgram *pgm);
    DLLEXPORT QoreListNode* getAllProgramObjects();
 
-   DLLEXPORT virtual void onAttach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink) {
-      printd(5, "QoreDebugProgram::onAttach() this: %p\n", this);
-      rs = DBG_RS_RUN;
-   }
-   DLLEXPORT virtual void onDetach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink) {
-      rs = DBG_RS_DETACH;
-   }
+   DLLEXPORT virtual void onAttach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink);
+
+   DLLEXPORT virtual void onDetach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink);
+
    /**
     * Executed on every step of StatementBlock.
     * @param blockStatement
     * @param statement current AbstractStatement of blockStatement being processed. Executed also when blockStatement is entered with value of NULL
     * @param flow
     */
-   DLLEXPORT virtual void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
-   }
+   DLLEXPORT virtual void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink);
+
    /**
     * Executed when a function is entered.
     */
-   DLLEXPORT virtual void onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
-   }
+   DLLEXPORT virtual void onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
+
    /**
     * Executed when a function is exited.
     */
-   DLLEXPORT virtual void onFunctionExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
-   }
+   DLLEXPORT virtual void onFunctionExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
+
    /**
     * Executed when an exception is raised.
     */
-   DLLEXPORT virtual void onException(QoreProgram *pgm, const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
-   }
+   DLLEXPORT virtual void onException(QoreProgram *pgm, const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
 
    /**
     * Break specific program thread
