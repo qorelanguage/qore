@@ -904,7 +904,7 @@ typedef std::list<int> TidList_t;
  *  breakpoint is probed using @ref checkBreak and program is potentially interrupted and
  *  callback @ref QoreDebugProgram is triggered. The instance must be assigned to a @ref QoreProgram
  */
-class QoreBreakpoint: public AbstractPrivateData {
+class QoreBreakpoint : public AbstractPrivateData {
 private:
    qore_program_private* pgm;
    AbstractStatementList_t statementList;
@@ -1007,9 +1007,8 @@ public:
     */
    DLLEXPORT static QoreBreakpoint* resolveBreakpointId(unsigned breakpointId);
 
-   DLLEXPORT void setQoreObject(QoreObject *n_qo) {
-      qo = n_qo;
-   }
+   DLLEXPORT void setQoreObject(QoreObject* n_qo);
+
    DLLEXPORT QoreObject* getQoreObject();
 
 };
