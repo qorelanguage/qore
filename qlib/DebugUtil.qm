@@ -202,6 +202,89 @@ public namespace DebugUtil {
                 return bindex(value, cond) == 0;
             }
         }
+
+        # make_json/yaml does not support object code etc. so we need somehow process values
+        static public hash serialize(auto val) {
+            auto v;
+            switch (val.typeCode()) {
+            case NT_NOTHING:
+            case NT_NULL:
+                break;
+            case NT_INT:
+            case NT_FLOAT:
+            case NT_STRING:
+            case NT_DATE:
+            case NT_BOOLEAN:
+            case NT_BINARY:
+            case NT_NUMBER:
+                v = val;
+                break;
+            case NT_LIST:
+                v = ();
+                foreach auto i in (val) {
+                    push v, AbstractDebugControl::serialize(i);
+                }
+                break;
+            case NT_HASH:
+            case NT_OBJECT:
+                v = hash();
+                if (val.typeCode() == NT_OBJECT) {
+                    v.class = val.className();
+                }
+                foreach string k in (keys val) {
+                    if (val{k}.typeCode() == NT_OBJECT) {
+                        v{k}.type = val{k}.className();
+                        v{k}.value = sprintf("%N", val{k});  # TODO: to avoid circular references between objects
+                    } else {
+                        v{k} = AbstractDebugControl::serialize(val{k});
+                    }
+                }
+                break;
+            default:
+                # unsupported types, no value passed
+            }
+            hash sv.type = val.type();
+            if (exists v) {
+                sv.value = v;
+            }
+            return sv;
+        }
+
+        static public auto unserialize(auto sv) {
+            if (sv.typeCode() == NT_HASH) {
+                switch (TypeNameMap{sv.type}) {
+                case NT_NOTHING:
+                    return NOTHING;
+                case NT_NULL:
+                    return NULL;
+                case NT_LIST:
+                    list ret;
+                    foreach auto i in (sv.value) {
+                        push ret, AbstractDebugControl::unserialize(i);
+                    }
+                    return ret;
+                case NT_HASH:
+                    hash ret;
+                    foreach string k in (keys sv.value) {
+                        ret{k} = AbstractDebugControl::unserialize(sv.value{k});
+                    }
+                    return ret;
+                case NT_INT:
+                case NT_FLOAT:
+                case NT_STRING:
+                case NT_DATE:
+                case NT_BOOLEAN:
+                case NT_BINARY:
+                case NT_NUMBER:
+                    return sv.value;
+                default:
+                    throw "DEBUG-ERROR", sprintf("Cannot assing value of type: %y", sv.type);
+                }
+            } else {
+                return sv;
+            }
+        }
+
     }
 
 }
