@@ -389,13 +389,13 @@ public namespace DebugProgramControl {
                         string varName = shift cmd;
                         switch (shift cmd) {
                         case 'set':
-                            pgmb.setGlobalVarValue(varName, unserialize(receiveData.value));
+                            pgmb.setGlobalVarValue(varName, AbstractDebugControl::unserialize(receiveData.value));
                             result = 'ok';
                             break;
 
                         case 'get':
                             bool existF;
-                            auto v = serialize(pgmb.getGlobalVariable(varName, \existF));
+                            auto v = AbstractDebugControl::serialize(pgmb.getGlobalVariable(varName, \existF));
                             if (existF) {
                                 result = v;
                             }
@@ -644,95 +644,15 @@ public namespace DebugProgramControl {
             return binfo;
         }
 
-        # make_json does not support object code etc. so we need somehow process values
-        private hash serialize(auto val) {
-            auto v;
-            switch (val.typeCode()) {
-            case NT_NOTHING:
-            case NT_NULL:
-                break;
-            case NT_INT:
-            case NT_FLOAT:
-            case NT_STRING:
-            case NT_DATE:
-            case NT_BOOLEAN:
-            case NT_BINARY:
-            case NT_NUMBER:
-                v = val;
-                break;
-            case NT_LIST:
-                v = ();
-                foreach auto i in (val) {
-                    push v, serialize(i);
-                }
-                break;
-            case NT_HASH:
-            case NT_OBJECT:
-                v = hash();
-                if (val.typeCode() == NT_OBJECT) {
-                    v.class = val.className();
-                }
-                foreach string k in (keys val) {
-                    if (val{k}.typeCode() == NT_OBJECT) {
-                        v{k}.type = val{k}.className();
-                        v{k}.value = sprintf("%N", val{k});  # TODO: to avoid circular references between objects
-                    } else {
-                        v{k} = serialize(val{k});
-                    }
-                }
-                break;
-            default:
-                # unsupported types, no value passed
-            }
-            hash sv.type = val.type();
-            if (exists v) {
-                sv.value = v;
-            }
-            return sv;
-        }
         private *hash serializeLocal(string name, hash val) {
-            val.value = serialize(val.value);
+            val.value = AbstractDebugControl::serialize(val.value);
             return ('name': name) + val;
         }
         private *hash serializeLocals(*hash vals) {
             foreach string k in (keys vals) {
-                vals{k}.value = serialize(vals{k}.value);
+                vals{k}.value = AbstractDebugControl::serialize(vals{k}.value);
             }
             return vals;
-        }
-        private auto unserialize(auto sv) {
-            if (sv.typeCode() == NT_HASH) {
-                switch (TypeNameMap{sv.type}) {
-                case NT_NOTHING:
-                    return NOTHING;
-                case NT_NULL:
-                    return NULL;
-                case NT_LIST:
-                    list ret;
-                    foreach auto i in (sv.value) {
-                        push ret, unserialize(i);
-                    }
-                    return ret;
-                case NT_HASH:
-                    hash ret;
-                    foreach string k in (keys sv.value) {
-                        ret{k} = unserialize(sv.value{k});
-                    }
-                    return ret;
-                case NT_INT:
-                case NT_FLOAT:
-                case NT_STRING:
-                case NT_DATE:
-                case NT_BOOLEAN:
-                case NT_BINARY:
-                case NT_NUMBER:
-                    return sv.value;
-                default:
-                    throw "DEBUG-HANDLER-ERROR", sprintf("Cannot assing value of type: %y", sv.type);
-                }
-            } else {
-                return sv;
-            }
         }
         private *hash handleInterrupt(string func, ProgramControl pgm, reference runState, *int statementId, *string refName, *reference refValue, *hash except) {
             # serialize data, send to all websockets, break/suspend thread
@@ -837,7 +757,7 @@ public namespace DebugProgramControl {
                                 }
                                 break;
                             case 'set':
-                                set_local_var_value(ctxCT.frameId + frameOffset, varName, unserialize(rd.value));
+                                set_local_var_value(ctxCT.frameId + frameOffset, varName, AbstractDebugControl::unserialize(rd.value));
                                 break;
                             case 'list':
                                 softlist l  = keys get_local_vars(ctxCT.frameId + frameOffset);
@@ -861,7 +781,7 @@ public namespace DebugProgramControl {
                                         break;
 
                                     case 'result':
-                                        result = serialize(ctxCT{varName});
+                                        result = AbstractDebugControl::serialize(ctxCT{varName});
                                         break;
                                     }
                                 } else {
@@ -879,16 +799,16 @@ public namespace DebugProgramControl {
                                 if (varName == refName) {
                                     switch (varName) {
                                     case 'flow':
-                                        ctxCT{varName} = resolveValue(varName, string(unserialize(rd.value)), flowStrings, ctxCT{rd.name});
+                                        ctxCT{varName} = resolveValue(varName, string(AbstractDebugControl::unserialize(rd.value)), flowStrings, ctxCT{rd.name});
                                         break;
 
                                     case 'dismiss':
-                                        any v = unserialize(rd.value);
+                                        any v = AbstractDebugControl::unserialize(rd.value);
                                         ctxCT{varName} = v.typeCode() == NT_BOOLEAN ? v : resolveValue(varName, string(v), boolStrings, ctxCT{rd.name});
                                         break;
 
                                     case 'result':
-                                        ctxCT{varName} = unserialize(rd.value);
+                                        ctxCT{varName} = AbstractDebugControl::unserialize(rd.value);
                                         break;
                                     }
                                 } else {

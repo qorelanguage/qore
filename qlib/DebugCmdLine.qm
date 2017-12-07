@@ -979,7 +979,7 @@ public namespace DebugCmdLine {
         }
 
         public auto parseValue() {
-            return parse_to_qore_value(argv.lsize() == 1 ? argv[0] : argv);
+            return AbstractDebugControl::serialize(parse_to_qore_value(argv.lsize() == 1 ? argv[0] : argv));
         }
 
         public auto getContextValue(string key) {
@@ -1328,7 +1328,7 @@ public namespace DebugCmdLine {
         }
 
         public printVar(string name, hash value) {
-            stdout.printf("%s %s = %y\r\n", value.type, name, value.value);
+            stdout.printf("%s %s = %y\r\n", value.type, name, AbstractDebugControl::unserialize(value));
         }
 
         public printHuman(hash x, string indent = defaultIndent) {
