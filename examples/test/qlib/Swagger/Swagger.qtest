@@ -2257,6 +2257,19 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq(200, res.code);
                 assertEq(NOTHING, res.body);
             }
+
+            # issue #2516
+            so = new SwaggerSchema(b);
+            {
+                hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2517", <feedface>, {"Content-Type": "image/jpeg"});
+                assertEq("/api/b2517", res.uri_path);
+                assertEq(<feedface>, res.body);
+
+                # the following call would throw a SCHEMA-VALIDATION-ERROR without the fix
+                res = so.processRequest("post", "api/b2517", <feedface>, {"Content-Type": "image/jpeg"});
+                assertEq("api/b2517", res.uri_path);
+                assertEq(<feedface>, res.body);
+            }
         }
 
         {
