@@ -168,6 +168,7 @@ RestHandler handler(NOTHING, swagger);
     - fixed handling of string/binary values (<a href="https://github.com/qorelanguage/qore/issues/2505">issue 2505</a>)
     - fixed a bug where consumes property of operations was sometimes ignored (<a href="https://github.com/qorelanguage/qore/issues/2507">issue 2507</a>)
     - fixed parsing of responses without Content-Type header (<a href="https://github.com/qorelanguage/qore/issues/2517">issue 2517</a>)
+    - fixed path matching for paths not beginning with a slash (<a href="https://github.com/qorelanguage/qore/issues/2516">issue 2516</a>)
 
     @subsection swagger_1_0 Swagger v1.0
 
@@ -1886,6 +1887,9 @@ public class PathsObject inherits ObjectBase {
     /** @throw INVALID-PATH the path could not be matched
     */
     PathItemObject match(string path) {
+        if (!path.equalPartial("/")) {
+            path = "/" + path;
+        }
         return paths.match(path.split("/"));
     }
 
