@@ -42,6 +42,7 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
                 "null_f": c_varchar(69),
                 "blob_f": c_blob(True),
                 "clob_f": c_clob(True),
+                "dvtest_f": c_varchar(10) + ("default_value": "test"),
             ),
             "primary_key": ("name": "pk_pgsql_test", "columns": ("id")),
             );
@@ -204,6 +205,7 @@ class PgsqlTest inherits SqlTestBase {
 
             addTestCase("sequence operators", \testSequenceOperators());
             addTestCase("analytic/window functions", \testAnalyticFunctions());
+            addTestCase("default value", \testDefaultValue());
         }
 
         set_return_value(main());
@@ -225,6 +227,19 @@ class PgsqlTest inherits SqlTestBase {
         assertEq(1, table.update(("id": uop_seq("pgsql_test_seq")), ("id": 2)));
         sh."where".id = 4;
         assertEq(("id": 4, "seq": 5, "seq_currval": 5), table.selectRow(sh));
+    }
+
+    testDefaultValue() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractColumn c = table.describe().dvtest_f;
+        AbstractColumn new_col = c.copy();
+        new_col.def_val =~ s/::.*//;
+        assertRegex("::character varying", c.def_val);
+        assertNRegex("::character varying", new_col.def_val);
+        list l = c.getModifySql(table, new_col);
+        assertEq((), l);
     }
 
     private string getResultSetSql() {

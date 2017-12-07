@@ -154,6 +154,7 @@ $function$
 
     @subsection pgsqlsqlutilv121 PgsqlSqlUtil v1.2.1
     - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
+    - fixed a bug where default column values were compared incorrectly leading to false positives when comparing and aligning DB schemas (<a href="https://github.com/qorelanguage/qore/issues/2527">issue 2527</a>)
 
     @subsection pgsqlsqlutilv12 PgsqlSqlUtil v1.2
     - updated for complex types
@@ -449,11 +450,21 @@ my list $l = $col.getModifySql($t, $newcol);
                     l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
             }
             else if (def_val !== c.def_val) {
-                #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
-                if (exists c.def_val && c.def_val !== NULL)
-                    l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
-                else
-                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
+                # issue #2527: ensure that mismatches are not due to server type info
+                bool ok;
+                if (c.def_val.val() && c.def_val !~ /::/ && def_val =~ /::/) {
+                    string ndv = def_val;
+                    ndv =~ s/::.*//;
+                    if (ndv == c.def_val)
+                        ok = True;
+                }
+                if (!ok) {
+                    #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
+                    if (exists c.def_val && c.def_val !== NULL)
+                        l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
+                    else
+                        l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
+                }
             }
             if (nullable != c.nullable) {
                 l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), name, c.nullable ? "drop" : "set");
