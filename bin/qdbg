@@ -33,9 +33,6 @@ class DebugCommandLineLocal inherits DebugCommandLine {
         }
         *hash ret = dpc.processCommand(DebugProgramControlLocal::CX, data);
         if (ret.type == 'thread') {
-            while (counter.getCount() > 0) {
-                counter.dec();
-            }
             if (counter.waitForZero(200)) {
                 return NOTHING;
             } else {
