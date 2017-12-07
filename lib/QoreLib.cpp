@@ -2112,36 +2112,40 @@ int qore_get_ptr_hash(QoreString& str, const void* ptr) {
 }
 
 void* q_memmem(const void* big, size_t big_len, const void* little, size_t little_len) {
-   assert(big && little);
+    assert(big && little);
 #ifdef HAVE_MEMMEM
-   return memmem(big, big_len, little, little_len);
+    return memmem(big, big_len, little, little_len);
 #else
-   if (!big_len)
-      return nullptr;
-   if (!little_len)
-      return (void*)big;
-   const char* lt = (const char*)little;
-   const char* bg = (const char*)big;
-   const char* p = bg;
-   const char* end = bg + big_len;
-   while (p < end) {
-      const char* f = (const char*)memchr(p, lt[0], end - p);
-      if (!f || ((bg - f) < (ptrdiff_t)little_len))
-         return nullptr;
-      p = f;
-      bool found = true;
-      for (size_t i = 1; i < little_len; ++i) {
-         if (*f != lt[i]) {
-            found = false;
-            break;
-         }
-         ++f;
-      }
-      if (found)
-         return (void*)p;
-      ++p;
-   }
-   return nullptr;
+    if (!big_len)
+        return nullptr;
+    if (!little_len)
+        return (void*)big;
+    const char* lt = (const char*)little;
+    const char* bg = (const char*)big;
+    //printd(5, "q_memmem() big: '%s' (%d) little: '%s' (%d)\n", big, (int)big_len, little, (int)little_len);
+    const char* p = bg;
+    const char* end = bg + big_len;
+    while (p < end) {
+        const char* f = (const char*)memchr(p, lt[0], end - p);
+        //printd(5, "q_memmem() f: %p p: '%s' %p lt[0]: %c len: %d left: %d ll: %d\n", f, p, p, lt[0], (int)(end - p), (int)(big_len - (f - bg)), (int)little_len);
+        // if there is no match or if there is not enough room to match the little string
+        // then return with no match
+        if (!f || ((big_len - (f - bg)) < little_len))
+            return nullptr;
+        p = f;
+        bool found = true;
+        for (size_t i = 1; i < little_len; ++i) {
+            if (*(++f) != lt[i]) {
+                found = false;
+                break;
+            }
+        }
+        if (found) {
+            return (void*)p;
+        }
+        ++p;
+    }
+    return nullptr;
 #endif
 }
 
