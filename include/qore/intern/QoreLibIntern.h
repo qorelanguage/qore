@@ -946,4 +946,9 @@ DLLLOCAL int64 get_ms_zero(const QoreValue& v);
 
 DLLLOCAL AbstractQoreNode* copy_strip_complex_types(const AbstractQoreNode* n);
 
+// for IPv4/v6 only
+DLLLOCAL void* qore_get_in_addr(struct sockaddr *sa);
+// for IPv4/v6 only
+DLLLOCAL size_t qore_get_in_len(struct sockaddr *sa);
+
 #endif
