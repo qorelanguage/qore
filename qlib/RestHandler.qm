@@ -315,6 +315,7 @@ Content-Length: 36
     - updated to return a 400 Bad Request error when REST schema validation fails on messages received (<a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
     - updated to return a 400 Bad Request error when there are string encoding errors with messages received (<a href="https://github.com/qorelanguage/qore/issues/2398">issue 2398</a>)
     - updated to return a 404 Not Found error when REST subclass does not exist (<a href="https://github.com/qorelanguage/qore/issues/2405">issue 2405</a>)
+    - updated to return a 400 Bad Request error when ENCODING-CONVERSION-ERROR occurs during request parsing (<a href="https://github.com/qorelanguage/qore/issues/2543">issue 2543</a>)
 
     @subsection rh_1_2 RestHandler v1.2
     - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
@@ -1016,6 +1017,7 @@ public namespace RestHandler {
             catch (hash<ExceptionInfo> ex) {
                 # return a 400 Bad Request response to encoding, serialization, or validation errors
                 if (ex.err == "INVALID-ENCODING"
+                    || ex.err == "ENCODING-CONVERSION-ERROR"
                     || ex.err == "DESERIALIZATION-ERROR"
                     || ex.err == "SCHEMA-VALIDATION-ERROR")
                     return AbstractHttpRequestHandler::make400("%s: %s", ex.err, ex.desc);
