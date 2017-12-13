@@ -63,6 +63,13 @@ class SwaggerRestHandler inherits RestHandler {
     }
 }
 
+class DummyListenerInterface inherits HttpListenerInterface {
+    addUserThreadContext(hash uctx) {}
+    auto removeUserThreadContext(*string k) {}
+    log(string fmt) {}
+    logError(string fmt) {}
+}
+
 public class RestHandlerTest inherits QUnit::Test {
     private {
         HttpServer mServer;
@@ -137,6 +144,27 @@ public class RestHandlerTest inherits QUnit::Test {
                         ),
                     ),
                 ),
+                "/b2543": (
+                    "post": (
+                        "produces": (MimeTypeJson,),
+                        "consumes": (MimeTypeJson,),
+                        "parameters": (
+                            {
+                                "in": "body",
+                                "name": "body",
+                                "required": True,
+                                "schema": (
+                                    "type": "object",
+                                    "required": ("a",),
+                                    "properties": {"a": {"type": "string"}}
+                                ),
+                            },
+                        ),
+                        "responses": (
+                            "200": ("description": "success",),
+                        ),
+                    ),
+                ),
             ),
             "definitions": (
                 "Any": (
@@ -158,6 +186,7 @@ public class RestHandlerTest inherits QUnit::Test {
         addTestCase("Test xml", \xmlTest());
         addTestCase("Test swagger", \swaggerTest());
         addTestCase("issue 2398", \issue2398());
+        addTestCase("issue 2543", \issue2543());
         addTestCase("Missing subclass test", \missingSubclassTest());
 
         # Return for compatibility with test harness that checks return value.
@@ -311,6 +340,45 @@ public class RestHandlerTest inherits QUnit::Test {
         }
         assertRegex("invalid.*encoding", ex.arg.body);
         assertEq(400, ex.arg.status_code);
+    }
+
+    issue2543() {
+%ifdef NoJson
+        testSkip("no json module present");
+%endif
+
+        # dummy HttpListenerInterface object
+        DummyListenerInterface listener();
+        # socket object needed for call; will not be used
+        Socket s();
+
+        hash hdr = {
+            "http_version" : "1.1",
+            "method" : "POST",
+            "path" : "b2543",
+            "host" : "localhost:8200",
+            "user-agent" : "curl/7.52.1",
+            "accept" : "*/*",
+            "content-type" : "application/json",
+            "content-length" : "24",
+            "_qore_orig_content_type" : "application/json",
+        };
+
+        string body_str = convert_encoding('{"a":"\u017dil\u00e1k"}', "iso-8859-1");
+
+        hash cx = {
+            "raw_path" : "/b2543",
+            "char_encoding" : "ISO-8859-1",
+            "response-encoding" : "utf8",
+            "url" : {"path" : "b2543"},
+            "rest_action_method" : "post",
+            "hdr" : hdr,
+            "aih" : {"*/*" : True},
+        };
+
+        # this would throw exception before fix
+        auto result = swaggerHandler.handleRequest(listener, s, cx, hdr, body_str);
+        assertEq(400, result.code);
     }
 
     missingSubclassTest() {
