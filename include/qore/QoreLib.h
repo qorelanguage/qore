@@ -449,6 +449,10 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 #define QORE_OPT_FUNC_SETSID             "setsid()"
 //! option: is_executable() function available
 #define QORE_OPT_FUNC_IS_EXECUTABLE      "is_executable()"
+//! option: close_all_fd() function available
+#define QORE_OPT_FUNC_CLOSE_ALL_FD       "close_all_fd()"
+//! option: get_netif_list() function available
+#define QORE_OPT_FUNC_GET_NETIF_LIST     "get_netif_list()"
 
 //! option type feature
 #define QO_OPTION     0

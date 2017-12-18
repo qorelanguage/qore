@@ -1,0 +1,29 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class GetNetIfList
+
+public class GetNetIfList inherits QUnit::Test {
+    constructor() : Test("GetNetIfList", "1.0") {
+        addTestCase("get_netif_list() test", \getNetIfListTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    getNetIfListTest() {
+        if (!HAVE_GET_NETIF_LIST)
+            testSkip("missing get_netif_list() function");
+
+        list<auto> l = get_netif_list();
+        assertEq("list<hash<NetIfInfo>>", l.fullType());
+    }
+}
