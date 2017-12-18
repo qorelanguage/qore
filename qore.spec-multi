@@ -267,11 +267,6 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /usr/bin/qore
-/usr/bin/qget
-/usr/bin/rest
-/usr/bin/schema-reverse
-/usr/bin/sfrest
-/usr/bin/sqlutil
 /usr/bin/qdbg
 /usr/bin/qdbg-server
 /usr/bin/qdbg-remote
