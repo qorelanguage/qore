@@ -961,22 +961,64 @@ addTestCase(obj);
                 }
             }
             if (!done) {
-                expected = sprintf("(%s) %N", exp.type(), exp);
-                actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
+                switch (act.typeCode()) {
+                    case  NT_NUMBER:
+                        expected = sprintf("(%s) %N (%s)", exp.type(), exp, exp.toString(NF_Raw));
+                        break;
+                    case  NT_FLOAT:
+                        expected = sprintf("(%s) %N (%s)", exp.type(), exp, exp.toString());
+                        break;
+                    default:
+                        expected = sprintf("(%s) %N", exp.type(), exp);
+                }
+                if (neg) {
+                    actual = "<identical>";
+                } else {
+                    switch (act.typeCode()) {
+                        case NT_NUMBER:
+                            actual = sprintf("(%s) %N (%s)", act.type(), act, act.toString(NF_Raw));
+                            break;
+                        case NT_FLOAT:
+                            actual = sprintf("(%s) %N (%s)", act.type(), act, act.toString());
+                            break;
+                        default:
+                            actual = sprintf("(%s) %N", act.type(), act);
+                    }
+                }
             }
             comp += " (TYPE ERROR)";
         }
         else {
-            if (exp.typeCode() == NT_BINARY) {
-                expected = sprintf("(binary: size %d) <%s>", exp.size(), make_hex_string(exp));
+            switch (exp.typeCode()) {
+                case NT_BINARY:
+                    expected = sprintf("(binary: size %d) <%s>", exp.size(), make_hex_string(exp));
+                    break;
+                case NT_NUMBER:
+                    expected = sprintf("(%s) %N (%s)", exp.type(), exp, exp.toString(NF_Raw));
+                    break;
+                case NT_FLOAT:
+                    expected = sprintf("(%s) %N (%s)", exp.type(), exp, exp.toString());
+                    break;
+                default:
+                    expected = sprintf("%N", exp);
             }
-            else
-                expected = sprintf("%N", exp);
-
-            if (act.typeCode() == NT_BINARY)
-                actual = neg ? "<identical>" : sprintf("(binary: size %d) <%s>", act.size(), make_hex_string(act));
-            else
-                actual = neg ? "<identical>" : sprintf("%N", act);
+            if (neg) {
+                actual = "<identical>";
+            } else {
+                switch (act.typeCode()) {
+                    case NT_BINARY:
+                        actual = sprintf("(binary: size %d) <%s>", act.size(), make_hex_string(act));
+                        break;
+                    case NT_NUMBER:
+                        actual = sprintf("(%s) %N (%s)", act.type(), act, act.toString(NF_Raw));
+                        break;
+                    case NT_FLOAT:
+                        actual = sprintf("(%s) %N (%s)", act.type(), act, act.toString());
+                        break;
+                    default:
+                        actual = sprintf("%N", act);
+                }
+            }
         }
         if (diffInSpecialCharsOnly(expected, actual)) {
             expected = escapeSpecialChars(expected);
