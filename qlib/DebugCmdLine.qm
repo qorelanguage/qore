@@ -858,7 +858,7 @@ public namespace DebugCmdLine {
                                 'desc': 'get/set special debug variable, args: varName [value], use "thread debug list" command result to see value list of varNames',
                             ),
                             'list': (
-                                'desc': 'get thread and realated programs',
+                                'desc': 'show threads and related programs, interrupted programs are marked with \"S\"',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     hash data.cmd = 'program//list';
                                     *hash pgm_info = dcl.doCommandImpl(data).result;
