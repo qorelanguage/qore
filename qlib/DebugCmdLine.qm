@@ -908,34 +908,26 @@ public namespace DebugCmdLine {
                             data.tid = dcl.checkThreadId();
                             *hash th = dcl.doCommandImpl(data);
                             if (th) {
-                                stdout.printf("TID %d call stack:\r\n", th.tid);
-                                foreach hash lh in (th.result) {
-                                    string str = sprintf(" - %d%s: ", $#, lh.current ? "*":" ");
-                                    if (lh.function.val())
-                                        str += sprintf("%s()", lh.function);
-                                    else
-                                        str += "<unknown function>";
-                                    str += " (";
-                                    string loc;
-                                    if (lh.source)
-                                        loc += sprintf("%s:%d", lh.source, lh.line + lh.offset);
-                                    else {
-                                        loc += sprintf("%s", lh.file ?? "<unknown>");
-                                        if (lh.line > 0)
-                                            loc += sprintf(":%d", lh.line);
-                                    }
-                                    if (lh.endline > 0)
-                                        loc += sprintf("-%d", lh.endline + lh.offset);
-                                    if (loc)
-                                        str += loc + " ";
-                                    str += lh.type;
-                                    str += ")";
-                                    stdout.print(str + "\r\n");
-                                }
+                                dcl.showThreadStack(th.tid, th.result);
                             }
                             else
                                 stdout.print("server returned no response\r\n");
                         },
+                        '>': (
+                            'all': (
+                                'desc': 'show call stack for all threads',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'thread/stack';
+                                    *hash threads = dcl.doCommandImpl(data).result;
+                                    if (threads) {
+                                        foreach softint tid in (keys threads) {
+                                            dcl.showThreadStack(tid, threads{tid});
+                                            stdout.print("\n");
+                                        }
+                                    }
+                                },
+                            ),
+                        ),
                     ),
                     'go': (
                         '*': (
@@ -994,6 +986,33 @@ public namespace DebugCmdLine {
             foreach string id in (sort(keys ph, int sub (string l, string r) { return l.toInt() <=> r.toInt(); })) {
                 stdout.printf(fmt,
                     (show_interrupted && ph{id}.interrupted) ? 'S':' ', id, id == pgmId ? "*" : " ", ph{id}.scriptName, ph{id}.threads.size(), ph{id}.debugging, ph{id}.debugged);
+            }
+        }
+
+        public showThreadStack(softint tid, list stack) {
+            stdout.printf("TID %d call stack:\r\n", tid);
+            foreach hash lh in (stack) {
+                string str = sprintf(" - %d%s: ", $#, lh.current ? "*":" ");
+                if (lh.function.val())
+                    str += sprintf("%s()", lh.function);
+                else
+                    str += "<unknown function>";
+                str += " (";
+                string loc;
+                if (lh.source)
+                    loc += sprintf("%s:%d", lh.source, lh.line + lh.offset);
+                else {
+                    loc += sprintf("%s", lh.file ?? "<unknown>");
+                    if (lh.line > 0)
+                        loc += sprintf(":%d", lh.line);
+                }
+                if (lh.endline > 0)
+                    loc += sprintf("-%d", lh.endline + lh.offset);
+                if (loc)
+                    str += loc + " ";
+                str += lh.type;
+                str += ")";
+                stdout.print(str + "\r\n");
             }
         }
 
