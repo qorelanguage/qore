@@ -127,7 +127,7 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.14.1
+%{_libdir}/libqore.so.5.14.2
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
@@ -283,8 +283,11 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Fri Sep 29 2017 David Nichols <david@qore.org> 0.9
+* Sat Dec 30 2017 David Nichols <david@qore.org> 0.9
 - updated version to 0.9
+
+* Sat Dec 30 2017 David Nichols <david@qore.org> 0.8.13.2
+- updated version to 0.8.13.2
 
 * Fri Sep 29 2017 David Nichols <david@qore.org> 0.8.13.1
 - updated version to 0.8.13.1
