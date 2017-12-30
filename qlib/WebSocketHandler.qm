@@ -287,7 +287,7 @@ public namespace WebSocketHandler {
             wsc.registered();
 
             on_exit {
-                logDebug("WebSocketHandler::startImpl(): close connection: cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
+                #logDebug("WebSocketHandler::startImpl(): close connection: cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
                 deregisterConnectionImpl(wsc);
                 wsc.connectionClosed();
                 rwl.writeLock();
@@ -297,7 +297,7 @@ public namespace WebSocketHandler {
 
             while (True) {
                 if (stop || lsh{lid}) {
-                    logDebug("WebSocketHandler::startImpl() cid: %y stopping; stop: %y lsh{%y}: %y", cx.id, stop, lid, lsh{lid});
+                    #logDebug("WebSocketHandler::startImpl() cid: %y stopping; stop: %y lsh{%y}: %y", cx.id, stop, lid, lsh{lid});
                     sendClose(sock, WSCC_GoingAway);
                     break;
                 }
