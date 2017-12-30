@@ -128,4 +128,7 @@ DLLEXPORT extern const TypedHashDecl* hashdeclExceptionInfo;
 //! StatementInfo hashdecl
 DLLEXPORT extern const TypedHashDecl* hashdeclStatementInfo;
 
+//! NetIfInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclNetIfInfo;
+
 #endif
