@@ -13,7 +13,7 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 8)
 set(VERSION_SUB 13)
-set(VERSION_PATCH 1)
+set(VERSION_PATCH 2)
 
 if(DEFINED VERSION_PATCH)
     set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH})
@@ -626,7 +626,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 5)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 5.14.1)
+    set_target_properties(libqore PROPERTIES VERSION 5.14.2)
     set_target_properties(libqore PROPERTIES SOVERSION 5)
 endif (APPLE)
 

@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.8.13.1
+Version: 0.8.13.2
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -111,7 +111,7 @@ Provides: qore-module-api-0.6
 Provides: qore-module-api-0.5
 %if %{libname} == "libqore"
 Provides: libqore5 = %{version}
-Obsoletes: libqore5 < 0.8.13.1
+Obsoletes: libqore5 < 0.8.13.2
 %endif
 %if 0%{?sles_version}
 BuildArch: %{_target_cpu}
@@ -127,7 +127,7 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.14.1
+%{_libdir}/libqore.so.5.14.2
 %{_libdir}/libqore.so.5
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
@@ -283,6 +283,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Sat Dec 30 2017 David Nichols <david@qore.org> 0.8.13.2
+- updated version to 0.8.13.2
+
 * Fri Sep 29 2017 David Nichols <david@qore.org> 0.8.13.1
 - updated version to 0.8.13.1
 
