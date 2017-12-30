@@ -210,20 +210,19 @@ public namespace WebSocketUtil {
 
         if (masked) {
             frame += mask;
-            binary udata;
             # issue #2566: must be able to handle zero-length messages (ex: PONG)
             if (msg.val()) {
                 if (msg.typeCode() == NT_STRING)
                     msg = binary(msg);
+                binary udata;
                 for (int i = 0; i < msg.size(); ++i)
                     udata += chr((msg[i] ^ mask[i % 4]));
                 msg = udata;
             }
-            else
-                msg = binary();
         }
 
-        frame += msg;
+        if (msg.val())
+            frame += msg;
 
         return frame;
     }
