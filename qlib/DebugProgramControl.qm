@@ -557,7 +557,29 @@ public namespace DebugProgramControl {
                     }
                     break;
 
-                case 'thread':
+                case 'thread': {
+                    bool break_flag = False;
+                    if (!exists receiveData.tid) {
+                        switch (cmd[0]) {
+                        case 'stack':
+                            hash stacks = get_all_thread_call_stacks();
+                            foreach softint tid in (keys stacks) {
+                                rwlThread.readLock();
+                                on_exit rwlThread.readUnlock();
+                                if (exists ctxThread{tid}) {
+                                    stacks{tid} = adjustStack(stacks{tid}, ctxThread{tid});
+                                }
+                            }
+                            result = stacks;
+                            break_flag = True;
+                            break;
+                        }
+                    }
+                    if (break_flag) {
+                        break;
+                    }
+                    # no break and pass to default
+                }
 
                 default:
                     if (exists receiveData.tid) {
@@ -648,69 +670,97 @@ public namespace DebugProgramControl {
             val.value = AbstractDebugControl::serialize(val.value);
             return ('name': name) + val;
         }
+
         private *hash serializeLocals(*hash vals) {
             foreach string k in (keys vals) {
                 vals{k}.value = AbstractDebugControl::serialize(vals{k}.value);
             }
             return vals;
         }
+
+        private list adjustStack(list stack, *hash ctx) {
+            if (ctx && ctx.stackSize >= frameOffset) {
+                #assert(ctx.stackSize >= frameOffset);
+                while (stack.size() > ctx.stackSize - frameOffset) {
+                    shift stack;
+                }
+                # FIXME: workaround for bug 2468
+                stack[0].function = sprintf("interrupt: %s", ctx.intrInfo.func);
+                if (ctx.intrInfo.statementid) {
+                    stack[0].file = ctx.intrInfo.file;
+                    stack[0].line = ctx.intrInfo.line;
+                    stack[0].endline = ctx.intrInfo.endline;
+                    if (exists ctx.intrInfo.source) {
+                        stack[0].source = ctx.intrInfo.source;
+                        stack[0].offset = ctx.intrInfo.offset;
+                    } else {
+                        remove stack[0].source;
+                        remove stack[0].offset;
+                    }
+                }
+            }
+            return stack;
+        }
+
         private *hash handleInterrupt(string func, ProgramControl pgm, reference runState, *int statementId, *string refName, *reference refValue, *hash except) {
             # serialize data, send to all websockets, break/suspend thread
             int tid = gettid();
             hash ctx = (
                 "queue": new Queue(),
                 "pgmId": pgm.getProgramId(),
+                "stackSize": get_thread_call_stack().size(),
+                "intrInfo": (
+                    'type': 'event',
+                    'cmd': 'interrupt',
+                    'pgmid': ctx.pgmId,
+                    'tid': tid,
+                    'stamp': now_us(),
+                    'func': func,
+                    'runstate': encodeValue('runState', runState, runStateStrings),
+                    'frame': 0,
+                ),
             );
+            if (exists statementId) {
+                ctx.intrInfo.statementid = statementId;
+            }
+            if (exists statementId && statementId > 0) {
+                hash location = pgm.getStatementIdInfo(statementId);
+                ctx.intrInfo.file = location.file;
+                ctx.intrInfo.line = location.start_line;
+                ctx.intrInfo.endline = location.end_line;
+                #ctx.intrInfo.statement = location;
+            }
+            if (exists except) {
+                ctx.intrInfo.exception = except;
+            }
+            if (exists refName) {
+                ctx.intrInfo{refName} = refValue;
+            }
+            # minor race issue when list of all thread stack might return internal frames till ctx is not registered in ctxThread
             {
                 rwlThread.writeLock();
                 on_exit rwlThread.writeUnlock();
              #   assert(!exists ctxThread{tid});
                 ctxThread{tid} = ctx;
             }
-            hash sendData1 = (
-                'type': 'event',
-                'cmd': 'interrupt',
-                'pgmid': ctx.pgmId,
-                'tid': tid,
-                'stamp': now_us(),
-                'func': func,
-                'runstate': encodeValue('runState', runState, runStateStrings),
-                'frame': 0,
-            );
 /*
             try {
                 # to show important stack values each step
-                #sendData1.localvars0 = keys get_local_vars(0);
-                #sendData1.localvars1 = keys get_local_vars(1);
-                sendData1.localvars2 = serializeLocals(get_local_vars(2));
-                sendData1.localvars3 = serializeLocals(get_local_vars(3));
-                sendData1.localvars4 = serializeLocals(get_local_vars(4));
-                sendData1.localvars5 = keys get_local_vars(5);
-                sendData1.localvars6 = keys get_local_vars(6);
-                sendData1.localvars7 = keys get_local_vars(7);
-                sendData1.dpgmid = ProgramControl::getProgram().getProgramId();
+                #ctx.intrInfo.localvars0 = keys get_local_vars(0);
+                #ctx.intrInfo.localvars1 = keys get_local_vars(1);
+                ctx.intrInfo.localvars2 = serializeLocals(get_local_vars(2));
+                ctx.intrInfo.localvars3 = serializeLocals(get_local_vars(3));
+                ctx.intrInfo.localvars4 = serializeLocals(get_local_vars(4));
+                ctx.intrInfo.localvars5 = keys get_local_vars(5);
+                ctx.intrInfo.localvars6 = keys get_local_vars(6);
+                ctx.intrInfo.localvars7 = keys get_local_vars(7);
+                ctx.intrInfo.dpgmid = ProgramControl::getProgram().getProgramId();
             } catch (hash<ExceptionInfo> ex) {
                 #printf("Exception: %y\n", ex);
             }
 */
-            if (exists statementId) {
-                sendData1.statementid = statementId;
-            }
-            if (exists statementId && statementId > 0) {
-                hash location = pgm.getStatementIdInfo(statementId);
-                sendData1.file = location.file;
-                sendData1.line = location.start_line;
-                sendData1.endline = location.end_line;
-                #sendData1.statement = location;
-            }
-            if (exists except) {
-                sendData1.exception = except;
-            }
-            if (exists refName) {
-                sendData1{refName} = refValue;
-            }
             try {
-                broadcastDataImpl(sendData1);
+                broadcastDataImpl(ctx.intrInfo);
             } catch (hash<ExceptionInfo> ex) {
             }
 
@@ -790,7 +840,7 @@ public namespace DebugProgramControl {
                                         result = ctxCT.frameId;
                                         break;
                                     case 'event':
-                                        result = sendData1;
+                                        result = ctx.intrInfo;
                                         break;
                                     }
                                 }
@@ -834,30 +884,10 @@ public namespace DebugProgramControl {
                             break;
 
                         case 'stack':
-                            list stack = get_thread_call_stack();
-                            int i = frameOffset;
-                            while (i > 0) {
-                                shift stack;
-                                i--;
-                            }
+                            list stack = adjustStack(get_thread_call_stack(), ctx);
                             if (ctxCT.frameId < stack.size()) {
                                 stack[ctxCT.frameId].current = True;
                             }
-                            # FIXME: workaround for bug 2468
-                            stack[0].function = sprintf("interrupt: %s", sendData1.func);
-                            if (sendData1.statementid) {
-                                stack[0].file = sendData1.file;
-                                stack[0].line = sendData1.line;
-                                stack[0].endline = sendData1.endline;
-                                if (exists sendData1.source) {
-                                    stack[0].source = sendData1.source;
-                                    stack[0].offset = sendData1.offset;
-                                } else {
-                                    remove stack[0].source;
-                                    remove stack[0].offset;
-                                }
-                            }
-                            # END FIXME
                             result = stack;
                             break;
 

@@ -402,7 +402,7 @@ public namespace DebugCmdLine {
                                     if (!rh)
                                         stdout.printf("no program matching %y found out of %d programs\r\n", args[0], pgm_info.result.size());
                                     else {
-                                        dcl.showPrograms(rh);
+                                        dcl.showPrograms(rh, False);
                                     }
                                 },
                             ),
@@ -421,7 +421,7 @@ public namespace DebugCmdLine {
                                     hash data.cmd = 'program//list';
                                     *hash pgm_info = dcl.doCommandImpl(data);
                                     if (pgm_info.result)
-                                        dcl.showPrograms(pgm_info.result);
+                                        dcl.showPrograms(pgm_info.result, False);
                                     else
                                         stdout.printf("no results returned from server\n\r");
                                 },
@@ -857,6 +857,45 @@ public namespace DebugCmdLine {
                                 ),
                                 'desc': 'get/set special debug variable, args: varName [value], use "thread debug list" command result to see value list of varNames',
                             ),
+                            'pgmlist': (
+                                'desc': 'show threads and related programs, interrupted programs are marked with \"S\"',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program//list';
+                                    *hash pgm_info = dcl.doCommandImpl(data).result;
+                                    if (pgm_info) {
+                                        hash tl;
+                                        foreach softint pgmId in (keys pgm_info) {
+                                            foreach int tid in (pgm_info{pgmId}.threads) {
+                                                tl{tid}.programs{pgmId} = pgm_info{pgmId};
+                                                if (exists pgm_info{pgmId}.interrupted) {
+                                                    if (inlist(tid, pgm_info{pgmId}.interrupted)) {
+                                                        tl{tid}.interrupted = pgmId;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        foreach softint tid in (sort(keys tl, int sub(softint l, softint h) {return l<=>h; })) {
+                                            # do not output a trailing blank line
+                                            if ($#)
+                                                stdout.print("\n");
+                                            stdout.printf("TID %d program list:\n", tid);
+                                            dcl.showPrograms(tl{tid}.programs, True);
+                                        }
+                                    }
+                                },
+                            ),
+                            'list': (
+                                'desc': 'show list of threads and top level stack position',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'thread/stack';
+                                    *hash threads = dcl.doCommandImpl(data).result;
+                                    if (threads) {
+                                        foreach softint tid in (keys threads) {
+                                            stdout.printf(" %4d : %s\n", tid, dcl.getThreadStackStr(threads{tid}[0]));
+                                        }
+                                    }
+                                },
+                            )
                         ),
                         'desc': 'thread related commands',
                         'fallback': sub(DebugCommandLine dcl, softlist path, reference args) {
@@ -883,34 +922,28 @@ public namespace DebugCmdLine {
                             data.tid = dcl.checkThreadId();
                             *hash th = dcl.doCommandImpl(data);
                             if (th) {
-                                stdout.printf("TID %d call stack:\r\n", th.tid);
-                                foreach hash lh in (th.result) {
-                                    string str = sprintf(" - %d%s: ", $#, lh.current ? "*":" ");
-                                    if (lh.function.val())
-                                        str += sprintf("%s()", lh.function);
-                                    else
-                                        str += "<unknown function>";
-                                    str += " (";
-                                    string loc;
-                                    if (lh.source)
-                                        loc += sprintf("%s:%d", lh.source, lh.line + lh.offset);
-                                    else {
-                                        loc += sprintf("%s", lh.file ?? "<unknown>");
-                                        if (lh.line > 0)
-                                            loc += sprintf(":%d", lh.line);
-                                    }
-                                    if (lh.endline > 0)
-                                        loc += sprintf("-%d", lh.endline + lh.offset);
-                                    if (loc)
-                                        str += loc + " ";
-                                    str += lh.type;
-                                    str += ")";
-                                    stdout.print(str + "\r\n");
-                                }
+                                dcl.showThreadStack(th.tid, th.result);
                             }
                             else
                                 stdout.print("server returned no response\r\n");
                         },
+                        '>': (
+                            'all': (
+                                'desc': 'show call stack for all threads',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'thread/stack';
+                                    *hash threads = dcl.doCommandImpl(data).result;
+                                    if (threads) {
+                                        foreach softint tid in (keys threads) {
+                                            # do not output a trailing blank line
+                                            if ($#)
+                                                stdout.print("\n");
+                                            dcl.showThreadStack(tid, threads{tid});
+                                        }
+                                    }
+                                },
+                            ),
+                        ),
                     ),
                     'go': (
                         '*': (
@@ -947,7 +980,7 @@ public namespace DebugCmdLine {
             }
         }
 
-        public showPrograms(hash ph) {
+        public showPrograms(hash ph, bool show_interrupted) {
             # get max name width
             int max = 1;
             foreach hash h in (ph.pairIterator()) {
@@ -964,11 +997,43 @@ public namespace DebugCmdLine {
                 if (len > max)
                     max = len;
             }
-            string fmt = sprintf(" %%4d%%s: %%-%ds thr: %%2d dbg: %%d/%%d\r\n", max);
+            string fmt = sprintf("%%s%%4d%%s: %%-%ds thr: %%2d dbg: %%d/%%d\r\n", max);
             auto pgmId = getContextValue('programId');
             foreach string id in (sort(keys ph, int sub (string l, string r) { return l.toInt() <=> r.toInt(); })) {
                 stdout.printf(fmt,
-                    id, id == pgmId ? "*" : " ", ph{id}.scriptName, ph{id}.threads.size(), ph{id}.debugging, ph{id}.debugged);
+                    (show_interrupted && ph{id}.interrupted) ? 'S':' ', id, id == pgmId ? "*" : " ", ph{id}.scriptName, ph{id}.threads.size(), ph{id}.debugging, ph{id}.debugged);
+            }
+        }
+
+        public string getThreadStackStr(hash lh) {
+            string str;
+            if (lh.function.val())
+                str += sprintf("%s()", lh.function);
+            else
+                str += "<unknown function>";
+            str += " (";
+            string loc;
+            if (lh.source)
+                loc += sprintf("%s:%d", lh.source, lh.line + lh.offset);
+            else {
+                loc += sprintf("%s", lh.file ?? "<unknown>");
+                if (lh.line > 0)
+                    loc += sprintf(":%d", lh.line);
+            }
+            if (lh.endline > 0)
+                loc += sprintf("-%d", lh.endline + lh.offset);
+            if (loc)
+                str += loc + " ";
+            str += lh.type;
+            str += ")";
+            return str;
+        }
+
+        public showThreadStack(softint tid, list stack) {
+            stdout.printf("TID %d call stack:\r\n", tid);
+            foreach hash lh in (stack) {
+                string str = sprintf(" - %d%s: ", $#, lh.current ? "*":" ") + getThreadStackStr(lh);
+                stdout.print(str + "\r\n");
             }
         }
 
