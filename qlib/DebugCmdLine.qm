@@ -875,9 +875,11 @@ public namespace DebugCmdLine {
                                             }
                                         }
                                         foreach softint tid in (sort(keys tl, int sub(softint l, softint h) {return l<=>h; })) {
+                                            # do not output a trailing blank line
+                                            if ($#)
+                                                stdout.print("\n");
                                             stdout.printf("TID %d program list:\n", tid);
                                             dcl.showPrograms(tl{tid}.programs, True);
-                                            stdout.print("\n");
                                         }
                                     }
                                 },
@@ -933,8 +935,10 @@ public namespace DebugCmdLine {
                                     *hash threads = dcl.doCommandImpl(data).result;
                                     if (threads) {
                                         foreach softint tid in (keys threads) {
+                                            # do not output a trailing blank line
+                                            if ($#)
+                                                stdout.print("\n");
                                             dcl.showThreadStack(tid, threads{tid});
-                                            stdout.print("\n");
                                         }
                                     }
                                 },
