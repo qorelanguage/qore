@@ -1,0 +1,68 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ExceptionTest
+
+public class ExceptionTest inherits Test {
+    constructor() : Test("ExceptionTest", "1.0") {
+        addTestCase("exception test", \exceptionTest());
+
+        set_return_value(main());
+    }
+
+    exceptionTest() {
+        hash<ExceptionInfo> ex((
+            "err": "X",
+            "desc": "X",
+            "type": "User",
+            "file": "QUnit.qm",
+            "line": 1,
+            "endline": 1,
+            "source": "",
+            "offset": 0,
+            "callstack": (
+                new hash<CallStackInfo>((
+                    "function": "QUnit::assertEq",
+                    "line": 2,
+                    "endline": 2,
+                    "file": "MyTest2.qm",
+                    "source": "",
+                    "offset": 0,
+                    "typecode": 0,
+                    "type": "user",
+                )),
+                new hash<CallStackInfo>((
+                    "function": "MyTest2::assertEq",
+                    "line": 1,
+                    "endline": 1,
+                    "file": "MyTest1.qm",
+                    "source": "",
+                    "offset": 0,
+                    "typecode": 0,
+                    "type": "user",
+                )),
+                new hash<CallStackInfo>((
+                    "function": "t",
+                    "line": 1,
+                    "endline": 1,
+                    "file": "test",
+                    "source": "",
+                    "offset": 0,
+                    "typecode": 0,
+                    "type": "user",
+                )),
+            ),
+        ));
+        string str = TestCase::getPos(ex);
+        #printf("str: %y\n", str);
+        assertRegex("test.*->.*MyTest1.*->.*MyTest2", str);
+    }
+}
