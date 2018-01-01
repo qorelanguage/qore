@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software or associated documentation files (the "Software"),
@@ -55,27 +55,27 @@ AbstractQoreNode* QoreBinaryXorOperatorNode::parseInitImpl(LocalVar* oflag, int 
    right = right->parseInit(oflag, pflag, lvids, rti);
 
    // see if any of the arguments cannot be converted to an integer, if so generate a warning
-   if (QoreTypeInfo::nonNumericValue(lti)) {
-      if (QoreTypeInfo::nonNumericValue(rti)) {
+   if (!QoreTypeInfo::canConvertToScalar(lti)) {
+      if (!QoreTypeInfo::canConvertToScalar(rti)) {
          QoreStringNode* desc = new QoreStringNode("neither side of the binary xor (^) expression can be converted to an integer (left hand side is ");
          QoreTypeInfo::getThisType(lti, *desc);
          desc->concat("; right hand side is ");
          QoreTypeInfo::getThisType(rti, *desc);
          desc->concat("), therefore the entire expression will always return a constant 0");
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       }
       else {
          QoreStringNode* desc = new QoreStringNode("the left hand side of the binary xor (^) expression is ");
          QoreTypeInfo::getThisType(lti, *desc);
          desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the right hand side");
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       }
    }
-   else if (QoreTypeInfo::nonNumericValue(rti)) {
+   else if (!QoreTypeInfo::canConvertToScalar(rti)) {
       QoreStringNode* desc = new QoreStringNode("the right hand side of the binary xor (^) expression is ");
       QoreTypeInfo::getThisType(rti, *desc);
       desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the left hand side");
-      qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
 
    // see if both arguments are constant values, then eval immediately and substitute this node with the result

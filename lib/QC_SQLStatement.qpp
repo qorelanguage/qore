@@ -34,6 +34,8 @@
 #include "qore/intern/QC_Datasource.h"
 #include "qore/intern/QC_DatasourcePool.h"
 
+extern QoreClass* QC_ABSTRACTDATASOURCE;
+
 //! The SQLStatement class provides the most flexibilty for executing SQL on a database server
 /** This class allows statements to be executed and result sets to be iteratively returned in all formats supported by %Qore (single row at a time as a hash or blocks of rows as either hashes of lists or lists of hashes). The same flexibility of choosing the output format for result sets also applies to output values from stored procedure or function execution, for example.
 
@@ -89,7 +91,7 @@
 
     @note This class is not available with the @ref PO_NO_DATABASE parse option
  */
-qclass SQLStatement [dom=DATABASE; arg=QoreSQLStatement* stmt; ns=Qore::SQL; vparent=AbstractIterator];
+qclass SQLStatement [dom=DATABASE; arg=QoreSQLStatement* stmt; ns=Qore::SQL; vparent=AbstractSQLStatement];
 
 //! Creates the SQLStatement object based on the given Datasource object that provides the connection to the database
 /** This method will throw an exception only if the object passed as an argument uses a driver that does not support the prepared statement interface added in %Qore version 0.8.1.
@@ -113,10 +115,7 @@ SQLStatement::constructor(Datasource[ManagedDatasource] ds) {
       return;
    }
 
-   ReferenceHolder<QoreSQLStatement> ss(new QoreSQLStatement, xsink);
-   // FIXME: reuse reference from this call
-   ss->init(ds->getReferencedHelper(*ss));
-   self->setPrivate(CID_SQLSTATEMENT, ss.release());
+   self->setPrivate(CID_SQLSTATEMENT, new QoreSQLStatement(ds));
 }
 
 //! Creates the SQLStatement object based on the given DatasourcePool object that provides the connection to the database
@@ -141,10 +140,7 @@ SQLStatement::constructor(DatasourcePool[DatasourcePool] dsp) {
       return;
    }
 
-   ReferenceHolder<QoreSQLStatement> ss(new QoreSQLStatement, xsink);
-   // FIXME: reuse reference from this call
-   ss->init(dsp->getReferencedHelper(*ss));
-   self->setPrivate(CID_SQLSTATEMENT, ss.release());
+   self->setPrivate(CID_SQLSTATEMENT, new QoreSQLStatement(dsp));
 }
 
 //! Closes the statement if it is open and destroys the object
@@ -755,7 +751,7 @@ while (stmt.next()) {
 
     @since %Qore 0.8.6
  */
-any SQLStatement::memberGate(string key) [flags=RET_VALUE_ONLY] {
+auto SQLStatement::memberGate(string key) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<QoreHashNode> h(stmt->fetchRow(xsink), xsink);
    if (*xsink)
       return QoreValue();

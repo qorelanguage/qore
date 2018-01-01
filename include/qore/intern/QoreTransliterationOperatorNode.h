@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,7 @@ protected:
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
-   DLLLOCAL QoreTransliterationOperatorNode(AbstractQoreNode* n_exp, QoreTransliteration* r) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(n_exp), typeInfo(0), regex(r) {
+   DLLLOCAL QoreTransliterationOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp, QoreTransliteration* r) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, n_exp), typeInfo(0), regex(r) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -58,8 +58,8 @@ public:
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
       ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
       if (*xsink)
-         return 0;
-      return new QoreTransliterationOperatorNode(n_exp.release(), regex->refSelf());
+         return nullptr;
+      return new QoreTransliterationOperatorNode(loc, n_exp.release(), regex->refSelf());
    }
 };
 

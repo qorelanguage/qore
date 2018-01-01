@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,6 @@
  * @brief Interface for private data of transformations.
  */
 class Transform : public AbstractPrivateData {
-
 public:
    /**
     * @brief Applies the transformation.
@@ -51,6 +50,12 @@ public:
     */
    virtual std::pair<int64, int64> apply(const void *src, int64 srcLen, void *dst, int64 dstLen,
          ExceptionSink *xsink) = 0;
+
+   //! returns the default output buffer size for the object
+   DLLLOCAL virtual size_t outputBufferSize();
+
+   //! returns the default input buffer size for the object
+   DLLLOCAL virtual size_t inputBufferSize();
 
 protected:
    /**

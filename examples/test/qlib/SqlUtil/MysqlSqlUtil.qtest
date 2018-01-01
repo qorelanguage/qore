@@ -13,7 +13,7 @@
 %requires ../../../../qlib/Schema.qm
 
 %requires ./SqlUtilTestBase.qm
-#/;
+
 %try-module mysql
 %define NoMysql
 %endtry
@@ -37,7 +37,7 @@ class MysqlTestSchema inherits SqlUtilTestSchema {
 
         const T_MysqlTest = (
             "columns": (
-                "id": c_number(14, True),
+                "id": c_number(14, True, "an example comment with 'quotes'"),
                 "id_": c_number(14, True),
                 "null_f": c_varchar(69),
                 "blob_f": c_blob(True),
@@ -108,9 +108,9 @@ class MysqlTest inherits SqlTestBase {
             "float": 1.5,
             "double": 3.1415927,
 
-            "date": 2016-01-11,
-            "datetime": 2016-01-11T09:26:14,
-            "timestamp": 2016-01-11T09:27:59,
+            "date": 2016-02-11,
+            "datetime": 2016-02-11T09:26:14,
+            "timestamp": 2016-02-11T09:26:14,
             "time": 09:26:52,
             "year": 2016, # XXX: this is likely just an integer
 
@@ -165,9 +165,17 @@ class MysqlTest inherits SqlTestBase {
 
             # get table object
             table = (new Table(schema.getDatasource(), "mysql_test")).getTable();
+
+            # this feature can be enabled for MariaDB >= 10.2. Let's hope it will be recived in MySQL too
+            # addTestCase("analytic/window functions", \testAnalyticFunctions());
         }
 
         set_return_value(main());
+    }
+
+    private string getResultSetSql() {
+        testSkip("does not support result set output binds");
+        return "";
     }
 
     private usageIntern() {

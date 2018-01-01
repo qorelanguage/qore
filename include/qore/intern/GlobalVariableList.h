@@ -55,7 +55,6 @@ typedef std::map<const char*, Var*, ltstr> map_var_t;
 // all reading and writing is done within the parse lock on the containing program object
 class GlobalVariableList {
 protected:
-   // xxx DLLLOCAL Var* parseCreatePendingVar(const char* name, QoreParseTypeInfo* typeInfo);
 
 public:
    map_var_t vmap, pending_vmap;
@@ -83,7 +82,7 @@ public:
    DLLLOCAL Var* runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo);
 
    DLLLOCAL Var* parseFindVar(const char* name);
-   DLLLOCAL Var* parseCreatePendingVar(const char* name, const QoreTypeInfo* typeInfo);
+   DLLLOCAL Var* parseCreatePendingVar(const QoreProgramLocation& loc, const char* name, const QoreTypeInfo* typeInfo);
    DLLLOCAL const Var* parseFindVar(const char* name) const;
 
    DLLLOCAL void parseAdd(Var* v);

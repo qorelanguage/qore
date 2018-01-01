@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -53,13 +53,20 @@ AbstractQoreNode* QoreFoldlOperatorNode::parseInitImpl(LocalVar *oflag, int pfla
 
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
-   // check iterated expression
-   const QoreTypeInfo* expTypeInfo = 0;
-   left = left->parseInit(oflag, pflag, lvids, expTypeInfo);
-
    // check iterator expression
    const QoreTypeInfo* iteratorTypeInfo = 0;
    right = right->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
+
+
+   // check iterated expression
+   const QoreTypeInfo* expTypeInfo = 0;
+   {
+      // set implicit argv arg type
+      // FIXME: only works if the result of the fold operation results in the exact same type as the argument type
+      ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
+
+      left = left->parseInit(oflag, pflag, lvids, expTypeInfo);
+   }
 
    // use lazy evaluation if the iterator expression supports it
    iterator_func = dynamic_cast<FunctionalOperator*>(right);
@@ -67,7 +74,7 @@ AbstractQoreNode* QoreFoldlOperatorNode::parseInitImpl(LocalVar *oflag, int pfla
    // if "right" (iterator exp) is a list or an iterator, then the return type is expTypeInfo, otherwise it's the return type of the iterated expression
    if (QoreTypeInfo::hasType(iteratorTypeInfo)) {
       if (QoreTypeInfo::isType(iteratorTypeInfo, NT_NOTHING)) {
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the foldl/r operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
+         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the foldl/r operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
          typeInfo = nothingTypeInfo;
       }
       else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
@@ -77,8 +84,8 @@ AbstractQoreNode* QoreFoldlOperatorNode::parseInitImpl(LocalVar *oflag, int pfla
          const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
          if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
             typeInfo = expTypeInfo;
-         else if ((QoreTypeInfo::parseReturnsType(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
-            && (QoreTypeInfo::parseReturnsClass(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
+         else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
+            && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
             typeInfo = iteratorTypeInfo;
       }
    }

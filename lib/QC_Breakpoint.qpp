@@ -1,0 +1,274 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+  QC_Breakpoint.qpp
+
+  Qore Programming Language
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include "qore/intern/QC_Breakpoint.h"
+#include "qore/intern/QC_Program.h"
+#include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/AbstractStatement.h"
+
+/** @defgroup breakpoint_policy_options Breakpoint Policy Constants
+
+    These are the possible values that can be passed back to breakpoint as policy related to thread list
+
+    @since %Qore 0.8.13
+*/
+//@{
+//! Thread list is ignored
+const BreakpointPolicyNone = BKP_PO_NONE;
+
+//! Consider only threads enumerated in thread list
+const BreakpointPolicyAccept = BKP_PO_ACCEPT;
+
+//! Consider all thread except those enumerated in thread list
+const BreakpointPolicyReject = BKP_PO_REJECT;
+
+//@}
+
+
+//! Breakpoint class supports breakpoint setting for particular %Qore @ref Qore::ProgramControl "ProgramControl" when debugging.
+/** Breakpoint is assigned to one or more statement. When program flows through it then @ref DebugProgram "DebugProgram" callback is executed.
+    Breakpoint activity may be limited to one or more threads.
+
+    @par Example:
+    @code{.py}
+
+    ProgramControl p = ProgramControl::getProgram();
+    .....
+    Breakpoint b = new Breakpoint();
+    b.setPolicy(BreakpointPolicyNone);
+    #b.addThreadId(tidToBreak);
+    b.setEnabled(True);
+    b.assignStatement(p.findStatementId(fileToBreak, lineToBreak));
+    b.assignProgram(p);
+
+    @endcode
+
+    @since %Qore 0.8.13
+*/
+qclass Breakpoint [dom=DEBUGGER; arg=QoreBreakpoint* bkpt;];
+
+//! Creates the breakpoint object with notification functions without any functionality
+/**
+ *
+ */
+Breakpoint::constructor() {
+   QoreBreakpoint *qb = new QoreBreakpoint();
+   qb->setQoreObject(self);
+   self->setPrivate(CID_BREAKPOINT, qb);
+}
+
+//! Creates copy of breakpoint object
+/**
+ */
+Breakpoint::copy() {
+   QoreBreakpoint *qb = new QoreBreakpoint(*bkpt);
+   qb->setQoreObject(self);
+   self->setPrivate(CID_BREAKPOINT, qb);
+}
+
+//! Unlinks from @ref Breakpoint "Breakpoint" object and dereferences it
+/**
+ *
+ */
+Breakpoint::destructor() {
+   bkpt->setQoreObject(0);
+   bkpt->deref();
+}
+
+//! Set enabled state to breakpoint.
+/**
+ *
+ */
+nothing Breakpoint::setEnabled(bool enabled) {
+   bkpt->enabled = enabled;
+}
+
+//! Get enabled state of breakpoint.
+/**
+ *
+ */
+bool Breakpoint::getEnabled() {
+   return bkpt->enabled;
+}
+
+//! Defines policy how thread list is evaluated. See @ref breakpoint_policy_options
+/**
+   @throw BREAKPOINT-ERROR if policy is wrong value
+ */
+nothing Breakpoint::setPolicy(softint policy) {
+   switch (policy) {
+   case BKP_PO_NONE:
+   case BKP_PO_ACCEPT:
+   case BKP_PO_REJECT:
+      bkpt->policy = (BreakpointPolicy)policy;
+      break;
+   default:
+      xsink->raiseException("BREAKPOINT-ERROR", "wrong policy value");
+   }
+}
+
+//! Get policy how thread list is evaluated. See @ref breakpoint_policy_options
+/**
+ */
+int Breakpoint::getPolicy() {
+   return (int)bkpt->policy;
+}
+
+//! Assign @ref Qore::Program "Program" to breakpoint.
+/**
+ *
+ *  @param new_pgm Program to be assigned
+ */
+nothing Breakpoint::assignProgram(ProgramControl[QoreProgram] pgm) {
+   ReferenceHolder<QoreProgram> holder(pgm, xsink);
+   bkpt->assignProgram(pgm, xsink);
+}
+
+//! Unassign @ref Qore::Program "Program" from breakpoint and deletes all statement references
+/**
+ *
+ */
+nothing Breakpoint::unassignProgram() {
+   bkpt->assignProgram(nullptr, xsink);
+}
+
+//! Assign breakpoint to a statement.
+/**
+ *
+ */
+nothing Breakpoint::assignStatement(int statementId) {
+   AbstractStatement *s = bkpt->resolveStatementId(statementId, xsink);
+   if (!xsink->isEvent()) {
+      bkpt->assignStatement(s, xsink);
+   }
+}
+
+//! Unassign breakpoint from statement
+/**
+ *
+ */
+nothing Breakpoint::unassignStatement(int statementId) {
+   AbstractStatement *s = bkpt->resolveStatementId(statementId, xsink);
+   if (!xsink->isEvent()) {
+      bkpt->unassignStatement(s, xsink);
+   }
+}
+
+//! Get list of statements
+/**
+ *  @see @ref Qore::Program::resolveStatementId() "Program::resolveStatementId()"
+ */
+list Breakpoint::getStatementIds() {
+   return bkpt->getStatementIds(xsink);
+}
+
+//! Get list of the thread IDs
+/**
+ *
+ */
+list Breakpoint::getThreadIds() {
+   TidList_t tl;
+   bkpt->getThreadIds(tl, xsink);
+   ReferenceHolder<QoreListNode> l(new QoreListNode(), xsink);
+   for (TidList_t::iterator it = tl.begin(); it != tl.end(); ++it) {
+      (*l)->push(new QoreBigIntNode(*it));
+   }
+   return l.release();
+}
+
+//! Set list of the thread IDs
+/**
+ *
+ */
+nothing Breakpoint::setThreadIds(softlist tidList) {
+   TidList_t tl;
+   for (qore_size_t i = 0, e = tidList->size(); i < e; ++i) {
+      const AbstractQoreNode* n = tidList->retrieve_entry(i);
+      if (n) {
+         tl.push_back(n->getAsInt());
+      }
+   }
+   bkpt->setThreadIds(tl, xsink);  // TODO: or just pass tidList ???
+}
+
+//! Add thread ID to the list
+/**
+ *
+ */
+nothing Breakpoint::addThreadId(int tid) {
+   bkpt->addThreadId(tid, xsink);
+}
+
+//! Remove thread ID from the list
+/**
+ *
+ */
+nothing Breakpoint::removeThreadId(int tid) {
+   bkpt->removeThreadId(tid, xsink);
+}
+
+//! Check if thread is ID in list
+/**
+ *
+ */
+bool Breakpoint::isThreadId(softint tid) {
+   return bkpt->isThreadId(tid, xsink);
+}
+
+//! Clear list of the thread IDs
+/**
+ *
+ */
+nothing Breakpoint::clearThreadIds() {
+   bkpt->clearThreadIds(xsink);
+}
+
+//! Get breakpoint id
+/**
+ */
+int Breakpoint::getBreakpointId() [flags=RET_VALUE_ONLY;] {
+   return bkpt->getBreakpointId();
+}
+
+//! Get instance of breakpoint id
+/**
+   @throw BREAKPOINT-ERROR if the breakpointId cannot identify @ref Breakpoint instance
+
+ */
+static Breakpoint Breakpoint::resolveBreakpointId(int breakpointId) {
+   QoreBreakpoint* b = QoreBreakpoint::resolveBreakpointId(breakpointId);
+   if (!b)
+      return xsink->raiseException("BREAKPOINT-ERROR", "wrong breakpointId (%d)", breakpointId);
+   return b->getQoreObject();
+}
+

@@ -3,7 +3,7 @@
 
   Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <qore/safe_dslist>
 
@@ -71,33 +72,34 @@ void QoreException::del(ExceptionSink *xsink) {
 QoreHashNode* QoreException::makeExceptionObject() {
    QORE_TRACE("makeExceptionObject()");
 
-   QoreHashNode *h = new QoreHashNode;
+   QoreHashNode* h = new QoreHashNode(hashdeclExceptionInfo, nullptr);
+   auto ph = qore_hash_private::get(*h);
 
-   h->setKeyValue("type", new QoreStringNode(type == ET_USER ? "User" : "System"), 0);
-   h->setKeyValue("file", new QoreStringNode(file), 0);
-   h->setKeyValue("line", new QoreBigIntNode(start_line), 0);
-   h->setKeyValue("endline", new QoreBigIntNode(end_line), 0);
-   h->setKeyValue("source", new QoreStringNode(source), 0);
-   h->setKeyValue("offset", new QoreBigIntNode(offset), 0);
-   h->setKeyValue("callstack", callStack->refSelf(), 0);
+   ph->setKeyValueIntern("type", new QoreStringNode(type == ET_USER ? "User" : "System"));
+   ph->setKeyValueIntern("file", new QoreStringNode(file));
+   ph->setKeyValueIntern("line", start_line);
+   ph->setKeyValueIntern("endline", end_line);
+   ph->setKeyValueIntern("source", new QoreStringNode(source));
+   ph->setKeyValueIntern("offset", offset);
+   ph->setKeyValueIntern("callstack", callStack->refSelf());
 
    if (err)
-      h->setKeyValue("err", err->refSelf(), 0);
+      ph->setKeyValueIntern("err", err->refSelf());
    if (desc)
-      h->setKeyValue("desc", desc->refSelf(), 0);
+      ph->setKeyValueIntern("desc", desc->refSelf());
    if (arg)
-      h->setKeyValue("arg", arg->refSelf(), 0);
+      ph->setKeyValueIntern("arg", arg->refSelf());
 
    // add chained exceptions with this "chain reaction" call
    if (next)
-      h->setKeyValue("next", next->makeExceptionObject(), 0);
+      ph->setKeyValueIntern("next", next->makeExceptionObject());
 
    return h;
 }
 
 QoreHashNode *QoreException::makeExceptionObjectAndDelete(ExceptionSink *xsink) {
    QORE_TRACE("makeExceptionObjectAndDelete()");
-   QoreHashNode *rv = makeExceptionObject();
+   QoreHashNode* rv = makeExceptionObject();
    del(xsink);
 
    return rv;

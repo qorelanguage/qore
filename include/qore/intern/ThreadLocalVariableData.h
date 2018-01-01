@@ -118,22 +118,27 @@ public:
    }
 
    DLLLOCAL void pushFrameBoundary() {
+      ++frame_count;
       //printd(5, "ThreadLocalVariableData::pushFrameBoundary()\n");
       LocalVarValue* v = instantiate();
       v->setFrameBoundary();
    }
 
    DLLLOCAL void popFrameBoundary() {
+      assert(frame_count >= 0);
+      --frame_count;
       //printd(5, "ThreadLocalVariableData::popFrameBoundary()\n");
       uninstantiateIntern();
       assert(curr->var[curr->pos].frame_boundary);
       curr->var[curr->pos].frame_boundary = false;
    }
 
+   DLLLOCAL int getFrame(int frame, Block*& w, int& p);
+
    DLLLOCAL void getLocalVars(QoreHashNode& h, int frame, ExceptionSink* xsink);
 
    // returns 0 = OK, 1 = no such variable, -1 exception setting variable
-   DLLLOCAL int setVarValue(const char* name, const QoreValue& val, ExceptionSink* xsink);
+   DLLLOCAL int setVarValue(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink);
 };
 
 #endif

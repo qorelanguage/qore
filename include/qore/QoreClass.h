@@ -52,6 +52,7 @@ DLLEXPORT extern qore_classid_t CID_GETOPT;
 DLLEXPORT extern qore_classid_t CID_HTTPCLIENT;
 DLLEXPORT extern qore_classid_t CID_MUTEX;
 DLLEXPORT extern qore_classid_t CID_PROGRAM;
+DLLEXPORT extern qore_classid_t CID_PROGRAMDEBUG;
 DLLEXPORT extern qore_classid_t CID_QUEUE;
 DLLEXPORT extern qore_classid_t CID_RWLOCK;
 DLLEXPORT extern qore_classid_t CID_SSLCERTIFICATE;
@@ -222,46 +223,6 @@ class QoreClass {
    friend class QoreMethodIterator;
    friend class QoreStaticMethodIterator;
    friend class ConstructorMethodFunction;
-
-private:
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreClass& operator=(const QoreClass&);
-
-   //! private implementation of the class
-   class qore_class_private* priv;
-
-   // private constructor only called when the class is copied
-   DLLLOCAL QoreClass(qore_classid_t id, const char* nme);
-
-   DLLLOCAL void insertMethod(QoreMethod* o);
-   DLLLOCAL void insertStaticMethod(QoreMethod* o);
-   DLLLOCAL QoreValue evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const;
-   DLLLOCAL const QoreMethod* parseResolveSelfMethodIntern(const char* nme);
-
-   //! evaluates a method on an object and returns the result
-   /** if the method name is not valid or is private (and the call is made outside the object)
-       then an exception will be raised and 0 will be returned.
-       This function must only be called from QoreObject!
-       @param self the object to execute the method on
-       @param method_name the name of the method to execute
-       @param args the arguments for the method
-       @param xsink Qore-language exception information is added here
-       @return the value returned by the method, can be 0
-   */
-   DLLLOCAL QoreValue evalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
-
-   // This function must only be called from QoreObject
-   DLLLOCAL QoreValue evalMemberGate(QoreObject* self, const QoreString *nme, ExceptionSink* xsink) const;
-   // This function must only be called from QoreObject
-   DLLLOCAL void execMemberNotification(QoreObject* self, const char* mem, ExceptionSink* xsink) const;
-   // This function must only be called from QoreObject and BCList
-   DLLLOCAL bool execDeleteBlocker(QoreObject* self, ExceptionSink* xsink) const;
-   // This function must only be called from QoreObject
-   DLLLOCAL void execDestructor(QoreObject* self, ExceptionSink* xsink) const;
-
-protected:
-   //! deletes the object and frees all memory
-   DLLEXPORT ~QoreClass();
 
 public:
    //! creates the QoreClass object and assigns the name and the functional domain
@@ -1028,12 +989,12 @@ public:
    DLLEXPORT void addMember(const char* mem, ClassAccess access, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
 
    //! adds a public member
-   /** @derepcated use addMember() instead
+   /** @deprecated use addMember() instead
     */
    DLLEXPORT void addPublicMember(const char* mem, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
 
    //! adds a private member
-   /** @derepcated use addMember() instead
+   /** @deprecated use addMember() instead
     */
    DLLEXPORT void addPrivateMember(const char* mem, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
 
@@ -1092,7 +1053,7 @@ public:
    //! adds a class constant to the class
    /** @param name the name of the constant; cannot be the same as the name of a static variable
        @param value the value of the constant
-       @param the access protection of the constant
+       @param access the access protection of the constant
        @param typeInfo only need to set if the value assigned to the constant is not an internally-defined type and therefore the type info cannot be automatically determined, otherwise this parameter may be passed as NULL, in which case the type info will be automatically determined
     */
    DLLEXPORT void addBuiltinConstant(const char* name, QoreValue value, ClassAccess access = Public, const QoreTypeInfo* typeInfo = 0);
@@ -1100,7 +1061,7 @@ public:
    //! adds a static variable to the class
    /** @param name the name of the static variable; cannot be the same as the name of a class constant
        @param value the initial of the static variable
-       @param the access protection of the static variable
+       @param access the access protection of the static variable
        @param typeInfo only need to set if the initial value assigned to the static variable (as given by the 'value' parameter) is not an internally-defined type and therefore the type info cannot be automatically determined, otherwise this parameter may be passed as NULL, in which case the type info will be automatically determined
     */
    DLLEXPORT void addBuiltinStaticVar(const char* name, QoreValue value, ClassAccess access = Public, const QoreTypeInfo* typeInfo = 0);
@@ -1161,6 +1122,46 @@ public:
    DLLLOCAL void parseSetEmptyPublicMemberDeclaration();
    // unsets the public member flag for builtin classes
    DLLLOCAL void unsetPublicMemberFlag();
+
+protected:
+   //! deletes the object and frees all memory
+   DLLEXPORT ~QoreClass();
+
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   QoreClass& operator=(const QoreClass&) = delete;
+
+   //! private implementation of the class
+   class qore_class_private* priv;
+
+   // private constructor only called when the class is copied
+   DLLLOCAL QoreClass(qore_classid_t id, const char* nme);
+
+   DLLLOCAL void insertMethod(QoreMethod* o);
+   DLLLOCAL void insertStaticMethod(QoreMethod* o);
+   DLLLOCAL QoreValue evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const;
+   DLLLOCAL const QoreMethod* parseResolveSelfMethodIntern(const char* nme);
+
+   //! evaluates a method on an object and returns the result
+   /** if the method name is not valid or is private (and the call is made outside the object)
+       then an exception will be raised and 0 will be returned.
+       This function must only be called from QoreObject!
+       @param self the object to execute the method on
+       @param method_name the name of the method to execute
+       @param args the arguments for the method
+       @param xsink Qore-language exception information is added here
+       @return the value returned by the method, can be 0
+   */
+   DLLLOCAL QoreValue evalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
+
+   // This function must only be called from QoreObject
+   DLLLOCAL QoreValue evalMemberGate(QoreObject* self, const QoreString *nme, ExceptionSink* xsink) const;
+   // This function must only be called from QoreObject
+   DLLLOCAL void execMemberNotification(QoreObject* self, const char* mem, ExceptionSink* xsink) const;
+   // This function must only be called from QoreObject and BCList
+   DLLLOCAL bool execDeleteBlocker(QoreObject* self, ExceptionSink* xsink) const;
+   // This function must only be called from QoreObject
+   DLLLOCAL void execDestructor(QoreObject* self, ExceptionSink* xsink) const;
 };
 
 //! To be used to iterate through a class's normal (non-static) methods

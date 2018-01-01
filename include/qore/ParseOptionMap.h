@@ -63,6 +63,9 @@ class ParseOptionMap {
 
       //! print out all parse optionsto stdout
       DLLEXPORT static void list_options();
+
+      DLLLOCAL static QoreHashNode* getCodeToStringMap();
+      DLLLOCAL static QoreHashNode* getStringToCodeMap();
 };
 
 #endif

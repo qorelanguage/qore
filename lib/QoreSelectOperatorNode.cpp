@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@
 QoreString QoreSelectOperatorNode::select_str("select operator expression");
 
 // if del is true, then the returned QoreString * should be selectd, if false, then it must not be
-QoreString *QoreSelectOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString* QoreSelectOperatorNode::getAsString(bool& del, int foff, ExceptionSink *xsink) const {
    del = false;
    return &select_str;
 }
@@ -55,12 +55,20 @@ AbstractQoreNode* QoreSelectOperatorNode::parseInitImpl(LocalVar* oflag, int pfl
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
    // check iterator expression
-   const QoreTypeInfo* iteratorTypeInfo = 0;
+   const QoreTypeInfo* iteratorTypeInfo = nullptr;
    left = left->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
 
+   // get list element type, if any
+   const QoreTypeInfo* elementTypeInfo = QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo);
+
    // check filter expression
-   const QoreTypeInfo* expTypeInfo = 0;
-   right = right->parseInit(oflag, pflag, lvids, expTypeInfo);
+   const QoreTypeInfo* expTypeInfo = nullptr;
+   {
+      // set implicit argv arg type
+      ParseImplicitArgTypeHelper pia(elementTypeInfo);
+
+      right = right->parseInit(oflag, pflag, lvids, expTypeInfo);
+   }
 
    // use lazy evaluation if the iterator expression supports it
    iterator_func = dynamic_cast<FunctionalOperator*>(left);
@@ -68,7 +76,7 @@ AbstractQoreNode* QoreSelectOperatorNode::parseInitImpl(LocalVar* oflag, int pfl
    // if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression
    if (QoreTypeInfo::hasType(iteratorTypeInfo)) {
       if (QoreTypeInfo::isType(iteratorTypeInfo, NT_NOTHING)) {
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the select operator (the first expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
+         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the select operator (the first expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
          typeInfo = nothingTypeInfo;
       }
       else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
@@ -78,11 +86,14 @@ AbstractQoreNode* QoreSelectOperatorNode::parseInitImpl(LocalVar* oflag, int pfl
          const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
          if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
             typeInfo = listTypeInfo;
-         else if ((QoreTypeInfo::parseReturnsType(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
-            && (QoreTypeInfo::parseReturnsClass(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
+         else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
+            && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
             typeInfo = iteratorTypeInfo;
       }
    }
+
+   if (typeInfo == listTypeInfo && elementTypeInfo)
+      typeInfo = iteratorTypeInfo;
 
    return this;
 }
@@ -93,7 +104,7 @@ QoreValue QoreSelectOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
    if (*xsink || value_type == nothing)
       return QoreValue();
 
-   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode : 0, xsink);
+   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode(f->getValueType()) : nullptr, xsink);
 
    while (true) {
       ValueOptionalRefHolder iv(xsink);

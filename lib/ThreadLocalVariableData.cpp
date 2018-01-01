@@ -33,30 +33,51 @@
 #include "qore/intern/ThreadLocalVariableData.h"
 #include "qore/intern/LocalVar.h"
 
-void ThreadLocalVariableData::getLocalVars(QoreHashNode& h, int frame, ExceptionSink* xsink) {
+int ThreadLocalVariableData::getFrame(int frame, Block*& w, int& p) {
    assert(frame >= 0);
+
+   if (!frame) {
+      w = curr;
+      p = w->pos;
+      return 0;
+   }
 
    // find requested frame
    int cframe = 0;
 
-   bool in_frame = !frame;
-
-   Block* w = curr;
+   w = curr;
    while (true) {
-      int p = w->pos;
+      p = w->pos;
       while (p) {
          --p;
          const LocalVarValue& var = w->var[p];
          if (var.frame_boundary) {
-            if (in_frame)
-               break;
-            ++cframe;
-            if (frame == cframe)
-               in_frame = true;
+            if (frame == ++cframe)
+               return 0;
             continue;
          }
+      }
+      w = w->prev;
+      if (!w)
+         break;
+   }
+   return -1;
+}
 
-         if (in_frame && !var.skip) {
+void ThreadLocalVariableData::getLocalVars(QoreHashNode& h, int frame, ExceptionSink* xsink) {
+   Block* w;
+   int p;
+   if (getFrame(frame, w, p))
+      return;
+
+   while (true) {
+      while (p) {
+         --p;
+         const LocalVarValue& var = w->var[p];
+         if (var.frame_boundary)
+            return;
+
+         if (!var.skip) {
             ReferenceHolder<QoreHashNode> v(new QoreHashNode, xsink);
             v->setKeyValue("type", new QoreStringNode("local"), xsink);
             v->setKeyValue("value", var.evalValue(xsink).takeNode(), xsink);
@@ -66,23 +87,27 @@ void ThreadLocalVariableData::getLocalVars(QoreHashNode& h, int frame, Exception
       w = w->prev;
       if (!w)
          break;
+      p = w->pos;
    }
 }
 
 // returns 0 = OK, 1 = no such variable, -1 exception setting variable
-int ThreadLocalVariableData::setVarValue(const char* name, const QoreValue& val, ExceptionSink* xsink) {
-   Block* w = curr;
+int ThreadLocalVariableData::setVarValue(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink) {
+   Block* w;
+   int p;
+   if (getFrame(frame, w, p))
+      return 1;
+
    while (true) {
-      int p = w->pos;
       while (p) {
          --p;
          const LocalVarValue& var = w->var[p];
          if (var.frame_boundary)
-            break;
+            return 1;
 
          if (!var.skip && !strcmp(var.id, name)) {
             LValueHelper lvh(xsink);
-            if (var.getLValue(lvh, false))
+            if (var.getLValue(lvh, false, nullptr, nullptr))
                return -1;
 
             return lvh.assign(val.refSelf(), "<API assignment>");
@@ -91,6 +116,7 @@ int ThreadLocalVariableData::setVarValue(const char* name, const QoreValue& val,
       w = w->prev;
       if (!w)
          break;
+      p = w->pos;
    }
    return 1;
 }

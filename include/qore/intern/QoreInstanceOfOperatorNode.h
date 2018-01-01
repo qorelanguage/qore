@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,22 +34,15 @@
 #define _QORE_QOREINSTANCEOFOPERATORNODE_H
 
 class QoreInstanceOfOperatorNode : public QoreSingleExpressionOperatorNode<QoreOperatorNode> {
-protected:
-   ClassRefNode* r;
-
-   DLLLOCAL static QoreString InstanceOf_str;
-
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& typeInfo);
-
 public:
-   DLLLOCAL QoreInstanceOfOperatorNode(AbstractQoreNode* n_exp, ClassRefNode* ref) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(n_exp), r(ref) {
+   DLLLOCAL QoreInstanceOfOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp, QoreParseTypeInfo* ref) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp), r(ref) {
+   }
+
+   DLLLOCAL QoreInstanceOfOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, const QoreTypeInfo* ti) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, exp), ti(ti) {
    }
 
    DLLLOCAL virtual ~QoreInstanceOfOperatorNode() {
-      if (r)
-         r->deref();
+      delete r;
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -57,7 +50,7 @@ public:
 
    // returns the type name as a c string
    DLLLOCAL virtual const char* getTypeName() const {
-      return InstanceOf_str.getBuffer();
+      return InstanceOf_str.c_str();
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -67,11 +60,20 @@ public:
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
       ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
       if (*xsink)
-         return 0;
-      assert(r);
-      r->ref();
-      return new QoreInstanceOfOperatorNode(n_exp.release(), r);
+         return nullptr;
+      assert(ti);
+      return new QoreInstanceOfOperatorNode(loc, n_exp.release(), ti);
    }
+
+protected:
+   QoreParseTypeInfo* r = nullptr;
+   const QoreTypeInfo* ti = nullptr;
+
+   DLLLOCAL static QoreString InstanceOf_str;
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& typeInfo);
 };
 
 #endif

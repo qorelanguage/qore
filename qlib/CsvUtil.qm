@@ -147,7 +147,7 @@ while (i.next())
     When used with multi-type definitions, the @ref CsvUtil::AbstractCsvIterator::getValue() method returns
     records in an extended form.  In this case, the return value of @ref CsvUtil::AbstractCsvIterator::getValue()
     is a hash with the following keys:
-    - \c "type": the resolve record type name
+    - \c "type": the resolved record type name
     - \c "record": a hash of record values
 
     As this is not backwards compatible, this mode is enabled using the \c "extended_record" option.
@@ -249,6 +249,7 @@ while (i.next()) {
       - @ref CsvUtil::CsvIterator "CsvIterator": provides a more generic interface than @ref CsvUtil::CsvDataIterator "CsvDataIterator" and @ref CsvUtil::CsvFileIterator "CsvFileIterator"
       - @ref CsvUtil::CsvWriter "CsvWriter": provides a more generic interface than @ref CsvUtil::CsvStringWriter "CsvStringWriter" and @ref CsvUtil::CsvFileWriter "CsvFileWriter"
     - fixed a bug in an error message validating input data (<a href="https://github.com/qorelanguage/qore/issues/1062">issue 1062</a>)
+    - improved \a fields option documentation and added an exception when detected headers do not match the \a fields option (<a href="https://github.com/qorelanguage/qore/issues/2179">issue 2179</a>)
 
     @subsection csvutil_v1_5_1 Version 1.5.1
     - fixed a bug in @ref CsvUtil::AbstractCsvIterator::identifyTypeImpl() "AbstractCsvIterator::identifyTypeImpl()" generating an error message (<a href="https://github.com/qorelanguage/qore/issues/1355">issue 1355</a>)
@@ -479,24 +480,36 @@ class CsvHelper {
         return spec;
     }
 
-    /** Process headers and add missing field specification, consider resordering fields in specification
+    /** Process headers and add missing field specification, consider reordering fields in specification
 
-        Return: list of field names in order of Csv record
+        @return a list of field names in order of csv record
     */
-    private list adjustFieldsFromHeaders(string type, *list headers) {
-
-        hash spec = m_specs{type} ?? hash();
+    private list adjustFieldsFromHeaders(string type, *list headers, bool check = False) {
+        hash spec = m_specs{type} ?? {};
+        # issue #2179: ensure that all field specifications match headers set
+        if (check && spec && headers) {
+            #printf("type: %y spec: %y headers: %y\n", type, spec, headers);
+            # get spec with actual header names
+            hash spec_copy = spec;
+            foreach hash h in (spec_copy.pairIterator()) {
+                if (h.value.header)
+                    spec_copy{h.value.header} = remove spec_copy{h.key};
+            }
+            *hash h1 = spec_copy - headers;
+            if (h1)
+                throw errname, sprintf("field specification for record %y refers to the following fields not reflected in the header: %y; known fields: %y", type, keys h1, headers);
+        }
         list csv_order = ();
         if (headers && tolwr)
             headers = (map $1.lwr(), headers);
 
         # look for header name if specified
-        hash fld_by_hdr = hash();
+        hash fld_by_hdr = {};
         hash hdr_idxs = map {$1: $#}, headers;
 
-        m_specs{type} = hash();
+        m_specs{type} = {};
 
-        foreach string f in (spec.keyIterator()) {
+        foreach string f in (keys spec) {
             fld_by_hdr{spec{f}.header} = f;
             if (!headerReorder) {
                 # keep existing spec
@@ -521,6 +534,7 @@ class CsvHelper {
             push csv_order, f;
             remove hdr_idxs{h};
         }
+
         return csv_order;
     }
 
@@ -543,7 +557,6 @@ public namespace CsvUtil {
     #! Record type when multi-type is disabled
     public const CSV_TYPE_SINGLE = "<single>";
 
-
     #! the AbstractCsvIterator class is an abstract base class that allows abstract CSV data to be iterated
     /**
         @section abstractcsviterator_options AbstractCsvIterator Constructor Option Hash Overview
@@ -561,15 +574,15 @@ public namespace CsvUtil {
         |\c "ignore_whitespace"|@ref bool_type "bool"|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
         |\c "header_names"|@ref bool_type "bool"|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref Qore::False "False".
         |\c "header_lines"|@ref int_type "int"|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True")
-        |\c "header_reorder"|@ref bool_type "bool"|if @ref Qore::True "True" (default value) then if \"headers\" are provided by options or read from file then data fields are reordered to follow headers. It has major effect on return value of @ref AbstractCsvIterator::getRecordList() function and also minor on hash result of AbstractCsvIterator::getRecord() when a program code depends on order of keys. If @ref Qore::False "False" then fields not yet specified are pushed at the end of field definition.
-        |\c "verify_columns"|@ref bool_type "bool"|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
+        |\c "header_reorder"|@ref bool_type "bool"|if @ref Qore::True "True" (default value) then if \"headers\" are provided by options or read from file then data fields are reordered to follow headers. It has a major effect on the return value of @ref AbstractCsvIterator::getRecordList() and also a minor effect on the hash result of AbstractCsvIterator::getRecord() when a program  depends on the order of keys. If this value is @ref Qore::False "False" then fields not yet specified are pushed at the end of the field definition.
+        |\c "verify_columns"|@ref bool_type "bool"|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column or field count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
         |\c "timezone"|@ref string_type "string"|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
         |\c "tolwr"|@ref bool_type "bool"|if @ref Qore::True "True" then all header names will be converted to lower case letters
 
         <b>AbstractCsvIterator Single-type-only Options </b>
         |!Option|!Data Type|!Description
         |\c "headers"|@ref list_type "list" of @ref string_type "strings"|list of header / column names for the data iterated; if this is present, then \c "header_names" must be @ref Qore::False "False".
-        |\c "fields"|@ref hash|the keys are column names (or numbers in case column names are not used) and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header_names"; if no field type is given, the default is \c "*string"
+        |\c "fields"|@ref hash|the keys are field names as given by the \a header_names or \a headers option (in case neither of these options are used, then field names are numbers starting with \c "0") and the values are either strings (one of @ref abstractcsviterator_option_field_types giving the data type for the field) or a @ref abstractcsviterator_option_field_hash describing the field; also sets \a headers if not set automatically with \c "header_names"; if no field type is given, the default is \c "*string"; note that invalid field names given in this option are ignored
 
         <b>AbstractCsvIterator Multi-type-only Options </b>
         |!Option|!Data Type|!Description
@@ -792,7 +805,7 @@ public namespace CsvUtil {
                         try {
                             headerLines = i.value;
                         }
-                        catch (hash ex) {
+                        catch (hash<ExceptionInfo> ex) {
                             throw errname, sprintf("expecting integer value or a value that can be converted to an integer for option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         }
                         break;
@@ -865,14 +878,14 @@ public namespace CsvUtil {
             }
         }
 
-        #! match headers provided at Csv header or in options, never called for multi-type because header_names is False */
+        #! match headers provided at csv header or in options, never called for multi-type because header_names is False
         private prepareFieldsFromHeaders(*list headers) {
             # add missing m_specs from headers
             string k = m_specs.firstKey();
             if (m_specs{k}) {
                 m_resolve_by_count{m_specs{k}.size()} = select m_resolve_by_count{m_specs{k}.size()}, $1 != k;
             }
-            m_resolve_by_idx{k} = adjustFieldsFromHeaders(k, headers);
+            m_resolve_by_idx{k} = adjustFieldsFromHeaders(k, headers, True);
 
             if (!m_resolve_by_count{headers.size()}) {
                 m_resolve_by_count{headers.size()} = ();
@@ -946,7 +959,7 @@ public namespace CsvUtil {
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
             @throw ABSTRACTCSVITERATOR-FIELD-ERROR invalid or unknown field name given
          */
-        any memberGate(string name) {
+        auto memberGate(string name) {
             hash h = getRecord(True);
             if (!h.record.hasKey(name))
                 throw "ABSTRACTCSVITERATOR-FIELD-ERROR", sprintf("the requested header %y does not exist (known headers: %y)", name, keys m_specs{h.type} );
@@ -1022,7 +1035,7 @@ list l = i.getRecordList();
 
             @throw INVALID-ITERATOR this error is thrown if the iterator is invalid; make sure that the next() method returns True before calling this method
          */
-        any getRecordList() {
+        auto getRecordList() {
             hash h = parseLine();
             if (extendedRecord) {
                 return ("type": h.type, "record": h.all_fields);
@@ -1111,8 +1124,8 @@ while (i.next()) {
             return lineIterator.index();
         }
 
-        private any handleType(hash fh, *string val) {
-            any rv;
+        private auto handleType(hash fh, *string val) {
+            auto rv;
             string type = fh.type;
             # if it's an "or nothing" type and there is no value, then return nothing
             if (type =~ /^\*/) { #/){
@@ -1335,7 +1348,7 @@ while (i.next()) {
         constructor(Qore::InputStream input, string encoding = "UTF-8", hash spec, hash opts) : AbstractCsvIterator(new InputStreamLineIterator(input, encoding, opts.eol), spec, opts) {
         }
 
-        any memberGate(string name) {
+        auto memberGate(string name) {
             return AbstractCsvIterator::memberGate(name);
         }
     }
@@ -1374,7 +1387,7 @@ while (i.next()) {
         }
 
         #! calls AbstractCsvIterator::memberGate()
-        any memberGate(string name) {
+        auto memberGate(string name) {
             return AbstractCsvIterator::memberGate(name);
         }
 
@@ -1388,8 +1401,8 @@ while (i.next()) {
             return m_file_path;
         }
 
-        #! Returns a @ref stat_hash "stat hash" of the underlying file
-        hash hstat() {
+        #! Returns a @ref Qore::StatInfo "StatInfo" hash of the underlying file
+        hash<Qore::StatInfo> hstat() {
             return Qore::hstat(m_file_path);
         }
 
@@ -1419,14 +1432,14 @@ while (i.next()) {
         }
 
         #! Creates the CsvDataIterator in multi-type mode with the path of the file to read and an option hash
-        /** @param path the path to the CSV file to read
+        /** @param data the input data to iterate
             @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
             @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
          */
         constructor(string data, hash spec, hash opts) : AbstractCsvIterator(new DataLineIterator(data, opts.eol), spec, opts) {
         }
 
-        any memberGate(string name) {
+        auto memberGate(string name) {
             return AbstractCsvIterator::memberGate(name);
         }
 
@@ -1855,7 +1868,7 @@ while (i.next()) {
          */
         write(Qore::AbstractIterator iterator) {
             while (iterator.next()) {
-                any row = iterator.getValue();
+                auto row = iterator.getValue();
                 switch (row.typeCode()) {
                     case NT_HASH:
                         writeLine(row);
@@ -1925,7 +1938,7 @@ while (i.next()) {
             }
 
             list l = ();
-            foreach any v in (values) {
+            foreach auto v in (values) {
                 if (v.typeCode() == NT_STRING) {
                     if (v.find(quote) >= 0) {
                         v = replace(v, quote, m_quoteEscapeChar + quote);

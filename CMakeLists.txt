@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(qore-language)
 
@@ -11,14 +11,21 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
        ON)
 
 set(VERSION_MAJOR 0)
-set(VERSION_MINOR 8)
-set(VERSION_SUB 13)
-#set(VERSION_PATCH xxx)
+set(VERSION_MINOR 9)
+set(VERSION_SUB 0)
 
-# If changing the module API numbers, make sure to change the appropriate
-# defines in include/qore/ModuleManager.h too.
-set(MODULE_API_MAJOR 0)
-set(MODULE_API_MINOR 20)
+STRING(LENGTH ${VERSION_SUB} SUB_LEN)
+if (${SUB_LEN} EQUAL 1)
+    set(VERSION_FORMATTED_SUB 0${VERSION_SUB})
+else()
+    set(VERSION_FORMATTED_SUB ${VERSION_SUB})
+endif()
+
+if(DEFINED VERSION_PATCH)
+    set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH})
+else()
+    set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
+endif()
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "release")
@@ -58,16 +65,12 @@ set(myprefix ${CMAKE_INSTALL_PREFIX})
 set(includedir ${CMAKE_INSTALL_FULL_INCLUDEDIR})
 set(libdir ${CMAKE_INSTALL_FULL_LIBDIR})
 
-if(DEFINED VERSION_PATCH)
-    set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH})
-else()
-    set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB})
-endif()
-
 set(MODULE_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules)
 set(MODULE_VER_DIR ${MODULE_DIR}/${VERSION})
 set(USER_MODULE_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules/)
 set(USER_MODULE_VER_DIR ${USER_MODULE_DIR}${VERSION})
+
+get_module_api_versions()
 
 set(LIBQORE_QPP_SRC
     lib/QC_AbstractSmartLock.qpp
@@ -106,6 +109,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_InputStreamLineIterator.qpp
     lib/QC_SingleValueIterator.qpp
     lib/QC_AbstractDatasource.qpp
+    lib/QC_AbstractSQLStatement.qpp
     lib/QC_RangeIterator.qpp
     lib/QC_Datasource.qpp
     lib/QC_DatasourcePool.qpp
@@ -118,6 +122,9 @@ set(LIBQORE_QPP_SRC
     lib/QC_HTTPClient.qpp
     lib/QC_Mutex.qpp
     lib/QC_Program.qpp
+    lib/QC_ProgramControl.qpp
+    lib/QC_DebugProgram.qpp
+    lib/QC_Breakpoint.qpp
     lib/QC_Queue.qpp
     lib/QC_RWLock.qpp
     lib/QC_SQLStatement.qpp
@@ -188,41 +195,6 @@ set(PSEUDO_QPP_SRC
     lib/Pseudo_QC_Callref.qpp
 )
 
-set(QMOD
-    qlib/Qdx.qm
-    qlib/BulkSqlUtil.qm
-    qlib/ConnectionProvider.qm
-    qlib/CsvUtil.qm
-    qlib/DatasourceProvider.qm
-    qlib/Diff.qm
-    qlib/FixedLengthUtil.qm
-    qlib/FreetdsSqlUtil.qm
-    qlib/HttpServer.qm
-    qlib/HttpServerUtil.qm
-    qlib/MailMessage.qm
-    qlib/Mapper.qm
-    qlib/Mime.qm
-    qlib/MysqlSqlUtil.qm
-    qlib/OracleSqlUtil.qm
-    qlib/PgsqlSqlUtil.qm
-    qlib/Pop3Client.qm
-    qlib/QUnit.qm
-    qlib/Qorize.qm
-    qlib/RestClient.qm
-    qlib/RestHandler.qm
-    qlib/Schema.qm
-    qlib/SchemaReverse.qm
-    qlib/SmtpClient.qm
-    qlib/SqlUtil.qm
-    qlib/TableMapper.qm
-    qlib/TelnetClient.qm
-    qlib/Util.qm
-    qlib/WebSocketClient.qm
-    qlib/WebSocketHandler.qm
-    qlib/WebSocketUtil.qm
-    qlib/WebUtil.qm
-)
-
 set(QORE_BIN_FILES
     doxygen/qdx
     bin/qget
@@ -230,6 +202,9 @@ set(QORE_BIN_FILES
     bin/schema-reverse
     bin/sfrest
     bin/sqlutil
+	bin/qdbg
+	bin/qdbg-server
+	bin/qdbg-remote
 )
 
 set(QORE_DOX_TMPL_SRC
@@ -261,6 +236,7 @@ set(QORE_DOX_TMPL_SRC
     doxygen/lang/205_namespaces.dox.tmpl
     doxygen/lang/210_constants.dox.tmpl
     doxygen/lang/215_classes.dox.tmpl
+    doxygen/lang/217_hashdecl.dox.tmpl
     doxygen/lang/220_threading.dox.tmpl
     doxygen/lang/225_exception_handling.dox.tmpl
     doxygen/lang/230_signal_handling.dox.tmpl
@@ -275,8 +251,9 @@ set(QORE_DOX_TMPL_SRC
 
 # qore interpreter
 set(QORE_CPP_SRC command-line.cpp qore-main.cpp)
-set(QR_CPP_SRC command-line.cpp qr-main.cpp)
+#set(QR_CPP_SRC command-line.cpp qr-main.cpp)
 
+# find needed libraries
 qore_find_pthreads()
 find_package(ICONV REQUIRED)
 find_package(BISON REQUIRED)
@@ -289,6 +266,10 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(PCRE REQUIRED libpcre)
 if (NOT (WIN32 AND MINGW AND MSYS))
     find_package(Backtrace)
+    if (Backtrace_FOUND)
+        list(APPEND LIBQORE_OPTIONAL_INCLUDES ${Backtrace_INCLUDE_DIRS})
+        list(APPEND LIBQORE_OPTIONAL_LIBS ${Backtrace_LIBRARIES})
+    endif (Backtrace_FOUND)
 endif (NOT (WIN32 AND MINGW AND MSYS))
 
 if (WIN32 AND MINGW AND MSYS)
@@ -301,29 +282,33 @@ endif (WIN32 AND MINGW AND MSYS)
 
 create_git_revision()
 
-# Check for C++11.
+# check for C++11
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 if(COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(HAVE_CXX11 true)
 else()
     message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-# Other checks
+# check if we need libatomic
+check_cxx_atomic()
+
+# other checks
 qore_os_checks()
 qore_iconv_translit_check()
 qore_openssl_checks()
 qore_mpfr_checks()
 
-qore_check_headers_cxx(fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h sys/select.h poll.h grp.h)
+qore_check_headers_cxx(arpa/inet.h cxxabi.h dlfcn.h fcntl.h getopt.h glob.h grp.h iconv.h inttypes.h memory.h netdb.h netinet/in.h netinet/tcp.h poll.h pwd.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/select.h sys/socket.h sys/socket.h sys/stat.h sys/statvfs.h sys/time.h sys/types.h sys/un.h sys/wait.h termios.h umem.h unistd.h vfork.h winsock2.h ws2tcpip.h)
 
 qore_search_libs(LIBQORE_LIBS setsockopt socket)
 qore_search_libs(LIBQORE_LIBS gethostbyname nsl)
 qore_search_libs(LIBQORE_LIBS clock_gettime rt)
 
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBQORE_LIBS})
-qore_check_funcs(bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem)
+qore_check_funcs(access alarm atoll bzero chown clock_gettime doprnt exp2 floor fork fsync getaddrinfo getegid geteuid getgid getgrgid_r getgrnam_r getgroups gethostbyaddr gethostbyname gethostname getifaddrs getnameinfo getppid getpwnam_r getpwuid_r getsockopt gettimeofday getuid glob gmtime_r inet_ntop inet_pton isblank kill lchown localtime_r lstat memmem memmove memset mkfifo mkfifo nanosleep poll pthread_attr_getstacksize putenv random readlink realloc realpath regcomp round select setegid setegid setenv seteuid seteuid setgid setgroups setsid setsockopt setuid setuid sleep socket strcasecmp strcasestr strchr strdup strerror strncasecmp strspn strstr strtoll strtol symlink system tbbmalloc timegm unsetenv usleep vfork vprintf)
 qore_func_strerror_r()
 qore_gethost_checks()
 unset(CMAKE_REQUIRED_LIBRARIES)
@@ -346,6 +331,7 @@ if(NOT DEFINED NO_SIGNAL_HANDLING)
    set(HAVE_SIGNAL_HANDLING true)
 endif()
 
+# prepare scanner and parser targets
 bison_target(qoreparser lib/parser.ypp ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp)
 flex_target(qorescanner lib/scanner.lpp ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
 add_flex_bison_dependency(qorescanner qoreparser)
@@ -364,8 +350,8 @@ set(QORE_QPP_EXECUTABLE ${CMAKE_BINARY_DIR}/qpp)
 target_link_libraries(qpp ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES})
 
 # libqore generators
-qore_wrap_qpp_value(LIBQORE_QPP_CPP_SRC ${LIBQORE_QPP_SRC})
-qore_wrap_qpp_value(PSEUDO_QPP_CPP_SRC ${PSEUDO_QPP_SRC})
+qore_wrap_qpp_value(LIBQORE_QPP_CPP_SRC DOXLIST QPP_DOX_SRC ${LIBQORE_QPP_SRC})
+qore_wrap_qpp_value(PSEUDO_QPP_CPP_SRC DOXLIST QPP_DOX_SRC ${PSEUDO_QPP_SRC})
 
 add_custom_target(QPP_GENERATED_FILES DEPENDS ${LIBQORE_QPP_CPP_SRC} ${PSEUDO_QPP_CPP_SRC})
 add_custom_target(BISON_GENERATED_FILES DEPENDS ${BISON_qoreparser_OUTPUTS})
@@ -402,6 +388,8 @@ set(LIBQORE_CPP_SRC
     lib/QoreNothingNode.cpp
     lib/VarRefNode.cpp
     lib/FunctionCallNode.cpp
+    lib/NewComplexTypeNode.cpp
+    lib/QoreParseHashNode.cpp
     lib/QoreClosureParseNode.cpp
     lib/QoreClosureNode.cpp
     lib/QoreImplicitArgumentNode.cpp
@@ -433,12 +421,14 @@ set(LIBQORE_CPP_SRC
     lib/ExceptionSink.cpp
     lib/QoreStandardException.cpp
     lib/QoreClass.cpp
+    lib/TypedHashDecl.cpp
     lib/Context.cpp
     lib/FindNode.cpp
     lib/charset.cpp
     lib/unicode-charmaps.cpp
     lib/ThreadClosureVariableStack.cpp
     lib/ThreadLocalVariableData.cpp
+    lib/WeakReferenceNode.cpp
     lib/QoreProgram.cpp
     lib/QoreProgramHelper.cpp
     lib/QoreNamespace.cpp
@@ -453,6 +443,8 @@ set(LIBQORE_CPP_SRC
     lib/QoreString.cpp
     lib/QoreObject.cpp
     lib/RSet.cpp
+    lib/RSection.cpp
+    lib/QoreParseListNode.cpp
     lib/QoreListNode.cpp
     lib/QoreValueList.cpp
     lib/qore-main.cpp
@@ -461,6 +453,7 @@ set(LIBQORE_CPP_SRC
     lib/DBI.cpp
     lib/ConstantList.cpp
     lib/QoreClassList.cpp
+    lib/HashDeclList.cpp
     lib/thread.cpp
     lib/AbstractThreadResource.cpp
     lib/ThreadResourceList.cpp
@@ -578,6 +571,8 @@ set(LIBQORE_CPP_SRC
     lib/QoreValue.cpp
     lib/StreamPipe.cpp
     lib/CompressionTransforms.cpp
+    lib/EncryptionTransforms.cpp
+    lib/Transform.cpp
     lib/QorePseudoMethods.cpp
     lib/xxhash.cpp
     lib/minitest.cpp
@@ -586,6 +581,8 @@ set(LIBQORE_CPP_SRC
     lib/QoreQuestionMarkOperatorNode.cpp
     lib/QoreKeysOperatorNode.cpp
     lib/QoreSelectOperatorNode.cpp
+    lib/QoreRangeOperatorNode.cpp
+    lib/QoreSquareBracketsRangeOperatorNode.cpp
 )
 
 if (HAVE_SIGNAL_HANDLING)
@@ -601,10 +598,16 @@ if (NOT HAVE_INET_PTON)
     set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/inet_pton.cpp)
 endif ()
 if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
-    set(LIBQORE_QPP_SRC ${LIBQORE_QPP_SRC} lib/ql_debug.qpp)
+    set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/ql_debug.cpp)
 endif ()
 
-add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
+# prepare libqore target
+if (SINGLE_COMPILATION_UNIT)
+    add_library(libqore SHARED lib/single-compilation-unit.cpp)
+else (SINGLE_COMPILATION_UNIT)
+    add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
+endif (SINGLE_COMPILATION_UNIT)
+
 add_dependencies(QPP_GENERATED_FILES qpp)
 add_dependencies(libqore QPP_GENERATED_FILES BISON_GENERATED_FILES FLEX_GENERATED_FILES)
 
@@ -617,45 +620,62 @@ if (WIN32 AND MINGW AND MSYS)
     target_compile_definitions(libqore PUBLIC BUILDING_DLL)
 endif (WIN32 AND MINGW AND MSYS)
 
-target_include_directories(libqore PUBLIC ${Backtrace_INCLUDE_DIRS} ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
+target_include_directories(libqore PUBLIC ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIRS} ${LIBQORE_OPTIONAL_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
 
-# check if we need libatomic
-check_cxx_atomic()
-
-target_link_libraries(libqore ${Backtrace_LIBRARIES} ${BZIP2_LIBRARIES} ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${ICONV_LIBRARY} ${LIBQORE_LIBS} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
+target_link_libraries(libqore ${BZIP2_LIBRARIES} ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${ICONV_LIBRARY} ${LIBQORE_LIBS} ${LIBQORE_OPTIONAL_LIBS} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
 if (WIN32 AND MINGW AND MSYS)
     target_link_libraries(libqore ${WINSOCKET_LIBRARIES})
 endif (WIN32 AND MINGW AND MSYS)
 
 set_target_properties(libqore PROPERTIES OUTPUT_NAME qore)
 if (APPLE)
+    set_target_properties(libqore PROPERTIES VERSION 5)
+    set_target_properties(libqore PROPERTIES SOVERSION 5)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
+else (APPLE)
+    set_target_properties(libqore PROPERTIES VERSION 5.14.2)
+    set_target_properties(libqore PROPERTIES SOVERSION 5)
 endif (APPLE)
 
+# prepare qore target
 add_executable(qore ${QORE_CPP_SRC})
 target_link_libraries(qore libqore)
-add_executable(qr ${QR_CPP_SRC})
-target_link_libraries(qr libqore)
+#add_executable(qr ${QR_CPP_SRC})
+#target_link_libraries(qr libqore)
 
-set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+#set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+set_target_properties(qore PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
 
+# configuration files
+message(STATUS "Generating unix-config.h")
 configure_file(${CMAKE_SOURCE_DIR}/cmake/unix-config.h.cmake
                ${CMAKE_BINARY_DIR}/include/qore/intern/unix-config.h)
+message(STATUS "Generating qore-version.h")
 configure_file(${CMAKE_SOURCE_DIR}/cmake/qore-version.h.cmake
                ${CMAKE_BINARY_DIR}/include/qore/qore-version.h)
+message(STATUS "Generating QoreConfigVersion.cmake")
 configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfigVersion.cmake.in
                ${CMAKE_BINARY_DIR}/cmake/QoreConfigVersion.cmake @ONLY)
+message(STATUS "Generating QoreConfig.cmake")
 configure_file(${CMAKE_SOURCE_DIR}/cmake/QoreConfig.cmake.in
                ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake @ONLY)
+message(STATUS "Generating qore.pc")
 configure_file(${CMAKE_SOURCE_DIR}/qore.pc.in
                ${CMAKE_BINARY_DIR}/qore.pc @ONLY)
 
+# prepare dist target
+qore_dist(${VERSION})
+
+# prepare installation targets
 install(PROGRAMS ${QORE_BIN_FILES}
         DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 
-install(TARGETS qore qpp qr libqore
+install(TARGETS qore qpp libqore
         RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
+#install(TARGETS qore qpp qr libqore
+#        RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+#        LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
 install(FILES ${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake ${CMAKE_BINARY_DIR}/cmake/QoreConfigVersion.cmake cmake/QoreMacros.cmake
         DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/cmake/Qore)
 install(FILES ${CMAKE_BINARY_DIR}/qore.pc
@@ -675,6 +695,7 @@ install(FILES qore.1
 install(FILES doxygen/Doxyfile.in
         DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/qore)
 
+# prepare documentation targets
 find_package(Doxygen)
 if (DOXYGEN_FOUND)
     # documentation
@@ -686,40 +707,122 @@ if (DOXYGEN_FOUND)
     add_custom_target(QORE_DOX_FILES DEPENDS ${QORE_DOX_SRC})
     add_dependencies(QORE_DOX_FILES qpp)
 
+    # get space-separated string from list of generated files
+    string(REPLACE ";" " " QORE_DOX_SRC_STRING "${QORE_DOX_SRC}")
+
+    # get space-separated string from list of generated files
+    string(REPLACE ";" " " QPP_DOX_SRC_STRING "${QPP_DOX_SRC}")
+
     add_dependencies(libqore QORE_DOX_FILES)
 
-# TODO/FIXME    add_dependencies(libqore docs)
     # library
-    message(STATUS "Doxyfile for library")
+    message(STATUS "Preparing Doxyfile for library")
     configure_file(${CMAKE_SOURCE_DIR}/doxygen/lib/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib @ONLY)
     add_custom_target(docs-lib
-        ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib
-        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/*.html
-        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/search/*.html
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs/library/html
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/library/html
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lib
+        COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/*.html
+        COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/library/html/search/*.html
         COMMENT "Generating API documentation with Doxygen for: lib" VERBATIM
     )
-# TODO/FIXME    add_dependencies(docs docs-lib)
+    add_dependencies(docs docs-lib)
+
     # lang
-    message(STATUS "Doxyfile for lang")
+    message(STATUS "Preparing Doxyfile for lang")
     configure_file(${CMAKE_SOURCE_DIR}/doxygen/lang/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang @ONLY)
     add_custom_target(docs-lang
-        ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang
-        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/*.html
-        COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.html
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs/lang/html
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/lang/html
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.lang
+        COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/*.html ${CMAKE_BINARY_DIR}/docs/lang/html/*.js
+        COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.html ${CMAKE_BINARY_DIR}/docs/lang/html/search/*.js
+        DEPENDS QORE_DOX_FILES
         COMMENT "Generating API documentation with Doxygen for: lang" VERBATIM
     )
-# TODO/FIXME    add_dependencies(docs docs-lang)
+    add_dependencies(docs docs-lang)
 endif (DOXYGEN_FOUND)
+
+add_custom_target(install-docs
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/docs/ ${CMAKE_INSTALL_PREFIX}/share/doc/qore
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/docs
+    COMMENT "Installing API documentation to: ${CMAKE_INSTALL_PREFIX}/share/doc/qore" VERBATIM
+)
+add_dependencies(install-docs docs)
 # end of documentation
+
+# astparser module
+add_subdirectory(modules/astparser)
 
 # HACK: we need to simulate QORE_USER_MODULES_DIR as the versioned one
 #       for qore core qlib modules.
 # NOTE: anything below will be installed into versioned dirs!
 set(QORE_USER_MODULES_DIR ${USER_MODULE_VER_DIR})
 # modules must go after docs target - it's depending on it
-qore_user_modules("${QMOD}")
 
-message(STATUS "CXX ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
-message(WARNING "Please do not use cmake for production/real builds. Cmake support is experimental and it does not contant all required setup")
+# qlib modules + their documentation
+# ---
+# modules here are divided to groups in the order of dependence
+# and then sorted alphabetically inside the groups
+
+# base modules
+qore_user_module("qlib/DatasourceProvider.qm" "")
+qore_user_module("qlib/DebugUtil.qm" "")
+qore_user_module("qlib/Mapper.qm" "")
+qore_user_module("qlib/Qdx.qm" "")
+qore_user_module("qlib/Qorize.qm" "")
+qore_user_module("qlib/Util.qm" "")
+qore_user_module("qlib/WebSocketUtil.qm" "")
+
+# base 2 modules
+qore_user_module("qlib/ConnectionProvider.qm" "Util")
+qore_user_module("qlib/CsvUtil.qm" "Util")
+qore_user_module("qlib/Diff.qm" "Util")
+qore_user_module("qlib/FilePoller.qm" "Util")
+qore_user_module("qlib/FixedLengthUtil.qm" "Util")
+qore_user_module("qlib/Mime.qm" "Util")
+qore_user_module("qlib/QUnit.qm" "Util")
+qore_user_module("qlib/SqlUtil.qm" "Util")
+qore_user_module("qlib/TextWrap.qm" "Util")
+
+# base 3 modules
+qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil")
+qore_user_module("qlib/DebugProgramControl.qm" "DebugUtil")
+qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
+qore_user_module("qlib/MailMessage.qm" "Mime")
+qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
+qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil")
+
+# base 4 modules
+qore_user_module("qlib/RestSchemaValidator.qm" "HttpServerUtil")
+
+# base 5 modules
+qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator")
+
+# base 6 modules
+qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator;Swagger")
+
+# base 7 modules
+qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
+qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")
+qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")
+qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util;RestSchemaValidator")
+qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient")
+qore_user_module("qlib/SewioRestClient.qm" "ConnectionProvider;Mime;RestClient")
+qore_user_module("qlib/SewioWebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil;WebSocketClient")
+qore_user_module("qlib/SchemaReverse.qm" "Qorize;Schema;SqlUtil;Util")
+qore_user_module("qlib/SmtpClient.qm" "ConnectionProvider;MailMessage;Mime")
+qore_user_module("qlib/TableMapper.qm" "Mapper;SqlUtil")
+qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
+qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
+qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
+
+# base 7 modules
+qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServerUtil;WebSocketHandler;WebSocketUtil")
+
+# print info
+message(STATUS "")
+message(STATUS "Implicit link libraries and flags detected for C++: ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
+qore_config_info()

@@ -3,7 +3,7 @@
 
 # @file rest example program for the RestClient module
 
-/*  Copyright 2013 - 2016 David Nichols
+/*  Copyright 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 %strict-args
 
 %requires RestClient
+%requires Swagger
 %requires Util
 %requires Mime
 
@@ -52,15 +53,18 @@
 class RestCmd {
     public {
         #! program options
-        const opts = (
+        const Opts = (
             "sendenc":   "e,send-encoding:s",
             "header":    "H,header=s@",
             "proxy":     "P,proxy-url=s",
             "to":        "t,timeout=i",
             "lit":       "l,literal:i+",
+            "list":      "L,list",
             "reformat":  "R,reformat",
             "fullex":    "E,full-exception",
             "data":      "S,serialization=s",
+            "swagger":   "s,swagger=s",
+            "example":   "x,example:s",
             "help":      "h,help",
             );
 
@@ -74,11 +78,28 @@ class RestCmd {
     }
 
     constructor() {
-        GetOpt g(opts);
+        GetOpt g(Opts);
         hash opt = g.parse3(\ARGV);
-
-        if (opt.help || !ARGV[0])
+        if (opt.help || (!ARGV[0] && !opt.list))
             usage();
+
+        hash opts;
+
+        if (opt.swagger) {
+            opts.validator = SwaggerLoader::fromFile(opt.swagger);
+        }
+        else if (opt.example)
+            error("option -x|--example requires -s|--swagger to provide the schema for generating the example");
+        else if (opt.list)
+            error("option -L|--list requires -s|--swagger to provide the schema for returning the list");
+
+        if (opt.list) {
+            printf("URL: %s\n",  opts.validator.getTargetUrl());
+            foreach hash h in (opts.validator.getPathOperationHash().pairIterator()) {
+                map printf("%s /%s\n", $1.upr(), h.key), h.value;
+            }
+            thread_exit;
+        }
 
         *string meth = shift ARGV;
         if (!exists meth)
@@ -108,7 +129,60 @@ class RestCmd {
                 printf("using connection: %y url: %y\n", orig_url, url);
         }
 
-        hash opts.url = url;
+        if (opts.validator && url !~ /^[a-z]+:\/\//)
+            url = opts.validator.getTargetUrl() + (url !~ /^\// ? "/" : "") + url;
+
+        if (opt.example) {
+            bool msg = True;
+            bool request = True;
+            int code = 200;
+            for (int i = 0; i < opt.example.size(); ++i) {
+                switch (opt.example[i]) {
+                    case "q": msg = False; break;
+                    case "r": request = False; if (opt.example.size() > i + 1) code = opt.example.substr(i + 1).toInt(); i = opt.example.size(); break;
+                    default: error("unknown character %y found in example string %y; expected \"qr\"", opt.example[i]);
+                }
+            }
+            # get URI path
+            hash h = parse_url(url);
+
+            # generate example and exit
+            if (msg) {
+                if (request) {
+                    hash<RestExampleRequestInfo> rex = opts.validator.getExampleRequest(meth, h.path);
+                    #printf("rex: %y\n", rex);
+                    printf("%s\n", rex.request_uri);
+                    map printf("%s: %s\n", $1.key, $1.value), rex.hdr.pairIterator();
+                    if (rex.body) {
+                        if (rex.hdr)
+                            print("\n");
+                        print(rex.body + "\n");
+                    }
+                }
+                else {
+                    hash<RestExampleResponseInfo> res = opts.validator.getExampleResponse(meth, h.path, code);
+                    #printf("res: %y\n", res);
+                    printf("%s\n", res.response_uri);
+                    map printf("%s: %s\n", $1.key, $1.value), res.hdr.pairIterator();
+                    if (res.body) {
+                        if (res.hdr)
+                            print("\n");
+                        print(res.body + "\n");
+                    }
+                }
+            }
+            else {
+                hash<RestQoreExampleCodeInfo> qex = request
+                    ? opts.validator.getQoreExampleRequest(meth, h.path)
+                    : opts.validator.getQoreExampleResponse(meth, h.path, code);
+                #printf("qex: %y\n", qex);
+                map printf("%s\n", $1), qex.hashdecls.iterator();
+                printf("%s\n", qex.example);
+            }
+            thread_exit;
+        }
+
+        opts.url = url;
 
         if (opt.proxy)
             opts.proxy = opt.proxy;
@@ -164,7 +238,7 @@ class RestCmd {
             if (!opt.lit)
                 printf("%N\n", h.body);
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             if (opt.fullex)
                 printf("%s\n", get_exception_string(ex));
             else {
@@ -243,7 +317,12 @@ class RestCmd {
                 case "yaml": str = trim(make_yaml(rv, opt.reformat ? YAML::BlockStyle : NOTHING)); break;
 %endif
                 case "url": str = mime_get_form_urlencoded_string(rv); break;
-                default: str = trim(info."response-body"); break;
+                default:
+                    if (info."response-body".typeCode() == NT_STRING)
+                        str = trim(info."response-body");
+                    else if (info."response-body".typeCode() == NT_BINARY)
+                        str = "<" + info."response-body".toHex() + ">";
+                    break;
             }
             printf("< %s\n", str);
         }
@@ -281,11 +360,16 @@ class RestCmd {
  -E,--full-exception       show full exception output
  -H,--header=ARG           send header with request
  -l,--literal              show literal API calls (more l's, more info)
+ -L,--list                 list URI paths and methods supported by the schema
  -P,--proxy-url=ARG        set the proxy URL (ex: http://proxy:port)
  -R,--reformat             reformat data with -l+ for better readability
  -S,--serialization=ARG    set REST data serialization type:
                            auto, json, yaml, xml, rawxml, url
+ -s,--swagger=ARG          use the given Swagger 2.0 schema for validation
  -t,--timeout=ARG          set HTTP timeout in seconds
+ -x,--example[=ARG]        generate an example message; ARG=
+                             q: generate Qore example (default data)
+                             r<code>: generate response (default request)
  -h,--help                 this help text
 ", get_script_name());
         exit(1);

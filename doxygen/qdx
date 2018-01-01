@@ -264,6 +264,9 @@ class qdx {
         # namespace stack
         list nss = ();
 
+        # hashdecl flag
+        bool hashdecl_flag;
+
         while (ins.next()) {
             string line = ins.getValue();
             line =~ s/\$\.//g;
@@ -313,6 +316,12 @@ class qdx {
             }
             line =~ s/my //g;
             line =~ s/sub //;
+
+            # change hashdecl to struct
+            if (line =~ /[^a-zA-Z0-9_]hashdecl /) {
+                line =~ s/([^a-zA-Z0-9_])hashdecl /$1struct /g;
+                hashdecl_flag = True;
+            }
 
             # take "public" off namespace, class, constant and global variable declarations
             line =~ s/public[[:space:]]+(const|our|namespace|class)/$1/g;
@@ -463,7 +472,13 @@ class qdx {
                         }
                     }
                 }
-                else if (exists ns_name) {
+                else if (hashdecl_flag) {
+                    if (line =~ /}/) {
+                        line =~ s/}/};/;
+                        remove hashdecl_flag;
+                    }
+                }
+                else if (ns_name) {
                     if (line =~ /{/) {
                         if (line !~ /}/)
                             ++nbc;
@@ -480,8 +495,14 @@ class qdx {
 
             if (!ppc && line !~ /^[ \t]*\/\//) {
                 list mods = ();
-                if (line !~ /"/) {
-                    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|private[^-:]|public[^-:]|static)([^A-Za-z0-9_].*)/))) {
+                if (line =~ /\(.*\)/) {
+                #if (line !~ /"/) {
+                    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|static|private:internal|private:hierarchy)([^A-Za-z0-9_].*)/))) {
+                        l[1] =~ s/:.*//;
+                        mods += l[1];
+                        line = l[0] + l[2];
+                    }
+                    while (exists (*list l = (line =~ x/(.*)(private|public)([^-:A-Za-z0-9_].*)/))) {
                         mods += l[1];
                         line = l[0] + l[2];
                     }

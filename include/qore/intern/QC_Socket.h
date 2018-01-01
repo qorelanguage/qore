@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   provides a thread-safe interface to the QoreSocket object
 
@@ -53,17 +53,17 @@ public:
    QoreSSLPrivateKey* pk;
    mutable QoreThreadLock m;
 
-   DLLLOCAL my_socket_priv(QoreSocket* s, QoreSSLCertificate* c = 0, QoreSSLPrivateKey* p = 0) : socket(s), cert(c), pk(p) {
+   DLLLOCAL my_socket_priv(QoreSocket* s, QoreSSLCertificate* c = nullptr, QoreSSLPrivateKey* p = nullptr) : socket(s), cert(c), pk(p) {
    }
 
-   DLLLOCAL my_socket_priv() : socket(new QoreSocket), cert(0), pk(0) {
+   DLLLOCAL my_socket_priv() : socket(new QoreSocket), cert(nullptr), pk(nullptr) {
    }
 
    DLLLOCAL ~my_socket_priv() {
       if (cert)
-	 cert->deref();
+         cert->deref();
       if (pk)
-	 pk->deref();
+         pk->deref();
 
       delete socket;
    }

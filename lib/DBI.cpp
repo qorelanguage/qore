@@ -68,6 +68,7 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_EVENTS,                 "Events" },
   { DBI_CAP_HAS_DESCRIBE,           "HasDescribe" },
   { DBI_CAP_HAS_ARRAY_BIND,         "HasArrayBind" },
+  { DBI_CAP_HAS_RESULTSET_OUTPUT,   "HasResultsetOutput" },
 };
 
 #define NUM_DBI_CAPS (sizeof(dbi_cap_list) / sizeof(dbi_cap_hash))
@@ -170,7 +171,7 @@ void qore_dbi_method_list::add(int code, q_dbi_stmt_bind_t method) {
 
 // covers stmt exec, close, define, and affectedRows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_exec_t method) {
-   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS);
+   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS || code == QDBI_METHOD_STMT_FREE);
    assert(priv->l.find(code) == priv->l.end());
    priv->l[code] = (void*)method;
 }
@@ -256,7 +257,9 @@ OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver
 
    tmp = true;
    val->ref();
-   val = QoreTypeInfo::acceptInputParam(ti, -1, "<dbi driver option>", val, xsink);
+   QoreValue qv(val);
+   QoreTypeInfo::acceptInputParam(ti, -1, "<dbi driver option>", qv, xsink);
+   val = qv.takeNode();
 }
 
 qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private& methods, int cps) {
@@ -371,6 +374,10 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
          case QDBI_METHOD_STMT_CLOSE:
             assert(!f.stmt.close);
             f.stmt.close = (q_dbi_stmt_close_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_FREE:
+            assert(!f.stmt.free);
+            f.stmt.free = (q_dbi_stmt_close_t)(*i).second;
             break;
          case QDBI_METHOD_STMT_AFFECTED_ROWS:
             assert(!f.stmt.affected_rows);

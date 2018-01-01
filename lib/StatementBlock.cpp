@@ -78,7 +78,7 @@ public:
 
       if (top_level) {
          save_global_vnode(0);
-         //printd(0, "VNode::~VNode() this: %p deleting top-level global vnode\n", this);
+         //printd(5, "VNode::~VNode() this: %p deleting top-level global vnode\n", this);
       }
    }
 
@@ -163,9 +163,22 @@ VariableBlockHelper::~VariableBlockHelper() {
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
 }
 
+StatementBlock::StatementBlock() : AbstractStatement(-1, -1) {
+}
+
+StatementBlock::StatementBlock(int sline, int eline) : AbstractStatement(sline, eline) {
+}
+
+StatementBlock::StatementBlock(int sline, int eline, AbstractStatement* s) : AbstractStatement(sline, eline) {
+   addStatement(s);
+}
+
 QoreValue StatementBlock::exec(ExceptionSink* xsink) {
    QoreValue return_value;
+   ThreadLocalProgramData* tlpd = get_thread_local_program_data();
+   tlpd->dbgFunctionEnter(this, xsink);
    execImpl(return_value, xsink);
+   tlpd->dbgFunctionExit(this, return_value, xsink);
    return return_value;
 }
 
@@ -216,11 +229,25 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
    if (obe)
       pushBlock(on_block_exit_list.end());
 
-   // execute block
-   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
-      if ((rc = (*i)->exec(return_value, xsink)) || xsink->isEvent())
-         break;
-
+   ThreadLocalProgramData* tlpd = get_thread_local_program_data();
+   // to execute even when block is empty, e.g. while(true);
+   rc = tlpd->dbgStep(this, 0, xsink);
+   if (!rc && !*xsink) {
+      // execute block
+      for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i) {
+         rc = tlpd->dbgStep(this, *i, xsink);
+         if (rc || *xsink)
+            break;
+         rc = (*i)->exec(return_value, xsink);
+         if (xsink->isEvent()) {
+            tlpd->dbgException(*i, xsink);
+            if (xsink->isEvent()) {
+               break;
+            }
+         }
+         if (rc) break;
+      }
+   }
    // execute "on block exit" code if applicable
    if (obe) {
       ExceptionSink obe_xsink;
@@ -263,8 +290,11 @@ void push_local_var(LocalVar* lv, const QoreProgramLocation& loc) {
    new VNode(lv, &loc, 1);
 }
 
-LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto, int n_refs, bool top_level) {
+LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto, int n_refs, int pflag) {
    QoreProgram* pgm = getProgram();
+
+   if ((pflag & PF_TOP_LEVEL) && (pflag & PF_NO_TOP_LEVEL_LVARS))
+      parseException(loc, "ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "cannot declare local variable '%s' in the top-level block; local variables in the top-level block of a Program object can only be declared in the very first parse transaction to the Program object", name);
 
    LocalVar* lv = qore_program_private::get(*pgm)->createLocalVar(name, typeInfo);
 
@@ -297,7 +327,7 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
                         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", desc);
                      }
                   }
-                  else if (top_level || !vnode->isTopLevel()) {
+                  else if ((pflag & PF_TOP_LEVEL) || !vnode->isTopLevel()) {
                      QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in this lexical scope", name);
                      vnode->appendLocation(*desc);
                      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", desc);
@@ -311,7 +341,7 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const
    }
 
    //printd(5, "push_local_var(): pushing var %s\n", name);
-   new VNode(lv, &loc, n_refs, top_level);
+   new VNode(lv, &loc, n_refs, pflag & PF_TOP_LEVEL);
    return lv;
 }
 
@@ -371,7 +401,7 @@ int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t
 
    int lvids = 0;
 
-   AbstractStatement* ret = 0;
+   AbstractStatement* ret = nullptr;
 
    if (start != statement_list.end())
       ++start;
@@ -388,6 +418,15 @@ int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t
    }
 
    return lvids;
+}
+
+void StatementBlock::parseCommit(QoreProgram* pgm) {
+   // add block to the list only when no statements inside
+   qore_program_private::registerStatement(pgm, this, statement_list.empty());
+   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i) {
+      // register and add statements
+      (*i)->parseCommit(pgm);
+   }
 }
 
 int StatementBlock::parseInitImpl(LocalVar* oflag, int pflag) {
@@ -415,7 +454,7 @@ void StatementBlock::parseInit(UserVariantBase* uvb) {
    UserParamListLocalVarHelper ph(uvb);
 
    // initialize code block
-   parseInitImpl(0);
+   parseInitImpl(nullptr);
 
    parseCheckReturn();
 }
@@ -461,9 +500,9 @@ void StatementBlock::parseInitConstructor(const QoreTypeInfo* typeInfo, UserVari
       // ensure that parse flags are set before initializing
       ParseWarnHelper pwh(pwo);
 
-      for (bcalist_t::iterator i = bcal->begin(), e = bcal->end(); i != e; ++i) {
+      for (auto& i : *bcal) {
          assert(QoreTypeInfo::getUniqueReturnClass(typeInfo));
-         (*i)->parseInit(bcl, QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName());
+         i->parseInit(bcl, QoreTypeInfo::getUniqueReturnClass(typeInfo)->getName());
       }
    }
 
@@ -498,12 +537,14 @@ void TopLevelStatementBlock::parseInit(int64 po) {
          push_top_level_local_var(lvars->lv[i], loc);
    }
 
-   int lvids = parseInitIntern(0, PF_TOP_LEVEL, hwm);
+   int pflag = PF_TOP_LEVEL;
+   if (!first)
+      pflag |= PF_NO_TOP_LEVEL_LVARS;
+   int lvids = parseInitIntern(0, pflag, hwm);
 
    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d, lvids=%d\n", &rns, first, lvids);
 
    if (!first && lvids) {
-      parseException("ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "local variables declared with 'my' in the top-level block of a Program object can only be declared in the very first code block parsed");
       // discard variables immediately
       for (int i = 0; i < lvids; ++i)
          pop_local_var();
@@ -531,6 +572,24 @@ void TopLevelStatementBlock::parseInit(int64 po) {
 
    //printd(5, "TopLevelStatementBlock::parseInitTopLevel(this=%p): done (lvars=%p, %d vars, vstack = %p)\n", this, lvars, lvids, getVStack());
    return;
+}
+
+void TopLevelStatementBlock::parseCommit(QoreProgram* pgm) {
+   //printd(5, "TopLevelStatementBlock::parseCommit(this=%p)\n", this);
+   statement_list_t::iterator start = hwm;
+   if (start != statement_list.end()) {
+      ++start;
+   } else {
+      start = statement_list.begin();
+   }
+
+   while (start != statement_list.end()) {
+      //printd(5, "TopLevelStatementBlock::parseCommit (this=%p): (hwm=%p)\n", this, *start);
+      // register and add statements
+      (*start)->parseCommit(pgm);
+      start++;
+   }
+   hwm = statement_list.last();
 }
 
 int TopLevelStatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {

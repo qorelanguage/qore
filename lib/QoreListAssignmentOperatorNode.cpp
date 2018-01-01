@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,10 +38,10 @@ AbstractQoreNode* QoreListAssignmentOperatorNode::parseInitImpl(LocalVar* oflag,
    // turn off "reference ok" and "return value ignored" flags
    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   assert(left && left->getType() == NT_LIST);
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(left);
+   assert(left && left->getType() == NT_PARSE_LIST);
+   QoreParseListNode* l = static_cast<QoreParseListNode*>(left);
 
-   QoreListNodeParseInitHelper li(l, oflag, pflag | PF_FOR_ASSIGNMENT, lvids);
+   QoreParseListNodeParseInitHelper li(l, oflag, pflag | PF_FOR_ASSIGNMENT, lvids);
    QorePossibleListNodeParseInitHelper ri(&right, oflag, pflag, lvids);
 
    const QoreTypeInfo* argInfo;
@@ -53,14 +53,14 @@ AbstractQoreNode* QoreListAssignmentOperatorNode::parseInitImpl(LocalVar* oflag,
 
       if (v) {
          if (check_lvalue(v))
-            parse_error("expecting lvalue in position %d of left-hand-side list in list assignment, got '%s' instead", li.index() + 1, v->getTypeName());
+            parse_error(loc, "expecting lvalue in position %d of left-hand-side list in list assignment, got '%s' instead", li.index() + 1, v->getTypeName());
          else if ((pflag & PF_BACKGROUND) && v->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(v)->getType() == VT_LOCAL)
-            parse_error("illegal local variable modification with the background operator in position %d of left-hand-side list in list assignment", li.index() + 1);
+            parse_error(loc, "illegal local variable modification with the background operator in position %d of left-hand-side list in list assignment", li.index() + 1);
       }
 
       // check for illegal assignment to $self
       if (oflag)
-         check_self_assignment(v, oflag);
+         check_self_assignment(loc, v, oflag);
 
       ri.parseInit(argInfo);
 
@@ -73,7 +73,7 @@ AbstractQoreNode* QoreListAssignmentOperatorNode::parseInitImpl(LocalVar* oflag,
                QoreTypeInfo::getThisType(prototypeInfo, *edesc);
                edesc->concat(", but right-hand side is ");
                QoreTypeInfo::getThisType(argInfo, *edesc);
-               qore_program_private::makeParseException(getProgram(), "PARSE-TYPE-ERROR", edesc);
+               qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
             }
          }
       }
@@ -86,8 +86,8 @@ AbstractQoreNode* QoreListAssignmentOperatorNode::parseInitImpl(LocalVar* oflag,
 }
 
 QoreValue QoreListAssignmentOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   assert(left && left->getType() == NT_LIST);
-   const QoreListNode* llv = reinterpret_cast<const QoreListNode*>(left);
+   assert(left && left->getType() == NT_PARSE_LIST);
+   const QoreParseListNode* llv = reinterpret_cast<const QoreParseListNode*>(left);
 
    /* assign new value, this value gets referenced with the
       eval(xsink) call, so there's no need to reference it again
@@ -102,7 +102,7 @@ QoreValue QoreListAssignmentOperatorNode::evalValueImpl(bool& needs_deref, Excep
 
    // get values and save
    for (unsigned i = 0; i < llv->size(); i++) {
-      const AbstractQoreNode* lv = llv->retrieve_entry(i);
+      const AbstractQoreNode* lv = llv->get(i);
 
       // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
       LValueHelper v(lv, xsink);

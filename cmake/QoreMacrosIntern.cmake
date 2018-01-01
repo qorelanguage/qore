@@ -27,14 +27,12 @@ macro(qore_check_headers_cxx)
         string(REPLACE "." "_" include_file_ ${include_file})
 	string(REPLACE "/" "_" _include_file_ ${include_file_})
 	string(TOUPPER ${_include_file_} upper_include_file_)
-	check_include_file_cxx(${include_file} "HAVE_${upper_include_file_}")
+	check_include_file_cxx(${include_file} "HAVE_${upper_include_file_}" ${QORE_CHECK_HEADERS_CXX_FLAGS})
 #	string(CONCAT file_output ${file_output} "\n#cmakedefine " ${have_var})
     endforeach()
 #    file(WRITE ${CMAKE_BINARY_DIR}/header_defines.txt ${file_output})
 #    unset(file_output)
 endmacro()
-
-
 
 macro(qore_check_funcs)
     set(options)
@@ -45,7 +43,7 @@ macro(qore_check_funcs)
 
     foreach (FUNCTION_TO_CHECK ${_FUNCS_UNPARSED_ARGUMENTS})
         string(TOUPPER ${FUNCTION_TO_CHECK} UPPER_FUNCTION_TO_CHECK)
-	check_function_exists(${FUNCTION_TO_CHECK} "HAVE_${UPPER_FUNCTION_TO_CHECK}")
+        check_function_exists(${FUNCTION_TO_CHECK} "HAVE_${UPPER_FUNCTION_TO_CHECK}")
 #	string(CONCAT file_output ${file_output} "\n#cmakedefine " ${HAVE_VAR})
     endforeach()
 #    file(WRITE ${CMAKE_BINARY_DIR}/funcs_defines.txt ${file_output})
@@ -122,16 +120,52 @@ return 0;
 }"
 HAVE_OPENSSL_HMAC_RV)
 
+# check for X509_get_signature_nid()
+check_cxx_source_compiles("
+#include <openssl/x509.h>
+int main(void) {
+int nid = X509_get_signature_nid(0);
+return 0;
+}"
+HAVE_X509_GET_SIGNATURE_NID)
+
+# check for const correctness in X509_get0_signature() (1.1+ has it)
+check_cxx_source_compiles("
+#include <openssl/x509.h>
+int main(void) {
+const ASN1_BIT_STRING* sig;
+const X509_ALGOR* alg;
+X509_get0_signature(&sig, &alg, 0);
+return 0;
+}"
+HAVE_X509_GET0_SIGNATURE_CONST)
+
+# check for X509_get0_pubkey() (1.1+ has it)
+check_cxx_source_compiles("
+#include <openssl/x509.h>
+int main(void) {
+X509_get0_pubkey(0);
+return 0;
+}"
+HAVE_X509_GET0_PUBKEY)
+
+# check for OPENSSL_init_crypto()
+check_cxx_source_compiles("
+#include <openssl/crypto.h>
+int main(void) {
+int nid = OPENSSL_init_crypto(0, 0);
+return 0;
+}"
+HAVE_OPENSSL_INIT_CRYPTO)
+
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
 
 endmacro()
 
-
-
 macro(qore_mpfr_checks)
 
-set(CMAKE_REQUIRED_INCLUDES ${MPFR_INCLUDE_DIR})
+set(CMAKE_REQUIRED_INCLUDES ${MPFR_INCLUDE_DIRS})
 set(CMAKE_REQUIRED_LIBRARIES ${MPFR_LIBRARIES})
 
 check_cxx_symbol_exists(mpfr_divby0_p mpfr.h HAVE_MPFR_DIVBY0)
@@ -155,6 +189,13 @@ return 0;
 }"
 HAVE_RNDN)
 
+check_cxx_source_compiles("
+#include <mpfr.h>
+int main(void){
+mpfr_rnd_t test = MPFR_RNDN;
+return 0;
+}"
+HAVE_MPFR_RNDN)
 
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
@@ -277,7 +318,6 @@ if (NOT EXISTS ${CMAKE_SOURCE_DIR}/include/qore/intern/git-revision.h)
        execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		       OUTPUT_VARIABLE GIT_REV OUTPUT_STRIP_TRAILING_WHITESPACE)
-       string(CONCAT GIT_REV_FILE_OUTPUT "#define BUILD \"" ${GIT_REV} "\"")
        file(WRITE ${CMAKE_BINARY_DIR}/include/qore/intern/git-revision.h "#define BUILD \"${GIT_REV}\"")
    else()
        message(FATAL_ERROR "Git is needed to generate git-revision.h")
@@ -308,7 +348,6 @@ if(UNORDERED_MAP_FOUND)
 set(HAVE_UNORDERED_MAP true)
 set(HAVE_QORE_HASH_MAP true)
 set(HASH_MAP_INCLUDE "<unordered_map>")
-set(HASH_NAMESPACE "")
 set(HASH_TYPE "unordered_map")
 set(STL_HASH_MAP_FOUND true)
 endif()
@@ -370,7 +409,6 @@ set(HAVE_HASH_SET true)
 set(HAVE_QORE_HASH_MAP true)
 set(HASH_MAP_INCLUDE "<hash_map>")
 set(HASH_SET_INCLUDE "<hash_set>")
-set(HASH_NAMESPACE "")
 set(HASH_TYPE "hash_map")
 set(STL_HASH_MAP_FOUND true)
 endif()
@@ -473,7 +511,6 @@ set(HAVE_SLIST true)
 set(HAVE_QORE_SLIST true)
 set(SLIST_INCLUDE "<slist>")
 set(LIST_SET_INCLUDE "list_set")
-set(LIST_NAMESPACE "")
 set(SLIST_TYPE "slist")
 set(STL_SLIST_FOUND true)
 endif()
@@ -605,7 +642,7 @@ else()
       int main(void){
       iconv_t cd;
       cd = iconv_open(\"ISO8859-1//TRANSLIT\",\"ISO8859-1\");
-      if(cd == -1)
+      if(cd == (iconv_t)-1)
         return 1;
       iconv_close(cd);
       return 0; }
@@ -616,9 +653,13 @@ endmacro(qore_iconv_translit_check)
 
 macro(qore_os_checks)
 if(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
-   set(QORE_CPPFLAGS -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__)
+   #set(QORE_CPPFLAGS -D_POSIX_C_SOURCE=199506L -D_XPG4_2 -D_XPG5 -D__EXTENSIONS__)
    set(ZONEINFO_LOCATION "/usr/share/lib/zoneinfo")
    set(SOLARIS true)
+   if (CMAKE_COMPILER_IS_GNUCXX)
+      # netinet/tcp.h needs sys/types.h on illumos but it does not include it
+      set(QORE_CHECK_HEADERS_CXX_FLAGS "-include sys/types.h")
+   endif (CMAKE_COMPILER_IS_GNUCXX)
    #use libumem if available
    find_library(LIBUMEM NAMES umem libumem)
    if(LIBUMEM)
@@ -745,3 +786,21 @@ function(check_cxx_atomic)
     endif()
   endif()
 endfunction(check_cxx_atomic)
+
+function(get_module_api_versions)
+    file(READ ${CMAKE_SOURCE_DIR}/include/qore/ModuleManager.h MM_CONTENTS)
+
+    string(REGEX MATCH "#define QORE_MODULE_API_MAJOR [0-9]+" QMAMA_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_API_MAJOR ([0-9]+)" "\\1" QMAMA_L "${QMAMA_L}")
+    string(REGEX MATCH "#define QORE_MODULE_API_MINOR [0-9]+" QMAMI_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_API_MINOR ([0-9]+)" "\\1" QMAMI_L "${QMAMI_L}")
+    string(REGEX MATCH "#define QORE_MODULE_COMPAT_API_MAJOR [0-9]+" QMCAMA_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_COMPAT_API_MAJOR ([0-9]+)" "\\1" QMCAMA_L "${QMCAMA_L}")
+    string(REGEX MATCH "#define QORE_MODULE_COMPAT_API_MINOR [0-9]+" QMCAMI_L "${MM_CONTENTS}")
+    string(REGEX REPLACE "#define QORE_MODULE_COMPAT_API_MINOR ([0-9]+)" "\\1" QMCAMI_L "${QMCAMI_L}")
+
+    set(MODULE_API_MAJOR ${QMAMA_L} PARENT_SCOPE)
+    set(MODULE_API_MINOR ${QMAMI_L} PARENT_SCOPE)
+    set(MODULE_COMPAT_API_MAJOR ${QMCAMA_L} PARENT_SCOPE)
+    set(MODULE_COMPAT_API_MINOR ${QMCAMI_L} PARENT_SCOPE)
+endfunction(get_module_api_versions)

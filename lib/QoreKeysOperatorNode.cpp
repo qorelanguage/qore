@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -61,7 +61,7 @@ AbstractQoreNode* QoreKeysOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
          QoreStringNode* edesc = new QoreStringNode("the expression with the 'keys' operator is ");
          QoreTypeInfo::getThisType(expTypeInfo, *edesc);
          edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
          returnTypeInfo = nothingTypeInfo;
       }
       else

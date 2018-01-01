@@ -52,6 +52,9 @@
 #include <algorithm>
 #include <set>
 
+//! Qore's base type info class
+class QoreTypeInfo;
+
 //! cross-platform define for AF_UNSPEC
 #define Q_AF_UNSPEC -1
 
@@ -96,7 +99,6 @@ enum ClassAccess : unsigned char {
 #if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
 #define _Q_WINDOWS 1
 #ifdef _WIN64
-#define _Q_WINDOWS 1
 #define _Q_WINDOWS64 1
 #endif
 #endif
@@ -116,6 +118,7 @@ enum ClassAccess : unsigned char {
   #define QORE_DIR_SEP_STR "\\"
   #define QORE_PATH_SEP ';'
   #define QORE_PATH_SEP_STR ";"
+  #include <winsock2.h>
 #else
   #ifdef HAVE_GCC_VISIBILITY
     #define DLLEXPORT __attribute__ ((visibility("default")))
@@ -144,7 +147,6 @@ class AbstractPrivateData;
 class QoreMethod;
 class QoreBuiltinMethod;
 class QoreClass;
-class QoreTypeInfo;
 struct QoreValue;
 class QoreValueList;
 

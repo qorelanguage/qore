@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/QoreClassIntern.h"
 
-StaticClassVarRefNode::StaticClassVarRefNode(const char *c_str, const QoreClass &n_qc, QoreVarInfo &n_vi) : ParseNode(NT_CLASS_VARREF), qc(n_qc), vi(n_vi), str(c_str) {
+StaticClassVarRefNode::StaticClassVarRefNode(const QoreProgramLocation& loc, const char *c_str, const QoreClass &n_qc, QoreVarInfo &n_vi) : ParseNode(loc, NT_CLASS_VARREF), qc(n_qc), vi(n_vi), str(c_str) {
 }
 
 StaticClassVarRefNode::~StaticClassVarRefNode() {

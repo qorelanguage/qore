@@ -46,6 +46,11 @@
 #include <ctype.h>
 #include <sys/types.h>
 
+#include <vector>
+
+//! signal vector
+typedef std::vector<int> sig_vec_t;
+
 /** @file QoreLib.h
     contains prototypes for various helper functions in the Qore library
  */
@@ -328,6 +333,11 @@ static inline const char* get_type_name(const AbstractQoreNode* n) {
    return n ? n->getTypeName() : "nothing";
 }
 
+//! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer); differs from the return value of get_type_name() for complex types (ex: \c "hash<string, int>")
+/** @since %Qore 0.8.13
+*/
+DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n);
+
 static inline qore_type_t get_node_type(const AbstractQoreNode* n) {
    return n ? n->getType() : NT_NOTHING;
 }
@@ -405,6 +415,8 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 #define QORE_OPT_RC5                     "openssl rc5"
 //! option: md2 algorithm supported (depends on openssl used to compile qore)
 #define QORE_OPT_MD2                     "openssl md2"
+//! option: dss & dss1 algorithms supported (depends on openssl used to compile qore)
+#define QORE_OPT_DSS                     "openssl dss"
 //! option: TermIOS class available
 #define QORE_OPT_TERMIOS                 "termios"
 //! option: file locking
@@ -437,6 +449,10 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 #define QORE_OPT_FUNC_SETSID             "setsid()"
 //! option: is_executable() function available
 #define QORE_OPT_FUNC_IS_EXECUTABLE      "is_executable()"
+//! option: close_all_fd() function available
+#define QORE_OPT_FUNC_CLOSE_ALL_FD       "close_all_fd()"
+//! option: get_netif_list() function available
+#define QORE_OPT_FUNC_GET_NETIF_LIST     "get_netif_list()"
 
 //! option type feature
 #define QO_OPTION     0
@@ -464,9 +480,57 @@ DLLEXPORT extern size_t qore_option_list_size;
 //! allows a module to take over ownership of a signal
 /** @param sig signal number
     @param name module name taking ownership of managing the signal
-    @return 0 for OK, non-zero for failed (error message)
+
+    @return nullptr for OK, non-zero for failed (error message); in case a QoreStringNode pointer is returned, the caller must dereference it
+
+    @see
+    - @ref qore_reassign_signals() to allocate multiple signals to a module atomically
+    - @ref qore_release_signal() to release a signal allocation manually
+    - @ref qore_release_signals() to release multiple signal allocations manually
  */
 DLLEXPORT QoreStringNode* qore_reassign_signal(int sig, const char* name);
+
+//! allows a module to take over ownership of multiple signals atomically
+/** @param sig_vec a vector of signal numbers to allocate to the module
+    @param name module name taking ownership of managing the signal
+
+    @return nullptr for OK (all signals were allocated to the module), non-zero for failed (error message; no signals were allocated); in case a QoreStringNode pointer is returned, the caller must dereference it
+
+    @note if any signal cannot be allocated to the module, no signals are allocated to the module; the call either succeeds for all or fails for all; no partial failures are possible; use this variant when allocating multiple signals to a module
+
+    @see
+    - @ref qore_reassign_signal() to allocate a single signal to a module
+    - @ref qore_release_signal() to release a signal allocation manually
+    - @ref qore_release_signals() to release multiple signal allocations manually
+
+    @since %Qore 0.8.13.1
+*/
+DLLEXPORT QoreStringNode* qore_reassign_signals(const sig_vec_t& sig_vec, const char* name);
+
+//! releases the signal allocated to the given module
+/** @param sig the signal number allocated to the module
+    @param name module name owning the signal
+
+    @return 0 = signal allocation released, -1 = no changes were made (module does not manage signal)
+
+    @see
+    - @ref qore_reassign_signal() to allocate a single signal to a module
+    - @ref qore_reassign_signals() to allocate multiple signals to a module atomically
+    - @ref qore_release_signals() to release multiple signal allocations manually
+
+    @since %Qore 0.8.13.1
+*/
+DLLEXPORT int qore_release_signal(int sig, const char* name);
+
+//! releases multiple signals allocated to the given module atomically
+/** @param sig_vec a vector of signal numbers to allocate to the module
+    @param name module name owning the signals
+
+    @return 0 = signal allocations released, -1 = no changes were made (module does not manage at least one signal)
+
+    @since %Qore 0.8.13.1
+*/
+DLLEXPORT int qore_release_signals(const sig_vec_t& sig_vec, const char* name);
 
 //! macro to return the maximum of 2 numbers
 #define QORE_MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -568,14 +632,20 @@ DLLEXPORT bool q_libqore_shutdown();
 DLLEXPORT QoreHashNode* q_get_thread_local_vars(int frame, ExceptionSink* xsink);
 
 //! sets the value of the given thread-local variable (which may be a closure-bound variable as well) in the current stack frame for the current thread's QoreProgram object
-/** @param name the name of the variable
+/** @param frame the stack frame where 0 is the current (highest) stack frame
+    @param name the name of the variable
     @param val the value to assign; the value will be referenced for the assignment if one is made
     @param xsink for Qore-language exceptions
 
-    @return 0 = OK or -1 a Qore-language exception occurred making the assignment (ex: incompatible types) or variable not found
+    @return 0 = OK or -1 = a Qore-language exception occurred making the assignment (ex: incompatible types) or 1 = variable not found or inaccessible stack frame (no exception thrown)
 
     @note pure local variables (i.e. not closure bound and not subject to the reference operator) are not stored with type information at runtime; type information is only enforced at parse / compile time, therefore it's possible to set local variables with invalid values that contradict their declarations with this function
+
+    @since %Qore 0.8.13
  */
-DLLEXPORT int q_thread_set_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
+DLLEXPORT int q_set_thread_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink);
+
+//! returns the pointer and size for string or binary data (return 0); no change for other data (return -1)
+DLLEXPORT int q_get_data(const QoreValue& data, const char*& ptr, size_t& len);
 
 #endif // _QORE_QORELIB_H

@@ -25,7 +25,7 @@ class CatchTypeTest inherits QUnit::Test {
         p.parse("try{}catch(my hash ex){ ex = {}; }", "");
         p.parse("try{}catch(*hash ex){ ex = NOTHING; }", "");
         p.parse("try{}catch(any ex){ ex = 5; }", "");
-        assertThrows("PARSE-EXCEPTION", "the type of catch parameter 'ex' must be 'hash'",
+        assertThrows("PARSE-EXCEPTION", "catch block",
             \p.parse(), ("try{}catch(my int ex){}", ""));
         assertThrows("PARSE-TYPE-ERROR", "lvalue for assignment operator.*expects type 'hash', but right-hand side is type 'int'",
             \p.parse(), ("try{}catch(hash ex){ ex = 5; }", ""));

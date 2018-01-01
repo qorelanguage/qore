@@ -20,7 +20,7 @@ class MkdirTest inherits QUnit::Test {
         const dir_par = "/mkparpos3";
     }
 
-    constructor() : Test("Read Test", "1.0") {
+    constructor() : Test("mkdir Test", "1.0") {
         addTestCase("mkdirPosTest", \mkdirPosTest());
         addTestCase("mkdirNegTest", \mkdirNegTest());
         addTestCase("mkdirParentTest", \mkdirParentTest());
@@ -32,25 +32,30 @@ class MkdirTest inherits QUnit::Test {
         string dir = tmp_location() + dir_pos;
         on_exit rmdir(dir);
         int ret = mkdir(dir);
-        testAssertionValue('Directory shall be created.', ret, 0);
+        assertEq(0, ret);
     }
 
     mkdirNegTest() {
         string dir = tmp_location() + dir_neg;
         on_exit rmdir(dir);
         int ret = mkdir(dir);
-        testAssertionValue("Directory shall not be created.", ret, -1);
+        assertEq(-1, ret);
     }
+
     mkdirParentTest() {
-        string dir = tmp_location() + dir_par;
-        string dir2 = dir + "/mk2";
-        string dir3 = dir2 + "/mk3";
+        string dir1 = tmp_location() + dir_par;
+        string dir2 = dir1 + DirSep + "mk2";
+        string dir3 = dir2 + DirSep + "mk3";
+        int ret = mkdir(dir3, 0777, True);
         on_exit {
             rmdir(dir3);
             rmdir(dir2);
-            rmdir(dir);
+            rmdir(dir1);
         }
-        int ret = mkdir(dir3, 0777, True);
-        testAssertionValue("Directories shall be created.", ret, 3);
+        assertEq("DIRECTORY", hstat(dir3).type);
+        assertEq("DIRECTORY", hstat(dir2).type);
+        assertEq("DIRECTORY", hstat(dir1).type);
+
+        assertEq(3, ret);
     }
 }

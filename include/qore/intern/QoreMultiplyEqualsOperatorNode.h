@@ -40,7 +40,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreMultiplyEqualsOperatorNode(AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryLValueOperatorNode(n_left, n_right) {
+   DLLLOCAL QoreMultiplyEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryLValueOperatorNode(loc, n_left, n_right) {
    }
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
@@ -56,16 +56,16 @@ public:
 
       if (!QoreTypeInfo::isType(ti, NT_NUMBER)) {
          if (QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER)) {
-            check_lvalue_number(ti, name);
+            check_lvalue_number(loc, ti, name);
             ti = numberTypeInfo;
          }
          else if (!QoreTypeInfo::isType(ti, NT_FLOAT)) {
             if (QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT)) {
-               check_lvalue_float(ti, name);
+               check_lvalue_float(loc, ti, name);
                ti = floatTypeInfo;
             }
             else if (QoreTypeInfo::returnsSingle(ti)) {
-               check_lvalue_int(ti, name);
+               check_lvalue_int(loc, ti, name);
                ti = bigIntTypeInfo;
             }
             else

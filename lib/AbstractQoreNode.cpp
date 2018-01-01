@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -90,9 +90,9 @@ void AbstractQoreNode::ref() const {
 #endif
    if (!there_can_be_only_one) {
       if (custom_reference_handlers)
-	 customRef();
+         customRef();
       else
-	 ROreference();
+         ROreference();
    }
 }
 
@@ -132,10 +132,10 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
 #endif
    if (references.load() > 10000000 || references.load() <= 0){
       if (type == NT_STRING)
-	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s) (val=\"%s\")\n",
-		this, references.load(), getTypeName(), ((QoreStringNode*)this)->getBuffer());
+         printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s) (val=\"%s\")\n",
+                this, references.load(), getTypeName(), ((QoreStringNode*)this)->getBuffer());
       else
-	 printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references.load(), getTypeName());
+         printd(0, "AbstractQoreNode::deref() WARNING, node %p references: %d (type: %s)\n", this, references.load(), getTypeName());
       assert(false);
    }
 #endif
@@ -151,7 +151,7 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
    }
    else if (ROdereference()) {
       if (type < NUM_SIMPLE_TYPES || derefImpl(xsink))
-	 delete this;
+         delete this;
    }
 }
 
@@ -191,7 +191,7 @@ AbstractQoreNode* AbstractQoreNode::eval(ExceptionSink* xsink) const {
 }
 
 // AbstractQoreNode::eval(): return value requires a dereference if needs_deref is true
-AbstractQoreNode* AbstractQoreNode::eval(bool &needs_deref, ExceptionSink* xsink) const {
+AbstractQoreNode* AbstractQoreNode::eval(bool& needs_deref, ExceptionSink* xsink) const {
    if (!needs_eval_flag) {
       needs_deref = false;
       return const_cast<AbstractQoreNode*>(this);
@@ -426,9 +426,15 @@ static inline QoreListNode* crlr_list_copy(const QoreListNode* n, ExceptionSink*
    for (unsigned i = 0; i < n->size(); i++) {
       l->push(copy_and_resolve_lvar_refs(n->retrieve_entry(i), xsink));
       if (*xsink)
-	 return 0;
+         return 0;
    }
    return l.release();
+}
+
+static inline QoreParseListNode* crlr_list_copy(const QoreParseListNode* n, ExceptionSink* xsink) {
+   assert(xsink);
+   ReferenceHolder<QoreParseListNode> l(new QoreParseListNode(*n, xsink), xsink);
+   return *xsink ? nullptr : l.release();
 }
 
 static inline QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSink* xsink) {
@@ -437,7 +443,7 @@ static inline QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSin
    for (unsigned i = 0; i < n->size(); i++) {
       l->push(copy_value_and_resolve_lvar_refs(n->retrieveEntry(i), xsink));
       if (*xsink)
-	 return 0;
+         return 0;
    }
    return l.release();
 }
@@ -449,7 +455,7 @@ static inline AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionS
    while (hi.next()) {
       h->setKeyValue(hi.getKey(), copy_and_resolve_lvar_refs(hi.getValue(), xsink), xsink);
       if (*xsink)
-	 return 0;
+         return 0;
    }
    return h.release();
 }
@@ -467,7 +473,7 @@ static inline AbstractQoreNode* crlr_fcall_copy(const FunctionCallNode* n, Excep
    if (na)
       na = crlr_list_copy(na, xsink);
 
-   return new FunctionCallNode(n->getFunction(), na, n->getProgram());
+   return new FunctionCallNode(*n, na);
 }
 
 static inline AbstractQoreNode* crlr_mcall_copy(const MethodCallNode* m, ExceptionSink* xsink) {
@@ -477,7 +483,7 @@ static inline AbstractQoreNode* crlr_mcall_copy(const MethodCallNode* m, Excepti
    if (args) {
       ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
       if (*xsink)
-	 return 0;
+         return nullptr;
 
       args = args_holder.release();
    }
@@ -492,12 +498,13 @@ static inline AbstractQoreNode* crlr_smcall_copy(const StaticMethodCallNode* m, 
    if (args) {
       ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
       if (*xsink)
-	 return 0;
+         return 0;
 
       args = args_holder.release();
    }
 
-   return new StaticMethodCallNode(m->getMethod(), args);
+   return new StaticMethodCallNode(*m, args);
+//   return new StaticMethodCallNode(m->loc, m->getMethod(), args);
 }
 
 static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, ExceptionSink* xsink) {
@@ -510,12 +517,12 @@ static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, Exce
    if (args) {
       ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
       if (*xsink)
-	 return 0;
+         return 0;
 
       args = args_holder.release();
    }
 
-   return new CallReferenceCallNode(exp.release(), args);
+   return new CallReferenceCallNode(n->loc, exp.release(), args);
 }
 
 static AbstractQoreNode* eval_notnull(const AbstractQoreNode* n, ExceptionSink* xsink) {
@@ -540,6 +547,9 @@ AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, Exceptio
 
    if (ntype == NT_LIST)
       return crlr_list_copy(reinterpret_cast<const QoreListNode*>(n), xsink);
+
+   if (ntype == NT_PARSE_LIST)
+      return crlr_list_copy(reinterpret_cast<const QoreParseListNode*>(n), xsink);
 
    if (ntype == NT_HASH)
       return crlr_hash_copy(reinterpret_cast<const QoreHashNode*>(n), xsink);
@@ -626,6 +636,14 @@ AbstractQoreNode* UniqueValueQoreNode::realCopy() const {
    return const_cast<UniqueValueQoreNode*>(this);
 }
 
+int64 get_ms_zero(const QoreValue& n) {
+   if (n.isNothing())
+      return -1;
+   if (n.getType() == NT_DATE)
+      return n.get<const DateTimeNode>()->getRelativeMilliseconds();
+   return n.getAsBigInt();
+}
+
 bool needs_scan(const AbstractQoreNode* n) {
    if (!n)
       return false;
@@ -634,7 +652,7 @@ bool needs_scan(const AbstractQoreNode* n) {
       case NT_LIST: return qore_list_private::getScanCount(*static_cast<const QoreListNode*>(n)) ? true : false;
       case NT_HASH: return qore_hash_private::getScanCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
       case NT_OBJECT: return true;
-      case NT_VALUE_LIST: assert(false); return qore_value_list_private::getScanCount(*static_cast<const QoreValueList*>(n)) ? true : false;
+      case NT_VALUE_LIST: /*assert(false);*/ return qore_value_list_private::getScanCount(*static_cast<const QoreValueList*>(n)) ? true : false;
       case NT_RUNTIME_CLOSURE: return static_cast<const QoreClosureBase*>(n)->needsScan();
       case NT_REFERENCE: return lvalue_ref::get(static_cast<const ReferenceNode*>(n))->needsScan();
    }
@@ -648,7 +666,71 @@ void inc_container_obj(const AbstractQoreNode* n, int dt) {
       case NT_LIST: qore_list_private::incScanCount(*static_cast<const QoreListNode*>(n), dt); break;
       case NT_HASH: qore_hash_private::incScanCount(*static_cast<const QoreHashNode*>(n), dt); break;
       case NT_OBJECT: qore_object_private::incScanCount(*static_cast<const QoreObject*>(n), dt); break;
-      case NT_VALUE_LIST: assert(false); qore_value_list_private::incScanCount(*static_cast<const QoreValueList*>(n), dt); break;
+      case NT_VALUE_LIST: /*assert(false);*/ qore_value_list_private::incScanCount(*static_cast<const QoreValueList*>(n), dt); break;
       default: assert(false);
    }
+}
+
+bool has_complex_type(const AbstractQoreNode* n) {
+   switch (get_node_type(n)) {
+      case NT_LIST: {
+         const QoreListNode* l = static_cast<const QoreListNode*>(n);
+         if (QoreTypeInfo::hasType(l->getValueTypeInfo()))
+            return true;
+         ConstListIterator i(l);
+         while (i.next()) {
+            if (has_complex_type(i.getValue()))
+               return true;
+         }
+         return false;
+      }
+      case NT_HASH: {
+         const QoreHashNode* h = static_cast<const QoreHashNode*>(n);
+         if (QoreTypeInfo::hasType(h->getValueTypeInfo()) || h->getHashDecl())
+            return true;
+         ConstHashIterator i(h);
+         while (i.next()) {
+            if (has_complex_type(i.getValue()))
+               return true;
+         }
+         return false;
+      }
+      default:
+         break;
+   }
+   return false;
+}
+
+static QoreHashNode* do_copy_strip(const QoreHashNode* h) {
+   ReferenceHolder<QoreHashNode> nh(new QoreHashNode, nullptr);
+   ConstHashIterator i(h);
+   while (i.next()) {
+      nh->setKeyValue(i.getKey(), copy_strip_complex_types(i.getValue()), nullptr);
+   }
+   return nh.release();
+}
+
+static QoreListNode* do_copy_strip(const QoreListNode* l) {
+   ReferenceHolder<QoreListNode> nl(new QoreListNode, nullptr);
+   ConstListIterator i(l);
+   while (i.next()) {
+      nl->push(copy_strip_complex_types(i.getValue()));
+   }
+   return nl.release();
+}
+
+AbstractQoreNode* copy_strip_complex_types(const AbstractQoreNode* n) {
+   if (!n)
+      return nullptr;
+   if (!has_complex_type(n))
+      return n->refSelf();
+   switch (get_node_type(n)) {
+      case NT_LIST:
+         return do_copy_strip(static_cast<const QoreListNode*>(n));
+      case NT_HASH:
+         return do_copy_strip(static_cast<const QoreHashNode*>(n));
+      default:
+         break;
+   }
+   return n->refSelf();
 }

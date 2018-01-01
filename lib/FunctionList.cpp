@@ -1,10 +1,10 @@
 /*
   FunctionList.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
+
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -38,8 +38,8 @@ qore_ns_private* FunctionEntry::getNamespace() const {
    return func->getNamespace();
 }
 
-ResolvedCallReferenceNode* FunctionEntry::makeCallReference() const {
-   return new LocalFunctionCallReferenceNode(func);
+ResolvedCallReferenceNode* FunctionEntry::makeCallReference(const QoreProgramLocation& loc) const {
+   return new LocalFunctionCallReferenceNode(loc, func);
 }
 
 void FunctionEntry::updateNs(qore_ns_private* ns) {
@@ -128,7 +128,7 @@ QoreListNode* FunctionList::getList() {
    QoreListNode* l = new QoreListNode;
 
    for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
-      l->push(new QoreStringNode(i->first));      
+      l->push(new QoreStringNode(i->first));
 
    return l;
 }
@@ -169,7 +169,7 @@ void FunctionList::assimilate(FunctionList& fl, qore_ns_private* ns) {
       }
 
       fl.erase(i++);
-   }   
+   }
 }
 
 int FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private* ns, ExceptionSink* xsink) {

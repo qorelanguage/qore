@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -319,6 +319,7 @@ bool <string>::intp() [flags=CONSTANT] {
     @endcode
 
     @throw INVALID-BASE the base is invalid; must be 0 or 2 - 36 inclusive
+    @throw UNSUPPORTED-ENCODING only ASCII-compatible encodings are currently supported
 
     @see <value>::toInt()
     @see Qore::int(string str, int base = 10)
@@ -328,6 +329,8 @@ bool <string>::intp() [flags=CONSTANT] {
 int <string>::toInt(int base=10) [flags=RET_VALUE_ONLY] {
     if (base < 0 || base == 1 || base > 36)
         return xsink -> raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 0 or 2 - 36 inclusive", base);
+    if (!str->getEncoding()->isAsciiCompat())
+        return xsink -> raiseException("UNSUPPORTED-ENCODING", "cannot convert string in non-ASCII-compatible encoding \"%s\" to an integer", str->getEncoding()->getCode());
     return strtoll(str -> getBuffer(), 0, (int)base);
 }
 
@@ -406,7 +409,7 @@ string <string>::substr(softint start, softint len) [flags=RET_VALUE_ONLY] {
     @par Example:
     @code{.py}
 string str = "some:text:here";
-list list = str.split(":"); # returns ("some", "text", "here")
+list<string> list = str.split(":"); # returns ("some", "text", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -415,7 +418,7 @@ list list = str.split(":"); # returns ("some", "text", "here")
 
     @since %Qore 0.8.5
  */
-list <string>::split(string sep, bool with_separator = False) [flags=RET_VALUE_ONLY] {
+list<string> <string>::split(string sep, bool with_separator = False) [flags=RET_VALUE_ONLY] {
    // convert pattern encoding to string if necessary
    TempEncodingHelper temp(sep, str->getEncoding(), xsink);
    if (*xsink)
@@ -437,7 +440,7 @@ list <string>::split(string sep, bool with_separator = False) [flags=RET_VALUE_O
 
     @par Example:
     @code{.py}
-list list = "some,'text with spaces, and commas, here is another one! ,',here".split(",", "'"); # returns ("some", ", and commas, here is another one! ,", "here")
+list<string> list = "some,'text with spaces, and commas, here is another one! ,',here".split(",", "'"); # returns ("some", ", and commas, here is another one! ,", "here")
     @endcode
 
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
@@ -449,7 +452,7 @@ list list = "some,'text with spaces, and commas, here is another one! ,',here".s
     - %Qore 0.8.5 added this pseudo-method
     - %Qore 0.8.6 added the \c trim_unquoted parameter
  */
-list <string>::split(string sep, string quote, bool trim_unquoted = False) [flags=RET_VALUE_ONLY] {
+list<string> <string>::split(string sep, string quote, bool trim_unquoted = False) [flags=RET_VALUE_ONLY] {
    return split_with_quote(sep, str, quote, trim_unquoted, xsink);
 }
 
@@ -495,7 +498,7 @@ bool <string>::regex(string regex, int options = 0) [flags=RET_VALUE_ONLY] {
     @par Example:
     @code{.py}
 string str = "ns:element";
-*list rv = str.regexExtract("(\\w+):(\\w+)");
+*list<string> rv = str.regexExtract("(\\w+):(\\w+)");
     @endcode
 
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
@@ -510,7 +513,7 @@ string str = "ns:element";
 
     @since %Qore 0.8.8 this function accepts the @ref Qore::RE_Global option to extract all occurrences of the pattern(s) in a string
  */
-*list <string>::regexExtract(string regex, int options = 0) [flags=RET_VALUE_ONLY] {
+*list<string> <string>::regexExtract(string regex, int options = 0) [flags=RET_VALUE_ONLY] {
    QoreRegex qr(*regex, options, xsink);
    if (*xsink)
       return QoreValue();
@@ -911,7 +914,7 @@ bool <string>::sizep() [flags=CONSTANT] {
 
     @since %Qore 0.8.9
  */
-*string <string>::getLine(int offset = 0, *string eol, bool trim = True, *reference size) [flags=CONSTANT] {
+*string <string>::getLine(int offset = 0, *string eol, bool trim = True, *reference<int> size) [flags=CONSTANT] {
    if (str->empty())
       return QoreValue();
 

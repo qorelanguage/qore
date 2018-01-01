@@ -85,7 +85,10 @@ class qore_class_private;
 class AbstractQoreFunctionVariant;
 class AbstractQoreZoneInfo;
 class ThreadProgramData;
+struct ThreadLocalProgramData;
 class QoreAbstractModule;
+class QoreRWLock;
+
 
 DLLLOCAL extern Operator* OP_BACKGROUND;
 
@@ -186,16 +189,19 @@ class QoreClosureParseNode;
 
 class QoreModuleDefContext {
 protected:
-   DLLLOCAL void initClosure(AbstractQoreNode*& c, const char* n);
+   DLLLOCAL void initClosure(const QoreProgramLocation& loc, AbstractQoreNode*& c, const char* n);
 
 public:
    typedef std::set<std::string> strset_t;
    typedef std::map<std::string, std::string> strmap_t;
 
-   AbstractQoreNode* init_c, // the initialization closure
-      * del_c;               // the destructor closure
+   AbstractQoreNode* init_c = nullptr, // the initialization closure
+      * del_c = nullptr;               // the destructor closure
 
-   DLLLOCAL QoreModuleDefContext() : init_c(0), del_c(0) {
+   QoreProgramLocation init_loc,
+      del_loc;
+
+   DLLLOCAL QoreModuleDefContext() {
    }
 
    DLLLOCAL ~QoreModuleDefContext() {
@@ -211,7 +217,7 @@ public:
    // set of tag definitions
    strmap_t vmap;
 
-   DLLLOCAL void set(const char* key, const AbstractQoreNode* val);
+   DLLLOCAL void set(const QoreProgramLocation& loc, const char* key, const AbstractQoreNode* val);
 
    DLLLOCAL const char* get(const char* str) const {
       strmap_t::const_iterator i = vmap.find(str);
@@ -241,11 +247,13 @@ DLLLOCAL QoreProgramLocation get_runtime_location();
 DLLLOCAL QoreProgramLocation update_get_runtime_location(const QoreProgramLocation& loc);
 DLLLOCAL void update_runtime_location(const QoreProgramLocation& loc);
 
-DLLLOCAL void update_parse_line_location(int start_line, int end_line);
 DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
 DLLLOCAL const char* get_parse_code();
 DLLLOCAL QoreProgramLocation get_parse_location();
 DLLLOCAL void update_parse_location(const QoreProgramLocation& loc);
+
+DLLLOCAL const QoreTypeInfo* parse_set_implicit_arg_type_info(const QoreTypeInfo* ti);
+DLLLOCAL const QoreTypeInfo* parse_get_implicit_arg_type_info();
 
 DLLLOCAL int64 parse_get_parse_options();
 DLLLOCAL int64 runtime_get_parse_options();
@@ -270,11 +278,11 @@ DLLLOCAL void end_signal_thread(ExceptionSink* xsink);
 DLLLOCAL void delete_thread_local_data();
 DLLLOCAL void parse_cond_push(bool mark = false);
 DLLLOCAL bool parse_cond_else();
-DLLLOCAL bool parse_cond_pop();
-DLLLOCAL bool parse_cond_test();
+DLLLOCAL bool parse_cond_pop(const QoreProgramLocation& loc);
+DLLLOCAL bool parse_cond_test(const QoreProgramLocation& loc);
 DLLLOCAL void push_parse_options();
 DLLLOCAL void parse_try_module_inc();
-DLLLOCAL bool parse_try_module_dec();
+DLLLOCAL bool parse_try_module_dec(const QoreProgramLocation& loc);
 DLLLOCAL unsigned parse_try_module_get();
 DLLLOCAL void parse_try_module_set(unsigned c);
 
@@ -291,11 +299,15 @@ DLLLOCAL void parse_set_module_def_context_name(const char* name);
 DLLLOCAL const char* set_user_module_context_name(const char* n);
 DLLLOCAL const char* get_user_module_context_name();
 
+DLLLOCAL void parse_set_try_reexport(bool tr);
+DLLLOCAL bool parse_get_try_reexport();
+
 DLLLOCAL void set_thread_tz(const AbstractQoreZoneInfo* tz);
 DLLLOCAL const AbstractQoreZoneInfo* get_thread_tz(bool& set);
 DLLLOCAL void clear_thread_tz();
 
 DLLLOCAL ThreadProgramData* get_thread_program_data();
+DLLLOCAL ThreadLocalProgramData* get_thread_local_program_data();
 
 DLLLOCAL int thread_ref_set(const lvalue_ref* r);
 DLLLOCAL void thread_ref_remove(const lvalue_ref* r);
@@ -387,9 +399,9 @@ public:
 
 class QoreProgramLocationHelper {
 protected:
-   QoreProgramLocation loc;
+   const QoreProgramLocation loc;
 public:
-   DLLLOCAL QoreProgramLocationHelper(QoreProgramLocation& n_loc) : loc(update_get_runtime_location(n_loc)) {
+   DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation& n_loc) : loc(update_get_runtime_location(n_loc)) {
    }
 
    DLLLOCAL ~QoreProgramLocationHelper() {
@@ -403,7 +415,7 @@ protected:
    bool restore;
 
 public:
-   DLLLOCAL QoreProgramOptionalLocationHelper(QoreProgramLocation* n_loc) : restore((bool)n_loc) {
+   DLLLOCAL QoreProgramOptionalLocationHelper(const QoreProgramLocation* n_loc) : restore((bool)n_loc) {
       if (n_loc)
          loc = update_get_runtime_location(*n_loc);
    }
@@ -426,6 +438,20 @@ private:
    // not implemented
    CurrentProgramRuntimeParseContextHelper(const CurrentProgramRuntimeParseContextHelper&) = delete;
    void* operator new(size_t) = delete;
+};
+
+// allows for implicit argument types to be set at parse time
+class ParseImplicitArgTypeHelper {
+public:
+   DLLLOCAL ParseImplicitArgTypeHelper(const QoreTypeInfo* ti) : ati(parse_set_implicit_arg_type_info(ti)) {
+   }
+
+   DLLLOCAL ~ParseImplicitArgTypeHelper() {
+      parse_set_implicit_arg_type_info(ati);
+   }
+
+private:
+   const QoreTypeInfo* ati;
 };
 
 // acquires a TID and thread entry, returns -1 if not successful
@@ -455,7 +481,7 @@ DLLLOCAL void thread_uninstantiate_self();
 DLLLOCAL void thread_set_closure_parse_env(ClosureParseEnvironment* cenv);
 DLLLOCAL ClosureParseEnvironment* thread_get_closure_parse_env();
 
-DLLLOCAL ClosureVarValue* thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval);
+DLLLOCAL ClosureVarValue* thread_instantiate_closure_var(const char* id, const QoreTypeInfo* typeInfo, QoreValue& nval, bool assign);
 DLLLOCAL void thread_instantiate_closure_var(ClosureVarValue* cvar);
 DLLLOCAL void thread_uninstantiate_closure_var(ExceptionSink* xsink);
 DLLLOCAL ClosureVarValue* thread_find_closure_var(const char* id);
@@ -471,9 +497,9 @@ DLLLOCAL void thread_pop_frame_boundary();
 
 DLLLOCAL QoreHashNode* thread_get_local_vars(int frame, ExceptionSink* xsink);
 // returns 0 = OK, 1 = no such variable, -1 exception setting variable
-DLLLOCAL int thread_set_local_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
+DLLLOCAL int thread_set_local_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink);
 // returns 0 = OK, 1 = no such variable, -1 exception setting variable
-DLLLOCAL int thread_set_closure_var_value(const char* name, const QoreValue& val, ExceptionSink* xsink);
+DLLLOCAL int thread_set_closure_var_value(int frame, const char* name, const QoreValue& val, ExceptionSink* xsink);
 
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);
@@ -604,14 +630,32 @@ public:
 };
 
 class ProgramThreadCountContextHelper {
-protected:
-   QoreProgram* old_pgm;
-   ThreadLocalProgramData* old_tlpd;
-   bool restore;
-
 public:
    DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
    DLLLOCAL ~ProgramThreadCountContextHelper();
+
+   DLLLOCAL int getNextContext(ThreadLocalProgramData*& tlpd, ProgramThreadCountContextHelper*& ch) const {
+      if (!nextOk() || !old_ctx)
+         return -1;
+      tlpd = old_tlpd;
+      ch = old_ctx;
+      return 0;
+   }
+
+   DLLLOCAL QoreProgram* getProgram() const {
+      return old_pgm;
+   }
+
+protected:
+   QoreProgram* old_pgm = nullptr;
+   ThreadLocalProgramData* old_tlpd = nullptr;
+   ProgramThreadCountContextHelper* old_ctx = nullptr;
+   bool restore = false;
+
+   // returns true if the next program allows debugging
+   DLLLOCAL bool nextOk() const {
+      return old_pgm;
+   }
 };
 
 class ProgramRuntimeParseContextHelper {
@@ -658,7 +702,7 @@ public:
       : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self, r.cls) {
       //printd(5, "RuntimeReferenceHelperBase::RuntimeReferenceHelperBase() this: %p vexp: %p %s %d\n", this, r.vexp, get_type_name(r.vexp), get_node_type(r.vexp));
       if (thread_ref_set(&r)) {
-         ref = 0;
+         ref = nullptr;
          n_xsink->raiseException("CIRCULAR-REFERENCE-ERROR", "a circular lvalue reference was detected");
          valid = false;
       }
@@ -916,6 +960,7 @@ public:
       if (ROdereference())
          delete this;
    }
+   DLLLOCAL int gettid();
 };
 
 class ThreadFrameBoundaryHelper {
@@ -930,5 +975,6 @@ public:
 };
 
 DLLLOCAL extern pthread_mutexattr_t ma_recursive;
+DLLLOCAL extern QoreRWLock lck_debug_program;
 
 #endif

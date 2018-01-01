@@ -75,6 +75,38 @@ class Test2 {
     }
 }
 
+class Test3 {
+    public {
+        Test3 t();
+    }
+}
+
+# issue #2030
+class B2030_1 {
+    public {
+        *list l0;
+    }
+
+    constructor() {
+        l0 = argv[0];
+    }
+}
+
+class B2030_2 {
+    public {
+        *list l1;
+    }
+
+    constructor() {
+        l1 = argv[0];
+    }
+}
+
+class C2030 inherits B2030_1, B2030_2 {
+    constructor() : B2030_1(argv), B2030_2(argv) {
+    }
+}
+
 int sub throw_exception() {
     throw "TEST", "test";
 }
@@ -154,17 +186,47 @@ class Issue1576 {
     public {}
 }
 
+# https://github.com/qorelanguage/qore/issues/2380
+class Issue2380 {
+    private:internal int x() {
+        return 1;
+    }
+
+    int y(int i) {
+        return x();
+    }
+
+    z() {}
+}
+
+class Issue2380Child inherits Issue2380 {
+    int z() {
+        return y(1);
+    }
+
+    int y(string str) {
+        return 2;
+    }
+}
+
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         addTestCase("Class library test", \classLibraryTest());
         addTestCase("Deprecated method test", \deprecatedMethodTest());
         addTestCase("Deletion test", \deletionTest());
+        addTestCase("recursive test", \recursiveTest());
         addTestCase("Built-in class w/o methods", \builtinNoMethods());
         addTestCase("Base class tests", \baseClassTests());
         addTestCase("misc tests", \miscTests());
+        addTestCase("issue 2380", \issue2380());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue2380() {
+        Issue2380Child c();
+        assertEq(1, c.z());
     }
 
     classLibraryTest() {
@@ -243,7 +305,7 @@ public class ClassesTest inherits QUnit::Test {
         catch (hash nex) {
             ex = nex;
         }
-        assertEq(88, ex.callstack[0].line);
+        assertEq(120, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);
@@ -387,6 +449,17 @@ public class ClassesTest inherits QUnit::Test {
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\B::copy();}}", ""));
             # ensure that call references cannot be taken of copy methods
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}}sub t(){C c();code cd=\\c.copy();cd();}", ""));
+
+            # ensure that circular references in class hierarchies are found
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B inherits A; class C inherits B; class A inherits C;", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B inherits A; class C inherits B, A; class A inherits C;", ""));
+        }
+
+        {
+            # ensure that multiple inheritance allows the case when a single class is inherited more than once
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+            p.parse("class A; class B inherits A; class E inherits A, B;", "");
+            assertTrue(True);
         }
     }
 
@@ -396,5 +469,18 @@ public class ClassesTest inherits QUnit::Test {
 
         Program p(PO_NEW_STYLE | PO_REQUIRE_TYPES);
         assertThrows("ILLEGAL-ABSTRACT-METHOD", \p.parse(), ("class X{static abstract m();}", ""));
+        {
+            C2030 c(1, 2, 3);
+            assertEq(Type::Object, c.type());
+            assertEq((1, 2, 3), c.l0);
+            assertEq((1, 2, 3), c.l1);
+        }
+    }
+
+    recursiveTest() {
+        if (!Option::HAVE_STACK_GUARD)
+            testSkip("Qore library was not built with stack protection support");
+
+        assertThrows("STACK-LIMIT-EXCEEDED", sub () { Test3 t(); });
     }
 }

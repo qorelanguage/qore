@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,7 @@ struct dbi_driver_stmt {
    q_dbi_stmt_fetch_row_t describe;
    q_dbi_stmt_next_t next;
    q_dbi_stmt_define_t define;
-   q_dbi_stmt_close_t close;
+   q_dbi_stmt_close_t close, free;
    q_dbi_stmt_affected_rows_t affected_rows;
    q_dbi_stmt_get_output_t get_output;
    q_dbi_stmt_get_output_rows_t get_output_rows;
@@ -67,7 +67,7 @@ struct dbi_driver_stmt {
    DLLLOCAL dbi_driver_stmt() : prepare(0), prepare_raw(0), bind(0), bind_placeholders(0),
                                 bind_values(0), exec(0), fetch_row(0), fetch_rows(0),
                                 fetch_columns(0), describe(0), next(0), define(0),
-                                close(0), affected_rows(0), get_output(0), get_output_rows(0) {
+                                close(0), free(0), affected_rows(0), get_output(0), get_output_rows(0) {
    }
 };
 
@@ -341,6 +341,10 @@ struct qore_dbi_private {
 
    DLLLOCAL int stmt_close(SQLStatement* stmt, ExceptionSink* xsink) const {
       return f.stmt.close(stmt, xsink);
+   }
+
+   DLLLOCAL int stmt_free(SQLStatement* stmt, ExceptionSink* xsink) const {
+      return f.stmt.free ? f.stmt.free(stmt, xsink) : 0;
    }
 
    DLLLOCAL int opt_set(Datasource* ds, const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,24 +36,30 @@
 #include "qore/intern/InputStreamBase.h"
 #include "qore/Transform.h"
 
-//FIXME this is still work in progress
 class TransformInputStream : public InputStreamBase {
-
 public:
-   TransformInputStream(InputStream *is, Transform *t) :
+   DLLLOCAL TransformInputStream(InputStream *is, Transform *t) :
       is(is),
       t(t),
+      inBufSize(t->inputBufferSize()),
+      outBufSize(t->outputBufferSize()),
+      buf(new char[inBufSize]),
+      outBuf(new char[outBufSize]),
       bufCount(0),
       outBufCount(0),
-      eof(false)
-   {
+      eof(false) {
    }
 
-   const char *getName() override {
+   DLLLOCAL ~TransformInputStream() {
+      delete [] buf;
+      delete [] outBuf;
+   }
+
+   DLLLOCAL const char *getName() override {
       return "TransformInputStream";
    }
 
-   int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
+   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
       if (outBufCount > 0) {
          int64 toCopy = QORE_MIN(static_cast<int64>(outBufCount), limit);
          memcpy(ptr, outBuf, toCopy);
@@ -62,8 +68,8 @@ public:
          return toCopy;
       }
       while (true) {
-         if (!eof && TIS_BUFFER_SIZE - bufCount > 0) {
-            int64 r = is->read(buf + bufCount, TIS_BUFFER_SIZE - bufCount, xsink);
+         if (!eof && inBufSize - bufCount > 0) {
+            int64 r = is->read(buf + bufCount, inBufSize - bufCount, xsink);
             if (*xsink) {
                return 0;
             }
@@ -98,7 +104,7 @@ public:
    DLLLOCAL int64 peek(ExceptionSink* xsink) override {
       if (outBufCount > 0)
          return outBuf[0];
-      int64 rc = read(outBuf, TIS_OUT_BUFFER_SIZE, xsink);
+      int64 rc = read(outBuf, outBufSize, xsink);
       if (*xsink)
          return -2;
       if (rc == 0) {
@@ -110,14 +116,12 @@ public:
    }
 
 private:
-   static constexpr size_t TIS_BUFFER_SIZE = 4096;
-   static constexpr size_t TIS_OUT_BUFFER_SIZE = 1024;
-
-private:
    SimpleRefHolder<InputStream> is;
    SimpleRefHolder<Transform> t;
-   char buf[TIS_BUFFER_SIZE]; //!< Buffer with source data from input stream.
-   char outBuf[TIS_OUT_BUFFER_SIZE]; //!< Output buffer used for peeking.
+   size_t inBufSize; //!< Input buffer size.
+   size_t outBufSize; //!< Output buffer size.
+   char* buf; //!< Buffer with source data from input stream.
+   char* outBuf; //!< Output buffer used for peeking.
    size_t bufCount; //!< Actual count of bytes in the buffer.
    size_t outBufCount; //!< Actual count of bytes in the out buffer.
    bool eof;

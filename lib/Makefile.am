@@ -11,7 +11,7 @@ dummy:
 	echo "Build started!"
 
 EXTRA_INCLUDES = -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_builddir)/lib
-libqore_la_LDFLAGS = -version-info 19:0:14 -no-undefined ${QORE_LIB_LDFLAGS}
+libqore_la_LDFLAGS = -version-info 19:2:14 -no-undefined ${QORE_LIB_LDFLAGS}
 AM_CPPFLAGS = $(EXTRA_INCLUDES) ${QORE_LIB_CPPFLAGS}
 AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
 AM_YFLAGS = -d
@@ -43,7 +43,7 @@ QORE_PSEUDO_SRC = Pseudo_QC_All.cpp Pseudo_QC_Bool.cpp Pseudo_QC_Int.cpp \
 	Pseudo_QC_Nothing.cpp Pseudo_QC_Number.cpp
 
 QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC_AbstractSmartLock.cpp \
-        QC_Mutex.cpp QC_AutoLock.cpp \
+	QC_Mutex.cpp QC_AutoLock.cpp \
 	QC_Gate.cpp QC_AutoGate.cpp QC_RWLock.cpp QC_AutoReadLock.cpp QC_AutoWriteLock.cpp \
 	QC_Condition.cpp QC_Sequence.cpp QC_Counter.cpp QC_HTTPClient.cpp QC_FtpClient.cpp \
 	QC_AbstractIterator.cpp QC_AbstractQuantifiedIterator.cpp \
@@ -63,7 +63,8 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_ThreadPool.cpp \
 	QC_TreeMap.cpp \
 	QC_AbstractDatasource.cpp \
-	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_Program.cpp \
+	QC_AbstractSQLStatement.cpp \
+	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_ProgramControl.cpp QC_Program.cpp QC_DebugProgram.cpp QC_Breakpoint.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
 	QC_AbstractThreadResource.cpp \
 	QC_InputStream.cpp QC_OutputStream.cpp \
@@ -122,6 +123,7 @@ libqore_la_SOURCES = \
 	ContextRowNode.cpp \
 	VarRefNode.cpp \
 	FunctionCallNode.cpp \
+	NewComplexTypeNode.cpp \
 	ReferenceNode.cpp \
 	lvalue_ref.cpp \
 	ScopedRefNode.cpp \
@@ -158,6 +160,7 @@ libqore_la_SOURCES = \
 	ThrowStatement.cpp \
 	SwitchStatement.cpp \
 	Variable.cpp \
+	WeakReferenceNode.cpp \
 	support.cpp \
 	QoreType.cpp \
 	ModuleManager.cpp \
@@ -165,6 +168,7 @@ libqore_la_SOURCES = \
 	ExceptionSink.cpp \
 	QoreStandardException.cpp \
 	QoreClass.cpp \
+	TypedHashDecl.cpp \
 	Context.cpp \
 	FindNode.cpp \
 	charset.cpp \
@@ -185,6 +189,7 @@ libqore_la_SOURCES = \
 	QoreString.cpp \
 	QoreObject.cpp \
 	RSet.cpp \
+	RSection.cpp \
 	QoreListNode.cpp \
 	qore-main.cpp \
 	QoreGetOpt.cpp \
@@ -199,6 +204,7 @@ libqore_la_SOURCES = \
 	ReferenceHelper.cpp \
 	ConstantList.cpp \
 	QoreClassList.cpp \
+	HashDeclList.cpp \
 	ThreadResourceList.cpp \
 	AbstractThreadResource.cpp \
 	thread.cpp \
@@ -226,6 +232,8 @@ libqore_la_SOURCES = \
 	SmartMutex.cpp \
 	QoreCounter.cpp \
 	CallReferenceNode.cpp \
+	QoreParseHashNode.cpp \
+	QoreParseListNode.cpp \
 	QoreClosureParseNode.cpp \
 	QoreClosureNode.cpp \
 	QoreImplicitArgumentNode.cpp \
@@ -310,12 +318,16 @@ libqore_la_SOURCES = \
 	QoreMinusOperatorNode.cpp \
 	QoreMultiplicationOperatorNode.cpp \
 	QoreBackgroundOperatorNode.cpp \
+	QoreRangeOperatorNode.cpp \
+	QoreSquareBracketsRangeOperatorNode.cpp \
 	QorePseudoMethods.cpp \
 	QoreHTTPClient.cpp \
 	QoreHttpClientObject.cpp \
 	QoreValue.cpp \
 	StreamPipe.cpp \
 	CompressionTransforms.cpp \
+	EncryptionTransforms.cpp \
+	Transform.cpp \
 	xxhash.cpp \
 	minitest.cpp \
 	QoreValueList.cpp \

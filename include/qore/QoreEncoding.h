@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -64,7 +64,7 @@ typedef qore_size_t (*mbcs_pos_t)(const char* str, const char* ptr, bool &invali
  */
 typedef qore_offset_t (*mbcs_charlen_t)(const char* str, qore_size_t valid_len);
 
-//! for multi-byte non-ascii compatible character encodings: returns the unicode code point for the given character, assumes there is enough data for the character (must be checked before calling)
+//! returns the unicode code point for the given character, assumes there is enough data for the character and that the character is valid (must be checked before calling)
 typedef unsigned (*mbcs_get_unicode_t)(const char* p);
 
 // private implementation of the QoreEncoding class
@@ -83,6 +83,8 @@ struct qore_encoding_private;
     @see QCS_DEFAULT
 */
 class QoreEncoding {
+   friend struct qore_encoding_private;
+
 protected:
    // FIXME: move all this to the private implementation with the ABI change
    // NOTE: the following class members cannot be removed because until Qore 0.8.12 this class implemented inline member functions
@@ -183,11 +185,17 @@ public:
     */
    DLLEXPORT bool isAsciiCompat() const;
 
-   //! returns the unicode code point for the given character, must be a complete character and only one character; assumes that there is space left in the string for the character (call getCharLen() before calling this function)
-   /** @note: can only be called for character encodings where isAsciiCompat() returns false
-       @since Qore 0.8.12
+   //! returns the unicode code point for the given character; if there are any errors (invalid character, not enough space in the string, etc), a Qore-language exception is thrown
+   /** @param p a pointer to a character
+       @param end a pointer to the next byte after the end of the character data
+       @param clen the length of the character
+       @param xsink Qore-language exceptions will be raised using this argument
+
+       @return the unicode code point for the character or -1 in case of an error
+
+       @since Qore 0.8.13
     */
-   DLLLOCAL unsigned getUnicode(const char* p) const;
+   DLLEXPORT int getUnicode(const char* p, const char* end, unsigned& clen, ExceptionSink* xsink) const;
 };
 
 // case-insensitive maps for encodings
@@ -242,9 +250,9 @@ DLLEXPORT extern QoreEncodingManager QEM;
 DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for the Qore library
    *QCS_USASCII,                                  //!< ascii encoding
    *QCS_UTF8,                                     //!< UTF-8 multi-byte encoding (only UTF-8 and UTF-16 are multi-byte encodings)
-   *QCS_UTF16,                                    //!< UTF-16 (only UTF-8 and UTF-16* are multi-byte encodings) - do not use; use UTF-8 instead
-   *QCS_UTF16BE,                                  //!< UTF-16BE (only UTF-8 and UTF-16* are multi-byte encodings) - do not use; use UTF-8 instead
-   *QCS_UTF16LE,                                  //!< UTF-16LE (only UTF-8 and UTF-16* are multi-byte encodings) - do not use; use UTF-8 instead
+   *QCS_UTF16,                                    //!< UTF-16 (only UTF-8 and UTF-16* are multi-byte encodings)
+   *QCS_UTF16BE,                                  //!< UTF-16BE (only UTF-8 and UTF-16* are multi-byte encodings)
+   *QCS_UTF16LE,                                  //!< UTF-16LE (only UTF-8 and UTF-16* are multi-byte encodings)
    *QCS_ISO_8859_1,                               //!< latin-1, Western European encoding
    *QCS_ISO_8859_2,                               //!< latin-2, Central European encoding
    *QCS_ISO_8859_3,                               //!< latin-3, Southern European character set

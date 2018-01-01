@@ -1,11 +1,12 @@
 # Process this file with autoconf to produce a configure script.
 
 # AC_PREREQ(2.59)
-AC_INIT([qore], [0.8.13],
+AC_INIT([qore], [0.9.0],
         [David Nichols <david@qore.org>],
         [qore])
-AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar])
+AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
 AC_CONFIG_HEADER(include/qore/intern/unix-config.h)
+AC_CONFIG_HEADER(modules/astparser/config.h)
 
 # fix default include dir
 DEFAULT_INCLUDES="-I\${top_builddir}/include/qore"
@@ -145,6 +146,7 @@ case "${host_os}" in
 		no_sig_handling=yes
 		# have to set _WIN32_WINNT level so that some networking APIs are available
 		CPPFLAGS="$CPPFLAGS -D_WIN32_WINNT=0x0501"
+		MODULE_LDFLAGS="-no-undefined"
 		# have to set a flag when building the library so symbols are exported correctly
 		QORE_LIB_CPPFLAGS="-DBUILDING_DLL=1"
 		# make sure OS is set to Windows when cross-compiling
@@ -1001,6 +1003,9 @@ find_openssl() {
 
 if test "$mingw" = yes; then
     LIBS="$LIBS -lgdi32 -lz -lpsapi"
+    # if compiling for mingw32, binary modules delivered with qore have to link with libqore
+    MODULE_LDFLAGS="$MODULE_LDFLAGS -L\${top_builddir}/lib -lqore"
+    AC_SUBST(MODULE_LDFLAGS)
 fi
 
 # see if we can figure out where the openssl library is
@@ -1069,6 +1074,42 @@ else
        [AC_MSG_RESULT([ok])
         AC_DEFINE([HAVE_OPENSSL_HMAC_RV], 1, [Define if HMAC_Update() and friends support a return value])],
        [AC_MSG_RESULT([no return values are supported])])
+
+    # check for X509_get_signature_nid()
+    AC_MSG_CHECKING([X509_get_signature_nid() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/x509.h>]],
+    [[int rc = X509_get_signature_nid(0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_X509_GET_SIGNATURE_NID], 1, [Define if X509_get_signature_nid() is present])],
+       [AC_MSG_RESULT([no X509_get_signature_nid() present])])
+
+    # check for X509_get0_signature() const correctness
+    AC_MSG_CHECKING([X509_get0_signature() const correctness in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/x509.h>]],
+    [[const ASN1_BIT_STRING* sig; const X509_ALGOR* alg; X509_get0_signature(&sig, &alg, 0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_X509_GET0_SIGNATURE_CONST], 1, [Define if X509_get0_signature() is present and accepts const args])],
+       [AC_MSG_RESULT([no X509_get0_signature() present or does not accept const args])])
+
+    # check for X509_get0_pubkey()
+    AC_MSG_CHECKING([X509_get0_pubkey() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/x509.h>]],
+    [[X509_get0_pubkey(0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_X509_GET0_PUBKEY], 1, [Define if X509_get0_pubkey() is present])],
+       [AC_MSG_RESULT([no X509_get0_pubkey() present])])
+
+    # check for OPENSSL_init_crypto()
+    AC_MSG_CHECKING([OPENSSL_init_crypto() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/crypto.h>]],
+    [[int rc = OPENSSL_init_crypto(0, 0);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_OPENSSL_INIT_CRYPTO], 1, [Define if OPENSSL_init_crypto() is present])],
+       [AC_MSG_RESULT([no OPENSSL_init_crypto() present])])
 
     CPPFLAGS="$SAVE_CPPFLAGS"
     LIBS="$SAVE_LIBS"
@@ -1456,7 +1497,7 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([bzero floor gethostbyaddr gethostbyname gethostname gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem])
+AC_CHECK_FUNCS([bzero floor getaddrinfo gethostbyaddr gethostbyname gethostname getnameinfo gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem getifaddrs])
 
 # some systems have internal gethostby*_r in libc but don't hide the
 # symbols, so we look if they are declared before checking in the libraries
@@ -1737,9 +1778,12 @@ fi
 # get module API version to set pkglibdir
 MODULE_API_MAJOR=`grep QORE_MODULE_API_MAJOR include/qore/ModuleManager.h|cut -f3 -d\ `
 MODULE_API_MINOR=`grep QORE_MODULE_API_MINOR include/qore/ModuleManager.h|cut -f3 -d\ `
+MODULE_API=$MODULE_API_MAJOR.$MODULE_API_MINOR
+
 mypkglibdir=qore-modules
 AC_SUBST([MODULE_API_MAJOR])
 AC_SUBST([MODULE_API_MINOR])
+AC_SUBST(MODULE_API)
 AC_SUBST([mypkglibdir])
 
 # save more version information in config.h
@@ -1840,6 +1884,9 @@ fi
 AC_SUBST([MODULE_VER_DIR])
 AC_SUBST([USER_MODULE_VER_DIR])
 
+modexeclibdir="${MODULE_VER_DIR}"
+AC_SUBST([modexeclibdir])
+
 # cmake variables used in the cmake build, needed to make the cmake build configure QoreConfig.cmake correctly
 CMAKE_INSTALL_FULL_BINDIR="`eval echo ${myprefix}/bin`"
 CMAKE_INSTALL_FULL_INCLUDEDIR="`eval echo ${myprefix}/include`"
@@ -1888,6 +1935,7 @@ AC_DEFINE_UNQUOTED([QORE_LIB_LDFLAGS],  "$QORE_LIB_LDFLAGS", [linker flags])
 AC_DEFINE_UNQUOTED([QORE_BUILD_HOST],   "`uname -a`", [Qore build host info])
 
 AC_CONFIG_FILES([Makefile lib/Makefile])
+AC_CONFIG_FILES([modules/astparser/Makefile modules/astparser/src/Makefile])
 AC_CONFIG_FILES([qore.pc])
 AC_CONFIG_FILES([cmake/QoreConfig.cmake cmake/QoreConfigVersion.cmake])
 AC_OUTPUT

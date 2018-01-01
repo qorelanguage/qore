@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,8 @@
 #include <qore/Qore.h>
 
 class AbstractDatasource {};
+
+DLLLOCAL extern QoreClass* QC_ABSTRACTSQLSTATEMENT;
 
 //! This class defines an abstract interface for database access, inherited by both the Datasource and DatasourcePool classes
 /**
@@ -66,7 +68,7 @@ abstract nothing AbstractDatasource::rollback();
 int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, numeric_col) values (%v, %v, %v, %d)", string, now(), binary, 100);
     @endcode
  */
-abstract any AbstractDatasource::exec(string sql, ...);
+abstract auto AbstractDatasource::exec(string sql, ...);
 
 //! Executes an %SQL command on the server and returns either the integer row count (for example, for updates, inserts, and deletes) or the data retrieved (for example, if a stored procedure is executed that returns values), taking a list for all bind arguments
 /** Same as AbstractDatasource::exec() except takes an explicit list for bind arguments
@@ -81,7 +83,7 @@ abstract any AbstractDatasource::exec(string sql, ...);
 int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
     @endcode
  */
-abstract any AbstractDatasource::vexec(string sql, *softlist vargs);
+abstract auto AbstractDatasource::vexec(string sql, *softlist vargs);
 
 //! Executes an %SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
 /** This method does not do any variable binding, so it's useful for example for DDL statements etc
@@ -98,7 +100,7 @@ abstract any AbstractDatasource::vexec(string sql, *softlist vargs);
 db.execRaw("create table my_tab (id number, some_text varchar2(30))");
     @endcode
  */
-abstract any AbstractDatasource::execRaw(string sql);
+abstract auto AbstractDatasource::execRaw(string sql);
 
 //! Executes an %SQL select statement on the server and (normally) returns the result as a hash (column names) of lists (column values per row)
 /** The usual return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
@@ -124,7 +126,7 @@ if (query.firstValue())
 
     @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
  */
-abstract any AbstractDatasource::select(string sql, ...);
+abstract auto AbstractDatasource::select(string sql, ...);
 
 //! Executes an %SQL select statement on the server and returns the first row as a hash (the column values)
 /** If more than one row is returned, then it is treated as an error and a \c DBI-SELECT-ROW-ERROR is returned (however the DBI driver should raise its own exception here to avoid retrieving more than one row from the server). For a similar method taking a list for all bind arguments, see AbstractDatasource::vselectRow().
@@ -146,7 +148,7 @@ abstract any AbstractDatasource::select(string sql, ...);
 
     @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
  */
-abstract any AbstractDatasource::selectRow(string sql, ...);
+abstract auto AbstractDatasource::selectRow(string sql, ...);
 
 //! Executes an %SQL select statement on the server and returns the result as a list (rows) of hashes (the column values)
 /** The return format of this method is not as memory efficient as that returned by the AbstractDatasource::select() method, therefore for larger amounts of data, it is recommended to use AbstractDatasource::select().
@@ -171,7 +173,7 @@ abstract any AbstractDatasource::selectRow(string sql, ...);
 
     @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
  */
-abstract any AbstractDatasource::selectRows(string sql, ...);
+abstract auto AbstractDatasource::selectRows(string sql, ...);
 
 //! Executes a select statement on the server and returns the results in a hash (column names) of lists (column values per row), taking a list for all bind arguments
 /** The usual return format of this method is suitable for use with @ref context "context statements", for easy iteration and processing of query results.
@@ -198,7 +200,7 @@ if (query.firstValue())
 
     @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
  */
-abstract any AbstractDatasource::vselect(string sql, *softlist vargs);
+abstract auto AbstractDatasource::vselect(string sql, *softlist vargs);
 
 //! Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments
 /** This method is the same as the AbstractDatasource::selectRow() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters
@@ -220,7 +222,7 @@ abstract any AbstractDatasource::vselect(string sql, *softlist vargs);
 
     @see AbstractDatasource::selectRow()
  */
-abstract any AbstractDatasource::vselectRow(string sql, *softlist vargs);
+abstract auto AbstractDatasource::vselectRow(string sql, *softlist vargs);
 
 //! Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments
 /** Same as the AbstractDatasource::selectRows() method, except this method takes a single argument after the %SQL command giving the list of bind value parameters.
@@ -248,7 +250,7 @@ abstract any AbstractDatasource::vselectRow(string sql, *softlist vargs);
 
     @note This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
  */
-abstract any AbstractDatasource::vselectRows(string sql, *softlist vargs);
+abstract auto AbstractDatasource::vselectRows(string sql, *softlist vargs);
 
 //! Manually signals the start of transaction management on the AbstractDatasource
 /** This method should be called when the AbstractDatasource object will be shared between more than 1 thread, and a transaction will be started with a AbstractDatasource::select() method or the like.
@@ -349,24 +351,24 @@ abstract string AbstractDatasource::getDriverName();
 
     @par Example:
     @code{.py}
-any ver = db.getServerVersion();
+auto ver = db.getServerVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
-abstract any AbstractDatasource::getServerVersion();
+abstract auto AbstractDatasource::getServerVersion();
 
 //! Retrieves the driver-specific client library version information
 /** @return the driver-specific client library version information
 
     @par Example:
     @code{.py}
-any ver = db.getClientVersion();
+auto ver = db.getClientVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for possible exceptions
  */
-abstract any AbstractDatasource::getClientVersion();
+abstract auto AbstractDatasource::getClientVersion();
 
 //! Returns @ref True if a transaction is currently in progress
 /** @return @ref True if a transaction is currently in progress
@@ -412,4 +414,16 @@ abstract string AbstractDatasource::getConfigString();
 bool AbstractDatasource::currentThreadInTransaction() {
    xsink->raiseException("ABSTRACT-DATASOURCE-ERROR", "This method must be re-implemented in subclasses to provide the desired functionality; it is implemented in Datasource and DatasourcePool for example");
    return false;
+}
+
+//! Returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object based on the current database connection object
+/** @note
+    - this is reimplemented as @ref Qore::SQL::Datasource::getSQLStaement() "Datasource::getSQLStaement()" and @ref Qore::SQL::DatasourcePool::getSQLStaement() "DatasourcePool::getSQLStaement()"
+    - this method was added as a non-abstract method in Qore 0.9.0 to avoid breaking existing subclasses of AbstractDatasource
+
+    @since Qore 0.9.0
+*/
+AbstractSQLStatement AbstractDatasource::getSQLStatement() {
+    xsink->raiseException("ABSTRACT-DATASOURCE-ERROR", "This method must be re-implemented in subclasses to provide the desired functionality; it is implemented in Datasource and DatasourcePool for example");
+    return QoreValue();
 }

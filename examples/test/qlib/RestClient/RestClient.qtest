@@ -8,8 +8,11 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
-%requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/RestSchemaValidator.qm
+%requires ../../../../qlib/Swagger.qm
+%requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/HttpServer.qm
 
 %try-module yaml >= 0.5
@@ -41,8 +44,8 @@ const VALUE_XMLRPC = (
         "output" : ("foo": 1),
     );
 const VALUE_YAML = (
-        "input" : "foo:\n bar: 1",
-        "output" : ("foo" : ("bar" : 1)),
+        "input": "foo:\n bar: 1\n other: '2017-01-01 00:00:00Z'",
+        "output": ("foo": ("bar": 1, "other": 2017-01-01Z)),
     );
 const VALUE_JSON = (
         "input" : "{\"foo\":{\"bar\":1}}",
@@ -64,6 +67,9 @@ class SimpleStringHandler inherits AbstractHttpRequestHandler {
         }
         else if (hdr.method == "PUT") {
             return makeResponse( ("Content-Type" : m_mime), 200, m_data);
+        }
+        else if (hdr.method == "PATCH") {
+            return makeResponse(("Content-Type": m_mime), 200, m_data);
         }
     }
 }
@@ -132,6 +138,9 @@ public class Main inherits QUnit::Test {
         rest.setSerialization("text");
         ret = rest.put("/api_text", VALUE_TEXT.output);
         testAssertionValue("/api_text", ret.body, VALUE_TEXT.output);
+
+        ret = rest.patch("/api_text", VALUE_TEXT.output);
+        assertEq(VALUE_TEXT.output, ret.body);
 
 %ifndef NoXml
         rest.setSerialization("rawxml");

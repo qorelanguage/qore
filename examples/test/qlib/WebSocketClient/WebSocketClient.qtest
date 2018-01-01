@@ -10,6 +10,7 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/WebSocketUtil.qm
 %requires ../../../../qlib/WebSocketHandler.qm
 %requires ../../../../qlib/WebSocketClient.qm
 
@@ -18,6 +19,11 @@
 class MyWsConnection inherits WebSocketConnection {
     constructor(WebSocketHandler handler) : WebSocketConnection(handler) {
         map send($1), WebSocketClientTest::Data;
+    }
+
+    gotMessage(string msg) {
+        send("RESPONSE:"+msg);
+        #printf("GOT MSG: %y\n", msg);
     }
 }
 
@@ -32,6 +38,7 @@ class WebSocketClientTest inherits QUnit::Test {
         HttpServer mServer;
         MyWsHandler wsHandler();
         int port;
+        int responseSize;
 
         const Data = (
             "test1",
@@ -57,19 +64,29 @@ class WebSocketClientTest inherits QUnit::Test {
         list l = ();
         Counter c(1);
         code cb = sub (*data msg) {
+            #printf("RECEIVED: %y\n", msg);
             if (exists msg) {
                 l += msg;
-                if (l.size() == Data.size())
+                if (l.size() == responseSize)
                     c.dec();
             }
         };
+        responseSize = Data.size();
         WebSocketClient wsc(cb, ("url": "ws://localhost:" + port));
         wsc.connect();
         c.waitForZero();
+        assertEq(Data, l);
+        c.inc();
+        l = ();
+        responseSize = 1;
+        # issue #2566: send a unidirectional PONG to make sure that the WebSocketHandler can handle it
+        # https://tools.ietf.org/html/rfc6455#section-5.5.3: unsolicited PONG messages must be ignored
+        wsc.pong();
+        wsc.send("REQUEST");
+        c.waitForZero();
+        assertEq(list("RESPONSE:REQUEST"), l);
         wsc.disconnect();
         delete wsc;
-
-        assertEq(Data, l);
     }
 
     private log(string str) {

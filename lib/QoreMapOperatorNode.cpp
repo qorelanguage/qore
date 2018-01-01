@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@
 QoreString QoreMapOperatorNode::map_str("map operator expression");
 
 // if del is true, then the returned QoreString * should be mapd, if false, then it must not be
-QoreString *QoreMapOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString* QoreMapOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = false;
    return &map_str;
 }
@@ -49,18 +49,47 @@ int QoreMapOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *x
    return 0;
 }
 
-AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+const QoreTypeInfo* QoreMapOperatorNode::setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo, const QoreTypeInfo* iteratorTypeInfo) {
+   const QoreTypeInfo* typeInfo;
+
+   // this operator returns no value if the iterator expression has no value
+   bool or_nothing = QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_NOTHING);
+   if (QoreTypeInfo::hasType(expTypeInfo)) {
+      returnTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(expTypeInfo);
+
+      if (or_nothing) {
+         typeInfo = qore_program_private::get(*getProgram())->getComplexListOrNothingType(expTypeInfo);
+      }
+      else
+         typeInfo = returnTypeInfo;
+   }
+   else {
+      returnTypeInfo = listTypeInfo;
+      // this operator returns no value if the iterator expression has no value
+      typeInfo = or_nothing ? listOrNothingTypeInfo : listTypeInfo;
+   }
+
+   //printd(5, "e: '%s' t: '%s' r: '%s'\n", QoreTypeInfo::getName(expTypeInfo2), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(returnTypeInfo));
+
+   return typeInfo;
+}
+
+AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
    assert(!typeInfo);
 
    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
-   // check iterated expression
-   const QoreTypeInfo* expTypeInfo = 0;
-   left = left->parseInit(oflag, pflag, lvids, expTypeInfo);
-
    // check iterator expression
-   const QoreTypeInfo* iteratorTypeInfo = 0;
+   const QoreTypeInfo* iteratorTypeInfo = nullptr;
    right = right->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
+
+   // check iterated expression
+   const QoreTypeInfo* expTypeInfo = nullptr;
+   {
+      // set implicit argument type
+      ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
+      left = left->parseInit(oflag, pflag, lvids, expTypeInfo);
+   }
 
    // use lazy evaluation if the iterator expression supports it
    iterator_func = dynamic_cast<FunctionalOperator*>(right);
@@ -68,7 +97,7 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag,
    // if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression
    if (QoreTypeInfo::hasType(iteratorTypeInfo)) {
       if (QoreTypeInfo::isType(iteratorTypeInfo, NT_NOTHING)) {
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the map operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
+         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the map operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
          typeInfo = nothingTypeInfo;
       }
       else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
@@ -78,11 +107,13 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar *oflag, int pflag,
          const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
          if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
             typeInfo = listTypeInfo;
-         else if ((QoreTypeInfo::parseReturnsType(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
-            && (QoreTypeInfo::parseReturnsClass(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
+         else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
+            && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
             typeInfo = iteratorTypeInfo;
       }
    }
+   if (typeInfo == listTypeInfo)
+       typeInfo = setReturnTypeInfo(returnTypeInfo, expTypeInfo, iteratorTypeInfo);
 
    return this;
 }
@@ -93,7 +124,7 @@ QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
    if (*xsink || value_type == nothing)
       return QoreValue();
 
-   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode : 0, xsink);
+   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode(f->getValueType()) : nullptr, xsink);
 
    while (true) {
       ValueOptionalRefHolder iv(xsink);
@@ -117,7 +148,7 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
    if (iterator_func) {
       std::unique_ptr<FunctionalOperatorInterface> f(iterator_func->getFunctionalIterator(value_type, xsink));
       if (*xsink || value_type == nothing)
-         return 0;
+         return nullptr;
       return new QoreFunctionalMapOperator(this, f.release());
    }
 
@@ -130,7 +161,7 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
       if (t == NT_OBJECT) {
          AbstractIteratorHelper h(xsink, "map operator", const_cast<QoreObject*>(marg->get<const QoreObject>()));
          if (*xsink)
-            return 0;
+            return nullptr;
          if (h) {
             bool temp = marg.isTemp();
             marg.clearTemp();
@@ -140,7 +171,7 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
       }
       if (t == NT_NOTHING) {
          value_type = nothing;
-         return 0;
+         return nullptr;
       }
 
       value_type = single;

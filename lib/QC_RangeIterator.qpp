@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright 2003 - 2015 Qore Technologies s.r.o.
+  Copyright 2003 - 2017 Qore Technologies s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -74,7 +74,7 @@ RangeIterator i(5, 10, 2);
 
     @since %Qore 0.8.11.1 this method takes the optional \a val argument
  */
-RangeIterator::constructor(int start, int stop, int step = 1, any val) {
+RangeIterator::constructor(int start, int stop, int step = 1, auto val) {
    ReferenceHolder<RangeIterator> r(new RangeIterator(start, stop, step, val, xsink), xsink);
    if (*xsink)
       return;
@@ -83,7 +83,6 @@ RangeIterator::constructor(int start, int stop, int step = 1, any val) {
 
 //! creates the numerical sequence iterator with the initial arguments
 /** @param stop a final value
-    @param val an optional value to be returned instead of the default integer value
 
     @par Example:
     @code{.py}
@@ -94,8 +93,8 @@ RangeIterator i(5);
 
     @since %Qore 0.8.11.1
  */
-RangeIterator::constructor(int stop, any val) {
-   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, val, xsink), xsink);
+RangeIterator::constructor(int stop) {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, QoreValue(), xsink), xsink);
    if (*xsink)
       return;
    self->setPrivate(CID_RANGEITERATOR, r.release());
@@ -146,7 +145,7 @@ while (i.next()) {
 
     @note if a value was passed to the constructor, then that value is returned instead of the current range index
  */
-any RangeIterator::getValue() [flags=RET_VALUE_ONLY] {
+auto RangeIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
        return QoreValue();
    return i->getValue(xsink);
@@ -243,7 +242,7 @@ xrange(10, -10, 5); # 10, 5, 0, -5, -10
     @since %Qore 0.8.6
     @since %Qore 0.8.11.1 this function takes the optional \a val argument
 */
-RangeIterator xrange(int start, int stop, int step = 1, any val) [flags=RET_VALUE_ONLY] {
+RangeIterator xrange(int start, int stop, int step = 1, auto val) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<RangeIterator> r(new RangeIterator(start, stop, step, val, xsink), xsink);
    if (*xsink)
       return QoreValue();
@@ -262,7 +261,6 @@ xrange(-3); # 0, -1, -2, -3
     @endcode
 
     @param stop the final value
-    @param val an optional value to be returned instead of the default integer value
 
     @retval Returns a RangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
 
@@ -271,10 +269,9 @@ xrange(-3); # 0, -1, -2, -3
     @note the main difference between range() and xrange() is that range() returns a real list and xrange() returns a RangeIterator
 
     @since %Qore 0.8.6
-    @since %Qore 0.8.11.1 this function takes the optional \a val argument
  */
-RangeIterator xrange(int stop, any val) [flags=CONSTANT] {
-   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, val, xsink), xsink);
+RangeIterator xrange(int stop) [flags=CONSTANT] {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, QoreValue(), xsink), xsink);
    if (*xsink)
       return QoreValue();
 

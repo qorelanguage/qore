@@ -45,9 +45,14 @@
 #include "qore/intern/qore_number_private.h"
 #include "qore/intern/qore_list_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/qore_program_private.h"
 
 #include <memory>
 #include <utility>
+#include <set>
+#include <functional>
+
+typedef std::set<int64, std::greater<int64>> ind_set_t;
 
 // global environment hash
 QoreHashNode* ENV;
@@ -76,12 +81,11 @@ int Var::getLValue(LValueHelper& lvh, bool for_remove) const {
       return val.v.getPtr()->getLValue(lvh, for_remove);
    }
 
-   lvh.setTypeInfo(typeInfo);
    lvh.setAndLock(rwl);
    if (checkFinalized(lvh.vl.xsink))
       return -1;
 
-   lvh.setValue((QoreLValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val, typeInfo);
    return 0;
 }
 
@@ -119,49 +123,11 @@ QoreValue Var::eval() const {
    if (val.type == QV_Ref)
       return val.v.getPtr()->eval();
    QoreAutoVarRWReadLocker al(rwl);
+   if (val.getType() == NT_WEAKREF) {
+      return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
+   }
    return val.getReferencedValue();
 }
-
-
-/*
-AbstractQoreNode* Var::eval() const {
-   if (val.type == QV_Ref)
-      return val.v.getPtr()->eval();
-   QoreAutoVarRWReadLocker al(rwl);
-   return val.getReferencedValue();
-}
-
-AbstractQoreNode* Var::eval(bool &needs_deref) const {
-   if (val.type == QV_Ref)
-      return val.v.getPtr()->eval(needs_deref);
-   QoreAutoVarRWReadLocker al(rwl);
-   return val.getReferencedValue(needs_deref, true);
-}
-
-bool Var::boolEval() const {
-   if (val.type == QV_Ref)
-      return val.v.getPtr()->boolEval();
-
-   QoreAutoVarRWReadLocker al(rwl);
-   return val.getAsBool();
-}
-
-int64 Var::bigIntEval() const {
-   if (val.type == QV_Ref)
-      return val.v.getPtr()->bigIntEval();
-
-   QoreAutoVarRWReadLocker al(rwl);
-   return val.getAsBigInt();
-}
-
-double Var::floatEval() const {
-   if (val.type == QV_Ref)
-      return val.v.getPtr()->floatEval();
-
-   QoreAutoVarRWReadLocker al(rwl);
-   return val.getAsFloat();
-}
-*/
 
 void Var::deref(ExceptionSink* xsink) {
    //printd(5, "Var::deref() this: %p '%s' %d -> %d\n", this, getName(), reference_count(), reference_count() - 1);
@@ -192,7 +158,8 @@ int ObjCountRec::getDifference() {
 
 LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink) {
    RuntimeReferenceHelper rh(ref, xsink);
-   doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
+   if (!*xsink)
+      doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
 }
 
 LValueHelper::LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove) : vl(xsink) {
@@ -218,6 +185,7 @@ LValueHelper::~LValueHelper() {
    // then we don't need to scan this time either
    bool obj_chg = before;
    bool obj_ref = false;
+
    if (!(*vl.xsink)) {
       // see if we have any object count changes
       if (!ocvec.empty()) {
@@ -233,7 +201,7 @@ LValueHelper::~LValueHelper() {
                bool after = needs_scan(*v);
                if (before) {
                   if (!after)
-                     inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
+                  inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
                }
                else if (after) {
                   if (!obj_chg)
@@ -250,7 +218,7 @@ LValueHelper::~LValueHelper() {
                if (dt)
                   inc_container_obj(ocvec[i].con, dt);
 
-               //printd(5, "LValueHelper::~LValueHelper() %s %p has obj: %d\n", get_type_name(ocvec[i].con), ocvec[i].con, (int)needs_scan(ocvec[i].con));
+            //printd(5, "LValueHelper::~LValueHelper() %s %p has obj: %d\n", get_type_name(ocvec[i].con), ocvec[i].con, (int)needs_scan(ocvec[i].con));
             }
          }
       }
@@ -261,7 +229,6 @@ LValueHelper::~LValueHelper() {
          robj->tRef();
          obj_ref = true;
       }
-
       //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d obj_chg: %d (val: %s v: %s)\n", robj, before, obj_chg, val ? val->getTypeName() : "null", v ? get_type_name(*v) : "null");
    }
 
@@ -295,12 +262,6 @@ void LValueHelper::saveTemp(AbstractQoreNode* n) {
    tvec.push_back(n);
 }
 
-void LValueHelper::setValue(QoreLValueGeneric& nv) {
-   assert(!v);
-   assert(!val);
-   val = &nv;
-}
-
 static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, ExceptionSink* xsink) {
    xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a %s", QoreTypeInfo::getName(typeInfo), type);
    return -1;
@@ -311,6 +272,11 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
    ValueEvalRefHolder rh(op->getRight(), vl.xsink);
    if (*vl.xsink)
       return -1;
+
+   if (rh->getType() == NT_LIST) {
+      vl.xsink->raiseException("ILLEGAL-SLICE", "slices are not supported in internal lvalue expressions");
+      return -1;
+   }
 
    int64 ind = rh->getAsBigInt();
    if (ind < 0) {
@@ -326,8 +292,6 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
    if (getType() == NT_LIST) {
       ensureUnique();
       l = reinterpret_cast<QoreListNode*>(getValue());
-
-      ocvec.push_back(ObjCountRec(l));
    }
    else {
       if (for_remove)
@@ -341,15 +305,59 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
          return -1;
       }
 
-      // save the old value for dereferencing outside any locks that may have been acquired
       //printd(5, "LValueHelper::doListLValue() this: %p saving old value: %p '%s'\n", this, vp, get_type_name(vp));
-      saveTemp(getValue());
-      assignIntern((l = new QoreListNode));
-      ocvec.push_back(ObjCountRec(l));
+      // create a hash of the required type if the lvalue has a complex hash type and currently has no value
+      if (!getValue() && typeInfo && QoreTypeInfo::getUniqueReturnComplexList(typeInfo)) {
+         assignIntern((l = new QoreListNode));
+         qore_list_private::get(*l)->complexTypeInfo = typeInfo;
+      }
+      else {
+         // save the old value for dereferencing outside any locks that may have been acquired
+         saveTemp(getValue());
+         assignIntern((l = new QoreListNode));
+      }
    }
 
-   resetPtr(l->get_entry_ptr(ind));
-   return 0;
+   ocvec.push_back(ObjCountRec(l));
+
+   return qore_list_private::get(*l)->getLValue((size_t)ind, *this, for_remove, vl.xsink);
+}
+
+int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) {
+   QoreHashNode* h;
+   if (t == NT_HASH) {
+      ensureUnique();
+      h = reinterpret_cast<QoreHashNode*>(getValue());
+   }
+   else {
+      if (for_remove)
+         return -1;
+
+      // if the variable's value is not already a hash or an object, then make it a hash
+      // but first make sure the lvalue can be converted to a hash
+      if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
+         var_type_err(typeInfo, "hash", vl.xsink);
+         clearPtr();
+         return -1;
+      }
+
+      //printd(5, "LValueHelper::doHashLValue() cv: %p ti: %p '%s' c: %p\n", getValue(), typeInfo, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getUniqueReturnComplexHash(typeInfo));
+      // create a hash of the required type if the lvalue has a complex hash type and currently has no value
+      if (!getValue() && typeInfo && QoreTypeInfo::getUniqueReturnComplexHash(typeInfo)) {
+         assignIntern((h = new QoreHashNode));
+         qore_hash_private::get(*h)->complexTypeInfo = typeInfo;
+      }
+      else {
+         //printd(5, "LValueHelper::doHashLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
+         saveTemp(getValue());
+         assignIntern((h = new QoreHashNode));
+      }
+   }
+
+   ocvec.push_back(ObjCountRec(h));
+
+   //printd(5, "LValueHelper::doHashLValue() def: %s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
+   return qore_hash_private::get(*h)->getLValue(mem, *this, for_remove, vl.xsink);
 }
 
 int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove) {
@@ -366,47 +374,15 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
       return -1;
 
    qore_type_t t = getType();
-   QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject*>(getValue()) : 0;
-   QoreHashNode* h = 0;
+   QoreObject* o;
+   if (t == NT_WEAKREF)
+      o = static_cast<const WeakReferenceNode*>(getValue())->get();
+   else if (t == NT_OBJECT)
+      o = reinterpret_cast<QoreObject*>(getValue());
+   else
+      return doHashLValue(t, mem->c_str(), for_remove);
 
    //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, getTypeName(), getValue() ? getValue()->reference_count() : 0);
-
-   if (!o) {
-      if (t == NT_HASH) {
-         ensureUnique();
-         h = reinterpret_cast<QoreHashNode*>(getValue());
-
-         ocvec.push_back(ObjCountRec(h));
-      }
-      else {
-         if (for_remove)
-            return -1;
-
-         // if the variable's value is not already a hash or an object, then make it a hash
-         // but first make sure the lvalue can be converted to a hash
-         if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
-            var_type_err(typeInfo, "hash", vl.xsink);
-            clearPtr();
-            return -1l;
-         }
-
-         //printd(5, "LValueHelper::doHashObjLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
-         saveTemp(getValue());
-         assignIntern((h = new QoreHashNode));
-
-         ocvec.push_back(ObjCountRec(h));
-      }
-
-      //printd(5, "LValueHelper::doHashObjLValue() def: %s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
-      AbstractQoreNode** ptr = for_remove ? h->getExistingValuePtr(mem->getBuffer()) : h->getKeyValuePtr(mem->getBuffer());
-      if (!ptr) {
-         assert(for_remove);
-         return -1;
-      }
-
-      resetPtr(ptr);
-      return 0;
-   }
 
    //printd(5, "LValueHelper::doHashObjLValue() obj: %p member: '%s'\n", o, mem->getBuffer());
 
@@ -461,6 +437,11 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
       // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
       QoreObject* obj = runtime_get_stack_object();
       assert(obj);
+
+      // clear ocvec when we get to an object
+      ocvec.clear();
+      clearPtr();
+
       if (qore_object_private::getLValue(*obj, v->str, *this, runtime_get_class(), for_remove, vl.xsink))
          return -1;
 
@@ -496,12 +477,15 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
 #endif
 
    AbstractQoreNode* current_value = getValue();
-   if (current_value && current_value->getType() == NT_REFERENCE) {
+   //printd(5, "LValueHelper::doLValue() current_value: %p %s %d ti: '%s'\n", current_value, get_type_name(current_value), get_node_type(current_value), QoreTypeInfo::getName(typeInfo));
+   if (get_node_type(current_value) == NT_REFERENCE) {
       const ReferenceNode* ref = reinterpret_cast<const ReferenceNode*>(current_value);
       if (val)
-         val = 0;
+         val = nullptr;
       if (v)
-         v = 0;
+         v = nullptr;
+      if (typeInfo)
+         typeInfo = nullptr;
       return doLValue(ref, for_remove);
    }
 
@@ -546,29 +530,44 @@ double LValueHelper::getAsFloat() const {
    return (*v) ? (*v)->getAsFloat() : 0;
 }
 
-int LValueHelper::assign(QoreValue n, const char* desc) {
+int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool weak_assignment) {
    assert(!*vl.xsink);
    if (n.type == QV_Node && n.v.n == &Nothing)
-      n.v.n = 0;
+      n.v.n = nullptr;
 
-   // check type for assignment
-   QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
-   if (*vl.xsink) {
-      //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
-      saveTemp(n);
-      return -1;
+   //printd(5, "LValueHelper::assign() '%s' ti: %p '%s' check_types: %d\n", desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types);
+   if (check_types) {
+      // check type for assignment
+      QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
+      if (*vl.xsink) {
+         //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
+         saveTemp(n);
+         return -1;
+      }
    }
 
    if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {
       saveTemp(n);
       return doRecursiveException();
    }
+
+   // process weak assignment
+   if (weak_assignment) {
+      if (n.getType() == NT_OBJECT) {
+         QoreObject* o = n.get<QoreObject>();
+         n = new WeakReferenceNode(o);
+         // cannot dereference object in lock
+         saveTemp(o);
+      }
+   }
+
+   // perform assignment
    if (val) {
       saveTemp(val->assignAssume(n));
       return 0;
    }
 
-   //printd(5, "LValueHelper::assign() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
+   //printd(5, "LValueHelper::assign() this: %p saving old value: %p '%s' new: '%s' weak: %d\n", this, *v, get_type_name(*v), n.getTypeName(), weak_assignment);
    saveTemp(*v);
    *v = n.takeNode();
    return 0;
@@ -1078,12 +1077,28 @@ void LValueRemoveHelper::deleteLValue() {
       v.clearTemp();
 
    qore_type_t t = v->getType();
+   if (t == NT_LIST && direct_list) {
+      ListIterator i(static_cast<QoreListNode*>(v->getInternalNode()));
+      while (i.next()) {
+         AbstractQoreNode* n = i.getValue();
+         if (get_node_type(n) == NT_OBJECT) {
+            QoreObject* o = static_cast<QoreObject*>(n);
+            if (o->isSystemObject()) {
+               xsink->raiseException("SYSTEM-OBJECT-ERROR", "cannot delete a system constant object (class '%s')", o->getClassName());
+               continue;
+            }
+            o->doDelete(xsink);
+         }
+      }
+
+      return;
+   }
    if (t != NT_OBJECT)
       return;
 
    QoreObject* o = reinterpret_cast<QoreObject*>(v->getInternalNode());
    if (o->isSystemObject()) {
-      xsink->raiseException("SYSTEM-OBJECT-ERROR", "you cannot delete a system constant object");
+      xsink->raiseException("SYSTEM-OBJECT-ERROR", "cannot delete a system constant object (class '%s')", o->getClassName());
       return;
    }
 
@@ -1129,19 +1144,15 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
    {
       const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(lvalue);
       if (op) {
-         LValueHelper lvhb(op, xsink, true);
-         if (!lvhb)
-            return;
+         doRemove(op);
+         return;
+      }
+   }
 
-         bool static_assignment = false;
-         QoreValue tmp = lvhb.remove(static_assignment);
-         if (static_assignment)
-            tmp.ref();
-#ifdef DEBUG
-         assert(!rv.assignAssumeInitial(tmp));
-#else
-         rv.assignAssumeInitial(tmp);
-#endif
+   {
+      const QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<const QoreSquareBracketsRangeOperatorNode*>(lvalue);
+      if (op) {
+         doRemove(op);
          return;
       }
    }
@@ -1230,8 +1241,496 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
 #endif
 }
 
-int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
-   //printd(5, "LocalVarValue::getLValue() this: %p type: '%s' %d\n", this, val.getTypeName(), val.getType());
+static void do_list_value(QoreListNode& v, QoreListNode& l, int64 ind, const QoreTypeInfo*& vtype, bool& vcommon, ind_set_t& iset, unsigned i) {
+    AbstractQoreNode* p;
+    if (ind >= 0 && ind < (int64)l.size()) {
+        iset.insert(ind);
+        p = l.get_referenced_entry(ind);
+    }
+    else
+        p = nullptr;
+
+    // process common type
+    if (!i) {
+        vtype = getTypeInfoForValue(p);
+        vcommon = true;
+    }
+    else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(p)))
+        vcommon = false;
+
+    v.push(p);
+}
+
+static int do_string_value(QoreStringNode& v, QoreStringNode& str, int64 ind, ind_set_t& iset, size_t len, ExceptionSink* xsink) {
+    if (ind >= 0 && ind < (int64)len) {
+        iset.insert(ind);
+        int cp = str.getUnicodePoint(ind, xsink);
+        if (*xsink)
+            return -1;
+        if (v.concatUnicode(cp, xsink))
+            return -1;
+    }
+    return 0;
+}
+
+static void do_binary_value(BinaryNode& v, BinaryNode& bin, int64 ind, ind_set_t& iset) {
+    if (ind >= 0 && ind < (int64)bin.size()) {
+        iset.insert(ind);
+        bin.substr(v, ind, 1);
+    }
+}
+
+void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
+    if (get_node_type(op->getRight()) == NT_PARSE_LIST) {
+        doRemove(op, static_cast<const QoreParseListNode*>(op->getRight()));
+        return;
+    }
+
+    // get the bracket expression
+    ValueEvalRefHolder rh(op->getRight(), xsink);
+    if (*xsink)
+        return;
+
+    int64 ind = 0;
+    const QoreListNode* rl = nullptr;
+    if (rh->getType() == NT_LIST) {
+        rl = rh->get<const QoreListNode>();
+    }
+    else {
+        ind = rh->getAsBigInt();
+        if (ind < 0) {
+            xsink->raiseException("NEGATIVE-LIST-INDEX", "list index " QLLD " is invalid (index must evaluate to a non-negative integer)", ind);
+            return;
+        }
+    }
+
+    LValueHelper lvh(op->getLeft(), xsink, true);
+    if (!lvh)
+        return;
+
+    switch (lvh.getType()) {
+        case NT_LIST: {
+            lvh.ensureUnique();
+            QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
+            ReferenceHolder<> v(xsink);
+            if (!rl) {
+                if (ind < (int64)l->size())
+                    v = qore_list_private::get(*l)->takeExists(ind);
+            }
+            else {
+                direct_list = true;
+                // calculate the runtime element type if possible
+                const QoreTypeInfo* vtype = nullptr;
+                // try to find a common value type, if any
+                bool vcommon = false;
+                // keep a set of offsets removed to remove them from the list in reverse order
+                ind_set_t iset;
+                ConstListIterator li(rl);
+                v = new QoreListNode;
+                while (li.next()) {
+                    do_list_value(*static_cast<QoreListNode*>(*v), *l, li.getValue() ? li.getValue()->getAsBigInt() : 0, vtype, vcommon, iset, li.index());
+                }
+
+                if (QoreTypeInfo::hasType(vtype))
+                    qore_list_private::get(*static_cast<QoreListNode*>(*v))->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+
+                // now collapse the list by rewriting it without the elements removed
+                for (auto& i : iset) {
+                    l->splice(i, 1, xsink);
+                }
+            }
+            if (needs_scan(*v)) {
+                if (!qore_list_private::getScanCount(*l))
+                    lvh.setDelta(-1);
+            }
+#ifdef DEBUG
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
+#else
+            rv.assignInitial(v.release());
+#endif
+            return;
+        }
+
+        case NT_STRING: {
+            lvh.ensureUnique();
+            QoreStringNode* str = static_cast<QoreStringNode*>(lvh.getValue());
+            SimpleRefHolder<QoreStringNode> v;
+            size_t len = str->length();
+            if (!rl) {
+                if (ind < (int64)len)
+                    v = str->substr(ind, 1, xsink);
+                else
+                    v = new QoreStringNode(str->getEncoding());
+            }
+            else {
+                v = new QoreStringNode(str->getEncoding());
+                // keep a set of offsets removed to remove them from the list in reverse order
+                ind_set_t iset;
+                ConstListIterator li(rl);
+                while (li.next()) {
+                    if (do_string_value(**v, *str, li.getValue() ? li.getValue()->getAsBigInt() : 0, iset, len, xsink))
+                        break;
+                }
+
+                // now collapse the string by rewriting it without the characters removed
+                // we need to ensure that any exception above does not affect this operation
+                {
+                    ExceptionSink xsink2;
+                    for (auto& i : iset) {
+                        str->splice(i, 1, &xsink2);
+                        if (xsink2)
+                            break;
+                    }
+                    if (xsink2)
+                        xsink->assimilate(xsink2);
+                }
+            }
+#ifdef DEBUG
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
+#else
+            rv.assignInitial(v.release());
+#endif
+            return;
+        }
+
+        case NT_BINARY: {
+            lvh.ensureUnique();
+            BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
+            SimpleRefHolder<BinaryNode> v(new BinaryNode);
+            if (!rl) {
+                if (ind < (int64)bin->size())
+                    bin->substr(**v, ind, 1);
+                }
+            else {
+                // keep a set of offsets removed to remove them from the list in reverse order
+                ind_set_t iset;
+                ConstListIterator li(rl);
+                while (li.next()) {
+                    do_binary_value(**v, *bin, li.getValue() ? li.getValue()->getAsBigInt() : 0, iset);
+                }
+                // now collapse the binary object by rewriting it without the bytes removed
+                for (auto& i : iset) {
+                    bin->splice(i, 1);
+                }
+            }
+#ifdef DEBUG
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
+#else
+            rv.assignInitial(v.release());
+#endif
+            return;
+        }
+    }
+
+    bool static_assignment = false;
+    QoreValue tmp = lvh.remove(static_assignment);
+    if (static_assignment)
+        tmp.ref();
+#ifdef DEBUG
+    assert(!rv.assignAssumeInitial(tmp));
+#else
+    rv.assignAssumeInitial(tmp);
+#endif
+}
+
+void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, const QoreParseListNode* pln) {
+    LValueHelper lvh(op->getLeft(), xsink, true);
+    if (!lvh)
+        return;
+
+    switch (lvh.getType()) {
+        case NT_LIST: {
+            lvh.ensureUnique();
+            QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
+
+            // calculate the runtime element type if possible
+            const QoreTypeInfo* vtype = nullptr;
+            // try to find a common value type, if any
+            bool vcommon = false;
+            ReferenceHolder<QoreListNode> v(new QoreListNode, xsink);
+
+            const QoreParseListNode::nvec_t& vl = pln->getValues();
+
+            direct_list = true;
+            // keep a set of offsets removed to remove them from the list in reverse order
+            ind_set_t iset;
+            for (unsigned i = 0; i < vl.size(); ++i) {
+                ValueEvalRefHolder rh(vl[i], xsink);
+                if (*xsink)
+                    break;
+                bool is_range = (get_node_type(vl[i]) == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i]));
+                if (is_range) {
+                    assert(rh->getType() == NT_LIST);
+                    ConstListIterator li(rh->get<const QoreListNode>());
+                    while (li.next()) {
+                        QoreValue exp(li.getValue());
+                        do_list_value(**v, *l, exp.getAsBigInt(), vtype, vcommon, iset, i + li.index());
+                    }
+                }
+                else {
+                    do_list_value(**v, *l, rh->getAsBigInt(), vtype, vcommon, iset, i);
+                }
+            }
+
+            if (QoreTypeInfo::hasType(vtype))
+                qore_list_private::get(**v)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+
+            // now collapse the list by rewriting it without the elements removed
+            for (auto& i : iset) {
+                l->splice(i, 1, xsink);
+            }
+
+            if (needs_scan(*v)) {
+                if (!qore_list_private::getScanCount(*l))
+                    lvh.setDelta(-1);
+            }
+#ifdef DEBUG
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
+#else
+            rv.assignInitial(v.release());
+#endif
+            return;
+        }
+
+        case NT_STRING: {
+            lvh.ensureUnique();
+            QoreStringNode* str = static_cast<QoreStringNode*>(lvh.getValue());
+            SimpleRefHolder<QoreStringNode> v(new QoreStringNode(str->getEncoding()));
+            size_t len = str->length();
+
+            const QoreParseListNode::nvec_t& vl = pln->getValues();
+
+            // keep a set of offsets removed to remove them from the list in reverse order
+            ind_set_t iset;
+            for (unsigned i = 0; i < vl.size(); ++i) {
+                ValueEvalRefHolder rh(vl[i], xsink);
+                if (*xsink)
+                    break;
+                bool is_range = (get_node_type(vl[i]) == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i]));
+                if (is_range) {
+                    assert(rh->getType() == NT_LIST);
+                    ConstListIterator li(rh->get<const QoreListNode>());
+                    while (li.next()) {
+                        QoreValue exp(li.getValue());
+                        if (do_string_value(**v, *str, exp.getAsBigInt(), iset, len, xsink))
+                            break;
+                    }
+                    if (*xsink)
+                        break;
+                }
+                else {
+                    if (do_string_value(**v, *str, rh->getAsBigInt(), iset, len, xsink))
+                        break;
+                }
+            }
+
+            // now collapse the string by rewriting it without the characters removed
+            // we need to ensure that any exception above does not affect this operation
+            {
+                ExceptionSink xsink2;
+                for (auto& i : iset) {
+                    str->splice(i, 1, &xsink2);
+                    if (xsink2)
+                        break;
+                }
+                if (xsink2)
+                    xsink->assimilate(xsink2);
+            }
+#ifdef DEBUG
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
+#else
+            rv.assignInitial(v.release());
+#endif
+            return;
+        }
+
+        case NT_BINARY: {
+            lvh.ensureUnique();
+            BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
+            SimpleRefHolder<BinaryNode> v(new BinaryNode);
+
+            const QoreParseListNode::nvec_t& vl = pln->getValues();
+
+            // keep a set of offsets removed to remove them from the list in reverse order
+            ind_set_t iset;
+            for (unsigned i = 0; i < vl.size(); ++i) {
+                ValueEvalRefHolder rh(vl[i], xsink);
+                if (*xsink)
+                    break;
+                bool is_range = (get_node_type(vl[i]) == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i]));
+                if (is_range) {
+                    assert(rh->getType() == NT_LIST);
+                    ConstListIterator li(rh->get<const QoreListNode>());
+                    while (li.next()) {
+                        QoreValue exp(li.getValue());
+                        do_binary_value(**v, *bin, exp.getAsBigInt(), iset);
+                    }
+                }
+                else
+                    do_binary_value(**v, *bin, rh->getAsBigInt(), iset);
+            }
+
+            // now collapse the binary object by rewriting it without the bytes removed
+            for (auto& i : iset) {
+                bin->splice(i, 1);
+            }
+#ifdef DEBUG
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(v.release()));
+#else
+            rv.assignInitial(v.release());
+#endif
+            return;
+        }
+    }
+
+    bool static_assignment = false;
+    QoreValue tmp = lvh.remove(static_assignment);
+    if (static_assignment)
+        tmp.ref();
+#ifdef DEBUG
+    assert(!rv.assignAssumeInitial(tmp));
+#else
+    rv.assignAssumeInitial(tmp);
+#endif
+}
+
+void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op) {
+   // we must evaluate range arguments before acquiring any lvalue locks in LValueHelper
+   ValueEvalRefHolder start_index(op->get(1), xsink);
+   if (*xsink)
+       return;
+   ValueEvalRefHolder stop_index(op->get(2), xsink);
+   if (*xsink)
+       return;
+
+   // find variable ptr, exit if doesn't exist anyway
+   LValueHelper lvh(op->get(0), xsink, true);
+   if (!lvh)
+       return;
+
+   int64 start, stop, seq_size;
+   {
+       QoreValue tmp(lvh.getValue());
+       if (!op->getEffectiveRange(tmp, start, stop, seq_size, *start_index, *stop_index, xsink)) {
+          if (!*xsink) {
+             AbstractQoreNode* v;
+             switch (lvh.getType()) {
+                case NT_LIST: {
+                    v = new QoreListNode;
+                    int d = stop - start;
+                    if (d < 0)
+                        d = -d;
+                    ++d;
+                    while (d--) {
+                        static_cast<QoreListNode*>(v)->push(nullptr);
+                    }
+                    break;
+                }
+                case NT_STRING:
+                    v = new QoreStringNode;
+                    break;
+                case NT_BINARY:
+                    v = new BinaryNode;
+                    break;
+                default:
+                    v = nullptr;
+                    break;
+             }
+#ifdef DEBUG
+             // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+             assert(!rv.assignInitial(v));
+#else
+             rv.assignInitial(v);
+#endif
+          }
+          return;
+       }
+   }
+
+   bool reverse;
+   if (stop < start) {
+       reverse = true;
+       int64 t = stop;
+       stop = start;
+       start = t;
+   }
+   else
+       reverse = false;
+
+   direct_list = true;
+
+   ReferenceHolder<> v(xsink);
+   switch (lvh.getType()) {
+       case NT_LIST: {
+           lvh.ensureUnique();
+           QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
+           size_t orig_size = l->size();
+           QoreListNode* nl = l->extract(start, stop - start + 1, xsink);
+           // add additional elements if necessary
+           //printd(5, "l->size: %d start: %d stop: %d\n", (int)orig_size, (int)start, (int)stop);
+           if (stop >= (int64)orig_size)
+              qore_list_private::get(*nl)->resize(nl->size() + stop - orig_size + 1);
+           v = nl;
+           if (*xsink)
+               return;
+           if (reverse) {
+               nl = nl->reverse();
+               v = nl;
+           }
+           break;
+       }
+       case NT_STRING: {
+           lvh.ensureUnique();
+           QoreStringNode* str = static_cast<QoreStringNode*>(lvh.getValue());
+           QoreStringNode* ns = str->extract(start, stop - start + 1, xsink);
+           v = ns;
+           if (*xsink)
+               return;
+           if (reverse) {
+               ns = ns->reverse();
+               v = ns;
+           }
+           break;
+       }
+       case NT_BINARY: {
+           lvh.ensureUnique();
+           BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
+           BinaryNode* nb = new BinaryNode;
+           bin->splice(start, stop - start + 1, nullptr, 0, nb);
+           v = nb;
+           if (*xsink)
+               return;
+           // NOTE: it would be more efficient to swap the bytes in place
+           if (reverse) {
+               BinaryNode* rb = new BinaryNode;
+               for (size_t i = 0; i < nb->size(); ++i) {
+                   rb->append(((char*)nb->getPtr()) + nb->size() - i - 1, 1);
+               }
+               v = rb;
+           }
+           break;
+       }
+
+       default:
+           return;
+    }
+
+#ifdef DEBUG
+    // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+    assert(!rv.assignInitial(v.release()));
+#else
+    rv.assignInitial(v.release());
+#endif
+}
+
+int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo, const QoreTypeInfo* refTypeInfo) const {
+   //printd(5, "LocalVarValue::getLValue() this: %p type: '%s' %d assigned: %d ti: '%s' rti: '%s'\n", this, val.getTypeName(), val.getType(), val.assigned, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
    if (val.getType() == NT_REFERENCE) {
       ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
       LocalRefHelper<LocalVarValue> helper(this, *ref, lvh.vl.xsink);
@@ -1239,7 +1738,7 @@ int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
    }
 
    // note: type info is not stored at runtime for local variables
-   lvh.setValue((QoreLValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val, val.assigned && refTypeInfo ? refTypeInfo : typeInfo);
    return 0;
 }
 
@@ -1277,11 +1776,9 @@ int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
       return helper ? lvh.doLValue(*ref, for_remove) : -1;
    }
 
-   lvh.setTypeInfo(typeInfo);
-
    lvh.set(rml);
    sl.stay_locked();
-   lvh.setValue((QoreLValueGeneric&)val);
+   lvh.setValue((QoreLValueGeneric&)val, val.assigned && refTypeInfo ? refTypeInfo : typeInfo);
    return 0;
 }
 
@@ -1368,4 +1865,25 @@ void ClosureVarValue::deref(ExceptionSink* xsink) {
 bool ClosureVarValue::scanMembers(RSetHelper& rsh) {
    //printd(5, "ClosureVarValue::scanMembers() scanning %p %s\n", val.getInternalNode(), get_type_name(val.getInternalNode()));
    return scanCheck(rsh, val.getInternalNode());
+}
+
+AbstractQoreNode* ClosureVarValue::getReference(const QoreProgramLocation& loc, const char* name, const void*& lvalue_id) {
+   //printd(5, "ClosureVarValue::getReference() this: %p '%s' type: '%s' assigned: %d ti: '%s' rti: '%s'\n", this, name, val.getTypeName(), val.assigned, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
+   {
+      QoreSafeVarRWWriteLocker sl(rml);
+      if (val.getType() == NT_REFERENCE) {
+         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
+         lvalue_id = lvalue_ref::get(ref)->lvalue_id;
+      }
+      else {
+         // creating a reference to an unassigned reference assigns the reference
+         if (/*!val.assigned && */refTypeInfo) {
+            typeInfo = refTypeInfo;
+         }
+         lvalue_id = this;
+      }
+   }
+
+   //printd(5, "ClosureVarValue::getReference() this: %p '%s' closure lvalue_id: %p\n", this, name, lvalue_id);
+   return new VarRefImmediateNode(loc, strdup(name), this, typeInfo);
 }

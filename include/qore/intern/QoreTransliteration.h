@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,18 +37,20 @@
 
 class QoreTransliteration : public QoreReferenceCounter {
 private:
-   QoreString *source, *target;
-   bool sr, tr;
+   QoreProgramLocation loc;
+   QoreString source, target;
+   bool sr = false,
+      tr = false;
 
-   DLLLOCAL void doRange(class QoreString *str, char end);
+   DLLLOCAL void doRange(QoreString& str, char end);
 
 public:
-   DLLLOCAL QoreTransliteration();
+   DLLLOCAL QoreTransliteration(const QoreProgramLocation& loc);
    DLLLOCAL virtual ~QoreTransliteration();
 
    DLLLOCAL void finishSource();
    DLLLOCAL void finishTarget();
-   DLLLOCAL QoreStringNode *exec(const QoreString *target, class ExceptionSink *xsink) const;
+   DLLLOCAL QoreStringNode* exec(const QoreString *target, ExceptionSink* xsink) const;
    DLLLOCAL void concatSource(char c);
    DLLLOCAL void concatTarget(char c);
    DLLLOCAL void setTargetRange();

@@ -120,18 +120,24 @@ public:
 
    DLLLOCAL AbstractPrivateData* getAndClearPtr(qore_classid_t key) {
       keymap_t::iterator i = keymap.find(key);
-      if (i == keymap.end() || i->second.second)
+      //printd(5, "KeyList::getAndClearPtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
+      if (i == keymap.end() || i->second.second) {
+         //printd(5, "KeyList::getAndClearPtr second: %d\n", i->second.second);
          return 0;
-
+      }
+      //printd(5, "KeyList::getAndClearPtr first: %p\n", i->second.first);
       return i->second.first;
    }
 
    DLLLOCAL AbstractPrivateData* getAndRemovePtr(qore_classid_t key) {
       keymap_t::iterator i = keymap.find(key);
-      if (i == keymap.end() || i->second.second)
+      //printd(5, "KeyList::getAndRemovePtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
+      if (i == keymap.end() || i->second.second) {
+         //printd(5, "KeyList::getAndRemovePtr second: %d\n", i->second.second);
          return 0;
-
+      }
       AbstractPrivateData* rv = i->second.first;
+      //printd(5, "KeyList::getAndRemovePtr first: %p\n", i->second.first);
       i->second.first = 0;
       return rv;
    }
@@ -139,11 +145,13 @@ public:
    DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData* pd) {
       assert(pd);
       assert(keymap.find(key) == keymap.end());
+      //printd(5, "KeyList::insert this: %p, key: %d, pd: %p\n", this, key, pd);
       keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
    }
 
    DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData* pd) {
       assert(pd);
+      //printd(5, "KeyList::insertVirtual this: %p, key: %d, pd: %p, test: %d\n", this, key, pd, keymap.find(key) == keymap.end());
       if (keymap.find(key) == keymap.end())
          keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
    }
@@ -274,7 +282,6 @@ public:
          makeAccessDeletedObjectException(xsink, theclass->getName());
          return 0;
       }
-
 
       ReferenceHolder<QoreListNode> nl(new QoreListNode, xsink);
       ReferenceHolder<QoreListNode> int_nl(xsink);
@@ -411,12 +418,12 @@ public:
    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member, ExceptionSink* xsink) const {
       int rc = checkMemberAccess(mem, class_ctx, internal_member);
       if (!rc)
-	 return 0;
+         return 0;
 
       if (rc == QOA_PRIV_ERROR)
-	 doPrivateException(mem, xsink);
+         doPrivateException(mem, xsink);
       else
-	 doPublicException(mem, xsink);
+         doPublicException(mem, xsink);
       return -1;
    }
 
@@ -807,31 +814,9 @@ public:
       }
    }
 
-   DLLLOCAL void stay_locked() {
+   DLLLOCAL void stayLocked() {
       vl.set(pobj->obj, &pobj->rml);
       pobj = 0;
-   }
-};
-
-class qore_object_recursive_lock_handoff_helper {
-private:
-   qore_object_private* pobj;
-   bool locked;
-
-public:
-   DLLLOCAL qore_object_recursive_lock_handoff_helper(qore_object_private* n_pobj, AutoVLock& n_vl) : pobj(n_pobj) /*, vl(n_vl)*/ {
-      // try to lock current object
-      locked = !pobj->rml.trywrlock();
-   }
-
-   DLLLOCAL ~qore_object_recursive_lock_handoff_helper() {
-      // unlock current object
-      if (locked)
-         pobj->rml.unlock();
-   }
-
-   DLLLOCAL operator bool() const {
-      return locked;
    }
 };
 

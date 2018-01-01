@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -350,7 +350,9 @@ static inline const QoreEncoding* get_hard_qore_encoding_param(const QoreListNod
    @return the argument in the position given or 0 if there is none
  */
 static inline QoreValue get_param_value(const QoreValueList* n, qore_size_t i) {
-   return n ? n->retrieveEntry(i) : QoreValue();
+   if (!n)
+      return QoreValue();
+   return n->retrieveEntry(i);
 }
 
 //! returns the given type for hard typed parameters
@@ -363,7 +365,6 @@ static inline T* get_hard_value_or_nothing_param(const QoreValueList* n, qore_si
 //! returns the given type for hard typed parameters
 static QoreValue get_hard_value_param(const QoreValueList* n, qore_size_t i) {
    assert(n);
-   assert(n->size() > i);
    return n->retrieveEntry(i);
 }
 
