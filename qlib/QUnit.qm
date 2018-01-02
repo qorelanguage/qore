@@ -14,7 +14,7 @@
 %requires Util
 
 module QUnit {
-    version = "0.3.2";
+    version = "0.3.3";
     desc = "User module for unit testing with dependency injection support";
     author = "Zdenek Behan <zdenek.behan@qoretechnologies.com>";
     url = "http://qore.org";
@@ -129,6 +129,10 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
     - junit - machine readable format for further processing
 
     @section unittest_relnotes Release Notes
+
+    @subsection qunit_v0_3_3 Version 0.3.3
+    - overloaded testAssertionValue supports auto/number/float
+    - more verbose output when number/float difference is found
 
     @subsection qunit_v0_3_2 Version 0.3.2
     - improved error location reporting by providing all stack location information up until the QUnit call to cover the case when multiple code layers are used such as one or more test modules (<a href="https://github.com/qorelanguage/qore/issues/1720">issue 1720</a>)
@@ -865,6 +869,9 @@ public class QUnit::Test inherits QUnit::TestReporter {
             QUC_RE: "Regular Expression Match",
             QUC_NRE: "Negative Regular Expression Match",
         );
+
+        #! default epsilon for number/float comparison
+        const DEFAULT_EPSILON = 0.0000000001;
     }
 
     #! creates the object and sets the name of the test
@@ -961,22 +968,64 @@ addTestCase(obj);
                 }
             }
             if (!done) {
-                expected = sprintf("(%s) %N", exp.type(), exp);
-                actual = neg ? "<identical>" : sprintf("(%s) %N", act.type(), act);
+                switch (act.typeCode()) {
+                    case  NT_NUMBER:
+                        expected = sprintf("(%s) %N (%s)", exp.type(), exp, exp.toString(NF_Raw));
+                        break;
+                    case  NT_FLOAT:
+                        expected = sprintf("(%s) %N (%s)", exp.type(), exp, exp.toString());
+                        break;
+                    default:
+                        expected = sprintf("(%s) %N", exp.type(), exp);
+                }
+                if (neg) {
+                    actual = "<identical>";
+                } else {
+                    switch (act.typeCode()) {
+                        case NT_NUMBER:
+                            actual = sprintf("(%s) %N (%s)", act.type(), act, act.toString(NF_Raw));
+                            break;
+                        case NT_FLOAT:
+                            actual = sprintf("(%s) %N (%s)", act.type(), act, act.toString());
+                            break;
+                        default:
+                            actual = sprintf("(%s) %N", act.type(), act);
+                    }
+                }
             }
             comp += " (TYPE ERROR)";
         }
         else {
-            if (exp.typeCode() == NT_BINARY) {
-                expected = sprintf("(binary: size %d) <%s>", exp.size(), make_hex_string(exp));
+            switch (exp.typeCode()) {
+                case NT_BINARY:
+                    expected = sprintf("(binary: size %d) <%s>", exp.size(), make_hex_string(exp));
+                    break;
+                case NT_NUMBER:
+                    expected = sprintf("(%s) %N (%s)", exp.type(), exp, exp.toString(NF_Raw));
+                    break;
+                case NT_FLOAT:
+                    expected = sprintf("(%s) %N (%s)", exp.type(), exp, exp.toString());
+                    break;
+                default:
+                    expected = sprintf("%N", exp);
             }
-            else
-                expected = sprintf("%N", exp);
-
-            if (act.typeCode() == NT_BINARY)
-                actual = neg ? "<identical>" : sprintf("(binary: size %d) <%s>", act.size(), make_hex_string(act));
-            else
-                actual = neg ? "<identical>" : sprintf("%N", act);
+            if (neg) {
+                actual = "<identical>";
+            } else {
+                switch (act.typeCode()) {
+                    case NT_BINARY:
+                        actual = sprintf("(binary: size %d) <%s>", act.size(), make_hex_string(act));
+                        break;
+                    case NT_NUMBER:
+                        actual = sprintf("(%s) %N (%s)", act.type(), act, act.toString(NF_Raw));
+                        break;
+                    case NT_FLOAT:
+                        actual = sprintf("(%s) %N (%s)", act.type(), act, act.toString());
+                        break;
+                    default:
+                        actual = sprintf("%N", act);
+                }
+            }
         }
         if (diffInSpecialCharsOnly(expected, actual)) {
             expected = escapeSpecialChars(expected);
@@ -1094,6 +1143,37 @@ testAssertionValue("date > operator", now() > (now() - 1D), True);
         return actual;
     }
 
+    #! Tests a value for equality to an expected value of number type
+    /**
+
+        @param name the name or description of the assertion
+        @param actual the value generated by the test
+        @param expected the expected value
+
+        @return the \a value argument
+
+        @note make sure and use testAssertion() for any calls that could throw an exception
+     */
+    public auto testAssertionValue(*string name, number actual, number expected, number epsilon = DEFAULT_EPSILON) {
+        assertNumberEq(expected, actual, epsilon, name);
+        return actual;
+    }
+
+    #! Tests a value for equality to an expected value of float type
+    /**
+
+        @param name the name or description of the assertion
+        @param actual the value generated by the test
+        @param expected the expected value
+
+        @return the \a value argument
+
+        @note make sure and use testAssertion() for any calls that could throw an exception
+     */
+    public auto testAssertionValue(*string name, float actual, float expected, float epsilon = DEFAULT_EPSILON) {
+        assertFloatEq(expected, actual, epsilon, name);
+        return actual;
+    }
     #! Tests that a test value passes a regular expression match
     /** @par Example:
         @code{.py}
@@ -1265,7 +1345,7 @@ assertFloatEq(2.5, 2.50001, 0.001);
         @param epsilon the allowed error
         @param name the name or description of the assertion
      */
-    public assertFloatEq(float expected, float actual, float epsilon = 0.0000000001, *string name) {
+    public assertFloatEq(float expected, float actual, float epsilon = DEFAULT_EPSILON, *string name) {
         TestCase tc = getTestCase("assertFloatEq");
         # increment assertion count
         tc.incAssertions();
@@ -1289,7 +1369,7 @@ assertNumberEq(2.5n, 2.50001n, 0.001n);
         @param epsilon the allowed error
         @param name the name or description of the assertion
      */
-    public assertNumberEq(number expected, number actual, number epsilon = 0.0000000001, *string name) {
+    public assertNumberEq(number expected, number actual, number epsilon = DEFAULT_EPSILON, *string name) {
         TestCase tc = getTestCase("assertNumberEq");
         # increment assertion count
         tc.incAssertions();
