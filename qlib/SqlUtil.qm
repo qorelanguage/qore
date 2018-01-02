@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file SqlUtil.qm Qore user module for working with SQL data
 
-/*  SqlUtil.qm Copyright (C) 2013 - 2017 Qore Technologies, s.r.o.
+/*  SqlUtil.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.4.1";
+    version = "1.4.2";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -99,6 +99,9 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_4_2 SqlUtil v1.4.2
+    - implemented support for literal values in column operators taking column arguments with @ref SqlUtil::cop_value() "cop_value()" (<a href="https://github.com/qorelanguage/qore/issues/2555">issue 2555</a>)
 
     @subsection sqlutilv1_4_1 SqlUtil v1.4.1
     - implemented support for user custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
@@ -12718,9 +12721,15 @@ string sql = table.getSelectSql(sh, \args);
                 arg = getSqlValue(arg);
             else if (cmd.argcolumn) {
                 if (!cmd.argoptional || arg) {
-                    if (arg.typeCode() != NT_STRING)
-                        throw "SELECT-ERROR", sprintf("%s: expecting a string column designation for column operator %y; got type %y instead", getDesc(), cop, arg.type());
-                    arg = getColumnNameIntern(arg, jch, join, ch, psch);
+                    # issue #2555: allow the use of literal with other column operators
+                    if (arg.cop == COP_VALUE) {
+                        arg = arg.arg.toString();
+                    }
+                    else {
+                        if (arg.typeCode() != NT_STRING)
+                            throw "SELECT-ERROR", sprintf("%s: expecting a string column designation for column operator %y; got type %y instead (value: %y)", getDesc(), cop, arg.type(), arg);
+                        arg = getColumnNameIntern(arg, jch, join, ch, psch);
+                    }
                 }
             }
             else if (cmd.columnargs) {

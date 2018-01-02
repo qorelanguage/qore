@@ -40,6 +40,19 @@ class HashDeclTest inherits QUnit::Test {
     }
 
     testHashDecl() {
+        # issue #2491: test implicit creation of typed hashes (explicit value type)
+        {
+            hash<string, int> c;
+            c.a = 1;
+            assertEq(Type::Hash, c.type());
+            assertEq("hash<string, int>", c.fullType());
+            assertEq(1, c.a);
+            assertEq(True, c instanceof hash<string, int>);
+        }
+
+        # issue #2491: test implicit creation of typed hashes (hashdecl)
+        assertThrows("HASHDECL-IMPLICIT-CONSTRUCTION-ERROR", "Container", sub () {hash<Container> c; c.n = M_PIn;});
+
         {
             hash<Container> c();
             assertEq(Type::Hash, c.type());
