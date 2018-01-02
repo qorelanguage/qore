@@ -328,10 +328,10 @@ public class SqlTestBase inherits QUnit::Test {
                 cop_as(cop_coalesce("null_f", vc, "char_f"), "cop_coalesce"),
                 cop_as(cop_coalesce("null_f", cop_value("test")), "cop_coalesce2"),
                 cop_as(cop_length(cop_value("hi")), "cop_length"),
-                # cop_as (cop_minus ("id", cop_value(2)), "cop_minus"),
-                # cop_as (cop_plus ("id", cop_value(2)), "cop_plus"),
-                # cop_as (cop_divide ("id", cop_value(2)), "cop_divide"),
-                # cop_as (cop_multiply ("id", cop_value(2)), "cop_multiply"),
+                cop_as(cop_minus("id", cop_value(2)), "cop_minus_value"),
+                cop_as(cop_plus("id", cop_value(2)), "cop_plus_value"),
+                cop_as(cop_divide("id", cop_value(2)), "cop_divide_value"),
+                cop_as(cop_multiply("id", cop_value(10)), "cop_multiply_value"),
                 cop_as(cop_value(1), "cop_as_ok"), # cop_as with any word
                 cop_as(cop_value(1), "from"), # cop_as with reserved word
             ),
@@ -355,6 +355,10 @@ public class SqlTestBase inherits QUnit::Test {
             "cop_multiply": 4,
             "cop_coalesce": "hello",
             "cop_length": 2,
+            "cop_minus_value": 0,
+            "cop_plus_value": 4,
+            "cop_divide_value": 1,
+            "cop_multiply_value": 20,
             "cop_as_ok": 1,
             "from": 1,
             );
