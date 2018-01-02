@@ -4,7 +4,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -341,13 +341,30 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
          return -1;
       }
 
+      h = nullptr;
       //printd(5, "LValueHelper::doHashLValue() cv: %p ti: %p '%s' c: %p\n", getValue(), typeInfo, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getUniqueReturnComplexHash(typeInfo));
       // create a hash of the required type if the lvalue has a complex hash type and currently has no value
-      if (!getValue() && typeInfo && QoreTypeInfo::getUniqueReturnComplexHash(typeInfo)) {
-         assignIntern((h = new QoreHashNode));
-         qore_hash_private::get(*h)->complexTypeInfo = typeInfo;
+      if (!getValue() && typeInfo) {
+          if (QoreTypeInfo::getUniqueReturnComplexHash(typeInfo)) {
+             assignIntern((h = new QoreHashNode));
+             qore_hash_private::get(*h)->complexTypeInfo = typeInfo;
+          }
+          else {
+              const TypedHashDecl* thd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
+              if (thd) {
+                 // we cannot initialize a hashdecl value here while holding lvalue locks
+                 // so we have to throw an exception
+                 QoreStringNode* desc = new QoreStringNodeMaker("cannot implicitly create typed hash '%s' with an assignment; to address this error, declare the typed hash before the assignment", thd->getName());
+                 vl.xsink->raiseException("HASHDECL-IMPLICIT-CONSTRUCTION-ERROR", desc);
+                 //assignIntern((h = new QoreHashNode(thd, vl.xsink)));
+                 //if (*vl.xsink)
+                 clearPtr();
+                 return -1;
+              }
+          }
       }
-      else {
+
+      if (!h) {
          //printd(5, "LValueHelper::doHashLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
          saveTemp(getValue());
          assignIntern((h = new QoreHashNode));
