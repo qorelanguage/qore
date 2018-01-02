@@ -14,7 +14,7 @@
 %requires Util
 
 module QUnit {
-    version = "0.3.3";
+    version = "0.3.2";
     desc = "User module for unit testing with dependency injection support";
     author = "Zdenek Behan <zdenek.behan@qoretechnologies.com>";
     url = "http://qore.org";
@@ -130,12 +130,10 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
 
     @section unittest_relnotes Release Notes
 
-    @subsection qunit_v0_3_3 Version 0.3.3
-    - overloaded testAssertionValue supports auto/number/float
-    - more verbose output when number/float difference is found
-
     @subsection qunit_v0_3_2 Version 0.3.2
     - improved error location reporting by providing all stack location information up until the QUnit call to cover the case when multiple code layers are used such as one or more test modules (<a href="https://github.com/qorelanguage/qore/issues/1720">issue 1720</a>)
+    - overloaded testAssertionValue supports auto/number/float
+    - more verbose output when number/float difference is found
 
     @subsection qunit_v0_3_1 Version 0.3.1
     - added the following methods:
@@ -455,10 +453,16 @@ public class QUnit::TestCase {
         }
     }
 
-    static list<string> getStackList(list stack) {
+    static list<string> getStackList(list stack, bool ok = False) {
         list<string> l();
         foreach hash callSite in (stack) {
-            if (callSite.file !~ /QUnit\.qm/) {
+            if (callSite.file.val() && callSite.line != -1) {
+                if (callSite.file =~ /QUnit.qm$/) {
+                    ok = True;
+                    continue;
+                }
+                if (!ok)
+                    continue;
                 string fn = callSite.file;
                 fn =~ s/<run-time-loaded: (.*)>/$1/;
                 # try to add function/method call name
@@ -466,19 +470,21 @@ public class QUnit::TestCase {
                     fn = sprintf("%s() at %s", f, fn);
                 else
                     fn = "<start> " + fn;
-                l += sprintf("%s:%d", fn, callSite.line + callSite.offset);
+                l += fn;
+                int ln = callSite.line + callSite.offset;
+                if (ln > 0)
+                    l += sprintf(":%d", ln);
             }
         }
         return l;
     }
 
     static string getPos(hash ex) {
-        list<string> l = TestCase::getStackList(ex.callstack);
-        {
-            string pos = get_ex_pos(ex);
-            if (pos !~ /QUnit\.qm/)
-                unshift l, pos;
-        }
+        string pos = get_ex_pos(ex);
+        bool qunit = (pos =~ /QUnit\.qm$/);
+        list<string> l = TestCase::getStackList(ex.callstack, !qunit);
+        if (!qunit)
+            unshift l, pos;
         return (foldr $1 + " -> " + $2, l) ?? "<unknown>";
     }
 
