@@ -14,7 +14,7 @@
 %requires Util
 
 module QUnit {
-    version = "0.3.2";
+    version = "0.3.3";
     desc = "User module for unit testing with dependency injection support";
     author = "Zdenek Behan <zdenek.behan@qoretechnologies.com>";
     url = "http://qore.org";
@@ -129,6 +129,10 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
     - junit - machine readable format for further processing
 
     @section unittest_relnotes Release Notes
+
+    @subsection qunit_v0_3_3 Version 0.3.3
+    - overloaded testAssertionValue supports auto/number/float
+    - more verbose output when number/float difference is found
 
     @subsection qunit_v0_3_2 Version 0.3.2
     - improved error location reporting by providing all stack location information up until the QUnit call to cover the case when multiple code layers are used such as one or more test modules (<a href="https://github.com/qorelanguage/qore/issues/1720">issue 1720</a>)
