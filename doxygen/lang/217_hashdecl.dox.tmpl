@@ -58,6 +58,20 @@ hash<Container> h4 = new hash<Container>(("i": 2));
     In such cases, the initialization expression for the members being overridden is never executed and the
     supplied value is used instead.
 
+    Note that it's illegal to assign a value to an unassigned lvalue declared as a typed hash; in such cases a
+    \c HASHDECL-IMPLICIT-CONSTRUCTION-ERROR exception is thrown as in the following example:
+    @code{.py}
+hash<Container> c;
+# the following line will result in a HASHDECL-IMPLICIT-CONSTRUCTION-ERROR exception being thrown
+c.i = 2;
+    @endcode
+
+    To address this, ensure that your typed hash lvlaues are always initialized before assignment as in the following example:
+    @code{.py}
+hash<Container> c();
+c.i = 2;
+    @endcode
+
     @see
     - @ref variable_implicit_construction
     - @ref new
