@@ -463,17 +463,15 @@ public class QUnit::TestCase {
                 }
                 if (!ok)
                     continue;
-                string fn = callSite.file;
-                fn =~ s/<run-time-loaded: (.*)>/$1/;
-                # try to add function/method call name
-                if (*string f = stack[$# + 1].function)
-                    fn = sprintf("%s() at %s", f, fn);
-                else
-                    fn = "<start> " + fn;
-                l += fn;
+                string loc = callSite.file;
+                loc =~ s/<run-time-loaded: (.*)>/$1/;
                 int ln = callSite.line + callSite.offset;
                 if (ln > 0)
-                    l += sprintf(":%d", ln);
+                    loc += sprintf(":%d", ln);
+                # try to add function/method call name
+                if (*string f = stack[$# + 1].function)
+                    loc = sprintf("%s [%s()]", loc, f);
+                l += loc;
             }
         }
         return l;
@@ -485,7 +483,7 @@ public class QUnit::TestCase {
         list<string> l = TestCase::getStackList(ex.callstack, !qunit);
         if (!qunit)
             unshift l, pos;
-        return (foldr $1 + " -> " + $2, l) ?? "<unknown>";
+        return (foldl $1 + " <- " + $2, l) ?? "<unknown>";
     }
 
     #! handles exceptions raised while running the TestCase
@@ -749,7 +747,7 @@ public class QUnit::TestReporter {
         print("\n");
         if (testcase.result != TEST_SUCCESS) {
             string out = "";
-            printf("%s in %s\n", testcase.error, testcase.pos);
+            printf("%s at %s\n", testcase.error, testcase.pos);
             ListIterator errorDescription(testcase.detail.split("\n"));
             while (errorDescription.next()) {
                 out += sprintf("\t>> %s\n", errorDescription.getValue());
@@ -777,7 +775,7 @@ public class QUnit::TestReporter {
             hash testcase;
 
             testcase."^attributes^".name = it.getValue().testcase.getName();
-            string errmsg = sprintf("%s in %s:\n%s", it.getValue().error, it.getValue().pos, it.getValue().detail);
+            string errmsg = sprintf("%s at %s:\n%s", it.getValue().error, it.getValue().pos, it.getValue().detail);
 
             int status = it.getValue().result;
             testcase."^attributes^"."status" = RESULT_TYPE_DESCRIPTION{status}.desc;
@@ -2004,9 +2002,9 @@ fail("Unexpected code executed");
         {
             list<string> l = TestCase::getStackList(get_thread_call_stack());
             if (l)
-                np = foldr $1 + " -> " + $2, l;
+                np = foldl $1 + " <- " + $2, l;
         }
-        return np ? sprintf("in %s", np) : "<no name>";
+        return np ? sprintf("at %s", np) : "<no name>";
     }
 }
 
