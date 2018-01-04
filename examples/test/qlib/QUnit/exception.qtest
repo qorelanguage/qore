@@ -63,6 +63,6 @@ public class ExceptionTest inherits Test {
         ));
         string str = TestCase::getPos(ex);
         #printf("str: %y\n", str);
-        assertRegex("test.*->.*MyTest1.*->.*MyTest2", str);
+        assertRegex("MyTest2.*<-.*MyTest1.*<-.*test", str);
     }
 }
