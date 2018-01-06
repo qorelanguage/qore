@@ -479,8 +479,8 @@ public class QUnit::TestCase {
 
     static string getPos(hash ex) {
         string pos = get_ex_pos(ex);
-        bool qunit = (pos =~ /QUnit\.qm$/);
-        list<string> l = TestCase::getStackList(ex.callstack, !qunit);
+        bool qunit = (pos =~ /QUnit\.qm/);
+        list<string> l = TestCase::getStackList(ex.callstack, qunit);
         if (!qunit)
             unshift l, pos;
         return (foldl $1 + " <- " + $2, l) ?? "<unknown>";
