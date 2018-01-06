@@ -61,8 +61,77 @@ class Test inherits QUnit::Test {
         addTestCase("plus", \plus());
         addTestCase("minus", \minus());
         addTestCase("range test", \rangeAndSlice());
+        addTestCase("push & += tests", \pushPlusEqualsTests());
 
         set_return_value(main());
+    }
+
+    pushPlusEqualsTests() {
+        {
+            list l0;
+            list l1;
+            l0 += 1;
+            push l1, 1;
+            assertEq((1,), l0);
+            assertEq((1,), l1);
+        }
+        {
+            softlist l0;
+            softlist l1;
+            l0 += 1;
+            push l1, 1;
+            assertEq((1,), l0);
+            assertEq((1,), l1);
+        }
+        {
+            *list l0;
+            *list l1;
+            assertThrows("RUNTIME-TYPE-ERROR", sub () { l0 += 1; });
+            assertThrows("PUSH-ERROR", sub () { push l1, 1; });
+        }
+        {
+            *softlist l0;
+            *softlist l1;
+            l0 += 1;
+            assertEq((1,), l0);
+            assertThrows("PUSH-ERROR", sub () { push l1, 1; });
+        }
+        {
+            auto l0;
+            auto l1;
+            l0 += 1;
+            assertEq(1, l0);
+            assertThrows("PUSH-ERROR", sub () { push l1, 1; });
+        }
+        {
+            int l0;
+            l0 += 1;
+            assertEq(1, l0);
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("int l1; push l1, 1;", ""));
+        }
+        {
+            float l0;
+            l0 += 1;
+            assertEq(1.0, l0);
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("float l1; push l1, 1;", ""));
+        }
+        {
+            number l0;
+            l0 += 1;
+            assertEq(1n, l0);
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("number l1; push l1, 1;", ""));
+        }
+        {
+            # tests issue #2591
+            date l0;
+            l0 += 1;
+            assertEq(1970-01-01T00:00:02Z, l0);
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("date l1; push l1, 1;", ""));
+        }
     }
 
     basicTests() {
