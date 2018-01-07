@@ -136,7 +136,7 @@ class DebugWrapper {
                 throw "GETOPT-ERROR", "Missing URL";
             }
             switch (opt.url) {
-            case /^ws:\/\//:
+            case /^wss?:\/\//:
                 break;
             case /^[a-zA-Z0-9_]+:\/\//:
                 throw "GETOPT-ERROR", "Url protocol is not ws://";

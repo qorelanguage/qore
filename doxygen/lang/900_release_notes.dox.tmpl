@@ -9,7 +9,7 @@
 
     @subsection qore_08132_new_features New Features in Qore
     - the debugger "thread list", "backtrace all" commands implemented
-    - QUnit.qm v.0.3.3: overloaded function testAssertionValue to support auto/number/float and more verbose output when number/float difference is found
+    - <a href="../../modules/QUnit/html/index.html">QUnit</a>: overloaded the \c testAssertionValue() method to support auto/number/float and more verbose output when a difference in number/float values is found
 
     @subsection qore_08132_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a>: fixed a bug where unsolicited \c PONG messages caused the connection to be prematurely closed (<a href="https://github.com/qorelanguage/qore/issues/2566">issue 2566</a>)
@@ -19,6 +19,7 @@
     - fixed a bug with @ref Qore::Thread::Condition "Condition" variable handling on macOS High Sierra due to an internal undocumented API change (<a href="https://github.com/qorelanguage/qore/issues/2576">issue 2576</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>: implemented support for literal values in column operators taking column arguments with \c cop_value() (<a href="https://github.com/qorelanguage/qore/issues/2555">issue 2555</a>)
     - fixed a memory error with the @ref plus_equals_operator "+= operator" and uninitialized date/time values (<a href="https://github.com/qorelanguage/qore/issues/2591">issue 2591</a>)
+    - fixed a bug in the remote debugger \c qdbg-remote where \c wss:// schemes were not accepted (<a href="https://github.com/qorelanguage/qore/issues/2596">issue 2596</a>)
 
     @section qore_08131 Qore 0.8.13.1
 
