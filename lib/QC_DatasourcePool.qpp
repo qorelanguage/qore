@@ -1014,7 +1014,7 @@ list DatasourcePool::getCapabilityList() [flags=CONSTANT] {
 //! Returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object based on the current database connection object
 /** @par Example:
     @code{.py}
-AbstractSQLStatement stmt = ds.getSQLStaement();
+AbstractSQLStatement stmt = ds.getSQLStatement();
     @endcode
 
     @throw SQLSTATEMENT-ERROR the DBI driver for the given object does not support the prepared statement API
