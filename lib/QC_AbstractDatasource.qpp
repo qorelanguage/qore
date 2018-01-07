@@ -418,7 +418,7 @@ bool AbstractDatasource::currentThreadInTransaction() {
 
 //! Returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object based on the current database connection object
 /** @note
-    - this is reimplemented as @ref Qore::SQL::Datasource::getSQLStaement() "Datasource::getSQLStaement()" and @ref Qore::SQL::DatasourcePool::getSQLStaement() "DatasourcePool::getSQLStaement()"
+    - this is reimplemented as @ref Qore::SQL::Datasource::getSQLStatement() "Datasource::getSQLStatement()" and @ref Qore::SQL::DatasourcePool::getSQLStatement() "DatasourcePool::getSQLStatement()"
     - this method was added as a non-abstract method in Qore 0.9.0 to avoid breaking existing subclasses of AbstractDatasource
 
     @since Qore 0.9.0
