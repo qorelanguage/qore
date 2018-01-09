@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1030,11 +1030,8 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(Excepti
    if (!variant) {
       QoreStringNode* desc = new QoreStringNode("no variant matching '");
       const char* class_name = className();
-      if (class_name)
-         desc->sprintf("%s::", class_name);
-      desc->sprintf("%s(", getName());
       do_call_str(*desc, this, args);
-      desc->concat(") can be found; ");
+      desc->concat("' can be found; ");
       desc->concat("the following variants are defined:");
 
       last_class = nullptr;

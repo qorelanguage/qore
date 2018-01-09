@@ -663,6 +663,15 @@ class ProgramTest inherits QUnit::Test {
         ProgramControl p = ProgramControl::getProgram();
         foreach hash v in (val) {
             int st = p.findFunctionStatementId(name, v.params);
+            # test for issue #2600
+            try {
+                p.findFunctionStatementId(name, ("Mutex",));
+                assertFalse(True);
+            }
+            catch (hash<ExceptionInfo> ex) {
+                assertEq("RUNTIME-OVERLOAD-ERROR", ex.err);
+                assertNRegex(name + "\\(" + name, ex.desc);
+            }
             testAssertionValue(sprintf("findFunctionStatementId(%s)", name), st > 0, True);
             # issue #2601: test empty args in match
             assertThrows("FIND-CALL-ERROR", \p.findFunctionStatementId(), (name, ("",)));
