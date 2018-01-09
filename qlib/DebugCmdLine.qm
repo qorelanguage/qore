@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file DebugCmdLine.qm Debug common code
 
-/*  DebugCmdLine.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+/*  DebugCmdLine.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@
 %no-debugging
 
 module DebugCmdLine {
-    version = "0.1";
+    version = "0.1.1";
     desc = "user module providing common command line debug stuff";
     author = "Tomas Mandys <tomas.mandys@qore.org>";
     url = "http://qore.org";
@@ -49,6 +49,9 @@ module DebugCmdLine {
     @section debugcmdlineintro Introduction to the DebugCmdLine Module
 
     The %DebugCmdLine module provides common functionality for implementing debugger client utilities
+
+    @subsection dcl_v0_1_1 v0.1.1
+    - fixed a bug parsing call signatures when setting breakpoints (<a href="https://github.com/qorelanguage/qore/issues/2601">issue 2601</a>)
 
     @subsection dcl_v0_1 v0.1
     - the initial version of the DebugCommandLine module
@@ -1069,7 +1072,7 @@ public namespace DebugCmdLine {
             }
             *list l = s =~ x/^(.+)\((.*)\)$/;
             if (l) {
-                l[1] =~ tr/ //;
+                l[1] =~ s/ //;
                 return ('function': l[0], 'args': split(',', l[1]));
             }
             if (args[0] =~ /^[0-9]+$/) {

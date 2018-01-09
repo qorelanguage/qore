@@ -673,6 +673,8 @@ class ProgramTest inherits QUnit::Test {
                 assertNRegex(name + "\\(" + name, ex.desc);
             }
             testAssertionValue(sprintf("findFunctionStatementId(%s)", name), st > 0, True);
+            # issue #2601: test empty args in match
+            assertThrows("FIND-CALL-ERROR", \p.findFunctionStatementId(), (name, ("",)));
         }
     }
 
