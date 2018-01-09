@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1777,6 +1777,11 @@ const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const c
          }
          // get string value for type
          const QoreString& tname = *v.get<const QoreStringNode>();
+         // issue #2601: ensure that the string is not empty (client error)
+         if (tname.empty()) {
+            xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %d is an empty string", name, li.index() + 1);
+            return nullptr;
+         }
          // look up type from string
          const QoreTypeInfo* ti = qore_get_type_from_string(tname.c_str());
          if (!ti) {
