@@ -310,6 +310,7 @@
 #include "QC_RangeIterator.cpp"
 #include "QC_ThreadPool.cpp"
 #include "QC_AbstractDatasource.cpp"
+#include "QC_AbstractSQLStatement.cpp"
 #include "QC_Datasource.cpp"
 #include "QC_DatasourcePool.cpp"
 #include "QC_SQLStatement.cpp"
