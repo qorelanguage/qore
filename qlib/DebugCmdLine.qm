@@ -52,6 +52,7 @@ module DebugCmdLine {
 
     @subsection dcl_v0_1_1 v0.1.1
     - fixed a bug parsing call signatures when setting breakpoints (<a href="https://github.com/qorelanguage/qore/issues/2601">issue 2601</a>)
+    - improved breakpoint usability (<a href="https://github.com/qorelanguage/qore/issues/2603">issue 2604</a>)
 
     @subsection dcl_v0_1 v0.1
     - the initial version of the DebugCommandLine module
@@ -587,11 +588,26 @@ public namespace DebugCmdLine {
                     'break': (
                         '>': (
                             'list': (
-                                'desc': 'list breakpoints',
+                                'desc': 'list breakpoints for current program',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint//list';
-                                    dcl.doCommand(data);
+                                    *hash sd = dcl.doCommandImpl(data);
+                                    if (sd.result) {
+                                        dcl.showBreakpoints(sd.result);
+                                    }
                                 },
+                                '>': (
+                                    'all': (
+                                        'desc': 'list breakpoints for all programs',
+                                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            hash data.cmd = 'program//breakpoint//list';
+                                            *hash sd = dcl.doCommandImpl(data);
+                                            if (sd.result) {
+                                                dcl.showBreakpoints(sd.result);
+                                            }
+                                        },
+                                    ),
+                                ),
                             ),
                             'create': (
                                 'desc': 'create breakpoint and get breakpointId. Use "statement assign" command to assign breakpoint to particular statement, i.e. code line',
@@ -606,7 +622,7 @@ public namespace DebugCmdLine {
                                         return DebugCommandLine::enumBreakpointId(dcl, path, args);
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/delete';
+                                        hash data.cmd = 'program//breakpoint/'+pop path+'/delete';
                                         dcl.doCommand(data);
                                     },
                                 ),
@@ -618,7 +634,7 @@ public namespace DebugCmdLine {
                                         return DebugCommandLine::enumBreakpointId(dcl, path, args);
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/enable';
+                                        hash data.cmd = 'program//breakpoint/'+pop path+'/enable';
                                         dcl.doCommand(data);
                                     },
                                 ),
@@ -630,7 +646,7 @@ public namespace DebugCmdLine {
                                         return DebugCommandLine::enumBreakpointId(dcl, path, args);
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/disable';
+                                        hash data.cmd = 'program//breakpoint/'+pop path+'/disable';
                                         dcl.doCommand(data);
                                     },
                                 ),
@@ -646,13 +662,13 @@ public namespace DebugCmdLine {
                                             return DebugCommandLine::enumFilter(keys policyStrings, pop path);
                                         },
                                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                            hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+path[path.size()-2]+'/policy/set';
+                                            hash data.cmd = 'program//breakpoint/'+path[path.size()-2]+'/policy/set';
                                             data.value = pop path;
                                             dcl.doCommand(data);
                                         },
                                     ),
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/policy/get';
+                                        hash data.cmd = 'program//breakpoint/'+pop path+'/policy/get';
                                         dcl.doCommand(data);
                                     },
                                 ),
@@ -665,7 +681,7 @@ public namespace DebugCmdLine {
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
 
-                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/thread/';
+                                        hash data.cmd = 'program//breakpoint/'+pop path+'/thread/';
 
                                         if (args) {
                                             string a = shift args;
@@ -689,7 +705,7 @@ public namespace DebugCmdLine {
                                 ),
                                 'desc': 'get/set threads assigned to breakpoint, args: breakpointId ["+"/"-" threadId | threadId ..]',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/thread/get';
+                                        hash data.cmd = 'program//breakpoint/'+pop path+'/thread/get';
                                         dcl.doCommand(data);
                                 },
                             ),
@@ -699,7 +715,7 @@ public namespace DebugCmdLine {
                                         return DebugCommandLine::enumBreakpointId(dcl, path, args);
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/list';
+                                        hash data.cmd = 'program//breakpoint/'+pop path+'/statement/list';
                                         dcl.doCommand(data);
                                     },
                                 ),
@@ -719,7 +735,7 @@ public namespace DebugCmdLine {
                                         return DebugCommandLine::enumBreakpointId(dcl, path, args);
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/list';
+                                        hash data.cmd = 'program//breakpoint/'+pop path+'/statement/list';
                                         dcl.doCommand(data);
                                     },
                                 ),
@@ -731,12 +747,12 @@ public namespace DebugCmdLine {
                                         return DebugCommandLine::enumBreakpointId(dcl, path, args);
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/assign';
+                                        hash data.cmd = 'program//breakpoint/'+pop path+'/statement/assign';
                                         data.value = dcl.getStatementValue(args);
                                         dcl.doCommand(data);
                                     },
                                 ),
-                                'desc': 'assign statement to breakpoint, args: breakpointId [function([args, ...])] | [file] lineno',
+                                'desc': 'assign statement to breakpoint, args: breakpointId [function([args, ...])] | [file] lineno | #statementId',
                             ),
                             'unassign': (
                                 '*': (
@@ -744,12 +760,12 @@ public namespace DebugCmdLine {
                                         return DebugCommandLine::enumBreakpointId(dcl, path, args);
                                     },
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint/'+pop path+'/statement/unassign';
+                                        hash data.cmd = 'program//breakpoint/'+pop path+'/statement/unassign';
                                         data.value = dcl.getStatementValue(args);
                                         dcl.doCommand(data);
                                     },
                                 ),
-                                'desc': 'unassign statement from breakpoint, args: breakpointId [function([args, ...])] | [file] lineno',
+                                'desc': 'unassign statement from breakpoint, args: breakpointId [function([args, ...])] | [file] lineno | #statementId',
                             ),
                         ),
                         'desc': 'statement related commands',
@@ -1008,6 +1024,22 @@ public namespace DebugCmdLine {
             }
         }
 
+        public showBreakpoints(*list bkpts) {
+            foreach hash b in (sort(bkpts, int sub (hash l, hash r) { return l.id <=> r.id; })) {
+                stdout.printf(" id: %-4d  pgmId: %-4d enabled: %-5s policy: %-6s threads: %y\n", b.id, b.programId, b.enabled, b.policy, b.threads);
+                foreach hash stmt in (b.statements) {
+                    stdout.printf("   @ %-5d %s:%d-%d", stmt.id, stmt.file, stmt.start_line + stmt.offset, stmt.end_line + stmt.offset);
+                    if (stmt.source) {
+                        stdout.printf(" (%s:%d-%d)", stmt.source, stmt.start_line, stmt.end_line);
+                    }
+                    stdout.print("\n");
+                }
+                if (b.statements) {
+                    stdout.print("\n");
+                }
+            }
+        }
+
         public string getThreadStackStr(hash lh) {
             string str;
             if (lh.function.val())
@@ -1072,13 +1104,23 @@ public namespace DebugCmdLine {
             }
             *list l = s =~ x/^(.+)\((.*)\)$/;
             if (l) {
-                l[1] =~ s/ //;
-                return ('function': l[0], 'args': split(',', l[1]));
+                list la = ();
+                foreach string s2 in (split(',', l[1])) {
+                    s2 = trim(s2);
+                    if (s2 != "") {
+                        push la, s2;
+                    }
+                }
+                return ('function': l[0], 'args': la);
+            }
+            l = s =~ x/^#([0-9]+)$/;
+            if (l) {
+                return ('id': int(l[0]));
             }
             if (args[0] =~ /^[0-9]+$/) {
                 return ('file': s, 'lineno': int(args[0]));
             }
-            return ('id': s);
+            throw "DEBUG-PROGRAM-HELPER", sprintf("Wrong statement identification");
         }
 
         private list splitCmd(string line) {

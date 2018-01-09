@@ -10,6 +10,9 @@
     @subsection qore_08132_new_features New Features in Qore
     - the debugger "thread list", "backtrace all" commands implemented
     - <a href="../../modules/QUnit/html/index.html">QUnit</a>: overloaded the \c testAssertionValue() method to support auto/number/float and more verbose output when a difference in number/float values is found
+    - improvement in debugger when working with breakpoints
+    - qdbg-remote supports ConnectionProvider connections
+    - new function Breakpoint::getProgram()
 
     @subsection qore_08132_bug_fixes Bug Fixes in Qore
     - module fixes:
@@ -29,6 +32,7 @@
     - fixed a bug in the remote debugger \c qdbg-remote where \c wss:// schemes were not accepted (<a href="https://github.com/qorelanguage/qore/issues/2596">issue 2596</a>)
     - fixed a bug in an error message in @ref Qore::ProgramControl::findFunctionStatementId() "ProgramControl::findFunctionStatementId()" (<a href="https://github.com/qorelanguage/qore/issues/2600">issue 2600</a>)
     - fixed a crash when @ref Qore::HTTPClient::setDefaultPath() "HTTPClient::setDefaultPath()" was called with no argument (<a href="https://github.com/qorelanguage/qore/issues/2610">issue 2610</a>)
+    - fixed a bug in debugger when program is not set (<a href="https://github.com/qorelanguage/qore/issues/2603">issue 2603</a>)
 
     @section qore_08131 Qore 0.8.13.1
 

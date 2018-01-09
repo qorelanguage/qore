@@ -233,7 +233,7 @@ public namespace DebugProgramControl {
                             }
                             result{pgmId}.breakpoints = ();
                             foreach Breakpoint b2 in (p.getBreakpoints()) {
-                                push result{pgmId}.breakpoints, getBreakpointInfo(p, b2);
+                                push result{pgmId}.breakpoints, getBreakpointInfo(b2);
                             }
                             if (!result{pgmId}.breakpoints)
                                 remove result{pgmId}.breakpoints;
@@ -289,6 +289,11 @@ public namespace DebugProgramControl {
                         break;
                     case 'create':
                         break;
+                    case 'breakpoint':
+                        if (pgmName == '') {
+                            break;  # pgmId is assigned to breakpoint so it is optional
+                        }
+                        # nobreak;
                     default:
                         pgmb = ProgramControl::resolveProgramId(int(pgmName));
                     }
@@ -453,20 +458,39 @@ public namespace DebugProgramControl {
                         case 'list':
                             break;
                         case 'create':
+                            if (!pgmb) {
+                                throw "DEBUG-HANDLER-ERROR", "Program is not specified";
+                            }
                             b = new Breakpoint();
                             b.setEnabled(True);
                             break;
                         default:
                             b = Breakpoint::resolveBreakpointId(int(bkptName));
+                            if (pgmb && b.getProgram().getProgramId() != pgmb.getProgramId()) {
+                                throw "DEBUG-HANDLER-ERROR", sprintf("Program %y is not assigned to breakpoint %y", pgmb.getProgramId(), b.getBreakpointId());
+                            }
                             break;
                         }
                         switch (shift cmd) {
                         case 'list':
-                            list bkpts = pgmb.getBreakpoints();
-                            result = ();
-                            foreach Breakpoint b2 in (bkpts) {
-                                if (AbstractDebugControl::evalCondition(b2.getBreakpointId(), bkptName)) {
-                                    push result, getBreakpointInfo(pgmb, b2);
+                            if (pgmb) {
+                                list bkpts = pgmb.getBreakpoints();
+                                result = ();
+                                foreach Breakpoint b2 in (bkpts) {
+                                    if (AbstractDebugControl::evalCondition(b2.getBreakpointId(), bkptName)) {
+                                        push result, getBreakpointInfo(b2);
+                                    }
+                                }
+                            } else {
+                                result = ();
+                                foreach ProgramControl p in (ProgramControl::getAllPrograms()) {
+                                    if ((p.getParseOptions() & PO_NO_DEBUGGING) == 0) {
+                                        foreach Breakpoint b2 in (p.getBreakpoints()) {
+                                            if (AbstractDebugControl::evalCondition(b2.getBreakpointId(), bkptName)) {
+                                                push result, getBreakpointInfo(b2);
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             break;
@@ -477,8 +501,6 @@ public namespace DebugProgramControl {
                             break;
 
                         case 'delete':
-                            # TODO: if (b.getProgram().getProgramId() != pgmb.getProgramId()
-                            #  throw DEBUG-HANDLER-ERROR, "Program mismatch";
                             b.unassignProgram();
                             b.clearThreadIds();
                             list sl = b.getStatementIds();
@@ -504,17 +526,17 @@ public namespace DebugProgramControl {
                             case 'list':
                                 result = hash();
                                 foreach int sid in (b.getStatementIds()) {
-                                    result{sid} = pgmb.getStatementIdInfo(sid);
+                                    result{sid} = b.getProgram().getStatementIdInfo(sid);
                                 }
                                 break;
 
                             case 'assign':
-                                b.assignStatement(resolveStatement(pgmb, receiveData.value));
+                                b.assignStatement(resolveStatement(b.getProgram(), receiveData.value));
                                 result = 'ok';
                                 break;
 
                             case 'unassign':
-                                b.unassignStatement(resolveStatement(pgmb, receiveData.value));
+                                b.unassignStatement(resolveStatement(b.getProgram(), receiveData.value));
                                 result = 'ok';
                                 break;
                             }
@@ -650,14 +672,15 @@ public namespace DebugProgramControl {
             throw "DEBUG-HANDLER-ERROR", sprintf("Cannot resolve statement from %y", value);
         }
 
-        private hash getBreakpointInfo(ProgramControl pgmb, Breakpoint b) {
+        private hash getBreakpointInfo(Breakpoint b) {
             hash binfo.id = b.getBreakpointId();
+            binfo.programId = b.getProgram().getProgramId();
             binfo.enabled = encodeValue('enabled', b.getEnabled(), boolStrings);
             binfo.threads = b.getThreadIds();
             binfo.policy = encodeValue('policy', b.getPolicy(), policyStrings);
             binfo.statements = ();
             foreach int sid in (b.getStatementIds()) {
-                push binfo.statements, ('id': sid) + pgmb.getStatementIdInfo(sid);
+                push binfo.statements, ('id': sid) + b.getProgram().getStatementIdInfo(sid);
             }
             if (!binfo.threads)
                 remove binfo.threads;
@@ -712,7 +735,7 @@ public namespace DebugProgramControl {
                 "intrInfo": (
                     'type': 'event',
                     'cmd': 'interrupt',
-                    'pgmid': ctx.pgmId,
+                    'pgmid': pgm.getProgramId(),
                     'tid': tid,
                     'stamp': now_us(),
                     'func': func,

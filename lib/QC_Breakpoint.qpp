@@ -162,6 +162,19 @@ nothing Breakpoint::unassignProgram() {
    bkpt->assignProgram(nullptr, xsink);
 }
 
+//! Get @ref Qore::ProgramControl "ProgramControl" assigned to the breakpoint
+/**
+   @throw BREAKPOINT-ERROR if a program is not assigned to @ref Breakpoint instance
+
+ */
+ProgramControl Breakpoint::getProgram() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
+   QoreProgram* pgm = bkpt->getProgram();
+   if (!pgm) {
+      return xsink->raiseException("BREAKPOINT-ERROR", "Program is not assigned");
+   }
+   return QoreProgram::getQoreObject(pgm);
+}
+
 //! Assign breakpoint to a statement.
 /**
  *
