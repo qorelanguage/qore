@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2006 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -479,7 +479,8 @@ const char* QoreHttpClientObject::getConnectionPath() const {
 }
 
 void QoreHttpClientObject::setDefaultPath(const char* def_path) {
-    http_priv->default_path = def_path;
+    // issue #2610: assigning a std::string a nullptr causes a crash
+    http_priv->default_path = def_path ? def_path : "";
 }
 
 void QoreHttpClientObject::setTimeout(int to) {

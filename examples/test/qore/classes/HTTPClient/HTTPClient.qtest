@@ -231,6 +231,7 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
     constructor() : Test("HttpClientTest", "1.0") {
         addTestCase("HttpClient Test", \testClient());
         addTestCase("SSL read test", \sslReadTest());
+        addTestCase("issue 2610", \issue2610());
 
         set_return_value(main());
     }
@@ -438,6 +439,13 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
         #hc.setURL("https://group.three.com/qcbin/rest/is-authenticated");
         #hc.setTimeout(15s);
         #assertThrows("SOCKET-SSL-ERROR", "Connection reset", \hc.get(), ("", ("Host": "group.three.com:443")));
+    }
+
+    issue2610() {
+        HTTPClient hc();
+        # issue 2610: this causes a crash
+        hc.setDefaultPath();
+        assertNothing(hc.getDefaultPath());
     }
 
     sslReadError(Queue q) {
