@@ -35,7 +35,7 @@
 %no-child-restrictions
 
 module DebugProgramControl {
-    version = "0.1";
+    version = "0.1.1";
     desc = "user module providing common debug server stuff";
     author = "Tomas Mandys <tomas.mandys@qore.org>";
     url = "http://qore.org";
@@ -49,6 +49,10 @@ module DebugProgramControl {
     @section debugprogramcontrolintro Introduction to the DebugProgramControl Module
 
     The %DebugProgramControl module provides common functionality for implementing debugger server utilities
+
+    @subsection dc_v0_1_1 v0.1.1
+    - fixed bug providing programId context (<a href="https://github.com/qorelanguage/qore/issues/2603">issue 2603</a>)
+    - improved breakpoint usability (<a href="https://github.com/qorelanguage/qore/issues/2603">issue 2604</a>)
 
     @subsection dc_v0_1 v0.1
     - the initial version of the DebugProgramControl module
@@ -461,8 +465,16 @@ public namespace DebugProgramControl {
                             if (!pgmb) {
                                 throw "DEBUG-HANDLER-ERROR", "Program is not specified";
                             }
+                            int stmt;
+                            if (receiveData.value) {
+                                stmt = resolveStatement(pgmb, receiveData.value);
+                            }
                             b = new Breakpoint();
                             b.setEnabled(True);
+                            b.assignProgram(pgmb);
+                            if (exists stmt) {
+                                b.assignStatement(stmt);
+                            }
                             break;
                         default:
                             b = Breakpoint::resolveBreakpointId(int(bkptName));
@@ -496,7 +508,6 @@ public namespace DebugProgramControl {
                             break;
 
                         case 'create':
-                            b.assignProgram(pgmb);
                             result = b.getBreakpointId();
                             break;
 
