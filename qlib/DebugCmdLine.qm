@@ -610,9 +610,12 @@ public namespace DebugCmdLine {
                                 ),
                             ),
                             'create': (
-                                'desc': 'create breakpoint and get breakpointId. Use "statement assign" command to assign breakpoint to particular statement, i.e. code line',
+                                'desc': 'create breakpoint and get breakpointId. Optionally assign to particular statement, i.e. code line, or do it later using "statement assign". args: [function([args, ...])] | [file] lineno | #statementId',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint//create';
+                                    if (args) {
+                                        data.value = dcl.getStatementValue(args);
+                                    }
                                     dcl.doCommand(data);
                                 },
                             ),
