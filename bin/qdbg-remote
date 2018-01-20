@@ -140,11 +140,7 @@ class DebugWrapper {
             try {
                 opt.url = get_connection_url(opt.url);
             } catch (hash<ExceptionInfo> ex) {
-                if (ex.err == "CONNECTION-ERROR") {
-                    if (opt.verbose) {
-                        stderr.printf("QorusConnection not found\n");
-                    }
-                } else {
+                if (ex.err != "CONNECTION-ERROR") {
                     rethrow;
                 }
             }
@@ -153,7 +149,7 @@ class DebugWrapper {
                     # use "debug" path if none present
                     opt.url += "/debug";
                 }
-                if (opt.url =~ /^https?/) {
+                if (opt.url =~ /^https?:/) {
                     opt.url =~ s/^http/ws/;
                 }
                 if (opt.verbose) {
