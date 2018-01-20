@@ -440,7 +440,7 @@ sub main() {
 
         done = True;
         Table table(source, opt.export_table);
-        SQLStatement sql = table.getRowIterator(sh);
+        AbstractSQLStatement sql = table.getStatement(sh);
         while (sql.next()) {
             hash row = sql.fetchRow();
             printf("%s", make_yaml(row));
