@@ -46,11 +46,18 @@
     @subsection qore_08132_new_features New Features in Qore
     - the debugger "thread list", "backtrace all" commands implemented
     - <a href="../../modules/QUnit/html/index.html">QUnit</a>: overloaded the \c testAssertionValue() method to support auto/number/float and more verbose output when a difference in number/float values is found
+    - improvement in debugger when working with breakpoints
+    - qdbg-remote supports ConnectionProvider connections
+    - new function Breakpoint::getProgram()
 
     @subsection qore_08132_bug_fixes Bug Fixes in Qore
     - module fixes:
       - <a href="../../modules/DebugCmdLine/html/index.html">DebugCmdLine</a>:
+        - improved breakpoint usability (<a href="https://github.com/qorelanguage/qore/issues/2604">issue 2604</a>)
         - fixed a bug parsing call signatures when setting breakpoints (<a href="https://github.com/qorelanguage/qore/issues/2601">issue 2601</a>)
+      - <a href="../../modules/DebugProgramControl/html/index.html">DebugProgramControl</a>:
+        - improved breakpoint usability (<a href="https://github.com/qorelanguage/qore/issues/2604">issue 2604</a>)
+        - fixed a bug providing the programId context (<a href="https://github.com/qorelanguage/qore/issues/2603">issue 2603</a>)
       - <a href="../../modules/QUnit/html/index.html">QUnit</a>:
         - improved error location reporting by providing all stack location information up until the QUnit call to cover the case when multiple code layers are used such as one or more test modules (<a href="https://github.com/qorelanguage/qore/issues/1720">issue 1720</a>)
       - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>:
@@ -65,6 +72,7 @@
     - fixed a bug in the remote debugger \c qdbg-remote where \c wss:// schemes were not accepted (<a href="https://github.com/qorelanguage/qore/issues/2596">issue 2596</a>)
     - fixed a bug in an error message in @ref Qore::ProgramControl::findFunctionStatementId() "ProgramControl::findFunctionStatementId()" (<a href="https://github.com/qorelanguage/qore/issues/2600">issue 2600</a>)
     - fixed a crash when @ref Qore::HTTPClient::setDefaultPath() "HTTPClient::setDefaultPath()" was called with no argument (<a href="https://github.com/qorelanguage/qore/issues/2610">issue 2610</a>)
+    - fixed a bug in debugger when program is not set (<a href="https://github.com/qorelanguage/qore/issues/2603">issue 2603</a>)
 
     @section qore_08131 Qore 0.8.13.1
 

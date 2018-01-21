@@ -9,6 +9,7 @@
 %requires WebSocketClient
 %requires yaml >= 0.5
 %requires DebugCmdLine
+%requires ConnectionProvider
 
 %exec-class DebugWrapper
 
@@ -20,8 +21,8 @@ class DebugCommandLineRemote inherits DebugCommandLine {
         any recData;
         WebSocketClient wsc;
         timeout wscTimeout;
-		bool connecting;
-		string serverName;
+        bool connecting;
+        string serverName;
         string url;
     }
 
@@ -53,10 +54,10 @@ class DebugCommandLineRemote inherits DebugCommandLine {
         }
     }
 
-	public nothing connect() {
-		connecting = True;
+    public nothing connect() {
+        connecting = True;
         counter.inc();
-		hash hh = wsc.connect();
+        hash hh = wsc.connect();
         *string prot_ver = hh{QoreDebugWsProtocolHeader.lwr()};
         if (!prot_ver.val())
             throw "QORE-DEBUG", sprintf("Connected to %y, but no %y header received in response; check the URI path and try again", url, QoreDebugWsProtocolHeader);
@@ -67,7 +68,7 @@ class DebugCommandLineRemote inherits DebugCommandLine {
         } else {
             serverName = recData.result;
         }
-	}
+    }
 
     public wscEvent(*data msg) {
         logger.log(DUV_DEBUG, "received: %y", msg);
@@ -77,12 +78,12 @@ class DebugCommandLineRemote inherits DebugCommandLine {
             auto d = parse_yaml(msg);
             if (counter.getCount() > 0) {
                 if ((d.type == "response" && pendingUid == d.uid && !connecting) ||
-				    (d.type == "event" && d.cmd == "welcome" && connecting) ) {
+                    (d.type == "event" && d.cmd == "welcome" && connecting) ) {
                     recData = d;
                     counter.dec();
-					connecting = False;
+                    connecting = False;
                     return;
-				}
+                }
             }
             printData(d);
         } catch (hash<ExceptionInfo> ex) {
@@ -135,6 +136,29 @@ class DebugWrapper {
             if (!exists opt.url) {
                 throw "GETOPT-ERROR", "Missing URL";
             }
+            string orig_url = opt.url;
+            try {
+                opt.url = get_connection_url(opt.url);
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err != "CONNECTION-ERROR") {
+                    rethrow;
+                }
+                if (opt.url !~ /:\/\//) {
+                    throw "CONNECTION-ERROR", sprintf("URL %y is not a valid URL and no connection can be found with this name; connection providers searched (QORE_CONNECTION_PROVIDERS env var): %y", opt.url, ENV.QORE_CONNECTION_PROVIDERS);
+                }
+            }
+            if (orig_url != opt.url) {
+                if (opt.url =~ /^https?:\/+[^\/]+$/) {
+                    # use "debug" path if none present
+                    opt.url += "/debug";
+                }
+                if (opt.url =~ /^https?:/) {
+                    opt.url =~ s/^http/ws/;
+                }
+                if (opt.verbose) {
+                    stderr.printf("Using connection %y url: %y\n", orig_url, opt.url);
+                }
+            }
             switch (opt.url) {
             case /^wss?:\/\//:
                 break;
@@ -183,7 +207,9 @@ class DebugWrapper {
     private help(int exCode=1) {
         printf("usage: %s [options] <url>\n"
             "  <url> is the URL of debug server in 'ws://socket=<url_encoded_path>/path', where ws:// is optional\n"
-            "  where <url> is degug server target\n"
+            "  where <url> is debug server target.\n"
+            "  ConnectionProvider name is considered, when matched then http(s) protocol is changed to ws(s)\n"
+            "  and '/debug' path is defined unless a path already exists in the URL\n"
             "  -v     verbose\n"
             "  -h     help\n"
             "  -m,--max-redir=<num>   the maximum number of redirects before throwing an exception (the default is 5)\n"
@@ -197,7 +223,8 @@ class DebugWrapper {
 
             "\n"
             "Example:\n"
-            "  %s -v localhost:1000/debug\n"
+            "  %s -v localhost:8000/debug\n"
+            "  %s -v qorus\n"
             "\n"
             ,
             get_script_name(),
