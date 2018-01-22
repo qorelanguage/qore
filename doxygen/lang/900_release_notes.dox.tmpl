@@ -44,11 +44,10 @@
     Bugfix release; see details below
 
     @subsection qore_08132_new_features New Features in Qore
-    - the debugger "thread list", "backtrace all" commands implemented
-    - <a href="../../modules/QUnit/html/index.html">QUnit</a>: overloaded the \c testAssertionValue() method to support auto/number/float and more verbose output when a difference in number/float values is found
-    - improvement in debugger when working with breakpoints
-    - qdbg-remote supports ConnectionProvider connections
-    - new function Breakpoint::getProgram()
+    - \c "thread list", \c "backtrace all" commands implemented for the debugger (<a href="https://github.com/qorelanguage/qore/issues/2608">issue 2608</a>)
+    - <a href="../../modules/QUnit/html/index.html">QUnit</a>: overloaded the \c testAssertionValue() method to support auto/number/float and more verbose output when a difference in number/float values is found (<a href="https://github.com/qorelanguage/qore/issues/2556">issue 2556</a>)
+    - qdbg-remote supports ConnectionProvider connections (<a href="https://github.com/qorelanguage/qore/issues/2613">issue 2613</a>)
+    - new method: @ref Qore::Breakpoint::getProgram() "Breakpoint::getProgram()"
 
     @subsection qore_08132_bug_fixes Bug Fixes in Qore
     - module fixes:
