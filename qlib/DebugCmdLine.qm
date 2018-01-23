@@ -801,7 +801,7 @@ public namespace DebugCmdLine {
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     *softint threadId = dcl.getContextValue('threadId');
                                     if (!exists threadId)
-                                        stdout.printf("no current thread set, (\"pgm info\" to list threads and \"thread set\"\n");
+                                        stdout.printf("no current thread set; \"pgm info\" to list threads; \"thread set <id>\" to set the current thread\r\n");
                                     else
                                         printf("TID context: %d\r\n", threadId);
                                 },
