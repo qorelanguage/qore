@@ -644,7 +644,7 @@ target_link_libraries(qore libqore)
 #target_link_libraries(qr libqore)
 
 #set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
-set_target_properties(qore PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+set_target_properties(qore PROPERTIES INSTALL_RPATH_USE_LINK_PATH ${CMAKE_INSTALL_FULL_LIBDIR})
 
 # configuration files
 message(STATUS "Generating unix-config.h")
