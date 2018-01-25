@@ -24,5 +24,49 @@ public class HttpServerUtilTest inherits QUnit::Test {
     funcTests() {
         assertEq("https://[fe80::468a:5bff:fe86:43ee]:8011", http_get_url_from_bind("https://fe80::468a:5bff:fe86:43ee:8011"));
         assertEq("http://[::]", http_get_url_from_bind("::"));
+        assertEq("passenger", http_mask_data("passenger"));
+        assertEq("pass: <masked>...", http_mask_data("pass: 1"));
+        assertEq("\"pass\": <masked>...", http_mask_data("\"pass\": 1"));
+        assertEq("password: <masked>...", http_mask_data("password: 1"));
+        assertEq("\"password\": <masked>...", http_mask_data("\"password\": 1"));
+        assertEq("passwrd: 1", http_mask_data("passwrd: 1"));
+        assertEq("\"passwrd\": 1", http_mask_data("\"passwrd\": 1"));
+        assertEq("passwd: 1", http_mask_data("passwd: 1"));
+        assertEq("\"passwd\": 1", http_mask_data("\"passwd\": 1"));
+        assertEq("passenger: 1", http_mask_data("passenger: 1"));
+        assertEq("\"passenger\": 1", http_mask_data("\"passenger\": 1"));
+
+        assertEq("pass : <masked>...", http_mask_data("pass : 1"));
+        assertEq("\"pass\" : <masked>...", http_mask_data("\"pass\" : 1"));
+        assertEq("password : <masked>...", http_mask_data("password : 1"));
+        assertEq("\"password\" : <masked>...", http_mask_data("\"password\" : 1"));
+        assertEq("passwrd : 1", http_mask_data("passwrd : 1"));
+        assertEq("\"passwrd\" : 1", http_mask_data("\"passwrd\" : 1"));
+        assertEq("passwd : 1", http_mask_data("passwd : 1"));
+        assertEq("\"passwd\" : 1", http_mask_data("\"passwd\" : 1"));
+        assertEq("passenger : 1", http_mask_data("passenger : 1"));
+        assertEq("\"passenger\" : 1", http_mask_data("\"passenger\" : 1"));
+
+        assertEq("pass= <masked>...", http_mask_data("pass= 1"));
+        assertEq("\"pass\"= <masked>...", http_mask_data("\"pass\"= 1"));
+        assertEq("password= <masked>...", http_mask_data("password= 1"));
+        assertEq("\"password\"= <masked>...", http_mask_data("\"password\"= 1"));
+        assertEq("passwrd= 1", http_mask_data("passwrd= 1"));
+        assertEq("\"passwrd\"= 1", http_mask_data("\"passwrd\"= 1"));
+        assertEq("passwd= 1", http_mask_data("passwd= 1"));
+        assertEq("\"passwd\"= 1", http_mask_data("\"passwd\"= 1"));
+        assertEq("passenger= 1", http_mask_data("passenger= 1"));
+        assertEq("\"passenger\"= 1", http_mask_data("\"passenger\"= 1"));
+
+        assertEq("pass = <masked>...", http_mask_data("pass = 1"));
+        assertEq("\"pass\" = <masked>...", http_mask_data("\"pass\" = 1"));
+        assertEq("password = <masked>...", http_mask_data("password = 1"));
+        assertEq("\"password\" = <masked>...", http_mask_data("\"password\" = 1"));
+        assertEq("passwrd = 1", http_mask_data("passwrd = 1"));
+        assertEq("\"passwrd\" = 1", http_mask_data("\"passwrd\" = 1"));
+        assertEq("passwd = 1", http_mask_data("passwd = 1"));
+        assertEq("\"passwd\" = 1", http_mask_data("\"passwd\" = 1"));
+        assertEq("passenger = 1", http_mask_data("passenger = 1"));
+        assertEq("\"passenger\" = 1", http_mask_data("\"passenger\" = 1"));
     }
 }

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file HttpServerUtil.qm HTTP server base code
 
-/*  HttpServerUtil.qm Copyright (C) 2014 - 2017 Qore Technologies, s.r.o.
+/*  HttpServerUtil.qm Copyright (C) 2014 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 %new-style
 
 module HttpServerUtil {
-    version = "0.3.12";
+    version = "0.3.12.1";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -69,6 +69,9 @@ module HttpServerUtil {
     - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
+
+    @subsection httputil03121 HttpServerUtil 0.3.12.1
+    - improved sensitive data masking in log messages (<a href="https://github.com/qorelanguage/qore/issues/2621">issue 2621</a>)
 
     @subsection httputil0312 HttpServerUtil 0.3.12
     - fixed a bug in AbstractAuthenticator::do401() where the \a msg argument was ignored (<a href="https://github.com/qorelanguage/qore/issues/1047">issue 1047</a>)
@@ -364,12 +367,14 @@ public namespace HttpServer {
 
         @param msg a log message with potentially sensitive data; expected to be a string of serialized data
 
-        @return a string with sensitive data removed; currently the function removes
+        @return a string with sensitive data removed; currently the function masks data after
         \c 'pass', \c 'password', \c 'sensitive', and \c 'sensitive_data'' followed by a colon,
-        optionally whitespace, and a quoted string
+        an equals sign, and optionally whitespace
+
+        @note this algorithm can have false positives and also can miss sensitive data
     */
     public string sub http_mask_data(string msg) {
-        msg =~ s/((?:pass(?:word)?)"?[=:>\s]*).*/$1<masked>.../;
+        msg =~ s/((?:pass(?:[^a-zA-Z_]|(?:word)))"?[=:>\s]*).*/$1<masked>.../;
         return msg;
     }
 }
