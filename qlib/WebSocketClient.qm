@@ -668,7 +668,7 @@ ws.clearStats();
                 "module": "WebSocketClient",
                 "class_name": "WebSocketClient",
                 "args": ("url": url) + opts,
-                "pre_processing": "if (!rtopts.callback) rtopts.callback = sub (*data msg) {}; unshift args, rtopts.callback; if (rtopts.dbglog) rtopts.debuglog = remove rtopts.dbglog; args[1] = rtopts(\"log\", \"errlog\", \"debuglog\") + args[1];",
+                "pre_processing": "if (!rtopts.callback) rtopts.callback = sub (*data msg) {}; unshift args, rtopts.callback; if (rtopts.dbglog) rtopts.debuglog = remove rtopts.dbglog; args[1] = rtopts.(\"log\", \"errlog\", \"debuglog\") + args[1];",
                 "post_processing": "if (connect) obj.connect();",
             });
         }
