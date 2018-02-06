@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -226,7 +226,7 @@ void qore_object_private::mergeIntern(ExceptionSink* xsink, const QoreHashNode* 
    if (h) {
       ConstHashIterator hi(h);
       while (hi.next()) {
-         const QoreTypeInfo* ti;
+         const QoreTypeInfo* ti = nullptr;
 
          // check member status
          bool internal_member;
