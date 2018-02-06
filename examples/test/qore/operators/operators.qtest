@@ -135,6 +135,11 @@ class Test inherits QUnit::Test {
     }
 
     basicTests() {
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("class Issue2634 {add(hash h) {self += h;}} int sub test() {Issue2634 i();i.add((\"a\": 1));return i.a;}", "issue 2634");
+            assertEq(1, p.callFunction("test"));
+        }
         int a = 1;
         testAssertionValue("variable assignment", a, 1);
         a += 3;
