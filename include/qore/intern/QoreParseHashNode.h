@@ -39,6 +39,8 @@
 #include <map>
 #include <string>
 
+DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
+
 class QoreParseHashNode : public ParseNode {
 public:
     typedef std::vector<AbstractQoreNode*> nvec_t;
