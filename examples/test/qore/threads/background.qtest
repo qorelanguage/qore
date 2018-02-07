@@ -26,6 +26,7 @@ class T {
     constructor() : QUnit::Test("background", "1.0", \ARGV) {
         addTestCase("background operator tests", \basicTests());
         addTestCase("issue 1467", \issue1467());
+        addTestCase("issue 2637", \issue2637());
         set_return_value(main());
     }
 
@@ -33,6 +34,21 @@ class T {
         Program p();
         p.parse(Code, "issue 1467");
         assertEq(NOTHING, p.run());
+    }
+
+    issue2637() {
+        assertEq(1, issue2637_1(1));
+    }
+
+    private int issue2637_1(int a1) {
+        Counter c(1);
+        background issue2637_2(c, ("a": a1));
+        c.waitForZero();
+        return a1;
+    }
+
+    private auto issue2637_2(Counter c, hash<auto> h) {
+        c.dec();
     }
 
     basicTests() {
