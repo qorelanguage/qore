@@ -540,9 +540,9 @@ static AbstractQoreNode* eval_notnull(const AbstractQoreNode* n, ExceptionSink* 
    return exp ? exp.release() : nothing();
 }
 
-QoreValue copy_value_and_resolve_lvar_refs(QoreValue& n, ExceptionSink* xsink) {
+QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink) {
    if (!n.hasNode())
-      return n;
+      return const_cast<QoreValue&>(n);
    return copy_and_resolve_lvar_refs(n.getInternalNode(), xsink);
 }
 
