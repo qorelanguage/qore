@@ -2,6 +2,45 @@
 
     @tableofcontents
 
+    @section qore_09 Qore 0.9
+
+    @par Release Summary
+    WIP
+
+    @subsection qore_09_compatibility Changes That Can Affect Backwards-Compatibility
+    WIP
+
+    @subsection qore_09_new_features New Features in Qore
+    - new classes:
+      - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
+    - new and updated methods in existing classes:
+      - @ref Qore::SQL::AbstractDatasource::getSQLStatement() "AbstractDatasource::getSQLStatement()"
+      - @ref Qore::SQL::Datasource::getSQLStatement() "Datasource::getSQLStatement()"
+      - @ref Qore::SQL::DatasourcePool::getSQLStatement() "DatasourcePool::getSQLStatement()"
+      - @ref Qore::File::redirect() "File::redirect()"
+    - new functions:
+      - @ref Qore::get_netif_list() "get_netif_list()"
+    - new hashdecls:
+      - @ref Qore::NetIfInfo "NetIfInfo"
+    - new @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
+      - \c "Dn" and \c "DN": the ordinal day number in the year
+      - \c "I": ISO-8601 week string
+      - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
+      - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
+      - \c "Id" and \c "ID": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> day number
+    - module updates
+      - <a href="../../modules/ConnectionProvider/html.indexhtml">ConnectionProvider</a> module changes:
+        - the \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
+          connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+      - <a href="../../modules/SqlUtil/html.indexhtml">SqlUtil</a> module changes:
+        - deprecated \c AbstractTable::getRowIterator() for \c AbstractTable::getStatement() (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
+      - <a href="../../modules/Util/html/index.html">Util</a> module updates:
+        - added public function \c parse_ranges() (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
+        - added public function \c check_ip_address() (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
+
+    @subsection qore_09_bug_fixes Bug Fixes in Qore
+    WIP
+
     @section qore_08133 Qore 0.8.13.3
 
     @par Release Summary

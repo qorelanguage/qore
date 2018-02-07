@@ -2,12 +2,12 @@
 
 If you use VIM, even occasionally, for editing Qore and Qorus stuff, the following might come handy.
 
-First, make sure you have VIM configuration folder:  `mkdir -p ~/.vim`  
+First, make sure you have VIM configuration folder:  `mkdir -p ~/.vim`
 Later, if any subfolder mentioned in this text is missing from `~/.vim`, just create it.
 
 ## File type detection
 
-Vim can detect the type of file that it opens.  So we just teach it to recognise the files we use.  
+Vim can detect the type of file that it opens.  So we just teach it to recognise the files we use.
 Here's an example of how to do it -- just save the following into file `~/.vim/filetype.vim` :
 
 ```vim
@@ -20,17 +20,17 @@ endif
 augroup filetypedetect
   " Qore and Qorus files
   au! BufRead,BufNewFile *.q,*.qm,*.qtest       setfiletype qore
-  au! BufRead,BufNewFile *.qc,*.qclass,*.qconn,*.qconst,*.qfd,*.qjob,*.ql,*.qmapper,*.qrf,*.qsd,*.qsm,*.qvmap,*.qwf       setfiletype qorus
+  au! BufRead,BufNewFile *.qc,*.qclass,*.qconn,*.qconst,*.qfd,*.qjob,*.ql,*.qmapper,*.qrf,*.qscript,*.qsd,*.qsm,*.qvmap,*.qwf       setfiletype qorus
   au! BufRead,BufNewFile *.qpp                  setfiletype cpp
 augroup END
 ```
 
 ## Syntax file
 
-Next, we need to teach VIM about syntax of Qore language.  
+Next, we need to teach VIM about syntax of Qore language.
 Just copy `syntax` folder found here to your `~/.vim` folder for VIM to load and use it.
 
-Please note that there are some extra highlighting groups defined in the syntax file.  
+Please note that there are some extra highlighting groups defined in the syntax file.
 You may want to configure them by copying and editing the following lines into your colour scheme file (usually located in `~/.vim/colors/` folder):
 
 ```vim
@@ -42,12 +42,12 @@ hi Package      guifg=lightGreen
 
 ## Syntax highlighting
 
-Syntax highlighting requires a few VIM options turned on, but that is most usually already done.  
+Syntax highlighting requires a few VIM options turned on, but that is most usually already done.
 You can have a look at `$VIMRUNTIME/vimrc_example.vim` file that comes with VIM for inspiration.
 One option worth adding into your `~/.vimrc` is: `let qore_highlight_all=1`
 
 ## More customisation
 
-You may want to customise VIM's behaviour (based on filetype) even more.  
+You may want to customise VIM's behaviour (based on filetype) even more.
 An example of how to do it is included -- just copy `ftplugin` and `indent` folders found here to your `~/.vim` folder for VIM to load and use them.
 
