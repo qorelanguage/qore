@@ -1,0 +1,232 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file LoggerContainer.qm Logger
+
+/*  LoggerContainer.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.13
+%requires ./Logger.qm
+
+%require-types
+%enable-all-warnings
+%new-style
+
+module LoggerContainer {
+    version = "0.1";
+    desc = "User module providing logger container";
+    author = "Tomas Mandys <tomas.mandys@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+# scheme, map, container, manager
+
+#! the namespace contains all the definitions in the module
+public namespace LoggerContainer {
+
+    #! The LoggerContainer is the anchor for the logging system.
+    /** It maintains a list of all the loggers requested by applications and a reference 
+     to the Configuration. The Configuration will contain the configured loggers, appenders, filters, etc 
+     and will be atomically updated whenever a reconfigure occurs.
+    */
+    public class LoggerContainer {
+        public {
+            const ROOT_LOGGER_NAME = '';
+        }
+        private {
+            #! The lock to protect object manipulation
+            RWLock m_lock();
+
+            #! The list of loggers
+            hash<string,Logger> m_loggers;
+
+            #! The list of appenders
+            hash<string,LoggerAppender> m_appenders;
+
+            #! The list of filters
+            hash<string,LoggerFilter> m_filters;
+
+        }
+
+        #! Creates new object with root looger
+        /**
+        * @param root
+        */
+        constructor(LoggerRoot root) {
+            m_loggers{ROOT_LOGGER_NAME} = root;
+        }
+
+        #! Creates new object with logger using console appender
+        constructor() {
+            m_loggers{ROOT_LOGGER_NAME} = new LoggerRoot();
+        }
+
+        #! Add new logger in collection
+        /**
+            @param newLogger
+            @throw LOGGER-CONTAINER-ERROR is logger with this name already exists
+        */
+        addLogger(Logger newLogger) {
+            AutoWriteLock awl(m_lock);
+            if (exists m_loggers{newLogger.getName()}) {
+                throw "LOGGER-CONTAINER-ERROR", sprintf("Logger %y already exists", newLogger.getName());
+            }
+            m_loggers{newLogger.getName()} = newLogger;
+        }
+
+        #! Remove logger from collection
+        /**
+            @param logger
+            @throw LOGGER-CONTAINER-ERROR if logger does not exist
+        */
+        removeLogger(Logger logger) {
+            removeLogger(logger.getName());
+        }
+
+        #! Remove logger from collection
+        /**
+            @param logger
+            @throw LOGGER-CONTAINER-ERROR if logger does not exist
+        */
+        removeLogger(string name) {
+            AutoWriteLock awl(m_lock);
+            if (!exists m_loggers{name}) {
+                throw "LOGGER-CONTAINER-ERROR", sprintf("Logger %y does not exist", name);
+            }
+            remove m_loggers{name};
+        }
+
+        #! get registered logger
+        /**
+            @param name
+            @throw LOGGER-CONTAINER-ERROR if logger does not exist
+        */
+        Logger getLogger(string name) {
+            AutoReadLock arl(m_lock);
+            if (!exists m_loggers{name}) {
+                throw "LOGGER-CONTAINER-ERROR", sprintf("Logger %y does not exist", name);
+            }
+            return m_loggers{name};
+        }
+
+        #! Detects if a Logger with the specified name exists
+        /**
+        @param name
+        */
+        bool hasLogger(string name) {
+            AutoReadLock arl(m_lock);
+            return exists m_loggers{name};
+
+        }
+
+        #! Detects if a Logger exists
+        /**
+        @param logger
+        */
+        bool hasLogger(Logger logger) {
+            return hasLogger(logger.getName());
+        }
+
+        #! get logger names
+        *list getLoggerNames() {
+            AutoReadLock arl(m_lock);
+            return keys m_loggers;
+        }
+
+        #! get loggers
+        *hash<string,Logger> getLoggers() {
+            AutoReadLock arl(m_lock);
+            return m_loggers;
+        }
+
+
+        #! load logger configuration
+        /**
+            Conf hash corresponds to XML config represenation
+            
+            configuration
+                name
+                dest
+                status
+                
+                properties
+                    name: value
+                filters
+                    type
+                    (name)
+                    marker 
+                    onMatch:  DENY,NEUTRAL,ACCEPT
+                    onMismatch
+                appenders
+                    type
+                    name
+                    ...
+                    (filter)
+                    (layout)
+                        type
+                        pattern
+                loggers
+                    name
+                    filters
+                    appenders (
+        
+        */
+        loadConfiguration(hash conf) {
+        }
+        
+        #! Shutting down a hierarchy will safely close and remove all appenders in all loggers including the root logger.
+        /** Consider hierarchy and close the child logger first (TODO: do we need it at all ?
+        */
+        shutdown() {
+            AutoWriteLock awl(m_lock);
+            hash hierarchy;
+            # circular dependency is impossible, we need not consider it
+            foreach string name in (keys m_loggers) {
+                *Logger parent = m_loggers{name}.getParent();
+                if (parent) {
+                    hierarchy{parent.getName()}{name} = True;
+                }
+            }
+            # remove loggers
+            while (m_loggers) {
+                foreach string name in (keys m_loggers) {
+                    if (!exists hierarchy{name}) {
+                        m_loggers{name}.close();
+                    }
+                    *Logger parent = m_loggers{name}.getParent();
+                    if (parent) {
+                        if (exists hierarchy{parent.getName()}) {
+                            remove hierarchy{parent.getName()}{name};
+                            if (!hierarchy{parent.getName()}) {
+                                remove hierarchy{parent.getName()};
+                            }
+                        }
+                    }
+                    remove m_loggers{name};
+                }
+            }
+            # dereferences objects, i.e. destructor will close handles etc.
+            remove m_appenders;
+            remove m_filters;
+        }
+    }
+}
