@@ -1,0 +1,335 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/LoggerContainer.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    public {
+    }
+
+    constructor() : QUnit::Test("Logger", "1.0", \ARGV) {
+        addTestCase("LoggerLevel", \testLoggerLevel());
+        addTestCase("LoggerLoggingEvent", \testLoggerLoggingEvent());
+        addTestCase("LoggerLayout", \testLoggerLayout());
+        addTestCase("LoggerFilter", \testLoggerFilter());
+        set_return_value(main());
+    }
+
+    testLoggerLevel() {
+        hash lls = (
+            'ALL':   LoggerLevel::ALL,
+            'TRACE': LoggerLevel::TRACE,
+            'DEBUG': LoggerLevel::DEBUG,
+            'INFO':  LoggerLevel::INFO,
+            'WARN':  LoggerLevel::WARN,
+            'ERROR': LoggerLevel::ERROR,
+            'FATAL': LoggerLevel::FATAL,
+            'OFF':   LoggerLevel::OFF,
+        );
+        assertEq(LoggerLevel::getLevelAll().getStr(), 'ALL');
+        assertEq(LoggerLevel::getLevelTrace().getStr(), 'TRACE');
+        assertEq(LoggerLevel::getLevelDebug().getStr(), 'DEBUG');
+        assertEq(LoggerLevel::getLevelInfo().getStr(), 'INFO');
+        assertEq(LoggerLevel::getLevelWarn().getStr(), 'WARN');
+        assertEq(LoggerLevel::getLevelError().getStr(), 'ERROR');
+        assertEq(LoggerLevel::getLevelFatal().getStr(), 'FATAL');
+        assertEq(LoggerLevel::getLevelOff().getStr(), 'OFF');
+        LoggerLevel l1 = LoggerLevel::getLevelFatal();
+        LoggerLevel l2 = LoggerLevel::getLevelError();
+        assertTrue(l1.isGreaterOrEqual(l2));
+        assertTrue(l1.isEqual(LoggerLevel::getLevelFatal()));
+        assertTrue(l1.isEqual(l1));
+        assertFalse(l1.isEqual(l2));
+
+        foreach string s in (keys lls) {
+            LoggerLevel ll1 = LoggerLevel::getLevel(s);
+            assertEq(ll1.getValue(), lls{s});
+            assertEq(ll1.getStr(), s);
+            LoggerLevel ll2 = LoggerLevel::getLevel(lls{s});
+            assertEq(ll2.getValue(), lls{s});
+            assertEq(ll2.getStr(), s);
+            assertTrue(ll1.isEqual(ll2));
+            assertTrue(ll1.isGreaterOrEqual(ll2));
+        }
+
+#        assertThrows("LOGGER-ERROR", "unexpected length.*known lengths.*12", \i.getValue());
+    }
+
+    testLoggerLoggingEvent() {
+        LoggerLoggingEvent lle;
+        date ts = LoggerLoggingEvent::getStartTime() + 1D;
+        lle = new LoggerLoggingEvent('fqcn', 'ctg', LoggerLevel::getLevelError(), 'test: %d, %d', (1, 2), NOTHING, gettid(), ts, NOTHING);
+        assertEq(lle.getFullQualifiedClassname(), 'fqcn');
+        assertEq(lle.getCategoryName(), 'ctg');
+        assertTrue(lle.getLevel().isEqual(LoggerLevel::getLevelError()));
+        assertEq(lle.getMessage(), 'test: 1, 2');
+        assertEq(lle.getThreadId(), gettid());
+        assertEq(lle.getTimeStamp(), ts);
+        assertEq(lle.getRelativeTime(), 1D);
+
+        Logger l('testLogger');
+        lle = new LoggerLoggingEvent(l, LoggerLevel::getLevelError(), 'test: %d, %d');
+        assertEq(lle.getFullQualifiedClassname(), get_class_name(l));
+        assertEq(lle.getCategoryName(), 'testLogger');
+        assertEq(lle.getLogger(), l);
+    }
+
+    testLoggerLayout() {
+        LoggerLayoutPattern llp("");
+        hash<CallStackInfo> csi();
+        csi.file = "testfile";
+        csi.source = "testsource";
+        csi.line = 987;
+        csi.function = "myfunction";
+        hash<ExceptionInfo> ei();
+        LoggerLoggingEvent::setStartTime(2000-01-01T00:00:00);
+        date ts = LoggerLoggingEvent::getStartTime() + 1D;
+        LoggerLoggingEvent lle = new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF', (), csi, 123, ts, ei);
+        hash patterns = (
+            "": (
+                "parsed": (),
+                "output": "",
+            ),
+            "ABC": (
+                "parsed": ("ABC",),
+                "output": "ABC",
+            ),
+            "%%": (
+                "parsed": ("%",),
+                "output": "%",
+            ),
+            "%%%%%%": (
+                "parsed": ("%%%",),
+                "output": "%%%",
+            ),
+            "ABC%%": (
+                "parsed": ("ABC%",),
+                "output": "ABC%",
+            ),
+            "%%ABC": (
+                "parsed": ("%ABC",),
+                "output": "%ABC",
+            ),
+            "ABC%%D": (
+                "parsed": ("ABC%D",),
+                "output": "ABC%D",
+            ),
+            "%m": (
+                "parsed": (("key": "m"),),
+                "output": "ABCDEF",
+            ),
+            "%m{DUMMY}": (
+                "parsed": ((
+                    "key": "m",
+                    "option": "DUMMY",
+                ),),
+                "output": "ABCDEF",
+            ),
+            "%5m{DUMMY}": (
+                "parsed": ((
+                    "key": "m",
+                    "minWidth": 5,
+                    "leftJustify": False,
+                    "option": "DUMMY",
+                ),),
+                "output": "ABCDEF",
+            ),
+            "%10m{DUMMY}": (
+                "parsed": ((
+                    "key": "m",
+                    "minWidth": 10,
+                    "leftJustify": False,
+                    "option": "DUMMY",
+                ),),
+                "output": "    ABCDEF",
+            ),
+            "%-10m{DUMMY}": (
+                "parsed": ((
+                    "key": "m",
+                    "minWidth": 10,
+                    "leftJustify": True,
+                    "option": "DUMMY",
+                ),),
+                "output": "ABCDEF    ",
+            ),
+            "%.3m{DUMMY}": (
+                "parsed": ((
+                    "key": "m",
+                    "maxWidth": 3,
+                    "option": "DUMMY",
+                ),),
+                "output": "ABC",
+            ),
+            "%.10m{DUMMY}": (
+                "parsed": ((
+                    "key": "m",
+                    "maxWidth": 10,
+                    "option": "DUMMY",
+                ),),
+                "output": "ABCDEF",
+            ),
+            "%10.10m{DUMMY}": (
+                "parsed": ((
+                    "key": "m",
+                    "minWidth": 10,
+                    "maxWidth": 10,
+                    "leftJustify": False,
+                    "option": "DUMMY",
+                ),),
+                "output": "    ABCDEF",
+            ),
+            "%-10.10m{DUMMY}": (
+                "parsed": ((
+                    "key": "m",
+                    "minWidth": 10,
+                    "maxWidth": 10,
+                    "leftJustify": True,
+                    "option": "DUMMY",
+                ),),
+                "output": "ABCDEF    ",
+            ),
+            "%%%m%%": (
+                "parsed": (
+                    "%",
+                    (
+                        "key": "m",
+                    ),
+                    "%"
+                ),
+                "output": "%ABCDEF%",
+            ),
+            "%d": (
+                "parsed": (("key": "d"),),
+                "output": format_date(LoggerLayoutPattern::DEFAULT_DATE_FORMAT, lle.getTimeStamp()),
+            ),
+            "%F:%L %M": (
+                "parsed": (
+                    ("key": "F"),
+                    ":",
+                    ("key": "L"),
+                    " ",
+                    ("key": "M"),
+                ),
+                "output": csi.file+":"+string(csi.line)+" "+csi.function,
+            ),
+            "%d{DD.MM.YYYY HH:mm:SS}": (
+                "parsed": (("key": "d", "option": "DD.MM.YYYY HH:mm:SS"),),
+                "output": format_date("DD.MM.YYYY HH:mm:SS", lle.getTimeStamp()),
+            ),
+
+            "%c{1} %c{XXX} %C{2}%n": (
+                "parsed": (
+                    ("key": "c", "option": "1"),
+                    " ",
+                    ("key": "c", "option": "XXX"),
+                    " ",
+                    ("key": "C", "option": "2"),
+                    ("key": "n"),
+                ),
+                "output": "d a.b.c.d C.Logger" + LoggerLayoutPattern::getLineDelimiter(),
+            ),
+
+            "%r [%t] %p %c %x - %m%n": (
+                "parsed": (
+                    ("key": "r"),
+                    " [",
+                    ("key": "t"),
+                    "] ",
+                    ("key": "p"),
+                    " ",
+                    ("key": "c"),
+                    " ",
+                    ("key": "x"),
+                    " - ",
+                    ("key": "m"),
+                    ("key": "n"),
+                ),
+                "output": "86400000 [123] ERROR a.b.c.d N/A - ABCDEF"+LoggerLayoutPattern::getLineDelimiter(),
+            ),
+        );
+        foreach string patt in (keys patterns) {
+            llp.setPattern(patt);
+            assertEq(patt, llp.getPattern());
+            assertEq(patterns{patt}.parsed, llp.getParsedPattern());
+            assertEq(patterns{patt}.output, llp.format(lle));
+        }
+
+        hash patternsErr = (
+            "%/AAA": "Wrong pattern starting %/AAA",
+            "%0-9c": "Wrong pattern option starting %0-9c",
+            "%%%": "Wrong pattern starting %",
+        );
+        foreach string patt in (keys patternsErr) {
+            assertThrows("LOGGER-ERROR", patternsErr{patt}, \llp.setPattern(), (patt));
+        }
+    }
+
+    testLoggerFilter() {
+        LoggerLayoutPattern llp("");
+        hash<CallStackInfo> csi();
+        csi.file = "testfile";
+        csi.source = "testsource";
+        csi.line = 987;
+        csi.function = "myfunction";
+        LoggerLoggingEvent lle = new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF', (), csi, 123);
+        LoggerFilterLevel lfl(); # INFO-OFF
+        # max > min
+        assertEq(LoggerLevel::getLevelInfo(), lfl.getMinLevel());
+        assertEq(LoggerLevel::getLevelOff(), lfl.getMaxLevel());
+        assertEq(LoggerFilter::NEUTRAL, lfl.eval(lle));
+        lfl.setMinLevel(LoggerLevel::getLevelFatal());
+        assertEq(LoggerFilter::DENY, lfl.eval(lle));
+        lfl.setMinLevel(LoggerLevel::ERROR);
+        assertEq(LoggerLevel::getLevelError(), lfl.getMinLevel());
+        assertEq(LoggerFilter::NEUTRAL, lfl.eval(lle));
+        lfl.setMaxLevel("ERROR");
+        assertEq(LoggerLevel::getLevelError(), lfl.getMaxLevel());
+        assertEq(LoggerFilter::NEUTRAL, lfl.eval(lle));
+        lfl.setMinLevel("DEBUG");
+        assertEq(LoggerLevel::getLevelDebug(), lfl.getMinLevel());
+        assertEq(LoggerFilter::NEUTRAL, lfl.eval(lle));
+        lfl.setMaxLevel(LoggerLevel::INFO);
+        assertEq(LoggerLevel::getLevelInfo(), lfl.getMaxLevel());
+        assertEq(LoggerFilter::DENY, lfl.eval(lle));
+        # max < min
+        lfl.setMaxLevel("DEBUG");
+        lfl.setMinLevel("ERROR");
+        assertEq(LoggerFilter::DENY, lfl.eval(lle));
+        lfl.setMinLevel("INFO");
+        assertEq(LoggerFilter::NEUTRAL, lfl.eval(lle));
+        lfl.setMinLevel("OFF");
+        lfl.setMaxLevel("ERROR");
+        assertEq(LoggerFilter::DENY, lfl.eval(lle));
+        lfl.setMaxLevel("FATAL");
+        assertEq(LoggerFilter::NEUTRAL, lfl.eval(lle));
+
+        LoggerFilterRegex lfr("^A", True);
+        assertEq("^A", lfr.getRegex());
+        assertTrue(lfr.getRegexResult());
+        assertEq(LoggerFilter::NEUTRAL, lfr.eval(lle));
+        lfr.setRegex("^A", False);
+        assertFalse(lfr.getRegexResult());
+        assertEq(LoggerFilter::DENY, lfr.eval(lle));
+        lfr.setRegex("^B", False);
+        assertEq("^B", lfr.getRegex());
+        assertFalse(lfr.getRegexResult());
+        assertEq(LoggerFilter::NEUTRAL, lfr.eval(lle));
+        lfr.setRegex("^B", True);
+        assertEq(LoggerFilter::DENY, lfr.eval(lle));
+
+    }
+
+    testLoggerAppender() {
+
+    }
+
+}
