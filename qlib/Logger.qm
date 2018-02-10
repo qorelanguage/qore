@@ -1,0 +1,1323 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file Logger.qm Logger
+
+/*  Logger.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.13
+
+%require-types
+%enable-all-warnings
+%new-style
+%no-debugging
+
+module Logger {
+    version = "0.1";
+    desc = "user module providing common logging stuff";
+    author = "Tomas Mandys <tomas.mandys@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub() {
+        LoggerLevel::init();
+    };
+}
+
+/** @mainpage Logger Module
+
+    @tableofcontents
+
+    @section debugutilintro Introduction to the DebugUtil Module
+
+    The %DebugUtil module provides common functionality for implementing debugger utilities
+
+    @subsection du_v0_1 v0.1
+    - the initial version of the DebugUtil module
+*/
+
+#! the DebugUtil namespace contains all the definitions in the DebugUtil module
+public namespace Logger {
+
+    /**
+    * Defines the minimum set of levels recognized by the system.
+    *
+    * The <code>LoggerLevel</code> class may be subclassed to define a larger
+    * level set.
+    *
+    */
+    public class LoggerLevel {
+        public {
+            const OFF = MAXINT;
+            const FATAL = 50000;
+            const ERROR = 40000;
+            const WARN = 30000;
+            const INFO = 20000;
+            const DEBUG = 10000;
+            const TRACE = 5000;
+            const ALL = MININT;
+        }
+
+        private {
+            /** Integer level value. */
+            int m_level;
+
+            /** String representation of the level. */
+            string m_levelStr;
+
+            /** Contains a list of instantiated levels. */
+            static hash<string, LoggerLevel> m_levelMap;
+
+            static hash<string, int> levelStr2level = (
+                'ALL':   ALL,
+                'TRACE': TRACE,
+                'DEBUG': DEBUG,
+                'INFO':  INFO,
+                'WARN':  WARN,
+                'ERROR': ERROR,
+                'FATAL': FATAL,
+                'OFF':   OFF,
+            );
+            static hash<string, string> level2levelStr;
+        }
+
+        /**
+        * Constructor
+        *
+        * @param level
+        * @param levelStr
+        * @param qoreEquivalent
+        */
+        constructor(int level, string levelStr) {
+            m_level = level;
+            m_levelStr = levelStr;
+        }
+
+        #! static member initialization
+        static public init() {
+            map level2levelStr{levelStr2level{$1}} = $1, keys levelStr2level;
+        }
+
+        #! get level value
+        public int getValue() {
+            return m_level;
+        }
+
+        #! get level string
+        public string getStr() {
+            return m_levelStr;
+        }
+
+        #! Compares two logger levels.
+        /**
+            @param other
+        */
+        public bool isEqual(LoggerLevel other) {
+            return m_level == other.getValue();
+        }
+
+        #! Returns an Off Level
+        public static LoggerLevel getLevelOff() {
+            return LoggerLevel::getLevel(OFF);
+        }
+
+        #! Returns an Fatal Level
+        public static LoggerLevel getLevelFatal() {
+            return LoggerLevel::getLevel(FATAL);
+        }
+
+        #! Returns an Error Level
+        public static LoggerLevel getLevelError() {
+            return LoggerLevel::getLevel(ERROR);
+        }
+
+        #! Returns an Warn Level
+        public static LoggerLevel getLevelWarn() {
+            return LoggerLevel::getLevel(WARN);
+        }
+
+        #! Returns an Info Level
+        public static LoggerLevel getLevelInfo() {
+            return LoggerLevel::getLevel(INFO);
+        }
+
+        #! Returns an Debug Level
+        public static LoggerLevel getLevelDebug() {
+            return LoggerLevel::getLevel(DEBUG);
+        }
+
+        #! Returns an Trace Level
+        public static LoggerLevel getLevelTrace() {
+            return LoggerLevel::getLevel(TRACE);
+        }
+
+        #! Returns an All Level
+        public static LoggerLevel getLevelAll() {
+            return LoggerLevel::getLevel(ALL);
+        }
+
+        #! compare logger levels
+        /**
+            @param other
+            @return True if level is greater or equal to other level
+        */
+        public bool isGreaterOrEqual(LoggerLevel other) {
+            return m_level >= other.getValue();
+        }
+
+        #! Convert the input argument to a level.
+        /**
+            @param level
+            @param default Value to return if conversion is not possible.
+            @throw LOGGER-ERROR if defaultLevel is nothing and level not found
+        */
+        public static LoggerLevel getLevel(int level, *LoggerLevel defaultLevel = NOTHING) {
+            if (exists level2levelStr{level}) {
+                if (!exists m_levelMap{level}) {
+                    m_levelMap{level} = new LoggerLevel(level, level2levelStr{level});
+                }
+                return m_levelMap{level};
+            } else {
+                if (!exists defaultLevel) {
+                    throw "LOGGER-ERROR", "Cannot get valid Level";
+                }
+                return defaultLevel;
+            }
+        }
+
+        #! Convert the input argument to a level.
+        /**
+            @param level
+            @param default value to return if conversion is not possible.
+            @throw LOGGER-ERROR if defaultLevel is nothing and levelStr not found
+        */
+        public static LoggerLevel getLevel(string levelStr, *LoggerLevel defaultLevel = NOTHING) {
+            levelStr = toupper(levelStr);
+            if (exists levelStr2level{levelStr}) {
+                int level = levelStr2level{levelStr};
+                if (!exists m_levelMap{level}) {
+                    m_levelMap{level} = new LoggerLevel(level, levelStr);
+                }
+                return m_levelMap{level};
+            } else {
+                if (!exists defaultLevel) {
+                    throw "LOGGER-ERROR", "Cannot get valid Level";
+                }
+                return defaultLevel;
+            }
+        }
+    }
+
+    public class LoggerLoggingEvent {
+        private {
+            static date m_startTime = now_us();
+
+            #! Fully Qualified Class Name of the calling category class.
+            string m_fqcn;
+
+            #! Logger reference
+            *Logger m_logger;
+
+            #! The category (logger) name.
+            string m_categoryName;
+
+            #! Level of the logging event.
+            LoggerLevel m_level;
+
+            #! The application supplied message of logging event (not rendered)
+            string m_message;
+
+            #! arguments not be rendered
+            *list m_args;
+
+            #! The application supplied message rendered through the rendering mechanism. 
+            *string m_renderedMessage;
+
+            #! related threadID
+            int m_threadId;
+
+            #! event time stamp
+            date m_timeStamp;
+
+            #! @ref CallStackInfo location information for the caller.
+            *hash<CallStackInfo> m_locationInfo;
+
+            #! LoggerThrowableInformation log4php internal representation of throwable
+            *hash<ExceptionInfo> m_throwableInfo;
+
+        }
+        #! Instantiate a LoggingEvent from the supplied parameters.
+        /**
+            @param logger The category of this event as loggen name
+            @param level The level of this event.
+            @param message The message of this event.
+            @param threadId thread related to the event, Default: @refgettid()
+            @param timeStamp timestamp of this logging event. Default value is @ref now_us
+            @param throwable The throwable exception info associated with logging event
+        */
+        constructor(Logger logger, LoggerLevel level, string message, *list args, *hash<CallStackInfo> locationInfo = NOTHING, int threadId = gettid(), date timeStamp = now_us(), *hash<ExceptionInfo> throwable = NOTHING) {
+            m_fqcn = get_class_name(logger);
+            m_logger = logger;
+            m_categoryName = logger.getName();
+            m_level = level;
+            m_message = message;
+            m_args = args;
+            m_locationInfo = locationInfo;
+            m_threadId = threadId;
+            m_timeStamp = timeStamp;
+            if (throwable) {
+                m_throwableInfo = throwable;
+            }
+        }
+
+        #! Instantiate a LoggingEvent from the supplied parameters.
+        /**
+            @param fqcn name of the caller class.
+            @param category The event category.
+            @param level The level of this event.
+            @param message The message of this event.
+            @param timeStamp timestamp of this logging event. Default value is @ref now_us
+            @param throwable The throwable exception info associated with logging event
+        */
+        constructor(string fqcn, softstring category, LoggerLevel level, string message, *list args, *hash<CallStackInfo> locationInfo = NOTHING, int threadId = gettid(), date timeStamp = now_us(), *hash<ExceptionInfo> throwable = NOTHING) {
+            m_fqcn = fqcn;
+            m_categoryName = category;
+            m_level = level;
+            m_message = message;
+            m_args = args;
+            m_locationInfo = locationInfo;
+            m_threadId = threadId;
+            m_timeStamp = timeStamp;
+            if (throwable) {
+                m_throwableInfo = throwable;
+            }
+        }
+
+        #! Returns the full qualified classname.
+        public string getFullQualifiedClassname() {
+            return m_fqcn;
+        }
+
+        #! get the location information for this logging event.
+        public *hash<CallStackInfo> getLocationInfo() {
+            return m_locationInfo;
+        }
+
+        #! Return the level of this event.
+        public LoggerLevel getLevel() {
+            return m_level;
+        }
+
+        #! Returns the logger which created the event.
+        public *Logger getLogger() {
+            return m_logger;
+        }
+
+        #! Returns the thread id which is related to event
+        public int getThreadId() {
+            return m_threadId;
+        }
+
+        /**
+            Return the name of the logger.  TODO: do we need it ???
+        */
+        public string getCategoryName() {
+            return m_categoryName;
+        }
+
+        #! Return the message for this logging event.
+        /**
+            Potential callable references are evaluated.
+            Next the message is rendered using vprintf() and the result is cached, so the message is
+            is rendeder only once.
+
+            @return rendered message
+        */
+        public string getMessage() {
+            if (!exists m_renderedMessage) {
+                # evaluate callp which may be used to get time consuming stuff
+                # i.e. they are evaluated only when logging is performed
+                *any prevCall;
+                list args2 = ();
+                foreach any arg in (m_args) {
+                    if (exists prevCall) {
+                        bool isParam = False;
+                        isParam = arg.typeCode() == NT_LIST;
+                        try {
+                            push args2, call_function_args(prevCall, arg);
+                        } catch (hash<ExceptionInfo> ex) {
+                            push args2, ex;
+                        }
+                        delete prevCall;
+                        if (isParam) {
+                            continue;
+                        }
+                    }
+                    if (arg.callp()) {
+                        prevCall = arg;
+                    } else {
+                        push args2, arg;
+                    }
+                }
+                if (prevCall) {
+                    try {
+                        push args2, prevCall();
+                    } catch (hash<ExceptionInfo> ex) {
+                        push args2, ex;
+                    }
+                }
+                # message is considered as printf() format so we process it this way.
+                m_renderedMessage = vsprintf(m_message, args2);
+            }
+            return m_renderedMessage;
+        }
+
+        #! Returns the time when the application started, as a UNIX timestamp with microseconds.
+        public static date getStartTime() {
+            return LoggerLoggingEvent::m_startTime;
+        }
+
+        #! Set origin for relative time
+        public static setStartTime(date time) {
+            LoggerLoggingEvent::m_startTime = time;
+        }
+
+        #! Get event timestamp
+        public date getTimeStamp() {
+            return m_timeStamp;
+        }
+
+        #! Get relative timestamp
+        /**
+            Returns the time in seconds passed from the beginning of execution to
+            the time the event was constructed.
+        */
+        public date getRelativeTime() {
+            return m_timeStamp - LoggerLoggingEvent::m_startTime;
+        }
+
+        #! get throwable info
+        public *hash<ExceptionInfo> getThrowableInformation() {
+            return m_throwableInfo;
+        }
+
+    }
+
+    public class LoggerAppender {
+        private {
+            #! The lock to protect object manipulation
+            RWLock m_lock();
+
+            #! inactive appender won't accept any logging request
+            bool m_active = False;
+
+            #! filter chain
+            list<LoggerFilter> m_filters;
+
+            #! Appender name
+            string m_name;
+        }
+
+        #! Default constructor.
+        /**
+            @param name appender name
+        */
+        constructor(string name = "") {
+            m_name = name;
+        }
+
+        destructor() {
+            close();
+        }
+
+        #! get appender name
+        public string getName() {
+            return m_name;
+        }
+
+        #! Open logging resources
+        public open() {
+            if (!m_active) {
+                openImpl();
+                m_active = True;
+            }
+        }
+
+        #! Releases any resources allocated by the appender.
+        /**
+          @see closeImpl()
+        */
+        public close() {
+            if (m_active) {
+                closeImpl();
+                m_active = True;
+            }
+        }
+
+        #! get active value
+        public bool isActive() {
+            return m_active;
+        }
+
+        #! add a filter to chain
+        /**
+            @param filter add a new LoggerFilter
+            @param top if True then add filter at first position, if False (default) to the end of chain
+        */
+        public addFilter(LoggerFilter filter, bool top = False) {
+            AutoWriteLock awl(m_lock);
+            if (top) {
+                unshift m_filters, filter;
+            } else {
+                push m_filters, filter;
+            }
+        }
+
+        #! remove filter from the filter chain.
+        /**
+            @param filter
+        */
+        public removeFilter(LoggerFilter filter) {
+            AutoWriteLock awl(m_lock);
+            foreach LoggerFilter f in (m_filters) {
+                if (f == filter) {
+                    remove m_filters[$1];
+                    break;
+                }
+            }
+        }
+
+        #! Clears the filter chain by removing all the filters in it
+        public removeAllFilters() {
+            AutoWriteLock awl(m_lock);
+            remove m_filters; # = ();
+        }
+
+        #! return filter chain
+        /**
+            Note that filter chain may be manipulated as internal lock is released when list is returned
+        */
+        public list<LoggerFilter> getFilters() {
+            AutoReadLock awl(m_lock);
+            return m_filters;
+        }
+
+        #! append event to output stream
+        /**
+            Performs threshold checks and invokes filters before passes logging
+            to the @ref appendImpl() method.
+            @see LoggerAppender::appendImpl()
+
+            @param event
+        */
+        public append(LoggerLoggingEvent event) {
+            if(!m_active) {
+                return;
+            }
+            {
+                AutoReadLock awl(m_lock);
+                foreach LoggerFilter filter in (m_filters) {
+                    int d = filter.eval(event);
+                    if (d == LoggerFilter::DENY) {
+                        return;
+                    } else if (d == LoggerFilter::ACCEPT) {
+                        break;
+                    }
+                }
+            }
+            appendImpl(event);
+        }
+
+        #! implement logging to physical target
+        /**
+            must be implemented by successor class
+
+            @param event
+        */
+        abstract private:internal appendImpl(LoggerLoggingEvent event);
+
+        #! Implements open functionality
+        /** successor must implement this method to perform proper opening procedures
+        */
+        abstract private:internal openImpl();
+
+        #! Implements close functionality
+        /** successor must implement this method to perform proper closing procedures.
+        */
+        abstract private:internal closeImpl();
+
+    }
+
+    #! Implements @ref LoggerLoggingEvent layout how appears in output stream
+    public class LoggerLayout {
+        #! Get header to put into the stream when is opened
+        abstract public string getHeader();
+        #! Get footer to put into the stream when is closed
+        abstract public string getFooter();
+        #! Format event record
+        abstract public string format(LoggerLoggingEvent event);
+    }
+    #! Implements formatting @ref LoggerLoggingEvent with a pattern
+    /**
+        The pattern format is:
+            %[<modifiers>]<word>[{<option>}]
+            modifiers := [0-9.-]*
+            word := [a-zA-Z]+
+            option := [^}]*
+            
+            Words:
+                c 	Used to output the category of the logging event. For example, for the category name "a.b.c" the pattern %c{2} will output "b.c".
+                C 	Used to output the fully qualified class name of the caller issuing the logging request. For example, for the class name "org.apache.xyz.SomeClass", the pattern %C{1} will output "SomeClass".
+                d 	Used to output the date of the logging event. For example, %d{HH:mm:ss,SSS} or %d{dd MMM yyyy HH:mm:ss,SSS}.
+                F 	Used to output the file name where the logging request was issued.
+                l 	Used to output location information of the caller which generated the logging event.
+                L 	Used to output the line number from where the logging request was issued.
+                m 	Used to output the application supplied message associated with the logging event.
+                M 	Used to output the method name where the logging request was issued.
+                n 	Outputs the platform dependent line separator character or characters.
+                p 	Used to output the priority of the logging event.
+                r 	Used to output the number of milliseconds elapsed from the construction of the layout until the creation of the logging event.
+                t 	Used to output the name of the thread that generated the logging event.
+                x 	Used to output the NDC (nested diagnostic context) associated with the thread that generated the logging event.
+                X 	The X conversion character is followed by the key for the MDC. For example, X{clientIP} will print the information stored in the MDC against the key clientIP.
+                % 	The literal percent sign. %% will print a % sign.
+                                
+                Following table covers various modifiers scenarios:
+                Format modifier 	left justify 	minimum width 	maximum width 	comment
+                %20c 	false 	20 	none 	Left pad with spaces if the category name is less than 20 characters long.
+                %-20c 	true 	20 	none 	Right pad with spaces if the category name is less than 20 characters long.
+                %.30c 	NA 	none 	30 	Truncate from the beginning if the category name is longer than 30 characters.
+                %20.30c 	false 	20 	30 	Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning.
+                %-20.30c 	true 	20 	30 	Right pad with spaces if the category name is shorter than 20 characters. However, if category name is longer than 30 characters, then truncate from the beginning.
+    */
+    public class LoggerLayoutPattern inherits LoggerLayout {
+        public {
+            const ESCAPE_CHAR = "%";
+            const DEFAULT_PATTERN = "%r [%t] %p %c %x - %m%n";
+            const DEFAULT_DATE_FORMAT = "YYYY-MM-DD HH:mm:SS.u";
+        }
+        private {
+            string m_pattern;
+            list m_parsedPattern;
+        }
+
+        constructor(string pattern = DEFAULT_PATTERN) {
+            # parse pattern
+            setPattern(pattern);
+        }
+
+        /**
+            @throw LOGGER-ERROR when pattern is invalid
+        */
+        public setPattern(string pattern) {
+            string s = pattern;
+            list pp = ();
+            while (s != "") {
+                int i = 0;
+                do {
+                    i = bindex(s, ESCAPE_CHAR, i);
+                    if (i < 0) {
+                        i = s.size();
+                    } else {
+                        if (i >= 0 && s[i+1] == ESCAPE_CHAR) {  # %%
+                            splice s, i, 1;
+                            i++;
+                            continue;
+                        }
+                    }
+                    break;
+                } while (True);
+                if (i >= s.size()) {
+                    push pp, s;
+                    s = "";
+                } else {
+                    if (i > 0) {
+                        push pp, substr(s, 0, i);
+                    }
+                    splice s, 0, i+1;
+                    # now the string is token
+%ifdef _DUMMY_TO_PAIR_BRACES_IN_EDITOR
+/{/
+%endif
+                    *list l = s =~ x/^([0-9.-]*)([a-zA-Z]+)({[^}]*})?/ ;  # x/^([0-9.-]*)([a-zA-Z]+)({[^}]*})/;
+                    if (l.size() < 2) {
+                        throw "LOGGER-ERROR", sprintf("Wrong pattern starting %%%s", s);
+                    }
+                    *list opt;
+                    hash f;
+                    if (l[0] != "") {
+                        # opt = l[0] =~ x/^([-]?)([^.0-9]*)([.]?)([0-9]+)$/;   does not work in all cases
+                        if (opt = (l[0] =~ x/^([-]?)([0-9]+)\.([0-9]+)$/) ) {
+                            f.leftJustify = opt[0] == "-";
+                            f.minWidth = int(opt[1]);
+                            f.maxWidth = int(opt[2]);
+                        } else if (opt = (l[0] =~ x/^([-]?)([0-9]+)$/) ) {
+                            f.leftJustify = opt[0] == "-";
+                            f.minWidth = int(opt[1]);
+                        } else if (opt = (l[0] =~ x/^.([0-9]+)$/) ) {
+                            f.maxWidth = int(opt[0]);
+                        } else {
+                            throw "LOGGER-ERROR", sprintf("Wrong pattern option starting %%%s", s);
+                        }
+                    }
+                    f.key = l[1];
+                    if (l.size() == 3) {
+%ifdef _DUMMY_TO_PAIR_BRACES_IN_EDITOR
+/{/
+%endif
+                        f.option = (l[2] =~ x/^{([^}]*)}$/)[0];
+                    }
+%ifdef _DUMMY_TO_PAIR_BRACES_IN_EDITOR
+/{/
+%endif
+                    s =~ s/^[0-9.-]*[a-zA-Z]+({[^}]*})?//;
+                    push pp, f;
+                }
+            }
+
+            m_pattern = pattern;
+            m_parsedPattern = pp;
+        }
+
+        public string getPattern() {
+            return m_pattern;
+        }
+        #! get parsed pattern
+        /** this function is just for private purpose (e.g. for unit test), the programmer should never call it
+        */
+        public list getParsedPattern() {
+            return m_parsedPattern ?? ();
+        }
+
+        #! returns empty header
+        public string getHeader() {
+            return "";
+        }
+        #! returns empty footer
+        public string getFooter() {
+            return "";
+        }
+
+        #! Format event record with pattern
+        public string format(LoggerLoggingEvent event) {
+            string res = "";
+            foreach any a in (m_parsedPattern) {
+                if (a.typeCode() == NT_STRING) {
+                    res += a;
+                } else {
+                    string val = getValue(event, a.key, a.option);
+                    if (exists a.maxWidth) {
+                        val = substr(val, 0, a.maxWidth);
+                    }
+                    if (exists a.minWidth && val.size() < a.minWidth) {
+                        if (a.leftJustify) {
+                            val += strmul(" ", a.minWidth - val.size());
+                        } else {
+                            val = strmul(" ", a.minWidth - val.size()) + val;
+                        }
+                    }
+                    res += val;
+                }
+            }
+            return res;
+        }
+
+        static public string getLineDelimiter() {
+            switch (PlatformOS) {
+            case "Windows":
+                return "\r\n";
+            case "Macintosh": # TODO
+                return "\r";
+            default:
+                return "\n";
+            }
+        }
+
+        private:internal string getValue(LoggerLoggingEvent event, string key, *string option) {
+            string res;
+            switch (key) {
+                case "c":
+                    res = event.getCategoryName();
+                    break;
+                case "C":
+                    res = event.getFullQualifiedClassname();
+                    break;
+                case "d":
+                    if (option) {
+                        res = format_date(option, event.getTimeStamp());
+                    } else {
+                        res = format_date(DEFAULT_DATE_FORMAT, event.getTimeStamp());
+                    }
+                    break;
+                case "F":
+                    res = event.getLocationInfo().file;
+                    break;
+                #case "l": 	Used to output location information of the caller which generated the logging event.
+                case "L":
+                    res = string(event.getLocationInfo().line);
+                    break;
+                case "m":
+                    res = event.getMessage();
+                    break;
+                case "M":
+                    res = event.getLocationInfo().function;
+                    break;
+                case "n":
+                    res = getLineDelimiter();
+                    break;
+                case "p":
+                    res = event.getLevel().getStr();
+                    break;
+                case "r":
+                    res = string(get_duration_milliseconds(event.getTimeStamp() - LoggerLoggingEvent::getStartTime()));
+                    break;
+                case "t":
+                    res = string(event.getThreadId());
+                    break;
+                #case "x": 	Used to output the NDC (nested diagnostic context) associated with the thread that generated the logging event.
+                #case "X": 	The X conversion character is followed by the key for the MDC. For example, X{clientIP} will print the information stored in the MDC against the key
+                default:
+                    res = 'N/A';
+                    #throw "LOGGER-ERROR", sprintf("Unknown pattern token %y", key);
+            }
+            trim option;
+            switch (key) {
+            case "c":
+            case "C":
+                if (option =~ /^[0-9]$/) {
+                    list l = res.split('.');
+                    res = (extract l,-int(option)).join('.');
+                }
+                break;
+            }
+            return res;
+        }
+    }
+
+    #! Implements appender with layout
+    public class LoggerAppenderWithLayout inherits LoggerAppender {
+        private {
+            LoggerLayout m_layout;
+        }
+
+        constructor(string name): LoggerAppender(name) {
+        }
+
+        #! Sets the appender layout.
+        /**
+        * @param layout
+        */
+        public setLayout(LoggerLayout layout) {
+            m_layout = layout;
+        }
+
+        #! Returns the appender layout.  TODO: empty ???
+        public LoggerLayout getLayout() {
+            return m_layout;
+        }
+    }
+
+    #! Implements event filtering
+    /**
+    * Users should extend this class to implement customized logging
+    * event filtering. The filter consists of linear chain of
+    * particular filters evaluating if the event should be immediately accepted, rejected
+    * or passed to next filter.
+    */
+
+    public class LoggerFilter {
+        public {
+            #! The event will be processed
+            const ACCEPT = 1;
+
+            #! No decision could be made, further filtering should occur
+            const NEUTRAL = 0;
+
+            #! The event should not be processed
+            const DENY = -1;
+        }
+
+        #! Do filtering logic and return decision
+        /** The method should be overriden to implement real rule. Default result is @ref NEUTRAL
+        */
+        public int eval(LoggerLoggingEvent event) {
+            return NEUTRAL;
+        }
+    }
+
+    public class LoggerFilterLevel inherits LoggerFilter {
+        private {
+            LoggerLevel m_minLevel;
+            LoggerLevel m_maxLevel;
+        }
+        constructor(LoggerLevel minLevel = LoggerLevel::getLevelInfo(), LoggerLevel maxLevel = LoggerLevel::getLevelOff()) {
+            setMinLevel(minLevel);
+            setMaxLevel(maxLevel);
+        }
+
+        constructor(int minLevel, int maxLevel = LoggerLevel::OFF) {
+            setMinLevel(minLevel);
+            setMaxLevel(maxLevel);
+        }
+
+        constructor(string minLevel, string maxLevel = "OFF") {
+            setMinLevel(minLevel);
+            setMaxLevel(maxLevel);
+        }
+
+        public setMinLevel(LoggerLevel minLevel) {
+            m_minLevel = minLevel;
+        }
+
+        public setMinLevel(int minLevel) {
+            setMinLevel(LoggerLevel::getLevel(minLevel));
+        }
+
+        public setMinLevel(string minLevel) {
+            setMinLevel(LoggerLevel::getLevel(minLevel));
+        }
+
+        public LoggerLevel getMinLevel() {
+            return m_minLevel;
+        }
+
+        public setMaxLevel(LoggerLevel maxLevel) {
+            m_maxLevel = maxLevel;
+        }
+
+        public setMaxLevel(int maxLevel) {
+            setMaxLevel(LoggerLevel::getLevel(maxLevel));
+        }
+
+        public setMaxLevel(string maxLevel) {
+            setMaxLevel(LoggerLevel::getLevel(maxLevel));
+        }
+
+        public LoggerLevel getMaxLevel() {
+            return m_maxLevel;
+        }
+
+        public int eval(LoggerLoggingEvent event) {
+            if (m_maxLevel.isGreaterOrEqual(m_minLevel)) {
+                if (!(event.getLevel().isGreaterOrEqual(m_minLevel) && m_maxLevel.isGreaterOrEqual(event.getLevel()))) {
+                    return DENY;
+                }
+            } else {
+                if (event.getLevel().isGreaterOrEqual(m_maxLevel) && m_minLevel.isGreaterOrEqual(event.getLevel())) {
+                    return DENY;
+                }
+            }
+            return NEUTRAL;
+        }
+    }
+
+    public class LoggerFilterRegex inherits LoggerFilter {
+        private {
+            string m_regexStr;
+            bool m_regexResult;
+        }
+        constructor(string regexStr = "", bool regexResult = True) {
+            setRegex(regexStr, regexResult);
+        }
+
+        public setRegex(string regexStr, bool regexResult = True) {
+            m_regexStr = regexStr;
+            m_regexResult = regexResult;
+        }
+
+        public string getRegex() {
+            return m_regexStr;
+        }
+
+        public bool getRegexResult() {
+            return m_regexResult;
+        }
+
+        public int eval(LoggerLoggingEvent event) {
+            if (event.getMessage().regex(m_regexStr) != m_regexResult) {
+                return DENY;
+            } else {
+                return NEUTRAL;
+            }
+        }
+    }
+
+    #! class that can be used for logging
+    public class Logger {
+        private {
+            /**
+            * Logger additivity. If set to true then child loggers will inherit
+            * the appenders of their ancestors by default.
+            */
+            bool m_additive = True;
+
+            /** The assigned Logger level. If nothing then use parent level */
+            *LoggerLevel m_level;
+
+            /** The name of this Logger instance. */
+            string m_name;
+
+            /** The parent logger. Set to null if this is the root logger. */
+            *Logger m_parent;
+
+            /** A collection of appenders linked to this logger. */
+            list<LoggerAppender> m_appenders;
+
+        }
+
+        #! Creates object
+        /**
+        * @param name
+        */
+        constructor(string name) {
+            m_name = name;
+        }
+
+        destructor() {
+            setParent(NOTHING);
+        }
+
+        #! get logger name
+        public string getName() {
+            return m_name;
+        }
+
+        #! get parent logger
+        public *Logger getParent() {
+            return m_parent;
+        }
+
+        #! set parent logger
+        /**
+            @param parent
+            @throw LOGGER-ERROR in case of circular reference
+        */
+        public setParent(*Logger parent) {
+            if (parent) {
+                *Logger l = self;
+                while (exists l) {
+                    if (l == parent) {
+                        throw "LOGGER-ERROR", "Circular reference";
+                    }
+                    l = l.getParent();
+                }
+            }
+            m_parent = parent;
+        }
+
+        #! Get logging level
+        /**
+            @param effective if False then get current level which can be NOTHING, if True then get level which might be inherited from parent, Default: True
+            @throw LOGGER-ERROR if cannot get effective level from hierarchy
+        */
+        public *LoggerLevel getLevel(bool effective = True) {
+            if (effective) {
+                *Logger l = self;
+                while (!exists l.getLevel(False)) {
+                    l = l.getParent();
+                    if (!exists l) {
+                        throw "LOGGER-ERROR", "Cannot get effective level";
+                    }
+                }
+                return l.getLevel(False);
+            } else {
+                return m_level;
+            }
+        }
+
+        #! Set logging level
+        /**
+            @param lovel
+        */
+        public setLevel(*LoggerLevel level) {
+            m_level = level;
+        }
+
+        #! Set logging level
+        /**
+            @param lovel
+        */
+        public setLevel(string level) {
+            setLevel(LoggerLevel::getLevel(level));;
+        }
+
+        #! Set logging level
+        /**
+            @param lovel
+        */
+        public setLevel(int level) {
+            setLevel(LoggerLevel::getLevel(level));;
+        }
+
+        #! Sets the additivity flag.
+        /**
+        * @param additive
+        */
+        public setAdditivity(bool additive) {
+            m_additive = additive;
+        }
+
+        #! Returns the additivity flag.
+        public bool getAdditivity() {
+            return m_additive;
+        }
+
+        #! Get location where is log function called from
+        private hash<CallStackInfo> getLocation() {
+            list<hash<CallStackInfo>> loc = get_thread_call_stack();
+            return loc[2];   # get location at stack-2
+        }
+
+        private logIntern(*LoggerLevel level, string message, list args, *hash<CallStackInfo> location, bool checkThrowable) {
+            if (!exists level || isEnabledFor(level) || (m_parent && getAdditivity())) {
+                *hash<ExceptionInfo> throwable;
+                if (args.size()) {
+                    # is the last argument ExceptionInfo ?
+                    auto a = args[args.size()-1];
+                    if (a.typeCode() == NT_HASH && a.fullType() == "hash<ExceptionInfo>") {
+                        throwable = a;
+                    }
+                }
+                LoggerLoggingEvent event = new LoggerLoggingEvent(self, level, message, args, location, gettid(), now_us(), throwable);
+                if (!exists level || isEnabledFor(level)) {
+                    callAppenders(event);
+                }
+                # Forward the event upstream if additivity is turned on
+                if (m_parent && getAdditivity()) {
+                    m_parent.logEvent(event);
+                }
+            }
+        }
+
+        #! Log a message using the provided logging level.
+        /**
+            @param level The logging level.
+            @param message to log is used as format for @ref vsprintf()
+            @param argv optional arguments are passed to @ref LoggerLoggingEvent instance. If the last parameter is
+                typed hash @ref ExceptionInfo then it is considered as throwable information.
+        */
+        public log(LoggerLevel level, string message) {
+            logIntern(level, message, argv, getLocation(), True);
+        }
+
+        #! Log a message using the provided logging level.
+        /**
+            @param level The logging level.
+            @param message to log is used as format for @ref vsprintf()
+            @param argv optional arguments are passed to @ref LoggerLoggingEvent instance. If the last parameter is
+                typed hash @ref ExceptionInfo then it is considered as throwable information.
+        */
+        public log(int level, string message) {
+            logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
+        }
+
+        #! Logs an already prepared logging event object.
+        /**
+            @param event
+        */
+        public logEvent(LoggerLoggingEvent event) {
+            if (isEnabledFor(event.getLevel())) {
+                callAppenders(event);
+            }
+
+            # Forward the event upstream if additivity is turned on
+            if (m_parent && getAdditivity()) {
+                m_parent.logEvent(event);
+            }
+        }
+
+        #! Log a message object with the TRACE level.
+        /**
+            @see Logger::log()
+            @param message with optional arguments
+        */
+        public trace(string message) {
+            logIntern(LoggerLevel::getLevelTrace(), message, argv, getLocation(), True);
+        }
+
+        #! Log a message object with the DEBUG level.
+        /**
+            @see Logger::log()
+            @param message with optional arguments
+        */
+        public debug(string message) {
+            logIntern(LoggerLevel::getLevelDebug(), message, argv, getLocation(), True);
+        }
+
+        #! Log a message object with the INFO level.
+        /**
+            @see Logger::log()
+            @param message with optional arguments
+        */
+        public info(string message) {
+            logIntern(LoggerLevel::getLevelInfo(), message, argv, getLocation(), True);
+        }
+
+        #! Log a message object with the WARN level.
+        /**
+            @see Logger::log()
+            @param message with optional arguments
+        */
+        public warn(string message) {
+            logIntern(LoggerLevel::getLevelWarn(), message, argv, getLocation(), True);
+        }
+
+        #! Log a message object with the ERROR level.
+        /**
+            @see Logger::log()
+            @param message with optional arguments
+        */
+        public error(string message) {
+            logIntern(LoggerLevel::getLevelError(), message, argv, getLocation(), True);
+        }
+
+        #! Log a message object with the FATAL level.
+        /**
+            @see Logger::log()
+            @param message with optional arguments
+        */
+        public fatal(string message) {
+            logIntern(LoggerLevel::getLevelFatal(), message, argv, getLocation(), True);
+        }
+
+        #! assertion logging
+        /**
+            If assertion parameter is evaluated as False, then logs the message
+            using the ERROR level.
+
+            @see Logger::log()
+
+            @param assertion
+            @param message with optional arguments
+        */
+        public assertLog(bool assertion, string message) {
+            if(!assertion) {
+                logIntern(LoggerLevel::getLevelError(), message, argv, getLocation(), True);
+            }
+        }
+
+         #! Log variable name and value using TRACE level
+        /**
+            @see Logger::log()
+
+            @param varName
+            @param value
+        */
+        public traceVar(string varName, any value) {
+            logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %y", varName), (value, ), getLocation(), False);
+        }
+
+        #! Log variable name and value using DEBUG level
+        /**
+            @see Logger::log()
+
+            @param varName
+            @param value
+        */
+        public debugVar(string varName, any value) {
+            logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %y", varName), (value, ), getLocation(), False);
+        }
+
+        #! Forwards the given logging event to all linked appenders.
+        /**
+            @param event
+        */
+        private callAppenders(LoggerLoggingEvent event) {
+            foreach LoggerAppender appender in (m_appenders) {
+                appender.append(event);
+            }
+        }
+
+        #! Check whether this Logger is enabled for a given Level passed as parameter.
+        /**
+            @param level
+        */
+        public bool isEnabledFor(LoggerLevel level) {
+            return level.isGreaterOrEqual(getLevel());
+        }
+
+        #! Check whether this Logger is enabled for the TRACE Level.
+        public bool isTraceEnabled() {
+            return isEnabledFor(LoggerLevel::getLevelTrace());
+        }
+
+        #! Check whether this Logger is enabled for the DEBUG Level.
+        public bool isDebugEnabled() {
+            return isEnabledFor(LoggerLevel::getLevelDebug());
+        }
+
+        #! Check whether this Logger is enabled for the INFO Level.
+        public bool isInfoEnabled() {
+            return isEnabledFor(LoggerLevel::getLevelInfo());
+        }
+
+        #! Check whether this Logger is enabled for the WARN Level.
+        public bool isWarnEnabled() {
+            return isEnabledFor(LoggerLevel::getLevelWarn());
+        }
+
+        #! Check whether this Logger is enabled for the ERROR Level.
+        public bool isErrorEnabled() {
+            return isEnabledFor(LoggerLevel::getLevelError());
+        }
+
+        #! Check whether this Logger is enabled for the FATAL Level.
+        public bool isFatalEnabled() {
+            return isEnabledFor(LoggerLevel::getLevelFatal());
+        }
+
+    }
+
+    #! root class which prevents setting parent
+    public class LoggerRoot inherits Logger {
+        # creates object
+        /**
+            @param integer $level initial log level
+        */
+        constructor(LoggerLevel level = LoggerLevel::getLevelAll()): Logger(/*LoggerContext::ROOT_LOGGER_NAME*/'') {
+            setLevel(level);
+        }
+
+        #! Override level setter to prevent setting the root logger's level to nothing.
+        /**
+            Root logger must always have a level.
+
+            @param level
+            @throw LOGGER-ERROR if level is null
+        */
+        public setLevel(*LoggerLevel level) {
+            if (!exists level) {
+                throw "LOGGER-ERROR", "Cannot set null level for root";
+            }
+            m_level = level;
+        }
+
+        #! Override parent setter. Root logger cannot have a parent.
+        /**
+            @throw LOGGER-ERROR if parent exists
+        */
+        public setParent(*Logger parent) {
+            if (!exists parent) {
+                throw "LOGGER-ERROR", "Cannot set parent for root";
+            }
+        }
+    }
+
+}
