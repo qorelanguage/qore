@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.4.2";
+    version = "1.4.3";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -99,6 +99,9 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+   @subsection sqlutilv1_4_3 SqlUtil v1.4.3
+    - implemented support for an optional error-handling method in SQL callbacks to allow SqlUtil to recover from error scenarios in schema creation/alignment (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
 
     @subsection sqlutilv1_4_2 SqlUtil v1.4.2
     - implemented support for literal values in column operators taking column arguments with @ref SqlUtil::cop_value() "cop_value()" (<a href="https://github.com/qorelanguage/qore/issues/2555">issue 2555</a>)
@@ -1652,6 +1655,18 @@ hash ix_desc = (
     Most of the SqlUtil methods that return SQL strings also accept an option hash where callbacks an be set.  Callbacks can be used
     to display detailed information about long-running operations, such as schema or data alignment for complex schemas or large
     data sets, or as a generic framework for executing and logging SQL operations.
+
+    @subsection error_callback SQL Error Callback
+
+    the \c "error_callback" @ref closure "closure" or @ref call_reference "call reference" is called with information about the current SQL
+    operation if an error occurs in the @ref sql_callback "sql callback" and can be specified as in the following example:
+    @code{.py}
+code error_callback = sub (int ac, string type, string name, *string table, *string new_name, *string info, string sql, hash<ExceptionInfo> ex) {
+    if (ac == AC_Create && type == "materialized_view" && ex.alterr == "ORA-01031") {
+        # try to drop any table create to back the materialized view; ignoring ORA-00942 table or view does not exist errors
+        ds.exec("begin execute immediate 'drop table %s'; exception when others then if sqlcode != 942 then raise; end if; end;", name);
+    }
+};
 
     @subsection info_callback SQL Info CallBack Closure or Call Ceference
 
@@ -7168,24 +7183,37 @@ AbstractDatabase db("pgsql:user/pass@db%host");
             }
         }
 
+        static private runInfoCallback(code info_callback, int ac, string type, string name, *string table, *string new_name, *string info) {
+            bool c = (type == "column");
+            if (c)
+                name = sprintf("%s.%s", table, name);
+            string str = sprintf("%s %s %s", ActionMap{ac}, type, name);
+            if (table && !c)
+                str += sprintf(" %s %s", ac == AC_Drop ? "from" : "on", table);
+            if (new_name)
+                str += sprintf(" to %s", new_name);
+            if (info)
+                str += sprintf(" (%s)", info);
+            info_callback(str, ac, type, name, table, new_name, info);
+        }
+
         static *string doCallback(*hash opt, *string sql, int ac, string type, string name, *string table, *string new_name, *string info) {
             if (!sql)
                 return;
             if (opt.info_callback) {
-                bool c = (type == "column");
-                if (c)
-                    name = sprintf("%s.%s", table, name);
-                string str = sprintf("%s %s %s", ActionMap{ac}, type, name);
-                if (table && !c)
-                    str += sprintf(" %s %s", ac == AC_Drop ? "from" : "on", table);
-                if (new_name)
-                    str += sprintf(" to %s", new_name);
-                if (info)
-                    str += sprintf(" (%s)", info);
-                opt.info_callback(str, ac, type, name, table, new_name, info);
+                AbstractDatabase::runInfoCallback(opt.info_callback, ac, type, name, table, new_name, info);
             }
-            if (opt.sql_callback)
-                opt.sql_callback(sql);
+            if (opt.sql_callback) {
+                try {
+                    opt.sql_callback(sql);
+                }
+                catch (hash<ExceptionInfo> ex) {
+                    if (opt.error_callback) {
+                        opt.error_callback(ac, type, name, table, new_name, info, sql, ex);
+                    }
+                    rethrow;
+                }
+            }
             return sql;
         }
 
@@ -7193,44 +7221,22 @@ AbstractDatabase db("pgsql:user/pass@db%host");
             if (!sql)
                 return sql;
             if (opt.info_callback) {
-                bool c = (type == "column");
-                if (c)
-                    name = sprintf("%s.%s", table, name);
-                string str = sprintf("%s %s %s", ActionMap{ac}, type, name);
-                if (table && !c)
-                    str += sprintf(" %s %s", ac == AC_Drop ? "from" : "on", table);
-                if (new_name)
-                    str += sprintf(" to %s", new_name);
-                if (info)
-                    str += sprintf(" (%s)", info);
-                opt.info_callback(str, ac, type, name, table, new_name, info);
+                AbstractDatabase::runInfoCallback(opt.info_callback, ac, type, name, table, new_name, info);
             }
-            if (opt.sql_callback)
-                map opt.sql_callback($1), sql;
-            return sql;
-        }
-
-/*
-        static *string doCallback(*hash opt, *string sql, string fmt) {
-            if (!sql)
-                return;
-            if (opt.info_callback)
-                opt.info_callback(vsprintf(fmt, argv));
-            if (opt.sql_callback)
-                opt.sql_callback(sql);
-            return sql;
-        }
-
-        static list doCallback(*hash opt, list sql, string fmt) {
-            if (sql) {
-                if (opt.info_callback)
-                    opt.info_callback(vsprintf(fmt, argv));
-                if (opt.sql_callback)
-                    map opt.sql_callback($1), sql;
+            if (opt.sql_callback) {
+                string my_sql;
+                try {
+                    map opt.sql_callback(my_sql = $1), sql;
+                }
+                catch (hash<ExceptionInfo> ex) {
+                    if (opt.error_callback) {
+                        opt.error_callback(ac, type, name, table, new_name, info, my_sql, ex);
+                    }
+                    rethrow;
+                }
             }
             return sql;
         }
-*/
 
         #! executes some SQL with optional arguments so that if an error occurs the current transaction state is not lost
         /** @par Example:
