@@ -21,6 +21,8 @@ class Test inherits QUnit::Test {
         addTestCase("LoggerLoggingEvent", \testLoggerLoggingEvent());
         addTestCase("LoggerLayout", \testLoggerLayout());
         addTestCase("LoggerFilter", \testLoggerFilter());
+        addTestCase("LoggerAppender", \testLoggerAppender());
+        addTestCase("Logger", \testLogger());
         set_return_value(main());
     }
 
@@ -274,7 +276,6 @@ class Test inherits QUnit::Test {
     }
 
     testLoggerFilter() {
-        LoggerLayoutPattern llp("");
         hash<CallStackInfo> csi();
         csi.file = "testfile";
         csi.source = "testsource";
@@ -329,7 +330,188 @@ class Test inherits QUnit::Test {
     }
 
     testLoggerAppender() {
+        LoggerLayoutPattern llp("");
+        llp.setPattern("%m");
+        StringOutputStream sos();
+        StreamWriter sw(sos);
+        LoggerAppenderStream la("TEST", llp, sw);
+        LoggerFilterLevel lfl(LoggerLevel::ERROR);
+        LoggerFilterRegex lfr("^A");
+        LoggerFilterRegex lfr2("DUMMY");
+        LoggerLoggingEvent lle = new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF');
+        assertEq("TEST", la.getName());
+        assertFalse(la.isActive());
+        assertEq(llp, la.getLayout());
+        la.open();
+        assertTrue(la.isActive());
+        la.append(lle);
+        assertEq("ABCDEF", sos.getData());
 
+        # filter list test
+        assertEq((), la.getFilters());
+        la.addFilter(lfl);
+        assertEq((lfl, ), la.getFilters());
+        la.removeFilter(lfl);
+        assertEq((), la.getFilters());
+        la.addFilter(lfl);
+        la.addFilter(lfr);
+        assertEq((lfl, lfr), la.getFilters());
+        assertThrows("LOGGER-ERROR", "Filter already exists in list", \la.addFilter(), (lfr));
+        la.addFilter(lfr2, True);
+        assertEq((lfr2, lfl, lfr), la.getFilters());
+        la.removeFilter(lfl);
+        assertEq((lfr2, lfr), la.getFilters());
+        la.removeAllFilters();
+        assertEq((), la.getFilters());
+        la.addFilter(lfl);
+        la.addFilter(lfr);
+        la.append(lle);
+        assertEq("ABCDEF", sos.getData());
+        lfr.setRegex("^B");
+        la.append(lle);
+        assertEq("", sos.getData());
+        la.removeFilter(lfr);
+        assertEq((lfl, ), la.getFilters());
+        la.append(lle);
+        assertEq("ABCDEF", sos.getData());
+    }
+
+    testLogger() {
+        Logger l1("TEST");
+        LoggerRoot l2(LoggerLevel::getLevelError());
+        assertEq("TEST", l1.getName());
+        # parent test
+        assertEq(NOTHING, l1.getParent());
+        l1.setParent(l2);
+        assertEq(l2, l1.getParent());
+        assertEq(NOTHING, l2.getParent());
+        l1.setParent(NOTHING);
+        assertEq(NOTHING, l1.getParent());
+        l1.setParent(l2);
+        assertEq(l2, l1.getParent());
+
+        assertThrows("LOGGER-ERROR", "Circular logger chain", \l1.setParent(), (l1));
+        assertEq(l2, l1.getParent());
+        assertThrows("LOGGER-ERROR", "Cannot set parent for root", \l2.setParent(), (l1));
+        assertThrows("LOGGER-ERROR", "Cannot set null level for root", \l2.setLevel());
+
+        # level test
+        assertEq(NOTHING, l1.getLevel(False));
+        assertEq(LoggerLevel::getLevelError(), l2.getLevel(False));
+        assertEq(LoggerLevel::getLevelError(), l1.getLevel());
+        assertEq(True, l1.isEnabledFor(LoggerLevel::ERROR));
+        assertEq(True, l1.isErrorEnabled());
+        assertEq(False, l1.isEnabledFor(LoggerLevel::getLevelDebug()));
+        assertEq(False, l1.isDebugEnabled());
+        assertEq(True, l1.isEnabledFor("FATAL"));
+        assertEq(True, l1.isFatalEnabled());
+        l1.setLevel("FATAL");
+        assertEq(LoggerLevel::getLevelFatal(), l1.getLevel());
+        l1.setLevel(LoggerLevel::ALL);
+        assertEq(LoggerLevel::getLevelAll(), l1.getLevel());
+        l1.setLevel(NOTHING);
+        assertEq(LoggerLevel::getLevelError(), l1.getLevel());
+
+        l1.setParent(NOTHING);
+        assertThrows("LOGGER-ERROR", "Cannot get effective level", \l1.getLevel());
+        l1.setParent(l2);
+
+        # additivity test
+        assertEq(True, l1.getAdditivity());
+        l1.setAdditivity(False);
+        assertEq(False, l1.getAdditivity());
+        l1.setAdditivity(True);
+        assertEq(True, l1.getAdditivity());
+
+        # arrange appenders
+        LoggerLayoutPattern llp("%c{1}/%m");
+        StringOutputStream sos1();
+        StreamWriter sw1(sos1);
+        LoggerAppenderStream la1("TEST", llp, sw1);
+
+        StringOutputStream sos2();
+        StreamWriter sw2(sos2);
+        LoggerAppenderStream la2("ALERT", llp, sw2);
+        LoggerFilterLevel lfl(LoggerLevel::FATAL);
+        la2.addFilter(lfl);
+
+        StringOutputStream sos3();
+        StreamWriter sw3(sos3);
+        LoggerAppenderStream la3("ROOT", llp, sw3);
+
+        # appender list test
+        assertEq((), l1.getAppenders());
+        l1.addAppender(la1);
+        assertEq((la1, ), l1.getAppenders());
+        l1.removeAppender(la1);
+        assertEq((), l1.getAppenders());
+        l1.addAppender(la1);
+        l1.addAppender(la2);
+        assertEq((la1, la2), l1.getAppenders());
+        assertThrows("LOGGER-ERROR", "Appender already exists in list", \l1.addAppender(), (la1));
+        l1.addAppender(la3);
+        assertEq((la1, la2, la3), l1.getAppenders());
+        l1.removeAppender(la2);
+        assertEq((la1, la3), l1.getAppenders());
+        l1.removeAllAppenders();
+        assertEq((), l1.getAppenders());
+
+        l1.setAdditivity(True);
+        l1.setLevel("DEBUG");
+        l1.addAppender(la1);
+        l1.addAppender(la2);
+        l2.addAppender(la3);
+        la1.open();
+        la2.open();
+        la3.open();
+        # sos1 ... DEBUG
+        # sos2 ... FATAL
+        # sos3 ... ERROR
+
+        l1.error("test");
+        assertEq("TEST/test", sos1.getData());
+        assertEq("", sos2.getData());
+        assertEq("/test", sos3.getData());
+        l1.setAdditivity(False);
+        l1.log("ERROR", "test");
+        assertEq("TEST/test", sos1.getData());
+        assertEq("", sos2.getData());
+        assertEq("", sos3.getData());
+        l1.setAdditivity(True);
+        l2.log(LoggerLevel::ERROR, "test");
+        assertEq("", sos1.getData());
+        assertEq("", sos2.getData());
+        assertEq("/test", sos3.getData());
+
+        l1.trace("test");
+        assertEq("", sos1.getData());
+        assertEq("", sos2.getData());
+        assertEq("", sos3.getData());
+
+        l1.log(LoggerLevel::getLevelDebug(), "test");
+        assertEq("TEST/test", sos1.getData());
+        assertEq("", sos2.getData());
+        assertEq("", sos3.getData());
+
+        l1.log(LoggerLevel::FATAL, "test");
+        assertEq("TEST/test", sos1.getData());
+        assertEq("TEST/test", sos2.getData());
+        assertEq("/test", sos3.getData());
+
+        l1.assertLog(False, "test: %d,%s", 1, "a");
+        assertEq("TEST/test: 1,a", sos1.getData());
+        assertEq("", sos2.getData());
+        assertEq("/test: 1,a", sos3.getData());
+
+        int i = 124;
+        l1.debugVar("i", i);
+        assertEq("TEST/i: 124", sos1.getData());
+
+        llp.setPattern("%F:%L");
+        l1.error("ERROR", "test");
+        hash<CallStackInfo> loc = get_thread_call_stack()[0];
+
+        assertEq(sprintf("%s:%d", loc.file, loc.line-1), sos1.getData());
     }
 
 }
