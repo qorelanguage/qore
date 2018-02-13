@@ -975,9 +975,6 @@ auto v = c.name;
             OracleMaterializedView mv = cast<OracleMaterializedView>(t);
             return mv.logging == logging && mv.use_index == use_index;
         }
-
-        handleError(int ac, *string sql, hash<ExceptionInfo> ex) {
-        }
     }
 
     #! the Oracle specialization for SqlUtil::AbstractDatabase
