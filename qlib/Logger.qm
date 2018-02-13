@@ -480,13 +480,21 @@ public namespace Logger {
         /**
             @param filter add a new LoggerFilter
             @param top if True then add filter at first position, if False (default) to the end of chain
+            @throw "LOGGER-ERROR" exception if filter is already in list
         */
         public addFilter(LoggerFilter filter, bool top = False) {
             AutoWriteLock awl(m_lock);
-            if (top) {
-                unshift m_filters, filter;
+            if (!m_filters) {
+                m_filters = (filter, );
             } else {
-                push m_filters, filter;
+                if (m_filters.contains(filter)) {
+                    throw "LOGGER-ERROR", "Filter already exists in list";
+                }
+                if (top) {
+                    unshift m_filters, filter;
+                } else {
+                    push m_filters, filter;
+                }
             }
         }
 
@@ -498,7 +506,7 @@ public namespace Logger {
             AutoWriteLock awl(m_lock);
             foreach LoggerFilter f in (m_filters) {
                 if (f == filter) {
-                    remove m_filters[$1];
+                    splice m_filters, $#, 1;
                     break;
                 }
             }
@@ -507,7 +515,7 @@ public namespace Logger {
         #! Clears the filter chain by removing all the filters in it
         public removeAllFilters() {
             AutoWriteLock awl(m_lock);
-            remove m_filters; # = ();
+            splice m_filters, 0;
         }
 
         #! return filter chain
@@ -516,7 +524,7 @@ public namespace Logger {
         */
         public list<LoggerFilter> getFilters() {
             AutoReadLock awl(m_lock);
-            return m_filters;
+            return m_filters ?? ();
         }
 
         #! append event to output stream
@@ -563,6 +571,21 @@ public namespace Logger {
         */
         abstract private:internal closeImpl();
 
+    }
+
+    #! Appender which does nothing
+    public class LoggerAppenderNull inherits LoggerAppender {
+        constructor(string name = ""): LoggerAppender(name) {
+        }
+
+        private:internal appendImpl(LoggerLoggingEvent event) {
+        }
+
+        private:internal openImpl() {
+        }
+
+        private:internal closeImpl() {
+        }
     }
 
     #! Implements @ref LoggerLoggingEvent layout how appears in output stream
@@ -817,7 +840,8 @@ public namespace Logger {
             LoggerLayout m_layout;
         }
 
-        constructor(string name): LoggerAppender(name) {
+        constructor(string name, LoggerLayout layout): LoggerAppender(name) {
+            m_layout = layout;
         }
 
         #! Sets the appender layout.
@@ -831,6 +855,60 @@ public namespace Logger {
         #! Returns the appender layout.  TODO: empty ???
         public LoggerLayout getLayout() {
             return m_layout;
+        }
+
+        /*private:internal */appendImpl(LoggerLoggingEvent event) {
+            writeImpl(m_layout.format(event));
+        }
+
+        abstract private:internal writeImpl(string str);
+
+    }
+
+    #! Appender which does nothing
+    /**
+        Qore stream are not designed to be multi-threaded at all event when lock would be acquired,
+        so the logger class is single-threaded as well
+    */
+    public class LoggerAppenderStream inherits LoggerAppenderWithLayout {
+        private {
+            StreamWriter m_writer;
+        }
+
+        constructor(string name = "", LoggerLayout layout, StreamWriter writer): LoggerAppenderWithLayout(name, layout) {
+            m_writer = writer;
+        }
+
+        /*private:internal */openImpl() {
+        }
+
+        /*private:internal */closeImpl() {
+            # m_writer.getStream().close();   TODO
+        }
+
+        /*private:internal */writeImpl(string str) {
+            m_writer.print(str);
+        }
+    }
+
+    public class LoggerAppenderFile inherits LoggerAppenderWithLayout {
+        private {
+            File m_file;
+        }
+        constructor(string name = "", LoggerLayout layout, File file): LoggerAppenderWithLayout(name, layout) {
+            m_file = file;
+        }
+
+        private:internal openImpl() {
+            m_file.open(m_file.getFileName(), m_file.getEncoding());
+        }
+
+        private:internal closeImpl() {
+            m_file.sync();
+        }
+
+        private:internal writeImpl(string str) {
+            m_file.print(str);
         }
     }
 
@@ -962,6 +1040,9 @@ public namespace Logger {
     #! class that can be used for logging
     public class Logger {
         private {
+            #! The lock to protect object manipulation
+            RWLock m_lock();
+
             /**
             * Logger additivity. If set to true then child loggers will inherit
             * the appenders of their ancestors by default.
@@ -1014,7 +1095,7 @@ public namespace Logger {
                 *Logger l = self;
                 while (exists l) {
                     if (l == parent) {
-                        throw "LOGGER-ERROR", "Circular reference";
+                        throw "LOGGER-ERROR", "Circular logger chain";
                     }
                     l = l.getParent();
                 }
@@ -1085,24 +1166,78 @@ public namespace Logger {
             return loc[2];   # get location at stack-2
         }
 
-        private logIntern(*LoggerLevel level, string message, list args, *hash<CallStackInfo> location, bool checkThrowable) {
-            if (!exists level || isEnabledFor(level) || (m_parent && getAdditivity())) {
+        #! Forwards the given logging event to all linked appenders.
+        /**
+            @param event
+        */
+        private callAppenders(LoggerLoggingEvent event) {
+            AutoReadLock arl(m_lock);
+            foreach LoggerAppender appender in (m_appenders) {
+                appender.append(event);
+            }
+        }
+
+        #! add a appender to list
+        /**
+            @param appender add a new LoggerAppender
+            @throw "LOGGER-ERROR" exception if appender is already in list
+        */
+        public addAppender(LoggerAppender appender) {
+            AutoWriteLock awl(m_lock);
+            if (!m_appenders) {
+                m_appenders = (appender, );
+            } else {
+                if (m_appenders.contains(appender)) {
+                    throw "LOGGER-ERROR", "Appender already exists in list";
+                }
+                push m_appenders, appender;
+            }
+        }
+
+        #! remove appender from the list
+        /**
+            @param appender
+        */
+        public removeAppender(LoggerAppender appender) {
+            AutoWriteLock awl(m_lock);
+            foreach LoggerAppender a in (m_appenders) {
+                if (a == appender) {
+                    splice m_appenders, $#, 1;
+                    break;
+                }
+            }
+        }
+
+        #! Clears the appender list by removing all the appenders in it
+        public removeAllAppenders() {
+            AutoWriteLock awl(m_lock);
+            splice m_appenders, 0;
+        }
+
+        #! return appender list
+        /**
+            Note that appender list may be manipulated as internal lock is released when list is returned
+        */
+        public list<LoggerAppender> getAppenders() {
+            AutoReadLock awl(m_lock);
+            return m_appenders ?? ();
+        }
+
+        private:internal logIntern(*LoggerLevel level, string message, *list args, *hash<CallStackInfo> location, bool checkThrowable) {
+            if (!exists level || isEnabledFor(level)) {
                 *hash<ExceptionInfo> throwable;
-                if (args.size()) {
+                if (args.size() && checkThrowable) {
                     # is the last argument ExceptionInfo ?
                     auto a = args[args.size()-1];
                     if (a.typeCode() == NT_HASH && a.fullType() == "hash<ExceptionInfo>") {
                         throwable = a;
                     }
                 }
-                LoggerLoggingEvent event = new LoggerLoggingEvent(self, level, message, args, location, gettid(), now_us(), throwable);
-                if (!exists level || isEnabledFor(level)) {
-                    callAppenders(event);
-                }
+                callAppenders(new LoggerLoggingEvent(self, level, message, args, location, gettid(), now_us(), throwable));
+            }
+            if (m_parent && getAdditivity()) {
                 # Forward the event upstream if additivity is turned on
-                if (m_parent && getAdditivity()) {
-                    m_parent.logEvent(event);
-                }
+                m_parent.logIntern(level, message, args, location, checkThrowable);
             }
         }
 
@@ -1125,6 +1260,10 @@ public namespace Logger {
                 typed hash @ref ExceptionInfo then it is considered as throwable information.
         */
         public log(int level, string message) {
+            logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
+        }
+
+        public log(string level, string message) {
             logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
         }
 
@@ -1235,22 +1374,20 @@ public namespace Logger {
             logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %y", varName), (value, ), getLocation(), False);
         }
 
-        #! Forwards the given logging event to all linked appenders.
-        /**
-            @param event
-        */
-        private callAppenders(LoggerLoggingEvent event) {
-            foreach LoggerAppender appender in (m_appenders) {
-                appender.append(event);
-            }
-        }
-
         #! Check whether this Logger is enabled for a given Level passed as parameter.
         /**
             @param level
         */
         public bool isEnabledFor(LoggerLevel level) {
             return level.isGreaterOrEqual(getLevel());
+        }
+
+        public bool isEnabledFor(int level) {
+            return LoggerLevel::getLevel(level).isGreaterOrEqual(getLevel());
+        }
+
+        public bool isEnabledFor(string level) {
+            return LoggerLevel::getLevel(level).isGreaterOrEqual(getLevel());
         }
 
         #! Check whether this Logger is enabled for the TRACE Level.
@@ -1295,6 +1432,14 @@ public namespace Logger {
             setLevel(level);
         }
 
+        constructor(int level): Logger(/*LoggerContext::ROOT_LOGGER_NAME*/'') {
+            setLevel(level);
+        }
+
+        constructor(string level): Logger(/*LoggerContext::ROOT_LOGGER_NAME*/'') {
+            setLevel(level);
+        }
+
         #! Override level setter to prevent setting the root logger's level to nothing.
         /**
             Root logger must always have a level.
@@ -1314,7 +1459,7 @@ public namespace Logger {
             @throw LOGGER-ERROR if parent exists
         */
         public setParent(*Logger parent) {
-            if (!exists parent) {
+            if (exists parent) {
                 throw "LOGGER-ERROR", "Cannot set parent for root";
             }
         }
