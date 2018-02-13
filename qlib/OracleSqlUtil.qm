@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
 
-/*  OracleSqlUtil.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+/*  OracleSqlUtil.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.2.4";
+    version = "1.2.5";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -187,7 +187,7 @@ my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.t
     The \c "materialized_views" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
     @code{.py}
-my hash $schema = (
+hash schema = (
     "driver": (
         "oracle": (
             "materialized_views": (
@@ -213,7 +213,7 @@ my hash $schema = (
     The \c "packages" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
     @code{.py}
-my hash $schema = (
+hash schema = (
     "driver": (
         "oracle": (
             "packages": (
@@ -239,7 +239,7 @@ MYSTATERROR constant order_status.orderstatus%type := 'E';
     The \c "types" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
     @code{.py}
-my hash $schema = (
+hash schema = (
     "driver": (
         "oracle": (
             "types": (
@@ -254,6 +254,9 @@ my hash $schema = (
     @see OracleSqlUtil::OracleDatabase::OracleSchemaDescriptionOptions for a list of Oracle-specific schema description hash keys.
 
     @section ora_relnotes Release Notes
+
+    @subsection v125 OracleSqlUtil v1.2.5
+    - worked around an Oracle bug in materialized view creation where when the schema user is missing the <tt>CREATE MATERIALIZED VIEW</tt> grant the table backing the view is created but the materialized view itself is not created causing future creation actions to fail (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
 
     @subsection v124 OracleSqlUtil v1.2.4
     - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
@@ -1304,6 +1307,9 @@ auto v = c.name;
             if (tl) l += tl;
 
             # create materialized views
+            if (!opt.error_callback) {
+                opt.error_callback = \oracleErrorCallback();
+            }
             tl = alignCodeUnlocked("materialized_view", schema_hash, \getMaterializedView(), \makeMaterializedViewFromDescription(), opt, Type::Hash);
             if (tl) l += tl;
 
@@ -1667,7 +1673,16 @@ auto v = c.name;
             }
         }
 
-    }
+        private oracleErrorCallback(int ac, string type, string name, *string table, *string new_name, *string info, string sql, hash<ExceptionInfo> ex) {
+            # issue #2643: if there is an ORA-01031 "insufficient privileges" error creating a materialized view,
+            # try to drop any table possibly created due to an Oracle bug
+            if (ac == AC_Create && type == "materialized_view" && ex.arg.alterr == "OCI-01031") {
+                # try to drop any table created to back the materialized view, ignoring ORA-00942
+                # "table or view does not exist" errors but rethrowing all others
+                ds.exec("begin execute immediate 'drop table " + name + "'; exception when others then if sqlcode != -942 then raise; end if; end;", name);
+            }
+        }
+   }
 
     #! represents an Oracle table
     /** this is the specialization of SqlUtil::AbstractTable
