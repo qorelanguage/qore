@@ -56,6 +56,8 @@ public namespace LoggerContainer {
             #! The lock to protect object manipulation
             RWLock m_lock();
 
+            Logger m_rootLogger;
+
             #! The list of loggers
             hash<string,Logger> m_loggers;
 
@@ -65,6 +67,8 @@ public namespace LoggerContainer {
             #! The list of filters
             hash<string,LoggerFilter> m_filters;
 
+
+            hash m_properties;
         }
 
         #! Creates new object with root looger
@@ -72,23 +76,23 @@ public namespace LoggerContainer {
         * @param root
         */
         constructor(LoggerRoot root) {
-            m_loggers{ROOT_LOGGER_NAME} = root;
+            m_rootLogger = root;
         }
 
         #! Creates new object with logger using console appender
         constructor() {
-            m_loggers{ROOT_LOGGER_NAME} = new LoggerRoot();
+            m_rootLogger = new LoggerRoot();
         }
 
         #! Add new logger in collection
         /**
             @param newLogger
-            @throw LOGGER-CONTAINER-ERROR is logger with this name already exists
+            @throw LOGGER-CONTAINER-ERROR if logger with this name already exists
         */
         addLogger(Logger newLogger) {
             AutoWriteLock awl(m_lock);
             if (exists m_loggers{newLogger.getName()}) {
-                throw "LOGGER-CONTAINER-ERROR", sprintf("Logger %y already exists", newLogger.getName());
+                throw "LOGGER-CONTAINER-ERROR", "Logger already exists in list";
             }
             m_loggers{newLogger.getName()} = newLogger;
         }
@@ -110,7 +114,7 @@ public namespace LoggerContainer {
         removeLogger(string name) {
             AutoWriteLock awl(m_lock);
             if (!exists m_loggers{name}) {
-                throw "LOGGER-CONTAINER-ERROR", sprintf("Logger %y does not exist", name);
+                throw "LOGGER-CONTAINER-ERROR", "Logger does not exist in list";
             }
             remove m_loggers{name};
         }
@@ -123,7 +127,7 @@ public namespace LoggerContainer {
         Logger getLogger(string name) {
             AutoReadLock arl(m_lock);
             if (!exists m_loggers{name}) {
-                throw "LOGGER-CONTAINER-ERROR", sprintf("Logger %y does not exist", name);
+                throw "LOGGER-CONTAINER-ERROR", "Logger %y does not exist in list";
             }
             return m_loggers{name};
         }
@@ -147,19 +151,175 @@ public namespace LoggerContainer {
         }
 
         #! get logger names
-        *list getLoggerNames() {
+        list getLoggerNames() {
             AutoReadLock arl(m_lock);
-            return keys m_loggers;
+            return (keys m_loggers) ?? ();
         }
 
         #! get loggers
-        *hash<string,Logger> getLoggers() {
+        list<Logger> getLoggers() {
             AutoReadLock arl(m_lock);
-            return m_loggers;
+            return cast<list<Logger>> (m_loggers.values() ?? ());
         }
 
+        #! Add new appender in collection
+        /**
+            @param appender
+            @throw LOGGER-CONTAINER-ERROR if appender with this name already exists
+        */
+        addAppender(LoggerAppender appender) {
+            AutoWriteLock awl(m_lock);
+            if (exists m_appenders{appender.getName()}) {
+                throw "LOGGER-CONTAINER-ERROR", "Appender already exists in list";
+            }
+            m_appenders{appender.getName()} = appender;
+        }
 
-        #! load logger configuration
+        #! Remove appender from collection
+        /**
+            @param appender
+            @throw LOGGER-CONTAINER-ERROR if appender does not exist
+        */
+        removeAppender(LoggerAppender appender) {
+            removeAppender(appender.getName());
+        }
+
+        #! Remove appender from collection
+        /**
+            @param appender
+            @throw LOGGER-CONTAINER-ERROR if appender does not exist
+        */
+        removeAppender(string name) {
+            AutoWriteLock awl(m_lock);
+            if (!exists m_appenders{name}) {
+                throw "LOGGER-CONTAINER-ERROR", "Appender does not exist in list";
+            }
+            remove m_appenders{name};
+        }
+
+        #! get registered appender
+        /**
+            @param name
+            @throw LOGGER-CONTAINER-ERROR if appender does not exist
+        */
+        Logger getAppender(string name) {
+            AutoReadLock arl(m_lock);
+            if (!exists m_appenders{name}) {
+                throw "LOGGER-CONTAINER-ERROR", "Appender does not exist in list";
+            }
+            return m_appenders{name};
+        }
+
+        #! Detects if a appender with the specified name exists
+        /**
+        @param name
+        */
+        bool hasAppender(string name) {
+            AutoReadLock arl(m_lock);
+            return exists m_appenders{name};
+
+        }
+
+        #! Detects if a appender exists
+        /**
+        @param logger
+        */
+        bool hasAppender(LoggerAppender appender) {
+            return hasAppender(appender.getName());
+        }
+
+        #! get appender names
+        list getAppenderNames() {
+            AutoReadLock arl(m_lock);
+            return (keys m_appenders) ?? ();
+        }
+
+        #! get appenders
+        list<LoggerAppender> getAppenders() {
+            AutoReadLock arl(m_lock);
+            return cast<list<LoggerAppender>> (m_appenders.values() ?? ());
+        }
+
+%ifdef _FILTER_ENABLED_
+# filter object is nameless, probably container filter list is not needed
+        #! Add new filter in collection
+        /**
+            @param filter
+            @throw LOGGER-CONTAINER-ERROR if filter with this name already exists
+        */
+        addFilter(LoggerFilter filter) {
+            AutoWriteLock awl(m_lock);
+            if (exists m_filters{filter.getName()}) {
+                throw "LOGGER-CONTAINER-ERROR", "Filter already exists in list";
+            }
+            m_filters{filter.getName()} = filter;
+        }
+
+        #! Remove filter from collection
+        /**
+            @param filter
+            @throw LOGGER-CONTAINER-ERROR if filter does not exist
+        */
+        removeFilter(LoggerFilter filter) {
+            removeFilter(filter.getName());
+        }
+
+        #! Remove filter from collection
+        /**
+            @param filter
+            @throw LOGGER-CONTAINER-ERROR if filter does not exist
+        */
+        removeFilter(string name) {
+            AutoWriteLock awl(m_lock);
+            if (!exists m_filters{name}) {
+                throw "LOGGER-CONTAINER-ERROR", "Filter does not exist in list";
+            }
+            remove m_filters{name};
+        }
+
+        #! get registered filter
+        /**
+            @param name
+            @throw LOGGER-CONTAINER-ERROR if filter does not exist
+        */
+        Logger getFilter(string name) {
+            AutoReadLock arl(m_lock);
+            if (!exists m_filters{name}) {
+                throw "LOGGER-CONTAINER-ERROR", "Filter does not exist in list";
+            }
+            return m_filters{name};
+        }
+
+        #! Detects if a filter with the specified name exists
+        /**
+            @param name
+        */
+        bool hasFilter(string name) {
+            AutoReadLock arl(m_lock);
+            return exists m_filters{name};
+
+        }
+
+        #! Detects if a filter exists
+        /**
+            @param logger
+        */
+        bool hasFilter(LoggerFilter filter) {
+            return hasFilter(filter.getName());
+        }
+
+        #! get filter names
+        list getFilterNames() {
+            AutoReadLock arl(m_lock);
+            return (keys m_filters) ?? ();
+        }
+
+        #! get filters
+        list<LoggerFilter> getFilters() {
+            AutoReadLock arl(m_lock);
+            return cast<list<LoggerFilter>> (m_filters.values() ?? ());
+        }
+%endif
         /**
             Conf hash corresponds to XML config represenation
             

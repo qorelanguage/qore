@@ -8,11 +8,13 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Logger.qm
-%requires ../../../../qlib/LoggerContainer.qm
 
 %exec-class Test
 
 class Test inherits QUnit::Test {
+    private {
+        Counter m_counter();
+    }
     public {
     }
 
@@ -22,6 +24,7 @@ class Test inherits QUnit::Test {
         addTestCase("LoggerLayout", \testLoggerLayout());
         addTestCase("LoggerFilter", \testLoggerFilter());
         addTestCase("LoggerAppender", \testLoggerAppender());
+        addTestCase("LoggerAppenderMultiThread", \testLoggerAppenderMultiThread());
         addTestCase("Logger", \testLogger());
         set_return_value(main());
     }
@@ -63,7 +66,6 @@ class Test inherits QUnit::Test {
             assertTrue(ll1.isGreaterOrEqual(ll2));
         }
 
-#        assertThrows("LOGGER-ERROR", "unexpected length.*known lengths.*12", \i.getValue());
     }
 
     testLoggerLoggingEvent() {
@@ -344,7 +346,7 @@ class Test inherits QUnit::Test {
         assertEq(llp, la.getLayout());
         la.open();
         assertTrue(la.isActive());
-        la.append(lle);
+        la.post(lle);
         assertEq("ABCDEF", sos.getData());
 
         # filter list test
@@ -365,15 +367,68 @@ class Test inherits QUnit::Test {
         assertEq((), la.getFilters());
         la.addFilter(lfl);
         la.addFilter(lfr);
-        la.append(lle);
+        la.post(lle);
         assertEq("ABCDEF", sos.getData());
         lfr.setRegex("^B");
-        la.append(lle);
+        la.post(lle);
         assertEq("", sos.getData());
         la.removeFilter(lfr);
         assertEq((lfl, ), la.getFilters());
-        la.append(lle);
+        la.post(lle);
         assertEq("ABCDEF", sos.getData());
+    }
+
+    startThread(LoggerAppender la, bool testThrow) {
+        try {
+            assertTrue(la.post(new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF')));
+            if (testThrow) {
+                assertThrows("LOGGER-ERROR", "Executed in wrong thread", \la.processQueue());
+            }
+        } catch (hash ex) {
+        }
+        m_counter.dec();
+    }
+
+    testLoggerAppenderMultiThread() {
+        LoggerLayoutPattern llp("");
+        llp.setPattern("%m[%t]");
+        StringOutputStream sos();
+        StreamWriter sw(sos);
+        LoggerAppenderStream la("TEST", llp, sw);
+        la.open();
+
+        m_counter.inc();
+        int tid = background startThread(la, True);
+        m_counter.waitForZero();
+        la.processQueue();
+        assertEq(sprintf("ABCDEF[%d]", tid), sos.getData());
+
+        llp.setPattern("%t,");
+        int n = 10; # increase to get issues
+        list tids = ();
+        while (n > 0) {
+            m_counter.inc();
+            push tids, background startThread(la, False);
+            n--;
+        }
+        while (m_counter.getCount() > 0) {
+            la.processQueue();
+        }
+        m_counter.waitForZero();
+        list l2 = ();
+        string ls = sos.getData();
+    /*
+        I see coredumps sometimes and the inserted items differs sometimes
+    stderr.printf("tids: [%y]\n\n", tids);
+    stderr.printf("[%s]\n\n", ls);
+    *** Error in `qore': corrupted size vs. prev_size: 0x0000000002487770 ***
+        Aborted (core dumped [obraz paměti uložen])
+    */
+
+        map (push l2, int($1)), (select ls.split(","), $1 != "");
+        tids = sort(tids, int sub(int l, int h) {return l<=>h;});
+        l2 = sort(l2, int sub(int l, int h) {return l<=>h;});
+        assertEq(tids, l2);
     }
 
     testLogger() {
