@@ -423,7 +423,7 @@ public namespace Logger {
     public class LoggerAppender {
         public {
             #! Data are passed to target device synchronously
-            const SYNC_ALWAYS = 0;
+            const SYNC = 0;
             const SYNC_THREAD = 1;
             const ASYNC = 2;
         }
@@ -454,13 +454,13 @@ public namespace Logger {
         /**
             @param name appender name
         */
-        constructor(string name = "", int sync = SYNC_ALWAYS) {
+        constructor(string name = "", int sync = SYNC_THREAD) {
             m_name = name;
             m_threadId = gettid();
-            if (m_sync == ASYNC || (m_sync == SYNC_THREAD && gettid() != m_threadId)) {
+            m_sync = sync;
+            if (m_sync == ASYNC || m_sync == SYNC_THREAD) {
                 m_queue = new Queue();
             }
-            m_sync = sync;
         }
 
         destructor() {
@@ -603,6 +603,10 @@ public namespace Logger {
             }
         }
 
+        int getQueueCount() {
+            return m_queue.size();
+        }
+
         #! implement logging to physical target
         /**
             must be implemented by successor class
@@ -627,7 +631,7 @@ public namespace Logger {
 
     #! Appender which does nothing
     public class LoggerAppenderNull inherits LoggerAppender {
-        constructor(string name = ""): LoggerAppender(name, SYNC_ALWAYS) {
+        constructor(string name = ""): LoggerAppender(name, SYNC) {
         }
 
         private:internal any serializeImpl(LoggerLoggingEvent event) {
@@ -896,7 +900,7 @@ public namespace Logger {
             LoggerLayout m_layout;
         }
 
-        constructor(string name, int sync, LoggerLayout layout): LoggerAppender(name) {
+        constructor(string name, int sync, LoggerLayout layout): LoggerAppender(name, sync) {
             m_layout = layout;
         }
 
@@ -929,7 +933,7 @@ public namespace Logger {
             StreamWriter m_writer;
         }
 
-        constructor(string name = "", LoggerLayout layout, StreamWriter writer): LoggerAppenderWithLayout(name, SYNC_ALWAYS, layout) {
+        constructor(string name = "", LoggerLayout layout, StreamWriter writer): LoggerAppenderWithLayout(name, SYNC_THREAD, layout) {
             m_writer = writer;
         }
 
@@ -949,7 +953,7 @@ public namespace Logger {
         private {
             File m_file;
         }
-        constructor(string name = "", LoggerLayout layout, File file): LoggerAppenderWithLayout(name, SYNC_ALWAYS, layout) {
+        constructor(string name = "", LoggerLayout layout, File file): LoggerAppenderWithLayout(name, SYNC_THREAD, layout) {
             m_file = file;
         }
 
