@@ -421,6 +421,12 @@ public namespace Logger {
     }
 
     public class LoggerAppender {
+        public {
+            #! Data are passed to target device synchronously
+            const SYNC_ALWAYS = 0;
+            const SYNC_THREAD = 1;
+            const ASYNC = 2;
+        }
         private {
             #! The lock to protect object manipulation
             RWLock m_lock();
@@ -433,14 +439,28 @@ public namespace Logger {
 
             #! Appender name
             string m_name;
+
+            #! constructor's threadId
+            int m_threadId;
+
+            #! how events are passed to target
+            int m_sync;
+
+            #! async queue
+            Queue m_queue;
         }
 
         #! Default constructor.
         /**
             @param name appender name
         */
-        constructor(string name = "") {
+        constructor(string name = "", int sync = SYNC_ALWAYS) {
             m_name = name;
+            m_threadId = gettid();
+            if (m_sync == ASYNC || (m_sync == SYNC_THREAD && gettid() != m_threadId)) {
+                m_queue = new Queue();
+            }
+            m_sync = sync;
         }
 
         destructor() {
@@ -527,7 +547,12 @@ public namespace Logger {
             return m_filters ?? ();
         }
 
-        #! append event to output stream
+        #! serialize event to put in the queue or write to target device
+        /**
+        */
+        abstract private:internal any serializeImpl(LoggerLoggingEvent event);
+
+        #! post event to output queue
         /**
             Performs threshold checks and invokes filters before passes logging
             to the @ref appendImpl() method.
@@ -535,31 +560,58 @@ public namespace Logger {
 
             @param event
         */
-        public append(LoggerLoggingEvent event) {
+        bool post(LoggerLoggingEvent event) {
             if(!m_active) {
-                return;
+                return False;
             }
             {
                 AutoReadLock awl(m_lock);
                 foreach LoggerFilter filter in (m_filters) {
                     int d = filter.eval(event);
                     if (d == LoggerFilter::DENY) {
-                        return;
+                        return False;
                     } else if (d == LoggerFilter::ACCEPT) {
                         break;
                     }
                 }
             }
-            appendImpl(event);
+            any serialized = serializeImpl(event);
+            if (m_sync == ASYNC || (m_sync == SYNC_THREAD && gettid() != m_threadId)) {
+                try {
+                    m_queue.push(serialized, -1);
+                } catch (hash<ExceptionInfo> ex) {
+                    return False;
+                }
+            } else {
+                appendImpl(serialized);
+            }
+            return True;
+        }
+
+        #! process queue
+        /**
+            the method must be called in dedicated thread
+
+            @throws "LOGGER-ERROR" if called from wrong thread
+        */
+        processQueue() {
+            if (m_threadId != gettid()) {
+                throw "LOGGER-ERROR", "Executed in wrong thread";
+            }
+            while (m_queue.size() > 0) {
+                appendImpl(m_queue.get());
+            }
         }
 
         #! implement logging to physical target
         /**
             must be implemented by successor class
 
+            @see serializeImpl()
+
             @param event
         */
-        abstract private:internal appendImpl(LoggerLoggingEvent event);
+        abstract private:internal appendImpl(any serialized);
 
         #! Implements open functionality
         /** successor must implement this method to perform proper opening procedures
@@ -575,16 +627,20 @@ public namespace Logger {
 
     #! Appender which does nothing
     public class LoggerAppenderNull inherits LoggerAppender {
-        constructor(string name = ""): LoggerAppender(name) {
+        constructor(string name = ""): LoggerAppender(name, SYNC_ALWAYS) {
         }
 
-        private:internal appendImpl(LoggerLoggingEvent event) {
+        private:internal any serializeImpl(LoggerLoggingEvent event) {
+            return NOTHING;
         }
 
-        private:internal openImpl() {
+        /*private:internal*/ appendImpl(any serialized) {
         }
 
-        private:internal closeImpl() {
+        /*private:internal*/ openImpl() {
+        }
+
+        /*private:internal*/ closeImpl() {
         }
     }
 
@@ -840,7 +896,7 @@ public namespace Logger {
             LoggerLayout m_layout;
         }
 
-        constructor(string name, LoggerLayout layout): LoggerAppender(name) {
+        constructor(string name, int sync, LoggerLayout layout): LoggerAppender(name) {
             m_layout = layout;
         }
 
@@ -857,11 +913,9 @@ public namespace Logger {
             return m_layout;
         }
 
-        /*private:internal */appendImpl(LoggerLoggingEvent event) {
-            writeImpl(m_layout.format(event));
+        /*private:internal*/ any serializeImpl(LoggerLoggingEvent event) {
+            return m_layout.format(event);
         }
-
-        abstract private:internal writeImpl(string str);
 
     }
 
@@ -875,7 +929,7 @@ public namespace Logger {
             StreamWriter m_writer;
         }
 
-        constructor(string name = "", LoggerLayout layout, StreamWriter writer): LoggerAppenderWithLayout(name, layout) {
+        constructor(string name = "", LoggerLayout layout, StreamWriter writer): LoggerAppenderWithLayout(name, SYNC_ALWAYS, layout) {
             m_writer = writer;
         }
 
@@ -886,8 +940,8 @@ public namespace Logger {
             # m_writer.getStream().close();   TODO
         }
 
-        /*private:internal */writeImpl(string str) {
-            m_writer.print(str);
+        /*private:internal*/ appendImpl(any serialized) {
+            m_writer.print(serialized);
         }
     }
 
@@ -895,20 +949,20 @@ public namespace Logger {
         private {
             File m_file;
         }
-        constructor(string name = "", LoggerLayout layout, File file): LoggerAppenderWithLayout(name, layout) {
+        constructor(string name = "", LoggerLayout layout, File file): LoggerAppenderWithLayout(name, SYNC_ALWAYS, layout) {
             m_file = file;
         }
 
-        private:internal openImpl() {
+        /*private:internal*/ openImpl() {
             m_file.open(m_file.getFileName(), m_file.getEncoding());
         }
 
-        private:internal closeImpl() {
+        /*private:internal*/ closeImpl() {
             m_file.sync();
         }
 
-        private:internal writeImpl(string str) {
-            m_file.print(str);
+        /*private:internal*/ appendImpl(any serialized) {
+            m_file.print(serialized);
         }
     }
 
@@ -1173,7 +1227,7 @@ public namespace Logger {
         private callAppenders(LoggerLoggingEvent event) {
             AutoReadLock arl(m_lock);
             foreach LoggerAppender appender in (m_appenders) {
-                appender.append(event);
+                appender.post(event);
             }
         }
 
