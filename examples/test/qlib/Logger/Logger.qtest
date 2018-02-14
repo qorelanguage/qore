@@ -404,7 +404,7 @@ class Test inherits QUnit::Test {
         assertEq(sprintf("ABCDEF[%d]", tid), sos.getData());
 
         llp.setPattern("%t,");
-        int n = 10; # increase to get issues
+        int n = 200; # increase to get issues
         list tids = ();
         while (n > 0) {
             m_counter.inc();
@@ -417,13 +417,6 @@ class Test inherits QUnit::Test {
         m_counter.waitForZero();
         list l2 = ();
         string ls = sos.getData();
-    /*
-        I see coredumps sometimes and the inserted items differs sometimes
-    stderr.printf("tids: [%y]\n\n", tids);
-    stderr.printf("[%s]\n\n", ls);
-    *** Error in `qore': corrupted size vs. prev_size: 0x0000000002487770 ***
-        Aborted (core dumped [obraz paměti uložen])
-    */
 
         map (push l2, int($1)), (select ls.split(","), $1 != "");
         tids = sort(tids, int sub(int l, int h) {return l<=>h;});
