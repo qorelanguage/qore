@@ -38,24 +38,21 @@ module LoggerContainer {
     license = "MIT";
 }
 
-# scheme, map, container, manager
 
 #! the namespace contains all the definitions in the module
 public namespace LoggerContainer {
 
     #! The LoggerContainer is the anchor for the logging system.
-    /** It maintains a list of all the loggers requested by applications and a reference 
-     to the Configuration. The Configuration will contain the configured loggers, appenders, filters, etc 
-     and will be atomically updated whenever a reconfigure occurs.
+    /**
+        It maintains a list of all the loggers requested by applications and a reference
+        to the Configuration. The Configuration will contain the configured loggers, appenders, filters, etc.
     */
     public class LoggerContainer {
-        public {
-            const ROOT_LOGGER_NAME = '';
-        }
         private {
             #! The lock to protect object manipulation
             RWLock m_lock();
 
+            #! root logger
             Logger m_rootLogger;
 
             #! The list of loggers
@@ -63,10 +60,6 @@ public namespace LoggerContainer {
 
             #! The list of appenders
             hash<string,LoggerAppender> m_appenders;
-
-            #! The list of filters
-            hash<string,LoggerFilter> m_filters;
-
 
             hash m_properties;
         }
@@ -134,7 +127,7 @@ public namespace LoggerContainer {
 
         #! Detects if a Logger with the specified name exists
         /**
-        @param name
+            @param name
         */
         bool hasLogger(string name) {
             AutoReadLock arl(m_lock);
@@ -144,7 +137,7 @@ public namespace LoggerContainer {
 
         #! Detects if a Logger exists
         /**
-        @param logger
+            @param logger
         */
         bool hasLogger(Logger logger) {
             return hasLogger(logger.getName());
@@ -212,7 +205,7 @@ public namespace LoggerContainer {
 
         #! Detects if a appender with the specified name exists
         /**
-        @param name
+            @param name
         */
         bool hasAppender(string name) {
             AutoReadLock arl(m_lock);
@@ -222,7 +215,7 @@ public namespace LoggerContainer {
 
         #! Detects if a appender exists
         /**
-        @param logger
+            @param logger
         */
         bool hasAppender(LoggerAppender appender) {
             return hasAppender(appender.getName());
@@ -240,87 +233,10 @@ public namespace LoggerContainer {
             return cast<list<LoggerAppender>> (m_appenders.values() ?? ());
         }
 
-%ifdef _FILTER_ENABLED_
-# filter object is nameless, probably container filter list is not needed
-        #! Add new filter in collection
+        #! load configuration
         /**
-            @param filter
-            @throw LOGGER-CONTAINER-ERROR if filter with this name already exists
-        */
-        addFilter(LoggerFilter filter) {
-            AutoWriteLock awl(m_lock);
-            if (exists m_filters{filter.getName()}) {
-                throw "LOGGER-CONTAINER-ERROR", "Filter already exists in list";
-            }
-            m_filters{filter.getName()} = filter;
-        }
+            Load logger system from configuration
 
-        #! Remove filter from collection
-        /**
-            @param filter
-            @throw LOGGER-CONTAINER-ERROR if filter does not exist
-        */
-        removeFilter(LoggerFilter filter) {
-            removeFilter(filter.getName());
-        }
-
-        #! Remove filter from collection
-        /**
-            @param filter
-            @throw LOGGER-CONTAINER-ERROR if filter does not exist
-        */
-        removeFilter(string name) {
-            AutoWriteLock awl(m_lock);
-            if (!exists m_filters{name}) {
-                throw "LOGGER-CONTAINER-ERROR", "Filter does not exist in list";
-            }
-            remove m_filters{name};
-        }
-
-        #! get registered filter
-        /**
-            @param name
-            @throw LOGGER-CONTAINER-ERROR if filter does not exist
-        */
-        Logger getFilter(string name) {
-            AutoReadLock arl(m_lock);
-            if (!exists m_filters{name}) {
-                throw "LOGGER-CONTAINER-ERROR", "Filter does not exist in list";
-            }
-            return m_filters{name};
-        }
-
-        #! Detects if a filter with the specified name exists
-        /**
-            @param name
-        */
-        bool hasFilter(string name) {
-            AutoReadLock arl(m_lock);
-            return exists m_filters{name};
-
-        }
-
-        #! Detects if a filter exists
-        /**
-            @param logger
-        */
-        bool hasFilter(LoggerFilter filter) {
-            return hasFilter(filter.getName());
-        }
-
-        #! get filter names
-        list getFilterNames() {
-            AutoReadLock arl(m_lock);
-            return (keys m_filters) ?? ();
-        }
-
-        #! get filters
-        list<LoggerFilter> getFilters() {
-            AutoReadLock arl(m_lock);
-            return cast<list<LoggerFilter>> (m_filters.values() ?? ());
-        }
-%endif
-        /**
             Conf hash corresponds to XML config represenation
             
             configuration
@@ -330,7 +246,7 @@ public namespace LoggerContainer {
                 
                 properties
                     name: value
-                filters
+                # filters
                     type
                     (name)
                     marker 
@@ -351,6 +267,10 @@ public namespace LoggerContainer {
         
         */
         loadConfiguration(hash conf) {
+            if (conf.properties) {
+                m_properties += conf.properties;
+            
+            }
         }
         
         #! Shutting down a hierarchy will safely close and remove all appenders in all loggers including the root logger.
@@ -386,7 +306,6 @@ public namespace LoggerContainer {
             }
             # dereferences objects, i.e. destructor will close handles etc.
             remove m_appenders;
-            remove m_filters;
         }
     }
 }
