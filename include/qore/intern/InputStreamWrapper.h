@@ -83,6 +83,10 @@ public:
       return res->val;
    }
 
+   DLLLOCAL virtual void reassignThread(ExceptionSink *xsink) override {
+	   self->evalMethod("reassignThread", nullptr, xsink);
+   }
+
 private:
    QoreObject *self;                    //!< The QoreObject this private data is associated with
 };

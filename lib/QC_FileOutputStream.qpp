@@ -117,3 +117,11 @@ string encoding = fos.getEncoding();
 string FileOutputStream::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(os->getEncoding());
 }
+
+//! Reassigns current thread as thread used for stream manipulation
+/**
+	Only from one thread the stream instance may be used as there is no locking 
+ */
+nothing FileOutputStream::reassignThread() {
+	os->reassignThread(xsink);
+}

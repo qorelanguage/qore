@@ -59,6 +59,12 @@ public:
     */
    virtual int64 peek(ExceptionSink *xsink) = 0;
 
+   /**
+    * @brief Reassigns current thread as thread used for stream manipulation
+    * @param xsink the exception sink
+    */
+   virtual void reassignThread(ExceptionSink *xsink) = 0;
+
 protected:
    /**
     * @brief Constructor.

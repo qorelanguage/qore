@@ -91,3 +91,11 @@ nothing PipeInputStream::finishClose() {
 nothing PipeInputStream::reportError(hash ex) {
    is->reportError(ex);
 }
+
+//! Reassigns current thread as thread used for stream manipulation
+/**
+	The method does nothing in this class 
+ */
+nothing PipeInputStream::reassignThread() {
+	is->reassignThread(xsink);
+}

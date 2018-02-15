@@ -75,3 +75,9 @@ abstract *binary InputStream::read(int limit);
     @endcode
  */
 abstract int InputStream::peek();
+
+//! Reassigns current thread as thread used for stream manipulation
+/**
+	Only from one thread the stream instance may be used as there is no locking 
+ */
+abstract nothing InputStream::reassignThread();

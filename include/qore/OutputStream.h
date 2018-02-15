@@ -58,6 +58,20 @@ public:
     */
    virtual void write(const void *ptr, int64 count, ExceptionSink *xsink) = 0;
 
+   /**
+    * @brief Reassigns current thread as thread used for stream manipulation
+    *  @param xsink the exception sink
+    */
+   virtual void reassignThread(ExceptionSink *xsink) = 0;
+
+   /**
+    * @brief Perform check if the operation may be processed.
+    * @param xsink the exception sink
+    * @return true if the checks passed, false if an exception has been raised
+    */
+   virtual bool check(ExceptionSink *xsink) {return true;}
+
+
 protected:
    /**
     * @brief Constructor.
