@@ -95,6 +95,11 @@ class Test inherits QUnit::Test {
         csi.line = 987;
         csi.function = "myfunction";
         hash<ExceptionInfo> ei();
+        try {
+            throw "TEST-ERROR", "Test exception";
+        } catch (hash<ExceptionInfo> ex) {
+            ei = ex;
+        }
         LoggerLoggingEvent::setStartTime(2000-01-01T00:00:00);
         date ts = LoggerLoggingEvent::getStartTime() + 1D;
         LoggerLoggingEvent lle = new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF', (), csi, 123, ts, ei);
@@ -130,6 +135,10 @@ class Test inherits QUnit::Test {
             "%m": (
                 "parsed": (("key": "m"),),
                 "output": "ABCDEF",
+            ),
+            "%Z": (
+                "parsed": (("key": "Z"),),
+                "output": "N/A",
             ),
             "%m{DUMMY}": (
                 "parsed": ((
@@ -242,7 +251,7 @@ class Test inherits QUnit::Test {
                 "output": "d a.b.c.d C.Logger" + LoggerLayoutPattern::getLineDelimiter(),
             ),
 
-            "%r [%t] %p %c %x - %m%n": (
+            "%r [%t] %p %c - %m%n": (
                 "parsed": (
                     ("key": "r"),
                     " [",
@@ -251,13 +260,11 @@ class Test inherits QUnit::Test {
                     ("key": "p"),
                     " ",
                     ("key": "c"),
-                    " ",
-                    ("key": "x"),
                     " - ",
                     ("key": "m"),
                     ("key": "n"),
                 ),
-                "output": "86400000 [123] ERROR a.b.c.d N/A - ABCDEF"+LoggerLayoutPattern::getLineDelimiter(),
+                "output": "86400000 [123] ERROR a.b.c.d - ABCDEF"+LoggerLayoutPattern::getLineDelimiter(),
             ),
         );
         foreach string patt in (keys patterns) {
@@ -266,6 +273,10 @@ class Test inherits QUnit::Test {
             assertEq(patterns{patt}.parsed, llp.getParsedPattern());
             assertEq(patterns{patt}.output, llp.format(lle));
         }
+
+        llp.setPattern("%x");
+        assertTrue(exists lle.getThrowableInfo());
+        assertRegex("TEST-ERROR: Test exception", llp.format(lle));
 
         hash patternsErr = (
             "%/AAA": "Wrong pattern starting %/AAA",
@@ -378,13 +389,24 @@ class Test inherits QUnit::Test {
         assertEq("ABCDEF", sos.getData());
     }
 
-    startThread(LoggerAppender la, bool testThrow) {
+    startPostThread(LoggerAppender la) {
         try {
             assertTrue(la.post(new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF')));
-            if (testThrow) {
-                assertThrows("LOGGER-ERROR", "Executed in wrong thread", \la.processQueue());
-            }
         } catch (hash ex) {
+            printf("Ex: %y\n", ex);
+        }
+        m_counter.dec();
+    }
+
+    startProcessThread(LoggerAppenderStream la) {
+        try {
+            int n = la.getQueueCount();
+            StringOutputStream sos = la.getStreamWriter().getOutputStream();
+            sos.reassignThread();
+            la.processQueue();
+            assertEq(n, sos.getData().split(",").size());
+        } catch (hash<ExceptionInfo> ex) {
+            printf("Ex: %y\n", ex);
         }
         m_counter.dec();
     }
@@ -398,17 +420,17 @@ class Test inherits QUnit::Test {
         la.open();
 
         m_counter.inc();
-        int tid = background startThread(la, True);
+        int tid = background startPostThread(la);
         m_counter.waitForZero();
         la.processQueue();
         assertEq(sprintf("ABCDEF[%d]", tid), sos.getData());
 
         llp.setPattern("%t,");
-        int n = 200; # increase to get issues
+        int n = 200;
         list tids = ();
         while (n > 0) {
             m_counter.inc();
-            push tids, background startThread(la, False);
+            push tids, background startPostThread(la);
             n--;
         }
         while (m_counter.getCount() > 0) {
@@ -422,6 +444,19 @@ class Test inherits QUnit::Test {
         tids = sort(tids, int sub(int l, int h) {return l<=>h;});
         l2 = sort(l2, int sub(int l, int h) {return l<=>h;});
         assertEq(tids, l2);
+
+        llp.setPattern("%m,");
+        n = 200;
+        while (n > 0) {
+            m_counter.inc();
+            push tids, background startPostThread(la);
+            n--;
+        }
+        m_counter.waitForZero();
+        m_counter.inc();
+        background startProcessThread(la);
+        m_counter.waitForZero();
+        sos.reassignThread();  # for close()
     }
 
     testLogger() {
