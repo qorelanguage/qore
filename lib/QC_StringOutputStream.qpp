@@ -133,3 +133,11 @@ string encoding = sos.getEncoding();
 string StringOutputStream::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(os->getEncoding());
 }
+
+//! Reassigns current thread as thread used for stream manipulation
+/**
+	Only from one thread the stream instance may be used as there is no locking 
+ */
+nothing StringOutputStream::reassignThread() {
+	os->reassignThread(xsink);
+}

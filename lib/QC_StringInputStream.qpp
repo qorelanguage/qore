@@ -123,3 +123,11 @@ int StringInputStream::peek() {
 string StringInputStream::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(is->getEncoding());
 }
+
+//! Reassigns current thread as thread used for stream manipulation
+/**
+	Only from one thread the stream instance may be used as there is no locking 
+ */
+nothing StringInputStream::reassignThread() {
+	is->reassignThread(xsink);
+}

@@ -79,8 +79,8 @@ public:
    }
 
    /**
-    * @brief Checks that the current thread is the same as when the instance was created and that the stream has
-    * not yet been closed.
+    * @brief Checks that the current thread is the same as when the instance was created or assigned
+    * via @ref reassignThread() and that the stream has not yet been closed.
     * @param xsink the exception sink
     * @return true if the checks passed, false if an exception has been raised
     * @throws STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
@@ -93,6 +93,14 @@ public:
          return false;
       }
       return true;
+   }
+
+   /**
+    * @brief Reassigns current thread as thread used for stream manipulation, see @ref check()
+    * @param xsink the exception sink
+    */
+   DLLLOCAL void reassignThread(ExceptionSink *xsink) override {
+      tid = gettid();
    }
 
 protected:

@@ -75,3 +75,11 @@ nothing PipeOutputStream::write(binary data) {
 nothing PipeOutputStream::reportError(hash ex) {
    os->reportError(ex);
 }
+
+//! Reassigns current thread as thread used for stream manipulation
+/**
+	The method does nothing in this class 
+ */
+nothing PipeOutputStream::reassignThread() {
+	os->reassignThread(xsink);
+}
