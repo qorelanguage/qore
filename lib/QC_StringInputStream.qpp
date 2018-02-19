@@ -131,3 +131,11 @@ string StringInputStream::getEncoding() [flags=CONSTANT] {
 nothing StringInputStream::reassignThread() {
 	is->reassignThread(xsink);
 }
+
+//! Unassigns current thread as thread used for stream manipulation
+/**
+	Only from one thread the stream instance may be used as there is no locking 
+ */
+nothing StringInputStream::unassignThread() {
+	is->unassignThread(xsink);
+}

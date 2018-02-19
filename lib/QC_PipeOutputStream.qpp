@@ -83,3 +83,11 @@ nothing PipeOutputStream::reportError(hash ex) {
 nothing PipeOutputStream::reassignThread() {
 	os->reassignThread(xsink);
 }
+
+//! Unassigns current thread as thread used for stream manipulation
+/**
+	Only from one thread the stream instance may be used as there is no locking 
+ */
+nothing PipeOutputStream::unassignThread() {
+	os->unassignThread(xsink);
+}

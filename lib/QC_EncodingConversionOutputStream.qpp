@@ -99,3 +99,11 @@ nothing EncodingConversionOutputStream::write(binary data) {
 nothing EncodingConversionOutputStream::reassignThread() {
 	os->reassignThread(xsink);
 }
+
+//! Unassigns current thread as thread used for stream manipulation
+/**
+	Only from one thread the stream instance may be used as there is no locking 
+ */
+nothing EncodingConversionOutputStream::unassignThread() {
+	os->unassignThread(xsink);
+}
