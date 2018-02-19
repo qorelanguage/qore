@@ -479,7 +479,7 @@ public namespace Logger {
         */
         constructor(string name = "", int sync = SYNC_THREAD) {
             m_name = name;
-            reassignThread();
+            m_threadId = gettid();
             m_sync = sync;
             if (m_sync == ASYNC || m_sync == SYNC_THREAD) {
                 m_queue = new Queue();
@@ -591,7 +591,7 @@ public namespace Logger {
                 return False;
             }
             {
-                AutoReadLock awl(m_lock);
+                AutoReadLock arl(m_lock);
                 foreach LoggerFilter filter in (m_filters) {
                     int d = filter.eval(event);
                     if (d == LoggerFilter::DENY) {
@@ -632,8 +632,27 @@ public namespace Logger {
         }
 
         #! Assign current thread as processing thread
+        /**
+            @throw LOGGER-ERROR if thread assigned to another thread
+        */
         public reassignThread() {
+            AutoWriteLock awl(m_lock);
+            if (m_threadId != -1 && m_threadId != gettid()) {
+                throw "LOGGER-ERROR", "Thread already assigned";
+            }
             m_threadId = gettid();
+        }
+
+        #! Unassign current thread as processing thread
+        /**
+            @throw LOGGER-ERROR if thread assigned to another thread
+        */
+        public unassignThread() {
+            AutoWriteLock awl(m_lock);
+            if (m_threadId != -1 && m_threadId != gettid()) {
+                throw "LOGGER-ERROR", "Thread assigned to another thraed";
+            }
+            m_threadId = -1;
         }
 
         #! implement logging to physical target
