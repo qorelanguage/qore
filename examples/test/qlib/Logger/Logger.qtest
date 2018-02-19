@@ -399,15 +399,16 @@ class Test inherits QUnit::Test {
     }
 
     startProcessThread(LoggerAppenderStream la) {
+        StringOutputStream sos = la.getStreamWriter().getOutputStream();
         try {
             int n = la.getQueueCount();
-            StringOutputStream sos = la.getStreamWriter().getOutputStream();
             sos.reassignThread();
             la.processQueue();
             assertEq(n, sos.getData().split(",").size());
         } catch (hash<ExceptionInfo> ex) {
             printf("Ex: %y\n", ex);
         }
+        sos.unassignThread();
         m_counter.dec();
     }
 
@@ -454,6 +455,7 @@ class Test inherits QUnit::Test {
         }
         m_counter.waitForZero();
         m_counter.inc();
+        sos.unassignThread();
         background startProcessThread(la);
         m_counter.waitForZero();
         sos.reassignThread();  # for close()
