@@ -40,7 +40,7 @@
 
     @since %Qore 0.8.13
  */
-qclass OutputStream [arg=OutputStream* is; ns=Qore];
+qclass OutputStream [arg=OutputStream* os; ns=Qore];
 
 //! Constructor
 /** Used by subclasses defined in the Qore programming language.
@@ -64,9 +64,3 @@ abstract nothing OutputStream::close();
     @endcode
  */
 abstract nothing OutputStream::write(binary data);
-
-//! Reassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-abstract nothing OutputStream::reassignThread();

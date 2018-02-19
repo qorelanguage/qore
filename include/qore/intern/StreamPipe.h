@@ -79,7 +79,6 @@ public:
    DLLLOCAL int64 peek(ExceptionSink *xsink) override;
    DLLLOCAL void finishClose();
    DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
-   DLLLOCAL void reassignThread(ExceptionSink *xsink) override {}
 
 protected:
    ~PipeInputStream();
@@ -100,7 +99,6 @@ public:
    DLLLOCAL void close(ExceptionSink* xsink) override;
    DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override;
    DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
-   DLLLOCAL void reassignThread(ExceptionSink *xsink) override {}
 protected:
    ~PipeOutputStream();
 

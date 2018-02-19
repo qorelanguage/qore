@@ -80,7 +80,7 @@ public:
 
    /**
     * @brief Checks that the current thread is the same as when the instance was created or assigned
-    * via @ref reassignThread() and that the stream has not yet been closed.
+    * via @ref unassignThread() and @ref reassignThread() and that the stream has not yet been closed.
     * @param xsink the exception sink
     * @return true if the checks passed, false if an exception has been raised
     * @throws STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
@@ -100,7 +100,17 @@ public:
     * @param xsink the exception sink
     */
    DLLLOCAL void reassignThread(ExceptionSink *xsink) override {
+      AutoLocker al(lck);
       tid = gettid();
+   }
+
+   /**
+    * @brief Unassigns current thread as thread used for stream manipulation, see @ref check()
+    * @param xsink the exception sink
+    */
+   DLLLOCAL void unassignThread(ExceptionSink *xsink) override {
+      AutoLocker al(lck);
+      tid = -1;
    }
 
 protected:
@@ -116,8 +126,9 @@ protected:
     */
    DLLLOCAL virtual const char *getName() = 0;
 
-protected:
-   int tid;                             //!< The id of the thread that created the instance
+private:
+   QoreThreadLock lck;
+   volatile int tid;                             //!< The id of the thread that created the instance
 };
 
 #endif // _QORE_INPUTSTREAMBASE_H
