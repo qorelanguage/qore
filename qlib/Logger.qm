@@ -436,6 +436,177 @@ public namespace Logger {
 
     }
 
+    #! Queue serializing async appender serialized events.
+    /**
+        All async events may be processed by one thread dedicated to
+        one or more appenders.
+    */
+    public class LoggerAppenderQueue inherits Queue {
+        private:internal {
+            Queue m_queue();
+        }
+        #! add appender event
+        /**
+            @param appender
+            @param serialized
+            @return True if event succesfully added to queue
+        */
+        public bool push(LoggerAppender appender, any serialized) {
+            try {
+                m_queue.push(("appender": appender, "serialized": serialized), -1);
+            } catch (hash<ExceptionInfo> ex) {
+                return False;
+            }
+            return True;
+        }
+        #! process queued events
+        /**
+            the method should be called typically in dedicated thread
+
+            @param ms a timeout value to wait for data to become available on the queue;
+                integers are interpreted as milliseconds; relative date/time values are interpreted 
+                literally with a maximum resolution of milliseconds. A negative timeout value causes
+                the call to time out immediately if the call would otherwise block. 
+                If a positive timeout argument is passed, and no data is available in the timeout period
+                then waits up to timeout value, If a value that converts to integer 0 is passed as the argument, 
+                then the call blocks until data is available on the queue.
+        */
+        public process(timeout ms = -1) {
+            try {
+                while (True) {
+                    *hash rec = get(ms);
+                    if (!rec) {
+                        break;
+                    }
+                    rec.appender.appendImpl(rec.serialized);
+                }
+            } catch (hash<ExceptionInfo>ex) {
+                switch (ex.err) {
+                    case "QUEUE-TIMEOUT":
+                        break;
+                    default:
+                        rethrow;
+                }
+            }
+        }
+
+        #! get queue size
+        public int size() {
+            return m_queue.size();
+        }
+
+        #! get queue record
+        private:internal *hash get(timeout ms) { #private:internal does not work for members ? 
+            if (m_queue.size() > 0 || ms >= 0) {
+                return m_queue.get();
+            } else {
+                return NOTHING;
+            }
+        }
+    }
+
+    public class LoggerAppenderQueueThreadPool inherits LoggerAppenderQueue {
+        private {
+            #! worker thread pool
+            ThreadPool m_tp;
+            #! number of running worker threads
+            Counter m_running(0);
+            #! max.number of worker threads
+            int m_maxThreads;
+            #! events removed from queue but not passed to worker thread
+            hash m_pending;
+            #! events paseed to worker thread
+            hash m_processing;
+            #! queue of processed events in worker threads
+            Queue m_finished();
+            #! internal unique counter
+            int m_lastId = 0;
+        }
+        #! worker thread code
+        /**
+            @param id
+            @param appender LoggerAppender instance
+            @param serialized list
+        */
+        private worker(int id, LoggerAppender la, list serialized) {
+            try {
+                foreach any ser in (serialized) {
+                    la.appendImpl(ser);
+                }
+            } catch (hash<ExceptionInfo> ex) {
+            }
+            m_finished.push(id);
+        }
+        #! creates object
+        /**
+            @param tp
+            @param m_maxThreads max.number of worker threads
+        */
+        constructor (ThreadPool tp, int maxThreads = -1) {
+            m_tp = tp;
+            m_maxThreads = maxThreads;
+        }
+
+        #! returns assigned ThreadPool
+        public ThreadPool getThreadPool() {
+            return m_tp;
+        }
+
+        # TODO: it is single thread
+        #! split logging events to appender and handle then in a worker thread taken from thread pool 
+        public process(timeout ms = -1) {
+            # get new events and match with pending
+            hash lastMatch;
+            while (True) {
+                *hash e = get(ms);
+                if (!e) {
+                    break;
+                }
+                if (lastMatch.appender == e.appender) {
+                    push m_pending{lastMatch.id}.serialized, e.serialized;
+                } else {
+                    bool found = False;
+                    foreach string id in (keys m_pending) {
+                        if (m_pending{id}.appender == e.appender) {
+                            lastMatch.id = id;
+                            lastMatch.appender = e.appender;
+                            push m_pending{id}.serialized, e.serialized;
+                            found = True;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        # add new entry
+                        lastMatch.id = string(++m_lastId);
+                        lastMatch.appender = e.appender;
+                        m_pending{lastMatch.id} = (
+                            "appender": e.appender,
+                            "serialized": (e.serialized, ),
+                        );
+                    }
+                }
+            }
+            
+            # now try push pending
+            foreach string id in (keys m_pending) {
+                # remove finished 
+                while (m_finished.size() > 0) {
+                    remove m_processing{m_finished.get(-1)};
+                }
+                # is available a free worker thread ?
+                if (m_maxThreads >= 0 && m_processing.size() >= m_maxThreads) {
+                    return;
+                }
+                if (exists m_processing{id}) {
+                    # we cannot trigger new thread if is being processed
+                    continue;
+                }
+                hash e = remove m_pending{id};
+                m_processing{id} = e;
+                m_tp.submit(call_function(\worker(), id, e));
+            }
+        }
+    }
     #! LoggerAppender class passes @ref LoggerLoggingEvent to target destivation
     /** @ref LoggerAppender::post() method is typically called implicitely from
         @ref Logger. Filtering is performed to make decision is the message goes to log or is ommited.
@@ -469,7 +640,7 @@ public namespace Logger {
             int m_sync;
 
             #! async queue
-            Queue m_queue;
+            LoggerAppenderQueue m_queue;
         }
 
         #! Default constructor.
@@ -482,7 +653,7 @@ public namespace Logger {
             m_threadId = gettid();
             m_sync = sync;
             if (m_sync == ASYNC || m_sync == SYNC_THREAD) {
-                m_queue = new Queue();
+                m_queue = new LoggerAppenderQueue();
             }
         }
 
@@ -493,6 +664,23 @@ public namespace Logger {
         #! get appender name
         public string getName() {
             return m_name;
+        }
+
+        #! Set appender queue.
+        /**
+            Use when queue shuld be shared among appenders
+            @param queue
+        */
+        public setQueue(LoggerAppenderQueue queue) {
+            if (m_active) {
+                throw "LOGGER-ERROR", "Appender is opened";
+            }
+            m_queue = queue;
+        }
+
+        #! Get async queue
+        public *LoggerAppenderQueue getQueue() {
+            return m_queue;
         }
 
         #! Open logging resources
@@ -603,32 +791,11 @@ public namespace Logger {
             }
             any serialized = serializeImpl(event);
             if (m_sync == ASYNC || (m_sync == SYNC_THREAD && gettid() != m_threadId)) {
-                try {
-                    m_queue.push(serialized, -1);
-                } catch (hash<ExceptionInfo> ex) {
-                    return False;
-                }
+                return m_queue.push(self, serialized);
             } else {
                 appendImpl(serialized);
             }
             return True;
-        }
-
-        #! process queue
-        /**
-            the method should be called typically in dedicated thread
-
-            @see reassignThread()
-        */
-        public processQueue() {
-            while (m_queue.size() > 0) {
-                appendImpl(m_queue.get());
-            }
-        }
-
-        #! Get number of pending entries in async queue
-        public int getQueueCount() {
-            return m_queue.size();
         }
 
         #! Assign current thread as processing thread
@@ -663,7 +830,7 @@ public namespace Logger {
 
             @param event
         */
-        abstract private:internal appendImpl(any serialized);
+        abstract public appendImpl(any serialized);
 
         #! Implements open functionality
         /** successor must implement this method to perform proper opening procedures
@@ -689,7 +856,7 @@ public namespace Logger {
             return NOTHING;
         }
 
-        /*private:internal*/ appendImpl(any serialized) {
+        public appendImpl(any serialized) {
         }
 
         /*private:internal*/ openImpl() {
@@ -1041,7 +1208,11 @@ public namespace Logger {
             m_writer.getOutputStream().close();
         }
 
-        /*private:internal*/ appendImpl(any serialized) {
+        public appendImpl(any serialized) {
+            # TODO: os.reassignThread();
+            # on_exit {
+#                os.unassignThread();
+ #           }
             m_writer.print(serialized);
         }
     }
@@ -1077,7 +1248,7 @@ public namespace Logger {
             m_file.sync();
         }
 
-        /*private:internal*/ appendImpl(any serialized) {
+        public appendImpl(any serialized) {
             m_file.print(serialized);
         }
     }
