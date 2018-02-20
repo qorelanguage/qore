@@ -1,0 +1,93 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    public {
+    }
+
+    private {
+        Counter m_counter();
+    }
+    constructor() : QUnit::Test("Logger", "1.0", \ARGV) {
+        addTestCase("LoggerContainer-Logger", \testLoggerProgram());
+        set_return_value(main());
+    }
+
+    private LoggerAppenderStream startProgram(LoggerRoot lr, LoggerLayoutPattern llp, LoggerAppenderQueue laq, int n, int iterCnt) {
+        Logger l(sprintf("P-%d", n));
+        LoggerAppenderStream la("", llp, new StreamWriter(new StringOutputStream()));
+        la.setQueue(laq);
+        la.open();
+        l.setParent(lr);
+        l.addAppender(la);
+        l.setLevel("DEBUG");
+        Program p(PO_NEW_STYLE);
+        p.loadModule("Logger");
+        p.setScriptPath(sprintf("testprog-%d.q", n));
+        p.parse('
+            our Logger logger;  # logging API for Program sandbox
+            our Counter cnt;    # just to notify caller informed when done
+            int sub main(int count) {
+                logger.log("INFO", "main(): start");
+                for (int i=0; i<count; i++) {
+                    #stderr.printf("%d\n", i);
+                    logger.debugVar("i", i);
+                }
+                logger.log("INFO", "main(): end");
+                cnt.dec();
+                return 0;
+            }
+        ', sprintf("label-%d", n), WARN_DEFAULT);
+        p.setGlobalVarValue("logger", l);
+        p.setGlobalVarValue("cnt", m_counter);
+        m_counter.inc();
+        background p.callFunction("main", iterCnt);
+        return la;
+    }
+
+    testLoggerProgram() {
+        int programCount = 10;
+        int iterCnt = 10;
+        LoggerRoot lr("INFO");
+        LoggerLayoutPattern llp("%r [%t] %p %c %l - %m%n");
+        LoggerAppenderStream lar("", llp, new StreamWriter(new StringOutputStream()));
+        LoggerAppenderQueue laq = lar.getQueue();
+        lar.open();
+        lr.addAppender(lar);
+
+        hash appenders.root.la = lar;
+        for (int i=0; i < programCount; i++) {
+            appenders{sprintf("A-%d", i)}.la = startProgram(lr, llp, laq, i, iterCnt);
+        }
+
+        # logger processing thread
+        while (m_counter.getCount() > 0) {
+            laq.process();
+        }
+        m_counter.waitForZero();
+        laq.process();
+        foreach string k in (keys appenders) {
+            stderr.printf("APPENDER:%s\n-------------\n", k);
+            string s = appenders{k}.la.getStreamWriter().getOutputStream().getData();
+            stderr.print(s);
+            stderr.printf("\n");
+            list l = s.split(LoggerLayoutPattern::getLineDelimiter());
+            if (k == "root") {
+                assertEq(2*programCount, l.size());
+            } else {
+                assertEq(2 + iterCnt, l.size());
+            }
+        }
+    }
+
+}

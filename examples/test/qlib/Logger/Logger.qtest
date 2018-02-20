@@ -355,7 +355,11 @@ class Test inherits QUnit::Test {
         assertEq("TEST", la.getName());
         assertFalse(la.isActive());
         assertEq(llp, la.getLayout());
+        LoggerAppenderQueue laq = new LoggerAppenderQueue();
+        la.setQueue(laq);
+        assertEq(laq, la.getQueue());
         la.open();
+        assertThrows("LOGGER-ERROR", "Appender is opened", \la.setQueue(), (laq,));
         assertTrue(la.isActive());
         la.post(lle);
         assertEq("ABCDEF", sos.getData());
@@ -401,9 +405,9 @@ class Test inherits QUnit::Test {
     startProcessThread(LoggerAppenderStream la) {
         StringOutputStream sos = la.getStreamWriter().getOutputStream();
         try {
-            int n = la.getQueueCount();
+            int n = la.getQueue().size();
             sos.reassignThread();
-            la.processQueue();
+            la.getQueue().process();
             assertEq(n, sos.getData().split(",").size());
         } catch (hash<ExceptionInfo> ex) {
             printf("Ex: %y\n", ex);
@@ -423,7 +427,7 @@ class Test inherits QUnit::Test {
         m_counter.inc();
         int tid = background startPostThread(la);
         m_counter.waitForZero();
-        la.processQueue();
+        la.getQueue().process();
         assertEq(sprintf("ABCDEF[%d]", tid), sos.getData());
 
         llp.setPattern("%t,");
@@ -435,7 +439,7 @@ class Test inherits QUnit::Test {
             n--;
         }
         while (m_counter.getCount() > 0) {
-            la.processQueue();
+            la.getQueue().process();
         }
         m_counter.waitForZero();
         list l2 = ();
