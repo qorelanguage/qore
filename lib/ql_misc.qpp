@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,45 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+
+static QoreHashNode* hack_get_addr_info(struct sockaddr_storage& addr, socklen_t len) {
+    QoreHashNode* h = new QoreHashNode;
+
+    if (addr.ss_family == AF_INET || addr.ss_family == AF_INET6) {
+        char host[NI_MAXHOST + 1];
+
+        if (!getnameinfo((struct sockaddr*)&addr, qore_get_in_len((struct sockaddr*)&addr), host, sizeof(host), 0, 0, 0)) {
+            QoreStringNode* hoststr = new QoreStringNode(host);
+            h->setKeyValue("hostname", hoststr, 0);
+            h->setKeyValue("hostname_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, hoststr->getBuffer()), 0);
+        }
+
+        // get ipv4 or ipv6 address
+        char ifname[INET6_ADDRSTRLEN];
+        if (inet_ntop(addr.ss_family, qore_get_in_addr((struct sockaddr*)&addr), ifname, sizeof(ifname))) {
+            QoreStringNode* addrstr = new QoreStringNode(ifname);
+            h->setKeyValue("address", addrstr, 0);
+            h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, addrstr->getBuffer()), 0);
+        }
+
+        int tport;
+        if (addr.ss_family == AF_INET) {
+            struct sockaddr_in* s = (struct sockaddr_in*)&addr;
+            tport = ntohs(s->sin_port);
+        }
+        else {
+            struct sockaddr_in6* s = (struct sockaddr_in6*)&addr;
+            tport = ntohs(s->sin6_port);
+        }
+
+        h->setKeyValue("port", new QoreBigIntNode(tport), 0);
+    }
+
+    h->setKeyValue("family", new QoreBigIntNode(addr.ss_family), 0);
+    h->setKeyValue("familystr", new QoreStringNode(QoreAddrInfo::getFamilyName(addr.ss_family)), 0);
+
+    return h;
+}
 
 static const QoreFunction* get_builtin_func(const QoreStringNode* str, ExceptionSink* xsink) {
    const qore_ns_private* ns;
@@ -2687,5 +2726,33 @@ set_global_var_value("a", 1);
  */
 nothing set_global_var_value(string name, auto value) {
    getProgram()->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
+}
+
+//! returns a cool hash
+/** @param fd the socket descriptor
+ */
+hash hack_get_peer_from_fd(int fd) {
+    struct sockaddr_storage addr;
+    socklen_t len = sizeof addr;
+    if (getpeername(fd, (struct sockaddr*)&addr, &len)) {
+        xsink->raiseErrnoException("HACK-GETPEERINFO-ERROR", errno, "error in getpeername(%d), fd");
+        return QoreValue();
+    }
+
+    return hack_get_addr_info(addr, len);
+}
+
+//! returns a cool hash
+/** @param fd the socket descriptor
+ */
+hash hack_get_sock_from_fd(int fd) {
+    struct sockaddr_storage addr;
+    socklen_t len = sizeof addr;
+    if (getsockname(fd, (struct sockaddr*)&addr, &len)) {
+        xsink->raiseErrnoException("HACK-GETSOCKINFO-ERROR", errno, "error in getsockname(%d)", fd);
+        return QoreValue();
+    }
+
+    return hack_get_addr_info(addr, len);
 }
 //@}
