@@ -68,6 +68,7 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
 	QC_AbstractThreadResource.cpp \
 	QC_InputStream.cpp QC_OutputStream.cpp \
+	QC_InputStreamBase.cpp QC_OutputStreamBase.cpp \
 	QC_BinaryInputStream.cpp QC_BinaryOutputStream.cpp \
 	QC_StringInputStream.cpp QC_StringOutputStream.cpp \
 	QC_FileInputStream.cpp QC_FileOutputStream.cpp \

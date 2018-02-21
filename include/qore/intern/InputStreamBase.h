@@ -34,6 +34,8 @@
 
 #include "qore/InputStream.h"
 
+DLLEXPORT extern QoreClass* QC_INPUTSTREAMBASE;
+
 /**
  * @brief Base class for private data of input stream implementations in C++.
  */

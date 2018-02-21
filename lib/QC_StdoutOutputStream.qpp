@@ -47,7 +47,7 @@
 
     @since %Qore 0.8.13
  */
-qclass StdoutOutputStream [dom=TERMINAL_IO; arg=StdoutOutputStream* os; ns=Qore; vparent=OutputStream; flags=final];
+qclass StdoutOutputStream [dom=TERMINAL_IO; arg=StdoutOutputStream* os; ns=Qore; vparent=OutputStreamBase; flags=final];
 
 //! Creates the StdoutOutputStream.
 /**
@@ -81,20 +81,4 @@ nothing StdoutOutputStream::close() {
  */
 nothing StdoutOutputStream::write(binary data) {
    os->writeHelper(data, xsink);
-}
-
-//! Reassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-nothing StdoutOutputStream::reassignThread() {
-	os->reassignThread(xsink);
-}
-
-//! Unassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-nothing StdoutOutputStream::unassignThread() {
-	os->unassignThread(xsink);
 }

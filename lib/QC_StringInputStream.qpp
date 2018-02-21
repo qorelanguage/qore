@@ -51,7 +51,7 @@
 
     @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
  */
-qclass StringInputStream [arg=StringInputStream* is; ns=Qore; vparent=InputStream; flags=final];
+qclass StringInputStream [arg=StringInputStream* is; ns=Qore; vparent=InputStreamBase; flags=final];
 
 //! Creates the StringInputStream based on the \ref string given
 /**
@@ -122,20 +122,4 @@ int StringInputStream::peek() {
  */
 string StringInputStream::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(is->getEncoding());
-}
-
-//! Reassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-nothing StringInputStream::reassignThread() {
-	is->reassignThread(xsink);
-}
-
-//! Unassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-nothing StringInputStream::unassignThread() {
-	is->unassignThread(xsink);
 }

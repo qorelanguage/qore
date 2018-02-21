@@ -127,12 +127,14 @@ DLLLOCAL QoreClass* initInputStreamLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initSingleValueIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initRangeIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initInputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initInputStreamBaseClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initBinaryInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initStringInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initFileInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initEncodingConversionInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initEncodingConversionOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initOutputStreamBaseClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initBinaryOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initStringOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initFileOutputStreamClass(QoreNamespace& ns);
@@ -905,7 +907,9 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
 
    // add stream classes
    qns.addSystemClass(initInputStreamClass(qns));
+   qns.addSystemClass(initInputStreamBaseClass(qns));
    qns.addSystemClass(initOutputStreamClass(qns));
+   qns.addSystemClass(initOutputStreamBaseClass(qns));
    qns.addSystemClass(initTransformClass(qns));
    qns.addSystemClass(initTransformInputStreamClass(qns));
    qns.addSystemClass(initTransformOutputStreamClass(qns));

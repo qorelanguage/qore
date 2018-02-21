@@ -49,7 +49,7 @@
 
     @since %Qore 0.8.13
  */
-qclass EncodingConversionInputStream [arg=EncodingConversionInputStream* is; ns=Qore; vparent=InputStream; flags=final; internal_members=InputStream is;];
+qclass EncodingConversionInputStream [arg=EncodingConversionInputStream* is; ns=Qore; vparent=InputStreamBase; flags=final; internal_members=InputStream is;];
 
 //! Creates the EncodingConversionInputStream based on the \ref InputStream given
 /**
@@ -105,20 +105,4 @@ EncodingConversionInputStream::constructor(Qore::InputStream[InputStream] is, st
  */
 int EncodingConversionInputStream::peek() {
    return is->peekHelper(xsink);
-}
-
-//! Reassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-nothing EncodingConversionInputStream::reassignThread() {
-	is->reassignThread(xsink);
-}
-
-//! Unassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-nothing EncodingConversionInputStream::unassignThread() {
-	is->unassignThread(xsink);
 }

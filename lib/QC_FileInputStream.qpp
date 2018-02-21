@@ -53,7 +53,7 @@ static void FILEINPUTSTREAM_system_constructor(QoreObject* self, int fd, va_list
 
     @since %Qore 0.8.13
  */
-qclass FileInputStream [system_constructor=FILEINPUTSTREAM_system_constructor; arg=FileInputStream* is; ns=Qore; vparent=InputStream; flags=final; dom=FILESYSTEM];
+qclass FileInputStream [system_constructor=FILEINPUTSTREAM_system_constructor; arg=FileInputStream* is; ns=Qore; vparent=InputStreamBase; flags=final; dom=FILESYSTEM];
 
 //! Creates the FileInputStream by opening a file
 /**
@@ -111,20 +111,4 @@ FileInputStream::constructor(string fileName, timeout timeout_ms = -1) {
  */
 int FileInputStream::peek() {
    return is->peekHelper(xsink);
-}
-
-//! Reassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-nothing FileInputStream::reassignThread() {
-	is->reassignThread(xsink);
-}
-
-//! Unassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-nothing FileInputStream::unassignThread() {
-	is->unassignThread(xsink);
 }

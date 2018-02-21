@@ -40,7 +40,7 @@
 
     @since %Qore 0.8.13
  */
-qclass PipeInputStream [arg=PipeInputStream* is; ns=Qore; vparent=InputStream; flags=final];
+qclass PipeInputStream [arg=PipeInputStream* is; ns=Qore; vparent=InputStreamBase; flags=final];
 
 //! Creates the PipeInputStream
 /**
@@ -91,20 +91,3 @@ nothing PipeInputStream::finishClose() {
 nothing PipeInputStream::reportError(hash ex) {
    is->reportError(ex);
 }
-
-//! Reassigns current thread as thread used for stream manipulation
-/**
-	The method does nothing in this class 
- */
-nothing PipeInputStream::reassignThread() {
-	is->reassignThread(xsink);
-}
-
-//! Unassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-nothing PipeInputStream::unassignThread() {
-	is->unassignThread(xsink);
-}
-

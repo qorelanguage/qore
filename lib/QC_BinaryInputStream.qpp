@@ -51,7 +51,7 @@
 
     @since %Qore 0.8.13
  */
-qclass BinaryInputStream [arg=BinaryInputStream* is; ns=Qore; vparent=InputStream; flags=final];
+qclass BinaryInputStream [arg=BinaryInputStream* is; ns=Qore; vparent=InputStreamBase; flags=final];
 
 //! Creates the BinaryInputStream based on the \ref binary given
 /**
@@ -108,20 +108,4 @@ BinaryInputStream::constructor(binary src) {
  */
 int BinaryInputStream::peek() {
    return is->peekHelper(xsink);
-}
-
-//! Reassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-nothing BinaryInputStream::reassignThread() {
-	is->reassignThread(xsink);
-}
-
-//! Unassigns current thread as thread used for stream manipulation
-/**
-	Only from one thread the stream instance may be used as there is no locking 
- */
-nothing BinaryInputStream::unassignThread() {
-	is->unassignThread(xsink);
 }

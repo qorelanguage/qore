@@ -34,6 +34,8 @@
 
 #include "qore/OutputStream.h"
 
+DLLEXPORT extern QoreClass* QC_OUTPUTSTREAMBASE;
+
 /**
  * @brief Base class for private data of output stream implementations in C++.
  */
