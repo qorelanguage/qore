@@ -636,25 +636,17 @@ public namespace Logger {
             #! constructor's threadId
             int m_threadId;
 
-            #! how events are passed to target
-            int m_sync;
-
             #! async queue
-            LoggerAppenderQueue m_queue;
+            *LoggerAppenderQueue m_queue;
         }
 
         #! Default constructor.
         /**
             @param name appender name
-            @param sync
         */
-        constructor(string name = "", int sync = SYNC_THREAD) {
+        constructor(string name = "") {
             m_name = name;
             m_threadId = gettid();
-            m_sync = sync;
-            if (m_sync == ASYNC || m_sync == SYNC_THREAD) {
-                m_queue = new LoggerAppenderQueue();
-            }
         }
 
         destructor() {
@@ -668,10 +660,13 @@ public namespace Logger {
 
         #! Set appender queue.
         /**
-            Use when queue shuld be shared among appenders
+            Data are passed to target device synchronously
+            unless queue is assigned. In this case data are queued and
+            dedicated process will process it in asynchronously
+
             @param queue
         */
-        public setQueue(LoggerAppenderQueue queue) {
+        public setQueue(*LoggerAppenderQueue queue) {
             if (m_active) {
                 throw "LOGGER-ERROR", "Appender is opened";
             }
@@ -698,7 +693,7 @@ public namespace Logger {
         public close() {
             if (m_active) {
                 closeImpl();
-                m_active = True;
+                m_active = False;
             }
         }
 
@@ -790,7 +785,10 @@ public namespace Logger {
                 }
             }
             any serialized = serializeImpl(event);
-            if (m_sync == ASYNC || (m_sync == SYNC_THREAD && gettid() != m_threadId)) {
+            if (!exists serialized) {
+                return False;
+            }
+            if (exists m_queue) {
                 return m_queue.push(self, serialized);
             } else {
                 appendImpl(serialized);
@@ -849,7 +847,7 @@ public namespace Logger {
         Any events posted to the appender are silently ignored
     */
     public class LoggerAppenderNull inherits LoggerAppender {
-        constructor(string name = ""): LoggerAppender(name, SYNC) {
+        constructor(string name = ""): LoggerAppender(name) {
         }
 
         /*private:internal*/ any serializeImpl(LoggerLoggingEvent event) {
@@ -1151,7 +1149,7 @@ public namespace Logger {
             LoggerLayout m_layout;
         }
 
-        constructor(string name, int sync, LoggerLayout layout): LoggerAppender(name, sync) {
+        constructor(string name, LoggerLayout layout): LoggerAppender(name) {
             m_layout = layout;
         }
 
@@ -1184,6 +1182,8 @@ public namespace Logger {
         private {
             #! stream writer
             StreamWriter m_writer;
+            #! closed flag
+            bool m_closed = False; 
         }
 
         #! create object and set @ref SYNC_THREAD processing method
@@ -1192,7 +1192,7 @@ public namespace Logger {
             @param layout
             @param writer
         */
-        constructor(string name, LoggerLayout layout, StreamWriter writer): LoggerAppenderWithLayout(name, SYNC_THREAD, layout) {
+        constructor(string name, LoggerLayout layout, StreamWriter writer): LoggerAppenderWithLayout(name, layout) {
             m_writer = writer;
         }
 
@@ -1202,18 +1202,28 @@ public namespace Logger {
         }
 
         /*private:internal */openImpl() {
+            if (m_closed) {
+                # OutputStream does not provide open method
+                throw "LOGGER-ERROR", "Cannot reopen stream"; 
+            }
         }
 
         /*private:internal */closeImpl() {
             m_writer.getOutputStream().close();
+            m_closed = True;
         }
 
         public appendImpl(any serialized) {
-            # TODO: os.reassignThread();
-            # on_exit {
-#                os.unassignThread();
- #           }
-            m_writer.print(serialized);
+            if (m_writer.getOutputStream() instanceof OutputStreamBase && False) {
+                OutputStreamBase os = m_writer.getOutputStream();
+                os.reassignThread();
+                on_exit {
+                    os.unassignThread();
+                }
+                m_writer.print(serialized);
+            } else {
+                m_writer.print(serialized);
+            }
         }
     }
 
@@ -1231,7 +1241,7 @@ public namespace Logger {
             @param layout
             @param writer
         */
-        constructor(string name, LoggerLayout layout, File file): LoggerAppenderWithLayout(name, SYNC_THREAD, layout) {
+        constructor(string name, LoggerLayout layout, File file): LoggerAppenderWithLayout(name, layout) {
             m_file = file;
         }
 

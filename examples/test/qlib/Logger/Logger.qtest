@@ -24,6 +24,7 @@ class Test inherits QUnit::Test {
         addTestCase("LoggerLayout", \testLoggerLayout());
         addTestCase("LoggerFilter", \testLoggerFilter());
         addTestCase("LoggerAppender", \testLoggerAppender());
+        addTestCase("LoggerAppenderQueue", \testLoggerAppenderQueue());
         addTestCase("LoggerAppenderMultiThread", \testLoggerAppenderMultiThread());
         addTestCase("Logger", \testLogger());
         set_return_value(main());
@@ -355,15 +356,11 @@ class Test inherits QUnit::Test {
         assertEq("TEST", la.getName());
         assertFalse(la.isActive());
         assertEq(llp, la.getLayout());
-        LoggerAppenderQueue laq = new LoggerAppenderQueue();
-        la.setQueue(laq);
-        assertEq(laq, la.getQueue());
+        assertEq(NOTHING, la.getQueue());
         la.open();
-        assertThrows("LOGGER-ERROR", "Appender is opened", \la.setQueue(), (laq,));
         assertTrue(la.isActive());
         la.post(lle);
         assertEq("ABCDEF", sos.getData());
-
         # filter list test
         assertEq((), la.getFilters());
         la.addFilter(lfl);
@@ -391,6 +388,32 @@ class Test inherits QUnit::Test {
         assertEq((lfl, ), la.getFilters());
         la.post(lle);
         assertEq("ABCDEF", sos.getData());
+    }
+
+    testLoggerAppenderQueue() {
+        StringOutputStream sos();
+        StreamWriter sw(sos);
+        LoggerAppenderStream la("TEST", new LoggerLayoutPattern("%m"), sw);
+        LoggerLoggingEvent lle = new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF');
+        assertFalse(la.isActive());
+        assertEq(NOTHING, la.getQueue());
+        LoggerAppenderQueue laq = new LoggerAppenderQueue();
+        la.setQueue(laq);
+        assertEq(laq, la.getQueue());
+        la.setQueue(NOTHING);
+        assertEq(NOTHING, la.getQueue());
+        la.setQueue(laq);
+        la.open();
+        assertTrue(la.isActive());
+        assertThrows("LOGGER-ERROR", "Appender is opened", \la.setQueue(), (laq,));
+        la.post(lle);
+        laq.process();
+        assertEq("ABCDEF", sos.getData());
+        la.close();
+        assertFalse(la.isActive());
+        la.setQueue(NOTHING);
+        assertEq(NOTHING, la.getQueue());
+        assertThrows("LOGGER-ERROR", "Cannot reopen stream", \la.open());
     }
 
     startPostThread(LoggerAppender la) {
@@ -422,6 +445,7 @@ class Test inherits QUnit::Test {
         StringOutputStream sos();
         StreamWriter sw(sos);
         LoggerAppenderStream la("TEST", llp, sw);
+        la.setQueue(new LoggerAppenderQueue());
         la.open();
 
         m_counter.inc();
