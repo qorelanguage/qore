@@ -100,18 +100,28 @@ public:
    /**
     * @brief Reassigns current thread as thread used for stream manipulation, see @ref check()
     * @param xsink the exception sink
+    * @throws STREAM-THREAD-ERROR if the current thread is already assigned to another thread
     */
    DLLLOCAL void reassignThread(ExceptionSink *xsink) override {
-      AutoLocker al(lck);
+      QoreAutoRWWriteLocker al(lck);
+      if (tid != -1 && tid != gettid()) {
+         xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d;"
+            "(accessed from TID %d)", getName(), tid, gettid());
+      }
       tid = gettid();
    }
 
    /**
     * @brief Unassigns current thread as thread used for stream manipulation, see @ref check()
     * @param xsink the exception sink
+    * @throws STREAM-THREAD-ERROR if the current thread is not the same as assigned
     */
    DLLLOCAL void unassignThread(ExceptionSink *xsink) override {
-      AutoLocker al(lck);
+      QoreAutoRWWriteLocker al(lck);
+      if (tid != -1 && tid != gettid()) {
+         xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d; unassignment may "
+            "be processed from that thread (accessed from TID %d)", getName(), tid, gettid());
+      }
       tid = -1;
    }
 
@@ -119,9 +129,9 @@ public:
     * @brief Get currently assigned thread id
     */
    DLLLOCAL int getThreadId() {
-      AutoLocker al(lck);
+      QoreAutoRWReadLocker al(lck);
       return tid;
-   } 
+   }
 
 protected:
    /**
@@ -137,7 +147,7 @@ protected:
    DLLLOCAL virtual const char *getName() = 0;
 
 private:
-   QoreThreadLock lck;
+   QoreRWLock lck;
    volatile int tid;                             //!< The id of the thread that created the instance
 };
 
