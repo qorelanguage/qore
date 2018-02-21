@@ -61,7 +61,8 @@ class Test inherits QUnit::Test {
         LoggerRoot lr("INFO");
         LoggerLayoutPattern llp("%r [%t] %p %c %l - %m%n");
         LoggerAppenderStream lar("", llp, new StreamWriter(new StringOutputStream()));
-        LoggerAppenderQueue laq = lar.getQueue();
+        LoggerAppenderQueue laq();
+        lar.setQueue(laq);
         lar.open();
         lr.addAppender(lar);
 

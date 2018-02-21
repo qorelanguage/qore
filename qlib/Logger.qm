@@ -422,7 +422,7 @@ public namespace Logger {
         /**
             Returns the time in seconds passed from the beginning of execution to
             the time the event was constructed.
-            
+
             @see getStartTime()
         */
         public date getRelativeTime() {
@@ -464,11 +464,11 @@ public namespace Logger {
             the method should be called typically in dedicated thread
 
             @param ms a timeout value to wait for data to become available on the queue;
-                integers are interpreted as milliseconds; relative date/time values are interpreted 
+                integers are interpreted as milliseconds; relative date/time values are interpreted
                 literally with a maximum resolution of milliseconds. A negative timeout value causes
-                the call to time out immediately if the call would otherwise block. 
+                the call to time out immediately if the call would otherwise block.
                 If a positive timeout argument is passed, and no data is available in the timeout period
-                then waits up to timeout value, If a value that converts to integer 0 is passed as the argument, 
+                then waits up to timeout value, If a value that converts to integer 0 is passed as the argument,
                 then the call blocks until data is available on the queue.
         */
         public process(timeout ms = -1) {
@@ -496,7 +496,7 @@ public namespace Logger {
         }
 
         #! get queue record
-        private:internal *hash get(timeout ms) { #private:internal does not work for members ? 
+        private:internal *hash get(timeout ms) { #private:internal does not work for members ?
             if (m_queue.size() > 0 || ms >= 0) {
                 return m_queue.get();
             } else {
@@ -520,7 +520,9 @@ public namespace Logger {
             #! queue of processed events in worker threads
             Queue m_finished();
             #! internal unique counter
-            int m_lastId = 0;
+            Sequence m_lastId(0);
+            #! to protect process
+            Mutex m_lock();
         }
         #! worker thread code
         /**
@@ -553,8 +555,10 @@ public namespace Logger {
         }
 
         # TODO: it is single thread
-        #! split logging events to appender and handle then in a worker thread taken from thread pool 
+        #! split logging events to appender and handle then in a worker thread taken from thread pool
         public process(timeout ms = -1) {
+            # normally function is called from one thread and it is not time critical
+            AutoLock al(m_lock);
             # get new events and match with pending
             hash lastMatch;
             while (True) {
@@ -577,7 +581,7 @@ public namespace Logger {
                     }
                     if (!found) {
                         # add new entry
-                        lastMatch.id = string(++m_lastId);
+                        lastMatch.id = string(m_lastId.next());
                         lastMatch.appender = e.appender;
                         m_pending{lastMatch.id} = (
                             "appender": e.appender,
@@ -586,10 +590,10 @@ public namespace Logger {
                     }
                 }
             }
-            
+
             # now try push pending
             foreach string id in (keys m_pending) {
-                # remove finished 
+                # remove finished
                 while (m_finished.size() > 0) {
                     remove m_processing{m_finished.get(-1)};
                 }
@@ -633,9 +637,6 @@ public namespace Logger {
             #! Appender name
             string m_name;
 
-            #! constructor's threadId
-            int m_threadId;
-
             #! async queue
             *LoggerAppenderQueue m_queue;
         }
@@ -646,7 +647,6 @@ public namespace Logger {
         */
         constructor(string name = "") {
             m_name = name;
-            m_threadId = gettid();
         }
 
         destructor() {
@@ -794,30 +794,6 @@ public namespace Logger {
                 appendImpl(serialized);
             }
             return True;
-        }
-
-        #! Assign current thread as processing thread
-        /**
-            @throw LOGGER-ERROR if thread assigned to another thread
-        */
-        public reassignThread() {
-            AutoWriteLock awl(m_lock);
-            if (m_threadId != -1 && m_threadId != gettid()) {
-                throw "LOGGER-ERROR", "Thread already assigned";
-            }
-            m_threadId = gettid();
-        }
-
-        #! Unassign current thread as processing thread
-        /**
-            @throw LOGGER-ERROR if thread assigned to another thread
-        */
-        public unassignThread() {
-            AutoWriteLock awl(m_lock);
-            if (m_threadId != -1 && m_threadId != gettid()) {
-                throw "LOGGER-ERROR", "Thread assigned to another thraed";
-            }
-            m_threadId = -1;
         }
 
         #! implement logging to physical target
@@ -1175,7 +1151,7 @@ public namespace Logger {
 
     #! Appender writing to output stream
     /**
-        Qore stream are not designed as multi-threaded so writing to thread must be serialized and processed 
+        Qore stream are not designed as multi-threaded so writing to thread must be serialized and processed
         in a dedicated thread
     */
     public class LoggerAppenderStream inherits LoggerAppenderWithLayout {
@@ -1183,7 +1159,11 @@ public namespace Logger {
             #! stream writer
             StreamWriter m_writer;
             #! closed flag
-            bool m_closed = False; 
+            bool m_closed = False;
+            #! assign thread for stream
+            bool m_assignThread;
+            #! single thread stream
+            OutputStreamBase m_osb;
         }
 
         #! create object and set @ref SYNC_THREAD processing method
@@ -1194,6 +1174,10 @@ public namespace Logger {
         */
         constructor(string name, LoggerLayout layout, StreamWriter writer): LoggerAppenderWithLayout(name, layout) {
             m_writer = writer;
+            if (m_writer.getOutputStream() instanceof OutputStreamBase) {
+                m_osb = m_writer.getOutputStream();
+                m_assignThread = m_osb.getThreadId() == -1;
+            }
         }
 
         #! get stream writer instance
@@ -1201,25 +1185,33 @@ public namespace Logger {
             return m_writer;
         }
 
+        #! returns True if assigning stream thread
+        public bool isAssigningThread() {
+            return m_assignThread == True;
+        }
+
         /*private:internal */openImpl() {
             if (m_closed) {
                 # OutputStream does not provide open method
-                throw "LOGGER-ERROR", "Cannot reopen stream"; 
+                throw "LOGGER-ERROR", "Cannot reopen stream";
             }
         }
 
         /*private:internal */closeImpl() {
-            m_writer.getOutputStream().close();
+            if (m_assignThread) {
+                m_osb.reassignThread();
+                on_exit m_osb.unassignThread();
+                m_osb.close();
+            } else {
+                m_writer.getOutputStream().close();
+            }
             m_closed = True;
         }
 
         public appendImpl(any serialized) {
-            if (m_writer.getOutputStream() instanceof OutputStreamBase && False) {
-                OutputStreamBase os = m_writer.getOutputStream();
-                os.reassignThread();
-                on_exit {
-                    os.unassignThread();
-                }
+            if (m_assignThread) {
+                m_osb.reassignThread();
+                on_exit m_osb.unassignThread();
                 m_writer.print(serialized);
             } else {
                 m_writer.print(serialized);

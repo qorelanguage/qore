@@ -26,6 +26,7 @@ class Test inherits QUnit::Test {
         addTestCase("LoggerAppender", \testLoggerAppender());
         addTestCase("LoggerAppenderQueue", \testLoggerAppenderQueue());
         addTestCase("LoggerAppenderMultiThread", \testLoggerAppenderMultiThread());
+        addTestCase("LoggerAppenderMultiThreadUnassigned", \testLoggerAppenderMultiThreadUnassigned());
         addTestCase("Logger", \testLogger());
         set_return_value(main());
     }
@@ -447,6 +448,7 @@ class Test inherits QUnit::Test {
         LoggerAppenderStream la("TEST", llp, sw);
         la.setQueue(new LoggerAppenderQueue());
         la.open();
+        assertFalse(la.isAssigningThread());
 
         m_counter.inc();
         int tid = background startPostThread(la);
@@ -483,10 +485,33 @@ class Test inherits QUnit::Test {
         }
         m_counter.waitForZero();
         m_counter.inc();
+        # "external" stream thread manipulation
         sos.unassignThread();
         background startProcessThread(la);
         m_counter.waitForZero();
         sos.reassignThread();  # for close()
+    }
+
+    testLoggerAppenderMultiThreadUnassigned() {
+        StringOutputStream sos();
+        sos.unassignThread();
+        assertEq(-1, sos.getThreadId());
+        StreamWriter sw(sos);
+        LoggerAppenderStream la("TEST", new LoggerLayoutPattern("%m[%t]"), sw);
+        la.setQueue(new LoggerAppenderQueue());
+        assertTrue(la.isAssigningThread());
+        la.open();
+
+        m_counter.inc();
+        int tid = background startPostThread(la);
+        m_counter.waitForZero();
+        la.getQueue().process();
+
+        sos.reassignThread(); # just to get value
+        assertEq(sprintf("ABCDEF[%d]", tid), sos.getData());
+        sos.unassignThread();
+        assertEq(-1, sos.getThreadId());
+        la.close();
     }
 
     testLogger() {
