@@ -1,0 +1,104 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_InputStream.qpp InputStream class (interface) definition */
+/*
+  Qore Programming Language
+
+  Copyright (C) 2016 Qore Technologies, s.r.o.
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+
+  Note that the Qore library is released under a choice of three open-source
+  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+  information.
+*/
+
+#include <qore/Qore.h>
+#include "qore/intern/InputStreamBase.h"
+
+//! This class defines an abstract interface for single thread output streams
+/**
+    Base class for stream classes whichare not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+ 
+    @since %Qore 0.9
+ */
+qclass InputStreamBase [arg=InputStreamBase* is; ns=Qore; vparent=InputStream];
+
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** 
+  @throw INPUTSTREAMBASE-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+InputStreamBase::constructor() {
+   xsink->raiseException("INPUTSTREAMBASE-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! Reads bytes (up to a specified limit) from the input stream; returns \ref NOTHING if there are no more bytes in the stream
+/**
+
+    @param limit the maximum number of bytes to read
+    @return the read bytes (the length is between 1 and `limit` inclusive) or \ref NOTHING if no more bytes are available
+
+    @par Example:
+    @code{.py}
+    *binary b;
+    while (b = is.read(10)) {
+        printf("Read: %y\n", b);
+    }
+    @endcode
+ */
+*binary InputStreamBase::read(int limit) {
+   // note: descendant qpp classes overrides method just to generate own documentation
+   return is->readHelper(limit, xsink);    
+}
+
+//! Peeks the next byte available from the input stream; returns -1 if no more data available
+/**
+    @return the next byte available from the input stream or -1 if no more data is available
+
+    @par Example:
+    @code{.py}
+    int nextByte = is.peek();
+    @endcode
+ */
+int InputStreamBase::peek() {
+   // note: descendant qpp classes overrides method just to generate own documentation
+   return is->peekHelper(xsink);    
+}
+
+//! Reassigns current thread as thread used for stream manipulation
+/**
+	Only from one thread the stream instance may be used as there is no locking 
+ */
+nothing InputStreamBase::reassignThread() {
+	is->reassignThread(xsink);
+}
+
+//! Unassigns current thread as thread used for stream manipulation
+/**
+	Only from one thread the stream instance may be used as there is no locking 
+ */
+nothing InputStreamBase::unassignThread() {
+	is->unassignThread(xsink);
+}
+
+//! Get currently assigned thread id
+/**
+*/
+int InputStreamBase::getThreadId() {
+   return is->getThreadId();
+}

@@ -118,6 +118,14 @@ public:
       tid = -1;
    }
 
+   /**
+    * @brief Get currently assigned thread id
+    */
+   DLLLOCAL int getThreadId() {
+      AutoLocker al(lck);
+      return tid;
+   } 
+
 protected:
    /**
     * @brief Constructor.
