@@ -411,6 +411,7 @@ class Test inherits QUnit::Test {
         laq.process();
         assertEq("ABCDEF", sos.getData());
         la.close();
+        laq.process(); # async close
         assertFalse(la.isActive());
         la.setQueue(NOTHING);
         assertEq(NOTHING, la.getQueue());
