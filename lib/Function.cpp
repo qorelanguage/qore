@@ -148,6 +148,47 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
    if (*xsink)
       return;
 
+    init(func, variant, is_copy, cctx);
+}
+
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
+   : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1), pgm(getProgram()), rtflags(0) {
+   if (self && !self->isValid()) {
+      assert(n_qc);
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
+      return;
+   }
+
+   tmp.assignEval(args);
+   if (*xsink)
+      return;
+
+    init(func, variant, is_copy, cctx);
+}
+
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
+   : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
+   if (self && !self->isValid()) {
+      assert(n_qc);
+      xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
+      return;
+   }
+
+   tmp.assignEval(args);
+   if (*xsink)
+      return;
+
+    init(func, variant, is_copy, cctx);
+}
+
+CodeEvaluationHelper::~CodeEvaluationHelper() {
+   if (returnTypeInfo != (const QoreTypeInfo*)-1)
+      saveReturnTypeInfo(returnTypeInfo);
+   if (ct != CT_UNUSED && xsink->isException())
+      qore_es_private::addStackInfo(*xsink, ct, qc ? qc->name.c_str() : nullptr, name, loc);
+}
+
+void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy, const qore_class_private* cctx) {
    // issue #2145: set the call reference class context only after arguments are evaluted
    OptionalClassObjSubstitutionHelper osh(cctx);
 
@@ -178,57 +219,6 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
 
    setCallType(variant->getCallType());
    setReturnTypeInfo(variant->getReturnTypeInfo());
-}
-
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
-   : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(RunTimeLocation), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo* )-1), pgm(getProgram()), rtflags(0) {
-   if (self && !self->isValid()) {
-      assert(n_qc);
-      xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
-      return;
-   }
-
-   tmp.assignEval(args);
-   if (*xsink)
-      return;
-
-   // issue #2145: set the call reference class context only after arguments are evaluted
-   OptionalClassObjSubstitutionHelper osh(cctx);
-
-   if (!variant) {
-      const qore_class_private* class_ctx = qc ? runtime_get_class() : nullptr;
-      if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*qc->cls, class_ctx))
-         class_ctx = 0;
-
-      variant = func->runtimeFindVariant(xsink, getArgs(), false, class_ctx);
-      if (!variant) {
-         assert(*xsink);
-         return;
-      }
-
-      // check for accessible variants
-      if (qc) {
-         const MethodVariant* mv = reinterpret_cast<const MethodVariant*>(variant);
-         ClassAccess va = mv->getAccess();
-         if ((va > Public && !class_ctx) || (va == Internal && mv->getClass() != qc->cls)) {
-            xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s(%s) is not accessible in this context", mv->className(), func->getName(), mv->getSignature()->getSignatureText());
-            return;
-         }
-      }
-   }
-
-   if (processDefaultArgs(func, variant, true, is_copy))
-      return;
-
-   setCallType(variant->getCallType());
-   setReturnTypeInfo(variant->getReturnTypeInfo());
-}
-
-CodeEvaluationHelper::~CodeEvaluationHelper() {
-   if (returnTypeInfo != (const QoreTypeInfo*)-1)
-      saveReturnTypeInfo(returnTypeInfo);
-   if (ct != CT_UNUSED && xsink->isException())
-      qore_es_private::addStackInfo(*xsink, ct, qc ? qc->name.c_str() : nullptr, name, loc);
 }
 
 int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy) {
@@ -1515,6 +1505,15 @@ QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant,
    return variant->evalFunction(fname, ceh, xsink);
 }
 
+// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL, then it is identified at run time
+QoreValue QoreFunction::evalFunctionTmpArgs(const AbstractQoreFunctionVariant* variant, QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
+   const char* fname = getName();
+   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
+   if (*xsink) return QoreValue();
+
+   return variant->evalFunction(fname, ceh, xsink);
+}
+
 // finds a variant and checks variant capabilities against current
 // program parse options
 QoreValue QoreFunction::evalDynamic(const QoreListNode* args, ExceptionSink* xsink) const {
@@ -1596,36 +1595,53 @@ void UserVariantBase::parseInitPopLocalVars() {
 
 // instantiates arguments and sets up the argv variable
 int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreListNode> &argv, ExceptionSink* xsink) const {
-   const QoreValueList* args = ceh ? ceh->getArgs() : nullptr;
-   unsigned num_args = args ? args->size() : 0;
-   // instantiate local vars from param list
-   unsigned num_params = signature.numParams();
+    QoreValueListEvalOptionalRefHolder* args = ceh ? &ceh->getArgHolder() : nullptr;
+    //const QoreValueList* args = ceh ? ceh->getArgs() : nullptr;
 
-   for (unsigned i = 0; i < num_params; ++i) {
-      QoreValue np;
-      if (args)
-         np = const_cast<QoreValueList*>(args)->retrieveEntry(i);
+    unsigned num_args = args ? args->size() : 0;
+    // instantiate local vars from param list
+    unsigned num_params = signature.numParams();
 
-      //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), np.getType(), np.getTypeName());
+    for (unsigned i = 0; i < num_params; ++i) {
+        QoreValue np;
+        if (args) {
+            if (args->canEdit()) {
+                signature.lv[i]->instantiate((*args)->takeExists(i));
+            }
+            else {
+                //np = const_cast<QoreValueList*>(args)->retrieveEntry(i);
+                signature.lv[i]->instantiate((*args)->retrieveEntry(i).refSelf());
+            }
+            continue;
+        }
 
-      signature.lv[i]->instantiate(np.refSelf());
-   }
+        //printd(5, "UserVariantBase::setupCall() eval %d: instantiating param lvar %p ('%s') (exp nt: %d '%s')\n", i, signature.lv[i], signature.lv[i]->getName(), np.getType(), np.getTypeName());
 
-   // if there are more arguments than parameters
-   printd(5, "UserVariantBase::setupCall() params: %d args: %d\n", num_params, num_args);
+        signature.lv[i]->instantiate(QoreValue());
+    }
 
-   if (num_params < num_args) {
-      argv = new QoreListNode;
+    // if there are more arguments than parameters
+    printd(5, "UserVariantBase::setupCall() params: %d args: %d\n", num_params, num_args);
 
-      for (unsigned i = 0; i < (num_args - num_params); i++) {
-         // here we try to take the reference from args if possible
-         QoreValue n = args ? const_cast<QoreValueList*>(args)->retrieveEntry(i + num_params) : 0;
-         //AbstractQoreNode* n = args ? const_cast<AbstractQoreNode*>(args->get_referenced_entry(i + num_params)) : 0;
-         argv->push(n.getReferencedValue());
-      }
-   }
+    if (num_params < num_args) {
+        argv = new QoreListNode;
 
-   return 0;
+        for (unsigned i = 0; i < (num_args - num_params); i++) {
+            // here we try to take the reference from args if possible
+            if (args->canEdit()) {
+                argv->push((*args)->takeExists(i + num_params).takeNode());
+            }
+            else {
+                QoreValue n;
+                if (args)
+                    n = (*args)->retrieveEntry(i + num_params);
+                //AbstractQoreNode* n = args ? const_cast<AbstractQoreNode*>(args->get_referenced_entry(i + num_params)) : 0;
+                argv->push(n.getReferencedValue());
+            }
+        }
+    }
+
+    return 0;
 }
 
 QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode> &argv, QoreObject *self, ExceptionSink* xsink) const {
