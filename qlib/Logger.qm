@@ -448,12 +448,13 @@ public namespace Logger {
         #! add appender event
         /**
             @param appender
+            @param type
             @param serialized
             @return True if event succesfully added to queue
         */
-        public bool push(LoggerAppender appender, any serialized) {
+        public bool push(LoggerAppender appender, int type, any serialized) {
             try {
-                m_queue.push(("appender": appender, "serialized": serialized), -1);
+                m_queue.push(("appender": appender, "type": type, "serialized": serialized), -1);
             } catch (hash<ExceptionInfo> ex) {
                 return False;
             }
@@ -478,7 +479,7 @@ public namespace Logger {
                     if (!rec) {
                         break;
                     }
-                    rec.appender.appendImpl(rec.serialized);
+                    rec.appender.appendImpl(rec.type, rec.serialized);
                 }
             } catch (hash<ExceptionInfo>ex) {
                 switch (ex.err) {
@@ -530,10 +531,10 @@ public namespace Logger {
             @param appender LoggerAppender instance
             @param serialized list
         */
-        private worker(int id, LoggerAppender la, list serialized) {
+        private worker(int id, LoggerAppender la, list events) {
             try {
-                foreach any ser in (serialized) {
-                    la.appendImpl(ser);
+                foreach hash e in (events) {
+                    la.appendImpl(e.type, e.serialized);
                 }
             } catch (hash<ExceptionInfo> ex) {
             }
@@ -567,14 +568,14 @@ public namespace Logger {
                     break;
                 }
                 if (lastMatch.appender == e.appender) {
-                    push m_pending{lastMatch.id}.serialized, e.serialized;
+                    push m_pending{lastMatch.id}.events, e.('type', 'serialized');
                 } else {
                     bool found = False;
                     foreach string id in (keys m_pending) {
                         if (m_pending{id}.appender == e.appender) {
                             lastMatch.id = id;
                             lastMatch.appender = e.appender;
-                            push m_pending{id}.serialized, e.serialized;
+                            push m_pending{id}.events, e.('type', 'serialized');
                             found = True;
                             break;
                         }
@@ -585,7 +586,7 @@ public namespace Logger {
                         lastMatch.appender = e.appender;
                         m_pending{lastMatch.id} = (
                             "appender": e.appender,
-                            "serialized": (e.serialized, ),
+                            "events": (e.('type', 'serialized'), ),
                         );
                     }
                 }
@@ -617,12 +618,12 @@ public namespace Logger {
     */
     public class LoggerAppender {
         public {
-            #! Data are passed to target device synchronously
-            const SYNC = 0;
-            #! Data are passed to the target synchronously when logging is executed in dedicated thread
-            const SYNC_THREAD = 1;
-            #! Data are posted to @ref Queue and processed in dedicated thread
-            const ASYNC = 2;
+            #! open event
+            const EVENT_OPEN = 1;
+            #! logging event
+            const EVENT_LOG = 2;
+            #! close event
+            const EVENT_CLOSE = 3;
         }
         private {
             #! The lock to protect object manipulation
@@ -681,18 +682,25 @@ public namespace Logger {
         #! Open logging resources
         public open() {
             if (!m_active) {
-                openImpl();
+                if (exists m_queue) {
+                    m_queue.push(self, EVENT_OPEN, NOTHING);
+                } else {
+                    appendImpl(EVENT_OPEN, NOTHING);
+                }
                 m_active = True;
             }
         }
 
         #! Releases any resources allocated by the appender.
         /**
-          @see closeImpl()
         */
         public close() {
             if (m_active) {
-                closeImpl();
+                if (exists m_queue) {
+                    m_queue.push(self, EVENT_CLOSE, NOTHING);
+                } else {
+                    appendImpl(EVENT_CLOSE, NOTHING);
+                }
                 m_active = False;
             }
         }
@@ -789,32 +797,23 @@ public namespace Logger {
                 return False;
             }
             if (exists m_queue) {
-                return m_queue.push(self, serialized);
+                return m_queue.push(self, EVENT_LOG, serialized);
             } else {
-                appendImpl(serialized);
+                appendImpl(EVENT_LOG, serialized);
             }
             return True;
         }
 
-        #! implement logging to physical target
+        #! implement logging to physical target stuff
         /**
             must be implemented by successor class
 
             @see serializeImpl()
 
+            @param type see EVENT_ constants
             @param event
         */
-        abstract public appendImpl(any serialized);
-
-        #! Implements open functionality
-        /** successor must implement this method to perform proper opening procedures
-        */
-        abstract private:internal openImpl();
-
-        #! Implements close functionality
-        /** successor must implement this method to perform proper closing procedures.
-        */
-        abstract private:internal closeImpl();
+        abstract public appendImpl(int type, any serialized);
 
     }
 
@@ -830,13 +829,7 @@ public namespace Logger {
             return NOTHING;
         }
 
-        public appendImpl(any serialized) {
-        }
-
-        /*private:internal*/ openImpl() {
-        }
-
-        /*private:internal*/ closeImpl() {
+        public appendImpl(int type, any serialized) {
         }
     }
 
@@ -1166,7 +1159,7 @@ public namespace Logger {
             OutputStreamBase m_osb;
         }
 
-        #! create object and set @ref SYNC_THREAD processing method
+        #! create object
         /**
             @param name
             @param layout
@@ -1190,31 +1183,28 @@ public namespace Logger {
             return m_assignThread == True;
         }
 
-        /*private:internal */openImpl() {
-            if (m_closed) {
-                # OutputStream does not provide open method
-                throw "LOGGER-ERROR", "Cannot reopen stream";
-            }
-        }
-
-        /*private:internal */closeImpl() {
-            if (m_assignThread) {
-                m_osb.reassignThread();
-                on_exit m_osb.unassignThread();
-                m_osb.close();
+        public appendImpl(int type, any serialized) {
+            if (type == EVENT_OPEN) {
+                if (m_closed) {
+                    # OutputStream does not provide open method
+                    throw "LOGGER-ERROR", "Cannot reopen stream";
+                }
             } else {
-                m_writer.getOutputStream().close();
-            }
-            m_closed = True;
-        }
-
-        public appendImpl(any serialized) {
-            if (m_assignThread) {
-                m_osb.reassignThread();
-                on_exit m_osb.unassignThread();
-                m_writer.print(serialized);
-            } else {
-                m_writer.print(serialized);
+                if (m_assignThread) {
+                    m_osb.reassignThread();
+                }
+                switch (type) {
+                    case EVENT_LOG:
+                        m_writer.print(serialized);
+                        break;
+                    case EVENT_CLOSE:
+                        m_writer.getOutputStream().close();
+                        m_closed = True;
+                        break;
+                }
+                on_exit if (m_assignThread) {
+                    m_osb.unassignThread();
+                }
             }
         }
     }
@@ -1227,7 +1217,7 @@ public namespace Logger {
         private {
             File m_file;
         }
-        #! create object and set @ref SYNC_THREAD processing method
+        #! create object
         /**
             @param name
             @param layout
@@ -1242,16 +1232,18 @@ public namespace Logger {
             return m_file;
         }
 
-        /*private:internal*/ openImpl() {
-            m_file.open(m_file.getFileName(), m_file.getEncoding());
-        }
-
-        /*private:internal*/ closeImpl() {
-            m_file.sync();
-        }
-
-        public appendImpl(any serialized) {
-            m_file.print(serialized);
+        public appendImpl(int type, any serialized) {
+            switch (type) {
+                case EVENT_OPEN:
+                    m_file.open(m_file.getFileName(), m_file.getEncoding());
+                    break;
+                case EVENT_CLOSE:
+                    m_file.sync();
+                    break;
+                case EVENT_LOG:
+                    m_file.print(serialized);
+                    break;
+            }
         }
     }
 
