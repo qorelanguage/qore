@@ -17,15 +17,22 @@ class Test inherits QUnit::Test {
 
     private {
         Counter m_counter();
+        Counter m_processing();
+        LoggerAppenderQueue m_laq;
     }
     constructor() : QUnit::Test("Logger", "1.0", \ARGV) {
         addTestCase("LoggerContainer-Logger", \testLoggerProgram());
+        addTestCase("LoggerContainer-Logger-ThreadPool", \testLoggerProgramThreadPool());
         set_return_value(main());
     }
 
-    private LoggerAppenderStream startProgram(LoggerRoot lr, LoggerLayoutPattern llp, LoggerAppenderQueue laq, int n, int iterCnt) {
+    private LoggerAppenderStream startProgram(LoggerRoot lr, LoggerLayoutPattern llp, LoggerAppenderQueue laq, bool unassignThread, int n, int iterCnt) {
         Logger l(sprintf("P-%d", n));
-        LoggerAppenderStream la("", llp, new StreamWriter(new StringOutputStream()));
+        OutputStreamBase osb = new StringOutputStream();
+        if (unassignThread) {
+            osb.unassignThread();
+        }
+        LoggerAppenderStream la("", llp, new StreamWriter(osb));
         la.setQueue(laq);
         la.open();
         l.setParent(lr);
@@ -55,40 +62,115 @@ class Test inherits QUnit::Test {
         return la;
     }
 
-    testLoggerProgram() {
-        int programCount = 10;
-        int iterCnt = 10;
+    hash prepareAppenders(bool unassignThread, int programCount, int iterCnt) {
         LoggerRoot lr("INFO");
         LoggerLayoutPattern llp("%r [%t] %p %c %l - %m%n");
-        LoggerAppenderStream lar("", llp, new StreamWriter(new StringOutputStream()));
-        LoggerAppenderQueue laq();
-        lar.setQueue(laq);
+        OutputStreamBase osb = new StringOutputStream();
+        if (unassignThread) {
+            osb.unassignThread();
+        }
+        LoggerAppenderStream lar("", llp, new StreamWriter(osb));
+        lar.setQueue(m_laq);
         lar.open();
         lr.addAppender(lar);
 
         hash appenders.root.la = lar;
         for (int i=0; i < programCount; i++) {
-            appenders{sprintf("A-%d", i)}.la = startProgram(lr, llp, laq, i, iterCnt);
+            appenders{sprintf("A-%d", i)}.la = startProgram(lr, llp, m_laq, unassignThread, i, iterCnt);
         }
+        return appenders;
+    }
 
+    runProcessing() {
         # logger processing thread
-        while (m_counter.getCount() > 0) {
-            laq.process();
+        on_exit {
+            m_processing.dec();
         }
-        m_counter.waitForZero();
-        laq.process();
-        foreach string k in (keys appenders) {
-            stderr.printf("APPENDER:%s\n-------------\n", k);
-            string s = appenders{k}.la.getStreamWriter().getOutputStream().getData();
-            stderr.print(s);
-            stderr.printf("\n");
-            list l = s.split(LoggerLayoutPattern::getLineDelimiter());
-            if (k == "root") {
-                assertEq(2*programCount, l.size());
-            } else {
-                assertEq(2 + iterCnt, l.size());
+        while (m_counter.getCount() > 0) {
+            try {
+                m_laq.process();
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err != "QUEUE-TIMEOUT") {
+                    stderr.printf("Ex1: %y\n");
+                    rethrow;
+                }
             }
         }
+        m_counter.waitForZero();
+        while (m_laq.size() > 0) {
+            try {
+                m_laq.process();
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err != "QUEUE-TIMEOUT") {
+                    stderr.printf("Ex2: %y\n");
+                    rethrow;
+                }
+            }
+        }
+    }
+
+    assertAppenderLogs(hash appenders, int programCount, int iterCnt) {
+        foreach string k in (keys appenders) {
+            *OutputStreamBase osb = appenders{k}.la.getOutputStreamBase();
+            if (osb) {
+                osb.reassignThread();
+            }
+            on_exit {
+                if (osb) {
+                    osb.unassignThread();
+                }
+            }
+            string s = appenders{k}.la.getStreamWriter().getOutputStream().getData();
+            list l = s.split(LoggerLayoutPattern::getLineDelimiter());
+            try {
+                if (k == "root") {
+                    assertEq(2*programCount, l.size());
+                } else {
+                    assertEq(2 + iterCnt, l.size());
+                    list l2 = ();
+                    foreach string s2 in (l) {
+                        push l2, regex_extract(s2, ": ([a-z0-9]+)$")[0];
+                    }
+                    list expected;
+                    push expected, "start";
+                    for (int i = 0; i<l2.size()-2; i++) {
+                        push expected, i.toString();
+                    }
+                    push expected, "end";
+                    assertEq(expected, l2);
+                }
+            } catch (hash<ExceptionInfo> ex) {
+                stderr.printf("APPENDER:%s\n-------------\n", k);
+                stderr.print(s);
+                stderr.printf("\n");
+                printf("Exception: %y\n", ex);
+            }
+        }
+    }
+
+    testLoggerProgram() {
+        int programCount = 10;
+        int iterCnt = 10;
+        m_laq = new LoggerAppenderQueue();
+        hash appenders = prepareAppenders(False, programCount, iterCnt);
+        m_processing.inc();
+        runProcessing();
+        assertAppenderLogs(appenders, programCount, iterCnt);
+    }
+
+    testLoggerProgramThreadPool() {
+        ThreadPool tp();
+        m_laq = new LoggerAppenderQueueThreadPool(tp, 5);
+        m_processing.inc();
+        m_counter.inc();
+        background runProcessing();
+
+        int programCount = 10;
+        int iterCnt = 10;
+        hash appenders = prepareAppenders(True, programCount, iterCnt);
+        m_counter.dec();
+        m_processing.waitForZero();
+        assertAppenderLogs(appenders, programCount, iterCnt);
     }
 
 }
