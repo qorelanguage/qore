@@ -6,6 +6,7 @@
 %new-style
 %strict-args
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Logger.qm
 
@@ -27,6 +28,8 @@ class Test inherits QUnit::Test {
         addTestCase("LoggerAppenderQueue", \testLoggerAppenderQueue());
         addTestCase("LoggerAppenderMultiThread", \testLoggerAppenderMultiThread());
         addTestCase("LoggerAppenderMultiThreadUnassigned", \testLoggerAppenderMultiThreadUnassigned());
+        addTestCase("LoggerAppenderFile", \testLoggerAppenderFile());
+        addTestCase("LoggerAppenderFileRotate", \testLoggerAppenderFileRotate());
         addTestCase("Logger", \testLogger());
         set_return_value(main());
     }
@@ -87,6 +90,9 @@ class Test inherits QUnit::Test {
         assertEq(lle.getFullQualifiedClassname(), get_class_name(l));
         assertEq(lle.getCategoryName(), 'testLogger');
         assertEq(lle.getLogger(), l);
+        int id = lle.getUniqueId();
+        assertTrue(id > 0);
+        assertEq(id, lle.getUniqueId());
     }
 
     testLoggerLayout() {
@@ -142,10 +148,10 @@ class Test inherits QUnit::Test {
                 "parsed": (("key": "Z"),),
                 "output": "N/A",
             ),
-            "%m{DUMMY}": (
+            "%m{%DUMMY}": (
                 "parsed": ((
                     "key": "m",
-                    "option": "DUMMY",
+                    "option": "%DUMMY",
                 ),),
                 "output": "ABCDEF",
             ),
@@ -253,9 +259,9 @@ class Test inherits QUnit::Test {
                 "output": "d a.b.c.d C.Logger" + LoggerLayoutPattern::getLineDelimiter(),
             ),
 
-            "%r [%t] %p %c - %m%n": (
+            "%r{%010d} [%t] %p %c - %m%n": (
                 "parsed": (
-                    ("key": "r"),
+                    ("key": "r", "option": "%010d"),
                     " [",
                     ("key": "t"),
                     "] ",
@@ -266,7 +272,7 @@ class Test inherits QUnit::Test {
                     ("key": "m"),
                     ("key": "n"),
                 ),
-                "output": "86400000 [123] ERROR a.b.c.d - ABCDEF"+LoggerLayoutPattern::getLineDelimiter(),
+                "output": "0086400000 [123] ERROR a.b.c.d - ABCDEF"+LoggerLayoutPattern::getLineDelimiter(),
             ),
         );
         foreach string patt in (keys patterns) {
@@ -279,6 +285,9 @@ class Test inherits QUnit::Test {
         llp.setPattern("%x");
         assertTrue(exists lle.getThrowableInfo());
         assertRegex("TEST-ERROR: Test exception", llp.format(lle));
+
+        llp.setPattern("%u");
+        assertTrue(int(llp.format(lle)) > 0);
 
         hash patternsErr = (
             "%/AAA": "Wrong pattern starting %/AAA",
@@ -513,6 +522,67 @@ class Test inherits QUnit::Test {
         sos.unassignThread();
         assertEq(-1, sos.getThreadId());
         la.close();
+    }
+
+    testLoggerAppenderFile() {
+        string fn = tmp_location() + DirSep + "qore_logger_test_15432ewqhkofl.log";
+        unlink(fn);
+        LoggerAppenderFile la("TEST", new LoggerLayoutPattern("%m"), fn);
+        LoggerLoggingEvent lle = new LoggerLoggingEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST");
+        assertFalse(la.getFile().isOpen());
+        la.open();
+        assertTrue(la.getFile().isOpen());
+        assertEq(fn, la.getFile().getFileName());
+        la.post(lle);
+        la.close();
+        assertFalse(la.getFile().isOpen());
+        string s = ReadOnlyFile::readTextFile(fn);
+        assertEq("TEST", s);
+        la.open();
+        assertTrue(la.getFile().isOpen());
+        la.post(lle);
+        la.close();
+        assertFalse(la.getFile().isOpen());
+        s = ReadOnlyFile::readTextFile(fn);
+        assertEq("TESTTEST", s);
+        unlink(fn);
+    }
+
+    testLoggerAppenderFileRotate() {
+        string fn = "%c-%C-%i{%02d}-%n{%02d}.log";
+        LoggerAppenderFileRotate la("TEST", new LoggerLayoutPattern("%m"), fn, 50);
+        assertEq("LoggerAppenderFileRotate-TEST-00-50.log", la.getFileName());
+
+        int maxRotate = 3;
+        fn = tmp_location() + DirSep + "qore_logger_test_15432ewqhkofl.log.%i";
+        string fn2 = fn;
+        fn2 =~ s/%i/%d/;
+        for (int i = 0; i < maxRotate; i++) {
+            unlink(sprintf(fn2, i));
+        }
+        la = new LoggerAppenderFileRotate("TEST", new LoggerLayoutPattern("%u"), fn, maxRotate);
+        assertFalse(la.getFile().isOpen());
+        assertEq(sprintf(fn2, 0), la.getFileName());
+        la.open();
+        assertTrue(la.getFile().isOpen());
+
+        for (int rot = 0; rot < 3 * maxRotate; rot++) {
+            assertEq(sprintf(fn2, rot % maxRotate), la.getFileName());
+            string prevFilename = la.getFileName();
+            LoggerLoggingEvent lle = new LoggerLoggingEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST");
+            la.post(lle);
+            la.rotate();
+            assertEq(sprintf(fn2, (rot+1) % maxRotate), la.getFileName());
+            assertFalse(prevFilename == la.getFileName());
+            assertTrue(la.getFile().isOpen());
+            string s = ReadOnlyFile::readTextFile(prevFilename);
+            assertEq(string(lle.getUniqueId()), s);
+        }
+        la.close();
+        assertFalse(la.getFile().isOpen());
+        for (int i = 0; i < maxRotate; i++) {
+            unlink(sprintf(fn2, i));
+        }
     }
 
     testLogger() {
