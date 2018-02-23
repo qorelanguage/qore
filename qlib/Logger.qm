@@ -273,6 +273,12 @@ public namespace Logger {
             #! internal representation of throwable
             *hash<ExceptionInfo> m_throwableInfo;
 
+            #! unique id
+            int m_uniqueId;
+
+            #! unique id generator
+            static Sequence m_sequence(1);
+
         }
         #! Instantiate a LoggingEvent from the supplied parameters.
         /**
@@ -432,6 +438,14 @@ public namespace Logger {
         #! get throwable info
         public *hash<ExceptionInfo> getThrowableInfo() {
             return m_throwableInfo;
+        }
+
+        #! generate unique id
+        public int getUniqueId() {
+            if (!exists m_uniqueId) {
+                m_uniqueId = m_sequence.next();
+            }
+            return m_uniqueId;
         }
 
     }
@@ -705,11 +719,7 @@ public namespace Logger {
         #! Open logging resources
         public open() {
             if (!m_active) {
-                if (exists m_queue) {
-                    m_queue.push(self, EVENT_OPEN, NOTHING);
-                } else {
-                    appendImpl(EVENT_OPEN, NOTHING);
-                }
+                pushEvent(EVENT_OPEN, NOTHING);
                 m_active = True;
             }
         }
@@ -719,11 +729,7 @@ public namespace Logger {
         */
         public close() {
             if (m_active) {
-                if (exists m_queue) {
-                    m_queue.push(self, EVENT_CLOSE, NOTHING);
-                } else {
-                    appendImpl(EVENT_CLOSE, NOTHING);
-                }
+                pushEvent(EVENT_CLOSE, NOTHING);
                 m_active = False;
             }
         }
@@ -789,6 +795,20 @@ public namespace Logger {
         */
         abstract private:internal any serializeImpl(LoggerLoggingEvent event);
 
+        #! push event in queue or call @ref appendImpl
+        /**
+            @param type
+            @param serialized
+        */
+        /*private:internal*/ bool pushEvent(int type, any serialized) {
+            if (exists m_queue) {
+                return m_queue.push(self, type, serialized);
+            } else {
+                appendImpl(type, serialized);
+                return True;
+            }
+        }
+
         #! post event to output queue
         /**
             Invokes filters and when event is accepted then is posted to queue in case of
@@ -819,12 +839,7 @@ public namespace Logger {
             if (!exists serialized) {
                 return False;
             }
-            if (exists m_queue) {
-                return m_queue.push(self, EVENT_LOG, serialized);
-            } else {
-                appendImpl(EVENT_LOG, serialized);
-            }
-            return True;
+            return pushEvent(EVENT_LOG, serialized);
         }
 
         #! implement logging to physical target stuff
@@ -856,65 +871,11 @@ public namespace Logger {
         }
     }
 
-    #! Implements @ref LoggerLoggingEvent formatting
-    /**
-        The event data are formatted before the record is passed to target.
-    */
-    public class LoggerLayout {
-        #! Get header to put into the stream when is opened
-        abstract public string getHeader();
-        #! Get footer to put into the stream when is closed
-        abstract public string getFooter();
-        #! Format event record
-        abstract public string format(LoggerLoggingEvent event);
-    }
-
-    #! Implements formatting @ref LoggerLoggingEvent with a pattern
-    /**
-        The pattern format is:
-
-            %[<modifiers>]<word>[{<option>}]
-            modifiers := [0-9.-]*
-            word := [a-zA-Z]+
-            option := [^}]*
-
-        The following table explains the characters used in the above pattern and all other characters that you can use in your custom pattern:
-
-        | Conversion character | Meaning |
-        | :------------------- | ------- |
-        | c | Used to output the category of the logging event. For example, for the category name "a.b.c" the pattern %c{2} will output "b.c".|
-        | C | Used to output the fully qualified class name of the caller issuing the logging request. For example, for the class name "org.apache.xyz.SomeClass", the pattern %C{1} will output "SomeClass" |
-        | d | Used to output the date of the logging event using @ref format_date. Optional option is used as date format, for example, %d{DD.MM.YYYY HH:mm:SS} |
-        | F | Used to output the file name where the logging request was issued |
-        | l | Used to output location information of the caller which generated the logging event, i.e. "file:line [function()]" |
-        | L | Used to output the line number from where the logging request was issued |
-        | m | Used to output the application supplied message associated with the logging event |
-        | M | Used to output the method name where the logging request was issued |
-        | n | Outputs the platform dependent line separator character or characters |
-        | p | Used to output the priority of the logging event |
-        | r | Used to output the number of milliseconds elapsed from the construction of the layout until the creation of the logging event |
-        | t | Used to output the name of the thread that generated the logging event |
-        | x | Used to output exception string using @ref Util::get_exception_string() |
-        | % | The literal percent sign. %% will print a % sign |
-
-        Following table covers various modifiers scenarios:
-
-        | Format modifier | left justify | minimum width | maximum width | comment |
-        | --------------- | ------------ | ------------- | ------------- | ------- |
-        | %20c            | false        | 20            | none          | Left pad with spaces if the category name is less than 20 characters long |
-        | %-20c           | true         | 20            | none          | Right pad with spaces if the category name is less than 20 characters long |
-        | %.30c           | NA           | none          | 30            | Truncate from the beginning if the category name is longer than 30 characters |
-        | %20.30c         | false        | 20            | 30            | Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
-        | %-20.30c        | true         | 20            | 30            | Right pad with spaces if the category name is shorter than 20 characters. However, if category name is longer than 30 characters, then truncate from the beginning |
-    */
-    public class LoggerLayoutPattern inherits LoggerLayout {
+    #! Implements patern parsing and substitution
+    public class LoggerPattern {
         public {
             #! format escape character
             const ESCAPE_CHAR = "%";
-            #! default layout pattern
-            const DEFAULT_PATTERN = "%r [%t] %p %c - %m%n";
-            #! default date format
-            const DEFAULT_DATE_FORMAT = "YYYY-MM-DD HH:mm:SS.u";
         }
         private {
             #! pattern
@@ -922,9 +883,8 @@ public namespace Logger {
             #! parsed pattern
             list m_parsedPattern;
         }
-
         #! creates object
-        constructor(string pattern = DEFAULT_PATTERN) {
+        constructor(string pattern) {
             # parse pattern
             setPattern(pattern);
         }
@@ -1015,23 +975,14 @@ public namespace Logger {
             return m_parsedPattern ?? ();
         }
 
-        #! returns empty header
-        public string getHeader() {
-            return "";
-        }
-        #! returns empty footer
-        public string getFooter() {
-            return "";
-        }
-
         #! Format event record with pattern
-        public string format(LoggerLoggingEvent event) {
+        public string format(auto data) {
             string res = "";
             foreach any a in (m_parsedPattern) {
                 if (a.typeCode() == NT_STRING) {
                     res += a;
                 } else {
-                    string val = getValue(event, a.key, a.option);
+                    string val = resolveField(data, a.key, a.option);
                     if (exists a.maxWidth) {
                         val = substr(val, 0, a.maxWidth);
                     }
@@ -1048,6 +999,76 @@ public namespace Logger {
             return res;
         }
 
+        #! Resolves key value
+        /**
+            @param event
+            @param key
+            @param option
+        */
+        abstract /*private:internal*/ string resolveField(auto data, string key, *string option);
+
+   }
+
+    #! Implements @ref LoggerLoggingEvent formatting
+    /**
+        The event data are formatted before the record is passed to target.
+    */
+    public class LoggerLayout {
+        #! Format event record
+        abstract public string format(LoggerLoggingEvent event);
+    }
+
+    #! Implements formatting @ref LoggerLoggingEvent with a pattern
+    /**
+        The pattern format is:
+
+            %[<modifiers>]<word>[{<option>}]
+            modifiers := [0-9.-]*
+            word := [a-zA-Z]+
+            option := [^}]*
+
+        The following table explains the characters used in the above pattern and all other characters that you can use in your custom pattern:
+
+        | Conversion character | Meaning |
+        | :------------------- | ------- |
+        | c | Used to output the category of the logging event. For example, for the category name "a.b.c" the pattern %c{2} will output "b.c".|
+        | C | Used to output the fully qualified class name of the caller issuing the logging request. For example, for the class name "org.apache.xyz.SomeClass", the pattern %C{1} will output "SomeClass" |
+        | d | Used to output the date of the logging event using @ref format_date. Optional option is used as date format, for example, %d{DD.MM.YYYY HH:mm:SS} |
+        | F | Used to output the file name where the logging request was issued |
+        | l | Used to output location information of the caller which generated the logging event, i.e. "file:line [function()]" |
+        | L | Used to output the line number from where the logging request was issued, option may specify @ref sprintf() format, e.g. %.3d |
+        | m | Used to output the application supplied message associated with the logging event |
+        | M | Used to output the method name where the logging request was issued |
+        | n | Outputs the platform dependent line separator character or characters |
+        | p | Used to output the priority of the logging event |
+        | r | Used to output the number of milliseconds elapsed from the construction of the layout until the creation of the logging event, option may specify @ref sprintf() format, e.g. %.3d |
+        | t | Used to output the thread id that generated the logging event, option may specify @ref sprintf() format, e.g. %.3d |
+        | u | Used to output logging event unique id, option may specify @ref sprintf() format, e.g. %.3d |
+        | x | Used to output exception string using @ref Util::get_exception_string() |
+        | % | The literal percent sign. %% will print a % sign |
+
+        Following table covers various modifiers scenarios:
+
+        | Format modifier | left justify | minimum width | maximum width | comment |
+        | --------------- | ------------ | ------------- | ------------- | ------- |
+        | %20c            | false        | 20            | none          | Left pad with spaces if the category name is less than 20 characters long |
+        | %-20c           | true         | 20            | none          | Right pad with spaces if the category name is less than 20 characters long |
+        | %.30c           | NA           | none          | 30            | Truncate from the beginning if the category name is longer than 30 characters |
+        | %20.30c         | false        | 20            | 30            | Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
+        | %-20.30c        | true         | 20            | 30            | Right pad with spaces if the category name is shorter than 20 characters. However, if category name is longer than 30 characters, then truncate from the beginning |
+    */
+    public class LoggerLayoutPattern inherits LoggerLayout, public LoggerPattern {
+        public {
+            #! default layout pattern
+            const DEFAULT_PATTERN = "%r [%t] %p %c - %m%n";
+            #! default date format
+            const DEFAULT_DATE_FORMAT = "YYYY-MM-DD HH:mm:SS.u";
+        }
+
+        #! creates object
+        constructor(string pattern = DEFAULT_PATTERN): LoggerPattern(pattern) {
+        }
+
         #! Get line delimiter used on current OS
         static public string getLineDelimiter() {
             switch (PlatformOS) {
@@ -1060,13 +1081,21 @@ public namespace Logger {
             }
         }
 
+        #! Format event record
+        public string format(LoggerLoggingEvent event) {
+            return LoggerPattern::format(event);
+        }
+
         #! get value corresponding to particular word
         /**
             @param event
             @param key
             @param option
         */
-        private:internal string getValue(LoggerLoggingEvent event, string key, *string option) {
+        /*private:internal*/ string resolveField(auto event, string key, *string option) {
+            if (!(event instanceof LoggerLoggingEvent)) {
+                throw "LOGGER-ERROR", "Unsupported event type";
+            }
             string res;
             switch (key) {
                 case "c":
@@ -1090,7 +1119,7 @@ public namespace Logger {
                     res = sprintf("%s:%d [%s()]", csi.file, csi.line, csi.function);
                     break;
                 case "L":
-                    res = string(event.getLocationInfo().line);
+                    res = sprintf(option ?? "%d", event.getLocationInfo().line);
                     break;
                 case "m":
                     res = event.getMessage();
@@ -1105,10 +1134,13 @@ public namespace Logger {
                     res = event.getLevel().getStr();
                     break;
                 case "r":
-                    res = string(get_duration_milliseconds(event.getTimeStamp() - LoggerLoggingEvent::getStartTime()));
+                    res = sprintf(option ?? "%d", get_duration_milliseconds(event.getTimeStamp() - LoggerLoggingEvent::getStartTime()));
                     break;
                 case "t":
-                    res = string(event.getThreadId());
+                    res = sprintf(option ?? "%d", event.getThreadId());
+                    break;
+                case "u":
+                    res = sprintf(option ?? "%d", event.getUniqueId());
                     break;
                 case "x":
                     if (event.getThrowableInfo()) {
@@ -1237,17 +1269,20 @@ public namespace Logger {
         No multi-threading protection is implemented in class
     */
     public class LoggerAppenderFile inherits LoggerAppenderWithLayout {
-        private {
+        /*private:internal*/private:hierarchy {
             File m_file;
+            string m_filename;
         }
         #! create object
         /**
             @param name
             @param layout
-            @param writer
+            @param filename
+            @param encoding
         */
-        constructor(string name, LoggerLayout layout, File file): LoggerAppenderWithLayout(name, layout) {
-            m_file = file;
+        constructor(string name, LoggerLayout layout, string filename, *string encoding): LoggerAppenderWithLayout(name, layout) {
+            m_file = new File(encoding);
+            m_filename = filename;
         }
 
         #! get file instance
@@ -1255,17 +1290,148 @@ public namespace Logger {
             return m_file;
         }
 
+        #! get current filename
+        public string getFileName() {
+            return m_filename;
+        }
+
         public appendImpl(int type, any serialized) {
             switch (type) {
                 case EVENT_OPEN:
-                    m_file.open(m_file.getFileName(), m_file.getEncoding());
+                    if (m_file.open(m_filename, O_APPEND | O_WRONLY) == -1) {
+                        if (errno() == Qore::Err::ENOENT) {
+                            # No such file or directory
+                            m_file.open2(m_filename, O_CREAT | O_WRONLY);
+                        } else {
+                            throw "FILE-OPEN2-ERROR", sprintf("%s (arg: %d)", strerror(), errno());
+                        }
+                    }
                     break;
                 case EVENT_CLOSE:
-                    m_file.sync();
+                    try {
+                        m_file.close();
+                    } catch (hash<ExceptionInfo> ex) {
+                        if (ex.err != "ILLEGAL-EXPRESSION") {
+                            # catch unclosable stdxxx errors, TODO: m_file.isTTY() does the same job ?
+                            rethrow;
+                        }
+                    }
                     break;
                 case EVENT_LOG:
                     m_file.print(serialized);
                     break;
+            }
+        }
+    }
+
+    #! Pattern to evaluate rotate file name
+    public class LoggerLayoutPatternFileRotate inherits LoggerLayoutPattern {
+
+    }
+
+    #! Appender writing to a file with rotate support
+    /**
+        No multi-threading protection is implemented in class
+    */
+    public class LoggerAppenderFileRotate inherits public LoggerAppenderFile, private LoggerPattern {
+        public {
+            #! rotate event
+            const EVENT_ROTATE = 10;
+            #! default date format
+            const DEFAULT_DATE_FORMAT = "YYYYMMDDHHmmSS";
+        }
+        private {
+            int m_count;
+            hash m_patternData;
+        }
+        #! create object
+        /**
+            @param name
+            @param layout
+            @param pattern
+            @param count
+            @param encoding
+        */
+        constructor(string name, LoggerLayout layout, string pattern, int count, *string encoding):
+            LoggerAppenderFile(name, layout, "", encoding), LoggerPattern(pattern) {
+            # set a provisional filename, to be updated when file is opened
+            m_patternData.timestamp = now_us();
+            m_patternData.count = count;
+            m_patternData.index = 0;
+            m_filename = format(m_patternData);
+        }
+
+        /*private:internal*/ string resolveField(auto data, string key, *string option) {
+            string res;
+            switch (key) {
+                case "i":
+                    res = sprintf(option ?? "%d", data.index);
+                    break;
+                case "n":
+                    res = sprintf(option ?? "%d", data.count);
+                    break;
+                case "c":
+                    res = get_class_name(self);
+                    break;
+                case "C":
+                    res = getName();
+                    break;
+                case "d":
+                    if (option) {
+                        res = format_date(option, data.timestamp);
+                    } else {
+                        res = format_date(DEFAULT_DATE_FORMAT, data.timestamp);
+                    }
+                    break;
+                default:
+                    res = "";
+            }
+            return res;
+        }
+
+        public appendImpl(int type, any serialized) {
+            switch (type) {
+                case EVENT_OPEN:
+                    # find newest file
+                    m_patternData.timestamp = now_us();
+                    int lastIdx = 0;
+                    if (m_patternData.count > 0) {
+                        date lastStamp;
+                        hash pd = m_patternData;
+                        for (int i=0; i < m_patternData.count; i++) {
+                            pd.index = i;
+                            string fn = format(pd);
+                            *hash<StatInfo> si = hstat(fn);
+                            if (si) {
+                                if (!lastStamp || si.mtime > lastStamp) {
+                                    lastStamp = si.mtime;
+                                    lastIdx = i;
+                                }
+                            }
+                        }
+                    }
+                    m_patternData.index = lastIdx;
+                    m_filename = format(m_patternData);
+                    LoggerAppenderFile::appendImpl(type, serialized);
+                    break;
+                case EVENT_ROTATE:
+                    if (m_patternData.count <= 0) {
+                        throw "LOGGER-ERROR", "Rotation is disabled";
+                    }
+                    m_file.close();
+                    m_patternData.index = (m_patternData.index + 1) % m_patternData.count;
+                    m_patternData.timestamp = now_us();
+                    m_filename = format(m_patternData);
+                    m_file.open2(m_filename, O_CREAT | O_WRONLY);
+                    break;
+                default:
+                    LoggerAppenderFile::appendImpl(type, serialized);
+            }
+        }
+
+        public rotate() {
+            if (isActive()) {
+                pushEvent(EVENT_ROTATE, NOTHING);
             }
         }
     }
