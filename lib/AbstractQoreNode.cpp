@@ -570,6 +570,9 @@ AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, Exceptio
    if (ntype == NT_SELF_CALL)
       return crlr_selfcall_copy(reinterpret_cast<const SelfFunctionCallNode*>(n), xsink);
 
+   if (ntype == NT_SELF_VARREF)
+      return eval_notnull(n, xsink);
+
    if (ntype == NT_FUNCTION_CALL || ntype == NT_PROGRAM_FUNC_CALL)
       return crlr_fcall_copy(reinterpret_cast<const FunctionCallNode*>(n), xsink);
 
