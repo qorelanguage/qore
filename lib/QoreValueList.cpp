@@ -940,7 +940,7 @@ void QoreValueListEvalOptionalRefHolder::evalIntern(const QoreListNode* exp) {
 
 // destructive argument evaluation
 void QoreValueListEvalOptionalRefHolder::evalIntern(QoreListNode* exp) {
-    assert(exp->reference_count() == 1);
+    assert(!exp || exp->reference_count() == 1);
 
    if (!exp || exp->empty()) {
       val = 0;
