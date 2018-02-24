@@ -493,6 +493,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
      classID(classIDSeq.next()),
      methodID(classID),
      sys(false),
+     hierarchy_initialized(false),
      initialized(false),
      parse_init_called(false),
      parse_init_partial_called(false),
@@ -537,6 +538,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      classID(old.classID),
      methodID(old.methodID),
      sys(old.sys),
+     hierarchy_initialized(true),
      initialized(true),
      parse_init_called(false),
      parse_init_partial_called(false),
@@ -608,11 +610,11 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
 
    // copy member list
    for (QoreMemberMap::DeclOrderIterator i = old.members.beginDeclOrder(), e = old.members.endDeclOrder(); i != e; ++i)
-      members.addNoCheck(strdup(i->first), i->second ? i->second->copy(this) : 0);
+      members.addNoCheck(strdup(i->first), i->second ? i->second->copy(i->first, this) : 0);
 
    // copy static var list
    for (QoreVarMap::DeclOrderIterator i = old.vars.beginDeclOrder(), e = old.vars.endDeclOrder(); i != e; ++i)
-      vars.addNoCheck(strdup(i->first), i->second ? i->second->copy() : 0);
+      vars.addNoCheck(strdup(i->first), i->second ? i->second->copy(i->first) : 0);
 }
 
 qore_class_private::~qore_class_private() {
@@ -661,7 +663,25 @@ void qore_class_private::initialize() {
       return;
 
    qcp_set_t qcp_set = {this};
-   initializeIntern(qcp_set);
+   // issue #2657: initialize class hierarchy first before initializing code and members
+   if (initializeHierarchy(qcp_set))
+      return;
+
+   initializeIntern();
+}
+
+// issue #2657: initialize class hierarchy first before initializing code and members
+int qore_class_private::initializeHierarchy(qcp_set_t& qcp_set) {
+   if (!hierarchy_initialized) {
+      hierarchy_initialized = true;
+      if (scl) {
+         if (scl->initializeHierarchy(cls, qcp_set)) {
+            initialized = true;
+            return -1;
+         }
+      }
+   }
+   return 0;
 }
 
 // process signature entries for base classes
@@ -701,7 +721,7 @@ static void do_sig(QoreString& csig, ConstantList& clist) {
       csig.sprintf("%s const %s %s\n", privpub(cli.getAccess()), cli.getName().c_str(), get_type_name(cli.getValue()));
 }
 
-int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
+int qore_class_private::initializeIntern() {
    //printd(5, "qore_class_private::initializeIntern() this: %p %s class: %p scl: %p initialized: %d\n", this, name.c_str(), cls, scl, initialized);
    if (initialized)
       return 0;
@@ -714,7 +734,7 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
    // initialize static vars
    if (scl) {
       bool hdb = has_delete_blocker;
-      int rc = scl->initialize(cls, hdb, qcp_set);
+      int rc = scl->initialize(cls, hdb);
       has_delete_blocker = hdb;
       if (rc)
          return -1;
@@ -778,7 +798,7 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
          if (has_sig_changes)
             do_sig(csig, i);
          if (i->second)
-            i->second->parseInit(i->first, true);
+            i->second->parseInit(i->first);
       }
 
       if ((has_sig_changes && !members.empty()) || !pending_members.empty()) {
@@ -791,15 +811,16 @@ int qore_class_private::initializeIntern(qcp_set_t& qcp_set) {
             }
          }
 
-         // initialize new members
          for (QoreMemberMap::SigOrderIterator i = pending_members.beginSigOrder(), e = pending_members.endSigOrder(); i != e; ++i) {
             if (has_sig_changes)
                do_sig(csig, i);
-            if (i->second)
-               i->second->parseInit(i->first, true);
             // check new members for conflicts in base classes
             parseCheckMemberInBaseClasses(i->first, i->second);
          }
+
+         // initialize new members
+         //printd(5, "qore_class_private::initializeIntern() this: %p '%s' initialing pending members: %p\n", this, name.c_str(), &pending_members);
+         pending_members.parseInit();
       }
    }
 
@@ -965,6 +986,7 @@ int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool 
                return -1;
             // check types
             QoreValue qv(val.release());
+            //printd(5, " qore_class_private::runtimeInitMembers() '%s' member: '%s' type: '%s'\n", name.c_str(), i->first, QoreTypeInfo::getName(i->second->getTypeInfo()));
             QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, qv, xsink);
             val = qv.takeNode();
             if (*xsink)
@@ -1512,19 +1534,19 @@ void BCANode::parseInit(BCList* bcl, const char* classname) {
    }
 }
 
-int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_set) {
+int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
    if (!sclass) {
       if (cname) {
          // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
          sclass = qore_root_ns_private::parseFindScopedClass(loc, *cname);
-         printd(5, "BCNode::parseInit() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
+         printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
          delete cname;
          cname = 0;
       }
       else {
          // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
          sclass = qore_root_ns_private::parseFindClass(loc, cstr);
-         printd(5, "BCNode::parseInit() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
+         printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
          free(cstr);
          cstr = 0;
       }
@@ -1550,18 +1572,29 @@ int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
          return 0;
       }
 
-      rc = sclass->priv->initializeIntern(qcp_set);
-      if (!has_delete_blocker && sclass->has_delete_blocker())
-         has_delete_blocker = true;
-      // include all base class domains in this class's domain
-      if (!sclass->priv->addBaseClassesToSubclass(cls, is_virtual)) {
-         cls->priv->domain |= sclass->priv->domain;
-         // import all base class member definitions into this class
-         cls->priv->parseImportMembers(*sclass->priv, access);
-      }
       if (sclass->priv->final)
          parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
+
+      rc = sclass->priv->initializeHierarchy(qcp_set);
    }
+   return rc;
+}
+
+int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker) {
+   assert(sclass);
+   int rc = 0;
+
+   rc = sclass->priv->initializeIntern();
+   if (!has_delete_blocker && sclass->has_delete_blocker())
+      has_delete_blocker = true;
+   // include all base class domains in this class's domain
+   if (!sclass->priv->addBaseClassesToSubclass(cls, is_virtual)) {
+      cls->priv->domain |= sclass->priv->domain;
+      // import all base class member definitions into this class
+      cls->priv->parseImportMembers(*sclass->priv, access);
+   }
+   if (sclass->priv->final)
+      parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
 
    return rc;
 }
@@ -1861,10 +1894,9 @@ bool BCList::isBaseClass(QoreClass* qc, bool toplevel) const {
    return false;
 }
 
-int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_set) {
-   printd(5, "BCList::parseInit(%s) this: %p empty: %d\n", cls->getName(), this, empty());
+int BCList::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
-      if ((*i)->initialize(cls, has_delete_blocker, qcp_set)) {
+      if ((*i)->initializeHierarchy(cls, qcp_set)) {
          if (valid)
             valid = false;
       }
@@ -1883,6 +1915,18 @@ int BCList::initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_
                   valid = false;
             }
          }
+      }
+   }
+
+   return valid ? 0 : -1;
+}
+
+int BCList::initialize(QoreClass* cls, bool& has_delete_blocker) {
+   printd(5, "BCList::initialize(%s) this: %p empty: %d\n", cls->getName(), this, empty());
+   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
+      if ((*i)->initialize(cls, has_delete_blocker)) {
+         if (valid)
+            valid = false;
       }
    }
 
@@ -2619,8 +2663,11 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
             parseCheckClassHierarchyMembers(i->first, *(i->second), qc, *mi);
          continue;
       }
-      members.addInheritedNoCheck(strdup(i->first), i->second->copy(&qc, access));
+      members.addInheritedNoCheck(strdup(i->first), i->second->copy(i->first, &qc, access));
    }
+   // issue #2657: ensure that parent class members are initialied before merging
+   //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' pending_members: %p init qc: %p '%s' pending_members: %p\n", this, name.c_str(), &pending_members, &qc, qc.name.c_str(), &qc.pending_members);
+   qc.pending_members.parseInit();
    for (QoreMemberMap::DeclOrderIterator i = qc.pending_members.beginDeclOrder(), e = qc.pending_members.endDeclOrder(); i != e; ++i) {
       if (i->second->access == Internal)
          continue;
@@ -2632,7 +2679,8 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
             parseCheckClassHierarchyMembers(i->first, *(i->second), qc, *mi);
          continue;
       }
-      pending_members.addInheritedNoCheck(strdup(i->first), i->second->copy(&qc, access));
+      //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' pending_members: %p add '%s' %p '%s' (%d)\n", this, name.c_str(), &pending_members, i->first, i->second->exp, get_type_name(i->second->exp), get_node_type(i->second->exp));
+      pending_members.addInheritedNoCheck(strdup(i->first), i->second->copy(i->first, &qc, access));
    }
 }
 
@@ -4986,7 +5034,11 @@ const QoreMethod* QoreStaticMethodIterator::getMethod() const {
    return HMI_CAST(priv)->getMethod();
 }
 
-void QoreMemberInfo::parseInit(const char* name, bool priv) {
+void QoreMemberInfo::parseInit(const char* name) {
+   if (init)
+      return;
+   init = true;
+
    if (!typeInfo) {
       typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
       parseTypeInfo = 0;
@@ -4998,6 +5050,7 @@ void QoreMemberInfo::parseInit(const char* name, bool priv) {
    if (exp) {
       const QoreTypeInfo* argTypeInfo = 0;
       int lvids = 0;
+      //printd(5, "QoreMemberInfo::parseInit() this: %p '%s' %p '%s' %d\n", this, name, exp, get_type_name(exp), get_node_type(exp));
       exp = exp->parseInit(0, 0, lvids, argTypeInfo);
       if (lvids) {
          parse_error(loc, "illegal local variable declaration in member initialization expression");
@@ -5007,7 +5060,7 @@ void QoreMemberInfo::parseInit(const char* name, bool priv) {
       // throw a type exception only if parse exceptions are enabled
       if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
          QoreStringNode* desc = new QoreStringNode("initialization expression for ");
-         desc->sprintf("%s member '%s' returns ", priv ? "private" : "public", name);
+         desc->sprintf("%s member '%s' returns ", privpub(access), name);
          QoreTypeInfo::getThisType(argTypeInfo, *desc);
          desc->concat(", but the member was declared as ");
          QoreTypeInfo::getThisType(typeInfo, *desc);
@@ -5016,7 +5069,11 @@ void QoreMemberInfo::parseInit(const char* name, bool priv) {
    }
 }
 
-void QoreVarInfo::parseInit(const char* name, bool priv) {
+void QoreVarInfo::parseInit(const char* name) {
+   if (QoreMemberInfoBaseAccess::init)
+      return;
+   QoreMemberInfoBaseAccess::init = true;
+
    if (!typeInfo) {
       typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
       parseTypeInfo = 0;
@@ -5039,7 +5096,7 @@ void QoreVarInfo::parseInit(const char* name, bool priv) {
       // throw a type exception only if parse exceptions are enabled
       if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
          QoreStringNode* desc = new QoreStringNode("initialization expression for ");
-         desc->sprintf("%s class static variable '%s' returns ", priv ? "private" : "public", name);
+         desc->sprintf("%s class static variable '%s' returns ", privpub(access), name);
          QoreTypeInfo::getThisType(argTypeInfo, *desc);
          desc->concat(", but the variable was declared as ");
          QoreTypeInfo::getThisType(typeInfo, *desc);
@@ -5058,6 +5115,18 @@ QoreParseClassHelper::~QoreParseClassHelper() {
    if (rn)
       parse_set_ns(oldns);
    setParseClass(old);
+}
+
+void QoreMemberMap::parseInit() {
+   //printd(5, "QoreMemberMap::parseInit() this: %p init: %d\n", this, init);
+   if (init)
+      return;
+   init = true;
+   for (SigOrderIterator i = beginSigOrder(), e = endSigOrder(); i != e; ++i) {
+      printd(5, "QoreMemberMap::parseInit() this: %p mem: '%s' (%p) type: %s (%d)\n", this, i->first, i->second, get_type_name(i->second->exp), get_node_type(i->second->exp));
+      if (i->second)
+         i->second->parseInit(i->first);
+   }
 }
 
 void QoreMemberMap::moveAllTo(QoreClass* qc, ClassAccess access) {

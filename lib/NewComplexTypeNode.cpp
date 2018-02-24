@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -89,4 +89,3 @@ QoreValue NewComplexHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xs
 QoreValue NewComplexListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
     return qore_list_private::newComplexList(typeInfo, args, xsink);
 }
-

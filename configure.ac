@@ -91,6 +91,8 @@ case "${host_os}" in
 		if test "$GXX" != "yes"; then
 		   CXXFLAGS="${CXXFLAGS} -mt"
 		   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -norunpath -mt"
+		else
+		   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -latomic"
 		fi
 		AC_DEFINE(SOLARIS, 1, if compiling on Solaris)
 		AC_DEFINE(ZONEINFO_LOCATION, "/usr/share/lib/zoneinfo", zoneinfo location)

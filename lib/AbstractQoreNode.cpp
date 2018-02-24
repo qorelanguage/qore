@@ -67,7 +67,6 @@ AbstractQoreNode::~AbstractQoreNode() {
 bool test(const AbstractQoreNode* n) {
    return n->getType() == NT_HASH;
 }
-
 static void break_ref() {}
 */
 

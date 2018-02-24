@@ -1055,10 +1055,6 @@ public:
 };
 
 class QoreMemberInfoBaseAccess : public QoreMemberInfoBase {
-protected:
-   DLLLOCAL QoreMemberInfoBaseAccess(const QoreMemberInfoBaseAccess& old, ClassAccess n_access) : QoreMemberInfoBase(old), access(old.access >= n_access ? old.access : n_access) {
-   }
-
 public:
    ClassAccess access;
 
@@ -1069,6 +1065,12 @@ public:
    DLLLOCAL ClassAccess getAccess() const {
       return access;
    }
+
+protected:
+   DLLLOCAL QoreMemberInfoBaseAccess(const QoreMemberInfoBaseAccess& old, ClassAccess n_access) : QoreMemberInfoBase(old), access(old.access >= n_access ? old.access : n_access) {
+   }
+
+   bool init = false;
 };
 
 class QoreMemberInfo : public QoreMemberInfoBaseAccess {
@@ -1090,11 +1092,12 @@ public:
       return qc ? qc : c;
    }
 
-   DLLLOCAL QoreMemberInfo* copy(const qore_class_private* n_qc, ClassAccess n_access = Public) const {
+   DLLLOCAL QoreMemberInfo* copy(const char* name, const qore_class_private* n_qc, ClassAccess n_access = Public) const {
+      const_cast<QoreMemberInfo*>(this)->parseInit(name);
       return new QoreMemberInfo(*this, n_qc, n_access);
    }
 
-   DLLLOCAL void parseInit(const char* name, bool priv);
+   DLLLOCAL void parseInit(const char* name);
 };
 
 class QoreVarInfo : public QoreMemberInfoBaseAccess {
@@ -1143,7 +1146,8 @@ public:
       discard(val.removeNode(true), xsink);
    }
 
-   DLLLOCAL QoreVarInfo* copy() const {
+   DLLLOCAL QoreVarInfo* copy(const char* name) const {
+      const_cast<QoreVarInfo*>(this)->parseInit(name);
       return new QoreVarInfo(*this);
    }
 
@@ -1193,7 +1197,7 @@ public:
       return val.getAsBool();
    }
 
-   DLLLOCAL void parseInit(const char* name, bool priv);
+   DLLLOCAL void parseInit(const char* name);
 };
 
 /*
@@ -1300,8 +1304,11 @@ public:
       list.insert(list.begin() + inheritedCount++, std::make_pair(name, info));
    }
 
+   DLLLOCAL void parseInit();
+
 private:
    member_list_t::size_type inheritedCount = 0;
+   bool init = false;
 };
 
 class QoreVarMap : public QoreMemberMapBase<QoreVarInfo> {
@@ -1471,7 +1478,10 @@ public:
    DLLLOCAL ClassAccess getAccess() const { return access; }
 
    // returns -1 if a recursive reference is found, 0 if not
-   DLLLOCAL int initialize(QoreClass* cls, bool& has_delete_blocker, qcp_set_t& qcp_set);
+   DLLLOCAL int initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set);
+
+   // returns -1 if a recursive reference is found, 0 if not
+   DLLLOCAL int initialize(QoreClass* cls, bool& has_delete_blocker);
 
    DLLLOCAL bool isBaseClass(QoreClass* qc, bool toplevel) const;
 
@@ -1551,7 +1561,9 @@ public:
          delete *i;
    }
 
-   DLLLOCAL int initialize(QoreClass* thisclass, bool& has_delete_blocker, qcp_set_t& qcp_set);
+   DLLLOCAL int initializeHierarchy(QoreClass* thisclass, qcp_set_t& qcp_set);
+
+   DLLLOCAL int initialize(QoreClass* thisclass, bool& has_delete_blocker);
 
    // inaccessible methods are ignored
    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation& loc, const char* name, const qore_class_private* class_ctx, bool allow_internal);
@@ -1814,6 +1826,7 @@ public:
                                     // instead they will get the private data from this class
 
    bool sys : 1,                        // system/builtin class?
+      hierarchy_initialized : 1,        // is hierarchy initialized (only performed once)
       initialized : 1,                  // is initialized? (only performed once)
       parse_init_called : 1,            // has parseInit() been called? (performed once for each parseCommit())
       parse_init_partial_called : 1,    // has parseInitPartial() been called? (performed once for each parseCommit())
@@ -2007,7 +2020,8 @@ public:
    DLLLOCAL void mergeAbstract();
 
    // returns -1 if a recursive inheritance list was found, 0 if not
-   DLLLOCAL int initializeIntern(qcp_set_t& qcp_set);
+   DLLLOCAL int initializeIntern();
+   DLLLOCAL int initializeHierarchy(qcp_set_t& qcp_set);
    DLLLOCAL void initialize();
 
    DLLLOCAL void parseInitPartial();
