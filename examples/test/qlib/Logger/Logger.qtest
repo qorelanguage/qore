@@ -15,6 +15,7 @@
 class Test inherits QUnit::Test {
     private {
         Counter m_counter();
+        const UNIQUE_NAME = "qore_logger_test_765489wqhkofl";
     }
     public {
     }
@@ -30,6 +31,7 @@ class Test inherits QUnit::Test {
         addTestCase("LoggerAppenderMultiThreadUnassigned", \testLoggerAppenderMultiThreadUnassigned());
         addTestCase("LoggerAppenderFile", \testLoggerAppenderFile());
         addTestCase("LoggerAppenderFileRotate", \testLoggerAppenderFileRotate());
+        addTestCase("LoggerAppenderFileArchive", \testLoggerAppenderFileArchive());
         addTestCase("Logger", \testLogger());
         set_return_value(main());
     }
@@ -554,7 +556,7 @@ class Test inherits QUnit::Test {
         assertEq("LoggerAppenderFileRotate-TEST-00-50.log", la.getFileName());
 
         int maxRotate = 3;
-        fn = tmp_location() + DirSep + "qore_logger_test_15432ewqhkofl.log.%i";
+        fn = tmp_location() + DirSep + UNIQUE_NAME + ".log.%i";
         string fn2 = fn;
         fn2 =~ s/%i/%d/;
         for (int i = 0; i < maxRotate; i++) {
@@ -578,10 +580,87 @@ class Test inherits QUnit::Test {
             string s = ReadOnlyFile::readTextFile(prevFilename);
             assertEq(string(lle.getUniqueId()), s);
         }
+        la.rotate();
+        assertEq(sprintf(fn2, 1), la.getFileName());
+        sleep(1200ms); # we need unique mtime
+        la.post(new LoggerLoggingEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST"));
         la.close();
+        assertFalse(la.isActive());
         assertFalse(la.getFile().isOpen());
+        la.open();
+        assertEq(sprintf(fn2, 1), la.getFileName()); # check the latest file is found
+        la.close();
         for (int i = 0; i < maxRotate; i++) {
             unlink(sprintf(fn2, i));
+        }
+    }
+
+    testLoggerAppenderFileArchive() {
+        LoggerAppenderFileArchive la("TEST", new LoggerLayoutPattern("%m"), "%c%s%C.log");
+        assertEq("LoggerAppenderFileArchive"+DirSep+"TEST.log", la.getFileName());
+
+        string fn = tmp_location() + DirSep + UNIQUE_NAME + ".log";
+        unlink(fn);
+        la = new LoggerAppenderFileArchive("TEST", new LoggerLayoutPattern("%m"), fn);
+        assertEq(bindex(la.getArchiveFileName()+DirSep, fn), 0);
+        assertFalse(la.getFile().isOpen());
+        assertEq(fn, la.getFileName());
+        la.open();
+        assertTrue(la.getFile().isOpen());
+        LoggerLoggingEvent lle = new LoggerLoggingEvent("Logger", "a", LoggerLevel::getLevelError(), "ARCHIVE");
+        la.post(lle);
+        string afn = la.archive();
+        assertTrue(la.getFile().isOpen());
+        assertTrue(is_file(afn));
+        assertThrows("LOGGER-ERROR", "Target file already exists", \la.archive());
+        lle = new LoggerLoggingEvent("Logger", "a", LoggerLevel::getLevelError(), "LOG");
+        la.post(lle);
+        la.close();
+        string s = ReadOnlyFile::readTextFile(la.getFileName());
+        assertEq("LOG", s);
+        s = ReadOnlyFile::readTextFile(afn);
+        assertEq("ARCHIVE", s);
+        unlink(afn);
+        afn = la.archive(); # archive closed appender
+        assertFalse(la.getFile().isOpen());
+        assertFalse(la.isActive());
+        s = ReadOnlyFile::readTextFile(afn);
+        assertEq("LOG", s);
+        assertFalse(is_file(la.getFileName()));
+        unlink(afn);
+
+        # multi-level subdir
+        afn = tmp_location() + DirSep + UNIQUE_NAME + DirSep + UNIQUE_NAME + DirSep + UNIQUE_NAME + ".log";
+        unlink(afn);
+        rmdir(dirname(afn));
+        rmdir(dirname(dirname(afn)));
+        assertFalse(is_dir(dirname(dirname(afn))));
+        la = new LoggerAppenderFileArchive("TEST", new LoggerLayoutPattern("%m"), fn, "%p{}"+UNIQUE_NAME+"%s{}"+UNIQUE_NAME+"%s%f");
+        afn = la.getArchiveFileName();
+        assertEq(afn, la.getArchiveFileName());
+        assertFalse(la.getFile().isOpen());
+        la.open();
+        la.post(lle);
+        la.close();
+        afn = la.archive();
+        assertFalse(la.getFile().isOpen());
+        assertTrue(is_file(afn));
+        s = ReadOnlyFile::readTextFile(afn);
+        assertEq("LOG", s);
+        assertFalse(is_file(la.getFileName()));
+        unlink(afn);
+        rmdir(dirname(afn));
+        rmdir(dirname(dirname(afn)));
+
+        hash errs = (
+            "": "Empty target filename",
+            "%P": "Source and target path are equal",
+            "%p{}dummy"+DirSep+".."+DirSep+"%f": "Source and target path are equal",
+            "%p": "Target is directory",
+        );
+        foreach string patt in (keys errs) {
+            la = new LoggerAppenderFileArchive("TEST", new LoggerLayoutPattern("%m"), fn, patt);
+            assertThrows("LOGGER-ERROR", errs{patt}, \la.archive());
         }
     }
 
