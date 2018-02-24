@@ -1027,6 +1027,8 @@ public namespace Logger {
             word := [a-zA-Z]+
             option := [^}]*
 
+            To delimit word from next character use curly brackets, i.e. empty option, e.g. %p{}archive
+
         The following table explains the characters used in the above pattern and all other characters that you can use in your custom pattern:
 
         | Conversion character | Meaning |
@@ -1324,11 +1326,6 @@ public namespace Logger {
         }
     }
 
-    #! Pattern to evaluate rotate file name
-    public class LoggerLayoutPatternFileRotate inherits LoggerLayoutPattern {
-
-    }
-
     #! Appender writing to a file with rotate support
     /**
         No multi-threading protection is implemented in class
@@ -1415,24 +1412,152 @@ public namespace Logger {
                     LoggerAppenderFile::appendImpl(type, serialized);
                     break;
                 case EVENT_ROTATE:
-                    if (m_patternData.count <= 0) {
-                        throw "LOGGER-ERROR", "Rotation is disabled";
+                    if (m_patternData.count > 0) {
+                        m_file.close();
+                        m_patternData.index = (m_patternData.index + 1) % m_patternData.count;
+                        m_patternData.timestamp = now_us();
+                        m_filename = format(m_patternData);
+                        m_file.open2(m_filename, O_CREAT | O_WRONLY);
                     }
-                    m_file.close();
-                    m_patternData.index = (m_patternData.index + 1) % m_patternData.count;
-                    m_patternData.timestamp = now_us();
-                    m_filename = format(m_patternData);
-                    m_file.open2(m_filename, O_CREAT | O_WRONLY);
                     break;
                 default:
                     LoggerAppenderFile::appendImpl(type, serialized);
             }
         }
 
+        #! post rotate event
+        /**
+            current logging file will be closed and next opened. If the file existsthen it is ovewritten
+
+            @throw LOGGER-ERROR if rotation is disabled
+        */
         public rotate() {
             if (isActive()) {
+                if (m_patternData.count <= 0) {
+                    throw "LOGGER-ERROR", "Rotation is disabled";
+                }
                 pushEvent(EVENT_ROTATE, NOTHING);
             }
+        }
+    }
+
+    #! Appender writing to a file with archive
+    /**
+        No multi-threading protection is implemented in class
+    */
+    public class LoggerAppenderFileArchive inherits public LoggerAppenderFile, private LoggerPattern {
+        public {
+            #! archive event
+            const EVENT_ARCHIVE = 20;
+            #! default date format
+            const DEFAULT_DATE_FORMAT = "YYYYMMDDHHmmSS";
+            #! default archive pattern
+            const DEFAULT_ARCHIVE_PATTERN = "%p%f.%d";
+        }
+        private {
+        }
+        #! create object
+        /**
+            @param name
+            @param layout
+            @param filename
+            @param archive
+            @param encoding
+        */
+        constructor(string name, LoggerLayout layout, string filename, string archive = DEFAULT_ARCHIVE_PATTERN, *string encoding):
+            LoggerAppenderFile(name, layout, filename, encoding), LoggerPattern(filename) {
+
+            m_filename = format(NOTHING);  # no dynamic vars as timestamp
+            setPattern(archive);
+        }
+
+        /*private:internal*/ string resolveField(auto data, string key, *string option) {
+            string res = "";
+            switch (key) {
+                case "c":
+                    res = get_class_name(self);
+                    break;
+                case "C":
+                    res = getName();
+                    break;
+                case "s":
+                    res = DirSep;
+                    break;
+            }
+            if (data) {  # archive pattern
+                switch (key) {
+                    case "d":
+                        if (option) {
+                            res = format_date(option, data.timestamp);
+                        } else {
+                            res = format_date(DEFAULT_DATE_FORMAT, data.timestamp);
+                        }
+                        break;
+                    case "P":
+                        res = data.filename;
+                        break;
+                    case "p": # path
+                        res = dirname(data.filename);
+                        if (res != DirSep) {
+                            res += DirSep;
+                        }
+                        break;
+                    case "f": # filename
+                        res = basename(data.filename);
+                        break;
+                }
+            }
+            return res;
+        }
+
+        public appendImpl(int type, any serialized) {
+            switch (type) {
+                case EVENT_ARCHIVE:
+                    mkdir(dirname(serialized), 0777, True);
+                    if (isActive()) {
+                        m_file.close();
+                        rename(m_filename, serialized);
+                        LoggerAppenderFile::appendImpl(EVENT_OPEN, NOTHING);
+                    } else {
+                        rename(m_filename, serialized);
+                    }
+                    break;
+                default:
+                    LoggerAppenderFile::appendImpl(type, serialized);
+            }
+        }
+
+        #! post archive event
+        /**
+            rename logging file and open new one
+
+            @throw LOGGER-ERROR if target file name is not correct
+        */
+        public string archive() {
+            string afn = getArchiveFileName();
+            if (afn == "") {
+                throw "LOGGER-ERROR", "Empty target filename";
+            }
+            if (normalize_dir(afn) == normalize_dir(m_filename)) {
+                throw "LOGGER-ERROR", "Source and target path are equal";
+            }
+            if (is_dir(afn)) {
+                throw "LOGGER-ERROR", "Target is directory";
+            }
+            if (is_file(afn)) {
+                throw "LOGGER-ERROR", "Target file already exists";
+            }
+            pushEvent(EVENT_ARCHIVE, afn);
+            return afn;
+        }
+
+        #! get archive filename
+        public string getArchiveFileName() {
+            hash h;
+            h.timestamp = now_us();
+            h.filename = m_filename;
+            string res = format(h);
+            return res;
         }
     }
 
