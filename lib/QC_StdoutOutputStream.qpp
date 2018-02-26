@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,7 @@
 
     @since %Qore 0.8.13
  */
-qclass StdoutOutputStream [dom=TERMINAL_IO; arg=StdoutOutputStream* os; ns=Qore; vparent=OutputStreamBase; flags=final];
+qclass StdoutOutputStream [dom=TERMINAL_IO; arg=StdoutOutputStream* os; ns=Qore; vparent=OutputStream; flags=final];
 
 //! Creates the StdoutOutputStream.
 /**
