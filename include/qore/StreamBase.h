@@ -47,9 +47,8 @@ public:
       * @param xsink the exception sink
       * @return true if the checks passed, false if an exception has been raised
       * @throws STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
-      * @throws INPUT-STREAM-CLOSED-ERROR if the stream has been closed
       */
-    bool check(ExceptionSink *xsink) {
+    DLLLOCAL bool check(ExceptionSink *xsink) {
         if (tid.load(std::memory_order_relaxed) != gettid()) {
             xsink->raiseException("STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
                 "to access it from any other thread (accessed from TID %d)", getName(), tid.load(std::memory_order_relaxed), gettid());

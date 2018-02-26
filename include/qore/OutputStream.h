@@ -44,6 +44,26 @@ DLLEXPORT extern QoreClass* QC_OUTPUTSTREAM;
 class OutputStream : public StreamBase {
 public:
     /**
+      * @brief Checks that the current thread is the same as when the instance was created or assigned
+      * via @ref unassignThread() and @ref reassignThread() and that the stream has not yet been closed.
+      * @param xsink the exception sink
+      * @return true if the checks passed, false if an exception has been raised
+      * @throws STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
+      * @throws OUTPUT-STREAM-CLOSED-ERROR if the stream has been closed
+      */
+    DLLLOCAL bool check(ExceptionSink *xsink) {
+        if (!StreamBase::check(xsink)) {
+            assert(*xsink);
+            return false;
+        }
+        if (isClosed()) {
+            xsink->raiseException("OUTPUT-STREAM-CLOSED-ERROR", "this %s object has been already closed", getName());
+            return false;
+        }
+        return true;
+    }
+
+    /**
       * @brief Helper method that checks that the current thread is the same as when the instance was created,
       * that the stream has not yet been closed and calls close().
       * @param xsink the exception sink
