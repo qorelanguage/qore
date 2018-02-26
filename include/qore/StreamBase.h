@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  InputStreamBase.h
+  StreamBase.h
 
   Qore Programming Language
 
@@ -29,57 +29,18 @@
   information.
 */
 
-#ifndef _QORE_INPUTSTREAMBASE_H
-#define _QORE_INPUTSTREAMBASE_H
+#ifndef _QORE_STREAMBASE_H
+#define _QORE_STREAMBASE_H
 
-#include "qore/InputStream.h"
+#include "qore/AbstractPrivateData.h"
 
 #include <atomic>
 
-DLLEXPORT extern QoreClass* QC_INPUTSTREAMBASE;
-
 /**
- * @brief Base class for private data of input stream implementations in C++.
+ * @brief Base class for private data of stream implementations in C++.
  */
-class InputStreamBase : public InputStream {
+class StreamBase : public AbstractPrivateData {
 public:
-    /**
-      * @brief Helper method that checks that the current thread is the same as when the instance was created,
-      * calls read() and wraps the read data to Qore's `binary` value.
-      * @param limit the maximum number of bytes to read
-      * @param xsink the exception sink
-      * @return the `binary` wrapping the read data or `NOTHING` if the end of the stream has been reached
-      */
-    DLLLOCAL BinaryNode *readHelper(int64 limit, ExceptionSink *xsink) {
-        if (!check(xsink)) {
-            return nullptr;
-        }
-        if (limit <= 0) {
-            xsink->raiseException("INPUT-STREAM-ERROR", "%s::read() called with non-positive limit " QLLD,
-                getName(), limit);
-            return nullptr;
-        }
-        SimpleRefHolder<BinaryNode> result(new BinaryNode());
-        result->preallocate(limit);
-        int64 count = read(const_cast<void *>(result->getPtr()), limit, xsink);
-        result->setSize(count);
-        return count ? result.release() : nullptr;
-    }
-
-    /**
-      * @brief Helper method that checks that the current thread is the same as when the instance was created,
-      * calls peek() and wraps the result to Qore's `int` value.
-      * @param xsink the exception sink
-      * @return the `int` wrapping the result or `NOTHING` if the end of the stream has been reached
-d       */
-    DLLLOCAL QoreValue peekHelper(ExceptionSink *xsink) {
-        if (!check(xsink)) {
-            return QoreValue();
-        }
-
-        return peek(xsink);
-    }
-
     /**
       * @brief Checks that the current thread is the same as when the instance was created or assigned
       * via @ref unassignThread() and @ref reassignThread() and that the stream has not yet been closed.
@@ -102,7 +63,7 @@ d       */
       * @param xsink the exception sink
       * @throws STREAM-THREAD-ERROR if the current thread is already assigned to another thread
       */
-    DLLLOCAL void reassignThread(ExceptionSink *xsink) override {
+    DLLLOCAL void reassignThread(ExceptionSink *xsink) {
         // use an atomic compare and exchange to ensure that we only update a stream where the thread is unassigned
         int chktid = -1;
         if (!tid.compare_exchange_strong(chktid, gettid(), std::memory_order_consume, std::memory_order_relaxed)) {
@@ -117,7 +78,7 @@ d       */
       * @param xsink the exception sink
       * @throws STREAM-THREAD-ERROR if the current thread is not the same as assigned
       */
-    DLLLOCAL void unassignThread(ExceptionSink *xsink) override {
+    DLLLOCAL void unassignThread(ExceptionSink *xsink) {
         if (tid.load(std::memory_order_relaxed) != -1 && tid.load(std::memory_order_relaxed) != gettid()) {
             xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d; unassignment may "
                 "be processed from that thread (accessed from TID %d)", getName(), tid.load(std::memory_order_relaxed), gettid());
@@ -133,18 +94,18 @@ d       */
         return tid.load(std::memory_order_relaxed);
     }
 
-    protected:
-    /**
-      * @brief Constructor.
-      */
-    InputStreamBase() : tid(gettid()) {
-    }
-
     /**
       * @brief Returns the name of the class.
       * @return the name of the class
       */
     DLLLOCAL virtual const char *getName() = 0;
+
+protected:
+    /**
+      * @brief Constructor.
+      */
+    StreamBase() : tid(gettid()) {
+    }
 
 private:
     //! The id of the thread that created the instance
@@ -155,4 +116,4 @@ private:
     std::atomic<int> tid;
 };
 
-#endif // _QORE_INPUTSTREAMBASE_H
+#endif // _QORE_STREAMBASE_H

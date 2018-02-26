@@ -32,7 +32,7 @@
 #ifndef _QORE_INPUTSTREAM_H
 #define _QORE_INPUTSTREAM_H
 
-#include "qore/AbstractPrivateData.h"
+#include "qore/StreamBase.h"
 
 DLLEXPORT extern QoreClass* QC_INPUTSTREAM;
 
@@ -41,49 +41,66 @@ DLLEXPORT extern QoreClass* QC_INPUTSTREAM;
  *
  * Methods in this interface serve as low-level API for using input streams from C++ code.
  */
-class InputStream : public AbstractPrivateData {
+class InputStream : public StreamBase {
 public:
    /**
-    * @brief Reads up to `limit` bytes from the input stream.
-    * @param ptr the destination buffer to read data into
-    * @param limit the maximum number of bytes to read, must be &gt; 0
-    * @param xsink the exception sink
-    * @return the number of bytes read, 0 indicates the end of the stream
-    */
-   virtual int64 read(void *ptr, int64 limit, ExceptionSink *xsink) = 0;
+      * @brief Helper method that checks that the current thread is the same as when the instance was created,
+      * calls read() and wraps the read data to Qore's `binary` value.
+      * @param limit the maximum number of bytes to read
+      * @param xsink the exception sink
+      * @return the `binary` wrapping the read data or `NOTHING` if the end of the stream has been reached
+      */
+    DLLLOCAL BinaryNode *readHelper(int64 limit, ExceptionSink *xsink) {
+        if (!check(xsink)) {
+            return nullptr;
+        }
+        if (limit <= 0) {
+            xsink->raiseException("INPUT-STREAM-ERROR", "%s::read() called with non-positive limit " QLLD,
+                getName(), limit);
+            return nullptr;
+        }
+        SimpleRefHolder<BinaryNode> result(new BinaryNode);
+        result->preallocate(limit);
+        int64 count = read(const_cast<void *>(result->getPtr()), limit, xsink);
+        result->setSize(count);
+        return count ? result.release() : nullptr;
+    }
 
    /**
-    * @brief Peeks the next byte from the input stream.
-    * @param xsink the exception sink
-    * @return the next byte available to be read, -1 indicates end of the stream, -2 indicates an error
-    */
-   virtual int64 peek(ExceptionSink *xsink) = 0;
+      * @brief Helper method that checks that the current thread is the same as when the instance was created,
+      * calls peek() and wraps the result to Qore's `int` value.
+      * @param xsink the exception sink
+      * @return the `int` wrapping the result or `NOTHING` if the end of the stream has been reached
+      */
+    DLLLOCAL QoreValue peekHelper(ExceptionSink *xsink) {
+        if (!check(xsink)) {
+            return QoreValue();
+        }
 
-   /**
-    * @brief Reassigns current thread as thread used for stream manipulation
-    *
-    * Default implementation does nothing, the functionality should be implemented
-    * if the stream instance is supposed to be single threaded
-    *
-    * @param xsink the exception sink
-    */
-   virtual void reassignThread(ExceptionSink *xsink) {}
+        return peek(xsink);
+    }
 
-   /**
-    * @brief Unassigns current thread as thread used for stream manipulation
-    *
-    * Default implementation does nothing, the functionality should be implemented
-    * if the stream instance is supposed to be single threaded
-    *
-    * @param xsink the exception sink
-    */
-   virtual void unassignThread(ExceptionSink *xsink) {}
+    /**
+      * @brief Reads up to `limit` bytes from the input stream.
+      * @param ptr the destination buffer to read data into
+      * @param limit the maximum number of bytes to read, must be &gt; 0
+      * @param xsink the exception sink
+      * @return the number of bytes read, 0 indicates the end of the stream
+      */
+    virtual int64 read(void *ptr, int64 limit, ExceptionSink *xsink) = 0;
+
+    /**
+      * @brief Peeks the next byte from the input stream.
+      * @param xsink the exception sink
+      * @return the next byte available to be read, -1 indicates end of the stream, -2 indicates an error
+      */
+    virtual int64 peek(ExceptionSink *xsink) = 0;
 
 protected:
-   /**
-    * @brief Constructor.
-    */
-   InputStream() = default;
+    /**
+      * @brief Constructor.
+      */
+    InputStream() = default;
 };
 
 #endif // _QORE_INPUTSTREAM_H

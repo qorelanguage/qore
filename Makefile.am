@@ -402,6 +402,7 @@ include_HEADERS = \
 	include/qore/Qore.h \
 	include/qore/QoreNodeEvalOptionalRefHolder.h \
 	include/qore/QoreEvents.h \
+	include/qore/StreamBase.h \
 	include/qore/InputStream.h \
 	include/qore/OutputStream.h \
 	include/qore/Transform.h \
@@ -639,10 +640,8 @@ noinst_HEADERS = \
 	include/qore/intern/EncodingConversionOutputStream.h \
 	include/qore/intern/FileInputStream.h \
 	include/qore/intern/FileOutputStream.h \
-	include/qore/intern/InputStreamBase.h \
 	include/qore/intern/InputStreamLineIterator.h \
 	include/qore/intern/InputStreamWrapper.h \
-	include/qore/intern/OutputStreamBase.h \
 	include/qore/intern/OutputStreamWrapper.h \
 	include/qore/intern/StreamPipe.h \
 	include/qore/intern/StreamWriter.h \

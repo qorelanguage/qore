@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,11 +47,17 @@
     read 63
     @endcode
 
-    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
+    @note stream classes are not designed to be accessed from multiple threads; they have been implemented without
+    locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in
+    another thread, any use of such methods in threads other than the thread where the constructor was called will
+    cause a \c STREAM-THREAD-ERROR to be thrown, unless the stream is handed
+    off to another thread using the @ref Qore::StreamBase::unassignThread() "StreamBase::unassignThread()"
+    method in the thread that currently owns the stream, and the
+    @ref Qore::StreamBase::reassignThread() "StreamBase::reassignThread()" method in the new thread.
 
     @see @ref Qore::StreamReader "StreamReader" for a class that can be used to read various kinds of data from an @ref Qore::InputStream "InputStream"
  */
-qclass StringInputStream [arg=StringInputStream* is; ns=Qore; vparent=InputStreamBase; flags=final];
+qclass StringInputStream [arg=StringInputStream* is; ns=Qore; vparent=InputStream; flags=final];
 
 //! Creates the StringInputStream based on the \ref string given
 /**
