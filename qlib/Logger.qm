@@ -1427,8 +1427,6 @@ public namespace Logger {
             bool m_closed = False;
             #! assign thread for stream
             bool m_assignThread;
-            #! single thread stream
-            OutputStreamBase m_osb;
         }
 
         #! create object
@@ -1439,10 +1437,7 @@ public namespace Logger {
         */
         constructor(string name, LoggerLayout layout, StreamWriter writer): LoggerAppenderWithLayout(name, layout) {
             m_writer = writer;
-            if (m_writer.getOutputStream() instanceof OutputStreamBase) {
-                m_osb = m_writer.getOutputStream();
-                m_assignThread = m_osb.getThreadId() == -1;
-            }
+            m_assignThread = m_writer.getOutputStream().getThreadId() == -1;
         }
 
         #! get stream writer instance
@@ -1450,9 +1445,9 @@ public namespace Logger {
             return m_writer;
         }
 
-        #! returns not nothing value if stream thread is being assigned by this class
-        public *OutputStreamBase getOutputStreamBase() {
-            return m_assignThread ? m_osb : NOTHING;
+        #! return True if is assigning thread for stream
+        public bool hasAssignThread() {
+            return m_assignThread;
         }
 
         #! process event with output stream
@@ -1464,7 +1459,7 @@ public namespace Logger {
                 }
             } else {
                 if (m_assignThread) {
-                    m_osb.reassignThread();
+                    m_writer.getOutputStream().reassignThread();
                 }
                 switch (type) {
                     case EVENT_LOG:
@@ -1476,7 +1471,7 @@ public namespace Logger {
                         break;
                 }
                 on_exit if (m_assignThread) {
-                    m_osb.unassignThread();
+                    m_writer.getOutputStream().unassignThread();
                 }
             }
         }
