@@ -806,6 +806,7 @@ qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidat
 # base 7 modules
 qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/Logger.qm" "Logger")
 qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
 qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")
