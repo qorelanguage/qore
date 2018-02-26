@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,121 +34,124 @@
 
 #include "qore/InputStream.h"
 
+#include <atomic>
+
 DLLEXPORT extern QoreClass* QC_INPUTSTREAMBASE;
 
 /**
  * @brief Base class for private data of input stream implementations in C++.
  */
 class InputStreamBase : public InputStream {
-
 public:
-   /**
-    * @brief Helper method that checks that the current thread is the same as when the instance was created,
-    * calls read() and wraps the read data to Qore's `binary` value.
-    * @param limit the maximum number of bytes to read
-    * @param xsink the exception sink
-    * @return the `binary` wrapping the read data or `NOTHING` if the end of the stream has been reached
-    */
-   DLLLOCAL BinaryNode *readHelper(int64 limit, ExceptionSink *xsink) {
-      if (!check(xsink)) {
-         return 0;
-      }
-      if (limit <= 0) {
-         xsink->raiseException("INPUT-STREAM-ERROR", "%s::read() called with non-positive limit %lld",
-               getName(), limit);
-         return 0;
-      }
-      SimpleRefHolder<BinaryNode> result(new BinaryNode());
-      result->preallocate(limit);
-      int64 count = read(const_cast<void *>(result->getPtr()), limit, xsink);
-      result->setSize(count);
-      return count ? result.release() : 0;
-   }
+    /**
+      * @brief Helper method that checks that the current thread is the same as when the instance was created,
+      * calls read() and wraps the read data to Qore's `binary` value.
+      * @param limit the maximum number of bytes to read
+      * @param xsink the exception sink
+      * @return the `binary` wrapping the read data or `NOTHING` if the end of the stream has been reached
+      */
+    DLLLOCAL BinaryNode *readHelper(int64 limit, ExceptionSink *xsink) {
+        if (!check(xsink)) {
+            return nullptr;
+        }
+        if (limit <= 0) {
+            xsink->raiseException("INPUT-STREAM-ERROR", "%s::read() called with non-positive limit " QLLD,
+                getName(), limit);
+            return nullptr;
+        }
+        SimpleRefHolder<BinaryNode> result(new BinaryNode());
+        result->preallocate(limit);
+        int64 count = read(const_cast<void *>(result->getPtr()), limit, xsink);
+        result->setSize(count);
+        return count ? result.release() : nullptr;
+    }
 
-   /**
-    * @brief Helper method that checks that the current thread is the same as when the instance was created,
-    * calls peek() and wraps the result to Qore's `int` value.
-    * @param xsink the exception sink
-    * @return the `int` wrapping the result or `NOTHING` if the end of the stream has been reached
-    */
-   DLLLOCAL QoreBigIntNode *peekHelper(ExceptionSink *xsink) {
-      if (!check(xsink)) {
-         return 0;
-      }
+    /**
+      * @brief Helper method that checks that the current thread is the same as when the instance was created,
+      * calls peek() and wraps the result to Qore's `int` value.
+      * @param xsink the exception sink
+      * @return the `int` wrapping the result or `NOTHING` if the end of the stream has been reached
+d       */
+    DLLLOCAL QoreValue peekHelper(ExceptionSink *xsink) {
+        if (!check(xsink)) {
+            return QoreValue();
+        }
 
-      int64 res = peek(xsink);
-      return (*xsink) ? 0 : new QoreBigIntNode(res);
-   }
+        return peek(xsink);
+    }
 
-   /**
-    * @brief Checks that the current thread is the same as when the instance was created or assigned
-    * via @ref unassignThread() and @ref reassignThread() and that the stream has not yet been closed.
-    * @param xsink the exception sink
-    * @return true if the checks passed, false if an exception has been raised
-    * @throws STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
-    * @throws INPUT-STREAM-CLOSED-ERROR if the stream has been closed
-    */
-   bool check(ExceptionSink *xsink) {
-      if (tid != gettid()) {
-         xsink->raiseException("STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
-               "to access it from any other thread (accessed from TID %d)", getName(), tid, gettid());
-         return false;
-      }
-      return true;
-   }
+    /**
+      * @brief Checks that the current thread is the same as when the instance was created or assigned
+      * via @ref unassignThread() and @ref reassignThread() and that the stream has not yet been closed.
+      * @param xsink the exception sink
+      * @return true if the checks passed, false if an exception has been raised
+      * @throws STREAM-THREAD-ERROR if the current thread is not the same as when the instance was created
+      * @throws INPUT-STREAM-CLOSED-ERROR if the stream has been closed
+      */
+    bool check(ExceptionSink *xsink) {
+        if (tid.load(std::memory_order_relaxed) != gettid()) {
+            xsink->raiseException("STREAM-THREAD-ERROR", "this %s object was created in TID %d; it is an error "
+                "to access it from any other thread (accessed from TID %d)", getName(), tid.load(std::memory_order_relaxed), gettid());
+            return false;
+        }
+        return true;
+    }
 
-   /**
-    * @brief Reassigns current thread as thread used for stream manipulation, see @ref check()
-    * @param xsink the exception sink
-    * @throws STREAM-THREAD-ERROR if the current thread is already assigned to another thread
-    */
-   DLLLOCAL void reassignThread(ExceptionSink *xsink) override {
-      QoreAutoRWWriteLocker al(lck);
-      if (tid != -1 && tid != gettid()) {
-         xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d;"
-            "(accessed from TID %d)", getName(), tid, gettid());
-      }
-      tid = gettid();
-   }
+    /**
+      * @brief Reassigns current thread as thread used for stream manipulation, see @ref check()
+      * @param xsink the exception sink
+      * @throws STREAM-THREAD-ERROR if the current thread is already assigned to another thread
+      */
+    DLLLOCAL void reassignThread(ExceptionSink *xsink) override {
+        if (tid.load(std::memory_order_relaxed) != -1 && tid.load(std::memory_order_relaxed) != gettid()) {
+            xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d;"
+                "(accessed from TID %d)", getName(), tid.load(std::memory_order_relaxed), gettid());
+        }
+        // we need to ensure that this read is atomic with respect to the write operation in the unassignThread() call
+        tid.store(gettid(), std::memory_order_consume);
+    }
 
-   /**
-    * @brief Unassigns current thread as thread used for stream manipulation, see @ref check()
-    * @param xsink the exception sink
-    * @throws STREAM-THREAD-ERROR if the current thread is not the same as assigned
-    */
-   DLLLOCAL void unassignThread(ExceptionSink *xsink) override {
-      QoreAutoRWWriteLocker al(lck);
-      if (tid != -1 && tid != gettid()) {
-         xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d; unassignment may "
-            "be processed from that thread (accessed from TID %d)", getName(), tid, gettid());
-      }
-      tid = -1;
-   }
+    /**
+      * @brief Unassigns current thread as thread used for stream manipulation, see @ref check()
+      * @param xsink the exception sink
+      * @throws STREAM-THREAD-ERROR if the current thread is not the same as assigned
+      */
+    DLLLOCAL void unassignThread(ExceptionSink *xsink) override {
+        if (tid.load(std::memory_order_relaxed) != -1 && tid.load(std::memory_order_relaxed) != gettid()) {
+            xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d; unassignment may "
+                "be processed from that thread (accessed from TID %d)", getName(), tid.load(std::memory_order_relaxed), gettid());
+        }
+        // we need to ensure that the write operation here is visible in the new thread in the reassignThread() call
+        tid.store(-1, std::memory_order_release);
+    }
 
-   /**
-    * @brief Get currently assigned thread id
-    */
-   DLLLOCAL int getThreadId() {
-      QoreAutoRWReadLocker al(lck);
-      return tid;
-   }
+    /**
+      * @brief Get currently assigned thread id
+      */
+    DLLLOCAL int getThreadId() {
+        return tid.load(std::memory_order_relaxed);
+    }
 
-protected:
-   /**
-    * @brief Constructor.
-    */
-   InputStreamBase() : tid(gettid()) {
-   }
+    protected:
+    /**
+      * @brief Constructor.
+      */
+    InputStreamBase() : tid(gettid()) {
+    }
 
-   /**
-    * @brief Returns the name of the class.
-    * @return the name of the class
-    */
-   DLLLOCAL virtual const char *getName() = 0;
+    /**
+      * @brief Returns the name of the class.
+      * @return the name of the class
+      */
+    DLLLOCAL virtual const char *getName() = 0;
 
 private:
-   QoreRWLock lck;
-   volatile int tid;                             //!< The id of the thread that created the instance
+    //! The id of the thread that created the instance
+    /** only the unassignThread() and reassignThread() operations need to be synchronized;
+        all other reads can use relaxed memory ordering (no cache flushes or inter-thread
+        synchronization)
+    */
+    std::atomic<int> tid;
 };
 
 #endif // _QORE_INPUTSTREAMBASE_H

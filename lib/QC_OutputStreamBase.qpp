@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,13 +34,13 @@
 //! This class defines an abstract interface for single thread output streams
 /**
     Base class for stream classes whichare not designed to be accessed from multiple threads; they have been implemented without locking for fast and efficient use when used from a single thread.  For methods that would be unsafe to use in another thread, any use of such methods in threads other than the thread where the constructor was called will cause a \c STREAM-THREAD-ERROR to be thrown.
- 
+
     @since %Qore 0.9
  */
 qclass OutputStreamBase [arg=OutputStreamBase* os; ns=Qore; vparent=OutputStream];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
-/** 
+/**
   @throw OUTPUTSTREAMBASE-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
  */
 OutputStreamBase::constructor() {
@@ -61,7 +61,7 @@ nothing OutputStreamBase::close() {
 
     @par Example:
     @code{.py}
-    
+
     OutputStream os;
     .....
     os.write(<0405>);
@@ -80,7 +80,7 @@ nothing OutputStreamBase::write(binary data) {
 
 //! Reassigns current thread as thread used for stream manipulation
 /**
-	Only from one thread the stream instance may be used as there is no locking 
+	Only from one thread the stream instance may be used as there is no locking
  */
 nothing OutputStreamBase::reassignThread() {
 	 os->reassignThread(xsink);
@@ -88,7 +88,7 @@ nothing OutputStreamBase::reassignThread() {
 
 //! Unassigns current thread as thread used for stream manipulation
 /**
-	Only from one thread the stream instance may be used as there is no locking 
+	Only from one thread the stream instance may be used as there is no locking
  */
 nothing OutputStreamBase::unassignThread() {
 	 os->unassignThread(xsink);
