@@ -22,7 +22,7 @@ class Test inherits QUnit::Test {
 
     constructor() : QUnit::Test("Logger", "1.0", \ARGV) {
         addTestCase("LoggerLevel", \testLoggerLevel());
-        addTestCase("LoggerLoggingEvent", \testLoggerLoggingEvent());
+        addTestCase("LoggerEvent", \testLoggerEvent());
         addTestCase("LoggerLayout", \testLoggerLayout());
         addTestCase("LoggerFilter", \testLoggerFilter());
         addTestCase("LoggerAppender", \testLoggerAppender());
@@ -75,10 +75,10 @@ class Test inherits QUnit::Test {
 
     }
 
-    testLoggerLoggingEvent() {
-        LoggerLoggingEvent lle;
-        date ts = LoggerLoggingEvent::getStartTime() + 1D;
-        lle = new LoggerLoggingEvent('fqcn', 'ctg', LoggerLevel::getLevelError(), 'test: %d, %d', (1, 2), NOTHING, gettid(), ts, NOTHING);
+    testLoggerEvent() {
+        LoggerEvent lle;
+        date ts = LoggerEvent::getStartTime() + 1D;
+        lle = new LoggerEvent('fqcn', 'ctg', LoggerLevel::getLevelError(), 'test: %d, %d', (1, 2), NOTHING, gettid(), ts, NOTHING);
         assertEq(lle.getFullQualifiedClassname(), 'fqcn');
         assertEq(lle.getCategoryName(), 'ctg');
         assertTrue(lle.getLevel().isEqual(LoggerLevel::getLevelError()));
@@ -88,7 +88,7 @@ class Test inherits QUnit::Test {
         assertEq(lle.getRelativeTime(), 1D);
 
         Logger l('testLogger');
-        lle = new LoggerLoggingEvent(l, LoggerLevel::getLevelError(), 'test: %d, %d');
+        lle = new LoggerEvent(l, LoggerLevel::getLevelError(), 'test: %d, %d');
         assertEq(lle.getFullQualifiedClassname(), get_class_name(l));
         assertEq(lle.getCategoryName(), 'testLogger');
         assertEq(lle.getLogger(), l);
@@ -110,9 +110,9 @@ class Test inherits QUnit::Test {
         } catch (hash<ExceptionInfo> ex) {
             ei = ex;
         }
-        LoggerLoggingEvent::setStartTime(2000-01-01T00:00:00);
-        date ts = LoggerLoggingEvent::getStartTime() + 1D;
-        LoggerLoggingEvent lle = new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF', (), csi, 123, ts, ei);
+        LoggerEvent::setStartTime(2000-01-01T00:00:00);
+        date ts = LoggerEvent::getStartTime() + 1D;
+        LoggerEvent lle = new LoggerEvent('Logger', 'mylogger', LoggerLevel::getLevelError(), 'ABCDEF', (), csi, 123, ts, ei);
         hash patterns = (
             "": (
                 "parsed": (),
@@ -249,16 +249,25 @@ class Test inherits QUnit::Test {
                 "output": format_date("DD.MM.YYYY HH:mm:SS", lle.getTimeStamp()),
             ),
 
-            "%c{1} %c{XXX} %C{2}%n": (
+            "%c %c{XXX} %C%n": (
                 "parsed": (
-                    ("key": "c", "option": "1"),
+                    ("key": "c"),
                     " ",
                     ("key": "c", "option": "XXX"),
                     " ",
-                    ("key": "C", "option": "2"),
+                    ("key": "C"),
                     ("key": "n"),
                 ),
-                "output": "d a.b.c.d C.Logger" + LoggerLayoutPattern::getLineDelimiter(),
+                "output": "mylogger mylogger Logger" + LoggerLayoutPattern::getLineDelimiter(),
+            ),
+
+            "%E{"+ENV.firstKey()+"}|%E{"+ENV.lastKey()+"}": (
+                "parsed": (
+                    ("key": "E", "option": ENV.firstKey()),
+                    "|",
+                    ("key": "E", "option": ENV.lastKey()),
+                ),
+                "output": ENV.firstValue()+"|"+ENV.lastValue(),
             ),
 
             "%r{%010d} [%t] %p %c - %m%n": (
@@ -274,7 +283,7 @@ class Test inherits QUnit::Test {
                     ("key": "m"),
                     ("key": "n"),
                 ),
-                "output": "0086400000 [123] ERROR a.b.c.d - ABCDEF"+LoggerLayoutPattern::getLineDelimiter(),
+                "output": "0086400000 [123] ERROR mylogger - ABCDEF"+LoggerLayoutPattern::getLineDelimiter(),
             ),
         );
         foreach string patt in (keys patterns) {
@@ -307,7 +316,7 @@ class Test inherits QUnit::Test {
         csi.source = "testsource";
         csi.line = 987;
         csi.function = "myfunction";
-        LoggerLoggingEvent lle = new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF', (), csi, 123);
+        LoggerEvent lle = new LoggerEvent('Logger', 'mylogger', LoggerLevel::getLevelError(), 'ABCDEF', (), csi, 123);
         LoggerFilterLevel lfl(); # INFO-OFF
         # max > min
         assertEq(LoggerLevel::getLevelInfo(), lfl.getMinLevel());
@@ -364,7 +373,7 @@ class Test inherits QUnit::Test {
         LoggerFilterLevel lfl(LoggerLevel::ERROR);
         LoggerFilterRegex lfr("^A");
         LoggerFilterRegex lfr2("DUMMY");
-        LoggerLoggingEvent lle = new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF');
+        LoggerEvent lle = new LoggerEvent('Logger', 'mylogger', LoggerLevel::getLevelError(), 'ABCDEF');
         assertEq("TEST", la.getName());
         assertFalse(la.isActive());
         assertEq(llp, la.getLayout());
@@ -406,7 +415,7 @@ class Test inherits QUnit::Test {
         StringOutputStream sos();
         StreamWriter sw(sos);
         LoggerAppenderStream la("TEST", new LoggerLayoutPattern("%m"), sw);
-        LoggerLoggingEvent lle = new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF');
+        LoggerEvent lle = new LoggerEvent('Logger', 'mylogger', LoggerLevel::getLevelError(), 'ABCDEF');
         assertFalse(la.isActive());
         assertEq(NOTHING, la.getQueue());
         LoggerAppenderQueue laq = new LoggerAppenderQueue();
@@ -431,7 +440,7 @@ class Test inherits QUnit::Test {
 
     startPostThread(LoggerAppender la) {
         try {
-            assertTrue(la.post(new LoggerLoggingEvent('A.B.C.Logger', 'a.b.c.d', LoggerLevel::getLevelError(), 'ABCDEF')));
+            assertTrue(la.post(new LoggerEvent('Logger', 'e', LoggerLevel::getLevelError(), 'ABCDEF')));
         } catch (hash ex) {
             printf("Ex: %y\n", ex);
         }
@@ -530,7 +539,7 @@ class Test inherits QUnit::Test {
         string fn = tmp_location() + DirSep + "qore_logger_test_15432ewqhkofl.log";
         unlink(fn);
         LoggerAppenderFile la("TEST", new LoggerLayoutPattern("%m"), fn);
-        LoggerLoggingEvent lle = new LoggerLoggingEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST");
+        LoggerEvent lle = new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST");
         assertFalse(la.getFile().isOpen());
         la.open();
         assertTrue(la.getFile().isOpen());
@@ -571,7 +580,7 @@ class Test inherits QUnit::Test {
         for (int rot = 0; rot < 3 * maxRotate; rot++) {
             assertEq(sprintf(fn2, rot % maxRotate), la.getFileName());
             string prevFilename = la.getFileName();
-            LoggerLoggingEvent lle = new LoggerLoggingEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST");
+            LoggerEvent lle = new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST");
             la.post(lle);
             la.rotate();
             assertEq(sprintf(fn2, (rot+1) % maxRotate), la.getFileName());
@@ -583,7 +592,7 @@ class Test inherits QUnit::Test {
         la.rotate();
         assertEq(sprintf(fn2, 1), la.getFileName());
         sleep(1200ms); # we need unique mtime
-        la.post(new LoggerLoggingEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST"));
+        la.post(new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST"));
         la.close();
         assertFalse(la.isActive());
         assertFalse(la.getFile().isOpen());
@@ -607,13 +616,13 @@ class Test inherits QUnit::Test {
         assertEq(fn, la.getFileName());
         la.open();
         assertTrue(la.getFile().isOpen());
-        LoggerLoggingEvent lle = new LoggerLoggingEvent("Logger", "a", LoggerLevel::getLevelError(), "ARCHIVE");
+        LoggerEvent lle = new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "ARCHIVE");
         la.post(lle);
         string afn = la.archive();
         assertTrue(la.getFile().isOpen());
         assertTrue(is_file(afn));
         assertThrows("LOGGER-ERROR", "Target file already exists", \la.archive());
-        lle = new LoggerLoggingEvent("Logger", "a", LoggerLevel::getLevelError(), "LOG");
+        lle = new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "LOG");
         la.post(lle);
         la.close();
         string s = ReadOnlyFile::readTextFile(la.getFileName());
@@ -712,7 +721,7 @@ class Test inherits QUnit::Test {
         assertEq(True, l1.getAdditivity());
 
         # arrange appenders
-        LoggerLayoutPattern llp("%c{1}/%m");
+        LoggerLayoutPattern llp("%c/%m");
         StringOutputStream sos1();
         StreamWriter sw1(sos1);
         LoggerAppenderStream la1("TEST", llp, sw1);
