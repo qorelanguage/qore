@@ -121,26 +121,6 @@ public:
       */
     virtual void write(const void *ptr, int64 count, ExceptionSink *xsink) = 0;
 
-    /**
-      * @brief Reassigns current thread as thread used for stream manipulation
-      *
-      * Default implementation does nothing, the functionality should be implemented
-      * if the stream instance is supposed to be single threaded
-      *
-      * @param xsink the exception sink
-      */
-    virtual void reassignThread(ExceptionSink *xsink) {}
-
-    /**
-      * @brief Unassigns current thread as thread used for stream manipulation
-      *
-      * Default implementation does nothing, the functionality should be implemented
-      * if the stream instance is supposed to be single threaded
-      *
-      * @param xsink the exception sink
-      */
-    virtual void unassignThread(ExceptionSink *xsink) {}
-
 protected:
     /**
       * @brief Constructor.
