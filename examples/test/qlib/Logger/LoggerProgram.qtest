@@ -28,7 +28,7 @@ class Test inherits QUnit::Test {
 
     private LoggerAppenderStream startProgram(LoggerRoot lr, LoggerLayoutPattern llp, LoggerAppenderQueue laq, bool unassignThread, int n, int iterCnt) {
         Logger l(sprintf("P-%d", n));
-        OutputStreamBase osb = new StringOutputStream();
+        OutputStream osb = new StringOutputStream();
         if (unassignThread) {
             osb.unassignThread();
         }
@@ -65,7 +65,7 @@ class Test inherits QUnit::Test {
     hash prepareAppenders(bool unassignThread, int programCount, int iterCnt) {
         LoggerRoot lr("INFO");
         LoggerLayoutPattern llp("%r [%t] %p %c %l - %m%n");
-        OutputStreamBase osb = new StringOutputStream();
+        OutputStream osb = new StringOutputStream();
         if (unassignThread) {
             osb.unassignThread();
         }
@@ -111,13 +111,13 @@ class Test inherits QUnit::Test {
 
     assertAppenderLogs(hash appenders, int programCount, int iterCnt) {
         foreach string k in (keys appenders) {
-            *OutputStreamBase osb = appenders{k}.la.getOutputStreamBase();
-            if (osb) {
-                osb.reassignThread();
+            bool assignThread = appenders{k}.la.hasAssignThread();
+            if (assignThread) {
+                appenders{k}.la.getStreamWriter().getOutputStream().reassignThread();
             }
             on_exit {
-                if (osb) {
-                    osb.unassignThread();
+                if (assignThread) {
+                    appenders{k}.la.getStreamWriter().getOutputStream().unassignThread();
                 }
             }
             string s = appenders{k}.la.getStreamWriter().getOutputStream().getData();

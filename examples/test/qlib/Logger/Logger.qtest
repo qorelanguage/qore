@@ -469,7 +469,7 @@ class Test inherits QUnit::Test {
         LoggerAppenderStream la("TEST", llp, sw);
         la.setQueue(new LoggerAppenderQueue());
         la.open();
-        assertEq(NOTHING, la.getOutputStreamBase());
+        assertFalse(la.hasAssignThread());
 
         m_counter.inc();
         int tid = background startPostThread(la);
@@ -520,7 +520,7 @@ class Test inherits QUnit::Test {
         StreamWriter sw(sos);
         LoggerAppenderStream la("TEST", new LoggerLayoutPattern("%m[%t]"), sw);
         la.setQueue(new LoggerAppenderQueue());
-        assertEq(sos, la.getOutputStreamBase());
+        assertTrue(la.hasAssignThread());
         la.open();
 
         m_counter.inc();
