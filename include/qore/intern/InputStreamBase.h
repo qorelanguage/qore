@@ -103,12 +103,13 @@ d       */
       * @throws STREAM-THREAD-ERROR if the current thread is already assigned to another thread
       */
     DLLLOCAL void reassignThread(ExceptionSink *xsink) override {
-        if (tid.load(std::memory_order_relaxed) != -1 && tid.load(std::memory_order_relaxed) != gettid()) {
+        // use an atomic compare and exchange to ensure that we only update a stream where the thread is unassigned
+        int chktid = -1;
+        if (!tid.compare_exchange_strong(chktid, gettid(), std::memory_order_consume, std::memory_order_relaxed)) {
             xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d;"
                 "(accessed from TID %d)", getName(), tid.load(std::memory_order_relaxed), gettid());
+            return;
         }
-        // we need to ensure that this read is atomic with respect to the write operation in the unassignThread() call
-        tid.store(gettid(), std::memory_order_consume);
     }
 
     /**
