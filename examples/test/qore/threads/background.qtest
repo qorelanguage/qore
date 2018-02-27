@@ -11,8 +11,16 @@
 
 %exec-class Test
 
+class BGTest {
+    int add(int arg) {
+        return arg;
+    }
+}
+
 class Test inherits QUnit::Test {
     public {
+        BGTest test();
+
         const Code = "
 %exec-class T
 
@@ -27,7 +35,12 @@ class T {
         addTestCase("background operator tests", \basicTests());
         addTestCase("issue 1467", \issue1467());
         addTestCase("issue 2637", \issue2637());
+        addTestCase("issue 2653", \issue2653());
         set_return_value(main());
+    }
+
+    issue2653() {
+        background test.add(1);
     }
 
     issue1467() {

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -81,6 +81,14 @@ public:
       }
       QoreBigIntNode *res = resHolder->get<QoreBigIntNode>();
       return res->val;
+   }
+
+   /**
+     * @brief Returns the name of the class.
+     * @return the name of the class
+     */
+   DLLLOCAL virtual const char *getName() override {
+      return "InputStreamWrapper";
    }
 
 private:
