@@ -36,6 +36,8 @@
 
 #include <atomic>
 
+DLLEXPORT extern QoreClass* QC_STREAMBASE;
+
 /**
  * @brief Base class for private data of stream implementations in C++.
  */
