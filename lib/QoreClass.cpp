@@ -1558,7 +1558,7 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
       }
       //printd(5, "BCNode::parseInit() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
    }
-   int rc = 0;
+   int rc;
    // recursively add base classes to special method list
    if (sclass) {
       if (!qcp_set.insert(sclass->priv).second) {
@@ -1577,6 +1577,8 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
 
       rc = sclass->priv->initializeHierarchy(qcp_set);
    }
+   else
+      rc = -1;
    return rc;
 }
 

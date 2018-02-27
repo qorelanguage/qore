@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum required Qore version
+%requires qore >= 0.9
 
 # requires the Util module
 %requires Util >= 1.0
@@ -101,8 +101,9 @@ module SqlUtil {
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
     @subsection sqlutilv1_5 SqlUtil v1.5
-    - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement"
-    - deprecated @ref SqlUtil::AbstractTable::getRowIterator() "AbstractTable::getRowIterator()" for @ref SqlUtil::AbstractTable::getStatement() "AbstractTable::getStatement()"
+    - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+    - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
+    - deprecated @ref SqlUtil::AbstractTable::getRowIterator() "AbstractTable::getRowIterator()" for @ref SqlUtil::AbstractTable::getStatement() "AbstractTable::getStatement()" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
 
     @subsection sqlutilv1_4_3 SqlUtil v1.4.3
     - implemented support for an optional error-handling method in SQL callbacks to allow SqlUtil to recover from error scenarios in schema creation/alignment (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
@@ -4747,14 +4748,127 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         "mysql",
         "freetds",
         "sybase",
-        );
+    );
+
+    # private variable to store the closure used to deserialize datasources (if any)
+    our code ds_get;
+
+    # private variable to store the closure used to serialize datasources (if any)
+    our code ds_do;
+
+    #! registers a closure or call reference taking a string type and string datasource configuration that will return an AbstractDatasource
+    public sub sqlutil_register_ds_deserializer(*code new_ds_get) {
+        ds_get = new_ds_get;
+    }
+
+    #! registers a closure or call reference taking a string type and string datasource configuration that will return an AbstractDatasource
+    public sub sqlutil_register_ds_serializer(*code new_ds_do) {
+        ds_do = new_ds_do;
+    }
+
+    # private function used to deserialize datasources
+    AbstractDatasource sub sqlutil_get_ds(string type, string config) {
+        if (ds_get)
+            return ds_get(type, config);
+
+        switch (type) {
+            case "DatasourcePool":
+                return new DatasourcePool(config);
+            case "Datasource":
+                return new Datasource(config);
+            default:
+                throw "DATASOURCE-DESERIALIZATION-ERROR", sprintf("cannot deserialize datasource of unknown type %y with config %y", type, config);
+        }
+    }
+
+    # private function used to serialize datasources
+    hash<auto> sub sqlutil_ds(AbstractDatasource ds) {
+        if (ds_do)
+            return ds_do(ds);
+
+        return {
+            "ds_type": ds.className(),
+            "ds": ds.getConfigString(),
+        };
+    }
+
+    #! hash used for deserializing objects
+    public hashdecl SqlUtilDeserialization {
+        #! the class name
+        string className;
+        #! serialized member data
+        hash<auto> members;
+    }
+
+    # private base class for serializable objects
+    public class Serializable {
+        #! for classes that inherit multiple Serializable classes
+        private constructor() {
+        }
+
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) {
+            deserialize(h.members);
+        }
+
+        # serializes the object's data to a hash
+        hash<SqlUtilDeserialization> serialize() {
+            return new hash<SqlUtilDeserialization>({
+                "members": (map {$1: serializeValue($1, self{$1})}, keys self),
+                "className": self.className(),
+            });
+        }
+
+        # used to deserialize data from a hash
+        private deserialize(hash<auto> members) {
+            map self{$1.key} = deserializeValue($1.key, $1.value), members.pairIterator(), exists $1.value;
+        }
+
+        # returns a serialized value or throws an exception if the value cannot be serialized
+        private auto serializeValue(string key, auto val) {
+            switch (val.typeCode()) {
+                case NT_OBJECT:
+                    return val.serialize();
+                case NT_HASH:
+                    return val ? map {$1.key: serializeValue($1.key, $1.value)}, val.pairIterator() : {};
+                case NT_LIST:
+                    return val ? map serializeValue(key, $1), val : ();
+                case NT_CLOSURE:
+                case NT_CALLREF:
+                    throw "SERIALIZATION-ERROR", sprintf("cannot serialize object of class %y with value of type %y in key %y", self.className(), val.type(), key);
+            }
+
+            return val;
+        }
+
+        # returns a deserialized value for the serialized representation
+        private auto deserializeValue(string key, auto val) {
+            switch (val.typeCode()) {
+                case NT_HASH:
+                    if (val.className && val.hasKey("members")) {
+                        return create_object(val.className, cast<hash<SqlUtilDeserialization>>(val));
+                    }
+                    return val ? map {$1.key: deserializeValue($1.key, $1.value)}, val.pairIterator() : {};
+
+                case NT_LIST:
+                    return val ? map deserializeValue(key, $1), val : ();
+            }
+
+            return val;
+        }
+    }
 
     #! abstract container class that throws an exception if an unknown key is accessed
-    public class AbstractHashContainer {
+    public class AbstractHashContainer inherits Serializable {
         public {}
 
         private {
+            #! the data to be contained
             *hash h;
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object with the hash argument passed
@@ -5089,11 +5203,15 @@ bool b = h.hasKeyValue(key);
     }
 
     #! abstract container class that throws an exception if an unknown key is accessed
-    public class AbstractListContainer {
+    public class AbstractListContainer inherits Serializable {
         public {}
 
         private {
             softlist l;
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object with the list argument passed
@@ -5185,6 +5303,10 @@ int num = l.size();
 
     #! the table container class stores a collection of tables in a schema
     public class Tables inherits AbstractHashContainer {
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
+        }
+
         #! creates an empty object
         constructor() {
         }
@@ -5566,6 +5688,10 @@ map $1.drop(), tables.getDropIterator();
 
     #! column container class that throws an exception if an unknown column is accessed
     public class Columns inherits AbstractHashContainer {
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
+        }
+
         #! creates the object from the argument
         constructor(*hash c) : AbstractHashContainer(c) {
         }
@@ -5631,7 +5757,7 @@ AbstractColumn c = cols.id;
     }
 
     #! the base class for column information
-    public class AbstractColumn {
+    public class AbstractColumn inherits Serializable {
         public {
             #! the name of the column
             string name;
@@ -5653,6 +5779,14 @@ AbstractColumn c = cols.id;
 
             #! comment on the column
             *string comment;
+        }
+
+        #! empty constructor for subclasses
+        private constructor() {
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string c) {
@@ -5778,10 +5912,14 @@ list l = col.getModifySql(t, newcol);
     }
 
     #! the base class to use to extend AbstractColumn to implement numeric columns
-    public class NumericColumnInfo {
+    public class NumericColumnInfo inherits Serializable {
         public {
             #! the scale for numeric columns
             int scale;
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         constructor(softint n_scale = 0) {
@@ -5803,6 +5941,10 @@ list l = col.getModifySql(t, newcol);
 
     #! index container class that throws an exception if an unknown index is accessed
     public class Indexes inherits AbstractHashContainer {
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
+        }
+
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
@@ -5855,7 +5997,7 @@ AbstractIndex ix = indexes.pk_jobs;
     }
 
     #! the abstract base class for index information
-    public class AbstractIndex {
+    public class AbstractIndex inherits Serializable {
         public {
             #! the name of the index
             string name;
@@ -5870,6 +6012,10 @@ AbstractIndex ix = indexes.pk_jobs;
         private {
             #! the AbstractColumnSupportingConstraint that this index supports, if any
             *AbstractColumnSupportingConstraint constraint;
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object from the name, a unique flag, and a hash of column information
@@ -5967,6 +6113,10 @@ AbstractIndex ix = indexes.pk_jobs;
 
     #! constraint container class that throws an exception if an unknown constraint is accessed
     public class Constraints inherits AbstractHashContainer {
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
+        }
+
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
@@ -6017,12 +6167,20 @@ AbstractConstraint ix = constraints.uk_jobs;
     }
 
     #! abstract base class for constraints
-    public class AbstractConstraint {
+    public class AbstractConstraint inherits Serializable {
         public {}
 
         private {
             #! the name of the constraint
             string name;
+        }
+
+        #! used for deserialization
+        private constructor() {
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object and sets its name
@@ -6091,6 +6249,10 @@ AbstractConstraint ix = constraints.uk_jobs;
             string src;
         }
 
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractConstraint(h) {
+        }
+
         #! creates the object and sets its name and the check clause source
         constructor(string n, string n_src) : AbstractConstraint(n) {
             name = n;
@@ -6120,6 +6282,11 @@ AbstractConstraint ix = constraints.uk_jobs;
 
             #! the index supporting the constraint
             *string index;
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) {
+            deserialize(h.members);
         }
 
         #! creates the object from the name and a hash of column information
@@ -6264,6 +6431,10 @@ uk.addSourceConstraint(table_name, constraint_name);
 
     #! represents a unique column constraint
     public class AbstractUniqueConstraint inherits AbstractColumnSupportingConstraint {
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractColumnSupportingConstraint(h) {
+        }
+
         #! creates the object from the name an a hash of column information
         constructor(string n, *hash c, *string n_index) : AbstractColumnSupportingConstraint(n, c, n_index) {
         }
@@ -6271,6 +6442,10 @@ uk.addSourceConstraint(table_name, constraint_name);
 
     #! represents a primary key
     public class AbstractPrimaryKey inherits AbstractUniqueConstraint {
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractUniqueConstraint(h) {
+        }
+
         constructor() : AbstractUniqueConstraint("") {
         }
 
@@ -6280,6 +6455,10 @@ uk.addSourceConstraint(table_name, constraint_name);
 
     #! foreign constraint container class that throws an exception if an unknown constraint is accessed
     public class ForeignConstraints inherits AbstractHashContainer {
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
+        }
+
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
@@ -6336,13 +6515,17 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! a class describing a foreign constraint target
-    public class ForeignConstraintTarget {
+    public class ForeignConstraintTarget inherits Serializable {
         public {
             #! the name of the target table
             string table;
 
             #! columns in the target table
             Columns columns;
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object and sets the target table name and the target columns
@@ -6364,6 +6547,10 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             ForeignConstraintTarget target;
         }
 
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractColumnSupportingConstraint(h) {
+        }
+
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractColumnSupportingConstraint(n, c) {
             target = t;
         }
@@ -6378,7 +6565,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for sequences
-    public class AbstractSequence {
+    public class AbstractSequence inherits Serializable {
         public {
             #! the name of the sequence
             string name;
@@ -6391,6 +6578,10 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
             #! the ending number
             *number max;
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object from the arguments
@@ -6427,7 +6618,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for views
-    public class AbstractView {
+    public class AbstractView inherits Serializable {
         public {
             # ! potential object schema
             *string schema;
@@ -6440,6 +6631,10 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
             #! Flag showing if is the view updatable with DML commands.
             bool updatable;
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object from the arguments
@@ -6466,7 +6661,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for function or objects with code
-    public class AbstractFunctionBase {
+    public class AbstractFunctionBase inherits Serializable {
         public {
             #! the name of the object
             string name;
@@ -6476,6 +6671,10 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
             #! the source of the object
             string src;
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object from the arguments passed
@@ -6527,6 +6726,10 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
     #! base class for functions
     public class AbstractFunction inherits AbstractFunctionBase {
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractFunctionBase(h) {
+        }
+
         #! creates the object from the arguments passed
         /** @param n the name of the object
             @param n_type the type of object
@@ -6552,6 +6755,10 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
     #! function container class that throws an exception if an unknown function is accessed
     public class Functions inherits AbstractHashContainer {
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
+        }
+
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
@@ -6592,6 +6799,10 @@ AbstractFunction f = funcs.func1;
 
     #! the base class for triggers
     public class AbstractTrigger inherits AbstractFunctionBase {
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractFunctionBase(h) {
+        }
+
         #! creates the object and sets its name and the trigger source
         constructor(string n, string n_src) : AbstractFunctionBase(n, "trigger", n_src) {
         }
@@ -6608,6 +6819,10 @@ AbstractFunction f = funcs.func1;
 
     #! trigger container class that throws an exception if an unknown trigger is accessed
     public class Triggers inherits AbstractHashContainer {
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
+        }
+
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
@@ -6729,7 +6944,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
     }
 
     #! base class for abstract SqlUtil classes
-    public class AbstractSqlUtilBase {
+    public class AbstractSqlUtilBase inherits Serializable {
         private {
             #! the connection to the database server
             AbstractDatasource ds;
@@ -6739,6 +6954,22 @@ AbstractDatabase db("pgsql:user/pass@db%host");
             Mutex l();
             #! option hash
             *hash opts;
+        }
+
+        #! used for deserialization
+        constructor(hash<SqlUtilDeserialization> h) {
+            ds = sqlutil_get_ds(h.members.ds.ds_type, h.members.ds.ds);
+            deserialize(h.members - "ds");
+        }
+
+        # serializes the object's data to a hash
+        hash<SqlUtilDeserialization> serialize() {
+            return new hash<SqlUtilDeserialization>({
+                "className": self.className(),
+                "members": {
+                    "ds": sqlutil_ds(ds),
+                } + map {$1: serializeValue($1, self{$1})}, keys self, $1 != "ds" && $1 != "l",
+            });
         }
 
         #! creates the object; private constructor
@@ -8420,20 +8651,20 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c native_case: (@ref bool_type) if @ref Qore::True "True" then objects will be returned in the case the database server returns them in even if the database server uses case-insensitive names; normally in this case %SqlUtil will convert the names to lower-case
                 - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
             */
-            const TableOptions = (
+            const TableOptions = {
                 "native_case": Type::Boolean,
                 "table_cache": "Tables",
-                );
+            };
 
             #! default index options
             /**
                 - \c index_tablespace: (@ref string_type) a string giving the index tablespace to use for indexes
                 - \c replace: (@ref bool_type) if @ref Qore::True "True" and supported by the underlying db driver "create or replace" text is used when creating objects
             */
-            const IndexOptions = (
+            const IndexOptions = {
                 "index_tablespace": Type::String,
                 "replace": Type::Boolean,
-                );
+            };
 
             #! default constraint options
             /** currently this option is identical to @ref SqlUtil::AbstractTable::IndexOptions
@@ -8441,17 +8672,17 @@ Table table("pgsql:user/pass@db%host", "table");
             const ConstraintOptions = IndexOptions;
 
             #! default cache options
-            const CacheOptions = (
+            const CacheOptions = {
                 "table_cache": "Tables",
-                );
+            };
 
             #! default foreign constraint options
             /** The following keys can be set for this option:
                 - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
             */
-            const ForeignConstraintOptions = ConstraintOptions + (
+            const ForeignConstraintOptions = ConstraintOptions + {
                 "table_cache": "Tables",
-                );
+            };
 
             #! default trigger options
             /** currently this option is identical to @ref AbstractDatabase::CreationOptions
@@ -8461,7 +8692,7 @@ Table table("pgsql:user/pass@db%host", "table");
             #! default possible select options; can be extended by driver-specific modules
             /** @see @ref select_option_hash for more information on the default possible select options; see driver-specific information for any additional select options supported by the driver-specific module
              */
-            const SelectOptions = (
+            const SelectOptions = {
                 "alias": Type::String,
                 "comment": Type::String,
                 "hint": Type::String,
@@ -8476,22 +8707,22 @@ Table table("pgsql:user/pass@db%host", "table");
                 "having": Type::Hash,
                 "superquery": Type::Hash,
                 "forupdate": Type::Boolean,
-                );
+            };
 
             #! alignment omission options
-            const TableOmissionOptions = (
+            const TableOmissionOptions = {
                 "indexes": True,
                 "foreign_constraints": True,
                 "triggers": True,
-                );
+            };
 
             #! table creation options
             /** currently this option is a combination of @ref SqlUtil::AbstractTable::IndexOptions and @ref AbstractDatabase::CreationOptions plus the following:
                 - \c omit: a list pf attributes to omit; possible values are: \c indexes, \c foreign_constraints, \c triggers (see @ref TableOmissionOptions)
             */
-            const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions + (
+            const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions + {
                 "omit": "softstringlist",
-                );
+            };
 
             #! table alignment options
             /** currently this option is a combination of @ref SqlUtil::AbstractTable::TableCreationOptions and the following options:
@@ -8502,14 +8733,14 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c db_table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining tables in the database and foreign key relationships between tables
                 - \c force: (@ref bool_type) if @ref Qore::True "True" and supported by the driver and object, any objects dropped will be dropped with \c FORCE or \c CASCADE options
             */
-            const AlignTableOptions = TableCreationOptions + (
+            const AlignTableOptions = TableCreationOptions + {
                 "column_map": Type::Hash,
                 "index_map": Type::Hash,
                 "constraint_map": Type::Hash,
                 "trigger_map": Type::Hash,
                 "db_table_cache": "Tables",
                 "force": Type::Boolean,
-                );
+            };
 
             #! Table description options
             /** this option is made up of the following keys:
@@ -8523,7 +8754,7 @@ Table table("pgsql:user/pass@db%host", "table");
 
                 @see @ref table_desc_hash
             */
-            const TableDescriptionHashOptions = (
+            const TableDescriptionHashOptions = {
                 "columns": Type::Hash,
                 "primary_key": Type::Hash,
                 "indexes": Type::Hash,
@@ -8532,7 +8763,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 "unique_constraints": Type::Hash,
                 #"check_constraints": Type::Hash,
                 "table_cache": "Tables",
-                );
+            };
 
             #! Column description options
             /** this option is made up of the following keys:
@@ -8547,7 +8778,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
                 @see @ref column_desc_hash
             */
-            const ColumnDescOptions = (
+            const ColumnDescOptions = {
                 "qore_type": Type::String,
                 "native_type": Type::String,
                 "size": Type::Int,
@@ -8557,15 +8788,15 @@ Table table("pgsql:user/pass@db%host", "table");
                 "comment": Type::String,
                 "notnull": Type::Boolean,
                 "driver": Type::Hash,
-                );
+            };
 
             #! additional column description keys valid when describing columns in a @ref table_desc_hash "table description hash"
             /** the following keys are valid in a @ref table_desc_hash "table description hash" in addition to any @ref SqlUtil::AbstractTable::ColumnDescOptions "AbstractTable::ColumnDescOptions":
                 - \c notnull: (@ref bool_type) if @ref Qore::True "True" then the column will have a not null constraint
             */
-            const AdditionalColumnDescOptions = (
+            const AdditionalColumnDescOptions = {
                 "notnull": Type::Boolean,
-                );
+            };
 
             #! Column options; this is currently empty and can be extended in database-specific modules
             const ColumnOptions = {};
@@ -8575,10 +8806,10 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c sqlarg_callback: see @ref sqlarg_callback
                 - \c tablecode: a closure taking a string table name and returning an AbstractTable object for late resolution of table names in joins
             */
-            const SqlDataCallbackOptions = (
+            const SqlDataCallbackOptions = {
                 "sqlarg_callback": "code",
                 "tablecode": "code",
-                );
+            };
 
             #! generic SQL insert options
             /** In addition to any @ref SqlDataCallbackOptions, the following keys can be set for this option:
@@ -8590,9 +8821,9 @@ Table table("pgsql:user/pass@db%host", "table");
 
                 @note using \c "returning" with a database that does not support this clause will cause an exception to be thrown; see @ref SqlUtil::AbstractTable::hasReturning()
             */
-            const InsertOptions = SqlDataCallbackOptions + (
+            const InsertOptions = SqlDataCallbackOptions + {
                 "returning": "stringhashlist",
-            );
+            };
 
             #! default upsert option keys
             /** The following keys can be set for this option:
@@ -8601,22 +8832,22 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c info_callback: see @ref upsert_info_callback
                 - \c omit_update: allows for an asymmetrical upsert where a set of column values is inserted, but a smaller set is updated in case the unique key values are present in the target table; the value of this key should be set to the columns to omit in the update clause
             */
-            const UpsertOptions = (
+            const UpsertOptions = {
                 "info_callback": "code",
                 "commit_block": Type::Int,
                 "delete_others": Type::Boolean,
                 "omit_update": "softstringlist",
-                );
+            };
 
             #! default insert option keys
             /** In addition to any @ref SqlDataCallbackOptions, the following keys can be set for this option:
                 - \c info_callback: see @ref insert_info_callback
                 - \c commit_block: the number of changes made before an automatic commit is made for insert methods that perform commits
             */
-            const InsertFromIteratorOptions = SqlDataCallbackOptions + (
+            const InsertFromIteratorOptions = SqlDataCallbackOptions + {
                 "info_callback": "code",
                 "commit_block": Type::Int,
-                );
+            };
 
             /** @defgroup upsert_options Upsert Strategy Codes
                 These options are used with:
@@ -8682,26 +8913,26 @@ Table table("pgsql:user/pass@db%host", "table");
             #! hash mapping upsert strategy codes to a text description
             /** @see @ref UpsertStrategyDescriptionMap for a reverse mapping
             */
-            const UpsertStrategyMap = (
+            const UpsertStrategyMap = {
                 UpsertInsertFirst: "UpsertInsertFirst",
                 UpsertUpdateFirst: "UpsertUpdateFirst",
                 UpsertSelectFirst: "UpsertSelectFirst",
                 UpsertAuto: "UpsertAuto",
                 UpsertInsertOnly: "UpsertInsertOnly",
                 UpsertUpdateOnly: "UpsertUpdateOnly",
-            );
+            };
 
             #! hash mapping upsert strategy descriptions to upsert strategy codes
             /** @see @ref UpsertStrategyMap for a reverse mapping
             */
-            const UpsertStrategyDescriptionMap = (
+            const UpsertStrategyDescriptionMap = {
                 "UpsertInsertFirst": UpsertInsertFirst,
                 "UpsertUpdateFirst": UpsertUpdateFirst,
                 "UpsertSelectFirst": UpsertSelectFirst,
                 "UpsertAuto": UpsertAuto,
                 "UpsertInsertOnly": UpsertInsertOnly,
                 "UpsertUpdateOnly": UpsertUpdateOnly,
-            );
+            };
             #@}
 
             /** @defgroup upsert_results Upsert Result Codes
@@ -8727,33 +8958,33 @@ Table table("pgsql:user/pass@db%host", "table");
             #! hash mapping upsert results to a description
             /** @see @ref UpsertResultDescriptionMap for a reverse mapping
             */
-            const UpsertResultMap = (
+            const UpsertResultMap = {
                 UR_Inserted: "inserted",
                 UR_Verified: "verified",
                 UR_Updated: "updated",
                 UR_Unchanged: "unchanged",
                 UR_Deleted: "deleted",
-                );
+            };
 
             #! hash mapping upsert descriptions to codes
             /** @see @ref UpsertResultMap for a reverse mapping
             */
-            const UpsertResultDescriptionMap = (
+            const UpsertResultDescriptionMap = {
                 "inserted": UR_Inserted,
                 "verified": UR_Verified,
                 "updated": UR_Updated,
                 "unchanged": UR_Unchanged,
                 "deleted": UR_Deleted,
-                );
+            };
 
             #! maps upsert result codes to single letter symbols
-            const UpsertResultLetterMap = (
+            const UpsertResultLetterMap = {
                 UR_Inserted: "I",
                 UR_Verified: "V",
                 UR_Updated: "U",
                 UR_Unchanged: ".",
                 UR_Deleted: "X",
-                );
+            };
         }
 
         private {
@@ -8779,6 +9010,10 @@ Table table("pgsql:user/pass@db%host", "table");
             bool manual = False;
 
             hash m_customCopMap = hash();
+        }
+
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractSqlUtilBase(h) {
         }
 
         #! creates the object; private constructor
@@ -14760,10 +14995,21 @@ any res = t.selectRows(sh, \sql);
                     )
             {
                 throw "CUSTOM-OPERATOR-ERROR",
-                      sprintf("Operator hash must contain key 'code' wit value of type 'closure' or 'callref', got: %s", operator."code".type());
+                      sprintf("Operator hash must contain key 'code' with a value of type 'closure' or 'callref', got: %s", operator."code".type());
             }
 
             m_customCopMap{name} = operator;
+        }
+
+        #! returns an AbstractTable object corresponding to the hash argument which must have been produced by a compatible version of an SqlUtil module using the @ref serialize() method
+        /** @return an AbstractTable object corresponding to the hash argument which must have been produced by a compatible version of an SqlUtil module using the @ref serialize() method
+
+            @see serialize()
+
+            @since SqlUtil 1.5
+        */
+        static AbstractTable deserialize(hash h) {
+            return create_object(h.className, cast<hash<SqlUtilDeserialization>>(h));
         }
 
         #! returns the insert operator map for this object
