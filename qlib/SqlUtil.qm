@@ -4786,9 +4786,12 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         if (ds_do)
             return ds_do(ds);
 
+        string drv = ds.getDriverName();
+
         return {
             "ds_type": ds.className(),
             "ds": ds.getConfigString(),
+            "module": drv[0].upr() + drv.substr(1) + "SqlUtil",
         };
     }
 
