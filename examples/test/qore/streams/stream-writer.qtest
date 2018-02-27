@@ -152,6 +152,8 @@ class StreamWriterTest inherits QUnit::Test {
 
         os.unassignThread();
         assertThrows("STREAM-THREAD-ERROR", \sw.printf(), "err");
+        # make sure subsequence unassigns also work
+        os.unassignThread();
 
         c.inc();
         background handoff(sw, c);
@@ -160,6 +162,8 @@ class StreamWriterTest inherits QUnit::Test {
         assertThrows("STREAM-THREAD-ERROR", \sw.printf(), "err");
         os.reassignThread();
         assertEq("test", os.getData());
+        # make sure subsequence reassigns to the same thread also work
+        os.reassignThread();
     }
 
     threadError(StreamWriter sw, Counter c) {

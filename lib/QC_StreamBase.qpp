@@ -47,7 +47,7 @@ qclass StreamBase [arg=StreamBase* sb; ns=Qore];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
 /**
-  @throw STREAMBASE-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+    @throw STREAMBASE-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
  */
 StreamBase::constructor() {
    xsink->raiseException("STREAMBASE-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
@@ -56,6 +56,8 @@ StreamBase::constructor() {
 //! Reassigns current thread as thread used for stream manipulation
 /** This method must be called from the new thread after calling the
     @ref Qore::StreamBase::unassignThread() "StreamBase::unassignThread()" method in the thread that currently owns the stream
+
+    @throw STREAM-THREAD-ERROR thrown if called when the stream is assigned to another thread
 
     @see @ref Qore::StreamBase::unassignThread() "StreamBase::unassignThread()"
  */
@@ -67,13 +69,15 @@ nothing StreamBase::reassignThread() {
 /** This method must be called in the current thread that owns the stream before calling the
     @ref Qore::StreamBase::reassignThread() "StreamBase::reassignThread()" method in the new thread
 
+    @throw STREAM-THREAD-ERROR thrown if called when the stream is assigned to another thread
+
     @see @ref Qore::StreamBase::reassignThread() "StreamBase::reassignThread()"
  */
 nothing StreamBase::unassignThread() {
 	sb->unassignThread(xsink);
 }
 
-//! Get the currently assigned thread id
+//! Get the currently assigned thread id or -1 if not assigned to any thread
 /**
 */
 int StreamBase::getThreadId() {

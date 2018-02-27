@@ -68,8 +68,11 @@ public:
         // use an atomic compare and exchange to ensure that we only update a stream where the thread is unassigned
         int chktid = -1;
         if (!tid.compare_exchange_strong(chktid, gettid(), std::memory_order_consume, std::memory_order_relaxed)) {
-            xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d;"
-                "(accessed from TID %d)", getName(), chktid, gettid());
+            // do not raise an exception if reassigning to the same thread
+            if (chktid != gettid()) {
+                xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d;"
+                    "(accessed from TID %d)", getName(), chktid, gettid());
+            }
         }
     }
 
@@ -79,15 +82,15 @@ public:
       * @throws STREAM-THREAD-ERROR if the current thread is not the same as assigned
       */
     DLLLOCAL void unassignThread(ExceptionSink *xsink) {
-        // we do not need to use an atomic compare and exchange here, because if the stream is assigned to the current
-        // thread, it's not possible to change, but this also means we can't test that it's already been unassigned,
-        // so that means that two unassign calls without a reassignment between them will cause the seconnd to fail
-        if (tid.load(std::memory_order_relaxed) != gettid()) {
-            xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d; unassignment may "
-                "be processed from that thread (accessed from TID %d)", getName(), tid.load(std::memory_order_relaxed), gettid());
+        // use an atomic compare and exchange to ensure that we only update a stream where the thread is assigned to this thread
+        int chktid = gettid();
+        if (!tid.compare_exchange_strong(chktid, -1, std::memory_order_release, std::memory_order_relaxed)) {
+            // do not raise an exception if already unassigned
+            if (chktid != -1) {
+                xsink->raiseException("STREAM-THREAD-ERROR", "this %s object is assigned to TID %d; unassignment may "
+                "be processed from that thread (accessed from TID %d)", getName(), chktid, gettid());
+            }
         }
-        // we need to ensure that the write operation here is visible in the new thread in the reassignThread() call
-        tid.store(-1, std::memory_order_release);
     }
 
     /**
