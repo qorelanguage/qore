@@ -1535,49 +1535,50 @@ void BCANode::parseInit(BCList* bcl, const char* classname) {
 }
 
 int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
-   if (!sclass) {
-      if (cname) {
-         // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
-         sclass = qore_root_ns_private::parseFindScopedClass(loc, *cname);
-         printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
-         delete cname;
-         cname = 0;
-      }
-      else {
-         // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
-         sclass = qore_root_ns_private::parseFindClass(loc, cstr);
-         printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
-         free(cstr);
-         cstr = 0;
-      }
-      if (cls == sclass) {
-         parse_error(cls->priv->loc, "class '%s' cannot inherit itself", cls->getName());
-         assert(cls->priv->scl);
-         cls->priv->scl->valid = false;
-         sclass = nullptr;
-      }
-      //printd(5, "BCNode::parseInit() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
-   }
-   int rc = 0;
-   // recursively add base classes to special method list
-   if (sclass) {
-      if (!qcp_set.insert(sclass->priv).second) {
-         // issue #2317: ensure that the class is really recursive in the inheritance list before throwing an exception
-         if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*sclass->priv)) {
-            parse_error(sclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", sclass->getName());
-            if (sclass->priv->scl)
-               sclass->priv->scl->valid = false;
-            return -1;
-         }
-         return 0;
-      }
+    if (!sclass) {
+        if (cname) {
+            // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
+            sclass = qore_root_ns_private::parseFindScopedClass(loc, *cname);
+            printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
+            delete cname;
+            cname = 0;
+        }
+        else {
+            // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
+            sclass = qore_root_ns_private::parseFindClass(loc, cstr);
+            printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
+            free(cstr);
+            cstr = 0;
+        }
+        if (cls == sclass) {
+            parse_error(cls->priv->loc, "class '%s' cannot inherit itself", cls->getName());
+            assert(cls->priv->scl);
+            cls->priv->scl->valid = false;
+            sclass = nullptr;
+        }
+        //printd(5, "BCNode::parseInit() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
+    }
+    int rc;
+    // recursively add base classes to special method list
+    if (sclass) {
+        if (!qcp_set.insert(sclass->priv).second) {
+            // issue #2317: ensure that the class is really recursive in the inheritance list before throwing an exception
+            if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*sclass->priv)) {
+                parse_error(sclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", sclass->getName());
+                if (sclass->priv->scl)
+                sclass->priv->scl->valid = false;
+                return -1;
+            }
+            return 0;
+        }
+        if (sclass->priv->final)
+            parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
 
-      if (sclass->priv->final)
-         parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
-
-      rc = sclass->priv->initializeHierarchy(qcp_set);
-   }
-   return rc;
+        rc = sclass->priv->initializeHierarchy(qcp_set);
+    }
+    else
+        rc = -1;
+    return rc;
 }
 
 int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker) {
