@@ -1847,7 +1847,7 @@ public namespace Logger {
     /**
         TODO: Doxygen silently skips next LoggerFilter class without this dummy class with a non empty private {} section
     */
-    private class LoggerDummyBecauseOfDoxygenIssue {
+    /*private*/ class LoggerDummyBecauseOfDoxygenIssue {
         private  {
             any m_dummy;
         }
