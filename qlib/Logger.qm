@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file Logger.qm Logger
+#! @file Logger.qm Logger library
 
 /*  Logger.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 
@@ -49,14 +49,15 @@ module Logger {
 
     @section loggerintro Introduction to the Logger Module
 
-    Logger module, which may be alternatively also called *Log4q*, adopted main design from well known
-    [log4j](https://logging.apache.org/log4j/2.x/) library.
-    So it implements main class @ref Logger and @ref LoggerAppender, @ref LoggerFilter, @ref LoggerLayout abstract base classes
+    Logger module, which may be alternatively also called <b>Log4q</b>, adopted main design from well known
+    <a href="https://logging.apache.org/log4j/2.x">log4j</a> library.
+    So it implements main class @ref Logger::Logger "Logger" and @ref Logger::LoggerAppender "LoggerAppender",
+    @ref Logger::LoggerFilter "LoggerFilter", @ref Logger::LoggerLayout "LoggerLayout" abstract base classes
     where their descendants will implement real functionality.
 
-    = Scenarios
+    @subsection logger_scenarior Scenarios
 
-    == One thread
+    @par One thread
 
     The user code will log to @ref Logger and the logging is performed to appender in sync way.
 
@@ -71,11 +72,11 @@ module Logger {
     l.error("world is not perfect");
     @endcode
 
-    == Multiple thread
+    @par Multiple threads
 
-    The user code will log in own threads, the events are pushed to a @ref LoggerAppenderQueue object. The processing
+    The user code will log in own threads, the events are pushed to a @ref Logger::LoggerAppenderQueue "LoggerAppenderQueue" object. The processing
     is done in dedicated thread when the events are passed to appenders. The the user code logging
-    command is unblocking as it terminates immediately when the event it pushed in the queue.
+    command is unblocking as it terminates immediately when the event is pushed in the queue.
 
     Example:
     @code{.py}
@@ -104,14 +105,14 @@ module Logger {
     }
     @endcode
 
-    == Application server running a few programs
+    @par Application server running a few programs
 
     The appserver provides logger API for sandboxed programs. The appserver
-    is responsible for Log4q configuration, i.e. prepares loggers, appenders, filters. etc.
-    according a configuration and provides @ref Logger instance to @ref Program running a user code.
+    is responsible for <b>Log4q</b> configuration, i.e. prepares loggers, appenders, filters. etc.
+    according a configuration and provides @ref Logger instance to @ref Qore::Program "Program" running a user code.
     The user will log to this instance, the logging events are processed by the appserver in dedidated thread
-    which get event from queue and passes it to appenders. The more logger may be configured in a parent/child hierarchy
-    that more events are logged to logger assigned to sandbox and just critical errors to global appserver logger.
+    which get event from queue and passes it to appenders. The more loggers may be configured in a parent/child hierarchy
+    that more event levels are logged to logger assigned to sandbox and just critical errors to global appserver logger.
 
     Example:
     @code{.py}
@@ -150,11 +151,11 @@ module Logger {
     }
     @endcode
 
-    == Application server running plenty of programs
+    @par Application server running plenty of programs
 
     The same as previous example but to avoid bottle neck then appserver processing thread get the event from
-    queue and passes it to the appender in another worker thread via submittig to the @ref ThreadPool. So events
-    targeted to particular thread may by processed in dirrerent threads but in serial way.
+    queue and passes it to the appender in another worker thread via submittig to the @ref Qore::Thread::ThreadPool "ThreadPool". So events
+    targeted to particular thread may by processed in different threads but in serial way.
 
     Example:
     @code{.py}
@@ -207,10 +208,10 @@ public namespace Logger {
 
     #! Defines the minimum set of levels recognized by the system.
     /**
-        The set of built-in levels includes *TRACE*, *DEBUG*, *INFO*, *WARN*, *ERROR* and *FATAL*. Log4q also supports
-        custom log levels where the *LoggerLevel* class may be subclassed to define a larger level set.
+        The set of built-in levels includes \c TRACE, \c DEBUG, \c INFO, \c WARN, \c ERROR and \c FATAL. Log4q also supports
+        custom log levels where the \c LoggerLevel class may be subclassed to define a larger level set.
 
-        Usage of a built-in *LoggerLevel* instantiates corresponding object which is cached for each level.
+        Usage of a built-in \c LoggerLevel instantiates corresponding object which is cached for each level.
     */
     public class LoggerLevel {
         public {
@@ -232,7 +233,7 @@ public namespace Logger {
             #! String representation of the level.
             string m_levelStr;
 
-            #! Contains a list of instantiated levels. */
+            #! Contains a list of instantiated levels
             static hash<string, LoggerLevel> m_levelMap;
 
             #! String to int hash
@@ -252,10 +253,10 @@ public namespace Logger {
         }
 
         /**
-        * Creates new object
-        *
-        * @param level integer value
-        * @param levelStr string representation
+            Creates new object
+
+            @param level integer value
+            @param levelStr string representation
         */
         constructor(int level, string levelStr) {
             m_level = level;
@@ -356,7 +357,7 @@ public namespace Logger {
 
         #! Converts the input argument to a level.
         /**
-            @param level
+            @param levelStr
             @param defaultLevel value to return if conversion is not possible.
             @throw LOGGER-ERROR if defaultLevel is nothing and levelStr not found
         */
@@ -379,8 +380,8 @@ public namespace Logger {
 
     #! Implement event to be logged
     /**
-        The event data consist of format string and parameters. The output string is rendeder once when
-        logging decision is made. Callable parameters are evaluated at this moment as well.
+        The event data consist of format string and parameters. The output string is rendeded once when
+        logging decision to target is made. Callable parameters are evaluated at this moment as well.
     */
     public class LoggerEvent {
         private {
@@ -429,14 +430,14 @@ public namespace Logger {
         }
         #! Instantiate a LoggingEvent from the supplied parameters.
         /**
-            @param logger The category of this event is logger name and fqcn is logger class name
-            @param level The level of this event
-            @param message The message of this event as format string
-            @param args Arguments for format string
+            @param logger The category becomes logger name and fqcn logger class name
+            @param level The event level
+            @param message The payload as format for @ref sprintf()
+            @param args The arguments for formatting
             @param locationInfo code location related to logging event
             @param threadId thread related to the event, Default: @ref gettid()
-            @param timeStamp timestamp of this logging event. Default value is @ref now_us
-            @param throwable The throwable exception info associated with logging event
+            @param timeStamp logging event timestamp. Default value is @ref now_us
+            @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with logging event
         */
         constructor(Logger logger, LoggerLevel level, string message, *list args, *hash<CallStackInfo> locationInfo = NOTHING,
                     int threadId = gettid(), date timeStamp = now_us(), *hash<ExceptionInfo> throwable = NOTHING) {
@@ -458,13 +459,13 @@ public namespace Logger {
         /**
             @param fqcn name of the caller class.
             @param category The event category.
-            @param level The level of this event.
-            @param message The message of this event.
-            @param args Arguments for format string
+            @param level The event level
+            @param message The payload as format for @ref sprintf()
+            @param args The arguments for formatting
             @param locationInfo code location related to logging event
             @param threadId thread related to the event, Default: @ref gettid()
-            @param timeStamp timestamp of this logging event. Default value is @ref now_us
-            @param throwable The throwable exception info associated with logging event
+            @param timeStamp logging event timestamp. Default value is @ref now_us
+            @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with logging event
         */
         constructor(string fqcn, softstring category, LoggerLevel level, string message, *list args, *hash<CallStackInfo> locationInfo = NOTHING,
                     int threadId = gettid(), date timeStamp = now_us(), *hash<ExceptionInfo> throwable = NOTHING) {
@@ -506,9 +507,7 @@ public namespace Logger {
             return m_threadId;
         }
 
-        /**
-            Returns the category name
-        */
+        #! Returns the category name
         public string getCategoryName() {
             return m_categoryName;
         }
@@ -517,7 +516,7 @@ public namespace Logger {
         /**
             Potential callable references are evaluated.
             Next the message is rendered using vprintf() and the result is cached, so the message is
-            is rendeder only once.
+            is rendeded only once.
 
             @return rendered message
         */
@@ -578,9 +577,9 @@ public namespace Logger {
         #! Get relative timestamp
         /**
             Returns the time in seconds passed from the beginning of execution to
-            the time the event was constructed.
+            the time when the event was constructed.
 
-            @see getStartTime()
+            @see @ref getStartTime()
         */
         public date getRelativeTime() {
             return m_timeStamp - LoggerEvent::m_startTime;
@@ -613,7 +612,7 @@ public namespace Logger {
         #! add appender event
         /**
             @param appender
-            @param type, see *EVENT_xxx* constants
+            @param type see \c EVENT_xxx constants
             @param params data prepared by @ref LoggerAppender::serializeImpl()
             @return True if event succesfully added to queue
         */
@@ -682,9 +681,9 @@ public namespace Logger {
     #! Queue processing async appender events in more threads
     /**
         Async events are removed from queue in one thread which balances processing
-        in more worker threads via @ref ThreadPool. The class groups events by appender
+        in more worker threads via @ref Qore::Thread::ThreadPool "ThreadPool". The class groups events by appender
         so the processing of event related to particular appender is processed in serial
-        way, i.e. at moment always only in one thread. It is compatible with Qore @ref OutputStream
+        way, i.e. at moment always only in one thread. It is compatible with @ref Qore::OutputStream
         implementation without multi-thread support.
     */
     public class LoggerAppenderQueueThreadPool inherits LoggerAppenderQueue {
@@ -708,14 +707,14 @@ public namespace Logger {
         }
         #! worker thread code
         /**
-            @param id unique identifier generated by @ref m_last
-            @param appender LoggerAppender instance
+            @param id unique identifier generated by internal @ref Qore::Thread::Sequence "Sequence"
+            @param appender @ref LoggerAppender instance
             @param events list of events
         */
-        private worker(string id, LoggerAppender la, list events) {
+        private worker(string id, LoggerAppender appender, list events) {
             try {
                 foreach hash e in (events) {
-                    la.processEventImpl(e.type, e.params);
+                    appender.processEventImpl(e.type, e.params);
                 }
             } catch (hash<ExceptionInfo> ex) {
             }
@@ -723,15 +722,15 @@ public namespace Logger {
         }
         #! creates object
         /**
-            @param tp @ref worker ThreadPool where loggging events are submitted
-            @param maxThreads max.number of worker threads, default value is 1, i.e. unlimited
+            @param tp worker @ref Qore::Thread::ThreadPool "ThreadPool" where loggging events are submitted
+            @param maxThreads max.number of worker threads, default value is \c -1, i.e. unlimited
         */
         constructor (ThreadPool tp, int maxThreads = -1) {
             m_tp = tp;
             m_maxThreads = maxThreads;
         }
 
-        #! returns assigned @ref ThreadPool
+        #! returns assigned @ref Qore::Thread::ThreadPool "ThreadPool"
         public ThreadPool getThreadPool() {
             return m_tp;
         }
@@ -746,7 +745,7 @@ public namespace Logger {
                 the call to time out immediately if the call would otherwise block.
                 If a positive timeout argument is passed, and no data is available in the timeout period
                 then waits up to timeout value, If a value that converts to integer 0 is passed as the argument,
-                then the call blocks until data is available on the queue. Default value is -1.
+                then the call blocks until data is available on the queue. Default value is \c -1.
         */
         public process(timeout ms = -1) {
             # normally function is called from one thread and it is not time critical
@@ -826,10 +825,10 @@ public namespace Logger {
         }
     }
 
-    #! *LoggerAppender* implements passing @ref LoggerEvent to target destination
+    #! Implements passing @ref LoggerEvent to target destination
     /**
         Descendent will implement e.g. logging to file, to stderr, to database etc.
-        *LoggerAppender* supports sync and async logging.
+        \c LoggerAppender supports sync and async logging.
 
         The ability to selectively enable or disable logging requests based on level in @ref Logger is
         extended in appender via @ref LoggerFilter, i.e. filtering on any criteria.
@@ -925,7 +924,7 @@ public namespace Logger {
 
         #! adds a filter to chain
         /**
-            @param filter add a new LoggerFilter
+            @param filter add a new filter
             @param top if True then add filter at first position, if False (default) to the end of chain
             @throw "LOGGER-ERROR" exception if filter is already in list
         */
@@ -977,7 +976,7 @@ public namespace Logger {
         #! serializes event to put in the queue or write to target device
         /**
             Appender implementaion can define any serialize format. The data are passed
-            to @ref processEventImpl() method as *params* argument when *type* is *EVENT_LOG*.
+            to @ref processEventImpl() method as \c params argument when \c type is \c EVENT_LOG.
         */
         abstract private:internal any serializeImpl(LoggerEvent event);
 
@@ -1001,7 +1000,7 @@ public namespace Logger {
             asynchronous process or is immediately logged in case of synchronous process.
             to the @ref processEventImpl() method.
 
-            @see LoggerAppender::processEventImpl()
+            @see @ref processEventImpl()
 
             @param event
             @return True if event has been posted
@@ -1032,10 +1031,10 @@ public namespace Logger {
         /**
             must be implemented by successor class
 
-            @see serializeImpl()
+            @see @ref serializeImpl()
 
-            @param type see *EVENT_* constants
-            @param event
+            @param type see \c "EVENT_xxx" constants
+            @param params
         */
         abstract public processEventImpl(int type, any params);
 
@@ -1063,22 +1062,23 @@ public namespace Logger {
 
         The pattern format is:
 
-        %[<modifiers>]<word>[{<option>}]
+        @code
+        %[<modifiers>] <word> [{<option>}]
         modifiers := [0-9.-]*
         word := [a-zA-Z]+
         option := [^}]*
+        @endcode
 
-        To delimit word from next character use curly brackets, i.e. empty option, e.g. %p{}archive
+        To delimit word from next character use curly brackets, i.e. empty option, e.g. \c "%p{}archive"
 
         Following table covers various modifiers scenarios:
 
-        | Format modifier | left justify | minimum width | maximum width | comment |
-        | --------------- | ------------ | ------------- | ------------- | ------- |
-        | %20c            | false        | 20            | none          | Left pad with spaces if the category name is less than 20 characters long |
-        | %-20c           | true         | 20            | none          | Right pad with spaces if the category name is less than 20 characters long |
-        | %.30c           | NA           | none          | 30            | Truncate from the beginning if the category name is longer than 30 characters |
-        | %20.30c         | false        | 20            | 30            | Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
-        | %-20.30c        | true         | 20            | 30            | Right pad with spaces if the category name is shorter than 20 characters. However, if category name is longer than 30 characters, then truncate from the beginning |
+        | !Format modifier | !left justify | !minimum width | !maximum width | !comment |
+        | %20c             | false         | 20             | none           | Left pad with spaces if the category name is less than 20 characters long |
+        | %-20c            | true          | 20             | none           | Right pad with spaces if the category name is less than 20 characters long |
+        | %.30c            | NA            | none           | 30             | Truncate from the beginning if the category name is longer than 30 characters |
+        | %20.30c          | false         | 20             | 30             | Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
+        | %-20.30c         | true          | 20             | 30             | Right pad with spaces if the category name is shorter than 20 characters. However, if category name is longer than 30 characters, then truncate from the beginning |
 
     */
     public class LoggerPattern {
@@ -1233,35 +1233,34 @@ public namespace Logger {
 
     #! Implements formatting @ref LoggerEvent with a pattern
     /**
-        The *LoggerLayout* lets the user specify the output format according to conversion patterns similar to the @ref sprintf() function.
+        The \c LoggerLayoutPattern lets the user specify the output format according to conversion patterns similar to the @ref sprintf() function.
 
         The following table explains the characters used in @ref LoggerPattern and all other characters that you can use in your custom pattern:
 
-        | Conversion character | Meaning |
-        | :------------------- | ------- |
-        | c | Used to output the category of the logging event, i.e. logger name. |
+        | !Conversion character | !Meaning |
+        | c | Used to output the category of the logging event, i.e. logger name |
         | C | Used to output the class name of the caller issuing the logging request, i.e. logger class name |
-        | d | Used to output the date of the logging event using @ref format_date. Option may specify date format, for example, %d{DD.MM.YYYY HH:mm:SS} |
-        | E | Used to output the environment variable with name given by option, e.g. %E{HOME} |
+        | d | Used to output the date of the logging event using @ref format_date. Option may specify date format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}" |
+        | E | Used to output the environment variable with name given by option, e.g. \c "%E{HOME}" |
         | F | Used to output the file name where the logging request was issued |
-        | l | Used to output location information of the caller which generated the logging event, i.e. "file:line [function()]" |
-        | L | Used to output the line number from where the logging request was issued, option may specify @ref sprintf() format, e.g. %.3d |
+        | l | Used to output location information of the caller which generated the logging event, i.e. \c "file:line [function()]" |
+        | L | Used to output the line number from where the logging request was issued, option may specify @ref sprintf() format, e.g. \c "%.3d" |
         | m | Used to output the application supplied message associated with the logging event |
         | M | Used to output the method name where the logging request was issued |
         | n | Outputs the platform dependent line separator character or characters |
         | p | Used to output the priority of the logging event |
-        | r | Used to output the number of milliseconds elapsed from the construction of the layout until the creation of the logging event, option may specify @ref sprintf() format, e.g. %.3d |
-        | t | Used to output the thread id that generated the logging event, option may specify @ref sprintf() format, e.g. %.3d |
-        | u | Used to output logging event unique id, option may specify @ref sprintf() format, e.g. %.3d |
+        | r | Used to output the number of milliseconds elapsed from the construction of the layout until the creation of the logging event, option may specify @ref sprintf() format, e.g. \c "%.3d" |
+        | t | Used to output the thread id that generated the logging event, option may specify @ref sprintf() format, e.g. \c "%.3d" |
+        | u | Used to output logging event unique id, option may specify @ref sprintf() format, e.g. \c "%.3d" |
         | x | Used to output exception string using @ref Util::get_exception_string() |
-        | % | The literal percent sign. %% will print a % sign |
+        | % | The literal percent sign. \c "%%" will print a \c "%" sign |
 
 
-        For example, the *LoggerLayoutPattern* with the conversion pattern `%r [%t] %-5p %c - %m%n` will output something as:
+        For example, the \c LoggerLayoutPattern with the conversion pattern \c "%r [%t] %-5p %c - %m%n" will output something as:
 
         @code
             176 [23] INFO  MyLogger - New record created
-        @endceode
+        @endcode
     */
     public class LoggerLayoutPattern inherits LoggerLayout, public LoggerPattern {
         public {
@@ -1371,7 +1370,7 @@ public namespace Logger {
 
     #! Implements appender with layout
     /**
-        The Layout is responsible for formatting the @ref LoggerLogging according to the user's wishes,
+        The Layout is responsible for formatting the @ref LoggerEvent according to the user's wishes,
         whereas an appender takes care of sending the formatted output to its destination.
 
         It is used typically for appender implementing logging to a file
@@ -1414,9 +1413,9 @@ public namespace Logger {
 
     }
 
-    #! Appender writting to output stream via @ref StreamWriter
+    #! Appender writting to output stream via @ref Qore::StreamWriter "StreamWriter"
     /**
-        Qore stream are not designed as multi-threaded so writing to thread must be serialized and processed
+        Qore streams are not designed as multi-threaded so writing to thread must be serialized and processed
         in a dedicated thread
     */
     public class LoggerAppenderStream inherits LoggerAppenderWithLayout {
@@ -1479,7 +1478,7 @@ public namespace Logger {
 
     #! Appender writing to a file
     /**
-        No multi-threading protection is implemented in class. @ref File class is reused
+        No multi-threading protection is implemented in class. @ref Qore::File "File" class is reused
     */
     public class LoggerAppenderFile inherits LoggerAppenderWithLayout {
         /*private:internal*/private:hierarchy {
@@ -1509,6 +1508,10 @@ public namespace Logger {
         }
 
         #! process event with file
+        /**
+            @param type
+            @param params
+        */
         public processEventImpl(int type, any params) {
             switch (type) {
                 case EVENT_OPEN:
@@ -1564,22 +1567,20 @@ public namespace Logger {
 
             The following table explains the characters used in @ref LoggerPattern and all other characters that you can use in your custom pattern:
 
-            | Conversion character | Meaning |
-            | :------------------- | ------- |
-            | i | Used to output the current file index from 0 to count-1. option may specify @ref sprintf() format, e.g. %.3d |
-            | n | Used to output the rotation count. Option may specify @ref sprintf() format, e.g. %.3d |
+            | !Conversion character | !Meaning |
+            | i | Used to output the current file index from 0 to count-1. option may specify @ref sprintf() format, e.g. \c "%.3d" |
+            | n | Used to output the rotation count. Option may specify @ref sprintf() format, e.g. \c "%.3d" |
             | c | Used to output the appender name. |
             | C | Used to output the appender class name. |
-            | d | Used to output the date of the logging event using @ref format_date. Option may specify date format, for example, %d{DD.MM.YYYY HH:mm:SS} |
-            | E | Used to output the environment variable with name given by option, e.g. %E{HOME} |
-            | % | The literal percent sign. %% will print a % sign |
+            | d | Used to output the date of the logging event using @ref format_date. Option may specify date format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}", default value is \c "YYYYMMDDHHmmSS" |
+            | E | Used to output the environment variable with name given by option, e.g. \c "%E{HOME}" |
+            | % | The literal percent sign. \c "%%" will print a \c "%" sign |
 
-            For example, the rotate pattern `/var/run/log/%c.log.%i{%03d}` output to files
-            `/var/run/log/MyLogger.log.000`, `/var/run/log/MyLogger.log.001` etc.
+            For example, the rotate pattern \c "/var/run/log/%c.log.%i{%03d}" output to files
+            \c "/var/run/log/MyLogger.log.000", \c "/var/run/log/MyLogger.log.001" etc.
 
         */
-        constructor(string name, LoggerLayout layout, string pattern, int count, *string encoding):
-            LoggerAppenderFile(name, layout, "", encoding), LoggerPattern(pattern) {
+        constructor(string name, LoggerLayout layout, string pattern, int count, *string encoding): LoggerAppenderFile(name, layout, "", encoding), LoggerPattern(pattern) {
             # set a provisional filename, to be updated when file is opened
             m_patternData.timestamp = now_us();
             m_patternData.count = count;
@@ -1588,6 +1589,11 @@ public namespace Logger {
         }
 
         #! resolve field for filename
+        /**
+            @param data
+            @param key
+            @param option
+        */
         /*private:internal*/ string resolveField(auto data, string key, *string option) {
             string res;
             switch (key) {
@@ -1620,6 +1626,10 @@ public namespace Logger {
         }
 
         #! implements rotation
+        /**
+            @param type
+            @param params
+        */
         public processEventImpl(int type, any params) {
             switch (type) {
                 case EVENT_OPEN:
@@ -1691,8 +1701,6 @@ public namespace Logger {
             #! default archive pattern
             const DEFAULT_ARCHIVE_PATTERN = "%p%f.%d";
         }
-        private {
-        }
         #! create object
         /**
             @param name
@@ -1703,29 +1711,25 @@ public namespace Logger {
 
             The following table explains the characters used in @ref LoggerPattern for both filename and archive parameter
 
-            | Conversion character | Meaning |
-            | :------------------- | ------- |
+            | !Conversion character | !Meaning |
             | s | Used to output the OS directory separator, i.e. "\" or "/" |
             | c | Used to output the appender name |
             | C | Used to output the appender class name |
-            | E | Used to output the environment variable with name given by option, e.g. %E{HOME} |
-            | % | The literal percent sign. %% will print a % sign |
+            | E | Used to output the environment variable with name given by option, e.g. \c "%E{HOME}" |
+            | % | The literal percent sign. \c "%%" will print a \c "%" sign |
 
             The following table explains the characters used in @ref LoggerPattern for archive parameter only
 
-            | Conversion character | Meaning |
-            | :------------------- | ------- |
+            | !Conversion character | !Meaning |
             | P | Used to output the current logging path with filename |
             | p | Used to output the current logging path |
             | f | Used to output the current logging filename |
-            | d | Used to output the date of the logging event using @ref format_date. Option may specify date format, for example, %d{DD.MM.YYYY HH:mm:SS} |
+            | d | Used to output the date of the logging event using @ref format_date. Option may specify date format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}", default value is \c "YYYYMMDDHHmmSS" |
 
-            For example, the rotate pattern `%p/archive/%d/%f` archive logging file `/var/run/log/MyLogger.log` to file:
-            `/var/run/log/archive/20180120102030/MyLogger.log`.
+            For example, the rotate pattern \c "%p/archive/%d/%f" archive logging file \c "/var/run/log/MyLogger.log" to file:
+            \c "/var/run/log/archive/20180120102030/MyLogger.log".
         */
-        constructor(string name, LoggerLayout layout, string filename, string archive = DEFAULT_ARCHIVE_PATTERN, *string encoding):
-            LoggerAppenderFile(name, layout, filename, encoding), LoggerPattern(filename) {
-
+        constructor(string name, LoggerLayout layout, string filename, string archive = DEFAULT_ARCHIVE_PATTERN, *string encoding): LoggerAppenderFile(name, layout, filename, encoding), LoggerPattern(filename) {
             m_filename = format(NOTHING);  # no dynamic vars as timestamp
             setPattern(archive);
         }
@@ -1778,7 +1782,11 @@ public namespace Logger {
             return res;
         }
 
-        #! implements archive
+        #! implements archiving
+        /**
+            @param type
+            @param params
+        */
         public processEventImpl(int type, any params) {
             switch (type) {
                 case EVENT_ARCHIVE:
@@ -1835,12 +1843,22 @@ public namespace Logger {
         }
     }
 
+    #! Dummy class
+    /**
+        TODO: Doxygen silently skips next LoggerFilter class without this dummy class with a non empty private {} section
+    */
+    private class LoggerDummyBecauseOfDoxygenIssue {
+        private  {
+            any m_dummy;
+        }
+    }
+
     #! Implements general event filtering class
     /**
-    * Users should extend this class to implement customized logging
-    * event filtering. The filter consists of linear chain of
-    * particular filters evaluating if the event should be immediately accepted, rejected
-    * or passed to next filter.
+        Users should extend this class to implement customized logging
+        event filtering. The filter consists of linear chain of
+        particular filters evaluating if the event should be immediately accepted, rejected
+        or passed to next filter.
     */
     public class LoggerFilter {
         public {
@@ -1982,9 +2000,9 @@ public namespace Logger {
         }
     }
 
-    #! Implements filtering according reqular expresion on event message test
+    #! Implements filtering according regular expression on event message
     /**
-        Rendered event text is tested using regular exception and when does not match
+        Rendered event message is tested using regular exception and when does not match
         expected result then the logging is rejected
     */
     public class LoggerFilterRegex inherits LoggerFilter {
@@ -2033,7 +2051,7 @@ public namespace Logger {
         }
     }
 
-    #! main logger class whose instance will be used by user code when logging
+    #! Main logger class whose instance will be used by user code when logging
     /**
         Logger instance is provided to user code. When a log is triggered then
         message, arguments, current code posotion, time are appended into @ref LoggerEvent event instance when
@@ -2045,29 +2063,26 @@ public namespace Logger {
             #! The lock to protect object manipulation
             RWLock m_lock();
 
-            /**
-            * Logger additivity. If set to true then child loggers will inherit
-            * the appenders of their ancestors by default.
-            */
+            #! Logger additivity. If set to true then child loggers will inherit the appenders of their ancestors by default.
             bool m_additive = True;
 
-            /** The assigned Logger level. If nothing then use parent level */
+            #! The assigned Logger level. If nothing then use parent level
             *LoggerLevel m_level;
 
-            /** The name of this Logger instance. */
+            #! The name of this Logger instance.
             string m_name;
 
-            /** The parent logger. Set to null if this is the root logger. */
+            #! The parent logger. Set to null if this is the root logger.
             *Logger m_parent;
 
-            /** A collection of appenders linked to this logger. */
+            #! A collection of appenders linked to this logger.
             list<LoggerAppender> m_appenders;
 
         }
 
         #! Creates object
         /**
-        * @param name
+            @param name
         */
         constructor(string name) {
             m_name = name;
@@ -2127,7 +2142,7 @@ public namespace Logger {
 
         #! Set logging level
         /**
-            @param level, if nothing then inherits level from parent
+            @param level if nothing then inherits level from parent
         */
         public setLevel(*LoggerLevel level) {
             m_level = level;
@@ -2151,7 +2166,7 @@ public namespace Logger {
 
         #! Sets the additivity flag. When aditivity is active then event are passed to parent instance.
         /**
-        * @param additive
+            @param additive
         */
         public setAdditivity(bool additive) {
             m_additive = additive;
@@ -2218,7 +2233,7 @@ public namespace Logger {
 
         #! Returns appender list
         /**
-            Note that appender list may be manipulated as internal lock is released when list is returned
+            Note that appender list may be manipulated in another thread as internal lock is released when list is returned
         */
         public list<LoggerAppender> getAppenders() {
             AutoReadLock awl(m_lock);
@@ -2246,9 +2261,8 @@ public namespace Logger {
         #! Log a message using the provided logging level.
         /**
             @param level The logging level.
-            @param message to log is used as format for @ref vsprintf()
-            @param argv optional arguments are passed to @ref LoggerEvent instance. If the last parameter is
-                typed hash @ref ExceptionInfo then it is considered as throwable information.
+            @param message to log is used as format for @ref vsprintf(). Optional arguments are passed to @ref LoggerEvent instance. If the last parameter is
+                typed hash @ref Qore::ExceptionInfo "ExceptionInfo" then it is considered as throwable information.
         */
         public log(LoggerLevel level, string message) {
             logIntern(level, message, argv, getLocation(), True);
@@ -2257,9 +2271,8 @@ public namespace Logger {
         #! Log a message using the provided logging level.
         /**
             @param level The logging level.
-            @param message to log is used as format for @ref vsprintf()
-            @param argv optional arguments are passed to @ref LoggerEvent instance. If the last parameter is
-                typed hash @ref ExceptionInfo then it is considered as throwable information.
+            @param message to log is used as format for @ref vsprintf(). Optional arguments are passed to @ref LoggerEvent instance. If the last parameter is
+                typed hash @ref Qore::ExceptionInfo "ExceptionInfo" then it is considered as throwable information.
         */
         public log(int level, string message) {
             logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
@@ -2268,9 +2281,8 @@ public namespace Logger {
         #! Log a message using the provided logging level.
         /**
             @param level The logging level.
-            @param message to log is used as format for @ref vsprintf()
-            @param argv optional arguments are passed to @ref LoggerEvent instance. If the last parameter is
-                typed hash @ref ExceptionInfo then it is considered as throwable information.
+            @param message to log is used as format for @ref vsprintf(). Optional arguments are passed to @ref LoggerEvent instance. If the last parameter is
+                typed hash @ref Qore::ExceptionInfo "ExceptionInfo" then it is considered as throwable information.
         */
         public log(string level, string message) {
             logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
@@ -2293,7 +2305,7 @@ public namespace Logger {
 
         #! Log a message object with the TRACE level.
         /**
-            @see Logger::log()
+            @see @ref log()
             @param message with optional arguments
         */
         public trace(string message) {
@@ -2302,7 +2314,7 @@ public namespace Logger {
 
         #! Log a message object with the DEBUG level.
         /**
-            @see Logger::log()
+            @see @ref log()
             @param message with optional arguments
         */
         public debug(string message) {
@@ -2311,7 +2323,7 @@ public namespace Logger {
 
         #! Log a message object with the INFO level.
         /**
-            @see Logger::log()
+            @see @ref log()
             @param message with optional arguments
         */
         public info(string message) {
@@ -2320,7 +2332,7 @@ public namespace Logger {
 
         #! Log a message object with the WARN level.
         /**
-            @see Logger::log()
+            @see @ref log()
             @param message with optional arguments
         */
         public warn(string message) {
@@ -2329,7 +2341,7 @@ public namespace Logger {
 
         #! Log a message object with the ERROR level.
         /**
-            @see Logger::log()
+            @see @ref log()
             @param message with optional arguments
         */
         public error(string message) {
@@ -2338,7 +2350,7 @@ public namespace Logger {
 
         #! Log a message object with the FATAL level.
         /**
-            @see Logger::log()
+            @see @ref log()
             @param message with optional arguments
         */
         public fatal(string message) {
@@ -2350,7 +2362,7 @@ public namespace Logger {
             If assertion parameter is evaluated as False, then logs the message
             using the ERROR level.
 
-            @see Logger::log()
+            @see @ref log()
 
             @param assertion
             @param message with optional arguments
@@ -2363,7 +2375,7 @@ public namespace Logger {
 
          #! Log variable name and value using TRACE level
         /**
-            @see Logger::log()
+            @see @ref log()
 
             @param varName
             @param value
@@ -2374,7 +2386,7 @@ public namespace Logger {
 
         #! Log variable name and value using DEBUG level
         /**
-            @see Logger::log()
+            @see @ref log()
 
             @param varName
             @param value
