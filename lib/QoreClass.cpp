@@ -1571,14 +1571,13 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
             }
             return 0;
         }
-    ;
         if (sclass->priv->final)
             parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
 
         rc = sclass->priv->initializeHierarchy(qcp_set);
     }
     else
-        rc = -1
+        rc = -1;
     return rc;
 }
 
