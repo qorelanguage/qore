@@ -4786,12 +4786,9 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         if (ds_do)
             return ds_do(ds);
 
-        string drv = ds.getDriverName();
-
         return {
             "ds_type": ds.className(),
             "ds": ds.getConfigString(),
-            "module": drv[0].upr() + drv.substr(1) + "SqlUtil",
         };
     }
 
@@ -4799,6 +4796,8 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
     public hashdecl SqlUtilDeserialization {
         #! the class name
         string className;
+        #! an optional module name
+        *string mod;
         #! serialized member data
         hash<auto> members;
     }
@@ -4811,6 +4810,10 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
 
         #! deserializes the hash to a replica of the original object
         constructor(hash<SqlUtilDeserialization> h) {
+            if (h.mod) {
+                load_module(h.mod);
+            }
+
             deserialize(h.members);
         }
 
@@ -6961,14 +6964,17 @@ AbstractDatabase db("pgsql:user/pass@db%host");
 
         #! used for deserialization
         constructor(hash<SqlUtilDeserialization> h) {
-            ds = sqlutil_get_ds(h.members.ds.ds_type, h.members.ds.ds);
+            ds = sqlutil_get_ds(h.members.ds.ds_type, h.members.ds.ds, h.members.ds."module");
             deserialize(h.members - "ds");
         }
 
         # serializes the object's data to a hash
         hash<SqlUtilDeserialization> serialize() {
+            string mod = ds.getDriverName();
+            mod = mod[0].upr() + mod.substr(1) + "SqlUtil";
             return new hash<SqlUtilDeserialization>({
                 "className": self.className(),
+                "mod": mod,
                 "members": {
                     "ds": sqlutil_ds(ds),
                 } + map {$1: serializeValue($1, self{$1})}, keys self, $1 != "ds" && $1 != "l",
@@ -15012,6 +15018,9 @@ any res = t.selectRows(sh, \sql);
             @since SqlUtil 1.5
         */
         static AbstractTable deserialize(hash h) {
+            if (h.mod) {
+                load_module(h.mod);
+            }
             return create_object(h.className, cast<hash<SqlUtilDeserialization>>(h));
         }
 
