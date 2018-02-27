@@ -233,8 +233,7 @@ public class ClassesTest inherits QUnit::Test {
     issue2657() {
         Program p(PO_NEW_STYLE);
         # crashes without the fix for #2657
-        p.parse("class T inherits Err;", "");
-        assertTrue(True);
+        assertThrows("PARSE-EXCEPTION", \p.parse(), ("class T inherits Err;", ""));
     }
 
     classLibraryTest() {
