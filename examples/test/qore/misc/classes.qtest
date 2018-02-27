@@ -219,6 +219,7 @@ public class ClassesTest inherits QUnit::Test {
         addTestCase("Base class tests", \baseClassTests());
         addTestCase("misc tests", \miscTests());
         addTestCase("issue 2380", \issue2380());
+        addTestCase("issue 2657", \issue2657());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -227,6 +228,12 @@ public class ClassesTest inherits QUnit::Test {
     issue2380() {
         Issue2380Child c();
         assertEq(1, c.z());
+    }
+
+    issue2657() {
+        Program p(PO_NEW_STYLE);
+        # crashes without the fix for #2657
+        assertThrows("PARSE-EXCEPTION", \p.parse(), ("class T inherits Err;", ""));
     }
 
     classLibraryTest() {

@@ -1535,89 +1535,88 @@ void BCANode::parseInit(BCList* bcl, const char* classname) {
 }
 
 int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
-   if (!sclass) {
-      if (cname) {
-         // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
-         sclass = qore_root_ns_private::parseFindScopedClass(loc, *cname);
-         printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
-         delete cname;
-         cname = 0;
-      }
-      else {
-         // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
-         sclass = qore_root_ns_private::parseFindClass(loc, cstr);
-         printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
-         free(cstr);
-         cstr = 0;
-      }
-      if (cls == sclass) {
-         parse_error(cls->priv->loc, "class '%s' cannot inherit itself", cls->getName());
-         assert(cls->priv->scl);
-         cls->priv->scl->valid = false;
-         sclass = nullptr;
-      }
-      //printd(5, "BCNode::parseInit() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
-   }
-   int rc;
-   // recursively add base classes to special method list
-   if (sclass) {
-      if (!qcp_set.insert(sclass->priv).second) {
-         // issue #2317: ensure that the class is really recursive in the inheritance list before throwing an exception
-         if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*sclass->priv)) {
-            parse_error(sclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", sclass->getName());
-            if (sclass->priv->scl)
-               sclass->priv->scl->valid = false;
-            return -1;
-         }
-         return 0;
-      }
+    if (!sclass) {
+        if (cname) {
+            // if the class cannot be found, RootQoreNamespace::parseFindScopedClass() will throw the appropriate exception
+            sclass = qore_root_ns_private::parseFindScopedClass(loc, *cname);
+            printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cname->ostr, sclass);
+            delete cname;
+            cname = 0;
+        }
+        else {
+            // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
+            sclass = qore_root_ns_private::parseFindClass(loc, cstr);
+            printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
+            free(cstr);
+            cstr = 0;
+        }
+        if (cls == sclass) {
+            parse_error(cls->priv->loc, "class '%s' cannot inherit itself", cls->getName());
+            assert(cls->priv->scl);
+            cls->priv->scl->valid = false;
+            sclass = nullptr;
+        }
+        //printd(5, "BCNode::parseInit() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
+    }
+    int rc;
+    // recursively add base classes to special method list
+    if (sclass) {
+        if (!qcp_set.insert(sclass->priv).second) {
+            // issue #2317: ensure that the class is really recursive in the inheritance list before throwing an exception
+            if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*sclass->priv)) {
+                parse_error(sclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", sclass->getName());
+                if (sclass->priv->scl)
+                sclass->priv->scl->valid = false;
+                return -1;
+            }
+            return 0;
+        }
+        if (sclass->priv->final)
+            parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
 
-      if (sclass->priv->final)
-         parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
-
-      rc = sclass->priv->initializeHierarchy(qcp_set);
-   }
-   else
-      rc = -1;
-   return rc;
+        rc = sclass->priv->initializeHierarchy(qcp_set);
+    }
+    else
+        rc = -1;
+    return rc;
 }
 
 int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker) {
-   assert(sclass);
-   int rc = 0;
+    assert(sclass);
+    int rc = 0;
 
-   rc = sclass->priv->initializeIntern();
-   if (!has_delete_blocker && sclass->has_delete_blocker())
-      has_delete_blocker = true;
-   // include all base class domains in this class's domain
-   if (!sclass->priv->addBaseClassesToSubclass(cls, is_virtual)) {
-      cls->priv->domain |= sclass->priv->domain;
-      // import all base class member definitions into this class
-      cls->priv->parseImportMembers(*sclass->priv, access);
-   }
-   if (sclass->priv->final)
-      parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
+    rc = sclass->priv->initializeIntern();
+    if (!has_delete_blocker && sclass->has_delete_blocker())
+        has_delete_blocker = true;
+    // include all base class domains in this class's domain
+    if (!sclass->priv->addBaseClassesToSubclass(cls, is_virtual)) {
+        cls->priv->domain |= sclass->priv->domain;
+        // import all base class member definitions into this class
+        cls->priv->parseImportMembers(*sclass->priv, access);
+    }
+    if (sclass->priv->final)
+        parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
 
-   return rc;
+    return rc;
 }
 
 int BCNode::runtimeInitInternalMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const {
-   assert(sclass);
-   return sclass->priv->runtimeInitMembers(o, need_scan, true, xsink);
+    assert(sclass);
+    return sclass->priv->runtimeInitMembers(o, need_scan, true, xsink);
 }
 
 bool BCNode::isBaseClass(QoreClass* qc, bool toplevel) const {
-   assert(sclass);
+    assert(sclass);
 
-   if (!toplevel && access == Internal)
-      return false;
+    if (!toplevel && access == Internal)
+        return false;
 
-   //printd(5, "BCNode::isBaseClass() %p %s (%d) == %s (%d)\n", this, qc->getName(), qc->getID(), sclass->getName(), sclass->getID());
-   if (qc->getID() == sclass->getID() || (sclass->priv->scl && sclass->priv->scl->isBaseClass(qc, false))) {
-      //printd(5, "BCNode::isBaseClass() %p %s (%d) TRUE\n", this, qc->getName(), qc->getID());
-      return true;
-   }
-   return false;
+    //printd(5, "BCNode::isBaseClass() %p %s (%d) == %s (%d)\n", this, qc->getName(), qc->getID(), sclass->getName(), sclass->getID());
+    if (qc->getID() == sclass->getID() || (sclass->priv->scl && sclass->priv->scl->isBaseClass(qc, false))) {
+        //printd(5, "BCNode::isBaseClass() %p %s (%d) TRUE\n", this, qc->getName(), qc->getID());
+        return true;
+    }
+    return false;
 }
 
 const QoreMethod* BCNode::runtimeFindCommittedMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const {
