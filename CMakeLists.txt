@@ -136,6 +136,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_SSLCertificate.qpp
     lib/QC_SSLPrivateKey.qpp
     lib/QC_ThreadPool.qpp
+    lib/QC_StreamBase.qpp
     lib/QC_InputStream.qpp
     lib/QC_BinaryInputStream.qpp
     lib/QC_StringInputStream.qpp

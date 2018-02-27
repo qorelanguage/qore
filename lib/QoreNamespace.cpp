@@ -126,6 +126,7 @@ DLLLOCAL QoreClass* initDataLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initInputStreamLineIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initSingleValueIteratorClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initRangeIteratorClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initStreamBaseClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initBinaryInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initStringInputStreamClass(QoreNamespace& ns);
@@ -904,6 +905,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
    // add stream classes
+   qns.addSystemClass(initStreamBaseClass(qns));
    qns.addSystemClass(initInputStreamClass(qns));
    qns.addSystemClass(initOutputStreamClass(qns));
    qns.addSystemClass(initTransformClass(qns));

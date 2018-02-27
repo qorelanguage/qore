@@ -151,11 +151,13 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_TreeMap.qpp \
 	lib/QC_AbstractThreadResource.qpp \
 	lib/QC_InputStream.qpp \
+	lib/QC_InputStreamBase.qpp \
 	lib/QC_BinaryInputStream.qpp \
 	lib/QC_StringInputStream.qpp \
 	lib/QC_FileInputStream.qpp \
 	lib/QC_EncodingConversionInputStream.qpp \
 	lib/QC_OutputStream.qpp \
+	lib/QC_OutputStreamBase.qpp \
 	lib/QC_BinaryOutputStream.qpp \
 	lib/QC_StringOutputStream.qpp \
 	lib/QC_FileOutputStream.qpp \
@@ -400,6 +402,7 @@ include_HEADERS = \
 	include/qore/Qore.h \
 	include/qore/QoreNodeEvalOptionalRefHolder.h \
 	include/qore/QoreEvents.h \
+	include/qore/StreamBase.h \
 	include/qore/InputStream.h \
 	include/qore/OutputStream.h \
 	include/qore/Transform.h \
@@ -637,10 +640,8 @@ noinst_HEADERS = \
 	include/qore/intern/EncodingConversionOutputStream.h \
 	include/qore/intern/FileInputStream.h \
 	include/qore/intern/FileOutputStream.h \
-	include/qore/intern/InputStreamBase.h \
 	include/qore/intern/InputStreamLineIterator.h \
 	include/qore/intern/InputStreamWrapper.h \
-	include/qore/intern/OutputStreamBase.h \
 	include/qore/intern/OutputStreamWrapper.h \
 	include/qore/intern/StreamPipe.h \
 	include/qore/intern/StreamWriter.h \
