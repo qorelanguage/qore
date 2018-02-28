@@ -20,7 +20,7 @@
       - @ref Qore::SQL::DatasourcePool::getSQLStatement() "DatasourcePool::getSQLStatement()"
       - @ref Qore::File::redirect() "File::redirect()"
       - @ref Qore::StreamReader::getInputStream() "StreamReader::getInputStream()"
-      - @ref Qore::StreamWriter::getOutputStream() "StreamReader::getOutputStream()"
+      - @ref Qore::StreamWriter::getOutputStream() "StreamWriter::getOutputStream()"
     - new functions:
       - @ref Qore::get_netif_list() "get_netif_list()"
     - new hashdecls:
@@ -35,8 +35,18 @@
       - <a href="../../modules/ConnectionProvider/html.indexhtml">ConnectionProvider</a> module changes:
         - the \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
           connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+      - <a href="../../modules/FreetdsSqlUtil/html.indexhtml">FreetdsSqlUtil</a> module changes:
+        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/MysqlSqlUtil/html.indexhtml">MysqlSqlUtil</a> module changes:
+        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/PgsqlSqlUtil/html.indexhtml">PgsqlSqlUtil</a> module changes:
+        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/OracleSqlUtil/html.indexhtml">OracleSqlUtil</a> module changes:
+        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/SqlUtil/html.indexhtml">SqlUtil</a> module changes:
         - deprecated \c AbstractTable::getRowIterator() for \c AbstractTable::getStatement() (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
+        - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
+        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/Util/html/index.html">Util</a> module updates:
         - added public function \c parse_ranges() (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
         - added public function \c check_ip_address() (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
