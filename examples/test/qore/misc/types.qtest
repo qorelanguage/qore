@@ -29,13 +29,50 @@ const TestList = (1, 2, 3);
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
         addTestCase("complex assignments", \testComplexAssignments());
-        #addTestCase("auto", \testComplexAutoTypes());
-        #addTestCase("complex type compat", \testComplexTypesCompat());
-        #addTestCase("types", \testTypes());
+        addTestCase("auto", \testComplexAutoTypes());
+        addTestCase("complex type compat", \testComplexTypesCompat());
+        addTestCase("types", \testTypes());
         set_return_value(main());
     }
 
     testComplexAssignments() {
+        {
+            # issue #2652: implicit creation of an lvalue with a complex type
+            *hash<string, bool> h;
+            h.a = True;
+            assertEq("hash<string, bool>", h.fullType());
+        }
+        {
+            # issue #2652: implicit creation of an lvalue with a complex type
+            hash<string, bool> h;
+            h.a = True;
+            assertEq("hash<string, bool>", h.fullType());
+        }
+        {
+            # issue #2652: implicit creation of an lvalue with a complex type
+            *list<bool> l;
+            l[0] = True;
+            assertEq("list<bool>", l.fullType());
+        }
+        {
+            # issue #2652: implicit creation of an lvalue with a complex type
+            list<bool> l;
+            l[0] = True;
+            assertEq("list<bool>", l.fullType());
+        }
+        {
+            # issue #2652: implicit creation of an lvalue with a complex type
+            *softlist<bool> l;
+            l[0] = True;
+            assertEq("list<bool>", l.fullType());
+        }
+        {
+            # issue #2652: implicit creation of an lvalue with a complex type
+            softlist<bool> l;
+            l[0] = True;
+            assertEq("list<bool>", l.fullType());
+        }
+
         hash h = (
             "a": ("a": 1),
         );
