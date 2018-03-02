@@ -964,7 +964,7 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
 #endif
 
    // make sure the object context is set before evaluating members
-   CodeContextHelperBase cch("constructor", &o, this, xsink);
+   CodeContextHelperBase cch("constructor", &o, this, xsink, false);
    SelfInstantiatorHelper sih(&selfid, &o);
 
    return runtimeInitMembers(o, need_scan, false, xsink);
@@ -1582,41 +1582,41 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
 }
 
 int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker) {
-   assert(sclass);
-   int rc = 0;
+    assert(sclass);
+    int rc = 0;
 
-   rc = sclass->priv->initializeIntern();
-   if (!has_delete_blocker && sclass->has_delete_blocker())
-      has_delete_blocker = true;
-   // include all base class domains in this class's domain
-   if (!sclass->priv->addBaseClassesToSubclass(cls, is_virtual)) {
-      cls->priv->domain |= sclass->priv->domain;
-      // import all base class member definitions into this class
-      cls->priv->parseImportMembers(*sclass->priv, access);
-   }
-   if (sclass->priv->final)
-      parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
+    rc = sclass->priv->initializeIntern();
+    if (!has_delete_blocker && sclass->has_delete_blocker())
+        has_delete_blocker = true;
+    // include all base class domains in this class's domain
+    if (!sclass->priv->addBaseClassesToSubclass(cls, is_virtual)) {
+        cls->priv->domain |= sclass->priv->domain;
+        // import all base class member definitions into this class
+        cls->priv->parseImportMembers(*sclass->priv, access);
+    }
+    if (sclass->priv->final)
+        parse_error(cls->priv->loc, "class '%s' cannot inherit 'final' class '%s'", cls->getName(), sclass->getName());
 
-   return rc;
+    return rc;
 }
 
 int BCNode::runtimeInitInternalMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const {
-   assert(sclass);
-   return sclass->priv->runtimeInitMembers(o, need_scan, true, xsink);
+    assert(sclass);
+    return sclass->priv->runtimeInitMembers(o, need_scan, true, xsink);
 }
 
 bool BCNode::isBaseClass(QoreClass* qc, bool toplevel) const {
-   assert(sclass);
+    assert(sclass);
 
-   if (!toplevel && access == Internal)
-      return false;
+    if (!toplevel && access == Internal)
+        return false;
 
-   //printd(5, "BCNode::isBaseClass() %p %s (%d) == %s (%d)\n", this, qc->getName(), qc->getID(), sclass->getName(), sclass->getID());
-   if (qc->getID() == sclass->getID() || (sclass->priv->scl && sclass->priv->scl->isBaseClass(qc, false))) {
-      //printd(5, "BCNode::isBaseClass() %p %s (%d) TRUE\n", this, qc->getName(), qc->getID());
-      return true;
-   }
-   return false;
+    //printd(5, "BCNode::isBaseClass() %p %s (%d) == %s (%d)\n", this, qc->getName(), qc->getID(), sclass->getName(), sclass->getID());
+    if (qc->getID() == sclass->getID() || (sclass->priv->scl && sclass->priv->scl->isBaseClass(qc, false))) {
+        //printd(5, "BCNode::isBaseClass() %p %s (%d) TRUE\n", this, qc->getName(), qc->getID());
+        return true;
+    }
+    return false;
 }
 
 const QoreMethod* BCNode::runtimeFindCommittedMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const {
@@ -4691,7 +4691,7 @@ void UserConstructorVariant::evalConstructor(const QoreClass &thisclass, QoreObj
    if (!uveh)
       return;
 
-   CodeContextHelper cch(xsink, CT_USER, "constructor", self, qore_class_private::get(thisclass));
+   CodeContextHelper cch(xsink, CT_USER, "constructor", self, qore_class_private::get(thisclass), false);
 
    // instantiate "self" before executing base class constructors in case base class constructor arguments reference "self"
    assert(signature.selfid);
@@ -4914,6 +4914,26 @@ QoreValue NormalMethodFunction::evalMethod(ExceptionSink* xsink, const AbstractQ
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+QoreValue NormalMethodFunction::evalMethodTmpArgs(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, QoreObject* self, QoreListNode* args, const qore_class_private* cctx) const {
+   const char* cname = getClassName();
+   const char* mname = getName();
+   //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
+
+   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, self, qore_class_private::get(*qc), CT_UNUSED, false, cctx);
+   if (*xsink)
+      return QoreValue();
+
+   const MethodVariant* mv = METHV_const(variant);
+   if (mv->isAbstract()) {
+      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", cname, mname, mv->getSignature()->getSignatureText());
+      return QoreValue();
+   }
+   //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s) variant: %p, mv: %p priv: %d access: %d (%p %s)\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()), runtime_get_class(), runtime_get_class() ? runtime_get_class()->name.c_str() : "n/a");
+
+   return mv->evalMethod(self, ceh, xsink);
+}
+
+// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 QoreValue NormalMethodFunction::evalPseudoMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, const qore_class_private* cctx) const {
    const char* mname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, 0, qore_class_private::get(*qc), CT_UNUSED, false, cctx);
@@ -4925,6 +4945,16 @@ QoreValue NormalMethodFunction::evalPseudoMethod(ExceptionSink* xsink, const Abs
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 QoreValue StaticMethodFunction::evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, const QoreListNode* args, const qore_class_private* cctx) const {
+   const char* mname = getName();
+   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, 0, qore_class_private::get(*qc), CT_UNUSED, false, cctx);
+   if (*xsink)
+      return QoreValue();
+
+   return METHV_const(variant)->evalMethod(0, ceh, xsink);
+}
+
+// if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+QoreValue StaticMethodFunction::evalMethodTmpArgs(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, QoreListNode* args, const qore_class_private* cctx) const {
    const char* mname = getName();
    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, 0, qore_class_private::get(*qc), CT_UNUSED, false, cctx);
    if (*xsink)

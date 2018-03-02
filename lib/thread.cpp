@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -588,120 +588,134 @@ tid_node::~tid_node() {
 
 class BGThreadParams {
 private:
-   // call_obj: get and reference the current stack object, if any, for the new call stack
-   QoreObject* call_obj;
+    // call_obj: get and reference the current stack object, if any, for the new call stack
+    QoreObject* call_obj;
 
-   DLLLOCAL ~BGThreadParams() {
-   }
+    DLLLOCAL ~BGThreadParams() {
+    }
 
 public:
-   QoreObject* obj;
-   const qore_class_private* class_ctx;
+    QoreObject* obj = nullptr;
+    const qore_class_private* class_ctx;
 
-   AbstractQoreNode* fc;
-   QoreProgram* pgm;
-   int tid;
-   QoreProgramLocation loc;
-   bool registered, started;
+    AbstractQoreNode* fc;
+    QoreProgram* pgm;
+    int tid;
+    QoreProgramLocation loc;
+    bool registered = false,
+        started = false;
 
-   DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
-      : obj(0),
-        fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation), registered(false), started(false) {
-      assert(xsink);
-      {
-         ThreadData* td = thread_data.get();
-         call_obj = td->current_obj;
-         class_ctx = td->current_class;
-      }
+    DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
+        : fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation) {
+        assert(xsink);
+        {
+            ThreadData* td = thread_data.get();
+            call_obj = td->current_obj;
+            class_ctx = td->current_class;
+        }
 
-      //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj, call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", fc->getType());
+        //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj, call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", fc->getType());
 
-      // first try to preregister the new thread
-      if (qore_program_private::preregisterNewThread(*pgm, xsink)) {
-         call_obj = 0;
-         return;
-      }
+        // first try to preregister the new thread
+        if (qore_program_private::preregisterNewThread(*pgm, xsink)) {
+            call_obj = nullptr;
+            return;
+        }
 
-      registered = true;
+        registered = true;
 
-      qore_type_t fctype = fc->getType();
-      if (fctype == NT_SELF_CALL) {
-         {
-            const QoreClass* qc = reinterpret_cast<SelfFunctionCallNode*>(fc)->getClass();
-            if (qc)
-               class_ctx = qore_class_private::get(*qc);
-         }
+        qore_type_t fctype = fc->getType();
+        if (fctype == NT_SELF_CALL) {
+            SelfFunctionCallNode* sfcn = reinterpret_cast<SelfFunctionCallNode*>(fc);
+            {
+                const QoreClass* qc = sfcn->getClass();
+                if (qc)
+                    class_ctx = qore_class_private::get(*qc);
+            }
 
-         // must have a current object if an in-object method call is being executed
-         // (i.e. $.method())
-         // we reference the object so it won't go out of scope while the thread is running
-         obj = call_obj;
-         assert(obj);
-         obj->realRef();
-         call_obj = 0;
-      }
+            //printd(5, "BGThreadParams::BGThreadParams() sfcn: %p class: '%s' method: '%s' static: %d\n", sfcn, class_ctx->name.c_str(), sfcn->getMethod()->getName(), sfcn->getMethod()->isStatic());
 
-      if (call_obj)
-         call_obj->tRef();
-   }
+            // issue #2653: calling a static method from inside a non-static method in the background operator
+            // incorrectly extends the lifetime of the object
+            if (!sfcn->getMethod()->isStatic()) {
+                //printd(5, "BGThreadParams::BGThreadParams() real object method call: %p\n", call_obj);
+                // must have a current object if an in-object method call is being executed
+                // (i.e. $.method())
+                // we reference the object so it won't go out of scope while the thread is running
+                obj = call_obj;
+                assert(obj);
+                obj->realRef();
+                call_obj = nullptr;
+            }
+        }
 
-   DLLLOCAL void del() {
-      // decrement program's thread count
-      if (started) {
-         qore_program_private::decThreadCount(*pgm, tid);
-         //printd(5, "BGThreadParams::del() this: %p pgm: %p\n", this, pgm);
-         pgm->depDeref();
-      }
-      else if (registered)
-         qore_program_private::cancelPreregistration(*pgm);
+        if (call_obj)
+            call_obj->tRef();
+    }
 
-      delete this;
-   }
+    DLLLOCAL void del() {
+        // decrement program's thread count
+        if (started) {
+            qore_program_private::decThreadCount(*pgm, tid);
+            //printd(5, "BGThreadParams::del() this: %p pgm: %p\n", this, pgm);
+            pgm->depDeref();
+        }
+        else if (registered)
+            qore_program_private::cancelPreregistration(*pgm);
 
-   DLLLOCAL void startThread(ExceptionSink& xsink) {
-      // register the new tid
-      qore_program_private::registerNewThread(*pgm, tid);
-      // create thread-local data in the program object
-      qore_program_private::startThread(*pgm, xsink);
-      // set program counter for new thread
-      update_runtime_location(loc);
-      started = true;
-      //printd(5, "BGThreadParams::startThread() this: %p pgm: %p\n", this, pgm);
-      pgm->depRef();
-   }
+        delete this;
+    }
 
-   DLLLOCAL QoreObject* getCallObject() {
-      return obj ? obj : call_obj;
-   }
+    DLLLOCAL void startThread(ExceptionSink& xsink) {
+        // register the new tid
+        qore_program_private::registerNewThread(*pgm, tid);
+        // create thread-local data in the program object
+        qore_program_private::startThread(*pgm, xsink);
+        // set program counter for new thread
+        update_runtime_location(loc);
+        started = true;
+        //printd(5, "BGThreadParams::startThread() this: %p pgm: %p\n", this, pgm);
+        pgm->depRef();
+    }
 
-   DLLLOCAL void cleanup(ExceptionSink* xsink) {
-      if (fc) fc->deref(xsink);
-      derefObj(xsink);
-      derefCallObj();
-   }
+    /*
+    DLLLOCAL QoreObject* getCallObject() {
+        return obj ? obj : call_obj;
+    }
+    */
 
-   DLLLOCAL void derefCallObj() {
-      // dereference call object if present
-      if (call_obj) {
-         call_obj->tDeref();
-         call_obj = 0;
-      }
-   }
+    DLLLOCAL QoreObject* getContextObject() {
+        return obj;
+    }
 
-   DLLLOCAL void derefObj(ExceptionSink* xsink) {
-      if (obj) {
-         obj->realDeref(xsink);
-         obj = 0;
-      }
-   }
+    DLLLOCAL void cleanup(ExceptionSink* xsink) {
+        if (fc) fc->deref(xsink);
+        derefObj(xsink);
+        derefCallObj();
+    }
 
-   DLLLOCAL AbstractQoreNode* exec(ExceptionSink* xsink) {
-      //printd(5, "BGThreadParams::exec() this: %p fc: %p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
-      AbstractQoreNode* rv = fc->eval(xsink);
-      fc->deref(xsink);
-      fc = 0;
-      return rv;
-   }
+    DLLLOCAL void derefCallObj() {
+        // dereference call object if present
+        if (call_obj) {
+            call_obj->tDeref();
+            call_obj = nullptr;
+        }
+    }
+
+    DLLLOCAL void derefObj(ExceptionSink* xsink) {
+        if (obj) {
+            obj->realDeref(xsink);
+            obj = nullptr;
+        }
+    }
+
+    DLLLOCAL AbstractQoreNode* exec(ExceptionSink* xsink) {
+        //printd(5, "BGThreadParams::exec() this: %p fc: %p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
+        AbstractQoreNode* rv = fc->eval(xsink);
+        fc->deref(xsink);
+        fc = nullptr;
+        return rv;
+    }
 };
 
 ThreadCleanupList::ThreadCleanupList() {
@@ -1452,7 +1466,7 @@ OptionalClassObjSubstitutionHelper::~OptionalClassObjSubstitutionHelper() {
    }
 }
 
-CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink) : xsink(xsink) {
+CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink, bool ref_obj) : xsink(xsink) {
    ThreadData* td  = thread_data.get();
    old_code = td->current_code;
    td->current_code = code;
@@ -1463,7 +1477,7 @@ CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, 
    old_class = td->current_class;
    td->current_class = c;
 
-   if (obj && obj != old_obj && !qore_object_private::get(*obj)->startCall(code, xsink))
+   if (obj && ref_obj && obj != old_obj && !qore_object_private::get(*obj)->startCall(code, xsink))
       do_ref = true;
    else
       do_ref = false;
@@ -2057,7 +2071,7 @@ namespace {
          {
             AbstractQoreNode* rv;
             {
-               CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getCallObject(), btp->class_ctx);
+               CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getContextObject(), btp->class_ctx);
 
                // dereference call object if present
                btp->derefCallObj();

@@ -5,10 +5,51 @@
 %enable-all-warnings
 %require-types
 %strict-args
+%allow-weak-references
 
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class ThreadObjectTest
+
+# this class implements a background thread that does not extend the scope of the object
+# and is shut down cleanly when the object goes out of scope - this allows objects
+# to have a natural scope and also a service thread that's managed with the natural
+# lifecycle of the object
+class TransparentObjectThreadTest {
+    private:internal {
+        Counter end(1);
+        bool stop;
+    }
+
+    constructor() {
+        # we have to let the test method dereference the object before finishing the method
+        # otherwise there is a race condition where the destructor is run in the background
+        # thread and will wait on the end counter before it can be decremented
+        Counter start(1);
+        background test(self, start);
+        start.waitForZero();
+    }
+
+    destructor() {
+        stop = True;
+        end.waitForZero();
+    }
+
+    static test(TransparentObjectThreadTest t, Counter start) {
+        # let the object go out of scope naturally
+        TransparentObjectThreadTest self := t;
+        remove t;
+        # signal the constructor to continue
+        start.dec();
+        # signal the object's end counter when done
+        on_exit self.end.dec();
+
+        # loop until we are signaled to stop
+        while (!self.stop) {
+            usleep(50ms);
+        }
+    }
+}
 
 class ThreadObjectTest inherits QUnit::Test {
     private {
@@ -19,6 +60,7 @@ class ThreadObjectTest inherits QUnit::Test {
         addTestCase("Test Counter", \testCounter());
         addTestCase("Test Queue", \testQueue());
         addTestCase("Test Thread", \testThread());
+        addTestCase("Test TransparentObjectThreadTest", \transparentObjectThreadTest());
         set_return_value(main());
     }
 
@@ -37,6 +79,11 @@ class ThreadObjectTest inherits QUnit::Test {
 
     testThread() {
         new ThreadTest(threads, iters, self);
+    }
+
+    transparentObjectThreadTest() {
+        TransparentObjectThreadTest t();
+        assertTrue(True);
     }
 }
 
