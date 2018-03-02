@@ -32,9 +32,9 @@ const TestList = (1, 2, 3);
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
         addTestCase("complex assignments", \testComplexAssignments());
-        #addTestCase("auto", \testComplexAutoTypes());
-        #addTestCase("complex type compat", \testComplexTypesCompat());
-        #addTestCase("types", \testTypes());
+        addTestCase("auto", \testComplexAutoTypes());
+        addTestCase("complex type compat", \testComplexTypesCompat());
+        addTestCase("types", \testTypes());
         addTestCase("issue 2651", \issue2651());
         set_return_value(main());
     }
