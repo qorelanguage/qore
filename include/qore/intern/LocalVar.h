@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -188,6 +188,7 @@ public:
    DLLLOCAL void remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo);
 
    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
+      //printd(5, "LocalVarValue::evalValue() this: %p '%s' type: %d '%s'\n", this, id, val.getType(), val.getTypeName());
       if (val.getType() == NT_REFERENCE) {
          ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
          LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
