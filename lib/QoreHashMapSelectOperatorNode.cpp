@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -76,6 +76,10 @@ AbstractQoreNode* QoreHashMapSelectOperatorNode::parseInitImpl(LocalVar* oflag, 
    return this;
 }
 
+QoreHashNode* QoreHashMapSelectOperatorNode::getNewHash() const {
+    return new QoreHashNode(QoreTypeInfo::getUniqueReturnComplexHash(returnTypeInfo));
+}
+
 QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    ValueEvalRefHolder arg_lst(e[2], xsink);
    if (*xsink || arg_lst->isNothing())
@@ -83,7 +87,7 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
 
    qore_type_t arglst_type = arg_lst->getType();
    assert(arglst_type != NT_NOTHING);
-   ReferenceHolder<QoreHashNode> ret_val(ref_rv ? new QoreHashNode : 0, xsink);
+   ReferenceHolder<QoreHashNode> ret_val(ref_rv ? getNewHash() : nullptr, xsink);
    if (NT_LIST != arglst_type) { // Single value
       // check if it's an AbstractIterator object
       if (NT_OBJECT == arglst_type) {
@@ -162,7 +166,7 @@ QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, Except
 }
 
 QoreValue QoreHashMapSelectOperatorNode::mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const {
-   ReferenceHolder<QoreHashNode> rv(ref_rv ? new QoreHashNode : 0, xsink);
+   ReferenceHolder<QoreHashNode> rv(ref_rv ? getNewHash() : nullptr, xsink);
 
    qore_size_t i = 0;
    // set offset in thread-local data for "$#"

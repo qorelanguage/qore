@@ -32,6 +32,7 @@ class TypeTest inherits QUnit::Test {
         #addTestCase("auto", \testComplexAutoTypes());
         #addTestCase("complex type compat", \testComplexTypesCompat());
         #addTestCase("types", \testTypes());
+        addTestCase("issue 2651", \issue2651());
         set_return_value(main());
     }
 
@@ -5107,6 +5108,12 @@ class TypeTest inherits QUnit::Test {
             i = NOTHING;
             assertEq(NOTHING, i);
         }
+    }
+
+    issue2651() {
+        assertEq("hash<string, bool>", (map {$1: True}, keys {}).fullType());
+        assertEq("list<string>", (keys {}).fullType());
+        assertEq("list<bool>", (map True, keys {}).fullType());
     }
 
     static hash testAnyArg(any v) {
