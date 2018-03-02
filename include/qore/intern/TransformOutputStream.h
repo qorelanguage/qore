@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,10 +32,10 @@
 #ifndef _QORE_TRANSFORMOUTPUTSTREAM_H
 #define _QORE_TRANSFORMOUTPUTSTREAM_H
 
-#include "qore/intern/OutputStreamBase.h"
+#include "qore/OutputStream.h"
 #include "qore/Transform.h"
 
-class TransformOutputStream : public OutputStreamBase {
+class TransformOutputStream : public OutputStream {
 public:
    TransformOutputStream(OutputStream *os, Transform *t) : os(os), t(t), bufsize(t->outputBufferSize()), closed(false) {
    }

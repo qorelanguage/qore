@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -560,7 +560,7 @@ private:
    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink);
+   DLLLOCAL CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink, bool ref_obj = true);
    DLLLOCAL ~CodeContextHelperBase();
 };
 
@@ -815,8 +815,8 @@ public:
 
 class CodeContextHelper : public CodeContextHelperBase, public CallStackHelper {
 public:
-   DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = 0, const qore_class_private* cls = 0) :
-      CodeContextHelperBase(c, obj, cls, xs),
+   DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = nullptr, const qore_class_private* cls = nullptr, bool ref_obj = true) :
+      CodeContextHelperBase(c, obj, cls, xs, ref_obj),
       CallStackHelper(c, t, obj, cls, xs) {
    }
 };
@@ -824,8 +824,8 @@ public:
 #else
 class CodeContextHelper : public CodeContextHelperBase {
 public:
-   DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = 0, const qore_class_private* cls = 0) :
-      CodeContextHelperBase(c, obj, cls, xs) {
+   DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = nullptr, const qore_class_private* cls = nullptr, bool ref_obj = true) :
+      CodeContextHelperBase(c, obj, cls, xs, ref_obj) {
    }
 };
 #endif

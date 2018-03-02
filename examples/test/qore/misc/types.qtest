@@ -36,7 +36,6 @@ class TypeTest inherits QUnit::Test {
         addTestCase("complex type compat", \testComplexTypesCompat());
         addTestCase("types", \testTypes());
         addTestCase("issue 2651", \issue2651());
-
         set_return_value(main());
     }
 
