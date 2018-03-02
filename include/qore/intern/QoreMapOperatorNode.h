@@ -65,6 +65,7 @@ public:
 
 protected:
     const QoreTypeInfo* returnTypeInfo;
+    const QoreTypeInfo* expTypeInfo = nullptr;
     FunctionalOperator* iterator_func;
 
     DLLLOCAL static QoreString map_str;
@@ -97,7 +98,8 @@ public:
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
-        return getList()->getValueTypeInfo();
+        // issue #2651: return the iterator expression type as the functional value type
+        return map->expTypeInfo;
     }
 
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
@@ -135,6 +137,11 @@ public:
             h.obj->deref(xsink);
     }
 
+    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
+        // issue #2651: return the iterator expression type as the functional value type
+        return map->expTypeInfo;
+    }
+
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 
 protected:
@@ -153,6 +160,8 @@ public:
     DLLLOCAL ~QoreFunctionalMapOperator() {
         delete f;
     }
+
+    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const;
 
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 

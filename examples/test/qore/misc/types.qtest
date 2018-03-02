@@ -6,6 +6,9 @@
 %require-types
 %strict-args
 
+# we will test invalid operations
+%disable-warning invalid-operation
+
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class TypeTest
@@ -5112,8 +5115,14 @@ class TypeTest inherits QUnit::Test {
 
     issue2651() {
         assertEq("hash<string, bool>", (map {$1: True}, keys {}).fullType());
+        assertEq("hash<string, bool>", (map {$1: True}, keys {"a": 1}).fullType());
+        assertEq("hash<string, bool>", (map {$1: True}, NOTHING.iterator()).fullType());
+        assertEq(Type::NothingType, (map {$1: True}, NOTHING).fullType());
         assertEq("list<string>", (keys {}).fullType());
         assertEq("list<bool>", (map True, keys {}).fullType());
+        assertEq("list<bool>", (map True, keys {"a": 1}).fullType());
+        assertEq("list<bool>", (map True, NOTHING.iterator()).fullType());
+        assertEq(Type::NothingType, (map True, NOTHING).fullType());
     }
 
     static hash testAnyArg(any v) {

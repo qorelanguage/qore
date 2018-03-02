@@ -84,7 +84,6 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag,
     right = right->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
 
     // check iterated expression
-    const QoreTypeInfo* expTypeInfo = nullptr;
     {
         // set implicit argument type
         ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
@@ -237,6 +236,10 @@ bool QoreFunctionalMapIteratorOperator::getNextImpl(ValueOptionalRefHolder& val,
         val.takeValueFrom(tval);
     }
     return false;
+}
+
+const QoreTypeInfo* QoreFunctionalMapOperator::getValueTypeImpl() const {
+    return f->getValueType();
 }
 
 bool QoreFunctionalMapOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
