@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -421,6 +421,35 @@ public:
          return nullptr;
       return ti->return_vec[0].spec.getComplexReference();
    }
+
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* getReturnComplexHashOrNothing(const QoreTypeInfo* ti) {
+        if (!ti || !hasType(ti))
+            return nullptr;
+        if (ti->return_vec.size() > 1) {
+            if (ti->return_vec.size() != 2 || (ti->return_vec[1].spec.match(NT_NOTHING) != QTI_IDENT))
+                return nullptr;
+        }
+        return ti == autoHashTypeInfo || ti == autoHashOrNothingTypeInfo
+            ? autoTypeInfo
+            : ti->return_vec[0].spec.getComplexHash();
+    }
+
+    // static version of method, checking for null pointer
+    DLLLOCAL static const QoreTypeInfo* getReturnComplexListOrNothing(const QoreTypeInfo* ti) {
+        if (!ti || !hasType(ti))
+            return nullptr;
+        if (ti->return_vec.size() > 1) {
+            if (ti->return_vec.size() != 2 || (ti->return_vec[1].spec.match(NT_NOTHING) != QTI_IDENT))
+                return nullptr;
+        }
+        return ti == autoListTypeInfo
+            || ti == autoListOrNothingTypeInfo
+            || ti == softAutoListTypeInfo
+            || ti == softAutoListOrNothingTypeInfo
+            ? autoTypeInfo
+            : ti->return_vec[0].spec.getComplexList();
+    }
 
    // static version of method, checking for null pointer
    DLLLOCAL static bool hasType(const QoreTypeInfo* ti) {
