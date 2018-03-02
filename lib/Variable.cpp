@@ -288,7 +288,7 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
     if (doLValue(op->getLeft(), for_remove))
         return -1;
 
-    QoreListNode* l;
+    QoreListNode* l = nullptr;
     if (getType() == NT_LIST) {
         ensureUnique();
         l = reinterpret_cast<QoreListNode*>(getValue());
