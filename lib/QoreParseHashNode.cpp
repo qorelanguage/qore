@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -89,7 +89,10 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
         this->typeInfo = typeInfo = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
     }
     else {
-        this->typeInfo = typeInfo = hashTypeInfo;
+        this->typeInfo = hashTypeInfo;
+        // issue #2647: allow an empty hash to be assigned to any complex hash (but not hashdecls)
+        // it will get folded at runtime into the desired type in any case
+        typeInfo = vtypes.empty() ? emptyHashTypeInfo : hashTypeInfo;
     }
 
     if (needs_eval)

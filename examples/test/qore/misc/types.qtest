@@ -36,6 +36,8 @@ class TypeTest inherits QUnit::Test {
         addTestCase("complex type compat", \testComplexTypesCompat());
         addTestCase("types", \testTypes());
         addTestCase("issue 2651", \issue2651());
+        addTestCase("issue 2647", \issue2647());
+
         set_return_value(main());
     }
 
@@ -5160,6 +5162,41 @@ class TypeTest inherits QUnit::Test {
         assertEq("list<bool>", (map True, keys {"a": 1}).fullType());
         assertEq("list<bool>", (map True, NOTHING.iterator()).fullType());
         assertEq(Type::NothingType, (map True, NOTHING).fullType());
+    }
+
+    issue2647() {
+        # test runtime type folding
+        {
+            auto x = {};
+            hash<string, bool> h = x;
+            assertEq("hash", x.fullType());
+            assertEq("hash<string, bool>", h.fullType());
+        }
+        # test parse and runtime type folding
+        {
+            hash<string, bool> h = {};
+            assertEq("hash<string, bool>", h.fullType());
+            code test = hash<string, bool> sub () {
+                return {};
+            };
+            assertEq("hash<string, bool>", test().fullType());
+        }
+        # test runtime type folding
+        {
+            auto x = ();
+            list<bool> l = x;
+            assertEq("list", x.fullType());
+            assertEq("list<bool>", l.fullType());
+        }
+        # test parse and runtime type folding
+        {
+            list<bool> l = ();
+            assertEq("list<bool>", l.fullType());
+            code test = list<bool> sub () {
+                return ();
+            };
+            assertEq("list<bool>", test().fullType());
+        }
     }
 
     static hash testAnyArg(any v) {

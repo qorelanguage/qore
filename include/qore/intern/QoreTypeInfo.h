@@ -54,6 +54,8 @@ enum q_typespec_t : unsigned char {
    QTS_COMPLEXLIST = 4,
    QTS_COMPLEXREF = 5,
    QTS_COMPLEXSOFTLIST = 6,
+   QTS_EMPTYLIST = 7,
+   QTS_EMPTYHASH = 8,
 };
 
 class QoreTypeInfo;
@@ -90,6 +92,8 @@ public:
    DLLLOCAL qore_type_t getType() const {
       switch (typespec) {
          case QTS_TYPE:
+         case QTS_EMPTYLIST:
+         case QTS_EMPTYHASH:
             return u.t;
          case QTS_CLASS:
             return NT_OBJECT;
@@ -152,6 +156,10 @@ public:
             return referenceTypeInfo;
          case QTS_TYPE:
             return getTypeInfoForType(u.t);
+         case QTS_EMPTYLIST:
+            return emptyListTypeInfo;
+         case QTS_EMPTYHASH:
+            return emptyHashTypeInfo;
       }
       assert(false);
       return nullptr;
@@ -206,6 +214,10 @@ protected:
       u.ti = ti;
    }
 
+   DLLLOCAL QoreTypeSpec(qore_type_t t, q_typespec_t ts) : typespec(ts) {
+      u.t = t;
+   }
+
 private:
    union {
       qore_type_t t;
@@ -237,6 +249,18 @@ public:
 class QoreComplexReferenceTypeSpec : public QoreTypeSpec {
 public:
    DLLLOCAL QoreComplexReferenceTypeSpec(const QoreTypeInfo* ti) : QoreTypeSpec(ti, QTS_COMPLEXREF) {
+   }
+};
+
+class QoreEmptyListTypeSpec : public QoreTypeSpec {
+public:
+   DLLLOCAL QoreEmptyListTypeSpec() : QoreTypeSpec(NT_LIST, QTS_EMPTYLIST) {
+   }
+};
+
+class QoreEmptyHashTypeSpec : public QoreTypeSpec {
+public:
+   DLLLOCAL QoreEmptyHashTypeSpec() : QoreTypeSpec(NT_HASH, QTS_EMPTYHASH) {
    }
 };
 
@@ -1701,6 +1725,15 @@ protected:
    }
 };
 
+class QoreEmptyHashTypeInfo : public QoreHashTypeInfo {
+public:
+    DLLLOCAL QoreEmptyHashTypeInfo() : QoreHashTypeInfo("hash", q_accept_vec_t {
+            {NT_HASH, map_get_plain_hash, true},
+        },
+        q_return_vec_t {{QoreEmptyHashTypeSpec(), true}}) {
+    }
+};
+
 class QoreHashOrNothingTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL QoreHashOrNothingTypeInfo() : QoreTypeInfo("*hash", q_accept_vec_t {
@@ -1769,6 +1802,15 @@ protected:
    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
       return emptyList->listRefSelf();
    }
+};
+
+class QoreEmptyListTypeInfo : public QoreListTypeInfo {
+public:
+    DLLLOCAL QoreEmptyListTypeInfo() : QoreListTypeInfo("list", q_accept_vec_t {
+            {NT_LIST, nullptr, true},
+        },
+        q_return_vec_t {{QoreEmptyListTypeSpec(), true}}) {
+    }
 };
 
 class QoreListOrNothingTypeInfo : public QoreTypeInfo {
