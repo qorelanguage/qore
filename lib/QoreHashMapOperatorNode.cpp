@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -47,28 +47,28 @@ int QoreHashMapOperatorNode::getAsString(QoreString& str, int foff, ExceptionSin
 }
 
 const QoreTypeInfo* QoreHashMapOperatorNode::setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo2, const QoreTypeInfo* iteratorTypeInfo) {
-   const QoreTypeInfo* typeInfo;
+    const QoreTypeInfo* typeInfo;
 
-   // this operator returns no value if the iterator expression has no value
-   bool or_nothing = QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_NOTHING);
-   if (QoreTypeInfo::hasType(expTypeInfo2)) {
-      returnTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(expTypeInfo2);
+    // this operator returns no value if the iterator expression has no value
+    bool or_nothing = QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_NOTHING);
+    if (QoreTypeInfo::hasType(expTypeInfo2)) {
+        returnTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(expTypeInfo2);
 
-      if (or_nothing) {
-         typeInfo = qore_program_private::get(*getProgram())->getComplexHashOrNothingType(expTypeInfo2);
-      }
-      else
-         typeInfo = returnTypeInfo;
-   }
-   else {
-      returnTypeInfo = hashTypeInfo;
-      // this operator returns no value if the iterator expression has no value
-      typeInfo = or_nothing ? hashOrNothingTypeInfo : hashTypeInfo;
-   }
+        if (or_nothing) {
+            typeInfo = qore_program_private::get(*getProgram())->getComplexHashOrNothingType(expTypeInfo2);
+        }
+        else
+            typeInfo = returnTypeInfo;
+    }
+    else {
+        returnTypeInfo = hashTypeInfo;
+        // this operator returns no value if the iterator expression has no value
+        typeInfo = or_nothing ? hashOrNothingTypeInfo : hashTypeInfo;
+    }
 
-   //printd(5, "e: '%s' t: '%s' r: '%s'\n", QoreTypeInfo::getName(expTypeInfo2), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(returnTypeInfo));
+    //printd(5, "QoreHashMapOperatorNode::setReturnTypeInfoe: '%s' t: '%s' r: '%s'\n", QoreTypeInfo::getName(expTypeInfo2), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(returnTypeInfo));
 
-   return typeInfo;
+    return typeInfo;
 }
 
 AbstractQoreNode* QoreHashMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
@@ -97,6 +97,10 @@ AbstractQoreNode* QoreHashMapOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    return this;
 }
 
+QoreHashNode* QoreHashMapOperatorNode::getNewHash() const {
+    return new QoreHashNode(QoreTypeInfo::getUniqueReturnComplexHash(returnTypeInfo));
+}
+
 QoreValue QoreHashMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    ValueEvalRefHolder arg_lst(e[2], xsink);
    if (*xsink || arg_lst->isNothing())
@@ -104,7 +108,7 @@ QoreValue QoreHashMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
 
    qore_type_t arglst_type = arg_lst->getType();
    assert(arglst_type != NT_NOTHING);
-   ReferenceHolder<QoreHashNode> ret_val(ref_rv ? new QoreHashNode : nullptr, xsink);
+   ReferenceHolder<QoreHashNode> ret_val(ref_rv ? getNewHash() : nullptr, xsink);
    if (NT_LIST != arglst_type) { // Single value
       // check if it's an AbstractIterator object
       if (NT_OBJECT == arglst_type) {
@@ -171,7 +175,7 @@ QoreValue QoreHashMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
 }
 
 QoreValue QoreHashMapOperatorNode::mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const {
-   ReferenceHolder<QoreHashNode> rv(ref_rv ? new QoreHashNode : 0, xsink);
+   ReferenceHolder<QoreHashNode> rv(ref_rv ? getNewHash() : nullptr, xsink);
 
    qore_size_t i = 0;
    // set offset in thread-local data for "$#"

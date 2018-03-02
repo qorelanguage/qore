@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,28 +35,6 @@
 #include "qore/intern/AbstractIteratorHelper.h"
 
 class QoreHashMapOperatorNode : public QoreNOperatorNodeBase<3> {
-protected:
-   const QoreTypeInfo* returnTypeInfo = nullptr;
-
-   DLLLOCAL static QoreString map_str;
-
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-   /*
-    * Destructor
-    */
-   DLLLOCAL virtual ~QoreHashMapOperatorNode() {
-   }
-
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids,
-                                                    const QoreTypeInfo*& typeInfo);
-
-   inline DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return returnTypeInfo;
-   }
-
-   DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
-
 public:
    DLLLOCAL QoreHashMapOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2) :
       QoreNOperatorNodeBase<3>(loc, p0, p1, p2) {
@@ -84,6 +62,30 @@ public:
    }
 
    DLLLOCAL static const QoreTypeInfo* setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo2, const QoreTypeInfo* iteratorTypeInfo);
+
+protected:
+   const QoreTypeInfo* returnTypeInfo = nullptr;
+
+   DLLLOCAL static QoreString map_str;
+
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+   /*
+    * Destructor
+    */
+   DLLLOCAL virtual ~QoreHashMapOperatorNode() {
+   }
+
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids,
+                                                    const QoreTypeInfo*& typeInfo);
+
+   inline DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+      return returnTypeInfo;
+   }
+
+   DLLLOCAL QoreValue mapIterator(AbstractIteratorHelper& h, ExceptionSink* xsink) const;
+
+   DLLLOCAL QoreHashNode* getNewHash() const;
 };
 
 #endif // QOREHASHMAPOPERATORNODE_H
