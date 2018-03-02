@@ -120,10 +120,10 @@ public:
       return values.empty();
    }
 
-   DLLLOCAL void setFinalized() {
-      assert(!finalized);
-      finalized = true;
-   }
+    DLLLOCAL void setFinalized() {
+        if (!finalized)
+            finalized = true;
+    }
 
    DLLLOCAL bool isFinalized() const {
       return finalized;
