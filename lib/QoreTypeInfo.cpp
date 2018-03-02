@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -62,12 +62,14 @@ const QoreDateOrNothingTypeInfo staticDateOrNothingTypeInfo;
 
 const QoreHashTypeInfo staticHashTypeInfo;
 const QoreHashOrNothingTypeInfo staticHashOrNothingTypeInfo;
+const QoreEmptyHashTypeInfo staticEmptyHashTypeInfo;
 
 const QoreAutoHashTypeInfo staticAutoHashTypeInfo;
 const QoreAutoHashOrNothingTypeInfo staticAutoHashOrNothingTypeInfo;
 
 const QoreListTypeInfo staticListTypeInfo;
 const QoreListOrNothingTypeInfo staticListOrNothingTypeInfo;
+const QoreEmptyListTypeInfo staticEmptyListTypeInfo;
 
 const QoreAutoListTypeInfo staticAutoListTypeInfo;
 const QoreAutoListOrNothingTypeInfo staticAutoListOrNothingTypeInfo;
@@ -141,9 +143,11 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *dateTypeInfo = &staticDateTypeInfo,
    *objectTypeInfo = &staticObjectTypeInfo,
    *hashTypeInfo = &staticHashTypeInfo,
+   *emptyHashTypeInfo = &staticEmptyHashTypeInfo,
    *autoHashTypeInfo = &staticAutoHashTypeInfo,
    *listTypeInfo = &staticListTypeInfo,
    *autoListTypeInfo = &staticAutoListTypeInfo,
+   *emptyListTypeInfo = &staticEmptyListTypeInfo,
    *nothingTypeInfo = &staticNothingTypeInfo,
    *nullTypeInfo = &staticNullTypeInfo,
    *numberTypeInfo = &staticNumberTypeInfo,
@@ -588,100 +592,108 @@ static qore_type_result_e match_type(const QoreTypeInfo* this_type, const QoreTy
 }
 
 qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const {
-   //printd(5, "QoreTypeSpec::match() typespec: %d t.typespec: %d\n", (int)typespec, (int)t.typespec);
-   switch (typespec) {
-      case QTS_CLASS: {
-         switch (t.typespec) {
-            case QTS_CLASS:
-               return qore_class_private::get(*t.u.qc)->parseCheckCompatibleClass(*qore_class_private::get(*u.qc), may_not_match);
-            default: {
-               // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
-               qore_type_t tt = t.getType();
-               if (tt == NT_ALL || tt == NT_OBJECT) {
-                  may_not_match = true;
-                  return QTI_AMBIGUOUS;
-               }
-               return QTI_NOT_EQUAL;
+    //printd(5, "QoreTypeSpec::match() typespec: %d t.typespec: %d\n", (int)typespec, (int)t.typespec);
+    switch (typespec) {
+        case QTS_CLASS: {
+            switch (t.typespec) {
+                case QTS_CLASS:
+                    return qore_class_private::get(*t.u.qc)->parseCheckCompatibleClass(*qore_class_private::get(*u.qc), may_not_match);
+                default: {
+                    // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
+                    qore_type_t tt = t.getType();
+                    if (tt == NT_ALL || tt == NT_OBJECT) {
+                        may_not_match = true;
+                        return QTI_AMBIGUOUS;
+                    }
+                    return QTI_NOT_EQUAL;
+                }
             }
-         }
-         return QTI_NOT_EQUAL;
-      }
-      case QTS_HASHDECL: {
-         switch (t.typespec) {
-            case QTS_HASHDECL:
-               return typed_hash_decl_private::get(*t.u.hd)->parseEqual(*typed_hash_decl_private::get(*u.hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
-            default: {
-               return QTI_NOT_EQUAL;
+            return QTI_NOT_EQUAL;
+        }
+        case QTS_HASHDECL: {
+            switch (t.typespec) {
+                case QTS_HASHDECL:
+                    return typed_hash_decl_private::get(*t.u.hd)->parseEqual(*typed_hash_decl_private::get(*u.hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
+                default: {
+                    return QTI_NOT_EQUAL;
+                }
             }
-         }
-         return QTI_NOT_EQUAL;
-      }
-      case QTS_COMPLEXHASH: {
-         //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
-         switch (t.typespec) {
-            case QTS_COMPLEXHASH:
-               return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
-            default: {
-               return QTI_NOT_EQUAL;
+            return QTI_NOT_EQUAL;
+        }
+        case QTS_COMPLEXHASH: {
+            //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
+            switch (t.typespec) {
+                case QTS_COMPLEXHASH:
+                    return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
+                case QTS_EMPTYHASH:
+                    return QTI_NEAR;
+                default: {
+                    return QTI_NOT_EQUAL;
+                }
             }
-         }
-         return QTI_NOT_EQUAL;
-      }
-      case QTS_COMPLEXSOFTLIST:
-      case QTS_COMPLEXLIST: {
-         //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
-         switch (t.typespec) {
-            case QTS_COMPLEXSOFTLIST:
-            case QTS_COMPLEXLIST:
-               return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
-            default: {
-               return QTI_NOT_EQUAL;
+            return QTI_NOT_EQUAL;
+        }
+        case QTS_COMPLEXSOFTLIST:
+        case QTS_COMPLEXLIST: {
+            //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
+            switch (t.typespec) {
+                case QTS_COMPLEXSOFTLIST:
+                case QTS_COMPLEXLIST:
+                    return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
+                case QTS_EMPTYLIST:
+                    return QTI_NEAR;
+                default: {
+                    return QTI_NOT_EQUAL;
+                }
             }
-         }
-         return QTI_NOT_EQUAL;
-      }
-      case QTS_COMPLEXREF: {
-         //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
-         switch (t.typespec) {
-            case QTS_COMPLEXREF: {
-               //printd(5, "pcr: '%s' '%s' eq: %d ss: %d\n", QoreTypeInfo::getName(t.u.ti), QoreTypeInfo::getName(u.ti), QoreTypeInfo::equal(u.ti, t.u.ti), QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti));
-               // the passed argument's type must be a superset or equal to the reference type's subtype
-               // that is; if the types are different, the reference type's subtype must be more restrictive than the passed type's
-               if (QoreTypeInfo::equal(t.u.ti, u.ti))
-                  return QTI_IDENT;
-               return QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+            return QTI_NOT_EQUAL;
+        }
+        case QTS_COMPLEXREF: {
+            //printd(5, "QoreTypeSpec::match() t.typespec: %d '%s'\n", (int)t.typespec, QoreTypeInfo::getName(u.ti));
+            switch (t.typespec) {
+                case QTS_COMPLEXREF: {
+                    //printd(5, "pcr: '%s' '%s' eq: %d ss: %d\n", QoreTypeInfo::getName(t.u.ti), QoreTypeInfo::getName(u.ti), QoreTypeInfo::equal(u.ti, t.u.ti), QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti));
+                    // the passed argument's type must be a superset or equal to the reference type's subtype
+                    // that is; if the types are different, the reference type's subtype must be more restrictive than the passed type's
+                    if (QoreTypeInfo::equal(t.u.ti, u.ti))
+                        return QTI_IDENT;
+                    return QoreTypeInfo::outputSuperSetOf(t.u.ti, u.ti) ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
+                }
+                case QTS_TYPE:
+                case QTS_EMPTYLIST:
+                case QTS_EMPTYHASH:
+                    if (t.getType() == NT_REFERENCE) {
+                        may_not_match = true;
+                        return QTI_AMBIGUOUS;
+                    }
+                    return QTI_NOT_EQUAL;
+                default:
+                    return QTI_NOT_EQUAL;
             }
-            case QTS_TYPE:
-               if (t.getType() == NT_REFERENCE) {
-                  may_not_match = true;
-                  return QTI_AMBIGUOUS;
-               }
-               return QTI_NOT_EQUAL;
-            default:
-               return QTI_NOT_EQUAL;
-         }
-         return QTI_NOT_EQUAL;
-      }
-      case QTS_TYPE: {
-         qore_type_t ot = t.getType();
-         if (u.t == NT_ALL) {
-            return QTI_WILDCARD;
-         }
-         // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
-         if (ot == NT_ALL) {
-            may_not_match = true;
-            return QTI_AMBIGUOUS;
-         }
-         if (u.t == ot) {
-            // check special cases
-            if ((u.t == NT_LIST || u.t == NT_HASH) && t.typespec != QTS_TYPE)
-               return QTI_NEAR;
-            return QTI_IDENT;
-         }
-         return QTI_NOT_EQUAL;
-      }
-   }
-   return QTI_NOT_EQUAL;
+            return QTI_NOT_EQUAL;
+        }
+        case QTS_TYPE:
+        case QTS_EMPTYLIST:
+        case QTS_EMPTYHASH: {
+            qore_type_t ot = t.getType();
+            if (u.t == NT_ALL) {
+                return QTI_WILDCARD;
+            }
+            // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
+            if (ot == NT_ALL) {
+                may_not_match = true;
+                return QTI_AMBIGUOUS;
+            }
+            if (u.t == ot) {
+                // check special cases
+                if ((u.t == NT_LIST || u.t == NT_HASH) && t.typespec != QTS_TYPE && t.typespec != QTS_EMPTYLIST && t.typespec != QTS_EMPTYHASH)
+                    return QTI_NEAR;
+                return QTI_IDENT;
+            }
+            return QTI_NOT_EQUAL;
+        }
+    }
+    return QTI_NOT_EQUAL;
 }
 
 bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n) const {
@@ -818,6 +830,8 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
          break;
       }
       case QTS_TYPE:
+      case QTS_EMPTYLIST:
+      case QTS_EMPTYHASH:
          if (u.t == NT_ALL || u.t == n.getType())
             ok = true;
          break;
@@ -842,6 +856,8 @@ bool QoreTypeSpec::operator==(const QoreTypeSpec& other) const {
       return false;
    switch (typespec) {
       case QTS_TYPE:
+      case QTS_EMPTYLIST:
+      case QTS_EMPTYHASH:
          return u.t == other.u.t;
       case QTS_CLASS:
          return qore_class_private::get(*u.qc)->equal(*qore_class_private::get(*other.u.qc));

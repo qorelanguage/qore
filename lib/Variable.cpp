@@ -556,7 +556,7 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
    if (n.type == QV_Node && n.v.n == &Nothing)
       n.v.n = nullptr;
 
-   //printd(5, "LValueHelper::assign() '%s' ti: %p '%s' check_types: %d\n", desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types);
+   //printd(5, "LValueHelper::assign() '%s' ti: %p '%s' check_types: %d n: '%s'\n", desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getTypeName());
    if (check_types) {
       // check type for assignment
       QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
