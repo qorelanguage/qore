@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -60,9 +60,11 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *dateTypeInfo,
    *objectTypeInfo,
    *hashTypeInfo,
+   *emptyHashTypeInfo,
    *autoHashTypeInfo,
    *listTypeInfo,
    *autoListTypeInfo,
+   *emptyListTypeInfo,
    *nothingTypeInfo,
    *nullTypeInfo,
    *numberTypeInfo,
