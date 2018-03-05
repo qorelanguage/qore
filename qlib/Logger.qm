@@ -49,17 +49,22 @@ module Logger {
 
     @section loggerintro Introduction to the Logger Module
 
-    Logger module, which may be alternatively also called <b>Log4q</b>, adopted main design from well known
-    <a href="https://logging.apache.org/log4j/2.x">log4j</a> library.
-    So it implements main class @ref Logger::Logger "Logger" and @ref Logger::LoggerAppender "LoggerAppender",
-    @ref Logger::LoggerFilter "LoggerFilter", @ref Logger::LoggerLayout "LoggerLayout" abstract base classes
-    where their descendants will implement real functionality.
+    The %Logger module (aka <b>Log4q</b>) adopts its primary design from the well known
+    <a href="https://logging.apache.org/log4j/2.x">log4j</a> library, therefore it
+    implements the following primary base classes:
+    - @ref Logger::Logger "Logger"
+    - @ref Logger::LoggerAppender "LoggerAppender" (abstract)
+    - @ref Logger::LoggerFilter "LoggerFilter"
+    - @ref Logger::LoggerLayout "LoggerLayout" (abstract)
+    - @ref Logger::LoggerPattern "LoggerPattern" (abstract)
+
+    Abstract base classes must be subclassed to implement the desired functionality.
 
     @subsection logger_scenarior Scenarios
 
-    @par One thread
+    @par One Thread
 
-    The user code will log to @ref Logger and the logging is performed to appender in sync way.
+    The user code will log to a @ref Logger object, and the logging is performed to the appender synchronously.
 
     Example:
     @code{.py}
@@ -69,14 +74,15 @@ module Logger {
     laf.open();
     ....
     l.info("hello world");
-    l.error("world is not perfect");
+    l.error("the world is not perfect");
     @endcode
 
-    @par Multiple threads
+    @par Multiple Threads
 
-    The user code will log in own threads, the events are pushed to a @ref Logger::LoggerAppenderQueue "LoggerAppenderQueue" object. The processing
-    is done in dedicated thread when the events are passed to appenders. The the user code logging
-    command is unblocking as it terminates immediately when the event is pushed in the queue.
+    The user code will log from multiple threads; the events are pushed to a
+    @ref Logger::LoggerAppenderQueue "LoggerAppenderQueue" object. The processing is done in a dedicated thread
+    when the events are passed to appenders. The the user code logging command is unblocking as it terminates
+    immediately when the event is pushed in the queue.
 
     Example:
     @code{.py}
@@ -105,14 +111,16 @@ module Logger {
     }
     @endcode
 
-    @par Application server running a few programs
+    @par Application Server Running Logging From a Few Sandboxed Program Containers
 
-    The appserver provides logger API for sandboxed programs. The appserver
-    is responsible for <b>Log4q</b> configuration, i.e. prepares loggers, appenders, filters. etc.
-    according a configuration and provides @ref Logger instance to @ref Qore::Program "Program" running a user code.
-    The user will log to this instance, the logging events are processed by the appserver in dedidated thread
-    which get event from queue and passes it to appenders. The more loggers may be configured in a parent/child hierarchy
-    that more event levels are logged to logger assigned to sandbox and just critical errors to global appserver logger.
+    In this example, the appserver provides a logger API for a few sandboxed programs. The appserver is
+    responsible for the <b>Log4q</b> configuration; i.e. it prepares loggers, appenders, filters. etc.
+    according to configuration and provides the @ref Logger instance to the @ref Qore::Program "Program"
+    container running the sandboxed code.\n
+    The sandboxed code will log to this instance; the logging events are processed by the appserver in a
+    dedidated thread which gets the event from a queue and passes it to appenders.  Multiple loggers may be
+    configured in a parent/child hierarchy so that a higher logging level (i.e. more event levels) are logged
+    with the logger assigned to the sandbox and fewer (ex: only critical errors) to the global appserver logger.
 
     Example:
     @code{.py}
@@ -151,11 +159,12 @@ module Logger {
     }
     @endcode
 
-    @par Application server running plenty of programs
+    @par Application Server Running Many Sandboxed Program Containers
 
-    The same as previous example but to avoid bottle neck then appserver processing thread get the event from
-    queue and passes it to the appender in another worker thread via submittig to the @ref Qore::Thread::ThreadPool "ThreadPool". So events
-    targeted to particular thread may by processed in different threads but in serial way.
+    This example is basically the same as the previous example, but to avoid I/O bottlenecks in logging, the
+    appserver processing thread gets the event from a queue and passes it to the appender in another worker
+    thread via submittig to a @ref Qore::Thread::ThreadPool "ThreadPool". So events targeted to particular
+    thread may by processed in different threads but nonetheless serially.
 
     Example:
     @code{.py}
@@ -524,9 +533,9 @@ public namespace Logger {
             if (!exists m_renderedMessage) {
                 # evaluate callp which may be used to get time consuming stuff
                 # i.e. they are evaluated only when logging is performed
-                *any prevCall;
+                auto prevCall;
                 list args2 = ();
-                foreach any arg in (m_args) {
+                foreach auto arg in (m_args) {
                     if (exists prevCall) {
                         bool isParam = False;
                         isParam = arg.typeCode() == NT_LIST;
@@ -616,7 +625,7 @@ public namespace Logger {
             @param params data prepared by @ref LoggerAppender::serializeImpl()
             @return True if event succesfully added to queue
         */
-        public bool push(LoggerAppender appender, int type, any params) {
+        public bool push(LoggerAppender appender, int type, auto params) {
             try {
                 m_queue.push(("appender": appender, "type": type, "params": params), -1);
             } catch (hash<ExceptionInfo> ex) {
@@ -978,14 +987,14 @@ public namespace Logger {
             Appender implementaion can define any serialize format. The data are passed
             to @ref processEventImpl() method as \c params argument when \c type is \c EVENT_LOG.
         */
-        abstract private:internal any serializeImpl(LoggerEvent event);
+        abstract private:internal auto serializeImpl(LoggerEvent event);
 
         #! push event in queue or call @ref processEventImpl() in case of sync
         /**
             @param type
             @param params
         */
-        /*private:internal*/ bool pushEvent(int type, any params) {
+        /*private:internal*/ bool pushEvent(int type, auto params) {
             if (exists m_queue) {
                 return m_queue.push(self, type, params);
             } else {
@@ -1020,7 +1029,7 @@ public namespace Logger {
                     }
                 }
             }
-            any serialized = serializeImpl(event);
+            auto serialized = serializeImpl(event);
             if (!exists serialized) {
                 return False;
             }
@@ -1036,7 +1045,7 @@ public namespace Logger {
             @param type see \c "EVENT_xxx" constants
             @param params
         */
-        abstract public processEventImpl(int type, any params);
+        abstract public processEventImpl(int type, auto params);
 
     }
 
@@ -1048,15 +1057,15 @@ public namespace Logger {
         constructor(string name = ""): LoggerAppender(name) {
         }
 
-        /*private:internal*/ any serializeImpl(LoggerEvent event) {
+        /*private:internal*/ auto serializeImpl(LoggerEvent event) {
             return NOTHING;
         }
 
-        public processEventImpl(int type, any params) {
+        public processEventImpl(int type, auto params) {
         }
     }
 
-    #! Implements patern parsing and substitution
+    #! Implements pattern parsing and substitution
     /**
         The pattern defines fields which are substituted with real values
 
@@ -1191,7 +1200,7 @@ public namespace Logger {
         */
         public string format(auto data) {
             string res = "";
-            foreach any a in (m_parsedPattern) {
+            foreach auto a in (m_parsedPattern) {
                 if (a.typeCode() == NT_STRING) {
                     res += a;
                 } else {
@@ -1407,7 +1416,7 @@ public namespace Logger {
         /**
             @param event
         */
-        /*private:internal*/ any serializeImpl(LoggerEvent event) {
+        /*private:internal*/ auto serializeImpl(LoggerEvent event) {
             return m_layout.format(event);
         }
 
@@ -1450,7 +1459,7 @@ public namespace Logger {
         }
 
         #! process event with output stream
-        public processEventImpl(int type, any params) {
+        public processEventImpl(int type, auto params) {
             if (type == EVENT_OPEN) {
                 if (m_closed) {
                     # OutputStream does not provide open method
@@ -1512,7 +1521,7 @@ public namespace Logger {
             @param type
             @param params
         */
-        public processEventImpl(int type, any params) {
+        public processEventImpl(int type, auto params) {
             switch (type) {
                 case EVENT_OPEN:
                     if (m_file.open(m_filename, O_APPEND | O_WRONLY) == -1) {
@@ -1630,7 +1639,7 @@ public namespace Logger {
             @param type
             @param params
         */
-        public processEventImpl(int type, any params) {
+        public processEventImpl(int type, auto params) {
             switch (type) {
                 case EVENT_OPEN:
                     # find newest file
@@ -1787,7 +1796,7 @@ public namespace Logger {
             @param type
             @param params
         */
-        public processEventImpl(int type, any params) {
+        public processEventImpl(int type, auto params) {
             switch (type) {
                 case EVENT_ARCHIVE:
                     mkdir(dirname(params), 0777, True);
@@ -1848,7 +1857,7 @@ public namespace Logger {
         TODO: Doxygen silently skips next LoggerFilter class without this dummy class with a non empty private {} section
     */
     /*private*/ class LoggerDummyBecauseOfDoxygenIssue {
-        private  {
+        private {
             any m_dummy;
         }
     }
@@ -1874,9 +1883,9 @@ public namespace Logger {
 
         #! Do filtering logic and return decision
         /**
-            The method should be overriden to implement real rule. Default result is @ref NEUTRAL
+            The method should be overriden to implement a real rule. Default result is @ref NEUTRAL
 
-            @param event
+            @param event the log event
         */
         public int eval(LoggerEvent event) {
             return NEUTRAL;
@@ -1888,7 +1897,7 @@ public namespace Logger {
         When @ref LoggerEvent::getLevel does not satisties filter condition then
         logging is rejected.
 
-        Min and max.level defines range to be logged (if min <= max.level) or range which won't be logged (if max < min.level)
+        The min and max levels define the range to be logged (if min <= max.level) or range which won't be logged (if max < min.level)
     */
     public class LoggerFilterLevel inherits LoggerFilter {
         private {
@@ -2380,7 +2389,7 @@ public namespace Logger {
             @param varName
             @param value
         */
-        public traceVar(string varName, any value) {
+        public traceVar(string varName, auto value) {
             logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %y", varName), (value, ), getLocation(), False);
         }
 
@@ -2391,7 +2400,7 @@ public namespace Logger {
             @param varName
             @param value
         */
-        public debugVar(string varName, any value) {
+        public debugVar(string varName, auto value) {
             logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %y", varName), (value, ), getLocation(), False);
         }
 

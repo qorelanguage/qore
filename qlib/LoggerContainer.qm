@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file LoggerContainer.qm Logger
 
-/*  LoggerContainer.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+/*  LoggerContainer.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,8 +23,8 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
-%requires ./Logger.qm
+%requires qore >= 0.9
+%requires(reexport) ./Logger.qm
 
 %require-types
 %enable-all-warnings
@@ -32,8 +32,8 @@
 
 module LoggerContainer {
     version = "0.1";
-    desc = "User module providing logger container";
-    author = "Tomas Mandys <tomas.mandys@qore.org>";
+    desc = "User module providing a logger container API for the Logger module (aka log4q)";
+    author = "Tomas Mandys <tomas.mandys@qoretechnologies.com>";
     url = "http://qore.org";
     license = "MIT";
 }
@@ -238,18 +238,18 @@ public namespace LoggerContainer {
             Load logger system from configuration
 
             Conf hash corresponds to XML config represenation
-            
+
             configuration
                 name
                 dest
                 status
-                
+
                 properties
                     name: value
                 # filters
                     type
                     (name)
-                    marker 
+                    marker
                     onMatch:  DENY,NEUTRAL,ACCEPT
                     onMismatch
                 appenders
@@ -264,15 +264,15 @@ public namespace LoggerContainer {
                     name
                     filters
                     appenders (
-        
+
         */
         loadConfiguration(hash conf) {
             if (conf.properties) {
                 m_properties += conf.properties;
-            
+
             }
         }
-        
+
         #! Shutting down a hierarchy will safely close and remove all appenders in all loggers including the root logger.
         /** Consider hierarchy and close the child logger first (TODO: do we need it at all ?
         */
