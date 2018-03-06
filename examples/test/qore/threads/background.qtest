@@ -27,6 +27,7 @@ class T {
         addTestCase("background operator tests", \basicTests());
         addTestCase("issue 1467", \issue1467());
         addTestCase("issue 2637", \issue2637());
+        addTestCase("issue 2679", \issue2679());
         set_return_value(main());
     }
 
@@ -49,6 +50,12 @@ class T {
 
     private auto issue2637_2(Counter c, hash<auto> h) {
         c.dec();
+    }
+
+    issue2679() {
+        # causes a crash with #2279
+        background (sprintf("A"),sprintf("B"));
+        assertTrue(True);
     }
 
     basicTests() {
