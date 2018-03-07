@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -92,6 +92,7 @@ public:
       has_value_api = true;
    }
    DLLLOCAL ParseNode(const ParseNode& old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), loc(old.loc), effect(old.effect), ref_rv(old.ref_rv), parse_init(false) {
+      has_value_api = true;
    }
    // parse types should never be copied
    DLLLOCAL virtual AbstractQoreNode* realCopy() const {
