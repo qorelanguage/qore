@@ -119,6 +119,11 @@ public:
    DLLEXPORT virtual void onException(QoreProgram *pgm, const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
 
    /**
+    * Executed when a thread/program is exited.
+    */
+   DLLEXPORT virtual void onExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
+
+   /**
     * Break specific program thread
     * @return 0 if the operation was successful, -1 if the target program does not allow debugging, -2 if xxx
     */

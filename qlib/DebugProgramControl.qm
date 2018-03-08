@@ -35,10 +35,10 @@
 %no-child-restrictions
 
 module DebugProgramControl {
-    version = "0.1.1";
+    version = "0.1.2";
     desc = "user module providing common debug server stuff";
-    author = "Tomas Mandys <tomas.mandys@qore.org>";
-    url = "http://qore.org";
+    author = "Tomas Mandys <tomas.mandys@qoretechnologies.org>";
+    url = "http://qoretechnologies.org";
     license = "MIT";
 }
 
@@ -49,6 +49,10 @@ module DebugProgramControl {
     @section debugprogramcontrolintro Introduction to the DebugProgramControl Module
 
     The %DebugProgramControl module provides common functionality for implementing debugger server utilities
+
+    @subsection dc_v0_1_2 v0.1.2
+    - return breakpointId and statementId when creating breakpoint
+    - onExit() event
 
     @subsection dc_v0_1_1 v0.1.1
     - fixed bug providing programId context (<a href="https://github.com/qorelanguage/qore/issues/2603">issue 2603</a>)
@@ -143,6 +147,18 @@ public namespace DebugProgramControl {
         #! send data to all clients
         abstract public broadcastDataImpl(auto data);
 
+        private broadcastBreakpoint(hash cx, Breakpoint b, string change) {
+            hash sd = (
+                'type': 'event',
+                'cmd': 'breakpoint',
+                'event': change,
+                'info': getBreakpointInfo(b),
+                'stamp': now_us(),
+                'cx': cx,
+            );
+            broadcastDataImpl(sd);
+        }
+
         #! Create new program
         public Program createProgram(string fileName, *hash opts, list args, *string script) {
             logger.log(DUV_DEBUG_1, "create program: %y", fileName);
@@ -198,6 +214,13 @@ public namespace DebugProgramControl {
                 logger.log(DUV_INFO, "warning: %N", wh);
             }
             return pgm;
+        }
+
+        #! run and remove program from debugging
+        private int runAndDetach(Program pgm) {
+            int res = pgm.run();
+            removeProgram(pgm.getProgram()); # I would be called in Program::destructor() but this is more transparent 
+            return res;
         }
 
         #! process message in debugging thread, if message is related to debugged thread then put it in particular queue
@@ -362,7 +385,14 @@ public namespace DebugProgramControl {
                         }
                         break;
                     case 'create':
-                        createProgram(receiveData.filename, NOTHING, receiveData.args);
+                        Program pgm = createProgram(receiveData.filename, NOTHING, receiveData.args);
+                        ProgramControl p = pgm.getProgram();
+                        string pgmId = string(p.getProgramId());
+                        result{pgmId}.scriptName = p.getScriptName();
+                        result{pgmId}.scriptPath = p.getScriptPath();
+                        #result{pgmId}.scriptDir = p.getScriptDir();
+                        result{pgmId}.threads = ((background runAndDetach(pgm)), );
+                        result{pgmId}.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
                         break;
                     case 'add':
                         {
@@ -472,8 +502,10 @@ public namespace DebugProgramControl {
                             b = new Breakpoint();
                             b.setEnabled(True);
                             b.assignProgram(pgmb);
+                            result.bkptid = b.getBreakpointId();
                             if (exists stmt) {
                                 b.assignStatement(stmt);
+                                result.stmtid = stmt;
                             }
                             break;
                         default:
@@ -508,10 +540,12 @@ public namespace DebugProgramControl {
                             break;
 
                         case 'create':
-                            result = b.getBreakpointId();
+                            # already done
+                            broadcastBreakpoint(cx, b, "create");
                             break;
 
                         case 'delete':
+                            broadcastBreakpoint(cx, b, "delete");
                             b.unassignProgram();
                             b.clearThreadIds();
                             list sl = b.getStatementIds();
@@ -523,12 +557,18 @@ public namespace DebugProgramControl {
                             break;
 
                         case 'enable':
-                            b.setEnabled(True);
+                            if (!b.getEnabled()) {
+                                b.setEnabled(True);
+                                broadcastBreakpoint(cx, b, "enabled");
+                            }
                             result = 'ok';
                             break;
 
                         case 'disable':
-                            b.setEnabled(False);
+                            if (b.getEnabled()) {
+                                b.setEnabled(False);
+                                broadcastBreakpoint(cx, b, "enabled");
+                            }
                             result = 'ok';
                             break;
 
@@ -542,18 +582,23 @@ public namespace DebugProgramControl {
                                 break;
 
                             case 'assign':
-                                b.assignStatement(resolveStatement(b.getProgram(), receiveData.value));
-                                result = 'ok';
+                                int stmt = resolveStatement(b.getProgram(), receiveData.value);
+                                b.assignStatement(stmt);
+                                result.stmtid = stmt;
+                                broadcastBreakpoint(cx, b, "statement");
                                 break;
 
                             case 'unassign':
-                                b.unassignStatement(resolveStatement(b.getProgram(), receiveData.value));
-                                result = 'ok';
+                                int stmt = resolveStatement(b.getProgram(), receiveData.value);
+                                b.unassignStatement(stmt);
+                                result.stmtid = stmt;
+                                broadcastBreakpoint(cx, b, "statement");
                                 break;
                             }
                             break;
 
                         case 'thread':
+                            list saveThreadIds = b.getThreadIds();
                             switch (shift cmd) {
                             case 'add':
                                 b.addThreadId(receiveData.value);
@@ -572,6 +617,9 @@ public namespace DebugProgramControl {
                                 result = 'ok';
                                 break;
                             }
+                            if (saveThreadIds != b.getThreadIds()) {
+                                broadcastBreakpoint(cx, b, "thread");
+                            }
                             break;
 
                         case 'policy':
@@ -580,7 +628,11 @@ public namespace DebugProgramControl {
                                 result = encodeValue('policy', string(b.getPolicy()), policyStrings);
                                 break;
                             case 'set':
+                                int savePolicy = b.getPolicy();
                                 b.setPolicy(resolveValue('policy', receiveData.value, policyStrings, b.getPolicy()));
+                                if (savePolicy != b.getPolicy()) {
+                                    broadcastBreakpoint(cx, b, "policy");
+                                }
                                 result = 'ok';
                                 break;
                             }
@@ -588,6 +640,11 @@ public namespace DebugProgramControl {
                         }
                         break;
                     }
+                    break;
+
+                case 'shutdown':
+                    shutdown();
+                    result = 'ok';
                     break;
 
                 case 'thread': {
@@ -754,6 +811,7 @@ public namespace DebugProgramControl {
                     'frame': 0,
                 ),
             );
+            ctx.intrInfo.framecnt = ctx.stackSize - frameOffset;
             if (exists statementId) {
                 ctx.intrInfo.statementid = statementId;
             }
@@ -768,6 +826,7 @@ public namespace DebugProgramControl {
                 ctx.intrInfo.exception = except;
             }
             if (exists refName) {
+                ctx.intrInfo.debugvar = refName;
                 ctx.intrInfo{refName} = refValue;
             }
             # minor race issue when list of all thread stack might return internal frames till ctx is not registered in ctxThread
@@ -777,22 +836,27 @@ public namespace DebugProgramControl {
              #   assert(!exists ctxThread{tid});
                 ctxThread{tid} = ctx;
             }
-/*
-            try {
+
+%ifndef DEBUG_ADD_LOCAL_VARS
+            for (int i=0; i < 8; i++) {
                 # to show important stack values each step
-                #ctx.intrInfo.localvars0 = keys get_local_vars(0);
-                #ctx.intrInfo.localvars1 = keys get_local_vars(1);
-                ctx.intrInfo.localvars2 = serializeLocals(get_local_vars(2));
-                ctx.intrInfo.localvars3 = serializeLocals(get_local_vars(3));
-                ctx.intrInfo.localvars4 = serializeLocals(get_local_vars(4));
-                ctx.intrInfo.localvars5 = keys get_local_vars(5);
-                ctx.intrInfo.localvars6 = keys get_local_vars(6);
-                ctx.intrInfo.localvars7 = keys get_local_vars(7);
+                try {
+                    if (i >= 2 && i < 5) {
+                        ctx.intrInfo.localvars[i] = serializeLocals(get_local_vars(i));
+                    } else {
+                        ctx.intrInfo.localvars[i] = keys get_local_vars(i);
+                    }
+                } catch (hash<ExceptionInfo> ex) {
+                    #printf("Exception: %y\n", ex);
+                }
+            }
+            try {
                 ctx.intrInfo.dpgmid = ProgramControl::getProgram().getProgramId();
             } catch (hash<ExceptionInfo> ex) {
                 #printf("Exception: %y\n", ex);
             }
-*/
+%endif
+
             try {
                 broadcastDataImpl(ctx.intrInfo);
             } catch (hash<ExceptionInfo> ex) {
@@ -833,18 +897,19 @@ public namespace DebugProgramControl {
 
                         case 'local':
                             string varName = shift cmd;
+                            # TODO: why is offset +1 ??? get by trial/error
                             switch (shift cmd) {
                             case 'get':
-                                *hash lv = get_local_vars(ctxCT.frameId + frameOffset);
+                                *hash lv = get_local_vars(ctxCT.frameId + frameOffset + 1);
                                 if (exists lv{varName}) {
                                     result = serializeLocal(varName, lv{varName});
                                 }
                                 break;
                             case 'set':
-                                set_local_var_value(ctxCT.frameId + frameOffset, varName, AbstractDebugControl::unserialize(rd.value));
+                                set_local_var_value(ctxCT.frameId + frameOffset + 1, varName, AbstractDebugControl::unserialize(rd.value));
                                 break;
                             case 'list':
-                                softlist l  = keys get_local_vars(ctxCT.frameId + frameOffset);
+                                softlist l  = keys get_local_vars(ctxCT.frameId + frameOffset + 1);
                                 result = AbstractDebugControl::enumFilter(l, varName);
                                 break;
                             }
@@ -896,15 +961,18 @@ public namespace DebugProgramControl {
                                         break;
                                     }
                                 } else {
+                                    any v = AbstractDebugControl::unserialize(rd.value);
+logger.log(DUV_DEBUG_1, "FRAME:%y:%y", varName, v);
                                     switch (varName) {
                                     case 'frame':
-                                        if (rd.value <= 0) {
+                                        if (v <= 0) {
                                             ctxCT.frameId = 0;
                                         } else {
-                                            ctxCT.frameId = int(rd.value);
+                                            ctxCT.frameId = int(v);
                                         }
                                         break;
                                     }
+logger.log(DUV_DEBUG_1, "FRAME:%y", ctxCT.frameId);
                                 }
                                 break;
                             case 'list':
@@ -998,6 +1066,10 @@ public namespace DebugProgramControl {
 
         onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference rs) {
             handleInterrupt('exception', pgm, \rs, statementId, "dismiss", \dismiss, ex);
+        }
+
+        onExit(ProgramControl pgm, int statementId, reference result, reference rs) {
+            handleInterrupt('exit', pgm, \rs, statementId, "result", \result);
         }
     }
 }

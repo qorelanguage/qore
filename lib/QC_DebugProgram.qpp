@@ -217,6 +217,13 @@ abstract DebugProgram::onFunctionExit(ProgramControl[QoreProgram] pgm, int state
  */
 abstract DebugProgram::onException(ProgramControl[QoreProgram] pgm, int statement, hash ex, reference dismiss, reference rs);
 
+//! Executed when a program/thread is exited.
+/**
+    @see
+       @ref Qore::ProgramControl::getStatementIdInfo "ProgramControl::getStatementIdInfo"
+ */
+abstract DebugProgram::onExit(ProgramControl[QoreProgram] pgm, int statement, reference returnValue, reference rs);
+
 //! Break particular program thread
 /**
   * @return 0 if the operation was successful, returns -1 if the program does not allow debugging (i.e. @ref Qore::PO_NO_DEBUGGING is set), -2 if the program has not been set as a debug target, or -3 if the given thread is not active in the target program

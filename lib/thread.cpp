@@ -493,9 +493,9 @@ void ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
       assert(pgm_set.find(td->current_pgm) == pgm_set.end());
       pgm_set.insert(td->current_pgm);
    }
-   td->tlpd->dbgPendingAttach();
-   if (runtime)
+   if (runtime) {
       qore_program_private::doThreadInit(*td->current_pgm, xsink);
+   }
 }
 
 void ThreadProgramData::del(ExceptionSink* xsink) {
@@ -922,6 +922,7 @@ static ThreadLocalProgramData* get_var_frame(int& frame, ExceptionSink* xsink) {
    ProgramThreadCountContextHelper* ch = td->current_pgm_ctx;
    QoreProgram* pgm = td->current_pgm;
 
+   printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d/%d pgm: %p, pgmid: %d, inst: %d, fc: %d\n", tlpd, ch, saveframe, frame, pgm, pgm->getProgramId(), tlpd->inst, tlpd->lvstack.getFrameCount());
    while (frame > tlpd->lvstack.getFrameCount()) {
       frame -= (tlpd->lvstack.getFrameCount() + 1);
       // get previous Program before changing context
@@ -935,11 +936,11 @@ static ThreadLocalProgramData* get_var_frame(int& frame, ExceptionSink* xsink) {
          printd(5, "get_var_frame() getNextContext() is null\n");
          return nullptr;
       }
-      //printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d/%d pgm: %p, pgmid: %d, fc: %d\n", tlpd, ch, saveframe, frame, pgm, pgm->getProgramId(), tlpd->lvstack.getFrameCount());
+      printd(5, "get_var_frame() L: tlpd: %p ch: %p frame: %d/%d pgm: %p, pgmid: %d, inst: %d, fc: %d\n", tlpd, ch, saveframe, frame, pgm, pgm->getProgramId(), tlpd->inst, tlpd->lvstack.getFrameCount());
    }
 
    //printd(5, "get_var_frame(): pgmid: %d, allow-debugging: %d\n", pgm->getProgramId(), pgm->checkAllowDebugging(0));
-   printd(5, "get_var_frame(): tlpd: %p ch: %p frame: %d/%d pgm: %p, pgmid: %d, fc: %d, allow-debugging: %d\n", tlpd, ch, saveframe, frame, pgm, pgm->getProgramId(), tlpd->lvstack.getFrameCount(), pgm->checkAllowDebugging(0));
+   printd(5, "get_var_frame(): tlpd: %p ch: %p frame: %d/%d pgm: %p, pgmid: %d, inst: %d, fc: %d, allow-debugging: %d\n", tlpd, ch, saveframe, frame, pgm, pgm->getProgramId(), tlpd->inst, tlpd->lvstack.getFrameCount(), pgm->checkAllowDebugging(0));
    if (!pgm->checkAllowDebugging(xsink))
       return nullptr;
 
@@ -1580,7 +1581,7 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
       return;
 
    ThreadData* td = thread_data.get();
-   //printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
+   printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() current_pgm: %p new_pgm: %p\n", td->current_pgm, pgm);
 
    if (pgm != td->current_pgm) {
       qore_program_private* pp = qore_program_private::get(*pgm);
@@ -1599,6 +1600,20 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
       td->current_pgm = pgm;
       td->tpd->saveProgram(runtime, xsink);
       td->current_pgm_ctx = this;
+
+      if (!td->tlpd->dbgIsAttached()) {
+         // find if tlpd is in lower context and if not then notify dbgAttach()
+         ProgramThreadCountContextHelper* ch = this;
+         do {
+            if (ch->old_tlpd == td->tlpd) {
+               break;
+            }
+            ch = ch->old_ctx;
+         } while (ch);
+         if (!ch) {
+            td->tlpd->dbgAttach(xsink);
+         }
+      }
    }
 }
 
@@ -1610,7 +1625,20 @@ ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() {
    ThreadData* td = thread_data.get();
 
    QoreProgram* pgm = td->current_pgm;
-   //printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
+   printd(5, "ProgramThreadCountContextHelper::~ProgramThreadCountContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
+   if (td->tlpd->dbgIsAttached()) {
+      // find if tlpd is in lower context and if not then notify dbgDetach()
+      ProgramThreadCountContextHelper* ch = this;
+      do {
+         if (ch->old_tlpd == td->tlpd) {
+            break;
+         }
+         ch = ch->old_ctx;
+      } while (ch);
+      if (!ch) {
+         td->tlpd->dbgDetach(nullptr);
+      }
+   }
    td->current_pgm = old_pgm;
    td->tlpd = old_tlpd;
    td->current_pgm_ctx = old_ctx;
@@ -1647,7 +1675,7 @@ ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper(
    ThreadData* td = thread_data.get();
 
    QoreProgram* pgm = td->current_pgm;
-   //printd(5, "ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
+   printd(5, "ProgramRuntimeParseCommitContextHelper::~ProgramRuntimeParseCommitContextHelper() current_pgm: %p restoring old pgm: %p old tlpd: %p\n", td->current_pgm, old_pgm, old_tlpd);
    td->current_pgm = old_pgm;
    td->tlpd        = old_tlpd;
 
@@ -2010,7 +2038,17 @@ namespace {
          ExceptionSink xsink;
 
          {
+            ThreadLocalProgramData *tlpd = get_thread_local_program_data();
+            if (tlpd) {
+               tlpd->dbgAttach(&xsink);
+            }
             ta->run(&xsink);
+            if (tlpd) {
+               QoreValue val((AbstractQoreNode*)nullptr);
+               tlpd->dbgExit(nullptr, val, &xsink);
+               // notify debugger that thread is terminated
+               tlpd->dbgDetach(&xsink);
+            }
 
             // cleanup thread resources
             purge_thread_resources(&xsink);
@@ -2062,8 +2100,19 @@ namespace {
                // dereference call object if present
                btp->derefCallObj();
 
+
+               ThreadLocalProgramData* tlpd = get_thread_local_program_data();
+               if (tlpd) {
+                  tlpd->dbgAttach(&xsink);
+               }
                // run thread expression
                rv = btp->exec(&xsink);
+               if (tlpd) {
+                  QoreValue val(rv);
+                  // notify return value and notify thread detach to program
+                  tlpd->dbgExit(nullptr, val, &xsink);
+                  tlpd->dbgDetach(&xsink);
+               }
 
                // if there is an object, we dereference the extra reference here
                btp->derefObj(&xsink);

@@ -117,6 +117,7 @@ private:
       if (rs == DBG_RS_UNTIL_RETURN) {
          functionCallLevel = 1;  // function called only when runState is not DBG_RS_UNTIL_RETURN
       }
+      printd(5, "ThreadLocalProgramData::setRunState(), this: %p, rs: %d->%d\n", this, runState, rs);
       runState = rs;
    }
    // set to true by any process do break running program asap
@@ -132,8 +133,20 @@ private:
       }
    }
    // to call onAttach when debug is attached or detached, -1 .. detach, 1 .. attach
-   int attachFlag;
-   inline void checkAttach(ExceptionSink* xsink);
+   int attachFlag = 0;
+   inline void checkAttach(ExceptionSink* xsink) {
+      if (runState != DBG_RS_STOPPED) {
+         if (attachFlag > 0) {
+            dbgAttach(xsink);
+            //if (rs != DBG_RS_DETACH) {   // TODO: why this exception ?
+            attachFlag = 0;
+            //}
+         } else if (attachFlag < 0) {
+            dbgDetach(xsink);
+            attachFlag = 0;
+         }
+      }
+   }
 public:
 
    // local variable data slots
@@ -150,10 +163,11 @@ public:
 
 
    DLLLOCAL ThreadLocalProgramData() : runState(DBG_RS_DETACH), functionCallLevel(0), breakFlag(false), tz(0), tz_set(false), inst(false) {
-      //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this: %p\n", this);
+      printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this: %p\n", this);
    }
 
    DLLLOCAL ~ThreadLocalProgramData() {
+      printd(5, "ThreadLocalProgramData::~ThreadLocalProgramData() this: %p, rs: %d\n", this, runState);
       assert(lvstack.empty());
       assert(cvstack.empty());
    }
@@ -198,6 +212,14 @@ public:
     */
 
    /**
+    * Executed when starting thread or thread context first time for given program
+    */
+   DLLLOCAL void dbgAttach(ExceptionSink* xsink);
+   /**
+    * Executed from any thread when terminated to detach program
+    */
+   DLLLOCAL void dbgDetach(ExceptionSink* xsink);
+   /**
     * Executed every step in BlockStatement.
     * @param statement is step being processed
     * @return 0 as neutral value or RC_RETURN/BREAK/CONTINUE to terminate block
@@ -215,6 +237,10 @@ public:
     * Executed when an exception is raised.
     */
    DLLLOCAL void dbgException(const AbstractStatement* statement, ExceptionSink* xsink);
+   /**
+    * Executed when a thread or program is exited.
+    */
+   DLLLOCAL void dbgExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink);
 
    /**
     * Executed from any thread to break running program
@@ -236,6 +262,13 @@ public:
    DLLLOCAL void dbgPendingDetach() {
       printd(5, "ThreadLocalProgramData::dbgPendingDetach(), this: %p\n", this);
       attachFlag = -1;
+   }
+
+   /**
+    * Check if attached to debugger
+    */
+   DLLLOCAL inline bool dbgIsAttached() {
+      return /*runState != DBG_RS_STOPPED &&*/ runState != DBG_RS_DETACH;
    }
 };
 
@@ -2009,6 +2042,7 @@ public:
    DLLLOCAL void onFunctionEnter(const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
    DLLLOCAL void onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
    DLLLOCAL void onException(const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
+   DLLLOCAL void onExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
 
    DLLLOCAL int breakProgramThread(int tid) {
       printd(5, "qore_program_private::breakProgramThread(), this: %p, tid: %d\n", this, gettid());
@@ -2390,6 +2424,13 @@ public:
    DLLLOCAL void onException(QoreProgram* pgm, const AbstractStatement* statement, DebugRunStateEnum& rs, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
       dpgm->onException(pgm, statement, rs, xsink);
+   }
+   /**
+    * Executed when a thread/program is exited.
+    */
+   DLLLOCAL void onExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+      AutoQoreCounterDec ad(&debug_program_counter);
+      dpgm->onExit(pgm, statement, returnValue, rs, xsink);
    }
 
    DLLLOCAL int breakProgramThread(QoreProgram* pgm, int tid) {

@@ -15,7 +15,8 @@ const ST_STEP = 3;
 const ST_FUNC_ENTER = 4;
 const ST_FUNC_EXIT = 5;
 const ST_EXCEPTION = 6;
-const ST_DETACH = 7;
+const ST_EXIT = 7;
+const ST_DETACH = 8;
 
 const stResolve = (
   ST_ATTACH: "onAttach",
@@ -24,6 +25,7 @@ const stResolve = (
   ST_FUNC_ENTER: "onFunctionEnter",
   ST_FUNC_EXIT: "onFunctionExit",
   ST_EXCEPTION: "onException",
+  ST_EXIT: "onExit",
   ST_DETACH: "onDetach",
 );
 
@@ -146,6 +148,14 @@ class MyDebugProgram inherits DebugProgram {
     }
     #printf("Exception: %y\n", ex);
     handle(ST_EXCEPTION, pgm, \runState, statementId, ("ex": ex));
+  }
+
+  onExit(ProgramControl pgm, int statementId, reference returnValue, reference runState) {
+    any act = getAction(ST_EXIT);
+    if (exists act.retVal) {
+        returnValue = act.retVal;
+    }
+    handle(ST_EXIT, pgm, \runState, statementId, ("retVal": returnValue));
   }
 
 }
