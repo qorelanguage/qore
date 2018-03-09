@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -75,6 +75,10 @@ public:
 
 class AbstractFunctionCallNode : public ParseNode, public FunctionCallBase {
 protected:
+    // set to true if the arg list is a temporary list and can be destroyed when evaluating
+    // such as when the node was created during background operation execution
+    bool tmp_args = false;
+
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
 
    DLLLOCAL void doFlags(int64 flags) {
@@ -95,7 +99,8 @@ public:
       has_value_api = true;
    }
 
-   DLLLOCAL AbstractFunctionCallNode(const AbstractFunctionCallNode& old, QoreListNode* n_args) : ParseNode(old), FunctionCallBase(old, n_args) {
+
+   DLLLOCAL AbstractFunctionCallNode(const AbstractFunctionCallNode& old, QoreListNode* n_args) : ParseNode(old), FunctionCallBase(old, n_args), tmp_args(true) {
       has_value_api = true;
    }
 
@@ -438,10 +443,8 @@ public:
    DLLLOCAL StaticMethodCallNode(const StaticMethodCallNode& old, QoreListNode* args) : AbstractFunctionCallNode(old, args), method(old.method) {
    }
 
-      /*
-   DLLLOCAL StaticMethodCallNode(const QoreProgramLocation& loc, const QoreMethod* m, QoreParseListNode* args) : AbstractFunctionCallNode(loc, NT_STATIC_METHOD_CALL, args), scope(0), method(m) {
+   DLLLOCAL StaticMethodCallNode(const QoreProgramLocation& loc, const QoreMethod* m, QoreParseListNode* args) : AbstractFunctionCallNode(loc, NT_STATIC_METHOD_CALL, args), method(m) {
    }
-      */
 
    DLLLOCAL virtual ~StaticMethodCallNode() {
       delete scope;
