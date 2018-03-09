@@ -100,14 +100,17 @@ public namespace WebUtil {
             string ct;
             #! chunk size
             int cs;
+            #! response headers
+            *hash respHdr;
         }
 
         #! creates the object
-        constructor(HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile file, bool textflag, string content_type, int chunk_size) : HttpServer::AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
+        constructor(HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile file, bool textflag, string content_type, int chunk_size, *hash respHdr) : HttpServer::AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
             f = file;
             txt = textflag;
             ct = content_type;
             cs = chunk_size;
+            self.respHdr = respHdr;
         }
 
         #! returns the reponse headers
@@ -117,7 +120,7 @@ public namespace WebUtil {
                 "hdr": (
                     "Content-Type": ct,
                     "Transfer-Encoding": "chunked",
-                ),
+                ) + respHdr,
                 );
         }
 
@@ -901,26 +904,38 @@ hash h = tm.render("html/index.qhtml", ctx);
             string ct = get_mime_type_from_ext(path);
             bool txt = (ext =~ /^text\//) || (ext =~ /^application\/.*(json|xml|yaml|javascript|tex|tcl|troff|postscript)/);
 
-            return sh.size > chunked_threshold ? sendFileChunked(listener, s, cx, hdr, body, f, txt, ct) : sendFile(f, txt, ct);
+            *hash respHdr = getResponseHeadersForFile(path, cx, hdr);
+            return sh.size > chunked_threshold ? sendFileChunked(listener, s, cx, hdr, body, f, txt, ct, respHdr) : sendFile(f, txt, ct, respHdr);
         }
 
         #! must return a FileStreamRequest object to stream the requested file with chunked transfer encoding
-        private FileStreamRequest getFileStreamRequestImpl(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile f, bool txt, string ct) {
-            return new FileStreamRequest(listener, self, s, cx, hdr, body, f, txt, ct, chunk_size);
+        private FileStreamRequest getFileStreamRequestImpl(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile f, bool txt, string ct, *hash respHdr) {
+            return new FileStreamRequest(listener, self, s, cx, hdr, body, f, txt, ct, chunk_size, respHdr);
+        }
+
+        #! this method returns @ref nothing by default but can be subclassed to add headers to the response
+        /** this method is called before a file is sent to get additional headers to include in response; reimplement this method in subclasses to add response headers
+
+            @param path filepath
+            @param cx original request cx hash
+            @param hdr original request headers
+        */
+        private *hash getResponseHeadersForFile(string path, hash cx, hash hdr) {
+            return NOTHING;
         }
 
         #! returns a handler hash response with the file's data to be sent in a monolithic message
-        private hash sendFile(ReadOnlyFile f, bool txt, string ct) {
+        private hash sendFile(ReadOnlyFile f, bool txt, string ct, *hash respHdr) {
             return (
                 "code": 200,
                 "body": txt ? f.read(-1) : f.readBinary(-1),
-                "hdr": ("Content-Type": ct),
+                "hdr": ("Content-Type": ct) + respHdr,
                 );
         }
 
         #! returns a handler hash response with the file's data to be sent in a HTTP message with chunked transfer encoding
-        private hash sendFileChunked(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile f, bool txt, string ct) {
-            FileStreamRequest fsr = getFileStreamRequestImpl(listener, s, cx, hdr, body, f, txt, ct);
+        private hash sendFileChunked(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile f, bool txt, string ct, *hash respHdr) {
+            FileStreamRequest fsr = getFileStreamRequestImpl(listener, s, cx, hdr, body, f, txt, ct, respHdr);
             return fsr.handleRequest();
         }
 
