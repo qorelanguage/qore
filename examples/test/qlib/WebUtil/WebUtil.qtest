@@ -1,0 +1,71 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/WebUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class WebUtilTest
+
+sub log(string str) {
+    printf("", argv);
+}
+
+class TestFileHandler inherits FileHandler {
+    public {
+        bool addHeaders = False;
+    }
+
+    constructor(string fileRoot, string urlRoot = "/", *hash opt) : FileHandler(fileRoot, urlRoot, opt) {
+        #
+    }
+
+    private *hash getResponseHeadersForFile(string path, hash cx, hash hdr) {
+        if (addHeaders)
+            return {"Cache-Control": "private, max-age=86400"};
+    }
+}
+
+public class WebUtilTest inherits QUnit::Test {
+    public {
+    }
+
+    constructor() : Test("WebUtilTest", "1.0") {
+        addTestCase("FileHandler test", \fileHandlerTest());
+        set_return_value(main());
+    }
+
+    fileHandlerTest() {
+        TestFileHandler fh(get_script_dir());
+        HttpServer server(\log(), \log());
+        server.setHandler("fh", "/", MimeTypeHtml, fh);
+        server.setDefaultHandler("fh", fh);
+        int port = server.addListener(0).port;
+
+        on_exit delete server;
+
+        HTTPClient client = new HTTPClient(("url": "http://localhost:" + port));
+        client.connect();
+        on_exit client.disconnect();
+
+        hash info;
+        auto result = client.get("/test_file.txt", NOTHING, \info);
+        *hash respHdr = info."response-headers";
+        assertEq("abc", trim(result));
+        assertFalse(respHdr.hasKey("Cache-Control") || respHdr.hasKey("cache-control"));
+
+        fh.addHeaders = True;
+        result = client.get("/test_file.txt", NOTHING, \info);
+        respHdr = info."response-headers";
+        assertEq("abc", trim(result));
+        assertTrue(respHdr.hasKey("Cache-Control") || respHdr.hasKey("cache-control"));
+    }
+}
