@@ -159,14 +159,14 @@ public:
 
    DLLLOCAL void pushFrameBoundary() {
       ++frame_count;
-      //printd(5, "ThreadClosureVariableStack::pushFrameBoundary()\n");
+      //printd(5, "ThreadClosureVariableStack::pushFrameBoundary(): fc:%d\n", frame_count);
       instantiateIntern(nullptr);
    }
 
    DLLLOCAL void popFrameBoundary() {
       assert(frame_count >= 0);
       --frame_count;
-      //printd(5, "ThreadClosureVariableStack::popFrameBoundary()\n");
+      //printd(5, "ThreadClosureVariableStack::popFrameBoundary(): fc:%d\n", frame_count);
       uninstantiateIntern();
       assert(!curr->var[curr->pos]);
    }
