@@ -53,6 +53,7 @@ module DebugProgramControl {
     @subsection dc_v0_1_2 v0.1.2
     - return breakpointId and statementId when creating breakpoint
     - onExit() event
+    - frameId argument for thread/local command
 
     @subsection dc_v0_1_1 v0.1.1
     - fixed bug providing programId context (<a href="https://github.com/qorelanguage/qore/issues/2603">issue 2603</a>)
@@ -217,8 +218,8 @@ public namespace DebugProgramControl {
         }
 
         #! run and remove program from debugging
-        private int runAndDetach(Program pgm) {
-            int res = pgm.run();
+        private *int runAndDetach(Program pgm) {
+            *int res = pgm.run();
             removeProgram(pgm.getProgram()); # I would be called in Program::destructor() but this is more transparent 
             return res;
         }
@@ -823,7 +824,23 @@ public namespace DebugProgramControl {
                 #ctx.intrInfo.statement = location;
             }
             if (exists except) {
-                ctx.intrInfo.exception = except;
+                # we need make real copy as the worker thread might keep reference slightly longer and 
+                # C++ will complain about reference_count() > 1 when pushing new callstack item.
+                ctx.intrInfo.exception = hash();
+                foreach string k in (keys except) {
+                    switch (k) {
+                    case "callstack":
+                        ctx.intrInfo.exception{k} = ();
+                        foreach hash cs in (except{k}) {
+                            push ctx.intrInfo.exception{k}, cs;
+                        }
+                        break;
+                    case "next":
+                        break;
+                    default:
+                        ctx.intrInfo.exception{k} = except{k};
+                    }
+                }
             }
             if (exists refName) {
                 ctx.intrInfo.debugvar = refName;
@@ -837,20 +854,22 @@ public namespace DebugProgramControl {
                 ctxThread{tid} = ctx;
             }
 
-%ifndef DEBUG_ADD_LOCAL_VARS
+%ifdef DEBUG_ADD_LOCAL_VARS
             for (int i=0; i < 8; i++) {
                 # to show important stack values each step
                 try {
-                    if (i >= 2 && i < 5) {
-                        ctx.intrInfo.localvars[i] = serializeLocals(get_local_vars(i));
+                    *hash lv = get_local_vars(i);   # the same for each dump (serializeLocals adds frame!)
+                    if (i >= 20 && i < 8) {
+                        ctx.intrInfo.localvars[i] = serializeLocals(lv);
                     } else {
-                        ctx.intrInfo.localvars[i] = keys get_local_vars(i);
+                        ctx.intrInfo.localvars[i] = keys lv;
                     }
                 } catch (hash<ExceptionInfo> ex) {
                     #printf("Exception: %y\n", ex);
                 }
             }
             try {
+                ctx.intrInfo.stackDump = get_thread_call_stack();
                 ctx.intrInfo.dpgmid = ProgramControl::getProgram().getProgramId();
             } catch (hash<ExceptionInfo> ex) {
                 #printf("Exception: %y\n", ex);
@@ -871,7 +890,6 @@ public namespace DebugProgramControl {
                 ctxCT.frameId = 0;
                 ctxConnection{ctx.id}.thread{tid} = ctxCT;
             }
-
             # wait to process command passed as marshalled call from websocket thread
             bool ret = False;
             while (!ret) {
@@ -897,19 +915,19 @@ public namespace DebugProgramControl {
 
                         case 'local':
                             string varName = shift cmd;
-                            # TODO: why is offset +1 ??? get by trial/error
+                            int frameId2 = (rd.frameid ?? ctxCT.frameId) + frameOffset;
                             switch (shift cmd) {
                             case 'get':
-                                *hash lv = get_local_vars(ctxCT.frameId + frameOffset + 1);
+                                *hash lv = get_local_vars(frameId2);
                                 if (exists lv{varName}) {
                                     result = serializeLocal(varName, lv{varName});
                                 }
                                 break;
                             case 'set':
-                                set_local_var_value(ctxCT.frameId + frameOffset + 1, varName, AbstractDebugControl::unserialize(rd.value));
+                                set_local_var_value(frameId2, varName, AbstractDebugControl::unserialize(rd.value));
                                 break;
                             case 'list':
-                                softlist l  = keys get_local_vars(ctxCT.frameId + frameOffset + 1);
+                                softlist l  = keys get_local_vars(frameId2);
                                 result = AbstractDebugControl::enumFilter(l, varName);
                                 break;
                             }
@@ -962,7 +980,6 @@ public namespace DebugProgramControl {
                                     }
                                 } else {
                                     any v = AbstractDebugControl::unserialize(rd.value);
-logger.log(DUV_DEBUG_1, "FRAME:%y:%y", varName, v);
                                     switch (varName) {
                                     case 'frame':
                                         if (v <= 0) {
@@ -972,7 +989,6 @@ logger.log(DUV_DEBUG_1, "FRAME:%y:%y", varName, v);
                                         }
                                         break;
                                     }
-logger.log(DUV_DEBUG_1, "FRAME:%y", ctxCT.frameId);
                                 }
                                 break;
                             case 'list':
@@ -987,8 +1003,8 @@ logger.log(DUV_DEBUG_1, "FRAME:%y", ctxCT.frameId);
 
                         case 'stack':
                             list stack = adjustStack(get_thread_call_stack(), ctx);
-                            if (ctxCT.frameId < stack.size()) {
-                                stack[ctxCT.frameId].current = True;
+                            if ((rd.frameid ?? ctxCT.frameId) < stack.size()) {
+                                stack[rd.frameid ?? ctxCT.frameId].current = True;
                             }
                             result = stack;
                             break;
@@ -1022,6 +1038,9 @@ logger.log(DUV_DEBUG_1, "FRAME:%y", ctxCT.frameId);
                         }
                     }
                 }
+            }
+            if (exists except) {
+                remove ctx.intrInfo.exception;
             }
             {
                 rwlThread.writeLock();
