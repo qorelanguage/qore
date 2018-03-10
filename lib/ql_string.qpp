@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1843,7 +1843,7 @@ string f_vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
     This function will not truncate output longer than any field width given in the @ref string_formatting "format string"
 
     @param fmt the @ref string_formatting "format string"
-    @param ... the argument(s) corresponding to format specifiers in the format string
+    @param varg the argument(s) corresponding to format specifiers in the format string
 
     @return the formatted string output corresponding to the arguments given
 
@@ -1856,7 +1856,7 @@ vprintf("%5s %3d", ("a long string", 5000)); # will print out "a long string 500
     - @ref string_formatting for information on the formatting string
     - f_vprintf() for a similar function that enforces field widths
  */
-string vprintf(string[doc] fmt, ...) [dom=TERMINAL_IO] {
+string vprintf(string[doc] fmt, any[doc] varg) [dom=TERMINAL_IO] {
    AbstractQoreNode* node;
    print_node(stdout, node = q_vsprintf(args, 0, 0, xsink));
    return node;
