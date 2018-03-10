@@ -196,9 +196,33 @@ class HashTest inherits QUnit::Test {
         assertEq(Type::Hash, HTTest::vhi.type());
         assertEq(Type::List, HTTest::vl.type());
 
-        hash<MyHash> hd();
-        assertEq(Type::Hash, hd.hd.type());
-        assertEq(Type::Hash, hd.hi.type());
-        assertEq(Type::List, hd.l.type());
+        {
+            hash<MyHash> hd();
+            assertEq(Type::Hash, hd.hd.type());
+            assertEq(Type::Hash, hd.hi.type());
+            assertEq(Type::List, hd.l.type());
+        }
+
+        {
+            auto hd = <MyHash>{};
+            assertEq(Type::Hash, hd.hd.type());
+            assertEq(Type::Hash, hd.hi.type());
+            assertEq(Type::List, hd.l.type());
+        }
+
+        {
+            auto hd = hash<MyHash>{};
+            assertEq(Type::Hash, hd.hd.type());
+            assertEq(Type::Hash, hd.hi.type());
+            assertEq(Type::List, hd.l.type());
+        }
+
+        {
+            auto hd = <MyHash>{"hd": <T>{"i": 3}};
+            assertEq(3, hd.hd.i);
+            assertEq(Type::Hash, hd.hd.type());
+            assertEq(Type::Hash, hd.hi.type());
+            assertEq(Type::List, hd.l.type());
+        }
     }
 }

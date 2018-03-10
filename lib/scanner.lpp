@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1659,6 +1659,16 @@ class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); par
 namespace{WS}+{WORD}                    { const char* ns = trim_inplace(yytext + 10); parse_push_name(ns); return TOK_NAMESPACE; }
 module{WS}+{WORD}                       { const char* mod = trim_inplace(yytext + 7); parse_set_module_def_context_name(mod); return TOK_MODULE; }
 {WORD}                                  yylval->string = strdup(yytext); return IDENTIFIER;
+\<{WORD}\>\{                            {
+                                            yylval->string = strdup(yytext + 1);
+                                            yylval->string[strlen(yylval->string) - 2] = '\0';
+                                            return HASHDECL_IDENTIFIER_OPENCURLY;
+                                        }
+hash\<{WORD}\>\{                        {
+                                            yylval->string = strdup(yytext + 5);
+                                            yylval->string[strlen(yylval->string) - 2] = '\0';
+                                            return HASHDECL_IDENTIFIER_OPENCURLY;
+                                        }
 {WORD}<[a-zA-Z\*<:_0-9 \t,]+>           {
                                            if (angle_balanced(yytext)) {
                                                yylval->string = strdup(yytext);
