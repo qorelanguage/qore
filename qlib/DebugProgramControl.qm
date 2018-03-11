@@ -794,7 +794,7 @@ public namespace DebugProgramControl {
             return stack;
         }
 
-        private *hash handleInterrupt(string func, ProgramControl pgm, reference runState, *int statementId, *string refName, *reference refValue, *hash except) {
+        private *hash handleInterrupt(string func, ProgramControl pgm, reference runState, *int statementId, *string refName, *reference refValue, *int breakpointId, *hash except) {
             # serialize data, send to all websockets, break/suspend thread
             int tid = gettid();
             hash ctx = (
@@ -815,6 +815,9 @@ public namespace DebugProgramControl {
             ctx.intrInfo.framecnt = ctx.stackSize - frameOffset;
             if (exists statementId) {
                 ctx.intrInfo.statementid = statementId;
+            }
+            if (exists breakpointId) {
+                ctx.intrInfo.bkptid = breakpointId;
             }
             if (exists statementId && statementId > 0) {
                 hash location = pgm.getStatementIdInfo(statementId);
@@ -1071,6 +1074,11 @@ public namespace DebugProgramControl {
             handleInterrupt("detach", pgm, \rs);
         }
 
+        onStep(ProgramControl pgm, int blockStatementId, *int statementId, *int breakpointId, reference flow, reference rs) {
+            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "flow", \flow, breakpointId);
+        }
+
+        # backward compatability only when executed with <=0.8.13.2
         onStep(ProgramControl pgm, int blockStatementId, *int statementId, reference flow, reference rs) {
             handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "flow", \flow);
         }
@@ -1084,7 +1092,7 @@ public namespace DebugProgramControl {
         }
 
         onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference rs) {
-            handleInterrupt('exception', pgm, \rs, statementId, "dismiss", \dismiss, ex);
+            handleInterrupt('exception', pgm, \rs, statementId, "dismiss", \dismiss, NOTHING, ex);
         }
 
         onExit(ProgramControl pgm, int statementId, reference result, reference rs) {

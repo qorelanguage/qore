@@ -82,9 +82,9 @@ public:
       ExceptionSink xsink2;
       callMethod("onDetach", pgm, 0, 0, rs, xsink, xsink2);
    }
-   DLLLOCAL virtual void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL virtual void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
       ExceptionSink xsink2;
-      AbstractQoreNode* params[3];
+      AbstractQoreNode* params[4];
       params[0] = new QoreBigIntNode(pgm->getStatementId(blockStatement));
       params[1] = statement ? new QoreBigIntNode(pgm->getStatementId(statement)) : 0;
       /*
@@ -93,10 +93,11 @@ public:
       if (statement && !params[1]->getAsInt()) {
          printd(5, "QoreDebugProgramWithCoreObject::onStep::statement:%s:%d-%d:%s\n", statement->loc.file, statement->loc.start_line, statement->loc.end_line, typeid(statement).name());
       }*/
+      params[2] = bkptId > 0 ? new QoreBigIntNode(bkptId): 0;
       // LocalVar will sanitize and discard non-node values so we cannot use the ReferenceHolder
       ReferenceArgumentHelper rah(flow, &xsink2);
-      params[2] = rah.getArg(); // caller owns ref
-      callMethod("onStep", pgm, 3, params, rs, xsink, xsink2);
+      params[3] = rah.getArg(); // caller owns ref
+      callMethod("onStep", pgm, 4, params, rs, xsink, xsink2);
       QoreValue v(rah.getOutputQoreValue());
       flow = v.getAsBigInt();
       v.discard(&xsink2);

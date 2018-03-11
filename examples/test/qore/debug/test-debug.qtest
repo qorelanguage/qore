@@ -119,14 +119,14 @@ class MyDebugProgram inherits DebugProgram {
     handle(ST_DETACH, pgm, \runState);
   }
 
-  onStep(ProgramControl pgm, int blockStatementId, *int statementId, reference flow, reference runState) {
+  onStep(ProgramControl pgm, int blockStatementId, *int statementId, *int breakpointId, reference flow, reference runState) {
     int st = statementId ? ST_STEP : ST_BLOCK;
     any act = getAction(st);
     if (exists act.flow) {
         #printf("loc:%y, flow: %y\n", statementId, act.flow);
         flow = act.flow;
     }
-    handle(st, pgm, \runState, statementId ?? blockStatementId);
+    handle(st, pgm, \runState, statementId ?? blockStatementId, {"bkptId": breakpointId});
   }
 
   onFunctionEnter(ProgramControl pgm, int statementId, reference runState) {
@@ -294,6 +294,9 @@ class DebugTest inherits QUnit::Test {
             }
             if (exists el.retVal) {
                 testAssertionValue(sprintf(name+':tracelog %d retval', i), al.retVal, el.retVal);
+            }
+            if (exists el.bkptId) {
+                testAssertionValue(sprintf(name+':tracelog %d bkptid', i), al.bkptId, el.bkptId);
             }
             if (exists el.localVars) {
                 testAssertionValue(sprintf(name+':tracelog %d local vars', i), al.localVars, el.localVars);
@@ -483,20 +486,21 @@ class DebugTest inherits QUnit::Test {
     }
 
     singleThreadBreakpointTest() {
+        Breakpoint b1 = new Breakpoint();
+        Breakpoint b2 = new Breakpoint();
+
         list traceLog2 = (
-            ("func": ST_STEP, "line": line.tstFunction+1),
+            ("func": ST_STEP, "line": line.tstFunction+1, "bkptId": b2.getBreakpointId()),
             ("func": ST_FUNC_EXIT, "line": line.tstFunction+1),
-            ("func": ST_STEP, "line": line.tstProgram+5, "localVars": ("tid": gettid(), "s": "integer", "ret": "MODIFIED")),
+            ("func": ST_STEP, "line": line.tstProgram+5, "bkptId": b1.getBreakpointId(), "localVars": ("tid": gettid(), "s": "integer", "ret": "MODIFIED")),
         );
         list action2 = list(DebugRun, ("runState": DebugUntilReturn), ("func": ST_FUNC_EXIT, "retVal": "MODIFIED", "runState": DebugRun), ("localVars": ("tid", "s", "ret"), "runState": DebugDetach) );
 
-        Breakpoint b1 = new Breakpoint();
         b1.setEnabled(True);
         b1.addThreadId(gettid());
         b1.assignProgram(thisProgram);
         b1.assignStatement(thisProgram.findStatementId('', line.tstProgram+5));
 
-        Breakpoint b2 = new Breakpoint();;
         b2.setEnabled(True);
         b2.addThreadId(gettid());
         b2.assignProgram(thisProgram);

@@ -2038,7 +2038,7 @@ public:
 
    DLLLOCAL void onAttach(DebugRunStateEnum &rs, ExceptionSink* xsink);
    DLLLOCAL void onDetach(DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink);
+   DLLLOCAL void onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink);
    DLLLOCAL void onFunctionEnter(const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
    DLLLOCAL void onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
    DLLLOCAL void onException(const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
@@ -2096,9 +2096,14 @@ public:
       }
    }
 
-   DLLLOCAL inline bool onCheckBreakpoint(const AbstractStatement *statement, ExceptionSink* xsink) {
+   DLLLOCAL inline unsigned onCheckBreakpoint(const AbstractStatement *statement, ExceptionSink* xsink) {
       QoreAutoRWReadLocker al(&lck_breakpoint);
-      return statement->getBreakpoint() != nullptr;
+      const QoreBreakpoint *b = statement->getBreakpoint();
+      if (b != nullptr) {
+         return b->getBreakpointId();
+      } else {
+         return 0;
+      }
    }
 
    DLLLOCAL unsigned long getStatementId(const AbstractStatement* statement) const {
@@ -2402,9 +2407,9 @@ public:
     * @param statement current AbstractStatement of blockStatement being processed. Executed also when blockStatement is entered with value of NULL
     * @param flow
     */
-   DLLLOCAL void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onStep(pgm, blockStatement, statement, flow, rs, xsink);
+      dpgm->onStep(pgm, blockStatement, statement, bkptId, flow, rs, xsink);
 
    }
    DLLLOCAL void onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {

@@ -1484,6 +1484,8 @@ public namespace DebugCmdLine {
                         outs += sprintf(", pgm: %d", data.pgmid);
                     if (data.tid)
                         outs += sprintf(", tid: %d", data.tid);
+                    if (data.bkptid)
+                        outs += sprintf(", bkptid: %d", data.bkptid);
                     if (data.file || data.line || data.statementid) {
                         outs += ", (";
                         if (data.line) {

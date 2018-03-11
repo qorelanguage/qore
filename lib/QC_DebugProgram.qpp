@@ -194,7 +194,7 @@ abstract DebugProgram::onDetach(ProgramControl[QoreProgram] pgm, reference rs);
 /**
  *
  */
-abstract DebugProgram::onStep(ProgramControl[QoreProgram] pgm, int blockStatement, *int statement, reference flow, reference rs);
+abstract DebugProgram::onStep(ProgramControl[QoreProgram] pgm, int blockStatement, *int statement, *int breakpointId, reference flow, reference rs);
 
 //! Executed when a function is entered.
 /**
