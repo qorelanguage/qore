@@ -148,7 +148,8 @@ class T {
         if (HAVE_GET_STACK_SIZE) {
             Queue q();
             background checkStackSize(q);
-            assertEq(size, q.get());
+            # issue #2701: the actual stack size assigned may be larger than requested
+            assertGe(size, q.get());
         }
     }
 
