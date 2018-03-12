@@ -217,6 +217,9 @@ class DateTest inherits QUnit::Test {
 
         assertThrows("INVALID-DATE", \date(), ("2016"));
         assertThrows("INVALID-DATE", \date(), ("201601"));
+
+        date1 = 2018-03-10T05:39:57Z;
+        assertEq("2018-03-10 05:39:57+00:00", date1.format("YYYY-MM-DD HH:mm:SSZ"));
     }
 
     timeZoneTests() {

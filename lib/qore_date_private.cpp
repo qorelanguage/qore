@@ -676,11 +676,7 @@ void qore_relative_time::set(const char* str) {
 void concatOffset(int utcoffset, QoreString &str) {
    //printd(0, "concatOffset(%d)", utcoffset);
 
-   if (!utcoffset) {
-      str.concat('Z');
-      return;
-   }
-
+   // issue #2684 do not concatenate a "Z" with no offset, output +00:00
    str.concat(utcoffset < 0 ? '-' : '+');
    if (utcoffset < 0)
       utcoffset = -utcoffset;

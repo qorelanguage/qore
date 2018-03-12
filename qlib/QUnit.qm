@@ -14,7 +14,7 @@
 %requires Util
 
 module QUnit {
-    version = "0.3.2";
+    version = "0.3.3";
     desc = "User module for unit testing with dependency injection support";
     author = "Zdenek Behan <zdenek.behan@qoretechnologies.com>";
     url = "http://qore.org";
@@ -129,6 +129,9 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
     - junit - machine readable format for further processing
 
     @section unittest_relnotes Release Notes
+
+    @subsection qunit_v0_3_3 Version 0.3.3
+    - improved output in assertion failures for strings with special whitespace and for multi-line data structures (<a href="https://github.com/qorelanguage/qore/issues/2680">issue 2680</a>)
 
     @subsection qunit_v0_3_2 Version 0.3.2
     - improved error location reporting by providing all stack location information up until the QUnit call to cover the case when multiple code layers are used such as one or more test modules (<a href="https://github.com/qorelanguage/qore/issues/1720">issue 1720</a>)
@@ -1080,8 +1083,22 @@ addTestCase(obj);
     }
 
     private string shorten(auto value) {
+        # issue #2680: convert special whitespace in strings to escaped chars
+        if (value.typeCode() == NT_STRING) {
+            value =~ s/\n/\n/g;
+            value =~ s/\r/\r/g;
+            value =~ s/\t/\t/g;
+        }
         string v = sprintf("%N", value);
-        return sprintf("%s (%s)", v.split("\n")[0], value.type());
+        # issue #2680: when truncating complex data structures, indicate the truncation
+        list l = v.split("\n");
+        v = l[0];
+        if (l.size() > 1) {
+            return v + sprintf("...\" (%s truncated from %d lines)", value.type(), l.size());
+        }
+        else {
+            return sprintf("%s (%s)", v, value.type());
+        }
     }
 
     private compare(auto v1, auto v2, reference<list<string>> out, string path, *bool soft_comparisons) {
