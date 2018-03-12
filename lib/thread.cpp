@@ -2012,6 +2012,14 @@ struct ThreadArg {
    }
 };
 
+static void set_tid_thread_name(int tid) {
+#ifdef QORE_HAVE_THREAD_NAME
+    QoreStringMaker name("qore/%d", tid);
+    q_set_thread_name(name.c_str());
+#endif
+}
+
+
 // put functions in an unnamed namespace to make them 'static extern "C"'
 namespace {
    extern "C" void* q_run_thread(void* arg) {
@@ -2020,7 +2028,9 @@ namespace {
       register_thread(ta->tid, pthread_self(), 0);
       printd(5, "q_run_thread() ta: %p TID %d started\n", ta, ta->tid);
 
-      pthread_cleanup_push(qore_thread_cleanup, (void*)0);
+      set_tid_thread_name(ta->tid);
+
+      pthread_cleanup_push(qore_thread_cleanup, nullptr);
 
       {
          ExceptionSink xsink;
@@ -2062,7 +2072,9 @@ namespace {
       printd(5, "op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
       //printf("op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
 
-      pthread_cleanup_push(qore_thread_cleanup, (void*)0);
+      set_tid_thread_name(btp->tid);
+
+      pthread_cleanup_push(qore_thread_cleanup, nullptr);
 
       {
          ExceptionSink xsink;
@@ -2232,6 +2244,46 @@ size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink) {
 }
 #endif
 
+#ifdef QORE_HAVE_THREAD_NAME
+#define MAX_THREAD_NAME_SIZE 256
+#ifdef QORE_HAVE_PTHREAD_SETNAME_NP_1
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(name);
+}
+#elif defined(QORE_HAVE_PTHREAD_SETNAME_NP_2)
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(pthread_self(), name);
+}
+#elif defined(QORE_HAVE_PTHREAD_SETNAME_NP_3)
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(pthread_self(), name, nullptr);
+}
+#elif defined(QORE_HAVE_PTHREAD_SET_NAME_NP)
+void q_set_thread_name(const char* name) {
+    pthread_set_name_np(pthread_self(), name);
+}
+#else
+#error no pthread_setname_np()
+#endif
+#if defined(QORE_HAVE_PTHREAD_SET_NAME_NP)
+void q_get_thread_name(QoreString& str) {
+    str.clear();
+    str.reserve(MAX_THREAD_NAME_SIZE);
+    if (!pthread_get_name_np(pthread_self(), (char*)str.c_str(), MAX_THREAD_NAME_SIZE + 1)) {
+        str.terminate(strlen(str.c_str()));
+    }
+}
+#else
+void q_get_thread_name(QoreString& str) {
+    str.clear();
+    str.reserve(MAX_THREAD_NAME_SIZE);
+    if (!pthread_getname_np(pthread_self(), (char*)str.c_str(), MAX_THREAD_NAME_SIZE + 1)) {
+        str.terminate(strlen(str.c_str()));
+    }
+}
+#endif
+#endif
+
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include <qore/QoreRWLock.h>
 
@@ -2290,6 +2342,9 @@ void init_qore_threads() {
    // initialize recursive mutex attribute
    pthread_mutexattr_init(&ma_recursive);
    pthread_mutexattr_settype(&ma_recursive, PTHREAD_MUTEX_RECURSIVE);
+
+   // set default thread name for initial thread
+   set_tid_thread_name(gettid());
 
    // mark threading as active
    threads_initialized = true;

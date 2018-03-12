@@ -1504,7 +1504,7 @@ AC_COMPILE_IFELSE(
         ],[
                 AC_MSG_RESULT([no])
 ])
-AC_MSG_CHECKING([if pthread_setname_np() exists])
+AC_MSG_CHECKING([if pthread_set_name_np() exists])
 AC_COMPILE_IFELSE(
         [AC_LANG_PROGRAM(
                 [[#include <pthread.h>]],
@@ -1518,6 +1518,7 @@ AC_COMPILE_IFELSE(
 ])
 
 # pthread_getattr_np() is non-portable
+AC_MSG_CHECKING([if pthread_getattr_np() exists])
 AC_COMPILE_IFELSE(
         [AC_LANG_PROGRAM(
                 [[#include <pthread.h>]],

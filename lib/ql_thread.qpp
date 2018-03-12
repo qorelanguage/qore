@@ -845,4 +845,53 @@ int get_stack_size() [dom=THREAD_INFO;flags=CONSTANT] {
     return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for stack management; check Qore::Option::HAVE_GET_STACK_SIZE before calling");
 #endif
 }
+
+//! sets the current thread's descriptive name
+/** @par Platform Availability:
+    @ref Qore::Option::HAVE_THREAD_NAME
+
+    @par Example:
+    @code{.py}
+set_thread_name(name);
+    @endcode
+
+    @param name the new descriptive name for the thread
+
+    @since %Qore 0.9.0
+*/
+nothing set_thread_name(string name) [dom=THREAD_CONTROL] {
+#ifdef QORE_HAVE_THREAD_NAME
+    q_set_thread_name(name->c_str());
+#else
+    xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without support for stack management; check Qore::Option::HAVE_GET_STACK_SIZE before calling");
+#endif
+}
+
+//! returns the current thread's descriptive name if set or @ref nothing if not
+/**
+    @par Platform Availability:
+    @ref Qore::Option::HAVE_THREAD_NAME
+
+    @par Example:
+    @code{.py}
+*string name = get_stack_name();
+    @endcode
+
+    @return the current thread's descriptive name if set or @ref nothing if not
+
+    @note
+    - if supported, the default thread name will be <tt>qore/</tt><i>tid</i> where \a tid is the current thread ID
+    - in case the current platform does not support thread names, @ref nothing is always returned
+
+    @since %Qore 0.9.0
+*/
+*string get_thread_name() [dom=THREAD_CONTROL;flags=CONSTANT] {
+#ifdef QORE_HAVE_THREAD_NAME
+    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
+    q_get_thread_name(**rv);
+    return rv->empty() ? QoreValue() : rv.release();
+#else
+    return QoreValue();
+#endif
+}
 //@}

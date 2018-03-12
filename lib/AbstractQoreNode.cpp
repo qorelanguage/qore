@@ -437,6 +437,7 @@ static QoreParseListNode* crlr_list_copy(const QoreParseListNode* n, ExceptionSi
    return *xsink ? nullptr : l.release();
 }
 
+/*
 static QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSink* xsink) {
    assert(xsink);
    ReferenceHolder<QoreValueList> l(new QoreValueList, xsink);
@@ -447,6 +448,7 @@ static QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSink* xsin
    }
    return l.release();
 }
+*/
 
 static AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionSink* xsink) {
    assert(xsink);

@@ -29,6 +29,8 @@ class T {
     method() {}
 }
 ";
+
+        const ThreadName = "my-thread";
     }
 
     constructor() : QUnit::Test("background", "1.0", \ARGV) {
@@ -38,6 +40,7 @@ class T {
         addTestCase("issue 2679", \issue2679());
         addTestCase("issue 2653", \issue2653());
         addTestCase("issue 2701", \issue2701());
+        addTestCase("issue 2444", \issue2444());
         set_return_value(main());
     }
 
@@ -147,6 +150,15 @@ class T {
             background checkStackSize(q);
             assertEq(size, q.get());
         }
+    }
+
+    issue2444() {
+        if (!HAVE_THREAD_NAME) {
+            testSkip("no thread names available");
+        }
+        assertEq("qore/" + gettid(), get_thread_name());
+        set_thread_name(ThreadName);
+        assertEq(ThreadName, get_thread_name());
     }
 
     private static checkStackSize(Queue q) {

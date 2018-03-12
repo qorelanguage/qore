@@ -840,6 +840,10 @@ DLLLOCAL QoreHashNode* getAllCallStacks();
 #define QORE_HAVE_GET_STACK_SIZE
 #endif
 
+#if defined(QORE_HAVE_PTHREAD_SETNAME_NP_1) || defined(QORE_HAVE_PTHREAD_SETNAME_NP_2) || defined(QORE_HAVE_PTHREAD_SETNAME_NP_3) || defined(QORE_HAVE_PTHREAD_SET_NAME_NP)
+#define QORE_HAVE_THREAD_NAME
+#endif
+
 class QorePThreadAttr {
 private:
    pthread_attr_t attr;
@@ -995,5 +999,10 @@ public:
 
 DLLLOCAL extern pthread_mutexattr_t ma_recursive;
 DLLLOCAL extern QoreRWLock lck_debug_program;
+
+#ifdef QORE_HAVE_THREAD_NAME
+DLLLOCAL void q_set_thread_name(const char* name);
+DLLLOCAL void q_get_thread_name(QoreString& str);
+#endif
 
 #endif
