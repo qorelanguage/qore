@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -267,12 +267,18 @@ protected:
    QoreProgram* pgm; // program used when evaluated (to find stacks for references)
    q_rt_flags_t rtflags; // runtime flags
 
+    DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy, const qore_class_private* cctx);
+
 public:
    // saves current program location in case there's an exception
    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = nullptr, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
 
    // saves current program location in case there's an exception
    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
+
+   // saves current program location in case there's an exception
+   // performs destructive evaluation of "args"
+   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
 
    DLLLOCAL ~CodeEvaluationHelper();
 
@@ -291,6 +297,10 @@ public:
       assert(!*tmp);
       tmp.assign(true, n_args);
    }
+
+    DLLLOCAL QoreValueListEvalOptionalRefHolder& getArgHolder() {
+        return tmp;
+    }
 
    DLLLOCAL const QoreValueList* getArgs() const {
       return *tmp;
@@ -919,6 +929,10 @@ public:
 
    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
    DLLLOCAL virtual QoreValue evalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const;
+
+   // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+   // this function will use destructive evaluation of "args"
+   DLLLOCAL virtual QoreValue evalFunctionTmpArgs(const AbstractQoreFunctionVariant* variant, QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const;
 
    // finds a variant and checks variant capabilities against current program parse options and executes the variant
    DLLLOCAL QoreValue evalDynamic(const QoreListNode* args, ExceptionSink* xsink) const;
