@@ -24,9 +24,15 @@
       - @ref Qore::StreamReader::getInputStream() "StreamReader::getInputStream()"
       - @ref Qore::StreamWriter::getOutputStream() "StreamWriter::getOutputStream()"
     - new functions:
+      - @ref Qore::get_default_thread_stack_size() "get_default_thread_stack_size()"
       - @ref Qore::get_netif_list() "get_netif_list()"
+      - @ref Qore::get_stack_size() "get_stack_size()"
+      - @ref Qore::set_default_thread_stack_size() "set_default_thread_stack_size()"
     - new hashdecls:
       - @ref Qore::NetIfInfo "NetIfInfo"
+    - new constants:
+      - @ref Qore::HAVE_GET_STACK_SIZE "HAVE_GET_STACK_SIZE"
+      - @ref Qore::HAVE_MANAGE_STACK "HAVE_MANAGE_STACK"
     - new @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
       - \c "Dn" and \c "DN": the ordinal day number in the year
       - \c "I": ISO-8601 week string

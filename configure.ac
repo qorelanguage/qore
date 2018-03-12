@@ -1467,6 +1467,69 @@ if test "$need_user_dl" = yes; then
    LDFLAGS="$SAVE_LDFLAGS"
 fi
 
+# pthread_setname_np is not portable; there are at least 4 different implementations
+AC_MSG_CHECKING([if pthread_setname_np() exists and takes 1 argument])
+AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+                [[#include <pthread.h>]],
+                [[pthread_setname_np("foo"); return 0;]])
+        ],[
+                AC_MSG_RESULT([yes])
+                AC_DEFINE(QORE_HAVE_PTHREAD_SETNAME_NP_1, [1],
+                    [pthread_setname_np() takes 1 argument])
+        ],[
+                AC_MSG_RESULT([no])
+])
+AC_MSG_CHECKING([if pthread_setname_np() exists and takes 2 arguments])
+AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+                [[#include <pthread.h>]],
+                [[pthread_setname_np(pthread_self (), "foo"); return 0;]])
+        ],[
+                AC_MSG_RESULT([yes])
+                AC_DEFINE(QORE_HAVE_PTHREAD_SETNAME_NP_2, [1],
+                    [pthread_setname_np() takes 2 arguments])
+        ],[
+                AC_MSG_RESULT([no])
+])
+AC_MSG_CHECKING([if pthread_setname_np() exists and takes 3 arguments])
+AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+                [[#include <pthread.h>]],
+                [[pthread_setname_np(pthread_self(), "foo", (void*)0); return 0;]])
+        ],[
+                AC_MSG_RESULT([yes])
+                AC_DEFINE(QORE_HAVE_PTHREAD_SETNAME_NP_3, [1],
+                    [pthread_setname_np() takes 3 arguments])
+        ],[
+                AC_MSG_RESULT([no])
+])
+AC_MSG_CHECKING([if pthread_setname_np() exists])
+AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+                [[#include <pthread.h>]],
+                [[pthread_set_name_np(pthread_self(), "foo"); return 0;]])
+        ],[
+                AC_MSG_RESULT([yes])
+                AC_DEFINE(QORE_HAVE_PTHREAD_SET_NAME_NP, [1],
+                    [pthread_set_name_np() exists])
+        ],[
+                AC_MSG_RESULT([no])
+])
+
+# pthread_getattr_np() is non-portable
+AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+                [[#include <pthread.h>]],
+                [[pthread_attr_t attr; pthread_getattr_np(pthread_self(), &attr); return 0;]])
+        ],[
+                AC_MSG_RESULT([yes])
+                AC_DEFINE(QORE_HAVE_PTHREAD_GETATTR_NP, [1],
+                    [have pthread_getattr_np()])
+        ],[
+                AC_MSG_RESULT([no])
+])
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
 AC_C_CONST

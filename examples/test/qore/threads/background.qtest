@@ -37,6 +37,7 @@ class T {
         addTestCase("issue 2637", \issue2637());
         addTestCase("issue 2679", \issue2679());
         addTestCase("issue 2653", \issue2653());
+        addTestCase("issue 2701", \issue2701());
         set_return_value(main());
     }
 
@@ -128,6 +129,28 @@ class T {
         cnt.inc();
         testAssertion("create complex closure in background exp", sub () {Test::f2(cnt);}, NOTHING, new TestResultValue());
         cnt.waitForZero();
+    }
+
+    issue2701() {
+        if (!HAVE_MANAGE_STACK) {
+            testSkip("cannot manage the stack");
+        }
+
+        int size = get_default_thread_stack_size();
+        #printf("size: %d\n", size);
+        assertGt(0, size);
+        int orig_size = size;
+        size = set_default_thread_stack_size(size * 2);
+        assertEq(orig_size * 2, size);
+        if (HAVE_GET_STACK_SIZE) {
+            Queue q();
+            background checkStackSize(q);
+            assertEq(size, q.get());
+        }
+    }
+
+    private static checkStackSize(Queue q) {
+        q.push(get_stack_size());
     }
 
     static any f1(Counter cnt) {

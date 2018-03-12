@@ -86,7 +86,8 @@ DLLLOCAL QoreThreadLock lck_gethostbyaddr;
 DLLLOCAL QoreRWLock lck_debug_program;
 
 #ifdef QORE_MANAGE_STACK
-#define MAX_STACK_SIZE 512*1024
+QoreThreadLock stack_lck;
+#define MAX_STACK_SIZE 128*1024
 
 // default size and limit for qore threads; to be set in init_qore_threads()
 size_t qore_thread_stack_size = 0;
@@ -2154,17 +2155,22 @@ QoreValue do_op_background(const AbstractQoreNode* left, ExceptionSink* xsink) {
    //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
    thread_counter.inc();
 
-   if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
-      tp->cleanup(xsink);
-      tp->del();
+#ifdef QORE_MANAGE_STACK
+    // make sure accesses to ta_default are made locked
+    AutoLocker al(stack_lck);
+#endif
 
-      thread_counter.dec();
-      deregister_thread(tid);
-      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
-      return QoreValue();
-   }
-   //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
-   return tid;
+    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
+        tp->cleanup(xsink);
+        tp->del();
+
+        thread_counter.dec();
+        deregister_thread(tid);
+        xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
+        return QoreValue();
+    }
+    //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
+    return tid;
 }
 
 int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
@@ -2184,18 +2190,47 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
    int rc;
    pthread_t ptid;
 
-   //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
-   thread_counter.inc();
-   if ((rc = pthread_create(&ptid, ta_default.get_ptr(), q_run_thread, ta))) {
-      delete ta;
-      thread_counter.dec();
-      deregister_thread(tid);
-      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
-      return -1;
-   }
+#ifdef QORE_MANAGE_STACK
+    // make sure accesses to ta_default are made locked
+    AutoLocker al(stack_lck);
+#endif
 
-   return tid;
+    //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
+    thread_counter.inc();
+    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), q_run_thread, ta))) {
+        delete ta;
+        thread_counter.dec();
+        deregister_thread(tid);
+        xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
+        return -1;
+    }
+
+    return tid;
 }
+
+#ifdef QORE_MANAGE_STACK
+size_t q_thread_get_stack_size() {
+    // make sure accesses to stack info are made locked
+    AutoLocker al(stack_lck);
+
+    return qore_thread_stack_size;
+}
+
+size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink) {
+    // make sure accesses to stack info are made locked
+    AutoLocker al(stack_lck);
+
+    int rc = ta_default.setstacksize(size);
+    if (rc) {
+        xsink->raiseErrnoException("SET-DEFAULT-THREAD-STACK-SIZE-ERROR", rc, "an error occurred setting the default thread stack size to %ld", size);
+        return 0;
+    }
+    // make sure we check what was actually set
+    qore_thread_stack_size = ta_default.getstacksize();
+
+    return qore_thread_stack_size;
+}
+#endif
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include <qore/QoreRWLock.h>
