@@ -85,8 +85,9 @@ DLLLOCAL QoreThreadLock lck_gethostbyaddr;
 
 DLLLOCAL QoreRWLock lck_debug_program;
 
-
 #ifdef QORE_MANAGE_STACK
+#define MAX_STACK_SIZE 512*1024
+
 // default size and limit for qore threads; to be set in init_qore_threads()
 size_t qore_thread_stack_size = 0;
 size_t qore_thread_stack_limit = 0;
@@ -761,7 +762,7 @@ void ThreadCleanupList::pop(bool exec) {
 #ifdef QORE_MANAGE_STACK
 int check_stack(ExceptionSink* xsink) {
    ThreadData* td = thread_data.get();
-   printd(5, "check_stack() current: %p limit: %p\n", get_stack_pos(), td->stack_limit);
+   //printd(5, "check_stack() current: %p limit: %p\n", get_stack_pos(), td->stack_limit);
 #ifdef IA64_64
    //printd(5, "check_stack() bsp current: %p limit: %p\n", get_rse_bsp(), td->rse_limit);
    if (td->rse_limit < get_rse_bsp()) {
@@ -2220,20 +2221,23 @@ void init_qore_threads() {
 #ifdef SOLARIS
 #if TARGET_BITS == 32
    // pthread_attr_getstacksize() on default attributes returns 0 on Solaris
-   // so we set according to defaults - 1MB on 32-bit builds
-   qore_thread_stack_size = 1024*1024;
+   qore_thread_stack_size = MAX_STACK_SIZE;
 #else
-   // 2MB on 64-bit builds
-   qore_thread_stack_size = 1024*1024*2;
+   qore_thread_stack_size = MAX_STACK_SIZE;
 #endif // #if TARGET_BITS == 32
 #else
 #ifdef _Q_WINDOWS
    // windows stacks are extended automatically; here we set a limit of 1 MB per thread
-   qore_thread_stack_size = 1024 * 1024;
+   qore_thread_stack_size = MAX_STACK_SIZE;
 #else // !_Q_WINDOWS && !SOLARIS
    qore_thread_stack_size = ta_default.getstacksize();
    assert(qore_thread_stack_size);
    //printd(5, "getstacksize() returned: %ld\n", qore_thread_stack_size);
+   if (qore_thread_stack_size > MAX_STACK_SIZE) {
+       //printd(5, "setting stack size from %ld to %ld\n", qore_thread_stack_size, (size_t)MAX_STACK_SIZE);
+       ta_default.setstacksize(MAX_STACK_SIZE);
+       qore_thread_stack_size = MAX_STACK_SIZE;
+   }
 #endif // #ifdef _Q_WINDOWS
 #endif // #ifdef SOLARIS
 
