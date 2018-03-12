@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -630,8 +630,6 @@ public:
       privateData->insert(key, pd);
       addVirtualPrivateData(key, pd);
    }
-
-   static void breakit() {}
 
    // add virtual IDs for private data to class list
    DLLLOCAL void addVirtualPrivateData(qore_classid_t key, AbstractPrivateData* apd) {
