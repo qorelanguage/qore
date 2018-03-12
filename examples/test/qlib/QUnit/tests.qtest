@@ -222,6 +222,19 @@ public class QUnitTest inherits QUnit::Test {
             # force the test that failed to pass
             assertionOk();
         }
+
+        {
+            list l1 = ("hello\nworld",);
+            list l2 = ("hello\nmars",);
+            try {
+                assertEq(l1, l2);
+            }
+            catch (hash<ExceptionInfo> ex) {
+                #printf("desc: %y\n", ex.desc);
+                assertTrue(ex.desc =~ /hello\\\\nworld/);
+                assertTrue(ex.desc =~ /hello\\\\nmars/);
+            }
+        }
     }
 
     testInjectedClass() {
