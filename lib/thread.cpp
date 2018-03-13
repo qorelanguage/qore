@@ -87,7 +87,7 @@ DLLLOCAL QoreRWLock lck_debug_program;
 
 #ifdef QORE_MANAGE_STACK
 QoreThreadLock stack_lck;
-#define MAX_STACK_SIZE 128*1024
+#define MAX_STACK_SIZE 512*1024
 
 // default size and limit for qore threads; to be set in init_qore_threads()
 size_t qore_thread_stack_size = 0;
