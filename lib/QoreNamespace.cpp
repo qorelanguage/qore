@@ -2288,7 +2288,8 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
 
          const QoreClass* c = classList.find(cli.getName());
          if (c) {
-            if (!qore_class_private::injected(*c))
+             if (qore_class_private::get(*c) != qore_class_private::get(*cli.get()) &&
+                !qore_class_private::injected(*c))
                qmc.error("duplicate class %s::%s", name.c_str(), cli.getName());
          }
          else if (pendClassList.find(cli.getName()))

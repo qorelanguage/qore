@@ -110,7 +110,7 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
 
       QoreClass* qc = find(i->first);
       if (qc) {
-         assert(qore_class_private::injected(*qc));
+         assert(qore_class_private::injected(*qc) || qore_class_private::get(*qc) == qore_class_private::get(*i->second));
          continue;
       }
 

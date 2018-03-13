@@ -1788,23 +1788,24 @@ public:
 #define QCCM_STATIC (1 << 1)
 
 // private QoreClass implementation
+// only dynamically allocated; reference counter managed in "refs"
 class qore_class_private {
 public:
-   QoreProgramLocation loc;      // location of declaration
-   std::string name;             // the name of the class
-   QoreClass* cls;               // parent class
+   QoreProgramLocation loc;       // location of declaration
+   std::string name;              // the name of the class
+   QoreClass* cls;                // parent class
    qore_ns_private* ns = nullptr; // parent namespace
    BCList* scl = nullptr;         // base class list
 
-   mutable VRMutex gate;                 // for synchronized static methods
+   mutable VRMutex gate;          // for synchronized static methods
 
-   hm_method_t hm,               // "normal" (non-static) method map
-      shm;                       // static method map
+   hm_method_t hm,                // "normal" (non-static) method map
+      shm;                        // static method map
 
-   AbstractMethodMap ahm;        // holds abstract variants with no implementation in the current class
+   AbstractMethodMap ahm;         // holds abstract variants with no implementation in the current class
 
-   ConstantList pend_constlist,  // pending constants
-      constlist;                 // committed constants
+   ConstantList pend_constlist,   // pending constants
+      constlist;                  // committed constants
 
    // member lists (maps)
    QoreMemberMap members, pending_members;
@@ -1841,7 +1842,8 @@ public:
       pub : 1,                          // is a public class (modules only)
       final : 1,                        // is the class "final" (cannot be inherited)
       inject : 1,                       // has the class been injected
-      gate_access : 1                   // if the methodGate and memberGate methods should be called with a class access boolean
+      gate_access : 1,                  // if the methodGate and memberGate methods should be called with a class access boolean
+      committed : 1                     // can only parse to a class once
       ;
 
    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
@@ -1877,21 +1879,23 @@ public:
    DLLLOCAL qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = nullptr);
 
    // only called while the parse lock for the QoreProgram owning "old" is held
-   DLLLOCAL qore_class_private(const qore_class_private& old, QoreClass* n_cls);
+   //DLLLOCAL qore_class_private(const qore_class_private& old, QoreClass* n_cls);
 
-   DLLLOCAL ~qore_class_private();
-
+public:
    DLLLOCAL void ref() const {
       refs.ROreference();
    }
 
-   DLLLOCAL bool deref() {
-      if (refs.ROdereference()) {
-         delete cls;
-         return true;
-      }
-      return false;
-   }
+    DLLLOCAL bool deref() {
+        if (refs.ROdereference()) {
+            // remove the private data pointer, delete the class object, then delete ourselves
+            cls->priv = nullptr;
+            delete cls;
+            delete this;
+            return true;
+        }
+        return false;
+    }
 
    DLLLOCAL bool hasAbstract() const {
       return !ahm.empty();
@@ -2226,9 +2230,21 @@ public:
       return checkExistingVarMember(mem, mi, omi, qc, omi->access);
    }
 
+    DLLLOCAL int parseCheckSystemCommitted(const QoreProgramLocation& loc) {
+        if (sys) {
+            parse_error(loc, "cannot modify system class '%s'", name.c_str());
+            return -1;
+        }
+        if (committed) {
+            parse_error(loc, "cannot modify user class '%s' once it's been committed", name.c_str());
+            return -1;
+        }
+        return 0;
+    }
+
    DLLLOCAL void parseAddMember(char* mem, ClassAccess access, QoreMemberInfo* MemberInfo) {
       MemberInfo->access = access;
-      if (!parseCheckMember(mem, MemberInfo)) {
+      if (!parseCheckSystemCommitted(MemberInfo->loc) && !parseCheckMember(mem, MemberInfo)) {
          if (!has_new_user_changes)
             has_new_user_changes = true;
          if (!has_sig_changes)
@@ -2244,7 +2260,7 @@ public:
 
    DLLLOCAL void parseAddStaticVar(char* dname, ClassAccess access, QoreVarInfo* VarInfo) {
       VarInfo->access = access;
-      if (!parseCheckVar(dname, VarInfo)) {
+      if (!parseCheckSystemCommitted(VarInfo->loc) && !parseCheckVar(dname, VarInfo)) {
          //printd(5, "qore_class_private::parseAddStaticVar() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
          pending_vars.addNoCheck(dname, VarInfo);
          return;
@@ -2254,44 +2270,54 @@ public:
       delete VarInfo;
    }
 
-   DLLLOCAL void addBuiltinConstant(const char* cname, AbstractQoreNode* value, ClassAccess access = Public, const QoreTypeInfo* cTypeInfo = 0) {
-      assert(!constlist.inList(cname));
-      assert(!pend_constlist.inList(cname));
-      constlist.add(cname, value, cTypeInfo, access);
-   }
+    DLLLOCAL void addBuiltinConstant(const char* cname, AbstractQoreNode* value, ClassAccess access = Public, const QoreTypeInfo* cTypeInfo = 0) {
+        assert(!constlist.inList(cname));
+        assert(!pend_constlist.inList(cname));
+        if (!sys) {
+            sys = committed = true;
+        }
+        constlist.add(cname, value, cTypeInfo, access);
+    }
 
-   DLLLOCAL void addBuiltinStaticVar(const char* vname, AbstractQoreNode* value, ClassAccess access = Public, const QoreTypeInfo* vTypeInfo = 0) {
-      assert(!vars.inList(vname));
+    DLLLOCAL void addBuiltinStaticVar(const char* vname, AbstractQoreNode* value, ClassAccess access = Public, const QoreTypeInfo* vTypeInfo = 0) {
+        assert(!vars.inList(vname));
 
-      vars.addNoCheck(strdup(vname), new QoreVarInfo(QoreProgramLocation(), vTypeInfo, 0, value, access));
-   }
+        if (!sys) {
+            sys = committed = true;
+        }
+        vars.addNoCheck(strdup(vname), new QoreVarInfo(QoreProgramLocation(), vTypeInfo, 0, value, access));
+    }
 
-   DLLLOCAL void parseAssimilateConstants(ConstantList &cmap, ClassAccess access) {
-      if (!has_new_user_changes)
-         has_new_user_changes = true;
-      if (!has_sig_changes)
-         has_sig_changes = true;
+    DLLLOCAL void parseAssimilateConstants(ConstantList &cmap, ClassAccess access) {
+        assert(!sys && !committed);
+        if (!has_new_user_changes)
+            has_new_user_changes = true;
+        if (!has_sig_changes)
+            has_sig_changes = true;
 
-      // set access if necessary
-      cmap.setAccess(access);
-      pend_constlist.assimilate(cmap, constlist, "class", name.c_str());
-   }
+        // set access if necessary
+        cmap.setAccess(access);
+        pend_constlist.assimilate(cmap, constlist, "class", name.c_str());
+    }
 
-   DLLLOCAL void parseAddConstant(const QoreProgramLocation& loc, const std::string &cname, AbstractQoreNode* val, ClassAccess access) {
-      if (parseHasVar(cname.c_str())) {
-         parse_error(loc, "'%s' has already been declared as a static variable in class '%s' and therefore cannot be also declared as a constant in the same class with the same name", cname.c_str(), name.c_str());
-         val->deref(0);
-         return;
-      }
-      if (!has_new_user_changes)
-         has_new_user_changes = true;
-      if (!has_sig_changes)
-         has_sig_changes = true;
+    DLLLOCAL void parseAddConstant(const QoreProgramLocation& loc, const std::string &cname, AbstractQoreNode* val, ClassAccess access) {
+        ReferenceHolder<> val_holder(val, nullptr);
+        if (parseCheckSystemCommitted(loc)) {
+            return;
+        }
+        if (parseHasVar(cname.c_str())) {
+            parse_error(loc, "'%s' has already been declared as a static variable in class '%s' and therefore cannot be also declared as a constant in the same class with the same name", cname.c_str(), name.c_str());
+            return;
+        }
+        if (!has_new_user_changes)
+            has_new_user_changes = true;
+        if (!has_sig_changes)
+            has_sig_changes = true;
 
-      //printd(5, "parseAddConstant() this: %p cls: %p const: %s access: %d\n", this, cls, cname.c_str(), access);
+        //printd(5, "parseAddConstant() this: %p cls: %p const: %s access: %d\n", this, cls, cname.c_str(), access);
 
-      pend_constlist.parseAdd(loc, cname, val, constlist, access, name.c_str());
-   }
+        pend_constlist.parseAdd(loc, cname, val_holder.release(), constlist, access, name.c_str());
+    }
 
    DLLLOCAL bool parseHasVar(const char* vn) {
       return vars.inList(vn) || pending_vars.inList(vn)
@@ -2408,7 +2434,9 @@ public:
       shm[m->getName()] = m;
       // maintain method counts (safely inside parse lock)
       ++num_static_methods;
-      if (!sys) { sys = true; }
+      if (!sys) {
+          sys = committed = true;
+      }
       // check for special methods (except constructor and destructor) and abort if found
       assert(!checkSpecialStaticIntern(m->getName()));
       // add ancestors
@@ -2421,7 +2449,9 @@ public:
       hm[m->getName()] = m;
       // maintain method counts (safely inside parse lock)
       ++num_methods;
-      if (!sys) { sys = true; }
+      if (!sys) {
+          sys = committed = true;
+      }
       // check for special methods (except constructor and destructor)
       if (!special_method && !checkAssignSpecialIntern(m))
          // add ancestors
@@ -3192,6 +3222,9 @@ public:
       assert(!qc.priv->final);
       qc.priv->final = true;
    }
+
+protected:
+    DLLLOCAL ~qore_class_private();
 };
 
 class qore_class_private_holder {

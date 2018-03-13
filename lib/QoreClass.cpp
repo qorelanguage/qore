@@ -509,6 +509,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
      final(false),
      inject(false),
      gate_access(false),
+     committed(false),
      domain(dom),
      num_methods(0),
      num_user_methods(0),
@@ -526,6 +527,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
    printd(5, "qore_class_private::qore_class_private() this: %p creating '%s' ID:%d cls: %p pub: %d sys: %d\n", this, name.c_str(), classID, cls, pub, sys);
 }
 
+/*
 // only called while the parse lock for the QoreProgram owning "old" is held
 qore_class_private::qore_class_private(const qore_class_private& old, QoreClass* n_cls)
    : name(old.name),
@@ -553,6 +555,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      final(old.final),
      inject(old.inject),
      gate_access(old.gate_access),
+     committed(true),
      domain(old.domain),
      num_methods(old.num_methods),
      num_user_methods(old.num_user_methods),
@@ -616,39 +619,41 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
    for (QoreVarMap::DeclOrderIterator i = old.vars.beginDeclOrder(), e = old.vars.endDeclOrder(); i != e; ++i)
       vars.addNoCheck(strdup(i->first), i->second ? i->second->copy(i->first) : 0);
 }
+*/
 
 qore_class_private::~qore_class_private() {
-   printd(5, "qore_class_private::~qore_class_private() this: %p %s\n", this, name.c_str());
+    printd(5, "qore_class_private::~qore_class_private() this: %p %s\n", this, name.c_str());
 
-   assert(vars.empty());
-   assert(!spgm);
+    assert(vars.empty());
+    assert(!spgm);
+    assert(!refs.reference_count());
 
-   if (!pending_vars.empty())
-      pending_vars.del();
+    if (!pending_vars.empty())
+        pending_vars.del();
 
-   // delete normal methods
-   for (auto& i : hm) {
-      //printd(5, "qore_class_private::~qore_class_private() deleting method %p %s::%s()\n", m, name, m->getName());
-      delete i.second;
-   }
+    // delete normal methods
+    for (auto& i : hm) {
+        //printd(5, "qore_class_private::~qore_class_private() deleting method %p %s::%s()\n", m, name, m->getName());
+        delete i.second;
+    }
 
-   // delete static methods
-   for (auto& i : shm) {
-      //printd(5, "qore_class_private::~qore_class_private() deleting static method %p %s::%s()\n", m, name, m->getName());
-      delete i.second;
-   }
+    // delete static methods
+    for (auto& i : shm) {
+        //printd(5, "qore_class_private::~qore_class_private() deleting static method %p %s::%s()\n", m, name, m->getName());
+        delete i.second;
+    }
 
-   delete scl;
-   delete system_constructor;
+    delete scl;
+    delete system_constructor;
 
-   if (owns_typeinfo)
-      delete typeInfo;
+    if (owns_typeinfo)
+        delete typeInfo;
 
-   if (owns_ornothingtypeinfo)
-      delete orNothingTypeInfo;
+    if (owns_ornothingtypeinfo)
+        delete orNothingTypeInfo;
 
-   if (mud)
-      mud->doDeref();
+    if (mud)
+        mud->doDeref();
 }
 
 const QoreMethod* qore_class_private::doParseMethodAccess(const QoreMethod* m, const qore_class_private* class_ctx) {
@@ -1180,118 +1185,132 @@ QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVarian
 }
 
 void qore_class_private::parseCommit() {
-   //printd(5, "qore_class_private::parseCommit() %s this: %p cls: %p hm.size: %d\n", name.c_str(), this, cls, hm.size());
-   if (parse_init_called)
-      parse_init_called = false;
+    //printd(5, "qore_class_private::parseCommit() %s this: %p cls: %p hm.size: %d sys: %d committed: %d\n", name.c_str(), this, cls, hm.size(), sys, committed);
+    if (committed) {
+        return;
+    }
 
-   if (parse_init_partial_called)
-      parse_init_partial_called = false;
+    if (!sys) {
+        committed = true;
 
-   if (has_new_user_changes) {
-      // signature string: note the signature is updated in two places, here and in initializeIntern()
-      QoreString csig;
+        if (parse_init_called)
+            parse_init_called = false;
 
-      // add parent classes to signature if creating for the first time
-      if (has_sig_changes && scl) {
-         for (auto& i : *scl) {
-            assert((*i).sclass);
-            (*i).sclass->priv->parseCommit();
-            do_sig(csig, *i);
-         }
-      }
+        if (parse_init_partial_called)
+            parse_init_partial_called = false;
 
-      // commit pending "normal" (non-static) method variants
-      for (auto& i : hm) {
-         bool is_new = i.second->priv->func->committedEmpty();
-         if (has_sig_changes)
-            i.second->priv->func->parseCommitMethod(csig, 0);
-         else
-            i.second->priv->func->parseCommitMethod();
-         if (is_new) {
-            checkAssignSpecial(i.second);
-            ++num_methods;
-            ++num_user_methods;
-         }
-      }
+        if (has_new_user_changes) {
+            // signature string: note the signature is updated in two places, here and in initializeIntern()
+            QoreString csig;
 
-      // commit pending static method variants
-      for (auto& i : shm) {
-         bool is_new = i.second->priv->func->committedEmpty();
-         if (has_sig_changes)
-            i.second->priv->func->parseCommitMethod(csig, "static");
-         else
-            i.second->priv->func->parseCommitMethod();
-         if (is_new) {
-            ++num_static_methods;
-            ++num_static_user_methods;
-         }
-      }
+            // add parent classes to signature if creating for the first time
+            if (has_sig_changes && scl) {
+                for (auto& i : *scl) {
+                    assert((*i).sclass);
+                    (*i).sclass->priv->parseCommit();
+                    do_sig(csig, *i);
+                }
+            }
 
-      // commit abstract method variant list changes
-      ahm.parseCommit();
+            // commit pending "normal" (non-static) method variants
+            for (auto& i : hm) {
+                bool is_new = i.second->priv->func->committedEmpty();
+                if (has_sig_changes)
+                    i.second->priv->func->parseCommitMethod(csig, 0);
+                else
+                    i.second->priv->func->parseCommitMethod();
+                if (is_new) {
+                    checkAssignSpecial(i.second);
+                    ++num_methods;
+                    ++num_user_methods;
+                }
+            }
 
-      // add all pending members to real member list
-      pending_members.moveAllTo(members);
+            // commit pending static method variants
+            for (auto& i : shm) {
+                bool is_new = i.second->priv->func->committedEmpty();
+                if (has_sig_changes)
+                    i.second->priv->func->parseCommitMethod(csig, "static");
+                else
+                    i.second->priv->func->parseCommitMethod();
+                if (is_new) {
+                    ++num_static_methods;
+                    ++num_static_user_methods;
+                }
+            }
 
-      if (has_sig_changes) {
-         // add all committed static vars to signature
-         for (QoreVarMap::SigOrderIterator i = vars.beginSigOrder(), e = vars.endSigOrder(); i != e; ++i) {
-            do_sig(csig, i);
-         }
-         // add all pending static vars to signature
-         // pending static vars are committed in the "runtime init" step after this call
-         for (QoreVarMap::SigOrderIterator i = pending_vars.beginSigOrder(), e = pending_vars.endSigOrder(); i != e; ++i)
-            do_sig(csig, i);
+            // commit abstract method variant list changes
+            ahm.parseCommit();
 
-         for (QoreMemberMap::SigOrderIterator i = members.beginSigOrder(), e = members.endSigOrder(); i != e; ++i)
-            do_sig(csig, i);
-      }
+            // add all pending members to real member list
+            pending_members.moveAllTo(members);
 
-      // set flags
-      if (pending_has_public_memdecl) {
-         if (!has_public_memdecl)
-            has_public_memdecl = true;
-         pending_has_public_memdecl = false;
-      }
+            if (has_sig_changes) {
+                // add all committed static vars to signature
+                for (QoreVarMap::SigOrderIterator i = vars.beginSigOrder(), e = vars.endSigOrder(); i != e; ++i) {
+                    do_sig(csig, i);
+                }
+                // add all pending static vars to signature
+                // pending static vars are committed in the "runtime init" step after this call
+                for (QoreVarMap::SigOrderIterator i = pending_vars.beginSigOrder(), e = pending_vars.endSigOrder(); i != e; ++i)
+                    do_sig(csig, i);
 
-      // commit pending constants
-      constlist.assimilate(pend_constlist);
+                for (QoreMemberMap::SigOrderIterator i = members.beginSigOrder(), e = members.endSigOrder(); i != e; ++i)
+                    do_sig(csig, i);
+            }
 
-      // process constants for signature
-      if (has_sig_changes) {
-         do_sig(csig, constlist);
-         do_sig(csig, pend_constlist);
-      }
+            // set flags
+            if (pending_has_public_memdecl) {
+                if (!has_public_memdecl)
+                    has_public_memdecl = true;
+                pending_has_public_memdecl = false;
+            }
 
-      // if there are any signature changes, then change the class' signature
-      if (has_sig_changes) {
-         if (!csig.empty()) {
-            printd(5, "qore_class_private::parseCommit() this:%p '%s' sig:\n%s", this, name.c_str(), csig.getBuffer());
-            hash.update(csig);
-         }
-         has_sig_changes = false;
-      }
-      else {
-         assert(csig.empty());
-         if (pend_hash) {
-            hash = pend_hash;
-            pend_hash.clear();
-         }
-      }
+            // commit pending constants
+            constlist.assimilate(pend_constlist);
 
-      has_new_user_changes = false;
-   }
-   else {
+            // process constants for signature
+            if (has_sig_changes) {
+                do_sig(csig, constlist);
+                do_sig(csig, pend_constlist);
+            }
+
+            // if there are any signature changes, then change the class' signature
+            if (has_sig_changes) {
+                if (!csig.empty()) {
+                    printd(5, "qore_class_private::parseCommit() this:%p '%s' sig:\n%s", this, name.c_str(), csig.getBuffer());
+                    hash.update(csig);
+                }
+                has_sig_changes = false;
+            }
+            else {
+                assert(csig.empty());
+                if (pend_hash) {
+                    hash = pend_hash;
+                    pend_hash.clear();
+                }
+            }
+
+            has_new_user_changes = false;
+        }
+        else {
 #ifdef DEBUG
-      for (auto& i : hm)
-         assert(i.second->priv->func->pendingEmpty());
-      for (auto& i : shm)
-         assert(i.second->priv->func->pendingEmpty());
+            for (auto& i : hm)
+                assert(i.second->priv->func->pendingEmpty());
+            for (auto& i : shm)
+                assert(i.second->priv->func->pendingEmpty());
 #endif
-      assert(pending_members.empty());
-      assert(pending_vars.empty());
-      assert(!pending_has_public_memdecl);
-   }
+            assert(pending_members.empty());
+            assert(pending_vars.empty());
+            assert(!pending_has_public_memdecl);
+        }
+    }
+    else {
+        assert(committed);
+        assert(pending_members.empty());
+        assert(pending_vars.empty());
+        assert(!pending_has_public_memdecl);
+    }
 
    if (!hash)
       hash.updateEmpty();
@@ -1320,93 +1339,113 @@ void qore_class_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
 }
 
 void qore_class_private::addBuiltinMethod(const char* mname, MethodVariantBase* variant) {
-   assert(strcmp(mname, "constructor"));
-   assert(strcmp(mname, "destructor"));
-   assert(strcmp(mname, "copy"));
+    assert(strcmp(mname, "constructor"));
+    assert(strcmp(mname, "destructor"));
+    assert(strcmp(mname, "copy"));
 
-   hm_method_t::iterator i = hm.find(mname);
-   QoreMethod* nm;
-   if (i == hm.end()) {
-      MethodFunctionBase* m = new BuiltinNormalMethod(cls, mname);
-      nm = new QoreMethod(cls, m, false);
-      insertBuiltinMethod(nm);
-   }
-   else {
-      nm = i->second;
-   }
+    if (!sys) {
+        sys = committed = true;
+    }
 
-   // set the pointer from the variant back to the owning method
-   variant->setMethod(nm);
+    hm_method_t::iterator i = hm.find(mname);
+    QoreMethod* nm;
+    if (i == hm.end()) {
+        MethodFunctionBase* m = new BuiltinNormalMethod(cls, mname);
+        nm = new QoreMethod(cls, m, false);
+        insertBuiltinMethod(nm);
+    }
+    else {
+        nm = i->second;
+    }
 
-   nm->priv->addBuiltinVariant(variant);
+    // set the pointer from the variant back to the owning method
+    variant->setMethod(nm);
 
-   if (variant->isAbstract())
-      ahm.addAbstractVariant(mname, variant);
-   else
-      ahm.overrideAbstractVariant(mname, variant);
+    nm->priv->addBuiltinVariant(variant);
+
+    if (variant->isAbstract())
+        ahm.addAbstractVariant(mname, variant);
+    else
+        ahm.overrideAbstractVariant(mname, variant);
 }
 
 void qore_class_private::addBuiltinStaticMethod(const char* mname, MethodVariantBase* variant) {
-   assert(strcmp(mname, "constructor"));
-   assert(strcmp(mname, "destructor"));
+    assert(strcmp(mname, "constructor"));
+    assert(strcmp(mname, "destructor"));
 
-   hm_method_t::iterator i = shm.find(mname);
-   QoreMethod* nm;
-   if (i == shm.end()) {
-      MethodFunctionBase* m = new BuiltinStaticMethod(cls, mname);
-      nm = new QoreMethod(cls, m, true);
-      insertBuiltinStaticMethod(nm);
-   }
-   else {
-      nm = i->second;
-   }
+    if (!sys) {
+        sys = committed = true;
+    }
 
-   // set the pointer from the variant back to the owning method
-   variant->setMethod(nm);
+    hm_method_t::iterator i = shm.find(mname);
+    QoreMethod* nm;
+    if (i == shm.end()) {
+        MethodFunctionBase* m = new BuiltinStaticMethod(cls, mname);
+        nm = new QoreMethod(cls, m, true);
+        insertBuiltinStaticMethod(nm);
+    }
+    else {
+        nm = i->second;
+    }
 
-   nm->priv->addBuiltinVariant(variant);
+    // set the pointer from the variant back to the owning method
+    variant->setMethod(nm);
+
+    nm->priv->addBuiltinVariant(variant);
 }
 
 void qore_class_private::addBuiltinConstructor(BuiltinConstructorVariantBase* variant) {
-   QoreMethod* nm;
-   if (!constructor) {
-      MethodFunctionBase* m = new ConstructorMethodFunction(cls);
-      nm = new QoreMethod(cls, m, false);
-      constructor = nm;
-      insertBuiltinMethod(nm, true);
-   }
-   else {
-      nm = const_cast<QoreMethod*>(constructor);
-   }
+    if (!sys) {
+        sys = committed = true;
+    }
 
-   // set the pointer from the variant back to the owning method
-   variant->setMethod(nm);
+    QoreMethod* nm;
+    if (!constructor) {
+        MethodFunctionBase* m = new ConstructorMethodFunction(cls);
+        nm = new QoreMethod(cls, m, false);
+        constructor = nm;
+        insertBuiltinMethod(nm, true);
+    }
+    else {
+        nm = const_cast<QoreMethod*>(constructor);
+    }
 
-   nm->priv->addBuiltinVariant(variant);
+    // set the pointer from the variant back to the owning method
+    variant->setMethod(nm);
+
+    nm->priv->addBuiltinVariant(variant);
 }
 
 void qore_class_private::addBuiltinDestructor(BuiltinDestructorVariantBase* variant) {
-   assert(!destructor);
-   DestructorMethodFunction *m = new DestructorMethodFunction(cls);
-   QoreMethod* qm = new QoreMethod(cls, m, false);
-   destructor = qm;
-   insertBuiltinMethod(qm, true);
-   // set the pointer from the variant back to the owning method
-   variant->setMethod(qm);
+    if (!sys) {
+        sys = committed = true;
+    }
 
-   qm->priv->addBuiltinVariant(variant);
+    assert(!destructor);
+    DestructorMethodFunction *m = new DestructorMethodFunction(cls);
+    QoreMethod* qm = new QoreMethod(cls, m, false);
+    destructor = qm;
+    insertBuiltinMethod(qm, true);
+    // set the pointer from the variant back to the owning method
+    variant->setMethod(qm);
+
+    qm->priv->addBuiltinVariant(variant);
 }
 
 void qore_class_private::addBuiltinCopyMethod(BuiltinCopyVariantBase* variant) {
-   assert(!copyMethod);
-   CopyMethodFunction *m = new CopyMethodFunction(cls);
-   QoreMethod* qm = new QoreMethod(cls, m, false);
-   copyMethod = qm;
-   insertBuiltinMethod(qm, true);
-   // set the pointer from the variant back to the owning method
-   variant->setMethod(qm);
+    if (!sys) {
+        sys = committed = true;
+    }
 
-   qm->priv->addBuiltinVariant(variant);
+    assert(!copyMethod);
+    CopyMethodFunction *m = new CopyMethodFunction(cls);
+    QoreMethod* qm = new QoreMethod(cls, m, false);
+    copyMethod = qm;
+    insertBuiltinMethod(qm, true);
+    // set the pointer from the variant back to the owning method
+    variant->setMethod(qm);
+
+    qm->priv->addBuiltinVariant(variant);
 }
 
 void qore_class_private::setDeleteBlocker(q_delete_blocker_t func) {
@@ -1420,10 +1459,14 @@ void qore_class_private::setDeleteBlocker(q_delete_blocker_t func) {
 }
 
 void qore_class_private::setBuiltinSystemConstructor(BuiltinSystemConstructorBase* m) {
-   assert(!system_constructor);
-   QoreMethod* qm = new QoreMethod(cls, m, false);
-   qm->priv->setBuiltin();
-   system_constructor = qm;
+    if (!sys) {
+        sys = committed = true;
+    }
+
+    assert(!system_constructor);
+    QoreMethod* qm = new QoreMethod(cls, m, false);
+    qm->priv->setBuiltin();
+    system_constructor = qm;
 }
 
 void qore_class_private::setPublic() {
@@ -2397,6 +2440,7 @@ bool QoreClass::isSystem() const {
 
 void QoreClass::setSystem() {
    priv->sys = true;
+   priv->committed = true;
 }
 
 bool QoreClass::hasMemberGate() const {
@@ -2997,7 +3041,10 @@ QoreClass::QoreClass() : priv(new qore_class_private(this, parse_pop_name())) {
 }
 
 QoreClass::~QoreClass() {
-   delete priv;
+    // dereference the private data if still present
+    if (priv) {
+        priv->deref();
+    }
 }
 
 void QoreClass::setUserData(const void *n_ptr) {
@@ -3040,7 +3087,11 @@ bool QoreMethod::existsVariant(const type_vec_t &paramTypeInfo) const {
    return priv->func->existsVariant(paramTypeInfo);
 }
 
-QoreClass::QoreClass(const QoreClass& old) : priv(new qore_class_private(*old.priv, this)) {
+//QoreClass::QoreClass(const QoreClass& old) : priv(new qore_class_private(*old.priv, this)) {
+//}
+
+QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
+    priv->ref();
 }
 
 void QoreClass::insertMethod(QoreMethod* m) {
@@ -3371,6 +3422,11 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
    printd(5, "QoreClass::addUserMethod(%s, umv: %p, priv: %d, static: %d) this: %p %s\n", mname, f, f->isPrivate(), n_static, this, tname);
 
    std::unique_ptr<MethodVariantBase> func(f);
+
+    if (sys || committed) {
+        parseCheckSystemCommitted(static_cast<UserSignature*>(f->getSignature())->getParseLocation());
+        return -1;
+    }
 
    if (f->isAbstract()) {
       if (initialized) {
