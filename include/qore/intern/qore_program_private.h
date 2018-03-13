@@ -510,7 +510,7 @@ private:
    QoreBreakpointList_t breakpointList;
 
    // map for line to statement
-   typedef std::map<int, AbstractStatement*> sline_statement_multimap_t;
+   typedef std::map<int, AbstractStatement*> sline_statement_map_t;
 
    struct cmp_char_str
    {
@@ -519,13 +519,21 @@ private:
          return strcmp(a, b) < 0;
       }
    };
+   typedef std::map<const char*, int, cmp_char_str> section_offset_map_t;
+
+   struct section_sline_statement_map {
+      section_offset_map_t sectionMap;
+      sline_statement_map_t statementMap;
+   };
+
+   typedef section_sline_statement_map section_sline_statement_map_t;
 
    // map for filenames
-   typedef std::map<const char*, sline_statement_multimap_t*, cmp_char_str> name_sline_statement_map_t;
+   typedef std::map<const char*, section_sline_statement_map_t*, cmp_char_str> name_section_sline_statement_map_t;
 
    // index source filename/label -> line -> statement
-   name_sline_statement_map_t statementByFileIndex;
-   name_sline_statement_map_t statementByLabelIndex;
+   name_section_sline_statement_map_t statementByFileIndex;
+   name_section_sline_statement_map_t statementByLabelIndex;
 
    // statementId to AbstractStatement resolving
    typedef std::vector<AbstractStatement*> StatementVector_t;
@@ -850,10 +858,12 @@ public:
       // save this file name for storage in the parse tree and deletion
       // when the QoreProgram object is deleted
       char* sname = strdup(label);
-      addFile(sname);
       char* src = orig_src ? strdup(orig_src) : nullptr;
-      if (src)
-         addFile(src);
+      if (orig_src) {
+         addFile(src, sname, offset);
+      } else {
+         addFile(sname);
+      }
 
       QoreParseLocationHelper qplh(sname, src, offset);
 
@@ -1643,8 +1653,14 @@ public:
 
    DLLLOCAL void importHashDecl(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = nullptr);
 
-   DLLLOCAL void addFile(char* f) {
-      fileList.push_back(f);
+   DLLLOCAL void addFile(char* file, char* source = nullptr, int offset = -1) {
+      fileList.push_back(file);
+      printd(5, "qore_program_private::addFile('%s', '%s', %d\n", file, source ? source : "(null)", offset);
+      addStatementToIndexIntern(&statementByFileIndex, file, nullptr, -1, source, offset);
+      if (source) {
+        fileList.push_back(source);
+        addStatementToIndexIntern(&statementByLabelIndex, source, nullptr, -1, file, offset);
+      }
    }
 
    DLLLOCAL void addUserFeature(const char* f) {
@@ -2147,13 +2163,20 @@ public:
          return true;
    }
 
-   DLLLOCAL void addStatementToIndexIntern(name_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs);
+   DLLLOCAL void addStatementToIndexIntern(name_section_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs, const char* section, int sectionOffs);
    DLLLOCAL static void registerStatement(QoreProgram *pgm, AbstractStatement *statement, bool addToIndex);
+   DLLLOCAL QoreHashNode* getSourceIndicesIntern(name_section_sline_statement_map_t* statementIndex, ExceptionSink* xsink) const;
+   DLLLOCAL QoreHashNode* getSourceLabels(ExceptionSink* xsink) {
+      return getSourceIndicesIntern(&statementByLabelIndex, xsink);
+   }
+   DLLLOCAL QoreHashNode* getSourceFileNames(ExceptionSink* xsink) {
+      return getSourceIndicesIntern(&statementByFileIndex, xsink);
+   }
 
    DLLLOCAL AbstractStatement* getStatementFromIndex(const char* name, int line) {
       printd(5, "qore_program_private::getStatementFromIndex('%s',%d), this: %p, file#: %d, label#: %d\n", name, line, this, statementByFileIndex.size(), statementByLabelIndex.size());
       AutoLocker al(&plock);
-      std::map<const char*, sline_statement_multimap_t*>::iterator it;
+      std::map<const char*, section_sline_statement_map_t*>::iterator it;
       if (statementByFileIndex.empty()) {
          return nullptr;
       }
@@ -2196,7 +2219,7 @@ public:
             printd(5, "qore_program_private::getStatementFromIndex('%s',%d) found by file full match, this: %p\n", name, line, this);
          }
       }
-      sline_statement_multimap_t *ssm = it->second;
+      sline_statement_map_t *ssm = &it->second->statementMap;
       printd(5, "qore_program_private::getStatementFromIndex('%s',%d) found '%s', this: %p, ssm#: %d\n", name, line, it->first, this, ssm->size());
       if (ssm->size() == 0)
          return nullptr;

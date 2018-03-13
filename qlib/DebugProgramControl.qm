@@ -486,6 +486,14 @@ public namespace DebugProgramControl {
                         }
                         break;
 
+                    case 'filename':
+                        result = pgmb.getSourceFileNames();
+                        break;
+
+                    case 'label':
+                        result = pgmb.getSourceLabels();
+                        break;
+
                     case 'breakpoint':
                         Breakpoint b;
                         string bkptName = shift cmd;
@@ -639,6 +647,7 @@ public namespace DebugProgramControl {
                             }
                             break;
                         }
+
                         break;
                     }
                     break;

@@ -517,6 +517,20 @@ public namespace DebugCmdLine {
                                     dcl.doCommand(data, True);
                                 },
                             ),
+                            'label': (
+                                'desc': 'list source labels',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/label';
+                                    showFileNames(dcl.doCommand(data, False).result);
+                                },
+                            ),
+                            'filename': (
+                                'desc': 'list source filenames',
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/filename';
+                                    showFileNames(dcl.doCommand(data, False).result);
+                                },
+                            ),
                             'info': (
                                 'desc': 'get info about current program and list threads',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
@@ -984,6 +998,18 @@ public namespace DebugCmdLine {
                 }
             }
             return ret;
+        }
+
+        public showFileNames(hash fn) {
+            foreach string k in (keys fn) {
+                printfImpl("%s", k);
+                if (fn{k}) {
+                    foreach string k2 in (keys fn{k}) {
+                        printfImpl("  @%5d %s", fn{k}{k2}, k2);
+                    }
+                    printfImpl("");
+                }
+            }
         }
 
         public showPrograms(hash ph, bool show_interrupted) {

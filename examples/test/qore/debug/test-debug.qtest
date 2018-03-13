@@ -675,6 +675,12 @@ class DebugTest inherits QUnit::Test {
 
         ProgramControl pp = p.getProgram();
 
+	    hash h = pp.getSourceLabels();
+        testAssertionValue(name+'getSourceLabels()', h, ('label-f1':('/usr/lib/my-source.q': 10), 'label-sleep': ('/usr/lib/my-source.q': 100)));
+
+	    h = pp.getSourceFileNames();
+        testAssertionValue(name+'getSourceFileNames()', h, ('/usr/lib/my-source.q': ('label-f1': 10, 'label-sleep': 100), 'main.q': hash()));
+
         assertThrows('PROGRAM-STATEMENT-ERROR', \pp.findStatementId(), ("main.q", 10), name+'findStatementId("main.q", 10) line beyond');
         assertThrows('PROGRAM-STATEMENT-ERROR', \pp.findStatementId(), ("non-exist.q", 1), name+'findStatementId("no-exist.q", 1) non exist');
 

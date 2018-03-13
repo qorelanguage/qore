@@ -374,3 +374,32 @@ list ProgramControl::findFunctionVariants(string function) {
       return xsink->raiseException("PROGRAM-ERROR", "cannot find any function or method \"%s\"", function->c_str());
    return vl->getOldList();
 }
+
+//! Get list of label names which has been registered to a statement when parsing source code
+/**
+   @see
+      @ref Qore::ProgramControl::getSourceFileNames "ProgramControl::getSourceFileNames"
+
+   @return hash where keys are label names and the value is hash of files where key is file name
+   and the value is label's section offset in the file.
+*/
+hash ProgramControl::getSourceLabels() {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   return p->getSourceLabels(xsink);
+}
+
+//! Get list of file names which has been registered to a statement when parsing source code
+/**
+   @see
+      @ref Qore::ProgramControl::getSourceLabels "ProgramControl::getSourceLabels"
+
+   @return hash where keys are file names and the value is hash of labels where key is label name
+   and the value is label's section offset in the file.
+
+*/
+hash ProgramControl::getSourceFileNames() {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   return p->getSourceFileNames(xsink);
+}
