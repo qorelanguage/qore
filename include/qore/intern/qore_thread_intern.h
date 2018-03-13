@@ -836,6 +836,14 @@ DLLLOCAL void delete_qore_threads();
 DLLLOCAL QoreListNode* get_thread_list();
 DLLLOCAL QoreHashNode* getAllCallStacks();
 
+#if defined(QORE_HAVE_PTHREAD_GETATTR_NP) && defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE)
+#define QORE_HAVE_GET_STACK_SIZE
+#endif
+
+#if defined(QORE_HAVE_PTHREAD_SETNAME_NP_1) || defined(QORE_HAVE_PTHREAD_SETNAME_NP_2) || defined(QORE_HAVE_PTHREAD_SETNAME_NP_3) || defined(QORE_HAVE_PTHREAD_SET_NAME_NP)
+#define QORE_HAVE_THREAD_NAME
+#endif
+
 class QorePThreadAttr {
 private:
    pthread_attr_t attr;
@@ -871,6 +879,21 @@ public:
    DLLLOCAL pthread_attr_t* get_ptr() {
       return &attr;
    }
+
+#ifdef QORE_HAVE_GET_STACK_SIZE
+    DLLLOCAL static size_t getCurrentThreadStackSize() {
+        pthread_attr_t attr;
+        if (pthread_getattr_np(pthread_self(), &attr)) {
+            return 0;
+        }
+        ON_BLOCK_EXIT(pthread_attr_destroy, &attr);
+        size_t size = 0;
+        if (pthread_attr_getstacksize(&attr, &size)) {
+            return 0;
+        }
+        return size;
+    }
+#endif
 };
 
 DLLLOCAL extern QorePThreadAttr ta_default;
@@ -976,5 +999,10 @@ public:
 
 DLLLOCAL extern pthread_mutexattr_t ma_recursive;
 DLLLOCAL extern QoreRWLock lck_debug_program;
+
+#ifdef QORE_HAVE_THREAD_NAME
+DLLLOCAL void q_set_thread_name(const char* name);
+DLLLOCAL void q_get_thread_name(QoreString& str);
+#endif
 
 #endif

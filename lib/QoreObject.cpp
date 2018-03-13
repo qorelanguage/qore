@@ -634,8 +634,6 @@ void qore_object_private::unsetRealReference() {
    derefRealIntern();
 }
 
-static void breakit() {}
-
 void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
     {
         //printd(5, "qore_object_private::customDeref() this: %p '%s' references: %d->%d (trefs: %d) status: %d has_delete_blocker: %d delete_blocker_run: %d\n", this, getClassName(), references, references - 1, tRefs.reference_count(), status, theclass->has_delete_blocker(), delete_blocker_run);

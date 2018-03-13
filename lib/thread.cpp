@@ -86,7 +86,8 @@ DLLLOCAL QoreThreadLock lck_gethostbyaddr;
 DLLLOCAL QoreRWLock lck_debug_program;
 
 #ifdef QORE_MANAGE_STACK
-#define MAX_STACK_SIZE 512*1024
+QoreThreadLock stack_lck;
+#define MAX_STACK_SIZE 128*1024
 
 // default size and limit for qore threads; to be set in init_qore_threads()
 size_t qore_thread_stack_size = 0;
@@ -2011,6 +2012,14 @@ struct ThreadArg {
    }
 };
 
+static void set_tid_thread_name(int tid) {
+#ifdef QORE_HAVE_THREAD_NAME
+    QoreStringMaker name("qore/%d", tid);
+    q_set_thread_name(name.c_str());
+#endif
+}
+
+
 // put functions in an unnamed namespace to make them 'static extern "C"'
 namespace {
    extern "C" void* q_run_thread(void* arg) {
@@ -2019,7 +2028,9 @@ namespace {
       register_thread(ta->tid, pthread_self(), 0);
       printd(5, "q_run_thread() ta: %p TID %d started\n", ta, ta->tid);
 
-      pthread_cleanup_push(qore_thread_cleanup, (void*)0);
+      set_tid_thread_name(ta->tid);
+
+      pthread_cleanup_push(qore_thread_cleanup, nullptr);
 
       {
          ExceptionSink xsink;
@@ -2061,7 +2072,9 @@ namespace {
       printd(5, "op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
       //printf("op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
 
-      pthread_cleanup_push(qore_thread_cleanup, (void*)0);
+      set_tid_thread_name(btp->tid);
+
+      pthread_cleanup_push(qore_thread_cleanup, nullptr);
 
       {
          ExceptionSink xsink;
@@ -2154,17 +2167,22 @@ QoreValue do_op_background(const AbstractQoreNode* left, ExceptionSink* xsink) {
    //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
    thread_counter.inc();
 
-   if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
-      tp->cleanup(xsink);
-      tp->del();
+#ifdef QORE_MANAGE_STACK
+    // make sure accesses to ta_default are made locked
+    AutoLocker al(stack_lck);
+#endif
 
-      thread_counter.dec();
-      deregister_thread(tid);
-      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
-      return QoreValue();
-   }
-   //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
-   return tid;
+    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
+        tp->cleanup(xsink);
+        tp->del();
+
+        thread_counter.dec();
+        deregister_thread(tid);
+        xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
+        return QoreValue();
+    }
+    //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
+    return tid;
 }
 
 int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
@@ -2184,18 +2202,87 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
    int rc;
    pthread_t ptid;
 
-   //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
-   thread_counter.inc();
-   if ((rc = pthread_create(&ptid, ta_default.get_ptr(), q_run_thread, ta))) {
-      delete ta;
-      thread_counter.dec();
-      deregister_thread(tid);
-      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
-      return -1;
-   }
+#ifdef QORE_MANAGE_STACK
+    // make sure accesses to ta_default are made locked
+    AutoLocker al(stack_lck);
+#endif
 
-   return tid;
+    //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
+    thread_counter.inc();
+    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), q_run_thread, ta))) {
+        delete ta;
+        thread_counter.dec();
+        deregister_thread(tid);
+        xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
+        return -1;
+    }
+
+    return tid;
 }
+
+#ifdef QORE_MANAGE_STACK
+size_t q_thread_get_stack_size() {
+    // make sure accesses to stack info are made locked
+    AutoLocker al(stack_lck);
+
+    return qore_thread_stack_size;
+}
+
+size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink) {
+    // make sure accesses to stack info are made locked
+    AutoLocker al(stack_lck);
+
+    int rc = ta_default.setstacksize(size);
+    if (rc) {
+        xsink->raiseErrnoException("SET-DEFAULT-THREAD-STACK-SIZE-ERROR", rc, "an error occurred setting the default thread stack size to %ld", size);
+        return 0;
+    }
+    // make sure we check what was actually set
+    qore_thread_stack_size = ta_default.getstacksize();
+
+    return qore_thread_stack_size;
+}
+#endif
+
+#ifdef QORE_HAVE_THREAD_NAME
+#define MAX_THREAD_NAME_SIZE 256
+#ifdef QORE_HAVE_PTHREAD_SETNAME_NP_1
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(name);
+}
+#elif defined(QORE_HAVE_PTHREAD_SETNAME_NP_2)
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(pthread_self(), name);
+}
+#elif defined(QORE_HAVE_PTHREAD_SETNAME_NP_3)
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(pthread_self(), name, nullptr);
+}
+#elif defined(QORE_HAVE_PTHREAD_SET_NAME_NP)
+void q_set_thread_name(const char* name) {
+    pthread_set_name_np(pthread_self(), name);
+}
+#else
+#error no pthread_setname_np()
+#endif
+#if defined(QORE_HAVE_PTHREAD_SET_NAME_NP)
+void q_get_thread_name(QoreString& str) {
+    str.clear();
+    str.reserve(MAX_THREAD_NAME_SIZE);
+    if (!pthread_get_name_np(pthread_self(), (char*)str.c_str(), MAX_THREAD_NAME_SIZE + 1)) {
+        str.terminate(strlen(str.c_str()));
+    }
+}
+#else
+void q_get_thread_name(QoreString& str) {
+    str.clear();
+    str.reserve(MAX_THREAD_NAME_SIZE);
+    if (!pthread_getname_np(pthread_self(), (char*)str.c_str(), MAX_THREAD_NAME_SIZE + 1)) {
+        str.terminate(strlen(str.c_str()));
+    }
+}
+#endif
+#endif
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include <qore/QoreRWLock.h>
@@ -2255,6 +2342,9 @@ void init_qore_threads() {
    // initialize recursive mutex attribute
    pthread_mutexattr_init(&ma_recursive);
    pthread_mutexattr_settype(&ma_recursive, PTHREAD_MUTEX_RECURSIVE);
+
+   // set default thread name for initial thread
+   set_tid_thread_name(gettid());
 
    // mark threading as active
    threads_initialized = true;
