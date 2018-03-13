@@ -51,7 +51,7 @@ module DebugCmdLine {
 
     @subsection dcl_v0_1_2 v0.1.2
     - removed Linenoise stuff to new module
-    
+
     @subsection dcl_v0_1_1 v0.1.1
     - fixed a bug parsing call signatures when setting breakpoints (<a href="https://github.com/qorelanguage/qore/issues/2601">issue 2601</a>)
     - improved breakpoint usability (<a href="https://github.com/qorelanguage/qore/issues/2604">issue 2604</a>)
@@ -170,6 +170,16 @@ public namespace DebugCmdLine {
                         unshift args, 'get';
                         break;
                     case /^[0-9]+$/:
+                        unshift args, 'set';
+                        break;
+                }
+            };
+            code fallbackGetSetString = sub(DebugCommandLine dcl, softlist path, reference args) {
+                switch (args[0] ?? '') {
+                    case '':
+                        unshift args, 'get';
+                        break;
+                    default:
                         unshift args, 'set';
                         break;
                 }
@@ -314,6 +324,31 @@ public namespace DebugCmdLine {
                                 },
                                 'fallback': fallbackGetSetInt,
                                 'desc': 'full exception info commands',
+                            ),
+                            'sourcepath': (
+                                '>': {
+                                    'set': (
+                                        'desc': 'set source file search path, args: colon-delimited-paths',
+                                        '*': (
+                                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                                doCommand((
+                                                    'cmd': 'options/sourcepath/set',
+                                                    'value': pop path,
+                                                ), True);
+                                            },
+                                        ),
+                                    ),
+                                    'get': (
+                                        'desc': 'get source file search path',
+                                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            doCommand((
+                                                'cmd': 'options/sourcepath/get',
+                                            ), True);
+                                        },
+                                    ),
+                                },
+                                'fallback': fallbackGetSetString,
+                                'desc': 'search path commands',
                             ),
                         ),
                         'desc': 'options related commands',
@@ -572,16 +607,46 @@ public namespace DebugCmdLine {
                                 },
                             ),
                             'label': (
+                                '*': (
+                                    'desc': 'get source code from label, args: [line_from [line_count]]',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/label/list';
+                                        return DebugCommandLine::enumFilter(keys dcl.doCommand(data, False).result, pop path);
+                                    },
+                                    'validate': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        if (args.size() > 1) {
+                                            push path, shift args;
+                                            DebugCommandLine::validateInt(dcl, path, args);
+                                            if (args[0] != "") {
+                                                push path, shift args;
+                                                DebugCommandLine::validateInt(dcl, path, args);
+                                            }
+                                        }
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        dcl.processGetSource('label', path, args);
+                                    },
+                                ),
                                 'desc': 'list source labels',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/label';
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/label/list';
                                     showFileNames(dcl.doCommand(data, False).result);
                                 },
                             ),
-                            'filename': (
+                            'file': (
+                                '*': (
+                                    'desc': 'get source code from file, args: [line_from [line_count]]',
+                                    'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        hash data.cmd = 'program/'+dcl.checkProgramId()+'/file/list';
+                                        return DebugCommandLine::enumFilter(keys dcl.doCommand(data, False).result, pop path);
+                                    },
+                                    'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                        dcl.processGetSource('file', path, args);
+                                    },
+                                ),
                                 'desc': 'list source filenames',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/filename';
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/file/list';
                                     showFileNames(dcl.doCommand(data, False).result);
                                 },
                             ),
@@ -1002,6 +1067,30 @@ public namespace DebugCmdLine {
                             ),
                         ),
                     ),
+                    'source': (
+                        'desc': 'get source around current program position, args: [lines-before [lines-after]]',
+                        'validate': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            if (args.size() > 0) {
+                                DebugCommandLine::validateInt(dcl, path, args);
+                                if (args[0] != "") {
+                                    push path, shift args;
+                                    DebugCommandLine::validateInt(dcl, path, args);
+                                }
+                            }
+                        },
+                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                            hash data.cmd = 'thread/source';
+                            data.tid = dcl.checkThreadId();
+                            if (args.size() > 1) {
+                                data.linesbefore = int(args[0]);
+                                data.linesafter = int(args[1]);
+                            } else if (args.size() > 0) {
+                                data.linesbefore = int(args[0]);
+                                data.linesafter = data.linesbefore;
+                            }
+                            printfImpl("%s", dcl.doCommand(data, False).result);
+                        },
+                    ),
                     'go': (
                         '*': (
                             'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
@@ -1126,6 +1215,24 @@ public namespace DebugCmdLine {
             printfImpl("TID %d call stack:\n", tid);
             foreach hash lh in (stack) {
                 printfImpl(" - %d%s: %s\n", $#, lh.current ? "*":" ", getThreadStackStr(lh));
+            }
+        }
+
+        public processGetSource(string type, list path, list args) {
+            hash data.cmd = 'program/'+checkProgramId()+'/'+type+'/source';
+            data.name = pop path;
+            if (args[0] != "") {
+                data.line = int(args[0]);
+                if (args[1] != "") {
+                    data.count = int(args[1]);
+                }
+            }
+            hash src = doCommand(data, False).result;
+            if (src.checksum) {
+                printfImpl("%s: %s", src.checksum.algorithm, src.checksum.cs);
+            }
+            if (src.code) {
+                printfImpl("%s", src.code);
             }
         }
 
@@ -1331,6 +1438,9 @@ public namespace DebugCmdLine {
                                 c.name = args[0];
                                 push result.path, shift args;
                             }
+                            if (args[0] != "" && exists c.validate && (opts & fcValidate)) {
+                                c.validate(self, result.path, args);
+                            }
                             c.aliases = aliases{c.name};
                             result.cmd = c;
                             ++last_param;
@@ -1430,7 +1540,9 @@ public namespace DebugCmdLine {
 #                    printfImpl("exec:%y\n", cmd);
                     try {
                         auto rc = cmd.cmd.action(self, cmd.path, cmd.args);
-                        if (rc) return False;
+                        if (rc) {
+                            return False;
+                        }
                     } catch (hash<ExceptionInfo> ex) {
                         showFullException ? printfImpl("%y\n", ex) : printfImpl("%s: %s\n", ex.err, ex.desc);
                     }

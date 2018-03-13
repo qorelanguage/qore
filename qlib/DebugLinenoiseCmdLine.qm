@@ -121,8 +121,12 @@ public namespace DebugLinenoiseCmdLine {
                 } else {
                     line = lastLine;
                 }
-                if (!processCmdLine(line)) {
-                    break;
+                try {
+                    if (!processCmdLine(line)) {
+                        break;
+                    }
+                } catch (hash<ExceptionInfo> ex) {
+                    printfImpl("%s: %s", ex.err, ex.desc);
                 }
             }
             if (historyFileName) {

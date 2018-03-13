@@ -6,9 +6,9 @@
 
 %requires linenoise
 %requires qore >= 0.8.13
-%requires ../qlib/DebugCmdLine.qm
-%requires ../qlib/DebugLinenoiseCmdLine.qm
-%requires ../qlib/DebugProgramControl.qm
+%requires DebugCmdLine
+%requires DebugLinenoiseCmdLine
+%requires DebugProgramControl
 %allow-debugger
 %no-debugging
 
