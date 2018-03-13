@@ -164,6 +164,16 @@ public namespace DebugCmdLine {
         }
 
         private hash<auto> getCommands() {
+            code fallbackGetSetInt = sub(DebugCommandLine dcl, softlist path, reference args) {
+                switch (args[0] ?? '') {
+                    case '':
+                        unshift args, 'get';
+                        break;
+                    case /^[0-9]+$/:
+                        unshift args, 'set';
+                        break;
+                }
+            };
             return (
                 '>': (
                     'help': (
@@ -255,6 +265,59 @@ public namespace DebugCmdLine {
                             }
                         },
                     ),
+                    'options': (
+                        '>': (
+                            'verbose': (
+                                '>': {
+                                    'set': (
+                                        'desc': 'set logger verbosity level, args: level',
+                                        '*': (
+                                            'validate': \DebugCommandLine::validateInt(),
+                                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                                logger.verbose = int(pop path);
+                                            },
+                                        ),
+                                    ),
+                                    'get': (
+                                        'desc': 'get current logger verbosity level',
+                                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            printfImpl("Logging level: %d\n", logger.verbose);
+                                        },
+                                    ),
+                                },
+                                'fallback': fallbackGetSetInt,
+                                'desc': 'logger verbosity commands',
+                            ),
+
+                            'fullexceptioninfo': (
+                                '>': {
+                                    'set': (
+                                        'desc': 'set full exception info, args: 0|1',
+                                        '*': (
+                                            'validate': \DebugCommandLine::validateInt(),
+                                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                                doCommand((
+                                                    'cmd': 'options/fullexceptioninfo/set',
+                                                    'value': int(pop path) > 0,
+                                                ), True);
+                                            },
+                                        ),
+                                    ),
+                                    'get': (
+                                        'desc': 'get full exception info',
+                                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            doCommand((
+                                                'cmd': 'options/fullexceptioninfo/get',
+                                            ), True);
+                                        },
+                                    ),
+                                },
+                                'fallback': fallbackGetSetInt,
+                                'desc': 'full exception info commands',
+                            ),
+                        ),
+                        'desc': 'options related commands',
+                    ),
                     'frame': (
                         '>': {
                             'set': (
@@ -289,16 +352,7 @@ public namespace DebugCmdLine {
                                 },
                             ),
                         },
-                        'fallback': sub(DebugCommandLine dcl, softlist path, reference args) {
-                            switch (args[0] ?? '') {
-                            case '':
-                                unshift args, 'get';
-                                break;
-                            case /^[0-9]+$/:
-                                unshift args, 'set';
-                                break;
-                            }
-                        },
+                        'fallback': fallbackGetSetInt,
                         'desc': 'Stack frame related commands',
                     ),
                     'session': (
@@ -909,16 +963,7 @@ public namespace DebugCmdLine {
                             )
                         ),
                         'desc': 'thread related commands',
-                        'fallback': sub(DebugCommandLine dcl, softlist path, reference args) {
-                            switch (args[0] ?? '') {
-                            case '':
-                                unshift args, 'get';
-                                break;
-                            case /^[0-9]+$/:
-                                unshift args, 'set';
-                                break;
-                            }
-                        },
+                        'fallback': fallbackGetSetInt,
                     ),
                     'stack': (
                         'alias': 'bt',

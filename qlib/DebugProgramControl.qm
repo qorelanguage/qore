@@ -242,6 +242,28 @@ public namespace DebugProgramControl {
                 case 'version':
                     result = ('class': self.className());
                     break;
+                case 'options':
+                    string optionName = shift cmd;
+                    bool optionSet;
+                    switch (shift cmd) {
+                    case 'get':
+                        optionSet = False;
+                        break;
+                    case 'set':
+                        optionSet = True;
+                        break;
+                    }
+                    if (exists optionSet) {
+                        switch (optionName) {
+                        case 'fullexceptioninfo':
+                            if (optionSet) {
+                                showFullException = receiveData.value;
+                            }
+                            result = showFullException;
+                            break;
+                        }
+                    }
+                    break;
                 case 'session':
                     switch (shift cmd) {
                     case 'get':
