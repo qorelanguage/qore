@@ -47,6 +47,7 @@ public:
     ASTName name;
 
 public:
+    ASTNameExpression(ASTName&& n) : ASTExpression(n.loc), name(std::move(n)) {}
     ASTNameExpression(const ASTName& n) : ASTExpression(n.loc), name(n) {}
 
     virtual ASTExpressionKind getKind() const override {
