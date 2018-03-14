@@ -37,6 +37,7 @@
 #include "ASTNode.h"
 
 enum class ASTNameKind {
+    ANK_None,
     ANK_AngleIdentifier,
     ANK_BaseClassCall,
     ANK_CastType,
@@ -62,7 +63,7 @@ enum class ASTNameKind {
 class ASTName : public ASTNode {
 public:
     std::string name;
-    ASTNameKind kind;
+    ASTNameKind kind = ASTNameKind::ANK_None;
 
 public:
     ASTName() : ASTNode() {}
