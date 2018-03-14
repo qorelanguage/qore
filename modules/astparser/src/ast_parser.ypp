@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2017 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -95,6 +95,7 @@ typedef void* yyscan_t;
     ASTFunctionDeclaration* funcdecl;
     ASTHashExpression* hash;
     ASTHashDeclaration* hashdecl;
+    ASTHashdeclHashExpression* hashdeclhash;
     ASTHashElementExpression* hashelem;
     ASTHashMemberDeclaration* hashmember;
     std::vector<ASTHashMemberDeclaration*>* hashmemberlist;
@@ -270,6 +271,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %token <decimal> QFLOAT "floating-point value"
 %token <string> NUMBER "arbitrary-precision number"
 %token <string> IDENTIFIER "identifier"
+%token <string> HASHDECL_IDENTIFIER_OPENCURLY "typed hash identifier"
 %token <string> ANGLE_IDENTIFIER "complex type identifier"
 %token <string> VAR_REF "variable reference"
 %token <string> BACKQUOTE "backquote expression"
@@ -350,6 +352,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %type <hashdecl>       hashdecl_def
 %type <hashmember>     hashdecl_member
 %type <string>         ident_openparen
+%type <hashdeclhash>   immediate_typed_hash
 %type <sclist>         inheritance_list
 %type <funcdecl>       inline_methoddef
 %type <membergroup>    internal_member_list
@@ -392,8 +395,8 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %type <constdecl>      unscoped_const_decl
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; $$ = nullptr; } DOT_KW_IDENTIFIER PARSE_OPTION_END PARSE_OPTION_FULL QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element hashdecl_def hashdecl_member inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef parse_option private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
-%destructor { free($$); $$ = nullptr; } ANGLE_IDENTIFIER BACKQUOTE BASE_CLASS_CALL BINARY CLASS_SCOPED_REF CLASS_STRING COMPLEX_CONTEXT_REF CONTEXT_REF DATETIME IDENTIFIER KW_IDENTIFIER_OPENPAREN NAMESPACE NUMBER QORE_CAST SCOPED_REF SCOPED_VREF SELF_REF VAR_REF ident_openparen
+%destructor { delete $$; $$ = nullptr; } DOT_KW_IDENTIFIER PARSE_OPTION_END PARSE_OPTION_FULL QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element hashdecl_def hashdecl_member immediate_typed_hash inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef parse_option private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
+%destructor { free($$); $$ = nullptr; } ANGLE_IDENTIFIER BACKQUOTE BASE_CLASS_CALL BINARY CLASS_SCOPED_REF CLASS_STRING COMPLEX_CONTEXT_REF CONTEXT_REF DATETIME HASHDECL_IDENTIFIER_OPENCURLY IDENTIFIER KW_IDENTIFIER_OPENPAREN NAMESPACE NUMBER QORE_CAST SCOPED_REF SCOPED_VREF SELF_REF VAR_REF ident_openparen
 %destructor { if ($$) { for (int i = 0, count = $$->size(); i < count; i++) {delete (*$$)[i];} delete $$; } $$ = nullptr; } base_constructors class_attributes context_mods hashdecl_attributes inheritance_list member_list member_list2 namespace_decls superclass_list
 
 %%
@@ -1904,6 +1907,26 @@ alt_hash:
         '{' hash '}' {
             $$ = $2;
         }
+        ;
+
+immediate_typed_hash:
+        HASHDECL_IDENTIFIER_OPENCURLY hash '}' {
+            ASTName hashdecl($1, ASTNameKind::ANK_HashdeclHash);
+            hashdecl.loc = @1;
+            free($1);
+
+            $$ = new ASTHashdeclHashExpression(std::move(hashdecl), $2);
+            $$->loc.set(@1, @3);
+        }
+        | HASHDECL_IDENTIFIER_OPENCURLY '}' {
+            ASTName hashdecl($1, ASTNameKind::ANK_HashdeclHash);
+            hashdecl.loc = @1;
+            free($1);
+
+            $$ = new ASTHashdeclHashExpression(std::move(hashdecl));
+            $$->loc.set(@1, @2);
+        }
+        ;
 
 exp_c:
         scalar
@@ -2244,6 +2267,7 @@ exp:
         exp_c
         | list                              { $$ = $1; }
         | alt_hash                          { $$ = $1; }
+        | immediate_typed_hash              { $$ = $1; }
         | '{' '}'                           { $$ = new ASTHashExpression; $$->loc.set(@1, @2); }
         | exp PLUS_EQUALS exp               { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_PlusEquals, $3); }
         | exp MINUS_EQUALS exp              { $$ = new ASTBinaryExpression($1, ASTOperatorKind::AOK_MinusEquals, $3); }

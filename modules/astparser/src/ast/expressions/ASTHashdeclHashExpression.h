@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTHashExpression.h
+  ASTHashdeclHashExpression.h
 
   Qore AST Parser
 
-  Copyright (C) 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,38 +29,40 @@
   information.
 */
 
-#ifndef _QLS_AST_EXPRESSIONS_ASTHASHEXPRESSION_H
-#define _QLS_AST_EXPRESSIONS_ASTHASHEXPRESSION_H
-
-#include <vector>
+#ifndef _QLS_AST_EXPRESSIONS_ASTHASHDECLHASHEXPRESSION_H
+#define _QLS_AST_EXPRESSIONS_ASTHASHDECLHASHEXPRESSION_H
 
 #include "ast/ASTExpression.h"
-#include "ast/expressions/ASTHashElementExpression.h"
+#include "ast/expressions/ASTHashExpression.h"
 
-class ASTHashExpression : public ASTExpression {
+class ASTHashdeclHashExpression : public ASTExpression {
 public:
-    //! Pointer type.
-    using Ptr = std::unique_ptr<ASTHashExpression>;
+    //! Hashdecl name.
+    ASTName hashdecl;
+
+    //! Hash expression.
+    ASTHashExpression::Ptr hash;
 
 public:
-    //! Hash elements.
-    std::vector<ASTHashElementExpression*> elements;
-
-public:
-    ASTHashExpression(std::vector<ASTHashElementExpression*>* elems = nullptr) : ASTExpression() {
-        if (elems)
-            elements.swap(*elems);
+    ASTHashdeclHashExpression(const ASTName& name, ASTHashExpression* h = nullptr) :
+        ASTExpression(),
+        hashdecl(name),
+        hash(h)
+    {
     }
 
-    virtual ~ASTHashExpression() {
-        for (size_t i = 0, count = elements.size(); i < count; i++)
-            delete elements[i];
-        elements.clear();
+    ASTHashdeclHashExpression(ASTName&& name, ASTHashExpression* h = nullptr) :
+        ASTExpression(),
+        hashdecl(name),
+        hash(h)
+    {
     }
+
+    virtual ~ASTHashdeclHashExpression() {}
 
     virtual ASTExpressionKind getKind() const override {
-        return ASTExpressionKind::AEK_Hash;
+        return ASTExpressionKind::AEK_HashdeclHash;
     }
 };
 
-#endif // _QLS_AST_EXPRESSIONS_ASTHASHEXPRESSION_H
+#endif // _QLS_AST_EXPRESSIONS_ASTHASHDECLHASHEXPRESSION_H

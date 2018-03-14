@@ -75,6 +75,7 @@
 #include "ast/expressions/ASTContextRowExpression.h"
 #include "ast/expressions/ASTDeclExpression.h"
 #include "ast/expressions/ASTFindExpression.h"
+#include "ast/expressions/ASTHashdeclHashExpression.h"
 #include "ast/expressions/ASTHashElementExpression.h"
 #include "ast/expressions/ASTHashExpression.h"
 #include "ast/expressions/ASTImplicitArgExpression.h"

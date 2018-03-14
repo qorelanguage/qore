@@ -55,6 +55,7 @@ enum class ASTNameKind {
     ANK_SelfRef,
     ANK_UncQTypedef,
     ANK_VarRef,
+    ANK_HashdeclHash,
 };
 
 //! Represents a name.
@@ -65,8 +66,11 @@ public:
 
 public:
     ASTName() : ASTNode() {}
-    ASTName(ASTNameKind k) : ASTNode(), kind(k) {}
+    ASTName(ASTName&& n) : ASTNode(n.loc), name(std::move(n.name)), kind(n.kind) {}
+    ASTName(const ASTName& n) : ASTNode(n.loc), name(n.name), kind(n.kind) {}
     ASTName(const ASTName& n, ASTNameKind k) : ASTNode(n.loc), name(n.name), kind(k) {}
+    ASTName(ASTNameKind k) : ASTNode(), kind(k) {}
+    
     ASTName(const std::string& str, ASTNameKind k) : ASTNode(), name(str), kind(k) {}
     ASTName(const std::string* str, ASTNameKind k) : ASTNode(), kind(k) {
         if (str)
