@@ -235,7 +235,7 @@ public namespace Logger {
             const ALL = MININT;
         }
 
-        private {
+        private:internal {
             #! Integer level value.
             int m_level;
 
@@ -393,7 +393,7 @@ public namespace Logger {
         logging decision to target is made. Callable parameters are evaluated at this moment as well.
     */
     public class LoggerEvent {
-        private {
+        private:internal {
             #! origin stamp to calculate relative time
             static date m_startTime = now_us();
 
@@ -670,7 +670,7 @@ public namespace Logger {
                 then waits up to timeout value, If a value that converts to integer 0 is passed as the argument,
                 then the call blocks until data is available on the queue.
         */
-        /*private:internal*/ *hash getEvent(timeout ms) {
+        private *hash getEvent(timeout ms) {
             if (m_queue.size() > 0 || ms >= 0) {
                 try {
                     return m_queue.get(ms);
@@ -696,7 +696,7 @@ public namespace Logger {
         implementation without multi-thread support.
     */
     public class LoggerAppenderQueueThreadPool inherits LoggerAppenderQueue {
-        private {
+        private:internal {
             #! worker thread pool
             ThreadPool m_tp;
             #! number of running worker threads
@@ -720,7 +720,7 @@ public namespace Logger {
             @param appender @ref LoggerAppender instance
             @param events list of events
         */
-        private worker(string id, LoggerAppender appender, list events) {
+        private:internal worker(string id, LoggerAppender appender, list events) {
             try {
                 foreach hash e in (events) {
                     appender.processEventImpl(e.type, e.params);
@@ -851,7 +851,7 @@ public namespace Logger {
             #! close event
             const EVENT_CLOSE = 3;
         }
-        private {
+        private:internal {
             #! The lock to protect object manipulation
             RWLock m_lock();
 
@@ -987,14 +987,14 @@ public namespace Logger {
             Appender implementaion can define any serialize format. The data are passed
             to @ref processEventImpl() method as \c params argument when \c type is \c EVENT_LOG.
         */
-        abstract private:internal auto serializeImpl(LoggerEvent event);
+        abstract private auto serializeImpl(LoggerEvent event);
 
         #! push event in queue or call @ref processEventImpl() in case of sync
         /**
             @param type
             @param params
         */
-        /*private:internal*/ bool pushEvent(int type, auto params) {
+        private bool pushEvent(int type, auto params) {
             if (exists m_queue) {
                 return m_queue.push(self, type, params);
             } else {
@@ -1057,7 +1057,7 @@ public namespace Logger {
         constructor(string name = ""): LoggerAppender(name) {
         }
 
-        /*private:internal*/ auto serializeImpl(LoggerEvent event) {
+        private auto serializeImpl(LoggerEvent event) {
             return NOTHING;
         }
 
@@ -1095,7 +1095,7 @@ public namespace Logger {
             #! format escape character
             const ESCAPE_CHAR = "%";
         }
-        private {
+        private:internal {
             #! pattern
             string m_pattern;
             #! parsed pattern
@@ -1227,7 +1227,7 @@ public namespace Logger {
             @param key
             @param option
         */
-        abstract /*private:internal*/ string resolveField(auto data, string key, *string option);
+        abstract private string resolveField(auto data, string key, *string option);
 
     }
 
@@ -1309,7 +1309,7 @@ public namespace Logger {
             @param key
             @param option
         */
-        /*private:internal*/ string resolveField(auto event, string key, *string option) {
+        private string resolveField(auto event, string key, *string option) {
             if (!(event instanceof LoggerEvent)) {
                 throw "LOGGER-ERROR", "Unsupported event type";
             }
@@ -1385,7 +1385,7 @@ public namespace Logger {
         It is used typically for appender implementing logging to a file
     */
     public class LoggerAppenderWithLayout inherits LoggerAppender {
-        private {
+        private:internal {
             #! assigned layout
             LoggerLayout m_layout;
         }
@@ -1416,7 +1416,7 @@ public namespace Logger {
         /**
             @param event
         */
-        /*private:internal*/ auto serializeImpl(LoggerEvent event) {
+        private auto serializeImpl(LoggerEvent event) {
             return m_layout.format(event);
         }
 
@@ -1428,7 +1428,7 @@ public namespace Logger {
         in a dedicated thread
     */
     public class LoggerAppenderStream inherits LoggerAppenderWithLayout {
-        private {
+        private:internal {
             #! stream writer
             StreamWriter m_writer;
             #! closed flag
@@ -1490,7 +1490,7 @@ public namespace Logger {
         No multi-threading protection is implemented in class. @ref Qore::File "File" class is reused
     */
     public class LoggerAppenderFile inherits LoggerAppenderWithLayout {
-        /*private:internal*/private:hierarchy {
+        private {
             File m_file;
             string m_filename;
         }
@@ -1563,7 +1563,7 @@ public namespace Logger {
             #! default date format
             const DEFAULT_DATE_FORMAT = "YYYYMMDDHHmmSS";
         }
-        private {
+        private:internal {
             hash m_patternData;
         }
         #! create object
@@ -1603,7 +1603,7 @@ public namespace Logger {
             @param key
             @param option
         */
-        /*private:internal*/ string resolveField(auto data, string key, *string option) {
+        private string resolveField(auto data, string key, *string option) {
             string res;
             switch (key) {
                 case "i":
@@ -1749,7 +1749,7 @@ public namespace Logger {
             @param key
             @param option
         */
-        /*private:internal*/ string resolveField(auto data, string key, *string option) {
+        private string resolveField(auto data, string key, *string option) {
             string res = "";
             switch (key) {
                 case "c":
@@ -1852,16 +1852,6 @@ public namespace Logger {
         }
     }
 
-    #! Dummy class
-    /**
-        TODO: Doxygen silently skips next LoggerFilter class without this dummy class with a non empty private {} section
-    */
-    /*private*/ class LoggerDummyBecauseOfDoxygenIssue {
-        private {
-            any m_dummy;
-        }
-    }
-
     #! Implements general event filtering class
     /**
         Users should extend this class to implement customized logging
@@ -1900,7 +1890,7 @@ public namespace Logger {
         The min and max levels define the range to be logged (if min <= max.level) or range which won't be logged (if max < min.level)
     */
     public class LoggerFilterLevel inherits LoggerFilter {
-        private {
+        private:internal {
             #! min.level
             LoggerLevel m_minLevel;
             #! max.level
@@ -2015,7 +2005,7 @@ public namespace Logger {
         expected result then the logging is rejected
     */
     public class LoggerFilterRegex inherits LoggerFilter {
-        private {
+        private:internal {
             #! regular string
             string m_regexStr;
             #! expected result
@@ -2068,7 +2058,7 @@ public namespace Logger {
         to parent in parent/child hierarchy when aditivity is switched on.
     */
     public class Logger {
-        private {
+        private:internal {
             #! The lock to protect object manipulation
             RWLock m_lock();
 
@@ -2497,7 +2487,7 @@ public namespace Logger {
             if (!exists level) {
                 throw "LOGGER-ERROR", "Cannot set null level for root";
             }
-            m_level = level;
+            Logger::setLevel(level);
         }
 
         #! Override parent setter. Root logger cannot have a parent.
