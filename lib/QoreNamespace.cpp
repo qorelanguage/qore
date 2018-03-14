@@ -2511,7 +2511,7 @@ AbstractQoreNode* qore_ns_private::getConstantValue(const char* cname, const Qor
    if (rv)
       return rv;
 
-   return pendConstant.parseFind(cname, typeInfo);
+   return pendConstant.find(cname, typeInfo);
 }
 
 QoreNamespace* qore_ns_private::resolveNameScope(const QoreProgramLocation& loc, const NamedScope& nscope) const {
@@ -2853,7 +2853,7 @@ AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const QoreProgramLo
 
 AbstractQoreNode* qore_ns_private::parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& typeInfo) {
    AbstractQoreNode* rv = constant.find(cname, typeInfo);
-   return rv ? rv : pendConstant.parseFind(cname, typeInfo);
+   return rv ? rv : pendConstant.find(cname, typeInfo);
 }
 
 QoreNamespace* qore_ns_private::parseFindLocalNamespace(const char* nname) {

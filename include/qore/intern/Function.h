@@ -326,111 +326,118 @@ public:
 
 class UserVariantBase;
 
+static void breakit() {}
+
 // describes the details of the function variant
 class AbstractQoreFunctionVariant : protected QoreReferenceCounter {
 private:
-   // not implemented
-   DLLLOCAL AbstractQoreFunctionVariant(const AbstractQoreFunctionVariant& old);
-   DLLLOCAL AbstractQoreFunctionVariant& operator=(AbstractQoreFunctionVariant& orig);
+    // not implemented
+    DLLLOCAL AbstractQoreFunctionVariant(const AbstractQoreFunctionVariant& old);
+    DLLLOCAL AbstractQoreFunctionVariant& operator=(AbstractQoreFunctionVariant& orig);
 
 protected:
-   // code flags
-   int64 flags;
-   bool is_user;
+    // code flags
+    int64 flags;
+    bool is_user;
 
-   DLLLOCAL virtual ~AbstractQoreFunctionVariant() {}
+    static unsigned cntr;
+
+    DLLLOCAL virtual ~AbstractQoreFunctionVariant() {}
 
 public:
-   DLLLOCAL AbstractQoreFunctionVariant(int64 n_flags, bool n_is_user = false) : flags(n_flags), is_user(n_is_user) {}
-
-   DLLLOCAL virtual AbstractFunctionSignature* getSignature() const = 0;
-   DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const = 0;
-
-   DLLLOCAL const QoreTypeInfo* getReturnTypeInfo() const {
-      return getSignature()->getReturnTypeInfo();
-   }
-
-   DLLLOCAL unsigned numParams() const {
-      AbstractFunctionSignature* sig = getSignature();
-      return sig ? sig->numParams() : 0;
-   }
-
-   DLLLOCAL qore_call_t getCallType() const {
-      return is_user ? CT_USER : CT_BUILTIN;
-   }
-
-   DLLLOCAL int64 getParseOptions(int64 po) const;
-
-   DLLLOCAL int64 getFlags() const {
-      return flags;
-   }
-
-   DLLLOCAL virtual int64 getFunctionality() const = 0;
-
-   // set flag to recheck params against committed variants in stage 2 parsing after type resolution (only for user variants); should never be called with builtin variants
-   DLLLOCAL virtual void setRecheck() {
-      assert(false);
-   }
-
-   DLLLOCAL void parseResolveUserSignature();
-
-   DLLLOCAL virtual UserVariantBase* getUserVariantBase() {
-      return 0;
+    DLLLOCAL AbstractQoreFunctionVariant(int64 n_flags, bool n_is_user = false) : flags(n_flags), is_user(n_is_user) {
+        printd(0, "AbstractQoreFunctionVariant::AbstractQoreFunctionVariant() this: %p cntr: %d\n", this, ++cntr);
+        if (cntr == 3261) breakit();
     }
 
-   DLLLOCAL const UserVariantBase* getUserVariantBase() const {
-      // avoid the virtual function call if possible
-      return is_user ? const_cast<AbstractQoreFunctionVariant*>(this)->getUserVariantBase() : nullptr;
-   }
+    DLLLOCAL virtual AbstractFunctionSignature* getSignature() const = 0;
+    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const = 0;
 
-   DLLLOCAL virtual QoreValue evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-      assert(false);
-      return QoreValue();
-   }
+    DLLLOCAL const QoreTypeInfo* getReturnTypeInfo() const {
+        return getSignature()->getReturnTypeInfo();
+    }
 
-   DLLLOCAL virtual const QoreClass* getClass() const {
-      return 0;
-   }
+    DLLLOCAL unsigned numParams() const {
+        AbstractFunctionSignature* sig = getSignature();
+        return sig ? sig->numParams() : 0;
+    }
 
-   DLLLOCAL const char* className() const {
-      const QoreClass* qc = getClass();
-      return qc ? qc->getName() : 0;
-   }
+    DLLLOCAL qore_call_t getCallType() const {
+        return is_user ? CT_USER : CT_BUILTIN;
+    }
 
-   DLLLOCAL bool isSignatureIdentical(const AbstractFunctionSignature& sig) const {
-      //printd(5, "AbstractQoreFunctionVariant::isSignatureIdentical() this: %p '%s' == '%s': %d\n", this, getSignature()->getSignatureText(), sig.getSignatureText(), *(getSignature()) == sig);
-      return *(getSignature()) == sig;
-   }
+    DLLLOCAL int64 getParseOptions(int64 po) const;
 
-   DLLLOCAL AbstractQoreFunctionVariant* ref() {
-      ROreference();
-      return this;
-   }
+    DLLLOCAL int64 getFlags() const {
+        return flags;
+    }
 
-   DLLLOCAL void deref() {
-      if (ROdereference()) {
-         delete this;
-      }
-   }
+    DLLLOCAL virtual int64 getFunctionality() const = 0;
 
-   DLLLOCAL bool isUser() const {
-      return is_user;
-   }
+    // set flag to recheck params against committed variants in stage 2 parsing after type resolution (only for user variants); should never be called with builtin variants
+    DLLLOCAL virtual void setRecheck() {
+        assert(false);
+    }
 
-   DLLLOCAL bool hasBody() const;
+    DLLLOCAL void parseResolveUserSignature();
 
-   DLLLOCAL virtual bool isModulePublic() const {
-      return false;
-   }
+    DLLLOCAL virtual UserVariantBase* getUserVariantBase() {
+        return 0;
+        }
 
-   // the default implementation of this function does nothing
-   DLLLOCAL virtual void parseInit(QoreFunction* f) {
-   }
+    DLLLOCAL const UserVariantBase* getUserVariantBase() const {
+        // avoid the virtual function call if possible
+        return is_user ? const_cast<AbstractQoreFunctionVariant*>(this)->getUserVariantBase() : nullptr;
+    }
 
-   // the default implementation of this function does nothing
-   DLLLOCAL virtual void parseCommit() {
-   }
- };
+    DLLLOCAL virtual QoreValue evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
+        assert(false);
+        return QoreValue();
+    }
+
+    DLLLOCAL virtual const QoreClass* getClass() const {
+        return nullptr;
+    }
+
+    DLLLOCAL const char* className() const {
+        const QoreClass* qc = getClass();
+        return qc ? qc->getName() : nullptr;
+    }
+
+    DLLLOCAL bool isSignatureIdentical(const AbstractFunctionSignature& sig) const {
+        //printd(5, "AbstractQoreFunctionVariant::isSignatureIdentical() this: %p '%s' == '%s': %d\n", this, getSignature()->getSignatureText(), sig.getSignatureText(), *(getSignature()) == sig);
+        return *(getSignature()) == sig;
+    }
+
+    DLLLOCAL AbstractQoreFunctionVariant* ref() {
+        ROreference();
+        return this;
+    }
+
+    DLLLOCAL void deref() {
+        if (ROdereference()) {
+            delete this;
+        }
+    }
+
+    DLLLOCAL bool isUser() const {
+        return is_user;
+    }
+
+    DLLLOCAL bool hasBody() const;
+
+    DLLLOCAL virtual bool isModulePublic() const {
+        return false;
+    }
+
+    // the default implementation of this function does nothing
+    DLLLOCAL virtual void parseInit(QoreFunction* f) {
+    }
+
+    // the default implementation of this function does nothing
+    DLLLOCAL virtual void parseCommit() {
+    }
+};
 
 class VRMutex;
 class UserVariantExecHelper;
@@ -592,59 +599,59 @@ struct IList : public ilist_t {
 
 class QoreFunction : protected QoreReferenceCounter {
 protected:
-   std::string name;
-   qore_ns_private* ns;
+    std::string name;
+    qore_ns_private* ns;
 
-   // list of function variants
-   VList vlist;
+    // list of function variants
+    VList vlist;
 
-   // list of inherited methods for variant matching; the first pointer is always a pointer to "this"
-   IList ilist;
+    // list of inherited methods for variant matching; the first pointer is always a pointer to "this"
+    IList ilist;
 
-   // if true means all variants have the same return value
-   bool same_return_type, parse_same_return_type;
-   int64 unique_functionality;
-   int64 unique_flags;
+    // if true means all variants have the same return value
+    bool same_return_type;
+    int64 unique_functionality;
+    int64 unique_flags;
 
-   // same as above but for variants without QC_RUNTIME_NOOP
-   bool nn_same_return_type;
-   int64 nn_unique_functionality;
-   int64 nn_unique_flags;
-   int nn_count;
-   bool parse_rt_done;
-   bool parse_init_done;
-   bool has_user;                   // has at least 1 committed user variant
-   bool has_builtin;                // has at least 1 committed builtin variant
-   bool has_mod_pub;                // has at least 1 committed user variant with public visibility
-   bool inject;
-   bool check_parse = false;
+    // same as above but for variants without QC_RUNTIME_NOOP
+    bool nn_same_return_type;
+    int64 nn_unique_functionality;
+    int64 nn_unique_flags;
+    int nn_count;
+    bool parse_rt_done;
+    bool parse_init_done;
+    bool has_user;                   // has at least 1 committed user variant
+    bool has_builtin;                // has at least 1 committed builtin variant
+    bool has_mod_pub;                // has at least 1 committed user variant with public visibility
+    bool inject;
+    bool check_parse = false;
 
-   const QoreTypeInfo* nn_uniqueReturnType;
+    const QoreTypeInfo* nn_uniqueReturnType;
 
-   DLLLOCAL void parseCheckReturnType() {
-      if (parse_rt_done)
-         return;
+    DLLLOCAL void parseCheckReturnType() {
+        if (parse_rt_done)
+            return;
 
-      parse_rt_done = true;
+        parse_rt_done = true;
 
-      if (!same_return_type || !check_parse)
-         return;
+        if (!same_return_type)
+            return;
 
-      for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-         reinterpret_cast<UserSignature*>((*i)->getUserVariantBase()->getUserSignature())->resolve();
-         const QoreTypeInfo* rti = (*i)->getReturnTypeInfo();
+        for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+            reinterpret_cast<UserSignature*>((*i)->getUserVariantBase()->getUserSignature())->resolve();
+            const QoreTypeInfo* rti = (*i)->getReturnTypeInfo();
 
-         if (i == vlist.begin()) {
-            if (!vlist.empty()) {
-               if (!QoreTypeInfo::isOutputIdentical(rti, first()->getReturnTypeInfo())) {
-                  parse_same_return_type = false;
-                  break;
-               }
+            if (i == vlist.begin()) {
+                continue;
             }
-            continue;
-         }
-      }
-   }
+
+            if (!QoreTypeInfo::isOutputIdentical(rti, first()->getReturnTypeInfo())) {
+                same_return_type = false;
+                break;
+            }
+        }
+       //printd(5, "QoreFunction::parseCheckReturnType() '%s' srt: %d\n", name.c_str(), same_return_type);
+    }
 
    // returns QTI_NOT_EQUAL, QTI_AMBIGUOUS, or QTI_IDENT
    DLLLOCAL static int parseCompareResolvedSignature(const VList& vlist, const AbstractFunctionSignature* sig, const AbstractFunctionSignature*& vs);
@@ -697,7 +704,7 @@ protected:
 
 public:
    DLLLOCAL QoreFunction(const char* n_name, qore_ns_private* n = 0)
-      : name(n_name), ns(n), same_return_type(true), parse_same_return_type(true),
+      : name(n_name), ns(n), same_return_type(true),
         unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
         nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT),
         nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true),
@@ -710,7 +717,6 @@ public:
    // copy constructor (used by method functions when copied)
    DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = 0, qore_ns_private* n = 0, bool copy_all = false, bool n_inject = false)
       : name(old.name), ns(n), same_return_type(old.same_return_type),
-        parse_same_return_type(true),
         unique_functionality(old.unique_functionality),
         unique_flags(old.unique_flags),
         nn_same_return_type(old.nn_same_return_type),
@@ -761,7 +767,6 @@ public:
    // copy constructor when importing public user variants from user modules into Program objects
    DLLLOCAL QoreFunction(bool ignore, const QoreFunction& old, qore_ns_private* nns)
       : name(old.name), ns(nns), same_return_type(old.same_return_type),
-        parse_same_return_type(true),
         unique_functionality(old.unique_functionality),
         unique_flags(old.unique_flags),
         nn_same_return_type(old.nn_same_return_type),
@@ -895,17 +900,17 @@ public:
     DLLLOCAL const QoreTypeInfo* parseGetUniqueReturnTypeInfo() {
         parseCheckReturnType();
 
-        //printd(5, "QoreFunction::parseGetUniqueReturnTypeInfo() this: %p '%s' rt: %d srt: %d psrt: %d vs: %d\n", this, name.c_str(), parse_get_parse_options() & PO_REQUIRE_TYPES, same_return_type, parse_same_return_type, vlist.size());
+        //printd(5, "QoreFunction::parseGetUniqueReturnTypeInfo() this: %p '%s' rt: %d srt: %d vs: %d\n", this, name.c_str(), parse_get_parse_options() & PO_REQUIRE_TYPES, same_return_type, vlist.size());
+
+        if (!same_return_type)
+            return nullptr;
 
         if (parse_get_parse_options() & PO_REQUIRE_TYPES) {
-            if (!nn_same_return_type || !parse_same_return_type)
+            if (!nn_same_return_type)
                 return nullptr;
 
             return nn_count ? nn_uniqueReturnType : (!vlist.empty() ? first()->getReturnTypeInfo() : nullptr);
         }
-
-        if (!same_return_type || !parse_same_return_type)
-            return nullptr;
 
         if (!vlist.empty())
             return first()->getReturnTypeInfo();

@@ -41,6 +41,9 @@
 #include <assert.h>
 #include <cmath>
 
+// DBG
+unsigned AbstractQoreFunctionVariant::cntr = 0;
+
 // FIXME: xxx set parse location
 static void duplicateSignatureException(const char* cname, const char* name, const UserSignature* sig) {
    parseException(sig->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());
@@ -1777,10 +1780,10 @@ void QoreFunction::resolvePendingSignatures() {
         UserSignature* sig = uvb->getUserSignature();
         sig->resolve();
 
-        if (same_return_type && parse_same_return_type) {
+        if (same_return_type) {
             const QoreTypeInfo* st = sig->getReturnTypeInfo();
             if (i != vlist.begin() && !QoreTypeInfo::isInputIdentical(st, ti))
-                parse_same_return_type = false;
+                same_return_type = false;
             ti = st;
         }
     }
@@ -1789,8 +1792,7 @@ void QoreFunction::resolvePendingSignatures() {
 int QoreFunction::addPendingVariant(AbstractQoreFunctionVariant* variant) {
     if (!vlist.empty() && parse_init_done) {
         UserSignature* sig = reinterpret_cast<UserSignature*>(variant->getSignature());
-        const QoreClass* cls = getClass();
-        const char* cname = cls ? cls->getName() : nullptr;
+        const char* cname = className();
         const char* name = getName();
         parse_error(sig->getParseLocation(), "variant %s%s%s(%s) cannot be added to an existing function", cname ? cname : "", cname ? "::" : ""
 , name, sig->getSignatureText());
@@ -1836,9 +1838,6 @@ void QoreFunction::parseCommit() {
         (*i)->parseCommit();
     }
 
-    if (!parse_same_return_type && same_return_type)
-        same_return_type = false;
-
     parse_rt_done = true;
     parse_init_done = true;
 }
@@ -1846,8 +1845,8 @@ void QoreFunction::parseCommit() {
 void QoreFunction::parseRollback() {
     // noop: object will be destroyed
     /*
-    if (!parse_same_return_type && same_return_type)
-        parse_same_return_type = true;
+    if (!same_return_type)
+        same_return_type = true;
 
     parse_rt_done = true;
     parse_init_done = true;
@@ -1862,9 +1861,6 @@ void QoreFunction::parseInit() {
     if (parse_init_done)
         return;
     parse_init_done = true;
-
-    if (parse_same_return_type)
-        parse_same_return_type = same_return_type;
 
     OptionalNamespaceParseContextHelper pch(ns);
 

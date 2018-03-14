@@ -362,7 +362,7 @@ ConstantEntry *ConstantList::findEntry(const char* name) {
    return i == cnemap.end() ? 0 : i->second;
 }
 
-AbstractQoreNode* ConstantList::parseFind(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access) {
+AbstractQoreNode* ConstantList::find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access) {
    cnemap_t::iterator i = cnemap.find(name);
    if (i != cnemap.end()) {
       if (!i->second->parseInit(ptr)) {
@@ -372,18 +372,6 @@ AbstractQoreNode* ConstantList::parseFind(const char* name, const QoreTypeInfo*&
       }
       constantTypeInfo = nothingTypeInfo;
       return &Nothing;
-   }
-
-   constantTypeInfo = nullptr;
-   return 0;
-}
-
-AbstractQoreNode* ConstantList::find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access) {
-   cnemap_t::iterator i = cnemap.find(name);
-   if (i != cnemap.end()) {
-      constantTypeInfo = i->second->typeInfo;
-      access = i->second->getAccess();
-      return i->second->node;
    }
 
    constantTypeInfo = nullptr;

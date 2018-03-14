@@ -79,49 +79,48 @@ protected:
     // such as when the node was created during background operation execution
     bool tmp_args = false;
 
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
+    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
 
-   DLLLOCAL void doFlags(int64 flags) {
-      if (flags & QC_RET_VALUE_ONLY)
-         set_effect(false);
-   }
+    DLLLOCAL void doFlags(int64 flags) {
+        if (flags & QC_RET_VALUE_ONLY)
+            set_effect(false);
+    }
 
 public:
-   DLLLOCAL AbstractFunctionCallNode(const QoreProgramLocation& loc, qore_type_t t, QoreParseListNode* n_args, bool needs_eval = true) : ParseNode(loc, t, needs_eval), FunctionCallBase(n_args) {
-      has_value_api = true;
-   }
+    DLLLOCAL AbstractFunctionCallNode(const QoreProgramLocation& loc, qore_type_t t, QoreParseListNode* n_args, bool needs_eval = true) : ParseNode(loc, t, needs_eval), FunctionCallBase(n_args) {
+        has_value_api = true;
+    }
 
-   DLLLOCAL AbstractFunctionCallNode(const QoreProgramLocation& loc, qore_type_t t, QoreParseListNode* parse_args, QoreListNode* args, bool needs_eval = true) : ParseNode(loc, t, needs_eval), FunctionCallBase(parse_args, args) {
-      has_value_api = true;
-   }
+    DLLLOCAL AbstractFunctionCallNode(const QoreProgramLocation& loc, qore_type_t t, QoreParseListNode* parse_args, QoreListNode* args, bool needs_eval = true) : ParseNode(loc, t, needs_eval), FunctionCallBase(parse_args, args) {
+        has_value_api = true;
+    }
 
-   DLLLOCAL AbstractFunctionCallNode(const AbstractFunctionCallNode& old) : ParseNode(old), FunctionCallBase(old) {
-      has_value_api = true;
-   }
+    DLLLOCAL AbstractFunctionCallNode(const AbstractFunctionCallNode& old) : ParseNode(old), FunctionCallBase(old) {
+        has_value_api = true;
+    }
 
+    DLLLOCAL AbstractFunctionCallNode(const AbstractFunctionCallNode& old, QoreListNode* n_args) : ParseNode(old), FunctionCallBase(old, n_args), tmp_args(true) {
+        has_value_api = true;
+    }
 
-   DLLLOCAL AbstractFunctionCallNode(const AbstractFunctionCallNode& old, QoreListNode* n_args) : ParseNode(old), FunctionCallBase(old, n_args), tmp_args(true) {
-      has_value_api = true;
-   }
+    DLLLOCAL virtual ~AbstractFunctionCallNode() {
+        // there could be an object here in the case of a background expression
+        if (args) {
+            ExceptionSink xsink;
+            args->deref(&xsink);
+            args = nullptr;
+        }
+    }
 
-   DLLLOCAL virtual ~AbstractFunctionCallNode() {
-      // there could be an object here in the case of a background expression
-      if (args) {
-         ExceptionSink xsink;
-         args->deref(&xsink);
-         args = 0;
-      }
-   }
-
-   DLLLOCAL int parseArgs(LocalVar* oflag, int pflag, QoreFunction* func, const QoreTypeInfo*& returnTypeInfo) {
-      int lvids = parseArgsVariant(loc, oflag, pflag, func, returnTypeInfo);
-      // clear "effect" flag if possible, only if QC_CONSTANT is set on the variant or function
-      if (variant)
-         doFlags(variant->getFlags());
-      else if (func)
-         doFlags(func->parseGetUniqueFlags());
-      return lvids;
-   }
+    DLLLOCAL int parseArgs(LocalVar* oflag, int pflag, QoreFunction* func, const QoreTypeInfo*& returnTypeInfo) {
+        int lvids = parseArgsVariant(loc, oflag, pflag, func, returnTypeInfo);
+        // clear "effect" flag if possible, only if QC_CONSTANT is set on the variant or function
+        if (variant)
+            doFlags(variant->getFlags());
+        else if (func)
+            doFlags(func->parseGetUniqueFlags());
+        return lvids;
+    }
 
    DLLLOCAL virtual const char* getName() const = 0;
 };

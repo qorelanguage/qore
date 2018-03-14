@@ -191,16 +191,16 @@ class BCEAList;
 
 class MethodVariantBase : public AbstractQoreFunctionVariant {
 protected:
-   const QoreMethod* qmethod;    // pointer to method that owns the variant
-   ClassAccess access;           // variant access code
-   bool final;                   // is the variant final or not
-   bool abstract;                // is the variant abstract or not
-   std::string asig;             // abstract signature, only set for abstract method variants
+   const QoreMethod* qmethod = nullptr;    // pointer to method that owns the variant
+   ClassAccess access;                     // variant access code
+   bool final;                             // is the variant final or not
+   bool abstract;                          // is the variant abstract or not
+   std::string asig;                       // abstract signature, only set for abstract method variants
 
 public:
    // add QC_USES_EXTRA_ARGS to abstract methods by default as derived methods could use extra arguments
    DLLLOCAL MethodVariantBase(ClassAccess n_access, bool n_final, int64 n_flags, bool n_is_user = false, bool n_is_abstract = false) :
-      AbstractQoreFunctionVariant(n_flags | (n_is_abstract ? QC_USES_EXTRA_ARGS : 0), n_is_user), qmethod(0), access(n_access), final(n_final), abstract(n_is_abstract) {
+      AbstractQoreFunctionVariant(n_flags | (n_is_abstract ? QC_USES_EXTRA_ARGS : 0), n_is_user), access(n_access), final(n_final), abstract(n_is_abstract) {
    }
 
    DLLLOCAL bool isAbstract() const {
@@ -2168,17 +2168,17 @@ public:
    }
 
    DLLLOCAL const QoreVarInfo* parseFindVar(const char* vname, const qore_class_private*& qc, ClassAccess& access, bool toplevel) const {
-      //printd(5, "parseFindVar() this: %p cls: %p (%s) scl: %p\n", this, cls, cls->getName(), scl);
+        //printd(5, "parseFindVar() this: %p cls: %p (%s) scl: %p\n", this, cls, cls->getName(), scl);
 
-      QoreVarInfo* vi = vars.find(const_cast<char*>(vname));
+        QoreVarInfo* vi = vars.find(const_cast<char*>(vname));
 
-      if (vi) {
-         qc = this;
-         access = vi->getAccess();
-         return vi;
-      }
+        if (vi) {
+            qc = this;
+            access = vi->getAccess();
+            return vi;
+        }
 
-      return scl ? scl->parseFindVar(vname, qc, access, toplevel) : nullptr;
+        return scl ? scl->parseFindVar(vname, qc, access, toplevel) : nullptr;
    }
 
    DLLLOCAL int parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& l_mi, const qore_class_private& b_qc, const QoreMemberInfo& b_mi);
@@ -2249,17 +2249,24 @@ public:
       delete MemberInfo;
    }
 
-   DLLLOCAL void parseAddStaticVar(char* dname, ClassAccess access, QoreVarInfo* VarInfo) {
-      VarInfo->access = access;
-      if (!parseCheckSystemCommitted(VarInfo->loc) && !parseCheckVar(dname, VarInfo)) {
-         //printd(5, "qore_class_private::parseAddStaticVar() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
-         vars.addNoCheck(dname, VarInfo);
-         return;
-      }
+    DLLLOCAL void parseAddStaticVar(char* dname, ClassAccess access, QoreVarInfo* VarInfo) {
+        VarInfo->access = access;
+        if (!parseCheckSystemCommitted(VarInfo->loc) && !parseCheckVar(dname, VarInfo)) {
+            if (!has_new_user_changes) {
+                has_new_user_changes = true;
+            }
+            if (!has_sig_changes) {
+                has_sig_changes = true;
+            }
 
-      free(dname);
-      delete VarInfo;
-   }
+            //printd(5, "qore_class_private::parseAddStaticVar() this: %p %s adding %p %s\n", this, name.c_str(), mem, mem);
+            vars.addNoCheck(dname, VarInfo);
+            return;
+        }
+
+        free(dname);
+        delete VarInfo;
+    }
 
     DLLLOCAL void addBuiltinConstant(const char* cname, AbstractQoreNode* value, ClassAccess access = Public, const QoreTypeInfo* cTypeInfo = 0) {
         assert(!constlist.inList(cname));
@@ -2344,7 +2351,7 @@ public:
    DLLLOCAL AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& cTypeInfo, const qore_class_private* class_ctx) {
       parseInitPartial();
 
-      // first check committed constants
+      // check constant list
       ClassAccess access = Public;
       AbstractQoreNode* rv = constlist.find(cname, cTypeInfo, access);
 

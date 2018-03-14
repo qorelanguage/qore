@@ -146,8 +146,10 @@ int AbstractMethod::parseCommit() {
     if (check_parse) {
         check_parse = false;
     }
-    for (auto& i : pending_save)
+    for (auto& i : pending_save) {
         i.second->deref();
+    }
+    pending_save.clear();
     return vlist.empty() ? -1 : 0;
 }
 
@@ -551,9 +553,12 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
 qore_class_private::~qore_class_private() {
     printd(5, "qore_class_private::~qore_class_private() this: %p %s\n", this, name.c_str());
 
-    assert(vars.empty());
     assert(!spgm);
     assert(!refs.reference_count());
+
+    if (!vars.empty()) {
+        vars.del();
+    }
 
     // delete normal methods
     for (auto& i : hm) {
@@ -2601,61 +2606,67 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
 }
 
 void qore_class_private::parseRollback() {
-   if (parse_init_called)
-      parse_init_called = false;
+    if (parse_init_called)
+        parse_init_called = false;
 
-   if (parse_init_partial_called)
-      parse_init_partial_called = false;
+    if (parse_init_partial_called)
+        parse_init_partial_called = false;
 
-   if (has_sig_changes)
-      has_sig_changes = false;
+    if (has_sig_changes)
+        has_sig_changes = false;
 
-   if (!has_new_user_changes) {
+    if (!has_new_user_changes) {
 #ifdef DEBUG
-      // verify status
-      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-         assert(i->second->priv->func->pendingEmpty());
-      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
-         assert(i->second->priv->func->pendingEmpty());
+        // verify status
+        for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+            assert(i->second->priv->func->pendingEmpty());
+        for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
+            assert(i->second->priv->func->pendingEmpty());
 #endif
-      assert(!pending_has_public_memdecl);
-      return;
-   }
+        assert(!pending_has_public_memdecl);
+        return;
+    }
 
-   // rollback pending "normal" (non-static) method variants
-   for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e;) {
-      // if there are no committed variants, then the method must be deleted
-      if (i->second->priv->func->committedEmpty()) {
-         delete i->second;
-         hm.erase(i++);
-         continue;
-      }
+    // rollback pending "normal" (non-static) method variants
+    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e;) {
+        // if there are no committed variants, then the method must be deleted
+        if (i->second->priv->func->committedEmpty()) {
+            delete i->second;
+            hm.erase(i++);
+            continue;
+        }
 
-      i->second->priv->func->parseRollbackMethod();
-      ++i;
-   }
+        i->second->priv->func->parseRollbackMethod();
+        ++i;
+    }
 
-   // rollback pending static method variants
-   for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e;) {
-      // if there are no committed variants, then the method must be deleted
-      if (i->second->priv->func->committedEmpty()) {
-         delete i->second;
-         shm.erase(i++);
-         continue;
-      }
+    // rollback pending static method variants
+    for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e;) {
+        // if there are no committed variants, then the method must be deleted
+        if (i->second->priv->func->committedEmpty()) {
+            delete i->second;
+            shm.erase(i++);
+            continue;
+        }
 
-      i->second->priv->func->parseRollbackMethod();
-      ++i;
-   }
+        i->second->priv->func->parseRollbackMethod();
+        ++i;
+    }
 
-   // rollback pending abstract method variant changes
-   ahm.parseRollback();
+    // rollback pending abstract method variant changes
+    ahm.parseRollback();
 
-   // set flags
-   if (pending_has_public_memdecl)
-      pending_has_public_memdecl = false;
+    // delete all static vars
+    if (!vars.empty()) {
+        vars.del();
+        printd(0, "qore_class_private::parseRollback() '%s' deleted all vars: %d\n", name.c_str(), vars.empty());
+    }
 
-   has_new_user_changes = false;
+    // set flags
+    if (pending_has_public_memdecl)
+        pending_has_public_memdecl = false;
+
+    has_new_user_changes = false;
 }
 
 QoreMethod::QoreMethod(const QoreClass* n_parent_class, MethodFunctionBase* n_func, bool n_static) : priv(new qore_method_private(n_parent_class, n_func, n_static)) {

@@ -242,13 +242,6 @@ public:
 
     DLLLOCAL ConstantEntry* findEntry(const char* name);
 
-    DLLLOCAL AbstractQoreNode* parseFind(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access);
-
-    DLLLOCAL AbstractQoreNode* parseFind(const char* name, const QoreTypeInfo*& constantTypeInfo) {
-        ClassAccess access;
-        return parseFind(name, constantTypeInfo, access);
-    }
-
     DLLLOCAL AbstractQoreNode* find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access);
 
     DLLLOCAL AbstractQoreNode* find(const char* name, const QoreTypeInfo*& constantTypeInfo) {
