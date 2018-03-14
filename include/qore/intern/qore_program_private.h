@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -457,6 +457,9 @@ typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
 class qore_program_private : public qore_program_private_base {
 private:
+    bool ns_cleared = false;
+    bool constants_cleared = false;
+
    mutable QoreCounter debug_program_counter;  // number of thread calls to debug program instance.
    DLLLOCAL void init(QoreProgram* n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
    }
@@ -2087,6 +2090,18 @@ public:
    DLLLOCAL unsigned getProgramId() const {
       return programId;
    }
+
+    // called locked
+    DLLLOCAL void clearNamespaceData(ExceptionSink* xsink) {
+        if (ns_cleared) {
+            return;
+        }
+        assert(RootNS);
+        ns_cleared = true;
+        // delete all global variables, etc
+        // this call can only be made once
+        qore_root_ns_private::clearData(*RootNS, xsink);
+    }
 
    DLLLOCAL static QoreProgram* resolveProgramId(unsigned programId) {
       printd(5, "qore_program_private::resolveProgramId(%x)\n", programId);

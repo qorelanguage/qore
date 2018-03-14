@@ -1844,7 +1844,9 @@ public:
       ;
 
    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
-   mutable QoreReferenceCounter refs;       // references
+   mutable QoreReferenceCounter refs;  // existence references
+   mutable QoreReferenceCounter const_refs; // constant references
+   mutable QoreReferenceCounter var_refs;   // static var references
 
    unsigned num_methods, num_user_methods, num_static_methods, num_static_user_methods;
 
@@ -1879,9 +1881,15 @@ public:
    //DLLLOCAL qore_class_private(const qore_class_private& old, QoreClass* n_cls);
 
 public:
-   DLLLOCAL void ref() const {
-      refs.ROreference();
-   }
+    DLLLOCAL void pgmRef() const {
+        refs.ROreference();
+        var_refs.ROreference();
+        const_refs.ROreference();
+    }
+
+    DLLLOCAL void ref() const {
+        refs.ROreference();
+    }
 
     DLLLOCAL bool deref() {
         if (refs.ROdereference()) {
@@ -2349,27 +2357,27 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& cTypeInfo, const qore_class_private* class_ctx) {
-      parseInitPartial();
+        parseInitPartial();
 
-      // check constant list
-      ClassAccess access = Public;
-      AbstractQoreNode* rv = constlist.find(cname, cTypeInfo, access);
+        // check constant list
+        ClassAccess access = Public;
+        AbstractQoreNode* rv = constlist.find(cname, cTypeInfo, access);
 
-      // check for accessibility to private constants
-      if (rv) {
-         if (access == Internal) {
-            if (class_ctx == this)
-               return rv;
+        // check for accessibility to private constants
+        if (rv) {
+            if (access == Internal) {
+                if (class_ctx == this)
+                    return rv;
+                else
+                    cTypeInfo = nullptr;
+            }
+            else if (access == Private && !parseCheckPrivateClassAccess(class_ctx))
+                cTypeInfo = nullptr;
             else
-               cTypeInfo = 0;
-         }
-         else if (access == Private && !parseCheckPrivateClassAccess(class_ctx))
-            cTypeInfo = 0;
-         else
-            return rv;
-      }
+                return rv;
+        }
 
-      return scl ? scl->parseFindConstantValue(cname, cTypeInfo, class_ctx, class_ctx == this) : 0;
+        return scl ? scl->parseFindConstantValue(cname, cTypeInfo, class_ctx, class_ctx == this) : nullptr;
    }
 
    DLLLOCAL QoreVarInfo* parseFindLocalStaticVar(const char* vname) const {
@@ -2493,57 +2501,68 @@ public:
       scl->parseAddAncestors(m);
    }
 
-   // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
-   DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) const {
-      if (class_ctx) {
-         QoreMemberInfo *info = class_ctx->members.find(mem);
-         if (info && info->getAccess() == Internal) {
-            internal_member = true;
-            access = Internal;
-            return this;
-         }
-      }
+    // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
+    DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) const {
+        if (class_ctx) {
+            QoreMemberInfo *info = class_ctx->members.find(mem);
+            if (info && info->getAccess() == Internal) {
+                internal_member = true;
+                access = Internal;
+                return this;
+            }
+        }
 
-      access = Public;
-      internal_member = false;
+        access = Public;
+        internal_member = false;
 
-      return runtimeGetMemberClassIntern(mem, access, class_ctx);
-   }
+        return runtimeGetMemberClassIntern(mem, access, class_ctx);
+    }
 
-   DLLLOCAL const qore_class_private* runtimeGetMemberClassIntern(const char* mem, ClassAccess& access, const qore_class_private* class_ctx) const {
-      QoreMemberInfo *info = members.find(mem);
-      if (info) {
-         ClassAccess ma = info->getAccess();
-         if (ma != Internal) {
-            if (access < ma)
-               access = ma;
-            return this;
-         }
-      }
+    DLLLOCAL const qore_class_private* runtimeGetMemberClassIntern(const char* mem, ClassAccess& access, const qore_class_private* class_ctx) const {
+        QoreMemberInfo *info = members.find(mem);
+        if (info) {
+            ClassAccess ma = info->getAccess();
+            if (ma != Internal) {
+                if (access < ma)
+                    access = ma;
+                return this;
+            }
+        }
 
-      return scl ? scl->runtimeGetMemberClass(mem, access, class_ctx, class_ctx && equal(*class_ctx)) : 0;
-   }
+        return scl ? scl->runtimeGetMemberClass(mem, access, class_ctx, class_ctx && equal(*class_ctx)) : nullptr;
+    }
 
-   DLLLOCAL int runtimeInitMembers(QoreObject& o, bool& need_scan, bool internal_only, ExceptionSink* xsink) const;
+    DLLLOCAL int runtimeInitMembers(QoreObject& o, bool& need_scan, bool internal_only, ExceptionSink* xsink) const;
 
-   DLLLOCAL int initMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const;
+    DLLLOCAL int initMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const;
 
-   DLLLOCAL void clearConstants(QoreListNode& l) {
-      constlist.clear(l);
-   }
+    DLLLOCAL void clearConstants(QoreListNode& l) {
+        if (const_refs.ROdereference()) {
+            constlist.clear(l);
+        }
+    }
 
-   DLLLOCAL void clear(ExceptionSink* xsink) {
-      vars.clear(xsink);
-   }
+    DLLLOCAL void clear(ExceptionSink* xsink) {
+        //printd(5, "qore_class_private::clear() this: %p '%s' %d -> %d\n", this, name.c_str(), var_refs.reference_count(), var_refs.reference_count() - 1);
+        if (var_refs.ROdereference()) {
+            vars.clear(xsink);
+            vars.del(xsink);
+        }
+    }
 
-   DLLLOCAL void deleteClassData(ExceptionSink* xsink) {
-      vars.del(xsink);
-      constlist.deleteAll(xsink);
-      if (spgm) {
-         spgm->deref(xsink);
-         spgm = 0;
-      }
-   }
+    DLLLOCAL void deleteClassData(ExceptionSink* xsink) {
+        // delete vars and constants again if possible
+        if (!var_refs.reference_count()) {
+            vars.del(xsink);
+        }
+        if (!const_refs.reference_count()) {
+            constlist.deleteAll(xsink);
+        }
+        if (spgm) {
+            spgm->deref(xsink);
+            spgm = nullptr;
+        }
+    }
 
    /*
    DLLLOCAL int initMembers(QoreObject& o, BCEAList* bceal, ExceptionSink* xsink) const {

@@ -326,8 +326,6 @@ public:
 
 class UserVariantBase;
 
-static void breakit() {}
-
 // describes the details of the function variant
 class AbstractQoreFunctionVariant : protected QoreReferenceCounter {
 private:
@@ -346,8 +344,7 @@ protected:
 
 public:
     DLLLOCAL AbstractQoreFunctionVariant(int64 n_flags, bool n_is_user = false) : flags(n_flags), is_user(n_is_user) {
-        printd(0, "AbstractQoreFunctionVariant::AbstractQoreFunctionVariant() this: %p cntr: %d\n", this, ++cntr);
-        if (cntr == 3261) breakit();
+        //printd(5, "AbstractQoreFunctionVariant::AbstractQoreFunctionVariant() this: %p cntr: %d\n", this, ++cntr);
     }
 
     DLLLOCAL virtual AbstractFunctionSignature* getSignature() const = 0;

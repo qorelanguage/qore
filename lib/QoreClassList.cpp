@@ -229,52 +229,52 @@ void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
 }
 
 QoreHashNode *QoreClassList::getInfo() {
-   QoreHashNode *h = new QoreHashNode;
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      h->setKeyValue(i->first, i->second->getMethodList(), 0);
-   return h;
+    QoreHashNode *h = new QoreHashNode;
+    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+        h->setKeyValue(i->first, i->second->getMethodList(), nullptr);
+    return h;
 }
 
-AbstractQoreNode *QoreClassList::findConstant(const char *cname, const QoreTypeInfo *&typeInfo) {
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      AbstractQoreNode *rv = qore_class_private::parseFindLocalConstantValue(i->second, cname, typeInfo);
-      if (rv)
-         return rv;
-   }
+AbstractQoreNode* QoreClassList::findConstant(const char *cname, const QoreTypeInfo *&typeInfo) {
+    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+        AbstractQoreNode *rv = qore_class_private::parseFindLocalConstantValue(i->second, cname, typeInfo);
+        if (rv)
+            return rv;
+    }
 
-   return 0;
+    return nullptr;
 }
 
 void QoreClassList::clearConstants(QoreListNode& l) {
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      qore_class_private::clearConstants(i->second, l);
-   }
+    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+        qore_class_private::clearConstants(i->second, l);
+    }
 }
 
 void QoreClassList::clear(ExceptionSink *xsink) {
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      qore_class_private::clear(i->second, xsink);
-   }
+    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+        qore_class_private::clear(i->second, xsink);
+    }
 }
 
 void QoreClassList::deleteClassData(ExceptionSink *xsink) {
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      qore_class_private::deleteClassData(i->second, xsink);
-   }
+    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+        qore_class_private::deleteClassData(i->second, xsink);
+    }
 }
 
 bool ClassListIterator::isPublic() const {
-   return qore_class_private::isPublic(*i->second);
+    return qore_class_private::isPublic(*i->second);
 }
 
 bool ConstClassListIterator::isPublic() const {
-   return qore_class_private::isPublic(*i->second);
+    return qore_class_private::isPublic(*i->second);
 }
 
 bool ClassListIterator::isUserPublic() const {
-   return qore_class_private::isUserPublic(*i->second);
+    return qore_class_private::isUserPublic(*i->second);
 }
 
 bool ConstClassListIterator::isUserPublic() const {
-   return qore_class_private::isUserPublic(*i->second);
+    return qore_class_private::isUserPublic(*i->second);
 }

@@ -161,7 +161,12 @@ void AbstractMethod::parseMergeBase(AbstractMethod& m, bool committed) {
         const char* sig = i.second->getAbstractSignature();
         vmap_t::iterator vi = vlist.find(sig);
         if (vi != vlist.end()) {
+            /*
+            i.second->ref();
             pending_save.insert(vmap_t::value_type(sig, i.second));
+            vi.second->deref();
+            */
+            pending_save.insert(vmap_t::value_type(sig, vi->second));
             vlist.erase(vi);
         }
     }
@@ -190,7 +195,10 @@ void AbstractMethod::parseMergeBase(AbstractMethod& m, MethodFunctionBase* f, bo
         const char* sig = i.second->getAbstractSignature();
         vmap_t::iterator vi = vlist.find(sig);
         if (vi != vlist.end()) {
+            /*
             pending_save.insert(vmap_t::value_type(sig, i.second));
+            */
+            pending_save.insert(vmap_t::value_type(sig, vi->second));
             vlist.erase(vi);
         }
     }
@@ -1727,10 +1735,10 @@ bool BCNode::runtimeIsPrivateMember(const char* str, bool toplevel) const {
 AbstractQoreNode* BCNode::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
-      return 0;
+      return nullptr;
 
    if (access == Internal && !allow_internal)
-      return 0;
+      return nullptr;
 
    return sclass->priv->parseFindConstantValueIntern(cname, typeInfo, class_ctx);
 }
@@ -2243,7 +2251,7 @@ bool QoreClass::has_delete_blocker() const {
 }
 
 BCSMList* QoreClass::getBCSMList() const {
-   return priv->scl ? &priv->scl->sml : 0;
+   return priv->scl ? &priv->scl->sml : nullptr;
 }
 
 const QoreMethod* QoreClass::findLocalStaticMethod(const char* nme) const {
@@ -2768,43 +2776,43 @@ void QoreClass::addMember(const char* mname, ClassAccess access, const QoreTypeI
 }
 
 BCSMList::BCSMList(const BCSMList &old) {
-   reserve(old.size());
-   for (class_list_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
-      push_back(*i);
-      i->first->priv->ref();
-   }
+    reserve(old.size());
+    for (class_list_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
+        push_back(*i);
+        i->first->priv->ref();
+    }
 }
 
 BCSMList::~BCSMList() {
-   for (class_list_t::iterator i = begin(), e = end(); i != e; ++i) {
-      i->first->priv->deref();
-   }
+    for (class_list_t::iterator i = begin(), e = end(); i != e; ++i) {
+        i->first->priv->deref();
+    }
 }
 
 void BCSMList::alignBaseClassesInSubclass(QoreClass* thisclass, QoreClass* child, bool is_virtual) {
-   //printd(5, "BCSMList::alignBaseClassesInSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(), sc->getName());
-   // we must iterate with offsets, because the vector can be reallocated during this iteration
-   for (unsigned i = 0; i < (*this).size(); ++i) {
-      bool virt = is_virtual || (*this)[i].second;
-      //printd(5, "BCSMList::alignBaseClassesInSubclass() %s child: %s virt: %d\n", thisclass->getName(), sc->getName(), virt);
-      child->priv->scl->sml.align(child, (*this)[i].first, virt);
-   }
+    //printd(5, "BCSMList::alignBaseClassesInSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(), sc->getName());
+    // we must iterate with offsets, because the vector can be reallocated during this iteration
+    for (unsigned i = 0; i < (*this).size(); ++i) {
+        bool virt = is_virtual || (*this)[i].second;
+        //printd(5, "BCSMList::alignBaseClassesInSubclass() %s child: %s virt: %d\n", thisclass->getName(), sc->getName(), virt);
+        child->priv->scl->sml.align(child, (*this)[i].first, virt);
+    }
 }
 
 void BCSMList::align(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
-   assert(thisclass->getID() != qc->getID());
+    assert(thisclass->getID() != qc->getID());
 
-   // see if class already exists in vector
-   for (auto& i : *this) {
-      if (i.first->getID() == qc->getID())
-         return;
-      assert(i.first->getID() != thisclass->getID());
-   }
-   qc->priv->ref();
+    // see if class already exists in vector
+    for (auto& i : *this) {
+        if (i.first->getID() == qc->getID())
+            return;
+        assert(i.first->getID() != thisclass->getID());
+    }
+    qc->priv->ref();
 
-   // append to the end of the vector
-   //printd(5, "BCSMList::align() adding %p '%s' (virt: %d) as a base class of %p '%s'\n", qc, qc->getName(), is_virtual, thisclass, thisclass->getName());
-   push_back(std::make_pair(qc, is_virtual));
+    // append to the end of the vector
+    //printd(5, "BCSMList::align() adding %p '%s' (virt: %d) as a base class of %p '%s'\n", qc, qc->getName(), is_virtual, thisclass, thisclass->getName());
+    push_back(std::make_pair(qc, is_virtual));
 }
 
 int BCSMList::addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual) {
@@ -2967,7 +2975,7 @@ bool QoreMethod::existsVariant(const type_vec_t &paramTypeInfo) const {
 //}
 
 QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
-    priv->ref();
+    priv->pgmRef();
 }
 
 void QoreClass::insertMethod(QoreMethod* m) {
@@ -3990,39 +3998,39 @@ void qore_class_private::parseInitPartialIntern() {
 }
 
 void qore_class_private::parseInit() {
-   // make sure initialize() is called first
-   initialize();
+    // make sure initialize() is called first
+    initialize();
 
-   //printd(5, "qore_class_private::parseInit() this: %p '%s' parse_init_called: %d parse_init_partial_called: %d\n", this, name.c_str(), parse_init_called, parse_init_partial_called);
-   if (parse_init_called)
-      return;
+    //printd(5, "qore_class_private::parseInit() this: %p '%s' parse_init_called: %d parse_init_partial_called: %d\n", this, name.c_str(), parse_init_called, parse_init_partial_called);
+    if (parse_init_called)
+        return;
 
-   parse_init_called = true;
+    parse_init_called = true;
 
-   if (has_new_user_changes) {
-      NamespaceParseContextHelper nspch(ns);
-      QoreParseClassHelper qpch(cls);
+    if (has_new_user_changes) {
+        NamespaceParseContextHelper nspch(ns);
+        QoreParseClassHelper qpch(cls);
 
-      if (!parse_init_partial_called)
-         parseInitPartialIntern();
+        if (!parse_init_partial_called)
+            parseInitPartialIntern();
 
-      // initialize constants
-      constlist.parseInit();
+        // initialize constants
+        constlist.parseInit();
 
-      // initialize methods
-      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-         i->second->priv->parseInit();
-      }
+        // initialize methods
+        for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+            i->second->priv->parseInit();
+        }
 
-      // initialize static methods
-      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
-         i->second->priv->parseInitStatic();
-      }
-      // search for new concrete variants of abstract variants last
-      ahm.parseInit(*this, scl);
-   }
+        // initialize static methods
+        for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
+            i->second->priv->parseInitStatic();
+        }
+        // search for new concrete variants of abstract variants last
+        ahm.parseInit(*this, scl);
+    }
 
-   //printd(5, "qore_class_private::parseInit() this: %p cls: %p %s scl: %p\n", this, cls, name.c_str(), scl);
+    //printd(5, "qore_class_private::parseInit() this: %p cls: %p %s scl: %p\n", this, cls, name.c_str(), scl);
 }
 
 void qore_class_private::recheckBuiltinMethodHierarchy() {
@@ -4453,7 +4461,6 @@ void MethodFunctionBase::replaceAbstractVariantIntern(MethodVariantBase* variant
         (*i)->parseResolveUserSignature();
         if ((*i)->isSignatureIdentical(sig)) {
             pending_save.push_back(*i);
-            (*i)->deref();
             vlist.erase(i);
             vlist.push_back(variant);
             //printd(5, "MethodFunctionBase::replaceAbstractVariantIntern() this: %p replacing %p ::%s%s in vlist\n", this, variant, getName(), variant->getAbstractSignature());

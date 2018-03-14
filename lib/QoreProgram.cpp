@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -381,99 +381,103 @@ void qore_program_private::internParseRollback() {
 }
 
 void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
-   // detach itself from debug
-   if (dpgm) {
-      dpgm->removeProgram(pgm);
-   }
-   debug_program_counter.waitForZero(xsink, 0);  // it is probably obsolete as the next waiting for thread termination will wait for the same threads as well
-   // we only clear the internal data structures once
-   bool clr = false;
-   {
-      ReferenceHolder<QoreListNode> l(xsink);
-      {
-         AutoLocker al(plock);
-         // wait for all threads to terminate
-         waitForAllThreadsToTerminateIntern();
-         if (!ptid) {
-            l = new QoreListNode;
-            qore_root_ns_private::clearConstants(*RootNS, **l);
-            // mark the program so that only code from this thread can run during data destruction
-            ptid = gettid();
-            clr = true;
-         }
-      }
-   }
+    // detach itself from debug
+    if (dpgm) {
+        dpgm->removeProgram(pgm);
+    }
+    debug_program_counter.waitForZero(xsink, 0);  // it is probably obsolete as the next waiting for thread termination will wait for the same threads as well
+    // we only clear the internal data structures once
+    bool clr = false;
+    {
+        ReferenceHolder<QoreListNode> l(xsink);
+        {
+            AutoLocker al(plock);
+            // wait for all threads to terminate
+            waitForAllThreadsToTerminateIntern();
+            if (!ptid) {
+                if (!constants_cleared) {
+                    l = new QoreListNode;
+                    qore_root_ns_private::clearConstants(*RootNS, **l);
+                    //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p cleared constants\n", this);
+                    constants_cleared = true;
+                }
+                // mark the program so that only code from this thread can run during data destruction
+                ptid = gettid();
+                clr = true;
+            }
+        }
+    }
 
-   if (clr) {
-      // purge thread resources before clearing pgm
-      purge_pgm_thread_resources(pgm, xsink);
+    if (clr) {
+        // purge thread resources before clearing pgm
+        purge_pgm_thread_resources(pgm, xsink);
 
-      printd(5, "qore_program_private::waitForTerminationAndClear() this: %p pgm: %p clr: %d\n", this, pgm, clr);
-      // delete all global variables, etc
-      qore_root_ns_private::clearData(*RootNS, xsink);
+        printd(5, "qore_program_private::waitForTerminationAndClear() this: %p pgm: %p clr: %d\n", this, pgm, clr);
+        // delete all global variables, etc
+        clearNamespaceData(xsink);
 
-      // clear thread init code reference if any
-      {
-         ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
+        // clear thread init code reference if any
+        {
+            ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
 
-         {
+            {
+                AutoLocker al(tlock);
+
+                // clear thread init code reference
+                old = thr_init;
+                thr_init = 0;
+            }
+        }
+
+        // clear thread data if base object
+        if (base_object)
+            clearThreadData(xsink);
+
+        clearProgramThreadData(xsink);
+
+        {
+            AutoLocker al(plock);
+            ptid = -1;
+        }
+
+        // now clear the original map
+        {
             AutoLocker al(tlock);
+            pgm_data_map.clear();
+            tclear = 0;
 
-            // clear thread init code reference
-            old = thr_init;
-            thr_init = 0;
-         }
-      }
-
-      // clear thread data if base object
-      if (base_object)
-         clearThreadData(xsink);
-
-      clearProgramThreadData(xsink);
-
-      {
-         AutoLocker al(plock);
-         ptid = -1;
-      }
-
-      // now clear the original map
-      {
-         AutoLocker al(tlock);
-         pgm_data_map.clear();
-         tclear = 0;
-
-         if (twaiting)
-            tcond.broadcast();
-      }
+            if (twaiting)
+                tcond.broadcast();
+        }
 #ifdef HAVE_SIGNAL_HANDLING
-      {
-         int_set_t ns = sigset;
-         // clear all signal handlers managed by this program
-         for (int_set_t::iterator i = ns.begin(), e = ns.end(); i != e; ++i)
-            QSM.removeHandler(*i, xsink);
-      }
+        {
+            int_set_t ns = sigset;
+            // clear all signal handlers managed by this program
+            for (int_set_t::iterator i = ns.begin(), e = ns.end(); i != e; ++i)
+                QSM.removeHandler(*i, xsink);
+        }
 #endif
 
-      // merge pending parse exceptions into the passed exception sink, if any
-      if (pendingParseSink) {
-         xsink->assimilate(pendingParseSink);
-         pendingParseSink = 0;
-      }
+        // merge pending parse exceptions into the passed exception sink, if any
+        if (pendingParseSink) {
+            xsink->assimilate(pendingParseSink);
+            pendingParseSink = 0;
+        }
 
-      // clear any exec-class return value
-      discard(exec_class_rv, xsink);
-      exec_class_rv = 0;
+        // clear any exec-class return value
+        discard(exec_class_rv, xsink);
+        exec_class_rv = 0;
 
-      // delete code
-      // method call can be repeated
-      sb.del();
-      //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
+        // delete code
+        // method call can be repeated
+        sb.del();
+        //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
-      del(xsink);
+        del(xsink);
 
-      // clear program location
-      update_runtime_location(QoreProgramLocation());
-   }
+        // clear program location
+        update_runtime_location(QoreProgramLocation());
+    }
 }
 
 // called when the program's ref count = 0 (but the dc count may not go to 0 yet)
@@ -781,73 +785,80 @@ void qore_program_private::exportGlobalVariable(const char* vname, bool readonly
 }
 
 void qore_program_private::del(ExceptionSink* xsink) {
-   printd(5, "qore_program_private::del() pgm: %p (base_object: %d)\n", pgm, base_object);
+    printd(5, "qore_program_private::del() pgm: %p (base_object: %d)\n", pgm, base_object);
 
-   // dereference all external data
-   for (auto& i : extmap) {
-      i.second->doDeref();
-   }
-   extmap.clear();
+    // dereference all external data
+    for (auto& i : extmap) {
+        i.second->doDeref();
+    }
+    extmap.clear();
 
-   if (thr_init)
-      thr_init->deref(xsink);
+    if (thr_init)
+        thr_init->deref(xsink);
 
-   if (base_object) {
-      deleteThreadData(xsink);
+    if (base_object) {
+        deleteThreadData(xsink);
 
-      // delete thread local storage key
-      delete thread_local_storage;
-      base_object = false;
-   }
+        // delete thread local storage key
+        delete thread_local_storage;
+        base_object = false;
+    }
 
-   // delete defines
-   for (dmap_t::iterator i = dmap.begin(), e = dmap.end(); i != e; ++i)
-      discard(i->second, xsink);
-   dmap.clear();
+    // delete defines
+    for (dmap_t::iterator i = dmap.begin(), e = dmap.end(); i != e; ++i)
+        discard(i->second, xsink);
+    dmap.clear();
 
-   assert(RootNS);
-   // have to delete global variables first because of destructors.
-   // method call can be repeated
-   qore_root_ns_private::clearData(*RootNS, xsink);
+    assert(RootNS);
+    // have to delete global variables first because of destructors.
+    clearNamespaceData(xsink);
 
-   // delete all global variables, class static vars and constants
-   RootNS->deleteData(xsink);
+    // clear constants if not already cleared
+    if (!constants_cleared) {
+        ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+        qore_root_ns_private::clearConstants(*RootNS, **l);
+        constants_cleared = true;
+        //printd(5, "qore_program_private::del() this: %p cleared constants\n", this);
+    }
 
-   delete RootNS;
-   RootNS = 0;
+    // delete all global variables, class static vars, etc
+    RootNS->deleteData(xsink);
 
-   // delete all root code
-   // method call can be repeated
-   sb.del();
+    delete RootNS;
+    RootNS = 0;
 
-   // delete stored type information
-   for (auto& i : ch_map)
-      delete i.second;
-   for (auto& i : chon_map)
-      delete i.second;
-   for (auto& i : cl_map)
-      delete i.second;
-   for (auto& i : clon_map)
-      delete i.second;
-   for (auto& i : cr_map)
-      delete i.second;
-   for (auto& i : cron_map)
-      delete i.second;
-   for (auto& i : csl_map)
-      delete i.second;
-   for (auto& i : cslon_map)
-      delete i.second;
+    // delete all root code
+    // method call can be repeated
+    sb.del();
 
-   //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
+    // delete stored type information
+    for (auto& i : ch_map)
+        delete i.second;
+    for (auto& i : chon_map)
+        delete i.second;
+    for (auto& i : cl_map)
+        delete i.second;
+    for (auto& i : clon_map)
+        delete i.second;
+    for (auto& i : cr_map)
+        delete i.second;
+    for (auto& i : cron_map)
+        delete i.second;
+    for (auto& i : csl_map)
+        delete i.second;
+    for (auto& i : cslon_map)
+        delete i.second;
 
-   for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByFileIndex.begin(); it != statementByFileIndex.end(); it++) {
-      delete it->second;
-   }
-   statementByFileIndex.clear();
-   for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByLabelIndex.begin(); it != statementByLabelIndex.end(); it++) {
-      delete it->second;
-   }
-   statementByLabelIndex.clear();
+    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
+
+    for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByFileIndex.begin(); it != statementByFileIndex.end(); it++) {
+        delete it->second;
+    }
+    statementByFileIndex.clear();
+    for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByLabelIndex.begin(); it != statementByLabelIndex.end(); it++) {
+        delete it->second;
+    }
+    statementByLabelIndex.clear();
 }
 
 const QoreClass* qore_program_private::runtimeFindClass(const char* class_name, ExceptionSink* xsink) const {
