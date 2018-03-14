@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -71,34 +71,34 @@ public:
       return func;
    }
 
-   DLLLOCAL QoreFunction* getFunction(bool runtime) const {
-      if (runtime && func->committedEmpty())
-	 return 0;
-      return func;
-   }
+    DLLLOCAL QoreFunction* getFunction(bool runtime) const {
+        if (runtime && func->committedEmpty())
+            return nullptr;
+        return func;
+    }
 
-   DLLLOCAL const char* getName() const {
-      return name.empty() ? func->getName() : name.c_str();
-   }
+    DLLLOCAL const char* getName() const {
+        return name.empty() ? func->getName() : name.c_str();
+    }
 
-   DLLLOCAL void parseInit() {
-      func->parseInit();
-   }
+    DLLLOCAL void parseInit() {
+        func->parseInit();
+    }
 
-   DLLLOCAL void parseCommit() {
-      func->parseCommit();
-   }
+    DLLLOCAL void parseCommit() {
+        func->parseCommit();
+    }
 
-   // returns -1 if the entry can be deleted
-   DLLLOCAL int parseRollback() {
-      // if there are no committed variants, then return -1 to erase the function entry entirely
-      if (func->committedEmpty())
-         return -1;
+    // returns -1 if the entry can be deleted
+    DLLLOCAL int parseRollback() {
+        // if there are no committed variants, then return -1 to erase the function entry entirely
+        if (func->committedEmpty())
+            return -1;
 
-      // otherwise just roll back the pending variants
-      func->parseRollback();
-      return 0;
-   }
+        // otherwise just roll back the pending variants
+        func->parseRollback();
+        return 0;
+    }
 
    DLLLOCAL ResolvedCallReferenceNode* makeCallReference(const QoreProgramLocation& loc) const;
 

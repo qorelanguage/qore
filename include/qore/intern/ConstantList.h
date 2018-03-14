@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   constants can only be defined when parsing
   constants values will be substituted during the 2nd parse phase
@@ -211,214 +211,214 @@ typedef std::map<const char*, ConstantEntry*, ltstr> cnemap_t;
 #endif
 
 class ConstantList {
-   friend class ConstantListIterator;
-   friend class ConstConstantListIterator;
+    friend class ConstantListIterator;
+    friend class ConstConstantListIterator;
 
 private:
-   // not implemented
-   DLLLOCAL ConstantList& operator=(const ConstantList&);
+    // not implemented
+    DLLLOCAL ConstantList& operator=(const ConstantList&);
 
-   DLLLOCAL void clearIntern(ExceptionSink* xsink);
+    DLLLOCAL void clearIntern(ExceptionSink* xsink);
 
 protected:
-   // the object that owns the list (either a class or a namespace)
-   ClassNs ptr;
+    // the object that owns the list (either a class or a namespace)
+    ClassNs ptr;
 
 public:
-   cnemap_t cnemap;
+    cnemap_t cnemap;
 
-   DLLLOCAL ~ConstantList();
+    DLLLOCAL ~ConstantList();
 
-   DLLLOCAL ConstantList(ClassNs p) : ptr(p) {
-      //printd(5, "ConstantList::ConstantList() this: %p cls: %p ns: %p\n", this, ptr.getClass(), ptr.getNs());
-   }
+    DLLLOCAL ConstantList(ClassNs p) : ptr(p) {
+        //printd(5, "ConstantList::ConstantList() this: %p cls: %p ns: %p\n", this, ptr.getClass(), ptr.getNs());
+    }
 
-   DLLLOCAL ConstantList(const ConstantList& old, int64 po, ClassNs p);
+    DLLLOCAL ConstantList(const ConstantList& old, int64 po, ClassNs p);
 
-   // do not delete the object returned by this function
-   DLLLOCAL cnemap_t::iterator add(const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = nullptr, ClassAccess access = Public);
+    // do not delete the object returned by this function
+    DLLLOCAL cnemap_t::iterator add(const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = nullptr, ClassAccess access = Public);
 
-   DLLLOCAL cnemap_t::iterator parseAdd(const QoreProgramLocation& loc, const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = nullptr, bool pub = false, ClassAccess access = Public);
+    DLLLOCAL cnemap_t::iterator parseAdd(const QoreProgramLocation& loc, const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = nullptr, bool pub = false, ClassAccess access = Public);
 
-   DLLLOCAL ConstantEntry* findEntry(const char* name);
+    DLLLOCAL ConstantEntry* findEntry(const char* name);
 
-   DLLLOCAL AbstractQoreNode* parseFind(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access);
+    DLLLOCAL AbstractQoreNode* parseFind(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access);
 
-   DLLLOCAL AbstractQoreNode* parseFind(const char* name, const QoreTypeInfo*& constantTypeInfo) {
-      ClassAccess access;
-      return parseFind(name, constantTypeInfo, access);
-   }
+    DLLLOCAL AbstractQoreNode* parseFind(const char* name, const QoreTypeInfo*& constantTypeInfo) {
+        ClassAccess access;
+        return parseFind(name, constantTypeInfo, access);
+    }
 
-   DLLLOCAL AbstractQoreNode* find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access);
+    DLLLOCAL AbstractQoreNode* find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access);
 
-   DLLLOCAL AbstractQoreNode* find(const char* name, const QoreTypeInfo*& constantTypeInfo) {
-      ClassAccess access;
-      return find(name, constantTypeInfo, access);
-   }
+    DLLLOCAL AbstractQoreNode* find(const char* name, const QoreTypeInfo*& constantTypeInfo) {
+        ClassAccess access;
+        return find(name, constantTypeInfo, access);
+    }
 
-   DLLLOCAL bool inList(const char* name) const;
-   DLLLOCAL bool inList(const std::string& name) const;
-   //DLLLOCAL ConstantList *copy();
+    DLLLOCAL bool inList(const char* name) const;
+    DLLLOCAL bool inList(const std::string& name) const;
+    //DLLLOCAL ConstantList *copy();
 
-   // assimilate the list without any duplicate checking
-   DLLLOCAL void assimilate(ConstantList& n);
+    // assimilate the list without any duplicate checking
+    DLLLOCAL void assimilate(ConstantList& n);
 
-   // assimilate a constant list in a namespace with duplicate checking (also in pending list)
-   DLLLOCAL void assimilate(ConstantList& n, ConstantList& otherlist, const char* type, const char* name);
+    // assimilate a constant list in a namespace with duplicate checking (also in pending list)
+    DLLLOCAL void assimilate(ConstantList& n, const char* type, const char* name, const ConstantList* other = nullptr);
 
-   // copy all user/public elements of the source list to the target, assuming no duplicates
-   DLLLOCAL void mergeUserPublic(const ConstantList& src);
+    // copy all user/public elements of the source list to the target, assuming no duplicates
+    DLLLOCAL void mergeUserPublic(const ConstantList& src);
 
-   DLLLOCAL int importSystemConstants(const ConstantList& src, ExceptionSink* xsink);
+    DLLLOCAL int importSystemConstants(const ConstantList& src, ExceptionSink* xsink);
 
-   // add a constant to a list with duplicate checking (pub & priv + pending)
-   DLLLOCAL void parseAdd(const QoreProgramLocation& loc, const std::string& name, AbstractQoreNode* val, ConstantList& committed, ClassAccess access, const char* cname);
+    // add a constant to a list with duplicate checking (pub & priv + pending)
+    DLLLOCAL void parseAdd(const QoreProgramLocation& loc, const std::string& name, AbstractQoreNode* val, ClassAccess access, const char* cname);
 
-   DLLLOCAL void parseInit();
-   DLLLOCAL QoreHashNode* getInfo();
-   DLLLOCAL void parseDeleteAll();
-   DLLLOCAL void clear(QoreListNode& l);
-   DLLLOCAL void deleteAll(ExceptionSink* xsink);
-   DLLLOCAL void reset();
+    DLLLOCAL void parseInit();
+    DLLLOCAL QoreHashNode* getInfo();
+    DLLLOCAL void parseDeleteAll();
+    DLLLOCAL void clear(QoreListNode& l);
+    DLLLOCAL void deleteAll(ExceptionSink* xsink);
+    DLLLOCAL void reset();
 
-   DLLLOCAL bool empty() const {
-      return cnemap.empty();
-   }
+    DLLLOCAL bool empty() const {
+        return cnemap.empty();
+    }
 
-   DLLLOCAL cnemap_t::iterator end() {
-      return cnemap.end();
-   }
+    DLLLOCAL cnemap_t::iterator end() {
+        return cnemap.end();
+    }
 
-   DLLLOCAL cnemap_t::const_iterator end() const {
-      return cnemap.end();
-   }
+    DLLLOCAL cnemap_t::const_iterator end() const {
+        return cnemap.end();
+    }
 
-   DLLLOCAL void setAccess(ClassAccess access) {
-      for (auto& i : cnemap)
-         i.second->access = access;
-   }
+    DLLLOCAL void setAccess(ClassAccess access) {
+        for (auto& i : cnemap)
+            i.second->access = access;
+    }
 };
 
 class ConstantListIterator {
 protected:
-   cnemap_t& cl;
-   cnemap_t::iterator i;
+    cnemap_t& cl;
+    cnemap_t::iterator i;
 
 public:
-   DLLLOCAL ConstantListIterator(ConstantList& n_cl) : cl(n_cl.cnemap), i(cl.end()) {
-   }
+    DLLLOCAL ConstantListIterator(ConstantList& n_cl) : cl(n_cl.cnemap), i(cl.end()) {
+    }
 
-   DLLLOCAL bool next() {
-      if (i == cl.end())
-         i = cl.begin();
-      else
-         ++i;
-      return i != cl.end();
-   }
+    DLLLOCAL bool next() {
+        if (i == cl.end())
+            i = cl.begin();
+        else
+            ++i;
+        return i != cl.end();
+    }
 
-   DLLLOCAL const std::string& getName() const {
-      return i->second->getNameStr();
-   }
+    DLLLOCAL const std::string& getName() const {
+        return i->second->getNameStr();
+    }
 
-   DLLLOCAL AbstractQoreNode* getValue() const {
-      return i->second->node;
-   }
+    DLLLOCAL AbstractQoreNode* getValue() const {
+        return i->second->node;
+    }
 
-   DLLLOCAL ConstantEntry* getEntry() const {
-      return i->second;
-   }
+    DLLLOCAL ConstantEntry* getEntry() const {
+        return i->second;
+    }
 
-   DLLLOCAL ClassAccess getAccess() const {
-      return i->second->getAccess();
-   }
+    DLLLOCAL ClassAccess getAccess() const {
+        return i->second->getAccess();
+    }
 
-   DLLLOCAL const bool isPublic() const {
-      return i->second->isPublic();
-   }
+    DLLLOCAL const bool isPublic() const {
+        return i->second->isPublic();
+    }
 
-   DLLLOCAL const bool isUserPublic() const {
-      return i->second->isUserPublic();
-   }
+    DLLLOCAL const bool isUserPublic() const {
+        return i->second->isUserPublic();
+    }
 };
 
 class ConstConstantListIterator {
 protected:
-   const cnemap_t& cl;
-   cnemap_t::const_iterator i;
+    const cnemap_t& cl;
+    cnemap_t::const_iterator i;
 
 public:
-   DLLLOCAL ConstConstantListIterator(const ConstantList& n_cl) : cl(n_cl.cnemap), i(cl.end()) {
-   }
+    DLLLOCAL ConstConstantListIterator(const ConstantList& n_cl) : cl(n_cl.cnemap), i(cl.end()) {
+    }
 
-   DLLLOCAL bool next() {
-      if (i == cl.end())
-         i = cl.begin();
-      else
-         ++i;
-      return i != cl.end();
-   }
+    DLLLOCAL bool next() {
+        if (i == cl.end())
+            i = cl.begin();
+        else
+            ++i;
+        return i != cl.end();
+    }
 
-   DLLLOCAL const std::string& getName() const {
-      return i->second->getNameStr();
-   }
+    DLLLOCAL const std::string& getName() const {
+        return i->second->getNameStr();
+    }
 
-   DLLLOCAL const AbstractQoreNode* getValue() const {
-      return i->second->node;
-   }
+    DLLLOCAL const AbstractQoreNode* getValue() const {
+        return i->second->node;
+    }
 
-   DLLLOCAL const ConstantEntry* getEntry() const {
-      return i->second;
-   }
+    DLLLOCAL const ConstantEntry* getEntry() const {
+        return i->second;
+    }
 
-   DLLLOCAL const bool isPublic() const {
-      return i->second->isPublic();
-   }
+    DLLLOCAL const bool isPublic() const {
+        return i->second->isPublic();
+    }
 
-   DLLLOCAL const bool isUserPublic() const {
-      return i->second->isUserPublic();
-   }
+    DLLLOCAL const bool isUserPublic() const {
+        return i->second->isUserPublic();
+    }
 };
 
 class RuntimeConstantRefNode : public ParseNode {
 protected:
-   ConstantEntry* ce;
+    ConstantEntry* ce;
 
-   virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-      return this;
-   }
+    virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+        return this;
+    }
 
-   virtual const QoreTypeInfo* getTypeInfo() const {
-      assert(ce->saved_node);
-      return getTypeInfoForValue(ce->saved_node);
-   }
+    virtual const QoreTypeInfo* getTypeInfo() const {
+        assert(ce->saved_node);
+        return getTypeInfoForValue(ce->saved_node);
+    }
 
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-      assert(ce->saved_node);
-      return ce->saved_node->evalValue(needs_deref, xsink);
-   }
+    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+        assert(ce->saved_node);
+        return ce->saved_node->evalValue(needs_deref, xsink);
+    }
 
-   DLLLOCAL ~RuntimeConstantRefNode() {
-      ce->deref();
-   }
+    DLLLOCAL ~RuntimeConstantRefNode() {
+        ce->deref();
+    }
 
 public:
-   DLLLOCAL RuntimeConstantRefNode(const QoreProgramLocation& loc, ConstantEntry* n_ce) : ParseNode(loc, NT_RTCONSTREF, true, false), ce(n_ce) {
-      assert(ce->saved_node);
-   }
+    DLLLOCAL RuntimeConstantRefNode(const QoreProgramLocation& loc, ConstantEntry* n_ce) : ParseNode(loc, NT_RTCONSTREF, true, false), ce(n_ce) {
+        assert(ce->saved_node);
+    }
 
-   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-      assert(ce->saved_node);
-      return ce->saved_node->getAsString(str, foff, xsink);
-   }
+    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+        assert(ce->saved_node);
+        return ce->saved_node->getAsString(str, foff, xsink);
+    }
 
-   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-      assert(ce->saved_node);
-      return ce->saved_node->getAsString(del, foff, xsink);
-   }
+    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+        assert(ce->saved_node);
+        return ce->saved_node->getAsString(del, foff, xsink);
+    }
 
-   DLLLOCAL virtual const char* getTypeName() const {
-      return ce->saved_node ? ce->saved_node->getTypeName() : "nothing";
-   }
+    DLLLOCAL virtual const char* getTypeName() const {
+        return ce->saved_node ? ce->saved_node->getTypeName() : "nothing";
+    }
 };
 
 #endif // _QORE_CONSTANTLIST_H

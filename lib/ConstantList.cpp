@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -166,97 +166,97 @@ void ConstantEntry::del(ExceptionSink* xsink) {
 }
 
 int ConstantEntry::parseInit(ClassNs ptr) {
-   //printd(5, "ConstantEntry::parseInit() this: %p '%s' pub: %d init: %d in_init: %d node: %p '%s' class context: %p '%s' ns: %p ('%s') pub: %d\n", this, name.c_str(), pub, init, in_init, node, get_type_name(node), ptr.getClass(), ptr.getClass() ? ptr.getClass()->name.c_str() : "<none>", ptr.getNs(), ptr.getNs() ? ptr.getNs()->name.c_str() : "<none>", ptr.getNs() ? ptr.getNs()->pub : 0);
+    //printd(5, "ConstantEntry::parseInit() this: %p '%s' pub: %d init: %d in_init: %d node: %p '%s' class context: %p '%s' ns: %p ('%s') pub: %d\n", this, name.c_str(), pub, init, in_init, node, get_type_name(node), ptr.getClass(), ptr.getClass() ? ptr.getClass()->name.c_str() : "<none>", ptr.getNs(), ptr.getNs() ? ptr.getNs()->name.c_str() : "<none>", ptr.getNs() ? ptr.getNs()->pub : 0);
 
-   if (init)
-      return 0;
+    if (init)
+        return 0;
 
-   if (in_init) {
-      parse_error(loc, "recursive constant reference found to constant '%s'", name.c_str());
-      return 0;
-   }
+    if (in_init) {
+        parse_error(loc, "recursive constant reference found to constant '%s'", name.c_str());
+        return 0;
+    }
 
-   ConstantEntryInitHelper ceih(*this);
+    ConstantEntryInitHelper ceih(*this);
 
-   if (!node)
-      return 0;
+    if (!node)
+        return 0;
 
-   int lvids = 0;
+    int lvids = 0;
 
-   {
-      // set parse location in case of errors
-      ParseLocationHelper plh(loc);
+    if (!builtin) {
+        // set parse location in case of errors
+        ParseLocationHelper plh(loc);
 
-      // push parse class context
-      qore_class_private* p = ptr.getClass();
-      QoreParseClassHelper qpch(p ? p->cls : nullptr);
+        // push parse class context
+        qore_class_private* p = ptr.getClass();
+        QoreParseClassHelper qpch(p ? p->cls : nullptr);
 
-      // ensure that there is no accessible local variable state
-      VariableBlockHelper vbh;
+        // ensure that there is no accessible local variable state
+        VariableBlockHelper vbh;
 
-      // set parse options and warning mask for this statement
-      ParseWarnHelper pwh(pwo);
+        // set parse options and warning mask for this statement
+        ParseWarnHelper pwh(pwo);
 
-      //printd(5, "ConstantEntry::parseInit() this: %p '%s' about to init node: %p '%s' class: %p '%s'\n", this, name.c_str(), node, get_type_name(node), p, p ? p->name.c_str() : "n/a");
-      if (typeInfo)
-         typeInfo = nullptr;
+        //printd(5, "ConstantEntry::parseInit() this: %p '%s' about to init node: %p '%s' class: %p '%s'\n", this, name.c_str(), node, get_type_name(node), p, p ? p->name.c_str() : "n/a");
+        if (typeInfo)
+            typeInfo = nullptr;
 
-      node = node->parseInit((LocalVar*)0, PF_CONST_EXPRESSION, lvids, typeInfo);
-   }
+        node = node->parseInit((LocalVar*)0, PF_CONST_EXPRESSION, lvids, typeInfo);
+    }
 
-   //printd(5, "ConstantEntry::parseInit() this: %p %s initialized to node: %p (%s) value: %d type: '%s'\n", this, name.c_str(), node, get_type_name(node), node->is_value(), QoreTypeInfo::getName(typeInfo));
+    //printd(5, "ConstantEntry::parseInit() this: %p %s initialized to node: %p (%s) value: %d type: '%s'\n", this, name.c_str(), node, get_type_name(node), node->is_value(), QoreTypeInfo::getName(typeInfo));
 
-   if (node->is_value()) {
-      if (!QoreTypeInfo::hasType(typeInfo))
-         typeInfo = getTypeInfoForValue(node);
-      return 0;
-   }
-
-   // do not evaluate expression if any parse exceptions have been thrown
-   QoreProgram* pgm = getProgram();
-   if (pgm->parseExceptionRaised()) {
-      discard(node, nullptr);
-      node = nullptr;
-      typeInfo = nothingTypeInfo;
-      return -1;
-   }
-
-   // evaluate expression
-   ExceptionSink xsink;
-   {
-      ReferenceHolder<AbstractQoreNode> v(node->eval(&xsink), &xsink);
-
-      //printd(5, "ConstantEntry::parseInit() this: %p %s evaluated to node: %p (%s)\n", this, name.c_str(), *v, get_type_name(*v));
-
-      if (!xsink) {
-         node->deref(&xsink);
-         node = v.release();
-         if (!node) {
-            node = nothing();
-            typeInfo = nothingTypeInfo;
-         }
-         else {
+    if (node->is_value()) {
+        if (!QoreTypeInfo::hasType(typeInfo))
             typeInfo = getTypeInfoForValue(node);
-            //printd(5, "ConstantEntry::parseInit() this: %p ti: '%s'\n", this, QoreTypeInfo::getName(typeInfo));
-         }
-      }
-      else {
-         node->deref(&xsink);
-         node = nullptr;
-         typeInfo = nothingTypeInfo;
-      }
-   }
+        return 0;
+    }
 
-   if (xsink.isEvent())
-      qore_program_private::addParseException(pgm, xsink, &loc);
+    // do not evaluate expression if any parse exceptions have been thrown
+    QoreProgram* pgm = getProgram();
+    if (pgm->parseExceptionRaised()) {
+        discard(node, nullptr);
+        node = nullptr;
+        typeInfo = nothingTypeInfo;
+        return -1;
+    }
 
-   // scan for call references
-   if (scanValue(node)) {
-      saved_node = node;
-      node = new RuntimeConstantRefNode(loc, refSelf());
-   }
+    // evaluate expression
+    ExceptionSink xsink;
+    {
+        ReferenceHolder<AbstractQoreNode> v(node->eval(&xsink), &xsink);
 
-   return 0;
+        //printd(5, "ConstantEntry::parseInit() this: %p %s evaluated to node: %p (%s)\n", this, name.c_str(), *v, get_type_name(*v));
+
+        if (!xsink) {
+            node->deref(&xsink);
+            node = v.release();
+            if (!node) {
+                node = nothing();
+                typeInfo = nothingTypeInfo;
+            }
+            else {
+                typeInfo = getTypeInfoForValue(node);
+                //printd(5, "ConstantEntry::parseInit() this: %p ti: '%s'\n", this, QoreTypeInfo::getName(typeInfo));
+            }
+        }
+        else {
+            node->deref(&xsink);
+            node = nullptr;
+            typeInfo = nothingTypeInfo;
+        }
+    }
+
+    if (xsink.isEvent())
+        qore_program_private::addParseException(pgm, xsink, &loc);
+
+    // scan for call references
+    if (scanValue(node)) {
+        saved_node = node;
+        node = new RuntimeConstantRefNode(loc, refSelf());
+    }
+
+    return 0;
 }
 
 ConstantList::ConstantList(const ConstantList& old, int64 po, ClassNs p) : ptr(p) {
@@ -434,62 +434,56 @@ void ConstantList::assimilate(ConstantList& n) {
       assert(!inList(i->first));
       // "move" data to new list
       cnemap[i->first] = i->second;
-      i->second = 0;
+      i->second = nullptr;
    }
 
    n.parseDeleteAll();
 }
 
 // duplicate checking is done here
-void ConstantList::assimilate(ConstantList& n, ConstantList& otherlist, const char* type, const char* name) {
-   // assimilate target list
-   for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
-      if (inList(i->first)) {
-         parse_error(i->second->loc, "constant \"%s\" is already pending in %s \"%s\"", i->first, type, name);
-         continue;
-      }
+void ConstantList::assimilate(ConstantList& n, const char* type, const char* name, const ConstantList* other) {
+    // assimilate target list
+    for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
+        if (inList(i->first)) {
+            parse_error(i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
+            continue;
+        }
 
-      if (otherlist.inList(i->first)) {
-         parse_error(i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
-         continue;
-      }
+        if (other && other->inList(i->first)) {
+            parse_error(i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
+            continue;
+        }
 
-      cnemap[i->first] = i->second;
-      i->second = 0;
-   }
+        cnemap[i->first] = i->second;
+        i->second = nullptr;
+    }
 
-   n.parseDeleteAll();
+    n.parseDeleteAll();
 }
 
-void ConstantList::parseAdd(const QoreProgramLocation& loc, const std::string& name, AbstractQoreNode* val, ConstantList& committed, ClassAccess access, const char* cname) {
-   if (inList(name)) {
-      parse_error(loc, "constant \"%s\" is already pending in class \"%s\"", name.c_str(), cname);
-      discard(val, 0);
-      return;
-   }
+void ConstantList::parseAdd(const QoreProgramLocation& loc, const std::string& name, AbstractQoreNode* val, ClassAccess access, const char* cname) {
+    if (inList(name)) {
+        parse_error(loc, "constant \"%s\" has already been defined in class \"%s\"", name.c_str(), cname);
+        discard(val, 0);
+        return;
+    }
 
-   if (committed.inList(name)) {
-      parse_error(loc, "constant \"%s\" has already been defined in class \"%s\"", name.c_str(), cname);
-      discard(val, 0);
-      return;
-   }
-
-   ConstantEntry* ce = new ConstantEntry(loc, name.c_str(), val, getTypeInfoForValue(val), false, false, false, access);
-   cnemap[ce->getName()] = ce;
+    ConstantEntry* ce = new ConstantEntry(loc, name.c_str(), val, getTypeInfoForValue(val), false, false, false, access);
+    cnemap[ce->getName()] = ce;
 }
 
 void ConstantList::parseInit() {
-   for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
-      //printd(5, "ConstantList::parseInit() this: %p '%s' %p (class: %p '%s' ns: %p '%s')\n", this, i->first, i->second->node, ptr.getClass(), ptr.getClass() ? ptr.getClass()->name.c_str() : "n/a", ptr.getNs(), ptr.getNs() ? ptr.getNs()->name.c_str() : "n/a");
-      i->second->parseInit(ptr);
-   }
+    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
+        //printd(5, "ConstantList::parseInit() this: %p '%s' %p (class: %p '%s' ns: %p '%s')\n", this, i->first, i->second->node, ptr.getClass(), ptr.getClass() ? ptr.getClass()->name.c_str() : "n/a", ptr.getNs(), ptr.getNs() ? ptr.getNs()->name.c_str() : "n/a");
+        i->second->parseInit(ptr);
+    }
 }
 
 QoreHashNode* ConstantList::getInfo() {
-   QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode;
 
-   for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i)
-      h->setKeyValue(i->first, i->second->node->refSelf(), 0);
+    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i)
+        h->setKeyValue(i->first, i->second->node->refSelf(), nullptr);
 
-   return h;
+    return h;
 }

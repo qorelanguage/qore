@@ -2257,105 +2257,106 @@ int qore_ns_private::parseAddMethodToClass(const QoreProgramLocation& loc, const
 }
 
 void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, QoreModuleContext& qmc) const {
-   //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s' mns: %p '%s'\n", this, name.c_str(), &mns, mns.name.c_str());
+    //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s' mns: %p '%s'\n", this, name.c_str(), &mns, mns.name.c_str());
 
-   // make sure there are no objects in the pending lists
-   assert(mns.pendNSL.empty());
-   assert(mns.pendConstant.empty());
-   assert(mns.pendClassList.empty());
-   assert(mns.pendHashDeclList.empty());
-   assert(mns.var_list.pending_vmap.empty());
+    // make sure there are no objects in the pending lists
+    assert(mns.pendNSL.empty());
+    assert(mns.pendConstant.empty());
+    assert(mns.pendClassList.empty());
+    assert(mns.pendHashDeclList.empty());
+    assert(mns.var_list.pending_vmap.empty());
 
-   // check user constants
-   {
-      ConstConstantListIterator cli(mns.constant);
-      while (cli.next()) {
-         if (!cli.isUserPublic())
+    // check user constants
+    {
+        ConstConstantListIterator cli(mns.constant);
+        while (cli.next()) {
+            if (!cli.isUserPublic())
+                continue;
+            if (constant.inList(cli.getName()))
+                qmc.error("duplicate constant %s::%s", name.c_str(), cli.getName().c_str());
+            else if (pendConstant.inList(cli.getName()))
+                qmc.error("duplicate pending constant %s::%s", name.c_str(), cli.getName().c_str());
+        }
+    }
+
+    // check user classes
+    {
+        ConstClassListIterator cli(mns.classList);
+        while (cli.next()) {
+            if (!cli.isUserPublic())
+                continue;
+
+            const QoreClass* c = classList.find(cli.getName());
+            if (c) {
+                // ignore if the class is injected or already imported
+                if (qore_class_private::get(*c) != qore_class_private::get(*cli.get()) &&
+                    !qore_class_private::injected(*c))
+                qmc.error("duplicate class %s::%s", name.c_str(), cli.getName());
+            }
+            else if (pendClassList.find(cli.getName()))
+                qmc.error("duplicate pending class %s::%s", name.c_str(), cli.getName());
+            else if (hashDeclList.find(cli.getName()))
+                qmc.error("duplicate hashdecl %s::%s", name.c_str(), cli.getName());
+            else if (pendHashDeclList.find(cli.getName()))
+                qmc.error("duplicate pending hashdecl %s::%s", name.c_str(), cli.getName());
+        }
+    }
+
+    // check user functions
+    for (fl_map_t::const_iterator i = mns.func_list.begin(), e = mns.func_list.end(); i != e; ++i) {
+        if (!i->second->isUserPublic())
             continue;
-         if (constant.inList(cli.getName()))
-            qmc.error("duplicate constant %s::%s", name.c_str(), cli.getName().c_str());
-         else if (pendConstant.inList(cli.getName()))
-            qmc.error("duplicate pending constant %s::%s", name.c_str(), cli.getName().c_str());
-      }
-   }
 
-   // check user classes
-   {
-      ConstClassListIterator cli(mns.classList);
-      while (cli.next()) {
-         if (!cli.isUserPublic())
+        FunctionEntry* fe = func_list.findNode(i->first);
+        if (fe && !fe->getFunction()->injected())
+            qmc.error("duplicate function %s::%s()", name.c_str(), i->first);
+        //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' looking for function '%s' (%d)\n", this, name.c_str(), i->first, func_list.findNode(i->first));
+    }
+
+    // check user variables
+    for (map_var_t::const_iterator i = mns.var_list.vmap.begin(), e = mns.var_list.vmap.end(); i != e; ++i) {
+        if (!i->second->isPublic())
             continue;
+        if (var_list.vmap.find(i->first) != var_list.vmap.end())
+            qmc.error("duplicate global variable %s::%s", name.c_str(), i->first);
+        else if (var_list.pending_vmap.find(i->first) != var_list.pending_vmap.end())
+            qmc.error("duplicate pending global variable %s::%s", name.c_str(), i->first);
+    }
 
-         const QoreClass* c = classList.find(cli.getName());
-         if (c) {
-             if (qore_class_private::get(*c) != qore_class_private::get(*cli.get()) &&
-                !qore_class_private::injected(*c))
-               qmc.error("duplicate class %s::%s", name.c_str(), cli.getName());
-         }
-         else if (pendClassList.find(cli.getName()))
-            qmc.error("duplicate pending class %s::%s", name.c_str(), cli.getName());
-         else if (hashDeclList.find(cli.getName()))
-            qmc.error("duplicate hashdecl %s::%s", name.c_str(), cli.getName());
-         else if (pendHashDeclList.find(cli.getName()))
-            qmc.error("duplicate pending hashdecl %s::%s", name.c_str(), cli.getName());
-      }
-   }
+    bool in_mod = parse_check_parse_option(PO_IN_MODULE);
 
-   // check user functions
-   for (fl_map_t::const_iterator i = mns.func_list.begin(), e = mns.func_list.end(); i != e; ++i) {
-      if (!i->second->isUserPublic())
-         continue;
+    // check subnamespaces
+    for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
+        if (!qore_ns_private::isUserPublic(*i->second))
+            continue;
+        // see if a subnamespace with the same name exists
+        const QoreNamespace* cns = nsl.find(i->first);
+        if (!cns)
+            cns = pendNSL.find(i->first);
 
-      FunctionEntry* fe = func_list.findNode(i->first);
-      if (fe && !fe->getFunction()->injected())
-         qmc.error("duplicate function %s::%s()", name.c_str(), i->first);
-      //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' looking for function '%s' (%d)\n", this, name.c_str(), i->first, func_list.findNode(i->first));
-   }
+        //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' checking %p '%s::' (pub: %d) cns: %p (pub: %d)\n", this, name.c_str(), i->second, i->second->getName(), i->second->priv->pub, cns, cns ? cns->priv->pub : false);
+        if (!i->second->priv->pub) {
+            if (in_mod && cns && cns->priv->pub)
+                qmc.error("cannot merge existing public namespace '%s' with new private namespace of the same name; namespace '%s::%s' is declared both with and without the 'public' keyword", cns->getName(), name.c_str(), i->first.c_str());
 
-   // check user variables
-   for (map_var_t::const_iterator i = mns.var_list.vmap.begin(), e = mns.var_list.vmap.end(); i != e; ++i) {
-      if (!i->second->isPublic())
-         continue;
-      if (var_list.vmap.find(i->first) != var_list.vmap.end())
-         qmc.error("duplicate global variable %s::%s", name.c_str(), i->first);
-      else if (var_list.pending_vmap.find(i->first) != var_list.pending_vmap.end())
-         qmc.error("duplicate pending global variable %s::%s", name.c_str(), i->first);
-   }
+            continue;
+        }
 
-   bool in_mod = parse_check_parse_option(PO_IN_MODULE);
-
-   // check subnamespaces
-   for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
-      if (!qore_ns_private::isUserPublic(*i->second))
-         continue;
-      // see if a subnamespace with the same name exists
-      const QoreNamespace* cns = nsl.find(i->first);
-      if (!cns)
-         cns = pendNSL.find(i->first);
-
-      //printd(5, "qore_ns_private::scanMergeCommittedNamespace() this: %p '%s::' checking %p '%s::' (pub: %d) cns: %p (pub: %d)\n", this, name.c_str(), i->second, i->second->getName(), i->second->priv->pub, cns, cns ? cns->priv->pub : false);
-      if (!i->second->priv->pub) {
-         if (in_mod && cns && cns->priv->pub)
-            qmc.error("cannot merge existing public namespace '%s' with new private namespace of the same name; namespace '%s::%s' is declared both with and without the 'public' keyword", cns->getName(), name.c_str(), i->first.c_str());
-
-         continue;
-      }
-
-      // see if a class with the same name is present
-      if (classList.find(i->first.c_str())) {
-         qmc.error("namespace '%s::%s' clashes with an existing class of the same name", name.c_str(), i->first.c_str());
-         continue;
-      }
-      // see if a pending class with the same name is present
-      if (pendClassList.find(i->first.c_str())) {
-         qmc.error("namespace '%s::%s' clashes with a pending class of the same name", name.c_str(), i->first.c_str());
-         continue;
-      }
-      if (cns) {
-         cns->priv->scanMergeCommittedNamespace(*(i->second->priv), qmc);
-         continue;
-      }
-   }
+        // see if a class with the same name is present
+        if (classList.find(i->first.c_str())) {
+            qmc.error("namespace '%s::%s' clashes with an existing class of the same name", name.c_str(), i->first.c_str());
+            continue;
+        }
+        // see if a pending class with the same name is present
+        if (pendClassList.find(i->first.c_str())) {
+            qmc.error("namespace '%s::%s' clashes with a pending class of the same name", name.c_str(), i->first.c_str());
+            continue;
+        }
+        if (cns) {
+            cns->priv->scanMergeCommittedNamespace(*(i->second->priv), qmc);
+            continue;
+        }
+    }
 }
 
 void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
@@ -2418,7 +2419,7 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
 
    // assimilate pending constants
    // assimilate target list - if there were errors then the list will be deleted anyway
-   pendConstant.assimilate(pns->pendConstant, constant, "namespace", name.c_str());
+   pendConstant.assimilate(pns->pendConstant, "namespace", name.c_str(), &constant);
 
    // assimilate classes
    pendClassList.assimilate(pns->pendClassList, *this);

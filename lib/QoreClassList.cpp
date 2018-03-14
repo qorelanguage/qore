@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -104,20 +104,21 @@ QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private
 }
 
 void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* ns) {
-   for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
-      if (!qore_class_private::isUserPublic(*i->second))
-         continue;
+    for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
+        if (!qore_class_private::isUserPublic(*i->second))
+            continue;
 
-      QoreClass* qc = find(i->first);
-      if (qc) {
-         assert(qore_class_private::injected(*qc) || qore_class_private::get(*qc) == qore_class_private::get(*i->second));
-         continue;
-      }
+        QoreClass* qc = find(i->first);
+        if (qc) {
+            // the class must be injected or already imported
+            assert(qore_class_private::injected(*qc) || qore_class_private::get(*qc) == qore_class_private::get(*i->second));
+            continue;
+        }
 
-      qc = new QoreClass(*i->second);
-      qore_class_private::setNamespace(qc, ns);
-      addInternal(qc);
-   }
+        qc = new QoreClass(*i->second);
+        qore_class_private::setNamespace(qc, ns);
+        addInternal(qc);
+    }
 }
 
 int QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_private* ns, ExceptionSink* xsink) {
