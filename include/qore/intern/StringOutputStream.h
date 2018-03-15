@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation strings (the "Software"),
@@ -33,12 +33,12 @@
 #define _QORE_STRINGOUTPUTSTREAM_H
 
 #include <stdint.h>
-#include "qore/intern/OutputStreamBase.h"
+#include "qore/OutputStream.h"
 
 /**
  * @brief Private data for the Qore::StringOutputStream class.
  */
-class StringOutputStream : public OutputStreamBase {
+class StringOutputStream : public OutputStream {
 
 public:
    DLLLOCAL StringOutputStream() : StringOutputStream(QCS_DEFAULT) {
