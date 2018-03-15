@@ -25,6 +25,21 @@
     - fixed a bug affecting class initialization with out of order initialization (<a href="https://github.com/qorelanguage/qore/issues/2657">issue 2657</a>)
     - fixed a bug where a crash would result when evaluting certain expressions in the @ref background "brackground operator" due to a memory error (<a href="https://github.com/qorelanguage/qore/issues/2679">issue 2679</a>)
     - fixed @ref date_formatting "date formatting" output with the \c Z placeholder to always output the UTC offset as documented (<a href="https://github.com/qorelanguage/qore/issues/2684">issue 2684</a>)
+    - fixed program thread context to return frames properly (<a href="https://github.com/qorelanguage/qore/issues/2674">issue 2674</a>)
+
+    - improved debugging support:
+      - support for VSCode debug adapter
+      - get source file from debug server
+      - set options via command line (verbosity etc.)
+      - onAttach() event executed in sync way when program thread context starting
+      - onDetach() event executed properly when program thread context terminates
+      - onStep() provides also potential breakpointId
+      - new onExit() event
+      - onException() fix
+      - server command supports frameid as parameter
+      - ProgramControl::getSourceFileNames() and ProgramControl::getSourceLabels methods
+      - new module:
+        - <a href="../../modules/DebugLinenoiseCmdLine/html/index.html">DebuLinenoiseCmdLine</a>
 
     @section qore_08132 Qore 0.8.13.2
 
