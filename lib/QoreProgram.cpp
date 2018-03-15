@@ -1482,34 +1482,35 @@ AbstractQoreNode* QoreProgram::runTopLevel(ExceptionSink* xsink) {
 }
 
 AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
-   SimpleRefHolder<FunctionCallNode> fc;
+    SimpleRefHolder<FunctionCallNode> fc;
 
-   printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
+    printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
 
-   const qore_ns_private* ns = 0;
-   const QoreFunction* qf;
+    //const qore_ns_private* ns = nullptr;
+    //const QoreFunction* qf;
+    const FunctionEntry* fe;
 
-   // need to grab parse lock for safe access to the user function map and imported function map
-   {
-      ProgramRuntimeParseAccessHelper pah(xsink, this);
-      if (*xsink)
-         return 0;
-      qf = qore_root_ns_private::runtimeFindFunction(*priv->RootNS, name, ns);
-   }
+    // need to grab parse lock for safe access to the user function map and imported function map
+    {
+        ProgramRuntimeParseAccessHelper pah(xsink, this);
+        if (*xsink)
+            return nullptr;
+        fe = qore_root_ns_private::runtimeFindFunctionEntry(*priv->RootNS, name);
+    }
 
-   if (!qf) {
-      xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
-      return 0;
-   }
+    if (!fe) {
+        xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
+        return nullptr;
+    }
 
-   // we assign the args to 0 below so that they will not be deleted
-   fc = new FunctionCallNode(get_runtime_location(), qf, const_cast<QoreListNode*>(args), this);
-   AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : 0;
+    // we assign the args to 0 below so that they will not be deleted
+    fc = new FunctionCallNode(get_runtime_location(), fe, const_cast<QoreListNode*>(args), this);
+    AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : nullptr;
 
-   // let caller delete function arguments if necessary
-   fc->takeArgs();
+    // let caller delete function arguments if necessary
+    fc->takeArgs();
 
-   return rv;
+    return rv;
 }
 
 void QoreProgram::parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {

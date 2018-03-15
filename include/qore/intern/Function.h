@@ -597,7 +597,6 @@ struct IList : public ilist_t {
 class QoreFunction : protected QoreReferenceCounter {
 protected:
     std::string name;
-    qore_ns_private* ns;
 
     // list of function variants
     VList vlist;
@@ -606,24 +605,27 @@ protected:
     IList ilist;
 
     // if true means all variants have the same return value
-    bool same_return_type;
-    int64 unique_functionality;
-    int64 unique_flags;
+    int64 unique_functionality = QDOM_DEFAULT;
+    int64 unique_flags = QC_NO_FLAGS;
 
     // same as above but for variants without QC_RUNTIME_NOOP
-    bool nn_same_return_type;
-    int64 nn_unique_functionality;
-    int64 nn_unique_flags;
-    int nn_count;
-    bool parse_rt_done;
-    bool parse_init_done;
-    bool has_user;                   // has at least 1 committed user variant
-    bool has_builtin;                // has at least 1 committed builtin variant
-    bool has_mod_pub;                // has at least 1 committed user variant with public visibility
-    bool inject;
-    bool check_parse = false;
+    int64 nn_unique_functionality = QDOM_DEFAULT;
+    int64 nn_unique_flags = QC_NO_FLAGS;
+    int nn_count = 0;
 
-    const QoreTypeInfo* nn_uniqueReturnType;
+    bool same_return_type : 1;
+    bool nn_same_return_type : 1;
+    bool parse_rt_done : 1;
+    bool parse_init_done : 1;
+    bool has_user : 1;                   // has at least 1 committed user variant
+    bool has_builtin : 1;                // has at least 1 committed builtin variant
+    bool has_pub : 1;                    // has at least 1 committed user variant with public visibility
+    bool inject : 1;
+    bool check_parse : 1;
+    bool has_priv : 1;                   // has at least 1 private variant
+    bool all_priv : 1;                   // all variants are private
+
+    const QoreTypeInfo* nn_uniqueReturnType = nullptr;
 
     DLLLOCAL void parseCheckReturnType() {
         if (parse_rt_done)
@@ -650,249 +652,253 @@ protected:
        //printd(5, "QoreFunction::parseCheckReturnType() '%s' srt: %d\n", name.c_str(), same_return_type);
     }
 
-   // returns QTI_NOT_EQUAL, QTI_AMBIGUOUS, or QTI_IDENT
-   DLLLOCAL static int parseCompareResolvedSignature(const VList& vlist, const AbstractFunctionSignature* sig, const AbstractFunctionSignature*& vs);
+    // returns QTI_NOT_EQUAL, QTI_AMBIGUOUS, or QTI_IDENT
+    DLLLOCAL static int parseCompareResolvedSignature(const VList& vlist, const AbstractFunctionSignature* sig, const AbstractFunctionSignature*& vs);
 
-   // returns 0 for OK (not a duplicate), -1 for error (duplicate) - parse exceptions are raised if a duplicate is found
-   DLLLOCAL int parseCheckDuplicateSignature(AbstractQoreFunctionVariant* variant);
+    // returns 0 for OK (not a duplicate), -1 for error (duplicate) - parse exceptions are raised if a duplicate is found
+    DLLLOCAL int parseCheckDuplicateSignature(AbstractQoreFunctionVariant* variant);
 
-   // FIXME: does not check unparsed types properly
-   DLLLOCAL void addVariant(AbstractQoreFunctionVariant* variant) {
-      const QoreTypeInfo* rti = variant->getReturnTypeInfo();
-      if (same_return_type && !vlist.empty() && !QoreTypeInfo::isOutputIdentical(rti, first()->getReturnTypeInfo()))
-         same_return_type = false;
+    // FIXME: does not check unparsed types properly
+    DLLLOCAL void addVariant(AbstractQoreFunctionVariant* variant) {
+        const QoreTypeInfo* rti = variant->getReturnTypeInfo();
+        if (same_return_type && !vlist.empty() && !QoreTypeInfo::isOutputIdentical(rti, first()->getReturnTypeInfo()))
+            same_return_type = false;
 
-      int64 vf = variant->getFunctionality();
-      int64 vflags = variant->getFlags();
+        int64 vf = variant->getFunctionality();
+        int64 vflags = variant->getFlags();
 
-      bool rtn = (bool)(vflags & QC_RUNTIME_NOOP);
+        bool rtn = (bool)(vflags & QC_RUNTIME_NOOP);
 
-      if (vlist.empty()) {
-         unique_functionality = vf;
-         unique_flags = vflags;
-      }
-      else {
-         unique_functionality &= vf;
-         unique_flags &= vflags;
-      }
+        if (vlist.empty()) {
+            unique_functionality = vf;
+            unique_flags = vflags;
+        }
+        else {
+            unique_functionality &= vf;
+            unique_flags &= vflags;
+        }
 
-      if (!rtn) {
-         if (!nn_count) {
-            nn_unique_functionality = vf;
-            nn_unique_flags = vflags;
-            nn_uniqueReturnType = rti;
-            ++nn_count;
-         }
-         else {
-            nn_unique_functionality &= vf;
-            nn_unique_flags &= vflags;
-            if (nn_uniqueReturnType && !QoreTypeInfo::isOutputIdentical(rti, nn_uniqueReturnType))
-               nn_uniqueReturnType = 0;
-            ++nn_count;
-         }
-      }
+        if (!rtn) {
+            if (!nn_count) {
+                nn_unique_functionality = vf;
+                nn_unique_flags = vflags;
+                nn_uniqueReturnType = rti;
+                ++nn_count;
+            }
+            else {
+                nn_unique_functionality &= vf;
+                nn_unique_flags &= vflags;
+                if (nn_uniqueReturnType && !QoreTypeInfo::isOutputIdentical(rti, nn_uniqueReturnType))
+                nn_uniqueReturnType = 0;
+                ++nn_count;
+            }
+        }
 
-      vlist.push_back(variant);
-   }
+        vlist.push_back(variant);
+    }
 
-   DLLLOCAL virtual ~QoreFunction() {
-      //printd(5, "QoreFunction::~QoreFunction() this: %p %s\n", this, name.c_str());
-   }
+    DLLLOCAL virtual ~QoreFunction() {
+        //printd(5, "QoreFunction::~QoreFunction() this: %p %s\n", this, name.c_str());
+    }
 
 public:
-   DLLLOCAL QoreFunction(const char* n_name, qore_ns_private* n = 0)
-      : name(n_name), ns(n), same_return_type(true),
-        unique_functionality(QDOM_DEFAULT), unique_flags(QC_NO_FLAGS),
-        nn_same_return_type(true), nn_unique_functionality(QDOM_DEFAULT),
-        nn_unique_flags(QC_NO_FLAGS), nn_count(0), parse_rt_done(true),
-        parse_init_done(true), has_user(false), has_builtin(false), has_mod_pub(false), inject(false),
-        nn_uniqueReturnType(0) {
-      ilist.push_back(INode(this, Public));
-      //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
-   }
+    DLLLOCAL QoreFunction(const char* n_name) : name(n_name),
+        same_return_type(true),
+        nn_same_return_type(true),
+        parse_rt_done(true),
+        parse_init_done(true),
+        has_user(false),
+        has_builtin(false),
+        has_pub(false),
+        inject(false),
+        check_parse(false),
+        has_priv(false),
+        all_priv(true) {
+        ilist.push_back(INode(this, Public));
+        //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
+    }
 
-   // copy constructor (used by method functions when copied)
-   DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = 0, qore_ns_private* n = 0, bool copy_all = false, bool n_inject = false)
-      : name(old.name), ns(n), same_return_type(old.same_return_type),
-        unique_functionality(old.unique_functionality),
-        unique_flags(old.unique_flags),
-        nn_same_return_type(old.nn_same_return_type),
-        nn_unique_functionality(old.nn_unique_functionality),
-        nn_unique_flags(old.nn_unique_flags),
-        nn_count(old.nn_count),
-        parse_rt_done(true), parse_init_done(true),
-        has_user(old.has_user), has_builtin(old.has_builtin), has_mod_pub(false), inject(n_inject),
-        nn_uniqueReturnType(old.nn_uniqueReturnType) {
-      bool no_user = po & PO_NO_INHERIT_USER_FUNC_VARIANTS;
-      bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
+    // copy constructor (used by method functions when copied)
+    DLLLOCAL QoreFunction(const QoreFunction& old, int64 po = 0, bool copy_all = false, bool n_inject = false)
+        : name(old.name),
+            unique_functionality(old.unique_functionality),
+            unique_flags(old.unique_flags),
+            nn_unique_functionality(old.nn_unique_functionality),
+            nn_unique_flags(old.nn_unique_flags),
+            nn_count(old.nn_count),
+            same_return_type(old.same_return_type),
+            nn_same_return_type(old.nn_same_return_type),
+            parse_rt_done(true),
+            parse_init_done(true),
+            has_user(old.has_user),
+            has_builtin(old.has_builtin),
+            has_pub(false),
+            inject(n_inject),
+            check_parse(false),
+            has_priv(old.has_priv),
+            all_priv(old.all_priv),
+            nn_uniqueReturnType(old.nn_uniqueReturnType) {
+        bool no_user = po & PO_NO_INHERIT_USER_FUNC_VARIANTS;
+        bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
 
-      // copy variants by reference
-      for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
-         if (!copy_all) {
-            if ((*i)->isUser()) {
-               if (no_user || !(*i)->isModulePublic())
-                  continue;
+        // copy variants by reference
+        for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
+            if (!copy_all) {
+                if ((*i)->isUser()) {
+                if (no_user || !(*i)->isModulePublic())
+                    continue;
+                }
+                else
+                if (no_builtin)
+                    continue;
             }
-            else
-               if (no_builtin)
-                  continue;
-         }
 
-         vlist.push_back((*i)->ref());
-      }
+            vlist.push_back((*i)->ref());
+        }
 
-      if (no_user && has_user)
-         has_user = false;
-      if (no_builtin && has_builtin)
-         has_builtin = false;
+        if (no_user && has_user)
+            has_user = false;
+        if (no_builtin && has_builtin)
+            has_builtin = false;
 
-      // make sure the new variant list is not empty if the parent also wasn't
-      assert(old.vlist.empty() || !vlist.empty());
+        // make sure the new variant list is not empty if the parent also wasn't
+        assert(old.vlist.empty() || !vlist.empty());
 
-      assert(!old.ilist.empty());
-      assert(old.ilist.front().func == &old);
+        assert(!old.ilist.empty());
+        assert(old.ilist.front().func == &old);
 
-      // resolve initial ilist entry to this function
-      ilist.push_back(INode(this, Public));
+        // resolve initial ilist entry to this function
+        ilist.push_back(INode(this, Public));
 
-      // the rest of ilist is copied in method base class
-      // do not copy pending variants
-      //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
-   }
+        // the rest of ilist is copied in method base class
+        // do not copy pending variants
+        //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
+    }
 
 #if 0
-   // copy constructor when importing public user variants from user modules into Program objects
-   DLLLOCAL QoreFunction(bool ignore, const QoreFunction& old, qore_ns_private* nns)
-      : name(old.name), ns(nns), same_return_type(old.same_return_type),
-        unique_functionality(old.unique_functionality),
-        unique_flags(old.unique_flags),
-        nn_same_return_type(old.nn_same_return_type),
-        nn_unique_functionality(old.nn_unique_functionality),
-        nn_unique_flags(old.nn_unique_flags),
-        nn_count(old.nn_count),
-        parse_rt_done(true), parse_init_done(true),
-        has_user(true), has_builtin(false), has_mod_pub(false /*old.has_mod_pub*/), inject(false),
-        nn_uniqueReturnType(old.nn_uniqueReturnType) {
-      assert(!ignore);
-      assert(old.has_mod_pub);
+    // copy constructor when importing public user variants from user modules into Program objects
+    DLLLOCAL QoreFunction(bool ignore, const QoreFunction& old, qore_ns_private* nns)
+        : name(old.name), ns(nns), same_return_type(old.same_return_type),
+            unique_functionality(old.unique_functionality),
+            unique_flags(old.unique_flags),
+            nn_same_return_type(old.nn_same_return_type),
+            nn_unique_functionality(old.nn_unique_functionality),
+            nn_unique_flags(old.nn_unique_flags),
+            nn_count(old.nn_count),
+            parse_rt_done(true), parse_init_done(true),
+            has_user(true), has_builtin(false), has_mod_pub(false /*old.has_mod_pub*/), inject(false),
+            nn_uniqueReturnType(old.nn_uniqueReturnType) {
+        assert(!ignore);
+        assert(old.has_mod_pub);
 
-      // copy variants by reference
-      for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
-         if (!(*i)->isModulePublic())
-            continue;
-         vlist.push_back((*i)->ref());
-      }
+        // copy variants by reference
+        for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
+            if (!(*i)->isModulePublic())
+                continue;
+            vlist.push_back((*i)->ref());
+        }
 
-      // make sure the new variant list is not empty if the parent also wasn't
-      assert(old.vlist.empty() || !vlist.empty());
+        // make sure the new variant list is not empty if the parent also wasn't
+        assert(old.vlist.empty() || !vlist.empty());
 
-      assert(!old.ilist.empty());
-      assert(old.ilist.front().func == &old);
+        assert(!old.ilist.empty());
+        assert(old.ilist.front().func == &old);
 
-      // resolve initial ilist entry to this function
-      ilist.push_back(INode(this, Public));
+        // resolve initial ilist entry to this function
+        ilist.push_back(INode(this, Public));
 
-      // the rest of ilist is copied in method base class
-      // do not copy pending variants
-      //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
-   }
+        // the rest of ilist is copied in method base class
+        // do not copy pending variants
+        //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
+    }
 #endif
 
-   // convenience function for returning the first variant in the list
-   DLLLOCAL const AbstractQoreFunctionVariant* first() const {
-      assert(!vlist.empty());
-      return *(vlist.begin());
-   }
+    // convenience function for returning the first variant in the list
+    DLLLOCAL const AbstractQoreFunctionVariant* first() const {
+        assert(!vlist.empty());
+        return *(vlist.begin());
+    }
 
-   // convenience function for returning the first variant in the list
-   DLLLOCAL AbstractQoreFunctionVariant* first() {
-      assert(!vlist.empty());
-      return *(vlist.begin());
-   }
+    // convenience function for returning the first variant in the list
+    DLLLOCAL AbstractQoreFunctionVariant* first() {
+        assert(!vlist.empty());
+        return *(vlist.begin());
+    }
 
-   DLLLOCAL QoreValueList* runtimeGetCallVariants() const;
+    DLLLOCAL QoreValueList* runtimeGetCallVariants() const;
 
-   DLLLOCAL qore_ns_private* getNamespace() const {
-      return ns;
-   }
+    // returns 0 for OK, -1 for error
+    DLLLOCAL int parseCheckDuplicateSignatureCommitted(UserSignature* sig);
 
-   // used when merging namespaces at parse-time
-   DLLLOCAL void updateNs(qore_ns_private* nns) {
-      ns = nns;
-   }
+    DLLLOCAL const char* getName() const {
+        return name.c_str();
+    }
 
-   // returns 0 for OK, -1 for error
-   DLLLOCAL int parseCheckDuplicateSignatureCommitted(UserSignature* sig);
+    DLLLOCAL virtual const QoreClass* getClass() const {
+        return nullptr;
+    }
 
-   DLLLOCAL const char* getName() const {
-      return name.c_str();
-   }
+    DLLLOCAL void ref() {
+        ROreference();
+    }
 
-   DLLLOCAL virtual const QoreClass* getClass() const {
-      return nullptr;
-   }
+    DLLLOCAL void deref() {
+        if (ROdereference())
+            delete this;
+    }
 
-   DLLLOCAL void ref() {
-      ROreference();
-   }
+    DLLLOCAL const char* className() const {
+        const QoreClass* qc = getClass();
+        return qc ? qc->getName() : nullptr;
+    }
 
-   DLLLOCAL void deref() {
-      if (ROdereference())
-         delete this;
-   }
+    DLLLOCAL void addAncestor(QoreFunction* ancestor, ClassAccess access) {
+        ilist.push_back(INode(ancestor, access));
+    }
 
-   DLLLOCAL const char* className() const {
-      const QoreClass* qc = getClass();
-      return qc ? qc->getName() : nullptr;
-   }
+    DLLLOCAL void addNewAncestor(QoreFunction* ancestor, ClassAccess access) {
+        for (ilist_t::iterator i = ilist.begin(), e = ilist.end(); i != e; ++i)
+            if ((*i).func == ancestor)
+                return;
+        ilist.push_back(INode(ancestor, access));
+    }
 
-   DLLLOCAL void addAncestor(QoreFunction* ancestor, ClassAccess access) {
-      ilist.push_back(INode(ancestor, access));
-   }
+    // resolves all types in signatures and return types in pending variants; called during the "parseInit" phase
+    DLLLOCAL void resolvePendingSignatures();
 
-   DLLLOCAL void addNewAncestor(QoreFunction* ancestor, ClassAccess access) {
-      for (ilist_t::iterator i = ilist.begin(), e = ilist.end(); i != e; ++i)
-         if ((*i).func == ancestor)
-            return;
-      ilist.push_back(INode(ancestor, access));
-   }
+    DLLLOCAL AbstractFunctionSignature* getUniqueSignature() const {
+        return vlist.singular() ? first()->getSignature() : 0;
+    }
 
-   // resolves all types in signatures and return types in pending variants; called during the "parseInit" phase
-   DLLLOCAL void resolvePendingSignatures();
+    DLLLOCAL AbstractFunctionSignature* parseGetUniqueSignature() const;
 
-   DLLLOCAL AbstractFunctionSignature* getUniqueSignature() const {
-      return vlist.singular() ? first()->getSignature() : 0;
-   }
+    DLLLOCAL int64 parseGetUniqueFunctionality() const {
+        if (parse_get_parse_options() & PO_REQUIRE_TYPES)
+            return nn_unique_functionality;
+        return unique_functionality;
+    }
 
-   DLLLOCAL AbstractFunctionSignature* parseGetUniqueSignature() const;
+    DLLLOCAL int64 parseGetUniqueFlags() const {
+        if (parse_get_parse_options() & PO_REQUIRE_TYPES)
+            return nn_unique_flags;
+        return unique_flags;
+    }
 
-   DLLLOCAL int64 parseGetUniqueFunctionality() const {
-      if (parse_get_parse_options() & PO_REQUIRE_TYPES)
-         return nn_unique_functionality;
-      return unique_functionality;
-   }
+    // object takes ownership of variant or deletes it if it can't be added
+    DLLLOCAL int addPendingVariant(AbstractQoreFunctionVariant* variant);
 
-   DLLLOCAL int64 parseGetUniqueFlags() const {
-      if (parse_get_parse_options() & PO_REQUIRE_TYPES)
-         return nn_unique_flags;
-      return unique_flags;
-   }
+    DLLLOCAL void addBuiltinVariant(AbstractQoreFunctionVariant* variant);
 
-   // object takes ownership of variant or deletes it if it can't be added
-   DLLLOCAL int addPendingVariant(AbstractQoreFunctionVariant* variant);
+    DLLLOCAL void parseInit(qore_ns_private* ns);
+    DLLLOCAL void parseCommit();
+    DLLLOCAL void parseRollback();
 
-   DLLLOCAL void addBuiltinVariant(AbstractQoreFunctionVariant* variant);
+    DLLLOCAL const QoreTypeInfo* getUniqueReturnTypeInfo() const {
+        if (runtime_get_parse_options() & PO_REQUIRE_TYPES)
+            return nn_uniqueReturnType;
 
-   DLLLOCAL void parseInit();
-   DLLLOCAL void parseCommit();
-   DLLLOCAL void parseRollback();
-
-   DLLLOCAL const QoreTypeInfo* getUniqueReturnTypeInfo() const {
-      if (runtime_get_parse_options() & PO_REQUIRE_TYPES)
-         return nn_uniqueReturnType;
-
-      return same_return_type && !vlist.empty() ? first()->getReturnTypeInfo() : 0;
-   }
+        return same_return_type && !vlist.empty() ? first()->getReturnTypeInfo() : 0;
+    }
 
     DLLLOCAL const QoreTypeInfo* parseGetUniqueReturnTypeInfo() {
         parseCheckReturnType();
@@ -915,68 +921,76 @@ public:
         return nullptr;
     }
 
-   // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-   DLLLOCAL virtual QoreValue evalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const;
+    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+    DLLLOCAL virtual QoreValue evalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const;
 
-   // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
-   // this function will use destructive evaluation of "args"
-   DLLLOCAL virtual QoreValue evalFunctionTmpArgs(const AbstractQoreFunctionVariant* variant, QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const;
+    // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
+    // this function will use destructive evaluation of "args"
+    DLLLOCAL virtual QoreValue evalFunctionTmpArgs(const AbstractQoreFunctionVariant* variant, QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const;
 
-   // finds a variant and checks variant capabilities against current program parse options and executes the variant
-   DLLLOCAL QoreValue evalDynamic(const QoreListNode* args, ExceptionSink* xsink) const;
+    // finds a variant and checks variant capabilities against current program parse options and executes the variant
+    DLLLOCAL QoreValue evalDynamic(const QoreListNode* args, ExceptionSink* xsink) const;
 
-   // find variant at parse time, throw parse exception if no variant can be matched
-   // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable
-   DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation& loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx);
+    // find variant at parse time, throw parse exception if no variant can be matched
+    // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable
+    DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation& loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx);
 
-   // returns true if there are no uncommitted parse variants in the function
-   DLLLOCAL bool pendingEmpty() const {
-       return vlist.empty() || !check_parse;
-   }
+    // returns true if there are no uncommitted parse variants in the function
+    DLLLOCAL bool pendingEmpty() const {
+        return vlist.empty() || !check_parse;
+    }
 
-   // returns true if there are no committed parse variants in the function
-   DLLLOCAL bool committedEmpty() const {
-       return vlist.empty() || check_parse;
-   }
+    // returns true if there are no committed parse variants in the function
+    DLLLOCAL bool committedEmpty() const {
+        return vlist.empty() || check_parse;
+    }
 
-   DLLLOCAL bool existsVariant(const type_vec_t& paramTypeInfo) const;
+    DLLLOCAL bool existsVariant(const type_vec_t& paramTypeInfo) const;
 
-   // find variant at runtime
-   // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable from the object being executed
-   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(ExceptionSink* xsink, const QoreValueList* args, bool only_user, const qore_class_private* class_ctx) const;
+    // find variant at runtime
+    // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable from the object being executed
+    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(ExceptionSink* xsink, const QoreValueList* args, bool only_user, const qore_class_private* class_ctx) const;
 
-   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindExactVariant(ExceptionSink* xsink, const type_vec_t& args, const qore_class_private* class_ctx) const;
+    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindExactVariant(ExceptionSink* xsink, const type_vec_t& args, const qore_class_private* class_ctx) const;
 
-   DLLLOCAL void parseAssimilate(QoreFunction& other) {
-      while (!other.vlist.empty()) {
-         addPendingVariant(*(other.vlist.begin()));
-         other.vlist.pop_front();
-      }
-   }
+    DLLLOCAL void parseAssimilate(QoreFunction& other) {
+        while (!other.vlist.empty()) {
+            addPendingVariant(*(other.vlist.begin()));
+            other.vlist.pop_front();
+        }
+    }
 
-   DLLLOCAL bool hasUser() const {
-      return has_user;
-   }
+    DLLLOCAL bool hasUser() const {
+        return has_user;
+    }
 
-   DLLLOCAL bool hasBuiltin() const {
-      return has_builtin;
-   }
+    DLLLOCAL bool hasBuiltin() const {
+        return has_builtin;
+    }
 
-   DLLLOCAL bool hasPublic() const {
-      return has_mod_pub;
-   }
+    DLLLOCAL bool hasPublic() const {
+        return has_pub;
+    }
 
-   DLLLOCAL bool hasUserPublic() const {
-      return has_mod_pub && has_user;
-   }
+    DLLLOCAL bool hasUserPublic() const {
+        return has_pub && has_user;
+    }
 
-   DLLLOCAL bool injected() const {
-      return inject;
-   }
+    DLLLOCAL bool injected() const {
+        return inject;
+    }
 
-   DLLLOCAL const std::string& getNameStr() const {
-      return name;
-   }
+    DLLLOCAL bool hasPrivate() const {
+        return has_priv;
+    }
+
+    DLLLOCAL bool allPrivate() const {
+        return all_priv;
+    }
+
+    DLLLOCAL const std::string& getNameStr() const {
+        return name;
+    }
 };
 
 class MethodVariantBase;

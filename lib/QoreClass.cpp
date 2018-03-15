@@ -1457,7 +1457,7 @@ void BCANode::parseInit(BCList* bcl, const char* classname) {
          int lvids = 0;
          if (m) {
             const QoreTypeInfo* argTypeInfo = nullptr;
-            lvids = parseArgsVariant(loc, qore_class_private::getSelfId(*sclass), 0, m->getFunction(), argTypeInfo);
+            lvids = parseArgsVariant(loc, qore_class_private::getSelfId(*sclass), 0, m->getFunction(), nullptr, argTypeInfo);
          }
          else {
             if (parse_args) {
@@ -4365,7 +4365,7 @@ void QoreClass::setGateAccessFlag() {
 }
 
 void MethodFunctionBase::parseInit() {
-   QoreFunction::parseInit();
+    QoreFunction::parseInit(qore_class_private::get(*qc)->ns);
 }
 
 void MethodFunctionBase::parseCommit() {

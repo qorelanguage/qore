@@ -348,6 +348,10 @@ public:
         return nhd;
     }
 
+    DLLLOCAL const FunctionEntry* runtimeFindFunctionEntry(const char* name) {
+        return func_list.findNode(name, true);
+    }
+
    DLLLOCAL const QoreFunction* runtimeFindFunction(const char* name) {
       return func_list.find(name, true);
    }
@@ -385,10 +389,12 @@ public:
 
    DLLLOCAL const TypedHashDecl* runtimeMatchHashDecl(const NamedScope& nscope, const qore_ns_private*& rns) const;
 
-   DLLLOCAL const QoreFunction* runtimeMatchFunction(const NamedScope& nscope, const qore_ns_private*& rns) const;
+   DLLLOCAL const FunctionEntry* runtimeMatchFunctionEntry(const NamedScope& nscope) const;
    DLLLOCAL const qore_ns_private* runtimeMatchAddFunction(const NamedScope& nscope, bool& fnd) const;
 
-   DLLLOCAL const QoreFunction* parseMatchFunction(const NamedScope& nscope, unsigned& match) const;
+   //DLLLOCAL const QoreFunction* parseMatchFunction(const NamedScope& nscope, unsigned& match) const;
+
+   DLLLOCAL const FunctionEntry* parseMatchFunctionEntry(const NamedScope& nscope, unsigned& match) const;
 
    DLLLOCAL QoreNamespace* resolveNameScope(const QoreProgramLocation& loc, const NamedScope& name) const;
    DLLLOCAL QoreNamespace* parseMatchNamespace(const NamedScope& nscope, unsigned& matched) const;
@@ -449,9 +455,13 @@ public:
       return ns->priv->constant;
    }
 
-   DLLLOCAL static const QoreFunction* runtimeFindFunction(QoreNamespace& ns, const char* name) {
-      return ns.priv->runtimeFindFunction(name);
-   }
+    DLLLOCAL static const QoreFunction* runtimeFindFunction(QoreNamespace& ns, const char* name) {
+        return ns.priv->runtimeFindFunction(name);
+    }
+
+    DLLLOCAL static const FunctionEntry* runtimeFindFunctionEntry(QoreNamespace& ns, const char* name) {
+        return ns.priv->runtimeFindFunctionEntry(name);
+    }
 
    DLLLOCAL static QoreListNode* getUserFunctionList(QoreNamespace& ns) {
       return ns.priv->func_list.getList();
@@ -682,22 +692,22 @@ public:
 };
 
 struct FunctionEntryInfo {
-   FunctionEntry* obj;
+    FunctionEntry* obj;
 
-   DLLLOCAL FunctionEntryInfo(FunctionEntry* o) : obj(o) {
-   }
+    DLLLOCAL FunctionEntryInfo(FunctionEntry* o) : obj(o) {
+    }
 
-   DLLLOCAL unsigned depth() const {
-      return getNamespace()->depth;
-   }
+    DLLLOCAL unsigned depth() const {
+        return getNamespace()->depth;
+    }
 
-   DLLLOCAL qore_ns_private* getNamespace() const {
-      return obj->getFunction()->getNamespace();
-   }
+    DLLLOCAL qore_ns_private* getNamespace() const {
+        return obj->getNamespace();
+    }
 
-   DLLLOCAL void assign(FunctionEntry* n_obj) {
-      obj = n_obj;
-   }
+    DLLLOCAL void assign(FunctionEntry* n_obj) {
+        obj = n_obj;
+    }
 };
 
 typedef std::map<const char*, FunctionEntryInfo, ltstr> femap_t;
@@ -718,7 +728,7 @@ public:
       if (i == end())
          insert(femap_t::value_type(name, FunctionEntryInfo(obj)));
       else // if the old depth is > the new depth, then replace
-         if (i->second.depth() > obj->getFunction()->getNamespace()->depth)
+         if (i->second.depth() > obj->getNamespace()->depth)
             i->second.assign(obj);
    }
 
@@ -1053,20 +1063,12 @@ protected:
       return nullptr;
    }
 
-   DLLLOCAL const QoreFunction* runtimeFindFunctionIntern(const char* name, const qore_ns_private*& ns) {
-      fmap_t::const_iterator i = fmap.find(name);
+    DLLLOCAL const FunctionEntry* runtimeFindFunctionEntryIntern(const char* name) {
+        fmap_t::const_iterator i = fmap.find(name);
+        return i != fmap.end() ? i->second.obj : nullptr;
+    }
 
-      if (i != fmap.end()) {
-         ns = i->second.getNamespace();
-         //printd(5, "qore_root_ns_private::runtimeFindFunctionIntern() this: %p %s found in ns: '%s' depth: %d\n", this, name, ns->name.c_str(), ns->depth);
-         return i->second.obj->getFunction();
-      }
-
-      //printd(5, "qore_root_ns_private::runtimeFindFunctionIntern() this: %p %s not found i: %d\n", this, name, i != fmap.end());
-      return 0;
-   }
-
-   DLLLOCAL const QoreFunction* runtimeFindFunctionIntern(const NamedScope& name, const qore_ns_private*& ns);
+    DLLLOCAL const FunctionEntry* runtimeFindFunctionEntryIntern(const NamedScope& name);
 
    DLLLOCAL FunctionEntry* parseFindFunctionEntryIntern(const char* name) {
       {
@@ -1104,10 +1106,10 @@ protected:
       return !fe ? 0 : fe->getFunction();
    }
 
-   DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const QoreProgramLocation& loc, const char* fname) {
-      QORE_TRACE("qore_root_ns_private::parseResolveFunctionIntern()");
+   DLLLOCAL const FunctionEntry* parseResolveFunctionEntryIntern(const QoreProgramLocation& loc, const char* fname) {
+      QORE_TRACE("qore_root_ns_private::parseResolveFunctionEntryIntern()");
 
-      const QoreFunction* f = parseFindFunctionIntern(fname);
+      const FunctionEntry* f = parseFindFunctionEntryIntern(fname);
       if (!f)
          // cannot find function, throw exception
          parse_error(loc, "function '%s()' cannot be found", fname);
@@ -1399,7 +1401,7 @@ protected:
    DLLLOCAL qore_ns_private* parseResolveNamespace(const QoreProgramLocation& loc, const NamedScope& nscope, qore_ns_private* sns);
    DLLLOCAL qore_ns_private* parseResolveNamespace(const QoreProgramLocation& loc, const NamedScope& nscope);
 
-   DLLLOCAL const QoreFunction* parseResolveFunctionIntern(const NamedScope& nscope);
+   DLLLOCAL const FunctionEntry* parseResolveFunctionEntryIntern(const NamedScope& nscope);
 
    DLLLOCAL Var* parseAddResolvedGlobalVarDefIntern(const QoreProgramLocation& loc, const NamedScope& name, const QoreTypeInfo* typeInfo);
    DLLLOCAL Var* parseAddGlobalVarDefIntern(const QoreProgramLocation& loc, const NamedScope& name, QoreParseTypeInfo* typeInfo);
@@ -1527,7 +1529,7 @@ protected:
 
    DLLLOCAL static void rebuildFunctionIndexes(fmap_t& fmap, fl_map_t& flmap, qore_ns_private* ns) {
       for (fl_map_t::iterator i = flmap.begin(), e = flmap.end(); i != e; ++i) {
-         assert(i->second->getFunction()->getNamespace() == ns);
+         assert(i->second->getNamespace() == ns);
          fmap.update(i->first, i->second);
          //printd(5, "qore_root_ns_private::rebuildFunctionIndexes() this: %p ns: %p func %s\n", this, ns, i->first);
       }
@@ -1562,7 +1564,7 @@ protected:
 
       // process function indexes
       for (fl_map_t::iterator i = ns->func_list.begin(), e = ns->func_list.end(); i != e; ++i) {
-         assert(i->second->getFunction()->getNamespace() == ns);
+         assert(i->second->getNamespace() == ns);
          pend_fmap.update(i->first, i->second);
       }
 
@@ -1840,13 +1842,22 @@ public:
       return rns.rpriv->runtimeFindHashDeclIntern(name, ns);
    }
 
-   DLLLOCAL static const QoreFunction* runtimeFindFunction(RootQoreNamespace& rns, const char* name, const qore_ns_private*& ns) {
-      if (strstr(name, "::")) {
-         NamedScope nscope(name);
-         return rns.rpriv->runtimeFindFunctionIntern(nscope, ns);
-      }
-      return rns.rpriv->runtimeFindFunctionIntern(name, ns);
-   }
+    DLLLOCAL static const QoreFunction* runtimeFindFunction(RootQoreNamespace& rns, const char* name, const qore_ns_private*& ns) {
+        const FunctionEntry* fe = runtimeFindFunctionEntry(rns, name);
+        if (fe) {
+            ns = fe->getNamespace();
+            return fe->getFunction();
+        }
+        return nullptr;
+    }
+
+    DLLLOCAL static const FunctionEntry* runtimeFindFunctionEntry(RootQoreNamespace& rns, const char* name) {
+        if (strstr(name, "::")) {
+            NamedScope nscope(name);
+            return rns.rpriv->runtimeFindFunctionEntryIntern(nscope);
+        }
+        return rns.rpriv->runtimeFindFunctionEntryIntern(name);
+    }
 
    DLLLOCAL static bool runtimeExistsFunction(RootQoreNamespace& rns, const char* name) {
       return rns.rpriv->runtimeExistsFunctionIntern(name);
@@ -1857,7 +1868,12 @@ public:
    }
 
    DLLLOCAL static const QoreFunction* parseResolveFunction(const QoreProgramLocation& loc, const char* fname) {
-      return getRootNS()->rpriv->parseResolveFunctionIntern(loc, fname);
+       const FunctionEntry* fe = getRootNS()->rpriv->parseResolveFunctionEntryIntern(loc, fname);
+       return fe ? fe->getFunction() : nullptr;
+   }
+
+   DLLLOCAL static const FunctionEntry* parseResolveFunctionEntry(const QoreProgramLocation& loc, const char* fname) {
+      return getRootNS()->rpriv->parseResolveFunctionEntryIntern(loc, fname);
    }
 
    // called during parsing (plock already grabbed)
@@ -1937,7 +1953,12 @@ public:
    }
 
    DLLLOCAL static const QoreFunction* parseResolveFunction(const NamedScope& nscope) {
-      return getRootNS()->rpriv->parseResolveFunctionIntern(nscope);
+       const FunctionEntry* fe = getRootNS()->rpriv->parseResolveFunctionEntryIntern(nscope);
+       return fe ? fe->getFunction() : nullptr;
+   }
+
+   DLLLOCAL static const FunctionEntry* parseResolveFunctionEntry(const NamedScope& nscope) {
+      return getRootNS()->rpriv->parseResolveFunctionEntryIntern(nscope);
    }
 
    DLLLOCAL const QoreClass* runtimeFindScopedClass(const NamedScope& name) const;

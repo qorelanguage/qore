@@ -403,22 +403,22 @@ void qore_ns_private::runtimeImportSystemFunctions(const qore_ns_private& source
 }
 
 FunctionEntry* qore_ns_private::addPendingVariantIntern(const char* fname, AbstractQoreFunctionVariant* v, bool& new_func) {
-   SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
+    SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
 
-   if (!pub && v->isModulePublic() && parse_check_parse_option(PO_IN_MODULE))
-      qore_program_private::makeParseWarning(getProgram(), v->getUserVariantBase()->getUserSignature()->getParseLocation(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "function variant '%s::%s(%s)' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), fname, v->getSignature()->getSignatureText(), name.c_str());
+    if (!pub && v->isModulePublic() && parse_check_parse_option(PO_IN_MODULE))
+        qore_program_private::makeParseWarning(getProgram(), v->getUserVariantBase()->getUserSignature()->getParseLocation(), QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "function variant '%s::%s(%s)' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), fname, v->getSignature()->getSignatureText(), name.c_str());
 
-   FunctionEntry* fe = func_list.findNode(fname);
+    FunctionEntry* fe = func_list.findNode(fname);
 
-   if (!fe) {
-      QoreFunction* u = new QoreFunction(fname, this);
-      u->addPendingVariant(vh.release());
-      fe = func_list.add(u);
-      new_func = true;
-      return fe;
-   }
+    if (!fe) {
+        QoreFunction* u = new QoreFunction(fname);
+        u->addPendingVariant(vh.release());
+        fe = func_list.add(u, this);
+        new_func = true;
+        return fe;
+    }
 
-   return fe->getFunction()->addPendingVariant(vh.release()) ? 0 : fe;
+    return fe->getFunction()->addPendingVariant(vh.release()) ? nullptr : fe;
 }
 
 void qore_ns_private::addModuleNamespace(qore_ns_private* nns, QoreModuleContext& qmc) {
@@ -520,84 +520,85 @@ void qore_ns_private::addBuiltinVariant(const char* fname, AbstractQoreFunctionV
 }
 
 void qore_ns_private::addBuiltinVariantIntern(const char* fname, AbstractQoreFunctionVariant* v) {
-   SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
+    SimpleRefHolder<AbstractQoreFunctionVariant> vh(v);
 
-   FunctionEntry* fe = func_list.findNode(fname);
+    FunctionEntry* fe = func_list.findNode(fname);
 
-   if (fe) {
-      fe->getFunction()->addBuiltinVariant(vh.release());
-      return;
-   }
+    if (fe) {
+        fe->getFunction()->addBuiltinVariant(vh.release());
+        return;
+    }
 
-   QoreFunction* u = new QoreFunction(fname, this);
-   u->addBuiltinVariant(vh.release());
-   fe = func_list.add(u);
+    QoreFunction* u = new QoreFunction(fname);
+    u->addBuiltinVariant(vh.release());
+    fe = func_list.add(u, this);
 
-   // add to root function map if attached
-   qore_root_ns_private* rns = getRoot();
-   if (!rns)
-      return;
+    // add to root function map if attached
+    qore_root_ns_private* rns = getRoot();
+    if (!rns) {
+        return;
+    }
 
-   assert(fe->getFunction()->getNamespace() == this);
-   rns->fmap.update(fe->getName(), fe);
+    assert(fe->getNamespace() == this);
+    rns->fmap.update(fe->getName(), fe);
 }
 
 void QoreNamespaceList::parseAssimilate(QoreNamespaceList& n, qore_ns_private* parent) {
-   for (nsmap_t::iterator i = n.nsmap.begin(), e = n.nsmap.end(); i != e;) {
-      nsmap_t::iterator ni = nsmap.find(i->first);
-      if (ni != nsmap.end()) {
-         nsmap_t::iterator si = i;
-         ++si;
-         QoreNamespace* ns = i->second->priv->ns;
-         n.nsmap.erase(i);
-         ni->second->priv->parseAssimilate(ns);
-         i = si;
-         continue;
-      }
+    for (nsmap_t::iterator i = n.nsmap.begin(), e = n.nsmap.end(); i != e;) {
+        nsmap_t::iterator ni = nsmap.find(i->first);
+        if (ni != nsmap.end()) {
+            nsmap_t::iterator si = i;
+            ++si;
+            QoreNamespace* ns = i->second->priv->ns;
+            n.nsmap.erase(i);
+            ni->second->priv->parseAssimilate(ns);
+            i = si;
+            continue;
+        }
 
-      nsmap[i->first] = i->second;
-      if (parent) {
-         i->second->priv->parent = parent;
-         i->second->priv->updateDepthRecursive(parent->depth + 1);
-      }
-      ++i;
-   }
-   n.nsmap.clear();
+        nsmap[i->first] = i->second;
+        if (parent) {
+            i->second->priv->parent = parent;
+            i->second->priv->updateDepthRecursive(parent->depth + 1);
+        }
+        ++i;
+    }
+    n.nsmap.clear();
 }
 
 void QoreNamespaceList::runtimeAssimilate(QoreNamespaceList& n, qore_ns_private* parent) {
-   for (nsmap_t::iterator i = n.nsmap.begin(), e = n.nsmap.end(); i != e; ++i) {
-      nsmap_t::iterator ni = nsmap.find(i->first);
-      if (ni == nsmap.end()) {
-         nsmap[i->first] = i->second;
-         if (parent) {
-            i->second->priv->parent = parent;
-            i->second->priv->updateDepthRecursive(parent->depth + 1);
-         }
-      }
-      else {
-         ni->second->priv->runtimeAssimilate(i->second);
-      }
-   }
-   n.nsmap.clear();
+    for (nsmap_t::iterator i = n.nsmap.begin(), e = n.nsmap.end(); i != e; ++i) {
+        nsmap_t::iterator ni = nsmap.find(i->first);
+        if (ni == nsmap.end()) {
+            nsmap[i->first] = i->second;
+            if (parent) {
+                i->second->priv->parent = parent;
+                i->second->priv->updateDepthRecursive(parent->depth + 1);
+            }
+        }
+        else {
+            ni->second->priv->runtimeAssimilate(i->second);
+        }
+    }
+    n.nsmap.clear();
 }
 
 void QoreNamespaceList::reset() {
-   deleteAll();
+    deleteAll();
 }
 
 qore_ns_private* QoreNamespaceList::parseAdd(QoreNamespace* ns, qore_ns_private* parent) {
-   // if namespace is already registered, then assimilate
-   QoreNamespace* ons;
-   if ((ons = find(ns->priv->name.c_str()))) {
-      //printd(5, "QoreNamespaceList::add() this: %p ns: %p (%s) assimilating with ons: %p (%s)\n", this, ns, ns->getName(), ons, ons->getName());
-      ons->priv->parseAssimilate(ns);
-      return ons->priv;
-   }
-   nsmap[ns->priv->name] = ns;
-   ns->priv->parent = parent;
-   ns->priv->updateDepthRecursive(parent->depth + 1);
-   return ns->priv;
+    // if namespace is already registered, then assimilate
+    QoreNamespace* ons;
+    if ((ons = find(ns->priv->name.c_str()))) {
+        //printd(5, "QoreNamespaceList::add() this: %p ns: %p (%s) assimilating with ons: %p (%s)\n", this, ns, ns->getName(), ons, ons->getName());
+        ons->priv->parseAssimilate(ns);
+        return ons->priv;
+    }
+    nsmap[ns->priv->name] = ns;
+    ns->priv->parent = parent;
+    ns->priv->updateDepthRecursive(parent->depth + 1);
+    return ns->priv;
 }
 
 qore_ns_private* QoreNamespaceList::runtimeAdd(QoreNamespace* ns, qore_ns_private* parent) {
@@ -1632,54 +1633,54 @@ const TypedHashDecl* qore_root_ns_private::runtimeFindHashDeclIntern(const Named
    return nullptr;
 }
 
-const QoreFunction* qore_root_ns_private::runtimeFindFunctionIntern(const NamedScope& name, const qore_ns_private*& ns) {
+const FunctionEntry* qore_root_ns_private::runtimeFindFunctionEntryIntern(const NamedScope& name) {
    assert(name.size() > 1);
 
    // iterate all namespaces with the initial name and look for the match
-   const QoreFunction* f = 0;
+   const FunctionEntry* f = nullptr;
    NamespaceMapIterator nmi(nsmap, name.strlist[0].c_str());
    while (nmi.next()) {
-      if ((f = nmi.get()->runtimeMatchFunction(name, ns)))
+      if ((f = nmi.get()->runtimeMatchFunctionEntry(name)))
          return f;
    }
 
    return nullptr;
 }
 
-const QoreFunction* qore_root_ns_private::parseResolveFunctionIntern(const NamedScope& nscope) {
-   assert(nscope.size() > 1);
+const FunctionEntry* qore_root_ns_private::parseResolveFunctionEntryIntern(const NamedScope& nscope) {
+    assert(nscope.size() > 1);
 
-   const QoreFunction* f = nullptr;
-   unsigned match = 0;
+    const FunctionEntry* f = nullptr;
+    unsigned match = 0;
 
-   {
-      // try to check in current namespace first
-      qore_ns_private* nscx = parse_get_ns();
-      if (nscx) {
-         QoreNamespace* ns = nscx->parseFindLocalNamespace(nscope[0]);
-         if (ns && (f = ns->priv->parseMatchFunction(nscope, match)))
-            return f;
-      }
-   }
+    {
+        // try to check in current namespace first
+        qore_ns_private* nscx = parse_get_ns();
+        if (nscx) {
+            QoreNamespace* ns = nscx->parseFindLocalNamespace(nscope[0]);
+            if (ns && (f = ns->priv->parseMatchFunctionEntry(nscope, match)))
+                return f;
+        }
+    }
 
-   // iterate all namespaces with the initial name and look for the match
-   {
-      NamespaceMapIterator nmi(nsmap, nscope[0]);
-      while (nmi.next()) {
-         if ((f = nmi.get()->parseMatchFunction(nscope, match)))
-            return f;
-      }
-   }
+    // iterate all namespaces with the initial name and look for the match
+    {
+        NamespaceMapIterator nmi(nsmap, nscope[0]);
+        while (nmi.next()) {
+            if ((f = nmi.get()->parseMatchFunctionEntry(nscope, match)))
+                return f;
+        }
+    }
 
-   {
-      NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
-      while (nmi.next()) {
-         if ((f = nmi.get()->parseMatchFunction(nscope, match)))
-            return f;
-      }
-   }
+    {
+        NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
+        while (nmi.next()) {
+            if ((f = nmi.get()->parseMatchFunctionEntry(nscope, match)))
+                return f;
+        }
+    }
 
-   return nullptr;
+    return nullptr;
 }
 
 AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern(UnresolvedProgramCallReferenceNode* fr) {
@@ -1715,129 +1716,137 @@ static void get_params(const QoreValueList* params, QoreString& desc) {
 }
 
 const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) {
-   // function or method
-   const QoreFunction* qf = nullptr;
+    // function or method
+    const QoreFunction* qf = nullptr;
 
-   // class context
-   const QoreClass* qc = nullptr;
+    // class context
+    const QoreClass* qc = nullptr;
 
-   // resolve call to function or method
-   if (!strstr(name, "::")) {
-      const qore_ns_private* ns;
-      qf = runtimeFindFunctionIntern(name, ns);
+    // resolve call to function or method
+    if (!strstr(name, "::")) {
+        {
+            const FunctionEntry* fe = runtimeFindFunctionEntryIntern(name);
+            if (fe) {
+                qf = fe->getFunction();
+            }
+        }
 
-      if (!qf) {
-         QoreStringNode* desc = new QoreStringNodeMaker("function call \"%s(", name);
-         get_params(params, *desc);
-         desc->concat(")\" cannot be resolved to any accessible function");
-         xsink->raiseException("FIND-CALL-ERROR", desc);
-         return nullptr;
-      }
-   }
-   else {
-      const QoreMethod* method = nullptr;
-
-      NamedScope scope(name);
-      qc = runtimeFindScopedClassWithMethod(scope);
-      //printd(5, "qore_root_ns_private::runtimeFindCall() '%s' qc: %p\n", scope.ostr, qc);
-      if (qc) {
-         method = qore_class_private::get(*qc)->runtimeFindAnyCommittedMethod(scope.getIdentifier());
-         //printd(5, "qore_root_ns_private::runtimeFindCall() '%s' qc: %p '%s' -> %p\n", scope.ostr, qc, scope.getIdentifier(), method);
-         if (method)
-            qf = method->getFunction();
-         else
-            qc = nullptr;
-      }
-
-      if (!method) {
-         // see if this is a function call to a function defined in a namespace
-         const qore_ns_private* ns;
-         qf = runtimeFindFunctionIntern(scope, ns);
-         if (!qf) {
-            QoreStringNode* desc = new QoreStringNodeMaker("scoped call \"%s(", name);
+        if (!qf) {
+            QoreStringNode* desc = new QoreStringNodeMaker("function call \"%s(", name);
             get_params(params, *desc);
-            desc->concat(")\" cannot be resolved to any accessible function or class method");
+            desc->concat(")\" cannot be resolved to any accessible function");
             xsink->raiseException("FIND-CALL-ERROR", desc);
             return nullptr;
-         }
-      }
-   }
+        }
+    }
+    else {
+        const QoreMethod* method = nullptr;
 
-   assert(qf);
+        NamedScope scope(name);
+        qc = runtimeFindScopedClassWithMethod(scope);
+        //printd(5, "qore_root_ns_private::runtimeFindCall() '%s' qc: %p\n", scope.ostr, qc);
+        if (qc) {
+            method = qore_class_private::get(*qc)->runtimeFindAnyCommittedMethod(scope.getIdentifier());
+            //printd(5, "qore_root_ns_private::runtimeFindCall() '%s' qc: %p '%s' -> %p\n", scope.ostr, qc, scope.getIdentifier(), method);
+            if (method)
+                qf = method->getFunction();
+            else
+                qc = nullptr;
+        }
 
-   // convert params to real param list
-   type_vec_t tvec;
-   if (params && !params->empty()) {
-      // resolve types
-      tvec.reserve(params->size());
-      ConstValueListIterator li(params);
-      while (li.next()) {
-         QoreValue v = li.getValue();
-         if (v.getType() != NT_STRING) {
-            xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %d given as type \"%s\"; expecting \"string\"", name, li.index() + 1, v.getTypeName());
-            return nullptr;
-         }
-         // get string value for type
-         const QoreString& tname = *v.get<const QoreStringNode>();
-         // issue #2601: ensure that the string is not empty (client error)
-         if (tname.empty()) {
-            xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %d is an empty string", name, li.index() + 1);
-            return nullptr;
-         }
-         // look up type from string
-         const QoreTypeInfo* ti = qore_get_type_from_string(tname.c_str());
-         if (!ti) {
-            xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %d \"%s\" cannot be resolved to a known type", name, li.index() + 1, tname.c_str());
-            return nullptr;
-         }
-         tvec.push_back(ti);
-      }
-   }
+        if (!method) {
+            // see if this is a function call to a function defined in a namespace
+            {
+                const FunctionEntry* fe = runtimeFindFunctionEntryIntern(scope);
+                if (fe) {
+                    qf = fe->getFunction();
+                }
+            }
 
-   return qf->runtimeFindExactVariant(xsink, tvec, qc ? qore_class_private::get(*qc) : nullptr);
+            if (!qf) {
+                QoreStringNode* desc = new QoreStringNodeMaker("scoped call \"%s(", name);
+                get_params(params, *desc);
+                desc->concat(")\" cannot be resolved to any accessible function or class method");
+                xsink->raiseException("FIND-CALL-ERROR", desc);
+                return nullptr;
+            }
+        }
+    }
+
+    assert(qf);
+
+    // convert params to real param list
+    type_vec_t tvec;
+    if (params && !params->empty()) {
+        // resolve types
+        tvec.reserve(params->size());
+        ConstValueListIterator li(params);
+        while (li.next()) {
+            QoreValue v = li.getValue();
+            if (v.getType() != NT_STRING) {
+                xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %d given as type \"%s\"; expecting \"string\"", name, li.index() + 1, v.getTypeName());
+                return nullptr;
+            }
+            // get string value for type
+            const QoreString& tname = *v.get<const QoreStringNode>();
+            // issue #2601: ensure that the string is not empty (client error)
+            if (tname.empty()) {
+                xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %d is an empty string", name, li.index() + 1);
+                return nullptr;
+            }
+            // look up type from string
+            const QoreTypeInfo* ti = qore_get_type_from_string(tname.c_str());
+            if (!ti) {
+                xsink->raiseException("FIND-CALL-ERROR", "call \"%s()\" parameter %d \"%s\" cannot be resolved to a known type", name, li.index() + 1, tname.c_str());
+                return nullptr;
+            }
+            tvec.push_back(ti);
+        }
+    }
+
+    return qf->runtimeFindExactVariant(xsink, tvec, qc ? qore_class_private::get(*qc) : nullptr);
 }
 
 QoreValueList* qore_root_ns_private::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) {
-   // function or method
-   const QoreFunction* qf = nullptr;
+    // function or method
+    const QoreFunction* qf = nullptr;
 
-   // class context
-   const QoreClass* qc = nullptr;
+    // class context
+    const QoreClass* qc = nullptr;
 
-   // resolve call to function or method
-   if (!strstr(name, "::")) {
-      const qore_ns_private* ns;
-      qf = runtimeFindFunctionIntern(name, ns);
-
-      if (!qf)
-         return nullptr;
-   }
-   else {
-      const QoreMethod* method = nullptr;
-
-      NamedScope scope(name);
-      qc = runtimeFindScopedClassWithMethod(scope);
-      if (qc) {
-         // issue #1865: find any method including special methods
-         method = qore_class_private::get(*qc)->runtimeFindAnyCommittedMethod(scope.getIdentifier());
-         //printd(5, "qore_root_ns_private::runtimeFindCallVariants() %s: qc: %p method: %p\n", scope.ostr, qc, method);
-         if (method)
-            qf = method->getFunction();
-         else
-            qc = nullptr;
-      }
-
-      if (!method) {
-         // see if this is a function call to a function defined in a namespace
-         const qore_ns_private* ns;
-         qf = runtimeFindFunctionIntern(scope, ns);
-         if (!qf)
+    // resolve call to function or method
+    if (!strstr(name, "::")) {
+        const FunctionEntry* fe = runtimeFindFunctionEntryIntern(name);
+        if (!fe)
             return nullptr;
-      }
-   }
+        qf = fe->getFunction();
+    }
+    else {
+        const QoreMethod* method = nullptr;
 
-   assert(qf);
-   return qf->runtimeGetCallVariants();
+        NamedScope scope(name);
+        qc = runtimeFindScopedClassWithMethod(scope);
+        if (qc) {
+            // issue #1865: find any method including special methods
+            method = qore_class_private::get(*qc)->runtimeFindAnyCommittedMethod(scope.getIdentifier());
+            //printd(5, "qore_root_ns_private::runtimeFindCallVariants() %s: qc: %p method: %p\n", scope.ostr, qc, method);
+            if (method)
+                qf = method->getFunction();
+            else
+                qc = nullptr;
+        }
+
+        if (!method) {
+            // see if this is a function call to a function defined in a namespace
+            const FunctionEntry* fe = runtimeFindFunctionEntryIntern(scope);
+            if (!fe)
+                return nullptr;
+            qf = fe->getFunction();
+        }
+    }
+
+    assert(qf);
+    return qf->runtimeGetCallVariants();
 }
 
 void qore_ns_private::parseInitGlobalVars() {
@@ -2526,27 +2535,27 @@ QoreNamespace* qore_ns_private::resolveNameScope(const QoreProgramLocation& loc,
    return (QoreNamespace* )sns;
 }
 
-const QoreFunction* qore_ns_private::parseMatchFunction(const NamedScope& nscope, unsigned& match) const {
-   assert(nscope.strlist[0] == name);
-   const QoreNamespace* fns = ns;
+const FunctionEntry* qore_ns_private::parseMatchFunctionEntry(const NamedScope& nscope, unsigned& match) const {
+    assert(nscope.strlist[0] == name);
+    const QoreNamespace* fns = ns;
 
-   assert(name == nscope[0]);
+    assert(name == nscope[0]);
 
-   // mark first namespace as matched
-   if (!match)
-      match = 1;
+    // mark first namespace as matched
+    if (!match)
+        match = 1;
 
-   // check for a match of the structure in this namespace
-   for (unsigned i = 1; i < (nscope.size() - 1); i++) {
-      //printd(5, "qore_ns_private::parseMatchFunction('%s') curr: %p '%s' element %d %s found: %p\n", nscope.ostr, fns, fns->getName(), i, nscope[i], fns->priv->parseFindLocalNamespace(nscope[i]));
-      fns = fns->priv->parseFindLocalNamespace(nscope[i]);
-      if (!fns)
-         return 0;
-      if (i >= match)
-         match = i + 1;
-   }
+    // check for a match of the structure in this namespace
+    for (unsigned i = 1; i < (nscope.size() - 1); i++) {
+        //printd(5, "qore_ns_private::parseMatchFunctionEntry('%s') curr: %p '%s' element %d %s found: %p\n", nscope.ostr, fns, fns->getName(), i, nscope[i], fns->priv->parseFindLocalNamespace(nscope[i]));
+        fns = fns->priv->parseFindLocalNamespace(nscope[i]);
+        if (!fns)
+            return nullptr;
+        if (i >= match)
+            match = i + 1;
+    }
 
-   return fns->priv->func_list.find(nscope.getIdentifier(), false);
+    return fns->priv->func_list.findNode(nscope.getIdentifier());
 }
 
 const QoreClass* qore_ns_private::runtimeMatchClass(const NamedScope& nscope, const qore_ns_private*& rns) const {
@@ -2591,18 +2600,17 @@ const TypedHashDecl* qore_ns_private::runtimeMatchHashDecl(const NamedScope& nsc
    return rns->hashDeclList.find(nscope.getIdentifier());
 }
 
-const QoreFunction* qore_ns_private::runtimeMatchFunction(const NamedScope& nscope, const qore_ns_private*& rns) const {
-   assert(name == nscope[0]);
+const FunctionEntry* qore_ns_private::runtimeMatchFunctionEntry(const NamedScope& nscope) const {
+    assert(name == nscope[0]);
 
-   const QoreNamespace* fns = ns;
-   // check for a match of the structure in this namespace
-   for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
-      fns = fns->priv->nsl.find(nscope[i]);
-      if (!fns)
-         return 0;
-   }
-   rns = fns->priv;
-   return rns->func_list.find(nscope.getIdentifier(), true);
+    const QoreNamespace* fns = ns;
+    // check for a match of the structure in this namespace
+    for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
+        fns = fns->priv->nsl.find(nscope[i]);
+        if (!fns)
+            return nullptr;
+    }
+    return fns->priv->func_list.findNode(nscope.getIdentifier(), true);
 }
 
 const qore_ns_private* qore_ns_private::runtimeMatchAddFunction(const NamedScope& nscope, bool& fnd) const {

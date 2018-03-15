@@ -87,7 +87,7 @@ static void check_flags(const QoreProgramLocation& loc, QoreFunction* func, int6
       warn_deprecated(loc, func);
 }
 
-int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, QoreFunction* func, const QoreTypeInfo*& returnTypeInfo) {
+int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, QoreFunction* func, qore_ns_private* ns, const QoreTypeInfo*& returnTypeInfo) {
     // number of local variables declared in arguments
     int lvids = 0;
 
@@ -112,7 +112,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
         if (qc)
             qore_class_private::parseInit(*const_cast<QoreClass*>(qc));
         else
-            func->parseInit();
+            func->parseInit(ns);
 
         const qore_class_private* class_ctx = qc ? parse_get_class_priv() : nullptr;
         if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
@@ -200,7 +200,7 @@ QoreValue SelfFunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
 void SelfFunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
    assert(!returnTypeInfo);
    assert(!qc || method);
-   lvids += parseArgs(oflag, pflag, method ? method->getFunction() : nullptr, returnTypeInfo);
+   lvids += parseArgs(oflag, pflag, method ? method->getFunction() : nullptr, nullptr, returnTypeInfo);
    // issue #2380 make sure to set the method correctly if resolved from a hierarchy
    if (variant)
       method = static_cast<const MethodVariantBase*>(variant)->method();
@@ -286,154 +286,154 @@ AbstractQoreNode* SelfFunctionCallNode::makeReferenceNodeAndDeref() {
    returns -1 for exception raised, 0 = OK
 */
 int FunctionCallNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   str.sprintf("function call to '%s()' (%p)", getName(), this);
-   return 0;
+    str.sprintf("function call to '%s()' (%p)", getName(), this);
+    return 0;
 }
 
 // if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
 QoreString* FunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = true;
-   QoreString* rv = new QoreString;
-   getAsString(*rv, foff, xsink);
-   return rv;
+    del = true;
+    QoreString* rv = new QoreString;
+    getAsString(*rv, foff, xsink);
+    return rv;
 }
 
 // eval(): return value requires a deref(xsink)
 QoreValue FunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   //printd(5, "FunctionCallNode::evalImpl() calling %s() current pgm: %p new pgm: %p\n", func->getName(), ::getProgram(), pgm);
+    //printd(5, "FunctionCallNode::evalImpl() calling %s() current pgm: %p new pgm: %p\n", func->getName(), ::getProgram(), pgm);
+    QoreFunction* func = fe->getFunction();
     return tmp_args
         ? func->evalFunctionTmpArgs(variant, args, pgm, xsink)
         : func->evalFunction(variant, args, pgm, xsink);
 }
 
 AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
-   assert(!returnTypeInfo);
-   if (func)
-      return this;
-   //assert(!func);
-   assert(c_str);
+    assert(!returnTypeInfo);
+    if (fe)
+        return this;
+    //assert(!func);
+    assert(c_str);
 
-   bool abr = parse_check_parse_option(PO_ALLOW_BARE_REFS);
+    bool abr = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
-   // try to resolve bare reference if allowed
-   if (abr) {
-      // check for a local variable with the same name
+    // try to resolve bare reference if allowed
+    if (abr) {
+        // check for a local variable with the same name
+        bool in_closure;
+        LocalVar* id = find_local_var(c_str, in_closure);
+        if (id) {
+            VarRefNode* vrn = new VarRefNode(loc, takeName(), id, in_closure);
+            CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, vrn, takeParseArgs());
+            deref();
+            return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
+        }
+    }
 
-      bool in_closure;
-      LocalVar* id = find_local_var(c_str, in_closure);
-      if (id) {
-         VarRefNode* vrn = new VarRefNode(loc, takeName(), id, in_closure);
-         CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, vrn, takeParseArgs());
-         deref();
-         return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
-      }
-   }
+    // try to resolve a method call if we are parsing in an object context
+    if (oflag) {
+        const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo());
 
-   // try to resolve a method call if we are parsing in an object context
-   if (oflag) {
-      const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo());
-
-      AbstractQoreNode* n = nullptr;
-      if (abr && !qore_class_private::parseResolveInternalMemberAccess(qc, c_str, returnTypeInfo)) {
-         n = new SelfVarrefNode(loc, takeName());
-      }
-      else if ((n = qore_class_private::parseFindConstantValue(const_cast<QoreClass*>(qc), c_str, returnTypeInfo, qore_class_private::get(*qc)))) {
-         //printd(5, "FunctionCallNode::parseInitImpl() this: %p n: %p (%d -> %d)\n", this, n, n->reference_count(), n->reference_count() + 1);
-         n->ref();
-      }
-      else {
-         // check for class static var reference
-         const QoreClass* oqc = nullptr;
-         ClassAccess access;
-         QoreVarInfo *vi = qore_class_private::parseFindStaticVar(qc, c_str, oqc, access);
-         if (vi) {
-            assert(qc);
-            returnTypeInfo = vi->getTypeInfo();
-            n = new StaticClassVarRefNode(loc, c_str, *oqc, *vi);
-         }
-      }
-
-      if (n) {
-         CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeParseArgs());
-         deref();
-         return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
-      }
-
-      if (abr) {
-         SelfFunctionCallNode* sfcn = nullptr;
-         if (!strcmp(c_str, "copy")) {
-            if (args) {
-               parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
-               return this;
+        AbstractQoreNode* n = nullptr;
+        if (abr && !qore_class_private::parseResolveInternalMemberAccess(qc, c_str, returnTypeInfo)) {
+            n = new SelfVarrefNode(loc, takeName());
+        }
+        else if ((n = qore_class_private::parseFindConstantValue(const_cast<QoreClass*>(qc), c_str, returnTypeInfo, qore_class_private::get(*qc)))) {
+            //printd(5, "FunctionCallNode::parseInitImpl() this: %p n: %p (%d -> %d)\n", this, n, n->reference_count(), n->reference_count() + 1);
+            n->ref();
+        }
+        else {
+            // check for class static var reference
+            const QoreClass* oqc = nullptr;
+            ClassAccess access;
+            QoreVarInfo *vi = qore_class_private::parseFindStaticVar(qc, c_str, oqc, access);
+            if (vi) {
+                assert(qc);
+                returnTypeInfo = vi->getTypeInfo();
+                n = new StaticClassVarRefNode(loc, c_str, *oqc, *vi);
             }
-            sfcn = new SelfFunctionCallNode(loc, takeName(), 0);
-         }
-         else {
-            const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass*>(qc), c_str);
-            if (m) {
-                if (!m->isStatic())
-                   sfcn = new SelfFunctionCallNode(loc, takeName(), takeParseArgs(), m, parse_get_class());
-                else {
-                    StaticMethodCallNode* smcn = new StaticMethodCallNode(loc, m, takeParseArgs());
-                    return smcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
+        }
+
+        if (n) {
+            CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeParseArgs());
+            deref();
+            return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
+        }
+
+        if (abr) {
+            SelfFunctionCallNode* sfcn = nullptr;
+            if (!strcmp(c_str, "copy")) {
+                if (args) {
+                parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
+                return this;
+                }
+                sfcn = new SelfFunctionCallNode(loc, takeName(), 0);
+            }
+            else {
+                const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass*>(qc), c_str);
+                if (m) {
+                    if (!m->isStatic())
+                    sfcn = new SelfFunctionCallNode(loc, takeName(), takeParseArgs(), m, parse_get_class());
+                    else {
+                        StaticMethodCallNode* smcn = new StaticMethodCallNode(loc, m, takeParseArgs());
+                        return smcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
+                    }
                 }
             }
-         }
-         if (sfcn) {
-            deref();
-            sfcn->parseInitCall(oflag, pflag, lvids, returnTypeInfo);
-            return sfcn;
-         }
-      }
-   }
+            if (sfcn) {
+                deref();
+                sfcn->parseInitCall(oflag, pflag, lvids, returnTypeInfo);
+                return sfcn;
+            }
+        }
+    }
 
-   return parseInitCall(oflag, pflag, lvids, returnTypeInfo);
+    return parseInitCall(oflag, pflag, lvids, returnTypeInfo);
 }
 
 AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
-   assert(!func);
-   assert(c_str);
-   assert(!returnTypeInfo);
+    assert(!fe);
+    assert(c_str);
+    assert(!returnTypeInfo);
 
-   bool abr = parse_check_parse_option(PO_ALLOW_BARE_REFS);
+    bool abr = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
-   AbstractQoreNode* n = nullptr;
+    AbstractQoreNode* n = nullptr;
 
-   // try to resolve a global var
-   if (abr) {
-      Var* v = qore_root_ns_private::parseFindGlobalVar(c_str);
-      if (v)
-         n = new GlobalVarRefNode(loc, takeName(), v);
-   }
+    // try to resolve a global var
+    if (abr) {
+        Var* v = qore_root_ns_private::parseFindGlobalVar(c_str);
+        if (v)
+            n = new GlobalVarRefNode(loc, takeName(), v);
+    }
 
-   // see if a constant can be resolved
-   if (!n) {
-      n = qore_root_ns_private::parseFindConstantValue(loc, c_str, returnTypeInfo, false);
-      if (n)
-         n->ref();
-   }
+    // see if a constant can be resolved
+    if (!n) {
+        n = qore_root_ns_private::parseFindConstantValue(loc, c_str, returnTypeInfo, false);
+        if (n)
+            n->ref();
+    }
 
-   if (n) {
-      CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeParseArgs());
-      deref();
-      return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
-   }
+    if (n) {
+        CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeParseArgs());
+        deref();
+        return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
+    }
 
-   // resolves the function
-   func = qore_root_ns_private::parseResolveFunction(loc, c_str);
-   free(c_str);
-   c_str = nullptr;
+    // resolves the function
+    fe = qore_root_ns_private::parseResolveFunctionEntry(loc, c_str);
+    free(c_str);
+    c_str = nullptr;
 
-   if (func)
-      parseInitFinalizedCall(oflag, pflag, lvids, returnTypeInfo);
+    if (fe)
+        parseInitFinalizedCall(oflag, pflag, lvids, returnTypeInfo);
 
-   return this;
+    return this;
 }
 
 void FunctionCallNode::parseInitFinalizedCall(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
    assert(!returnTypeInfo);
-   assert(func);
-   lvids += parseArgs(oflag, pflag, const_cast<QoreFunction*>(func), returnTypeInfo);
+   assert(fe);
+   lvids += parseArgs(oflag, pflag, fe->getFunction(), fe->getNamespace(), returnTypeInfo);
 }
 
 AbstractQoreNode* FunctionCallNode::makeReferenceNodeAndDerefImpl() {
@@ -465,8 +465,8 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
    else assert(oc);
 #endif
 
-   const QoreMethod *constructor = oc ? oc->parseGetConstructor() : nullptr;
-   lvids += parseArgs(oflag, pflag, constructor ? constructor->getFunction() : nullptr, typeInfo);
+   const QoreMethod* constructor = oc ? oc->parseGetConstructor() : nullptr;
+   lvids += parseArgs(oflag, pflag, constructor ? constructor->getFunction() : nullptr, nullptr, typeInfo);
 
    if (oc) {
       // parse init the class and check if we're trying to instantiate an abstract class
@@ -557,7 +557,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
         if (!method) {
             {
                 // see if this is a function call to a function defined in a namespace
-                const QoreFunction* f = qore_root_ns_private::parseResolveFunction(*scope);
+                const FunctionEntry* f = qore_root_ns_private::parseResolveFunctionEntry(*scope);
                 if (f) {
                     FunctionCallNode* fcn = new FunctionCallNode(loc, f, takeParseArgs());
                     deref();
@@ -600,7 +600,6 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
             return sfcn;
         }
 
-
         delete scope;
         scope = nullptr;
 
@@ -621,7 +620,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
 
     assert(method->isStatic());
 
-    lvids += parseArgs(oflag, pflag, method->getFunction(), typeInfo);
+    lvids += parseArgs(oflag, pflag, method->getFunction(), nullptr, typeInfo);
     // issue #2380 make sure to set the method correctly if resolved from a hierarchy
     if (variant)
         method = static_cast<const MethodVariantBase*>(variant)->method();

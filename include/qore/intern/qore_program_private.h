@@ -135,7 +135,7 @@ private:
       }
    }
    // to call onAttach when debug is attached or detached, -1 .. detach, 1 .. attach
-   DLLLOCAL int attachFlag;
+   int attachFlag;
    DLLLOCAL void checkAttach(ExceptionSink* xsink);
 
 public:

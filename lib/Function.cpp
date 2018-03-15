@@ -1385,37 +1385,44 @@ QoreValue QoreFunction::evalDynamic(const QoreListNode* args, ExceptionSink* xsi
 }
 
 void QoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant* variant) {
-   assert(variant->getCallType() == CT_BUILTIN);
+    assert(variant->getCallType() == CT_BUILTIN);
 #ifdef DEBUG
-   // FIXME: this algorithm is no longer valid due to default arguments
-   // does not detect ambiguous signatures
-   AbstractFunctionSignature* sig = variant->getSignature();
-   // check for duplicate parameter signatures
-   for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-      AbstractFunctionSignature* vs = (*i)->getSignature();
-      unsigned tp = vs->numParams();
-      if (tp != sig->numParams())
-         continue;
-      if (!tp) {
-         printd(0, "BuiltinFunctionBase::addBuiltinVariant() this: %p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
-         assert(false);
-      }
-      bool ok = false;
-      for (unsigned pi = 0; pi < tp; ++pi) {
-         if (vs->getParamTypeInfo(pi) != sig->getParamTypeInfo(pi)) {
-            ok = true;
-            break;
-         }
-      }
-      if (!ok) {
-         printd(0, "BuiltinFunctionBase::addBuiltinVariant() this: %p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
-         assert(false);
-      }
-   }
+    // FIXME: this algorithm is no longer valid due to default arguments
+    // does not detect ambiguous signatures
+    AbstractFunctionSignature* sig = variant->getSignature();
+    // check for duplicate parameter signatures
+    for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+        AbstractFunctionSignature* vs = (*i)->getSignature();
+        unsigned tp = vs->numParams();
+        if (tp != sig->numParams())
+            continue;
+        if (!tp) {
+            printd(0, "BuiltinFunctionBase::addBuiltinVariant() this: %p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
+            assert(false);
+        }
+        bool ok = false;
+        for (unsigned pi = 0; pi < tp; ++pi) {
+            if (vs->getParamTypeInfo(pi) != sig->getParamTypeInfo(pi)) {
+                ok = true;
+                break;
+            }
+        }
+        if (!ok) {
+            printd(0, "BuiltinFunctionBase::addBuiltinVariant() this: %p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
+            assert(false);
+        }
+    }
 #endif
-   if (!has_builtin)
-      has_builtin = true;
-   addVariant(variant);
+    if (!has_builtin) {
+        has_builtin = true;
+    }
+    if (all_priv) {
+        all_priv = false;
+    }
+    if (!has_pub) {
+        has_pub = true;
+    }
+    addVariant(variant);
 }
 
 UserVariantExecHelper::~UserVariantExecHelper() {
@@ -1827,13 +1834,21 @@ void QoreFunction::parseCommit() {
 
     for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
         if ((*i)->isUser()) {
-            if (!has_mod_pub && (*i)->isModulePublic())
-                has_mod_pub = true;
+            if (!has_pub && (*i)->isModulePublic()) {
+                has_pub = true;
+                if (all_priv) {
+                    all_priv = false;
+                }
+            }
             if (!has_user)
                 has_user = true;
         }
-        else if (!has_builtin)
+        else if (!has_builtin) {
             has_builtin = true;
+            if (all_priv) {
+                all_priv = false;
+            }
+        }
 
         (*i)->parseCommit();
     }
@@ -1857,14 +1872,14 @@ void QoreFunction::parseRollback() {
     */
 }
 
-void QoreFunction::parseInit() {
+void QoreFunction::parseInit(qore_ns_private* ns) {
     if (parse_init_done)
         return;
     parse_init_done = true;
 
-    OptionalNamespaceParseContextHelper pch(ns);
-
     if (check_parse) {
+        OptionalNamespaceParseContextHelper pch(ns);
+
         for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
             (*i)->parseInit(this);
         }
