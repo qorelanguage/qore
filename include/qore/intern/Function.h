@@ -745,12 +745,12 @@ public:
         for (vlist_t::const_iterator i = old.vlist.begin(), e = old.vlist.end(); i != e; ++i) {
             if (!copy_all) {
                 if ((*i)->isUser()) {
-                if (no_user || !(*i)->isModulePublic())
-                    continue;
+                    if (no_user || !(*i)->isModulePublic())
+                        continue;
                 }
                 else
-                if (no_builtin)
-                    continue;
+                    if (no_builtin)
+                        continue;
             }
 
             vlist.push_back((*i)->ref());
@@ -1024,7 +1024,7 @@ public:
 
    // copy constructor, only copies committed variants
    DLLLOCAL MethodFunctionBase(const MethodFunctionBase& old, const QoreClass* n_qc)
-      : QoreFunction(old, 0, 0, true),
+      : QoreFunction(old, 0, true),
         qc(n_qc),
         is_static(old.is_static),
         has_final(old.has_final),
