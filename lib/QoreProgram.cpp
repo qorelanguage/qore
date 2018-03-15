@@ -660,8 +660,16 @@ void qore_program_private::importClass(ExceptionSink* xsink, qore_program_privat
             if (oc) {
                 // get injected target class pointer for new injected class
                 injectedClass = qore_class_private::get(*oc);
-                // mark source class as compatible with the injected target class as well
-                const_cast<qore_class_private*>(qore_class_private::get(*c))->injectedClass = injectedClass;
+                // can only inject for a single class
+                qore_class_private* wc = const_cast<qore_class_private*>(qore_class_private::get(*c));
+                if (wc->injectedClass != injectedClass) {
+                    if (wc->injectedClass) {
+                        xsink->raiseException("CLASS-IMPORT-ERROR", "class \"%s\" has already been injected to impersonate class '%s' and therefore cannot be injected to impersonate class '%s'; only a single class can be impersonated by any one source class", c->getName(), wc->injectedClass->name.c_str(), injectedClass->name.c_str());
+                        return;
+                    }
+                    // mark source class as compatible with the injected target class as well
+                    wc->injectedClass = injectedClass;
+                }
             }
             //printd(5, "qore_program_private::importClass() this: %p path: '%s' new_name: '%s' oc: %p\n", this, path, new_name ? new_name : "n/a", oc);
         }

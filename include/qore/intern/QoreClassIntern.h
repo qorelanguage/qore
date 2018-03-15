@@ -3016,7 +3016,7 @@ public:
 
     DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass) {
         qore_class_private* priv = new qore_class_private(*qc.priv, nme, inject, injectedClass);
-        printd(5, "qore_program_private::makeImportClass() name: '%s' (%s) inject: %d rv: %p\n", qc.getName(), nme ? nme : "n/a", inject, priv->cls);
+        //printd(5, "qore_program_private::makeImportClass() name: '%s' as '%s' inject: %d rv: %p\n", qc.getName(), priv->name.c_str(), inject, priv->cls);
         return priv->cls;
     }
 

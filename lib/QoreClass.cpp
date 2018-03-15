@@ -484,7 +484,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, const char
      has_new_user_changes(false),
      has_sig_changes(false),
      owns_ornothingtypeinfo(false),
-     pub(false), // the public flag must be explicitly set if necessary after this constructor
+     pub(old.pub),
      final(old.final),
      inject(inject),
      gate_access(old.gate_access),
