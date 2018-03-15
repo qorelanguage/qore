@@ -44,19 +44,15 @@ public:
     ASTHashExpression::Ptr hash;
 
 public:
+    ASTHashdeclHashExpression(ASTName&& name, ASTHashExpression* h = nullptr) :
+        ASTExpression(),
+        hashdecl(std::move(name)),
+        hash(h) {}
+
     ASTHashdeclHashExpression(const ASTName& name, ASTHashExpression* h = nullptr) :
         ASTExpression(),
         hashdecl(name),
-        hash(h)
-    {
-    }
-
-    ASTHashdeclHashExpression(ASTName&& name, ASTHashExpression* h = nullptr) :
-        ASTExpression(),
-        hashdecl(name),
-        hash(h)
-    {
-    }
+        hash(h) {}
 
     virtual ~ASTHashdeclHashExpression() {}
 

@@ -48,7 +48,7 @@ public:
     ASTSuperclassDeclaration(ASTModifiers mods, ASTName&& n) :
         ASTDeclaration(n.loc),
         modifiers(mods),
-        name(n) {}
+        name(std::move(n)) {}
     ASTSuperclassDeclaration(ASTModifiers mods, const ASTName& n) :
         ASTDeclaration(n.loc),
         modifiers(mods),
@@ -56,7 +56,7 @@ public:
 
     ASTSuperclassDeclaration(ASTName&& n) :
         ASTDeclaration(n.loc),
-        name(n) {}
+        name(std::move(n)) {}
     ASTSuperclassDeclaration(const ASTName& n) :
         ASTDeclaration(n.loc),
         name(n) {}

@@ -79,7 +79,7 @@ public:
                            ASTStatementBlock* stmts = nullptr) :
         ASTDeclaration(),
         modifiers(mods),
-        name(n),
+        name(std::move(n)),
         afdKind(k),
         returnType(rt),
         params(par),
@@ -108,7 +108,7 @@ public:
                            ASTConstrInitExpression* ci = nullptr,
                            ASTStatementBlock* stmts = nullptr) :
         ASTDeclaration(),
-        name(n),
+        name(std::move(n)),
         afdKind(k),
         returnType(rt),
         params(par),

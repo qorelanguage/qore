@@ -58,8 +58,8 @@ public:
 public:
     ASTHashMemberDeclaration(ASTName&& tn, ASTName&& n, ASTExpression* ie = nullptr, bool c = false) :
         ASTDeclaration(),
-        typeName(tn),
-        name(n),
+        typeName(std::move(tn)),
+        name(std::move(n)),
         init(ie),
         constr(c) {}
 

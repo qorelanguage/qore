@@ -60,7 +60,7 @@ public:
                         std::vector<ASTDeclaration*>* decllist = nullptr) :
         ASTDeclaration(),
         modifiers(mods),
-        name(n)
+        name(std::move(n))
     {
         if (sclist)
             inherits.swap(*sclist);

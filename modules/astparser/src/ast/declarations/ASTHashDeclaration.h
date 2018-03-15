@@ -56,7 +56,7 @@ public:
                        std::vector<ASTHashMemberDeclaration*>* decllist = nullptr) :
         ASTDeclaration(),
         modifiers(mods),
-        name(n)
+        name(std::move(n))
     {
         if (decllist)
             declarations.swap(*decllist);

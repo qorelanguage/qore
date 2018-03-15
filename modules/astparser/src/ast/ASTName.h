@@ -67,8 +67,10 @@ public:
 
 public:
     ASTName() : ASTNode() {}
+
     ASTName(ASTName&& n) : ASTNode(n.loc), name(std::move(n.name)), kind(n.kind) {}
     ASTName(const ASTName& n) : ASTNode(n.loc), name(n.name), kind(n.kind) {}
+
     ASTName(const ASTName& n, ASTNameKind k) : ASTNode(n.loc), name(n.name), kind(k) {}
     ASTName(ASTNameKind k) : ASTNode(), kind(k) {}
     

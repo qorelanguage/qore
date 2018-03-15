@@ -52,7 +52,7 @@ public:
     ASTNamespaceDeclaration(ASTModifiers mods, ASTName&& n, std::vector<ASTDeclaration*>* decls = nullptr) :
         ASTDeclaration(),
         modifiers(mods),
-        name(n)
+        name(std::move(n))
     {
         if (decls)
             declarations.swap(*decls);
