@@ -257,6 +257,14 @@ std::vector<ASTNode*>* FindNodeAndParentsQuery::inExpression(ASTExpression* expr
             }
             break;
         }
+        case ASTExpressionKind::AEK_HashdeclHash: {
+            ASTHashdeclHashExpression* e = static_cast<ASTHashdeclHashExpression*>(expr);
+            result = inName(e->hashdecl, line, col);
+            if (result) { result->push_back(expr); return result; }
+            result = inExpression(e->hash.get(), line, col);
+            if (result) { result->push_back(expr); return result; }
+            break;
+        }
         case ASTExpressionKind::AEK_HashElement: {
             ASTHashElementExpression* e = static_cast<ASTHashElementExpression*>(expr);
             result = inExpression(e->key.get(), line, col);

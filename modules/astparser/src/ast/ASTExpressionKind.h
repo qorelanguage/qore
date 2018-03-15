@@ -64,6 +64,7 @@ enum ASTExpressionKind {
     AEK_SwitchBody = 27,    //!< Identifies an instance of \ref ASTSwitchBodyExpression.
     AEK_Ternary = 28,       //!< Identifies an instance of \ref ASTTernaryExpression.
     AEK_Unary = 29,         //!< Identifies an instance of \ref ASTUnaryExpression.
+    AEK_HashdeclHash = 30,  //!< Identifies an instance of \ref ASTHashdeclHashExpression.
 };
 
 #endif // _QLS_AST_ASTEXPRESSIONKIND_H

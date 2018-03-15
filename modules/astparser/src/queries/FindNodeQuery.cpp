@@ -249,6 +249,14 @@ ASTNode* FindNodeQuery::inExpression(ASTExpression* expr, ast_loc_t line, ast_lo
             }
             break;
         }
+        case ASTExpressionKind::AEK_HashdeclHash: {
+            ASTHashdeclHashExpression* e = static_cast<ASTHashdeclHashExpression*>(expr);
+            result = inName(e->hashdecl, line, col);
+            if (result) return result;
+            result = inExpression(e->hash.get(), line, col);
+            if (result) return result;
+            break;
+        }
         case ASTExpressionKind::AEK_HashElement: {
             ASTHashElementExpression* e = static_cast<ASTHashElementExpression*>(expr);
             result = inExpression(e->key.get(), line, col);

@@ -45,7 +45,7 @@ enum ASTSymbolKind {
     ASYK_Field = 8,
     ASYK_Constructor = 9,
     ASYK_Enum = 10,
-    ASYK_Interface = 11,
+    ASYK_Interface = 11, // used for hashdecls
     ASYK_Function = 12,
     ASYK_Variable = 13,
     ASYK_Constant = 14,
