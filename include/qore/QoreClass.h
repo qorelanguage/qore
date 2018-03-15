@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1137,7 +1137,7 @@ private:
    class qore_class_private* priv;
 
    // private constructor only called when the class is copied
-   DLLLOCAL QoreClass(qore_classid_t id, const char* nme);
+   DLLLOCAL QoreClass(qore_class_private* priv);
 
    DLLLOCAL void insertMethod(QoreMethod* o);
    DLLLOCAL void insertStaticMethod(QoreMethod* o);

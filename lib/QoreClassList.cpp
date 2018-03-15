@@ -43,64 +43,64 @@
 #endif
 
 void QoreClassList::remove(hm_qc_t::iterator i) {
-   QoreClass* qc = i->second;
-   //printd(5, "QCL::remove() this: %p '%s' (%p)\n", this, qc->getName(), qc);
-   hm.erase(i);
-   qore_class_private::get(*qc)->deref();
+    QoreClass* qc = i->second;
+    //printd(5, "QCL::remove() this: %p '%s' (%p)\n", this, qc->getName(), qc);
+    hm.erase(i);
+    qore_class_private::get(*qc)->deref();
 }
 
 void QoreClassList::deleteAll() {
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      qore_class_private::get(*i->second)->deref();
-
-   hm.clear();
+    for (auto& i : hm) {
+        qore_class_private::get(*i.second)->deref();
+    }
+    hm.clear();
 }
 
 QoreClassList::~QoreClassList() {
-   deleteAll();
+    deleteAll();
 }
 
 void QoreClassList::addInternal(QoreClass *oc) {
-   printd(5, "QCL::addInternal() this: %p '%s' (%p)\n", this, oc->getName(), oc);
+    printd(5, "QCL::addInternal() this: %p '%s' (%p)\n", this, oc->getName(), oc);
 
-   assert(!find(oc->getName()));
-   hm[oc->getName()] = oc;
+    assert(!find(oc->getName()));
+    hm[oc->getName()] = oc;
 }
 
 int QoreClassList::add(QoreClass *oc) {
-   printd(5, "QCL::add() this: %p '%s' (%p)\n", this, oc->getName(), oc);
+    printd(5, "QCL::add() this: %p '%s' (%p)\n", this, oc->getName(), oc);
 
-   if (find(oc->getName()))
-      return 1;
+    if (find(oc->getName()))
+        return 1;
 
-   hm[oc->getName()] = oc;
-   return 0;
+    hm[oc->getName()] = oc;
+    return 0;
 }
 
-QoreClass* QoreClassList::find(const char *name) {
-   hm_qc_t::iterator i = hm.find(name);
-   return i != hm.end() ? i->second : 0;
+QoreClass* QoreClassList::find(const char* name) {
+    hm_qc_t::iterator i = hm.find(name);
+    return i != hm.end() ? i->second : nullptr;
 }
 
-const QoreClass* QoreClassList::find(const char *name) const {
-   hm_qc_t::const_iterator i = hm.find(name);
-   return i != hm.end() ? i->second : 0;
+const QoreClass* QoreClassList::find(const char* name) const {
+    hm_qc_t::const_iterator i = hm.find(name);
+    return i != hm.end() ? i->second : nullptr;
 }
 
 QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns) {
-   for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
-      if (!i->second->isSystem()) {
-         //printd(5, "QoreClassList::QoreClassList() this: %p c: %p '%s' po & PO_NO_INHERIT_USER_CLASSES: %s pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_INHERIT_USER_CLASSES ? "true": "false", qore_class_private::isPublic(*i->second) ? "true": "false");
-         if (po & PO_NO_INHERIT_USER_CLASSES || !qore_class_private::isPublic(*i->second))
-            continue;
-      }
-      else
-         if (po & PO_NO_INHERIT_SYSTEM_CLASSES)
-            continue;
-      QoreClass* qc = new QoreClass(*i->second);
-      qore_class_private::setNamespace(qc, ns);
-      addInternal(qc);
-   }
+    for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
+        if (!i->second->isSystem()) {
+            //printd(5, "QoreClassList::QoreClassList() this: %p c: %p '%s' po & PO_NO_INHERIT_USER_CLASSES: %s pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_INHERIT_USER_CLASSES ? "true": "false", qore_class_private::isPublic(*i->second) ? "true": "false");
+            if (po & PO_NO_INHERIT_USER_CLASSES || !qore_class_private::isPublic(*i->second))
+                continue;
+        }
+        else
+            if (po & PO_NO_INHERIT_SYSTEM_CLASSES)
+                continue;
+        QoreClass* qc = new QoreClass(*i->second);
+        qore_class_private::setNamespace(qc, ns);
+        addInternal(qc);
+    }
 }
 
 void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* ns) {
@@ -122,71 +122,71 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
 }
 
 int QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_private* ns, ExceptionSink* xsink) {
-   int cnt = 0;
-   for (hm_qc_t::const_iterator i = source.hm.begin(), e = source.hm.end(); i != e; ++i) {
-      if (i->second->isSystem()) {
-         hm_qc_t::const_iterator ci = hm.find(i->second->getName());
-         if (ci != hm.end()) {
-            if (!qore_class_private::injected(*ci->second)) {
-               xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system class %s::%s due to an existing class without the injection flag set", ns->name.c_str(), ci->second->getName());
-               break;
+    int cnt = 0;
+    for (hm_qc_t::const_iterator i = source.hm.begin(), e = source.hm.end(); i != e; ++i) {
+        if (i->second->isSystem()) {
+            hm_qc_t::const_iterator ci = hm.find(i->second->getName());
+            if (ci != hm.end()) {
+                if (!qore_class_private::injected(*ci->second)) {
+                    xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system class %s::%s due to an existing class without the injection flag set", ns->name.c_str(), ci->second->getName());
+                    break;
+                }
+                continue;
             }
-            continue;
-         }
-         //printd(5, "QoreClassList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
-         QoreClass* qc = new QoreClass(*i->second);
-         qore_class_private::setNamespace(qc, ns);
-         addInternal(qc);
-         ++cnt;
-      }
-   }
-   return cnt;
+            //printd(5, "QoreClassList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
+            QoreClass* qc = new QoreClass(*i->second);
+            qore_class_private::setNamespace(qc, ns);
+            addInternal(qc);
+            ++cnt;
+        }
+    }
+    return cnt;
 }
 
 void QoreClassList::resolveCopy() {
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      qore_class_private::resolveCopy(*(i->second));
+    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+        qore_class_private::resolveCopy(*(i->second));
 }
 
 void QoreClassList::parseInit() {
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      //printd(5, "QoreClassList::parseInit() this: %p initializing %p '%s'\n", this, i->second, i->first);
-      qore_class_private::parseInit(*(i->second));
-   }
+    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+        //printd(5, "QoreClassList::parseInit() this: %p initializing %p '%s'\n", this, i->second, i->first);
+        qore_class_private::parseInit(*(i->second));
+    }
 }
 
 void QoreClassList::parseRollback() {
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      qore_class_private::parseRollback(*(i->second));
+    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+        qore_class_private::parseRollback(*(i->second));
 }
 
 void QoreClassList::parseCommit(QoreClassList& l) {
-   assimilate(l);
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-      //printd(5, "QoreClassList::parseCommit() this: %p qc: %p '%s' pub: %d\n", this, i->second, i->second->getName(), qore_class_private::isPublic(*i->second));
-      qore_class_private::parseCommit(*(i->second));
-   }
+    assimilate(l);
+    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+        //printd(5, "QoreClassList::parseCommit() this: %p qc: %p '%s' pub: %d\n", this, i->second, i->second->getName(), qore_class_private::isPublic(*i->second));
+        qore_class_private::parseCommit(*(i->second));
+    }
 }
 
 void QoreClassList::parseCommitRuntimeInit(ExceptionSink* xsink) {
-   for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      qore_class_private::parseCommitRuntimeInit(*(i->second), xsink);
+    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+        qore_class_private::parseCommitRuntimeInit(*(i->second), xsink);
 }
 
 void QoreClassList::reset() {
-   deleteAll();
+    deleteAll();
 }
 
 void QoreClassList::assimilate(QoreClassList& n) {
-   hm_qc_t::iterator i = n.hm.begin();
-   while (i != n.hm.end()) {
-      QoreClass *nc = i->second;
-      n.hm.erase(i);
-      i = n.hm.begin();
+    hm_qc_t::iterator i = n.hm.begin();
+    while (i != n.hm.end()) {
+        QoreClass *nc = i->second;
+        n.hm.erase(i);
+        i = n.hm.begin();
 
-      assert(!find(nc->getName()));
-      addInternal(nc);
-   }
+        assert(!find(nc->getName()));
+        addInternal(nc);
+    }
 }
 
 void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {

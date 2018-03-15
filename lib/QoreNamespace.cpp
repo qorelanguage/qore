@@ -299,29 +299,29 @@ void qore_ns_private::setClassHandler(q_ns_class_handler_t n_class_handler) {
 }
 
 void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink) {
-   assert(xsink);
-   if (classList.importSystemClasses(source.classList, this, xsink))
-      rns.runtimeRebuildClassIndexes(this);
+    assert(xsink);
+    if (classList.importSystemClasses(source.classList, this, xsink))
+        rns.runtimeRebuildClassIndexes(this);
 
-   if (*xsink)
-      return;
+    if (*xsink)
+        return;
 
-   // add sub namespaces
-   for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
-      QoreNamespace* nns = nsl.find(i->first);
-      if (!nns) {
-         qore_ns_private* npns = new qore_ns_private(i->first.c_str());
-         nns = npns->ns;
-         nns->priv->pub = i->second->priv->pub;
-         nns->priv->imported = true;
-         nsl.runtimeAdd(nns, this);
-      }
+    // add sub namespaces
+    for (nsmap_t::const_iterator i = source.nsl.nsmap.begin(), e = source.nsl.nsmap.end(); i != e; ++i) {
+        QoreNamespace* nns = nsl.find(i->first);
+        if (!nns) {
+            qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+            nns = npns->ns;
+            nns->priv->pub = i->second->priv->pub;
+            nns->priv->imported = true;
+            nsl.runtimeAdd(nns, this);
+        }
 
-      nns->priv->runtimeImportSystemClasses(*i->second->priv, rns, xsink);
-      //printd(5, "qore_ns_private::runtimeImportSystemClasses() this: %p '%s::' imported %p '%s::'\n", this, name.c_str(), ns, ns->getName());
-      if (*xsink)
-         break;
-   }
+        nns->priv->runtimeImportSystemClasses(*i->second->priv, rns, xsink);
+        //printd(5, "qore_ns_private::runtimeImportSystemClasses() this: %p '%s::' imported %p '%s::'\n", this, name.c_str(), ns, ns->getName());
+        if (*xsink)
+            break;
+    }
 }
 
 void qore_ns_private::runtimeImportSystemHashDecls(const qore_ns_private& source, qore_root_ns_private& rns, ExceptionSink* xsink) {

@@ -633,155 +633,155 @@ void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
 }
 
 void qore_program_private::importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name, bool inject) {
-   if (&from_pgm == this) {
-      xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the same source and target Program objects", path);
-      return;
-   }
+    if (&from_pgm == this) {
+        xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the same source and target Program objects", path);
+        return;
+    }
 
-   if (inject && !(pwo.parse_options & PO_ALLOW_INJECTION)) {
-      xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the injection flag set in a Program object without PO_ALLOW_INJECTION set", path);
-      return;
-   }
+    if (inject && !(pwo.parse_options & PO_ALLOW_INJECTION)) {
+        xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the injection flag set in a Program object without PO_ALLOW_INJECTION set", path);
+        return;
+    }
 
-   const qore_class_private* injectedClass = nullptr;
-   const qore_ns_private* vns = nullptr;
-   const QoreClass* c;
-   {
-      // acquire safe access to parse structures in the source program
-      ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
-      if (*xsink)
-         return;
-      c = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, path, vns);
+    const qore_class_private* injectedClass = nullptr;
+    const qore_ns_private* vns = nullptr;
+    const QoreClass* c;
+    {
+        // acquire safe access to parse structures in the source program
+        ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
+        if (*xsink)
+            return;
+        c = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, path, vns);
 
-      // must mark injected class so it can claim type compatibility with the class it's substituting
-      if (inject) {
-         const qore_ns_private* tcns = nullptr;
-         const QoreClass* oc = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, new_name ? new_name : path, tcns);
-         if (oc) {
-            // get injected target class pointer for new injected class
-            injectedClass = qore_class_private::get(*oc);
-            // mark source class as compatible with the injected target class as well
-            const_cast<qore_class_private*>(qore_class_private::get(*c))->injectedClass = injectedClass;
-         }
-         //printd(5, "qore_program_private::importClass() this: %p path: '%s' new_name: '%s' oc: %p\n", this, path, new_name ? new_name : "n/a", oc);
-      }
-   }
+        // must mark injected class so it can claim type compatibility with the class it's substituting
+        if (inject && c) {
+            const qore_ns_private* tcns = nullptr;
+            const QoreClass* oc = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, new_name ? new_name : path, tcns);
+            if (oc) {
+                // get injected target class pointer for new injected class
+                injectedClass = qore_class_private::get(*oc);
+                // mark source class as compatible with the injected target class as well
+                const_cast<qore_class_private*>(qore_class_private::get(*c))->injectedClass = injectedClass;
+            }
+            //printd(5, "qore_program_private::importClass() this: %p path: '%s' new_name: '%s' oc: %p\n", this, path, new_name ? new_name : "n/a", oc);
+        }
+    }
 
-   if (!c) {
-       xsink->raiseException("CLASS-IMPORT-ERROR", "can't find class \"%s\" in source Program", path);
-       return;
-   }
+    if (!c) {
+        xsink->raiseException("CLASS-IMPORT-ERROR", "can't find class \"%s\" in the source Program", path);
+        return;
+    }
 
-   // get exclusive access to program object for parsing
-   ProgramRuntimeParseContextHelper pch(xsink, pgm);
-   if (*xsink)
-      return;
+    // get exclusive access to program object for parsing
+    ProgramRuntimeParseContextHelper pch(xsink, pgm);
+    if (*xsink)
+        return;
 
-   // find/create target namespace based on source namespace
-   QoreNamespace* tns;
-   if (new_name && strstr(new_name, "::")) {
-      NamedScope nscope(new_name);
+    // find/create target namespace based on source namespace
+    QoreNamespace* tns;
+    if (new_name && strstr(new_name, "::")) {
+        NamedScope nscope(new_name);
 
-      tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, qore_class_private::isPublic(*c));
-      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, nscope.getIdentifier(), inject, injectedClass);
-   }
-   else {
-      tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
-      //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
-      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, new_name, inject, injectedClass);
-   }
+        tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, qore_class_private::isPublic(*c));
+        qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, nscope.getIdentifier(), inject, injectedClass);
+    }
+    else {
+        tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
+        //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+        qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, new_name, inject, injectedClass);
+    }
 }
 
 void qore_program_private::importHashDecl(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name) {
-      if (&from_pgm == this) {
-         xsink->raiseException("HASHDECL-IMPORT-ERROR", "cannot import hashdecl \"%s\" with the same source and target Program objects", path);
-         return;
-      }
+    if (&from_pgm == this) {
+        xsink->raiseException("HASHDECL-IMPORT-ERROR", "cannot import hashdecl \"%s\" with the same source and target Program objects", path);
+        return;
+    }
 
-      const qore_ns_private* vns = nullptr;
-      const TypedHashDecl* hd;
-      {
-         // acquire safe access to parse structures in the source program
-         ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
-         if (*xsink)
-            return;
-         hd = qore_root_ns_private::runtimeFindHashDecl(*from_pgm.RootNS, path, vns);
-      }
+    const qore_ns_private* vns = nullptr;
+    const TypedHashDecl* hd;
+    {
+        // acquire safe access to parse structures in the source program
+        ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
+        if (*xsink)
+        return;
+        hd = qore_root_ns_private::runtimeFindHashDecl(*from_pgm.RootNS, path, vns);
+    }
 
-      if (!hd) {
-          xsink->raiseException("HASHDECL-IMPORT-ERROR", "can't find hashdecl \"%s\" in source Program", path);
-          return;
-      }
+    if (!hd) {
+        xsink->raiseException("HASHDECL-IMPORT-ERROR", "can't find hashdecl \"%s\" in source Program", path);
+        return;
+    }
 
-      // get exclusive access to program object for parsing
-      ProgramRuntimeParseContextHelper pch(xsink, pgm);
-      if (*xsink)
-         return;
+    // get exclusive access to program object for parsing
+    ProgramRuntimeParseContextHelper pch(xsink, pgm);
+    if (*xsink)
+        return;
 
-      // find/create target namespace based on source namespace
-      QoreNamespace* tns;
-      if (new_name && strstr(new_name, "::")) {
-         NamedScope nscope(new_name);
+    // find/create target namespace based on source namespace
+    QoreNamespace* tns;
+    if (new_name && strstr(new_name, "::")) {
+        NamedScope nscope(new_name);
 
-         tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, typed_hash_decl_private::get(*hd)->isPublic());
-         qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, nscope.getIdentifier());
-      }
-      else {
-         tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
-         //printd(5, "qore_program_private::importHashDecl() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
-         qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, new_name);
-      }
-   }
+        tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, typed_hash_decl_private::get(*hd)->isPublic());
+        qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, nscope.getIdentifier());
+    }
+    else {
+        tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
+        //printd(5, "qore_program_private::importHashDecl() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+        qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, new_name);
+    }
+}
 
-   void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction* u, const qore_ns_private& oldns, const char* new_name, bool inject) {
-   // get exclusive access to program object for parsing
-   ProgramRuntimeParseContextHelper pch(xsink, pgm);
-   if (*xsink)
-      return;
+void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction* u, const qore_ns_private& oldns, const char* new_name, bool inject) {
+    // get exclusive access to program object for parsing
+    ProgramRuntimeParseContextHelper pch(xsink, pgm);
+    if (*xsink)
+        return;
 
-   if (new_name && strstr(new_name, "::")) {
-      NamedScope nscope(new_name);
-      QoreNamespace* tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, u->hasPublic());
-      qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, nscope.getIdentifier());
-      return;
-   }
+    if (new_name && strstr(new_name, "::")) {
+        NamedScope nscope(new_name);
+        QoreNamespace* tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, u->hasPublic());
+        qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, nscope.getIdentifier());
+        return;
+    }
 
-   // find/create target namespace based on source namespace
-   QoreNamespace* tns = oldns.root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, oldns);
-   //printd(5, "qore_program_private::importFunction() this: %p tns: %p '%s' oldns: '%s' RootNS: %p %s\n", this, tns, tns->getName(), oldns.name.c_str(), RootNS, RootNS->getName());
-   assert(oldns.name == tns->getName());
-   qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, new_name, inject);
+    // find/create target namespace based on source namespace
+    QoreNamespace* tns = oldns.root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, oldns);
+    //printd(5, "qore_program_private::importFunction() this: %p tns: %p '%s' oldns: '%s' RootNS: %p %s\n", this, tns, tns->getName(), oldns.name.c_str(), RootNS, RootNS->getName());
+    assert(oldns.name == tns->getName());
+    qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, new_name, inject);
 }
 
 void qore_program_private::exportGlobalVariable(const char* vname, bool readonly, qore_program_private& tpgm, ExceptionSink* xsink) {
-   if (&tpgm == this) {
-      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "cannot import global variable \"%s\" with the same source and target Program objects", vname);
-      return;
-   }
+    if (&tpgm == this) {
+        xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "cannot import global variable \"%s\" with the same source and target Program objects", vname);
+        return;
+    }
 
-   const qore_ns_private* vns = 0;
-   Var* v;
-   {
-      ProgramRuntimeParseAccessHelper pah(xsink, pgm);
-      if (*xsink)
-         return;
-      v = qore_root_ns_private::runtimeFindGlobalVar(*RootNS, vname, vns);
-   }
+    const qore_ns_private* vns = 0;
+    Var* v;
+    {
+        ProgramRuntimeParseAccessHelper pah(xsink, pgm);
+        if (*xsink)
+            return;
+        v = qore_root_ns_private::runtimeFindGlobalVar(*RootNS, vname, vns);
+    }
 
-   if (!v) {
-      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "there is no global variable \"%s\"", vname);
-      return;
-   }
+    if (!v) {
+        xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "there is no global variable \"%s\"", vname);
+        return;
+    }
 
-   // get exclusive access to program object for parsing
-   ProgramRuntimeParseContextHelper pch(xsink, tpgm.pgm);
-   if (*xsink)
-      return;
+    // get exclusive access to program object for parsing
+    ProgramRuntimeParseContextHelper pch(xsink, tpgm.pgm);
+    if (*xsink)
+        return;
 
-   // find/create target namespace based on source namespace
-   QoreNamespace* tns = vns->root ? tpgm.RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*tpgm.RootNS, *vns);
-   //printd(5, "qore_program_private::exportGlobalVariable() this: %p vname: '%s' ro: %d vns: %p '%s::' RootNS: %p '%s::'\n", this, vname, readonly, vns, vns->name.c_str(), RootNS, RootNS->getName());
-   qore_root_ns_private::runtimeImportGlobalVariable(*tpgm.RootNS, *tns, v, readonly, xsink);
+    // find/create target namespace based on source namespace
+    QoreNamespace* tns = vns->root ? tpgm.RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*tpgm.RootNS, *vns);
+    //printd(5, "qore_program_private::exportGlobalVariable() this: %p vname: '%s' ro: %d vns: %p '%s::' RootNS: %p '%s::'\n", this, vname, readonly, vns, vns->name.c_str(), RootNS, RootNS->getName());
+    qore_root_ns_private::runtimeImportGlobalVariable(*tpgm.RootNS, *tns, v, readonly, xsink);
 }
 
 void qore_program_private::del(ExceptionSink* xsink) {

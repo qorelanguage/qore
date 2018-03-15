@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -325,28 +325,28 @@ public:
       return 0;
    }
 
-   DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name = nullptr, bool inject = false, const qore_class_private* injectedClass = nullptr) {
-      if (checkImportClass(new_name ? new_name : c->getName(), xsink))
-         return nullptr;
+    DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name = nullptr, bool inject = false, const qore_class_private* injectedClass = nullptr) {
+        if (checkImportClass(new_name ? new_name : c->getName(), xsink))
+            return nullptr;
 
-      QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject, injectedClass);
-      qore_class_private::setNamespace(nc, this);
-      classList.add(nc);
+        QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject, injectedClass);
+        qore_class_private::setNamespace(nc, this);
+        classList.add(nc);
 
-      return nc;
-   }
+        return nc;
+    }
 
-   DLLLOCAL TypedHashDecl* runtimeImportHashDecl(ExceptionSink* xsink, const TypedHashDecl* hd, QoreProgram* spgm, const char* new_name = nullptr) {
-      if (checkImportHashDecl(new_name ? new_name : hd->getName(), xsink))
-         return nullptr;
+    DLLLOCAL TypedHashDecl* runtimeImportHashDecl(ExceptionSink* xsink, const TypedHashDecl* hd, QoreProgram* spgm, const char* new_name = nullptr) {
+        if (checkImportHashDecl(new_name ? new_name : hd->getName(), xsink))
+            return nullptr;
 
-      TypedHashDecl* nhd = new TypedHashDecl(*hd);
-      if (new_name)
-         typed_hash_decl_private::get(*nhd)->setName(new_name);
-      hashDeclList.add(nhd);
+        TypedHashDecl* nhd = new TypedHashDecl(*hd);
+        if (new_name)
+            typed_hash_decl_private::get(*nhd)->setName(new_name);
+        hashDeclList.add(nhd);
 
-      return nhd;
-   }
+        return nhd;
+    }
 
    DLLLOCAL const QoreFunction* runtimeFindFunction(const char* name) {
       return func_list.find(name, true);

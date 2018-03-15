@@ -44,6 +44,7 @@
 #include <list>
 #include <map>
 #include <string>
+#include <set>
 
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
@@ -1785,100 +1786,105 @@ public:
 #define QCCM_NORMAL (1 << 0)
 #define QCCM_STATIC (1 << 1)
 
+// set of QoreClass pointers associted to a qore_class_private object
+typedef std::set<QoreClass*> qc_set_t;
+
 // private QoreClass implementation
 // only dynamically allocated; reference counter managed in "refs"
 class qore_class_private {
 public:
-   QoreProgramLocation loc;       // location of declaration
-   std::string name;              // the name of the class
-   QoreClass* cls;                // parent class
-   qore_ns_private* ns = nullptr; // parent namespace
-   BCList* scl = nullptr;         // base class list
+    QoreProgramLocation loc;       // location of declaration
+    std::string name;              // the name of the class
+    QoreClass* cls;                // parent class
+    qore_ns_private* ns = nullptr; // parent namespace
+    BCList* scl = nullptr;         // base class list
+    qc_set_t qcset;                // set of QoreClass pointers associated with this private object (besides cls)
 
-   mutable VRMutex gate;          // for synchronized static methods
+    mutable VRMutex gate;          // for synchronized static methods
 
-   hm_method_t hm,                // "normal" (non-static) method map
-      shm;                        // static method map
+    hm_method_t hm,                // "normal" (non-static) method map
+        shm;                        // static method map
 
-   AbstractMethodMap ahm;         // holds abstract variants with no implementation in the current class
+    AbstractMethodMap ahm;         // holds abstract variants with no implementation in the current class
 
-   ConstantList constlist;        // class constants
+    ConstantList constlist;        // class constants
 
-   // member list (map)
-   QoreMemberMap members;
+    // member list (map)
+    QoreMemberMap members;
 
-   // static var list (map)
-   QoreVarMap vars;
+    // static var list (map)
+    QoreVarMap vars;
 
-   const QoreMethod* system_constructor = nullptr,
-    * constructor = nullptr,
-    * destructor = nullptr,
-    * copyMethod = nullptr,
-    * methodGate = nullptr,
-    * memberGate = nullptr,
-    * deleteBlocker = nullptr,
-    * memberNotification = nullptr;
+    const QoreMethod* system_constructor = nullptr,
+        * constructor = nullptr,
+        * destructor = nullptr,
+        * copyMethod = nullptr,
+        * methodGate = nullptr,
+        * memberGate = nullptr,
+        * deleteBlocker = nullptr,
+        * memberNotification = nullptr;
 
-   qore_classid_t classID,          // class ID
-      methodID;                     // for subclasses of builtin classes that will not have their own private data,
-                                    // instead they will get the private data from this class
+    qore_classid_t classID,          // class ID
+        methodID;                     // for subclasses of builtin classes that will not have their own private data,
+                                        // instead they will get the private data from this class
 
-   bool sys : 1,                        // system/builtin class?
-      hierarchy_initialized : 1,        // is hierarchy initialized (only performed once)
-      initialized : 1,                  // is initialized? (only performed once)
-      parse_init_called : 1,            // has parseInit() been called? (performed once for each parseCommit())
-      parse_init_partial_called : 1,    // has parseInitPartial() been called? (performed once for each parseCommit())
-      has_delete_blocker : 1,           // has a delete_blocker function somewhere in the hierarchy?
-      has_public_memdecl : 1,           // has a public member declaration somewhere in the hierarchy?
-      pending_has_public_memdecl : 1,   // has a pending public member declaration in this class?
-      owns_typeinfo : 1,                // do we own the typeInfo data or not?
-      resolve_copy_done : 1,            // has the copy already been resolved
-      has_new_user_changes : 1,         // does the class have new user code that needs to be processed?
-      has_sig_changes : 1,              // does the class have code affecting the signature to be processed?
-      owns_ornothingtypeinfo : 1,       // do we own the "or nothing" type info
-      pub : 1,                          // is a public class (modules only)
-      final : 1,                        // is the class "final" (cannot be inherited)
-      inject : 1,                       // has the class been injected
-      gate_access : 1,                  // if the methodGate and memberGate methods should be called with a class access boolean
-      committed : 1                     // can only parse to a class once
-      ;
+    bool sys : 1,                        // system/builtin class?
+        hierarchy_initialized : 1,        // is hierarchy initialized (only performed once)
+        initialized : 1,                  // is initialized? (only performed once)
+        parse_init_called : 1,            // has parseInit() been called? (performed once for each parseCommit())
+        parse_init_partial_called : 1,    // has parseInitPartial() been called? (performed once for each parseCommit())
+        has_delete_blocker : 1,           // has a delete_blocker function somewhere in the hierarchy?
+        has_public_memdecl : 1,           // has a public member declaration somewhere in the hierarchy?
+        pending_has_public_memdecl : 1,   // has a pending public member declaration in this class?
+        owns_typeinfo : 1,                // do we own the typeInfo data or not?
+        resolve_copy_done : 1,            // has the copy already been resolved
+        has_new_user_changes : 1,         // does the class have new user code that needs to be processed?
+        has_sig_changes : 1,              // does the class have code affecting the signature to be processed?
+        owns_ornothingtypeinfo : 1,       // do we own the "or nothing" type info
+        pub : 1,                          // is a public class (modules only)
+        final : 1,                        // is the class "final" (cannot be inherited)
+        inject : 1,                       // has the class been injected
+        gate_access : 1,                  // if the methodGate and memberGate methods should be called with a class access boolean
+        committed : 1                     // can only parse to a class once
+        ;
 
-   int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
-   mutable QoreReferenceCounter refs;  // existence references
-   mutable QoreReferenceCounter const_refs; // constant references
-   mutable QoreReferenceCounter var_refs;   // static var references
+    int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
+    mutable QoreReferenceCounter refs;  // existence references
+    mutable QoreReferenceCounter const_refs; // constant references
+    mutable QoreReferenceCounter var_refs;   // static var references
 
-   unsigned num_methods, num_user_methods, num_static_methods, num_static_user_methods;
+    unsigned num_methods, num_user_methods, num_static_methods, num_static_user_methods;
 
-   // type information for the class, may not have a pointer to the same QoreClass
-   // as the actual owning class in case of a copy
-   QoreTypeInfo* typeInfo,
-      *orNothingTypeInfo;
+    // type information for the class, may not have a pointer to the same QoreClass
+    // as the actual owning class in case of a copy
+    QoreTypeInfo* typeInfo,
+        *orNothingTypeInfo;
 
-   const qore_class_private* injectedClass = nullptr;
+    const qore_class_private* injectedClass = nullptr;
 
-   // common "self" local variable for all constructors
-   mutable LocalVar selfid;
+    // common "self" local variable for all constructors
+    mutable LocalVar selfid;
 
-   // class "signature" hash for comparing classes with the same name from different program objects at runtime
-   SignatureHash hash;
+    // class "signature" hash for comparing classes with the same name from different program objects at runtime
+    SignatureHash hash;
 
-   // user-specific data
-   const void* ptr = nullptr;
+    // user-specific data
+    const void* ptr = nullptr;
 
-   // managed user-specific data
-   AbstractQoreClassUserData* mud = nullptr;
+    // managed user-specific data
+    AbstractQoreClassUserData* mud = nullptr;
 
-   // pointer to new class when copying
-   mutable QoreClass* new_copy = nullptr;
+    // pointer to new class when copying
+    mutable QoreClass* new_copy = nullptr;
 
-   // pointer to owning program for imported classes
-   QoreProgram* spgm = nullptr;
+    // pointer to owning program for imported classes
+    QoreProgram* spgm = nullptr;
 
-   DLLLOCAL qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = nullptr);
+    DLLLOCAL qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = nullptr);
 
-   // only called while the parse lock for the QoreProgram owning "old" is held
-   //DLLLOCAL qore_class_private(const qore_class_private& old, QoreClass* n_cls);
+    // only called while the parse lock for the QoreProgram owning "old" is held
+    // called for injected classes only
+    DLLLOCAL qore_class_private(const qore_class_private& old, const char* nme, bool inject, const qore_class_private* injectedClass);
 
 public:
     DLLLOCAL void pgmRef() const {
@@ -1891,11 +1897,20 @@ public:
         refs.ROreference();
     }
 
-    DLLLOCAL bool deref() {
+    DLLLOCAL bool deref(bool in_del = false) {
         if (refs.ROdereference()) {
             // remove the private data pointer, delete the class object, then delete ourselves
             cls->priv = nullptr;
-            delete cls;
+            if (!in_del) {
+                delete cls;
+            }
+
+            // delete all linked QoreClass objects
+            for (auto& i : qcset) {
+                i->priv = nullptr;
+                delete i;
+            }
+
             delete this;
             return true;
         }
@@ -2999,20 +3014,11 @@ public:
       return qc.priv->inject;
    }
 
-   DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass) {
-      QoreClass* rv = new QoreClass(qc);
-      if (nme)
-         rv->priv->name = nme;
-      rv->priv->inject = inject;
-      if (injectedClass)
-         rv->priv->injectedClass = injectedClass;
-      if (qc.priv->pub)
-         rv->priv->pub = true;
-      // reference source program and save in copied class
-      rv->priv->spgm = spgm->programRefSelf();
-      printd(5, "qore_program_private::makeImportClass() name: '%s' (%s) rv: %p inject: %d\n", qc.getName(), nme ? nme : "n/a", rv, rv->priv->inject);
-      return rv;
-   }
+    DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass) {
+        qore_class_private* priv = new qore_class_private(*qc.priv, nme, inject, injectedClass);
+        printd(5, "qore_program_private::makeImportClass() name: '%s' (%s) inject: %d rv: %p\n", qc.getName(), nme ? nme : "n/a", inject, priv->cls);
+        return priv->cls;
+    }
 
    DLLLOCAL static const QoreMethod* runtimeFindCommittedStaticMethod(const QoreClass& qc, const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
       return qc.priv->runtimeFindCommittedStaticMethod(nme, access, class_ctx);

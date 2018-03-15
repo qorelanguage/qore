@@ -465,15 +465,11 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
    printd(5, "qore_class_private::qore_class_private() this: %p creating '%s' ID:%d cls: %p pub: %d sys: %d\n", this, name.c_str(), classID, cls, pub, sys);
 }
 
-/*
 // only called while the parse lock for the QoreProgram owning "old" is held
-qore_class_private::qore_class_private(const qore_class_private& old, QoreClass* n_cls)
-   : name(old.name),
-     cls(n_cls),
+qore_class_private::qore_class_private(const qore_class_private& old, const char* new_name, bool inject, const qore_class_private* injectedClass)
+   : name(new_name ? new_name : old.name),
      ahm(old.ahm),
      constlist(old.constlist, 0, this),    // committed constants
-     system_constructor(old.system_constructor ? old.system_constructor->copy(cls) : 0),
-     deleteBlocker(old.deleteBlocker ? old.deleteBlocker->copy(cls) : nullptr),
      classID(old.classID),
      methodID(old.methodID),
      sys(old.sys),
@@ -490,7 +486,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      owns_ornothingtypeinfo(false),
      pub(false), // the public flag must be explicitly set if necessary after this constructor
      final(old.final),
-     inject(old.inject),
+     inject(inject),
      gate_access(old.gate_access),
      committed(true),
      domain(old.domain),
@@ -500,63 +496,68 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreClass*
      num_static_user_methods(old.num_static_user_methods),
      typeInfo(old.typeInfo),
      orNothingTypeInfo(old.orNothingTypeInfo),
-     injectedClass(old.injectedClass),
+     injectedClass(injectedClass),
      selfid(old.selfid),
      hash(old.hash),
      ptr(old.ptr),
      mud(old.mud ? old.mud->copy() : nullptr),
      spgm(old.spgm ? old.spgm->programRefSelf() : nullptr) {
-   QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private& old)");
-   printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' ID:%d cls: %p old: %p sys: %d\n", this, name.c_str(), classID, cls, old.cls, sys);
+    QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private& old)");
+    if (!old.initialized)
+        const_cast<qore_class_private &>(old).initialize();
 
-   if (!old.initialized)
-      const_cast<qore_class_private &>(old).initialize();
+    // must set after old class has been initialized
+    has_delete_blocker = old.has_delete_blocker;
 
-   // must set after old class has been initialized
-   has_delete_blocker = old.has_delete_blocker;
+    // create new class object
+    cls = new QoreClass(this);
 
-   // set pointer to new copy
-   old.new_copy = cls;
+    printd(5, "qore_class_private::qore_class_private() this: %p creating copy of '%s' (old: '%s') ID:%d cls: %p old: %p sys: %d\n", this, name.c_str(), old.name.c_str(), classID, cls, old.cls, sys);
 
-   // copy parent class list, if any, after new_copy is set in old
-   scl = old.scl ? new BCList(*old.scl) : 0;
+    system_constructor = old.system_constructor ? old.system_constructor->copy(cls) : nullptr;
+    deleteBlocker = old.deleteBlocker ? old.deleteBlocker->copy(cls) : nullptr;
 
-   printd(5, "qore_class_private::qore_class_private() old name: %s (%p) new name: %s (%p)\n", old.name.c_str(), old.name.c_str(), name.c_str(), name.c_str());
+    // set pointer to new copy
+    old.new_copy = cls;
 
-   // copy methods and maintain method pointers
-   for (auto& i : old.hm) {
-      QoreMethod* nf = i.second->copy(cls);
+    // copy parent class list, if any, after new_copy is set in old
+    scl = old.scl ? new BCList(*old.scl) : nullptr;
 
-      hm[nf->getName()] = nf;
-      if (i.second == old.constructor)
-         constructor  = nf;
-      else if (i.second == old.destructor)
-         destructor   = nf;
-      else if (i.second == old.copyMethod)
-         copyMethod   = nf;
-      else if (i.second == old.methodGate)
-         methodGate   = nf;
-      else if (i.second == old.memberGate)
-         memberGate   = nf;
-      else if (i.second == old.memberNotification)
-         memberNotification = nf;
-   }
+    //printd(5, "qore_class_private::qore_class_private() old name: %s (%p) new name: %s (%p)\n", old.name.c_str(), old.name.c_str(), name.c_str(), name.c_str());
 
-   // copy static methods
-   for (auto& i : old.shm) {
-      QoreMethod* nf = i.second->copy(cls);
-      shm[nf->getName()] = nf;
-   }
+    // copy methods and maintain method pointers
+    for (auto& i : old.hm) {
+        QoreMethod* nf = i.second->copy(cls);
 
-   // copy member list
-   for (QoreMemberMap::DeclOrderIterator i = old.members.beginDeclOrder(), e = old.members.endDeclOrder(); i != e; ++i)
-      members.addNoCheck(strdup(i->first), i->second ? i->second->copy(i->first, this) : 0);
+        hm[nf->getName()] = nf;
+        if (i.second == old.constructor)
+            constructor  = nf;
+        else if (i.second == old.destructor)
+            destructor   = nf;
+        else if (i.second == old.copyMethod)
+            copyMethod   = nf;
+        else if (i.second == old.methodGate)
+            methodGate   = nf;
+        else if (i.second == old.memberGate)
+            memberGate   = nf;
+        else if (i.second == old.memberNotification)
+            memberNotification = nf;
+    }
 
-   // copy static var list
-   for (QoreVarMap::DeclOrderIterator i = old.vars.beginDeclOrder(), e = old.vars.endDeclOrder(); i != e; ++i)
-      vars.addNoCheck(strdup(i->first), i->second ? i->second->copy(i->first) : 0);
+    // copy static methods
+    for (auto& i : old.shm) {
+        QoreMethod* nf = i.second->copy(cls);
+        shm[nf->getName()] = nf;
+    }
+
+    // copy member list
+    for (QoreMemberMap::DeclOrderIterator i = old.members.beginDeclOrder(), e = old.members.endDeclOrder(); i != e; ++i)
+        members.addNoCheck(strdup(i->first), i->second ? i->second->copy(i->first, this) : 0);
+
+    // copy static var list
+    for (QoreVarMap::DeclOrderIterator i = old.vars.beginDeclOrder(), e = old.vars.endDeclOrder(); i != e; ++i)
+        vars.addNoCheck(strdup(i->first), i->second ? i->second->copy(i->first) : 0);
 }
-*/
 
 qore_class_private::~qore_class_private() {
     printd(5, "qore_class_private::~qore_class_private() this: %p %s\n", this, name.c_str());
@@ -1051,7 +1052,7 @@ QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVarian
       }
       v = i.second->pending_save;
       for (auto& vi : v) {
-         printd(0, " + pending_save: %s\n", vi.first);
+        printd(0, " + pending_save: %s\n", vi.first);
       }
    }
    assert(ahm.empty());
@@ -2667,7 +2668,7 @@ void qore_class_private::parseRollback() {
     // delete all static vars
     if (!vars.empty()) {
         vars.del();
-        printd(0, "qore_class_private::parseRollback() '%s' deleted all vars: %d\n", name.c_str(), vars.empty());
+        //printd(5, "qore_class_private::parseRollback() '%s' deleted all vars: %d\n", name.c_str(), vars.empty());
     }
 
     // set flags
@@ -2894,6 +2895,18 @@ void BCSMList::resolveCopy() {
    }
 }
 
+QoreClass::QoreClass(qore_class_private* priv) : priv(priv) {
+    priv->cls = this;
+}
+
+QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
+    priv->pgmRef();
+
+    // ensure atomicity when writing to qcset
+    AutoLocker al(priv->gate.asl_lock);
+    priv->qcset.insert(this);
+}
+
 QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
    priv->owns_ornothingtypeinfo = true;
@@ -2905,29 +2918,38 @@ QoreClass::QoreClass(const char* nme, int dom) : priv(new qore_class_private(thi
 }
 
 QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) {
-   assert(typeInfo);
-   priv = new qore_class_private(this, std::string(nme), dom, const_cast<QoreTypeInfo*>(typeInfo));
+    assert(typeInfo);
+    priv = new qore_class_private(this, std::string(nme), dom, const_cast<QoreTypeInfo*>(typeInfo));
 
-   printd(5, "QoreClass::QoreClass() this: %p creating '%s' with custom typeinfo\n", this, priv->name.c_str());
+    printd(5, "QoreClass::QoreClass() this: %p creating '%s' with custom typeinfo\n", this, priv->name.c_str());
 
-   // see if typeinfo already accepts NOTHING
-   if (QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING))
-      priv->orNothingTypeInfo = const_cast<QoreTypeInfo*>(typeInfo);
-   else {
-      priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
-      priv->owns_ornothingtypeinfo = true;
-   }
+    // see if typeinfo already accepts NOTHING
+    if (QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING))
+        priv->orNothingTypeInfo = const_cast<QoreTypeInfo*>(typeInfo);
+    else {
+        priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
+        priv->owns_ornothingtypeinfo = true;
+    }
 }
 
 QoreClass::QoreClass() : priv(new qore_class_private(this, parse_pop_name())) {
-   priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, priv->name.c_str());
-   priv->owns_ornothingtypeinfo = true;
+    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, priv->name.c_str());
+    priv->owns_ornothingtypeinfo = true;
 }
 
 QoreClass::~QoreClass() {
     // dereference the private data if still present
     if (priv) {
-        priv->deref();
+        {
+            // ensure atomicity when writing to qcset
+            AutoLocker al(priv->gate.asl_lock);
+            qc_set_t::iterator i = priv->qcset.find(this);
+            if (i != priv->qcset.end()) {
+                priv->qcset.erase(i);
+            }
+        }
+
+        priv->deref(true);
     }
 }
 
@@ -2969,13 +2991,6 @@ const QoreClass* QoreClass::getClass(const QoreClass& qc, bool& cpriv) const {
 
 bool QoreMethod::existsVariant(const type_vec_t &paramTypeInfo) const {
    return priv->func->existsVariant(paramTypeInfo);
-}
-
-//QoreClass::QoreClass(const QoreClass& old) : priv(new qore_class_private(*old.priv, this)) {
-//}
-
-QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
-    priv->pgmRef();
 }
 
 void QoreClass::insertMethod(QoreMethod* m) {
