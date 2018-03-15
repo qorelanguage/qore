@@ -55,6 +55,20 @@ public:
 
 public:
     ASTClassDeclaration(ASTModifiers mods,
+                        ASTName&& n,
+                        std::vector<ASTSuperclassDeclaration*>* sclist = nullptr,
+                        std::vector<ASTDeclaration*>* decllist = nullptr) :
+        ASTDeclaration(),
+        modifiers(mods),
+        name(std::move(n))
+    {
+        if (sclist)
+            inherits.swap(*sclist);
+        if (decllist)
+            declarations.swap(*decllist);
+    }
+
+    ASTClassDeclaration(ASTModifiers mods,
                         const ASTName& n,
                         std::vector<ASTSuperclassDeclaration*>* sclist = nullptr,
                         std::vector<ASTDeclaration*>* decllist = nullptr) :

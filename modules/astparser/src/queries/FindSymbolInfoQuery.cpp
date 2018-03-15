@@ -204,6 +204,12 @@ ASTSymbolInfo FindSymbolInfoQuery::inExpression(std::vector<ASTNode*>* nodes, as
         }
         case ASTExpressionKind::AEK_Hash:
             break;
+        case ASTExpressionKind::AEK_HashdeclHash: {
+            ASTHashdeclHashExpression* e = static_cast<ASTHashdeclHashExpression*>(expr);
+            if (e->hashdecl.loc.inside(line, col))
+                return ASTSymbolInfo(ASYK_Interface, ASUK_CastType, e->hashdecl.loc, e->hashdecl.name);
+            break;
+        }
         case ASTExpressionKind::AEK_HashElement: {
             ASTHashElementExpression* e = static_cast<ASTHashElementExpression*>(expr);
             if (exprMatches(e->value.get(), line, col))

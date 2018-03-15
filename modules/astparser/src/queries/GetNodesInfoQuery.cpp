@@ -263,6 +263,12 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
             nodeInfo->setKeyValue("elements", elements.release(), xsink);
             break;
         }
+        case ASTExpressionKind::AEK_HashdeclHash: {
+            ASTHashdeclHashExpression* e = static_cast<ASTHashdeclHashExpression*>(expr);
+            nodeInfo->setKeyValue("hashdecl", getName(tree, e->hashdecl, xsink), xsink);
+            nodeInfo->setKeyValue("hash", getExpression(tree, e->hash.get(), xsink), xsink);
+            break;
+        }
         case ASTExpressionKind::AEK_HashElement: {
             ASTHashElementExpression* e = static_cast<ASTHashElementExpression*>(expr);
             nodeInfo->setKeyValue("key", getExpression(tree, e->key.get(), xsink), xsink);

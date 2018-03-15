@@ -189,6 +189,11 @@ void FindSymbolsQuery::inExpression(std::vector<ASTSymbolInfo>* vec, ASTExpressi
                 inExpression(vec, e->elements[i]);
             break;
         }
+        case ASTExpressionKind::AEK_HashdeclHash: {
+            ASTHashdeclHashExpression* e = static_cast<ASTHashdeclHashExpression*>(expr);
+            inExpression(vec, e->hash.get());
+            break;
+        }
         case ASTExpressionKind::AEK_HashElement: {
             ASTHashElementExpression* e = static_cast<ASTHashElementExpression*>(expr);
             inExpression(vec, e->key.get());

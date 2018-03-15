@@ -357,6 +357,15 @@ void AstTreePrinter::printExpression(std::ostream& os, ASTExpression* expr, int 
             }
             break;
         }
+        case ASTExpressionKind::AEK_HashdeclHash: {
+            ASTHashdeclHashExpression* e = static_cast<ASTHashdeclHashExpression*>(expr);
+            printString(os, "HashdeclHashExpr ", indent);
+            printLocation(os, e->loc, 0);
+            printName(os, e->hashdecl, indent+1, true, true, "hashdecl: ");
+            printString(os, "hash:\n", indent+1);
+            printExpression(os, e->hash.get(), indent+2);
+            break;
+        }
         case ASTExpressionKind::AEK_HashElement: {
             ASTHashElementExpression* e = static_cast<ASTHashElementExpression*>(expr);
             printString(os, "HashElementExpr ", indent);
