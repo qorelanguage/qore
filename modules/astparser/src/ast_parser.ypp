@@ -496,7 +496,8 @@ gvardecl:
             ASTName name($4, ASTNameKind::ANK_ScopedRef);
             name.loc = @4;
             free($4);
-            $$ = new ASTVariableDeclaration(mods, typeName, name);
+
+            $$ = new ASTVariableDeclaration(mods, std::move(typeName), std::move(name));
             $$->loc.set(@1, @4);
         }
         | ppub TOK_OUR SCOPED_REF {
@@ -507,7 +508,8 @@ gvardecl:
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
             name.loc = @3;
             free($3);
-            $$ = new ASTVariableDeclaration(mods, name);
+
+            $$ = new ASTVariableDeclaration(mods, std::move(name));
             $$->loc.set(@1, @3);
         }
         | ppub TOK_OUR uncqtypedef IDENTIFIER {
@@ -521,7 +523,8 @@ gvardecl:
             ASTName name($4, ASTNameKind::ANK_Identifier);
             name.loc = @4;
             free($4);
-            $$ = new ASTVariableDeclaration(mods, typeName, name);
+
+            $$ = new ASTVariableDeclaration(mods, std::move(typeName), std::move(name));
             $$->loc.set(@1, @4);
         }
         | ppub TOK_OUR IDENTIFIER {
@@ -532,7 +535,8 @@ gvardecl:
             ASTName name($3, ASTNameKind::ANK_Identifier);
             name.loc = @3;
             free($3);
-            $$ = new ASTVariableDeclaration(mods, name);
+
+            $$ = new ASTVariableDeclaration(mods, std::move(name));
             $$->loc.set(@1, @3);
         }
         | ppub TOK_OUR qtypedef SCOPED_VREF {
@@ -549,7 +553,8 @@ gvardecl:
             ASTName name($4, ASTNameKind::ANK_ScopedVref);
             name.loc = @4;
             free($4);
-            $$ = new ASTVariableDeclaration(mods, typeName, name);
+
+            $$ = new ASTVariableDeclaration(mods, std::move(typeName), std::move(name));
             $$->loc.set(@1, @4);
         }
         | ppub TOK_OUR qtypedef VAR_REF {
@@ -566,7 +571,8 @@ gvardecl:
             ASTName name($4, ASTNameKind::ANK_VarRef);
             name.loc = @4;
             free($4);
-            $$ = new ASTVariableDeclaration(mods, typeName, name);
+
+            $$ = new ASTVariableDeclaration(mods, std::move(typeName), std::move(name));
             $$->loc.set(@1, @4);
         }
         | ppub TOK_OUR '(' list ')' {
@@ -581,7 +587,8 @@ top_namespace_decl:
             ASTName name($2, ASTNameKind::ANK_Namespace);
             name.loc = @2;
             free($2);
-            $$ = new ASTNamespaceDeclaration($1, name, $4);
+
+            $$ = new ASTNamespaceDeclaration($1, std::move(name), $4);
             $$->loc.set(@1, @5);
             delete $4;
         }
@@ -589,14 +596,16 @@ top_namespace_decl:
             ASTName name($2, ASTNameKind::ANK_Namespace);
             name.loc = @2;
             free($2);
-            $$ = new ASTNamespaceDeclaration($1, name);
+
+            $$ = new ASTNamespaceDeclaration($1, std::move(name));
             $$->loc.set(@1, @3);
         }
         | nsc_modifiers NAMESPACE '{' '}' {
             ASTName name($2, ASTNameKind::ANK_Namespace);
             name.loc = @2;
             free($2);
-            $$ = new ASTNamespaceDeclaration($1, name);
+
+            $$ = new ASTNamespaceDeclaration($1, std::move(name));
             $$->loc.set(@1, @4);
         }
         ;
@@ -631,7 +640,8 @@ unscoped_const_decl:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            $$ = new ASTConstantDeclaration(name, $4);
+
+            $$ = new ASTConstantDeclaration(std::move(name), $4);
             $$->loc.set(@1, @5);
         }
         | TOK_PUBLIC TOK_CONST IDENTIFIER '=' exp ';' {
@@ -639,7 +649,8 @@ unscoped_const_decl:
             ASTName name($3, ASTNameKind::ANK_Identifier);
             name.loc = @3;
             free($3);
-            $$ = new ASTConstantDeclaration(mods, name, $5);
+
+            $$ = new ASTConstantDeclaration(mods, std::move(name), $5);
             $$->loc.set(@1, @6);
         }
         ;
@@ -649,7 +660,8 @@ scoped_const_decl:
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTConstantDeclaration(name, $4);
+
+            $$ = new ASTConstantDeclaration(std::move(name), $4);
             $$->loc.set(@1, @5);
         }
         | TOK_PUBLIC TOK_CONST SCOPED_REF '=' exp ';' {
@@ -657,7 +669,8 @@ scoped_const_decl:
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
             name.loc = @3;
             free($3);
-            $$ = new ASTConstantDeclaration(mods, name, $5);
+
+            $$ = new ASTConstantDeclaration(mods, std::move(name), $5);
             $$->loc.set(@1, @6);
         }
         ;
@@ -731,6 +744,7 @@ statement:
             ASTName name($1, ASTNameKind::ANK_ScopedRef);
             name.loc = @1;
             free($1);
+
             $$ = new ASTCallStatement(new ASTCallExpression(new ASTNameExpression(std::move(name)), $3));
             $$->loc.set(@1, @5);
         }
@@ -999,7 +1013,8 @@ hashdecl_def:
             ASTName name($3, ASTNameKind::ANK_Identifier);
             name.loc = @3;
             free($3);
-            $$ = new ASTHashDeclaration(mods, name, $5);
+
+            $$ = new ASTHashDeclaration(mods, std::move(name), $5);
             $$->loc.set(@1, @6);
             delete $5;
         }
@@ -1008,7 +1023,8 @@ hashdecl_def:
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
             name.loc = @3;
             free($3);
-            $$ = new ASTHashDeclaration(mods, name, $5);
+
+            $$ = new ASTHashDeclaration(mods, std::move(name), $5);
             $$->loc.set(@1, @6);
             delete $5;
         }
@@ -1020,7 +1036,8 @@ class_def:
             ASTName name($2, ASTNameKind::ANK_ClassString);
             name.loc = @2;
             free($2);
-            $$ = new ASTClassDeclaration(mods, name, $3, $5);
+
+            $$ = new ASTClassDeclaration(mods, std::move(name), $3, $5);
             $$->loc.set(@1, @6);
             delete $3;
             delete $5;
@@ -1030,7 +1047,8 @@ class_def:
             ASTName name($2, ASTNameKind::ANK_ClassScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTClassDeclaration(mods, name, $3, $5);
+
+            $$ = new ASTClassDeclaration(mods, std::move(name), $3, $5);
             $$->loc.set(@1, @6);
             delete $3;
             delete $5;
@@ -1040,7 +1058,8 @@ class_def:
             ASTName name($2, ASTNameKind::ANK_ClassString);
             name.loc = @2;
             free($2);
-            $$ = new ASTClassDeclaration(mods, name, $3);
+
+            $$ = new ASTClassDeclaration(mods, std::move(name), $3);
             $$->loc.set(@1, @4);
             delete $3;
         }
@@ -1049,7 +1068,8 @@ class_def:
             ASTName name($2, ASTNameKind::ANK_ClassScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTClassDeclaration(mods, name, $3);
+
+            $$ = new ASTClassDeclaration(mods, std::move(name), $3);
             $$->loc.set(@1, @4);
             delete $3;
         }
@@ -1058,7 +1078,8 @@ class_def:
             ASTName name($2, ASTNameKind::ANK_ClassString);
             name.loc = @2;
             free($2);
-            $$ = new ASTClassDeclaration(mods, name, $3);
+
+            $$ = new ASTClassDeclaration(mods, std::move(name), $3);
             $$->loc.set(@1, @5);
             delete $3;
         }
@@ -1067,7 +1088,8 @@ class_def:
             ASTName name($2, ASTNameKind::ANK_ClassScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTClassDeclaration(mods, name, $3);
+
+            $$ = new ASTClassDeclaration(mods, std::move(name), $3);
             $$->loc.set(@1, @5);
             delete $3;
         }
@@ -1098,20 +1120,21 @@ superclass:
             ASTName name($1, ASTNameKind::ANK_Identifier);
             name.loc = @1;
             free($1);
-            $$ = new ASTSuperclassDeclaration(name);
+            $$ = new ASTSuperclassDeclaration(std::move(name));
         }
         | SCOPED_REF {
             ASTName name($1, ASTNameKind::ANK_ScopedRef);
             name.loc = @1;
             free($1);
-            $$ = new ASTSuperclassDeclaration(name);
+            $$ = new ASTSuperclassDeclaration(std::move(name));
         }
         | TOK_PUBLIC IDENTIFIER {
             ASTModifiers mods(ASTModifier::AM_Public);
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            $$ = new ASTSuperclassDeclaration(mods, name);
+
+            $$ = new ASTSuperclassDeclaration(mods, std::move(name));
             $$->loc.setFirst(@1);
         }
         | TOK_PUBLIC SCOPED_REF {
@@ -1119,7 +1142,8 @@ superclass:
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTSuperclassDeclaration(mods, name);
+
+            $$ = new ASTSuperclassDeclaration(mods, std::move(name));
             $$->loc.setFirst(@1);
         }
         | TOK_PRIVATE IDENTIFIER {
@@ -1127,7 +1151,8 @@ superclass:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            $$ = new ASTSuperclassDeclaration(mods, name);
+
+            $$ = new ASTSuperclassDeclaration(mods, std::move(name));
             $$->loc.setFirst(@1);
         }
         | TOK_PRIVATE SCOPED_REF {
@@ -1135,7 +1160,8 @@ superclass:
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTSuperclassDeclaration(mods, name);
+
+            $$ = new ASTSuperclassDeclaration(mods, std::move(name));
             $$->loc.setFirst(@1);
         }
         | TOK_PRIVATEHIERARCHY IDENTIFIER {
@@ -1143,7 +1169,8 @@ superclass:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            $$ = new ASTSuperclassDeclaration(mods, name);
+
+            $$ = new ASTSuperclassDeclaration(mods, std::move(name));
             $$->loc.setFirst(@1);
         }
         | TOK_PRIVATEHIERARCHY SCOPED_REF {
@@ -1151,7 +1178,8 @@ superclass:
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTSuperclassDeclaration(mods, name);
+
+            $$ = new ASTSuperclassDeclaration(mods, std::move(name));
             $$->loc.setFirst(@1);
         }
         | TOK_PRIVATEINTERNAL IDENTIFIER {
@@ -1159,7 +1187,8 @@ superclass:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            $$ = new ASTSuperclassDeclaration(mods, name);
+
+            $$ = new ASTSuperclassDeclaration(mods, std::move(name));
             $$->loc.setFirst(@1);
         }
         | TOK_PRIVATEINTERNAL SCOPED_REF {
@@ -1167,7 +1196,8 @@ superclass:
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTSuperclassDeclaration(mods, name);
+
+            $$ = new ASTSuperclassDeclaration(mods, std::move(name));
             $$->loc.setFirst(@1);
         }
         ;
@@ -1191,7 +1221,8 @@ hashdecl_attributes:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            $$ = new ASTHashMemberDeclaration(typeName, name);
+
+            $$ = new ASTHashMemberDeclaration(std::move(typeName), std::move(name));
             $$->loc.set(@1, @2);
         }
         | uncqtypedef IDENTIFIER '=' exp ';' {
@@ -1201,7 +1232,8 @@ hashdecl_attributes:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            $$ = new ASTHashMemberDeclaration(typeName, name, $4);
+
+            $$ = new ASTHashMemberDeclaration(std::move(typeName), std::move(name), $4);
             $$->loc.set(@1, @4);
         }
         | uncqtypedef IDENTIFIER '(' myexp ')' ';' {
@@ -1211,7 +1243,8 @@ hashdecl_attributes:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            $$ = new ASTHashMemberDeclaration(typeName, name, $4, true);
+
+            $$ = new ASTHashMemberDeclaration(std::move(typeName), std::move(name), $4, true);
             $$->loc.set(@1, @5);
         }
         ;
@@ -1383,7 +1416,8 @@ classvardecl:
             ASTName name($3, ASTNameKind::ANK_Identifier);
             name.loc = @3;
             free($3);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, std::move(typeName), std::move(name)));
             vd->loc.set(@1, @3);
             $$ = new ASTDeclExpression(vd.release());
         }
@@ -1392,7 +1426,8 @@ classvardecl:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, std::move(name)));
             vd->loc.set(@1, @2);
             $$ = new ASTDeclExpression(vd.release());
         }
@@ -1404,7 +1439,8 @@ classvardecl:
             ASTName name($3, ASTNameKind::ANK_Identifier);
             name.loc = @3;
             free($3);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, std::move(typeName), std::move(name)));
             vd->loc.set(@1, @3);
             $$ = new ASTAssignmentExpression(new ASTDeclExpression(vd.release()), $5);
         }
@@ -1413,7 +1449,8 @@ classvardecl:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, std::move(name)));
             vd->loc.set(@1, @2);
             $$ = new ASTAssignmentExpression(new ASTDeclExpression(vd.release()), $4);
         }
@@ -1425,7 +1462,8 @@ classvardecl:
             ASTName name($3, ASTNameKind::ANK_Identifier);
             name.loc = @3;
             free($3);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, std::move(typeName), std::move(name)));
             vd->loc.set(@1, @3);
             $$ = new ASTCallExpression(new ASTDeclExpression(vd.release()), $5);
             $$->loc.setLast(@7);
@@ -1440,7 +1478,8 @@ member2:
             ASTName name($2, ASTNameKind::ANK_SelfRef);
             name.loc = @2;
             free($2);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(typeName), std::move(name)));
             vd->loc.set(@1, @2);
             $$ = new ASTDeclExpression(vd.release());
             /*if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
@@ -1453,7 +1492,8 @@ member2:
             ASTName name($2, ASTNameKind::ANK_SelfRef);
             name.loc = @2;
             free($2);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(typeName), std::move(name)));
             vd->loc.set(@1, @2);
             $$ = new ASTAssignmentExpression(new ASTDeclExpression(vd.release()), $4);
             /*if (parse_check_parse_option(PO_ALLOW_BARE_REFS))
@@ -1466,7 +1506,8 @@ member2:
             ASTName name($2, ASTNameKind::ANK_SelfRef);
             name.loc = @2;
             free($2);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(typeName), std::move(name)));
             $$ = new ASTCallExpression(new ASTDeclExpression(vd.release()), $4);
             $$->loc.setLast(@6);
             /*if (!$1)
@@ -1481,7 +1522,8 @@ member2:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(typeName), std::move(name)));
             $$ = new ASTDeclExpression(vd.release());
             /*if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
                 parse_error("member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);*/
@@ -1493,7 +1535,8 @@ member2:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(typeName), std::move(name)));
             $$ = new ASTAssignmentExpression(new ASTDeclExpression(vd.release()), $4);
             /*if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
                 parse_error("member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $2);*/
@@ -1505,7 +1548,8 @@ member2:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(typeName), std::move(name)));
             $$ = new ASTCallExpression(new ASTDeclExpression(vd.release()), $4);
             $$->loc.setLast(@6);
             /*if (!$1)
@@ -1517,6 +1561,7 @@ member2:
             ASTName name($1, ASTNameKind::ANK_Identifier);
             name.loc = @1;
             free($1);
+
             $$ = new ASTNameExpression(std::move(name));
             /*if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
                 parse_error("member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);*/
@@ -1525,6 +1570,7 @@ member2:
             ASTName name($1, ASTNameKind::ANK_Identifier);
             name.loc = @1;
             free($1);
+
             $$ = new ASTAssignmentExpression(new ASTNameExpression(std::move(name)), $3);
             /*if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
                 parse_error("member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);*/
@@ -1594,7 +1640,8 @@ inline_methoddef:
             ASTName name($2, ASTNameKind::ANK_IdentOpenParen);
             name.loc = @2;
             free($2);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Inline, $6, $3, $5, $7);
+
+            $$ = new ASTFunctionDeclaration(mods, std::move(name), AFDKind::AFDK_Inline, $6, $3, $5, $7);
             $$->loc.set(@1, @7);
         }
         | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list block {
@@ -1605,7 +1652,14 @@ inline_methoddef:
             ASTName name($3, ASTNameKind::ANK_IdentOpenParen);
             name.loc = @3;
             free($3);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Inline, new ASTNameExpression(std::move(typeName)), $4, $6, $7);
+
+            $$ = new ASTFunctionDeclaration(
+                mods,
+                std::move(name),
+                AFDKind::AFDK_Inline,
+                new ASTNameExpression(std::move(typeName)),
+                $4, $6, $7
+            );
             $$->loc.set(@1, @7);
         }
         | nsc_modifiers ident_openparen myexp ')' base_constructor_list return_value ';' {
@@ -1613,7 +1667,8 @@ inline_methoddef:
             ASTName name($2, ASTNameKind::ANK_IdentOpenParen);
             name.loc = @2;
             free($2);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Inline, $6, $3, $5);
+
+            $$ = new ASTFunctionDeclaration(mods, std::move(name), AFDKind::AFDK_Inline, $6, $3, $5);
             $$->loc.set(@1, @7);
         }
         | nsc_modifiers uncqtypedef ident_openparen myexp ')' base_constructor_list ';' {
@@ -1624,7 +1679,14 @@ inline_methoddef:
             ASTName name($3, ASTNameKind::ANK_IdentOpenParen);
             name.loc = @3;
             free($3);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Inline, new ASTNameExpression(std::move(typeName)), $4, $6);
+
+            $$ = new ASTFunctionDeclaration(
+                mods,
+                std::move(name),
+                AFDKind::AFDK_Inline,
+                new ASTNameExpression(std::move(typeName)),
+                $4, $6
+            );
             $$->loc.set(@1, @7);
         }
         ;
@@ -1635,7 +1697,8 @@ outofline_methoddef:
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Outofline, $7, $4, $6, $8);
+
+            $$ = new ASTFunctionDeclaration(mods, std::move(name), AFDKind::AFDK_Outofline, $7, $4, $6, $8);
             $$->loc.set(@1, @8);
         }
         | method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
@@ -1646,7 +1709,14 @@ outofline_methoddef:
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
             name.loc = @3;
             free($3);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Outofline, new ASTNameExpression(std::move(typeName)), $5, $7, $8);
+
+            $$ = new ASTFunctionDeclaration(
+                mods,
+                std::move(name),
+                AFDKind::AFDK_Outofline,
+                new ASTNameExpression(std::move(typeName)),
+                $5, $7, $8
+            );
             $$->loc.set(@1, @8);
         }
         | method_modifiers SCOPED_REF '(' myexp ')' base_constructor_list return_value ';' {
@@ -1654,7 +1724,8 @@ outofline_methoddef:
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Outofline, $7, $4, $6);
+
+            $$ = new ASTFunctionDeclaration(mods, std::move(name), AFDKind::AFDK_Outofline, $7, $4, $6);
             $$->loc.set(@1, @8);
         }
         | method_modifiers uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list ';' {
@@ -1665,14 +1736,22 @@ outofline_methoddef:
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
             name.loc = @3;
             free($3);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Outofline, new ASTNameExpression(std::move(typeName)), $5, $7);
+
+            $$ = new ASTFunctionDeclaration(
+                mods,
+                std::move(name),
+                AFDKind::AFDK_Outofline,
+                new ASTNameExpression(std::move(typeName)),
+                $5, $7
+            );
             $$->loc.set(@1, @8);
         }
         | SCOPED_REF '(' myexp ')' base_constructor_list return_value block {
             ASTName name($1, ASTNameKind::ANK_ScopedRef);
             name.loc = @1;
             free($1);
-            $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_Outofline, $6, $3, $5, $7);
+
+            $$ = new ASTFunctionDeclaration(std::move(name), AFDKind::AFDK_Outofline, $6, $3, $5, $7);
             $$->loc.set(@1, @7);
         }
         | uncqtypedef SCOPED_REF '(' myexp ')' base_constructor_list block {
@@ -1682,7 +1761,13 @@ outofline_methoddef:
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_Outofline, new ASTNameExpression(std::move(typeName)), $4, $6, $7);
+
+            $$ = new ASTFunctionDeclaration(
+                std::move(name),
+                AFDKind::AFDK_Outofline,
+                new ASTNameExpression(std::move(typeName)),
+                $4, $6, $7
+            );
             $$->loc.set(@1, @7);
         }
         ;
@@ -1773,7 +1858,8 @@ sub_def:
             ASTName name($2, ASTNameKind::ANK_IdentOpenParen);
             name.loc = @2;
             free($2);
-            $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_Sub, $5, $3, nullptr, $6);
+
+            $$ = new ASTFunctionDeclaration(std::move(name), AFDKind::AFDK_Sub, $5, $3, nullptr, $6);
             $$->loc.set(@1, @6);
         }
         | uncqtypedef TOK_SUB ident_openparen myexp ')' block {
@@ -1783,7 +1869,13 @@ sub_def:
             ASTName name($3, ASTNameKind::ANK_IdentOpenParen);
             name.loc = @3;
             free($3);
-            $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_Sub, new ASTNameExpression(std::move(typeName)), $4, nullptr, $6);
+
+            $$ = new ASTFunctionDeclaration(
+                std::move(name),
+                AFDKind::AFDK_Sub,
+                new ASTNameExpression(std::move(typeName)),
+                $4, nullptr, $6
+            );
             $$->loc.set(@1, @6);
         }
         | method_modifiers TOK_SUB ident_openparen myexp ')' return_value block {
@@ -1791,7 +1883,8 @@ sub_def:
             ASTName name($3, ASTNameKind::ANK_IdentOpenParen);
             name.loc = @3;
             free($3);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Sub, $6, $4, nullptr, $7);
+
+            $$ = new ASTFunctionDeclaration(mods, std::move(name), AFDKind::AFDK_Sub, $6, $4, nullptr, $7);
             $$->loc.set(@1, @7);
         }
         | method_modifiers uncqtypedef TOK_SUB ident_openparen myexp ')' block {
@@ -1802,7 +1895,14 @@ sub_def:
             ASTName name($4, ASTNameKind::ANK_IdentOpenParen);
             name.loc = @4;
             free($4);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_Sub, new ASTNameExpression(std::move(typeName)), $5, nullptr, $7);
+
+            $$ = new ASTFunctionDeclaration(
+                mods,
+                std::move(name),
+                AFDKind::AFDK_Sub,
+                new ASTNameExpression(std::move(typeName)),
+                $5, nullptr, $7
+            );
             $$->loc.set(@1, @7);
         }
 
@@ -1811,7 +1911,8 @@ scoped_sub_def:
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
             name.loc = @2;
             free($2);
-            $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_ScopedSub, $6, $4, nullptr, $7);
+
+            $$ = new ASTFunctionDeclaration(std::move(name), AFDKind::AFDK_ScopedSub, $6, $4, nullptr, $7);
             $$->loc.set(@1, @7);
         }
         | uncqtypedef TOK_SUB SCOPED_REF '(' myexp ')' block {
@@ -1821,7 +1922,13 @@ scoped_sub_def:
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
             name.loc = @3;
             free($3);
-            $$ = new ASTFunctionDeclaration(name, AFDKind::AFDK_ScopedSub, new ASTNameExpression(std::move(typeName)), $5, nullptr, $7);
+
+            $$ = new ASTFunctionDeclaration(
+                std::move(name),
+                AFDKind::AFDK_ScopedSub,
+                new ASTNameExpression(std::move(typeName)),
+                $5, nullptr, $7
+            );
             $$->loc.set(@1, @7);
         }
         | method_modifiers TOK_SUB SCOPED_REF '(' myexp ')' return_value block {
@@ -1829,7 +1936,8 @@ scoped_sub_def:
             ASTName name($3, ASTNameKind::ANK_ScopedRef);
             name.loc = @3;
             free($3);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_ScopedSub, $7, $5, nullptr, $8);
+
+            $$ = new ASTFunctionDeclaration(mods, std::move(name), AFDKind::AFDK_ScopedSub, $7, $5, nullptr, $8);
             $$->loc.set(@1, @8);
         }
         | method_modifiers uncqtypedef TOK_SUB SCOPED_REF '(' myexp ')' block {
@@ -1840,7 +1948,14 @@ scoped_sub_def:
             ASTName name($4, ASTNameKind::ANK_ScopedRef);
             name.loc = @4;
             free($4);
-            $$ = new ASTFunctionDeclaration(mods, name, AFDKind::AFDK_ScopedSub, new ASTNameExpression(std::move(typeName)), $6, nullptr, $8);
+
+            $$ = new ASTFunctionDeclaration(
+                mods,
+                std::move(name),
+                AFDKind::AFDK_ScopedSub,
+                new ASTNameExpression(std::move(typeName)),
+                $6, nullptr, $8
+            );
             $$->loc.set(@1, @8);
         }
         ;
@@ -1949,7 +2064,8 @@ exp_c:
                 ASTName name($2, ASTNameKind::ANK_VarRef);
                 name.loc = @2;
                 free($2);
-                ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
+
+                ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(typeName), std::move(name)));
                 vd->loc.set(@1, @2);
                 $$ = new ASTDeclExpression(vd.release());
             }
@@ -1968,7 +2084,8 @@ exp_c:
                 ASTName name($2, ASTNameKind::ANK_ScopedVref);
                 name.loc = @2;
                 free($2);
-                ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
+
+                ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(typeName), std::move(name)));
                 vd->loc.set(@1, @2);
                 $$ = new ASTDeclExpression(vd.release());
             }
@@ -1986,7 +2103,8 @@ exp_c:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(typeName), std::move(name)));
             vd->loc.set(@1, @2);
             $$ = new ASTDeclExpression(vd.release());
         }
@@ -1998,7 +2116,8 @@ exp_c:
             ASTName name($3, ASTNameKind::ANK_Identifier);
             name.loc = @3;
             free($3);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, std::move(typeName), std::move(name)));
             vd->loc.set(@1, @3);
             $$ = new ASTDeclExpression(vd.release());
         }
@@ -2007,7 +2126,8 @@ exp_c:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, std::move(name)));
             vd->loc.set(@1, @2);
             $$ = new ASTDeclExpression(vd.release());
         }
@@ -2022,7 +2142,8 @@ exp_c:
             ASTName name($3, ASTNameKind::ANK_VarRef);
             name.loc = @3;
             free($3);
-            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, typeName, name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(mods, std::move(typeName), std::move(name)));
             vd->loc.set(@1, @3);
             $$ = new ASTDeclExpression(vd.release());
         }
@@ -2178,6 +2299,7 @@ exp_c:
             ASTName name($2, ASTNameKind::ANK_Identifier);
             name.loc = @2;
             free($2);
+
             ASTCallExpression::Ptr ce(new ASTCallExpression(new ASTNameExpression(std::move(name)), $4));
             $$ = new ASTUnaryExpression(ce.release(), ASTOperatorKind::AOK_New);
         }
@@ -2185,6 +2307,7 @@ exp_c:
             ASTName name($2, ASTNameKind::ANK_ScopedRef);
             name.loc = @2;
             free($2);
+
             ASTCallExpression::Ptr ce(new ASTCallExpression(new ASTNameExpression(std::move(name)), $4));
             $$ = new ASTUnaryExpression(ce.release(), ASTOperatorKind::AOK_New);
             $$->loc.setFirst(@1);
@@ -2193,6 +2316,7 @@ exp_c:
             ASTName name($2, ASTNameKind::ANK_AngleIdentifier);
             name.loc = @2;
             free($2);
+
             ASTCallExpression::Ptr ce(new ASTCallExpression(new ASTNameExpression(std::move(name)), $4));
             $$ = new ASTUnaryExpression(ce.release(), ASTOperatorKind::AOK_New);
             $$->loc.setFirst(@1);
@@ -2219,6 +2343,7 @@ exp_c:
             ASTName typeName($1, ASTNameKind::ANK_UncQTypedef);
             typeName.loc = @1;
             delete $1;
+
             ASTClosureDeclaration::Ptr cd(new ASTClosureDeclaration(new ASTNameExpression(std::move(typeName)), $4, $6));
             cd->loc.set(@1, @6);
             $$ = new ASTClosureExpression(cd.release());
@@ -2234,6 +2359,7 @@ exp_c:
             ASTName typeName($2, ASTNameKind::ANK_UncQTypedef);
             typeName.loc = @2;
             delete $2;
+
             ASTClosureDeclaration::Ptr cd(new ASTClosureDeclaration(mods, new ASTNameExpression(std::move(typeName)), $5, $7));
             cd->loc.set(@1, @7);
             $$ = new ASTClosureExpression(cd.release());

@@ -49,6 +49,15 @@ public:
     std::vector<ASTDeclaration*> declarations;
 
 public:
+    ASTNamespaceDeclaration(ASTModifiers mods, ASTName&& n, std::vector<ASTDeclaration*>* decls = nullptr) :
+        ASTDeclaration(),
+        modifiers(mods),
+        name(n)
+    {
+        if (decls)
+            declarations.swap(*decls);
+    }
+
     ASTNamespaceDeclaration(ASTModifiers mods, const ASTName& n, std::vector<ASTDeclaration*>* decls = nullptr) :
         ASTDeclaration(),
         modifiers(mods),

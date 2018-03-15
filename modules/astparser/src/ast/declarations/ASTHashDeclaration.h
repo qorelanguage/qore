@@ -52,8 +52,19 @@ public:
 
 public:
     ASTHashDeclaration(ASTModifiers mods,
-                        const ASTName& n,
-                        std::vector<ASTHashMemberDeclaration*>* decllist = nullptr) :
+                       ASTName&& n,
+                       std::vector<ASTHashMemberDeclaration*>* decllist = nullptr) :
+        ASTDeclaration(),
+        modifiers(mods),
+        name(n)
+    {
+        if (decllist)
+            declarations.swap(*decllist);
+    }
+
+    ASTHashDeclaration(ASTModifiers mods,
+                       const ASTName& n,
+                       std::vector<ASTHashMemberDeclaration*>* decllist = nullptr) :
         ASTDeclaration(),
         modifiers(mods),
         name(n)

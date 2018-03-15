@@ -71,6 +71,21 @@ public:
 
 public:
     ASTFunctionDeclaration(ASTModifiers mods,
+                           ASTName&& n,
+                           AFDKind k,
+                           ASTExpression* rt = nullptr,
+                           ASTExpression* par = nullptr,
+                           ASTConstrInitExpression* ci = nullptr,
+                           ASTStatementBlock* stmts = nullptr) :
+        ASTDeclaration(),
+        modifiers(mods),
+        name(n),
+        afdKind(k),
+        returnType(rt),
+        params(par),
+        inits(ci),
+        body(stmts) {}
+    ASTFunctionDeclaration(ASTModifiers mods,
                            const ASTName& n,
                            AFDKind k,
                            ASTExpression* rt = nullptr,
@@ -86,6 +101,19 @@ public:
         inits(ci),
         body(stmts) {}
 
+    ASTFunctionDeclaration(ASTName&& n,
+                           AFDKind k,
+                           ASTExpression* rt = nullptr,
+                           ASTExpression* par = nullptr,
+                           ASTConstrInitExpression* ci = nullptr,
+                           ASTStatementBlock* stmts = nullptr) :
+        ASTDeclaration(),
+        name(n),
+        afdKind(k),
+        returnType(rt),
+        params(par),
+        inits(ci),
+        body(stmts) {}
     ASTFunctionDeclaration(const ASTName& n,
                            AFDKind k,
                            ASTExpression* rt = nullptr,

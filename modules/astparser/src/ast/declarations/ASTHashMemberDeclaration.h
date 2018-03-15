@@ -56,14 +56,19 @@ public:
     bool constr;
 
 public:
+    ASTHashMemberDeclaration(ASTName&& tn, ASTName&& n, ASTExpression* ie = nullptr, bool c = false) :
+        ASTDeclaration(),
+        typeName(tn),
+        name(n),
+        init(ie),
+        constr(c) {}
+
     ASTHashMemberDeclaration(const ASTName& tn, const ASTName& n, ASTExpression* ie = nullptr, bool c = false) :
         ASTDeclaration(),
         typeName(tn),
         name(n),
         init(ie),
-        constr(c)
-    {
-    }
+        constr(c) {}
 
     virtual ASTDeclarationKind getKind() const override {
         return ASTDeclarationKind::ADK_HashMember;
