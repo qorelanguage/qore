@@ -38,9 +38,6 @@ module Logger {
     author = "Tomas Mandys <tomas.mandys@qore.org>";
     url = "http://qore.org";
     license = "MIT";
-    init = sub() {
-        LoggerLevel::init();
-    };
 }
 
 /** @mainpage Logger Module
@@ -163,8 +160,8 @@ module Logger {
 
     This example is basically the same as the previous example, but to avoid I/O bottlenecks in logging, the
     appserver processing thread gets the event from a queue and passes it to the appender in another worker
-    thread via submittig to a @ref Qore::Thread::ThreadPool "ThreadPool". So events targeted to particular
-    thread may by processed in different threads but nonetheless serially.
+    thread by a submitting the logging action to a @ref Qore::Thread::ThreadPool "ThreadPool". So events targeted
+    to a particular thread may by processed in different threads but nevertheless serially.
 
     Example:
     @code{.py}
@@ -246,7 +243,7 @@ public namespace Logger {
             static hash<string, LoggerLevel> m_levelMap;
 
             #! String to int hash
-            static hash<string, int> levelStr2level = (
+            const LevelStr2Level = (
                 'ALL':   ALL,
                 'TRACE': TRACE,
                 'DEBUG': DEBUG,
@@ -258,23 +255,17 @@ public namespace Logger {
             );
 
             #! Int to string hash
-            static hash<string, string> level2levelStr;
+            const Level2LevelStr = map {$1.value: $1.key}, LevelStr2Level.pairIterator();
         }
 
+        #! Creates a new object
         /**
-            Creates new object
-
             @param level integer value
             @param levelStr string representation
         */
         constructor(int level, string levelStr) {
             m_level = level;
             m_levelStr = levelStr;
-        }
-
-        #! static member initialization
-        static public init() {
-            map level2levelStr{levelStr2level{$1}} = $1, keys levelStr2level;
         }
 
         #! get level value
@@ -289,8 +280,8 @@ public namespace Logger {
 
         #! compare logger levels
         /**
-            @param other
-            @return True if level is greater or equal to other level
+            @param other the other level to compares
+            @return True if level is greater or equal to the \a other level
         */
         public bool isGreaterOrEqual(LoggerLevel other) {
             return m_level >= other.getValue();
@@ -298,7 +289,7 @@ public namespace Logger {
 
         #! Compares two logger levels
         /**
-            @param other
+            @param other the other level to compares
         */
         public bool isEqual(LoggerLevel other) {
             return m_level == other.getValue();
@@ -346,14 +337,15 @@ public namespace Logger {
 
         #! Converts the input argument to a level
         /**
-            @param level
+            @param level the input level
             @param defaultLevel value to return if conversion is not possible.
+
             @throw LOGGER-ERROR if defaultLevel is nothing and level not found
         */
         public static LoggerLevel getLevel(int level, *LoggerLevel defaultLevel = NOTHING) {
-            if (exists level2levelStr{level}) {
+            if (exists Level2LevelStr{level}) {
                 if (!exists m_levelMap{level}) {
-                    m_levelMap{level} = new LoggerLevel(level, level2levelStr{level});
+                    m_levelMap{level} = new LoggerLevel(level, Level2LevelStr{level});
                 }
                 return m_levelMap{level};
             } else {
@@ -366,14 +358,14 @@ public namespace Logger {
 
         #! Converts the input argument to a level.
         /**
-            @param levelStr
+            @param levelStr the string input level
             @param defaultLevel value to return if conversion is not possible.
             @throw LOGGER-ERROR if defaultLevel is nothing and levelStr not found
         */
         public static LoggerLevel getLevel(string levelStr, *LoggerLevel defaultLevel = NOTHING) {
             levelStr = toupper(levelStr);
-            if (exists levelStr2level{levelStr}) {
-                int level = levelStr2level{levelStr};
+            if (exists LevelStr2Level{levelStr}) {
+                int level = LevelStr2Level{levelStr};
                 if (!exists m_levelMap{level}) {
                     m_levelMap{level} = new LoggerLevel(level, levelStr);
                 }
@@ -387,7 +379,7 @@ public namespace Logger {
         }
     }
 
-    #! Implement event to be logged
+    #! Implements an event to be logged
     /**
         The event data consist of format string and parameters. The output string is rendeded once when
         logging decision to target is made. Callable parameters are evaluated at this moment as well.
@@ -599,14 +591,13 @@ public namespace Logger {
             return m_throwableInfo;
         }
 
-        #! generates globally unique integer identifier and associates it to the event
+        #! generates a globally unique integer identifier and associates it to the event
         public int getUniqueId() {
             if (!exists m_uniqueId) {
                 m_uniqueId = m_sequence.next();
             }
             return m_uniqueId;
         }
-
     }
 
     #! Queue serializing async appender events
@@ -618,6 +609,7 @@ public namespace Logger {
         private:internal {
             Queue m_queue();
         }
+
         #! add appender event
         /**
             @param appender
@@ -633,6 +625,7 @@ public namespace Logger {
             }
             return True;
         }
+
         #! process queued events
         /**
             the method should be called typically in dedicated thread
@@ -687,13 +680,14 @@ public namespace Logger {
         }
     }
 
-    #! Queue processing async appender events in more threads
+    #! Queue processing asynchronous appender events in multiple threads
     /**
-        Async events are removed from queue in one thread which balances processing
-        in more worker threads via @ref Qore::Thread::ThreadPool "ThreadPool". The class groups events by appender
-        so the processing of event related to particular appender is processed in serial
-        way, i.e. at moment always only in one thread. It is compatible with @ref Qore::OutputStream
-        implementation without multi-thread support.
+        Async events are removed from a queue in one thread which balances processing
+        in multiple worker threads via a @ref Qore::Thread::ThreadPool "ThreadPool". The class groups events by appender
+        so the processing of events related to a particular appender is processed serially,
+        i.e. at any moment in time the events related to a particular appender are always processed in only in one thread
+        at a time. It is compatible with the @ref Qore::OutputStream
+        implementation without multi-threaded support.
     */
     public class LoggerAppenderQueueThreadPool inherits LoggerAppenderQueue {
         private:internal {
@@ -729,6 +723,7 @@ public namespace Logger {
             }
             m_finished.push(id);
         }
+
         #! creates object
         /**
             @param tp worker @ref Qore::Thread::ThreadPool "ThreadPool" where loggging events are submitted
@@ -739,14 +734,14 @@ public namespace Logger {
             m_maxThreads = maxThreads;
         }
 
-        #! returns assigned @ref Qore::Thread::ThreadPool "ThreadPool"
+        #! returns the assigned @ref Qore::Thread::ThreadPool "ThreadPool"
         public ThreadPool getThreadPool() {
             return m_tp;
         }
 
         #! process queue events
         /**
-            Group logging events by appender and submit then to a a worker thread taken from thread pool
+            Group logging events by appender and submit them to a worker thread to be processed in a thread pool
 
             @param ms a timeout value to wait for data to become available on the queue;
                 integers are interpreted as milliseconds; relative date/time values are interpreted
@@ -836,7 +831,7 @@ public namespace Logger {
 
     #! Implements passing @ref LoggerEvent to target destination
     /**
-        Descendent will implement e.g. logging to file, to stderr, to database etc.
+        subclasses will implement e.g. logging to file, to stderr, to database etc.
         \c LoggerAppender supports sync and async logging.
 
         The ability to selectively enable or disable logging requests based on level in @ref Logger is
@@ -868,9 +863,9 @@ public namespace Logger {
             *LoggerAppenderQueue m_queue;
         }
 
-        #! Creates object
+        #! Creates the object
         /**
-            @param name appender name
+            @param name the appender name
         */
         constructor(string name = "") {
             m_name = name;
@@ -916,7 +911,7 @@ public namespace Logger {
             }
         }
 
-        #! Releases any resources allocated by the appender and close it
+        #! Releases any resources allocated by the appender and closes it
         /**
         */
         public close() {
@@ -926,16 +921,16 @@ public namespace Logger {
             }
         }
 
-        #! get active value, i.e. True if appender is opened
+        #! get active value, i.e. True if the appender is opened
         public bool isActive() {
             return m_active;
         }
 
-        #! adds a filter to chain
+        #! adds a filter to the chain
         /**
             @param filter add a new filter
             @param top if True then add filter at first position, if False (default) to the end of chain
-            @throw "LOGGER-ERROR" exception if filter is already in list
+            @throw "LOGGER-ERROR" thrown if the filter is already in the list
         */
         public addFilter(LoggerFilter filter, bool top = False) {
             AutoWriteLock awl(m_lock);
@@ -953,9 +948,9 @@ public namespace Logger {
             }
         }
 
-        #! removes filter from the filter chain.
+        #! removes the given filter from the filter chain.
         /**
-            @param filter
+            @param filter the filter to remove
         */
         public removeFilter(LoggerFilter filter) {
             AutoWriteLock awl(m_lock);
@@ -973,7 +968,7 @@ public namespace Logger {
             splice m_filters, 0;
         }
 
-        #! returns filter chain
+        #! returns the filter chain as a list
         /**
             Note that appender filter chain may be modified as internal lock is released when copy of list is returned
         */
@@ -982,14 +977,14 @@ public namespace Logger {
             return m_filters ?? ();
         }
 
-        #! serializes event to put in the queue or write to target device
+        #! serializes the given event to put in the queue or write to the target device
         /**
             Appender implementaion can define any serialize format. The data are passed
             to @ref processEventImpl() method as \c params argument when \c type is \c EVENT_LOG.
         */
         abstract private auto serializeImpl(LoggerEvent event);
 
-        #! push event in queue or call @ref processEventImpl() in case of sync
+        #! pushes the given event in the queue or calls @ref processEventImpl() in case of sync
         /**
             @param type
             @param params
@@ -1003,7 +998,7 @@ public namespace Logger {
             }
         }
 
-        #! post event to output queue
+        #! posts the given event to the output queue
         /**
             Invokes filters and when event is accepted then is posted to queue in case of
             asynchronous process or is immediately logged in case of synchronous process.
@@ -1011,8 +1006,8 @@ public namespace Logger {
 
             @see @ref processEventImpl()
 
-            @param event
-            @return True if event has been posted
+            @param event the event to post
+            @return True if the event has been posted
         */
         public bool post(LoggerEvent event) {
             if(!m_active) {
@@ -1036,14 +1031,14 @@ public namespace Logger {
             return pushEvent(EVENT_LOG, serialized);
         }
 
-        #! processes event to physical target
+        #! processes the event to the physical target
         /**
-            must be implemented by successor class
+            must be implemented by non-abstract subclasses
 
             @see @ref serializeImpl()
 
             @param type see \c "EVENT_xxx" constants
-            @param params
+            @param params processing parameters
         */
         abstract public processEventImpl(int type, auto params);
 
@@ -1067,7 +1062,7 @@ public namespace Logger {
 
     #! Implements pattern parsing and substitution
     /**
-        The pattern defines fields which are substituted with real values
+        The pattern defines fields to be substituted with real values
 
         The pattern format is:
 
@@ -1078,16 +1073,16 @@ public namespace Logger {
         option := [^}]*
         @endcode
 
-        To delimit word from next character use curly brackets, i.e. empty option, e.g. \c "%p{}archive"
+        To delimit a word from the next character, use curly brackets, i.e. empty option, e.g. \c "%p{}archive"
 
-        Following table covers various modifiers scenarios:
+        The following table covers various modifiers and scenarios:
 
         | !Format modifier | !left justify | !minimum width | !maximum width | !comment |
         | %20c             | false         | 20             | none           | Left pad with spaces if the category name is less than 20 characters long |
         | %-20c            | true          | 20             | none           | Right pad with spaces if the category name is less than 20 characters long |
         | %.30c            | NA            | none           | 30             | Truncate from the beginning if the category name is longer than 30 characters |
         | %20.30c          | false         | 20             | 30             | Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
-        | %-20.30c         | true          | 20             | 30             | Right pad with spaces if the category name is shorter than 20 characters. However, if category name is longer than 30 characters, then truncate from the beginning |
+        | %-20.30c         | true          | 20             | 30             | Right pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
 
     */
     public class LoggerPattern {
@@ -1101,19 +1096,20 @@ public namespace Logger {
             #! parsed pattern
             list m_parsedPattern;
         }
-        #! creates object
+        #! creates the object
         /**
-            @param pattern
+            @param pattern the logger pattern
+            @throw LOGGER-ERROR when \a pattern is invalid
         */
         constructor(string pattern) {
             # parse pattern
             setPattern(pattern);
         }
 
-        #! Set new pattern
+        #! Sets the new pattern
         /**
-            @param pattern
-            @throw LOGGER-ERROR when pattern is invalid
+            @param pattern the logger pattern
+            @throw LOGGER-ERROR when \a pattern is invalid
         */
         public setPattern(string pattern) {
             string s = pattern;
@@ -1182,19 +1178,19 @@ public namespace Logger {
             m_parsedPattern = pp;
         }
 
-        #! returns current pattern
+        #! returns the current pattern
         public string getPattern() {
             return m_pattern;
         }
 
-        #! get parsed pattern
+        #! returns the parsed pattern as a list
         /** the function is just for internal purpose (e.g. for unit test), the programmer should never call it
         */
         public list getParsedPattern() {
             return m_parsedPattern ?? ();
         }
 
-        #! Format event record with pattern
+        #! Formats the event record with the current pattern
         /**
             @param data is passed to @ref resolveField()
         */
@@ -1221,19 +1217,18 @@ public namespace Logger {
             return res;
         }
 
-        #! Resolves key value
+        #! Resolves the key value
         /**
             @param data
             @param key
             @param option
         */
         abstract private string resolveField(auto data, string key, *string option);
-
     }
 
-    #! Abstract class to define interface for logger layout
+    #! Abstract class to define the interface for logger layouts
     /**
-        The event data (@ref LoggerEvent) are formatted before the record is passed to target.
+        The event data (@ref LoggerEvent) are formatted before the record is passed to the target.
     */
     public class LoggerLayout {
         #! Format event record
@@ -1264,12 +1259,11 @@ public namespace Logger {
         | x | Used to output exception string using @ref Util::get_exception_string() |
         | % | The literal percent sign. \c "%%" will print a \c "%" sign |
 
+        For example, the \c LoggerLayoutPattern with the conversion pattern \c "%r [%t] %-5p %c - %m%n" will output something like:
 
-        For example, the \c LoggerLayoutPattern with the conversion pattern \c "%r [%t] %-5p %c - %m%n" will output something as:
-
-        @code
+        @verbatim
             176 [23] INFO  MyLogger - New record created
-        @endcode
+        @endverbatim
     */
     public class LoggerLayoutPattern inherits LoggerLayout, public LoggerPattern {
         public {
@@ -1279,20 +1273,18 @@ public namespace Logger {
             const DEFAULT_DATE_FORMAT = "YYYY-MM-DD HH:mm:SS.u";
         }
 
-        #! creates object
+        #! creates the object
         /**
-            @param pattern
+            @param pattern the logger layout pattern
         */
         constructor(string pattern = DEFAULT_PATTERN): LoggerPattern(pattern) {
         }
 
-        #! Get line delimiter used on current OS
+        #! Returns the line delimiter used on the current OS
         static public string getLineDelimiter() {
             switch (PlatformOS) {
             case "Windows":
                 return "\r\n";
-            case "Darwin":
-                return "\r";
             default:
                 return "\n";
             }
@@ -1303,11 +1295,11 @@ public namespace Logger {
             return LoggerPattern::format(event);
         }
 
-        #! get value corresponding to particular key
+        #! Returns the value corresponding to a particular key
         /**
             @param event (@ref LoggerEvent)
-            @param key
-            @param option
+            @param key the code
+            @param option optional supporting information for \a key
         */
         private string resolveField(auto event, string key, *string option) {
             if (!(event instanceof LoggerEvent)) {
@@ -1377,12 +1369,12 @@ public namespace Logger {
         }
     }
 
-    #! Implements appender with layout
+    #! Implements an appender with a layout
     /**
-        The Layout is responsible for formatting the @ref LoggerEvent according to the user's wishes,
+        The layout is responsible for formatting the @ref LoggerEvent according to the user's wishes,
         whereas an appender takes care of sending the formatted output to its destination.
 
-        It is used typically for appender implementing logging to a file
+        It is used typically for appenders implementing logging to a file
     */
     public class LoggerAppenderWithLayout inherits LoggerAppender {
         private:internal {
@@ -1390,41 +1382,40 @@ public namespace Logger {
             LoggerLayout m_layout;
         }
 
-        #! creates object
+        #! creates the object
         /**
-            @param name
-            @param layout
+            @param name the name of the appender
+            @param layout the layout for the appender
         */
         constructor(string name, LoggerLayout layout): LoggerAppender(name) {
             m_layout = layout;
         }
 
-        #! Assigns the appender layout
+        #! Assigns a layout to the appender
         /**
-        * @param layout
+        * @param layout the layout for the appender
         */
         public setLayout(LoggerLayout layout) {
             m_layout = layout;
         }
 
-        #! Returns the appender layout
+        #! Returns the layout for the appender
         public LoggerLayout getLayout() {
             return m_layout;
         }
 
-        #! Returns value formatted using layout pattern
+        #! Returns the value formatted using the layout pattern
         /**
-            @param event
+            @param event the event to serialize
         */
         private auto serializeImpl(LoggerEvent event) {
             return m_layout.format(event);
         }
-
     }
 
-    #! Appender writting to output stream via @ref Qore::StreamWriter "StreamWriter"
+    #! Appender writing to an output stream via @ref Qore::StreamWriter "StreamWriter"
     /**
-        Qore streams are not designed as multi-threaded so writing to thread must be serialized and processed
+        Qore streams are not designed to accept input from multiple threads simultaneously, so writing must be serialized and processed
         in a dedicated thread
     */
     public class LoggerAppenderStream inherits LoggerAppenderWithLayout {
@@ -1437,28 +1428,28 @@ public namespace Logger {
             bool m_assignThread;
         }
 
-        #! create object
+        #! creates the object
         /**
-            @param name
-            @param layout
-            @param writer
+            @param name the name of the appender
+            @param layout the layout for the appender
+            @param writer the stream to write to
         */
         constructor(string name, LoggerLayout layout, StreamWriter writer): LoggerAppenderWithLayout(name, layout) {
             m_writer = writer;
             m_assignThread = m_writer.getOutputStream().getThreadId() == -1;
         }
 
-        #! get stream writer instance
+        #! get the stream writer instance
         public StreamWriter getStreamWriter() {
             return m_writer;
         }
 
-        #! return True if is assigning thread for stream
+        #! return True if assigning a thread for a stream
         public bool hasAssignThread() {
             return m_assignThread;
         }
 
-        #! process event with output stream
+        #! processes the event with an output stream
         public processEventImpl(int type, auto params) {
             if (type == EVENT_OPEN) {
                 if (m_closed) {
@@ -1487,36 +1478,37 @@ public namespace Logger {
 
     #! Appender writing to a file
     /**
-        No multi-threading protection is implemented in class. @ref Qore::File "File" class is reused
+        No multi-threading protection is implemented in the class. @ref Qore::File "File" class is reused
     */
     public class LoggerAppenderFile inherits LoggerAppenderWithLayout {
         private {
             File m_file;
             string m_filename;
         }
-        #! create object
+
+        #! creates the object
         /**
-            @param name
-            @param layout
-            @param filename
-            @param encoding
+            @param name the name of the appender
+            @param layout the layout for the appender
+            @param filename the output filename
+            @param encoding the file's output encoding
         */
         constructor(string name, LoggerLayout layout, string filename, *string encoding): LoggerAppenderWithLayout(name, layout) {
             m_file = new File(encoding);
             m_filename = filename;
         }
 
-        #! get file instance
+        #! returns the file object for the appender
         public File getFile() {
             return m_file;
         }
 
-        #! get current filename
+        #! returns the current filename
         public string getFileName() {
             return m_filename;
         }
 
-        #! process event with file
+        #! process an event with the file
         /**
             @param type
             @param params
@@ -1550,11 +1542,11 @@ public namespace Logger {
         }
     }
 
-    #! Appender writing to a file with rotate support
+    #! Appender writing to a file with rotation support
     /**
-        The events will be logged to a file till rotation occurs.
+        The events will be logged to a file until rotation occurs.
         At that moment the current file is closed, next file is created
-        and logging continues to that file.
+        and logging continues to the new file.
     */
     public class LoggerAppenderFileRotate inherits public LoggerAppenderFile, private LoggerPattern {
         public {
@@ -1566,13 +1558,13 @@ public namespace Logger {
         private:internal {
             hash m_patternData;
         }
-        #! create object
+        #! creates the object
         /**
-            @param name
-            @param layout
-            @param pattern to evaluate file name
+            @param name the name of the appender
+            @param layout the layout for the appender
+            @param pattern to generate the file name; see information below
             @param count number of rotated files, if count is <=0 then no ratation is performed
-            @param encoding
+            @param encoding the encoding of the output file
 
             The following table explains the characters used in @ref LoggerPattern and all other characters that you can use in your custom pattern:
 
@@ -1585,9 +1577,8 @@ public namespace Logger {
             | E | Used to output the environment variable with name given by option, e.g. \c "%E{HOME}" |
             | % | The literal percent sign. \c "%%" will print a \c "%" sign |
 
-            For example, the rotate pattern \c "/var/run/log/%c.log.%i{%03d}" output to files
+            For example, the pattern \c "/var/run/log/%c.log.%i{%03d}" creates the following file names:
             \c "/var/run/log/MyLogger.log.000", \c "/var/run/log/MyLogger.log.001" etc.
-
         */
         constructor(string name, LoggerLayout layout, string pattern, int count, *string encoding): LoggerAppenderFile(name, layout, "", encoding), LoggerPattern(pattern) {
             # set a provisional filename, to be updated when file is opened
@@ -1696,9 +1687,9 @@ public namespace Logger {
 
     #! Appender writing to a file with archive support
     /**
-        The events will be logged to a file till archive occurs.
+        The events will be logged to a file until archiving is triggered.
         At that moment the current file is closed, moved to file with name evaluated in runtime
-        from pattern, new file is created and logging continues to that file.
+        from the archive pattern set in the object, the new file is created, and logging continues to that file.
         The archive never overwrites any existing file.
     */
     public class LoggerAppenderFileArchive inherits public LoggerAppenderFile, private LoggerPattern {
@@ -1710,13 +1701,13 @@ public namespace Logger {
             #! default archive pattern
             const DEFAULT_ARCHIVE_PATTERN = "%p%f.%d";
         }
-        #! create object
+        #! creates the object
         /**
-            @param name
-            @param layout
-            @param filename with pattern support
-            @param archive pattern to evaluate archive filename
-            @param encoding
+            @param name the name of the appender
+            @param layout the layout for the appender
+            @param filename with pattern support; see below for more information
+            @param archive pattern to evaluate archive filename; see below for more information
+            @param encoding the output file's encoding
 
             The following table explains the characters used in @ref LoggerPattern for both filename and archive parameter
 
@@ -1735,7 +1726,7 @@ public namespace Logger {
             | f | Used to output the current logging filename |
             | d | Used to output the date of the logging event using @ref format_date. Option may specify date format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}", default value is \c "YYYYMMDDHHmmSS" |
 
-            For example, the rotate pattern \c "%p/archive/%d/%f" archive logging file \c "/var/run/log/MyLogger.log" to file:
+            For example, the archive pattern \c "%p/archive/%d/%f" archives log file \c "/var/run/log/MyLogger.log" to:
             \c "/var/run/log/archive/20180120102030/MyLogger.log".
         */
         constructor(string name, LoggerLayout layout, string filename, string archive = DEFAULT_ARCHIVE_PATTERN, *string encoding): LoggerAppenderFile(name, layout, filename, encoding), LoggerPattern(filename) {
@@ -1745,7 +1736,7 @@ public namespace Logger {
 
         #! resolve pattern field
         /**
-            @param data if nothing then related to logging filename otherwise for archive
+            @param data if @ref nothing, then this argument specifies the logging filename, otherwise is specifies the archive pattern
             @param key
             @param option
         */
@@ -1838,7 +1829,7 @@ public namespace Logger {
             return afn;
         }
 
-        #! get archive filename
+        #! get the archive filename
         /**
             The pattern may contain date fields so the result may differ when
             executed multiple times
@@ -1852,10 +1843,10 @@ public namespace Logger {
         }
     }
 
-    #! Implements general event filtering class
+    #! Implements a general event filtering class
     /**
         Users should extend this class to implement customized logging
-        event filtering. The filter consists of linear chain of
+        event filtering. The filter consists of a linear chain of
         particular filters evaluating if the event should be immediately accepted, rejected
         or passed to next filter.
     */
@@ -1882,9 +1873,9 @@ public namespace Logger {
         }
     }
 
-    #! Implement filter according event @ref LoggerLevel
+    #! Implements the filter according event @ref LoggerLevel
     /**
-        When @ref LoggerEvent::getLevel does not satisties filter condition then
+        When @ref LoggerEvent::getLevel does not satisfy the filter condition, then
         logging is rejected.
 
         The min and max levels define the range to be logged (if min <= max.level) or range which won't be logged (if max < min.level)
@@ -1896,30 +1887,30 @@ public namespace Logger {
             #! max.level
             LoggerLevel m_maxLevel;
         }
-        #! creates object
+        #! creates the object
         /**
-            @param minLevel
-            @param maxLevel
+            @param minLevel the minimum logging level
+            @param maxLevel the maximum logging level
         */
         constructor(LoggerLevel minLevel = LoggerLevel::getLevelInfo(), LoggerLevel maxLevel = LoggerLevel::getLevelOff()) {
             setMinLevel(minLevel);
             setMaxLevel(maxLevel);
         }
 
-        #! creates object
+        #! creates the object
         /**
-            @param minLevel
-            @param maxLevel
+            @param minLevel the minimum logging level
+            @param maxLevel the maximum logging level
         */
         constructor(int minLevel, int maxLevel = LoggerLevel::OFF) {
             setMinLevel(minLevel);
             setMaxLevel(maxLevel);
         }
 
-        #! creates object
+        #! creates the object
         /**
-            @param minLevel
-            @param maxLevel
+            @param minLevel the minimum logging level
+            @param maxLevel the maximum logging level
         */
         constructor(string minLevel, string maxLevel = "OFF") {
             setMinLevel(minLevel);
@@ -1928,7 +1919,7 @@ public namespace Logger {
 
         #! set min.level
         /**
-            @param minLevel
+            @param minLevel the minimum logging level
         */
         public setMinLevel(LoggerLevel minLevel) {
             m_minLevel = minLevel;
@@ -1936,7 +1927,7 @@ public namespace Logger {
 
         #! set min.level
         /**
-            @param minLevel
+            @param minLevel the minimum logging level
         */
         public setMinLevel(int minLevel) {
             setMinLevel(LoggerLevel::getLevel(minLevel));
@@ -1944,7 +1935,7 @@ public namespace Logger {
 
         #! set min.level
         /**
-            @param minLevel
+            @param minLevel the minimum logging level
         */
         public setMinLevel(string minLevel) {
             setMinLevel(LoggerLevel::getLevel(minLevel));
@@ -1957,7 +1948,7 @@ public namespace Logger {
 
         #! set max.level
         /**
-            @param maxLevel
+            @param maxLevel the maximum logging level
         */
         public setMaxLevel(LoggerLevel maxLevel) {
             m_maxLevel = maxLevel;
@@ -1965,7 +1956,7 @@ public namespace Logger {
 
         #! set max.level
         /**
-            @param maxLevel
+            @param maxLevel the maximum logging level
         */
         public setMaxLevel(int maxLevel) {
             setMaxLevel(LoggerLevel::getLevel(maxLevel));
@@ -1973,7 +1964,7 @@ public namespace Logger {
 
         #! set max.level
         /**
-            @param maxLevel
+            @param maxLevel the maximum logging level
         */
         public setMaxLevel(string maxLevel) {
             setMaxLevel(LoggerLevel::getLevel(maxLevel));
@@ -1999,10 +1990,10 @@ public namespace Logger {
         }
     }
 
-    #! Implements filtering according regular expression on event message
+    #! Implements filtering according to a regular expression on the event message
     /**
-        Rendered event message is tested using regular exception and when does not match
-        expected result then the logging is rejected
+        The rendered event message is tested using a regular expression, and if it does not match the
+        expected result, then logging is rejected
     */
     public class LoggerFilterRegex inherits LoggerFilter {
         private:internal {
@@ -2011,36 +2002,37 @@ public namespace Logger {
             #! expected result
             bool m_regexResult;
         }
-        #! creates object
+
+        #! creates the object
         /**
-            @param regexStr
-            @param regexResult
+            @param regexStr the regular expression to use
+            @param regexResult @ref True for a positive match, @ref False for a negative match
         */
         constructor(string regexStr = "", bool regexResult = True) {
             setRegex(regexStr, regexResult);
         }
 
-        #! set regular expression and expected result
+        #! set the regular expression and the expected result
         /**
-            @param regexStr
-            @param regexResult
+            @param regexStr the regular expression to use
+            @param regexResult @ref True for a positive match, @ref False for a negative match
         */
         public setRegex(string regexStr, bool regexResult = True) {
             m_regexStr = regexStr;
             m_regexResult = regexResult;
         }
 
-        #! get current regex
+        #! returns the current regex
         public string getRegex() {
             return m_regexStr;
         }
 
-        #! get expected result
+        #! returns the expected result
         public bool getRegexResult() {
             return m_regexResult;
         }
 
-        #! evaluates regex and compares with expected result
+        #! evaluates the regex and compares with the expected result
         public int eval(LoggerEvent event) {
             if (event.getMessage().regex(m_regexStr) != m_regexResult) {
                 return DENY;
@@ -2052,10 +2044,10 @@ public namespace Logger {
 
     #! Main logger class whose instance will be used by user code when logging
     /**
-        Logger instance is provided to user code. When a log is triggered then
+        The Logger object is provided to user code. When a log is triggered then
         message, arguments, current code posotion, time are appended into @ref LoggerEvent event instance when
-        the logging level is switched on. The event is passed to all registered appenders in given Logger as well as
-        to parent in parent/child hierarchy when aditivity is switched on.
+        the logging level is switched on. The event is passed to all registered appenders in the given Logger as well as
+        in parents in the hierarchy when additivity is switched on.
     */
     public class Logger {
         private:internal {
@@ -2065,23 +2057,22 @@ public namespace Logger {
             #! Logger additivity. If set to true then child loggers will inherit the appenders of their ancestors by default.
             bool m_additive = True;
 
-            #! The assigned Logger level. If nothing then use parent level
+            #! The assigned Logger level. If @ref nothing, the parent level is used
             *LoggerLevel m_level;
 
             #! The name of this Logger instance.
             string m_name;
 
-            #! The parent logger. Set to null if this is the root logger.
+            #! The parent logger. Unassigned if this is the root logger.
             *Logger m_parent;
 
             #! A collection of appenders linked to this logger.
             list<LoggerAppender> m_appenders;
-
         }
 
-        #! Creates object
+        #! Creates the object
         /**
-            @param name
+            @param name the name of the object
         */
         constructor(string name) {
             m_name = name;
@@ -2096,7 +2087,7 @@ public namespace Logger {
             return m_name;
         }
 
-        #! get parent logger
+        #! get parent logger, if any
         public *Logger getParent() {
             return m_parent;
         }
@@ -2139,7 +2130,7 @@ public namespace Logger {
             }
         }
 
-        #! Set logging level
+        #! Sets the logging level
         /**
             @param level if nothing then inherits level from parent
         */
@@ -2147,25 +2138,25 @@ public namespace Logger {
             m_level = level;
         }
 
-        #! Set logging level
+        #! Sets the logging level
         /**
-            @param level
+            @param level the logging level as a string
         */
         public setLevel(string level) {
             setLevel(LoggerLevel::getLevel(level));;
         }
 
-        #! Set logging level
+        #! Sets the logging level
         /**
-            @param level
+            @param level the logging level to set
         */
         public setLevel(int level) {
             setLevel(LoggerLevel::getLevel(level));;
         }
 
-        #! Sets the additivity flag. When aditivity is active then event are passed to parent instance.
+        #! Sets the additivity flag; when aditivity is active, events are passed to parent loggers.
         /**
-            @param additive
+            @param additive the additivity flag; when aditivity is active, events are passed to parent loggers
         */
         public setAdditivity(bool additive) {
             m_additive = additive;
@@ -2176,7 +2167,7 @@ public namespace Logger {
             return m_additive;
         }
 
-        #! Get location where is log function called from
+        #! Get the location where the log function called from
         private hash<CallStackInfo> getLocation() {
             list<hash<CallStackInfo>> loc = get_thread_call_stack();
             return loc[2];   # get location at stack-2
@@ -2184,7 +2175,7 @@ public namespace Logger {
 
         #! Forwards the given logging event to all linked appenders.
         /**
-            @param event
+            @param event the event to forward
         */
         private callAppenders(LoggerEvent event) {
             AutoReadLock arl(m_lock);
@@ -2193,7 +2184,7 @@ public namespace Logger {
             }
         }
 
-        #! add a appender to list
+        #! add a appender to the list
         /**
             @param appender add a new LoggerAppender
             @throw "LOGGER-ERROR" exception if appender is already in list
@@ -2210,9 +2201,9 @@ public namespace Logger {
             }
         }
 
-        #! remove appender from the list
+        #! remove the appender from the list
         /**
-            @param appender
+            @param appender the appender to remove
         */
         public removeAppender(LoggerAppender appender) {
             AutoWriteLock awl(m_lock);
@@ -2230,9 +2221,9 @@ public namespace Logger {
             splice m_appenders, 0;
         }
 
-        #! Returns appender list
+        #! Returns the appender list
         /**
-            Note that appender list may be manipulated in another thread as internal lock is released when list is returned
+            Note that the appender list may be manipulated in another thread as internal lock is released when list is returned
         */
         public list<LoggerAppender> getAppenders() {
             AutoReadLock awl(m_lock);
@@ -2260,8 +2251,7 @@ public namespace Logger {
         #! Log a message using the provided logging level.
         /**
             @param level The logging level.
-            @param message to log is used as format for @ref vsprintf(). Optional arguments are passed to @ref LoggerEvent instance. If the last parameter is
-                typed hash @ref Qore::ExceptionInfo "ExceptionInfo" then it is considered as throwable information.
+            @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
         */
         public log(LoggerLevel level, string message) {
             logIntern(level, message, argv, getLocation(), True);
@@ -2269,9 +2259,8 @@ public namespace Logger {
 
         #! Log a message using the provided logging level.
         /**
-            @param level The logging level.
-            @param message to log is used as format for @ref vsprintf(). Optional arguments are passed to @ref LoggerEvent instance. If the last parameter is
-                typed hash @ref Qore::ExceptionInfo "ExceptionInfo" then it is considered as throwable information.
+            @param level the logging level.
+            @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
         */
         public log(int level, string message) {
             logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
@@ -2280,8 +2269,7 @@ public namespace Logger {
         #! Log a message using the provided logging level.
         /**
             @param level The logging level.
-            @param message to log is used as format for @ref vsprintf(). Optional arguments are passed to @ref LoggerEvent instance. If the last parameter is
-                typed hash @ref Qore::ExceptionInfo "ExceptionInfo" then it is considered as throwable information.
+            @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
         */
         public log(string level, string message) {
             logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
@@ -2289,7 +2277,7 @@ public namespace Logger {
 
         #! Logs an already prepared logging event object.
         /**
-            @param event
+            @param event the event to log
         */
         public logEvent(LoggerEvent event) {
             if (isEnabledFor(event.getLevel())) {
@@ -2363,7 +2351,7 @@ public namespace Logger {
 
             @see @ref log()
 
-            @param assertion
+            @param assertion the boolean assertion value
             @param message with optional arguments
         */
         public assertLog(bool assertion, string message) {
@@ -2376,8 +2364,8 @@ public namespace Logger {
         /**
             @see @ref log()
 
-            @param varName
-            @param value
+            @param varName the variable name
+            @param value the value of the variable
         */
         public traceVar(string varName, auto value) {
             logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %y", varName), (value, ), getLocation(), False);
@@ -2387,8 +2375,8 @@ public namespace Logger {
         /**
             @see @ref log()
 
-            @param varName
-            @param value
+            @param varName the variable name
+            @param value the value of the variable
         */
         public debugVar(string varName, auto value) {
             logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %y", varName), (value, ), getLocation(), False);
@@ -2396,7 +2384,7 @@ public namespace Logger {
 
         #! Check whether this Logger is enabled for a given Level passed as parameter.
         /**
-            @param level
+            @param level the log level to check
         */
         public bool isEnabledFor(LoggerLevel level) {
             return level.isGreaterOrEqual(getLevel());
@@ -2404,7 +2392,7 @@ public namespace Logger {
 
         #! Check whether this Logger is enabled for a given Level passed as parameter.
         /**
-            @param level
+            @param level the log level to check
         */
         public bool isEnabledFor(int level) {
             return LoggerLevel::getLevel(level).isGreaterOrEqual(getLevel());
@@ -2412,7 +2400,7 @@ public namespace Logger {
 
         #! Check whether this Logger is enabled for a given Level passed as parameter.
         /**
-            @param level
+            @param level the log level to check
         */
         public bool isEnabledFor(string level) {
             return LoggerLevel::getLevel(level).isGreaterOrEqual(getLevel());
@@ -2447,12 +2435,11 @@ public namespace Logger {
         public bool isFatalEnabled() {
             return isEnabledFor(LoggerLevel::getLevelFatal());
         }
-
     }
 
     #! root class which prevents setting parent
     public class LoggerRoot inherits Logger {
-        # creates object
+        # creates the object
         /**
             @param level initial log level
         */
@@ -2460,7 +2447,7 @@ public namespace Logger {
             setLevel(level);
         }
 
-        # creates object
+        # creates the object
         /**
             @param level initial log level
         */
@@ -2468,7 +2455,7 @@ public namespace Logger {
             setLevel(level);
         }
 
-        # creates object
+        # creates the object
         /**
             @param level initial log level
         */
@@ -2478,10 +2465,10 @@ public namespace Logger {
 
         #! Override level setter to prevent setting the root logger's level to nothing.
         /**
-            Root logger must always have a level.
+            The root logger must always have a level.
 
-            @param level
-            @throw LOGGER-ERROR if level is null
+            @param level the level to set
+            @throw LOGGER-ERROR if level is @ref nothing
         */
         public setLevel(*LoggerLevel level) {
             if (!exists level) {
@@ -2500,5 +2487,4 @@ public namespace Logger {
             }
         }
     }
-
 }
