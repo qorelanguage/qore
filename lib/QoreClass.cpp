@@ -2682,7 +2682,7 @@ QoreMethod::QoreMethod(const QoreClass* n_parent_class, MethodFunctionBase* n_fu
 }
 
 QoreMethod::~QoreMethod() {
-   delete priv;
+    delete priv;
 }
 
 MethodFunctionBase* QoreMethod::getFunction() const {
@@ -2761,7 +2761,7 @@ const QoreTypeInfo* QoreMethod::getUniqueReturnTypeInfo() const {
 
 static const QoreClass* getStackClass() {
    const qore_class_private* qc = runtime_get_class();
-   return qc ? qc->cls : 0;
+   return qc ? qc->cls : nullptr;
 }
 
 void QoreClass::addPublicMember(const char* mname, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value) {
