@@ -87,98 +87,107 @@ struct ClassNs {
 class RuntimeConstantRefNode;
 
 class ConstantEntry : public QoreReferenceCounter {
-   friend class ConstantEntryInitHelper;
-   friend class RuntimeConstantRefNode;
-   friend class ConstantList;
-
-protected:
-   AbstractQoreNode* saved_node;
-   ClassAccess access;
-
-   int scanValue(const AbstractQoreNode* n) const;
-
-   DLLLOCAL ~ConstantEntry() {
-      assert(!saved_node);
-      assert(!node);
-   }
+    friend class ConstantEntryInitHelper;
+    friend class RuntimeConstantRefNode;
+    friend class ConstantList;
 
 public:
-   QoreProgramLocation loc;
-   ParseWarnOptions pwo;
-   std::string name;
-   const QoreTypeInfo* typeInfo;
-   AbstractQoreNode* node;
-   bool in_init : 1,  // being initialized
-      pub : 1,        // public constant (modules only)
-      init : 1,       // already initialized
-      builtin : 1     // builtin vs user
-      ;
+    QoreProgramLocation loc;
+    ParseWarnOptions pwo;
+    std::string name;
+    const QoreTypeInfo* typeInfo;
+    AbstractQoreNode* node;
+    bool in_init : 1,  // being initialized
+        pub : 1,        // public constant (modules only)
+        init : 1,       // already initialized
+        builtin : 1     // builtin vs user
+        ;
 
-   DLLLOCAL ConstantEntry(const QoreProgramLocation& loc, const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false, ClassAccess n_access = Public);
-   DLLLOCAL ConstantEntry(const ConstantEntry& old);
+    DLLLOCAL ConstantEntry(const QoreProgramLocation& loc, const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false, ClassAccess n_access = Public);
+    DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
-   DLLLOCAL void deref() {
-      if (ROdereference())
-         delete this;
-   }
+    DLLLOCAL void deref(ExceptionSink* xsink) {
+            if (ROdereference()) {
+                del(xsink);
+                delete this;
+            }
+    }
 
-   DLLLOCAL void ref() {
-      ROreference();
-   }
+    DLLLOCAL void deref(QoreListNode& l) {
+            if (ROdereference()) {
+                del(l);
+                delete this;
+            }
+    }
 
-   DLLLOCAL ConstantEntry* refSelf() {
-      ref();
-      return this;
-   }
+    DLLLOCAL void ref() {
+        ROreference();
+    }
 
-   DLLLOCAL void del(ExceptionSink* xsink);
-   DLLLOCAL void del(QoreListNode& l);
+    DLLLOCAL ConstantEntry* refSelf() {
+        ref();
+        return this;
+    }
 
-   DLLLOCAL int parseInit(ClassNs ptr);
+    DLLLOCAL int parseInit(ClassNs ptr);
 
-   DLLLOCAL AbstractQoreNode* get(const QoreProgramLocation& loc, const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
-      if (in_init) {
-         parse_error(loc, "recursive constant reference found to constant '%s'", name.c_str());
-         constantTypeInfo = nothingTypeInfo;
-         return 0;
-      }
+    DLLLOCAL AbstractQoreNode* get(const QoreProgramLocation& loc, const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
+        if (in_init) {
+            parse_error(loc, "recursive constant reference found to constant '%s'", name.c_str());
+            constantTypeInfo = nothingTypeInfo;
+            return 0;
+        }
 
-      if (!init && parseInit(ptr)) {
-         constantTypeInfo = nothingTypeInfo;
-         return 0;
-      }
+        if (!init && parseInit(ptr)) {
+            constantTypeInfo = nothingTypeInfo;
+            return 0;
+        }
 
-      constantTypeInfo = typeInfo;
-      return node;
-   }
+        constantTypeInfo = typeInfo;
+        return node;
+    }
 
-   DLLLOCAL const char* getName() const {
-      return name.c_str();
-   }
+    DLLLOCAL const char* getName() const {
+        return name.c_str();
+    }
 
-   DLLLOCAL const std::string& getNameStr() const {
-      return name;
-   }
+    DLLLOCAL const std::string& getNameStr() const {
+        return name;
+    }
 
-   DLLLOCAL bool isPublic() const {
-      return pub;
-   }
+    DLLLOCAL bool isPublic() const {
+        return pub;
+    }
 
-   DLLLOCAL bool isUserPublic() const {
-      return pub && !builtin;
-   }
+    DLLLOCAL bool isUserPublic() const {
+        return pub && !builtin;
+    }
 
-   DLLLOCAL bool isSystem() const {
-      return builtin;
-   }
+    DLLLOCAL bool isSystem() const {
+        return builtin;
+    }
 
-   DLLLOCAL bool isUser() const {
-      return !builtin;
-   }
+    DLLLOCAL bool isUser() const {
+        return !builtin;
+    }
 
-   DLLLOCAL ClassAccess getAccess() const {
-      return access;
-   }
+    DLLLOCAL ClassAccess getAccess() const {
+        return access;
+    }
+
+protected:
+    AbstractQoreNode* saved_node;
+    ClassAccess access;
+
+    DLLLOCAL int scanValue(const AbstractQoreNode* n) const;
+
+    DLLLOCAL void del(ExceptionSink* xsink);
+    DLLLOCAL void del(QoreListNode& l);
+
+    DLLLOCAL ~ConstantEntry() {
+        assert(!saved_node);
+        assert(!node);
+    }
 };
 
 class ConstantEntryInitHelper {
@@ -391,7 +400,7 @@ protected:
     }
 
     DLLLOCAL ~RuntimeConstantRefNode() {
-        ce->deref();
+        ce->deref(nullptr);
     }
 
 public:

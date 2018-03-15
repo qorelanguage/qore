@@ -125,44 +125,40 @@ int ConstantEntry::scanValue(const AbstractQoreNode* n) const {
 }
 
 void ConstantEntry::del(QoreListNode& l) {
-   //printd(5, "ConstantEntry::del(l) this: %p '%s' node: %p (%d) %s %d (saved_node: %p)\n", this, name.c_str(), node, get_node_type(node), get_type_name(node), node->reference_count(), saved_node);
-   if (saved_node) {
-      node->deref(nullptr);
-      l.push(saved_node);
+    //printd(5, "ConstantEntry::del(l) this: %p '%s' node: %p (%d) %s %d (saved_node: %p)\n", this, name.c_str(), node, get_node_type(node), get_type_name(node), node->reference_count(), saved_node);
+    if (saved_node) {
+        node->deref(nullptr);
+        l.push(saved_node);
 #ifdef DEBUG
-      node = nullptr;
-      saved_node = nullptr;
+        node = nullptr;
+        saved_node = nullptr;
 #endif
-   }
-   else if (node) {
-      l.push(node);
+    }
+    else if (node) {
+        l.push(node);
 #ifdef DEBUG
-      node = nullptr;
+        node = nullptr;
 #endif
-   }
-
-   deref();
+    }
 }
 
 void ConstantEntry::del(ExceptionSink* xsink) {
-   if (saved_node) {
-      node->deref(xsink);
-      saved_node->deref(xsink);
+    if (saved_node) {
+        node->deref(xsink);
+        saved_node->deref(xsink);
 #ifdef DEBUG
-      node = 0;
-      saved_node = 0;
+        node = nullptr;
+        saved_node = nullptr;
 #endif
-   }
-   else if (node) {
-      // abort if an object is present and we are calling deref without an ExceptionSink object
-      assert(get_node_type(node) != NT_OBJECT || xsink);
-      node->deref(xsink);
+    }
+    else if (node) {
+        // abort if an object is present and we are calling deref without an ExceptionSink object
+        assert(get_node_type(node) != NT_OBJECT || xsink);
+        node->deref(xsink);
 #ifdef DEBUG
-      node = 0;
+        node = nullptr;
 #endif
-   }
-
-   deref();
+    }
 }
 
 int ConstantEntry::parseInit(ClassNs ptr) {
@@ -260,37 +256,39 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 }
 
 ConstantList::ConstantList(const ConstantList& old, int64 po, ClassNs p) : ptr(p) {
-   //printd(5, "ConstantList::ConstantList(old: %p, p: %s %s) this: %p cls: %p ns: %p\n", &old, p.getType(), p.getName(), this, ptr.getClass(), ptr.getNs());
+    //printd(5, "ConstantList::ConstantList(old: %p, p: %s %s) this: %p cls: %p ns: %p\n", &old, p.getType(), p.getName(), this, ptr.getClass(), ptr.getNs());
 
-   // DEBUG
-   //fprintf(stderr, "XXX ConstantList::ConstantList() this=%p copy constructor from %p called\n", this, &old);
-   cnemap_t::iterator last = cnemap.begin();
-   for (cnemap_t::const_iterator i = old.cnemap.begin(), e = old.cnemap.end(); i != e; ++i) {
-      assert(i->second->init);
-      // only check copying criteria when copying a constant list in a namespace
-      if (p.isNs()) {
-         // check the public flag
-         if (!i->second->pub)
-            continue;
-         if (po & PO_NO_INHERIT_USER_CONSTANTS && i->second->isUser())
-            continue;
-         if (po & PO_NO_INHERIT_SYSTEM_CONSTANTS && i->second->isSystem())
-            continue;
-      }
+    // DEBUG
+    //fprintf(stderr, "XXX ConstantList::ConstantList() this=%p copy constructor from %p called\n", this, &old);
+    cnemap_t::iterator last = cnemap.begin();
+    for (cnemap_t::const_iterator i = old.cnemap.begin(), e = old.cnemap.end(); i != e; ++i) {
+        assert(i->second->init);
+        // only check copying criteria when copying a constant list in a namespace
+        if (p.isNs()) {
+            // check the public flag
+            if (!i->second->pub)
+                continue;
+            if (po & PO_NO_INHERIT_USER_CONSTANTS && i->second->isUser())
+                continue;
+            if (po & PO_NO_INHERIT_SYSTEM_CONSTANTS && i->second->isSystem())
+                continue;
+        }
 
-      ConstantEntry* ce = new ConstantEntry(*(i->second));
+        ConstantEntry* ce = i->second;
+        ce->ref();
+        //ConstantEntry* ce = new ConstantEntry(*(i->second));
 
-      last = cnemap.insert(last, cnemap_t::value_type(ce->getName(), ce));
-      //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first, i->second->node);
-   }
+        last = cnemap.insert(last, cnemap_t::value_type(ce->getName(), ce));
+        //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first, i->second->node);
+    }
 }
 
 ConstantList::~ConstantList() {
-   //QORE_TRACE("ConstantList::~ConstantList()");
-   // for non-debug mode with old modules: clear constants here
-   //fprintf(stderr, "XXX ConstantList::~ConstantList() this=%p size=%d\n", this, cnemap.size());
+    //QORE_TRACE("ConstantList::~ConstantList()");
+    // for non-debug mode with old modules: clear constants here
+    //fprintf(stderr, "XXX ConstantList::~ConstantList() this=%p size=%d\n", this, cnemap.size());
 
-   reset();
+    reset();
 }
 
 void ConstantList::reset() {
@@ -299,39 +297,55 @@ void ConstantList::reset() {
 }
 
 void ConstantList::clearIntern(ExceptionSink* xsink) {
-   for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
-      if (!i->second)
-         continue;
-      printd(5, "ConstantList::clearIntern() this: %p clearing %s type %s refs %d\n", this, i->first, get_type_name(i->second->node), i->second->node ? i->second->node->reference_count() : 0);
-      i->second->del(xsink);
-   }
+    for (auto& i : cnemap) {
+        if (i.second) {
+            i.second->deref(xsink);
+        }
+    }
 
-   cnemap.clear();
+    /*
+    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
+        if (!i->second)
+            continue;
+        printd(5, "ConstantList::clearIntern() this: %p clearing %s type %s refs %d\n", this, i->first, get_type_name(i->second->node), i->second->node ? i->second->node->reference_count() : 0);
+        i->second->del(xsink);
+    }
+    */
+
+    cnemap.clear();
 }
 
 // called at runtime
 void ConstantList::clear(QoreListNode& l) {
-   for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
-      if (!i->second)
-         continue;
-      //printd(5, "ConstantList::clear(l: %p) this: %p clearing %s type %s refs %d\n", &l, this, i->first, get_type_name(i->second->node), i->second->node ? i->second->node->reference_count() : 0);
-      i->second->del(l);
-   }
+    for (auto& i : cnemap) {
+        if (i.second) {
+            i.second->deref(l);
+        }
+    }
 
-   cnemap.clear();
+    /*
+    for (cnemap_t::iterator i = cnemap.begin(), e = cnemap.end(); i != e; ++i) {
+        if (!i->second)
+            continue;
+        //printd(5, "ConstantList::clear(l: %p) this: %p clearing %s type %s refs %d\n", &l, this, i->first, get_type_name(i->second->node), i->second->node ? i->second->node->reference_count() : 0);
+        i->second->del(l);
+    }
+    */
+
+    cnemap.clear();
 }
 
 // called at runtime
 void ConstantList::deleteAll(ExceptionSink* xsink) {
-   clearIntern(xsink);
+    clearIntern(xsink);
 }
 
 void ConstantList::parseDeleteAll() {
-   ExceptionSink xsink;
-   clearIntern(&xsink);
+    ExceptionSink xsink;
+    clearIntern(&xsink);
 
-   if (xsink.isEvent())
-      qore_program_private::addParseException(getProgram(), xsink);
+    if (xsink.isEvent())
+        qore_program_private::addParseException(getProgram(), xsink);
 }
 
 cnemap_t::iterator ConstantList::parseAdd(const QoreProgramLocation& loc, const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo, bool pub, ClassAccess access) {
@@ -358,24 +372,24 @@ cnemap_t::iterator ConstantList::add(const char* name, AbstractQoreNode* value, 
 }
 
 ConstantEntry *ConstantList::findEntry(const char* name) {
-   cnemap_t::iterator i = cnemap.find(name);
-   return i == cnemap.end() ? 0 : i->second;
+    cnemap_t::iterator i = cnemap.find(name);
+    return i == cnemap.end() ? 0 : i->second;
 }
 
 AbstractQoreNode* ConstantList::find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access) {
-   cnemap_t::iterator i = cnemap.find(name);
-   if (i != cnemap.end()) {
-      if (!i->second->parseInit(ptr)) {
-         constantTypeInfo = i->second->typeInfo;
-         access = i->second->getAccess();
-         return i->second->node;
-      }
-      constantTypeInfo = nothingTypeInfo;
-      return &Nothing;
-   }
+    cnemap_t::iterator i = cnemap.find(name);
+    if (i != cnemap.end()) {
+        if (!i->second->parseInit(ptr)) {
+            constantTypeInfo = i->second->typeInfo;
+            access = i->second->getAccess();
+            return i->second->node;
+        }
+        constantTypeInfo = nothingTypeInfo;
+        return &Nothing;
+    }
 
-   constantTypeInfo = nullptr;
-   return nullptr;
+    constantTypeInfo = nullptr;
+    return nullptr;
 }
 
 bool ConstantList::inList(const char* name) const {
