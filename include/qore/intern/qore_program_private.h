@@ -117,6 +117,7 @@ private:
       if (rs == DBG_RS_UNTIL_RETURN) {
          functionCallLevel = 1;  // function called only when runState is not DBG_RS_UNTIL_RETURN
       }
+      printd(5, "ThreadLocalProgramData::setRunState(), this: %p, rs: %d->%d\n", this, runState, rs);
       runState = rs;
    }
    // set to true by any process do break running program asap
@@ -132,8 +133,20 @@ private:
       }
    }
    // to call onAttach when debug is attached or detached, -1 .. detach, 1 .. attach
-   int attachFlag;
-   inline void checkAttach(ExceptionSink* xsink);
+   int attachFlag = 0;
+   inline void checkAttach(ExceptionSink* xsink) {
+      if (runState != DBG_RS_STOPPED) {
+         if (attachFlag > 0) {
+            dbgAttach(xsink);
+            //if (rs != DBG_RS_DETACH) {   // TODO: why this exception ?
+            attachFlag = 0;
+            //}
+         } else if (attachFlag < 0) {
+            dbgDetach(xsink);
+            attachFlag = 0;
+         }
+      }
+   }
 public:
 
    // local variable data slots
@@ -150,10 +163,11 @@ public:
 
 
    DLLLOCAL ThreadLocalProgramData() : runState(DBG_RS_DETACH), functionCallLevel(0), breakFlag(false), tz(0), tz_set(false), inst(false) {
-      //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this: %p\n", this);
+      printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this: %p\n", this);
    }
 
    DLLLOCAL ~ThreadLocalProgramData() {
+      printd(5, "ThreadLocalProgramData::~ThreadLocalProgramData() this: %p, rs: %d\n", this, runState);
       assert(lvstack.empty());
       assert(cvstack.empty());
    }
@@ -198,6 +212,14 @@ public:
     */
 
    /**
+    * Executed when starting thread or thread context first time for given program
+    */
+   DLLLOCAL void dbgAttach(ExceptionSink* xsink);
+   /**
+    * Executed from any thread when terminated to detach program
+    */
+   DLLLOCAL void dbgDetach(ExceptionSink* xsink);
+   /**
     * Executed every step in BlockStatement.
     * @param statement is step being processed
     * @return 0 as neutral value or RC_RETURN/BREAK/CONTINUE to terminate block
@@ -215,6 +237,10 @@ public:
     * Executed when an exception is raised.
     */
    DLLLOCAL void dbgException(const AbstractStatement* statement, ExceptionSink* xsink);
+   /**
+    * Executed when a thread or program is exited.
+    */
+   DLLLOCAL void dbgExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink);
 
    /**
     * Executed from any thread to break running program
@@ -236,6 +262,13 @@ public:
    DLLLOCAL void dbgPendingDetach() {
       printd(5, "ThreadLocalProgramData::dbgPendingDetach(), this: %p\n", this);
       attachFlag = -1;
+   }
+
+   /**
+    * Check if attached to debugger
+    */
+   DLLLOCAL inline bool dbgIsAttached() {
+      return /*runState != DBG_RS_STOPPED &&*/ runState != DBG_RS_DETACH;
    }
 };
 
@@ -477,7 +510,7 @@ private:
    QoreBreakpointList_t breakpointList;
 
    // map for line to statement
-   typedef std::map<int, AbstractStatement*> sline_statement_multimap_t;
+   typedef std::map<int, AbstractStatement*> sline_statement_map_t;
 
    struct cmp_char_str
    {
@@ -486,13 +519,21 @@ private:
          return strcmp(a, b) < 0;
       }
    };
+   typedef std::map<const char*, int, cmp_char_str> section_offset_map_t;
+
+   struct section_sline_statement_map {
+      section_offset_map_t sectionMap;
+      sline_statement_map_t statementMap;
+   };
+
+   typedef section_sline_statement_map section_sline_statement_map_t;
 
    // map for filenames
-   typedef std::map<const char*, sline_statement_multimap_t*, cmp_char_str> name_sline_statement_map_t;
+   typedef std::map<const char*, section_sline_statement_map_t*, cmp_char_str> name_section_sline_statement_map_t;
 
    // index source filename/label -> line -> statement
-   name_sline_statement_map_t statementByFileIndex;
-   name_sline_statement_map_t statementByLabelIndex;
+   name_section_sline_statement_map_t statementByFileIndex;
+   name_section_sline_statement_map_t statementByLabelIndex;
 
    // statementId to AbstractStatement resolving
    typedef std::vector<AbstractStatement*> StatementVector_t;
@@ -817,10 +858,12 @@ public:
       // save this file name for storage in the parse tree and deletion
       // when the QoreProgram object is deleted
       char* sname = strdup(label);
-      addFile(sname);
       char* src = orig_src ? strdup(orig_src) : nullptr;
-      if (src)
-         addFile(src);
+      if (orig_src) {
+         addFile(src, sname, offset);
+      } else {
+         addFile(sname);
+      }
 
       QoreParseLocationHelper qplh(sname, src, offset);
 
@@ -1610,8 +1653,14 @@ public:
 
    DLLLOCAL void importHashDecl(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = nullptr);
 
-   DLLLOCAL void addFile(char* f) {
-      fileList.push_back(f);
+   DLLLOCAL void addFile(char* file, char* source = nullptr, int offset = -1) {
+      fileList.push_back(file);
+      printd(5, "qore_program_private::addFile('%s', '%s', %d\n", file, source ? source : "(null)", offset);
+      addStatementToIndexIntern(&statementByFileIndex, file, nullptr, -1, source, offset);
+      if (source) {
+        fileList.push_back(source);
+        addStatementToIndexIntern(&statementByLabelIndex, source, nullptr, -1, file, offset);
+      }
    }
 
    DLLLOCAL void addUserFeature(const char* f) {
@@ -2005,10 +2054,11 @@ public:
 
    DLLLOCAL void onAttach(DebugRunStateEnum &rs, ExceptionSink* xsink);
    DLLLOCAL void onDetach(DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink);
+   DLLLOCAL void onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink);
    DLLLOCAL void onFunctionEnter(const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
    DLLLOCAL void onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
    DLLLOCAL void onException(const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
+   DLLLOCAL void onExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
 
    DLLLOCAL int breakProgramThread(int tid) {
       printd(5, "qore_program_private::breakProgramThread(), this: %p, tid: %d\n", this, gettid());
@@ -2062,9 +2112,14 @@ public:
       }
    }
 
-   DLLLOCAL inline bool onCheckBreakpoint(const AbstractStatement *statement, ExceptionSink* xsink) {
+   DLLLOCAL inline unsigned onCheckBreakpoint(const AbstractStatement *statement, ExceptionSink* xsink) {
       QoreAutoRWReadLocker al(&lck_breakpoint);
-      return statement->getBreakpoint() != nullptr;
+      const QoreBreakpoint *b = statement->getBreakpoint();
+      if (b != nullptr) {
+         return b->getBreakpointId();
+      } else {
+         return 0;
+      }
    }
 
    DLLLOCAL unsigned long getStatementId(const AbstractStatement* statement) const {
@@ -2108,13 +2163,20 @@ public:
          return true;
    }
 
-   DLLLOCAL void addStatementToIndexIntern(name_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs);
+   DLLLOCAL void addStatementToIndexIntern(name_section_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs, const char* section, int sectionOffs);
    DLLLOCAL static void registerStatement(QoreProgram *pgm, AbstractStatement *statement, bool addToIndex);
+   DLLLOCAL QoreHashNode* getSourceIndicesIntern(name_section_sline_statement_map_t* statementIndex, ExceptionSink* xsink) const;
+   DLLLOCAL QoreHashNode* getSourceLabels(ExceptionSink* xsink) {
+      return getSourceIndicesIntern(&statementByLabelIndex, xsink);
+   }
+   DLLLOCAL QoreHashNode* getSourceFileNames(ExceptionSink* xsink) {
+      return getSourceIndicesIntern(&statementByFileIndex, xsink);
+   }
 
    DLLLOCAL AbstractStatement* getStatementFromIndex(const char* name, int line) {
       printd(5, "qore_program_private::getStatementFromIndex('%s',%d), this: %p, file#: %d, label#: %d\n", name, line, this, statementByFileIndex.size(), statementByLabelIndex.size());
       AutoLocker al(&plock);
-      std::map<const char*, sline_statement_multimap_t*>::iterator it;
+      std::map<const char*, section_sline_statement_map_t*>::iterator it;
       if (statementByFileIndex.empty()) {
          return nullptr;
       }
@@ -2157,7 +2219,7 @@ public:
             printd(5, "qore_program_private::getStatementFromIndex('%s',%d) found by file full match, this: %p\n", name, line, this);
          }
       }
-      sline_statement_multimap_t *ssm = it->second;
+      sline_statement_map_t *ssm = &it->second->statementMap;
       printd(5, "qore_program_private::getStatementFromIndex('%s',%d) found '%s', this: %p, ssm#: %d\n", name, line, it->first, this, ssm->size());
       if (ssm->size() == 0)
          return nullptr;
@@ -2368,9 +2430,9 @@ public:
     * @param statement current AbstractStatement of blockStatement being processed. Executed also when blockStatement is entered with value of NULL
     * @param flow
     */
-   DLLLOCAL void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onStep(pgm, blockStatement, statement, flow, rs, xsink);
+      dpgm->onStep(pgm, blockStatement, statement, bkptId, flow, rs, xsink);
 
    }
    DLLLOCAL void onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
@@ -2390,6 +2452,13 @@ public:
    DLLLOCAL void onException(QoreProgram* pgm, const AbstractStatement* statement, DebugRunStateEnum& rs, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
       dpgm->onException(pgm, statement, rs, xsink);
+   }
+   /**
+    * Executed when a thread/program is exited.
+    */
+   DLLLOCAL void onExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+      AutoQoreCounterDec ad(&debug_program_counter);
+      dpgm->onExit(pgm, statement, returnValue, rs, xsink);
    }
 
    DLLLOCAL int breakProgramThread(QoreProgram* pgm, int tid) {

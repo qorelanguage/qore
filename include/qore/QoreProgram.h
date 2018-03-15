@@ -769,6 +769,17 @@ public:
     */
    DLLEXPORT AbstractStatement* resolveStatementId(unsigned long statementId) const;
 
+   //! get list of files which appears in a statement
+   /**
+      @return hash where the key is file name and value is hash where the key value is label and the value is label's section offset in the file
+   */
+   DLLEXPORT QoreHashNode* getSourceFileNames(ExceptionSink* xsink) const;
+   //! get list of labels which appears in a statement
+   /**
+      @return hash where the key is label name and value is hash where the key is file and the value is label's section offset in the file
+   */
+   DLLEXPORT QoreHashNode* getSourceLabels(ExceptionSink* xsink) const;
+
    //! get the program id
    /**
       @return the program id
