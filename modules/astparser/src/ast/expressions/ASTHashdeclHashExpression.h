@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTNameExpression.h
+  ASTHashdeclHashExpression.h
 
   Qore AST Parser
 
-  Copyright (C) 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,30 +29,36 @@
   information.
 */
 
-#ifndef _QLS_AST_EXPRESSIONS_ASTNAMEEXPRESSION_H
-#define _QLS_AST_EXPRESSIONS_ASTNAMEEXPRESSION_H
-
-#include <memory>
+#ifndef _QLS_AST_EXPRESSIONS_ASTHASHDECLHASHEXPRESSION_H
+#define _QLS_AST_EXPRESSIONS_ASTHASHDECLHASHEXPRESSION_H
 
 #include "ast/ASTExpression.h"
-#include "ast/ASTName.h"
+#include "ast/expressions/ASTHashExpression.h"
 
-class ASTNameExpression : public ASTExpression {
+class ASTHashdeclHashExpression : public ASTExpression {
 public:
-    //! Pointer type.
-    using Ptr = std::unique_ptr<ASTNameExpression>;
+    //! Hashdecl name.
+    ASTName hashdecl;
+
+    //! Hash expression.
+    ASTHashExpression::Ptr hash;
 
 public:
-    //! The name.
-    ASTName name;
+    ASTHashdeclHashExpression(ASTName&& name, ASTHashExpression* h = nullptr) :
+        ASTExpression(),
+        hashdecl(std::move(name)),
+        hash(h) {}
 
-public:
-    ASTNameExpression(ASTName&& n) : ASTExpression(n.loc), name(std::move(n)) {}
-    ASTNameExpression(const ASTName& n) : ASTExpression(n.loc), name(n) {}
+    ASTHashdeclHashExpression(const ASTName& name, ASTHashExpression* h = nullptr) :
+        ASTExpression(),
+        hashdecl(name),
+        hash(h) {}
+
+    virtual ~ASTHashdeclHashExpression() {}
 
     virtual ASTExpressionKind getKind() const override {
-        return ASTExpressionKind::AEK_Name;
+        return ASTExpressionKind::AEK_HashdeclHash;
     }
 };
 
-#endif // _QLS_AST_EXPRESSIONS_ASTNAMEEXPRESSION_H
+#endif // _QLS_AST_EXPRESSIONS_ASTHASHDECLHASHEXPRESSION_H

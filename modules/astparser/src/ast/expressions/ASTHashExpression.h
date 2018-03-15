@@ -39,6 +39,10 @@
 
 class ASTHashExpression : public ASTExpression {
 public:
+    //! Pointer type.
+    using Ptr = std::unique_ptr<ASTHashExpression>;
+
+public:
     //! Hash elements.
     std::vector<ASTHashElementExpression*> elements;
 

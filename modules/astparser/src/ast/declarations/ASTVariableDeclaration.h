@@ -54,11 +54,27 @@ public:
     ASTName name;
 
 public:
+    ASTVariableDeclaration(ASTModifiers mods, ASTName&& tn, ASTName&& n) :
+        ASTDeclaration(),
+        modifiers(mods),
+        typeName(std::move(tn)),
+        name(std::move(n)) {}
     ASTVariableDeclaration(ASTModifiers mods, const ASTName& tn, const ASTName& n) :
         ASTDeclaration(),
         modifiers(mods),
         typeName(tn),
         name(n) {}
+
+    ASTVariableDeclaration(ASTName&& tn, ASTName&& n) :
+        ASTDeclaration(),
+        typeName(std::move(tn)),
+        name(std::move(n))
+    {
+        loc.firstLine = typeName.loc.firstLine;
+        loc.firstCol = typeName.loc.firstCol;
+        loc.lastLine = name.loc.lastLine;
+        loc.lastCol = name.loc.lastCol;
+    }
     ASTVariableDeclaration(const ASTName& tn, const ASTName& n) :
         ASTDeclaration(),
         typeName(tn),
@@ -69,10 +85,19 @@ public:
         loc.lastLine = n.loc.lastLine;
         loc.lastCol = n.loc.lastCol;
     }
+
+    ASTVariableDeclaration(ASTModifiers mods, ASTName&& n) :
+        ASTDeclaration(),
+        modifiers(mods),
+        name(std::move(n)) {}
     ASTVariableDeclaration(ASTModifiers mods, const ASTName& n) :
         ASTDeclaration(),
         modifiers(mods),
         name(n) {}
+
+    ASTVariableDeclaration(ASTName&& n) :
+        ASTDeclaration(),
+        name(std::move(n)) {}
     ASTVariableDeclaration(const ASTName& n) :
         ASTDeclaration(),
         name(n) {}
