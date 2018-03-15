@@ -54,6 +54,8 @@ module DebugProgramControl {
     - return breakpointId and statementId when creating breakpoint
     - onExit() event
     - frameId argument for thread/local command
+    - source file API
+    - options API
 
     @subsection dc_v0_1_1 v0.1.1
     - fixed bug providing programId context (<a href="https://github.com/qorelanguage/qore/issues/2603">issue 2603</a>)
@@ -837,6 +839,7 @@ public namespace DebugProgramControl {
                     content = l.join("\n");
                 }
                 res.code = content;
+                res.startline = rd.line;
             }
             return res;
         }
@@ -1134,7 +1137,7 @@ public namespace DebugProgramControl {
                                     h.line = n;
                                 }
                                 h.count = n - h.line + 1;
-                                result = getSourceCode(pgm, True, h).code;
+                                result = getSourceCode(pgm, True, h).('code', 'startline') + ('currentline': stack[frame].line);
                             }
                             break;
                         }

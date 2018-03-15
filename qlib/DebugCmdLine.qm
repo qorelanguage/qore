@@ -51,6 +51,8 @@ module DebugCmdLine {
 
     @subsection dcl_v0_1_2 v0.1.2
     - removed Linenoise stuff to new module
+    - options API
+    - source API
 
     @subsection dcl_v0_1_1 v0.1.1
     - fixed a bug parsing call signatures when setting breakpoints (<a href="https://github.com/qorelanguage/qore/issues/2601">issue 2601</a>)
@@ -1088,7 +1090,7 @@ public namespace DebugCmdLine {
                                 data.linesbefore = int(args[0]);
                                 data.linesafter = data.linesbefore;
                             }
-                            printfImpl("%s", dcl.doCommand(data, False).result);
+                            dcl.printSource(dcl.doCommand(data, False).result);
                         },
                     ),
                     'go': (
@@ -1218,6 +1220,22 @@ public namespace DebugCmdLine {
             }
         }
 
+        public printSource(hash src) {
+            if (src.startline > 0) {
+                # add line numbers
+                list l = src.code.split("\n");
+                string fmt = sprintf("%%%dd%%s: %%s", int(log10(src.startline + l.size()))+1);
+                foreach string s in (\l) {
+                    string mark = "";
+                    if (exists src.currentline) {
+                        mark = (src.currentline == src.startline+$#) ? "*":" ";
+                    }
+                    s = sprintf(fmt, src.startline + $#, mark, s);
+                }
+                src.code = l.join("\n");
+            }
+            printfImpl("%s", src.code);
+        }
         public processGetSource(string type, list path, list args) {
             hash data.cmd = 'program/'+checkProgramId()+'/'+type+'/source';
             data.name = pop path;
@@ -1232,7 +1250,7 @@ public namespace DebugCmdLine {
                 printfImpl("%s: %s", src.checksum.algorithm, src.checksum.cs);
             }
             if (src.code) {
-                printfImpl("%s", src.code);
+                printSource(src);
             }
         }
 
