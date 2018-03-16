@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2017 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -929,6 +929,16 @@ class{WS}+{WORD}                        { yylval->string = trim(yytext + 6); ret
 namespace{WS}+{WORD}                    { yylval->string = trim(yytext + 10); return NAMESPACE; }
 module{WS}+{WORD}                       { /* TODO const char* mod = trim_inplace(yytext + 7); */ return TOK_MODULE; }
 {WORD}                                  { yylval->string = strdup(yytext); return IDENTIFIER; }
+\<{WORD}\>\{                            {
+                                            yylval->string = strdup(yytext + 1);
+                                            yylval->string[strlen(yylval->string) - 2] = '\0';
+                                            return HASHDECL_IDENTIFIER_OPENCURLY;
+                                        }
+hash\<{WORD}\>\{                        {
+                                            yylval->string = strdup(yytext + 5);
+                                            yylval->string[strlen(yylval->string) - 2] = '\0';
+                                            return HASHDECL_IDENTIFIER_OPENCURLY;
+                                        }
 {WORD}<[a-zA-Z\*<:_0-9 \t,]+>           {
                                             if (angle_balanced(yytext)) {
                                                 yylval->string = strdup(yytext);
@@ -937,7 +947,7 @@ module{WS}+{WORD}                       { /* TODO const char* mod = trim_inplace
                                             yylval->String = new std::string(yytext);
                                             yylloc->saveFirst();
                                             BEGIN(angle_state);
-}
+                                        }
 <angle_state>{
     >                                   {
                                             yylval->String->push_back('>');

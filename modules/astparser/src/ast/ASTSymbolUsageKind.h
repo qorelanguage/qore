@@ -72,6 +72,7 @@ enum ASTSymbolUsageKind {
     ASUK_Unary = 220,
     ASUK_RangeLeft = 221,
     ASUK_RangeRight = 222,
+    ASUK_HashdeclHashHashdecl = 223,
 
     // Statements.
     ASUK_ContextStmtName = 300,
