@@ -308,6 +308,8 @@ public:
 
 #ifdef QORE_MANAGE_STACK
    size_t stack_limit;
+   // this thread's stack size for error reporting
+   size_t stack_size;
 #ifdef IA64_64
    size_t rse_limit;
 #endif
@@ -366,7 +368,8 @@ public:
       try_reexport(false) {
 
 #ifdef QORE_MANAGE_STACK
-
+      // save this thread's stack size as the default stack size can change
+      stack_size = qore_thread_stack_size;
 #ifdef STACK_DIRECTION_DOWN
       stack_limit = get_stack_pos() - qore_thread_stack_limit;
 #else
@@ -767,7 +770,7 @@ int check_stack(ExceptionSink* xsink) {
 #ifdef IA64_64
    //printd(5, "check_stack() bsp current: %p limit: %p\n", get_rse_bsp(), td->rse_limit);
    if (td->rse_limit < get_rse_bsp()) {
-      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the IA-64 RSE (Register Stack Engine) stack size limit (%ld bytes)", qore_thread_stack_limit);
+      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the IA-64 RSE (Register Stack Engine) stack size limit (%ld bytes)", td->stack_size - QORE_STACK_GUARD);
       return -1;
    }
 
@@ -780,7 +783,7 @@ int check_stack(ExceptionSink* xsink) {
    <
 #endif
    get_stack_pos()) {
-      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit (%ld bytes)", qore_thread_stack_limit);
+      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit (%ld bytes)", td->stack_size - QORE_STACK_GUARD);
       return -1;
    }
 
@@ -2221,6 +2224,7 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
 }
 
 #ifdef QORE_MANAGE_STACK
+// returns the default thread stack size for new threads
 size_t q_thread_get_stack_size() {
     // make sure accesses to stack info are made locked
     AutoLocker al(stack_lck);
@@ -2228,6 +2232,7 @@ size_t q_thread_get_stack_size() {
     return qore_thread_stack_size;
 }
 
+// returns the default thread stack size set for new threads
 size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink) {
     // make sure accesses to stack info are made locked
     AutoLocker al(stack_lck);

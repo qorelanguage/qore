@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -253,17 +253,15 @@ int typed_hash_decl_private::initHash(QoreHashNode* h, const QoreHashNode* init,
         if (init) {
             const qore_hash_private* hi = qore_hash_private::get(*init);
             bool exists;
-            ReferenceHolder<> val(hi->getReferencedKeyValueIntern(i->first, exists), xsink);
+            ValueHolder val(hi->getReferencedKeyValueIntern(i->first, exists), xsink);
             if (exists) {
                 // check types
-                QoreValue qv(val.release());
-                QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, qv, xsink);
-                val = qv.takeNode();
+                QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, *val, xsink);
                 if (*xsink)
                     return -1;
                 AbstractQoreNode** v = h->getKeyValuePtr(i->first);
                 assert(!*v);
-                *v = val.release();
+                *v = val.release().takeNode();
                 continue;
             }
         }
@@ -272,25 +270,24 @@ int typed_hash_decl_private::initHash(QoreHashNode* h, const QoreHashNode* init,
             continue;
 
         if (i->second->exp) {
-            AbstractQoreNode** v = h->getKeyValuePtr(i->first);
-            assert(!*v);
+            QoreValue& v = h->getValueRef(i->first);
+            assert(v.isNothing());
 
-            ReferenceHolder<> val(i->second->exp->eval(xsink), xsink);
+            ValueEvalRefHolder val(i->second->exp, xsink);
             if (*xsink)
                 return -1;
-            // check types
-            QoreValue qv(val.release());
-            QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, qv, xsink);
-            val = qv.takeNode();
+
+            QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, *val, xsink);
             if (*xsink)
                 return -1;
-            *v = val.release();
+
+            v = val.takeReferencedValue();
         }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
         else {
-            AbstractQoreNode** v = h->getKeyValuePtr(i->first);
-            assert(!*v);
-            *v = QoreTypeInfo::getDefaultQoreValue(i->second->getTypeInfo()).takeNode();
+            QoreValue& v = h->getValueRef(i->first);
+            assert(v.isNothing());
+            v = QoreTypeInfo::getDefaultQoreValue(i->second->getTypeInfo());
         }
 #endif
     }

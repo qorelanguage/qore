@@ -103,7 +103,7 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
     qore_hash_private* ph = qore_hash_private::get(**h);
     for (size_t i = 0; i < keys.size(); ++i) {
         QoreStringValueHelper key(keys[i]);
-        discard(ph->swapKeyValue(key->c_str(), values[i], nullptr), nullptr);
+        ph->swapKeyValue(key->c_str(), values[i], nullptr).discard(nullptr);
         values[i] = nullptr;
     }
 

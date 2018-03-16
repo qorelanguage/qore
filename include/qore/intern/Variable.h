@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -362,10 +362,12 @@ protected:
    }
 
    DLLLOCAL void assignIntern(AbstractQoreNode* n) {
-      if (val)
-         val->assign(n);
-      else
-         *v = n;
+        if (val)
+            val->assign(n);
+        else if (qv)
+            *qv = n;
+        else
+            *v = n;
    }
 
    DLLLOCAL int doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove);
@@ -401,6 +403,7 @@ private:
 
 public:
    QoreLValueGeneric* val = nullptr;
+   QoreValue* qv = nullptr;
    const QoreTypeInfo* typeInfo = nullptr;
 
    DLLLOCAL LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove = false);
@@ -445,6 +448,7 @@ public:
    DLLLOCAL void setPtr(AbstractQoreNode*& ptr) {
       assert(!v);
       assert(!val);
+      assert(!qv);
       v = &ptr;
       before = needs_scan(ptr);
    }
@@ -453,34 +457,73 @@ public:
       return (bool)v;
    }
 
-   DLLLOCAL void setValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
-      assert(!v);
-      assert(!val);
-      val = &nv;
+    DLLLOCAL void setValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
+        //printd(5, "LValueHelper::setValue() this: %p new val: %p\n", this, &nv);
 
-      before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
+        assert(!v);
+        assert(!val);
+        assert(!qv);
+        val = &nv;
 
-      typeInfo = ti;
+        before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
+
+        typeInfo = ti;
+    }
+
+   DLLLOCAL void setValue(QoreValue& nqv, const QoreTypeInfo* ti = nullptr) {
+        printd(0, "LValueHelper::setValue() this: %p new qv: %p\n", this, &nqv);
+        assert(!v);
+        assert(!val);
+        assert(!qv);
+        qv = &nqv;
+
+        before = needs_scan(nqv);
+
+        typeInfo = ti;
    }
 
    DLLLOCAL void resetValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
-      if (v) {
-         assert(!val);
-         v = nullptr;
-      }
-      else {
-         assert(val);
-      }
-      val = &nv;
+        //printd(5, "LValueHelper::resetValue() this: %p new val: %p\n", this, &nv);
+        if (v) {
+            assert(!val);
+            v = nullptr;
+        }
+        else if (qv) {
+            qv = nullptr;
+        }
+        else {
+            assert(val);
+        }
+        val = &nv;
 
-      before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
+        before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
 
-      typeInfo = ti;
+        typeInfo = ti;
+   }
+
+   DLLLOCAL void resetValue(QoreValue& nqv, const QoreTypeInfo* ti = nullptr) {
+        //printd(5, "LValueHelper::resetValue() this: %p new qv: %p\n", this, &nqv);
+        if (v) {
+            assert(!val);
+            v = nullptr;
+        }
+        else if (val) {
+            val = nullptr;
+        }
+        else {
+            assert(qv);
+        }
+        qv = &nqv;
+
+        before = needs_scan(nqv);
+
+        typeInfo = ti;
    }
 
    DLLLOCAL void setPtr(AbstractQoreNode*& ptr, const QoreTypeInfo* ti) {
       assert(!v);
       assert(!val);
+      assert(!qv);
       v = &ptr;
 
       before = needs_scan(ptr);
@@ -489,31 +532,39 @@ public:
    }
 
    DLLLOCAL void resetPtr(AbstractQoreNode** ptr, const QoreTypeInfo* ti = nullptr) {
-      //printd(5, "LValueHelper::resetPtr() ptr: %p ti: %p '%s'\n", ptr, ti, QoreTypeInfo::getName(ti));
-      if (val) {
-         assert(!v);
-         val = nullptr;
-      }
-      else {
-         assert(v);
-      }
-      v = ptr;
+        //printd(5, "LValueHelper::resetPtr() ptr: %p ti: %p '%s'\n", ptr, ti, QoreTypeInfo::getName(ti));
+        if (val) {
+            assert(!v);
+            assert(!qv);
+            val = nullptr;
+        }
+        else if (qv) {
+            assert(!v);
+            qv = nullptr;
+        }
+        else {
+            assert(v);
+        }
+        v = ptr;
 
-      before = needs_scan(*ptr);
+        before = needs_scan(*ptr);
 
-      typeInfo = ti;
+        typeInfo = ti;
    }
 
    DLLLOCAL void clearPtr() {
-      if (val)
-         val = nullptr;
-      v = nullptr;
-      typeInfo = nullptr;
-      before = false;
+        if (val)
+            val = nullptr;
+        else if (qv)
+            qv = nullptr;
+        else if (v)
+            v = nullptr;
+        typeInfo = nullptr;
+        before = false;
    }
 
    DLLLOCAL operator bool() const {
-      return val || v;
+      return val || qv || v;
    }
 
    DLLLOCAL bool isOptimized() const {
@@ -525,19 +576,19 @@ public:
    }
 
    DLLLOCAL qore_type_t getType() const {
-      return val ? val->getType() : get_node_type(*v);
+      return val ? val->getType() : (qv ? qv->getType() : get_node_type(*v));
    }
 
    DLLLOCAL AbstractQoreNode* getValue() {
-      return val ? val->getInternalNode() : *v;
+      return val ? val->getInternalNode() : (qv ? qv->getInternalNode() : *v);
    }
 
    DLLLOCAL const AbstractQoreNode* getValue() const {
-      return val ? val->getInternalNode() : *v;
+      return val ? val->getInternalNode() : (qv ? qv -> getInternalNode() : *v);
    }
 
    DLLLOCAL const char* getTypeName() const {
-      return val ? val->getTypeName() : get_type_name(*v);
+      return val ? val->getTypeName() : (qv ? qv->getTypeName() : get_type_name(*v));
    }
 
    DLLLOCAL bool checkType(const qore_type_t t) const {
@@ -552,98 +603,103 @@ public:
 
    DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const;
 
-   // only call if there is a value in place
-   // FIXME: port operators to LValueHelper instead and remove this function
-   DLLLOCAL void ensureUnique() {
-      AbstractQoreNode* current_value = getValue();
-      assert(current_value && current_value->getType() != NT_OBJECT);
+    // only call if there is a value in place
+    // FIXME: port operators to LValueHelper instead and remove this function
+    DLLLOCAL void ensureUnique() {
+        AbstractQoreNode* current_value = getValue();
+        assert(current_value && current_value->getType() != NT_OBJECT);
 
-      if (!current_value->is_unique()) {
-         //printd(5, "LValueHelper::ensureUnique() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
-         AbstractQoreNode* old = current_value;
-         assignIntern(current_value->realCopy());
-         saveTemp(old);
-      }
-   }
-
-   DLLLOCAL int64 getAsBigInt() const;
-   DLLLOCAL bool getAsBool() const;
-   DLLLOCAL double getAsFloat() const;
-
-   DLLLOCAL int64 plusEqualsBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int64 minusEqualsBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int64 multiplyEqualsBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int64 divideEqualsBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int64 orEqualsBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int64 andEqualsBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int64 xorEqualsBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int64 modulaEqualsBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, const char* desc = "<lvalue>");
-   DLLLOCAL int64 preIncrementBigInt(const char* desc = "<lvalue>");
-   DLLLOCAL int64 preDecrementBigInt(const char* desc = "<lvalue>");
-   DLLLOCAL int64 postIncrementBigInt(const char* desc = "<lvalue>");
-   DLLLOCAL int64 postDecrementBigInt(const char* desc = "<lvalue>");
-
-   DLLLOCAL double plusEqualsFloat(double v, const char* desc = "<lvalue>");
-   DLLLOCAL double minusEqualsFloat(double v, const char* desc = "<lvalue>");
-   DLLLOCAL double multiplyEqualsFloat(double v, const char* desc = "<lvalue>");
-   DLLLOCAL double divideEqualsFloat(double v, const char* desc = "<lvalue>");
-   DLLLOCAL double preIncrementFloat(const char* desc = "<lvalue>");
-   DLLLOCAL double preDecrementFloat(const char* desc = "<lvalue>");
-   DLLLOCAL double postIncrementFloat(const char* desc = "<lvalue>");
-   DLLLOCAL double postDecrementFloat(const char* desc = "<lvalue>");
-
-   DLLLOCAL void plusEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
-   DLLLOCAL void minusEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
-   DLLLOCAL void multiplyEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
-   DLLLOCAL void divideEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
-   DLLLOCAL void preIncrementNumber(const char* desc = "<lvalue>");
-   DLLLOCAL void preDecrementNumber(const char* desc = "<lvalue>");
-   DLLLOCAL QoreNumberNode* postIncrementNumber(bool ref_rv, const char* desc = "<lvalue>");
-   DLLLOCAL QoreNumberNode* postDecrementNumber(bool ref_rv, const char* desc = "<lvalue>");
-
-   DLLLOCAL QoreNumberNode* ensureUniqueNumber(const char* desc = "<lvalue>") {
-      AbstractQoreNode** p;
-      if (val) {
-         if (makeNumber(desc))
-            return nullptr;
-         p = &val->v.n;
-      }
-      else {
-         assert(v);
-         p = v;
-      }
-
-      // if we converted from val above, then we already have a QoreNumberNode
-      if (get_node_type(*p) == NT_NUMBER) {
-         if (!(*p)->is_unique()) {
-            AbstractQoreNode* old = (*p);
-            (*p) = (*p)->realCopy();
+        if (!current_value->is_unique()) {
+            //printd(5, "LValueHelper::ensureUnique() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
+            AbstractQoreNode* old = current_value;
+            assignIntern(current_value->realCopy());
             saveTemp(old);
-         }
-      }
-      else {
-         if (!QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
-            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
-            return nullptr;
-         }
+        }
+    }
 
-         saveTemp(*p);
-         *p = new QoreNumberNode(*p);
-      }
-      return reinterpret_cast<QoreNumberNode*>(*p);
-   }
+    DLLLOCAL int64 getAsBigInt() const;
+    DLLLOCAL bool getAsBool() const;
+    DLLLOCAL double getAsFloat() const;
 
-   DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>", bool check_types = true, bool weak_assignment = false);
+    DLLLOCAL int64 plusEqualsBigInt(int64 v, const char* desc = "<lvalue>");
+    DLLLOCAL int64 minusEqualsBigInt(int64 v, const char* desc = "<lvalue>");
+    DLLLOCAL int64 multiplyEqualsBigInt(int64 v, const char* desc = "<lvalue>");
+    DLLLOCAL int64 divideEqualsBigInt(int64 v, const char* desc = "<lvalue>");
+    DLLLOCAL int64 orEqualsBigInt(int64 v, const char* desc = "<lvalue>");
+    DLLLOCAL int64 andEqualsBigInt(int64 v, const char* desc = "<lvalue>");
+    DLLLOCAL int64 xorEqualsBigInt(int64 v, const char* desc = "<lvalue>");
+    DLLLOCAL int64 modulaEqualsBigInt(int64 v, const char* desc = "<lvalue>");
+    DLLLOCAL int64 shiftLeftEqualsBigInt(int64 v, const char* desc = "<lvalue>");
+    DLLLOCAL int64 shiftRightEqualsBigInt(int64 v, const char* desc = "<lvalue>");
+    DLLLOCAL int64 preIncrementBigInt(const char* desc = "<lvalue>");
+    DLLLOCAL int64 preDecrementBigInt(const char* desc = "<lvalue>");
+    DLLLOCAL int64 postIncrementBigInt(const char* desc = "<lvalue>");
+    DLLLOCAL int64 postDecrementBigInt(const char* desc = "<lvalue>");
 
-   DLLLOCAL AbstractQoreNode* removeNode(bool for_del);
-   DLLLOCAL QoreValue remove(bool& static_assignment);
+    DLLLOCAL double plusEqualsFloat(double v, const char* desc = "<lvalue>");
+    DLLLOCAL double minusEqualsFloat(double v, const char* desc = "<lvalue>");
+    DLLLOCAL double multiplyEqualsFloat(double v, const char* desc = "<lvalue>");
+    DLLLOCAL double divideEqualsFloat(double v, const char* desc = "<lvalue>");
+    DLLLOCAL double preIncrementFloat(const char* desc = "<lvalue>");
+    DLLLOCAL double preDecrementFloat(const char* desc = "<lvalue>");
+    DLLLOCAL double postIncrementFloat(const char* desc = "<lvalue>");
+    DLLLOCAL double postDecrementFloat(const char* desc = "<lvalue>");
 
-   DLLLOCAL void setDelta(int dt) {
-      assert(!rdt);
-      rdt = dt;
-   }
+    DLLLOCAL void plusEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
+    DLLLOCAL void minusEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
+    DLLLOCAL void multiplyEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
+    DLLLOCAL void divideEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
+    DLLLOCAL void preIncrementNumber(const char* desc = "<lvalue>");
+    DLLLOCAL void preDecrementNumber(const char* desc = "<lvalue>");
+    DLLLOCAL QoreNumberNode* postIncrementNumber(bool ref_rv, const char* desc = "<lvalue>");
+    DLLLOCAL QoreNumberNode* postDecrementNumber(bool ref_rv, const char* desc = "<lvalue>");
+
+    DLLLOCAL QoreNumberNode* ensureUniqueNumber(const char* desc = "<lvalue>") {
+        AbstractQoreNode** p;
+        if (val) {
+            if (makeNumber(desc))
+                return nullptr;
+            p = &val->v.n;
+        }
+        else if (qv) {
+            if (makeNumber(desc))
+                return nullptr;
+            p = &qv->v.n;
+        }
+        else {
+            assert(v);
+            p = v;
+        }
+
+        // if we converted from val above, then we already have a QoreNumberNode
+        if (get_node_type(*p) == NT_NUMBER) {
+            if (!(*p)->is_unique()) {
+                AbstractQoreNode* old = (*p);
+                (*p) = (*p)->realCopy();
+                saveTemp(old);
+            }
+        }
+        else {
+            if (!QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
+                typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
+                return nullptr;
+            }
+
+            saveTemp(*p);
+            *p = new QoreNumberNode(*p);
+        }
+        return reinterpret_cast<QoreNumberNode*>(*p);
+    }
+
+    DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>", bool check_types = true, bool weak_assignment = false);
+
+    DLLLOCAL AbstractQoreNode* removeNode(bool for_del);
+    DLLLOCAL QoreValue remove(bool& static_assignment);
+
+    DLLLOCAL void setDelta(int dt) {
+        assert(!rdt);
+        rdt = dt;
+    }
 };
 
 class LValueRemoveHelper {

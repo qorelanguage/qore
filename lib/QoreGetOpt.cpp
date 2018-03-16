@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -86,15 +86,15 @@ int QoreGetOpt::add(const char* name, char short_opt, const char* long_opt, qore
 }
 
 static void addError(QoreHashNode* h, QoreStringNode* err) {
-   //printd(5, "addError() adding: %s\n", err->getBuffer())
-   hash_assignment_priv ha(*h, "_ERRORS_");
-   QoreListNode* l = reinterpret_cast<QoreListNode* >(*ha);
-   if (!l) {
-      l = new QoreListNode;
-      ha.assign(l, 0);
-   }
+    //printd(5, "addError() adding: %s\n", err->getBuffer())
+    hash_assignment_priv ha(*h, "_ERRORS_");
+    QoreListNode* l = (*ha).get<QoreListNode>();
+    if (!l) {
+        l = new QoreListNode;
+        ha.assign(l, 0);
+    }
 
-   l->push(err);
+    l->push(err);
 }
 
 // private, static method
@@ -103,102 +103,101 @@ DateTimeNode* QoreGetOpt::parseDate(const char* val) {
 }
 
 void QoreGetOpt::doOption(class QoreGetOptNode* n, class QoreHashNode* h, const char* val) {
-   hash_assignment_priv ha(*h, n->name);
+    hash_assignment_priv ha(*h, n->name);
 
-   // get a value ready
-   if (n->argtype == -1) {
-      if (*ha)
-	 return;
-      ha.assign(&True, 0);
-      return;
-   }
+    // get a value ready
+    if (n->argtype == -1) {
+        if (!(*ha).isNothing())
+            return;
+        ha.assign(true, 0);
+        return;
+    }
 
-   // handle option values
-   if (!val) {
-      if (n->option & QGO_OPT_ADDITIVE) {
-	 if (n->argtype == NT_INT) {
-	    if (!*ha)
-	       ha.assign(new QoreBigIntNode(1), 0);
-	    else {
-	       QoreBigIntNode* b = reinterpret_cast<QoreBigIntNode* >(*ha);
-	       b->val++;
-	    }
-	 }
-	 else {
-	    if (!*ha)
-	       ha.assign(ZeroFloat->refSelf(), 0);
-	    else {
-	       QoreFloatNode* f = reinterpret_cast<QoreFloatNode* >(*ha);
-	       f->f++;
-	    }
-	 }
-      }
-      else if (!*ha)
-	 ha.assign(&True, 0);
-      return;
-   }
+    // handle option values
+    if (!val) {
+        if (n->option & QGO_OPT_ADDITIVE) {
+            if (n->argtype == NT_INT) {
+                if ((*ha).isNothing()) {
+                    ha.assign(1, 0);
+                }
+                else {
+                    ha.assign((*ha).getAsBigInt() + 1, nullptr);
+                }
+            }
+            else {
+                if ((*ha).isNothing()) {
+                    ha.assign(0.0, 0);
+                }
+                else {
+                    ha.assign((*ha).getAsFloat() + 1, nullptr);
+                }
+            }
+        }
+        else if ((*ha).isNothing()) {
+            ha.assign(true, nullptr);
+        }
+        return;
+    }
 
-   AbstractQoreNode* v;
-   if (n->argtype == NT_STRING)
-      v = new QoreStringNode(val);
-   else if (n->argtype == NT_INT)
-      v = new QoreBigIntNode(strtoll(val, 0, 10));
-   else if (n->argtype == NT_FLOAT)
-      v = new QoreFloatNode(strtod(val, 0));
-   else if (n->argtype == NT_DATE)
-      v = parseDate(val);
-   else if (n->argtype == NT_BOOLEAN)
-      v = get_bool_node((bool)strtol(val, 0, 10));
-   else // default string
-      v = new QoreStringNode(val);
+    QoreValue v;
+    if (n->argtype == NT_STRING)
+        v = new QoreStringNode(val);
+    else if (n->argtype == NT_INT)
+        v = strtoll(val, 0, 10);
+    else if (n->argtype == NT_FLOAT)
+        v = strtod(val, 0);
+    else if (n->argtype == NT_DATE)
+        v = parseDate(val);
+    else if (n->argtype == NT_BOOLEAN)
+        v = (bool)strtol(val, 0, 10);
+    else // default string
+        v = new QoreStringNode(val);
 
-   if (!(n->option & QGO_OPT_LIST_OR_ADD)) {
-      ha.assign(v, 0);
-      return;
-   }
+    if (!(n->option & QGO_OPT_LIST_OR_ADD)) {
+        ha.assign(v, nullptr);
+        return;
+    }
 
-   if (n->option & QGO_OPT_LIST) {
-      QoreListNode* l = reinterpret_cast<QoreListNode* >(*ha);
-      if (!l) {
-	 l = new QoreListNode;
-	 ha.assign(l, 0);
-      }
-      //else printf("cv->getType()=%s\n", cv->getTypeName());
-      l->push(v);
-      return;
-   }
+    if (n->option & QGO_OPT_LIST) {
+        QoreListNode* l = (*ha).get<QoreListNode>();
+        if (!l) {
+            l = new QoreListNode;
+            ha.assign(l, nullptr);
+        }
+        //else printf("cv->getType()=%s\n", cv->getTypeName());
+        l->push(v.takeNode());
+        return;
+    }
 
-   // additive
-   if (*ha) {
-      if (n->argtype == NT_INT) {
-	 QoreBigIntNode* b = reinterpret_cast<QoreBigIntNode* >(*ha);
-	 b->val += reinterpret_cast<QoreBigIntNode* >(v)->val;
-      }
-      else { // float
-	 QoreFloatNode* f = reinterpret_cast<QoreFloatNode* >(*ha);
-	 f->f += reinterpret_cast<const QoreFloatNode* >(v)->f;
-      }
-      v->deref(0);
-      return;
-   }
+    // additive
+    if (!(*ha).isNothing()) {
+        if (n->argtype == NT_INT) {
+            ha.om->val.v.i += v.v.i;
+        }
+        else { // float
+            ha.om->val.v.f += v.v.f;
+        }
+        v.discard(nullptr);
+        return;
+    }
 
-   ha.assign(v, 0);
+    ha.assign(v, nullptr);
 }
 
-char* QoreGetOpt::getNextArgument(QoreListNode* l, QoreHashNode* h, unsigned &i, const char* lopt, char sopt) {
-   if (i < (l->size() - 1)) {
-      i++;
-      QoreStringNode* n = dynamic_cast<QoreStringNode* >(l->retrieve_entry(i));
-      if (n)
-	 return (char* )n->getBuffer();
-   }
-   QoreStringNode* err = new QoreStringNode;
-   if (lopt)
-      err->sprintf("long option '--%s' requires an argument", lopt);
-   else
-      err->sprintf("short option '-%c' requires an argument", sopt);
-   addError(h, err);
-   return 0;
+char* QoreGetOpt::getNextArgument(QoreListNode* l, QoreHashNode* h, unsigned& i, const char* lopt, char sopt) {
+    if (i < (l->size() - 1)) {
+        i++;
+        QoreStringNode* n = dynamic_cast<QoreStringNode* >(l->retrieve_entry(i));
+        if (n)
+            return (char*)n->c_str();
+    }
+    QoreStringNode* err = new QoreStringNode;
+    if (lopt)
+        err->sprintf("long option '--%s' requires an argument", lopt);
+    else
+        err->sprintf("short option '-%c' requires an argument", sopt);
+    addError(h, err);
+    return nullptr;
 }
 
 void QoreGetOpt::processLongArg(const char* arg, QoreListNode* l, class QoreHashNode* h, unsigned &i, bool modify) {
@@ -233,9 +232,9 @@ void QoreGetOpt::processLongArg(const char* arg, QoreListNode* l, class QoreHash
    if (w->argtype && !val && (w->option & QGO_OPT_MANDATORY)) {
       val = (char* )getNextArgument(l, h, i, opt, '\0');
       if (val && modify)
-	 do_modify = true;
+         do_modify = true;
       if (!val)
-	 return;
+         return;
    }
    doOption(w, h, val);
    if (do_modify)
@@ -255,17 +254,17 @@ int QoreGetOpt::processShortArg(const char* arg, QoreListNode* l, class QoreHash
    const char* val = 0;
    if (w->argtype != -1) {
       if ((j < (signed)(strlen(arg) - 1))
-	  && ((w->option & QGO_OPT_MANDATORY) || ((arg + j + 1)[0] == '='))) {
-	 val = arg + j + 1;
-	 if (*val == '=')
-	    val++;
-	 j = 0;
+          && ((w->option & QGO_OPT_MANDATORY) || ((arg + j + 1)[0] == '='))) {
+         val = arg + j + 1;
+         if (*val == '=')
+            val++;
+         j = 0;
       }
       else if (w->option & QGO_OPT_MANDATORY) {
-	 if (!(val = getNextArgument(l, h, i, 0, opt)))
-	    return 0;
-	 if (modify)
-	    do_modify = true;
+         if (!(val = getNextArgument(l, h, i, 0, opt)))
+            return 0;
+         if (modify)
+            do_modify = true;
       }
    }
    doOption(w, h, val);
@@ -282,29 +281,29 @@ QoreHashNode* QoreGetOpt::parse(QoreListNode* l, bool modify, ExceptionSink *xsi
       //printf("QoreGetOpt::parse() %d/%d\n", i, l->size());
       AbstractQoreNode* n = l->retrieve_entry(i);
       if (get_node_type(n) != NT_STRING)
-	 continue;
+         continue;
 
       QoreStringNode* str = reinterpret_cast<QoreStringNode*>(n);
       const char* arg = str->getBuffer();
 
       if (arg[0] == '-') {
-	 if (!arg[1])
-	    continue;
-	 if (arg[1] == '-') {
-	    if (!arg[2])
-	       break;
-	    processLongArg(arg + 2, l, h, i, modify);
-	    if (modify) {
-	       //printd(5, "parse() opt=%s size=%d\n", arg, l->size());
-	       l->pop_entry(i--, 0);
-	       //printd(5, "parse() popped entry, size=%d\n", l->size());
-	    }
-	    continue;
-	 }
-	 int len = strlen(arg);
-	 for (int j = 1; j < len; j++)
-	    if (processShortArg(arg, l, h, i, j, modify))
-	       break;
+         if (!arg[1])
+            continue;
+         if (arg[1] == '-') {
+            if (!arg[2])
+               break;
+            processLongArg(arg + 2, l, h, i, modify);
+            if (modify) {
+               //printd(5, "parse() opt=%s size=%d\n", arg, l->size());
+               l->pop_entry(i--, 0);
+               //printd(5, "parse() popped entry, size=%d\n", l->size());
+            }
+            continue;
+         }
+         int len = strlen(arg);
+         for (int j = 1; j < len; j++)
+            if (processShortArg(arg, l, h, i, j, modify))
+               break;
          if (modify)
             l->pop_entry(i--, 0);
       }

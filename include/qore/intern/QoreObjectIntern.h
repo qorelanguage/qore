@@ -205,8 +205,6 @@ public:
 
    DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink);
 
-   DLLLOCAL AbstractQoreNode** getMemberValuePtr(const char* key, AutoVLock* vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const;
-
    DLLLOCAL QoreStringNode* firstKey(ExceptionSink* xsink) {
       // get the current class context
       const qore_class_private* class_ctx = runtime_get_class();
@@ -401,7 +399,7 @@ public:
 
    DLLLOCAL void setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink);
 
-   DLLLOCAL void setValueIntern(const qore_class_private* class_ctx, const char* key, AbstractQoreNode* val, ExceptionSink* xsink);
+   DLLLOCAL void setValueIntern(const qore_class_private* class_ctx, const char* key, QoreValue val, ExceptionSink* xsink);
 
    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member) const {
       ClassAccess access;
@@ -652,7 +650,7 @@ public:
 
    DLLLOCAL AbstractPrivateData* getAndRemovePrivateData(qore_classid_t key, ExceptionSink* xsink) {
       QoreSafeVarRWWriteLocker sl(rml);
-      return privateData ? privateData->getAndRemovePtr(key) : 0;
+      return privateData ? privateData->getAndRemovePtr(key) : nullptr;
    }
 
    DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
@@ -661,12 +659,12 @@ public:
 
    DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
-   // no locking necessary; if class_ctx is non-null, an internal member is being initialized
-   AbstractQoreNode** getMemberValuePtrForInitialization(const char* member, const qore_class_private* class_ctx) {
-      QoreHashNode* odata = class_ctx ? getCreateInternalData(class_ctx) : data;
-      //printd(5, "qore_object_private::getMemberValuePtrForInitialization() this: %p mem: '%s' class_ctx: %p %s odata: %p\n", this, member, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", odata);
-      return odata->getKeyValuePtr(member);
-   }
+    // no locking necessary; if class_ctx is non-null, an internal member is being initialized
+    QoreValue& getMemberValueRefForInitialization(const char* member, const qore_class_private* class_ctx) {
+        QoreHashNode* odata = class_ctx ? getCreateInternalData(class_ctx) : data;
+        //printd(5, "qore_object_private::getMemberValueRefForInitialization() this: %p mem: '%s' class_ctx: %p %s odata: %p\n", this, member, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", odata);
+        return odata->getValueRef(member);
+    }
 
    //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
    /**
@@ -753,10 +751,6 @@ public:
 
    DLLLOCAL static int getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink) {
       return obj.priv->getLValue(key, lvh, class_ctx, for_remove, xsink);
-   }
-
-   DLLLOCAL static AbstractQoreNode** getMemberValuePtr(const QoreObject* obj, const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) {
-      return obj->priv->getMemberValuePtr(key, vl, typeInfo, xsink);
    }
 
    DLLLOCAL static void plusEquals(QoreObject* obj, const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {

@@ -373,7 +373,7 @@ qore_type_t QoreValue::getType() const {
       case QV_Bool: return NT_BOOLEAN;
       case QV_Int: return NT_INT;
       case QV_Float: return NT_FLOAT;
-      case QV_Node: return v.n ? v.n->getType() : 0;
+      case QV_Node: return v.n ? v.n->getType() : NT_NOTHING;
       default: assert(false);
          // no break
    }
@@ -408,7 +408,7 @@ const char* QoreValue::getFullTypeName() const {
 AbstractQoreNode* QoreValue::takeNodeIntern() {
    assert(type == QV_Node);
    AbstractQoreNode* rv = v.n;
-   v.n = 0;
+   v.n = nullptr;
    return rv;
 }
 

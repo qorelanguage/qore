@@ -3,7 +3,7 @@
 
   Qore programming language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -132,9 +132,9 @@ Context::Context(char* nme, ExceptionSink* xsink, AbstractQoreNode* exp, Abstrac
       if (!value)
          return;
 
-      AbstractQoreNode* fkv = qore_hash_private::getFirstKeyValue(value);
+      QoreValue fkv = qore_hash_private::getFirstKeyValue(value);
 
-      QoreListNode* l = dynamic_cast<QoreListNode *>(fkv);
+      QoreListNode* l = fkv.getType() == NT_LIST ? fkv.get<QoreListNode>() : nullptr;
       if (l) {
          max_pos = l->size();
          row_list = (int*)malloc(sizeof(int) * max_pos);
@@ -338,25 +338,25 @@ AbstractQoreNode* evalContextRow(ExceptionSink *xsink) {
 }
 
 AbstractQoreNode* Context::evalValue(const char* field, ExceptionSink* xsink) {
-   if (!value)
-      return nullptr;
+    if (!value)
+        return nullptr;
 
-   bool exists;
-   AbstractQoreNode* v = qore_hash_private::get(*value)->getReferencedKeyValueIntern(field, exists);
-   if (!exists) {
-      xsink->raiseException("CONTEXT-EXCEPTION", "\"%s\" is not a valid key for this context", field);
-      return nullptr;
-   }
-   ReferenceHolder<AbstractQoreNode> val(v, xsink);
-   QoreListNode* l = dynamic_cast<QoreListNode *>(v);
-   if (!l)
-      return nullptr;
+    bool exists;
 
-   AbstractQoreNode* rv = l->retrieve_entry(row_list[pos]);
-   if (rv) rv->ref();
-   //printd(5, "Context::evalValue(%s) this: %p pos: %d rv: %p %s %lld\n", field, this, pos, rv, rv ? rv->getTypeName() : "none", rv && rv->getType() == NT_INT ? ((QoreBigIntNode *)rv)->val : -1);
-   //printd(5, "Context::evalValue(%s) pos: %d, val: %s\n", field, pos, rv && rv->getType() == NT_STRING ? rv->val.String->getBuffer() : "?");
-   return rv;
+    ValueHolder val(qore_hash_private::get(*value)->getReferencedKeyValueIntern(field, exists), xsink);
+    if (!exists) {
+        xsink->raiseException("CONTEXT-EXCEPTION", "\"%s\" is not a valid key for this context", field);
+        return nullptr;
+    }
+    QoreListNode* l = val->getType() == NT_LIST ? val->get<QoreListNode>() : nullptr;
+    if (!l)
+        return nullptr;
+
+    AbstractQoreNode* rv = l->retrieve_entry(row_list[pos]);
+    if (rv) rv->ref();
+    //printd(5, "Context::evalValue(%s) this: %p pos: %d rv: %p %s %lld\n", field, this, pos, rv, rv ? rv->getTypeName() : "none", rv && rv->getType() == NT_INT ? ((QoreBigIntNode *)rv)->val : -1);
+    //printd(5, "Context::evalValue(%s) pos: %d, val: %s\n", field, pos, rv && rv->getType() == NT_STRING ? rv->val.String->getBuffer() : "?");
+    return rv;
 }
 
 QoreHashNode* Context::getRow(ExceptionSink *xsink) {

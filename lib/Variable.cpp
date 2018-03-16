@@ -181,74 +181,74 @@ LValueHelper::LValueHelper(LValueHelper&& o) : vl(std::move(o.vl)), v(o.v), tvec
 }
 
 LValueHelper::~LValueHelper() {
-   // FIXME: technically if we have only removed robjects from the lvalue and the lvalue did not have any recursive references before,
-   // then we don't need to scan this time either
-   bool obj_chg = before;
-   bool obj_ref = false;
+    // FIXME: technically if we have only removed robjects from the lvalue and the lvalue did not have any recursive references before,
+    // then we don't need to scan this time either
+    bool obj_chg = before;
+    bool obj_ref = false;
 
-   if (!(*vl.xsink)) {
-      // see if we have any object count changes
-      if (!ocvec.empty()) {
-         // v could be 0 if the constructor taking QoreObject& was used (to scan objects after initialization)
-         if (v) {
-            if (rdt) {
-               assert(*v);
-               if (!obj_chg)
-                  obj_chg = true;
-               inc_container_obj(ocvec[ocvec.size() - 1].con, rdt);
+    if (!(*vl.xsink)) {
+        // see if we have any object count changes
+        if (!ocvec.empty()) {
+            // v could be 0 if the constructor taking QoreObject& was used (to scan objects after initialization)
+            if (v) {
+                if (rdt) {
+                    assert(*v);
+                    if (!obj_chg)
+                        obj_chg = true;
+                    inc_container_obj(ocvec[ocvec.size() - 1].con, rdt);
+                }
+                else {
+                    bool after = needs_scan(*v);
+                    if (before) {
+                        if (!after)
+                        inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
+                    }
+                    else if (after) {
+                        if (!obj_chg)
+                            obj_chg = true;
+                        inc_container_obj(ocvec[ocvec.size() - 1].con, 1);
+                    }
+                }
             }
-            else {
-               bool after = needs_scan(*v);
-               if (before) {
-                  if (!after)
-                  inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
-               }
-               else if (after) {
-                  if (!obj_chg)
-                     obj_chg = true;
-                  inc_container_obj(ocvec[ocvec.size() - 1].con, 1);
-               }
+
+            // write changes to container hierarchy
+            if (ocvec.size() > 1) {
+                for (int i = ocvec.size() - 2; i >= 0; --i) {
+                    int dt = ocvec[i + 1].getDifference();
+                    if (dt)
+                        inc_container_obj(ocvec[i].con, dt);
+
+                    //printd(5, "LValueHelper::~LValueHelper() %s %p has obj: %d\n", get_type_name(ocvec[i].con), ocvec[i].con, (int)needs_scan(ocvec[i].con));
+                }
             }
-         }
+        }
 
-         // write changes to container hierarchy
-         if (ocvec.size() > 1) {
-            for (int i = ocvec.size() - 2; i >= 0; --i) {
-               int dt = ocvec[i + 1].getDifference();
-               if (dt)
-                  inc_container_obj(ocvec[i].con, dt);
+        if (!obj_chg && (val ? val->needsScan() : (qv ? needs_scan(qv) : needs_scan(*v))))
+            obj_chg = true;
+        if (robj) {
+            robj->tRef();
+            obj_ref = true;
+        }
+        //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d obj_chg: %d (val: %s v: %s)\n", robj, before, obj_chg, val ? val->getTypeName() : "null", v ? get_type_name(*v) : "null");
+    }
 
-            //printd(5, "LValueHelper::~LValueHelper() %s %p has obj: %d\n", get_type_name(ocvec[i].con), ocvec[i].con, (int)needs_scan(ocvec[i].con));
-            }
-         }
-      }
+    // first free any locks
+    vl.del();
 
-      if (!obj_chg && (val ? val->needsScan() : needs_scan(*v)))
-         obj_chg = true;
-      if (robj) {
-         robj->tRef();
-         obj_ref = true;
-      }
-      //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d obj_chg: %d (val: %s v: %s)\n", robj, before, obj_chg, val ? val->getTypeName() : "null", v ? get_type_name(*v) : "null");
-   }
+    // now delete temporary values (if any)
+    for (nvec_t::iterator i = tvec.begin(), e = tvec.end(); i != e; ++i)
+        discard(*i, vl.xsink);
 
-   // first free any locks
-   vl.del();
+    delete lvid_set;
 
-   // now delete temporary values (if any)
-   for (nvec_t::iterator i = tvec.begin(), e = tvec.end(); i != e; ++i)
-      discard(*i, vl.xsink);
-
-   delete lvid_set;
-
-   if (robj) {
-      // recalculate recursive references for objects if necessary
-      if (obj_chg) {
-         RSetHelper rsh(*robj);
-      }
-      if (obj_ref)
-         robj->tDeref();
-   }
+    if (robj) {
+        // recalculate recursive references for objects if necessary
+        if (obj_chg) {
+            RSetHelper rsh(*robj);
+        }
+        if (obj_ref)
+            robj->tDeref();
+    }
 }
 
 void LValueHelper::saveTemp(QoreValue& n) {
@@ -491,476 +491,635 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
    }
 
 #if 0
-   if (v && *v)
-      printd(0, "LValueHelper::doLValue() v: %p %s %d\n", *v, get_type_name(*v), get_node_type(*v));
-   else if (val)
-      printd(0, "LValueHelper::doLValue() val: %s %d\n", val->getTypeName(), val->getType());
+    if (v && *v)
+        printd(0, "LValueHelper::doLValue() v: %p %s %d\n", *v, get_type_name(*v), get_node_type(*v));
+    else if (val)
+        printd(0, "LValueHelper::doLValue() val: %s %d\n", val->getTypeName(), val->getType());
+    else if (qv)
+        printd(0, "LValueHelper::doLValue() qv: %s %d\n", qv->getTypeName(), qv->getType());
 #endif
 
-   AbstractQoreNode* current_value = getValue();
-   //printd(5, "LValueHelper::doLValue() current_value: %p %s %d ti: '%s'\n", current_value, get_type_name(current_value), get_node_type(current_value), QoreTypeInfo::getName(typeInfo));
-   if (get_node_type(current_value) == NT_REFERENCE) {
-      const ReferenceNode* ref = reinterpret_cast<const ReferenceNode*>(current_value);
-      if (val)
-         val = nullptr;
-      if (v)
-         v = nullptr;
-      if (typeInfo)
-         typeInfo = nullptr;
-      return doLValue(ref, for_remove);
-   }
+    AbstractQoreNode* current_value = getValue();
+    //printd(5, "LValueHelper::doLValue() current_value: %p %s %d ti: '%s'\n", current_value, get_type_name(current_value), get_node_type(current_value), QoreTypeInfo::getName(typeInfo));
+    if (get_node_type(current_value) == NT_REFERENCE) {
+        const ReferenceNode* ref = reinterpret_cast<const ReferenceNode*>(current_value);
+        if (val)
+            val = nullptr;
+        else if (qv)
+            qv = nullptr;
+        else if (v)
+            v = nullptr;
+        if (typeInfo)
+            typeInfo = nullptr;
+        return doLValue(ref, for_remove);
+    }
 
-   return 0;
+    return 0;
 }
 
 void LValueHelper::setAndLock(QoreVarRWLock& rwl) {
-   rwl.wrlock();
-   vl.set(&rwl);
+    rwl.wrlock();
+    vl.set(&rwl);
 }
 
 void LValueHelper::set(QoreVarRWLock& rwl) {
-   vl.set(&rwl);
+    vl.set(&rwl);
 }
 
 QoreValue LValueHelper::getReferencedValue() const {
-   if (val)
-      return val->getReferencedValue();
+    if (val)
+        return val->getReferencedValue();
+    if (qv)
+        return qv->refSelf();
 
-   return QoreValue(*v ? (*v)->refSelf() : 0);
+    return QoreValue(*v ? (*v)->refSelf() : 0);
 }
 
 AbstractQoreNode* LValueHelper::getReferencedNodeValue() const {
-   if (val)
-      return val->getReferencedNodeValue();
+    if (val)
+        return val->getReferencedNodeValue();
+    if (qv)
+        return qv->getReferencedValue();
 
-   return *v ? (*v)->refSelf() : 0;
+    return *v ? (*v)->refSelf() : 0;
 }
 
 int64 LValueHelper::getAsBigInt() const {
-   if (val) return val->getAsBigInt();
-   return (*v) ? (*v)->getAsBigInt() : 0;
+    if (val) return val->getAsBigInt();
+    if (qv) return qv->getAsBigInt();
+    return (*v) ? (*v)->getAsBigInt() : 0;
 }
 
 bool LValueHelper::getAsBool() const {
-   if (val) return val->getAsBool();
-   return (*v) ? (*v)->getAsBool() : 0;
+    if (val) return val->getAsBool();
+    if (qv) return qv->getAsBool();
+    return (*v) ? (*v)->getAsBool() : 0;
 }
 
 double LValueHelper::getAsFloat() const {
-   if (val) return val->getAsFloat();
-   return (*v) ? (*v)->getAsFloat() : 0;
+    if (val) return val->getAsFloat();
+    if (qv) return qv->getAsFloat();
+    return (*v) ? (*v)->getAsFloat() : 0;
 }
 
 int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool weak_assignment) {
-   assert(!*vl.xsink);
-   if (n.type == QV_Node && n.v.n == &Nothing)
-      n.v.n = nullptr;
+    assert(!*vl.xsink);
+    if (n.type == QV_Node && n.v.n == &Nothing)
+        n.v.n = nullptr;
 
-   //printd(5, "LValueHelper::assign() '%s' ti: %p '%s' check_types: %d n: '%s'\n", desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getTypeName());
-   if (check_types) {
-      // check type for assignment
-      QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
-      if (*vl.xsink) {
-         //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
-         saveTemp(n);
-         return -1;
-      }
-   }
+    //printd(5, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getTypeName(), val, qv);
+    if (check_types) {
+        // check type for assignment
+        QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
+        if (*vl.xsink) {
+            //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
+            saveTemp(n);
+            return -1;
+        }
+    }
 
-   if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {
-      saveTemp(n);
-      return doRecursiveException();
-   }
+    if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {
+        saveTemp(n);
+        return doRecursiveException();
+    }
 
-   // process weak assignment
-   if (weak_assignment) {
-      if (n.getType() == NT_OBJECT) {
-         QoreObject* o = n.get<QoreObject>();
-         n = new WeakReferenceNode(o);
-         // cannot dereference object in lock
-         saveTemp(o);
-      }
-   }
+    // process weak assignment
+    if (weak_assignment) {
+        if (n.getType() == NT_OBJECT) {
+            QoreObject* o = n.get<QoreObject>();
+            n = new WeakReferenceNode(o);
+            // cannot dereference object in lock
+            saveTemp(o);
+        }
+    }
 
-   // perform assignment
-   if (val) {
-      saveTemp(val->assignAssume(n));
-      return 0;
-   }
+    // perform assignment
+    if (val) {
+        saveTemp(val->assignAssume(n));
+        return 0;
+    }
+    if (qv) {
+        saveTemp(qv->takeIfNode());
+        *qv = n;
+        return 0;
+    }
 
-   //printd(5, "LValueHelper::assign() this: %p saving old value: %p '%s' new: '%s' weak: %d\n", this, *v, get_type_name(*v), n.getTypeName(), weak_assignment);
-   saveTemp(*v);
-   *v = n.takeNode();
-   return 0;
+    //printd(5, "LValueHelper::assign() this: %p saving old value: %p '%s' new: '%s' weak: %d\n", this, *v, get_type_name(*v), n.getTypeName(), weak_assignment);
+    saveTemp(*v);
+    *v = n.takeNode();
+    return 0;
 }
 
 int LValueHelper::makeInt(const char* desc) {
-   assert(val);
-   if (val->isInt())
-      return 0;
+    assert(val || qv);
+    if ((val && val->getType() == NT_INT) || (qv && qv->getType() == NT_INT)) {
+        return 0;
+    }
 
-   if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
-      typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(bigIntTypeInfo), vl.xsink);
-      assert(*vl.xsink);
-      return -1;
-   }
+    if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
+        typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(bigIntTypeInfo), vl.xsink);
+        return -1;
+    }
 
-   saveTemp(val->makeInt());
-   return 0;
+    if (val) {
+        saveTemp(val->makeInt());
+    }
+    else {
+        saveTemp(qv->assign(qv->getAsBigInt()));
+    }
+
+    return 0;
 }
 
 int LValueHelper::makeFloat(const char* desc) {
-   assert(val);
-   if (val->isFloat())
-      return 0;
+    assert(val || qv);
+    if ((val && val->getType() == NT_FLOAT) || (qv && qv->getType() == NT_FLOAT)) {
+        return 0;
+    }
 
-   if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, floatTypeInfo)) {
-      typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(floatTypeInfo), vl.xsink);
-      return -1;
-   }
+    if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, floatTypeInfo)) {
+        typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(floatTypeInfo), vl.xsink);
+        return -1;
+    }
 
-   saveTemp(val->makeFloat());
-   return 0;
+    if (val) {
+        saveTemp(val->makeFloat());
+    }
+    else {
+        saveTemp(qv->assign(qv->getAsFloat()));
+    }
+
+    return 0;
 }
 
 int LValueHelper::makeNumber(const char* desc) {
-   assert(val);
-   if (val->getType() == NT_NUMBER)
-      return 0;
+    assert(val || qv);
+    if ((val && val->getType() == NT_NUMBER) || (qv && qv->getType() == NT_NUMBER)) {
+        return 0;
+    }
 
-   if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
-      typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
-      return -1;
-   }
+    if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
+        typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
+        return -1;
+    }
 
-   saveTemp(val->makeNumber());
-   return 0;
+    if (val) {
+        saveTemp(val->makeNumber());
+    }
+    else {
+        saveTemp(qv->assign(new QoreNumberNode(qv)));
+    }
+    return 0;
 }
 
 int64 LValueHelper::plusEqualsBigInt(int64 va, const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->plusEqualsBigInt(va, getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->plusEqualsBigInt(va, getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        qv->v.i += va;
+        return qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   i->val += va;
-   return i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    i->val += va;
+    return i->val;
 }
 
 int64 LValueHelper::minusEqualsBigInt(int64 va, const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->minusEqualsBigInt(va, getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->minusEqualsBigInt(va, getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        qv->v.i -= va;
+        return qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   i->val -= va;
-   return i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    i->val -= va;
+    return i->val;
 }
 
 int64 LValueHelper::multiplyEqualsBigInt(int64 va, const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->multiplyEqualsBigInt(va, getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->multiplyEqualsBigInt(va, getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        qv->v.i *= va;
+        return qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   i->val *= va;
-   return i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    i->val *= va;
+    return i->val;
 }
 
 int64 LValueHelper::divideEqualsBigInt(int64 va, const char* desc) {
-   assert(va);
+    assert(va);
 
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->divideEqualsBigInt(va, getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->divideEqualsBigInt(va, getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        qv->v.i /= va;
+        return qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   i->val /= va;
-   return i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    i->val /= va;
+    return i->val;
 }
 
 int64 LValueHelper::orEqualsBigInt(int64 va, const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->orEqualsBigInt(va, getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->orEqualsBigInt(va, getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        qv->v.i |= va;
+        return qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   i->val |= va;
-   return i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    i->val |= va;
+    return i->val;
 }
 
 int64 LValueHelper::xorEqualsBigInt(int64 va, const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->xorEqualsBigInt(va, getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->xorEqualsBigInt(va, getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        qv->v.i ^= va;
+        return qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   i->val ^= va;
-   return i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    i->val ^= va;
+    return i->val;
 }
 
 int64 LValueHelper::modulaEqualsBigInt(int64 va, const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->modulaEqualsBigInt(va, getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->modulaEqualsBigInt(va, getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        qv->v.i %= va;
+        return qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   i->val %= va;
-   return i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    i->val %= va;
+    return i->val;
 }
 
 int64 LValueHelper::andEqualsBigInt(int64 va, const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->andEqualsBigInt(va, getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->andEqualsBigInt(va, getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        qv->v.i &= va;
+        return qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   i->val &= va;
-   return i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    i->val &= va;
+    return i->val;
 }
 
 int64 LValueHelper::shiftLeftEqualsBigInt(int64 va, const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->shiftLeftEqualsBigInt(va, getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->shiftLeftEqualsBigInt(va, getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        qv->v.i <<= va;
+        return qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   i->val <<= va;
-   return i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    i->val <<= va;
+    return i->val;
 }
 
 int64 LValueHelper::shiftRightEqualsBigInt(int64 va, const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->shiftRightEqualsBigInt(va, getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->shiftRightEqualsBigInt(va, getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        qv->v.i >>= va;
+        return qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   i->val >>= va;
-   return i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    i->val >>= va;
+    return i->val;
 }
 
 int64 LValueHelper::preIncrementBigInt(const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->preIncrementBigInt(getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->preIncrementBigInt(getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        return ++qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   return ++i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    return ++i->val;
 }
 
 int64 LValueHelper::preDecrementBigInt(const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->preDecrementBigInt(getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->preDecrementBigInt(getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        return --qv->v.i;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   return --i->val;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    return --i->val;
 }
 
 int64 LValueHelper::postIncrementBigInt(const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      assert(val->isInt());
-      return val->postIncrementBigInt(getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        assert(val->isInt());
+        return val->postIncrementBigInt(getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        return qv->v.i++;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   return i->val++;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    return i->val++;
 }
 
 int64 LValueHelper::postDecrementBigInt(const char* desc) {
-   if (val) {
-      if (makeInt(desc))
-         return 0;
-      return val->postDecrementBigInt(getTempRef());
-   }
+    if (val) {
+        if (makeInt(desc))
+            return 0;
+        return val->postDecrementBigInt(getTempRef());
+    }
+    if (qv) {
+        if (makeInt(desc))
+            return 0;
+        return qv->v.i--;
+    }
 
-   // increment current value
-   QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
-   if (!i)
-      return 0;
-   return i->val--;
+    // increment current value
+    QoreBigIntNode* i = ensureUnique<QoreBigIntNode, int64, NT_INT>(bigIntTypeInfo, desc);
+    if (!i)
+        return 0;
+    return i->val--;
 }
 
 double LValueHelper::preIncrementFloat(const char* desc) {
-   if (val) {
-      if (makeFloat(desc))
-         return 0;
-      return val->preIncrementFloat(getTempRef());
-   }
+    if (val) {
+        if (makeFloat(desc))
+            return 0.0;
+        return val->preIncrementFloat(getTempRef());
+    }
+    if (qv) {
+        if (makeFloat(desc))
+            return 0.0;
+        return ++qv->v.f;
+    }
 
-   // increment current value
-   QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
-   if (!f)
-      return 0.0;
-   return ++f->f;
+    // increment current value
+    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
+    if (!f)
+        return 0.0;
+    return ++f->f;
 }
 
 double LValueHelper::preDecrementFloat(const char* desc) {
-   if (val) {
-      if (makeFloat(desc))
-         return 0;
-      return val->preDecrementFloat(getTempRef());
-   }
+    if (val) {
+        if (makeFloat(desc))
+            return 0.0;
+        return val->preDecrementFloat(getTempRef());
+    }
+    if (qv) {
+        if (makeFloat(desc))
+            return 0.0;
+        return --qv->v.f;
+    }
 
-   // increment current value
-   QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
-   if (!f)
-      return 0.0;
-   return --f->f;
+    // increment current value
+    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
+    if (!f)
+        return 0.0;
+    return --f->f;
 }
 
 double LValueHelper::postIncrementFloat(const char* desc) {
-   if (val) {
-      if (makeFloat(desc))
-         return 0;
-      return val->postIncrementFloat(getTempRef());
-   }
+    if (val) {
+        if (makeFloat(desc))
+            return 0.0;
+        return val->postIncrementFloat(getTempRef());
+    }
+    if (qv) {
+        if (makeFloat(desc))
+            return 0.0;
+        return qv->v.f++;
+    }
 
-   // increment current value
-   QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
-   if (!f)
-      return 0.0;
-   return f->f++;
+    // increment current value
+    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
+    if (!f)
+        return 0.0;
+    return f->f++;
 }
 
 double LValueHelper::postDecrementFloat(const char* desc) {
-   if (val) {
-      if (makeFloat(desc))
-         return 0;
-      return val->postDecrementFloat(getTempRef());
-   }
+    if (val) {
+        if (makeFloat(desc))
+            return 0.0;
+        return val->postDecrementFloat(getTempRef());
+    }
+    if (qv) {
+        if (makeFloat(desc))
+            return 0.0;
+        return qv->v.f--;
+    }
 
-   // increment current value
-   QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
-   if (!f)
-      return 0.0;
-   return f->f--;
+    // increment current value
+    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
+    if (!f)
+        return 0.0;
+    return f->f--;
 }
 
 double LValueHelper::plusEqualsFloat(double va, const char* desc) {
-   if (val) {
-      if (makeFloat(desc))
-         return 0;
-      return val->plusEqualsFloat(va, getTempRef());
-   }
+    if (val) {
+        if (makeFloat(desc))
+            return 0;
+        return val->plusEqualsFloat(va, getTempRef());
+    }
+    if (qv) {
+        if (makeFloat(desc))
+            return 0.0;
+        qv->v.f += va;
+        return qv->v.f;
+    }
 
-   // increment current value
-   QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
-   if (!f)
-      return 0.0;
-   f->f += va;
-   return f->f;
+    // increment current value
+    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
+    if (!f)
+        return 0.0;
+    f->f += va;
+    return f->f;
 }
 
 double LValueHelper::minusEqualsFloat(double va, const char* desc) {
-   if (val) {
-      if (makeFloat(desc))
-         return 0;
-      return val->minusEqualsFloat(va, getTempRef());
-   }
+    if (val) {
+        if (makeFloat(desc))
+            return 0;
+        return val->minusEqualsFloat(va, getTempRef());
+    }
+    if (qv) {
+        if (makeFloat(desc))
+            return 0.0;
+        qv->v.f -= va;
+        return qv->v.f;
+    }
 
-   // increment current value
-   QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
-   if (!f)
-      return 0.0;
-   f->f -= va;
-   return f->f;
+    // increment current value
+    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
+    if (!f)
+        return 0.0;
+    f->f -= va;
+    return f->f;
 }
 
 double LValueHelper::multiplyEqualsFloat(double va, const char* desc) {
-   if (val) {
-      if (makeFloat(desc))
-         return 0;
-      return val->multiplyEqualsFloat(va, getTempRef());
-   }
+    if (val) {
+        if (makeFloat(desc))
+            return 0;
+        return val->multiplyEqualsFloat(va, getTempRef());
+    }
+    if (qv) {
+        if (makeFloat(desc))
+            return 0.0;
+        qv->v.f *= va;
+        return qv->v.f;
+    }
 
-   // increment current value
-   QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
-   if (!f)
-      return 0.0;
-   f->f *= va;
-   return f->f;
+    // increment current value
+    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
+    if (!f)
+        return 0.0;
+    f->f *= va;
+    return f->f;
 }
 
 double LValueHelper::divideEqualsFloat(double va, const char* desc) {
-   assert(va);
-   if (val) {
-      if (makeFloat(desc))
-         return 0;
-      return val->divideEqualsFloat(va, getTempRef());
-   }
+    assert(va);
+    if (val) {
+        if (makeFloat(desc))
+            return 0;
+        return val->divideEqualsFloat(va, getTempRef());
+    }
+    if (qv) {
+        if (makeFloat(desc))
+            return 0.0;
+        qv->v.f /= va;
+        return qv->v.f;
+    }
 
-   // increment current value
-   QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
-   if (!f)
-      return 0.0;
-   f->f /= va;
-   return f->f;
+    // increment current value
+    QoreFloatNode* f = ensureUnique<QoreFloatNode, double, NT_FLOAT>(floatTypeInfo, desc);
+    if (!f)
+        return 0.0;
+    f->f /= va;
+    return f->f;
 }
 
 void LValueHelper::preIncrementNumber(const char* desc) {
@@ -1046,22 +1205,32 @@ void LValueHelper::divideEqualsNumber(const AbstractQoreNode* r, const char* des
 }
 
 AbstractQoreNode* LValueHelper::removeNode(bool for_del) {
-   if (val)
-      return val->removeNode(for_del);
+    if (val)
+        return val->removeNode(for_del);
 
-   AbstractQoreNode* rv = *v;
-   *v = 0;
-   return rv;
+    if (qv) {
+        return qv->assignNothing();
+    }
+
+    AbstractQoreNode* rv = *v;
+    *v = nullptr;
+    return rv;
 }
 
 QoreValue LValueHelper::remove(bool& static_assignment) {
-   assert(!static_assignment);
-   if (val)
-      return val->remove(static_assignment);
+    assert(!static_assignment);
+    if (val)
+        return val->remove(static_assignment);
 
-   AbstractQoreNode* rv = *v;
-   *v = 0;
-   return rv;
+    if (qv) {
+        QoreValue rv = *qv;
+        qv->clear();
+        return rv;
+    }
+
+    AbstractQoreNode* rv = *v;
+    *v = nullptr;
+    return rv;
 }
 
 LValueRemoveHelper::LValueRemoveHelper(const AbstractQoreNode* exp, ExceptionSink* n_xsink, bool fd) : xsink(n_xsink), for_del(fd) {

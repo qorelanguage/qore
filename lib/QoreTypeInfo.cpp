@@ -752,9 +752,9 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
             HashIterator i(h);
             while (i.next()) {
                hash_assignment_priv ha(*qore_hash_private::get(*h), *qhi_priv::get(i)->i);
-               QoreValue hn(ha.swap(nullptr));
+               QoreValue hn(ha.swap(QoreValue()));
                u.ti->acceptInputIntern(xsink, obj, param_num, param_name, hn);
-               ha.swap(hn.takeNode());
+               ha.swap(hn);
                if (*xsink)
                   return true;
             }

@@ -68,47 +68,48 @@ QoreListNode* qore_hash_private::getValues(bool with_type_info) const {
     qore_list_private::get(*list)->reserve(member_list.size());
 
     for (auto& i : member_list) {
-        list->push(i->node ? i->node->refSelf() : nullptr);
+        list->push(i->val.getReferencedValue());
     }
     return list;
 }
 
 void qore_hash_private::merge(const qore_hash_private& h, ExceptionSink* xsink) {
-   for (auto& i : h.member_list) {
-      setKeyValue(i->key, i->node ? i->node->refSelf() : nullptr, xsink);
-   }
+    for (auto& i : h.member_list) {
+        setKeyValue(i->key, i->val.refSelf(), xsink);
+    }
 }
 
 int qore_hash_private::getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink) {
-   const QoreTypeInfo* memTypeInfo = nullptr;
+    const QoreTypeInfo* memTypeInfo = nullptr;
 
-   if (hashdecl) {
-      const HashDeclMemberInfo* m = typed_hash_decl_private::get(*hashdecl)->findMember(key);
-      if (!m) {
-         xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of hashdecl '%s'", key, hashdecl->getName());
-         lvh.clearPtr();
-         return -1;
-      }
+    if (hashdecl) {
+        const HashDeclMemberInfo* m = typed_hash_decl_private::get(*hashdecl)->findMember(key);
+        if (!m) {
+            xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of hashdecl '%s'", key, hashdecl->getName());
+            lvh.clearPtr();
+            return -1;
+        }
 
-      memTypeInfo = m->getTypeInfo();
-   }
-   else if (complexTypeInfo)
-      memTypeInfo = QoreTypeInfo::getUniqueReturnComplexHash(complexTypeInfo);
+        memTypeInfo = m->getTypeInfo();
+    }
+    else if (complexTypeInfo)
+        memTypeInfo = QoreTypeInfo::getUniqueReturnComplexHash(complexTypeInfo);
 
-   hm_hm_t::const_iterator i = hm.find(key);
-   HashMember* m;
-   if (i == hm.end()) {
-      if (for_remove)
-         return -1;
-      m = findCreateMember(key);
-   }
-   else
-      m = (*(i->second));
+    hm_hm_t::const_iterator i = hm.find(key);
+    HashMember* m;
+    if (i == hm.end()) {
+        if (for_remove)
+            return -1;
+        m = findCreateMember(key);
+    }
+    else
+        m = (*(i->second));
 
-   //printd(5, "qore_hash_private::getLValue() this: %p hd: %p ct: %p key: '%s' type: '%s'\n", this, hashdecl, complexTypeInfo, key, QoreTypeInfo::getName(memTypeInfo));
+    //printd(5, "qore_hash_private::getLValue() this: %p hd: %p ct: %p key: '%s' type: '%s'\n", this, hashdecl, complexTypeInfo, key, QoreTypeInfo::getName(memTypeInfo));
 
-   lvh.resetPtr(&m->node, memTypeInfo);
-   return 0;
+    lvh.resetValue(m->val, memTypeInfo);
+    //lvh.resetPtr(&m->node, memTypeInfo);
+    return 0;
 }
 
 int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, QoreParseListNode* args, const QoreTypeInfo*& argTypeInfo, const AbstractQoreNode*& arg) {
@@ -237,7 +238,7 @@ QoreHashNode* qore_hash_private::newComplexHashFromHash(const QoreTypeInfo* type
         while (i.next()) {
             // check types
             HashAssignmentHelper hah(i);
-            QoreValue qv(hash_assignment_priv::get(hah)->swap(nullptr));
+            QoreValue qv(hash_assignment_priv::get(hah)->swap(QoreValue()));
             QoreTypeInfo::acceptInputMember(vti, i.getKey(), qv, xsink);
             hash_assignment_priv::get(hah)->swap(qv.takeNode());
             if (*xsink)
@@ -275,7 +276,7 @@ QoreValue qore_hash_private::getValueKeyValueExistenceIntern(const char* key, bo
 
     if (i != hm.end()) {
         exists = true;
-        return (*i->second)->node;
+        return (*i->second)->val;
     }
 
     exists = false;
@@ -284,7 +285,7 @@ QoreValue qore_hash_private::getValueKeyValueExistenceIntern(const char* key, bo
 
 QoreValue qore_hash_private::getValueKeyValueIntern(const char* key) const {
     hm_hm_t::const_iterator i = hm.find(key);
-    return i != hm.end() ? (*i->second)->node : QoreValue();
+    return i != hm.end() ? (*i->second)->val : QoreValue();
 }
 
 QoreHashNode::QoreHashNode(bool ne) : AbstractQoreNode(NT_HASH, !ne, ne), priv(new qore_hash_private) {
@@ -382,6 +383,10 @@ AbstractQoreNode** QoreHashNode::getKeyValuePtr(const char* key) {
    return priv->getKeyValuePtr(key);
 }
 
+QoreValue& QoreHashNode::getValueRef(const char* key) {
+    return priv->getValueRef(key);
+}
+
 // deprecated
 int64 QoreHashNode::getKeyAsBigInt(const char* key, bool &found) const {
    return priv->getKeyAsBigInt(key, found);
@@ -417,7 +422,7 @@ AbstractQoreNode* QoreHashNode::takeKeyValue(const QoreString* key, ExceptionSin
    if (*xsink)
       return 0;
 
-   return priv->takeKeyValue(tmp->getBuffer());
+   return priv->takeKeyValueIntern(tmp->c_str()).takeNode();
 }
 
 // deprecated
@@ -477,29 +482,29 @@ void QoreHashNode::setKeyValue(const char* key, AbstractQoreNode* val, Exception
 }
 
 AbstractQoreNode* QoreHashNode::swapKeyValue(const QoreString* key, AbstractQoreNode* val, ExceptionSink* xsink) {
-   assert(reference_count() == 1);
-   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   if (*xsink) {
-      if (val)
-         val->deref(xsink);
-      return 0;
-   }
+    assert(reference_count() == 1);
+    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        if (val)
+            val->deref(xsink);
+        return 0;
+    }
 
-   hash_assignment_priv ha(*priv, tmp->getBuffer());
-   return ha.swap(val);
+    hash_assignment_priv ha(*priv, tmp->getBuffer());
+    return ha.swap(val).takeNode();
 }
 
 AbstractQoreNode* QoreHashNode::swapKeyValue(const char* key, AbstractQoreNode* val) {
    //printd(0, "QoreHashNode::swapKeyValue() this=%p key=%s val=%p (%s) deprecated API called\n", this, key, val, get_node_type(val));
    //assert(false);
    hash_assignment_priv ha(*priv, key);
-   return ha.swap(val);
+   return ha.swap(val).takeNode();
 }
 
 AbstractQoreNode* QoreHashNode::swapKeyValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
    assert(reference_count() == 1);
    hash_assignment_priv ha(*priv, key);
-   return ha.swap(val);
+   return ha.swap(val).takeNode();
 }
 
 // deprecated
@@ -597,21 +602,23 @@ AbstractQoreNode* QoreHashNode::evalKeyValue(const QoreString* key, ExceptionSin
 
    hm_hm_t::const_iterator i = priv->hm.find(k->c_str());
 
-   if (i != priv->hm.end() && (*i->second)->node)
-      return (*i->second)->node->refSelf();
+   if (i != priv->hm.end())
+      return (*i->second)->val.getReferencedValue();
 
    return nullptr;
 }
 
 AbstractQoreNode* QoreHashNode::getKeyValue(const char* key) {
-   assert(key);
+    assert(key);
 
-   hm_hm_t::const_iterator i = priv->hm.find(key);
+    hm_hm_t::const_iterator i = priv->hm.find(key);
 
-   if (i != priv->hm.end())
-      return (*i->second)->node;
+    if (i != priv->hm.end()) {
+        priv->convertToNode((*i->second)->val);
+        return (*i->second)->val.getInternalNode();
+    }
 
-   return 0;
+    return nullptr;
 }
 
 const AbstractQoreNode* QoreHashNode::getKeyValue(const char* key) const {
@@ -619,17 +626,18 @@ const AbstractQoreNode* QoreHashNode::getKeyValue(const char* key) const {
 }
 
 AbstractQoreNode* QoreHashNode::getKeyValueExistence(const char* key, bool &exists) {
-   assert(key);
+    assert(key);
 
-   hm_hm_t::const_iterator i = priv->hm.find(key);
+    hm_hm_t::const_iterator i = priv->hm.find(key);
 
-   if (i != priv->hm.end()) {
-      exists = true;
-      return (*i->second)->node;
-   }
+    if (i != priv->hm.end()) {
+        exists = true;
+        priv->convertToNode((*i->second)->val);
+        return (*i->second)->val.getInternalNode();
+    }
 
-   exists = false;
-   return 0;
+    exists = false;
+    return nullptr;
 }
 
 const AbstractQoreNode* QoreHashNode::getKeyValueExistence(const char* key, bool &exists) const {
@@ -639,47 +647,51 @@ const AbstractQoreNode* QoreHashNode::getKeyValueExistence(const char* key, bool
 // does a "soft" compare (values of different types are converted if necessary and then compared)
 // 0 = equal, 1 = not equal
 bool QoreHashNode::compareSoft(const QoreHashNode* h, ExceptionSink* xsink) const {
-   if (h->priv->size() != priv->size())
-      return 1;
+    if (h->priv->size() != priv->size())
+        return 1;
 
-   ConstHashIterator hi(this);
-   while (hi.next()) {
-      hm_hm_t::const_iterator j = h->priv->hm.find(hi.getKey());
-      if (j == h->priv->hm.end())
-         return 1;
+    ConstHashIterator hi(this);
+    while (hi.next()) {
+        hm_hm_t::const_iterator j = h->priv->hm.find(hi.getKey());
+        if (j == h->priv->hm.end())
+            return 1;
 
-      if (q_compare_soft(hi.getValue(), (*j->second)->node, xsink))
-         return 1;
-   }
-   return 0;
+        if (!hi.get().isEqualSoft((*j->second)->val, xsink)) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // does a "hard" compare (types must be exactly the same)
 // 0 = equal, 1 = not equal
 bool QoreHashNode::compareHard(const QoreHashNode* h, ExceptionSink* xsink) const {
-   if (h->priv->size() != priv->size())
-      return 1;
+    if (h->priv->size() != priv->size())
+        return 1;
 
-   ConstHashIterator hi(this);
-   while (hi.next()) {
-      hm_hm_t::const_iterator j = h->priv->hm.find(hi.getKey());
-      if (j == h->priv->hm.end())
-         return 1;
+    ConstHashIterator hi(this);
+    while (hi.next()) {
+        hm_hm_t::const_iterator j = h->priv->hm.find(hi.getKey());
+        if (j == h->priv->hm.end())
+            return 1;
 
-      if (::compareHard(hi.getValue(), (*j->second)->node, xsink))
-         return 1;
-   }
-   return 0;
+        if (!hi.get().isEqualHard((*j->second)->val)) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // deprecated
 AbstractQoreNode** QoreHashNode::getExistingValuePtr(const char* key) {
-   hm_hm_t::const_iterator i = priv->hm.find(key);
+    hm_hm_t::const_iterator i = priv->hm.find(key);
 
-   if (i != priv->hm.end())
-      return &(*i->second)->node;
+    if (i != priv->hm.end()) {
+        qore_hash_private::convertToNode((*i->second)->val);
+        return &(*i->second)->val.v.n;
+    }
 
-   return nullptr;
+    return nullptr;
 }
 
 bool QoreHashNode::derefImpl(ExceptionSink* xsink) {
@@ -703,7 +715,7 @@ void QoreHashNode::removeKey(const char* key, ExceptionSink* xsink) {
 
 AbstractQoreNode* QoreHashNode::takeKeyValue(const char* key) {
    assert(reference_count() == 1);
-   return priv->takeKeyValue(key);
+   return priv->takeKeyValueIntern(key).takeNode();
 }
 
 qore_size_t QoreHashNode::size() const {
@@ -867,11 +879,15 @@ QoreHashNode* HashIterator::getHash() const {
 }
 
 AbstractQoreNode* HashIterator::getReferencedValue() const {
-   return !priv->valid() || !(*(priv->i))->node ? 0 : (*(priv->i))->node->refSelf();
+    return !priv->valid() ? nullptr : (*(priv->i))->val.getReferencedValue();
+}
+
+QoreValue HashIterator::getReferenced() const {
+    return !priv->valid() ? QoreValue() : (*(priv->i))->val.refSelf();
 }
 
 QoreString* HashIterator::getKeyString() const {
-   return !priv->valid() ? 0 : new QoreString((*(priv->i))->key);
+   return !priv->valid() ? nullptr : new QoreString((*(priv->i))->key);
 }
 
 bool HashIterator::next() {
@@ -890,37 +906,43 @@ const char* HashIterator::getKey() const {
 }
 
 AbstractQoreNode* HashIterator::getValue() const {
-   if (!priv->valid())
-      return nullptr;
+    if (!priv->valid())
+        return nullptr;
 
-   return (*(priv->i))->node;
+    qore_hash_private::convertToNode((*(priv->i))->val);
+    return (*(priv->i))->val.getInternalNode();
+}
+
+QoreValue HashIterator::get() const {
+    if (!priv->valid())
+        return QoreValue();
+
+    return (*(priv->i))->val;
 }
 
 AbstractQoreNode* HashIterator::takeValueAndDelete() {
-   if (!priv->valid())
-      return nullptr;
+    if (!priv->valid())
+        return nullptr;
 
-   AbstractQoreNode* rv = (*(priv->i))->node;
-   (*(priv->i))->node = 0;
+    AbstractQoreNode* rv = (*(priv->i))->val.assignNothing();
 
-   qhlist_t::iterator ni = priv->i;
-   priv->prev(h->priv->member_list);
+    qhlist_t::iterator ni = priv->i;
+    priv->prev(h->priv->member_list);
 
-   // remove key from map before deleting hash member with key pointer
-   hm_hm_t::iterator i = h->priv->hm.find((*ni)->key.c_str());
-   assert(i != h->priv->hm.end());
-   h->priv->hm.erase(i);
-   h->priv->internDeleteKey(ni);
+    // remove key from map before deleting hash member with key pointer
+    hm_hm_t::iterator i = h->priv->hm.find((*ni)->key.c_str());
+    assert(i != h->priv->hm.end());
+    h->priv->hm.erase(i);
+    h->priv->internDeleteKey(ni);
 
-   return rv;
+    return rv;
 }
 
 void HashIterator::deleteKey(ExceptionSink* xsink) {
    if (!priv->valid())
       return;
 
-   discard((*(priv->i))->node, xsink);
-   (*(priv->i))->node = nullptr;
+   (*(priv->i))->val.discard(xsink);
 
    qhlist_t::iterator ni = priv->i;
    priv->prev(h->priv->member_list);
@@ -933,34 +955,35 @@ void HashIterator::deleteKey(ExceptionSink* xsink) {
 
 // deprecated
 AbstractQoreNode** HashIterator::getValuePtr() const {
-   if (!priv->valid())
-      return nullptr;
+    if (!priv->valid())
+        return nullptr;
 
-   return &((*(priv->i))->node);
+    qore_hash_private::convertToNode((*(priv->i))->val);
+    return &(*(priv->i))->val.v.n;
 }
 
 bool HashIterator::last() const {
-   if (!priv->valid())
-      return false;
+    if (!priv->valid())
+        return false;
 
-   qhlist_t::const_iterator ni = priv->i;
-   ++ni;
-   return ni == h->priv->member_list.end() ? true : false;
+    qhlist_t::const_iterator ni = priv->i;
+    ++ni;
+    return ni == h->priv->member_list.end() ? true : false;
 }
 
 bool HashIterator::first() const {
-   if (!priv->valid())
-      return false;
+    if (!priv->valid())
+        return false;
 
-   return priv->i == h->priv->member_list.begin();
+    return priv->i == h->priv->member_list.begin();
 }
 
 bool HashIterator::empty() const {
-   return h->empty();
+    return h->empty();
 }
 
 bool HashIterator::valid() const {
-   return priv->valid();
+    return priv->valid();
 }
 
 ReverseHashIterator::ReverseHashIterator(QoreHashNode* h) : HashIterator(h) {
@@ -1006,11 +1029,15 @@ const QoreHashNode* ConstHashIterator::getHash() const {
 }
 
 AbstractQoreNode* ConstHashIterator::getReferencedValue() const {
-   return !priv->valid() || !(*(priv->i))->node ? 0 : (*(priv->i))->node->refSelf();
+    return !priv->valid() ? nullptr : (*(priv->i))->val.getReferencedValue();
+}
+
+QoreValue ConstHashIterator::getReferenced() const {
+    return !priv->valid() ? QoreValue() : (*(priv->i))->val.refSelf();
 }
 
 QoreString* ConstHashIterator::getKeyString() const {
-   return !priv->valid() ? 0 : new QoreString((*(priv->i))->key);
+   return !priv->valid() ? nullptr : new QoreString((*(priv->i))->key);
 }
 
 bool ConstHashIterator::next() {
@@ -1028,10 +1055,18 @@ const char* ConstHashIterator::getKey() const {
 }
 
 const AbstractQoreNode* ConstHashIterator::getValue() const {
-   if (!priv->valid())
-      return 0;
+    if (!priv->valid())
+        return nullptr;
 
-   return (*(priv->i))->node;
+    qore_hash_private::convertToNode((*(priv->i))->val);
+    return (*(priv->i))->val.getInternalNode();
+}
+
+const QoreValue ConstHashIterator::get() const {
+    if (!priv->valid())
+        return QoreValue();
+
+    return (*(priv->i))->val;
 }
 
 bool ConstHashIterator::last() const {
@@ -1116,57 +1151,50 @@ void hash_assignment_priv::reassign(const char* key, bool must_already_exist) {
    om = must_already_exist ? h.findMember(key) : h.findCreateMember(key);
 }
 
-AbstractQoreNode* hash_assignment_priv::swapImpl(AbstractQoreNode* v) {
-   assert(om);
-   // before we can entirely get rid of QoreNothingNode, try to convert pointers to NOTHING to 0
-   if (v == &Nothing)
-      v = 0;
-   AbstractQoreNode* old = om->node;
-   om->node = v;
+QoreValue hash_assignment_priv::swapImpl(QoreValue v) {
+    assert(om);
+    QoreValue old = om->val;
+    om->val = v;
 
-   bool before = needs_scan(old);
-   bool after = needs_scan(v);
-   if (before) {
-      if (!after) {
-         if (o)
-            o->incScanCount(-1);
-         else
-            h.incScanCount(-1);
-      }
-   }
-   else if (after) {
-      if (o)
-         o->incScanCount(1);
-      else
-         h.incScanCount(1);
-   }
+    bool before = needs_scan(old);
+    bool after = needs_scan(v);
+    if (before) {
+        if (!after) {
+            if (o)
+                o->incScanCount(-1);
+            else
+                h.incScanCount(-1);
+        }
+    }
+    else if (after) {
+        if (o)
+            o->incScanCount(1);
+        else
+            h.incScanCount(1);
+    }
 
-   return old;
+    return old;
 }
 
-void hash_assignment_priv::assign(AbstractQoreNode* v, ExceptionSink* xsink) {
-   ReferenceHolder<> val(v, xsink);
-   if (h.hashdecl) {
-      if (typed_hash_decl_private::get(*h.hashdecl)->runtimeAssignKey(om->key.c_str(), val, xsink))
-         return;
-   }
-   else if (h.complexTypeInfo) {
-      QoreValue v(val.release());
-      QoreTypeInfo::acceptInputKey(QoreTypeInfo::getUniqueReturnComplexHash(h.complexTypeInfo), om->key.c_str(), v, xsink);
-      val = v.takeNode();
-      if (*xsink)
-         return;
-   }
+void hash_assignment_priv::assign(QoreValue v, ExceptionSink* xsink) {
+    ValueHolder val(v, xsink);
+    if (h.hashdecl) {
+        if (typed_hash_decl_private::get(*h.hashdecl)->runtimeAssignKey(om->key.c_str(), val, xsink))
+            return;
+    }
+    else if (h.complexTypeInfo) {
+        val.release();
+        QoreTypeInfo::acceptInputKey(QoreTypeInfo::getUniqueReturnComplexHash(h.complexTypeInfo), om->key.c_str(), v, xsink);
+        val = v;
+        if (*xsink)
+            return;
+    }
 
-   AbstractQoreNode* old = swapImpl(val.release());
-   if (old) {
-      // "remove" logic here
-      old->deref(xsink);
-   }
+    swapImpl(val.release()).discard(xsink);
 }
 
-AbstractQoreNode* hash_assignment_priv::getValueImpl() const {
-   return om->node;
+QoreValue hash_assignment_priv::getImpl() const {
+   return om->val;
 }
 
 HashAssignmentHelper::HashAssignmentHelper(QoreHashNode& h, const char* key, bool must_already_exist) : priv(new hash_assignment_priv(*h.priv, key, must_already_exist)) {
@@ -1217,12 +1245,13 @@ void HashAssignmentHelper::assign(AbstractQoreNode* v, ExceptionSink* xsink) {
 
 AbstractQoreNode* HashAssignmentHelper::swap(AbstractQoreNode* v, ExceptionSink* xsink) {
    assert(priv);
-   return priv->swap(v);
+   return priv->swap(v).takeNode();
 }
 
 AbstractQoreNode* HashAssignmentHelper::operator*() const {
-   assert(priv);
-   return **priv;
+    assert(priv);
+    qore_hash_private::convertToNode(priv->om->val);
+    return (**priv).getInternalNode();
 }
 
 void QoreParseHashNode::doDuplicateWarning(const QoreProgramLocation& newloc, const char* key) {

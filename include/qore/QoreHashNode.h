@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -374,6 +374,15 @@ public:
    */
    DLLEXPORT AbstractQoreNode** getKeyValuePtr(const char* key);
 
+    //! returns a reference to the value of the key (assumed to be in QCS_DEFAULT) so the value may be set or changed externally
+    /** The key hash entry is created if it does not already exist.
+         @param key the key to return the pointer to the value pointer for
+        @return a reference to the value of the key (assumed to be in QCS_DEFAULT)
+
+        @since %Qore 0.9.0
+    */
+    DLLEXPORT QoreValue& getValueRef(const char* key);
+
    //! returns a pointer to a pointer of the value of the key only if the key already exists
    /** Converts "key" to the default character encoding (QCS_DEFAULT) if necessary.
        An exception could be thrown if the character encoding conversion fails.
@@ -691,6 +700,9 @@ public:
    DLLEXPORT QoreString* getKeyString() const;
 
    //! returns the value of the current key
+   DLLEXPORT QoreValue get() const;
+
+   //! returns the value of the current key
    DLLEXPORT AbstractQoreNode* getValue() const;
 
    //! deletes the key from the hash and returns the value, caller owns the reference
@@ -711,6 +723,9 @@ public:
 
    //! returns the value of the current key with an incremented reference count
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
+
+   //! returns the value of the current key with an incremented reference count
+   DLLEXPORT QoreValue getReferenced() const;
 
    //! returns the hash
    DLLEXPORT QoreHashNode* getHash() const;
@@ -818,10 +833,16 @@ public:
    DLLEXPORT QoreString* getKeyString() const;
 
    //! returns the value of the current key
+   DLLEXPORT const QoreValue get() const;
+
+   //! returns the value of the current key
    DLLEXPORT const AbstractQoreNode* getValue() const;
 
    //! returns the value of the current key with an incremented reference count
    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
+
+   //! returns the value of the current key with an incremented reference count
+   DLLEXPORT QoreValue getReferenced() const;
 
    //! returns the hash
    DLLEXPORT const QoreHashNode* getHash() const;
@@ -956,11 +977,24 @@ public:
     */
    DLLEXPORT void assign(AbstractQoreNode* v, ExceptionSink* xsink);
 
+   //! assigns a value to the hash key, dereferences any old value, assumes that the value is already referenced for the assignment
+   /** a Qore-language exception could be raised when the existing value is dereferenced
+       (i.e. if it's an object that goes out of scope and the destructor raises an
+       exception, for example)
+    */
+   DLLEXPORT void assign(QoreValue v, ExceptionSink* xsink);
+
    //! swaps the current value with the new value of the hash key, assumes that the new value is already referenced for the assignment; returns the old value
    /** could throw a Qore-language exception if there is a type error; in this case 0 is returned and the value passed for the assignment is dereferenced
 @return the old value of the hash key including its reference count (the old value is not dereferenced); the caller owns the value returned
     */
    DLLEXPORT AbstractQoreNode* swap(AbstractQoreNode* v, ExceptionSink* xsink);
+
+   //! swaps the current value with the new value of the hash key, assumes that the new value is already referenced for the assignment; returns the old value
+   /** could throw a Qore-language exception if there is a type error; in this case 0 is returned and the value passed for the assignment is dereferenced
+@return the old value of the hash key including its reference count (the old value is not dereferenced); the caller owns the value returned
+    */
+   DLLEXPORT QoreValue swap(QoreValue v, ExceptionSink* xsink);
 
    //! returns the current value of the hash key; the pointer returned is still owned by the hash
    /** @return the current value of the hash key

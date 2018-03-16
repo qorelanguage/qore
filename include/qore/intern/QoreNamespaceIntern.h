@@ -713,67 +713,67 @@ struct FunctionEntryInfo {
 typedef std::map<const char*, FunctionEntryInfo, ltstr> femap_t;
 class FunctionEntryRootMap : public femap_t {
 private:
-   // not implemented
-   DLLLOCAL FunctionEntryRootMap(const FunctionEntryRootMap& old);
-   // not implemented
-   DLLLOCAL FunctionEntryRootMap& operator=(const FunctionEntryRootMap& m);
+    // not implemented
+    DLLLOCAL FunctionEntryRootMap(const FunctionEntryRootMap& old);
+    // not implemented
+    DLLLOCAL FunctionEntryRootMap& operator=(const FunctionEntryRootMap& m);
 
 public:
-   DLLLOCAL FunctionEntryRootMap() {
-   }
+    DLLLOCAL FunctionEntryRootMap() {
+    }
 
-   DLLLOCAL void update(const char* name, FunctionEntry* obj) {
-      // get current lookup map entry for this object
-      femap_t::iterator i = find(name);
-      if (i == end())
-         insert(femap_t::value_type(name, FunctionEntryInfo(obj)));
-      else // if the old depth is > the new depth, then replace
-         if (i->second.depth() > obj->getNamespace()->depth)
-            i->second.assign(obj);
-   }
+    DLLLOCAL void update(const char* name, FunctionEntry* obj) {
+        // get current lookup map entry for this object
+        femap_t::iterator i = find(name);
+        if (i == end())
+            insert(femap_t::value_type(name, FunctionEntryInfo(obj)));
+        else // if the old depth is > the new depth, then replace
+            if (i->second.depth() > obj->getNamespace()->depth)
+                i->second.assign(obj);
+    }
 
-   DLLLOCAL void update(femap_t::const_iterator ni) {
-      // get current lookup map entry for this object
-      femap_t::iterator i = find(ni->first);
-      if (i == end()) {
-         //printd(5, "FunctionEntryRootMap::update(iterator) inserting '%s' new depth: %d\n", ni->first, ni->second.depth());
-         insert(femap_t::value_type(ni->first, ni->second));
-      }
-      else {
-         // if the old depth is > the new depth, then replace
-         if (i->second.depth() > ni->second.depth()) {
-            //printd(5, "FunctionEntryRootMap::update(iterator) replacing '%s' current depth: %d new depth: %d\n", ni->first, i->second.depth(), ni->second.depth());
-            i->second = ni->second;
-         }
-         //else
-         //printd(5, "FunctionEntryRootMap::update(iterator) ignoring '%s' current depth: %d new depth: %d\n", ni->first, i->second.depth(), ni->second.depth());
-      }
-   }
+    DLLLOCAL void update(femap_t::const_iterator ni) {
+        // get current lookup map entry for this object
+        femap_t::iterator i = find(ni->first);
+        if (i == end()) {
+            //printd(5, "FunctionEntryRootMap::update(iterator) inserting '%s' new depth: %d\n", ni->first, ni->second.depth());
+            insert(femap_t::value_type(ni->first, ni->second));
+        }
+        else {
+            // if the old depth is > the new depth, then replace
+            if (i->second.depth() > ni->second.depth()) {
+                //printd(5, "FunctionEntryRootMap::update(iterator) replacing '%s' current depth: %d new depth: %d\n", ni->first, i->second.depth(), ni->second.depth());
+                i->second = ni->second;
+            }
+            //else
+            //printd(5, "FunctionEntryRootMap::update(iterator) ignoring '%s' current depth: %d new depth: %d\n", ni->first, i->second.depth(), ni->second.depth());
+        }
+    }
 
-   FunctionEntry* findObj(const char* name) {
-      femap_t::iterator i = find(name);
-      return i == end() ? 0 : i->second.obj;
-   }
+    FunctionEntry* findObj(const char* name) {
+        femap_t::iterator i = find(name);
+        return i == end() ? 0 : i->second.obj;
+    }
 };
 
 class NamespaceDepthList {
-   friend class NamespaceDepthListIterator;
+    friend class NamespaceDepthListIterator;
 protected:
-   // map from depth to namespace
-   typedef std::multimap<unsigned, qore_ns_private*> nsdmap_t;
-   nsdmap_t nsdmap;
+    // map from depth to namespace
+    typedef std::multimap<unsigned, qore_ns_private*> nsdmap_t;
+    nsdmap_t nsdmap;
 
 public:
-   DLLLOCAL NamespaceDepthList() {
-   }
+    DLLLOCAL NamespaceDepthList() {
+    }
 
-   DLLLOCAL void add(qore_ns_private* ns) {
-      nsdmap.insert(nsdmap_t::value_type(ns->depth, ns));
-   }
+    DLLLOCAL void add(qore_ns_private* ns) {
+        nsdmap.insert(nsdmap_t::value_type(ns->depth, ns));
+    }
 
-   DLLLOCAL void clear() {
-      nsdmap.clear();
-   }
+    DLLLOCAL void clear() {
+        nsdmap.clear();
+    }
 };
 
 class NamespaceDepthListIterator {

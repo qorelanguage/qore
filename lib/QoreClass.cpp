@@ -910,46 +910,44 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
 }
 
 int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool internal_only, ExceptionSink* xsink) const {
-   if (!members.empty()) {
-      for (QoreMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
-         if (!i->second || (i->second && internal_only && i->second->access != Internal))
-            continue;
+    if (!members.empty()) {
+        for (QoreMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
+            if (!i->second || (i->second && internal_only && i->second->access != Internal))
+                continue;
 
-         AbstractQoreNode** v = qore_object_private::get(o)->getMemberValuePtrForInitialization(i->first, i->second->access == Internal ? this : 0);
-         assert(!*v);
-         if (i->second->exp) {
-            // set runtime location
-            QoreProgramLocationHelper l(i->second->loc);
-            ReferenceHolder<AbstractQoreNode> val(i->second->exp->eval(xsink), xsink);
-            if (*xsink)
-               return -1;
-            // check types
-            QoreValue qv(val.release());
-            //printd(5, " qore_class_private::runtimeInitMembers() '%s' member: '%s' type: '%s'\n", name.c_str(), i->first, QoreTypeInfo::getName(i->second->getTypeInfo()));
-            QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, qv, xsink);
-            val = qv.takeNode();
-            if (*xsink)
-               return -1;
-            *v = val.release();
-            if (needs_scan(*v)) {
-               qore_object_private::incScanCount(o, 1);
-               if (!need_scan)
-                  need_scan = true;
+            QoreValue& v = qore_object_private::get(o)->getMemberValueRefForInitialization(i->first, i->second->access == Internal ? this : nullptr);
+            assert(v.isNothing());
+            if (i->second->exp) {
+                // set runtime location
+                QoreProgramLocationHelper l(i->second->loc);
+                ValueEvalRefHolder val(i->second->exp, xsink);
+                if (*xsink)
+                    return -1;
+                QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, *val, xsink);
+                if (*xsink)
+                    return -1;
+                //val.sanitize();
+                v = val.takeReferencedValue();
+                if (needs_scan(v)) {
+                    qore_object_private::incScanCount(o, 1);
+                    if (!need_scan)
+                        need_scan = true;
+                }
+                }
+                //printd(5, "qore_class_private::initMembers() '%s' obj: %d v: '%s' (%p) refs: %d exp: %p refs: %d\n", i->first, needs_scan(v), v.getTypeName(), v.getInternalNode(), v.hasNode() ? v.getInternalNode()->reference_count() : 0, i->second->exp, i->second->exp->reference_count());
             }
-
-            //printd(5, "qore_class_private::initMembers() '%s' obj: %d\n", i->first, needs_scan(nv));
-         }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-         else
-            *v = QoreTypeInfo::getDefaultQoreValue(i->second->getTypeInfo()).takeNode();
+            else {
+                v = QoreTypeInfo::getDefaultQoreValue(i->second->getTypeInfo());
+            }
 #endif
-      }
-   }
+        }
+    }
 
-   if (scl)
-      scl->runtimeInitInternalMembers(o, need_scan, xsink);
+    if (scl)
+        scl->runtimeInitInternalMembers(o, need_scan, xsink);
 
-   return 0;
+    return 0;
 }
 
 void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bceal, ExceptionSink* xsink) const {

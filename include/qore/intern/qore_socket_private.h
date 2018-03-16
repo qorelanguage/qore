@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -3165,13 +3165,13 @@ struct qore_socket_private {
 
          // see if header exists, and if so make it a list and add value to the list
          hash_assignment_priv ha(*h, buf);
-         if (*ha) {
+         if (!(*ha).isNothing()) {
             QoreListNode* l;
-            if ((*ha)->getType() == NT_LIST)
-               l = reinterpret_cast<QoreListNode* >(*ha);
+            if ((*ha).getType() == NT_LIST)
+               l = (*ha).get<QoreListNode>();
             else {
                l = new QoreListNode;
-               l->push(ha.swap(l));
+               l->push(ha.swap(l).takeNode());
             }
             l->push(val);
          }

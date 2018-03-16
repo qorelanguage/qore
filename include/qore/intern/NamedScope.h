@@ -4,11 +4,11 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   NamedScopes are children of a program object.  there is a parse
   lock per program object to ensure that objects are added (or backed out)
-  atomically per program object.  All the objects referenced here should 
+  atomically per program object.  All the objects referenced here should
   be safe to read & copied at all times.  They will only be deleted when the
   program object is deleted (except the pending structures, which will be
   deleted any time there is a parse error, together with all other
@@ -47,85 +47,93 @@
 // for parsing namespace/class scope resolution
 class NamedScope {
 protected:
-   typedef std::vector<std::string> nslist_t;
+    typedef std::vector<std::string> nslist_t;
 
-   bool del;
+    bool del;
 
-   DLLLOCAL void init();
+    DLLLOCAL void init();
 
 public:
-   char *ostr;
-   nslist_t strlist;
+    char* ostr;
+    nslist_t strlist;
 
-   DLLLOCAL NamedScope(char *str) : del(true), ostr(str) {
-      assert(str);
-      init();
-   }
+    DLLLOCAL NamedScope(char *str) : del(true), ostr(str) {
+        assert(str);
+        init();
+    }
 
-   DLLLOCAL NamedScope(const char *str) : del(false), ostr((char *)str) {
-      assert(str);
-      init();
-   }
+    DLLLOCAL NamedScope(const char *str) : del(false), ostr((char *)str) {
+        assert(str);
+        init();
+    }
 
-   // takes all values from and deletes the argument
-   DLLLOCAL NamedScope(NamedScope *ns) : del(ns->del), ostr(ns->ostr), strlist(ns->strlist) {
-      ns->ostr = 0;
-      delete ns;
-   }
+    // takes all values from and deletes the argument
+    DLLLOCAL NamedScope(NamedScope *ns) : del(ns->del), ostr(ns->ostr), strlist(ns->strlist) {
+        ns->ostr = 0;
+        delete ns;
+    }
 
-   DLLLOCAL NamedScope(const NamedScope &old) : del(true), ostr(strdup(old.ostr)), strlist(old.strlist) {
-   }
+    DLLLOCAL NamedScope(const NamedScope &old) : del(old.del), ostr(old.del ? strdup(old.ostr) : old.ostr), strlist(old.strlist) {
+    }
 
-   DLLLOCAL ~NamedScope() {
-      clear();
-   }
+    DLLLOCAL ~NamedScope() {
+        clear();
+    }
 
-   DLLLOCAL void clear() {
-      if (ostr && del)
-         free(ostr);
-      strlist.clear();
-      ostr = 0;
-      del = false;
-   }
+    DLLLOCAL void clear() {
+        if (ostr && del)
+            free(ostr);
+        strlist.clear();
+        ostr = nullptr;
+        del = false;
+    }
 
-   DLLLOCAL const char *getIdentifier() const {
-      return strlist[strlist.size() - 1].c_str();
-   }
+    DLLLOCAL const char *getIdentifier() const {
+        return strlist[strlist.size() - 1].c_str();
+    }
 
-   DLLLOCAL const std::string &getIdentifierStr() const {
-      return strlist[strlist.size() - 1];
-   }
+    DLLLOCAL const std::string &getIdentifierStr() const {
+        return strlist[strlist.size() - 1];
+    }
 
-   DLLLOCAL const char* get(unsigned i) const {
-      assert(i < strlist.size());
-      return strlist[i].c_str();
-   }
+    DLLLOCAL const char* get(unsigned i) const {
+        assert(i < strlist.size());
+        return strlist[i].c_str();
+    }
 
-   DLLLOCAL const char* operator[](unsigned i) const {
-      assert(i < strlist.size());
-      return strlist[i].c_str();
-   }         
+    DLLLOCAL const char* operator[](unsigned i) const {
+        assert(i < strlist.size());
+        return strlist[i].c_str();
+    }
 
-   DLLLOCAL unsigned size() const {
-      return strlist.size(); 
-   }
+    DLLLOCAL unsigned size() const {
+        return strlist.size();
+    }
 
-   DLLLOCAL NamedScope *copy() const;
-   DLLLOCAL void fixBCCall();
+    DLLLOCAL NamedScope *copy() const;
+    DLLLOCAL void fixBCCall();
 
-   DLLLOCAL char *takeName() {
-      char *rv = del ? ostr : strdup(ostr);
-      ostr = 0;
-      clear();
-      return rv;
-   }
+    DLLLOCAL char* takeName() {
+        char *rv = del ? ostr : strdup(ostr);
+        ostr = 0;
+        clear();
+        return rv;
+    }
+
+    /*
+    DLLLOCAL void truncate() {
+        while (strlist.size() > 1) {
+            strlist.erase(strlist.begin());
+        }
+    }
+    */
 };
 
 class ltns {
 public:
-   DLLLOCAL bool operator()(const NamedScope& s1, const NamedScope& s2) const {
-      return strcmp(s1.ostr, s2.ostr) < 0;
-   }
+    DLLLOCAL bool operator()(const NamedScope& s1, const NamedScope& s2) const {
+        return strcmp(s1.ostr, s2.ostr) < 0;
+    }
 };
 
 #endif // QORE_NAMEDSCOPE_H

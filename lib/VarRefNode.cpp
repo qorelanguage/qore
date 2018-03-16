@@ -123,45 +123,45 @@ QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) con
 }
 
 AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {
-   if (pflag & PF_CONST_EXPRESSION) {
-      parseException(loc, "ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name.ostr);
-      return 0;
-   }
+    if (pflag & PF_CONST_EXPRESSION) {
+        parseException(loc, "ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name.ostr);
+        return 0;
+    }
 
-   //printd(5, "VarRefNode::parseInitIntern() this: %p '%s' type: %d %p '%s'\n", this, name.ostr, type, typeInfo, QoreTypeInfo::getName(typeInfo));
-   // if it is a new variable being declared
-   if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS) {
-      if (!ref.id) {
-         ref.id = push_local_var(name.ostr, loc, typeInfo, false, is_new ? 1 : 0, pflag);
-         ++lvids;
-      }
-      //printd(5, "VarRefNode::parseInitIntern() this: %p local var '%s' declared (id: %p)\n", this, name.ostr, ref.id);
-   }
-   else if (type != VT_GLOBAL) {
-      assert(type == VT_UNRESOLVED);
-      // otherwise reference must be resolved
-      resolve(typeInfo);
-   }
+    //printd(5, "VarRefNode::parseInitIntern() this: %p '%s' type: %d %p '%s'\n", this, name.ostr, type, typeInfo, QoreTypeInfo::getName(typeInfo));
+    // if it is a new variable being declared
+    if (type == VT_LOCAL || type == VT_CLOSURE || type == VT_LOCAL_TS) {
+        if (!ref.id) {
+            ref.id = push_local_var(name.ostr, loc, typeInfo, false, is_new ? 1 : 0, pflag);
+            ++lvids;
+        }
+        //printd(5, "VarRefNode::parseInitIntern() this: %p local var '%s' declared (id: %p)\n", this, name.ostr, ref.id);
+    }
+    else if (type != VT_GLOBAL) {
+        assert(type == VT_UNRESOLVED);
+        // otherwise reference must be resolved
+        resolve(typeInfo);
+    }
 
-   return this;
+    return this;
 }
 
 AbstractQoreNode* VarRefNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
-   parseInitIntern(oflag, pflag, lvids, 0);
+    parseInitIntern(oflag, pflag, lvids, 0);
 
-   bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
+    bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
 
-   // this expression returns nothing if it's a new local variable
-   // so if we're not assigning we return nothingTypeInfo as the
-   // return type
-   if (!is_assignment && new_decl) {
-      assert(!outTypeInfo);
-      outTypeInfo = nothingTypeInfo;
-   }
-   else
-      outTypeInfo = is_assignment && new_decl ? parseGetTypeInfoForInitialAssignment() : parseGetTypeInfo();
+    // this expression returns nothing if it's a new local variable
+    // so if we're not assigning we return nothingTypeInfo as the
+    // return type
+    if (!is_assignment && new_decl) {
+        assert(!outTypeInfo);
+        outTypeInfo = nothingTypeInfo;
+    }
+    else
+        outTypeInfo = is_assignment && new_decl ? parseGetTypeInfoForInitialAssignment() : parseGetTypeInfo();
 
-   return this;
+    return this;
 }
 
 VarRefNewObjectNode* VarRefNode::globalMakeNewCall(AbstractQoreNode* args) {
@@ -173,7 +173,7 @@ VarRefNewObjectNode* VarRefNode::globalMakeNewCall(AbstractQoreNode* args) {
       return rv;
    }
 
-   return 0;
+   return nullptr;
 }
 
 AbstractQoreNode* VarRefNode::makeNewCall(AbstractQoreNode* args) {
