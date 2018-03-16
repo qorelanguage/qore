@@ -612,19 +612,29 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
 
 int LValueHelper::makeInt(const char* desc) {
     assert(val || qv);
-    if ((val && val->getType() == NT_INT) || (qv && qv->getType() == NT_INT)) {
-        return 0;
-    }
-
-    if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
-        typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(bigIntTypeInfo), vl.xsink);
-        return -1;
-    }
 
     if (val) {
+        if (val->getType() == NT_INT) {
+            return 0;
+        }
+
+        if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
+            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(bigIntTypeInfo), vl.xsink);
+            return -1;
+        }
+
         saveTemp(val->makeInt());
     }
     else {
+        if (!qv->hasNode() && qv->getType() == NT_INT) {
+           return 0;
+        }
+
+        if (typeInfo && qv->getType() != NT_INT && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
+            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(bigIntTypeInfo), vl.xsink);
+            return -1;
+        }
+
         saveTemp(qv->assign(qv->getAsBigInt()));
     }
 
@@ -633,19 +643,28 @@ int LValueHelper::makeInt(const char* desc) {
 
 int LValueHelper::makeFloat(const char* desc) {
     assert(val || qv);
-    if ((val && val->getType() == NT_FLOAT) || (qv && qv->getType() == NT_FLOAT)) {
-        return 0;
-    }
-
-    if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, floatTypeInfo)) {
-        typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(floatTypeInfo), vl.xsink);
-        return -1;
-    }
-
     if (val) {
+        if (val->getType() == NT_FLOAT) {
+            return 0;
+        }
+
+        if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, floatTypeInfo)) {
+            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(floatTypeInfo), vl.xsink);
+            return -1;
+        }
+
         saveTemp(val->makeFloat());
     }
     else {
+        if (!qv->hasNode() && qv->getType() == NT_FLOAT) {
+           return 0;
+        }
+
+        if (typeInfo && qv->getType() != NT_FLOAT && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
+            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(bigIntTypeInfo), vl.xsink);
+            return -1;
+        }
+
         saveTemp(qv->assign(qv->getAsFloat()));
     }
 

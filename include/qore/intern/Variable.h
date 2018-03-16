@@ -471,7 +471,7 @@ public:
     }
 
    DLLLOCAL void setValue(QoreValue& nqv, const QoreTypeInfo* ti = nullptr) {
-        printd(0, "LValueHelper::setValue() this: %p new qv: %p\n", this, &nqv);
+        //printd(5, "LValueHelper::setValue() this: %p new qv: %p\n", this, &nqv);
         assert(!v);
         assert(!val);
         assert(!qv);

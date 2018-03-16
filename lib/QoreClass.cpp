@@ -933,7 +933,6 @@ int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool 
                     if (!need_scan)
                         need_scan = true;
                 }
-                }
                 //printd(5, "qore_class_private::initMembers() '%s' obj: %d v: '%s' (%p) refs: %d exp: %p refs: %d\n", i->first, needs_scan(v), v.getTypeName(), v.getInternalNode(), v.hasNode() ? v.getInternalNode()->reference_count() : 0, i->second->exp, i->second->exp->reference_count());
             }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
