@@ -35,7 +35,7 @@
 module Logger {
     version = "0.1";
     desc = "user module implementing Log4q logger library";
-    author = "Tomas Mandys <tomas.mandys@qore.org>";
+    author = "Tomas Mandys <tomas.mandys@qoretechnologies.com>";
     url = "http://qore.org";
     license = "MIT";
 }
@@ -488,7 +488,7 @@ public namespace Logger {
             return m_fqcn;
         }
 
-        #! get the location information for this logging event
+        #! Returns the location information for this logging event
         public *hash<CallStackInfo> getLocationInfo() {
             return m_locationInfo;
         }
@@ -516,10 +516,10 @@ public namespace Logger {
         #! Returns the string message for the logging event
         /**
             Potential callable references are evaluated.
-            Next the message is rendered using vprintf() and the result is cached, so the message is
+            Next the message is rendered using @ref Qore::vsprintf() "vsprintf()" and the result is cached, so the message is
             is rendeded only once.
 
-            @return rendered message
+            @return the rendered message
         */
         public string getMessage() {
             if (!exists m_renderedMessage) {
@@ -565,20 +565,20 @@ public namespace Logger {
             return LoggerEvent::m_startTime;
         }
 
-        #! Set origin for relative time
+        #! Sets the starting time for relative time
         public static setStartTime(date time) {
             LoggerEvent::m_startTime = time;
         }
 
-        #! Get event timestamp
+        #! Returns the event timestamp as an @ref absolute_dates "absolute date/time value"
         public date getTimeStamp() {
             return m_timeStamp;
         }
 
-        #! Get relative timestamp
+        #! Returns a relative timestamp for the event
         /**
-            Returns the time in seconds passed from the beginning of execution to
-            the time when the event was constructed.
+            Returns a @ref relative_dates "relative date/time value" for the amount of time passed
+            from the beginning of execution to the time when the event was constructed.
 
             @see @ref getStartTime()
         */
@@ -586,7 +586,7 @@ public namespace Logger {
             return m_timeStamp - LoggerEvent::m_startTime;
         }
 
-        #! get throwable info
+        #! Returns throwable info, if any
         public *hash<ExceptionInfo> getThrowableInfo() {
             return m_throwableInfo;
         }
@@ -612,10 +612,10 @@ public namespace Logger {
 
         #! add appender event
         /**
-            @param appender
+            @param appender a logger appender object
             @param type see \c EVENT_xxx constants
             @param params data prepared by @ref LoggerAppender::serializeImpl()
-            @return True if event succesfully added to queue
+            @return True if the event was succesfully added to queue
         */
         public bool push(LoggerAppender appender, int type, auto params) {
             try {
@@ -628,7 +628,7 @@ public namespace Logger {
 
         #! process queued events
         /**
-            the method should be called typically in dedicated thread
+            This method should typically be called in a dedicated thread
 
             @param ms a timeout value to wait for data to become available on the queue;
                 integers are interpreted as milliseconds; relative date/time values are interpreted
@@ -648,12 +648,12 @@ public namespace Logger {
             }
         }
 
-        #! get current number of event waiting in queue
+        #! Returns the current number of events waiting in queue
         public int size() {
             return m_queue.size();
         }
 
-        #! get next event from queue
+        #! Returns the next event from queue or @ref nothing if there is no event available within the timeout period
         /**
             @param ms a timeout value to wait for data to become available on the queue;
                 integers are interpreted as milliseconds; relative date/time values are interpreted
@@ -662,6 +662,8 @@ public namespace Logger {
                 If a positive timeout argument is passed, and no data is available in the timeout period
                 then waits up to timeout value, If a value that converts to integer 0 is passed as the argument,
                 then the call blocks until data is available on the queue.
+
+            @return the next event from queue or @ref nothing if there is no event available within the timeout period
         */
         private *hash getEvent(timeout ms) {
             if (m_queue.size() > 0 || ms >= 0) {
@@ -682,11 +684,11 @@ public namespace Logger {
 
     #! Queue processing asynchronous appender events in multiple threads
     /**
-        Async events are removed from a queue in one thread which balances processing
-        in multiple worker threads via a @ref Qore::Thread::ThreadPool "ThreadPool". The class groups events by appender
-        so the processing of events related to a particular appender is processed serially,
+        Async events are removed from the event queue in a single thread which balances processing
+        in multiple worker threads via a @ref Qore::Thread::ThreadPool "ThreadPool". This class groups events by appender
+        so that the processing of events related to a particular appender is processed serially,
         i.e. at any moment in time the events related to a particular appender are always processed in only in one thread
-        at a time. It is compatible with the @ref Qore::OutputStream
+        at a time. It is compatible with %Qore's @ref Qore::OutputStream
         implementation without multi-threaded support.
     */
     public class LoggerAppenderQueueThreadPool inherits LoggerAppenderQueue {
@@ -835,7 +837,7 @@ public namespace Logger {
         \c LoggerAppender supports sync and async logging.
 
         The ability to selectively enable or disable logging requests based on level in @ref Logger is
-        extended in appender via @ref LoggerFilter, i.e. filtering on any criteria.
+        extended in the appender via @ref LoggerFilter, which implements filtering on any criteria.
     */
     public class LoggerAppender {
         public {
@@ -846,11 +848,12 @@ public namespace Logger {
             #! close event
             const EVENT_CLOSE = 3;
         }
+
         private:internal {
-            #! The lock to protect object manipulation
+            #! The lock to to ensure proper serialization with concurrent access
             RWLock m_lock();
 
-            #! inactive appender won't accept any logging request
+            #! an inactive appender won't accept any logging request
             bool m_active = False;
 
             #! filter chain
@@ -875,12 +878,12 @@ public namespace Logger {
             #close();  # TODO: cannot call as the target object may be already destroyed
         }
 
-        #! get appender name
+        #! Returns the appender name
         public string getName() {
             return m_name;
         }
 
-        #! Set appender queue.
+        #! Sets the appender queue.
         /**
             Data are passed to target device synchronously
             unless queue is assigned. In this case data are queued and
@@ -895,7 +898,7 @@ public namespace Logger {
             m_queue = queue;
         }
 
-        #! Get async queue or nothing when events are processed in sync way
+        #! Returns async queue or @ref nothing when events are processed synchronously
         public *LoggerAppenderQueue getQueue() {
             return m_queue;
         }
@@ -921,15 +924,16 @@ public namespace Logger {
             }
         }
 
-        #! get active value, i.e. True if the appender is opened
+        #! Returns the value of the \c active flag, i.e. @ref True if the appender is open and therefore active
         public bool isActive() {
             return m_active;
         }
 
-        #! adds a filter to the chain
+        #! Adds a filter to the chain
         /**
-            @param filter add a new filter
-            @param top if True then add filter at first position, if False (default) to the end of chain
+            @param filter the new filter to add
+            @param top if @ref True then the filter is added at the start of the filter chain, if @ref False (the default),
+            the filter is added at the end of the chain
             @throw "LOGGER-ERROR" thrown if the filter is already in the list
         */
         public addFilter(LoggerFilter filter, bool top = False) {
@@ -948,7 +952,7 @@ public namespace Logger {
             }
         }
 
-        #! removes the given filter from the filter chain.
+        #! Removes the given filter from the filter chain.
         /**
             @param filter the filter to remove
         */
@@ -962,13 +966,13 @@ public namespace Logger {
             }
         }
 
-        #! Clears the filter chain by removing all the filters in it
+        #! Clears the filter chain by removing all filters
         public removeAllFilters() {
             AutoWriteLock awl(m_lock);
             splice m_filters, 0;
         }
 
-        #! returns the filter chain as a list
+        #! Returns the filter chain as a list
         /**
             Note that appender filter chain may be modified as internal lock is released when copy of list is returned
         */
@@ -977,17 +981,23 @@ public namespace Logger {
             return m_filters ?? ();
         }
 
-        #! serializes the given event to put in the queue or write to the target device
+        #! Serializes the given event to put in the queue or write to the target device
         /**
-            Appender implementaion can define any serialize format. The data are passed
-            to @ref processEventImpl() method as \c params argument when \c type is \c EVENT_LOG.
+            The appender implementaion can define any format for serialization. The data are passed
+            to @ref processEventImpl() method in the \c params argument when \c type is \c EVENT_LOG.
+
+            @return the serialized event
         */
         abstract private auto serializeImpl(LoggerEvent event);
 
-        #! pushes the given event in the queue or calls @ref processEventImpl() in case of sync
+        #! Pushes the given event on the queue or calls @ref processEventImpl() in case of synchronous processing
         /**
-            @param type
-            @param params
+            @param type the event type
+            @param params parameters for the event according to the event type
+
+            @return @ref True if the event was accepted/processed, @ref False if not
+
+            @see @ref processEventImpl()
         */
         private bool pushEvent(int type, auto params) {
             if (exists m_queue) {
@@ -998,16 +1008,16 @@ public namespace Logger {
             }
         }
 
-        #! posts the given event to the output queue
+        #! Posts the given event to the output queue
         /**
-            Invokes filters and when event is accepted then is posted to queue in case of
-            asynchronous process or is immediately logged in case of synchronous process.
-            to the @ref processEventImpl() method.
+            Invokes filters; when the event is accepted then it is posted to the queue in case of
+            asynchronous processing, or it is immediately logged by the @ref processEventImpl() method
+            in case of synchronous processing.
 
             @see @ref processEventImpl()
 
             @param event the event to post
-            @return True if the event has been posted
+            @return True if the event has been posted, @ref False if not (filtered out, appender inactive, event not accepted on queue, etc)
         */
         public bool post(LoggerEvent event) {
             if(!m_active) {
@@ -1031,7 +1041,7 @@ public namespace Logger {
             return pushEvent(EVENT_LOG, serialized);
         }
 
-        #! processes the event to the physical target
+        #! Processes the event to the physical target
         /**
             must be implemented by non-abstract subclasses
 
@@ -1041,19 +1051,17 @@ public namespace Logger {
             @param params processing parameters
         */
         abstract public processEventImpl(int type, auto params);
-
     }
 
     #! Appender which does nothing
     /**
-        Any events posted to the appender are silently ignored
+        All events posted to the appender are silently ignored
     */
     public class LoggerAppenderNull inherits LoggerAppender {
         constructor(string name = ""): LoggerAppender(name) {
         }
 
         private auto serializeImpl(LoggerEvent event) {
-            return NOTHING;
         }
 
         public processEventImpl(int type, auto params) {
@@ -1090,13 +1098,15 @@ public namespace Logger {
             #! format escape character
             const ESCAPE_CHAR = "%";
         }
+
         private:internal {
             #! pattern
             string m_pattern;
             #! parsed pattern
             list m_parsedPattern;
         }
-        #! creates the object
+
+        #! Creates the object
         /**
             @param pattern the logger pattern
             @throw LOGGER-ERROR when \a pattern is invalid
@@ -1178,12 +1188,12 @@ public namespace Logger {
             m_parsedPattern = pp;
         }
 
-        #! returns the current pattern
+        #! Returns the current pattern
         public string getPattern() {
             return m_pattern;
         }
 
-        #! returns the parsed pattern as a list
+        #! Returns the parsed pattern as a list
         /** the function is just for internal purpose (e.g. for unit test), the programmer should never call it
         */
         public list getParsedPattern() {
@@ -1217,25 +1227,27 @@ public namespace Logger {
             return res;
         }
 
-        #! Resolves the key value
+        #! Returns a formatted string for an input pattern
         /**
-            @param data
-            @param key
-            @param option
+            @param data input context reference data
+            @param key the format character
+            @param option the format option value, if any
+
+            @return the formatted string
         */
         abstract private string resolveField(auto data, string key, *string option);
     }
 
-    #! Abstract class to define the interface for logger layouts
+    #! Abstract class that defines the interface for logger layouts
     /**
-        The event data (@ref LoggerEvent) are formatted before the record is passed to the target.
+        Event data (@ref LoggerEvent) are formatted before the record is passed to the target.
     */
     public class LoggerLayout {
         #! Format event record
         abstract public string format(LoggerEvent event);
     }
 
-    #! Implements formatting @ref LoggerEvent with a pattern
+    #! Implements the formatting of @ref LoggerEvent objects with a pattern
     /**
         The \c LoggerLayoutPattern lets the user specify the output format according to conversion patterns similar to the @ref sprintf() function.
 
@@ -1273,7 +1285,7 @@ public namespace Logger {
             const DEFAULT_DATE_FORMAT = "YYYY-MM-DD HH:mm:SS.u";
         }
 
-        #! creates the object
+        #! Creates the object
         /**
             @param pattern the logger layout pattern
         */
@@ -1290,7 +1302,10 @@ public namespace Logger {
             }
         }
 
-        #! Format event record
+        #! Formats an event record
+        /** @param event the event to format
+            @return a formatted string for the event
+        */
         public string format(LoggerEvent event) {
             return LoggerPattern::format(event);
         }
@@ -1298,7 +1313,7 @@ public namespace Logger {
         #! Returns the value corresponding to a particular key
         /**
             @param event (@ref LoggerEvent)
-            @param key the code
+            @param key the single-character formatting code
             @param option optional supporting information for \a key
         */
         private string resolveField(auto event, string key, *string option) {
@@ -1428,7 +1443,7 @@ public namespace Logger {
             bool m_assignThread;
         }
 
-        #! creates the object
+        #! Creates the object
         /**
             @param name the name of the appender
             @param layout the layout for the appender
@@ -1439,17 +1454,17 @@ public namespace Logger {
             m_assignThread = m_writer.getOutputStream().getThreadId() == -1;
         }
 
-        #! get the stream writer instance
+        #! Returns the stream writer object
         public StreamWriter getStreamWriter() {
             return m_writer;
         }
 
-        #! return True if assigning a thread for a stream
+        #! Returns @ref True if assigning a thread for a stream
         public bool hasAssignThread() {
             return m_assignThread;
         }
 
-        #! processes the event with an output stream
+        #! Processes open, log, and close events with the output stream; all other events are ignored
         public processEventImpl(int type, auto params) {
             if (type == EVENT_OPEN) {
                 if (m_closed) {
@@ -1478,7 +1493,7 @@ public namespace Logger {
 
     #! Appender writing to a file
     /**
-        No multi-threading protection is implemented in the class. @ref Qore::File "File" class is reused
+        No multi-threading protection is implemented in the class; the @ref Qore::File "File" class is reused
     */
     public class LoggerAppenderFile inherits LoggerAppenderWithLayout {
         private {
@@ -1486,7 +1501,7 @@ public namespace Logger {
             string m_filename;
         }
 
-        #! creates the object
+        #! Creates the object
         /**
             @param name the name of the appender
             @param layout the layout for the appender
@@ -1498,20 +1513,20 @@ public namespace Logger {
             m_filename = filename;
         }
 
-        #! returns the file object for the appender
+        #! Returns the file object for the appender
         public File getFile() {
             return m_file;
         }
 
-        #! returns the current filename
+        #! Returns the current filename
         public string getFileName() {
             return m_filename;
         }
 
-        #! process an event with the file
+        #! Processes open, close, and log events with the file and ignores all other events
         /**
-            @param type
-            @param params
+            @param type the event type
+            @param params parameters for the event
         */
         public processEventImpl(int type, auto params) {
             switch (type) {
@@ -1542,7 +1557,7 @@ public namespace Logger {
         }
     }
 
-    #! Appender writing to a file with rotation support
+    #! Appender writing to a file with file rotation support
     /**
         The events will be logged to a file until rotation occurs.
         At that moment the current file is closed, next file is created
@@ -1555,9 +1570,11 @@ public namespace Logger {
             #! default date format
             const DEFAULT_DATE_FORMAT = "YYYYMMDDHHmmSS";
         }
+
         private:internal {
             hash m_patternData;
         }
+
         #! creates the object
         /**
             @param name the name of the appender
@@ -1588,11 +1605,13 @@ public namespace Logger {
             m_filename = format(m_patternData);
         }
 
-        #! resolve field for filename
+        #! Returns a string for a format field for a pattern-based filename
         /**
-            @param data
-            @param key
-            @param option
+            @param data input context reference data
+            @param key the format character
+            @param option the format option value, if any
+
+            @return the formatted string
         */
         private string resolveField(auto data, string key, *string option) {
             string res;
@@ -1625,10 +1644,10 @@ public namespace Logger {
             return res;
         }
 
-        #! implements rotation
+        #! Implements filename rotation; handles the open and rotate events directly; passes all other events to the subclass for handling
         /**
-            @param type
-            @param params
+            @param type the event type
+            @param params event parameters
         */
         public processEventImpl(int type, auto params) {
             switch (type) {
@@ -1669,9 +1688,9 @@ public namespace Logger {
             }
         }
 
-        #! post rotate event
+        #! Post a rotate event
         /**
-            current logging file will be closed and next opened. If the file exists then it is ovewritten
+            The urrent log file will be closed and opened. If the file exists, then it is ovewritten
 
             @throw LOGGER-ERROR if rotation is disabled
         */
@@ -1701,7 +1720,8 @@ public namespace Logger {
             #! default archive pattern
             const DEFAULT_ARCHIVE_PATTERN = "%p%f.%d";
         }
-        #! creates the object
+
+        #! Creates the object
         /**
             @param name the name of the appender
             @param layout the layout for the appender
@@ -1734,11 +1754,13 @@ public namespace Logger {
             setPattern(archive);
         }
 
-        #! resolve pattern field
+        #! Returns a string for a format field for a pattern-based filename or archive file name
         /**
             @param data if @ref nothing, then this argument specifies the logging filename, otherwise is specifies the archive pattern
-            @param key
-            @param option
+            @param key the format character
+            @param option the format option value, if any
+
+            @return the formatted string
         */
         private string resolveField(auto data, string key, *string option) {
             string res = "";
@@ -1782,10 +1804,10 @@ public namespace Logger {
             return res;
         }
 
-        #! implements archiving
+        #! Implements archiving, handles the archive event directly, passes all other events to the subclass for handling
         /**
-            @param type
-            @param params
+            @param type the event code
+            @param params event parameters
         */
         public processEventImpl(int type, auto params) {
             switch (type) {
@@ -1804,7 +1826,7 @@ public namespace Logger {
             }
         }
 
-        #! post archive event
+        #! Post an archive event
         /**
             rename logging file and open new one
             @return archive file name
@@ -1829,7 +1851,7 @@ public namespace Logger {
             return afn;
         }
 
-        #! get the archive filename
+        #! Get the archive filename
         /**
             The pattern may contain date fields so the result may differ when
             executed multiple times
@@ -1887,7 +1909,8 @@ public namespace Logger {
             #! max.level
             LoggerLevel m_maxLevel;
         }
-        #! creates the object
+
+        #! Creates the object
         /**
             @param minLevel the minimum logging level
             @param maxLevel the maximum logging level
@@ -1897,7 +1920,7 @@ public namespace Logger {
             setMaxLevel(maxLevel);
         }
 
-        #! creates the object
+        #! Creates the object
         /**
             @param minLevel the minimum logging level
             @param maxLevel the maximum logging level
@@ -1907,7 +1930,7 @@ public namespace Logger {
             setMaxLevel(maxLevel);
         }
 
-        #! creates the object
+        #! Creates the object
         /**
             @param minLevel the minimum logging level
             @param maxLevel the maximum logging level
@@ -1917,7 +1940,7 @@ public namespace Logger {
             setMaxLevel(maxLevel);
         }
 
-        #! set min.level
+        #! Sets the minimum logging level
         /**
             @param minLevel the minimum logging level
         */
@@ -1925,7 +1948,7 @@ public namespace Logger {
             m_minLevel = minLevel;
         }
 
-        #! set min.level
+        #! Sets the minimum logging level
         /**
             @param minLevel the minimum logging level
         */
@@ -1933,7 +1956,7 @@ public namespace Logger {
             setMinLevel(LoggerLevel::getLevel(minLevel));
         }
 
-        #! set min.level
+        #! Sets the minimum logging level
         /**
             @param minLevel the minimum logging level
         */
@@ -1941,12 +1964,12 @@ public namespace Logger {
             setMinLevel(LoggerLevel::getLevel(minLevel));
         }
 
-        #! get min.level
+        #! Returns the minimum logging level
         public LoggerLevel getMinLevel() {
             return m_minLevel;
         }
 
-        #! set max.level
+        #! Sets the maximum logging level
         /**
             @param maxLevel the maximum logging level
         */
@@ -1954,7 +1977,7 @@ public namespace Logger {
             m_maxLevel = maxLevel;
         }
 
-        #! set max.level
+        #! Sets the maximum logging level
         /**
             @param maxLevel the maximum logging level
         */
@@ -1962,7 +1985,7 @@ public namespace Logger {
             setMaxLevel(LoggerLevel::getLevel(maxLevel));
         }
 
-        #! set max.level
+        #! Sets the maximum logging level
         /**
             @param maxLevel the maximum logging level
         */
@@ -1970,12 +1993,12 @@ public namespace Logger {
             setMaxLevel(LoggerLevel::getLevel(maxLevel));
         }
 
-        #! get max.level
+        #! Returns the maximum logging level
         public LoggerLevel getMaxLevel() {
             return m_maxLevel;
         }
 
-        #! implements filtering by level
+        #! Implements filtering by level
         public int eval(LoggerEvent event) {
             if (m_maxLevel.isGreaterOrEqual(m_minLevel)) {
                 if (!(event.getLevel().isGreaterOrEqual(m_minLevel) && m_maxLevel.isGreaterOrEqual(event.getLevel()))) {
@@ -2003,7 +2026,7 @@ public namespace Logger {
             bool m_regexResult;
         }
 
-        #! creates the object
+        #! Creates the object
         /**
             @param regexStr the regular expression to use
             @param regexResult @ref True for a positive match, @ref False for a negative match
@@ -2012,7 +2035,7 @@ public namespace Logger {
             setRegex(regexStr, regexResult);
         }
 
-        #! set the regular expression and the expected result
+        #! Set the regular expression and the expected result for the filter
         /**
             @param regexStr the regular expression to use
             @param regexResult @ref True for a positive match, @ref False for a negative match
@@ -2022,17 +2045,17 @@ public namespace Logger {
             m_regexResult = regexResult;
         }
 
-        #! returns the current regex
+        #! Returns the current regex
         public string getRegex() {
             return m_regexStr;
         }
 
-        #! returns the expected result
+        #! Returns the expected result
         public bool getRegexResult() {
             return m_regexResult;
         }
 
-        #! evaluates the regex and compares with the expected result
+        #! Evaluates the regex and compares with the expected result
         public int eval(LoggerEvent event) {
             if (event.getMessage().regex(m_regexStr) != m_regexResult) {
                 return DENY;
@@ -2046,8 +2069,8 @@ public namespace Logger {
     /**
         The Logger object is provided to user code. When a log is triggered then
         message, arguments, current code posotion, time are appended into @ref LoggerEvent event instance when
-        the logging level is switched on. The event is passed to all registered appenders in the given Logger as well as
-        in parents in the hierarchy when additivity is switched on.
+        the logging level is enabled. The event is passed to all registered appenders in the given Logger as well as
+        in parents in the hierarchy when additivity is enabled.
     */
     public class Logger {
         private:internal {
@@ -2082,19 +2105,19 @@ public namespace Logger {
             setParent(NOTHING);
         }
 
-        #! get logger name
+        #! Returns the logger name
         public string getName() {
             return m_name;
         }
 
-        #! get parent logger, if any
+        #! Returns the parent logger, if any
         public *Logger getParent() {
             return m_parent;
         }
 
-        #! set parent logger
+        #! Sets the parent logger
         /**
-            @param parent
+            @param parent the parent logger
             @throw LOGGER-ERROR in case of circular reference
         */
         public setParent(*Logger parent) {
@@ -2110,7 +2133,7 @@ public namespace Logger {
             m_parent = parent;
         }
 
-        #! Get logging level
+        #! Returns the logging level
         /**
             @param effective if False then get current level which can be NOTHING, if True then get level which might be inherited from parent, Default: True
             @throw LOGGER-ERROR if cannot get effective level from hierarchy
@@ -2167,7 +2190,7 @@ public namespace Logger {
             return m_additive;
         }
 
-        #! Get the location where the log function called from
+        #! Returns the call location where the log function was called from
         private hash<CallStackInfo> getLocation() {
             list<hash<CallStackInfo>> loc = get_thread_call_stack();
             return loc[2];   # get location at stack-2
@@ -2184,7 +2207,7 @@ public namespace Logger {
             }
         }
 
-        #! add a appender to the list
+        #! Adds an appender to the appender list
         /**
             @param appender add a new LoggerAppender
             @throw "LOGGER-ERROR" exception if appender is already in list
@@ -2201,7 +2224,7 @@ public namespace Logger {
             }
         }
 
-        #! remove the appender from the list
+        #! Removes the appender from the list
         /**
             @param appender the appender to remove
         */
@@ -2215,7 +2238,7 @@ public namespace Logger {
             }
         }
 
-        #! Clears the appender list by removing all the appenders in it
+        #! Clears the appender list by removing all appenders
         public removeAllAppenders() {
             AutoWriteLock awl(m_lock);
             splice m_appenders, 0;
@@ -2248,7 +2271,7 @@ public namespace Logger {
             }
         }
 
-        #! Log a message using the provided logging level.
+        #! Logs a message using the provided logging level.
         /**
             @param level The logging level.
             @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
@@ -2257,7 +2280,7 @@ public namespace Logger {
             logIntern(level, message, argv, getLocation(), True);
         }
 
-        #! Log a message using the provided logging level.
+        #! Logs a message using the provided logging level.
         /**
             @param level the logging level.
             @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
@@ -2266,7 +2289,7 @@ public namespace Logger {
             logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
         }
 
-        #! Log a message using the provided logging level.
+        #! Logs a message using the provided logging level.
         /**
             @param level The logging level.
             @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
@@ -2290,7 +2313,7 @@ public namespace Logger {
             }
         }
 
-        #! Log a message object with the TRACE level.
+        #! Logs a message object with the TRACE level.
         /**
             @see @ref log()
             @param message with optional arguments
@@ -2299,7 +2322,7 @@ public namespace Logger {
             logIntern(LoggerLevel::getLevelTrace(), message, argv, getLocation(), True);
         }
 
-        #! Log a message object with the DEBUG level.
+        #! Logs a message object with the DEBUG level.
         /**
             @see @ref log()
             @param message with optional arguments
@@ -2308,7 +2331,7 @@ public namespace Logger {
             logIntern(LoggerLevel::getLevelDebug(), message, argv, getLocation(), True);
         }
 
-        #! Log a message object with the INFO level.
+        #! Logs a message object with the INFO level.
         /**
             @see @ref log()
             @param message with optional arguments
@@ -2317,7 +2340,7 @@ public namespace Logger {
             logIntern(LoggerLevel::getLevelInfo(), message, argv, getLocation(), True);
         }
 
-        #! Log a message object with the WARN level.
+        #! Logs a message object with the WARN level.
         /**
             @see @ref log()
             @param message with optional arguments
@@ -2326,7 +2349,7 @@ public namespace Logger {
             logIntern(LoggerLevel::getLevelWarn(), message, argv, getLocation(), True);
         }
 
-        #! Log a message object with the ERROR level.
+        #! Logs a message object with the ERROR level.
         /**
             @see @ref log()
             @param message with optional arguments
@@ -2335,7 +2358,7 @@ public namespace Logger {
             logIntern(LoggerLevel::getLevelError(), message, argv, getLocation(), True);
         }
 
-        #! Log a message object with the FATAL level.
+        #! Logs a message object with the FATAL level.
         /**
             @see @ref log()
             @param message with optional arguments
@@ -2344,9 +2367,9 @@ public namespace Logger {
             logIntern(LoggerLevel::getLevelFatal(), message, argv, getLocation(), True);
         }
 
-        #! assertion logging
+        #! Performs logging of assertions
         /**
-            If assertion parameter is evaluated as False, then logs the message
+            If the \a assertion parameter is @ref False, then the message is logged
             using the ERROR level.
 
             @see @ref log()
@@ -2360,7 +2383,7 @@ public namespace Logger {
             }
         }
 
-         #! Log variable name and value using TRACE level
+         #! Logs the variable name and value using TRACE level
         /**
             @see @ref log()
 
@@ -2371,7 +2394,7 @@ public namespace Logger {
             logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %y", varName), (value, ), getLocation(), False);
         }
 
-        #! Log variable name and value using DEBUG level
+        #! Logs the variable name and value using DEBUG level
         /**
             @see @ref log()
 
@@ -2382,7 +2405,7 @@ public namespace Logger {
             logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %y", varName), (value, ), getLocation(), False);
         }
 
-        #! Check whether this Logger is enabled for a given Level passed as parameter.
+        #! Checks whether this Logger is enabled for a given Level passed as parameter.
         /**
             @param level the log level to check
         */
@@ -2390,7 +2413,7 @@ public namespace Logger {
             return level.isGreaterOrEqual(getLevel());
         }
 
-        #! Check whether this Logger is enabled for a given Level passed as parameter.
+        #! Checks whether this Logger is enabled for a given Level passed as parameter.
         /**
             @param level the log level to check
         */
@@ -2398,7 +2421,7 @@ public namespace Logger {
             return LoggerLevel::getLevel(level).isGreaterOrEqual(getLevel());
         }
 
-        #! Check whether this Logger is enabled for a given Level passed as parameter.
+        #! Checks whether this Logger is enabled for a given Level passed as parameter.
         /**
             @param level the log level to check
         */
@@ -2406,40 +2429,40 @@ public namespace Logger {
             return LoggerLevel::getLevel(level).isGreaterOrEqual(getLevel());
         }
 
-        #! Check whether this Logger is enabled for the TRACE Level.
+        #! Checks whether this Logger is enabled for the TRACE Level.
         public bool isTraceEnabled() {
             return isEnabledFor(LoggerLevel::getLevelTrace());
         }
 
-        #! Check whether this Logger is enabled for the DEBUG Level.
+        #! Checks whether this Logger is enabled for the DEBUG Level.
         public bool isDebugEnabled() {
             return isEnabledFor(LoggerLevel::getLevelDebug());
         }
 
-        #! Check whether this Logger is enabled for the INFO Level.
+        #! Checks whether this Logger is enabled for the INFO Level.
         public bool isInfoEnabled() {
             return isEnabledFor(LoggerLevel::getLevelInfo());
         }
 
-        #! Check whether this Logger is enabled for the WARN Level.
+        #! Checks whether this Logger is enabled for the WARN Level.
         public bool isWarnEnabled() {
             return isEnabledFor(LoggerLevel::getLevelWarn());
         }
 
-        #! Check whether this Logger is enabled for the ERROR Level.
+        #! Checks whether this Logger is enabled for the ERROR Level.
         public bool isErrorEnabled() {
             return isEnabledFor(LoggerLevel::getLevelError());
         }
 
-        #! Check whether this Logger is enabled for the FATAL Level.
+        #! Checks whether this Logger is enabled for the FATAL Level.
         public bool isFatalEnabled() {
             return isEnabledFor(LoggerLevel::getLevelFatal());
         }
     }
 
-    #! root class which prevents setting parent
+    #! The root class for loggers; does not allow a parent logger to be set
     public class LoggerRoot inherits Logger {
-        # creates the object
+        # Creates the object
         /**
             @param level initial log level
         */
@@ -2447,7 +2470,7 @@ public namespace Logger {
             setLevel(level);
         }
 
-        # creates the object
+        # Creates the object
         /**
             @param level initial log level
         */
@@ -2455,7 +2478,7 @@ public namespace Logger {
             setLevel(level);
         }
 
-        # creates the object
+        # Creates the object
         /**
             @param level initial log level
         */
@@ -2463,7 +2486,7 @@ public namespace Logger {
             setLevel(level);
         }
 
-        #! Override level setter to prevent setting the root logger's level to nothing.
+        #! Overrides the level setter to prevent setting the root logger's level to @ref nothing (an exception is thrown in this case).
         /**
             The root logger must always have a level.
 
@@ -2477,7 +2500,7 @@ public namespace Logger {
             Logger::setLevel(level);
         }
 
-        #! Override parent setter. Root logger cannot have a parent.
+        #! Overrides parent setter as the root logger cannot have a parent; this method always throws an exception if the argument is a value
         /**
             @throw LOGGER-ERROR if parent exists
         */
