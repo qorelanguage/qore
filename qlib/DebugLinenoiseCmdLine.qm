@@ -42,8 +42,11 @@ module DebugLinenoiseCmdLine {
 
 /** @mainpage DebugLinenoiseCmdLine Module
 
-    The %DebugLinenoiseCmdLine module provides Linenoise support for command line so it is
-    dependent on binary *linenoise* Qore module.
+    @section debuglinenoisecmdlineintro Introduction to the DebugLinenoiseCmdLine Module
+
+    The %DebugLinenoiseCmdLine module provides <a href="https://github.com/antirez/linenoise">linenoise</a> command-line
+    editing/history support for %Qore debugging; it is dependent on the binary
+    <a href="https://github.com/qorelanguage/module-linenoise">linenoise</a> module.
 
     @subsection dlcl_v0_1 v0.1
     - the initial version of the DebugLinenoiseCmdLine module
@@ -57,13 +60,13 @@ public namespace DebugLinenoiseCmdLine {
             string ln_prompt = 'qdbg> ';
             const defaultHistoryFileName = '.qdbg.history';
             const defaultIndent = "  ";
-
         }
 
+        #! Creates the object
         constructor() {
         }
 
-
+        #! Returns all commands from the subclass plus history commands added by this module
         private hash<auto> getCommands() {
             hash cmds = DebugCommandLine::getCommands();
             cmds.'>' += (
@@ -102,6 +105,7 @@ public namespace DebugLinenoiseCmdLine {
             return cmds;
         }
 
+        #! Sets up command-line handling with linenoise
         public runCmdLine() {
             # Linenoise::history_load('history.txt');
             # Linenoise::history_set_max_len(256);
@@ -139,6 +143,7 @@ public namespace DebugLinenoiseCmdLine {
             }
         }
 
+        #! Initializes the history and command-line session
         public init(hash opt) {
             DebugCommandLine::init(opt);
             if (!exists opt.history) {
@@ -168,6 +173,7 @@ public namespace DebugLinenoiseCmdLine {
             }
         }
 
+        #! Outputs data to a linenoise-configured terminal
         public printfImpl(string fmt) {
             string outs = vsprintf(fmt, argv);
             # linenoise terminal has somehow redefined CRLF so force \r (TODO: what is Qore line delimiter on Windows ?)
@@ -178,7 +184,5 @@ public namespace DebugLinenoiseCmdLine {
             stdout.print(outs);
             # TODO: how refresh linenoise command line ?
         }
-
     }
-
 }
