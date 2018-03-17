@@ -95,5 +95,5 @@ AbstractQoreNode* BarewordNode::parseInitImpl(LocalVar *oflag, int pflag, int &l
         return &Nothing;
     }
     typeInfo = nullptr;
-    return n.getReferencedValue()->parseInit(oflag, pflag, lvids, typeInfo);
+    return n.takeNode()->parseInit(oflag, pflag, lvids, typeInfo);
 }
