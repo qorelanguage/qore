@@ -259,9 +259,9 @@ int typed_hash_decl_private::initHash(QoreHashNode* h, const QoreHashNode* init,
                 QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, *val, xsink);
                 if (*xsink)
                     return -1;
-                AbstractQoreNode** v = h->getKeyValuePtr(i->first);
-                assert(!*v);
-                *v = val.release().takeNode();
+                QoreValue& v = qore_hash_private::get(*h)->getValueRef(i->first);
+                assert(v.isNothing());
+                v = val.release();
                 continue;
             }
         }

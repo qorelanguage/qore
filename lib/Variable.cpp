@@ -189,19 +189,19 @@ LValueHelper::~LValueHelper() {
     if (!(*vl.xsink)) {
         // see if we have any object count changes
         if (!ocvec.empty()) {
-            // v could be 0 if the constructor taking QoreObject& was used (to scan objects after initialization)
-            if (v) {
+            // v && qv could be nullptr if the constructor taking QoreObject& was used (to scan objects after initialization)
+            if (v || qv) {
                 if (rdt) {
-                    assert(*v);
+                    assert((qv && !qv->isNothing()) || (v && *v));
                     if (!obj_chg)
                         obj_chg = true;
                     inc_container_obj(ocvec[ocvec.size() - 1].con, rdt);
                 }
                 else {
-                    bool after = needs_scan(*v);
+                    bool after = qv ? needs_scan(*qv) : needs_scan(*v);
                     if (before) {
                         if (!after)
-                        inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
+                            inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
                     }
                     else if (after) {
                         if (!obj_chg)
@@ -223,13 +223,14 @@ LValueHelper::~LValueHelper() {
             }
         }
 
-        if (!obj_chg && (val ? val->needsScan() : (qv ? needs_scan(qv) : needs_scan(*v))))
+        if (!obj_chg && (val ? val->needsScan() : (qv ? needs_scan(*qv) : needs_scan(*v)))) {
             obj_chg = true;
+        }
         if (robj) {
             robj->tRef();
             obj_ref = true;
         }
-        //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d obj_chg: %d (val: %s v: %s)\n", robj, before, obj_chg, val ? val->getTypeName() : "null", v ? get_type_name(*v) : "null");
+        //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d rdt: %d obj_chg: %d (val: %s qv: %s v: %s)\n", robj, before, rdt, obj_chg, val ? val->getTypeName() : "n/a", qv ? qv->getTypeName() : "n/a", v ? get_type_name(*v) : "n/a");
     }
 
     // first free any locks
@@ -382,113 +383,113 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
 }
 
 int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove) {
-   ValueEvalRefHolder rh(op->getRight(), vl.xsink);
-   if (*vl.xsink)
-      return -1;
+    ValueEvalRefHolder rh(op->getRight(), vl.xsink);
+    if (*vl.xsink)
+        return -1;
 
-   // convert to default character encoding
-   QoreStringValueHelper mem(*rh, QCS_DEFAULT, vl.xsink);
-   if (*vl.xsink)
-      return -1;
+    // convert to default character encoding
+    QoreStringValueHelper mem(*rh, QCS_DEFAULT, vl.xsink);
+    if (*vl.xsink)
+        return -1;
 
-   if (doLValue(op->getLeft(), for_remove))
-      return -1;
+    if (doLValue(op->getLeft(), for_remove))
+        return -1;
 
-   qore_type_t t = getType();
-   QoreObject* o;
-   if (t == NT_WEAKREF)
-      o = static_cast<const WeakReferenceNode*>(getValue())->get();
-   else if (t == NT_OBJECT)
-      o = reinterpret_cast<QoreObject*>(getValue());
-   else
-      return doHashLValue(t, mem->c_str(), for_remove);
+    qore_type_t t = getType();
+    QoreObject* o;
+    if (t == NT_WEAKREF)
+        o = static_cast<const WeakReferenceNode*>(getValue())->get();
+    else if (t == NT_OBJECT)
+        o = reinterpret_cast<QoreObject*>(getValue());
+    else
+        return doHashLValue(t, mem->c_str(), for_remove);
 
-   //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, getTypeName(), getValue() ? getValue()->reference_count() : 0);
+    //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, getTypeName(), getValue() ? getValue()->reference_count() : 0);
 
-   //printd(5, "LValueHelper::doHashObjLValue() obj: %p member: '%s'\n", o, mem->getBuffer());
+    //printd(5, "LValueHelper::doHashObjLValue() obj: %p member: '%s'\n", o, mem->getBuffer());
 
-   // clear ocvec when we get to an object
-   ocvec.clear();
-   clearPtr();
+    // clear ocvec when we get to an object
+    ocvec.clear();
+    clearPtr();
 
-   // get the current class context for possible internal data
-   const qore_class_private* class_ctx = runtime_get_class();
-   if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass(), class_ctx))
-      class_ctx = 0;
-   if (!qore_object_private::getLValue(*o, mem->getBuffer(), *this, class_ctx, for_remove, vl.xsink)) {
-      if (!class_ctx)
-         vl.addMemberNotification(o, mem->getBuffer()); // add member notification for external updates
-   }
-   if (*vl.xsink)
-      return -1;
+    // get the current class context for possible internal data
+    const qore_class_private* class_ctx = runtime_get_class();
+    if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass(), class_ctx))
+        class_ctx = nullptr;
+    if (!qore_object_private::getLValue(*o, mem->getBuffer(), *this, class_ctx, for_remove, vl.xsink)) {
+        if (!class_ctx)
+            vl.addMemberNotification(o, mem->getBuffer()); // add member notification for external updates
+    }
+    if (*vl.xsink)
+        return -1;
 
-   robj = qore_object_private::get(*o);
-   ocvec.push_back(ObjCountRec(o));
+    robj = qore_object_private::get(*o);
+    ocvec.push_back(ObjCountRec(o));
 
-   return 0;
+    return 0;
 }
 
 int LValueHelper::doLValue(const ReferenceNode* ref, bool for_remove) {
-   const lvalue_ref* r = lvalue_ref::get(ref);
-   if (!lvid_set)
-      lvid_set = new lvid_set_t;
-   // issue 1617: the lvalue_id might already be present in the set in case there is
-   // a reference to a reference, however it's safe to insert it multiple times;
-   // the reference count for the lvalue_id object is handled elsewhere
-   lvid_set->insert(r->lvalue_id);
-   return doLValue(r->vexp, for_remove);
+    const lvalue_ref* r = lvalue_ref::get(ref);
+    if (!lvid_set)
+        lvid_set = new lvid_set_t;
+    // issue 1617: the lvalue_id might already be present in the set in case there is
+    // a reference to a reference, however it's safe to insert it multiple times;
+    // the reference count for the lvalue_id object is handled elsewhere
+    lvid_set->insert(r->lvalue_id);
+    return doLValue(r->vexp, for_remove);
 }
 
 int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
-   // if we are already locked, then save the value and unlock before processing
-   if (vl) {
-      saveTemp(n->refSelf());
-      vl.del();
-   }
-   qore_type_t ntype = n->getType();
-   //printd(5, "LValueHelper::doLValue(exp: %p) %s %d\n", n, get_type_name(n), get_node_type(n));
-   if (ntype == NT_VARREF) {
-      const VarRefNode* v = reinterpret_cast<const VarRefNode*>(n);
-      //printd(5, "LValueHelper::doLValue(): vref: %s (%p) type: %d\n", v->getName(), v, v->getType());
-      if (v->getLValue(*this, for_remove))
-         return -1;
-   }
-   else if (ntype == NT_SELF_VARREF) {
-      const SelfVarrefNode* v = reinterpret_cast<const SelfVarrefNode*>(n);
-      // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
-      QoreObject* obj = runtime_get_stack_object();
-      assert(obj);
-
-      // clear ocvec when we get to an object
-      ocvec.clear();
-      clearPtr();
-
-      if (qore_object_private::getLValue(*obj, v->str, *this, runtime_get_class(), for_remove, vl.xsink))
-         return -1;
-
-      robj = qore_object_private::get(*obj);
-      ocvec.push_back(ObjCountRec(obj));
-   }
-   else if (ntype == NT_CLASS_VARREF)
-      reinterpret_cast<const StaticClassVarRefNode*>(n)->getLValue(*this);
-   else if (ntype == NT_REFERENCE) {
-      if (doLValue(reinterpret_cast<const ReferenceNode*>(n), for_remove))
-         return -1;
-   }
-   else {
-      assert(ntype == NT_OPERATOR);
-      const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(n);
-      if (op) {
-         if (doListLValue(op, for_remove))
+    // if we are already locked, then save the value and unlock before processing
+    if (vl) {
+        saveTemp(n->refSelf());
+        vl.del();
+    }
+    qore_type_t ntype = n->getType();
+    //printd(5, "LValueHelper::doLValue(exp: %p) %s %d\n", n, get_type_name(n), get_node_type(n));
+    if (ntype == NT_VARREF) {
+        const VarRefNode* v = reinterpret_cast<const VarRefNode*>(n);
+        //printd(5, "LValueHelper::doLValue(): vref: %s (%p) type: %d\n", v->getName(), v, v->getType());
+        if (v->getLValue(*this, for_remove))
             return -1;
-      }
-      else {
-         assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n));
-         const QoreHashObjectDereferenceOperatorNode* hop = reinterpret_cast<const QoreHashObjectDereferenceOperatorNode*>(n);
-         if (doHashObjLValue(hop, for_remove))
+    }
+    else if (ntype == NT_SELF_VARREF) {
+        const SelfVarrefNode* v = reinterpret_cast<const SelfVarrefNode*>(n);
+        // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
+        QoreObject* obj = runtime_get_stack_object();
+        assert(obj);
+
+        // clear ocvec when we get to an object
+        ocvec.clear();
+        clearPtr();
+
+        if (qore_object_private::getLValue(*obj, v->str, *this, runtime_get_class(), for_remove, vl.xsink))
             return -1;
-      }
-   }
+
+        robj = qore_object_private::get(*obj);
+        ocvec.push_back(ObjCountRec(obj));
+    }
+    else if (ntype == NT_CLASS_VARREF)
+        reinterpret_cast<const StaticClassVarRefNode*>(n)->getLValue(*this);
+    else if (ntype == NT_REFERENCE) {
+        if (doLValue(reinterpret_cast<const ReferenceNode*>(n), for_remove))
+            return -1;
+    }
+    else {
+        assert(ntype == NT_OPERATOR);
+        const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(n);
+        if (op) {
+            if (doListLValue(op, for_remove))
+                return -1;
+        }
+        else {
+            assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n));
+            const QoreHashObjectDereferenceOperatorNode* hop = reinterpret_cast<const QoreHashObjectDereferenceOperatorNode*>(n);
+            if (doHashObjLValue(hop, for_remove))
+                return -1;
+        }
+    }
 
 #if 0
     if (v && *v)
@@ -1273,180 +1274,180 @@ QoreValue LValueRemoveHelper::remove(bool& static_assignment) {
 }
 
 void LValueRemoveHelper::deleteLValue() {
-   assert(!*xsink);
-   assert(for_del);
+    assert(!*xsink);
+    assert(for_del);
 
-   bool static_assignment = false;
-   ValueOptionalRefHolder v(remove(static_assignment), true, xsink);
-   if (!v) {
-      assert(!static_assignment);
-      return;
-   }
-   if (static_assignment)
-      v.clearTemp();
+    bool static_assignment = false;
+    ValueOptionalRefHolder v(remove(static_assignment), true, xsink);
+    if (!v) {
+        assert(!static_assignment);
+        return;
+    }
+    if (static_assignment)
+        v.clearTemp();
 
-   qore_type_t t = v->getType();
-   if (t == NT_LIST && direct_list) {
-      ListIterator i(static_cast<QoreListNode*>(v->getInternalNode()));
-      while (i.next()) {
-         AbstractQoreNode* n = i.getValue();
-         if (get_node_type(n) == NT_OBJECT) {
-            QoreObject* o = static_cast<QoreObject*>(n);
-            if (o->isSystemObject()) {
-               xsink->raiseException("SYSTEM-OBJECT-ERROR", "cannot delete a system constant object (class '%s')", o->getClassName());
-               continue;
+    qore_type_t t = v->getType();
+    if (t == NT_LIST && direct_list) {
+        ListIterator i(static_cast<QoreListNode*>(v->getInternalNode()));
+        while (i.next()) {
+            AbstractQoreNode* n = i.getValue();
+            if (get_node_type(n) == NT_OBJECT) {
+                QoreObject* o = static_cast<QoreObject*>(n);
+                if (o->isSystemObject()) {
+                xsink->raiseException("SYSTEM-OBJECT-ERROR", "cannot delete a system constant object (class '%s')", o->getClassName());
+                continue;
+                }
+                o->doDelete(xsink);
             }
-            o->doDelete(xsink);
-         }
-      }
+        }
 
-      return;
-   }
-   if (t != NT_OBJECT)
-      return;
+        return;
+    }
+    if (t != NT_OBJECT)
+        return;
 
-   QoreObject* o = reinterpret_cast<QoreObject*>(v->getInternalNode());
-   if (o->isSystemObject()) {
-      xsink->raiseException("SYSTEM-OBJECT-ERROR", "cannot delete a system constant object (class '%s')", o->getClassName());
-      return;
-   }
+    QoreObject* o = reinterpret_cast<QoreObject*>(v->getInternalNode());
+    if (o->isSystemObject()) {
+        xsink->raiseException("SYSTEM-OBJECT-ERROR", "cannot delete a system constant object (class '%s')", o->getClassName());
+        return;
+    }
 
-   o->doDelete(xsink);
+    o->doDelete(xsink);
 }
 
 void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
-   assert(lvalue);
-   qore_type_t t = lvalue->getType();
-   if (t == NT_VARREF) {
-      reinterpret_cast<VarRefNode*>(lvalue)->remove(*this);
-      return;
-   }
+    assert(lvalue);
+    qore_type_t t = lvalue->getType();
+    if (t == NT_VARREF) {
+        reinterpret_cast<VarRefNode*>(lvalue)->remove(*this);
+        return;
+    }
 
-   if (t == NT_SELF_VARREF) {
+    if (t == NT_SELF_VARREF) {
 #ifdef DEBUG
-      // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-      assert(!rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, reinterpret_cast<SelfVarrefNode*>(lvalue)->str, false)));
+        // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+        assert(!rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, reinterpret_cast<SelfVarrefNode*>(lvalue)->str, false)));
 #else
-      rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, reinterpret_cast<SelfVarrefNode*>(lvalue)->str, false));
+        rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, reinterpret_cast<SelfVarrefNode*>(lvalue)->str, false));
 #endif
-      return;
-   }
+        return;
+    }
 
-   if (t == NT_CLASS_VARREF) {
-      reinterpret_cast<StaticClassVarRefNode*>(lvalue)->remove(*this);
-      return;
-   }
+    if (t == NT_CLASS_VARREF) {
+        reinterpret_cast<StaticClassVarRefNode*>(lvalue)->remove(*this);
+        return;
+    }
 
-   // could be any type if in a background expression
-   if (t != NT_OPERATOR) {
+    // could be any type if in a background expression
+    if (t != NT_OPERATOR) {
 #ifdef DEBUG
-      // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-      assert(!rv.assignInitial(lvalue ? lvalue->refSelf() : 0));
+        // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+        assert(!rv.assignInitial(lvalue ? lvalue->refSelf() : 0));
 #else
-      rv.assignInitial(lvalue ? lvalue->refSelf() : 0);
+        rv.assignInitial(lvalue ? lvalue->refSelf() : 0);
 #endif
-      return;
-   }
+        return;
+    }
 
-   assert(t == NT_OPERATOR);
+    assert(t == NT_OPERATOR);
 
-   {
-      const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(lvalue);
-      if (op) {
-         doRemove(op);
-         return;
-      }
-   }
+    {
+        const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(lvalue);
+        if (op) {
+            doRemove(op);
+            return;
+        }
+    }
 
-   {
-      const QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<const QoreSquareBracketsRangeOperatorNode*>(lvalue);
-      if (op) {
-         doRemove(op);
-         return;
-      }
-   }
+    {
+        const QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<const QoreSquareBracketsRangeOperatorNode*>(lvalue);
+        if (op) {
+            doRemove(op);
+            return;
+        }
+    }
 
-   assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(lvalue));
-   const QoreHashObjectDereferenceOperatorNode* op = reinterpret_cast<const QoreHashObjectDereferenceOperatorNode*>(lvalue);
+    assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(lvalue));
+    const QoreHashObjectDereferenceOperatorNode* op = reinterpret_cast<const QoreHashObjectDereferenceOperatorNode*>(lvalue);
 
-   // get the member name or names
-   ValueEvalRefHolder member(op->getRight(), xsink);
-   if (*xsink)
-      return;
+    // get the member name or names
+    ValueEvalRefHolder member(op->getRight(), xsink);
+    if (*xsink)
+        return;
 
-   // find variable ptr, exit if doesn't exist anyway
-   LValueHelper lvh(op->getLeft(), xsink, true);
-   if (!lvh)
-      return;
+    // find variable ptr, exit if doesn't exist anyway
+    LValueHelper lvh(op->getLeft(), xsink, true);
+    if (!lvh)
+        return;
 
-   t = lvh.getType();
-   if (t == NT_HASH)
-      lvh.ensureUnique();
+    t = lvh.getType();
+    if (t == NT_HASH)
+        lvh.ensureUnique();
 
-   QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject*>(lvh.getValue()) : 0;
-   QoreHashNode* h = !o && t == NT_HASH ? reinterpret_cast<QoreHashNode*>(lvh.getValue()) : 0;
-   if (!o && !h)
-      return;
+    QoreObject* o = t == NT_OBJECT ? reinterpret_cast<QoreObject*>(lvh.getValue()) : 0;
+    QoreHashNode* h = !o && t == NT_HASH ? reinterpret_cast<QoreHashNode*>(lvh.getValue()) : 0;
+    if (!o && !h)
+        return;
 
-   // remove a slice of the hash or object
-   if (member->getType() == NT_LIST) {
-      const QoreListNode* l = member->get<const QoreListNode>();
+    // remove a slice of the hash or object
+    if (member->getType() == NT_LIST) {
+        const QoreListNode* l = member->get<const QoreListNode>();
 
-      if (o)
-         qore_object_private::takeMembers(*o, rv, lvh, l);
-      else {
-         unsigned old_count = qore_hash_private::getScanCount(*h);
+        if (o)
+            qore_object_private::takeMembers(*o, rv, lvh, l);
+        else {
+            unsigned old_count = qore_hash_private::getScanCount(*h);
 
-         QoreHashNode* rvh = new QoreHashNode;
+            QoreHashNode* rvh = new QoreHashNode;
 #ifdef DEBUG
-         // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-         assert(!rv.assignInitial(rvh));
+            // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+            assert(!rv.assignInitial(rvh));
 #else
-         rv.assignInitial(rvh);
+            rv.assignInitial(rvh);
 #endif
 
-         ConstListIterator li(l);
-         while (li.next()) {
-            QoreStringValueHelper mem(li.getValue(), QCS_DEFAULT, xsink);
-            if (*xsink)
-               return;
+            ConstListIterator li(l);
+            while (li.next()) {
+                QoreStringValueHelper mem(li.getValue(), QCS_DEFAULT, xsink);
+                if (*xsink)
+                    return;
 
-            AbstractQoreNode* n = h->takeKeyValue(mem->getBuffer());
-            if (*xsink)
-               return;
+                AbstractQoreNode* n = h->takeKeyValue(mem->getBuffer());
+                if (*xsink)
+                    return;
 
-            // note that no exception can occur here
-            rvh->setKeyValue(mem->getBuffer(), n, xsink);
-            assert(!*xsink);
-         }
+                // note that no exception can occur here
+                rvh->setKeyValue(mem->getBuffer(), n, xsink);
+                assert(!*xsink);
+            }
 
-         if (old_count && !qore_hash_private::getScanCount(*h))
-            lvh.setDelta(-1);
-      }
+            if (old_count && !qore_hash_private::getScanCount(*h))
+                lvh.setDelta(-1);
+        }
 
-      return;
-   }
+        return;
+    }
 
-   QoreStringValueHelper mem(*member, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return;
+    QoreStringValueHelper mem(*member, QCS_DEFAULT, xsink);
+    if (*xsink)
+        return;
 
-   AbstractQoreNode* v;
-   if (o)
-      v = qore_object_private::takeMember(*o, lvh, mem->getBuffer());
-   else {
-      v = h->takeKeyValue(mem->getBuffer());
-      if (needs_scan(v)) {
-         if (!qore_hash_private::getScanCount(*h))
-            lvh.setDelta(-1);
-      }
-   }
+    QoreValue v;
+    if (o)
+        v = qore_object_private::takeMember(*o, lvh, mem->c_str());
+    else {
+        v = qore_hash_private::get(*h)->takeKeyValueIntern(mem->c_str());
+        if (needs_scan(v)) {
+            if (!qore_hash_private::getScanCount(*h))
+                lvh.setDelta(-1);
+        }
+    }
 
 #ifdef DEBUG
-   // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-   assert(!rv.assignInitial(v));
+    // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+    assert(!rv.assignInitial(v));
 #else
-   rv.assignInitial(v);
+    rv.assignInitial(v);
 #endif
 }
 

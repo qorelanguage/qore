@@ -923,9 +923,12 @@ int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool 
                 ValueEvalRefHolder val(i->second->exp, xsink);
                 if (*xsink)
                     return -1;
-                QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, *val, xsink);
-                if (*xsink)
-                    return -1;
+                if (QoreTypeInfo::mayRequireFilter(i->second->getTypeInfo(), *val)) {
+                    val.ensureReferencedValue();
+                    QoreTypeInfo::acceptInputMember(i->second->getTypeInfo(), i->first, *val, xsink);
+                    if (*xsink)
+                        return -1;
+                }
                 //val.sanitize();
                 v = val.takeReferencedValue();
                 if (needs_scan(v)) {
@@ -5056,19 +5059,19 @@ void QoreVarMap::parseCommitRuntimeInit(ExceptionSink* xsink) {
 
         if (vi.exp) {
             // evaluate expression
-            ReferenceHolder<AbstractQoreNode> val(vi.exp->eval(xsink), xsink);
+            ValueEvalRefHolder val(vi.exp, xsink);
             if (*xsink) {
                 continue;
             }
-
-            QoreValue qv(val.release());
-            QoreTypeInfo::acceptInputMember(vi.getTypeInfo(), vname, qv, xsink);
-            val = qv.takeNode();
-            if (*xsink) {
-                continue;
+            if (QoreTypeInfo::mayRequireFilter(vi.getTypeInfo(), *val)) {
+                val.ensureReferencedValue();
+                QoreTypeInfo::acceptInputMember(vi.getTypeInfo(), vname, *val, xsink);
+                if (*xsink) {
+                    continue;
+                }
             }
 
-            discard(vi.assignInit(val.release()), xsink);
+            discard(vi.assignInit(val.takeReferencedValue()), xsink);
         }
         else {
             vi.init();

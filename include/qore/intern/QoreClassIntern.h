@@ -1145,11 +1145,11 @@ public:
       return new QoreVarInfo(*this);
    }
 
-   DLLLOCAL AbstractQoreNode* assignInit(AbstractQoreNode* v) {
-      // try to set an optimized value type for the value holder if possible
-      val.set(getTypeInfo());
-      return val.assignInitial(v);
-   }
+    DLLLOCAL AbstractQoreNode* assignInit(QoreValue v) {
+        // try to set an optimized value type for the value holder if possible
+        val.set(getTypeInfo());
+        return val.assignInitial(v);
+    }
 
    DLLLOCAL void getLValue(LValueHelper& lvh) {
       lvh.setAndLock(rwl);
@@ -1218,15 +1218,15 @@ public:
    typedef typename member_map_t::const_iterator SigOrderIterator;
 
 public:
-   DLLLOCAL ~QoreMemberMapBase() {
-      for (typename member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
-         //printd(5, "QoreMemberMap::~QoreMemberMap() this: %p freeing pending private member %p '%s'\n", this, i->second, i->first);
-         delete i->second;
-         free(i->first);
-      }
-      map.clear();
-      list.clear();
-   }
+    DLLLOCAL ~QoreMemberMapBase() {
+        for (typename member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
+            //printd(5, "QoreMemberMap::~QoreMemberMap() this: %p freeing member %p '%s'\n", this, i->second, i->first);
+            delete i->second;
+            free(i->first);
+        }
+        map.clear();
+        list.clear();
+    }
 
    DLLLOCAL bool inList(const char* name) const {
       return map.find(const_cast<char*>(name)) != map.end();
