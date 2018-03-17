@@ -235,15 +235,18 @@ QoreHashNode *QoreClassList::getInfo() {
     return h;
 }
 
-AbstractQoreNode* QoreClassList::findConstant(const char *cname, const QoreTypeInfo *&typeInfo) {
+/*
+QoreValue QoreClassList::findConstant(const char *cname, const QoreTypeInfo *&typeInfo, bool& found) {
     for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-        AbstractQoreNode *rv = qore_class_private::parseFindLocalConstantValue(i->second.cls, cname, typeInfo);
-        if (rv)
+        QoreValue rv = qore_class_private::parseFindLocalConstantValue(i->second.cls, cname, typeInfo, found);
+        if (found) {
             return rv;
+        }
     }
 
-    return nullptr;
+    return QoreValue();
 }
+*/
 
 void QoreClassList::clearConstants(QoreListNode& l) {
     for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {

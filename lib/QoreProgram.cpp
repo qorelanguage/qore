@@ -255,66 +255,66 @@ bool qore_program_private::setThreadInit(const ResolvedCallReferenceNode* n_thr_
 }
 
 void qore_program_private_base::newProgram() {
-   base_object = true;
-   po_locked = false;
-   exec_class = false;
+    base_object = true;
+    po_locked = false;
+    exec_class = false;
 
-   // init thread local storage key
-   thread_local_storage = new qpgm_thread_local_storage_t;
+    // init thread local storage key
+    thread_local_storage = new qpgm_thread_local_storage_t;
 
-   // save thread local storage hash
-   assert(!thread_local_storage->get());
-   thread_local_storage->set(new QoreHashNode);
+    // save thread local storage hash
+    assert(!thread_local_storage->get());
+    thread_local_storage->set(new QoreHashNode);
 
-   //printd(5, "qore_program_private_base::newProgram() this: %p\n", this);
+    //printd(5, "qore_program_private_base::newProgram() this: %p\n", this);
 
-   // copy global feature list to local list
-   for (FeatureList::iterator i = qoreFeatureList.begin(), e = qoreFeatureList.end(); i != e; ++i)
-      featureList.push_back((*i).c_str());
+    // copy global feature list to local list
+    for (FeatureList::iterator i = qoreFeatureList.begin(), e = qoreFeatureList.end(); i != e; ++i)
+        featureList.push_back((*i).c_str());
 
-   QoreProgramContextHelper pch(pgm);
+    QoreProgramContextHelper pch(pgm);
 
-   // setup namespaces
-   RootNS = qore_root_ns_private::copy(*staticSystemNamespace, pwo.parse_options);
-   QoreNS = RootNS->rootGetQoreNamespace();
-   assert(QoreNS);
+    // setup namespaces
+    RootNS = qore_root_ns_private::copy(*staticSystemNamespace, pwo.parse_options);
+    QoreNS = RootNS->rootGetQoreNamespace();
+    assert(QoreNS);
 
-   // setup initial defines
-   // add platform defines
-   dmap["QoreVersionString"] = new QoreStringNode(qore_version_string);
-   dmap["QoreVersionMajor"] = new QoreBigIntNode(qore_version_major);
-   dmap["QoreVersionMinor"] = new QoreBigIntNode(qore_version_minor);
-   dmap["QoreVersionSub"] = new QoreBigIntNode(qore_version_sub);
-   dmap["QoreVersionBuild"] = new QoreBigIntNode(qore_build_number);
-   dmap["QoreVersionBits"] = new QoreBigIntNode(qore_target_bits);
-   dmap["QorePlatformCPU"] = new QoreStringNode(TARGET_ARCH);
-   dmap["QorePlatformOS"] = new QoreStringNode(TARGET_OS);
+    // setup initial defines
+    // add platform defines
+    dmap["QoreVersionString"] = new QoreStringNode(qore_version_string);
+    dmap["QoreVersionMajor"] = new QoreBigIntNode(qore_version_major);
+    dmap["QoreVersionMinor"] = new QoreBigIntNode(qore_version_minor);
+    dmap["QoreVersionSub"] = new QoreBigIntNode(qore_version_sub);
+    dmap["QoreVersionBuild"] = new QoreBigIntNode(qore_build_number);
+    dmap["QoreVersionBits"] = new QoreBigIntNode(qore_target_bits);
+    dmap["QorePlatformCPU"] = new QoreStringNode(TARGET_ARCH);
+    dmap["QorePlatformOS"] = new QoreStringNode(TARGET_OS);
 
 #ifdef _Q_WINDOWS
-   dmap["Windows"] = &True;
+    dmap["Windows"] = &True;
 #else
-   dmap["Unix"] = &True;
+    dmap["Unix"] = &True;
 #endif
 
-   if (pwo.parse_options & PO_IN_MODULE)
-      dmap["QoreHasUserModuleLicense"] = &True;
+    if (pwo.parse_options & PO_IN_MODULE)
+        dmap["QoreHasUserModuleLicense"] = &True;
 
-   QoreNamespace* ns = QoreNS->findLocalNamespace("Option");
-   assert(ns);
-   ConstantListIterator cli(qore_ns_private::getConstantList(ns));
-   while (cli.next()) {
-      AbstractQoreNode* v = cli.getValue();
-      assert(v);
-      // skip boolean options defined as False
-      if (v->getType() == NT_BOOLEAN && !reinterpret_cast<QoreBoolNode*>(v)->getValue())
-         continue;
+    QoreNamespace* ns = QoreNS->findLocalNamespace("Option");
+    assert(ns);
+    ConstantListIterator cli(qore_ns_private::getConstantList(ns));
+    while (cli.next()) {
+        QoreValue v = cli.getValue();
+        // skip boolean options defined as False
+        if (v.getType() == NT_BOOLEAN && !v.getAsBool()) {
+            continue;
+        }
 
-      dmap[cli.getName()] = v->refSelf();
-   }
+        dmap[cli.getName()] = v.getReferencedValue();
+    }
 
 #ifdef DEBUG
-   // if Qore library debugging is enabled, then set an option
-   dmap["QoreDebug"] = &True;
+    // if Qore library debugging is enabled, then set an option
+    dmap["QoreDebug"] = &True;
 #endif
 }
 

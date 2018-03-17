@@ -643,25 +643,25 @@ static void do_sig(QoreString& csig, BCNode& n) {
 
 // process signature entries for class members
 static void do_sig(QoreString& csig, QoreMemberMap::SigOrderIterator i) {
-   if (i->second)
-      csig.sprintf("%s mem %s %s %s\n", privpub(i->second->access), QoreTypeInfo::getName(i->second->getTypeInfo()), i->first, get_type_name(i->second->exp));
-   else
-      csig.sprintf("%s mem %s\n", privpub(i->second->access), i->first);
+    if (i->second)
+        csig.sprintf("%s mem %s %s %s\n", privpub(i->second->access), QoreTypeInfo::getName(i->second->getTypeInfo()), i->first, get_type_name(i->second->exp));
+    else
+        csig.sprintf("%s mem %s\n", privpub(i->second->access), i->first);
 }
 
 // process signature entries for class static vars
 static void do_sig(QoreString& csig, QoreVarMap::SigOrderIterator i) {
-   if (i->second)
-      csig.sprintf("%s var %s %s %s\n", privpub(i->second->access), QoreTypeInfo::getName(i->second->getTypeInfo()), i->first, get_type_name(i->second->exp));
-   else
-      csig.sprintf("%s var %s\n", privpub(i->second->access), i->first);
+    if (i->second)
+        csig.sprintf("%s var %s %s %s\n", privpub(i->second->access), QoreTypeInfo::getName(i->second->getTypeInfo()), i->first, get_type_name(i->second->exp));
+    else
+        csig.sprintf("%s var %s\n", privpub(i->second->access), i->first);
 }
 
 // process signature entries for class constants
 static void do_sig(QoreString& csig, ConstantList& clist) {
-   ConstantListIterator cli(clist);
-   while (cli.next())
-      csig.sprintf("%s const %s %s\n", privpub(cli.getAccess()), cli.getName().c_str(), get_type_name(cli.getValue()));
+    ConstantListIterator cli(clist);
+    while (cli.next())
+        csig.sprintf("%s const %s %s\n", privpub(cli.getAccess()), cli.getName().c_str(), cli.getValue().getTypeName());
 }
 
 int qore_class_private::initializeIntern() {
@@ -1731,7 +1731,7 @@ bool BCNode::runtimeIsPrivateMember(const char* str, bool toplevel) const {
    return sclass->priv->runtimeIsPrivateMemberIntern(str, false);
 }
 
-const QoreValue BCNode::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx, bool allow_internal) const {
+QoreValue BCNode::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx, bool allow_internal) const {
    // sclass can be 0 if the class could not be found during parse initialization
     if (!sclass)
         return QoreValue();
@@ -2135,12 +2135,12 @@ void BCList::resolveCopy() {
    sml.resolveCopy();
 }
 
-const QoreValue BCList::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx, bool allow_internal) const {
+QoreValue BCList::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx, bool allow_internal) const {
     if (!valid)
         return QoreValue();
 
     for (auto& i : *this) {
-       const QoreValue rv = (*i).parseFindConstantValue(cname, typeInfo, found, class_ctx, allow_internal);
+       QoreValue rv = (*i).parseFindConstantValue(cname, typeInfo, found, class_ctx, allow_internal);
        if (found)
            return rv;
     }

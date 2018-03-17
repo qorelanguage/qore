@@ -50,8 +50,7 @@ ConstantEntry::ConstantEntry(const QoreProgramLocation& loc, const char* n, Qore
     if (pgm)
         pwo = qore_program_private::getParseWarnOptions(pgm);
 
-    if (name == "closure")
-    printd(0, "ConstantEntry::ConstantEntry() this: %p '%s' ti: '%s' nti: '%s'\n", this, n, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(val.getTypeInfo()));
+    //printd(5, "ConstantEntry::ConstantEntry() this: %p '%s' ti: '%s' nti: '%s'\n", this, n, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(val.getTypeInfo()));
 }
 
 ConstantEntry::ConstantEntry(const ConstantEntry& old) :
@@ -63,8 +62,7 @@ ConstantEntry::ConstantEntry(const ConstantEntry& old) :
     assert(!old.in_init);
     assert(old.init);
 
-    if (name == "closure")
-    printd(0, "ConstantEntry::ConstantEntry() this: %p copy '%s' ti: '%s' nti: '%s'\n", this, name.c_str(), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(val.getTypeInfo()));
+    //printd(5, "ConstantEntry::ConstantEntry() this: %p copy '%s' ti: '%s' nti: '%s'\n", this, name.c_str(), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(val.getTypeInfo()));
 }
 
 int ConstantEntry::scanValue(const QoreValue& n) const {
@@ -121,6 +119,7 @@ void ConstantEntry::del(ExceptionSink* xsink) {
         val.discard(xsink);
         saved_node->deref(xsink);
 #ifdef DEBUG
+        val.clear();
         saved_node = nullptr;
 #endif
     }
@@ -128,6 +127,9 @@ void ConstantEntry::del(ExceptionSink* xsink) {
         // abort if an object is present and we are calling deref without an ExceptionSink object
         assert(val.getType() != NT_OBJECT || xsink);
         val.discard(xsink);
+#ifdef DEBUG
+        val.clear();
+#endif
     }
 }
 

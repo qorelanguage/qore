@@ -104,7 +104,7 @@ public:
    DLLLOCAL void assimilate(QoreClassList& n, qore_ns_private& ns);
    DLLLOCAL QoreHashNode* getInfo();
 
-   DLLLOCAL AbstractQoreNode* findConstant(const char* cname, const QoreTypeInfo*& typeInfo);
+   //DLLLOCAL QoreValue findConstant(const char* cname, const QoreTypeInfo*& typeInfo, bool& found);
 
    //DLLLOCAL AbstractQoreNode* parseResolveBareword(const QoreProgramLocation& loc, const char* name, const QoreTypeInfo*& typeInfo);
 

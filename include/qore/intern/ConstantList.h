@@ -86,8 +86,6 @@ struct ClassNs {
 
 class RuntimeConstantRefNode;
 
-static void breakit() {}
-
 class ConstantEntry : public QoreReferenceCounter {
     friend class ConstantEntryInitHelper;
     friend class RuntimeConstantRefNode;
@@ -109,8 +107,6 @@ public:
     DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
     DLLLOCAL void deref(ExceptionSink* xsink) {
-        if (name == "closure")
-        printd(0, "CE::d(e) this: %p %d -> %d\n", this, reference_count(), reference_count() - 1);
         if (ROdereference()) {
             del(xsink);
             delete this;
@@ -118,8 +114,6 @@ public:
     }
 
     DLLLOCAL void deref(QoreListNode& l) {
-        if (name == "closure")
-        printd(0, "CE::d(l) this: %p %d -> %d\n", this, reference_count(), reference_count() - 1);
         if (ROdereference()) {
             del(l);
             delete this;
@@ -127,10 +121,6 @@ public:
     }
 
     DLLLOCAL void ref() {
-        if (name == "closure") {
-            printd(0, "CE::r() this: %p %d -> %d\n", this, reference_count(), reference_count() + 1);
-            breakit();
-        }
         ROreference();
     }
 
@@ -195,8 +185,6 @@ protected:
     DLLLOCAL void del(QoreListNode& l);
 
     DLLLOCAL ~ConstantEntry() {
-        if (name == "closure")
-           printd(0, "ConstantEntry::~ConstantEntry() this: %p\n", this);
         assert(!saved_node);
         assert(val.isNothing());
     }

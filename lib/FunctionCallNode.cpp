@@ -333,28 +333,32 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
     if (oflag) {
         const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo());
 
-        AbstractQoreNode* n = nullptr;
+        QoreValue n;
         if (abr && !qore_class_private::parseResolveInternalMemberAccess(qc, c_str, returnTypeInfo)) {
             n = new SelfVarrefNode(loc, takeName());
         }
-        else if ((n = qore_class_private::parseFindConstantValue(const_cast<QoreClass*>(qc), c_str, returnTypeInfo, qore_class_private::get(*qc)))) {
-            //printd(5, "FunctionCallNode::parseInitImpl() this: %p n: %p (%d -> %d)\n", this, n, n->reference_count(), n->reference_count() + 1);
-            n->ref();
-        }
         else {
-            // check for class static var reference
-            const QoreClass* oqc = nullptr;
-            ClassAccess access;
-            QoreVarInfo *vi = qore_class_private::parseFindStaticVar(qc, c_str, oqc, access);
-            if (vi) {
-                assert(qc);
-                returnTypeInfo = vi->getTypeInfo();
-                n = new StaticClassVarRefNode(loc, c_str, *oqc, *vi);
+            bool found;
+            n = qore_class_private::parseFindConstantValue(const_cast<QoreClass*>(qc), c_str, returnTypeInfo, found, qore_class_private::get(*qc));
+            if (found) {
+                n.ref();
+                //printd(5, "FunctionCallNode::parseInitImpl() this: %p n: %p (%d -> %d)\n", this, n, n->reference_count(), n->reference_count() + 1);
+            }
+            else {
+                // check for class static var reference
+                const QoreClass* oqc = nullptr;
+                ClassAccess access;
+                QoreVarInfo *vi = qore_class_private::parseFindStaticVar(qc, c_str, oqc, access);
+                if (vi) {
+                    assert(qc);
+                    returnTypeInfo = vi->getTypeInfo();
+                    n = new StaticClassVarRefNode(loc, c_str, *oqc, *vi);
+                }
             }
         }
 
-        if (n) {
-            CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeParseArgs());
+        if (!n.isNothing()) {
+            CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n.getReferencedValue(), takeParseArgs());
             deref();
             return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
         }
@@ -363,8 +367,8 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
             SelfFunctionCallNode* sfcn = nullptr;
             if (!strcmp(c_str, "copy")) {
                 if (args) {
-                parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
-                return this;
+                    parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
+                    return this;
                 }
                 sfcn = new SelfFunctionCallNode(loc, takeName(), 0);
             }
@@ -397,7 +401,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
 
     bool abr = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
-    AbstractQoreNode* n = nullptr;
+    QoreValue n;
 
     // try to resolve a global var
     if (abr) {
@@ -406,15 +410,18 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
             n = new GlobalVarRefNode(loc, takeName(), v);
     }
 
+    bool found = false;
+
     // see if a constant can be resolved
-    if (!n) {
-        n = qore_root_ns_private::parseFindConstantValue(loc, c_str, returnTypeInfo, false);
-        if (n)
-            n->ref();
+    if (n.isNothing()) {
+        n = qore_root_ns_private::parseFindConstantValue(loc, c_str, returnTypeInfo, found, false);
+        if (found) {
+            n.ref();
+        }
     }
 
-    if (n) {
-        CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeParseArgs());
+    if (found) {
+        CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n.getReferencedValue(), takeParseArgs());
         deref();
         return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
     }
@@ -424,8 +431,9 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
     free(c_str);
     c_str = nullptr;
 
-    if (fe)
+    if (fe) {
         parseInitFinalizedCall(oflag, pflag, lvids, returnTypeInfo);
+    }
 
     return this;
 }
@@ -566,7 +574,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
                 }
             }
 
-            AbstractQoreNode* n = nullptr;
+            QoreValue n;
 
             if (abr) {
                 Var* v = qore_root_ns_private::parseFindGlobalVar(*scope);
@@ -574,11 +582,13 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
                     n = new GlobalVarRefNode(loc, strdup(scope->getIdentifier()), v);
             }
 
-            if (!n)
-                n = qore_root_ns_private::parseFindReferencedConstantValue(loc, *scope, typeInfo, false);
+            bool found = false;
+            if (n.isNothing()) {
+                n = qore_root_ns_private::parseFindReferencedConstantValue(loc, *scope, typeInfo, found, false);
+            }
 
-            if (n) {
-                CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n, takeParseArgs());
+            if (found) {
+                CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n.getReferencedValue(), takeParseArgs());
                 deref();
                 return crcn->parseInit(oflag, pflag, lvids, typeInfo);
             }

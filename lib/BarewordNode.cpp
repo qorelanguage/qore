@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -45,50 +45,55 @@ BarewordNode::~BarewordNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int BarewordNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("%s '%s' (%p)", getTypeName(), str ? str : "<null>", this);
-   return 0;
+    qstr.sprintf("%s '%s' (%p)", getTypeName(), str ? str : "<null>", this);
+    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *BarewordNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   QoreString *rv = new QoreString();
-   getAsString(*rv, foff, xsink);
-   return rv;
+    del = true;
+    QoreString *rv = new QoreString();
+    getAsString(*rv, foff, xsink);
+    return rv;
 }
 
 // returns the data type
 qore_type_t BarewordNode::getType() const {
-   return NT_BAREWORD;
+    return NT_BAREWORD;
 }
 
 // returns the type name as a c string
 const char *BarewordNode::getTypeName() const {
-   return "bareword";
+    return "bareword";
 }
 
 QoreStringNode *BarewordNode::makeQoreStringNode() {
-   assert(str);
-   int len = strlen(str);
-   QoreStringNode *qstr = new QoreStringNode(str, len, len + 1, QCS_DEFAULT);
-   str = 0;
-   return qstr;
+    assert(str);
+    int len = strlen(str);
+    QoreStringNode *qstr = new QoreStringNode(str, len, len + 1, QCS_DEFAULT);
+    str = 0;
+    return qstr;
 }
 
 char *BarewordNode::takeString() {
-   assert(str);
-   char *p = str;
-   str = 0;
-   return p;
+    assert(str);
+    char *p = str;
+    str = 0;
+    return p;
 }
 
-AbstractQoreNode *BarewordNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   //printd(5, "BarewordNode::parseInitImpl() this: %p str: %s\n", this, str);
-   AbstractQoreNode *n = qore_root_ns_private::parseResolveBareword(loc, str, typeInfo);
-   if (!n)
-      return this;
+AbstractQoreNode* BarewordNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+    //printd(5, "BarewordNode::parseInitImpl() this: %p str: %s\n", this, str);
+    bool found;
+    QoreValue n = qore_root_ns_private::parseResolveBareword(loc, str, typeInfo, found);
+    if (!found)
+        return this;
 
-   deref(0);
-   typeInfo = 0;
-   return n->parseInit(oflag, pflag, lvids, typeInfo);
+    deref(nullptr);
+    if (n.isNothing()) {
+        typeInfo = nothingTypeInfo;
+        return &Nothing;
+    }
+    typeInfo = nullptr;
+    return n.getReferencedValue()->parseInit(oflag, pflag, lvids, typeInfo);
 }

@@ -1083,137 +1083,162 @@ int qore_root_ns_private::parseAddMethodToClassIntern(const QoreProgramLocation&
 }
 
 // returns 0 for success, non-zero for error
-AbstractQoreNode* qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo*& typeInfo) {
-   QoreClass* pc = parse_get_class();
+QoreValue qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLocation& loc, const char* bword, const QoreTypeInfo*& typeInfo, bool& found) {
+    assert(!found);
+    QoreClass* pc = parse_get_class();
 
-   //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s pc: %p (%s)\n", bword, pc, pc ? pc->getName() : "<none>");
+    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s pc: %p (%s)\n", bword, pc, pc ? pc->getName() : "<none>");
 
-   bool abr = (bool)(parse_get_parse_options() & PO_ALLOW_BARE_REFS);
+    bool abr = (bool)(parse_get_parse_options() & PO_ALLOW_BARE_REFS);
 
-   // if bare refs are enabled, first look for a local variable
-   if (abr) {
-      bool in_closure;
-      LocalVar* id = find_local_var(bword, in_closure);
-      if (id) {
-         //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() %s is an lvar: %p\n", bword, id);
-         typeInfo = id->parseGetTypeInfo();
-         return new VarRefNode(loc, strdup(bword), id, in_closure);
-      }
-   }
+    // if bare refs are enabled, first look for a local variable
+    if (abr) {
+        bool in_closure;
+        LocalVar* id = find_local_var(bword, in_closure);
+        if (id) {
+            //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() %s is an lvar: %p\n", bword, id);
+            typeInfo = id->parseGetTypeInfo();
+            found = true;
+            return new VarRefNode(loc, strdup(bword), id, in_closure);
+        }
+    }
 
-   // if there is a current parse class context, then check for class objects
-   if (pc) {
-      // if bare refs are enabled, check for member reference first
-      if (abr && !qore_class_private::parseResolveInternalMemberAccess(pc, bword, typeInfo))
-         return new SelfVarrefNode(loc, strdup(bword));
+    // if there is a current parse class context, then check for class objects
+    if (pc) {
+        // if bare refs are enabled, check for member reference first
+        if (abr && !qore_class_private::parseResolveInternalMemberAccess(pc, bword, typeInfo)) {
+            found = true;
+            return new SelfVarrefNode(loc, strdup(bword));
+        }
 
-      // now try to find a class constant with this name
-      AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(pc, bword, typeInfo, qore_class_private::get(*pc));
-      if (rv)
-         return rv->refSelf();
+        // now try to find a class constant with this name
+        QoreValue rv = qore_class_private::parseFindConstantValue(pc, bword, typeInfo, found, qore_class_private::get(*pc));
+        if (found) {
+            return rv.refSelf();
+        }
 
-      // now check for class static var reference
-      const QoreClass* qc = 0;
-      ClassAccess access;
-      QoreVarInfo* vi = qore_class_private::parseFindStaticVar(pc, bword, qc, access);
-      if (vi) {
-         assert(qc);
-         typeInfo = vi->getTypeInfo();
-         return new StaticClassVarRefNode(loc, bword, *qc, *vi);
-      }
-   }
+        // now check for class static var reference
+        const QoreClass* qc = nullptr;
+        ClassAccess access;
+        QoreVarInfo* vi = qore_class_private::parseFindStaticVar(pc, bword, qc, access);
+        if (vi) {
+            assert(qc);
+            typeInfo = vi->getTypeInfo();
+            found = true;
+            return new StaticClassVarRefNode(loc, bword, *qc, *vi);
+        }
+    }
 
-   // try to resolve a global variable
-   if (abr) {
-      Var* v = parseFindGlobalVar(bword);
-      if (v)
-         return new GlobalVarRefNode(loc, strdup(bword), v);
-   }
+    // try to resolve a global variable
+    if (abr) {
+        Var* v = parseFindGlobalVar(bword);
+        if (v) {
+            found = true;
+            return new GlobalVarRefNode(loc, strdup(bword), v);
+        }
+    }
 
-   // try to resolve constant
-   // first try to find a namespace context
-   AbstractQoreNode* rv;
+    // try to resolve constant
+    // first try to find a namespace context
+    QoreValue rv;
 
-   qore_ns_private* nscx = parse_get_ns();
-   //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p (%s)\n", bword, nscx, nscx ? nscx->name.c_str() : "n/a");
-   if (nscx && (rv = nscx->getConstantValue(bword, typeInfo))) {
-      //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p (%s) got rv: %p (%s)\n", bword, nscx, nscx ? nscx->name.c_str() : "n/a", rv, get_type_name(rv));
-      return rv->refSelf();
-   }
+    qore_ns_private* nscx = parse_get_ns();
+    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p (%s)\n", bword, nscx, nscx ? nscx->name.c_str() : "n/a");
+    if (nscx) {
+        rv = nscx->getConstantValue(bword, typeInfo, found);
+        if (found) {
+            //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() bword: %s nscx: %p (%s) got rv: %p (%s)\n", bword, nscx, nscx ? nscx->name.c_str() : "n/a", rv, get_type_name(rv));
+            return rv.refSelf();
+        }
+    }
 
-   rv = parseFindOnlyConstantValueIntern(loc, bword, typeInfo);
+    rv = parseFindOnlyConstantValueIntern(loc, bword, typeInfo, found);
 
-   if (rv)
-      return rv->refSelf();
+    if (found) {
+        return rv.refSelf();
+    }
 
-   parse_error(loc, "cannot resolve bareword '%s' to any reachable object", bword);
+    parse_error(loc, "cannot resolve bareword '%s' to any reachable object", bword);
 
-   //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() this: %p '%s' abr: %d\n", this, bword, abr);
-   return 0;
+    //printd(5, "qore_root_ns_private::parseResolveBarewordIntern() this: %p '%s' abr: %d\n", this, bword, abr);
+    return QoreValue();
 }
 
-AbstractQoreNode* qore_root_ns_private::parseResolveReferencedScopedReferenceIntern(const QoreProgramLocation& loc, const NamedScope& nscope, const QoreTypeInfo*& typeInfo) {
-   assert(nscope.size() > 1);
+QoreValue qore_root_ns_private::parseResolveReferencedScopedReferenceIntern(const QoreProgramLocation& loc, const NamedScope& nscope, const QoreTypeInfo*& typeInfo, bool& found) {
+    assert(nscope.size() > 1);
+    assert(!found);
 
-   unsigned m = 0;
-   AbstractQoreNode* rv = nullptr;
+    unsigned m = 0;
+    QoreValue rv;
 
-   bool abr = (bool)(parse_get_parse_options() & PO_ALLOW_BARE_REFS);
+    bool abr = (bool)(parse_get_parse_options() & PO_ALLOW_BARE_REFS);
 
-   {
-      // try to check in current namespace first
-      qore_ns_private* nscx = parse_get_ns();
-      //printd(5, "qore_root_ns_private::parseResolveReferencedScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nscx, nscx ? nscx->name.c_str() : "n/a");
-      if (nscx) {
-         QoreNamespace* ns = nscx->parseFindLocalNamespace(nscope[0]);
-         if (ns && (rv = ns->priv->parseCheckScopedReference(loc, nscope, m, typeInfo, abr)))
-            return rv;
-      }
-   }
+    {
+        // try to check in current namespace first
+        qore_ns_private* nscx = parse_get_ns();
+        //printd(5, "qore_root_ns_private::parseResolveReferencedScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nscx, nscx ? nscx->name.c_str() : "n/a");
+        if (nscx) {
+            QoreNamespace* ns = nscx->parseFindLocalNamespace(nscope[0]);
+            if (ns) {
+                rv = ns->priv->parseCheckScopedReference(loc, nscope, m, typeInfo, found, abr);
+                if (found) {
+                    return rv;
+                }
+            }
+        }
+    }
 
-   // iterate all namespaces with the initial name and look for the match
-   {
-      NamespaceMapIterator nmi(nsmap, nscope[0]);
-      while (nmi.next()) {
-         //printd(5, "qore_root_ns_private::parseResolveReferencedScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
-         if ((rv = nmi.get()->parseCheckScopedReference(loc, nscope, m, typeInfo, abr)))
-            return rv;
-      }
-   }
+    // iterate all namespaces with the initial name and look for the match
+    {
+        NamespaceMapIterator nmi(nsmap, nscope[0]);
+        while (nmi.next()) {
+            //printd(5, "qore_root_ns_private::parseResolveReferencedScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
+            rv = nmi.get()->parseCheckScopedReference(loc, nscope, m, typeInfo, found, abr);
+            if (found) {
+                return rv;
+            }
+        }
+    }
 
-   {
-      NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
-      while (nmi.next()) {
-         //printd(5, "qore_root_ns_private::parseResolveReferencedScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
-         if ((rv = nmi.get()->parseCheckScopedReference(loc, nscope, m, typeInfo, abr)))
-            return rv;
-      }
-   }
+    {
+        NamespaceMapIterator nmi(pend_nsmap, nscope[0]);
+        while (nmi.next()) {
+            //printd(5, "qore_root_ns_private::parseResolveReferencedScopedReferenceIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
+            rv = nmi.get()->parseCheckScopedReference(loc, nscope, m, typeInfo, found, abr);
+            if (found) {
+                return rv;
+            }
+        }
+    }
 
-   // now look for class constants if there is only a single namespace or class name in the beginning
-   if (nscope.size() == 2) {
-      QoreClass* qc = parseFindClassIntern(nscope[0]);
-      if (qc && (rv = parseResolveReferencedClassConstant(loc, qc, nscope.getIdentifier(), typeInfo)))
-         return rv;
-   }
+    // now look for class constants if there is only a single namespace or class name in the beginning
+    if (nscope.size() == 2) {
+        QoreClass* qc = parseFindClassIntern(nscope[0]);
+        if (qc) {
+            rv = parseResolveReferencedClassConstant(loc, qc, nscope.getIdentifier(), typeInfo, found);
+            if (found) {
+                return rv;
+            }
+        }
+    }
 
-   // raise parse exception
-   if (m != (nscope.size() - 1))
-      parse_error(loc, "cannot find any namespace or class '%s' in '%s' providing a constant or static class variable '%s'", nscope[m], nscope.ostr, nscope.getIdentifier());
-   else {
-      QoreString err;
-      err.sprintf("cannot resolve bareword '%s' to any reachable object in any namespace or class '", nscope.getIdentifier());
-      for (unsigned i = 0; i < (nscope.size() - 1); i++) {
-         err.concat(nscope[i]);
-         if (i != (nscope.size() - 2))
-            err.concat("::");
-      }
-      err.concat("'");
-      parse_error(loc, err.c_str());
-   }
+    // raise parse exception
+    if (m != (nscope.size() - 1))
+        parse_error(loc, "cannot find any namespace or class '%s' in '%s' providing a constant or static class variable '%s'", nscope[m], nscope.ostr, nscope.getIdentifier());
+    else {
+        QoreString err;
+        err.sprintf("cannot resolve bareword '%s' to any reachable object in any namespace or class '", nscope.getIdentifier());
+        for (unsigned i = 0; i < (nscope.size() - 1); i++) {
+            err.concat(nscope[i]);
+            if (i != (nscope.size() - 2))
+                err.concat("::");
+        }
+        err.concat("'");
+        parse_error(loc, err.c_str());
+    }
 
-   //printd(5, "RootQoreNamespace::parseResolveReferencedScopedReferenceIntern(%s) not found\n", nscope.ostr);
-   return nullptr;
+    //printd(5, "RootQoreNamespace::parseResolveReferencedScopedReferenceIntern(%s) not found\n", nscope.ostr);
+    return QoreValue();
 }
 
 // private
@@ -1444,59 +1469,69 @@ QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodInternError(const
 }
 
 // called in 2nd stage of parsing to resolve constant references
-AbstractQoreNode* qore_root_ns_private::parseFindReferencedConstantValueIntern(const QoreProgramLocation& loc, const NamedScope& scname, const QoreTypeInfo*& typeInfo, bool error) {
-   if (scname.size() == 1) {
-      AbstractQoreNode* rv = parseFindConstantValueIntern(loc, scname.ostr, typeInfo, error);
-      return rv ? rv->refSelf() : 0;
-   }
+QoreValue qore_root_ns_private::parseFindReferencedConstantValueIntern(const QoreProgramLocation& loc, const NamedScope& scname, const QoreTypeInfo*& typeInfo, bool& found, bool error) {
+    assert(!found);
+    if (scname.size() == 1) {
+        QoreValue rv = parseFindConstantValueIntern(loc, scname.ostr, typeInfo, found, error);
+        return found ? rv.refSelf() : QoreValue();
+    }
 
-   AbstractQoreNode* rv;
-   unsigned m = 0;
+    QoreValue rv;
+    unsigned m = 0;
 
-   // iterate all namespaces with the initial name and look for the match
-   {
-      NamespaceMapIterator nmi(nsmap, scname[0]);
-      while (nmi.next()) {
-         //printd(5, "qore_root_ns_private::parseFindConstantValueIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
-         if ((rv = nmi.get()->parseMatchScopedConstantValue(scname, m, typeInfo)))
-            return rv->refSelf();
-      }
-   }
+    // iterate all namespaces with the initial name and look for the match
+    {
+        NamespaceMapIterator nmi(nsmap, scname[0]);
+        while (nmi.next()) {
+            //printd(5, "qore_root_ns_private::parseFindConstantValueIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
+            rv = nmi.get()->parseMatchScopedConstantValue(scname, m, typeInfo, found);
+            if (found) {
+                return rv.refSelf();
+            }
+        }
+    }
 
-   {
-      NamespaceMapIterator nmi(pend_nsmap, scname[0]);
-      while (nmi.next()) {
-         //printd(5, "qore_root_ns_private::parseFindConstantValueIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
-         if ((rv = nmi.get()->parseMatchScopedConstantValue(scname, m, typeInfo)))
-            return rv->refSelf();
-      }
-   }
+    {
+        NamespaceMapIterator nmi(pend_nsmap, scname[0]);
+        while (nmi.next()) {
+            //printd(5, "qore_root_ns_private::parseFindConstantValueIntern(%s) ns: %p (%s)\n", nscope.ostr, nmi.get(), nmi.get()->name.c_str());
+            rv = nmi.get()->parseMatchScopedConstantValue(scname, m, typeInfo, found);
+            if (found) {
+                return rv.refSelf();
+            }
+        }
+    }
 
-   // look for a class constant if there are only 2 elements in the scope list
-   if (scname.size() == 2) {
-      QoreClass* qc = parseFindClassIntern(scname[0]);
-      if (qc && (rv = parseResolveReferencedClassConstant(loc, qc, scname.getIdentifier(), typeInfo)))
-         return rv;
-   }
+    // look for a class constant if there are only 2 elements in the scope list
+    if (scname.size() == 2) {
+        QoreClass* qc = parseFindClassIntern(scname[0]);
+        if (qc) {
+            rv = parseResolveReferencedClassConstant(loc, qc, scname.getIdentifier(), typeInfo, found);
+            if (found) {
+                return rv;
+            }
+        }
+    }
 
-   if (!error)
-      return 0;
+    if (!error)
+        return QoreValue();
 
-   if (m != (scname.size() - 1))
-      parse_error(loc, "cannot resolve namespace '%s' in constant reference '%s'", scname[m], scname.ostr);
-   else {
-      QoreString err;
-      err.sprintf("cannot find constant '%s' in any namespace '", scname.getIdentifier());
-      for (unsigned i = 0; i < (scname.size() - 1); i++) {
-         err.concat(scname[i]);
-         if (i != (scname.size() - 2))
-            err.concat("::");
-      }
-      err.concat("'");
-      parse_error(loc, err.getBuffer());
-   }
+    if (m != (scname.size() - 1)) {
+        parse_error(loc, "cannot resolve namespace '%s' in constant reference '%s'", scname[m], scname.ostr);
+    }
+    else {
+        QoreString err;
+        err.sprintf("cannot find constant '%s' in any namespace '", scname.getIdentifier());
+        for (unsigned i = 0; i < (scname.size() - 1); i++) {
+            err.concat(scname[i]);
+            if (i != (scname.size() - 2))
+                err.concat("::");
+        }
+        err.concat("'");
+        parse_error(loc, err.getBuffer());
+    }
 
-   return 0;
+    return QoreValue();
 }
 
 void qore_root_ns_private::parseAddHashDeclIntern(const QoreProgramLocation& loc, const NamedScope& name, TypedHashDecl* hd) {
@@ -1955,42 +1990,42 @@ Var* qore_root_ns_private::parseAddGlobalVarDefIntern(const QoreProgramLocation&
 }
 
 Var* qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const QoreProgramLocation& loc, const NamedScope& vname, const QoreTypeInfo* typeInfo) {
-   Var* rv;
+    Var* rv;
 
-   qore_ns_private* tns;
-   if (vname.size() == 1) {
-      rv = parseFindGlobalVarIntern(vname.ostr);
-      // for backwards-compatibility, assume the root namespace for all unscoped global variables
-      tns = this;
-   }
-   else {
-      tns = parseResolveNamespace(loc, vname);
-      if (!tns)
-         tns = this;
-      rv = tns->var_list.parseFindVar(vname.getIdentifier());
-   }
+    qore_ns_private* tns;
+    if (vname.size() == 1) {
+        rv = parseFindGlobalVarIntern(vname.ostr);
+        // for backwards-compatibility, assume the root namespace for all unscoped global variables
+        tns = this;
+    }
+    else {
+        tns = parseResolveNamespace(loc, vname);
+        if (!tns)
+            tns = this;
+        rv = tns->var_list.parseFindVar(vname.getIdentifier());
+    }
 
-   //printd(5, "qore_root_ns_private::parseCheckImplicitGlobalVar() this: %p '%s' rv: %p (omq: %p)\n", this, vname.ostr, rv, parseFindGlobalVarIntern("omq"));
-   if (!rv) {
-      // check for errors & warnings for implicit global variables
-      int64 po = parse_get_parse_options();
+    //printd(5, "qore_root_ns_private::parseCheckImplicitGlobalVar() this: %p '%s' rv: %p (omq: %p)\n", this, vname.ostr, rv, parseFindGlobalVarIntern("omq"));
+    if (!rv) {
+        // check for errors & warnings for implicit global variables
+        int64 po = parse_get_parse_options();
 
-      // check if unflagged global vars are allowed
-      if (po & PO_REQUIRE_OUR)
-         parseException(loc, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' must first be declared with 'our' (conflicts with parse option REQUIRE_OUR)", vname.ostr);
-      else if (po & PO_NO_GLOBAL_VARS) // check if new global variables are allowed to be created at all
-         parseException(loc, "ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
-      else
-         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be explicitly declared with 'our'", vname.ostr);
+        // check if unflagged global vars are allowed
+        if (po & PO_REQUIRE_OUR)
+            parseException(loc, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' must first be declared with 'our' (conflicts with parse option REQUIRE_OUR)", vname.ostr);
+        else if (po & PO_NO_GLOBAL_VARS) // check if new global variables are allowed to be created at all
+            parseException(loc, "ILLEGAL-GLOBAL-VARIABLE", "illegal reference to new global variable '%s' (conflicts with parse option NO_GLOBAL_VARS)", vname.ostr);
+        else
+            qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_UNDECLARED_VAR, "UNDECLARED-GLOBAL-VARIABLE", "global variable '%s' should be explicitly declared with 'our'", vname.ostr);
 
-      assert(!tns->var_list.parseFindVar(vname.getIdentifier()));
-      rv = tns->var_list.parseCreatePendingVar(loc, vname.getIdentifier(), typeInfo);
-      pend_varmap.update(rv->getName(), this, rv);
-   }
-   else
-      rv->checkAssignType(loc, typeInfo);
+        assert(!tns->var_list.parseFindVar(vname.getIdentifier()));
+        rv = tns->var_list.parseCreatePendingVar(loc, vname.getIdentifier(), typeInfo);
+        pend_varmap.update(rv->getName(), this, rv);
+    }
+    else
+        rv->checkAssignType(loc, typeInfo);
 
-   return rv;
+    return rv;
 }
 
 void qore_ns_private::parseInitConstants() {
@@ -2520,12 +2555,13 @@ QoreClass* qore_ns_private::parseFindLocalClass(const char* cname) {
    return rv ? rv : pendClassList.find(cname);
 }
 
-AbstractQoreNode* qore_ns_private::getConstantValue(const char* cname, const QoreTypeInfo*& typeInfo) {
-   AbstractQoreNode* rv = constant.find(cname, typeInfo);
-   if (rv)
-      return rv;
+QoreValue qore_ns_private::getConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found) {
+    assert(!found);
+    QoreValue rv = constant.find(cname, typeInfo, found);
+    if (found)
+        return rv;
 
-   return pendConstant.find(cname, typeInfo);
+    return pendConstant.find(cname, typeInfo, found);
 }
 
 QoreNamespace* qore_ns_private::resolveNameScope(const QoreProgramLocation& loc, const NamedScope& nscope) const {
@@ -2773,100 +2809,107 @@ const QoreClass* qore_ns_private::runtimeMatchScopedClassWithMethod(const NamedS
    return fns->priv->classList.find(nscope[nscope.size() - 2]);
 }
 
-AbstractQoreNode* qore_ns_private::parseResolveReferencedClassConstant(const QoreProgramLocation& loc, QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo) {
-   AbstractQoreNode* rv = qore_class_private::parseFindConstantValue(qc, name, typeInfo, parse_get_class_priv());
-   if (rv)
-      return rv->refSelf();
-   const QoreClass* aqc;
-   ClassAccess access;
-   QoreVarInfo* vi = qore_class_private::parseFindStaticVar(qc, name, aqc, access, true);
-   //printd(5, "qore_ns_private::parseResolveReferencedClassConstant() '%s' %p '%s' static var: %p\n", qc->getName(), qc, name, vi);
-   if (vi) {
-      typeInfo = vi->getTypeInfo();
-      return new StaticClassVarRefNode(loc, name, *qc, *vi);
-   }
-   return nullptr;
+QoreValue qore_ns_private::parseResolveReferencedClassConstant(const QoreProgramLocation& loc, QoreClass* qc, const char* name, const QoreTypeInfo*& typeInfo, bool& found) {
+    assert(!found);
+    QoreValue rv = qore_class_private::parseFindConstantValue(qc, name, typeInfo, found, parse_get_class_priv());
+    if (found) {
+        return rv.refSelf();
+    }
+    const QoreClass* aqc;
+    ClassAccess access;
+    QoreVarInfo* vi = qore_class_private::parseFindStaticVar(qc, name, aqc, access, true);
+    //printd(5, "qore_ns_private::parseResolveReferencedClassConstant() '%s' %p '%s' static var: %p\n", qc->getName(), qc, name, vi);
+    if (vi) {
+        typeInfo = vi->getTypeInfo();
+        found = true;
+        return new StaticClassVarRefNode(loc, name, *qc, *vi);
+    }
+    return QoreValue();
 }
 
-AbstractQoreNode* qore_ns_private::parseMatchScopedConstantValue(const NamedScope& nscope, unsigned& matched, const QoreTypeInfo*& typeInfo) {
-   printd(5, "qore_ns_private::parseMatchScopedConstantValue) trying to find %s in %s (%p) typeInfo: %p\n", nscope.getIdentifier(), name.c_str(), getConstantValue(nscope.getIdentifier(), typeInfo));
+QoreValue qore_ns_private::parseMatchScopedConstantValue(const NamedScope& nscope, unsigned& matched, const QoreTypeInfo*& typeInfo, bool& found) {
+    assert(!found);
+    printd(5, "qore_ns_private::parseMatchScopedConstantValue) trying to find %s in %s\n", nscope.getIdentifier(), name.c_str());
 
-   assert(nscope[0] == name);
+    assert(nscope[0] == name);
 
-   // mark first namespace as matched
-   if (!matched)
-      matched = 1;
+    // mark first namespace as matched
+    if (!matched)
+        matched = 1;
 
-   const QoreNamespace* fns = ns;
+    const QoreNamespace* fns = ns;
 
-   // if we need to follow the namespaces, then do so
-   if (nscope.size() > 2) {
-      unsigned last = nscope.size() - 1;
-      for (unsigned i = 1; i < last; i++) {
-         const char* oname = nscope[i];
-         const QoreNamespace* nns = fns->priv->parseFindLocalNamespace(oname);
-         if (!nns) {
-            // if we are on the last element before the constant in the namespace path list,
-            // then check for a class constant
-            if (i == (last - 1)) {
-               QoreClass* qc = fns->priv->parseFindLocalClass(oname);
-               return qc ? qore_class_private::parseFindLocalConstantValue(qc, nscope.getIdentifier(), typeInfo) : 0;
+    // if we need to follow the namespaces, then do so
+    if (nscope.size() > 2) {
+        unsigned last = nscope.size() - 1;
+        for (unsigned i = 1; i < last; i++) {
+            const char* oname = nscope[i];
+            const QoreNamespace* nns = fns->priv->parseFindLocalNamespace(oname);
+            if (!nns) {
+                // if we are on the last element before the constant in the namespace path list,
+                // then check for a class constant
+                if (i == (last - 1)) {
+                    QoreClass* qc = fns->priv->parseFindLocalClass(oname);
+                    return qc ? qore_class_private::parseFindLocalConstantValue(qc, nscope.getIdentifier(), typeInfo, found) : QoreValue();
+                }
+                return QoreValue();
             }
-            return 0;
-         }
-         fns = nns;
-         if (i >= matched)
+            fns = nns;
+            if (i >= matched)
+                matched = i + 1;
+        }
+    }
+
+    return fns->priv->getConstantValue(nscope.getIdentifier(), typeInfo, found);
+}
+
+QoreValue qore_ns_private::parseCheckScopedReference(const QoreProgramLocation& loc, const NamedScope& nsc, unsigned& matched, const QoreTypeInfo*& typeInfo, bool& found, bool abr) const {
+    assert(!found);
+    const QoreNamespace* pns = ns;
+
+    matched = 1;
+
+    // follow the namespaces
+    unsigned last = nsc.size() - 1;
+    for (unsigned i = 1; i < last; ++i) {
+        QoreNamespace* nns = pns->priv->parseFindLocalNamespace(nsc.strlist[i].c_str());
+
+        if (!nns) {
+            // if we have matched all namespaces except the last one, check if it's a class
+            // and try to resolve a class constant or static class variable
+            if (i == (last - 1)) {
+                const char* cname = nsc.strlist[last - 1].c_str();
+                QoreClass* qc = pns->priv->parseFindLocalClass(cname);
+                //printd(5, "qore_ns_private::parseCheckScopedReference() this: %p '%s' nsc: %s checking for class '%s' qc: %p\n", this, name.c_str(), nsc.ostr, cname, qc);
+                if (qc)
+                    return parseResolveReferencedClassConstant(loc, qc, nsc.getIdentifier(), typeInfo, found);
+            }
+            return QoreValue();
+        }
+
+        pns = nns;
+        if (i >= matched)
             matched = i + 1;
-      }
-   }
+    }
 
-   return fns->priv->getConstantValue(nscope.getIdentifier(), typeInfo);
+    // matched all namespaces, now try to find a constant
+    QoreValue rv = pns->priv->parseFindLocalConstantValue(nsc.getIdentifier(), typeInfo, found);
+    if (!found && abr) {
+        Var* v = pns->priv->var_list.parseFindVar(nsc.getIdentifier());
+        if (v) {
+            typeInfo = v->getTypeInfo();
+            found = true;
+            return new GlobalVarRefNode(loc, strdup(nsc.ostr), v);
+        }
+    }
+
+    return found ? rv.refSelf() : QoreValue();
 }
 
-AbstractQoreNode* qore_ns_private::parseCheckScopedReference(const QoreProgramLocation& loc, const NamedScope& nsc, unsigned& matched, const QoreTypeInfo*& typeInfo, bool abr) const {
-   const QoreNamespace* pns = ns;
-
-   matched = 1;
-
-   // follow the namespaces
-   unsigned last = nsc.size() - 1;
-   for (unsigned i = 1; i < last; ++i) {
-      QoreNamespace* nns = pns->priv->parseFindLocalNamespace(nsc.strlist[i].c_str());
-
-      if (!nns) {
-         // if we have matched all namespaces except the last one, check if it's a class
-         // and try to resolve a class constant or static class variable
-         if (i == (last - 1)) {
-            const char* cname = nsc.strlist[last - 1].c_str();
-            QoreClass* qc = pns->priv->parseFindLocalClass(cname);
-            //printd(5, "qore_ns_private::parseCheckScopedReference() this: %p '%s' nsc: %s checking for class '%s' qc: %p\n", this, name.c_str(), nsc.ostr, cname, qc);
-            if (qc)
-               return parseResolveReferencedClassConstant(loc, qc, nsc.getIdentifier(), typeInfo);
-         }
-         return 0;
-      }
-
-      pns = nns;
-      if (i >= matched)
-         matched = i + 1;
-   }
-
-   // matched all namespaces, now try to find a constant
-   AbstractQoreNode* rv = pns->priv->parseFindLocalConstantValue(nsc.getIdentifier(), typeInfo);
-   if (!rv && abr) {
-      Var* v = pns->priv->var_list.parseFindVar(nsc.getIdentifier());
-      if (v) {
-         typeInfo = v->getTypeInfo();
-         return new GlobalVarRefNode(loc, strdup(nsc.ostr), v);
-      }
-   }
-
-   return rv ? rv->refSelf() : nullptr;
-}
-
-AbstractQoreNode* qore_ns_private::parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& typeInfo) {
-   AbstractQoreNode* rv = constant.find(cname, typeInfo);
-   return rv ? rv : pendConstant.find(cname, typeInfo);
+QoreValue qore_ns_private::parseFindLocalConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found) {
+    assert(!found);
+    QoreValue rv = constant.find(cname, typeInfo, found);
+    return found ? rv : pendConstant.find(cname, typeInfo, found);
 }
 
 QoreNamespace* qore_ns_private::parseFindLocalNamespace(const char* nname) {
