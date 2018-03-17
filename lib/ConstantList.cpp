@@ -61,7 +61,7 @@ static void check_constant_cycle_list(QoreProgram* pgm, QoreListNode* l) {
 static void check_constant_cycle_hash(QoreProgram* pgm, QoreHashNode* h) {
    HashIterator hi(h);
    while (hi.next())
-      check_constant_cycle(pgm, hi.getValue());
+      check_constant_cycle(pgm, hi.get());
 }
 
 static void check_constant_cycle(QoreProgram* pgm, AbstractQoreNode* n) {
@@ -93,35 +93,35 @@ ConstantEntry::ConstantEntry(const ConstantEntry& old) :
    assert(old.init);
 }
 
-int ConstantEntry::scanValue(const AbstractQoreNode* n) const {
-   switch (get_node_type(n)) {
-      case NT_LIST: {
-         ConstListIterator i(reinterpret_cast<const QoreListNode*>(n));
-         while (i.next())
-            if (scanValue(i.getValue()))
-               return -1;
-         return 0;
-      }
+int ConstantEntry::scanValue(const QoreValue& n) const {
+    switch (n.getType()) {
+        case NT_LIST: {
+            ConstListIterator i(n.get<const QoreListNode>());
+            while (i.next())
+                if (scanValue(i.getValue()))
+                    return -1;
+            return 0;
+        }
 
-      case NT_HASH: {
-         ConstHashIterator i(reinterpret_cast<const QoreHashNode*>(n));
-         while (i.next())
-            if (scanValue(i.getValue()))
-                return -1;
-         return 0;
-      }
+        case NT_HASH: {
+            ConstHashIterator i(n.get<const QoreHashNode>());
+            while (i.next())
+                if (scanValue(i.get()))
+                    return -1;
+            return 0;
+        }
 
-      // do not allow any closure or structure containing a closure to be copied directly into the parse tree
-      // since a recursive loop can be created: https://github.com/qorelanguage/qore/issues/44
-      case NT_RUNTIME_CLOSURE:
-      // could have any value and could change at runtime
-      case NT_OBJECT:
-      case NT_FUNCREF:
-         //printd(5, "ConstantEntry::scanValue() this: %p n: %p nt: %d\n", this, n, get_node_type(n));
-         return -1;
-   }
+        // do not allow any closure or structure containing a closure to be copied directly into the parse tree
+        // since a recursive loop can be created: https://github.com/qorelanguage/qore/issues/44
+        case NT_RUNTIME_CLOSURE:
+        // could have any value and could change at runtime
+        case NT_OBJECT:
+        case NT_FUNCREF:
+            //printd(5, "ConstantEntry::scanValue() this: %p n: %p nt: %d\n", this, n, get_node_type(n));
+            return -1;
+    }
 
-   return 0;
+    return 0;
 }
 
 void ConstantEntry::del(QoreListNode& l) {

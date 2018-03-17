@@ -305,7 +305,7 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
             QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
             HashIterator hi(h);
             while (hi.next()) {
-                assert(hi.getValue() != h);
+                assert(hi.get().getInternalNode() != h);
                 if (hi.get().hasNode() && checkIntern(hi.get().getInternalNode()))
                     return true;
             }

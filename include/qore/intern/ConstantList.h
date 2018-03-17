@@ -179,7 +179,7 @@ protected:
     AbstractQoreNode* saved_node;
     ClassAccess access;
 
-    DLLLOCAL int scanValue(const AbstractQoreNode* n) const;
+    DLLLOCAL int scanValue(const QoreValue& n) const;
 
     DLLLOCAL void del(ExceptionSink* xsink);
     DLLLOCAL void del(QoreListNode& l);

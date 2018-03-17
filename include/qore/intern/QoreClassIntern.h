@@ -1825,10 +1825,10 @@ public:
         * memberNotification = nullptr;
 
     qore_classid_t classID,          // class ID
-        methodID;                     // for subclasses of builtin classes that will not have their own private data,
-                                        // instead they will get the private data from this class
+        methodID;                    // for subclasses of builtin classes that will not have their own private data,
+                                     // instead they will get the private data from this class
 
-    bool sys : 1,                        // system/builtin class?
+    bool sys : 1,                         // system/builtin class?
         hierarchy_initialized : 1,        // is hierarchy initialized (only performed once)
         initialized : 1,                  // is initialized? (only performed once)
         parse_init_called : 1,            // has parseInit() been called? (performed once for each parseCommit())
@@ -1884,7 +1884,7 @@ public:
 
     // only called while the parse lock for the QoreProgram owning "old" is held
     // called for injected classes only
-    DLLLOCAL qore_class_private(const qore_class_private& old, const char* nme, bool inject, const qore_class_private* injectedClass);
+    DLLLOCAL qore_class_private(const qore_class_private& old, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass);
 
 public:
     DLLLOCAL void pgmRef() const {
@@ -2256,21 +2256,21 @@ public:
         return 0;
     }
 
-   DLLLOCAL void parseAddMember(char* mem, ClassAccess access, QoreMemberInfo* MemberInfo) {
-      MemberInfo->access = access;
-      if (!parseCheckSystemCommitted(MemberInfo->loc) && !parseCheckMember(mem, MemberInfo)) {
-         if (!has_new_user_changes)
-            has_new_user_changes = true;
-         if (!has_sig_changes)
-            has_sig_changes = true;
-         //printd(5, "qore_class_private::parseAddMember() this: %p %s adding %s %p %s\n", this, name.c_str(), privpub(access), mem, mem);
-         members.addNoCheck(mem, MemberInfo);
-         return;
-      }
+    DLLLOCAL void parseAddMember(char* mem, ClassAccess access, QoreMemberInfo* MemberInfo) {
+        MemberInfo->access = access;
+        if (!parseCheckSystemCommitted(MemberInfo->loc) && !parseCheckMember(mem, MemberInfo)) {
+            if (!has_new_user_changes)
+                has_new_user_changes = true;
+            if (!has_sig_changes)
+                has_sig_changes = true;
+            //printd(5, "qore_class_private::parseAddMember() this: %p %s adding %s %p %s\n", this, name.c_str(), privpub(access), mem, mem);
+            members.addNoCheck(mem, MemberInfo);
+            return;
+        }
 
-      free(mem);
-      delete MemberInfo;
-   }
+        free(mem);
+        delete MemberInfo;
+    }
 
     DLLLOCAL void parseAddStaticVar(char* dname, ClassAccess access, QoreVarInfo* VarInfo) {
         VarInfo->access = access;
@@ -2304,6 +2304,9 @@ public:
 
         if (!sys) {
             sys = committed = true;
+        }
+        if (!has_sig_changes) {
+            has_sig_changes = true;
         }
         vars.addNoCheck(strdup(vname), new QoreVarInfo(QoreProgramLocation(), vTypeInfo, 0, value, access));
     }
@@ -2430,12 +2433,15 @@ public:
       return scl ? scl->parseFindStaticVar(vname, qc, access, check, toplevel) : nullptr;
    }
 
-   DLLLOCAL void addMember(const char* mem, ClassAccess access, const QoreTypeInfo* n_typeinfo, AbstractQoreNode* initial_value) {
-      assert(!members.inList(mem));
-      members.addNoCheck(strdup(mem), new QoreMemberInfo(QoreProgramLocation(), n_typeinfo, 0, initial_value, access));
-      if (access == Public && !has_public_memdecl)
-         has_public_memdecl = true;
-   }
+    DLLLOCAL void addMember(const char* mem, ClassAccess access, const QoreTypeInfo* n_typeinfo, AbstractQoreNode* initial_value) {
+        assert(!members.inList(mem));
+        if (!has_sig_changes) {
+            has_sig_changes = true;
+        }
+        members.addNoCheck(strdup(mem), new QoreMemberInfo(QoreProgramLocation(), n_typeinfo, 0, initial_value, access));
+        if (access == Public && !has_public_memdecl)
+            has_public_memdecl = true;
+    }
 
    DLLLOCAL void insertBuiltinStaticMethod(QoreMethod* m) {
       assert(m->isStatic());
@@ -3015,7 +3021,7 @@ public:
    }
 
     DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass) {
-        qore_class_private* priv = new qore_class_private(*qc.priv, nme, inject, injectedClass);
+        qore_class_private* priv = new qore_class_private(*qc.priv, spgm, nme, inject, injectedClass);
         //printd(5, "qore_program_private::makeImportClass() name: '%s' as '%s' inject: %d rv: %p\n", qc.getName(), priv->name.c_str(), inject, priv->cls);
         return priv->cls;
     }

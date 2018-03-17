@@ -288,12 +288,12 @@ QoreHashNode* qore_object_private::getRuntimeMemberHash(ExceptionSink* xsink) co
     // get the current class context for possible internal data
     const qore_class_private* class_ctx = runtime_get_class();
     if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
-        class_ctx = 0;
+        class_ctx = nullptr;
 
     QoreSafeVarRWReadLocker sl(rml);
 
     if (status == OS_DELETED)
-        return 0;
+        return nullptr;
 
     // return all member data if called inside the class
     if (class_ctx) {

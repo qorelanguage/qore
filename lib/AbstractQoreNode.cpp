@@ -451,15 +451,15 @@ static QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSink* xsin
 */
 
 static AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionSink* xsink) {
-   assert(xsink);
-   ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
-   ConstHashIterator hi(n);
-   while (hi.next()) {
-      h->setKeyValue(hi.getKey(), copy_and_resolve_lvar_refs(hi.getValue(), xsink), xsink);
-      if (*xsink)
-         return 0;
-   }
-   return h.release();
+    assert(xsink);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
+    ConstHashIterator hi(n);
+    while (hi.next()) {
+        h->setValueKeyValue(hi.getKey(), copy_value_and_resolve_lvar_refs(hi.get(), xsink), xsink);
+        if (*xsink)
+            return nullptr;
+    }
+    return h.release();
 }
 
 static AbstractQoreNode* crlr_hash_copy(const QoreParseHashNode* n, ExceptionSink* xsink) {

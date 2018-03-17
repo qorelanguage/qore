@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QoreGetOpt.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <string.h>
 #include <stdlib.h>

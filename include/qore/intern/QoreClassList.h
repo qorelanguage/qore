@@ -47,9 +47,20 @@
 #include <qore/hash_map_include.h>
 #include "qore/intern/xxhash.h"
 
-typedef HASH_MAP<const char*, QoreClass*, qore_hash_str, eqstr> hm_qc_t;
+struct cl_rec_t {
+    QoreClass* cls = nullptr;
+    bool priv = false;
+
+    DLLLOCAL cl_rec_t() {
+    }
+
+    DLLLOCAL cl_rec_t(QoreClass* c, bool p) : cls(c), priv(p) {
+    }
+};
+
+typedef HASH_MAP<const char*, cl_rec_t, qore_hash_str, eqstr> hm_qc_t;
 #else
-typedef std::map<const char*, QoreClass*, ltstr> hm_qc_t;
+typedef std::map<const char*, cl_rec_t, ltstr> hm_qc_t;
 #endif
 
 class QoreNamespaceList;
@@ -69,7 +80,7 @@ private:
 
    DLLLOCAL void remove(hm_qc_t::iterator i);
 
-   DLLLOCAL void addInternal(QoreClass* ot);
+   DLLLOCAL void addInternal(QoreClass* ot, bool priv);
 
 public:
    DLLLOCAL QoreClassList() {}
@@ -128,7 +139,7 @@ public:
    }
 
    DLLLOCAL QoreClass* get() const {
-      return i->second;
+      return i->second.cls;
    }
 
    DLLLOCAL bool isPublic() const;
@@ -158,7 +169,7 @@ public:
    }
 
    DLLLOCAL const QoreClass* get() const {
-      return i->second;
+      return i->second.cls;
    }
 
    DLLLOCAL bool isPublic() const;

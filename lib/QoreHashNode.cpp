@@ -467,14 +467,14 @@ void QoreHashNode::setKeyValue(const QoreString* key, AbstractQoreNode* val, Exc
 
 // deprecated
 void QoreHashNode::setKeyValue(const QoreString& key, AbstractQoreNode* val, ExceptionSink* xsink) {
-   setKeyValue(&key, val, xsink);
+    setKeyValue(&key, val, xsink);
 }
 
 // deprecated
 void QoreHashNode::setKeyValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
-   assert(reference_count() == 1);
-   hash_assignment_priv ha(*priv, key);
-   ha.assign(val, xsink);
+    assert(reference_count() == 1);
+    hash_assignment_priv ha(*priv, key);
+    ha.assign(val, xsink);
 }
 
 AbstractQoreNode* QoreHashNode::swapKeyValue(const QoreString* key, AbstractQoreNode* val, ExceptionSink* xsink) {

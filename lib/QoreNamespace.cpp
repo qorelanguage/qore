@@ -2300,7 +2300,12 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
                 // ignore if the class is injected or already imported
                 if (qore_class_private::get(*c) != qore_class_private::get(*cli.get()) &&
                     !qore_class_private::injected(*c))
-                qmc.error("duplicate class %s::%s", name.c_str(), cli.getName());
+                qmc.error("duplicate class %s::%s" , name.c_str(), cli.getName());
+                /*
+                qmc.error("duplicate class %s::%s (c: %p cli: %p c inj: %d cli inj: %d)", name.c_str(), cli.getName(),
+                    qore_class_private::get(*c), qore_class_private::get(*cli.get()),
+                    qore_class_private::injected(*c), qore_class_private::injected(*cli.get()));
+                */
             }
             else if (pendClassList.find(cli.getName()))
                 qmc.error("duplicate pending class %s::%s", name.c_str(), cli.getName());

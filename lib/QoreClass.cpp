@@ -466,7 +466,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
 }
 
 // only called while the parse lock for the QoreProgram owning "old" is held
-qore_class_private::qore_class_private(const qore_class_private& old, const char* new_name, bool inject, const qore_class_private* injectedClass)
+qore_class_private::qore_class_private(const qore_class_private& old, QoreProgram* spgm, const char* new_name, bool inject, const qore_class_private* injectedClass)
    : name(new_name ? new_name : old.name),
      ahm(old.ahm),
      constlist(old.constlist, 0, this),    // committed constants
@@ -501,10 +501,10 @@ qore_class_private::qore_class_private(const qore_class_private& old, const char
      hash(old.hash),
      ptr(old.ptr),
      mud(old.mud ? old.mud->copy() : nullptr),
-     spgm(old.spgm ? old.spgm->programRefSelf() : nullptr) {
+     spgm(spgm ? spgm->programRefSelf() : nullptr) {
     QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private& old)");
     if (!old.initialized)
-        const_cast<qore_class_private &>(old).initialize();
+        const_cast<qore_class_private&>(old).initialize();
 
     // must set after old class has been initialized
     has_delete_blocker = old.has_delete_blocker;
@@ -767,9 +767,7 @@ int qore_class_private::initializeIntern() {
     if (has_sig_changes) {
         // process constants for class signature, private first, then public
         do_sig(csig, constlist);
-    }
 
-    if (has_sig_changes) {
         if (!csig.empty()) {
             printd(5, "qore_class_private::initializeIntern() this: %p '%s' sig:\n%s", this, name.c_str(), csig.getBuffer());
             hash.update(csig);

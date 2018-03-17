@@ -640,7 +640,7 @@ class qhi_priv;
    @code
    HashIterator hi(h);
    while (hi.next()) {
-      QoreStringValueHelper str(hi.getValue());
+      QoreStringValueHelper str(hi.get());
       printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
    }
    @endcode
@@ -736,13 +736,13 @@ public:
 
 //! reverse iterator class for QoreHashNode, to be only created on the stack
 /**
-   @code
-   ReverseHashIterator hi(h);
-   while (hi.next()) {
-   QoreStringValueHelper str(hi.getValue());
-   printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
-   }
-   @endcode
+    @code
+    ReverseHashIterator hi(h);
+    while (hi.next()) {
+        QoreStringValueHelper str(hi.get());
+        printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
+    }
+    @endcode
 */
 class ReverseHashIterator : public HashIterator {
 public:
@@ -776,13 +776,13 @@ public:
 
 //! constant iterator class for QoreHashNode, to be only created on the stack
 /**
-   @code
-   ConstHashIterator hi(h);
-   while (hi.next()) {
-   QoreStringValueHelper str(hi.getValue());
-   printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
-   }
-   @endcode
+    @code
+    ConstHashIterator hi(h);
+    while (hi.next()) {
+        QoreStringValueHelper str(hi.get());
+        printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
+    }
+    @endcode
 */
 class ConstHashIterator {
 protected:
@@ -856,13 +856,13 @@ public:
 
 //! reverse constant iterator class for QoreHashNode, to be only created on the stack
 /**
-   @code
-   ReverseConstHashIterator hi(h);
-   while (hi.next()) {
-   QoreStringValueHelper str(hi.getValue());
-   printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
-   }
-   @endcode
+    @code
+    ReverseConstHashIterator hi(h);
+    while (hi.next()) {
+        QoreStringValueHelper str(hi.get());
+        printf("key: '%s', value: '%s'\n", hi.getKey(), str->getBuffer());
+    }
+    @endcode
 */
 class ReverseConstHashIterator : public ConstHashIterator {
 public:
