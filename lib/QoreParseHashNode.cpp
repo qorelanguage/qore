@@ -131,15 +131,16 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
 
         QoreStringValueHelper key(*k);
         AbstractQoreNode* val = v.getReferencedValue();
+        const QoreTypeInfo* vti = getTypeInfoForValue(val);
         h->setKeyValue(key->c_str(), val, xsink);
         if (xsink && *xsink)
             return QoreValue();
 
         if (!i) {
-            vtype = getTypeInfoForValue(val);
+            vtype = vti;
             vcommon = true;
         }
-        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(val)))
+        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vti))
             vcommon = false;
     }
 
