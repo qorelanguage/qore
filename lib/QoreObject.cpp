@@ -460,6 +460,12 @@ void qore_object_private::mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsi
    }
 }
 
+QoreValue& qore_object_private::getMemberValueRefForInitialization(const char* member, const qore_class_private* class_ctx) {
+    QoreHashNode* odata = class_ctx ? getCreateInternalData(class_ctx) : data;
+    //printd(5, "qore_object_private::getMemberValueRefForInitialization() this: %p mem: '%s' class_ctx: %p %s odata: %p\n", this, member, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", odata);
+    return qore_hash_private::get(*odata)->getValueRef(member);
+}
+
 int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink) {
     const QoreTypeInfo* mti = nullptr;
     bool internal_member;

@@ -270,7 +270,7 @@ int typed_hash_decl_private::initHash(QoreHashNode* h, const QoreHashNode* init,
             continue;
 
         if (i->second->exp) {
-            QoreValue& v = h->getValueRef(i->first);
+            QoreValue& v = qore_hash_private::get(*h)->getValueRef(i->first);
             assert(v.isNothing());
 
             ValueEvalRefHolder val(i->second->exp, xsink);
@@ -285,7 +285,7 @@ int typed_hash_decl_private::initHash(QoreHashNode* h, const QoreHashNode* init,
         }
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
         else {
-            QoreValue& v = h->getValueRef(i->first);
+            QoreValue& v = qore_hash_private::get(*h)->getValueRef(i->first);
             assert(v.isNothing());
             v = QoreTypeInfo::getDefaultQoreValue(i->second->getTypeInfo());
         }

@@ -660,11 +660,7 @@ public:
    DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
     // no locking necessary; if class_ctx is non-null, an internal member is being initialized
-    QoreValue& getMemberValueRefForInitialization(const char* member, const qore_class_private* class_ctx) {
-        QoreHashNode* odata = class_ctx ? getCreateInternalData(class_ctx) : data;
-        //printd(5, "qore_object_private::getMemberValueRefForInitialization() this: %p mem: '%s' class_ctx: %p %s odata: %p\n", this, member, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", odata);
-        return odata->getValueRef(member);
-    }
+    DLLLOCAL QoreValue& getMemberValueRefForInitialization(const char* member, const qore_class_private* class_ctx);
 
    //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
    /**

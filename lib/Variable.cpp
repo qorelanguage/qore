@@ -614,7 +614,7 @@ int LValueHelper::makeInt(const char* desc) {
     assert(val || qv);
 
     if (val) {
-        if (val->getType() == NT_INT) {
+        if (val->isInt()) {
             return 0;
         }
 
@@ -644,7 +644,7 @@ int LValueHelper::makeInt(const char* desc) {
 int LValueHelper::makeFloat(const char* desc) {
     assert(val || qv);
     if (val) {
-        if (val->getType() == NT_FLOAT) {
+        if (val->isFloat()) {
             return 0;
         }
 

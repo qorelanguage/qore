@@ -374,15 +374,6 @@ public:
    */
    DLLEXPORT AbstractQoreNode** getKeyValuePtr(const char* key);
 
-    //! returns a reference to the value of the key (assumed to be in QCS_DEFAULT) so the value may be set or changed externally
-    /** The key hash entry is created if it does not already exist.
-         @param key the key to return the pointer to the value pointer for
-        @return a reference to the value of the key (assumed to be in QCS_DEFAULT)
-
-        @since %Qore 0.9.0
-    */
-    DLLEXPORT QoreValue& getValueRef(const char* key);
-
    //! returns a pointer to a pointer of the value of the key only if the key already exists
    /** Converts "key" to the default character encoding (QCS_DEFAULT) if necessary.
        An exception could be thrown if the character encoding conversion fails.

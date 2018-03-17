@@ -383,10 +383,6 @@ AbstractQoreNode** QoreHashNode::getKeyValuePtr(const char* key) {
    return priv->getKeyValuePtr(key);
 }
 
-QoreValue& QoreHashNode::getValueRef(const char* key) {
-    return priv->getValueRef(key);
-}
-
 // deprecated
 int64 QoreHashNode::getKeyAsBigInt(const char* key, bool &found) const {
    return priv->getKeyAsBigInt(key, found);
