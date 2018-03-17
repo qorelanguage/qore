@@ -410,10 +410,10 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
             n = new GlobalVarRefNode(loc, takeName(), v);
     }
 
-    bool found = false;
+    bool found = !n.isNothing();
 
     // see if a constant can be resolved
-    if (n.isNothing()) {
+    if (!found) {
         n = qore_root_ns_private::parseFindConstantValue(loc, c_str, returnTypeInfo, found, false);
         if (found) {
             n.ref();
@@ -421,7 +421,7 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
     }
 
     if (found) {
-        CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n.getReferencedValue(), takeParseArgs());
+        CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n.takeNode(), takeParseArgs());
         deref();
         return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
     }
