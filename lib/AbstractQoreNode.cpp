@@ -65,20 +65,20 @@ AbstractQoreNode::~AbstractQoreNode() {
 
 /*
 bool test(const AbstractQoreNode* n) {
-   return n->getType() == NT_HASH;
+   return n->getType() == NT_RTCONSTREF;
 }
 static void break_ref() {}
+static void break_deref() {}
 */
 
 void AbstractQoreNode::ref() const {
 #ifdef DEBUG
-   /*
+/*
    if (test(this)) {
-      printd(0, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references + 1);
+      printd(0, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), reference_count(), reference_count() + 1);
       break_ref();
    }
-   */
-
+*/
 #if TRACK_REFS
    if (type == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject*>(this);
@@ -113,16 +113,15 @@ void AbstractQoreNode::customDeref(ExceptionSink* xsink) {
    assert(false);
 }
 
-//static void break_deref() {}
 void AbstractQoreNode::deref(ExceptionSink* xsink) {
    //QORE_TRACE("AbstractQoreNode::deref()");
 #ifdef DEBUG
-   /*
+/*
    if (test(this)) {
-      printd(0, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references - 1);
+      printd(0, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), reference_count(), reference_count() - 1);
       break_deref();
    }
-   */
+*/
 #if TRACK_REFS
    if (type == NT_OBJECT)
       printd(REF_LVL, "QoreObject::deref() %p class: %s (%d->%d) %d\n", this, ((QoreObject*)this)->getClassName(), references.load(), references.load() - 1, custom_reference_handlers);

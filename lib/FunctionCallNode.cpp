@@ -358,7 +358,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
         }
 
         if (!n.isNothing()) {
-            CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n.getReferencedValue(), takeParseArgs());
+            CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n.takeNode(), takeParseArgs());
             deref();
             return crcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
         }

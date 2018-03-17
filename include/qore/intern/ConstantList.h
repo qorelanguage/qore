@@ -176,7 +176,7 @@ public:
     }
 
 protected:
-    AbstractQoreNode* saved_node;
+    AbstractQoreNode* saved_node = nullptr;
     ClassAccess access;
 
     DLLLOCAL int scanValue(const QoreValue& n) const;

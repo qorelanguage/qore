@@ -46,7 +46,7 @@ const char* ClassNs::getName() const {
 
 ConstantEntry::ConstantEntry(const QoreProgramLocation& loc, const char* n, QoreValue val, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin, ClassAccess n_access)
    : loc(loc), name(n), typeInfo(ti), val(val), in_init(false), pub(n_pub),
-     init(n_init), builtin(n_builtin), saved_node(nullptr), access(n_access) {
+     init(n_init), builtin(n_builtin), access(n_access) {
     QoreProgram* pgm = getProgram();
     if (pgm)
         pwo = qore_program_private::getParseWarnOptions(pgm);
