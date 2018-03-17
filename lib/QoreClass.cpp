@@ -1731,15 +1731,15 @@ bool BCNode::runtimeIsPrivateMember(const char* str, bool toplevel) const {
    return sclass->priv->runtimeIsPrivateMemberIntern(str, false);
 }
 
-AbstractQoreNode* BCNode::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const {
+const QoreValue BCNode::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx, bool allow_internal) const {
    // sclass can be 0 if the class could not be found during parse initialization
-   if (!sclass)
-      return nullptr;
+    if (!sclass)
+        return QoreValue();
 
-   if (access == Internal && !allow_internal)
-      return nullptr;
+    if (access == Internal && !allow_internal)
+        return QoreValue();
 
-   return sclass->priv->parseFindConstantValueIntern(cname, typeInfo, class_ctx);
+    return sclass->priv->parseFindConstantValueIntern(cname, typeInfo, found, class_ctx);
 }
 
 bool BCNode::parseCheckHierarchy(const QoreClass* cls, ClassAccess& n_access, bool toplevel) const {
@@ -2135,16 +2135,16 @@ void BCList::resolveCopy() {
    sml.resolveCopy();
 }
 
-AbstractQoreNode* BCList::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, const qore_class_private* class_ctx, bool allow_internal) const {
-   if (!valid)
-      return nullptr;
+const QoreValue BCList::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx, bool allow_internal) const {
+    if (!valid)
+        return QoreValue();
 
-   for (auto& i : *this) {
-      AbstractQoreNode* rv = (*i).parseFindConstantValue(cname, typeInfo, class_ctx, allow_internal);
-      if (rv)
-         return rv;
-   }
-   return nullptr;
+    for (auto& i : *this) {
+       const QoreValue rv = (*i).parseFindConstantValue(cname, typeInfo, found, class_ctx, allow_internal);
+       if (found)
+           return rv;
+    }
+    return QoreValue();
 }
 
 QoreVarInfo* BCList::parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& access, bool check, bool toplevel) const {

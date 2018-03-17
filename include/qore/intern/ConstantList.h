@@ -86,6 +86,8 @@ struct ClassNs {
 
 class RuntimeConstantRefNode;
 
+static void breakit() {}
+
 class ConstantEntry : public QoreReferenceCounter {
     friend class ConstantEntryInitHelper;
     friend class RuntimeConstantRefNode;
@@ -96,31 +98,39 @@ public:
     ParseWarnOptions pwo;
     std::string name;
     const QoreTypeInfo* typeInfo;
-    AbstractQoreNode* node;
+    QoreValue val;
     bool in_init : 1,  // being initialized
         pub : 1,        // public constant (modules only)
         init : 1,       // already initialized
         builtin : 1     // builtin vs user
         ;
 
-    DLLLOCAL ConstantEntry(const QoreProgramLocation& loc, const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false, ClassAccess n_access = Public);
+    DLLLOCAL ConstantEntry(const QoreProgramLocation& loc, const char* n, QoreValue v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false, ClassAccess n_access = Public);
     DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
     DLLLOCAL void deref(ExceptionSink* xsink) {
-            if (ROdereference()) {
-                del(xsink);
-                delete this;
-            }
+        if (name == "closure")
+        printd(0, "CE::d(e) this: %p %d -> %d\n", this, reference_count(), reference_count() - 1);
+        if (ROdereference()) {
+            del(xsink);
+            delete this;
+        }
     }
 
     DLLLOCAL void deref(QoreListNode& l) {
-            if (ROdereference()) {
-                del(l);
-                delete this;
-            }
+        if (name == "closure")
+        printd(0, "CE::d(l) this: %p %d -> %d\n", this, reference_count(), reference_count() - 1);
+        if (ROdereference()) {
+            del(l);
+            delete this;
+        }
     }
 
     DLLLOCAL void ref() {
+        if (name == "closure") {
+            printd(0, "CE::r() this: %p %d -> %d\n", this, reference_count(), reference_count() + 1);
+            breakit();
+        }
         ROreference();
     }
 
@@ -131,20 +141,20 @@ public:
 
     DLLLOCAL int parseInit(ClassNs ptr);
 
-    DLLLOCAL AbstractQoreNode* get(const QoreProgramLocation& loc, const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
+    DLLLOCAL QoreValue get(const QoreProgramLocation& loc, const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
         if (in_init) {
             parse_error(loc, "recursive constant reference found to constant '%s'", name.c_str());
             constantTypeInfo = nothingTypeInfo;
-            return 0;
+            return QoreValue();
         }
 
         if (!init && parseInit(ptr)) {
             constantTypeInfo = nothingTypeInfo;
-            return 0;
+            return QoreValue();
         }
 
         constantTypeInfo = typeInfo;
-        return node;
+        return val;
     }
 
     DLLLOCAL const char* getName() const {
@@ -185,8 +195,10 @@ protected:
     DLLLOCAL void del(QoreListNode& l);
 
     DLLLOCAL ~ConstantEntry() {
+        if (name == "closure")
+           printd(0, "ConstantEntry::~ConstantEntry() this: %p\n", this);
         assert(!saved_node);
-        assert(!node);
+        assert(val.isNothing());
     }
 };
 
@@ -245,17 +257,17 @@ public:
     DLLLOCAL ConstantList(const ConstantList& old, int64 po, ClassNs p);
 
     // do not delete the object returned by this function
-    DLLLOCAL cnemap_t::iterator add(const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = nullptr, ClassAccess access = Public);
+    DLLLOCAL cnemap_t::iterator add(const char* name, QoreValue val, const QoreTypeInfo* typeInfo = nullptr, ClassAccess access = Public);
 
-    DLLLOCAL cnemap_t::iterator parseAdd(const QoreProgramLocation& loc, const char* name, AbstractQoreNode* val, const QoreTypeInfo* typeInfo = nullptr, bool pub = false, ClassAccess access = Public);
+    DLLLOCAL cnemap_t::iterator parseAdd(const QoreProgramLocation& loc, const char* name, QoreValue val, const QoreTypeInfo* typeInfo = nullptr, bool pub = false, ClassAccess access = Public);
 
     DLLLOCAL ConstantEntry* findEntry(const char* name);
 
-    DLLLOCAL AbstractQoreNode* find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access);
+    DLLLOCAL QoreValue find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access, bool& found);
 
-    DLLLOCAL AbstractQoreNode* find(const char* name, const QoreTypeInfo*& constantTypeInfo) {
+    DLLLOCAL QoreValue find(const char* name, const QoreTypeInfo*& constantTypeInfo, bool& found) {
         ClassAccess access;
-        return find(name, constantTypeInfo, access);
+        return find(name, constantTypeInfo, access, found);
     }
 
     DLLLOCAL bool inList(const char* name) const;
@@ -274,7 +286,7 @@ public:
     DLLLOCAL int importSystemConstants(const ConstantList& src, ExceptionSink* xsink);
 
     // add a constant to a list with duplicate checking (pub & priv + pending)
-    DLLLOCAL void parseAdd(const QoreProgramLocation& loc, const std::string& name, AbstractQoreNode* val, ClassAccess access, const char* cname);
+    DLLLOCAL void parseAdd(const QoreProgramLocation& loc, const std::string& name, QoreValue val, ClassAccess access, const char* cname);
 
     DLLLOCAL void parseInit();
     DLLLOCAL QoreHashNode* getInfo();
@@ -322,8 +334,8 @@ public:
         return i->second->getNameStr();
     }
 
-    DLLLOCAL AbstractQoreNode* getValue() const {
-        return i->second->node;
+    DLLLOCAL QoreValue getValue() const {
+        return i->second->val;
     }
 
     DLLLOCAL ConstantEntry* getEntry() const {
@@ -364,8 +376,8 @@ public:
         return i->second->getNameStr();
     }
 
-    DLLLOCAL const AbstractQoreNode* getValue() const {
-        return i->second->node;
+    DLLLOCAL const QoreValue getValue() const {
+        return i->second->val;
     }
 
     DLLLOCAL const ConstantEntry* getEntry() const {
@@ -400,7 +412,6 @@ protected:
     }
 
     DLLLOCAL ~RuntimeConstantRefNode() {
-        ce->deref(nullptr);
     }
 
 public:

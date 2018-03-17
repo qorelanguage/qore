@@ -470,7 +470,9 @@ bool qore_has_debug() {
 void parse_init_value(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     if (val.hasNode()) {
         AbstractQoreNode* n = val.getInternalNode();
+        printd(0, "parse_init_value() n: %p '%s'\n", n, get_type_name(n));
         AbstractQoreNode* nn = n->parseInit(oflag, pflag, lvids, typeInfo);
+        printd(0, "parse_init_value() n: %p nn: %p '%s'\n", n, nn, get_type_name(nn));
         if (nn != n) {
             val = nn;
         }
