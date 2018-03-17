@@ -33,6 +33,7 @@
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 #include <string.h>
 #include <stdlib.h>
