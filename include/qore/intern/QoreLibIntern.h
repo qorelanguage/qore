@@ -136,6 +136,8 @@ extern char* strcasestr(const char* s1, const char* s2);
 
 typedef std::set<QoreObject*> obj_set_t;
 
+DLLLOCAL void parse_init_value(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
 // returns true if the node needs to be scanned for recursive references or not
 DLLLOCAL bool needs_scan(const AbstractQoreNode* n);
 DLLLOCAL bool needs_scan(const QoreValue& v);

@@ -73,7 +73,7 @@ public:
         delete ns;
     }
 
-    DLLLOCAL NamedScope(const NamedScope &old) : del(old.del), ostr(old.del ? strdup(old.ostr) : old.ostr), strlist(old.strlist) {
+    DLLLOCAL NamedScope(const NamedScope &old) : del(true), ostr(strdup(old.ostr)), strlist(old.strlist) {
     }
 
     DLLLOCAL ~NamedScope() {

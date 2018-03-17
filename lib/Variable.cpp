@@ -596,10 +596,12 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
 
     // perform assignment
     if (val) {
+        n.sanitize();
         saveTemp(val->assignAssume(n));
         return 0;
     }
     if (qv) {
+        n.sanitize();
         saveTemp(qv->takeIfNode());
         *qv = n;
         return 0;

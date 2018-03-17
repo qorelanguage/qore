@@ -927,7 +927,7 @@ int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool 
                     if (*xsink)
                         return -1;
                 }
-                //val.sanitize();
+                val.sanitize();
                 v = val.takeReferencedValue();
                 if (needs_scan(v)) {
                     qore_object_private::incScanCount(o, 1);

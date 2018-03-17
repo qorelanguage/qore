@@ -74,8 +74,8 @@ static void check_constant_cycle(QoreProgram* pgm, AbstractQoreNode* n) {
 #endif
 
 ConstantEntry::ConstantEntry(const QoreProgramLocation& loc, const char* n, AbstractQoreNode* v, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin, ClassAccess n_access)
-   : saved_node(nullptr), access(n_access), loc(loc), name(n), typeInfo(ti), node(v), in_init(false), pub(n_pub),
-     init(n_init), builtin(n_builtin) {
+   : loc(loc), name(n), typeInfo(ti), node(v), in_init(false), pub(n_pub),
+     init(n_init), builtin(n_builtin), saved_node(nullptr), access(n_access) {
    QoreProgram* pgm = getProgram();
    if (pgm)
       pwo = qore_program_private::getParseWarnOptions(pgm);
@@ -84,13 +84,13 @@ ConstantEntry::ConstantEntry(const QoreProgramLocation& loc, const char* n, Abst
 }
 
 ConstantEntry::ConstantEntry(const ConstantEntry& old) :
-   saved_node(old.saved_node ? old.saved_node->refSelf() : nullptr),
-   access(old.access),
-   loc(old.loc), pwo(old.pwo), name(old.name),
-   typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : nullptr),
-   in_init(false), pub(old.builtin), init(true), builtin(old.builtin) {
-   assert(!old.in_init);
-   assert(old.init);
+    loc(old.loc), pwo(old.pwo), name(old.name),
+    typeInfo(old.typeInfo), node(old.node ? old.node->refSelf() : nullptr),
+    in_init(false), pub(old.builtin), init(true), builtin(old.builtin),
+    saved_node(old.saved_node ? old.saved_node->refSelf() : nullptr),
+    access(old.access) {
+    assert(!old.in_init);
+    assert(old.init);
 }
 
 int ConstantEntry::scanValue(const QoreValue& n) const {

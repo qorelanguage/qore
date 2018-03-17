@@ -551,12 +551,12 @@ void QoreHashNode::merge(const class QoreHashNode* h, ExceptionSink* xsink) {
 
 // returns the same order
 QoreHashNode* QoreHashNode::copy() const {
-   return priv->copy();
+    return priv->copy();
 }
 
 QoreHashNode* QoreHashNode::hashRefSelf() const {
-   ref();
-   return const_cast<QoreHashNode*>(this);
+    ref();
+    return const_cast<QoreHashNode*>(this);
 }
 
 // returns a hash with the same order
@@ -1146,6 +1146,7 @@ void hash_assignment_priv::reassign(const char* key, bool must_already_exist) {
 QoreValue hash_assignment_priv::swapImpl(QoreValue v) {
     assert(om);
     QoreValue old = om->val;
+    v.sanitize();
     om->val = v;
 
     bool before = needs_scan(old);

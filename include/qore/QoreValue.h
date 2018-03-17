@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -108,6 +108,36 @@ namespace detail {
     };
 } // namespace detail
 
+class QoreSimpleValue {
+public:
+    //! the actual value is stored here
+    qore_value_u v;
+    //! indicates the value that the union is holding
+    valtype_t type;
+
+    DLLLOCAL void set(int64 i) {
+        type = QV_Int;
+        v.i = i;
+    }
+
+    DLLLOCAL void set(double f) {
+        type = QV_Float;
+        v.f = f;
+    }
+
+    DLLLOCAL void set(bool b) {
+        type = QV_Bool;
+        v.b = b;
+    }
+
+    DLLLOCAL void set(AbstractQoreNode* n) {
+        type = QV_Node;
+        v.n = n;
+    }
+
+    DLLLOCAL AbstractQoreNode* takeNode();
+};
+
 //! The main value class in Qore, designed to be passed by value
 struct QoreValue {
     friend class ValueHolder;
@@ -162,6 +192,9 @@ public:
         if getType() == QV_Node after this assignment, then the node must be referenced for the assignment
     */
     DLLEXPORT QoreValue(const AbstractQoreNode* n);
+
+    //! creates with no value (i.e. @ref QoreNothingNode)
+    DLLEXPORT QoreValue(const QoreSimpleValue v);
 
     //! copies the value, in case type == QV_Node, no additional references are made in this function
     DLLEXPORT QoreValue(const QoreValue& old);
@@ -235,6 +268,9 @@ public:
 
     //! converts any node pointers to efficient representations if possible and dereferences the node value contained
     DLLEXPORT void sanitize();
+
+    //! assigns a new value
+    DLLEXPORT QoreValue& operator=(const QoreSimpleValue& n);
 
     //! assigns a new value
     DLLEXPORT QoreValue& operator=(const QoreValue& n);
@@ -485,8 +521,13 @@ public:
 //! evaluates an AbstractQoreNode and dereferences the stored value in the destructor
 class ValueEvalRefHolder : public ValueOptionalRefHolder {
 public:
-    //! evaluates the AbstractQoreNode argument
+    //! evaluates the exp argument
     DLLEXPORT ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs);
+
+    //! evaluates the exp argument
+    /** @since %Qore 0.9
+     */
+    DLLEXPORT ValueEvalRefHolder(const QoreValue exp, ExceptionSink* xs);
 
     //! creates the object with with no evaluation
     /** @since %Qore 0.8.13.1
@@ -498,11 +539,21 @@ public:
      */
     DLLEXPORT int eval(const AbstractQoreNode* exp);
 
+    //! evaluates the argument, returns -1 for error, 0 = OK
+    /** @since %Qore 0.9
+     */
+    DLLEXPORT int eval(const QoreValue exp);
+
 protected:
     //! evaluates the argument, returns -1 for error, 0 = OK
     /** @since %Qore 0.8.13.1
      */
-    DLLLOCAL void evalIntern(const AbstractQoreNode* exp);
+    DLLLOCAL int evalIntern(const AbstractQoreNode* exp);
+
+    //! evaluates the argument, returns -1 for error, 0 = OK
+    /** @since %Qore 0.9
+     */
+    DLLLOCAL int evalIntern(const QoreValue exp);
 };
 
 #endif

@@ -377,7 +377,7 @@ public:
 #ifdef DEBUG
             assert(ha.swap(i->val.refSelf()).isNothing());
 #else
-            ha.swap(i->val);
+            ha.swap(i->val.refSelf());
 #endif
         }
     }

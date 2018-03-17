@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -138,7 +138,8 @@ char table64[64] = {
    'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
    'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
    'w', 'x', 'y', 'z', '0', '1', '2', '3',
-   '4', '5', '6', '7', '8', '9', '+', '/' };
+   '4', '5', '6', '7', '8', '9', '+', '/',
+};
 
 const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_ATOMIC_OPERATIONS,
@@ -427,29 +428,29 @@ const qore_option_s* qore_option_list = qore_option_list_l;
 size_t qore_option_list_size = QORE_OPTION_LIST_SIZE;
 
 bool q_get_option_value(const char* opt) {
-   for (unsigned i = 0; i < QORE_OPTION_LIST_SIZE; ++i) {
-      if (!strcasecmp(opt, qore_option_list_l[i].option))
-         return qore_option_list_l[i].value;
-   }
-   return false;
+    for (unsigned i = 0; i < QORE_OPTION_LIST_SIZE; ++i) {
+        if (!strcasecmp(opt, qore_option_list_l[i].option))
+            return qore_option_list_l[i].value;
+    }
+    return false;
 }
 
 bool q_get_option_constant_value(const char* opt) {
-   for (unsigned i = 0; i < QORE_OPTION_LIST_SIZE; ++i) {
-      if (!strcasecmp(opt, qore_option_list_l[i].constant))
-         return qore_option_list_l[i].value;
-   }
-   return false;
+    for (unsigned i = 0; i < QORE_OPTION_LIST_SIZE; ++i) {
+        if (!strcasecmp(opt, qore_option_list_l[i].constant))
+            return qore_option_list_l[i].value;
+    }
+    return false;
 }
 
-static inline int get_number(char** param) {
-   int num = 0;
-   while (isdigit(**param)) {
-      num = num*10 + (**param - '0');
-      ++(*param);
-   }
-   //printd(0, "get_number(%x: %s) num: %d\n", *param, *param, num);
-   return num;
+static int get_number(char** param) {
+    int num = 0;
+    while (isdigit(**param)) {
+        num = num*10 + (**param - '0');
+        ++(*param);
+    }
+    //printd(0, "get_number(%x: %s) num: %d\n", *param, *param, num);
+    return num;
 }
 
 // print options
@@ -464,6 +465,19 @@ bool qore_has_debug() {
 #else
    return false;
 #endif
+}
+
+void parse_init_value(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    if (val.hasNode()) {
+        AbstractQoreNode* n = val.getInternalNode();
+        AbstractQoreNode* nn = n->parseInit(oflag, pflag, lvids, typeInfo);
+        if (nn != n) {
+            val = nn;
+        }
+        return;
+    }
+
+    typeInfo = val.getTypeInfo();
 }
 
 QoreAbstractIteratorBase::QoreAbstractIteratorBase() : tid(gettid()) {
