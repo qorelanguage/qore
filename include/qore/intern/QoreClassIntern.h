@@ -1709,78 +1709,78 @@ struct SelfInstantiatorHelper {
 // class "signature" hash for comparing classes with the same name from different program objects at runtime
 class SignatureHash {
 protected:
-   unsigned char buf[SH_SIZE];
-   bool is_set;
+    unsigned char buf[SH_SIZE];
+    bool is_set;
 
-   DLLLOCAL void set(const QoreString& str);
+    DLLLOCAL void set(const QoreString& str);
 
-   DLLLOCAL void clearHash() {
-      memset(buf, 0, SH_SIZE);
-   }
+    DLLLOCAL void clearHash() {
+        memset(buf, 0, SH_SIZE);
+    }
 
-   DLLLOCAL void copyHash(const SignatureHash& other) {
-      memcpy(buf, other.buf, SH_SIZE);
-   }
+    DLLLOCAL void copyHash(const SignatureHash& other) {
+        memcpy(buf, other.buf, SH_SIZE);
+    }
 
 public:
-   DLLLOCAL SignatureHash() : is_set(false) {
-      clearHash();
-   }
+    DLLLOCAL SignatureHash() : is_set(false) {
+        clearHash();
+    }
 
-   DLLLOCAL SignatureHash(const SignatureHash& old) : is_set(old.is_set) {
-      if (is_set)
-         copyHash(old);
-   }
+    DLLLOCAL SignatureHash(const SignatureHash& old) : is_set(old.is_set) {
+        if (is_set)
+            copyHash(old);
+    }
 
-   DLLLOCAL void update(const QoreString& str);
+    DLLLOCAL void update(const QoreString& str);
 
-   DLLLOCAL void updateEmpty() {
-      assert(!is_set);
-      clearHash();
-      is_set = true;
-   }
+    DLLLOCAL void updateEmpty() {
+        assert(!is_set);
+        clearHash();
+        is_set = true;
+    }
 
-   DLLLOCAL bool operator==(const SignatureHash& other) const {
-      // if either one of the hashes is not set, then the comparison always fails
-      if (!is_set || !other.is_set)
-         return false;
-      return !memcmp(buf, other.buf, SH_SIZE);
-   }
+    DLLLOCAL bool operator==(const SignatureHash& other) const {
+        // if either one of the hashes is not set, then the comparison always fails
+        if (!is_set || !other.is_set)
+            return false;
+        return !memcmp(buf, other.buf, SH_SIZE);
+    }
 
-   DLLLOCAL SignatureHash& operator=(const SignatureHash& other) {
-      if (!other.is_set) {
-         assert(false);
-         clear();
-      }
-      else {
-         if (!is_set)
-            is_set = true;
-         copyHash(other);
-      }
-      return *this;
-   }
+    DLLLOCAL SignatureHash& operator=(const SignatureHash& other) {
+        if (!other.is_set) {
+            assert(false);
+            clear();
+        }
+        else {
+            if (!is_set)
+                is_set = true;
+            copyHash(other);
+        }
+        return *this;
+    }
 
-   DLLLOCAL operator bool() const {
-      return is_set;
-   }
+    DLLLOCAL operator bool() const {
+        return is_set;
+    }
 
-   // appends the hash to the string
-   DLLLOCAL void toString(QoreString& str) const {
-      for (unsigned i = 0; i < SH_SIZE; ++i)
-         str.sprintf("%02x", buf[i]);
-   }
+    // appends the hash to the string
+    DLLLOCAL void toString(QoreString& str) const {
+        for (unsigned i = 0; i < SH_SIZE; ++i)
+            str.sprintf("%02x", buf[i]);
+    }
 
-   DLLLOCAL char* getHash() const {
-      assert(is_set);
-      return (char*)buf;
-   }
+    DLLLOCAL char* getHash() const {
+        assert(is_set);
+        return (char*)buf;
+    }
 
-   DLLLOCAL void clear() {
-      if (is_set) {
-         is_set = false;
-         clearHash();
-      }
-   }
+    DLLLOCAL void clear() {
+        if (is_set) {
+            is_set = false;
+            clearHash();
+        }
+    }
 };
 
 #define QCCM_NORMAL (1 << 0)

@@ -37,6 +37,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include <map>
 #include <set>
@@ -65,8 +66,15 @@
 
 class LValueHelper;
 
+class lthash {
+public:
+    DLLLOCAL bool operator()(char* s1, char* s2) const {
+        return memcmp(s1, s2, SH_SIZE) < 0;
+    }
+};
+
 // per-class internal data
-typedef std::map<char*, QoreHashNode*, ltstr> cdmap_t;
+typedef std::map<char*, QoreHashNode*, lthash> cdmap_t;
 
 /*
   Qore internal class data is stored against the object with this data structure
@@ -366,148 +374,148 @@ public:
       return ((access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
    }
 
-   // must be called in the object read lock
-   DLLLOCAL const QoreHashNode* getInternalData(const qore_class_private* class_ctx) const {
-      if (!cdmap)
-         return 0;
-      cdmap_t::const_iterator i = cdmap->find(class_ctx->getHash());
-      return i != cdmap->end() ? i->second : 0;
-   }
+    // must be called in the object read lock
+    DLLLOCAL const QoreHashNode* getInternalData(const qore_class_private* class_ctx) const {
+        if (!cdmap)
+            return nullptr;
+        cdmap_t::const_iterator i = cdmap->find(class_ctx->getHash());
+        return i != cdmap->end() ? i->second : nullptr;
+    }
 
-   // must be called in the object read lock
-   DLLLOCAL QoreHashNode* getInternalData(const qore_class_private* class_ctx) {
-      if (!cdmap)
-         return 0;
-      cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
-      return i != cdmap->end() ? i->second : 0;
-   }
+    // must be called in the object read lock
+    DLLLOCAL QoreHashNode* getInternalData(const qore_class_private* class_ctx) {
+        if (!cdmap)
+            return nullptr;
+        cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
+        return i != cdmap->end() ? i->second : nullptr;
+    }
 
-   // must be called in the object write lock
-   DLLLOCAL QoreHashNode* getCreateInternalData(const qore_class_private* class_ctx) {
-      if (cdmap) {
-         cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
-         if (i != cdmap->end())
-            return i->second;
-      }
-      else
-         cdmap = new cdmap_t;
+    // must be called in the object write lock
+    DLLLOCAL QoreHashNode* getCreateInternalData(const qore_class_private* class_ctx) {
+        if (cdmap) {
+            cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
+            if (i != cdmap->end())
+                return i->second;
+        }
+        else
+            cdmap = new cdmap_t;
 
-      QoreHashNode* id = new QoreHashNode;
-      cdmap->insert(cdmap_t::value_type(class_ctx->getHash(), id));
-      return id;
-   }
+        QoreHashNode* id = new QoreHashNode;
+        cdmap->insert(cdmap_t::value_type(class_ctx->getHash(), id));
+        return id;
+    }
 
-   DLLLOCAL void setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink);
+    DLLLOCAL void setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink);
 
-   DLLLOCAL void setValueIntern(const qore_class_private* class_ctx, const char* key, QoreValue val, ExceptionSink* xsink);
+    DLLLOCAL void setValueIntern(const qore_class_private* class_ctx, const char* key, QoreValue val, ExceptionSink* xsink);
 
-   DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member) const {
-      ClassAccess access;
-      const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, access, class_ctx, internal_member);
-      if (!qc)
-         return theclass->runtimeHasPublicMembersInHierarchy() ? QOA_PUB_ERROR : QOA_OK;
-      // if internal_member is true, then private access has already been verified
-      if (internal_member)
-         return QOA_OK;
+    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member) const {
+        ClassAccess access;
+        const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, access, class_ctx, internal_member);
+        if (!qc)
+            return theclass->runtimeHasPublicMembersInHierarchy() ? QOA_PUB_ERROR : QOA_OK;
+        // if internal_member is true, then private access has already been verified
+        if (internal_member)
+            return QOA_OK;
 
-      return ((access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
-   }
+        return ((access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
+    }
 
-   DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member, ExceptionSink* xsink) const {
-      int rc = checkMemberAccess(mem, class_ctx, internal_member);
-      if (!rc)
-         return 0;
+    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member, ExceptionSink* xsink) const {
+        int rc = checkMemberAccess(mem, class_ctx, internal_member);
+        if (!rc)
+            return 0;
 
-      if (rc == QOA_PRIV_ERROR)
-         doPrivateException(mem, xsink);
-      else
-         doPublicException(mem, xsink);
-      return -1;
-   }
-
-   DLLLOCAL int checkMemberAccessGetTypeInfo(ExceptionSink* xsink, const char* mem, const qore_class_private* class_ctx, bool& internal_member, const QoreTypeInfo*& typeInfo) const {
-      ClassAccess access;
-      const QoreMemberInfo* mi = qore_class_private::runtimeGetMemberInfo(*theclass, mem, access, class_ctx, internal_member);
-      if (mi) {
-         if (access > Public && !class_ctx) {
+        if (rc == QOA_PRIV_ERROR)
             doPrivateException(mem, xsink);
+        else
+            doPublicException(mem, xsink);
+        return -1;
+    }
+
+    DLLLOCAL int checkMemberAccessGetTypeInfo(ExceptionSink* xsink, const char* mem, const qore_class_private* class_ctx, bool& internal_member, const QoreTypeInfo*& typeInfo) const {
+        ClassAccess access;
+        const QoreMemberInfo* mi = qore_class_private::runtimeGetMemberInfo(*theclass, mem, access, class_ctx, internal_member);
+        if (mi) {
+            if (access > Public && !class_ctx) {
+                doPrivateException(mem, xsink);
+                return -1;
+            }
+
+            typeInfo = mi->getTypeInfo();
+            return 0;
+        }
+
+        // member is not declared
+        if (theclass->runtimeHasPublicMembersInHierarchy()) {
+            doPublicException(mem, xsink);
             return -1;
-         }
+        }
+        return 0;
+    }
 
-         typeInfo = mi->getTypeInfo();
-         return 0;
-      }
+    DLLLOCAL QoreValue takeMember(ExceptionSink* xsink, const char* mem, bool check_access = true);
 
-      // member is not declared
-      if (theclass->runtimeHasPublicMembersInHierarchy()) {
-         doPublicException(mem, xsink);
-         return -1;
-      }
-      return 0;
-   }
+    DLLLOCAL QoreValue takeMember(LValueHelper& lvh, const char* mem);
 
-   DLLLOCAL QoreValue takeMember(ExceptionSink* xsink, const char* mem, bool check_access = true);
+    DLLLOCAL void takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, const QoreListNode* l);
 
-   DLLLOCAL QoreValue takeMember(LValueHelper& lvh, const char* mem);
+    DLLLOCAL QoreValue getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const;
 
-   DLLLOCAL void takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, const QoreListNode* l);
+    // lock not held on entry
+    DLLLOCAL void doDeleteIntern(ExceptionSink* xsink) {
+        printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj: %p\n", obj);
 
-   DLLLOCAL QoreValue getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const;
+        // increment reference count temporarily for destructor
+        {
+            AutoLocker slr(rlck);
+            ++obj->references;
+        }
 
-   // lock not held on entry
-   DLLLOCAL void doDeleteIntern(ExceptionSink* xsink) {
-      printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj: %p\n", obj);
+        theclass->execDestructor(obj, xsink);
 
-      // increment reference count temporarily for destructor
-      {
-         AutoLocker slr(rlck);
-         ++obj->references;
-      }
+        cdmap_t* cdm;
+        QoreHashNode* td;
+        {
+            QoreAutoVarRWWriteLocker al(rml);
+            assert(status != OS_DELETED);
+            assert(data);
+            status = OS_DELETED;
 
-      theclass->execDestructor(obj, xsink);
+            cdm = cdmap;
+            cdmap = 0;
 
-      cdmap_t* cdm;
-      QoreHashNode* td;
-      {
-         QoreAutoVarRWWriteLocker al(rml);
-         assert(status != OS_DELETED);
-         assert(data);
-         status = OS_DELETED;
+            td = data;
+            data = 0;
 
-         cdm = cdmap;
-         cdmap = 0;
+            removeInvalidateRSetIntern();
+        }
 
-         td = data;
-         data = 0;
+        cleanup(xsink, td, cdm);
 
-         removeInvalidateRSetIntern();
-      }
+        obj->deref(xsink);
+    }
 
-      cleanup(xsink, td, cdm);
-
-      obj->deref(xsink);
-   }
-
-   DLLLOCAL void cleanup(ExceptionSink* xsink, QoreHashNode* td, cdmap_t* cdm) {
-      if (privateData) {
-         printd(5, "qore_object_private::cleanup() this: %p privateData: %p\n", this, privateData);
-         delete privateData;
+    DLLLOCAL void cleanup(ExceptionSink* xsink, QoreHashNode* td, cdmap_t* cdm) {
+        if (privateData) {
+            printd(5, "qore_object_private::cleanup() this: %p privateData: %p\n", this, privateData);
+            delete privateData;
 #ifdef DEBUG
-         privateData = 0;
+            privateData = 0;
 #endif
-      }
+        }
 
-      td->clear(xsink, true);
-      td->deref(xsink);
+        td->clear(xsink, true);
+        td->deref(xsink);
 
-      if (cdm) {
-         for (auto& i : *cdm) {
-            i.second->clear(xsink, true);
-            i.second->deref(xsink);
-         }
-         delete cdm;
-      }
-   }
+        if (cdm) {
+            for (auto& i : *cdm) {
+                i.second->clear(xsink, true);
+                i.second->deref(xsink);
+            }
+            delete cdm;
+        }
+    }
 
    // this method is called when there is an exception in a constructor and the object should be deleted
    DLLLOCAL void obliterate(ExceptionSink* xsink) {
