@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -945,5 +945,15 @@ DLLLOCAL qore_offset_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
 DLLLOCAL int64 get_ms_zero(const QoreValue& v);
 
 DLLLOCAL AbstractQoreNode* copy_strip_complex_types(const AbstractQoreNode* n);
+
+// for IPv4/v6 only
+DLLLOCAL void* qore_get_in_addr(struct sockaddr *sa);
+// for IPv4/v6 only
+DLLLOCAL size_t qore_get_in_len(struct sockaddr *sa);
+
+#ifdef QORE_MANAGE_STACK
+DLLLOCAL size_t q_thread_get_stack_size();
+DLLLOCAL size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink);
+#endif
 
 #endif
