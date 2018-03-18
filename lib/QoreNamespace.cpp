@@ -1153,7 +1153,6 @@ QoreValue qore_root_ns_private::parseResolveBarewordIntern(const QoreProgramLoca
     }
 
     rv = parseFindOnlyConstantValueIntern(loc, bword, typeInfo, found);
-
     if (found) {
         return rv.refSelf();
     }
@@ -2558,8 +2557,9 @@ QoreClass* qore_ns_private::parseFindLocalClass(const char* cname) {
 QoreValue qore_ns_private::getConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found) {
     assert(!found);
     QoreValue rv = constant.find(cname, typeInfo, found);
-    if (found)
+    if (found) {
         return rv;
+    }
 
     return pendConstant.find(cname, typeInfo, found);
 }

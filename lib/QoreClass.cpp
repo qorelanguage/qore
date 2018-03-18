@@ -1732,7 +1732,7 @@ bool BCNode::runtimeIsPrivateMember(const char* str, bool toplevel) const {
 }
 
 QoreValue BCNode::parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx, bool allow_internal) const {
-   // sclass can be 0 if the class could not be found during parse initialization
+    // sclass can be 0 if the class could not be found during parse initialization
     if (!sclass)
         return QoreValue();
 

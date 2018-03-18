@@ -1246,7 +1246,6 @@ protected:
         }
 
         QoreValue rv = parseFindOnlyConstantValueIntern(loc, cname, typeInfo, found);
-
         if (found) {
             return rv;
         }
