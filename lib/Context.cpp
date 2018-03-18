@@ -360,30 +360,32 @@ AbstractQoreNode* Context::evalValue(const char* field, ExceptionSink* xsink) {
 }
 
 QoreHashNode* Context::getRow(ExceptionSink *xsink) {
-   printd(5, "Context::getRow() value: %p %s\n", value, value ? value->getTypeName() : "NULL");
-   if (!value)
-      return nullptr;
+    printd(5, "Context::getRow() value: %p %s\n", value, value ? value->getTypeName() : "NULL");
+    if (!value)
+        return nullptr;
 
-   ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
 
-   HashIterator hi(value);
-   while (hi.next()) {
-      const char *key = hi.getKey();
-      printd(5, "Context::getRow() key: %s\n", key);
-      // get list from hash
-      ReferenceHolder<AbstractQoreNode> v(hi.getReferencedValue(), xsink);
+    qore_hash_private* hp = qore_hash_private::get(**h);
 
-      // if the hash key does not contain a list, then set the value to NOTHING
-      if (get_node_type(*v) != NT_LIST)
-         h->setKeyValue(key, nullptr, nullptr);
-      else {
-         // set key value to list entry
-         QoreListNode* l = reinterpret_cast<QoreListNode*>(*v);
-         h->setKeyValue(key, l->eval_entry(row_list[pos], xsink), 0);
-      }
-   }
+    HashIterator hi(value);
+    while (hi.next()) {
+        const char* key = hi.getKey();
+        printd(5, "Context::getRow() key: %s\n", key);
+        // try to get list from hash
+        QoreValue v = hi.get();
 
-   return h.release();
+        // if the hash key does not contain a list, then set the value to NOTHING
+        if (v.getType() != NT_LIST)
+            hp->setKeyValueIntern(key, QoreValue());
+        else {
+            // set key value to list entry
+            QoreListNode* l = v.get<QoreListNode>();
+            hp->setKeyValueIntern(key, l->eval_entry(row_list[pos], xsink));
+        }
+    }
+
+    return h.release();
 }
 
 // to sort non-existing values last

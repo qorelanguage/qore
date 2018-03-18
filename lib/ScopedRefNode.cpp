@@ -80,10 +80,15 @@ AbstractQoreNode* ScopedRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &
 
     bool found;
     QoreValue rv = qore_root_ns_private::parseResolveReferencedScopedReference(loc, *scoped_ref, typeInfo, found);
-    if (!found)
+    if (!found) {
         return this;
+    }
 
     deref(nullptr);
+    if (rv.isNothing()) {
+        typeInfo = nothingTypeInfo;
+        return &Nothing;
+    }
     typeInfo = nullptr;
-    return rv.getReferencedValue()->parseInit(oflag, pflag, lvids, typeInfo);
+    return rv.takeNode()->parseInit(oflag, pflag, lvids, typeInfo);
 }
