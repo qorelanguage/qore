@@ -198,86 +198,86 @@ QoreValue SelfFunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
 }
 
 void SelfFunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
-   assert(!returnTypeInfo);
-   assert(!qc || method);
-   lvids += parseArgs(oflag, pflag, method ? method->getFunction() : nullptr, nullptr, returnTypeInfo);
-   // issue #2380 make sure to set the method correctly if resolved from a hierarchy
-   if (variant)
-      method = static_cast<const MethodVariantBase*>(variant)->method();
-   if (method) {
-      printd(5, "SelfFunctionCallNode::parseInitCall() this: %p resolved '%s' to %p\n", this, method->getName(), method);
-   }
+    assert(!returnTypeInfo);
+    assert(!qc || method);
+    lvids += parseArgs(oflag, pflag, method ? method->getFunction() : nullptr, nullptr, returnTypeInfo);
+    // issue #2380 make sure to set the method correctly if resolved from a hierarchy
+    if (variant)
+        method = static_cast<const MethodVariantBase*>(variant)->method();
+    if (method) {
+        printd(5, "SelfFunctionCallNode::parseInitCall() this: %p resolved '%s' to %p\n", this, method->getName(), method);
+    }
 }
 
 // called at parse time
 AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
-   assert(!returnTypeInfo);
-   if (!oflag) {
-      parse_error(loc, "cannot call method '%s' outside of class code", getName());
-      return this;
-   }
+    assert(!returnTypeInfo);
+    if (!oflag) {
+        parse_error(loc, "cannot call method '%s' outside of class code", getName());
+        return this;
+    }
 
-   if (!method) {
-      qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())));
+    if (!method) {
+        qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())));
 
-      printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolving base class call '%s'\n", this, ns.ostr);
+        printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolving base class call '%s'\n", this, ns.ostr);
 
-      // copy method calls will be recognized by name = 0
-      if (ns.strlist.size() == 1) {
-         if (!strcmp(ns.ostr, "copy")) {
-            printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolved to copy constructor\n", this);
-            is_copy = true;
-            if (args)
-               parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
-         }
-         else {
+        // copy method calls will be recognized by name = 0
+        if (ns.strlist.size() == 1) {
+            if (!strcmp(ns.ostr, "copy")) {
+                printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolved to copy constructor\n", this);
+                is_copy = true;
+                if (args)
+                    parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
+            }
+            else {
+                assert(!qc);
+                // raises a parse exception if it fails
+                method = class_ctx->parseResolveSelfMethod(loc, ns.ostr, class_ctx);
+                if (!method)
+                    return this;
+            }
+        }
+        else {
             assert(!qc);
+            // possible only if old-style is in effect
+            qc = qore_root_ns_private::parseFindScopedClassWithMethod(loc, ns, true);
+            // parse exception raised if !qc
+            if (!qc)
+                return this;
             // raises a parse exception if it fails
-            method = class_ctx->parseResolveSelfMethod(loc, ns.ostr, class_ctx);
+            method = const_cast<qore_class_private*>(qore_class_private::get(*qc))->parseResolveSelfMethod(loc, ns.getIdentifier(), class_ctx);
             if (!method)
-               return this;
-         }
-      }
-      else {
-         assert(!qc);
-         // possible only if old-style is in effect
-         qc = qore_root_ns_private::parseFindScopedClassWithMethod(loc, ns, true);
-         // parse exception raised if !qc
-         if (!qc)
-            return this;
-         // raises a parse exception if it fails
-         method = const_cast<qore_class_private*>(qore_class_private::get(*qc))->parseResolveSelfMethod(loc, ns.getIdentifier(), class_ctx);
-         if (!method)
-            return this;
-      }
-   }
+                return this;
+        }
+    }
 
-   // by here, if there are no errors, the class has been initialized
-   parseInitCall(oflag, pflag, lvids, returnTypeInfo);
-   return this;
+    // by here, if there are no errors, the class has been initialized
+    parseInitCall(oflag, pflag, lvids, returnTypeInfo);
+    return this;
 }
 
 int SelfFunctionCallNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   str.sprintf("in-object method call (%p) to %s::%s()", this, method->getClass()->getName(), method->getName());
-   return 0;
+    str.sprintf("in-object method call (%p) to %s::%s()", this, method->getClass()->getName(), method->getName());
+    return 0;
 }
 
 // if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
 QoreString* SelfFunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = true;
-   QoreString* rv = new QoreString;
-   getAsString(*rv, foff, xsink);
-   return rv;
+    del = true;
+    QoreString* rv = new QoreString;
+    getAsString(*rv, foff, xsink);
+    return rv;
 }
 
 AbstractQoreNode* SelfFunctionCallNode::makeReferenceNodeAndDeref() {
-   AbstractQoreNode* rv;
-   if (ns.size() == 1)
-      rv = new ParseSelfMethodReferenceNode(loc, ns.takeName());
-   else
-      rv = new ParseScopedSelfMethodReferenceNode(loc, ns.copy());
-   deref();
-   return rv;
+    AbstractQoreNode* rv;
+    if (ns.size() == 1)
+        rv = new ParseSelfMethodReferenceNode(loc, ns.takeName());
+    else
+        rv = new ParseScopedSelfMethodReferenceNode(loc, ns.copy());
+    deref();
+    return rv;
 }
 
 /* get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -439,9 +439,9 @@ AbstractQoreNode* FunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, in
 }
 
 void FunctionCallNode::parseInitFinalizedCall(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
-   assert(!returnTypeInfo);
-   assert(fe);
-   lvids += parseArgs(oflag, pflag, fe->getFunction(), fe->getNamespace(), returnTypeInfo);
+    assert(!returnTypeInfo);
+    assert(fe);
+    lvids += parseArgs(oflag, pflag, fe->getFunction(), fe->getNamespace(), returnTypeInfo);
 }
 
 AbstractQoreNode* FunctionCallNode::makeReferenceNodeAndDerefImpl() {
