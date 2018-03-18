@@ -94,6 +94,7 @@
     - implemented support for the more concise declaration of immediate typed hash values (<a href="https://github.com/qorelanguage/qore/issues/2675">issue 2675</a>)
     - fixed a bug where a crash would result when evaluating certain expressions in the @ref background "brackground operator" due to a memory error (<a href="https://github.com/qorelanguage/qore/issues/2679">issue 2679</a>)
     - fixed @ref date_formatting "date formatting" output with the \c Z placeholder to always output the UTC offset as documented (<a href="https://github.com/qorelanguage/qore/issues/2684">issue 2684</a>)
+    - fixed an internal memory bug that could cause unallocated memory to be read when creating objects (<a href="https://github.com/qorelanguage/qore/issues/2712">issue 2712</a>)
 
     @section qore_08132 Qore 0.8.13.2
 
