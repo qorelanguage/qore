@@ -37,6 +37,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include <map>
 #include <set>
@@ -65,8 +66,15 @@
 
 class LValueHelper;
 
+class lthash {
+public:
+    DLLLOCAL bool operator()(char* s1, char* s2) const {
+        return memcmp(s1, s2, SH_SIZE) < 0;
+    }
+};
+
 // per-class internal data
-typedef std::map<char*, QoreHashNode*, ltstr> cdmap_t;
+typedef std::map<char*, QoreHashNode*, lthash> cdmap_t;
 
 /*
   Qore internal class data is stored against the object with this data structure
