@@ -375,10 +375,12 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
             else {
                 const QoreMethod *m = qore_class_private::parseFindSelfMethod(const_cast<QoreClass*>(qc), c_str);
                 if (m) {
-                    if (!m->isStatic())
-                    sfcn = new SelfFunctionCallNode(loc, takeName(), takeParseArgs(), m, parse_get_class());
+                    if (!m->isStatic()) {
+                        sfcn = new SelfFunctionCallNode(loc, takeName(), takeParseArgs(), m, parse_get_class());
+                    }
                     else {
                         StaticMethodCallNode* smcn = new StaticMethodCallNode(loc, m, takeParseArgs());
+                        deref();
                         return smcn->parseInit(oflag, pflag, lvids, returnTypeInfo);
                     }
                 }
@@ -445,63 +447,63 @@ void FunctionCallNode::parseInitFinalizedCall(LocalVar* oflag, int pflag, int& l
 }
 
 AbstractQoreNode* FunctionCallNode::makeReferenceNodeAndDerefImpl() {
-   return new UnresolvedCallReferenceNode(loc, takeName());
+    return new UnresolvedCallReferenceNode(loc, takeName());
 }
 
 AbstractQoreNode* ProgramFunctionCallNode::makeReferenceNodeAndDerefImpl() {
-   return new UnresolvedProgramCallReferenceNode(loc, takeName());
+    return new UnresolvedProgramCallReferenceNode(loc, takeName());
 }
 
 AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   assert(!typeInfo);
-   if (name) {
-      assert(!oc);
-      // find object class
-      if ((oc = qore_root_ns_private::parseFindScopedClass(loc, *name))) {
-         // check if parse options allow access to this class
-         int64 cflags = oc->getDomain();
-         if (cflags && qore_program_private::parseAddDomain(getProgram(), cflags))
-            parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
-         // check if the class has pending changes and is used in a constant initialization expression
-         if (pflag & PF_CONST_EXPRESSION && qore_class_private::parseHasPendingChanges(*oc))
-            parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment in a constant expression in the parse initialization phase when the class has uncommitted changes", oc->getName());
-      }
-      delete name;
-      name = 0;
-   }
+    assert(!typeInfo);
+    if (name) {
+        assert(!oc);
+        // find object class
+        if ((oc = qore_root_ns_private::parseFindScopedClass(loc, *name))) {
+            // check if parse options allow access to this class
+            int64 cflags = oc->getDomain();
+            if (cflags && qore_program_private::parseAddDomain(getProgram(), cflags))
+                parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
+            // check if the class has pending changes and is used in a constant initialization expression
+            if (pflag & PF_CONST_EXPRESSION && qore_class_private::parseHasPendingChanges(*oc))
+                parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment in a constant expression in the parse initialization phase when the class has uncommitted changes", oc->getName());
+        }
+        delete name;
+        name = 0;
+    }
 #ifdef DEBUG
-   else assert(oc);
+    else assert(oc);
 #endif
 
-   const QoreMethod* constructor = oc ? oc->parseGetConstructor() : nullptr;
-   lvids += parseArgs(oflag, pflag, constructor ? constructor->getFunction() : nullptr, nullptr, typeInfo);
+    const QoreMethod* constructor = oc ? oc->parseGetConstructor() : nullptr;
+    lvids += parseArgs(oflag, pflag, constructor ? constructor->getFunction() : nullptr, nullptr, typeInfo);
 
-   if (oc) {
-      // parse init the class and check if we're trying to instantiate an abstract class
-      qore_class_private::get(*const_cast<QoreClass*>(oc))->parseCheckAbstractNew(loc);
+    if (oc) {
+        // parse init the class and check if we're trying to instantiate an abstract class
+        qore_class_private::get(*const_cast<QoreClass*>(oc))->parseCheckAbstractNew(loc);
 
-      // initialize class immediately, in case the class will be instantiated immediately after during parsing
-      // to be assigned to a constant
-      //qore_class_private::parseInit(*const_cast<QoreClass*>(oc));
+        // initialize class immediately, in case the class will be instantiated immediately after during parsing
+        // to be assigned to a constant
+        //qore_class_private::parseInit(*const_cast<QoreClass*>(oc));
 
-      typeInfo = oc->getTypeInfo();
-      desc.sprintf("new %s", oc->getName());
-   }
-   else
-      typeInfo = nullptr;
+        typeInfo = oc->getTypeInfo();
+        desc.sprintf("new %s", oc->getName());
+    }
+    else
+        typeInfo = nullptr;
 
-   //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p constructor: %p variant: %p\n", this, constructor, variant);
+    //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p constructor: %p variant: %p\n", this, constructor, variant);
 
-   if (((constructor && (qore_method_private::getAccess(*constructor) > Public)) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*oc)) {
-      if (variant)
-         parse_error(loc, "illegal external access to private constructor %s::constructor(%s)", oc->getName(), variant->getSignature()->getSignatureText());
-      else
-         parse_error(loc, "illegal external access to private constructor of class %s", oc->getName());
-   }
+    if (((constructor && (qore_method_private::getAccess(*constructor) > Public)) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*oc)) {
+        if (variant)
+            parse_error(loc, "illegal external access to private constructor %s::constructor(%s)", oc->getName(), variant->getSignature()->getSignatureText());
+        else
+            parse_error(loc, "illegal external access to private constructor of class %s", oc->getName());
+    }
 
-   //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, oc->getName(), oc, constructor, constructor ? constructor->getFunction() : 0, variant);
+    //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, oc->getName(), oc, constructor, constructor ? constructor->getFunction() : 0, variant);
 
-   return this;
+    return this;
 }
 
 QoreValue ScopedObjectCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
