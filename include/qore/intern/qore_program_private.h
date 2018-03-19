@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -105,24 +105,27 @@ typedef QoreThreadLocalStorage<QoreHashNode> qpgm_thread_local_storage_t;
 struct ThreadLocalProgramData {
 private:
    // not implemented
-   DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData& old);
+   ThreadLocalProgramData(const ThreadLocalProgramData& old) = delete;
 
    // thread debug types, field is read/write only in thread being debugged, no locking is needed
    DebugRunStateEnum runState;
    DebugRunStateEnum saveRunState;
    // when stepover or until return we need calls function calls
-   int functionCallLevel;
-   inline void setRunState(DebugRunStateEnum rs) {
+   int functionCallLevel = 0;
+
+   DLLLOCAL void setRunState(DebugRunStateEnum rs) {
       assert(rs < DBG_RS_STOPPED); // DBG_RS_STOPPED is wrong value when program is running
       if (rs == DBG_RS_UNTIL_RETURN) {
          functionCallLevel = 1;  // function called only when runState is not DBG_RS_UNTIL_RETURN
       }
       runState = rs;
    }
+
    // set to true by any process do break running program asap
    volatile bool breakFlag;
+
    // called from running thread
-   inline void checkBreakFlag() {
+   DLLLOCAL void checkBreakFlag() {
       if (breakFlag && runState != DBG_RS_DETACH) {
          breakFlag = false;
          if (runState != DBG_RS_STOPPED) {
@@ -133,23 +136,22 @@ private:
    }
    // to call onAttach when debug is attached or detached, -1 .. detach, 1 .. attach
    int attachFlag;
-   inline void checkAttach(ExceptionSink* xsink);
-public:
+   DLLLOCAL void checkAttach(ExceptionSink* xsink);
 
+public:
    // local variable data slots
    ThreadLocalVariableData lvstack;
    // closure variable stack
    ThreadClosureVariableStack cvstack;
    // current thread's time zone locale (if any)
-   const AbstractQoreZoneInfo* tz;
+   const AbstractQoreZoneInfo* tz = nullptr;
    // the "time zone set" flag
    bool tz_set : 1;
 
    // top-level vars instantiated
    bool inst : 1;
 
-
-   DLLLOCAL ThreadLocalProgramData() : runState(DBG_RS_DETACH), functionCallLevel(0), breakFlag(false), tz(0), tz_set(false), inst(false) {
+   DLLLOCAL ThreadLocalProgramData() : runState(DBG_RS_DETACH), breakFlag(false), tz_set(false), inst(false) {
       //printd(5, "ThreadLocalProgramData::ThreadLocalProgramData() this: %p\n", this);
    }
 
@@ -179,13 +181,15 @@ public:
       tz = 0;
    }
 
-/*   void setEnable(bool n_enabled) {
+   /*
+   DLLLOCAL void setEnable(bool n_enabled) {
       enabled = n_enabled;
       if (!enabled) {
          runState = DBG_RS_RUN;
          functionCallLevel = 0;
       }
-   }*/
+   }
+   */
 
    /**
     * Data local for each program and thread. dbgXXX function are called from
@@ -457,6 +461,9 @@ typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
 class qore_program_private : public qore_program_private_base {
 private:
+    bool ns_cleared = false;
+    bool constants_cleared = false;
+
    mutable QoreCounter debug_program_counter;  // number of thread calls to debug program instance.
    DLLLOCAL void init(QoreProgram* n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
    }
@@ -479,16 +486,8 @@ private:
    // map for line to statement
    typedef std::map<int, AbstractStatement*> sline_statement_multimap_t;
 
-   struct cmp_char_str
-   {
-      bool operator()(char const *a, char const *b) const
-      {
-         return strcmp(a, b) < 0;
-      }
-   };
-
    // map for filenames
-   typedef std::map<const char*, sline_statement_multimap_t*, cmp_char_str> name_sline_statement_map_t;
+   typedef std::map<const char*, sline_statement_multimap_t*, ltstr> name_sline_statement_map_t;
 
    // index source filename/label -> line -> statement
    name_sline_statement_map_t statementByFileIndex;
@@ -2087,6 +2086,18 @@ public:
    DLLLOCAL unsigned getProgramId() const {
       return programId;
    }
+
+    // called locked
+    DLLLOCAL void clearNamespaceData(ExceptionSink* xsink) {
+        if (ns_cleared) {
+            return;
+        }
+        assert(RootNS);
+        ns_cleared = true;
+        // delete all global variables, etc
+        // this call can only be made once
+        qore_root_ns_private::clearData(*RootNS, xsink);
+    }
 
    DLLLOCAL static QoreProgram* resolveProgramId(unsigned programId) {
       printd(5, "qore_program_private::resolveProgramId(%x)\n", programId);

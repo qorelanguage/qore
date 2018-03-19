@@ -65,20 +65,20 @@ AbstractQoreNode::~AbstractQoreNode() {
 
 /*
 bool test(const AbstractQoreNode* n) {
-   return n->getType() == NT_HASH;
+   return n->getType() == NT_RTCONSTREF;
 }
 static void break_ref() {}
+static void break_deref() {}
 */
 
 void AbstractQoreNode::ref() const {
 #ifdef DEBUG
-   /*
+/*
    if (test(this)) {
-      printd(0, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references + 1);
+      printd(0, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), reference_count(), reference_count() + 1);
       break_ref();
    }
-   */
-
+*/
 #if TRACK_REFS
    if (type == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject*>(this);
@@ -113,16 +113,15 @@ void AbstractQoreNode::customDeref(ExceptionSink* xsink) {
    assert(false);
 }
 
-//static void break_deref() {}
 void AbstractQoreNode::deref(ExceptionSink* xsink) {
    //QORE_TRACE("AbstractQoreNode::deref()");
 #ifdef DEBUG
-   /*
+/*
    if (test(this)) {
-      printd(0, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references - 1);
+      printd(0, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), reference_count(), reference_count() - 1);
       break_deref();
    }
-   */
+*/
 #if TRACK_REFS
    if (type == NT_OBJECT)
       printd(REF_LVL, "QoreObject::deref() %p class: %s (%d->%d) %d\n", this, ((QoreObject*)this)->getClassName(), references.load(), references.load() - 1, custom_reference_handlers);
@@ -451,15 +450,15 @@ static QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSink* xsin
 */
 
 static AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionSink* xsink) {
-   assert(xsink);
-   ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
-   ConstHashIterator hi(n);
-   while (hi.next()) {
-      h->setKeyValue(hi.getKey(), copy_and_resolve_lvar_refs(hi.getValue(), xsink), xsink);
-      if (*xsink)
-         return 0;
-   }
-   return h.release();
+    assert(xsink);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
+    ConstHashIterator hi(n);
+    while (hi.next()) {
+        h->setValueKeyValue(hi.getKey(), copy_value_and_resolve_lvar_refs(hi.get(), xsink), xsink);
+        if (*xsink)
+            return nullptr;
+    }
+    return h.release();
 }
 
 static AbstractQoreNode* crlr_hash_copy(const QoreParseHashNode* n, ExceptionSink* xsink) {
@@ -659,19 +658,23 @@ int64 get_ms_zero(const QoreValue& n) {
 }
 
 bool needs_scan(const AbstractQoreNode* n) {
-   if (!n)
-      return false;
+    if (!n)
+        return false;
 
-   switch (n->getType()) {
-      case NT_LIST: return qore_list_private::getScanCount(*static_cast<const QoreListNode*>(n)) ? true : false;
-      case NT_HASH: return qore_hash_private::getScanCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
-      case NT_OBJECT: return true;
-      case NT_VALUE_LIST: /*assert(false);*/ return qore_value_list_private::getScanCount(*static_cast<const QoreValueList*>(n)) ? true : false;
-      case NT_RUNTIME_CLOSURE: return static_cast<const QoreClosureBase*>(n)->needsScan();
-      case NT_REFERENCE: return lvalue_ref::get(static_cast<const ReferenceNode*>(n))->needsScan();
-   }
+    switch (n->getType()) {
+        case NT_LIST: return qore_list_private::getScanCount(*static_cast<const QoreListNode*>(n)) ? true : false;
+        case NT_HASH: return qore_hash_private::getScanCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
+        case NT_OBJECT: return true;
+        case NT_VALUE_LIST: /*assert(false);*/ return qore_value_list_private::getScanCount(*static_cast<const QoreValueList*>(n)) ? true : false;
+        case NT_RUNTIME_CLOSURE: return static_cast<const QoreClosureBase*>(n)->needsScan();
+        case NT_REFERENCE: return lvalue_ref::get(static_cast<const ReferenceNode*>(n))->needsScan();
+    }
 
-   return false;
+    return false;
+}
+
+bool needs_scan(const QoreValue& v) {
+    return needs_scan(v.getInternalNode());
 }
 
 void inc_container_obj(const AbstractQoreNode* n, int dt) {

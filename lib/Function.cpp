@@ -41,6 +41,9 @@
 #include <assert.h>
 #include <cmath>
 
+// DBG
+unsigned AbstractQoreFunctionVariant::cntr = 0;
+
 // FIXME: xxx set parse location
 static void duplicateSignatureException(const char* cname, const char* name, const UserSignature* sig) {
    parseException(sig->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());
@@ -100,9 +103,9 @@ int64 AbstractQoreFunctionVariant::getParseOptions(int64 po) const {
 }
 
 void AbstractQoreFunctionVariant::parseResolveUserSignature() {
-   UserVariantBase* uvb = getUserVariantBase();
-   if (uvb)
-      uvb->getUserSignature()->resolve();
+    UserVariantBase* uvb = getUserVariantBase();
+    if (uvb)
+        uvb->getUserSignature()->resolve();
 }
 
 bool AbstractQoreFunctionVariant::hasBody() const {
@@ -756,7 +759,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
    int match = -1;
    const AbstractQoreFunctionVariant* variant = nullptr;
 
-   printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args, args ? args->size() : 0);
+   printd(5, "QoreFunction::runtimeFindVariant() this: %p %s%s%s() vlist: %d ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), ilist.size(), args, args ? args->size() : 0);
 
    unsigned nargs = args ? args->size() : 0;
 
@@ -952,7 +955,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
 const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(ExceptionSink* xsink, const type_vec_t& args, const qore_class_private* class_ctx) const {
    const AbstractQoreFunctionVariant* variant = nullptr;
 
-   //printd(5, "QoreFunction::runtimeFindExactVariant() this: %p %s%s%s() vlist: %d (pend: %d) ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), pending_vlist.size(), ilist.size(), args.size());
+   //printd(5, "QoreFunction::runtimeFindExactVariant() this: %p %s%s%s() vlist: %d ilist: %d args: %p (%d)\n", this, className() ? className() : "", className() ? "::" : "", getName(), vlist.size(), ilist.size(), args.size());
 
    const QoreFunction* aqf = nullptr;
    AbstractFunctionSignature* sig = nullptr;
@@ -1092,7 +1095,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
    const AbstractQoreFunctionVariant* pvariant = nullptr;
    unsigned num_args = argTypeInfo.size();
 
-   //printd(5, "QoreFunction::parseFindVariant() this: %p %s() vlist: %d pend: %d ilist: %d num_args: %d\n", this, getName(), vlist.size(), pending_vlist.size(), ilist.size(), num_args);
+   //printd(5, "QoreFunction::parseFindVariant() this: %p %s() vlist: %d ilist: %d num_args: %d\n", this, getName(), vlist.size(), ilist.size(), num_args);
 
    QoreFunction* aqf = nullptr;
 
@@ -1114,7 +1117,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
       if (!aqf)
          break;
       //printd(5, "QoreFunction::parseFindVariant() %p %s testing function %p\n", this, getName(), aqf);
-      assert(!aqf->vlist.empty() || !aqf->pending_vlist.empty());
+      assert(!aqf->vlist.empty());
 
       // check committed list
       for (vlist_t::const_iterator i = aqf->vlist.begin(), e = aqf->vlist.end(); i != e; ++i) {
@@ -1196,7 +1199,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                if (rc == QTI_NOT_EQUAL) {
                   ok = false;
                   // raise a detailed parse exception immediately if there is only one variant
-                  if (ilist.size() == 1 && aqf->pending_vlist.singular() && aqf->vlist.empty() && getProgram()->getParseExceptionSink())
+                  if (ilist.size() == 1 && aqf->vlist.singular() && getProgram()->getParseExceptionSink())
                      return doSingleVariantTypeException(loc, pi + 1, aqf->className(), getName(), sig->getSignatureText(), t, a);
                   break;
                }
@@ -1263,140 +1266,6 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
          break;
       }
 
-      // check pending list
-      for (vlist_t::iterator i = aqf->pending_vlist.begin(), e = aqf->pending_vlist.end(); i != e; ++i) {
-         // skip if the variant is not accessible
-         if (last_class && skip_method_variant(*i, class_ctx, internal_access))
-            continue;
-
-         // get variant parse flags
-         int64 vflags = (*i)->getFlags();
-         // does the variant accept extra arguments?
-         bool uses_extra_args = vflags & QC_USES_EXTRA_ARGS;
-
-         // if we should ignore "noop" variants
-         bool strict_args = (*i)->getParseOptions(po) & (PO_REQUIRE_TYPES|PO_STRICT_ARGS);
-
-         // it must not be possible to have a "noop" pending variant
-         assert(!(vflags & (QC_NOOP | QC_RUNTIME_NOOP)));
-
-         ++cnt;
-
-         UserVariantBase *uvb = (*i)->getUserVariantBase();
-         UserSignature* sig = uvb->getUserSignature();
-         // resolve types in signature if necessary
-         sig->resolve();
-
-         // issue 1507: ensure that calls with no arguments and no params are considered a perfect match
-         if (!num_args && !sig->numParams()) {
-            variant = *i;
-            break;
-         }
-
-         // skip variants with signatures with fewer possible elements than the best match already
-         if ((int)(sig->numParams() * QTI_IDENT) > match) {
-            int variant_pmatch = 0;
-            int count = 0;
-            int variant_nperfect = 0;
-            bool variant_runtime_match = false;
-            bool ok = true;
-
-            for (unsigned pi = 0; pi < sig->numParams(); ++pi) {
-               const QoreTypeInfo* t = sig->getParamTypeInfo(pi);
-               bool pos_has_arg = num_args && num_args > pi;
-               const QoreTypeInfo* a = pos_has_arg ? argTypeInfo[pi] : nullptr;
-               if (pos_has_arg)
-                  pos_has_arg = (bool)a;
-
-               //printd(5, "QoreFunction::parseFindVariant() %s(%s) uncommitted pi: %d num_args: %d t: %s (has type: %d) a: %s (%p) t->parseAccepts(a): %d\n", getName(), sig->getSignatureText(), pi, num_args, QoreTypeInfo::getName(t), QoreTypeInfo::hasType(t), QoreTypeInfo::getName(a), a, QoreTypeInfo::parseAccepts(t, a));
-
-               int rc = QTI_UNASSIGNED;
-               if (QoreTypeInfo::hasType(t)) {
-                  if (!QoreTypeInfo::hasType(a)) {
-                     if (pi < num_args) {
-                        //printd(5, "QoreFunction::parseFindVariant() missing arg type - setting variant_runtime_match\n");
-                        // we are missing parse-time type information, we need to match at runtime
-                        variant_runtime_match = true;
-                        continue;
-                     }
-                     else if (sig->hasDefaultArg(pi))
-                        rc = QTI_IGNORE;
-                     else
-                        a = nothingTypeInfo;
-                  }
-                  else if (QoreTypeInfo::isType(a, NT_NOTHING) && sig->hasDefaultArg(pi))
-                     rc = QTI_IDENT;
-               }
-
-               if (rc == QTI_UNASSIGNED) {
-                  bool may_not_match = false;
-                  rc = QoreTypeInfo::parseAccepts(t, a, may_not_match);
-                  // if we might not match, we need to match at runtime
-                  if (may_not_match) {
-                     //printd(5, "QoreFunction::parseFindVariant() may not match - setting variant_runtime_match\n");
-                     variant_runtime_match = true;
-                     continue;
-                  }
-                  if (rc == QTI_IDENT)
-                     ++variant_nperfect;
-               }
-
-               if (rc == QTI_NOT_EQUAL) {
-                  ok = false;
-                  // raise a detailed parse exception immediately if there is only one variant
-                  if (ilist.size() == 1 && aqf->pending_vlist.singular() && aqf->vlist.empty() && getProgram()->getParseExceptionSink())
-                     return doSingleVariantTypeException(loc, pi + 1, aqf->className(), getName(), sig->getSignatureText(), t, a);
-                  break;
-               }
-               ++variant_pmatch;
-               //printd(5, "QoreFunction::parseFindVariant() this: %p %s() variant: %p i: %d match (param %s == %s)\n", this, getName(), variant, pi, QoreTypeInfo::getName(t), QoreTypeInfo::getName(a));
-               if (rc != QTI_IGNORE && pos_has_arg)
-                  count += rc;
-            }
-            //printd(5, "QoreFunction::parseFindVariant() this: %p tested %s(%s) ok: %d count: %d match: %d variant_pmatch: %d variant_nperfect: %d nperfect: %d params: %d args: %d uea: %d sa: %d cea: %d\n", this, getName(), sig->getSignatureText(), ok, count, match, variant_pmatch, variant_nperfect, nperfect, sig->numParams(), num_args, uses_extra_args, strict_args, check_extra_args(sig, argTypeInfo));
-            if (!ok)
-               continue;
-
-            if (variant_runtime_match) {
-               runtime_match = true;
-               break;
-            }
-
-            // now check if additional args are present
-            if ((sig->numParams() < num_args) && !uses_extra_args && strict_args && check_extra_args(sig, argTypeInfo))
-               continue;
-
-            pvariant = !npv ? variant : nullptr;
-
-            ++npv;
-
-            //printd(5, "QoreFunction::parseFindVariant() variant: %p count: %d match: %d pmatch: %d variant_pmatch: %d nperfect: %d variant_nperfect: %d match_len: %d\n", variant, count, match, pmatch, variant_pmatch, nperfect, variant_nperfect, match_len);
-
-            if (count > match || (count == match && (variant_nperfect > nperfect || (variant_nperfect == nperfect && (match_len == -1 || sig->numParams() < (unsigned)match_len))))) {
-               // if we could possibly match less than another variant
-               // then we have to match at runtime
-               if (variant_pmatch < pmatch)
-                  variant = nullptr;
-               else {
-                  // only set variant if it's the longest absolute match and the
-                  // longest potential match
-                  pmatch = variant_pmatch;
-                  match = count;
-                  match_len = sig->numParams();
-                  nperfect = variant_nperfect;
-                  //printd(5, "QoreFunction::parseFindVariant() assigning pending variant %p %s(%s)\n", *i, getName(), sig->getSignatureText());
-                  variant = *i;
-               }
-            }
-            else if (variant_pmatch && variant_pmatch >= pmatch) {
-               // if we could possibly match less than another variant
-               // then we have to match at runtime
-               variant = nullptr;
-               pmatch = variant_pmatch;
-            }
-         }
-      }
-
       if (runtime_match) {
          if (variant)
             variant = nullptr;
@@ -1444,16 +1313,6 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
                // ignore "noop" variants if necessary
                if (strict_args && ((*i)->getFlags() & (QC_NOOP | QC_RUNTIME_NOOP)))
-                  continue;
-
-               desc->concat("\n   ");
-               if (class_name)
-                  desc->sprintf("%s::", class_name);
-               desc->sprintf("%s(%s)", getName(), (*i)->getSignature()->getSignatureText());
-            }
-            for (vlist_t::const_iterator i = aqf->pending_vlist.begin(), e = aqf->pending_vlist.end(); i != e; ++i) {
-               // skip if the variant is not accessible
-               if (last_class && skip_method_variant(*i, class_ctx, internal_access))
                   continue;
 
                desc->concat("\n   ");
@@ -1526,37 +1385,44 @@ QoreValue QoreFunction::evalDynamic(const QoreListNode* args, ExceptionSink* xsi
 }
 
 void QoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant* variant) {
-   assert(variant->getCallType() == CT_BUILTIN);
+    assert(variant->getCallType() == CT_BUILTIN);
 #ifdef DEBUG
-   // FIXME: this algorithm is no longer valid due to default arguments
-   // does not detect ambiguous signatures
-   AbstractFunctionSignature* sig = variant->getSignature();
-   // check for duplicate parameter signatures
-   for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-      AbstractFunctionSignature* vs = (*i)->getSignature();
-      unsigned tp = vs->numParams();
-      if (tp != sig->numParams())
-         continue;
-      if (!tp) {
-         printd(0, "BuiltinFunctionBase::addBuiltinVariant() this: %p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
-         assert(false);
-      }
-      bool ok = false;
-      for (unsigned pi = 0; pi < tp; ++pi) {
-         if (vs->getParamTypeInfo(pi) != sig->getParamTypeInfo(pi)) {
-            ok = true;
-            break;
-         }
-      }
-      if (!ok) {
-         printd(0, "BuiltinFunctionBase::addBuiltinVariant() this: %p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
-         assert(false);
-      }
-   }
+    // FIXME: this algorithm is no longer valid due to default arguments
+    // does not detect ambiguous signatures
+    AbstractFunctionSignature* sig = variant->getSignature();
+    // check for duplicate parameter signatures
+    for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+        AbstractFunctionSignature* vs = (*i)->getSignature();
+        unsigned tp = vs->numParams();
+        if (tp != sig->numParams())
+            continue;
+        if (!tp) {
+            printd(0, "BuiltinFunctionBase::addBuiltinVariant() this: %p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
+            assert(false);
+        }
+        bool ok = false;
+        for (unsigned pi = 0; pi < tp; ++pi) {
+            if (vs->getParamTypeInfo(pi) != sig->getParamTypeInfo(pi)) {
+                ok = true;
+                break;
+            }
+        }
+        if (!ok) {
+            printd(0, "BuiltinFunctionBase::addBuiltinVariant() this: %p %s(%s) added twice: %p, %p\n", this, getName(), sig->getSignatureText(), *i, variant);
+            assert(false);
+        }
+    }
 #endif
-   if (!has_builtin)
-      has_builtin = true;
-   addVariant(variant);
+    if (!has_builtin) {
+        has_builtin = true;
+    }
+    if (all_priv) {
+        all_priv = false;
+    }
+    if (!has_pub) {
+        has_pub = true;
+    }
+    addVariant(variant);
 }
 
 UserVariantExecHelper::~UserVariantExecHelper() {
@@ -1789,8 +1655,8 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
    unsigned vtp = sig->getParamTypes();
    unsigned vmp = sig->getMinParamTypes();
 
-   // first check pending variants
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+   // check all variants
+   for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
       UserSignature* vs = reinterpret_cast<UserSignature*>((*i)->getSignature());
       assert(!vs->resolved);
       // get the minimum number of parameters with type information that need to match
@@ -1818,11 +1684,11 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
       unsigned max = QORE_MAX(np, vnp);
       for (unsigned pi = 0; pi < max; ++pi) {
          const QoreTypeInfo* variantTypeInfo = vs->getParamTypeInfo(pi);
-         const QoreParseTypeInfo* variantParseTypeInfo = variantTypeInfo ? 0 : vs->getParseParamTypeInfo(pi);
+         const QoreParseTypeInfo* variantParseTypeInfo = variantTypeInfo ? nullptr : vs->getParseParamTypeInfo(pi);
          bool variantHasDefaultArg = vs->hasDefaultArg(pi);
 
          const QoreTypeInfo* typeInfo = sig->getParamTypeInfo(pi);
-         const QoreParseTypeInfo* parseTypeInfo = typeInfo ? 0 : sig->getParseParamTypeInfo(pi);
+         const QoreParseTypeInfo* parseTypeInfo = typeInfo ? nullptr : sig->getParseParamTypeInfo(pi);
          bool thisHasDefaultArg = sig->hasDefaultArg(pi);
 
          // FIXME: this is a horribly-complicated if/then/else structure
@@ -1887,172 +1753,137 @@ int QoreFunction::parseCheckDuplicateSignature(AbstractQoreFunctionVariant* vari
       if (recheck)
          variant->setRecheck();
    }
-   // now check already-committed variants
-   for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-      AbstractFunctionSignature* uvsig = (*i)->getSignature();
-
-      // get the minimum number of parameters with type information that need to match
-      unsigned mp = uvsig->getMinParamTypes();
-      // get total number of parameters with type information
-      unsigned tp = uvsig->getParamTypes();
-
-      // shortcut: if the two variants have different numbers of parameters with type information, then they do not match
-      if (vmp > tp || vtp < mp)
-         continue;
-
-      // the 2 signatures have the same number of parameters with type information
-      if (!tp) {
-         duplicateSignatureException(className(), getName(), sig);
-         return -1;
-      }
-
-      unsigned np = uvsig->numParams();
-
-      bool dup = true;
-      bool ambiguous = false;
-      unsigned max = QORE_MAX(np, vnp);
-      bool recheck = false;
-      for (unsigned pi = 0; pi < max; ++pi) {
-         const QoreTypeInfo* variantTypeInfo = uvsig->getParamTypeInfo(pi);
-         bool variantHasDefaultArg = uvsig->hasDefaultArg(pi);
-
-         const QoreTypeInfo* typeInfo = sig->getParamTypeInfo(pi);
-         const QoreParseTypeInfo* parseTypeInfo = typeInfo ? 0 : sig->getParseParamTypeInfo(pi);
-         bool thisHasDefaultArg = sig->hasDefaultArg(pi);
-
-         // compare the to-be-committed types with resolved types in committed variants
-         if (parseTypeInfo) {
-            if (!variantTypeInfo && thisHasDefaultArg) {
-               ambiguous = true;
-            }
-            else if (!QoreParseTypeInfo::parseStageOneIdenticalWithParsed(parseTypeInfo, variantTypeInfo, recheck)) {
-               recheck = false;
-               dup = false;
-               break;
-            }
-         }
-         else {
-            if (!typeInfo && variantTypeInfo && variantHasDefaultArg) {
-               ambiguous = true;
-            }
-            else if (typeInfo && !variantTypeInfo && thisHasDefaultArg) {
-               ambiguous = true;
-            }
-            else if (!QoreTypeInfo::isInputIdentical(typeInfo, variantTypeInfo)) {
-               dup = false;
-               break;
-            }
-         }
-      }
-      if (dup) {
-         if (ambiguous)
-            ambiguousDuplicateSignatureException(className(), getName(), uvsig, sig);
-         else
-            duplicateSignatureException(className(), getName(), sig);
-         return -1;
-      }
-      if (recheck)
-         variant->setRecheck();
-   }
 
    return 0;
 }
 
 AbstractFunctionSignature* QoreFunction::parseGetUniqueSignature() const {
-   if (vlist.singular() && pending_vlist.empty())
-      return first()->getSignature();
+    if (vlist.singular()) {
+        const UserVariantBase* uvb = first()->getUserVariantBase();
+        if (uvb) {
+            UserSignature* sig = uvb->getUserSignature();
+            sig->resolve();
+            return sig;
+        }
+        return first()->getSignature();
+    }
 
-   if (pending_vlist.singular() && vlist.empty()) {
-      assert(pending_first()->getUserVariantBase());
-      UserSignature* sig = pending_first()->getUserVariantBase()->getUserSignature();
-      sig->resolve();
-      return sig;
-   }
-
-   return 0;
+    return nullptr;
 }
 
 void QoreFunction::resolvePendingSignatures() {
-   const QoreTypeInfo* ti = 0;
+    if (!check_parse) {
+        return;
+    }
 
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-      assert((*i)->getUserVariantBase());
-      UserSignature* sig = (*i)->getUserVariantBase()->getUserSignature();
-      sig->resolve();
+    const QoreTypeInfo* ti = nullptr;
 
-      if (same_return_type && parse_same_return_type) {
-         const QoreTypeInfo* st = sig->getReturnTypeInfo();
-         if (i != pending_vlist.begin() && !QoreTypeInfo::isInputIdentical(st, ti))
-            parse_same_return_type = false;
-         ti = st;
-      }
-   }
+    for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+        UserVariantBase* uvb = (*i)->getUserVariantBase();
+        if (!uvb) {
+            continue;
+        }
+
+        UserSignature* sig = uvb->getUserSignature();
+        sig->resolve();
+
+        if (same_return_type) {
+            const QoreTypeInfo* st = sig->getReturnTypeInfo();
+            if (i != vlist.begin() && !QoreTypeInfo::isInputIdentical(st, ti))
+                same_return_type = false;
+            ti = st;
+        }
+    }
 }
 
 int QoreFunction::addPendingVariant(AbstractQoreFunctionVariant* variant) {
-   parse_rt_done = false;
-   parse_init_done = false;
+    if (!vlist.empty() && parse_init_done) {
+        UserSignature* sig = reinterpret_cast<UserSignature*>(variant->getSignature());
+        const char* cname = className();
+        const char* name = getName();
+        parse_error(sig->getParseLocation(), "variant %s%s%s(%s) cannot be added to an existing function", cname ? cname : "", cname ? "::" : ""
+, name, sig->getSignatureText());
+        variant->deref();
+        return -1;
+    }
 
-   // check for duplicate signature with existing variants
-   if (parseCheckDuplicateSignature(variant)) {
-      variant->deref();
-      return -1;
-   }
+    parse_rt_done = false;
+    parse_init_done = false;
+    if (!check_parse) {
+        check_parse = true;
+    }
 
-   pending_vlist.push_back(variant);
+    // check for duplicate signature with existing variants
+    if (parseCheckDuplicateSignature(variant)) {
+        variant->deref();
+        return -1;
+    }
 
-   return 0;
+    vlist.push_back(variant);
+
+    return 0;
 }
 
 void QoreFunction::parseCommit() {
-   parseCheckReturnType();
+    if (!check_parse) {
+        return;
+    }
+    check_parse = false;
 
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-      vlist.push_back(*i);
+    parseCheckReturnType();
 
-      if ((*i)->isUser()) {
-         if (!has_mod_pub && (*i)->isModulePublic())
-            has_mod_pub = true;
-         if (!has_user)
-            has_user = true;
-      }
-      else if (!has_builtin)
-         has_builtin = true;
+    for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+        if ((*i)->isUser()) {
+            if (!has_pub && (*i)->isModulePublic()) {
+                has_pub = true;
+                if (all_priv) {
+                    all_priv = false;
+                }
+            }
+            if (!has_user)
+                has_user = true;
+        }
+        else if (!has_builtin) {
+            has_builtin = true;
+            if (all_priv) {
+                all_priv = false;
+            }
+        }
 
-      (*i)->parseCommit();
-   }
-   pending_vlist.clear();
+        (*i)->parseCommit();
+    }
 
-   if (!parse_same_return_type && same_return_type)
-      same_return_type = false;
-
-   parse_rt_done = true;
-   parse_init_done = true;
+    parse_rt_done = true;
+    parse_init_done = true;
 }
 
 void QoreFunction::parseRollback() {
-   pending_vlist.del();
+    // noop: object will be destroyed
+    /*
+    if (!same_return_type)
+        same_return_type = true;
 
-   if (!parse_same_return_type && same_return_type)
-      parse_same_return_type = true;
+    parse_rt_done = true;
+    parse_init_done = true;
 
-   parse_rt_done = true;
-   parse_init_done = true;
+    if (check_parse) {
+        check_parse = false;
+    }
+    */
 }
 
-void QoreFunction::parseInit() {
-   if (parse_init_done)
-      return;
-   parse_init_done = true;
+void QoreFunction::parseInit(qore_ns_private* ns) {
+    if (parse_init_done)
+        return;
+    parse_init_done = true;
 
-   if (parse_same_return_type)
-      parse_same_return_type = same_return_type;
+    if (check_parse) {
+        OptionalNamespaceParseContextHelper pch(ns);
 
-   OptionalNamespaceParseContextHelper pch(ns);
-
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-      (*i)->parseInit(this);
-   }
+        for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+            (*i)->parseInit(this);
+        }
+    }
 }
 
 QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, const qore_class_private* class_ctx, ExceptionSink* xsink) const {

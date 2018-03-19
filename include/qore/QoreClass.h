@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -94,104 +94,105 @@ class MethodVariantBase;
     @see QoreClass
  */
 class QoreMethod {
-   friend class StaticMethodCallNode;
-   friend class QoreObject;
-   friend class qore_class_private;
-   friend class qore_method_private;
-   friend class BCList;
+    friend class StaticMethodCallNode;
+    friend class QoreObject;
+    friend class qore_class_private;
+    friend class qore_method_private;
+    friend class BCList;
 
 private:
-   //! private implementation of the method
-   class qore_method_private* priv;
+    //! private implementation of the method
+    class qore_method_private* priv;
 
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreMethod(const QoreMethod&);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreMethod(const QoreMethod&);
 
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreMethod& operator=(const QoreMethod&);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreMethod& operator=(const QoreMethod&);
 
 public:
-   //! DEPRECATED: always returns false, do not use
-   /** this method no longer returns useful information due to method overloading
-       @return always returns false, do not use
+    //! DEPRECATED: always returns false, do not use
+    /** this method no longer returns useful information due to method overloading
+         @return always returns false, do not use
 
-       @deprecated always returns false, do not use
-   */
-   DLLEXPORT bool isSynchronized() const;
-
-   //! DEPRECATED: always returns false, do not use
-   /** this method no longer returns useful information due to method overloading
-       @return always returns false
-
-       @deprecated always returns false, do not use
-   */
-   DLLEXPORT bool newCallingConvention() const;
-
-   //! returns true if all variants of the method are user variants
-   /** @return true if all variants of the method are user variants
+        @deprecated always returns false, do not use
     */
-   DLLEXPORT bool isUser() const;
+    DLLEXPORT bool isSynchronized() const;
 
-   //! returns true if all variants of the method are builtin variants
-   /** @return true if all variants of the method are builtin variants
+    //! DEPRECATED: always returns false, do not use
+    /** this method no longer returns useful information due to method overloading
+         @return always returns false
+
+        @deprecated always returns false, do not use
     */
-   DLLEXPORT bool isBuiltin() const;
+    DLLEXPORT bool newCallingConvention() const;
 
-   //! returns true if all overloaded variants of a methods are private or class internal, false if at least one variant is public
-   /** @return true if all overloaded variants of a methods are private or class internal, false if at least one variant is public
+    //! returns true if all variants of the method are user variants
+    /** @return true if all variants of the method are user variants
+        */
+    DLLEXPORT bool isUser() const;
+
+    //! returns true if all variants of the method are builtin variants
+    /** @return true if all variants of the method are builtin variants
+        */
+    DLLEXPORT bool isBuiltin() const;
+
+    //! returns true if all overloaded variants of a methods are private or class internal, false if at least one variant is public
+    /** @return true if all overloaded variants of a methods are private or class internal, false if at least one variant is public
+        */
+    DLLEXPORT bool isPrivate() const;
+
+    //! returns the lowest access code of all variants in the method
+    DLLEXPORT ClassAccess getAccess() const;
+
+    //! returns true if the method is static
+    /**
+         @return true if the method is static
     */
-   DLLEXPORT bool isPrivate() const;
+    DLLEXPORT bool isStatic() const;
 
-   //! returns the lowest access code of all variants in the method
-   DLLEXPORT ClassAccess getAccess() const;
-
-   //! returns true if the method is static
-   /**
-      @return true if the method is static
-   */
-   DLLEXPORT bool isStatic() const;
-
-   //! returns the method's name
-   /**
-      @return the method's name
-   */
-   DLLEXPORT const char* getName() const;
-
-   //! returns the method's name
-   /**
-      @return the method's name
-   */
-   DLLEXPORT const std::string& getNameStr() const;
-
-   //! returns a pointer to the parent class
-   DLLEXPORT const QoreClass* getClass() const;
-
-   //! returns the class name for the method
-   DLLEXPORT const char* getClassName() const;
-
-   //! returns true if a variant with the given parameter signature already exists in the method
-   DLLEXPORT bool existsVariant(const type_vec_t& paramTypeInfo) const;
-
-   /* returns the return type information for the method if it is available and if
-      there is only one return type (there can be more return types if the method is
-      overloaded)
-   */
-   DLLEXPORT const QoreTypeInfo* getUniqueReturnTypeInfo() const;
-
-   //! evaluates the method and returns the value, does not reference the object for the call
-   /** @note this method should only be used when the caller can guarantee that the object will not go out of scope during the call
-
-       @since %Qore 0.8.12
+    //! returns the method's name
+    /**
+         @return the method's name
     */
-   DLLEXPORT QoreValue execManaged(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
+    DLLEXPORT const char* getName() const;
 
-   DLLLOCAL QoreMethod(const QoreClass* p_class, MethodFunctionBase* n_func, bool n_static = false);
+    //! returns the method's name
+    /**
+         @return the method's name
+    */
+    DLLEXPORT const std::string& getNameStr() const;
 
-   DLLLOCAL ~QoreMethod();
-   DLLLOCAL bool inMethod(const QoreObject* self) const;
-   DLLLOCAL QoreMethod* copy(const QoreClass* p_class) const;
-   DLLLOCAL void assign_class(const QoreClass* p_class);
-   DLLLOCAL MethodFunctionBase* getFunction() const;
+    //! returns a pointer to the parent class
+    DLLEXPORT const QoreClass* getClass() const;
+
+    //! returns the class name for the method
+    DLLEXPORT const char* getClassName() const;
+
+    //! returns true if a variant with the given parameter signature already exists in the method
+    DLLEXPORT bool existsVariant(const type_vec_t& paramTypeInfo) const;
+
+    /* returns the return type information for the method if it is available and if
+        there is only one return type (there can be more return types if the method is
+        overloaded)
+    */
+    DLLEXPORT const QoreTypeInfo* getUniqueReturnTypeInfo() const;
+
+    //! evaluates the method and returns the value, does not reference the object for the call
+    /** @note this method should only be used when the caller can guarantee that the object will not go out of scope during the call
+
+        @since %Qore 0.8.12
+        */
+    DLLEXPORT QoreValue execManaged(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
+
+    DLLLOCAL QoreMethod(const QoreClass* p_class, MethodFunctionBase* n_func, bool n_static = false);
+
+    DLLLOCAL bool inMethod(const QoreObject* self) const;
+    DLLLOCAL QoreMethod* copy(const QoreClass* p_class) const;
+    DLLLOCAL void assign_class(const QoreClass* p_class);
+    DLLLOCAL MethodFunctionBase* getFunction() const;
+    // non-exported destructor
+    DLLLOCAL ~QoreMethod();
 };
 
 //! an abstract class for class-specific external user data
@@ -1137,7 +1138,7 @@ private:
    class qore_class_private* priv;
 
    // private constructor only called when the class is copied
-   DLLLOCAL QoreClass(qore_classid_t id, const char* nme);
+   DLLLOCAL QoreClass(qore_class_private* priv);
 
    DLLLOCAL void insertMethod(QoreMethod* o);
    DLLLOCAL void insertStaticMethod(QoreMethod* o);

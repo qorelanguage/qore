@@ -10,8 +10,10 @@
 
 %requires ../../../../qlib/QUnit.qm
 
-int RWLock::methodGate(any m) {
-    return 0;
+class MyRWLock inherits RWLock {
+    int methodGate(any m) {
+        return 0;
+    }
 }
 
 %exec-class RwlockTest
@@ -22,10 +24,15 @@ public class RwlockTest inherits QUnit::Test {
         int writers = 10;
         int readers = 10;
 
-        RWLock rwl;
+        MyRWLock rwl();
         Counter readc;
         Counter writec;
-        hash o;
+        hash<auto> o = {
+            "key1": "key1",
+            "key2": "key2",
+            "key3": "key3",
+            "key4": "key4",
+        };
     }
 
     constructor() : Test("Rwlock test", "1.0") {
@@ -36,15 +43,8 @@ public class RwlockTest inherits QUnit::Test {
     }
 
     globalSetUp() {
-        rwl = new RWLock();
         readc = new Counter(readers);
         writec = new Counter(writers);
-        o = (
-            "key1" : "key1",
-            "key2" : "key2",
-            "key3" : "key3",
-            "key4" : "key4",
-        );
     }
 
     testRwlock() {

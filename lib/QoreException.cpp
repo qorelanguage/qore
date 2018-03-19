@@ -3,7 +3,7 @@
 
   Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,25 +42,25 @@ void QoreException::del(ExceptionSink *xsink) {
    if (callStack) {
       callStack->deref(xsink);
 #ifdef DEBUG
-      callStack = 0;
+      callStack = nullptr;
 #endif
    }
    if (err) {
       err->deref(xsink);
 #ifdef DEBUG
-      err = 0;
+      err = nullptr;
 #endif
    }
    if (desc) {
       desc->deref(xsink);
 #ifdef DEBUG
-      desc = 0;
+      desc = nullptr;
 #endif
    }
    if (arg) {
       arg->deref(xsink);
 #ifdef DEBUG
-      arg = 0;
+      arg = nullptr;
 #endif
    }
    if (next)

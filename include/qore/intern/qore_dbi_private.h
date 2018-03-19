@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -157,18 +157,26 @@ struct qore_dbi_private {
       return caps & DBI_CAP_HAS_STATEMENT;
    }
 
-   DLLLOCAL int init(Datasource* ds, ExceptionSink* xsink) const {
-      assert(xsink);
-      int rc = f.open(ds, xsink);
-      assert((!rc && !*xsink) || (rc && *xsink));
-      // set option if init was successful
-      if (!rc && f.opt.set) {
-         ConstHashIterator hi(ds->getConnectOptions());
-         while (hi.next())
-            f.opt.set(ds, hi.getKey(), hi.getValue(), xsink);
-      }
-      return rc;
-   }
+    DLLLOCAL int init(Datasource* ds, ExceptionSink* xsink) const {
+        assert(xsink);
+        int rc = f.open(ds, xsink);
+        assert((!rc && !*xsink) || (rc && *xsink));
+        // set option if init was successful
+        if (!rc && f.opt.set) {
+            ConstHashIterator hi(ds->getConnectOptions());
+            while (hi.next()) {
+                // FIXME: convert DBI options to QoreValue
+                if (!hi.get().getInternalNode()) {
+                    ReferenceHolder<> h(hi.getReferencedValue(), xsink);
+                    f.opt.set(ds, hi.getKey(), *h, xsink);
+                }
+                else {
+                    f.opt.set(ds, hi.getKey(), hi.get().getInternalNode(), xsink);
+                }
+            }
+        }
+        return rc;
+    }
 
    DLLLOCAL int close(Datasource* ds) const {
       return f.close(ds);

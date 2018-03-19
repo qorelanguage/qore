@@ -79,115 +79,115 @@ AbstractQoreNode* QorePlusEqualsOperatorNode::parseInitImpl(LocalVar* oflag, int
 }
 
 QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   ValueEvalRefHolder new_right(right, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder new_right(right, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   // we have to ensure that the value is referenced before the assignment in case the lvalue
-   // is the same value, so it can be copied in the LValueHelper constructor
-   new_right.ensureReferencedValue();
+    // we have to ensure that the value is referenced before the assignment in case the lvalue
+    // is the same value, so it can be copied in the LValueHelper constructor
+    new_right.ensureReferencedValue();
 
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return QoreValue();
+    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
+    LValueHelper v(left, xsink);
+    if (!v)
+        return QoreValue();
 
-   // dereferences happen in each section so that the
-   // already referenced value can be passed to list->push()
-   // if necessary
-   // do list plus-equals if left-hand side is a list
-   qore_type_t vtype = v.getType();
+    // dereferences happen in each section so that the
+    // already referenced value can be passed to list->push()
+    // if necessary
+    // do list plus-equals if left-hand side is a list
+    qore_type_t vtype = v.getType();
 
-   if (vtype == NT_NOTHING) {
-      // see if the lvalue has a default type
-      const QoreTypeInfo *typeInfo = v.getTypeInfo();
-      if (QoreTypeInfo::hasDefaultValue(typeInfo)) {
-         if (v.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo)))
-            return QoreValue();
-         vtype = v.getType();
-      }
-      else {
-         if (!new_right->isNothing()) {
-            // assign rhs to lhs (take reference for plusequals)
-            if (v.assign(new_right.getReferencedValue()))
-               return QoreValue();
-         }
-         // v has been assigned to a value by this point
-         // reference return value
-         return ref_rv ? v.getReferencedValue() : QoreValue();
-      }
-   }
+    if (vtype == NT_NOTHING) {
+        // see if the lvalue has a default type
+        const QoreTypeInfo *typeInfo = v.getTypeInfo();
+        if (QoreTypeInfo::hasDefaultValue(typeInfo)) {
+            if (v.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo)))
+                return QoreValue();
+            vtype = v.getType();
+        }
+        else {
+            if (!new_right->isNothing()) {
+                // assign rhs to lhs (take reference for plusequals)
+                if (v.assign(new_right.getReferencedValue()))
+                    return QoreValue();
+            }
+            // v has been assigned to a value by this point
+            // reference return value
+            return ref_rv ? v.getReferencedValue() : QoreValue();
+        }
+    }
 
-   if (vtype == NT_LIST) {
-      v.ensureUnique(); // no exception possible here
-      QoreListNode* l = reinterpret_cast<QoreListNode*>(v.getValue());
-      if (new_right->getType() == NT_LIST)
-         l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()), xsink);
-      else
-         l->push(new_right.getReferencedValue(), xsink);
-   } // do hash plus-equals if left side is a hash
-   else if (vtype == NT_HASH) {
-      if (new_right->getType() == NT_HASH) {
-         v.ensureUnique();
-         reinterpret_cast<QoreHashNode*>(v.getValue())->merge(new_right->get<const QoreHashNode>(), xsink);
-      }
-      else if (new_right->getType() == NT_OBJECT) {
-         v.ensureUnique();
-         qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(reinterpret_cast<QoreHashNode*>(v.getValue()), xsink);
-      }
-   }
-   // do hash/object plus-equals if left side is an object
-   else if (vtype == NT_OBJECT) {
-      QoreObject* o = reinterpret_cast<QoreObject*>(v.getValue());
-      qore_object_private::plusEquals(o, new_right->getInternalNode(), v.getAutoVLock(), xsink);
-   }
-   // do string plus-equals if left-hand side is a string
-   else if (vtype == NT_STRING) {
-      if (!new_right->isNullOrNothing()) {
-         QoreStringValueHelper str(*new_right);
+    if (vtype == NT_LIST) {
+        v.ensureUnique(); // no exception possible here
+        QoreListNode* l = reinterpret_cast<QoreListNode*>(v.getValue());
+        if (new_right->getType() == NT_LIST)
+            l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()), xsink);
+        else
+            l->push(new_right.getReferencedValue(), xsink);
+    } // do hash plus-equals if left side is a hash
+    else if (vtype == NT_HASH) {
+        if (new_right->getType() == NT_HASH) {
+            v.ensureUnique();
+            reinterpret_cast<QoreHashNode*>(v.getValue())->merge(new_right->get<const QoreHashNode>(), xsink);
+        }
+        else if (new_right->getType() == NT_OBJECT) {
+            v.ensureUnique();
+            qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(reinterpret_cast<QoreHashNode*>(v.getValue()), xsink);
+        }
+    }
+    // do hash/object plus-equals if left side is an object
+    else if (vtype == NT_OBJECT) {
+        QoreObject* o = reinterpret_cast<QoreObject*>(v.getValue());
+        qore_object_private::plusEquals(o, new_right->getInternalNode(), v.getAutoVLock(), xsink);
+    }
+    // do string plus-equals if left-hand side is a string
+    else if (vtype == NT_STRING) {
+        if (!new_right->isNullOrNothing()) {
+            QoreStringValueHelper str(*new_right);
 
-         v.ensureUnique();
-         QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(v.getValue());
-         vs->concat(*str, xsink);
-      }
-   }
-   else if (vtype == NT_NUMBER) {
-      // FIXME: inefficient
-      ReferenceHolder<> nr(new_right.getReferencedValue(), xsink);
-      v.plusEqualsNumber(*nr, "<+= operator>");
-   }
-   else if (vtype == NT_FLOAT) {
-      v.plusEqualsFloat(new_right->getAsFloat());
-   }
-   else if (vtype == NT_DATE) {
-      if (!new_right->isNullOrNothing()) {
-         // gets a relative date/time value from the value
-         DateTime date(*new_right);
-         v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->add(date));
-      }
-   }
-   else if (vtype == NT_BINARY) {
-      if (!new_right->isNullOrNothing()) {
-         v.ensureUnique();
-         BinaryNode *b = reinterpret_cast<BinaryNode*>(v.getValue());
-         if (new_right->getType() == NT_BINARY) {
-            const BinaryNode *arg = new_right->get<const BinaryNode>();
-            b->append(arg);
-         }
-         else {
-            QoreStringNodeValueHelper str(*new_right);
-            if (str->strlen())
-               b->append(str->getBuffer(), str->strlen());
-         }
-      }
-   }
-   else { // do integer plus-equals
-      v.plusEqualsBigInt(new_right->getAsBigInt());
-   }
-   if (*xsink)
-      return QoreValue();
+            v.ensureUnique();
+            QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(v.getValue());
+            vs->concat(*str, xsink);
+        }
+    }
+    else if (vtype == NT_NUMBER) {
+        // FIXME: inefficient
+        ReferenceHolder<> nr(new_right.getReferencedValue(), xsink);
+        v.plusEqualsNumber(*nr, "<+= operator>");
+    }
+    else if (vtype == NT_FLOAT) {
+        v.plusEqualsFloat(new_right->getAsFloat());
+    }
+    else if (vtype == NT_DATE) {
+        if (!new_right->isNullOrNothing()) {
+            // gets a relative date/time value from the value
+            DateTime date(*new_right);
+            v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->add(date));
+        }
+    }
+    else if (vtype == NT_BINARY) {
+        if (!new_right->isNullOrNothing()) {
+            v.ensureUnique();
+            BinaryNode *b = reinterpret_cast<BinaryNode*>(v.getValue());
+            if (new_right->getType() == NT_BINARY) {
+                const BinaryNode *arg = new_right->get<const BinaryNode>();
+                b->append(arg);
+            }
+            else {
+                QoreStringNodeValueHelper str(*new_right);
+                if (str->strlen())
+                b->append(str->getBuffer(), str->strlen());
+            }
+        }
+    }
+    else { // do integer plus-equals
+        v.plusEqualsBigInt(new_right->getAsBigInt());
+    }
+    if (*xsink)
+        return QoreValue();
 
-   // v has been assigned to a value by this point
-   // reference return value
-   return ref_rv ? v.getReferencedValue() : QoreValue();
+    // v has been assigned to a value by this point
+    // reference return value
+    return ref_rv ? v.getReferencedValue() : QoreValue();
 }
