@@ -34,15 +34,17 @@
         - improved HTTP log masking to mask fewer false positives when attempting to mask sensitive data (<a href="https://github.com/qorelanguage/qore/issues/2621">issue 2621</a>)
     - fixed a crashing bug in the @ref plus_equals_operator "+= operator" with objects and hashes when @ref require-types "%require-types" is not in force (<a href="https://github.com/qorelanguage/qore/issues/2634">issue 2634</a>)
     - fixed a crashing bug in the @ref background "background operator" with non-constant hash expressions with local variable references (<a href="https://github.com/qorelanguage/qore/issues/2637">issue 2637</a>)
-    - fixed a design bug where an empty list <tt>()</tt> and an empty hash <tt>{}</tt> could not be assigned to complex types, leading to excess typing and casting for simple operations (<a href="https://github.com/qorelanguage/qore/issues/2647">issue 2647</a>)
     - worked around an Oracle bug in materialized view creation in the <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module where when the schema user is missing the <tt>CREATE MATERIALIZED VIEW</tt> grant the table backing the view is created but the materialized view itself is not created causing future creation actions to fail (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
     - implemented support for an optional error-handling method in SQL callbacks in the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module to allow SqlUtil to recover from error scenarios in schema creation/alignment (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
+    - fixed a design bug where an empty list <tt>()</tt> and an empty hash <tt>{}</tt> could not be assigned to complex types, leading to excess typing and casting for simple operations (<a href="https://github.com/qorelanguage/qore/issues/2647">issue 2647</a>)
     - fixed a bug in the @ref map "map operator" with complex types and empty list expressions (<a href="https://github.com/qorelanguage/qore/issues/2651">issue 2651</a>)
     - fixed a bug where implicitly-declared values of complex "or nothing" types would not be declared with the correct runtime type information (<a href="https://github.com/qorelanguage/qore/issues/2652">issue 2652</a>)
     - fixed a bug affecting class initialization with out of order initialization (<a href="https://github.com/qorelanguage/qore/issues/2657">issue 2657</a>)
-    - fixed a bug where a crash would result when evaluting certain expressions in the @ref background "brackground operator" due to a memory error (<a href="https://github.com/qorelanguage/qore/issues/2679">issue 2679</a>)
+    - implemented support for the more concise declaration of immediate typed hash values (<a href="https://github.com/qorelanguage/qore/issues/2675">issue 2675</a>)
+    - fixed a bug where a crash would result when evaluating certain expressions in the @ref background "brackground operator" due to a memory error (<a href="https://github.com/qorelanguage/qore/issues/2679">issue 2679</a>)
     - fixed @ref date_formatting "date formatting" output with the \c Z placeholder to always output the UTC offset as documented (<a href="https://github.com/qorelanguage/qore/issues/2684">issue 2684</a>)
     - fixed program thread context to return frames properly (<a href="https://github.com/qorelanguage/qore/issues/2674">issue 2674</a>)
+    - fixed an internal memory bug that could cause unallocated memory to be read when creating objects (<a href="https://github.com/qorelanguage/qore/issues/2712">issue 2712</a>)
 
     @section qore_08132 Qore 0.8.13.2
 

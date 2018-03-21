@@ -42,6 +42,15 @@ hashdecl Container {
     int i = 1;
 }
 
+# immediate value with implicit construction: default values are assigned from the declaration
+auto ah1 = hash<Container>{};
+
+# immediate value with implicit construction: default values are assigned from the declaration
+auto ah2 = <Container>{};
+
+# immediate value with implicit construction: overrides the "i" member's initial value
+auto ah3 = <Container>{"i": 2};
+
 # implicit construction: default values are assigned from the declaration
 hash<Container> h1();
 

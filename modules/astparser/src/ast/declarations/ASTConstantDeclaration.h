@@ -49,10 +49,20 @@ public:
     ASTExpression::Ptr value;
 
 public:
+    ASTConstantDeclaration(ASTModifiers mods, ASTName&& n, ASTExpression* v) :
+        ASTDeclaration(),
+        modifiers(mods),
+        name(std::move(n)),
+        value(v) {}
     ASTConstantDeclaration(ASTModifiers mods, const ASTName& n, ASTExpression* v) :
         ASTDeclaration(),
         modifiers(mods),
         name(n),
+        value(v) {}
+
+    ASTConstantDeclaration(ASTName&& n, ASTExpression* v) :
+        ASTDeclaration(),
+        name(std::move(n)),
         value(v) {}
     ASTConstantDeclaration(const ASTName& n, ASTExpression* v) :
         ASTDeclaration(),

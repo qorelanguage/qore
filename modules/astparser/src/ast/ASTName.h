@@ -37,6 +37,7 @@
 #include "ASTNode.h"
 
 enum class ASTNameKind {
+    ANK_None,
     ANK_AngleIdentifier,
     ANK_BaseClassCall,
     ANK_CastType,
@@ -55,18 +56,24 @@ enum class ASTNameKind {
     ANK_SelfRef,
     ANK_UncQTypedef,
     ANK_VarRef,
+    ANK_HashdeclHash,
 };
 
 //! Represents a name.
 class ASTName : public ASTNode {
 public:
     std::string name;
-    ASTNameKind kind;
+    ASTNameKind kind = ASTNameKind::ANK_None;
 
 public:
     ASTName() : ASTNode() {}
-    ASTName(ASTNameKind k) : ASTNode(), kind(k) {}
+
+    ASTName(ASTName&& n) : ASTNode(n.loc), name(std::move(n.name)), kind(n.kind) {}
+    ASTName(const ASTName& n) : ASTNode(n.loc), name(n.name), kind(n.kind) {}
+
     ASTName(const ASTName& n, ASTNameKind k) : ASTNode(n.loc), name(n.name), kind(k) {}
+    ASTName(ASTNameKind k) : ASTNode(), kind(k) {}
+    
     ASTName(const std::string& str, ASTNameKind k) : ASTNode(), name(str), kind(k) {}
     ASTName(const std::string* str, ASTNameKind k) : ASTNode(), kind(k) {
         if (str)
