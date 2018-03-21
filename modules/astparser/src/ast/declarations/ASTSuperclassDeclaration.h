@@ -45,10 +45,18 @@ public:
     ASTName name;
 
 public:
+    ASTSuperclassDeclaration(ASTModifiers mods, ASTName&& n) :
+        ASTDeclaration(n.loc),
+        modifiers(mods),
+        name(std::move(n)) {}
     ASTSuperclassDeclaration(ASTModifiers mods, const ASTName& n) :
         ASTDeclaration(n.loc),
         modifiers(mods),
         name(n) {}
+
+    ASTSuperclassDeclaration(ASTName&& n) :
+        ASTDeclaration(n.loc),
+        name(std::move(n)) {}
     ASTSuperclassDeclaration(const ASTName& n) :
         ASTDeclaration(n.loc),
         name(n) {}

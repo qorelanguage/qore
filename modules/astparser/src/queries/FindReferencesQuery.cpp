@@ -193,6 +193,12 @@ void FindReferencesQuery::inExpression(std::vector<ASTNode*>* vec, ASTExpression
                 inExpression(vec, e->elements[i], name);
             break;
         }
+        case ASTExpressionKind::AEK_HashdeclHash: {
+            ASTHashdeclHashExpression* e = static_cast<ASTHashdeclHashExpression*>(expr);
+            inName(vec, e->hashdecl, name);
+            inExpression(vec, e->hash.get(), name);
+            break;
+        }
         case ASTExpressionKind::AEK_HashElement: {
             ASTHashElementExpression* e = static_cast<ASTHashElementExpression*>(expr);
             inExpression(vec, e->key.get(), name);

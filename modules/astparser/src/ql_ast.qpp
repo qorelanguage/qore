@@ -143,6 +143,9 @@ const AEK_Find = AEK_Find;
 //! Hash expression kind.
 const AEK_Hash = AEK_Hash;
 
+//! Hashdecl hash expression kind.
+const AEK_HashdeclHash = AEK_HashdeclHash;
+
 //! Hash element expression kind.
 const AEK_HashElement = AEK_HashElement;
 
@@ -163,6 +166,9 @@ const AEK_Literal = AEK_Literal;
 
 //! Name expression kind.
 const AEK_Name = AEK_Name;
+
+//! Regex expression kind.
+const AEK_Range = AEK_Range;
 
 //! Regex expression kind.
 const AEK_Regex = AEK_Regex;
@@ -384,6 +390,9 @@ const ASUK_CastObject = ASUK_CastObject;
 
 //! Symbol usage kind for data expressions in \c find expressions.
 const ASUK_FindData = ASUK_FindData;
+
+//! Symbol usage kind for hashdecl names in hashdecl hash expressions.
+const ASUK_HashdeclHashHashdecl = ASUK_HashdeclHashHashdecl;
 
 //! Symbol usage kind for hash elements in hash expressions.
 const ASUK_HashElement = ASUK_HashElement;
