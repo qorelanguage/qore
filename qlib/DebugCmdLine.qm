@@ -496,22 +496,47 @@ public namespace DebugCmdLine {
                                 },
                             ),
                             'set': (
-                                'desc': 'set current program, arg: programId',
+                                'desc': 'set current program, arg: programId | scriptName',
                                 '*': (
                                     'enum': list sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                        hash data.cmd = 'program/'+pop path+'/list';
+                                        string name = pop path;
+                                        if (bindex(name, '/') >= 0) {  # conflict with delimiter
+                                            return ();
+                                        }
+                                        hash data.cmd = 'program/'+name+'/list';
                                         *hash sd = dcl.doCommand(data, False);
                                         if (sd.result) {
-                                            return keys sd.result;
+                                            if (name =~ /^[0-9]+$/) {
+                                                # programIds
+                                                return keys sd.result;
+                                            } else {
+                                                # scriptNames
+                                                list l = ();
+                                                map l += (sd.result{$1}.scriptName, ), keys sd.result;
+                                                return l;
+                                            }
                                         } else {
                                             return ();
                                         }
                                     },
-                                    'validate': \DebugCommandLine::validateInt(),
                                     'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                         string val = pop path;
+                                        if (val !~ /^[0-9]+$/ ) {
+                                            if (bindex(val, '/') >= 0) {  # conflict with delimiter
+                                                throw "DEBUG-COMMAND", "Invalid character '/'";
+                                            }
+                                            hash data.cmd = 'program/='+val+'/list';
+                                            *hash sd = dcl.doCommand(data, False);
+                                            if (!sd.result) {
+                                                throw "DEBUG-COMMAND", "Cannot resolve program name";
+                                            }
+                                            if (sd.result.size() > 1) {
+                                                throw "DEBUG-COMMAND", sprintf("Ambiguous program name, pgmIds: %y", keys sd.result);
+                                            }
+                                            val = sd.result.firstKey();
+                                        }
                                         dcl.setContextValue('programId', val);
-                                        printfImpl("remote program context set to %y\n", val);
+                                        printfImpl("program context set to %y\n", val);
                                     },
                                 ),
                             ),

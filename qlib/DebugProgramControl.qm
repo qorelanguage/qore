@@ -396,7 +396,7 @@ public namespace DebugProgramControl {
                     case 'list':
                         foreach ProgramControl p in (ProgramControl::getAllPrograms()) {
                             string pgmId = string(p.getProgramId());
-                            if (AbstractDebugControl::evalCondition(pgmId, pgmName)) {
+                            if (AbstractDebugControl::evalCondition((pgmName =~ /^[0-9]+$/) ? pgmId : p.getScriptName(), pgmName)) {
                                 result{pgmId}.scriptName = p.getScriptName();
                                 result{pgmId}.scriptPath = p.getScriptPath();
                                 #result{pgmId}.scriptDir = p.getScriptDir();
@@ -409,7 +409,7 @@ public namespace DebugProgramControl {
                             rwlThread.readLock();
                             on_exit rwlThread.readUnlock();
                             foreach softint tid in (keys ctxThread) {
-                                if (exists ctxThread{tid}.pgmId) {
+                                if (exists ctxThread{tid}.pgmId && exists result{ctxThread{tid}.pgmId}) {
                                     result{ctxThread{tid}.pgmId}.interrupted += list(tid);
                                 }
                             }
