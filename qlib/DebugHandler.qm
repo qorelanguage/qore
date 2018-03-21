@@ -105,8 +105,7 @@ public namespace DebugHandler {
                     dhandler.debugProgram.sendDataImpl(cx, sendData);
             }
             catch (hash<ExceptionInfo> ex) {
-                if (dhandler.logger)
-                    dhandler.logger.log(DUV_DEBUG, "exception: %y", ex);
+                dhandler.log(DUV_DEBUG, "exception: %y", ex);
                 sendData.type = 'error';
                 sendData.result.err = ex.err;
                 sendData.result.desc = ex.desc;
@@ -163,6 +162,12 @@ public namespace DebugHandler {
             logger = new DebugLogger();
         }
 
+        log(int verbosity, string fmt) {
+            if (logger) {
+                logger.log2(verbosity, fmt, argv);
+            }
+        }
+
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
         WebSocketHandler::WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
             return new WebSocketDebugConnection(self, cx);
@@ -200,15 +205,15 @@ public namespace DebugHandler {
         }
 
         logInfo(string fmt) {
-            logger.log(DUV_INFO, vsprintf(fmt, argv));
+            log(DUV_INFO, fmt, argv);
         }
 
         logDebug(string fmt) {
-            logger.log(DUV_DEBUG, vsprintf(fmt, argv));
+            log(DUV_DEBUG, fmt, argv);
         }
 
         logError(string fmt) {
-            logger.log(DUV_INFO, vsprintf("ERROR: " + fmt, argv));
+            log(DUV_INFO, "ERROR: " + fmt, argv);
         }
     }
 

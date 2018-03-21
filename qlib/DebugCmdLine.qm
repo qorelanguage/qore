@@ -1122,10 +1122,10 @@ public namespace DebugCmdLine {
         abstract public *hash doCommandImpl(hash data);
 
         public *hash doCommand(hash data, bool print) {
-            logger.log(DUV_DEBUG, "Cmd: %y", data);
+            log(DUV_DEBUG, "Cmd: %y", data);
             *hash ret = doCommandImpl(data);
             if (ret) {
-                logger.log(DUV_DEBUG, "Response: %y", ret);
+                log(DUV_DEBUG, "Response: %y", ret);
                 if (ret.type == "error") {
                     throw "DEBUG-COMMAND", sprintf("%s: %s", ret.result.err, ret.result.desc);
                 }

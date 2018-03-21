@@ -165,9 +165,16 @@ public namespace DebugUtil {
           @param verbosity use DPC_xxx constants
         */
         public log(int verbosity, string fmt) {
+            log2(verbosity, fmt, argv);
+        }
+        #! implement logging
+        /**
+          @param verbosity use DPC_xxx constants
+        */
+        public log2(int verbosity, string fmt, *list args) {
             if (verbose >= verbosity) {
                 # note: \r\n is necessary for clients using linenoise even on UNIX/Linux
-                stdout.vprintf(fmt+"\r\n", argv);
+                stdout.vprintf(fmt+"\r\n", args);
             }
         }
     }
@@ -183,6 +190,12 @@ public namespace DebugUtil {
             const flowStrings = ('none': 0, 'return': DebugFlowReturn, 'break': DebugFlowBreak, 'continue': DebugFlowContinue);
             const boolStrings = ('false': False, 'true': True);
             const policyStrings = ('none': BreakpointPolicyNone, 'accept': BreakpointPolicyAccept, 'reject': BreakpointPolicyReject);
+        }
+
+        public log(int verbosity, string fmt) {
+            if (logger) {
+                logger.log2(verbosity, fmt, argv);
+            }
         }
 
         static public list enumFilter(softlist items, *string path) {

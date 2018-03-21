@@ -166,7 +166,7 @@ public namespace DebugProgramControl {
 
         #! Create new program
         public Program createProgram(string fileName, *hash opts, list args, *string script) {
-            logger.log(DUV_DEBUG_1, "create program: %y", fileName);
+            log(DUV_DEBUG_1, "create program: %y", fileName);
             Program pgm = new Program(PO_DEFAULT);
             # restore default options as we have PO_NO_CHILD_PO_RESTRICTIONS
             # note this program has PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE
@@ -199,24 +199,24 @@ public namespace DebugProgramControl {
             # update arguments without debug options
             pgm.setGlobalVarValue('ARGV', args);
             pgm.define('QoreDebugging', True);   # TODO: vs. QoreDebug define, better name ?
-            logger.log(DUV_DEBUG_1, "add program");
+            log(DUV_DEBUG_1, "add program");
             addProgram(pgm.getProgram());
 
             if ((script ?? '') == '') {
                 if (fileName == '/dev/stdin') {  # is exception needed ??
-                    logger.log(DUV_DEBUG_1, "read stdin");
+                    log(DUV_DEBUG_1, "read stdin");
                     script = stdin.read(-1, 0);
-                    logger.log(DUV_DEBUG_1, "%s", script);
+                    log(DUV_DEBUG_1, "%s", script);
                 } else {
-                    logger.log(DUV_DEBUG_1, "read file: %y", fileName);
+                    log(DUV_DEBUG_1, "read file: %y", fileName);
                     script = ReadOnlyFile::readTextFile(fileName);
                 }
             }
             pgm.setScriptPath(fileName);
-            logger.log(DUV_DEBUG_1, "parse code");
+            log(DUV_DEBUG_1, "parse code");
             *hash wh = pgm.parse(script, fileName, WARN_DEFAULT, NOTHING, NOTHING, False);
             if (wh) {
-                logger.log(DUV_INFO, "warning: %N", wh);
+                log(DUV_INFO, "warning: %N", wh);
             }
             return pgm;
         }
@@ -230,14 +230,12 @@ public namespace DebugProgramControl {
 
         #! process message in debugging thread, if message is related to debugged thread then put it in particular queue
         public *hash processCommand(hash cx, hash receiveData) {
-            if (logger)
-                logger.log(DUV_DEBUG_1, "processCommand: %y", receiveData);
+            log(DUV_DEBUG_1, "processCommand: %y", receiveData);
             hash sendData;
             auto result;
             try {
                 list cmd = receiveData.cmd.split('/');
-                if (logger)
-                    logger.log(DUV_DEBUG_1, "command: %y", cmd);
+                log(DUV_DEBUG_1, "command: %y", cmd);
 
                 switch (shift cmd) {
                 case 'help':
@@ -300,7 +298,7 @@ public namespace DebugProgramControl {
                         }
                         break;
                     case 'set':
-                        logger.log(DUV_DEBUG_1, "set session: %y", receiveData.value);
+                        log(DUV_DEBUG_1, "set session: %y", receiveData.value);
                         # go through provided list and match current programs, no sophisticated matching algorithm
                         result = hash();
                         foreach string pgmName in (keys receiveData.value) {
@@ -746,8 +744,7 @@ public namespace DebugProgramControl {
                     sendData.type = 'response';
                 }
             } catch (hash<ExceptionInfo> ex) {
-                if (logger)
-                    logger.log(DUV_DEBUG, "exception: %y", ex);
+                log(DUV_DEBUG, "exception: %y", ex);
                 sendData.type = 'error';
                 result.err = ex.err;
                 result.desc = ex.desc;
@@ -854,7 +851,7 @@ public namespace DebugProgramControl {
                         if (p !~ /[\\\/]$/ ) {
                             p += DirSep;
                         }
-                logger.log(DUV_DEBUG_1, "isfile(%s)", p + name);
+                        log(DUV_DEBUG_1, "isfile(%s)", p + name);
                         if (is_file(p + name)) {
                             name = p + name;
                             break;
