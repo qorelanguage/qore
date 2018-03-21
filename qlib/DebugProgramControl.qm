@@ -522,7 +522,7 @@ public namespace DebugProgramControl {
                             result = pgmb.getSourceFileNames();
                             break;
                         case 'source':
-                            result = getSourceCode(pgmb, True, receiveData);
+                            result = getSourceCode(pgmb, 'file', receiveData);
                             break;
                         }
                         break;
@@ -533,7 +533,7 @@ public namespace DebugProgramControl {
                             result = pgmb.getSourceLabels();
                             break;
                         case 'source':
-                            result = getSourceCode(pgmb, False, receiveData);
+                            result = getSourceCode(pgmb, 'label', receiveData);
                             break;
                         }
                         break;
@@ -810,16 +810,16 @@ public namespace DebugProgramControl {
             return binfo;
         }
 
-        private *hash getSourceCode(ProgramControl pgmb, bool isFile, hash rd) {
+        private *hash getSourceCode(ProgramControl pgmb, string type, hash rd) {
             hash res;
-            if (!exists (isFile ? pgmb.getSourceFileNames() : pgmb.getSourceLabels() ){rd.name}) {
-                throw "DEBUG-HANDLER-ERROR", sprintf("Cannot get source for %y", rd.name);
+            if (!exists (type=='file' ? pgmb.getSourceFileNames() : pgmb.getSourceLabels() ){rd{type}}) {
+                throw "DEBUG-HANDLER-ERROR", sprintf("Cannot get source for %y", rd{type});
             }
             string content;
-            if (isFile) {
-                content = getSourceCodeFromFile(rd.name);
+            if (type=='file') {
+                content = getSourceCodeFromFile(rd{type});
             } else {
-                content = getSourceCodeForLabel(rd.name);
+                content = getSourceCodeForLabel(rd{type});
             }
             res.checksum.algorithm= 'sha1';
             res.checksum.cs = content.toSHA1();
@@ -851,7 +851,7 @@ public namespace DebugProgramControl {
                         if (p !~ /[\\\/]$/ ) {
                             p += DirSep;
                         }
-                        log(DUV_DEBUG_1, "isfile(%s)", p + name);
+                        log(DUV_DEBUG_1, "is_file(%s)", p + name);
                         if (is_file(p + name)) {
                             name = p + name;
                             break;
@@ -1134,7 +1134,7 @@ public namespace DebugProgramControl {
                                     h.line = n;
                                 }
                                 h.count = n - h.line + 1;
-                                result = getSourceCode(pgm, True, h).('code', 'startline') + ('currentline': stack[frame].line);
+                                result = getSourceCode(pgm, 'file', h).('code', 'startline') + ('currentline': stack[frame].line);
                             }
                             break;
                         }

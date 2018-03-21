@@ -1220,25 +1220,27 @@ public namespace DebugCmdLine {
             }
         }
 
-        public printSource(hash src) {
-            if (src.startline > 0) {
-                # add line numbers
-                list l = src.code.split("\n");
-                string fmt = sprintf("%%%dd%%s: %%s", int(log10(src.startline + l.size()))+1);
-                foreach string s in (\l) {
-                    string mark = "";
-                    if (exists src.currentline) {
-                        mark = (src.currentline == src.startline+$#) ? "*":" ";
+        public printSource(*hash src) {
+            if (exists src.code) {
+                if (src.startline > 0) {
+                    # add line numbers
+                    list l = src.code.split("\n");
+                    string fmt = sprintf("%%%dd%%s: %%s", int(log10(src.startline + l.size()))+1);
+                    foreach string s in (\l) {
+                        string mark = "";
+                        if (exists src.currentline) {
+                            mark = (src.currentline == src.startline+$#) ? "*":" ";
+                        }
+                        s = sprintf(fmt, src.startline + $#, mark, s);
                     }
-                    s = sprintf(fmt, src.startline + $#, mark, s);
+                    src.code = l.join("\n");
                 }
-                src.code = l.join("\n");
+                printfImpl("%s", src.code);
             }
-            printfImpl("%s", src.code);
         }
         public processGetSource(string type, list path, list args) {
             hash data.cmd = 'program/'+checkProgramId()+'/'+type+'/source';
-            data.name = pop path;
+            data{type} = pop path;
             if (args[0] != "") {
                 data.line = int(args[0]);
                 if (args[1] != "") {
@@ -1249,9 +1251,7 @@ public namespace DebugCmdLine {
             if (src.checksum) {
                 printfImpl("%s: %s", src.checksum.algorithm, src.checksum.cs);
             }
-            if (src.code) {
-                printSource(src);
-            }
+            printSource(src);
         }
 
         static public validateInt(DebugCommandLine dcl, softlist path, softlist val) {
