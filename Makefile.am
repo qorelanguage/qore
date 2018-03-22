@@ -267,6 +267,7 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/astparser/src/ast/expressions/ASTUnaryExpression.h \
 	modules/astparser/src/ast/expressions/ASTSwitchBodyExpression.h \
 	modules/astparser/src/ast/expressions/ASTHashElementExpression.h \
+	modules/astparser/src/ast/expressions/ASTHashdeclHashExpression.h \
 	modules/astparser/src/ast/statements/ASTRethrowStatement.h \
 	modules/astparser/src/ast/statements/ASTOnBlockExitStatement.h \
 	modules/astparser/src/ast/statements/ASTIfStatement.h \
