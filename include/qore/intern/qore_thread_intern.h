@@ -633,29 +633,17 @@ class ProgramThreadCountContextHelper {
 public:
    DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
    DLLLOCAL ~ProgramThreadCountContextHelper();
-
-   DLLLOCAL int getNextContext(ThreadLocalProgramData*& tlpd, ProgramThreadCountContextHelper*& ch) const {
-      if (!nextOk() || !old_ctx)
-         return -1;
-      tlpd = old_tlpd;
-      ch = old_ctx;
-      return 0;
-   }
-
-   DLLLOCAL QoreProgram* getProgram() const {
-      return old_pgm;
-   }
-
+   static ThreadLocalProgramData* getContextFrame(int& frame, ExceptionSink* xsink);
+   bool isFirstThreadLocalProgramData(const ThreadLocalProgramData* tlpd) const;
 protected:
    QoreProgram* old_pgm = nullptr;
    ThreadLocalProgramData* old_tlpd = nullptr;
    ProgramThreadCountContextHelper* old_ctx = nullptr;
+   // frame count of tlpd when context is started
+   int save_frameCount = 0;
+   int old_frameCount;
    bool restore = false;
-
-   // returns true if the next program allows debugging
-   DLLLOCAL bool nextOk() const {
-      return old_pgm;
-   }
+   bool init_tlpd = false;
 };
 
 class ProgramRuntimeParseContextHelper {
@@ -976,7 +964,7 @@ public:
    }
 
    DLLLOCAL void delProgram(QoreProgram* pgm);
-   DLLLOCAL void saveProgram(bool runtime, ExceptionSink* xsink);
+   DLLLOCAL bool saveProgram(bool runtime, ExceptionSink* xsink);
    DLLLOCAL void del(ExceptionSink* xsink);
 
    DLLLOCAL void deref() {
@@ -989,10 +977,12 @@ public:
 class ThreadFrameBoundaryHelper {
 public:
     DLLLOCAL ThreadFrameBoundaryHelper() {
+        //printd(5, "ThreadFrameBoundaryHelper::ThreadFrameBoundaryHelper: this:%p\n", this);
         thread_push_frame_boundary();
     }
 
     DLLLOCAL ~ThreadFrameBoundaryHelper() {
+        //printd(5, "ThreadFrameBoundaryHelper::~ThreadFrameBoundaryHelper: this:%p\n", this);
         thread_pop_frame_boundary();
     }
 };

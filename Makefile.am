@@ -34,6 +34,7 @@ DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/CsvUtil.qm \
 	qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
+	qlib/DebugLinenoiseCmdLine.qm \
 	qlib/DebugHandler.qm \
 	qlib/Diff.qm \
 	qlib/FilePoller.qm \

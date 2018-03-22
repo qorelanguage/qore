@@ -75,6 +75,23 @@
     @par Release Summary
     Bugfix release; see details below
 
+    @subsection qore_08133_new_features New Features in Qore
+    - improved debugging support:
+      - added support for a <href="https://code.visualstudio.com/">Visual Studio Code</a> debug adapter for %Qore
+      - the debugger can now retrieve sources when running from a remote debug server
+      - debugger options can now be set from command line (verbosity etc.)
+      - the \c onAttach() event is now executed synchronously when the program thread context starts
+      - the \c onDetach() event is executed properly when program thread contexts terminate
+      - the \c onStep() now provides the \c breakpointId value if available
+      - the \c onExit() event was added for greater control over code execution in the debugger
+      - the \c onException() event was improved
+      - server commands now support \c frameid as a parameter
+      - added the following methods to support retrieving source code in the debugger:
+        - @ref Qore::ProgramControl::getSourceFileNames() "ProgramControl::getSourceFileNames()"
+        - @ref Qore::ProgramControl::getSourceLabels() "ProgramControl::getSourceLabels()"
+    - new module:
+      - <a href="../../modules/DebugLinenoiseCmdLine/html/index.html">DebuLinenoiseCmdLine</a>
+
     @subsection qore_08133_bug_fixes Bug Fixes in Qore
     - module fixes:
       - <a href="../../modules/QUnit/html/index.html">QUnit</a>:
@@ -94,6 +111,7 @@
     - implemented support for the more concise declaration of immediate typed hash values (<a href="https://github.com/qorelanguage/qore/issues/2675">issue 2675</a>)
     - fixed a bug where a crash would result when evaluating certain expressions in the @ref background "brackground operator" due to a memory error (<a href="https://github.com/qorelanguage/qore/issues/2679">issue 2679</a>)
     - fixed @ref date_formatting "date formatting" output with the \c Z placeholder to always output the UTC offset as documented (<a href="https://github.com/qorelanguage/qore/issues/2684">issue 2684</a>)
+    - fixed program thread context to return frames properly (<a href="https://github.com/qorelanguage/qore/issues/2674">issue 2674</a>)
     - fixed an internal memory bug that could cause unallocated memory to be read when creating objects (<a href="https://github.com/qorelanguage/qore/issues/2712">issue 2712</a>)
 
     @section qore_08132 Qore 0.8.13.2

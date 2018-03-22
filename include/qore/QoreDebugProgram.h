@@ -98,10 +98,11 @@ public:
    /**
     * Executed on every step of StatementBlock.
     * @param blockStatement
+    * @param bkptId breakpoint id if hit otherwise 0
     * @param statement current AbstractStatement of blockStatement being processed. Executed also when blockStatement is entered with value of NULL
     * @param flow
     */
-   DLLEXPORT virtual void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink);
+   DLLEXPORT virtual void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink);
 
    /**
     * Executed when a function is entered.
@@ -117,6 +118,11 @@ public:
     * Executed when an exception is raised.
     */
    DLLEXPORT virtual void onException(QoreProgram *pgm, const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
+
+   /**
+    * Executed when a thread/program is exited.
+    */
+   DLLEXPORT virtual void onExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
 
    /**
     * Break specific program thread
