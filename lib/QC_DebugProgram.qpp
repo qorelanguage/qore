@@ -194,7 +194,7 @@ abstract DebugProgram::onDetach(ProgramControl[QoreProgram] pgm, reference rs);
 /**
  *
  */
-abstract DebugProgram::onStep(ProgramControl[QoreProgram] pgm, int blockStatement, *int statement, reference flow, reference rs);
+abstract DebugProgram::onStep(ProgramControl[QoreProgram] pgm, int blockStatement, *int statement, *int breakpointId, reference flow, reference rs);
 
 //! Executed when a function is entered.
 /**
@@ -216,6 +216,13 @@ abstract DebugProgram::onFunctionExit(ProgramControl[QoreProgram] pgm, int state
        @ref Qore::ProgramControl::getStatementIdInfo "ProgramControl::getStatementIdInfo"
  */
 abstract DebugProgram::onException(ProgramControl[QoreProgram] pgm, int statement, hash ex, reference dismiss, reference rs);
+
+//! Executed when a program/thread is exited.
+/**
+    @see
+       @ref Qore::ProgramControl::getStatementIdInfo "ProgramControl::getStatementIdInfo"
+ */
+abstract DebugProgram::onExit(ProgramControl[QoreProgram] pgm, int statement, reference returnValue, reference rs);
 
 //! Break particular program thread
 /**

@@ -100,42 +100,42 @@ ProgramControl::destructor() {
 }
 
 //! Returns the current binary-or'ed parse option mask for the Program object
-/** see Qore::Program::getParseOptions "Program::getParseOptions"
+/** see Qore::Program::getParseOptions "Program::getParseOptions()"
  */
 int ProgramControl::getParseOptions() {
    return p->getParseOptions64();
 }
 
 //! Returns the current script directory as a string or @ref nothing if not set
-/** see Qore::Program::getScriptDir "Program::getScriptDir"
+/** see Qore::Program::getScriptDir "Program::getScriptDir()"
  */
 *string ProgramControl::getScriptDir() {
    return p->getScriptDir();
 }
 
 //! Returns the current script name as a string or @ref nothing if not set
-/** see Qore::Program::getScriptPath "Program::getScriptPath"
+/** see Qore::Program::getScriptPath "Program::getScriptPath()"
  */
 *string ProgramControl::getScriptName() {
    return p->getScriptName();
 }
 
 //! Returns the current script directory and filename if known, otherwise returns @ref nothing
-/** see Qore::Program::getScriptPath "Program::getScriptPath"
+/** see Qore::Program::getScriptPath "Program::getScriptPath()"
  */
 *string ProgramControl::getScriptPath() {
    return p->getScriptPath();
 }
 
 //! Returns the default local time zone for the object
-/** see Qore::Program::getTimeZone "Program::getTimeZone"
+/** see Qore::Program::getTimeZone "Program::getTimeZone()"
  */
 TimeZone ProgramControl::getTimeZone() {
    return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
 }
 
 //! Returns @ref True if the given @ref conditional_parsing "parse define" is defined in the current Program (does not have to have a value defined to return @ref True), @ref False if not
-/** see Qore::Program::isDefined "Program::isDefined"
+/** see Qore::Program::isDefined "Program::isDefined()"
  */
 bool ProgramControl::isDefined(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
@@ -143,7 +143,7 @@ bool ProgramControl::isDefined(string def) {
 }
 
 //! Retrieves the value of the given @ref conditional_parsing "parse define" in the current Program
-/** see Qore::Program::getDefine "Program::getDefine"
+/** see Qore::Program::getDefine "Program::getDefine()"
  */
 auto ProgramControl::getDefine(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
@@ -151,14 +151,14 @@ auto ProgramControl::getDefine(string def) {
 }
 
 //! Retrieves all @ref conditional_parsing "parse defines" in the current Program
-/** see Qore::Program::getAllDefines "Program::getAllDefines"
+/** see Qore::Program::getAllDefines "Program::getAllDefines()"
  */
 *hash ProgramControl::getAllDefines() {
    return qore_program_private::runTimeGetAllDefines(p);
 }
 
 //! Get program id
-/** see Qore::Program::getProgramId "Program::getProgramId"
+/** see Qore::Program::getProgramId "Program::getProgramId()"
  */
 int ProgramControl::getProgramId() [flags=RET_VALUE_ONLY;] {
    return p->getProgramId();
@@ -167,7 +167,7 @@ int ProgramControl::getProgramId() [flags=RET_VALUE_ONLY;] {
 //! Get instance of program id
 /**
    @see
-      @ref Qore::ProgramControl::resolveProgramId "ProgramControl::resolveProgramId"
+      @ref Qore::ProgramControl::resolveProgramId "ProgramControl::resolveProgramId()"
 
    @throw PROGRAM-ERROR if the programId cannot identify @ref Qore::ProgramControl "ProgramControl" instance
 
@@ -190,21 +190,21 @@ static ProgramControl ProgramControl::getProgram() [flags=RET_VALUE_ONLY; dom=DE
 
 //! Get instance of all programs.
 /**
-   Use @ref Qore::ProgramControl::resolveProgramId "ProgramControl::resolveProgramId" to get instance
+   Use @ref Qore::ProgramControl::resolveProgramId "ProgramControl::resolveProgramId()" to get instance
  */
 static list ProgramControl::getAllPrograms() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
    return QoreProgram::getAllQoreObjects(xsink);
 }
 
 //! returns a list of thread IDs active in this Program
-/** see Qore::Program::getThreadList "Program::getThreadList"
+/** see Qore::Program::getThreadList "Program::getThreadList()"
 */
 list<int> ProgramControl::getThreadList() [flags=CONSTANT] {
    return p->getThreadList();
 }
 
 //! Checks if a user function exists in the program object
-/** see Qore::Program::existsFunction "Program::existsFunction"
+/** see Qore::Program::existsFunction "Program::existsFunction()"
  */
 bool ProgramControl::existsFunction(string name) [flags=RET_VALUE_ONLY] {
    if (!p->checkAllowDebugging(xsink))
@@ -216,7 +216,7 @@ bool ProgramControl::existsFunction(string name) [flags=RET_VALUE_ONLY] {
 }
 
 //! Returns a the value of the global variable identified by the first string argument
-/** see Qore::Program::getGlobalVariable "Program::getGlobalVariable"
+/** see Qore::Program::getGlobalVariable "Program::getGlobalVariable()"
  */
 auto ProgramControl::getGlobalVariable(string varname, *reference<bool> rexists) {
    if (!p->checkAllowDebugging(xsink))
@@ -241,7 +241,7 @@ auto ProgramControl::getGlobalVariable(string varname, *reference<bool> rexists)
 }
 
 //! returns a hash of global variables
-/** see Qore::Program::getGlobalVars "Program::getGlobalVars"
+/** see Qore::Program::getGlobalVars "Program::getGlobalVars()"
  */
 hash ProgramControl::getGlobalVars() [flags=CONSTANT] {
    if (!p->checkAllowDebugging(xsink))
@@ -250,7 +250,7 @@ hash ProgramControl::getGlobalVars() [flags=CONSTANT] {
 }
 
 //! set the value of a global variable
-/** see Qore::Program::setGlobalVars "Program::setGlobalVars"
+/** see Qore::Program::setGlobalVars "Program::setGlobalVars()"
  */
 nothing ProgramControl::setGlobalVarValue(string name, auto value) {
    if (!p->checkAllowDebugging(xsink))
@@ -296,8 +296,8 @@ list ProgramControl::getBreakpoints() {
    @return a hash of statement info
 
    @see
-      @ref Qore::ProgramControl::findStatementId "ProgramControl::findStatementId"
-      @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId"
+      @ref Qore::ProgramControl::findStatementId "ProgramControl::findStatementId()"
+      @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId()"
 */
 hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId) {
    if (!p->checkAllowDebugging(xsink))
@@ -323,7 +323,7 @@ hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId) {
    @param line to find statement. In case of multiple statements of line the first one is found
 
    @see
-      @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId"
+      @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId()"
 
 */
 int ProgramControl::findStatementId(string file, int line) {
@@ -342,8 +342,7 @@ int ProgramControl::findStatementId(string file, int line) {
    @param params param types to resolve particular variant
 
    @see
-      @ref Qore::ProgramControl::findStatementId "ProgramControl::findStatementId"
-
+      @ref Qore::ProgramControl::findStatementId "ProgramControl::findStatementId()"
 */
 int ProgramControl::findFunctionStatementId(string function, *list params) {
    if (!p->checkAllowDebugging(xsink))
@@ -364,7 +363,6 @@ int ProgramControl::findFunctionStatementId(string function, *list params) {
     @return a list of hashes or nothing if the name cannot be resolved; when matched, each hash element has the following keys:
     - \c desc: a string description of the call which includes the name and the full text call signature
     - \c params: a QoreValueList object that gives the params in a format that can be used by @ref findFunctionStatementId
-
 */
 list ProgramControl::findFunctionVariants(string function) {
    if (!p->checkAllowDebugging(xsink))
@@ -373,4 +371,36 @@ list ProgramControl::findFunctionVariants(string function) {
    if (!vl)
       return xsink->raiseException("PROGRAM-ERROR", "cannot find any function or method \"%s\"", function->c_str());
    return vl->getOldList();
+}
+
+//! Get list of label names which has been registered to a statement when parsing source code
+/**
+    @see
+        @ref Qore::ProgramControl::getSourceFileNames "ProgramControl::getSourceFileNames()"
+
+    @return a hash where keys are file names and the value is hash of labels, in this hash, the keys are label names
+   and values are the label's section offset in the file.
+
+    @since %Qore 0.8.13.3
+*/
+hash ProgramControl::getSourceLabels() {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   return p->getSourceLabels(xsink);
+}
+
+//! Returns a list of file names registered to a statement when parsing source code
+/**
+    @see
+        @ref Qore::ProgramControl::getSourceLabels "ProgramControl::getSourceLabels()"
+
+    @return a hash where keys are file names and the value is hash of labels, in this hash, the keys are label names
+   and values are the label's section offset in the file.
+
+    @since %Qore 0.8.13.3
+*/
+hash ProgramControl::getSourceFileNames() {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   return p->getSourceFileNames(xsink);
 }

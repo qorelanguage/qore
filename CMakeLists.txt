@@ -786,6 +786,7 @@ qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUti
 
 # base 4 modules
 qore_user_module("qlib/RestSchemaValidator.qm" "HttpServerUtil")
+qore_user_module("qlib/DebugLinenoiseCmdLine.qm" "DebugUtil;DebugCmdLine")
 
 # base 5 modules
 qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator")

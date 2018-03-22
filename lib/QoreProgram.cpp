@@ -181,8 +181,15 @@ qore_program_private::qore_program_private(QoreProgram* n_pgm, int64 n_parse_opt
 
 qore_program_private::~qore_program_private() {
    printd(5, "qore_program_private::~qore_program_private() this: %p pgm: %p, pgmid: %d\n", this, pgm, programId);
-   if (dpgm)
+   if (dpgm) {
+      // if the object is being destroyed when thread is terminating via a deref then we send sync detach event to this thread
+      // the thread can be stopped.
+      ThreadLocalProgramData *tlpd = get_thread_local_program_data();
+      if (tlpd) {
+         tlpd->dbgDetach(nullptr);
+      }
       dpgm->removeProgram(pgm);
+   }
    // wait till all debug calls are finished, no new calls possible as dpgm->removeProgram() set dpmg to NULL
    debug_program_counter.waitForZero();
    deleteAllBreakpoints();
@@ -383,6 +390,12 @@ void qore_program_private::internParseRollback() {
 void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
    // detach itself from debug
    if (dpgm) {
+      // if the object is being destroyed when thread is terminating via a deref then we send sync detach event to this thread
+      // the thread can be stopped.
+      ThreadLocalProgramData *tlpd = get_thread_local_program_data();
+      if (tlpd) {
+         tlpd->dbgDetach(xsink);
+      }
       dpgm->removeProgram(pgm);
    }
    debug_program_counter.waitForZero(xsink, 0);  // it is probably obsolete as the next waiting for thread termination will wait for the same threads as well
@@ -840,11 +853,15 @@ void qore_program_private::del(ExceptionSink* xsink) {
 
    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
-   for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByFileIndex.begin(); it != statementByFileIndex.end(); it++) {
+   for (std::map<const char*, section_sline_statement_map_t*>::iterator it = statementByFileIndex.begin(); it != statementByFileIndex.end(); it++) {
+      it->second->sectionMap.clear();
+      it->second->statementMap.clear();
       delete it->second;
    }
    statementByFileIndex.clear();
-   for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByLabelIndex.begin(); it != statementByLabelIndex.end(); it++) {
+   for (std::map<const char*, section_sline_statement_map_t*>::iterator it = statementByLabelIndex.begin(); it != statementByLabelIndex.end(); it++) {
+      it->second->sectionMap.clear();
+      it->second->statementMap.clear();
       delete it->second;
    }
    statementByLabelIndex.clear();
@@ -985,30 +1002,40 @@ const QoreTypeInfo* qore_program_private::getComplexReferenceOrNothingType(const
    return ti;
 }
 
-void qore_program_private::addStatementToIndexIntern(name_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs) {
+void qore_program_private::addStatementToIndexIntern(name_section_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs, const char* section, int sectionOffs) {
    // index is being built when parsing
-   if (!statement || !key)
+   if ((!statement && !section) || !key)
       return;
-   sline_statement_multimap_t *ssm;
-   std::map<const char*, sline_statement_multimap_t*>::iterator it = statementIndex->find(key);
+   section_sline_statement_map_t *sssm;
+   std::map<const char*, section_sline_statement_map_t*>::iterator it = statementIndex->find(key);
    if (it == statementIndex->end()) {
-      printd(5, "qore_program_private::addStatementToIndexIntern('%s',%d) key not found, this: %p\n", key, offs, this);
-      ssm = new sline_statement_multimap_t();
-      statementIndex->insert(std::pair<const char*, sline_statement_multimap_t*>(key, ssm));
+      printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s',%d,'%s',%d) key not found, this: %p\n", statementIndex, key, offs, section ? section : (const char*)"(null)",sectionOffs, this);
+      sssm = new section_sline_statement_map_t();
+      statementIndex->insert(std::pair<const char*, section_sline_statement_map_t*>(key, sssm));
    } else {
-      ssm = it->second;
-      std::map<int, AbstractStatement*>::iterator li = ssm->find(statement->loc.start_line+offs);
-      while (li != ssm->end() && li->first == statement->loc.start_line+offs) {
-         if (li->second->loc.end_line == statement->loc.end_line) {
-            // order of multimap values is not defined, so unless we want create extra index by statement position at line then we need insert only the first statement
-            printd(5, "qore_program_private::addStatementToIndexIntern('%s',%d) skipping line (%d-%d), this: %p\n", key, offs, statement->loc.start_line, statement->loc.end_line, this);
-            return;
+      sssm = it->second;
+      if (statement) {
+         std::map<int, AbstractStatement*>::iterator li = sssm->statementMap.find(statement->loc.start_line+offs);
+         while (li != sssm->statementMap.end() && li->first == statement->loc.start_line+offs) {
+            if (li->second->loc.end_line == statement->loc.end_line) {
+                // order of multimap values is not defined, so unless we want create extra index by statement position at line then we need insert only the first statement
+                printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s',%d) skipping line (%d-%d), this: %p\n", statementIndex, key, offs, statement->loc.start_line, statement->loc.end_line, this);
+                return;
+            }
+            ++li;
          }
-         ++li;
       }
    }
-   printd(5, "qore_program_private::addStatementToIndexIntern('%s',%d) insert line %d (%d-%d), this: %p\n", key, offs, statement->loc.start_line+offs, statement->loc.start_line, statement->loc.end_line, this);
-   ssm->insert(std::pair<int, AbstractStatement*>(statement->loc.start_line+offs, statement));
+   if (statement) {
+      printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s',%d) insert line %d (%d-%d), this: %p\n", statementIndex, key, offs, statement->loc.start_line+offs, statement->loc.start_line, statement->loc.end_line, this);
+      sssm->statementMap.insert(std::pair<int, AbstractStatement*>(statement->loc.start_line+offs, statement));
+   }
+   if (section) {
+      if (sssm->sectionMap.find(section) == sssm->sectionMap.end()) {
+         printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s','%s',%d) insert section, this: %p\n", statementIndex, key, section, sectionOffs, this);
+         sssm->sectionMap.insert(std::pair<const char*, int>(section, sectionOffs));
+      }
+   }
 }
 
 void qore_program_private::registerStatement(QoreProgram *pgm, AbstractStatement *statement, bool addToIndex) {
@@ -1022,14 +1049,32 @@ void qore_program_private::registerStatement(QoreProgram *pgm, AbstractStatement
       if (addToIndex) {
          if (statement->loc.source) {
             printd(5, "qore_program_private::registerStatement(file+source), this: %p, statement: %p\n", pgm->priv, statement);
-            pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.source, statement, statement->loc.offset);
-            pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByLabelIndex, statement->loc.file, statement, 0);
+            pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.source, statement, statement->loc.offset, statement->loc.file, statement->loc.offset);
+            pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByLabelIndex, statement->loc.file, statement, 0, statement->loc.source, statement->loc.offset);
          } else {
             printd(5, "qore_program_private::registerStatement(file), this: %p, statement: %p\n", pgm->priv, statement);
-            pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.file, statement, statement->loc.offset/*is zero*/);
+            pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.file, statement, statement->loc.offset/*is zero*/, nullptr, -1);
          }
       }
    }
+}
+
+QoreHashNode* qore_program_private::getSourceIndicesIntern(name_section_sline_statement_map_t* statementIndex, ExceptionSink* xsink) const {
+   ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+   for (std::map<const char*, section_sline_statement_map_t*>::iterator it = statementIndex->begin(), e = statementIndex->end(); it != e; it++) {
+      QoreHashNode* h2 = new QoreHashNode();
+      for (std::map<const char*, int>::iterator it2 = it->second->sectionMap.begin(), e2 = it->second->sectionMap.end(); it2 != e2; it2++) {
+         h2->setKeyValue(it2->first, new QoreBigIntNode(it2->second), xsink);
+         if (*xsink) {
+            return nullptr;
+         }
+      }
+      rv->setKeyValue(it->first, h2, xsink);
+      if (*xsink) {
+         return nullptr;
+      }
+   }
+   return rv.release();
 }
 
 void qore_program_private::onAttach(DebugRunStateEnum &rs, ExceptionSink* xsink) {
@@ -1045,6 +1090,7 @@ void qore_program_private::onAttach(DebugRunStateEnum &rs, ExceptionSink* xsink)
 void qore_program_private::onDetach(DebugRunStateEnum &rs, ExceptionSink* xsink) {
    AutoQoreCounterDec ad(&debug_program_counter, false);
    qore_debug_program_private* p = getDebugProgram(ad);
+   printd(5, "qore_program_private::onDetach() this: %p, dp: %p\n", this, p);
    if (p) {
       p->onDetach(pgm, rs, xsink);
    } else {
@@ -1052,11 +1098,11 @@ void qore_program_private::onDetach(DebugRunStateEnum &rs, ExceptionSink* xsink)
    }
 }
 
-void qore_program_private::onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+void qore_program_private::onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
    AutoQoreCounterDec ad(&debug_program_counter, false);
    qore_debug_program_private* p = getDebugProgram(ad);
    if (p) {
-      p->onStep(pgm, blockStatement, statement, flow, rs, xsink);
+      p->onStep(pgm, blockStatement, statement, bkptId, flow, rs, xsink);
    } else {
       rs = DBG_RS_DETACH;
    }
@@ -1091,6 +1137,16 @@ void qore_program_private::onException(const AbstractStatement *statement, Debug
    }
 }
 
+void qore_program_private::onExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   AutoQoreCounterDec ad(&debug_program_counter, false);
+   qore_debug_program_private* p = getDebugProgram(ad);
+   if (p) {
+      p->onExit(pgm, statement, returnValue, rs, xsink);
+   } else {
+      rs = DBG_RS_DETACH;
+   }
+}
+
 const AbstractQoreFunctionVariant* qore_program_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) {
    // acquire safe access to parse structures in the source program
    ProgramRuntimeParseAccessHelper rah(xsink, pgm);
@@ -1105,27 +1161,26 @@ QoreValueList* qore_program_private::runtimeFindCallVariants(const char* name, E
    return qore_root_ns_private::get(*RootNS)->runtimeFindCallVariants(name, xsink);
 }
 
-void ThreadLocalProgramData::checkAttach(ExceptionSink* xsink) {
-   if (runState != DBG_RS_STOPPED) {
-      if (attachFlag > 0) {
-         DebugRunStateEnum rs = runState;
-         functionCallLevel = 0;
-         printd(5, "ThreadLocalProgramData::checkAttach(attach) this: %p, rs: %d, tid: %d\n", this, runState, gettid());
-         runState = DBG_RS_STOPPED;
+void ThreadLocalProgramData::dbgAttach(ExceptionSink* xsink) {
+   if (runState == DBG_RS_DETACH) {
+      DebugRunStateEnum rs = runState;
+      functionCallLevel = 0;
+      printd(5, "ThreadLocalProgramData::dbgAttach this: %p, rs: %d, tid: %d\n", this, runState, gettid());
+      runState = DBG_RS_STOPPED;
+      getProgram()->priv->onAttach(rs, xsink);
+      setRunState(rs);
+      printd(5, "ThreadLocalProgramData::dbgAttach this: %p, rs: %d, xsink:%d\n", this, runState, xsink && xsink->isEvent());
+   }
+}
 
-         getProgram()->priv->onAttach(rs, xsink);
-         //if (rs != DBG_RS_DETACH) {   // TODO: why this exception ?
-             attachFlag = 0;
-         //}
-         printd(5, "ThreadLocalProgramData::checkAttach(attach): setBreakpoint(%d)\n", rs);
-         setRunState(rs);
-      } else if (attachFlag < 0) {
-         DebugRunStateEnum rs = runState;
-         attachFlag = 0;
-         printd(5, "ThreadLocalProgramData::checkAttach(detach) this: %p, rs: %d, tid: %d\n", this, runState, gettid());
-         getProgram()->priv->onDetach(rs, xsink);
-         setRunState(rs);
-      }
+void ThreadLocalProgramData::dbgDetach(ExceptionSink* xsink) {
+   if (runState != DBG_RS_STOPPED && runState != DBG_RS_DETACH) {
+      printd(5, "ThreadLocalProgramData::dbgDetach this: %p, rs: %d, tid: %d\n", this, runState, gettid());
+      DebugRunStateEnum rs = DBG_RS_DETACH;
+      runState = DBG_RS_STOPPED;
+      getProgram()->priv->onDetach(rs, xsink);
+      setRunState(rs);
+      printd(5, "ThreadLocalProgramData::dbgDetach this: %p, rs: %d, xsink:%d\n", this, runState, xsink && xsink->isEvent());
    }
 }
 
@@ -1133,22 +1188,24 @@ int ThreadLocalProgramData::dbgStep(const StatementBlock* blockStatement, const 
    checkAttach(xsink);
    checkBreakFlag();
    int rc = 0;
+   unsigned bkptId = 0;
    bool cond = runState == DBG_RS_STEP || (runState == DBG_RS_STEP_OVER && functionCallLevel == 0);
    if (!cond && runState != DBG_RS_STOPPED && runState != DBG_RS_DETACH) {
       const AbstractStatement *st = statement ? statement : blockStatement;
       if (st->getBreakpointFlag()) {   // fast breakpoint check
          printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rs: %d, tid: %d, breakpoint phase-1\n", this, runState, gettid());
-         cond = getProgram()->priv->onCheckBreakpoint(st, xsink);  // more precise check requiring lock
+         bkptId = getProgram()->priv->onCheckBreakpoint(st, xsink);  // more precise check requiring lock
+         cond = bkptId > 0;
       }
    }
    if (cond) {
-      printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rs: %d, tid: %d\n", this, runState, gettid());
+      printd(5, "ThreadLocalProgramData::dbgStep() this: %p, bkptId: %d, rs: %d, tid: %d\n", this, bkptId, runState, gettid());
       functionCallLevel = 0;
       DebugRunStateEnum rs = runState;
       runState = DBG_RS_STOPPED;
-      getProgram()->priv->onStep(blockStatement, statement, rc, rs, xsink);
+      getProgram()->priv->onStep(blockStatement, statement, bkptId, rc, rs, xsink);
       setRunState(rs);
-      printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rc: %d, xsink:%d\n", this, rc, xsink->isEvent());
+      printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rs: %d, rc: %d, xsink:%d\n", this, runState, rc, xsink && xsink->isEvent());
    }
    return rc;
 }
@@ -1166,7 +1223,7 @@ void ThreadLocalProgramData::dbgFunctionEnter(const StatementBlock* statement, E
       runState = DBG_RS_STOPPED;
       getProgram()->priv->onFunctionEnter(statement, rs, xsink);
       setRunState(rs);
-      printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, xsink: %d\n", this, xsink->isEvent());
+      printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, rs: %d, xsink: %d\n", this, runState, xsink && xsink->isEvent());
    } else if (runState != DBG_RS_STOPPED && runState != DBG_RS_DETACH && functionCallLevel > 0) {
       functionCallLevel++;
    }
@@ -1180,7 +1237,7 @@ void ThreadLocalProgramData::dbgFunctionExit(const StatementBlock* statement, Qo
       runState = DBG_RS_STOPPED;
       getProgram()->priv->onFunctionExit(statement, returnValue, rs, xsink);
       setRunState(rs);
-      printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, xsink: %d\n", this, xsink->isEvent());
+      printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, rs: %d, xsink: %d\n", this, runState, xsink && xsink->isEvent());
    } else if (runState != DBG_RS_STOPPED && runState != DBG_RS_DETACH && functionCallLevel > 0) {
       functionCallLevel--;
       printd(5, "ThreadLocalProgramData::dbgFunctionExit() exit, this: %p, rs: %d, level: %d, tid: %d\n", this, runState, functionCallLevel, gettid());
@@ -1199,7 +1256,19 @@ void ThreadLocalProgramData::dbgException(const AbstractStatement* statement, Ex
       runState = DBG_RS_STOPPED;
       getProgram()->priv->onException(statement, rs, xsink);
       setRunState(rs);
-      printd(5, "ThreadLocalProgramData::dbgException() this: %p, xsink: %d\n", this, xsink->isEvent());
+      printd(5, "ThreadLocalProgramData::dbgException() this: %p, rs: %d, xsink: %d\n", this, runState, xsink && xsink->isEvent());
+   }
+}
+
+void ThreadLocalProgramData::dbgExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink) {
+   if (runState != DBG_RS_STOPPED && runState != DBG_RS_DETACH) {
+      printd(5, "ThreadLocalProgramData::dbgExit() this: %p, rs: %d, tid: %d\n", this, runState, gettid());
+      DebugRunStateEnum rs = runState;
+      functionCallLevel = 0;
+      runState = DBG_RS_STOPPED;
+      getProgram()->priv->onExit(statement, returnValue, rs, xsink);
+      setRunState(rs);
+      printd(5, "ThreadLocalProgramData::dbgExit() this: %p, rs: %d, xsink: %d\n", this, runState, xsink && xsink->isEvent());
    }
 }
 
@@ -1828,10 +1897,11 @@ void QoreDebugProgram::onAttach(QoreProgram *pgm, DebugRunStateEnum &rs, Excepti
 }
 
 void QoreDebugProgram::onDetach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+    printd(5, "QoreDebugProgram::onDetach() this: %p\n", this);
     rs = DBG_RS_DETACH;
 }
 
-void QoreDebugProgram::onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+void QoreDebugProgram::onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
 }
 
 void QoreDebugProgram::onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
@@ -1841,6 +1911,9 @@ void QoreDebugProgram::onFunctionExit(QoreProgram *pgm, const StatementBlock *st
 }
 
 void QoreDebugProgram::onException(QoreProgram *pgm, const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+}
+
+void QoreDebugProgram::onExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
 }
 
 void QoreDebugProgram::addProgram(QoreProgram *pgm, ExceptionSink* xsink) {
@@ -1909,6 +1982,14 @@ unsigned long QoreProgram::getStatementId(const AbstractStatement* statement) co
 
 AbstractStatement* QoreProgram::resolveStatementId(unsigned long statementId) const {
    return priv->resolveStatementId(statementId);
+}
+
+QoreHashNode* QoreProgram::getSourceFileNames(ExceptionSink* xsink) const {
+   return priv->getSourceFileNames(xsink);
+}
+
+QoreHashNode* QoreProgram::getSourceLabels(ExceptionSink* xsink) const {
+   return priv->getSourceLabels(xsink);
 }
 
 unsigned QoreProgram::getProgramId() const {

@@ -9,11 +9,12 @@
 %requires WebSocketClient
 %requires yaml >= 0.5
 %requires DebugCmdLine
+%requires DebugLinenoiseCmdLine
 %requires ConnectionProvider
 
 %exec-class DebugWrapper
 
-class DebugCommandLineRemote inherits DebugCommandLine {
+class DebugCommandLineRemote inherits DebugLinenoiseCommandLine {
     const WSC_TIMEOUT = 1500ms;
     public {
         Counter counter();
@@ -26,7 +27,7 @@ class DebugCommandLineRemote inherits DebugCommandLine {
         string url;
     }
 
-    constructor (hash opts): DebugCommandLine() {
+    constructor (hash opts): DebugLinenoiseCommandLine() {
         wscTimeout = opts.response_timeout ?? WSC_TIMEOUT;
         opts.log = \wscLog();
         opts.errlog = \wscErr();
@@ -229,7 +230,7 @@ class DebugWrapper {
             ,
             get_script_name(),
             DebugCommandLineRemote::WSC_TIMEOUT,
-            DebugCommandLine::defaultHistoryFileName,
+            DebugLinenoiseCommandLine::defaultHistoryFileName,
             get_script_name(),
 
         );
