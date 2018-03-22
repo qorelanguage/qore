@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -255,66 +255,66 @@ bool qore_program_private::setThreadInit(const ResolvedCallReferenceNode* n_thr_
 }
 
 void qore_program_private_base::newProgram() {
-   base_object = true;
-   po_locked = false;
-   exec_class = false;
+    base_object = true;
+    po_locked = false;
+    exec_class = false;
 
-   // init thread local storage key
-   thread_local_storage = new qpgm_thread_local_storage_t;
+    // init thread local storage key
+    thread_local_storage = new qpgm_thread_local_storage_t;
 
-   // save thread local storage hash
-   assert(!thread_local_storage->get());
-   thread_local_storage->set(new QoreHashNode);
+    // save thread local storage hash
+    assert(!thread_local_storage->get());
+    thread_local_storage->set(new QoreHashNode);
 
-   //printd(5, "qore_program_private_base::newProgram() this: %p\n", this);
+    //printd(5, "qore_program_private_base::newProgram() this: %p\n", this);
 
-   // copy global feature list to local list
-   for (FeatureList::iterator i = qoreFeatureList.begin(), e = qoreFeatureList.end(); i != e; ++i)
-      featureList.push_back((*i).c_str());
+    // copy global feature list to local list
+    for (FeatureList::iterator i = qoreFeatureList.begin(), e = qoreFeatureList.end(); i != e; ++i)
+        featureList.push_back((*i).c_str());
 
-   QoreProgramContextHelper pch(pgm);
+    QoreProgramContextHelper pch(pgm);
 
-   // setup namespaces
-   RootNS = qore_root_ns_private::copy(*staticSystemNamespace, pwo.parse_options);
-   QoreNS = RootNS->rootGetQoreNamespace();
-   assert(QoreNS);
+    // setup namespaces
+    RootNS = qore_root_ns_private::copy(*staticSystemNamespace, pwo.parse_options);
+    QoreNS = RootNS->rootGetQoreNamespace();
+    assert(QoreNS);
 
-   // setup initial defines
-   // add platform defines
-   dmap["QoreVersionString"] = new QoreStringNode(qore_version_string);
-   dmap["QoreVersionMajor"] = new QoreBigIntNode(qore_version_major);
-   dmap["QoreVersionMinor"] = new QoreBigIntNode(qore_version_minor);
-   dmap["QoreVersionSub"] = new QoreBigIntNode(qore_version_sub);
-   dmap["QoreVersionBuild"] = new QoreBigIntNode(qore_build_number);
-   dmap["QoreVersionBits"] = new QoreBigIntNode(qore_target_bits);
-   dmap["QorePlatformCPU"] = new QoreStringNode(TARGET_ARCH);
-   dmap["QorePlatformOS"] = new QoreStringNode(TARGET_OS);
+    // setup initial defines
+    // add platform defines
+    dmap["QoreVersionString"] = new QoreStringNode(qore_version_string);
+    dmap["QoreVersionMajor"] = new QoreBigIntNode(qore_version_major);
+    dmap["QoreVersionMinor"] = new QoreBigIntNode(qore_version_minor);
+    dmap["QoreVersionSub"] = new QoreBigIntNode(qore_version_sub);
+    dmap["QoreVersionBuild"] = new QoreBigIntNode(qore_build_number);
+    dmap["QoreVersionBits"] = new QoreBigIntNode(qore_target_bits);
+    dmap["QorePlatformCPU"] = new QoreStringNode(TARGET_ARCH);
+    dmap["QorePlatformOS"] = new QoreStringNode(TARGET_OS);
 
 #ifdef _Q_WINDOWS
-   dmap["Windows"] = &True;
+    dmap["Windows"] = &True;
 #else
-   dmap["Unix"] = &True;
+    dmap["Unix"] = &True;
 #endif
 
-   if (pwo.parse_options & PO_IN_MODULE)
-      dmap["QoreHasUserModuleLicense"] = &True;
+    if (pwo.parse_options & PO_IN_MODULE)
+        dmap["QoreHasUserModuleLicense"] = &True;
 
-   QoreNamespace* ns = QoreNS->findLocalNamespace("Option");
-   assert(ns);
-   ConstantListIterator cli(qore_ns_private::getConstantList(ns));
-   while (cli.next()) {
-      AbstractQoreNode* v = cli.getValue();
-      assert(v);
-      // skip boolean options defined as False
-      if (v->getType() == NT_BOOLEAN && !reinterpret_cast<QoreBoolNode*>(v)->getValue())
-         continue;
+    QoreNamespace* ns = QoreNS->findLocalNamespace("Option");
+    assert(ns);
+    ConstantListIterator cli(qore_ns_private::getConstantList(ns));
+    while (cli.next()) {
+        QoreValue v = cli.getValue();
+        // skip boolean options defined as False
+        if (v.getType() == NT_BOOLEAN && !v.getAsBool()) {
+            continue;
+        }
 
-      dmap[cli.getName()] = v->refSelf();
-   }
+        dmap[cli.getName()] = v.getReferencedValue();
+    }
 
 #ifdef DEBUG
-   // if Qore library debugging is enabled, then set an option
-   dmap["QoreDebug"] = &True;
+    // if Qore library debugging is enabled, then set an option
+    dmap["QoreDebug"] = &True;
 #endif
 }
 
@@ -381,99 +381,103 @@ void qore_program_private::internParseRollback() {
 }
 
 void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
-   // detach itself from debug
-   if (dpgm) {
-      dpgm->removeProgram(pgm);
-   }
-   debug_program_counter.waitForZero(xsink, 0);  // it is probably obsolete as the next waiting for thread termination will wait for the same threads as well
-   // we only clear the internal data structures once
-   bool clr = false;
-   {
-      ReferenceHolder<QoreListNode> l(xsink);
-      {
-         AutoLocker al(plock);
-         // wait for all threads to terminate
-         waitForAllThreadsToTerminateIntern();
-         if (!ptid) {
-            l = new QoreListNode;
-            qore_root_ns_private::clearConstants(*RootNS, **l);
-            // mark the program so that only code from this thread can run during data destruction
-            ptid = gettid();
-            clr = true;
-         }
-      }
-   }
+    // detach itself from debug
+    if (dpgm) {
+        dpgm->removeProgram(pgm);
+    }
+    debug_program_counter.waitForZero(xsink, 0);  // it is probably obsolete as the next waiting for thread termination will wait for the same threads as well
+    // we only clear the internal data structures once
+    bool clr = false;
+    {
+        ReferenceHolder<QoreListNode> l(xsink);
+        {
+            AutoLocker al(plock);
+            // wait for all threads to terminate
+            waitForAllThreadsToTerminateIntern();
+            if (!ptid) {
+                if (!constants_cleared) {
+                    l = new QoreListNode;
+                    qore_root_ns_private::clearConstants(*RootNS, **l);
+                    //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p cleared constants\n", this);
+                    constants_cleared = true;
+                }
+                // mark the program so that only code from this thread can run during data destruction
+                ptid = gettid();
+                clr = true;
+            }
+        }
+    }
 
-   if (clr) {
-      // purge thread resources before clearing pgm
-      purge_pgm_thread_resources(pgm, xsink);
+    if (clr) {
+        // purge thread resources before clearing pgm
+        purge_pgm_thread_resources(pgm, xsink);
 
-      printd(5, "qore_program_private::waitForTerminationAndClear() this: %p pgm: %p clr: %d\n", this, pgm, clr);
-      // delete all global variables, etc
-      qore_root_ns_private::clearData(*RootNS, xsink);
+        printd(5, "qore_program_private::waitForTerminationAndClear() this: %p pgm: %p clr: %d\n", this, pgm, clr);
+        // delete all global variables, etc
+        clearNamespaceData(xsink);
 
-      // clear thread init code reference if any
-      {
-         ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
+        // clear thread init code reference if any
+        {
+            ReferenceHolder<ResolvedCallReferenceNode> old(xsink);
 
-         {
+            {
+                AutoLocker al(tlock);
+
+                // clear thread init code reference
+                old = thr_init;
+                thr_init = 0;
+            }
+        }
+
+        // clear thread data if base object
+        if (base_object)
+            clearThreadData(xsink);
+
+        clearProgramThreadData(xsink);
+
+        {
+            AutoLocker al(plock);
+            ptid = -1;
+        }
+
+        // now clear the original map
+        {
             AutoLocker al(tlock);
+            pgm_data_map.clear();
+            tclear = 0;
 
-            // clear thread init code reference
-            old = thr_init;
-            thr_init = 0;
-         }
-      }
-
-      // clear thread data if base object
-      if (base_object)
-         clearThreadData(xsink);
-
-      clearProgramThreadData(xsink);
-
-      {
-         AutoLocker al(plock);
-         ptid = -1;
-      }
-
-      // now clear the original map
-      {
-         AutoLocker al(tlock);
-         pgm_data_map.clear();
-         tclear = 0;
-
-         if (twaiting)
-            tcond.broadcast();
-      }
+            if (twaiting)
+                tcond.broadcast();
+        }
 #ifdef HAVE_SIGNAL_HANDLING
-      {
-         int_set_t ns = sigset;
-         // clear all signal handlers managed by this program
-         for (int_set_t::iterator i = ns.begin(), e = ns.end(); i != e; ++i)
-            QSM.removeHandler(*i, xsink);
-      }
+        {
+            int_set_t ns = sigset;
+            // clear all signal handlers managed by this program
+            for (int_set_t::iterator i = ns.begin(), e = ns.end(); i != e; ++i)
+                QSM.removeHandler(*i, xsink);
+        }
 #endif
 
-      // merge pending parse exceptions into the passed exception sink, if any
-      if (pendingParseSink) {
-         xsink->assimilate(pendingParseSink);
-         pendingParseSink = 0;
-      }
+        // merge pending parse exceptions into the passed exception sink, if any
+        if (pendingParseSink) {
+            xsink->assimilate(pendingParseSink);
+            pendingParseSink = 0;
+        }
 
-      // clear any exec-class return value
-      discard(exec_class_rv, xsink);
-      exec_class_rv = 0;
+        // clear any exec-class return value
+        discard(exec_class_rv, xsink);
+        exec_class_rv = 0;
 
-      // delete code
-      // method call can be repeated
-      sb.del();
-      //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
+        // delete code
+        // method call can be repeated
+        sb.del();
+        //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
-      del(xsink);
+        del(xsink);
 
-      // clear program location
-      update_runtime_location(QoreProgramLocation());
-   }
+        // clear program location
+        update_runtime_location(QoreProgramLocation());
+    }
 }
 
 // called when the program's ref count = 0 (but the dc count may not go to 0 yet)
@@ -629,225 +633,240 @@ void qore_program_private::runtimeImportSystemApi(ExceptionSink* xsink) {
 }
 
 void qore_program_private::importClass(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name, bool inject) {
-   if (&from_pgm == this) {
-      xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the same source and target Program objects", path);
-      return;
-   }
+    if (&from_pgm == this) {
+        xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the same source and target Program objects", path);
+        return;
+    }
 
-   if (inject && !(pwo.parse_options & PO_ALLOW_INJECTION)) {
-      xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the injection flag set in a Program object without PO_ALLOW_INJECTION set", path);
-      return;
-   }
+    if (inject && !(pwo.parse_options & PO_ALLOW_INJECTION)) {
+        xsink->raiseException("CLASS-IMPORT-ERROR", "cannot import class \"%s\" with the injection flag set in a Program object without PO_ALLOW_INJECTION set", path);
+        return;
+    }
 
-   const qore_class_private* injectedClass = nullptr;
-   const qore_ns_private* vns = nullptr;
-   const QoreClass* c;
-   {
-      // acquire safe access to parse structures in the source program
-      ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
-      if (*xsink)
-         return;
-      c = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, path, vns);
+    const qore_class_private* injectedClass = nullptr;
+    const qore_ns_private* vns = nullptr;
+    const QoreClass* c;
+    {
+        // acquire safe access to parse structures in the source program
+        ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
+        if (*xsink)
+            return;
+        c = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, path, vns);
 
-      // must mark injected class so it can claim type compatibility with the class it's substituting
-      if (inject) {
-         const qore_ns_private* tcns = nullptr;
-         const QoreClass* oc = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, new_name ? new_name : path, tcns);
-         if (oc) {
-            // get injected target class pointer for new injected class
-            injectedClass = qore_class_private::get(*oc);
-            // mark source class as compatible with the injected target class as well
-            const_cast<qore_class_private*>(qore_class_private::get(*c))->injectedClass = injectedClass;
-         }
-         //printd(5, "qore_program_private::importClass() this: %p path: '%s' new_name: '%s' oc: %p\n", this, path, new_name ? new_name : "n/a", oc);
-      }
-   }
+        // must mark injected class so it can claim type compatibility with the class it's substituting
+        if (inject && c) {
+            const qore_ns_private* tcns = nullptr;
+            const QoreClass* oc = qore_root_ns_private::runtimeFindClass(*from_pgm.RootNS, new_name ? new_name : path, tcns);
+            if (oc) {
+                // get injected target class pointer for new injected class
+                injectedClass = qore_class_private::get(*oc);
+                // can only inject for a single class
+                qore_class_private* wc = const_cast<qore_class_private*>(qore_class_private::get(*c));
+                if (wc->injectedClass != injectedClass) {
+                    if (wc->injectedClass) {
+                        xsink->raiseException("CLASS-IMPORT-ERROR", "class \"%s\" has already been injected to impersonate class '%s' and therefore cannot be injected to impersonate class '%s'; only a single class can be impersonated by any one source class", c->getName(), wc->injectedClass->name.c_str(), injectedClass->name.c_str());
+                        return;
+                    }
+                    // mark source class as compatible with the injected target class as well
+                    wc->injectedClass = injectedClass;
+                }
+            }
+            //printd(5, "qore_program_private::importClass() this: %p path: '%s' new_name: '%s' oc: %p\n", this, path, new_name ? new_name : "n/a", oc);
+        }
+    }
 
-   if (!c) {
-       xsink->raiseException("CLASS-IMPORT-ERROR", "can't find class \"%s\" in source Program", path);
-       return;
-   }
+    if (!c) {
+        xsink->raiseException("CLASS-IMPORT-ERROR", "can't find class \"%s\" in the source Program", path);
+        return;
+    }
 
-   // get exclusive access to program object for parsing
-   ProgramRuntimeParseContextHelper pch(xsink, pgm);
-   if (*xsink)
-      return;
+    // get exclusive access to program object for parsing
+    ProgramRuntimeParseContextHelper pch(xsink, pgm);
+    if (*xsink)
+        return;
 
-   // find/create target namespace based on source namespace
-   QoreNamespace* tns;
-   if (new_name && strstr(new_name, "::")) {
-      NamedScope nscope(new_name);
+    // find/create target namespace based on source namespace
+    QoreNamespace* tns;
+    if (new_name && strstr(new_name, "::")) {
+        NamedScope nscope(new_name);
 
-      tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, qore_class_private::isPublic(*c));
-      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, nscope.getIdentifier(), inject, injectedClass);
-   }
-   else {
-      tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
-      //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
-      qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, new_name, inject, injectedClass);
-   }
+        tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, qore_class_private::isPublic(*c));
+        qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, nscope.getIdentifier(), inject, injectedClass);
+    }
+    else {
+        tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
+        //printd(5, "qore_program_private::importClass() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+        qore_root_ns_private::runtimeImportClass(*RootNS, xsink, *tns, c, from_pgm.pgm, new_name, inject, injectedClass);
+    }
 }
 
 void qore_program_private::importHashDecl(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name) {
-      if (&from_pgm == this) {
-         xsink->raiseException("HASHDECL-IMPORT-ERROR", "cannot import hashdecl \"%s\" with the same source and target Program objects", path);
-         return;
-      }
+    if (&from_pgm == this) {
+        xsink->raiseException("HASHDECL-IMPORT-ERROR", "cannot import hashdecl \"%s\" with the same source and target Program objects", path);
+        return;
+    }
 
-      const qore_ns_private* vns = nullptr;
-      const TypedHashDecl* hd;
-      {
-         // acquire safe access to parse structures in the source program
-         ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
-         if (*xsink)
-            return;
-         hd = qore_root_ns_private::runtimeFindHashDecl(*from_pgm.RootNS, path, vns);
-      }
+    const qore_ns_private* vns = nullptr;
+    const TypedHashDecl* hd;
+    {
+        // acquire safe access to parse structures in the source program
+        ProgramRuntimeParseAccessHelper rah(xsink, from_pgm.pgm);
+        if (*xsink)
+        return;
+        hd = qore_root_ns_private::runtimeFindHashDecl(*from_pgm.RootNS, path, vns);
+    }
 
-      if (!hd) {
-          xsink->raiseException("HASHDECL-IMPORT-ERROR", "can't find hashdecl \"%s\" in source Program", path);
-          return;
-      }
+    if (!hd) {
+        xsink->raiseException("HASHDECL-IMPORT-ERROR", "can't find hashdecl \"%s\" in source Program", path);
+        return;
+    }
 
-      // get exclusive access to program object for parsing
-      ProgramRuntimeParseContextHelper pch(xsink, pgm);
-      if (*xsink)
-         return;
+    // get exclusive access to program object for parsing
+    ProgramRuntimeParseContextHelper pch(xsink, pgm);
+    if (*xsink)
+        return;
 
-      // find/create target namespace based on source namespace
-      QoreNamespace* tns;
-      if (new_name && strstr(new_name, "::")) {
-         NamedScope nscope(new_name);
+    // find/create target namespace based on source namespace
+    QoreNamespace* tns;
+    if (new_name && strstr(new_name, "::")) {
+        NamedScope nscope(new_name);
 
-         tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, typed_hash_decl_private::get(*hd)->isPublic());
-         qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, nscope.getIdentifier());
-      }
-      else {
-         tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
-         //printd(5, "qore_program_private::importHashDecl() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
-         qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, new_name);
-      }
-   }
+        tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, typed_hash_decl_private::get(*hd)->isPublic());
+        qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, nscope.getIdentifier());
+    }
+    else {
+        tns = vns->root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, *vns);
+        //printd(5, "qore_program_private::importHashDecl() this: %p path: %s nspath: %s tns: %p %s RootNS: %p %s\n", this, path, nspath.c_str(), tns, tns->getName(), RootNS, RootNS->getName());
+        qore_root_ns_private::runtimeImportHashDecl(*RootNS, xsink, *tns, hd, from_pgm.pgm, new_name);
+    }
+}
 
-   void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction* u, const qore_ns_private& oldns, const char* new_name, bool inject) {
-   // get exclusive access to program object for parsing
-   ProgramRuntimeParseContextHelper pch(xsink, pgm);
-   if (*xsink)
-      return;
+void qore_program_private::importFunction(ExceptionSink* xsink, QoreFunction* u, const qore_ns_private& oldns, const char* new_name, bool inject) {
+    // get exclusive access to program object for parsing
+    ProgramRuntimeParseContextHelper pch(xsink, pgm);
+    if (*xsink)
+        return;
 
-   if (new_name && strstr(new_name, "::")) {
-      NamedScope nscope(new_name);
-      QoreNamespace* tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, u->hasPublic());
-      qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, nscope.getIdentifier());
-      return;
-   }
+    if (new_name && strstr(new_name, "::")) {
+        NamedScope nscope(new_name);
+        QoreNamespace* tns = qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, nscope, u->hasPublic());
+        qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, nscope.getIdentifier());
+        return;
+    }
 
-   // find/create target namespace based on source namespace
-   QoreNamespace* tns = oldns.root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, oldns);
-   //printd(5, "qore_program_private::importFunction() this: %p tns: %p '%s' oldns: '%s' RootNS: %p %s\n", this, tns, tns->getName(), oldns.name.c_str(), RootNS, RootNS->getName());
-   assert(oldns.name == tns->getName());
-   qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, new_name, inject);
+    // find/create target namespace based on source namespace
+    QoreNamespace* tns = oldns.root ? RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*RootNS, oldns);
+    //printd(5, "qore_program_private::importFunction() this: %p tns: %p '%s' oldns: '%s' RootNS: %p %s\n", this, tns, tns->getName(), oldns.name.c_str(), RootNS, RootNS->getName());
+    assert(oldns.name == tns->getName());
+    qore_root_ns_private::runtimeImportFunction(*RootNS, xsink, *tns, u, new_name, inject);
 }
 
 void qore_program_private::exportGlobalVariable(const char* vname, bool readonly, qore_program_private& tpgm, ExceptionSink* xsink) {
-   if (&tpgm == this) {
-      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "cannot import global variable \"%s\" with the same source and target Program objects", vname);
-      return;
-   }
+    if (&tpgm == this) {
+        xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "cannot import global variable \"%s\" with the same source and target Program objects", vname);
+        return;
+    }
 
-   const qore_ns_private* vns = 0;
-   Var* v;
-   {
-      ProgramRuntimeParseAccessHelper pah(xsink, pgm);
-      if (*xsink)
-         return;
-      v = qore_root_ns_private::runtimeFindGlobalVar(*RootNS, vname, vns);
-   }
+    const qore_ns_private* vns = 0;
+    Var* v;
+    {
+        ProgramRuntimeParseAccessHelper pah(xsink, pgm);
+        if (*xsink)
+            return;
+        v = qore_root_ns_private::runtimeFindGlobalVar(*RootNS, vname, vns);
+    }
 
-   if (!v) {
-      xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "there is no global variable \"%s\"", vname);
-      return;
-   }
+    if (!v) {
+        xsink->raiseException("PROGRAM-IMPORTGLOBALVARIABLE-EXCEPTION", "there is no global variable \"%s\"", vname);
+        return;
+    }
 
-   // get exclusive access to program object for parsing
-   ProgramRuntimeParseContextHelper pch(xsink, tpgm.pgm);
-   if (*xsink)
-      return;
+    // get exclusive access to program object for parsing
+    ProgramRuntimeParseContextHelper pch(xsink, tpgm.pgm);
+    if (*xsink)
+        return;
 
-   // find/create target namespace based on source namespace
-   QoreNamespace* tns = vns->root ? tpgm.RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*tpgm.RootNS, *vns);
-   //printd(5, "qore_program_private::exportGlobalVariable() this: %p vname: '%s' ro: %d vns: %p '%s::' RootNS: %p '%s::'\n", this, vname, readonly, vns, vns->name.c_str(), RootNS, RootNS->getName());
-   qore_root_ns_private::runtimeImportGlobalVariable(*tpgm.RootNS, *tns, v, readonly, xsink);
+    // find/create target namespace based on source namespace
+    QoreNamespace* tns = vns->root ? tpgm.RootNS : qore_root_ns_private::runtimeFindCreateNamespacePath(*tpgm.RootNS, *vns);
+    //printd(5, "qore_program_private::exportGlobalVariable() this: %p vname: '%s' ro: %d vns: %p '%s::' RootNS: %p '%s::'\n", this, vname, readonly, vns, vns->name.c_str(), RootNS, RootNS->getName());
+    qore_root_ns_private::runtimeImportGlobalVariable(*tpgm.RootNS, *tns, v, readonly, xsink);
 }
 
 void qore_program_private::del(ExceptionSink* xsink) {
-   printd(5, "qore_program_private::del() pgm: %p (base_object: %d)\n", pgm, base_object);
+    printd(5, "qore_program_private::del() pgm: %p (base_object: %d)\n", pgm, base_object);
 
-   // dereference all external data
-   for (auto& i : extmap) {
-      i.second->doDeref();
-   }
-   extmap.clear();
+    // dereference all external data
+    for (auto& i : extmap) {
+        i.second->doDeref();
+    }
+    extmap.clear();
 
-   if (thr_init)
-      thr_init->deref(xsink);
+    if (thr_init)
+        thr_init->deref(xsink);
 
-   if (base_object) {
-      deleteThreadData(xsink);
+    if (base_object) {
+        deleteThreadData(xsink);
 
-      // delete thread local storage key
-      delete thread_local_storage;
-      base_object = false;
-   }
+        // delete thread local storage key
+        delete thread_local_storage;
+        base_object = false;
+    }
 
-   // delete defines
-   for (dmap_t::iterator i = dmap.begin(), e = dmap.end(); i != e; ++i)
-      discard(i->second, xsink);
-   dmap.clear();
+    // delete defines
+    for (dmap_t::iterator i = dmap.begin(), e = dmap.end(); i != e; ++i)
+        discard(i->second, xsink);
+    dmap.clear();
 
-   assert(RootNS);
-   // have to delete global variables first because of destructors.
-   // method call can be repeated
-   qore_root_ns_private::clearData(*RootNS, xsink);
+    assert(RootNS);
+    // have to delete global variables first because of destructors.
+    clearNamespaceData(xsink);
 
-   // delete all global variables, class static vars and constants
-   RootNS->deleteData(xsink);
+    // clear constants if not already cleared
+    if (!constants_cleared) {
+        ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+        qore_root_ns_private::clearConstants(*RootNS, **l);
+        constants_cleared = true;
+        //printd(5, "qore_program_private::del() this: %p cleared constants\n", this);
+    }
 
-   delete RootNS;
-   RootNS = 0;
+    // delete all global variables, class static vars, etc
+    RootNS->deleteData(xsink);
 
-   // delete all root code
-   // method call can be repeated
-   sb.del();
+    delete RootNS;
+    RootNS = 0;
 
-   // delete stored type information
-   for (auto& i : ch_map)
-      delete i.second;
-   for (auto& i : chon_map)
-      delete i.second;
-   for (auto& i : cl_map)
-      delete i.second;
-   for (auto& i : clon_map)
-      delete i.second;
-   for (auto& i : cr_map)
-      delete i.second;
-   for (auto& i : cron_map)
-      delete i.second;
-   for (auto& i : csl_map)
-      delete i.second;
-   for (auto& i : cslon_map)
-      delete i.second;
+    // delete all root code
+    // method call can be repeated
+    sb.del();
 
-   //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
+    // delete stored type information
+    for (auto& i : ch_map)
+        delete i.second;
+    for (auto& i : chon_map)
+        delete i.second;
+    for (auto& i : cl_map)
+        delete i.second;
+    for (auto& i : clon_map)
+        delete i.second;
+    for (auto& i : cr_map)
+        delete i.second;
+    for (auto& i : cron_map)
+        delete i.second;
+    for (auto& i : csl_map)
+        delete i.second;
+    for (auto& i : cslon_map)
+        delete i.second;
 
-   for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByFileIndex.begin(); it != statementByFileIndex.end(); it++) {
-      delete it->second;
-   }
-   statementByFileIndex.clear();
-   for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByLabelIndex.begin(); it != statementByLabelIndex.end(); it++) {
-      delete it->second;
-   }
-   statementByLabelIndex.clear();
+    //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
+
+    for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByFileIndex.begin(); it != statementByFileIndex.end(); it++) {
+        delete it->second;
+    }
+    statementByFileIndex.clear();
+    for (std::map<const char*, sline_statement_multimap_t*>::iterator it = statementByLabelIndex.begin(); it != statementByLabelIndex.end(); it++) {
+        delete it->second;
+    }
+    statementByLabelIndex.clear();
 }
 
 const QoreClass* qore_program_private::runtimeFindClass(const char* class_name, ExceptionSink* xsink) const {
@@ -1463,34 +1482,35 @@ AbstractQoreNode* QoreProgram::runTopLevel(ExceptionSink* xsink) {
 }
 
 AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
-   SimpleRefHolder<FunctionCallNode> fc;
+    SimpleRefHolder<FunctionCallNode> fc;
 
-   printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
+    printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
 
-   const qore_ns_private* ns = 0;
-   const QoreFunction* qf;
+    //const qore_ns_private* ns = nullptr;
+    //const QoreFunction* qf;
+    const FunctionEntry* fe;
 
-   // need to grab parse lock for safe access to the user function map and imported function map
-   {
-      ProgramRuntimeParseAccessHelper pah(xsink, this);
-      if (*xsink)
-         return 0;
-      qf = qore_root_ns_private::runtimeFindFunction(*priv->RootNS, name, ns);
-   }
+    // need to grab parse lock for safe access to the user function map and imported function map
+    {
+        ProgramRuntimeParseAccessHelper pah(xsink, this);
+        if (*xsink)
+            return nullptr;
+        fe = qore_root_ns_private::runtimeFindFunctionEntry(*priv->RootNS, name);
+    }
 
-   if (!qf) {
-      xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
-      return 0;
-   }
+    if (!fe) {
+        xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
+        return nullptr;
+    }
 
-   // we assign the args to 0 below so that they will not be deleted
-   fc = new FunctionCallNode(get_runtime_location(), qf, const_cast<QoreListNode*>(args), this);
-   AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : 0;
+    // we assign the args to 0 below so that they will not be deleted
+    fc = new FunctionCallNode(get_runtime_location(), fe, const_cast<QoreListNode*>(args), this);
+    AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : nullptr;
 
-   // let caller delete function arguments if necessary
-   fc->takeArgs();
+    // let caller delete function arguments if necessary
+    fc->takeArgs();
 
-   return rv;
+    return rv;
 }
 
 void QoreProgram::parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {

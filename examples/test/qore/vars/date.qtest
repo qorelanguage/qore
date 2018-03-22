@@ -20,6 +20,7 @@ class DateTest inherits QUnit::Test {
         addTestCase("DateTests", \dateTests());
         addTestCase("TimeZoneTests", \timeZoneTests());
         addTestCase("WindowsTimeZoneTests", \windowsTimeZoneTests());
+        addTestCase("issue 2546", \issue2546());
 
         set_return_value(main());
     }
@@ -271,5 +272,39 @@ class DateTest inherits QUnit::Test {
         #if (d >= 1970-01-01 && d < 2038-01-19)
             #testAssertionValue("qore epoch conversion " + ri, timegm(d), int(d));
         ri++;
+    }
+
+    issue2546() {
+        assertEq("365", 2017-12-31.format("Dn"));
+        assertEq("365", 2017-12-31.format("DN"));
+        assertEq("7", 2018-01-07.format("Dn"));
+        assertEq("007", 2018-01-07.format("DN"));
+        assertEq("25", 2018-01-25.format("Dn"));
+        assertEq("025", 2018-01-25.format("DN"));
+
+        assertEq("2018-W04-4", 2018-01-25.format("I"));
+        assertEq("2016-W52-7", 2017-01-01.format("I"));
+        assertEq("0833-W52-7", 0834-01-01.format("I"));
+
+        assertEq("2018", 2018-01-25.format("Iy"));
+        assertEq("2018", 2018-01-25.format("IY"));
+        assertEq("2016", 2017-01-01.format("Iy"));
+        assertEq("2016", 2017-01-01.format("IY"));
+        assertEq("833", 0834-01-01.format("Iy"));
+        assertEq("0833", 0834-01-01.format("IY"));
+
+        assertEq("4", 2018-01-25.format("Iw"));
+        assertEq("04", 2018-01-25.format("IW"));
+        assertEq("52", 2017-01-01.format("Iw"));
+        assertEq("52", 2017-01-01.format("IW"));
+        assertEq("52", 0834-01-01.format("Iw"));
+        assertEq("52", 0834-01-01.format("IW"));
+
+        assertEq("4", 2018-01-25.format("Id"));
+        assertEq("4", 2018-01-25.format("ID"));
+        assertEq("7", 2017-01-01.format("Id"));
+        assertEq("7", 2017-01-01.format("ID"));
+        assertEq("7", 0834-01-01.format("Id"));
+        assertEq("7", 0834-01-01.format("ID"));
     }
 }

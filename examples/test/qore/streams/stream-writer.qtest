@@ -16,6 +16,7 @@ class StreamWriterTest inherits QUnit::Test {
         addTestCase("Basic write binary tests", \basicWriteBinaryTests());
         addTestCase("Basic write int tests", \basicWriteIntTests());
         addTestCase("Encoding tests", \encodingTests());
+        addTestCase("thread handoff", \threadHandoff());
 
         set_return_value(main());
     }
@@ -139,5 +140,45 @@ class StreamWriterTest inherits QUnit::Test {
         assertEq(binary(sUTF16BE), os.getData());
         sw.printf(sUTF16BE);
         assertEq(binary(sUTF16BE), os.getData());
+    }
+
+    threadHandoff() {
+        StringOutputStream os();
+        StreamWriter sw(os, "utf-8");
+
+        Counter c(1);
+        background threadError(sw, c);
+        c.waitForZero();
+
+        os.unassignThread();
+        assertThrows("STREAM-THREAD-ERROR", \sw.printf(), "err");
+        # make sure subsequence unassigns also work
+        os.unassignThread();
+
+        c.inc();
+        background handoff(sw, c);
+        c.waitForZero();
+
+        assertThrows("STREAM-THREAD-ERROR", \sw.printf(), "err");
+        os.reassignThread();
+        assertEq("test", os.getData());
+        # make sure subsequence reassigns to the same thread also work
+        os.reassignThread();
+    }
+
+    threadError(StreamWriter sw, Counter c) {
+        on_exit c.dec();
+
+        assertThrows("STREAM-THREAD-ERROR", \sw.printf(), "err");
+    }
+
+    handoff(StreamWriter sw, Counter c) {
+        on_exit c.dec();
+
+        OutputStream os = sw.getOutputStream();
+        os.reassignThread();
+        sw.printf("test");
+        os.unassignThread();
+        assertThrows("STREAM-THREAD-ERROR", \sw.printf(), "err");
     }
 }

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -85,8 +85,10 @@ DLLLOCAL QoreThreadLock lck_gethostbyaddr;
 
 DLLLOCAL QoreRWLock lck_debug_program;
 
-
 #ifdef QORE_MANAGE_STACK
+QoreThreadLock stack_lck;
+#define MAX_STACK_SIZE 512*1024
+
 // default size and limit for qore threads; to be set in init_qore_threads()
 size_t qore_thread_stack_size = 0;
 size_t qore_thread_stack_limit = 0;
@@ -306,6 +308,8 @@ public:
 
 #ifdef QORE_MANAGE_STACK
    size_t stack_limit;
+   // this thread's stack size for error reporting
+   size_t stack_size;
 #ifdef IA64_64
    size_t rse_limit;
 #endif
@@ -364,7 +368,8 @@ public:
       try_reexport(false) {
 
 #ifdef QORE_MANAGE_STACK
-
+      // save this thread's stack size as the default stack size can change
+      stack_size = qore_thread_stack_size;
 #ifdef STACK_DIRECTION_DOWN
       stack_limit = get_stack_pos() - qore_thread_stack_limit;
 #else
@@ -588,120 +593,134 @@ tid_node::~tid_node() {
 
 class BGThreadParams {
 private:
-   // call_obj: get and reference the current stack object, if any, for the new call stack
-   QoreObject* call_obj;
+    // call_obj: get and reference the current stack object, if any, for the new call stack
+    QoreObject* call_obj;
 
-   DLLLOCAL ~BGThreadParams() {
-   }
+    DLLLOCAL ~BGThreadParams() {
+    }
 
 public:
-   QoreObject* obj;
-   const qore_class_private* class_ctx;
+    QoreObject* obj = nullptr;
+    const qore_class_private* class_ctx;
 
-   AbstractQoreNode* fc;
-   QoreProgram* pgm;
-   int tid;
-   QoreProgramLocation loc;
-   bool registered, started;
+    AbstractQoreNode* fc;
+    QoreProgram* pgm;
+    int tid;
+    QoreProgramLocation loc;
+    bool registered = false,
+        started = false;
 
-   DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
-      : obj(0),
-        fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation), registered(false), started(false) {
-      assert(xsink);
-      {
-         ThreadData* td = thread_data.get();
-         call_obj = td->current_obj;
-         class_ctx = td->current_class;
-      }
+    DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
+        : fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation) {
+        assert(xsink);
+        {
+            ThreadData* td = thread_data.get();
+            call_obj = td->current_obj;
+            class_ctx = td->current_class;
+        }
 
-      //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj, call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", fc->getType());
+        //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj, call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", fc->getType());
 
-      // first try to preregister the new thread
-      if (qore_program_private::preregisterNewThread(*pgm, xsink)) {
-         call_obj = 0;
-         return;
-      }
+        // first try to preregister the new thread
+        if (qore_program_private::preregisterNewThread(*pgm, xsink)) {
+            call_obj = nullptr;
+            return;
+        }
 
-      registered = true;
+        registered = true;
 
-      qore_type_t fctype = fc->getType();
-      if (fctype == NT_SELF_CALL) {
-         {
-            const QoreClass* qc = reinterpret_cast<SelfFunctionCallNode*>(fc)->getClass();
-            if (qc)
-               class_ctx = qore_class_private::get(*qc);
-         }
+        qore_type_t fctype = fc->getType();
+        if (fctype == NT_SELF_CALL) {
+            SelfFunctionCallNode* sfcn = reinterpret_cast<SelfFunctionCallNode*>(fc);
+            {
+                const QoreClass* qc = sfcn->getClass();
+                if (qc)
+                    class_ctx = qore_class_private::get(*qc);
+            }
 
-         // must have a current object if an in-object method call is being executed
-         // (i.e. $.method())
-         // we reference the object so it won't go out of scope while the thread is running
-         obj = call_obj;
-         assert(obj);
-         obj->realRef();
-         call_obj = 0;
-      }
+            //printd(5, "BGThreadParams::BGThreadParams() sfcn: %p class: '%s' method: '%s' static: %d\n", sfcn, class_ctx->name.c_str(), sfcn->getMethod()->getName(), sfcn->getMethod()->isStatic());
 
-      if (call_obj)
-         call_obj->tRef();
-   }
+            // issue #2653: calling a static method from inside a non-static method in the background operator
+            // incorrectly extends the lifetime of the object
+            if (!sfcn->getMethod()->isStatic()) {
+                //printd(5, "BGThreadParams::BGThreadParams() real object method call: %p\n", call_obj);
+                // must have a current object if an in-object method call is being executed
+                // (i.e. $.method())
+                // we reference the object so it won't go out of scope while the thread is running
+                obj = call_obj;
+                assert(obj);
+                obj->realRef();
+                call_obj = nullptr;
+            }
+        }
 
-   DLLLOCAL void del() {
-      // decrement program's thread count
-      if (started) {
-         qore_program_private::decThreadCount(*pgm, tid);
-         //printd(5, "BGThreadParams::del() this: %p pgm: %p\n", this, pgm);
-         pgm->depDeref();
-      }
-      else if (registered)
-         qore_program_private::cancelPreregistration(*pgm);
+        if (call_obj)
+            call_obj->tRef();
+    }
 
-      delete this;
-   }
+    DLLLOCAL void del() {
+        // decrement program's thread count
+        if (started) {
+            qore_program_private::decThreadCount(*pgm, tid);
+            //printd(5, "BGThreadParams::del() this: %p pgm: %p\n", this, pgm);
+            pgm->depDeref();
+        }
+        else if (registered)
+            qore_program_private::cancelPreregistration(*pgm);
 
-   DLLLOCAL void startThread(ExceptionSink& xsink) {
-      // register the new tid
-      qore_program_private::registerNewThread(*pgm, tid);
-      // create thread-local data in the program object
-      qore_program_private::startThread(*pgm, xsink);
-      // set program counter for new thread
-      update_runtime_location(loc);
-      started = true;
-      //printd(5, "BGThreadParams::startThread() this: %p pgm: %p\n", this, pgm);
-      pgm->depRef();
-   }
+        delete this;
+    }
 
-   DLLLOCAL QoreObject* getCallObject() {
-      return obj ? obj : call_obj;
-   }
+    DLLLOCAL void startThread(ExceptionSink& xsink) {
+        // register the new tid
+        qore_program_private::registerNewThread(*pgm, tid);
+        // create thread-local data in the program object
+        qore_program_private::startThread(*pgm, xsink);
+        // set program counter for new thread
+        update_runtime_location(loc);
+        started = true;
+        //printd(5, "BGThreadParams::startThread() this: %p pgm: %p\n", this, pgm);
+        pgm->depRef();
+    }
 
-   DLLLOCAL void cleanup(ExceptionSink* xsink) {
-      if (fc) fc->deref(xsink);
-      derefObj(xsink);
-      derefCallObj();
-   }
+    /*
+    DLLLOCAL QoreObject* getCallObject() {
+        return obj ? obj : call_obj;
+    }
+    */
 
-   DLLLOCAL void derefCallObj() {
-      // dereference call object if present
-      if (call_obj) {
-         call_obj->tDeref();
-         call_obj = 0;
-      }
-   }
+    DLLLOCAL QoreObject* getContextObject() {
+        return obj;
+    }
 
-   DLLLOCAL void derefObj(ExceptionSink* xsink) {
-      if (obj) {
-         obj->realDeref(xsink);
-         obj = 0;
-      }
-   }
+    DLLLOCAL void cleanup(ExceptionSink* xsink) {
+        if (fc) fc->deref(xsink);
+        derefObj(xsink);
+        derefCallObj();
+    }
 
-   DLLLOCAL AbstractQoreNode* exec(ExceptionSink* xsink) {
-      //printd(5, "BGThreadParams::exec() this: %p fc: %p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
-      AbstractQoreNode* rv = fc->eval(xsink);
-      fc->deref(xsink);
-      fc = 0;
-      return rv;
-   }
+    DLLLOCAL void derefCallObj() {
+        // dereference call object if present
+        if (call_obj) {
+            call_obj->tDeref();
+            call_obj = nullptr;
+        }
+    }
+
+    DLLLOCAL void derefObj(ExceptionSink* xsink) {
+        if (obj) {
+            obj->realDeref(xsink);
+            obj = nullptr;
+        }
+    }
+
+    DLLLOCAL AbstractQoreNode* exec(ExceptionSink* xsink) {
+        //printd(5, "BGThreadParams::exec() this: %p fc: %p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
+        AbstractQoreNode* rv = fc->eval(xsink);
+        fc->deref(xsink);
+        fc = nullptr;
+        return rv;
+    }
 };
 
 ThreadCleanupList::ThreadCleanupList() {
@@ -747,11 +766,11 @@ void ThreadCleanupList::pop(bool exec) {
 #ifdef QORE_MANAGE_STACK
 int check_stack(ExceptionSink* xsink) {
    ThreadData* td = thread_data.get();
-   printd(5, "check_stack() current: %p limit: %p\n", get_stack_pos(), td->stack_limit);
+   //printd(5, "check_stack() current: %p limit: %p\n", get_stack_pos(), td->stack_limit);
 #ifdef IA64_64
    //printd(5, "check_stack() bsp current: %p limit: %p\n", get_rse_bsp(), td->rse_limit);
    if (td->rse_limit < get_rse_bsp()) {
-      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the IA-64 RSE (Register Stack Engine) stack size limit (%ld bytes)", qore_thread_stack_limit);
+      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the IA-64 RSE (Register Stack Engine) stack size limit (%ld bytes)", td->stack_size - QORE_STACK_GUARD);
       return -1;
    }
 
@@ -764,7 +783,7 @@ int check_stack(ExceptionSink* xsink) {
    <
 #endif
    get_stack_pos()) {
-      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit (%ld bytes)", qore_thread_stack_limit);
+      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit (%ld bytes)", td->stack_size - QORE_STACK_GUARD);
       return -1;
    }
 
@@ -1452,7 +1471,7 @@ OptionalClassObjSubstitutionHelper::~OptionalClassObjSubstitutionHelper() {
    }
 }
 
-CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink) : xsink(xsink) {
+CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink, bool ref_obj) : xsink(xsink) {
    ThreadData* td  = thread_data.get();
    old_code = td->current_code;
    td->current_code = code;
@@ -1463,7 +1482,7 @@ CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, 
    old_class = td->current_class;
    td->current_class = c;
 
-   if (obj && obj != old_obj && !qore_object_private::get(*obj)->startCall(code, xsink))
+   if (obj && ref_obj && obj != old_obj && !qore_object_private::get(*obj)->startCall(code, xsink))
       do_ref = true;
    else
       do_ref = false;
@@ -1996,6 +2015,14 @@ struct ThreadArg {
    }
 };
 
+static void set_tid_thread_name(int tid) {
+#ifdef QORE_HAVE_THREAD_NAME
+    QoreStringMaker name("qore/%d", tid);
+    q_set_thread_name(name.c_str());
+#endif
+}
+
+
 // put functions in an unnamed namespace to make them 'static extern "C"'
 namespace {
    extern "C" void* q_run_thread(void* arg) {
@@ -2004,7 +2031,9 @@ namespace {
       register_thread(ta->tid, pthread_self(), 0);
       printd(5, "q_run_thread() ta: %p TID %d started\n", ta, ta->tid);
 
-      pthread_cleanup_push(qore_thread_cleanup, (void*)0);
+      set_tid_thread_name(ta->tid);
+
+      pthread_cleanup_push(qore_thread_cleanup, nullptr);
 
       {
          ExceptionSink xsink;
@@ -2046,7 +2075,9 @@ namespace {
       printd(5, "op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
       //printf("op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
 
-      pthread_cleanup_push(qore_thread_cleanup, (void*)0);
+      set_tid_thread_name(btp->tid);
+
+      pthread_cleanup_push(qore_thread_cleanup, nullptr);
 
       {
          ExceptionSink xsink;
@@ -2057,7 +2088,7 @@ namespace {
          {
             AbstractQoreNode* rv;
             {
-               CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getCallObject(), btp->class_ctx);
+               CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getContextObject(), btp->class_ctx);
 
                // dereference call object if present
                btp->derefCallObj();
@@ -2139,17 +2170,22 @@ QoreValue do_op_background(const AbstractQoreNode* left, ExceptionSink* xsink) {
    //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
    thread_counter.inc();
 
-   if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
-      tp->cleanup(xsink);
-      tp->del();
+#ifdef QORE_MANAGE_STACK
+    // make sure accesses to ta_default are made locked
+    AutoLocker al(stack_lck);
+#endif
 
-      thread_counter.dec();
-      deregister_thread(tid);
-      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
-      return QoreValue();
-   }
-   //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
-   return tid;
+    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
+        tp->cleanup(xsink);
+        tp->del();
+
+        thread_counter.dec();
+        deregister_thread(tid);
+        xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
+        return QoreValue();
+    }
+    //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
+    return tid;
 }
 
 int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
@@ -2169,18 +2205,89 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
    int rc;
    pthread_t ptid;
 
-   //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
-   thread_counter.inc();
-   if ((rc = pthread_create(&ptid, ta_default.get_ptr(), q_run_thread, ta))) {
-      delete ta;
-      thread_counter.dec();
-      deregister_thread(tid);
-      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
-      return -1;
-   }
+#ifdef QORE_MANAGE_STACK
+    // make sure accesses to ta_default are made locked
+    AutoLocker al(stack_lck);
+#endif
 
-   return tid;
+    //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
+    thread_counter.inc();
+    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), q_run_thread, ta))) {
+        delete ta;
+        thread_counter.dec();
+        deregister_thread(tid);
+        xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
+        return -1;
+    }
+
+    return tid;
 }
+
+#ifdef QORE_MANAGE_STACK
+// returns the default thread stack size for new threads
+size_t q_thread_get_stack_size() {
+    // make sure accesses to stack info are made locked
+    AutoLocker al(stack_lck);
+
+    return qore_thread_stack_size;
+}
+
+// returns the default thread stack size set for new threads
+size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink) {
+    // make sure accesses to stack info are made locked
+    AutoLocker al(stack_lck);
+
+    int rc = ta_default.setstacksize(size);
+    if (rc) {
+        xsink->raiseErrnoException("SET-DEFAULT-THREAD-STACK-SIZE-ERROR", rc, "an error occurred setting the default thread stack size to %ld", size);
+        return 0;
+    }
+    // make sure we check what was actually set
+    qore_thread_stack_size = ta_default.getstacksize();
+
+    return qore_thread_stack_size;
+}
+#endif
+
+#ifdef QORE_HAVE_THREAD_NAME
+#define MAX_THREAD_NAME_SIZE 256
+#ifdef QORE_HAVE_PTHREAD_SETNAME_NP_1
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(name);
+}
+#elif defined(QORE_HAVE_PTHREAD_SETNAME_NP_2)
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(pthread_self(), name);
+}
+#elif defined(QORE_HAVE_PTHREAD_SETNAME_NP_3)
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(pthread_self(), name, nullptr);
+}
+#elif defined(QORE_HAVE_PTHREAD_SET_NAME_NP)
+void q_set_thread_name(const char* name) {
+    pthread_set_name_np(pthread_self(), name);
+}
+#else
+#error no pthread_setname_np()
+#endif
+#if defined(QORE_HAVE_PTHREAD_SET_NAME_NP)
+void q_get_thread_name(QoreString& str) {
+    str.clear();
+    str.reserve(MAX_THREAD_NAME_SIZE);
+    if (!pthread_get_name_np(pthread_self(), (char*)str.c_str(), MAX_THREAD_NAME_SIZE + 1)) {
+        str.terminate(strlen(str.c_str()));
+    }
+}
+#else
+void q_get_thread_name(QoreString& str) {
+    str.clear();
+    str.reserve(MAX_THREAD_NAME_SIZE);
+    if (!pthread_getname_np(pthread_self(), (char*)str.c_str(), MAX_THREAD_NAME_SIZE + 1)) {
+        str.terminate(strlen(str.c_str()));
+    }
+}
+#endif
+#endif
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include <qore/QoreRWLock.h>
@@ -2206,20 +2313,23 @@ void init_qore_threads() {
 #ifdef SOLARIS
 #if TARGET_BITS == 32
    // pthread_attr_getstacksize() on default attributes returns 0 on Solaris
-   // so we set according to defaults - 1MB on 32-bit builds
-   qore_thread_stack_size = 1024*1024;
+   qore_thread_stack_size = MAX_STACK_SIZE;
 #else
-   // 2MB on 64-bit builds
-   qore_thread_stack_size = 1024*1024*2;
+   qore_thread_stack_size = MAX_STACK_SIZE;
 #endif // #if TARGET_BITS == 32
 #else
 #ifdef _Q_WINDOWS
    // windows stacks are extended automatically; here we set a limit of 1 MB per thread
-   qore_thread_stack_size = 1024 * 1024;
+   qore_thread_stack_size = MAX_STACK_SIZE;
 #else // !_Q_WINDOWS && !SOLARIS
    qore_thread_stack_size = ta_default.getstacksize();
    assert(qore_thread_stack_size);
    //printd(5, "getstacksize() returned: %ld\n", qore_thread_stack_size);
+   if (qore_thread_stack_size > MAX_STACK_SIZE) {
+       //printd(5, "setting stack size from %ld to %ld\n", qore_thread_stack_size, (size_t)MAX_STACK_SIZE);
+       ta_default.setstacksize(MAX_STACK_SIZE);
+       qore_thread_stack_size = MAX_STACK_SIZE;
+   }
 #endif // #ifdef _Q_WINDOWS
 #endif // #ifdef SOLARIS
 
@@ -2237,6 +2347,9 @@ void init_qore_threads() {
    // initialize recursive mutex attribute
    pthread_mutexattr_init(&ma_recursive);
    pthread_mutexattr_settype(&ma_recursive, PTHREAD_MUTEX_RECURSIVE);
+
+   // set default thread name for initial thread
+   set_tid_thread_name(gettid());
 
    // mark threading as active
    threads_initialized = true;

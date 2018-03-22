@@ -779,6 +779,12 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
                str.sprintf("%s", *s == 'Y' ? days[wday].upper_abbr : days[wday].abbr);
                break;
             }
+            if (s[1] == 'n' || s[1] == 'N') { // day number
+                int dn = !relative ? d.abs.getDayNumber() : 0;
+                ++s;
+                str.sprintf(*s == 'n' ? "%d" : "%03d", dn);
+                break;
+            }
             str.sprintf("%d", i.day);
             break;
          case 'H':
@@ -797,6 +803,34 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
             else
                str.sprintf("%d", ampm(i.hour));
             break;
+         case 'I': {
+             int yr, wk, wd;
+             if (!relative) {
+                d.abs.getISOWeek(yr, wk, wd);
+             }
+             else {
+                yr = 0;
+                wk = 0;
+                wd = 0;
+             }
+             if (s[1] == 'y' || s[1] == 'Y') {
+                ++s;
+                str.sprintf(*s == 'y' ? "%d" : "%04d", yr);
+                break;
+             }
+             if (s[1] == 'w' || s[1] == 'W') {
+                ++s;
+                str.sprintf(*s == 'w' ? "%d" : "%02d", wk);
+                break;
+             }
+             if (s[1] == 'd' || s[1] == 'D') {
+                ++s;
+                str.sprintf("%d", wd);
+                break;
+             }
+             str.sprintf("%04d-W%02d-%d", yr, wk, wd);
+             break;
+         }
          case 'P':
             if (i.hour > 11)
                str.sprintf("PM");

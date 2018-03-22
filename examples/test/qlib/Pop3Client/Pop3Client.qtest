@@ -1,0 +1,66 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Pop3Client.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Pop3ClientTest
+
+public class Pop3ClientTest inherits QUnit::Test {
+    constructor() : Test("Pop3ClientTest", "1.0") {
+        addTestCase("Pop3Client tests", \pop3ClientTests());
+        addTestCase("connection tests", \connectionTests());
+        set_return_value(main());
+    }
+
+    pop3ClientTests() {
+        Pop3Client p3c("pop3://user:pass@host.com");
+        assertEq("host.com:110", p3c.getTarget());
+        p3c = new Pop3Client("user:pass@x:23");
+        assertEq("x:23", p3c.getTarget());
+        p3c = new Pop3Client("Pop3://user:pass@x1:23");
+        assertEq("x1:23", p3c.getTarget());
+        p3c = new Pop3Client("Pop3://user:pass@x1");
+        assertEq("x1:110", p3c.getTarget());
+        p3c = new Pop3Client("Pop3://user:pass@socket=%2Ftmp%2Fsock");
+        assertEq("/tmp/sock", p3c.getTarget());
+        assertThrows("POP3-URL-ERROR", sub () { new Pop3Client("pop3x://host:23");});
+        assertThrows("POP3-URL-ERROR", sub () { new Pop3Client("scheme://host");});
+    }
+
+    connectionTests() {
+        string url = "pop3s://user:pass@localhost:8099";
+        Pop3Connection conn("test", "test", url, False, NOTHING, parse_url(url));
+        Pop3Client client = conn.get(False);
+        assertEq("localhost:8099", client.getTarget());
+
+        hash<ConnectionConstructorInfo> info = conn.getConstructorInfo();
+        assertEq("Pop3Client", info.module);
+        assertEq("Pop3Client", info.class_name);
+        assertEq(url, info.args[0]);
+        checkPreAndPostProcessing(info);
+    }
+
+    private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
+        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+        if (info.module)
+            p.loadModule(info.module);
+        if (info.pre_processing) {
+            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash rtopts) { %s }", info.pre_processing);
+            # ensure that the pre processing code can be parsed
+            p.parse(pre_processing, "pre processing");
+            assertTrue(True, "pre processing: " + info.class_name);
+        }
+        if (info.post_processing) {
+            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash rtopts) { %s }", info.class_name, info.post_processing);
+            # ensure that the post processing code can be parsed
+            p.parse(post_processing, "post processing");
+            assertTrue(True, "post processing: " + info.class_name);
+        }
+    }
+}

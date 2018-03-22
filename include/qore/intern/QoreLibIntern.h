@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -136,8 +136,11 @@ extern char* strcasestr(const char* s1, const char* s2);
 
 typedef std::set<QoreObject*> obj_set_t;
 
+DLLLOCAL void parse_init_value(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
 // returns true if the node needs to be scanned for recursive references or not
 DLLLOCAL bool needs_scan(const AbstractQoreNode* n);
+DLLLOCAL bool needs_scan(const QoreValue& v);
 // increments or decrements the object count depending on the sign of the argument (cannot be 0)
 DLLLOCAL void inc_container_obj(const AbstractQoreNode* n, int dt);
 
@@ -676,17 +679,17 @@ public:
 
    DLLLOCAL void reassign(const char* key, bool must_already_exist = false);
 
-   DLLLOCAL AbstractQoreNode* swapImpl(AbstractQoreNode* v);
+   DLLLOCAL QoreValue swapImpl(QoreValue v);
 
-   DLLLOCAL AbstractQoreNode* getValueImpl() const;
+   DLLLOCAL QoreValue getImpl() const;
 
-   DLLLOCAL AbstractQoreNode* operator*() const {
-      return getValueImpl();
+   DLLLOCAL QoreValue operator*() const {
+      return getImpl();
    }
 
-   DLLLOCAL void assign(AbstractQoreNode* v, ExceptionSink* xsink);
+   DLLLOCAL void assign(QoreValue v, ExceptionSink* xsink);
 
-   DLLLOCAL AbstractQoreNode* swap(AbstractQoreNode* v) {
+   DLLLOCAL QoreValue swap(QoreValue v) {
       return swapImpl(v);
    }
 
@@ -698,7 +701,7 @@ public:
 DLLLOCAL void qore_machine_backtrace();
 
 #ifndef QORE_THREAD_STACK_BLOCK
-#define QORE_THREAD_STACK_BLOCK 1024
+#define QORE_THREAD_STACK_BLOCK 64
 #endif
 
 template <typename T, int S1 = QORE_THREAD_STACK_BLOCK>
@@ -945,5 +948,15 @@ DLLLOCAL qore_offset_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
 DLLLOCAL int64 get_ms_zero(const QoreValue& v);
 
 DLLLOCAL AbstractQoreNode* copy_strip_complex_types(const AbstractQoreNode* n);
+
+// for IPv4/v6 only
+DLLLOCAL void* qore_get_in_addr(struct sockaddr *sa);
+// for IPv4/v6 only
+DLLLOCAL size_t qore_get_in_len(struct sockaddr *sa);
+
+#ifdef QORE_MANAGE_STACK
+DLLLOCAL size_t q_thread_get_stack_size();
+DLLLOCAL size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink);
+#endif
 
 #endif

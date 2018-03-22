@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,8 +33,8 @@
 #define _QORE_STREAMPIPE_H
 
 #include <stdint.h>
-#include "qore/intern/InputStreamBase.h"
-#include "qore/intern/OutputStreamBase.h"
+#include "qore/InputStream.h"
+#include "qore/OutputStream.h"
 
 /**
  * @brief Private data for the Qore::StreamPipe class.
@@ -79,6 +79,9 @@ public:
    DLLLOCAL int64 peek(ExceptionSink *xsink) override;
    DLLLOCAL void finishClose();
    DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
+   DLLLOCAL virtual const char *getName() override {
+      return "PipeInputStream";
+   }
 
 protected:
    ~PipeInputStream();
@@ -99,6 +102,12 @@ public:
    DLLLOCAL void close(ExceptionSink* xsink) override;
    DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override;
    DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
+   DLLLOCAL bool isClosed() override {
+      return false;
+   }
+   DLLLOCAL virtual const char *getName() override {
+      return "PipeInputStream";
+   }
 
 protected:
    ~PipeOutputStream();
