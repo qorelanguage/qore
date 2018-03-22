@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -53,15 +53,15 @@ const char *SelfVarrefNode::getTypeName() const {
 }
 
 QoreValue SelfVarrefNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   assert(runtime_get_stack_object());
-   return runtime_get_stack_object()->getReferencedMemberNoMethod(str, xsink);
+    assert(runtime_get_stack_object());
+    return runtime_get_stack_object()->getReferencedMemberValueNoMethod(str, xsink);
 }
 
-char *SelfVarrefNode::takeString() {
-   assert(str);
-   char *p = str;
-   str = 0;
-   return p;
+char* SelfVarrefNode::takeString() {
+    assert(str);
+    char *p = str;
+    str = nullptr;
+    return p;
 }
 
 AbstractQoreNode *SelfVarrefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -66,7 +66,7 @@ AbstractQoreNode* QoreClosureParseNode::parseInitImpl(LocalVar* oflag, int pflag
       in_method = true;
       uf->setClassType(oflag->getTypeInfo());
    }
-   uf->parseInit();
+   uf->parseInit(nullptr);
    uf->parseCommit();
    typeInfo = runTimeClosureTypeInfo;
    return this;

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,29 +33,29 @@
 QoreString QorePreIncrementOperatorNode::op_str("++ (pre-increment) operator expression");
 
 AbstractQoreNode *QorePreIncrementOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
-   parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, outTypeInfo);
+    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, outTypeInfo);
 
-   // version for local var
-   return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPreIncrementOperatorNode>() : this;
+    // version for local var
+    return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPreIncrementOperatorNode>() : this;
 }
 
 QoreValue QorePreIncrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper n(exp, xsink);
-   if (!n)
-      return QoreValue();
+    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
+    LValueHelper n(exp, xsink);
+    if (!n)
+        return QoreValue();
 
-   if (n.getType() == NT_NUMBER) {
-      n.preIncrementNumber("<++ (pre) operator>");
-      assert(!*xsink);
-      return !ref_rv ? QoreValue() : n.getReferencedValue();
-   }
+    if (n.getType() == NT_NUMBER) {
+        n.preIncrementNumber("<++ (pre) operator>");
+        assert(!*xsink);
+        return !ref_rv ? QoreValue() : n.getReferencedValue();
+    }
 
-   if (n.getType() == NT_FLOAT) {
-      double f = n.preIncrementFloat("<++ (pre) operator>");
-      assert(!*xsink);
-      return f;
-   }
+    if (n.getType() == NT_FLOAT) {
+        double f = n.preIncrementFloat("<++ (pre) operator>");
+        assert(!*xsink);
+        return f;
+    }
 
-   return n.preIncrementBigInt("<++ (pre) operator>");
+    return n.preIncrementBigInt("<++ (pre) operator>");
 }

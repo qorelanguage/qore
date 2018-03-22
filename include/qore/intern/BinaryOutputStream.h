@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,15 +33,15 @@
 #define _QORE_BINARYOUTPUTSTREAM_H
 
 #include <stdint.h>
-#include "qore/intern/OutputStreamBase.h"
+#include "qore/OutputStream.h"
 
 /**
  * @brief Private data for the Qore::BinaryOutputStream class.
  */
-class BinaryOutputStream : public OutputStreamBase {
+class BinaryOutputStream : public OutputStream {
 
 public:
-   DLLLOCAL BinaryOutputStream() : buf(new BinaryNode()) {
+   DLLLOCAL BinaryOutputStream() : buf(new BinaryNode) {
    }
 
    DLLLOCAL const char *getName() override {

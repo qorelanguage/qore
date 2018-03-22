@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -163,15 +163,13 @@ public:
 
     DLLLOCAL int initHash(QoreHashNode* h, const QoreHashNode* init, ExceptionSink* xsink) const;
 
-    DLLLOCAL int runtimeAssignKey(const char* key, ReferenceHolder<>& val, ExceptionSink* xsink) const {
+    DLLLOCAL int runtimeAssignKey(const char* key, ValueHolder& val, ExceptionSink* xsink) const {
         const HashDeclMemberInfo* mem = members.find(key);
         if (!mem) {
             xsink->raiseException("HASHDECL-KEY-ERROR", "cannot assign unknown key '%s' to hashdecl '%s'", key, name.c_str());
             return -1;
         }
-        QoreValue v(val.release());
-        QoreTypeInfo::acceptInputKey(mem->getTypeInfo(), key, v, xsink);
-        val = v.takeNode();
+        QoreTypeInfo::acceptInputKey(mem->getTypeInfo(), key, *val, xsink);
         return *xsink ? -1 : 0;
     }
 

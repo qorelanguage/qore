@@ -103,7 +103,7 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
     qore_hash_private* ph = qore_hash_private::get(**h);
     for (size_t i = 0; i < keys.size(); ++i) {
         QoreStringValueHelper key(keys[i]);
-        discard(ph->swapKeyValue(key->c_str(), values[i], nullptr), nullptr);
+        ph->swapKeyValue(key->c_str(), values[i], nullptr).discard(nullptr);
         values[i] = nullptr;
     }
 
@@ -131,15 +131,16 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
 
         QoreStringValueHelper key(*k);
         AbstractQoreNode* val = v.getReferencedValue();
+        const QoreTypeInfo* vti = getTypeInfoForValue(val);
         h->setKeyValue(key->c_str(), val, xsink);
         if (xsink && *xsink)
             return QoreValue();
 
         if (!i) {
-            vtype = getTypeInfoForValue(val);
+            vtype = vti;
             vcommon = true;
         }
-        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(val)))
+        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vti))
             vcommon = false;
     }
 
