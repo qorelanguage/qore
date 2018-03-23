@@ -1654,7 +1654,7 @@ cast<{WS}*({WORD}::)*{WORD}{WS}*(<[a-zA-Z<>:_0-9 \t,]+>)?{WS}*>  yylval->string 
 {DIGIT}+ms                              yylval->datetime = makeMilliseconds(strtol(yytext, 0, 10)); return DATETIME;
 {DIGIT}+us                              yylval->datetime = makeMicroseconds(strtol(yytext, 0, 10)); return DATETIME;
 {DIGIT}+m                               yylval->datetime = makeMinutes(strtol(yytext, 0, 10)); return DATETIME;
-{DIGIT}+(.{DIGIT}+)?s                   yylval->datetime = makeSeconds(yytext); return DATETIME;
+{DIGIT}+(\.{DIGIT}+)?s                  yylval->datetime = makeSeconds(yytext); return DATETIME;
 {HEX_CONST}                             yylval->integer = strtoll(yytext, 0, 16); return INTEGER;
 {BINARY}                                yylval->binary = parseHex(get_loc(yylloc), yytext + 1, strlen(yytext + 1) - 1); return BINARY;
 \$\.{WORD}                              yylval->string = strdup(yytext + 2); return SELF_REF;
