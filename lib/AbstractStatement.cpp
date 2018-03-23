@@ -54,21 +54,21 @@ AbstractStatement::~AbstractStatement() {
 }
 
 int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
-   printd(1, "AbstractStatement::exec() this: %p file: %s line: %d\n", this, loc.file, loc.start_line);
-   QoreProgramLocationHelper l(loc);
+    printd(1, "AbstractStatement::exec() this: %p file: %s line: %d\n", this, loc.getFile(), loc.start_line);
+    QoreProgramLocationHelper l(loc);
 
 #ifdef QORE_MANAGE_STACK
-   if (check_stack(xsink))
-      return 0;
+    if (check_stack(xsink))
+        return 0;
 #endif
-   pthread_testcancel();
+    pthread_testcancel();
 
-   QoreProgramBlockParseOptionHelper bh(pwo.parse_options);
-   return execImpl(return_value, xsink);
+    QoreProgramBlockParseOptionHelper bh(pwo.parse_options);
+    return execImpl(return_value, xsink);
 }
 
 int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
-   printd(2, "AbstractStatement::parseInit() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(), loc.file, loc.start_line);
+   printd(2, "AbstractStatement::parseInit() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(), loc.getFile(), loc.start_line);
    // set parse options and warning mask for this statement
    ParseWarnHelper pwh(pwo);
 

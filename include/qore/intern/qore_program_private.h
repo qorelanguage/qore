@@ -306,8 +306,9 @@ public:
    unsigned thread_waiting; // number of threads waiting on all threads to terminate or parsing to complete
    unsigned parse_count;    // recursive parse count
 
-   // to save file names for later deleting
-   cstr_vector_t fileList;
+   // to save file names while the program exists
+   typedef std::set<std::string> str_set_t;
+   str_set_t str_set;
    // features present in this Program object
    CharPtrList featureList;
    // user modules present in this Program object
@@ -849,62 +850,62 @@ public:
 
    DLLLOCAL void internParseRollback();
 
-   // call must push the current program on the stack and pop it afterwards
-   DLLLOCAL int internParsePending(const char* code, const char* label, const char* orig_src = nullptr, int offset = 0) {
-      //printd(5, "qore_program_private::internParsePending() code: %p %d bytes label: '%s' src: '%s' offset: %d\n", code, strlen(code), label, orig_src ? orig_src : "(null)", offset);
+    // call must push the current program on the stack and pop it afterwards
+    DLLLOCAL int internParsePending(const char* code, const char* label, const char* orig_src = nullptr, int offset = 0) {
+        //printd(5, "qore_program_private::internParsePending() code: %p %d bytes label: '%s' src: '%s' offset: %d\n", code, strlen(code), label, orig_src ? orig_src : "(null)", offset);
 
-      assert(code && code[0]);
+        assert(code && code[0]);
 
-      // save this file name for storage in the parse tree and deletion
-      // when the QoreProgram object is deleted
-      char* sname = strdup(label);
-      char* src = orig_src ? strdup(orig_src) : nullptr;
-      if (orig_src) {
-         addFile(src, sname, offset);
-      } else {
-         addFile(sname);
-      }
+        // save this file name for storage in the parse tree and deletion
+        // when the QoreProgram object is deleted
+        const char* sname = label;
+        const char* src = orig_src;
+        if (orig_src) {
+            addFile(src, sname, offset);
+        } else {
+            addFile(sname);
+        }
 
-      QoreParseLocationHelper qplh(sname, src, offset);
+        QoreParseLocationHelper qplh(sname, src, offset);
 
-      beginParsing(sname, nullptr, src, offset);
+        beginParsing(sname, nullptr, src, offset);
 
-      // no need to save buffer, because it's deleted automatically in lexer
-      //printd(5, "qore_program_private::internParsePending() parsing tag: %s (%p): '%s'\n", label, label, code);
+        // no need to save buffer, because it's deleted automatically in lexer
+        //printd(5, "qore_program_private::internParsePending() parsing tag: %s (%p): '%s'\n", label, label, code);
 
-      yyscan_t lexer;
-      yylex_init(&lexer);
+        yyscan_t lexer;
+        yylex_init(&lexer);
 
-      yy_scan_string(code, lexer);
-      yyset_lineno(1, lexer);
-      // yyparse() will call endParsing() and restore old pgm position
-      yyparse(lexer);
+        yy_scan_string(code, lexer);
+        yyset_lineno(1, lexer);
+        // yyparse() will call endParsing() and restore old pgm position
+        yyparse(lexer);
 
-      printd(5, "qore_program_private::internParsePending() returned from yyparse()\n");
-      int rc = 0;
-      if (parseSink->isException()) {
-         rc = -1;
-         printd(5, "qore_program_private::internParsePending() parse exception: calling parseRollback()\n");
-         internParseRollback();
-         requires_exception = false;
-      }
+        printd(5, "qore_program_private::internParsePending() returned from yyparse()\n");
+        int rc = 0;
+        if (parseSink->isException()) {
+            rc = -1;
+            printd(5, "qore_program_private::internParsePending() parse exception: calling parseRollback()\n");
+            internParseRollback();
+            requires_exception = false;
+        }
 
-      printd(5, "qore_program_private::internParsePending() about to call yylex_destroy()\n");
-      yylex_destroy(lexer);
-      printd(5, "qore_program_private::internParsePending() returned from yylex_destroy()\n");
-      return rc;
-   }
+        printd(5, "qore_program_private::internParsePending() about to call yylex_destroy()\n");
+        yylex_destroy(lexer);
+        printd(5, "qore_program_private::internParsePending() returned from yylex_destroy()\n");
+        return rc;
+    }
 
-   DLLLOCAL void startParsing(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
-      warnSink = wS;
-      pwo.warn_mask = wm;
-      parseSink = xsink;
+    DLLLOCAL void startParsing(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+        warnSink = wS;
+        pwo.warn_mask = wm;
+        parseSink = xsink;
 
-      if (pendingParseSink) {
-         parseSink->assimilate(pendingParseSink);
-         pendingParseSink = nullptr;
-      }
-   }
+        if (pendingParseSink) {
+            parseSink->assimilate(pendingParseSink);
+            pendingParseSink = nullptr;
+        }
+    }
 
    DLLLOCAL int parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = nullptr, int offset = 0) {
       //printd(5, "qore_program_private::parsePending() wm=0x%x UV=0x%x on: %d\n", wm, QP_WARN_UNREFERENCED_VARIABLE, wm & QP_WARN_UNREFERENCED_VARIABLE);
@@ -982,7 +983,7 @@ public:
 
          // save this file name for storage in the parse tree and deletion
          // when the QoreProgram object is deleted
-         char* sname = strdup(name);
+         const char* sname = name;
          addFile(sname);
 
          QoreParseLocationHelper qplh(sname, nullptr, 0);
@@ -1524,31 +1525,23 @@ public:
       return qore_root_ns_private::runtimeGetCallReference(*RootNS, name, xsink);
    }
 
-   DLLLOCAL void pushParseOptions(const char* pf) {
-      // ignore %push-parse-options used multiple times in the same file
-      ppo_t::iterator i = ppo.lower_bound(pf);
-      if (i != ppo.end() && !strcmp(pf, i->first))
-         return;
-      ppo.insert(ppo_t::value_type(pf, pwo.parse_options));
-      //printd(5, "qore_program_private::pushParseOptions() this: %p %p '%s' saving %lld\n", this, pf, pf, pwo.parse_options);
-   }
+    DLLLOCAL void pushParseOptions(const char* pf) {
+        // ignore %push-parse-options used multiple times in the same file
+        ppo_t::iterator i = ppo.lower_bound(pf);
+        if (i != ppo.end() && !strcmp(pf, i->first))
+            return;
+        ppo.insert(i, ppo_t::value_type(pf, pwo.parse_options));
+        //printd(5, "qore_program_private::pushParseOptions() this: %p %p '%s' saving %lld\n", this, pf, pf, pwo.parse_options);
+    }
 
-   DLLLOCAL void restoreParseOptions(const char* pf) {
-      ppo_t::iterator i = ppo.find(pf);
-      if (i != ppo.end()) {
-         //printd(5, "qore_program_private::restoreParseOptions() this: %p %p '%s' restoring %lld\n", this, pf, pf, pwo.parse_options);
-         pwo.parse_options = i->second;
-         ppo.erase(i);
-      }
-#if 0
-      else {
-         printd(5, "qore_program_private::restoreParseOptions() this: %p %p '%s' parse options not found\n", this, pf, pf, pwo.parse_options);
-         for (ppo_t::iterator i = ppo.begin(), e = ppo.end(); i != e; ++i) {
-            printd(5, " + ppo: %p '%s' = %lld\n", i->first, i->first, i->second);
-         }
-      }
-#endif
-   }
+    DLLLOCAL void restoreParseOptions(const char* pf) {
+        ppo_t::iterator i = ppo.find(pf);
+        if (i != ppo.end()) {
+            //printd(5, "qore_program_private::restoreParseOptions() this: %p %p '%s' restoring %lld\n", this, pf, pf, pwo.parse_options);
+            pwo.parse_options = i->second;
+            ppo.erase(i);
+        }
+    }
 
     DLLLOCAL void addParseException(ExceptionSink& xsink, QoreProgramLocation* loc) {
         if (requires_exception) {
@@ -1630,19 +1623,33 @@ public:
 
    DLLLOCAL void importHashDecl(ExceptionSink* xsink, qore_program_private& from_pgm, const char* path, const char* new_name = nullptr);
 
-   DLLLOCAL void addFile(char* file, char* source = nullptr, int offset = -1) {
-      fileList.push_back(file);
-      printd(5, "qore_program_private::addFile('%s', '%s', %d\n", file, source ? source : "(null)", offset);
-      addStatementToIndexIntern(&statementByFileIndex, file, nullptr, -1, source, offset);
-      if (source) {
-        fileList.push_back(source);
-        addStatementToIndexIntern(&statementByLabelIndex, source, nullptr, -1, file, offset);
-      }
-   }
+    DLLLOCAL const char* addString(const char* str) {
+        str_set_t::iterator i = str_set.lower_bound(str);
+        if (i == str_set.end() || (*i) != str) {
+            i = str_set.insert(i, str);
+        }
+        return (*i).c_str();
+    }
 
-   DLLLOCAL void addUserFeature(const char* f) {
-      userFeatureList.push_back(f);
-   }
+    DLLLOCAL void addFile(const char*& file) {
+        file = addString(file);
+        printd(5, "qore_program_private::addFile('%s')\n", file);
+        addStatementToIndexIntern(&statementByFileIndex, file, nullptr, -1, nullptr, -1);
+    }
+
+    DLLLOCAL void addFile(const char*& file, const char*& source, int offset) {
+        file = addString(file);
+        printd(5, "qore_program_private::addFile('%s', '%s', %d)\n", file, source ? source : "(null)", offset);
+        addStatementToIndexIntern(&statementByFileIndex, file, nullptr, -1, source, offset);
+        if (source) {
+            source = addString(source);
+            addStatementToIndexIntern(&statementByLabelIndex, source, nullptr, -1, file, offset);
+        }
+    }
+
+    DLLLOCAL void addUserFeature(const char* f) {
+        userFeatureList.push_back(f);
+    }
 
    DLLLOCAL void runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink);
    DLLLOCAL void runtimeImportSystemConstantsIntern(const qore_program_private& spgm, ExceptionSink* xsink);
@@ -1753,10 +1760,6 @@ public:
 
    DLLLOCAL static void addUserFeature(QoreProgram& pgm, const char* f) {
       pgm.priv->addUserFeature(f);
-   }
-
-   DLLLOCAL static void addFile(QoreProgram& pgm, char* f) {
-      pgm.priv->addFile(f);
    }
 
    DLLLOCAL static void addStatement(QoreProgram& pgm, AbstractStatement* s) {
@@ -1887,14 +1890,6 @@ public:
 
    DLLLOCAL static void runTimeDefine(QoreProgram* pgm, const char* str, AbstractQoreNode* val, ExceptionSink* xsink) {
       pgm->priv->runTimeDefine(str, val, xsink);
-   }
-
-   DLLLOCAL static void pushParseOptions(QoreProgram* pgm, const char* pf) {
-      pgm->priv->pushParseOptions(pf);
-   }
-
-   DLLLOCAL static void restoreParseOptions(QoreProgram* pgm, const char* pf) {
-      pgm->priv->restoreParseOptions(pf);
    }
 
    DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink* xsink, QoreProgramLocation* loc = nullptr) {
@@ -2210,7 +2205,7 @@ public:
          --li;
       }
       if (st) {
-         printd(5, "qore_program_private::getStatementFromIndex('%s',%d) statement:('file':%s,source:%s,offset:%d,line:%d-%d), this: %p\n", name, line, st->loc.file, st->loc.source, st->loc.offset, st->loc.start_line, st->loc.end_line, this);
+         printd(5, "qore_program_private::getStatementFromIndex('%s',%d) statement:('file':%s,source:%s,offset:%d,line:%d-%d), this: %p\n", name, line, st->loc.getFile(), st->loc.getSource(), st->loc.offset, st->loc.start_line, st->loc.end_line, this);
       } else {
          printd(5, "qore_program_private::getStatementFromIndex('%s',%d) no statement found by line #2, this: %p\n", name, line, this);
       }

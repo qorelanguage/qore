@@ -183,15 +183,7 @@ struct QoreProgramLineLocation {
 };
 
 struct QoreProgramLocation : public QoreProgramLineLocation {
-protected:
-    DLLLOCAL explicit QoreProgramLocation(const char* f, int sline = 0, int eline = 0) : QoreProgramLineLocation(sline, eline), file(f), source(nullptr), offset(0) {
-    }
-
 public:
-    const char* file;
-    const char* source;
-    int offset;
-
     // "blank" constructor
     DLLLOCAL QoreProgramLocation() : file(nullptr), source(nullptr), offset(0) {
     }
@@ -213,11 +205,55 @@ public:
     }
 
     DLLLOCAL void toString(QoreString& str) const;
+
+    DLLLOCAL QoreProgramLocation combine(const QoreProgramLocation& loc1) const {
+        QoreProgramLocation loc(*this);
+        if ((file == loc1.file) && (source == loc1.source)) {
+            loc.end_line = loc1.end_line;
+        }
+
+        return loc;
+    }
+
+    DLLLOCAL const char* getFile() const {
+        return file;
+    }
+
+    DLLLOCAL const char* getFileValue() const {
+        return file ? file : "";
+    }
+
+    DLLLOCAL const char* getSource() const {
+        return source;
+    }
+
+    DLLLOCAL const char* getSourceValue() const {
+        return source ? source : "";
+    }
+
+    DLLLOCAL void setFile(const char* f) {
+        file = f;
+    }
+
+    DLLLOCAL void setSource(const char* s) {
+        source = s;
+    }
+
+protected:
+    const char* file;
+    const char* source;
+
+public:
+    int offset;
+
+protected:
+    DLLLOCAL explicit QoreProgramLocation(const char* f, int sline = 0, int eline = 0) : QoreProgramLineLocation(sline, eline), file(f), source(nullptr), offset(0) {
+    }
 };
 
 struct QoreCommandLineLocation : public QoreProgramLocation {
-   DLLLOCAL QoreCommandLineLocation() : QoreProgramLocation("<command-line>", 1, 1) {
-   }
+    DLLLOCAL QoreCommandLineLocation() : QoreProgramLocation("<command-line>", 1, 1) {
+    }
 };
 
 // parse location for objects parsed on the command-line

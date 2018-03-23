@@ -1045,42 +1045,42 @@ void qore_program_private::addStatementToIndexIntern(name_section_sline_statemen
 }
 
 void qore_program_private::registerStatement(QoreProgram *pgm, AbstractStatement *statement, bool addToIndex) {
-   if (pgm && statement) {
-      // plock must already be held
-      ReverseStatementIdMap_t::iterator i = pgm->priv->reverseStatementIds.find(statement);
-      if (i == pgm->priv->reverseStatementIds.end()) {
-         pgm->priv->statementIds.push_back(statement);
-         pgm->priv->reverseStatementIds.insert(std::pair<AbstractStatement*, unsigned long>(statement, pgm->priv->statementIds.size()));
-      }
-      if (addToIndex) {
-         if (statement->loc.source) {
-            printd(5, "qore_program_private::registerStatement(file+source), this: %p, statement: %p\n", pgm->priv, statement);
-            pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.source, statement, statement->loc.offset, statement->loc.file, statement->loc.offset);
-            pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByLabelIndex, statement->loc.file, statement, 0, statement->loc.source, statement->loc.offset);
-         } else {
-            printd(5, "qore_program_private::registerStatement(file), this: %p, statement: %p\n", pgm->priv, statement);
-            pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.file, statement, statement->loc.offset/*is zero*/, nullptr, -1);
-         }
-      }
-   }
+    if (pgm && statement) {
+        // plock must already be held
+        ReverseStatementIdMap_t::iterator i = pgm->priv->reverseStatementIds.find(statement);
+        if (i == pgm->priv->reverseStatementIds.end()) {
+            pgm->priv->statementIds.push_back(statement);
+            pgm->priv->reverseStatementIds.insert(std::pair<AbstractStatement*, unsigned long>(statement, pgm->priv->statementIds.size()));
+        }
+        if (addToIndex) {
+            if (statement->loc.getSource()) {
+                printd(5, "qore_program_private::registerStatement(file+source), this: %p, statement: %p\n", pgm->priv, statement);
+                pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.getSource(), statement, statement->loc.offset, statement->loc.getFile(), statement->loc.offset);
+                pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByLabelIndex, statement->loc.getFile(), statement, 0, statement->loc.getSource(), statement->loc.offset);
+            } else {
+                printd(5, "qore_program_private::registerStatement(file), this: %p, statement: %p\n", pgm->priv, statement);
+                pgm->priv->addStatementToIndexIntern(&pgm->priv->statementByFileIndex, statement->loc.getFile(), statement, statement->loc.offset/*is zero*/, nullptr, -1);
+            }
+        }
+    }
 }
 
 QoreHashNode* qore_program_private::getSourceIndicesIntern(name_section_sline_statement_map_t* statementIndex, ExceptionSink* xsink) const {
-   ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
-   for (std::map<const char*, section_sline_statement_map_t*>::iterator it = statementIndex->begin(), e = statementIndex->end(); it != e; it++) {
-      QoreHashNode* h2 = new QoreHashNode();
-      for (std::map<const char*, int>::iterator it2 = it->second->sectionMap.begin(), e2 = it->second->sectionMap.end(); it2 != e2; it2++) {
-         h2->setKeyValue(it2->first, new QoreBigIntNode(it2->second), xsink);
-         if (*xsink) {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+    for (std::map<const char*, section_sline_statement_map_t*>::iterator it = statementIndex->begin(), e = statementIndex->end(); it != e; it++) {
+        QoreHashNode* h2 = new QoreHashNode();
+        for (std::map<const char*, int>::iterator it2 = it->second->sectionMap.begin(), e2 = it->second->sectionMap.end(); it2 != e2; it2++) {
+            h2->setKeyValue(it2->first, new QoreBigIntNode(it2->second), xsink);
+            if (*xsink) {
+                return nullptr;
+            }
+        }
+        rv->setKeyValue(it->first, h2, xsink);
+        if (*xsink) {
             return nullptr;
-         }
-      }
-      rv->setKeyValue(it->first, h2, xsink);
-      if (*xsink) {
-         return nullptr;
-      }
-   }
-   return rv.release();
+        }
+    }
+    return rv.release();
 }
 
 void qore_program_private::onAttach(DebugRunStateEnum &rs, ExceptionSink* xsink) {

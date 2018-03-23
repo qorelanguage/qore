@@ -300,20 +300,20 @@ list ProgramControl::getBreakpoints() {
       @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId()"
 */
 hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId) {
-   if (!p->checkAllowDebugging(xsink))
-      return QoreValue();
-   AbstractStatement* s = p->resolveStatementId(statementId);
-   if (!s) {
-      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot resolve statement id from (%d)", statementId);
-   }
-   QoreHashNode* h = new QoreHashNode(hashdeclStatementInfo, nullptr);
-   qore_hash_private* ph = qore_hash_private::get(*h);
-   ph->setKeyValueIntern("file", new QoreStringNode(s->loc.file));
-   ph->setKeyValueIntern("source", new QoreStringNode(s->loc.source));
-   ph->setKeyValueIntern("offset", new QoreBigIntNode(s->loc.offset));
-   ph->setKeyValueIntern("start_line", new QoreBigIntNode(s->loc.start_line));
-   ph->setKeyValueIntern("end_line", new QoreBigIntNode(s->loc.end_line));
-   return h;
+    if (!p->checkAllowDebugging(xsink))
+        return QoreValue();
+    AbstractStatement* s = p->resolveStatementId(statementId);
+    if (!s) {
+        return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot resolve statement id from (%d)", statementId);
+    }
+    QoreHashNode* h = new QoreHashNode(hashdeclStatementInfo, nullptr);
+    qore_hash_private* ph = qore_hash_private::get(*h);
+    ph->setKeyValueIntern("file", new QoreStringNode(s->loc.getFile()));
+    ph->setKeyValueIntern("source", new QoreStringNode(s->loc.getSource()));
+    ph->setKeyValueIntern("offset", s->loc.offset);
+    ph->setKeyValueIntern("start_line", s->loc.start_line);
+    ph->setKeyValueIntern("end_line", s->loc.end_line);
+    return h;
 }
 
 //! Find statement related to position in file
@@ -327,13 +327,13 @@ hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId) {
 
 */
 int ProgramControl::findStatementId(string file, int line) {
-   if (!p->checkAllowDebugging(xsink))
-      return 0;
-   AbstractStatement* s = p->findStatement(file->c_str(), line);
-   if (!s) {
-      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for \"%s:%d\"", file->c_str(), line);
-   }
-   return p->getStatementId(s);
+    if (!p->checkAllowDebugging(xsink))
+        return 0;
+    AbstractStatement* s = p->findStatement(file->c_str(), line);
+    if (!s) {
+        return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for \"%s:%d\"", file->c_str(), line);
+    }
+    return p->getStatementId(s);
 }
 
 //! Find the first statement for function entry point

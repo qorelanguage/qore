@@ -760,7 +760,7 @@ static QoreParseListNode* splice_expressions(AbstractQoreNode* a1, AbstractQoreN
          return l;
       }
    }
-   QoreParseListNode* l = new QoreParseListNode(QoreProgramLocation(loc1.start_line, loc2.end_line));
+   QoreParseListNode* l = new QoreParseListNode(loc1.combine(loc2));
    l->add(a1, loc1);
    l->add(a2, loc2);
    return l;
@@ -2984,10 +2984,12 @@ base_constructors:
 
 base_constructor:
         IDENTIFIER '(' myexp ')' {
-           $$ = new BCANode($1, make_args(QoreProgramLocation(@3.first_line, @3.last_line), $3), @3.first_line, @3.last_line);
+            QoreProgramLocation loc(@1.first_line, @4.last_line);
+            $$ = new BCANode($1, make_args(loc, $3), loc);
         }
         | SCOPED_REF '(' myexp ')' {
-           $$ = new BCANode(new NamedScope($1), make_args(QoreProgramLocation(@3.first_line, @3.last_line), $3), @3.first_line, @3.last_line);
+            QoreProgramLocation loc(@1.first_line, @4.last_line);
+            $$ = new BCANode(new NamedScope($1), make_args(loc, $3), loc);
         }
         ;
 

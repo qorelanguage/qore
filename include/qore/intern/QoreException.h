@@ -63,7 +63,7 @@ struct QoreExceptionLocation : QoreProgramLineLocation {
    int offset;
 
    DLLLOCAL QoreExceptionLocation(const QoreProgramLocation& loc) : QoreProgramLineLocation(loc),
-         file(loc.file ? loc.file : ""), source(loc.source ? loc.source : ""), offset(loc.offset) {
+         file(loc.getFileValue()), source(loc.getSourceValue()), offset(loc.offset) {
    }
 
    DLLLOCAL QoreExceptionLocation(const QoreExceptionLocation& old) : QoreProgramLineLocation(old),
@@ -73,8 +73,8 @@ struct QoreExceptionLocation : QoreProgramLineLocation {
    DLLLOCAL void set(const QoreProgramLocation& loc) {
       start_line = loc.start_line;
       end_line = loc.end_line;
-      file = loc.file ? loc.file : "";
-      source = loc.source ? loc.source : "";
+      file = loc.getFileValue();
+      source = loc.getSourceValue();
       offset = loc.offset;
    }
 };

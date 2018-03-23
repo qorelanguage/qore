@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@
 #include <qore/QoreRWLock.h>
 
 #ifdef _Q_WINDOWS
-QoreRWLock *thread_stack_lock;
+QoreRWLock* thread_stack_lock;
 #else
 QoreRWLock thread_stack_lock;
 #endif
@@ -57,12 +57,12 @@ QoreHashNode* CallNode::getInfo() const {
    qore_hash_private* ph = qore_hash_private::get(*h);
 
    ph->setKeyValueIntern("function", str);
-   ph->setKeyValueIntern("line",     new QoreBigIntNode(loc.start_line));
-   ph->setKeyValueIntern("endline",  new QoreBigIntNode(loc.end_line));
-   ph->setKeyValueIntern("file",     new QoreStringNode(loc.file));
-   ph->setKeyValueIntern("source",   loc.source ? new QoreStringNode(loc.source) : 0);
-   ph->setKeyValueIntern("offset",   new QoreBigIntNode(loc.offset));
-   ph->setKeyValueIntern("typecode", new QoreBigIntNode(type));
+   ph->setKeyValueIntern("line",     loc.start_line);
+   ph->setKeyValueIntern("endline",  loc.end_line);
+   ph->setKeyValueIntern("file",     new QoreStringNode(loc.getFile()));
+   ph->setKeyValueIntern("source",   loc.getSource() ? new QoreStringNode(loc.getSource()) : QoreValue());
+   ph->setKeyValueIntern("offset",   loc.offset);
+   ph->setKeyValueIntern("typecode", type);
    // CT_RETHROW is only aded manually
    switch (type) {
       case CT_USER:

@@ -103,53 +103,53 @@ DLLLOCAL QoreClass* initThreadPoolClass(QoreNamespace& ns);
 
 class ArgvRefStack {
 protected:
-   typedef std::vector<int> rvec_t;
-   rvec_t stack;
-   // ignore numeric count
-   int in;
+    typedef std::vector<int> rvec_t;
+    rvec_t stack;
+    // ignore numeric count
+    int in;
 
 public:
-   DLLLOCAL ArgvRefStack() : in(0) {
-      stack.push_back(0);
-   }
-   DLLLOCAL ~ArgvRefStack() {
-   }
-   DLLLOCAL void push() {
-      stack.push_back(0);
-   }
-   DLLLOCAL int pop() {
-      int rc = stack[stack.size() - 1];
-      if (stack.size() > 1)
-         stack.pop_back();
-      else
-         stack[0] = 0;
-      return rc;
-   }
-   DLLLOCAL int get() {
-      assert(stack.size() == 1);
-      int rc = stack[0];
-      stack[0] = 0;
-      return rc;
-   }
-   DLLLOCAL void push_numeric() {
-      ++in;
-   }
-   DLLLOCAL void pop_numeric() {
-      --in;
-      assert(in >= 0);
-   }
-   DLLLOCAL void inc_numeric() {
-      if (in)
-         return;
-      inc();
-   }
-   DLLLOCAL void inc() {
-      ++stack[stack.size() - 1];
-   }
-   DLLLOCAL void clear() {
-      stack.clear();
-      stack.push_back(0);
-   }
+    DLLLOCAL ArgvRefStack() : in(0) {
+        stack.push_back(0);
+    }
+    DLLLOCAL ~ArgvRefStack() {
+    }
+    DLLLOCAL void push() {
+        stack.push_back(0);
+    }
+    DLLLOCAL int pop() {
+        int rc = stack[stack.size() - 1];
+        if (stack.size() > 1)
+            stack.pop_back();
+        else
+            stack[0] = 0;
+        return rc;
+    }
+    DLLLOCAL int get() {
+        assert(stack.size() == 1);
+        int rc = stack[0];
+        stack[0] = 0;
+        return rc;
+    }
+    DLLLOCAL void push_numeric() {
+        ++in;
+    }
+    DLLLOCAL void pop_numeric() {
+        --in;
+        assert(in >= 0);
+    }
+    DLLLOCAL void inc_numeric() {
+        if (in)
+            return;
+        inc();
+    }
+    DLLLOCAL void inc() {
+        ++stack[stack.size() - 1];
+    }
+    DLLLOCAL void clear() {
+        stack.clear();
+        stack.push_back(0);
+    }
 };
 
 struct ParseCountHelper {
@@ -232,14 +232,15 @@ struct ParseConditionalStack {
 
 class ProgramParseContext {
 public:
-   const char* file, * src;
-   void* parseState;
-   int offset;
-   ParseConditionalStack* pcs;
-   ProgramParseContext* next;
+    const char* file;
+    const char* source;
+    int offset;
+    void* parseState;
+    ParseConditionalStack* pcs;
+    ProgramParseContext* next;
 
-   DLLLOCAL ProgramParseContext(const char* fname, void* ps, const char* psrc, int off, ParseConditionalStack* ppcs, ProgramParseContext* n) : file(fname), src(psrc), parseState(ps), offset(off), pcs(ppcs), next(n) {
-   }
+    DLLLOCAL ProgramParseContext(const char* fname, const char* source, int offset, void* ps, ParseConditionalStack* ppcs, ProgramParseContext* n) : file(fname), source(source), offset(offset), parseState(ps), pcs(ppcs), next(n) {
+    }
 };
 
 // for detecting circular references at runtime
@@ -255,9 +256,11 @@ public:
 
    Context* context_stack = nullptr;
    ProgramParseContext* plStack = nullptr;
-   QoreProgramLocation parse_loc;
    QoreProgramLocation runtime_loc;
    const char* parse_code = nullptr; // the current function, method, or closure being parsed
+   const char* parse_file = nullptr; // the current file or label being parsed
+   const char* parse_source = nullptr; // the current source being parsed
+   int parse_offset = 0; // the current offset in the source being parsed
    void* parseState = nullptr;
    VNode* vstack = nullptr;  // used during parsing (local variable stack)
    CVNode* cvarstack = nullptr;
@@ -1080,7 +1083,7 @@ bool parse_cond_test(const QoreProgramLocation& loc) {
 
 void push_parse_options() {
    ThreadData* td = thread_data.get();
-   qore_program_private::pushParseOptions(td->current_pgm, td->parse_loc.file);
+   qore_program_private::get(*td->current_pgm)->pushParseOptions(td->parse_file);
 }
 
 // called when a StatementBlock has "on_exit" blocks
@@ -1105,46 +1108,46 @@ void advanceOnBlockExit() {
 
 // new file name, current parse state
 void beginParsing(const char* file, void* ps, const char* src, int offset) {
-   ThreadData* td = thread_data.get();
-   //printd(5, "beginParsing() td: %p of %p (%s), (stack: %s) src: %s:%d\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"), src ? src : "(null)", offset);
+    ThreadData* td = thread_data.get();
+    //printd(5, "beginParsing() td: %p of %p (%s), (stack: %s) src: %s:%d\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"), src ? src : "(null)", offset);
 
-   // store current position
-   ProgramParseContext* pl = new ProgramParseContext(td->parse_loc.file, td->parseState, td->parse_loc.source, td->parse_loc.offset, td->pcs, td->plStack);
-   td->plStack = pl;
+    // store current position
+    ProgramParseContext* pl = new ProgramParseContext(td->parse_file, td->parse_source, td->parse_offset, td->parseState, td->pcs, td->plStack);
+    td->plStack = pl;
 
-   // set new position
-   td->parse_loc.file = file;
-   td->parseState = ps;
-   td->parse_loc.source = src;
-   td->parse_loc.offset = offset;
-   td->pcs = 0;
+    // set new position
+    td->parse_file = file;
+    td->parse_source = src;
+    td->parse_offset = offset;
+    td->parseState = ps;
+    td->pcs = 0;
 }
 
 void* endParsing() {
-   ThreadData* td = thread_data.get();
-   //printd(5, "endParsing() td: %p restoreParseOptions pgm: %p parse_file: %p '%s' src: %s:%d\n", td, td->current_pgm, td->parse_loc.file, td->parse_loc.file, td->parse_loc.source ? td->parse_loc.source : "(null)", td->parse_loc.offset);
-   qore_program_private::restoreParseOptions(td->current_pgm, td->parse_loc.file);
+    ThreadData* td = thread_data.get();
+    //printd(5, "endParsing() td: %p restoreParseOptions pgm: %p parse_file: %p '%s' src: %s:%d\n", td, td->current_pgm, td->parse_loc.getFile(), td->parse_loc.getFile(), td->parse_loc.getSource() ? td->parse_loc.getSource() : "(null)", td->parse_loc.offset);
+    qore_program_private::get(*td->current_pgm)->restoreParseOptions(td->parse_file);
 
-   void* rv = td->parseState;
+    void* rv = td->parseState;
 
-   // ensure there are no conditional blocks left open at EOF
-   td->endFileParsing();
+    // ensure there are no conditional blocks left open at EOF
+    td->endFileParsing();
 
-   assert(td->plStack);
-   assert(!td->pcs);
+    assert(td->plStack);
+    assert(!td->pcs);
 
-   ProgramParseContext* pl = td->plStack->next;
-   //printd(5, "endParsing() td: %p ending parsing of '%s', returning %p, setting file: %p '%s'\n", td, td->parse_file, rv, td->plStack->file, td->plStack->file);
+    ProgramParseContext* pl = td->plStack->next;
+    //printd(5, "endParsing() td: %p ending parsing of '%s', returning %p, setting file: %p '%s'\n", td, td->parse_file, rv, td->plStack->file, td->plStack->file);
 
-   td->parse_loc.file   = td->plStack->file;
-   td->parseState       = td->plStack->parseState;
-   td->parse_loc.source = td->plStack->src;
-   td->parse_loc.offset = td->plStack->offset;
-   td->pcs              = td->plStack->pcs;
-   delete td->plStack;
-   td->plStack = pl;
+    td->parse_file       = td->plStack->file;
+    td->parse_source     = td->plStack->source;
+    td->parse_offset     = td->plStack->offset;
+    td->parseState       = td->plStack->parseState;
+    td->pcs              = td->plStack->pcs;
+    delete td->plStack;
+    td->plStack = pl;
 
-   return rv;
+    return rv;
 }
 
 // thread-local functions
@@ -1186,10 +1189,10 @@ void update_runtime_location(const QoreProgramLocation& loc) {
 
 void set_parse_file_info(QoreProgramLocation& loc) {
    ThreadData* td = thread_data.get();
-   loc.file       = td->parse_loc.file;
-   loc.source     = td->parse_loc.source;
-   loc.offset     = td->parse_loc.offset;
-   //printd(5, "set_parse_file_info() setting %s src: %s:%d\n", loc.file, loc.source ? loc.source : "(null)", loc.offset);
+   loc.setFile(td->parse_file);
+   loc.setSource(td->parse_source);
+   loc.offset = td->parse_offset;
+   //printd(5, "set_parse_file_info() setting %s src: %s:%d\n", loc.getFile(), loc.getSource() ? loc.getSource() : "(null)", loc.offset);
 }
 
 const char* get_parse_code() {

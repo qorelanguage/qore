@@ -1352,31 +1352,31 @@ private:
 */
 class BCANode : public FunctionCallBase {
 public:
-   // set automatically when created
-   QoreProgramLocation loc;
-   qore_classid_t classid;
-   //QoreClass* sclass;
-   NamedScope* ns;
-   char* name;
+    // set automatically when created
+    QoreProgramLocation loc;
+    qore_classid_t classid = 0;
+    //QoreClass* sclass;
+    NamedScope* ns;
+    char* name;
 
-   // this function takes ownership of n and arg
-   DLLLOCAL BCANode(NamedScope* n, QoreParseListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(n), name(0) {
-      assert(start_line > 0);
-   }
+    // this function takes ownership of n and arg
+    DLLLOCAL BCANode(NamedScope* n, QoreParseListNode* n_args, const QoreProgramLocation& loc) : FunctionCallBase(n_args), loc(loc), ns(n), name(nullptr) {
+        assert(loc.start_line > 0);
+    }
 
-   // this function takes ownership of n and arg
-   DLLLOCAL BCANode(char* n, QoreParseListNode* n_args, int start_line, int end_line) : FunctionCallBase(n_args), loc(start_line, end_line), classid(0), ns(0), name(n) {
-      assert(start_line > 0);
-   }
+    // this function takes ownership of n and arg
+    DLLLOCAL BCANode(char* n, QoreParseListNode* n_args, const QoreProgramLocation& loc) : FunctionCallBase(n_args), loc(loc), ns(nullptr), name(n) {
+        assert(loc.start_line > 0);
+    }
 
-   DLLLOCAL ~BCANode() {
-      delete ns;
-      if (name)
-         free(name);
-   }
+    DLLLOCAL ~BCANode() {
+        delete ns;
+        if (name)
+            free(name);
+    }
 
-   // resolves classes, parses arguments, and attempts to find constructor variant
-   DLLLOCAL void parseInit(BCList* bcl, const char* classname);
+    // resolves classes, parses arguments, and attempts to find constructor variant
+    DLLLOCAL void parseInit(BCList* bcl, const char* classname);
 };
 
 typedef std::vector<BCANode*> bcalist_t;
