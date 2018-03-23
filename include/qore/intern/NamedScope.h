@@ -120,13 +120,16 @@ public:
         return rv;
     }
 
-    /*
-    DLLLOCAL void truncate() {
+    DLLLOCAL void optimize() {
         while (strlist.size() > 1) {
             strlist.erase(strlist.begin());
         }
+        if (del) {
+            free(ostr);
+            del = false;
+            ostr = (char*)strlist[0].c_str();
+        }
     }
-    */
 };
 
 class ltns {

@@ -143,6 +143,8 @@ AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
         resolve(typeInfo);
     }
 
+    name.optimize();
+
     return this;
 }
 
