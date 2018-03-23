@@ -221,6 +221,21 @@ class DateTest inherits QUnit::Test {
 
         date1 = 2018-03-10T05:39:57Z;
         assertEq("2018-03-10 05:39:57+00:00", date1.format("YYYY-MM-DD HH:mm:SSZ"));
+
+        # issue #2716 & #2721
+        # test the "IF" format
+        assertEq("P2Y1M3DT5H7M9S", P2Y1M3DT5H7M9S.format("IF"));
+        assertEq("P2Y1M3DT5H7M9.002S", P2Y1M3DT5H7M9.002S.format("IF"));
+        assertEq("2018-03-23T11:18:21+01:00", 2018-03-23T11:18:21+01:00.format("IF"));
+        # test fractional date component support
+        assertEq(P1.5Y, 1Y + 182D + 12h);
+        assertEq(P1.5M, 1M + 15D);
+        assertEq(P1.5D, 1D + 12h);
+        assertEq(PT1.5H, 1h + 30m);
+        assertEq(PT1.5M, 1m + 30s);
+        assertEq(PT1.5S, 1.5s);
+        assertEq(PT1.5S, 1s + 500ms);
+        assertEq(2.1s, 2s + 100ms);
     }
 
     timeZoneTests() {

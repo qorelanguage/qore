@@ -365,35 +365,41 @@ static int check_reexport(YYLTYPE* yylloc, const char* directive, char*& cn, boo
    return 0;
 }
 
-static inline DateTimeNode *makeYears(int years) {
+static DateTimeNode *makeYears(int years) {
    return new DateTimeNode(years, 0, 0, 0, 0, 0, 0, true);
 }
 
-static inline DateTimeNode *makeMonths(int months) {
+static DateTimeNode *makeMonths(int months) {
    return new DateTimeNode(0, months, 0, 0, 0, 0, 0, true);
 }
 
-static inline DateTimeNode *makeDays(int days) {
+static DateTimeNode *makeDays(int days) {
    return new DateTimeNode(0, 0, days, 0, 0, 0, 0, true);
 }
 
-static inline DateTimeNode *makeHours(int hours) {
+static DateTimeNode *makeHours(int hours) {
    return new DateTimeNode(0, 0, 0, hours, 0, 0, 0, true);
 }
 
-static inline DateTimeNode *makeMinutes(int minutes) {
+static DateTimeNode *makeMinutes(int minutes) {
    return new DateTimeNode(0, 0, 0, 0, minutes, 0, 0, true);
 }
 
-static inline DateTimeNode *makeSeconds(int seconds) {
-   return new DateTimeNode(0, 0, 0, 0, 0, seconds, 0, true);
+static DateTimeNode* makeSeconds(const char* txt) {
+    long secs = strtol(txt, 0, 10);
+    double us = q_strtod(txt) - secs;
+    if (us) {
+        us *= 1000000.0;
+    }
+
+    return DateTimeNode::makeRelative(0, 0, 0, 0, 0, secs, (int)us);
 }
 
-static inline DateTimeNode *makeMilliseconds(int ms) {
+static DateTimeNode *makeMilliseconds(int ms) {
    return new DateTimeNode(0, 0, 0, 0, 0, 0, ms, true);
 }
 
-static inline DateTimeNode *makeMicroseconds(int us) {
+static DateTimeNode *makeMicroseconds(int us) {
    return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, us);
 }
 
@@ -715,9 +721,9 @@ US              [0-9]{1,6}
 D2              [0-9]{2}
 BINARY          <({HEX_DIGIT}{HEX_DIGIT})+>
 TZ              (Z|([+-][01][0-9](:{MSEC}(:{MSEC})?)?))
-RDATE           P(-?[0-9]+[YMDHSu])+
-RDATETIME       P(-?[0-9]+[YMD])+T(-?[0-9]+[HMSu])+
-RTIME           PT(-?[0-9]+[HMSu])+
+RDATE           P(-?[0-9]+(\.[0-9]+)?[YMDHSu])+
+RDATETIME       P(-?[0-9]+(\.[0-9]+)?[YMD])+T(-?[0-9]+(\.[0-9]+)?[HMSu])+
+RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 
 %%
 ^%no-global-vars{WS}*$                  parse_set_parse_options(yylloc, PO_NO_GLOBAL_VARS);
@@ -1648,7 +1654,7 @@ cast<{WS}*({WORD}::)*{WORD}{WS}*(<[a-zA-Z<>:_0-9 \t,]+>)?{WS}*>  yylval->string 
 {DIGIT}+ms                              yylval->datetime = makeMilliseconds(strtol(yytext, 0, 10)); return DATETIME;
 {DIGIT}+us                              yylval->datetime = makeMicroseconds(strtol(yytext, 0, 10)); return DATETIME;
 {DIGIT}+m                               yylval->datetime = makeMinutes(strtol(yytext, 0, 10)); return DATETIME;
-{DIGIT}+s                               yylval->datetime = makeSeconds(strtol(yytext, 0, 10)); return DATETIME;
+{DIGIT}+(\.{DIGIT}+)?s                  yylval->datetime = makeSeconds(yytext); return DATETIME;
 {HEX_CONST}                             yylval->integer = strtoll(yytext, 0, 16); return INTEGER;
 {BINARY}                                yylval->binary = parseHex(get_loc(yylloc), yytext + 1, strlen(yytext + 1) - 1); return BINARY;
 \$\.{WORD}                              yylval->string = strdup(yytext + 2); return SELF_REF;

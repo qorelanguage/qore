@@ -43,9 +43,10 @@
     - new @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
       - \c "Dn" and \c "DN": the ordinal day number in the year
       - \c "I": ISO-8601 week string
-      - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
-      - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
       - \c "Id" and \c "ID": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> day number
+      - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_date "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
+      - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
+      - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
     - module updates
       - <a href="../../modules/ConnectionProvider/html.indexhtml">ConnectionProvider</a> module changes:
         - the \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
@@ -65,6 +66,9 @@
       - <a href="../../modules/Util/html/index.html">Util</a> module updates:
         - added public function \c parse_ranges() (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
         - added public function \c check_ip_address() (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
+    - @ref relative_dates "relative date" changes
+        - fraction seconds are accepted in the @ref single_reldates
+        - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
 
