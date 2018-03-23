@@ -285,7 +285,7 @@ auto val = q.pop(20000);
     |\c ms|Milliseconds|\c 250ms|250 milliseconds
     |\c us|Microseconds|\c 21194us|21194 microseconds
 
-    @note This this relative date/time format, only seconds accept a fractional component
+    @note In this relative date/time format, only seconds accept a fractional component
 
     @subsubsection short_reldates Short Relative Time Format
     This and the next duration format for composite relative date/time values are both based on <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.\n\n
@@ -311,7 +311,7 @@ prompt% qore -X 'PT19.1S'
 <time: 19 seconds 100 milliseconds>
     @endcode
 
-    @note the \c "u" charater is a %Qore-specific extension to <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>
+    @note the \c "u" charater indicating microseconds is a deprecated %Qore-specific extension to <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>; use fractional seconds instead
 
     @subsubsection long_reldates Long Relative Time Format
     The second <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>-based format for specifing complex durations with multiple time units has the following syntax:
