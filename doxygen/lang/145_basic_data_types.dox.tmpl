@@ -264,14 +264,15 @@ prompt% qore -X '18:35:26+08:00'
     - \c 250ms: 250 milliseconds
     - \c 30s: 30 seconds
     - \c 2m: 2 minutes
+    - \c 19.1s: 19 seconds and 100 milliseconds
     .
     Such values are recommended to give to functions and methods taking a timeout value as the units are then clear in the source code (whereas if an integer is given, it may not be clear that the function or method expects a value in milliseconds, for example); for example:
     @code{.py}
-any val = q.pop(20s);
+auto val = q.pop(20s);
     @endcode
     is clearer than the alternative with an argument given as a value in implied milliseconds to the @ref Qore::Thread::Queue::pop(timeout) "Queue::pop()" method:
     @code{.py}
-any val = q.pop(20000);
+auto val = q.pop(20000);
     @endcode
     <b>Date Specifiers For Single Values For Relative Dates (non-<a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> syntax)</b>
     |!Component|!Meaning|!Example|!Description
@@ -280,16 +281,24 @@ any val = q.pop(20000);
     |\c D|Days|\c 10D|10 Days
     |\c h|Hours|\c 15h|15 hours
     |\c m|Minutes|\c 25m|25 minutes
-    |\c s|Seconds|\c 19s|19 seconds
+    |\c s|Seconds|\c 19.1s|19 seconds and 100 milliseconds
     |\c ms|Milliseconds|\c 250ms|250 milliseconds
     |\c us|Microseconds|\c 21194us|21194 microseconds
+
+    @note This this relative date/time format, only seconds accept a fractional component
 
     @subsubsection short_reldates Short Relative Time Format
     This and the next duration format for composite relative date/time values are both based on <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>.\n\n
     This first format has the following syntax:
-    - \c PnYnMnDTnHnMnSnu
+    - \c PnYnMnDTnHnMnS
     .
-    Each element above is optional, but at least one element must be present. Note that \c "M" means months when before the \c "T" and minutes when found after the \c "T". The other elements are years, days, hours, seconds, and, as an extension to <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>, \c "u" for microseconds. Additionally, the values may be negative.\n\n
+    Each element above is optional, but at least one element must be present. Note that \c "M" means months when before the \c "T" and minutes when found after the \c "T". The other elements are years, days, hours, and seconds. Fractional values are accepted as well, but these values are always converted to an integer value in the time component with higher precision (i.e. fractional seconds are converted to microseconds, fractional microseconds are ignored), and additionally the values may be negative.
+
+    @note
+    - Standard <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> relative date/time formats only allows for the last component to have a fractional value.
+    - Fractional years are converted to days assuming 365 days in a year
+    - Fractional months are converted to days assuming an average 30 days in a month
+
     Here are some examples (using qore's -X command-line option to evaluate and expression and print out the result):
     @code{.py}
 prompt% qore -X 'P1Y3MT4S'
@@ -298,6 +307,8 @@ prompt% qore -X 'PT4M551u'
 <time: 4 minutes 551 microseconds>
 prompt% qore -X 'P3DT21H'
 <time: 3 days 21 hours>
+prompt% qore -X 'PT19.1S'
+<time: 19 seconds 100 milliseconds>
     @endcode
 
     @note the \c "u" charater is a %Qore-specific extension to <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a>
