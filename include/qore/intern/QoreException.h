@@ -4,7 +4,7 @@
 
   Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -160,10 +160,6 @@ public:
 class ParseException : public QoreException {
 public:
    // called for parse exceptions
-   DLLLOCAL ParseException(const char* err, QoreStringNode* desc) : QoreException(QoreProgramLocation(ParseLocation), err, desc) {
-   }
-
-   // called for parse exceptions
    DLLLOCAL ParseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc) : QoreException(loc, err, desc) {
    }
 };
@@ -251,7 +247,7 @@ struct qore_es_private {
          addStackInfo(i);
    }
 
-   DLLLOCAL static void addStackInfo(ExceptionSink& xsink, int type, const char* class_name, const char* code, const QoreProgramLocation& loc = QoreProgramLocation(ParseLocation)) {
+   DLLLOCAL static void addStackInfo(ExceptionSink& xsink, int type, const char* class_name, const char* code, const QoreProgramLocation& loc) {
       xsink.priv->addStackInfo(type, class_name, code, loc);
    }
 

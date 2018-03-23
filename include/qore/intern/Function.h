@@ -338,13 +338,10 @@ protected:
     int64 flags;
     bool is_user;
 
-    static unsigned cntr;
-
     DLLLOCAL virtual ~AbstractQoreFunctionVariant() {}
 
 public:
     DLLLOCAL AbstractQoreFunctionVariant(int64 n_flags, bool n_is_user = false) : flags(n_flags), is_user(n_is_user) {
-        //printd(5, "AbstractQoreFunctionVariant::AbstractQoreFunctionVariant() this: %p cntr: %d\n", this, ++cntr);
     }
 
     DLLLOCAL virtual AbstractFunctionSignature* getSignature() const = 0;
@@ -380,7 +377,7 @@ public:
 
     DLLLOCAL virtual UserVariantBase* getUserVariantBase() {
         return 0;
-        }
+    }
 
     DLLLOCAL const UserVariantBase* getUserVariantBase() const {
         // avoid the virtual function call if possible

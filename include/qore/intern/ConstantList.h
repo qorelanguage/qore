@@ -50,37 +50,37 @@ class qore_class_private;
 // tricky structure that holds 2 types of pointers and a flag in the space of 1 pointer
 // the flag is in the low bit since memory has to be aligned anyway we have at a few bits of space for flags
 struct ClassNs {
-   // if the low bit is set, then ptr is a qore_ns_priv*, otherwise it's a qore_class_private
-   size_t ptr;
+    // if the low bit is set, then ptr is a qore_ns_priv*, otherwise it's a qore_class_private
+    size_t ptr;
 
-   DLLLOCAL ClassNs(qore_class_private* qc) : ptr((size_t)qc) {
-   }
+    DLLLOCAL ClassNs(qore_class_private* qc) : ptr((size_t)qc) {
+    }
 
-   DLLLOCAL ClassNs(qore_ns_private* ns) {
-      ptr = ((size_t)ns) | (size_t)1;
-   }
+    DLLLOCAL ClassNs(qore_ns_private* ns) {
+        ptr = ((size_t)ns) | (size_t)1;
+    }
 
-   DLLLOCAL ClassNs(const ClassNs& old) : ptr(old.ptr) {
-   }
+    DLLLOCAL ClassNs(const ClassNs& old) : ptr(old.ptr) {
+    }
 
-   DLLLOCAL qore_class_private* getClass() const {
-      return (!(ptr & (size_t)1)) ? (qore_class_private*)ptr : 0;
-   }
+    DLLLOCAL qore_class_private* getClass() const {
+        return (!(ptr & (size_t)1)) ? (qore_class_private*)ptr : 0;
+    }
 
-   DLLLOCAL qore_ns_private* getNs() const {
-      return (ptr & (size_t)1) ? (qore_ns_private*)(ptr & ~(size_t)1) : 0;
-   }
+    DLLLOCAL qore_ns_private* getNs() const {
+        return (ptr & (size_t)1) ? (qore_ns_private*)(ptr & ~(size_t)1) : 0;
+    }
 
-   DLLLOCAL bool isNs() const {
-      return (bool)(ptr & (size_t)1);
-   }
+    DLLLOCAL bool isNs() const {
+        return (bool)(ptr & (size_t)1);
+    }
 
 #ifdef DEBUG
-   DLLLOCAL const char* getType() const {
-      return isNs() ? "namespace" : "class";
-   }
+    DLLLOCAL const char* getType() const {
+        return isNs() ? "namespace" : "class";
+    }
 
-   DLLLOCAL const char* getName() const;
+    DLLLOCAL const char* getName() const;
 #endif
 };
 

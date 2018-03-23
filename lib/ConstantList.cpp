@@ -153,9 +153,6 @@ int ConstantEntry::parseInit(ClassNs ptr) {
     int lvids = 0;
 
     if (!builtin) {
-        // set parse location in case of errors
-        ParseLocationHelper plh(loc);
-
         // push parse class context
         qore_class_private* p = ptr.getClass();
         QoreParseClassHelper qpch(p ? p->cls : nullptr);
@@ -242,7 +239,6 @@ ConstantList::ConstantList(const ConstantList& old, int64 po, ClassNs p) : ptr(p
 
         ConstantEntry* ce = i->second;
         ce->ref();
-        //ConstantEntry* ce = new ConstantEntry(*(i->second));
 
         last = cnemap.insert(last, cnemap_t::value_type(ce->getName(), ce));
         //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first, i->second->node);

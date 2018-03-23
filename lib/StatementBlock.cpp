@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -397,27 +397,27 @@ LocalVar* find_local_var(const char* name, bool& in_closure) {
 }
 
 int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t::iterator start) {
-   QORE_TRACE("StatementBlock::parseInitIntern");
+    QORE_TRACE("StatementBlock::parseInitIntern");
 
-   int lvids = 0;
+    int lvids = 0;
 
-   AbstractStatement* ret = nullptr;
+    AbstractStatement* ret = nullptr;
 
-   if (start != statement_list.end())
-      ++start;
-   else
-      start = statement_list.begin();
+    if (start != statement_list.end())
+        ++start;
+    else
+        start = statement_list.begin();
 
-   for (statement_list_t::iterator i = start, l = statement_list.last(), e = statement_list.end(); i != e; ++i) {
-      lvids += (*i)->parseInit(oflag, pflag);
-      if (!ret && i != l && (*i)->endsBlock()) {
-         // unreachable code found
-         qore_program_private::makeParseWarning(getProgram(), QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
-         ret = *i;
-      }
-   }
+    for (statement_list_t::iterator i = start, l = statement_list.last(), e = statement_list.end(); i != e; ++i) {
+        lvids += (*i)->parseInit(oflag, pflag);
+        if (!ret && i != l && (*i)->endsBlock()) {
+            // unreachable code found
+            qore_program_private::makeParseWarning(getProgram(), (*i)->loc, QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
+            ret = *i;
+        }
+    }
 
-   return lvids;
+    return lvids;
 }
 
 void StatementBlock::parseCommit(QoreProgram* pgm) {

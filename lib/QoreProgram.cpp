@@ -495,59 +495,46 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
 
 // called when the program's ref count = 0 (but the dc count may not go to 0 yet)
 void qore_program_private::clear(ExceptionSink* xsink) {
-   waitForTerminationAndClear(xsink);
-   depDeref();
+    waitForTerminationAndClear(xsink);
+    depDeref();
 }
 
-struct SaveParseLocationHelper : QoreProgramLocation {
-   DLLLOCAL SaveParseLocationHelper() : QoreProgramLocation(get_parse_location()) {
-   }
-
-   DLLLOCAL ~SaveParseLocationHelper() {
-      update_parse_location(*this);
-   }
-};
-
 int qore_program_private::internParseCommit() {
-   QORE_TRACE("qore_program_private::internParseCommit()");
-   printd(5, "qore_program_private::internParseCommit() pgm: %p isEvent: %d\n", pgm, parseSink->isEvent());
+    QORE_TRACE("qore_program_private::internParseCommit()");
+    printd(5, "qore_program_private::internParseCommit() pgm: %p isEvent: %d\n", pgm, parseSink->isEvent());
 
-   // save and restore parse location on exit
-   // FIXME: remove this when all parseInit code sets the location manually (remove calls to update_parse_location in parseInit code)
-   SaveParseLocationHelper plh;
+    // if the first stage of parsing has already failed,
+    // then don't go forward
+    if (!parseSink->isEvent()) {
+        // initialize new statements second (for "our" and "my" declarations)
+        // also initializes namespaces, constants, etc
+        sb.parseInit(pwo.parse_options);
 
-   // if the first stage of parsing has already failed,
-   // then don't go forward
-   if (!parseSink->isEvent()) {
-      // initialize new statements second (for "our" and "my" declarations)
-      // also initializes namespaces, constants, etc
-      sb.parseInit(pwo.parse_options);
+        printd(5, "QoreProgram::internParseCommit() this: %p RootNS: %p\n", pgm, RootNS);
+    }
 
-      printd(5, "QoreProgram::internParseCommit() this: %p RootNS: %p\n", pgm, RootNS);
-   }
+    // if a parse exception has occurred, then back out all new
+    // changes to the QoreProgram atomically
+    int rc;
+    if (parseSink->isEvent()) {
+        internParseRollback();
+        requires_exception = false;
+        rc = -1;
+    }
+    else { // otherwise commit them
+        // merge pending namespace additions
+        qore_root_ns_private::parseCommit(*RootNS);
 
-   // if a parse exception has occurred, then back out all new
-   // changes to the QoreProgram atomically
-   int rc;
-   if (parseSink->isEvent()) {
-      internParseRollback();
-      requires_exception = false;
-      rc = -1;
-   }
-   else { // otherwise commit them
-      // merge pending namespace additions
-      qore_root_ns_private::parseCommit(*RootNS);
+        // commit pending statements
+        sb.parseCommit(pgm);
 
-      // commit pending statements
-      sb.parseCommit(pgm);
+        // commit pending domain
+        dom |= pend_dom;
+        pend_dom = 0;
 
-      // commit pending domain
-      dom |= pend_dom;
-      pend_dom = 0;
-
-      rc = 0;
-   }
-   return rc;
+        rc = 0;
+    }
+    return rc;
 }
 
 void qore_program_private::runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink) {

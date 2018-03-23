@@ -41,9 +41,6 @@
 #include <assert.h>
 #include <cmath>
 
-// DBG
-unsigned AbstractQoreFunctionVariant::cntr = 0;
-
 // FIXME: xxx set parse location
 static void duplicateSignatureException(const char* cname, const char* name, const UserSignature* sig) {
    parseException(sig->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());

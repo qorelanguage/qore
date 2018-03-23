@@ -1192,15 +1192,6 @@ void set_parse_file_info(QoreProgramLocation& loc) {
    //printd(5, "set_parse_file_info() setting %s src: %s:%d\n", loc.file, loc.source ? loc.source : "(null)", loc.offset);
 }
 
-QoreProgramLocation get_parse_location() {
-   return thread_data.get()->parse_loc;
-}
-
-void update_parse_location(const QoreProgramLocation& loc) {
-   //printd(5, "update_parse_location() setting %s:%d-%d src: %s%d\n", loc.file, loc.start_line, loc.end_line, loc.source ? loc.source : "(null)", loc.offset);
-   thread_data.get()->parse_loc = loc;
-}
-
 const char* get_parse_code() {
    return (thread_data.get())->parse_code;
 }

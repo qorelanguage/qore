@@ -249,8 +249,6 @@ DLLLOCAL void update_runtime_location(const QoreProgramLocation& loc);
 
 DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
 DLLLOCAL const char* get_parse_code();
-DLLLOCAL QoreProgramLocation get_parse_location();
-DLLLOCAL void update_parse_location(const QoreProgramLocation& loc);
 
 DLLLOCAL const QoreTypeInfo* parse_set_implicit_arg_type_info(const QoreTypeInfo* ti);
 DLLLOCAL const QoreTypeInfo* parse_get_implicit_arg_type_info();

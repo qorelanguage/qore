@@ -1372,26 +1372,6 @@ public:
       TZ = tz;
    }
 
-   DLLLOCAL void makeParseException(const char* err, QoreStringNode* desc) {
-      QoreStringNodeHolder d(desc);
-      if (!requires_exception) {
-         assert(parseSink);
-         QoreException *ne = new ParseException(err, d.release());
-         parseSink->raiseException(ne);
-      }
-   }
-
-   DLLLOCAL void makeParseException(QoreStringNode* desc) {
-      QoreStringNodeHolder d(desc);
-      if (!requires_exception) {
-         if ((only_first_except && !exceptions_raised) || !only_first_except) {
-            QoreException *ne = new ParseException("PARSE-EXCEPTION", d.release());
-            parseSink->raiseException(ne);
-         }
-         exceptions_raised++;
-      }
-   }
-
    DLLLOCAL void makeParseException(const QoreProgramLocation &loc, const char* err, QoreStringNode* desc) {
       QORE_TRACE("QoreProgram::makeParseException()");
 
@@ -1570,22 +1550,19 @@ public:
 #endif
    }
 
-   DLLLOCAL void addParseException(ExceptionSink& xsink, QoreProgramLocation* loc = nullptr) {
-      if (requires_exception) {
-         xsink.clear();
-         return;
-      }
+    DLLLOCAL void addParseException(ExceptionSink& xsink, QoreProgramLocation* loc) {
+        if (requires_exception) {
+            xsink.clear();
+            return;
+        }
 
-      // ensure that all exceptions reflect the current parse location
-      if (!loc) {
-         QoreProgramLocation pl(ParseLocation);
-         xsink.overrideLocation(pl);
-      }
-      else
-         xsink.overrideLocation(*loc);
+        if (loc) {
+            // ensure that all exceptions reflect the current parse location
+            xsink.overrideLocation(*loc);
+        }
 
-      parseSink->assimilate(xsink);
-   }
+        parseSink->assimilate(xsink);
+    }
 
    // returns the mask of domain options not met in the current program
    DLLLOCAL int64 parseAddDomain(int64 n_dom) {
@@ -1858,14 +1835,6 @@ public:
       return pgm->priv->endThread(td, xsink);
    }
 
-   DLLLOCAL static void makeParseException(QoreProgram* pgm, const char* err, QoreStringNode* desc) {
-      pgm->priv->makeParseException(err, desc);
-   }
-
-   DLLLOCAL static void makeParseException(QoreProgram* pgm, QoreStringNode* desc) {
-      pgm->priv->makeParseException(desc);
-   }
-
    DLLLOCAL static void makeParseException(QoreProgram* pgm, const QoreProgramLocation &loc, QoreStringNode* desc) {
       pgm->priv->makeParseException(loc, "PARSE-EXCEPTION", desc);
    }
@@ -1960,24 +1929,6 @@ public:
       return rv;
    }
 
-   DLLLOCAL static void makeParseWarning(QoreProgram* pgm, int code, const char* warn, const char* fmt, ...) {
-      //printd(5, "QP::mPW(code: %d, warn: '%s', fmt: '%s') priv->pwo.warn_mask: %d priv->warnSink: %p %s\n", code, warn, fmt, priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
-      if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask))
-         return;
-
-      QoreStringNode* desc = new QoreStringNode;
-      while (true) {
-         va_list args;
-         va_start(args, fmt);
-         int rc = desc->vsprintf(fmt, args);
-         va_end(args);
-         if (!rc)
-            break;
-      }
-      QoreException *ne = new ParseException(warn, desc);
-      pgm->priv->warnSink->raiseException(ne);
-   }
-
    DLLLOCAL static void makeParseWarning(QoreProgram* pgm, const QoreProgramLocation &loc, int code, const char* warn, const char* fmt, ...) {
       //printd(5, "QP::mPW(code: %d, warn: '%s', fmt: '%s') priv->pwo.warn_mask: %d priv->warnSink: %p %s\n", code, warn, fmt, priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
       if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask))
@@ -1993,17 +1944,6 @@ public:
             break;
       }
       QoreException *ne = new ParseException(loc, warn, desc);
-      pgm->priv->warnSink->raiseException(ne);
-   }
-
-   DLLLOCAL static void makeParseWarning(QoreProgram* pgm, int code, const char* warn, QoreStringNode* desc) {
-      //printd(5, "QoreProgram::makeParseWarning(code: %d, warn: '%s', desc: '%s') priv->pwo.warn_mask: %d priv->warnSink: %p %s\n", code, warn, desc->getBuffer(), priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
-      if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask)) {
-         desc->deref();
-         return;
-      }
-
-      QoreException *ne = new ParseException(warn, desc);
       pgm->priv->warnSink->raiseException(ne);
    }
 

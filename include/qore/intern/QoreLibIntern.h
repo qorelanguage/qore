@@ -166,7 +166,7 @@ struct ParseWarnOptions {
    }
 };
 
-enum prog_loc_e { RunTimeLocation = 0, ParseLocation = 1 };
+enum prog_loc_e { RunTimeLocation = 0 };
 
 struct QoreProgramLineLocation {
    int start_line, end_line;
@@ -184,37 +184,35 @@ struct QoreProgramLineLocation {
 
 struct QoreProgramLocation : public QoreProgramLineLocation {
 protected:
-   DLLLOCAL explicit QoreProgramLocation(const char* f, int sline = 0, int eline = 0) : QoreProgramLineLocation(sline, eline), file(f), source(nullptr), offset(0) {
-   }
+    DLLLOCAL explicit QoreProgramLocation(const char* f, int sline = 0, int eline = 0) : QoreProgramLineLocation(sline, eline), file(f), source(nullptr), offset(0) {
+    }
 
 public:
-   const char* file;
-   const char* source;
-   int offset;
+    const char* file;
+    const char* source;
+    int offset;
 
-   // "blank" constructor
-   DLLLOCAL QoreProgramLocation() : file(nullptr), source(nullptr), offset(0) {
-   }
+    // "blank" constructor
+    DLLLOCAL QoreProgramLocation() : file(nullptr), source(nullptr), offset(0) {
+    }
 
-   // sets file position info from thread-local parse information
-   DLLLOCAL QoreProgramLocation(int sline, int eline);
+    // sets file position info from thread-local parse information
+    DLLLOCAL QoreProgramLocation(int sline, int eline);
 
-   // sets from current parse or runtime location in thread-local data
-   DLLLOCAL QoreProgramLocation(prog_loc_e loc);
+    // sets from current parse or runtime location in thread-local data
+    DLLLOCAL QoreProgramLocation(prog_loc_e loc);
 
-   DLLLOCAL QoreProgramLocation(const QoreProgramLocation& old) : QoreProgramLineLocation(old), file(old.file), source(old.source), offset(old.offset) {
-   }
+    DLLLOCAL QoreProgramLocation(const QoreProgramLocation& old) : QoreProgramLineLocation(old), file(old.file), source(old.source), offset(old.offset) {
+    }
 
-   DLLLOCAL void clear() {
-      start_line = end_line = -1;
-      file = nullptr;
-      source = nullptr;
-      offset = 0;
-   }
+    DLLLOCAL void clear() {
+        start_line = end_line = -1;
+        file = nullptr;
+        source = nullptr;
+        offset = 0;
+    }
 
-   DLLLOCAL void parseSet() const;
-
-   DLLLOCAL void toString(QoreString& str) const;
+    DLLLOCAL void toString(QoreString& str) const;
 };
 
 struct QoreCommandLineLocation : public QoreProgramLocation {
@@ -818,42 +816,33 @@ DLLLOCAL int q_get_af(int type);
 DLLLOCAL int q_get_sock_type(int t);
 
 class OptHashRefHelper {
-   const ReferenceNode* ref;
-   ExceptionSink* xsink;
-   ReferenceHolder<QoreHashNode> info;
+    const ReferenceNode* ref;
+    ExceptionSink* xsink;
+    ReferenceHolder<QoreHashNode> info;
+
 public:
-   DLLLOCAL OptHashRefHelper(QoreListNode* args, unsigned i, ExceptionSink* n_xsink) : ref(test_reference_param(args, i)), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
-   }
-   DLLLOCAL OptHashRefHelper(const ReferenceNode* n_ref, ExceptionSink* n_xsink) : ref(n_ref), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
-   }
-   DLLLOCAL ~OptHashRefHelper() {
-      if (!ref)
-         return;
+    DLLLOCAL OptHashRefHelper(QoreListNode* args, unsigned i, ExceptionSink* n_xsink) : ref(test_reference_param(args, i)), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
+    }
+    DLLLOCAL OptHashRefHelper(const ReferenceNode* n_ref, ExceptionSink* n_xsink) : ref(n_ref), xsink(n_xsink), info(ref ? new QoreHashNode : 0, xsink) {
+    }
+    DLLLOCAL ~OptHashRefHelper() {
+        if (!ref)
+            return;
 
-      ExceptionSink xs;
-      QoreTypeSafeReferenceHelper rh(ref, &xs);
-      if (xs)
-         xsink->assimilate(xs);
-      if (!rh)
-         return;
+        ExceptionSink xs;
+        QoreTypeSafeReferenceHelper rh(ref, &xs);
+        if (xs)
+            xsink->assimilate(xs);
+        if (!rh)
+            return;
 
-      rh.assign(info.release(), &xs);
-      if (xs)
-         xsink->assimilate(xs);
-   }
-   DLLLOCAL QoreHashNode* operator*() {
-      return *info;
-   }
-};
-
-class ParseLocationHelper : private QoreProgramLocation {
-public:
-   DLLLOCAL ParseLocationHelper(const QoreProgramLocation& loc) : QoreProgramLocation(ParseLocation) {
-      loc.parseSet();
-   }
-   DLLLOCAL ~ParseLocationHelper() {
-      parseSet();
-   }
+        rh.assign(info.release(), &xs);
+        if (xs)
+            xsink->assimilate(xs);
+    }
+    DLLLOCAL QoreHashNode* operator*() {
+        return *info;
+    }
 };
 
 // pushes a marker on the local variable parse stack so that searches can skip to global thread-local variables when the search hits the marker
