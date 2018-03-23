@@ -846,19 +846,14 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
                             if (i.minute) {
                                 str.sprintf("%dM", i.minute);
                             }
-                            if (i.second) {
-                                if (i.us) {
-                                    str.sprintf("%d.%06d", i.second, i.us);
-                                    // trim trailing zeros
-                                    str.trim_trailing("0");
-                                    str.concat('S');
-                                }
-                                else {
-                                    str.sprintf("%dS", i.second);
-                                }
+                            if (i.us) {
+                                str.sprintf("%d.%06d", i.second, i.us);
+                                // trim trailing zeros
+                                str.trim_trailing("0");
+                                str.concat('S');
                             }
-                            else if (i.us) {
-                                str.sprintf("0.%06dS", i.us);
+                            else if (i.second) {
+                                str.sprintf("%dS", i.second);
                             }
                         }
                         // output "P0D" if all elements are zero indicating a zero-length duration
