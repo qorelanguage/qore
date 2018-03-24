@@ -139,8 +139,8 @@ public:
         value = nullptr;
         return rv;
     }
-    DLLLOCAL const std::string& getName() const {
-        return name.getIdentifierStr();
+    DLLLOCAL const char* getName() const {
+        return name.getIdentifier();
     }
     DLLLOCAL bool isPublic() const {
         return pub;

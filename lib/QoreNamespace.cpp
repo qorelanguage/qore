@@ -1454,7 +1454,7 @@ QoreClass* qore_root_ns_private::parseFindScopedClassWithMethodInternError(const
          QoreString err;
          err.sprintf("cannot find class '%s' in any namespace '", scname[scname.size() - 2]);
          for (unsigned i = 0; i < (scname.size() - 2); i++) {
-            err.concat(scname.strlist[i].c_str());
+            err.concat(scname.get(i));
             if (i != (scname.size() - 3))
                err.concat("::");
          }
@@ -1581,7 +1581,7 @@ void qore_root_ns_private::parseAddConstantIntern(const QoreProgramLocation* loc
    if (!sns)
       return;
 
-   const char* cname = name.strlist[name.size() - 1].c_str();
+   const char* cname = name.get(name.size() - 1);
    cnemap_t::iterator i = sns->priv->parseAddConstant(loc, cname, vh.release(), cpub);
    if (i == sns->priv->pendConstant.end())
       return;
@@ -1643,7 +1643,7 @@ const QoreClass* qore_root_ns_private::runtimeFindClassIntern(const NamedScope& 
 
    // iterate all namespaces with the initial name and look for the match
    const QoreClass* c = nullptr;
-   ConstNamespaceMapIterator nmi(nsmap, name.strlist[0].c_str());
+   ConstNamespaceMapIterator nmi(nsmap, name.get(0));
    while (nmi.next()) {
       if ((c = nmi.get()->runtimeMatchClass(name, ns)))
          return c;
@@ -1658,7 +1658,7 @@ const TypedHashDecl* qore_root_ns_private::runtimeFindHashDeclIntern(const Named
 
    // iterate all namespaces with the initial name and look for the match
    const TypedHashDecl* c = nullptr;
-   NamespaceMapIterator nmi(nsmap, name.strlist[0].c_str());
+   NamespaceMapIterator nmi(nsmap, name.get(0));
    while (nmi.next()) {
       if ((c = nmi.get()->runtimeMatchHashDecl(name, ns)))
          return c;
@@ -1672,7 +1672,7 @@ const FunctionEntry* qore_root_ns_private::runtimeFindFunctionEntryIntern(const 
 
    // iterate all namespaces with the initial name and look for the match
    const FunctionEntry* f = nullptr;
-   NamespaceMapIterator nmi(nsmap, name.strlist[0].c_str());
+   NamespaceMapIterator nmi(nsmap, name.get(0));
    while (nmi.next()) {
       if ((f = nmi.get()->runtimeMatchFunctionEntry(name)))
          return f;
@@ -2577,7 +2577,7 @@ QoreNamespace* qore_ns_private::resolveNameScope(const QoreProgramLocation* loc,
 }
 
 const FunctionEntry* qore_ns_private::parseMatchFunctionEntry(const NamedScope& nscope, unsigned& match) const {
-    assert(nscope.strlist[0] == name);
+    assert(name == nscope.get(0));
     const QoreNamespace* fns = ns;
 
     assert(name == nscope[0]);
@@ -2762,7 +2762,7 @@ QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope& nscope, unsi
 
 QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched) {
    assert(nscope.size() > 2);
-   assert(nscope.strlist[0] == name);
+   assert(name == nscope.get(0));
 
    printd(5, "qore_ns_private::parseMatchScopedClassWithMethod() this: %p ns: %p '%s' class: %s (%s)\n", this, ns, name.c_str(), nscope[nscope.size() - 2], nscope.ostr);
 
@@ -2792,7 +2792,7 @@ QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope& ns
 
 const QoreClass* qore_ns_private::runtimeMatchScopedClassWithMethod(const NamedScope& nscope) const {
    assert(nscope.size() > 2);
-   assert(nscope.strlist[0] == name);
+   assert(name == nscope.get(0));
 
    printd(5, "qore_ns_private::runtimeMatchScopedClassWithMethod() this: %p ns: %p '%s' class: %s (%s)\n", this, ns, name.c_str(), nscope[nscope.size() - 2], nscope.ostr);
 
@@ -2872,13 +2872,13 @@ QoreValue qore_ns_private::parseCheckScopedReference(const QoreProgramLocation* 
     // follow the namespaces
     unsigned last = nsc.size() - 1;
     for (unsigned i = 1; i < last; ++i) {
-        QoreNamespace* nns = pns->priv->parseFindLocalNamespace(nsc.strlist[i].c_str());
+        QoreNamespace* nns = pns->priv->parseFindLocalNamespace(nsc.get(i));
 
         if (!nns) {
             // if we have matched all namespaces except the last one, check if it's a class
             // and try to resolve a class constant or static class variable
             if (i == (last - 1)) {
-                const char* cname = nsc.strlist[last - 1].c_str();
+                const char* cname = nsc.get(last - 1);
                 QoreClass* qc = pns->priv->parseFindLocalClass(cname);
                 //printd(5, "qore_ns_private::parseCheckScopedReference() this: %p '%s' nsc: %s checking for class '%s' qc: %p\n", this, name.c_str(), nsc.ostr, cname, qc);
                 if (qc)

@@ -39,21 +39,30 @@
 #include <qore/Qore.h>
 
 void NamedScope::fixBCCall() {
-   // fix last string pointer
-   std::string &str = strlist[strlist.size() - 1];
-   str.erase(0, 2);
+    if (!strlist) {
+        strlist = new nslist_t;
+        strlist->push_back(ostr);
+    }
+    // fix last string pointer
+    std::string& str = (*strlist)[strlist->size() - 1];
+    str.erase(0, 2);
 }
 
-NamedScope *NamedScope::copy() const {
+NamedScope* NamedScope::copy() const {
    return new NamedScope(strdup(ostr));
 }
 
 void NamedScope::init() {
-    const char *str = ostr;
+    const char* str = ostr;
 
-    while (char *p = (char*)strstr(str, "::")) {
-        strlist.push_back(std::string(str, (p - str)));
+    while (char* p = (char*)strstr(str, "::")) {
+        if (!strlist) {
+            strlist = new nslist_t;
+        }
+        strlist->push_back(std::string(str, (p - str)));
         str = p + 2;
     }
-    strlist.push_back(std::string(str));
+    if (strlist) {
+        strlist->push_back(std::string(str));
+    }
 }

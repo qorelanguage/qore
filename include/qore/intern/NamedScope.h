@@ -49,13 +49,13 @@ class NamedScope {
 protected:
     typedef std::vector<std::string> nslist_t;
 
+    nslist_t* strlist = nullptr;
     bool del;
 
     DLLLOCAL void init();
 
 public:
     char* ostr;
-    nslist_t strlist;
 
     DLLLOCAL NamedScope(char *str) : del(true), ostr(str) {
         assert(str);
@@ -68,12 +68,19 @@ public:
     }
 
     // takes all values from and deletes the argument
-    DLLLOCAL NamedScope(NamedScope *ns) : del(ns->del), ostr(ns->ostr), strlist(ns->strlist) {
-        ns->ostr = 0;
+    DLLLOCAL NamedScope(NamedScope* ns) : del(ns->del), ostr(ns->ostr), strlist(ns->strlist) {
+        ns->strlist = nullptr;
+        ns->ostr = nullptr;
         delete ns;
     }
 
-    DLLLOCAL NamedScope(const NamedScope &old) : del(true), ostr(strdup(old.ostr)), strlist(old.strlist) {
+    DLLLOCAL NamedScope(const NamedScope& old) : del(true), ostr(strdup(old.ostr)) {
+        if (old.strlist) {
+            strlist = new nslist_t(*old.strlist);
+        }
+        else {
+            strlist = nullptr;
+        }
     }
 
     DLLLOCAL ~NamedScope() {
@@ -83,51 +90,62 @@ public:
     DLLLOCAL void clear() {
         if (ostr && del)
             free(ostr);
-        strlist.clear();
+        if (strlist) {
+            delete strlist;
+            strlist = nullptr;
+        }
         ostr = nullptr;
         del = false;
     }
 
-    DLLLOCAL const char *getIdentifier() const {
-        return strlist[strlist.size() - 1].c_str();
-    }
-
-    DLLLOCAL const std::string &getIdentifierStr() const {
-        return strlist[strlist.size() - 1];
+    DLLLOCAL const char* getIdentifier() const {
+        return strlist ? (*strlist)[strlist->size() - 1].c_str() : ostr;
     }
 
     DLLLOCAL const char* get(unsigned i) const {
-        assert(i < strlist.size());
-        return strlist[i].c_str();
+        if (!i && !strlist) {
+            return ostr;
+        }
+        assert(strlist);
+        assert(i < strlist->size());
+        return (*strlist)[i].c_str();
     }
 
     DLLLOCAL const char* operator[](unsigned i) const {
-        assert(i < strlist.size());
-        return strlist[i].c_str();
+        if (!i && !strlist) {
+            return ostr;
+        }
+        assert(strlist);
+        assert(i < strlist->size());
+        return (*strlist)[i].c_str();
     }
 
     DLLLOCAL unsigned size() const {
-        return strlist.size();
+        return strlist ? strlist->size() : 1;
     }
 
-    DLLLOCAL NamedScope *copy() const;
+    DLLLOCAL NamedScope* copy() const;
     DLLLOCAL void fixBCCall();
 
     DLLLOCAL char* takeName() {
         char *rv = del ? ostr : strdup(ostr);
-        ostr = 0;
+        ostr = nullptr;
         clear();
         return rv;
     }
 
     DLLLOCAL void optimize() {
-        while (strlist.size() > 1) {
-            strlist.erase(strlist.begin());
+        if (!strlist) {
+            return;
+        }
+
+        while (strlist->size() > 1) {
+            strlist->erase(strlist->begin());
         }
         if (del) {
             free(ostr);
             del = false;
-            ostr = (char*)strlist[0].c_str();
+            ostr = (char*)strlist->back().c_str();
         }
     }
 };

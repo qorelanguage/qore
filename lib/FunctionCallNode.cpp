@@ -187,7 +187,7 @@ QoreValue SelfFunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
     if (is_copy)
         return self->getClass()->execCopy(self, xsink);
 
-    if (ns.strlist.size() == 1)
+    if (ns.size() == 1)
         return exec(self, ns.ostr, xsink);
 
     assert(method);
@@ -223,7 +223,7 @@ AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag
         printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolving base class call '%s'\n", this, ns.ostr);
 
         // copy method calls will be recognized by name = 0
-        if (ns.strlist.size() == 1) {
+        if (ns.size() == 1) {
             if (!strcmp(ns.ostr, "copy")) {
                 printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolved to copy constructor\n", this);
                 is_copy = true;

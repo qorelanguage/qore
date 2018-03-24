@@ -1376,7 +1376,7 @@ protected:
       bool fnd = false;
 
       // iterate all namespaces with the initial name and look for the match
-      NamespaceMapIterator nmi(nsmap, name.strlist[0].c_str());
+      NamespaceMapIterator nmi(nsmap, name.get(0));
       while (nmi.next()) {
          const qore_ns_private* rv = nmi.get()->runtimeMatchAddClass(name, fnd);
          if (rv)
