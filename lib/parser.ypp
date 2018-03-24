@@ -1844,10 +1844,8 @@ top_level_command:
         }
         | '{' '}'
         | '{' statements '}' {
-           // set line range
-           $2->loc.start_line = @1.first_line;
-           $2->loc.end_line = @2.last_line;
-           qore_program_private::addStatement(*(getProgram()), $2);
+            $2->finalizeBlock(@1.first_line, @2.last_line);
+            qore_program_private::addStatement(*(getProgram()), $2);
         }
         | top_namespace_decl {
            QoreProgramLocation loc(@1.first_line, @1.last_line);
@@ -2210,8 +2208,7 @@ switch_statement:
         {
            $6->setSwitch($3);
            $$ = $6;
-           $$->loc.start_line = @1.first_line;
-           $$->loc.end_line = @7.last_line;
+           $$->finalizeBlock(@1.first_line, @7.last_line);
         }
         ;
 

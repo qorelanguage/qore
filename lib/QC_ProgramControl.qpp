@@ -147,7 +147,7 @@ bool ProgramControl::isDefined(string def) {
  */
 auto ProgramControl::getDefine(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
-   return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
+   return t ? qore_program_private::runTimeGetDefine(p, t->c_str()) : QoreValue();
 }
 
 //! Retrieves all @ref conditional_parsing "parse defines" in the current Program
@@ -308,11 +308,11 @@ hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId) {
     }
     QoreHashNode* h = new QoreHashNode(hashdeclStatementInfo, nullptr);
     qore_hash_private* ph = qore_hash_private::get(*h);
-    ph->setKeyValueIntern("file", new QoreStringNode(s->loc.getFile()));
-    ph->setKeyValueIntern("source", new QoreStringNode(s->loc.getSource()));
-    ph->setKeyValueIntern("offset", s->loc.offset);
-    ph->setKeyValueIntern("start_line", s->loc.start_line);
-    ph->setKeyValueIntern("end_line", s->loc.end_line);
+    ph->setKeyValueIntern("file", new QoreStringNode(s->loc->getFile()));
+    ph->setKeyValueIntern("source", new QoreStringNode(s->loc->getSource()));
+    ph->setKeyValueIntern("offset", s->loc->offset);
+    ph->setKeyValueIntern("start_line", s->loc->start_line);
+    ph->setKeyValueIntern("end_line", s->loc->end_line);
     return h;
 }
 

@@ -227,7 +227,6 @@ class ProgramTest inherits QUnit::Test {
         Program a(PO_NEW_STYLE);
         a.parsePending(pf, "pending test part1", 0);
         a.parsePending(nf, "pending test part2", 0);
-        a.parseCommit();
         a.importFunction("t");
         a.importGlobalVariable("to");
         a.importGlobalVariable("ro", True);
@@ -276,12 +275,12 @@ class ProgramTest inherits QUnit::Test {
 
         # test for incorrect parse location when processing constants after a commit
         a = new Program(PO_NEW_STYLE);
-        a.parse("sub x() {}", "lib");
-        *hash h = a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
+        *hash h = a.parse("sub x() {} const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
         assertEq("<run-time-loaded: warn>", h.file);
 
         # make sure recursive constant definitions are handled
         try {
+            a = new Program(PO_NEW_STYLE);
             a.parse("const A = B; const B = A;", "rec");
         }
         catch (hash<ExceptionInfo> ex) {

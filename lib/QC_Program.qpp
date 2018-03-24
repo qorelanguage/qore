@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1457,11 +1457,11 @@ bool Program::isDefined(string def) {
 auto val = pgm.getDefine("PRODUCTION");
     @endcode
 
-    @note A parse define may be defined with no value; use Program::isDefined to check if a parse define is actually defined or not
+    @note A parse define may be defined with no value; use Program::isDefined() to check if a parse define is actually defined or not
  */
 auto Program::getDefine(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
-   return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
+   return t ? qore_program_private::runTimeGetDefine(p, t->c_str()) : QoreValue();
 }
 
 //! Retrieves all @ref conditional_parsing "parse defines" in the current Program

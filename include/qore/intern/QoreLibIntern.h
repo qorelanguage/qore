@@ -169,29 +169,31 @@ struct ParseWarnOptions {
 enum prog_loc_e { RunTimeLocation = 0 };
 
 struct QoreProgramLineLocation {
-   int start_line, end_line;
+    int16_t start_line, end_line;
 
-   // if sline is 0 and eline is > 0 then set sline to 1
-   DLLLOCAL QoreProgramLineLocation(int sline, int eline) : start_line(sline ? sline : (eline ? 1 : 0)), end_line(eline) {
-   }
+    // if sline is 0 and eline is > 0 then set sline to 1
+    DLLLOCAL QoreProgramLineLocation(int sline, int eline) : start_line(sline ? sline : (eline ? 1 : 0)), end_line(eline) {
+        assert(sline <= 0xffff);
+        assert(eline <= 0xffff);
+    }
 
-   DLLLOCAL QoreProgramLineLocation() : start_line(-1), end_line(-1) {
-   }
+    DLLLOCAL QoreProgramLineLocation() : start_line(-1), end_line(-1) {
+    }
 
-   DLLLOCAL QoreProgramLineLocation(const QoreProgramLineLocation& old) : start_line(old.start_line), end_line(old.end_line) {
-   }
+    DLLLOCAL QoreProgramLineLocation(const QoreProgramLineLocation& old) : start_line(old.start_line), end_line(old.end_line) {
+    }
 };
 
 struct QoreProgramLocation : public QoreProgramLineLocation {
 public:
     // "blank" constructor
-    DLLLOCAL QoreProgramLocation() : file(nullptr), source(nullptr), offset(0) {
+    DLLLOCAL QoreProgramLocation() {
     }
 
     // sets file position info from thread-local parse information
     DLLLOCAL QoreProgramLocation(int sline, int eline);
 
-    // sets from current parse or runtime location in thread-local data
+    // sets from current runtime location in thread-local data
     DLLLOCAL QoreProgramLocation(prog_loc_e loc);
 
     DLLLOCAL QoreProgramLocation(const QoreProgramLocation& old) : QoreProgramLineLocation(old), file(old.file), source(old.source), offset(old.offset) {
@@ -239,15 +241,35 @@ public:
         source = s;
     }
 
+    DLLLOCAL bool operator<(const QoreProgramLocation& loc) const {
+        return start_line < loc.start_line
+            || end_line < loc.end_line
+            || file < loc.file
+            || source < loc.source
+            || offset < loc.offset;
+    }
+
+    DLLLOCAL bool operator==(const QoreProgramLocation& loc) const {
+        return start_line == loc.start_line
+            && end_line == loc.end_line
+            && file == loc.file
+            && source == loc.source
+            && offset == loc.offset;
+    }
+
+    DLLLOCAL bool operator!=(const QoreProgramLocation& loc) const {
+        return !(*this == loc);
+    }
+
 protected:
-    const char* file;
-    const char* source;
+    const char* file = nullptr;
+    const char* source = nullptr;
 
 public:
-    int offset;
+    int16_t offset = 0;
 
 protected:
-    DLLLOCAL explicit QoreProgramLocation(const char* f, int sline = 0, int eline = 0) : QoreProgramLineLocation(sline, eline), file(f), source(nullptr), offset(0) {
+    DLLLOCAL explicit QoreProgramLocation(const char* f, int sline = 0, int eline = 0) : QoreProgramLineLocation(sline, eline), file(f) {
     }
 };
 
@@ -911,7 +933,7 @@ DLLLOCAL extern QoreString YamlNullString;
 
 DLLLOCAL extern bool q_disable_gc;
 
-DLLLOCAL AbstractQoreNode* qore_parse_get_define_value(const QoreProgramLocation& loc, const char* str, QoreString& arg, bool& ok);
+DLLLOCAL QoreValue qore_parse_get_define_value(const QoreProgramLocation& loc, const char* str, QoreString& arg, bool& ok);
 
 #ifndef HAVE_INET_NTOP
 DLLLOCAL const char* inet_ntop(int af, const void* src, char* dst, size_t size);

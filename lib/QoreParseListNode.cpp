@@ -117,7 +117,7 @@ QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
             vtype = getTypeInfoForValue(val);
             vcommon = true;
         }
-        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(val)))
+        else if (vcommon && (!QoreTypeInfo::hasType(vtype) || !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(val))))
             vcommon = false;
     }
 

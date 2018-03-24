@@ -163,50 +163,48 @@ VariableBlockHelper::~VariableBlockHelper() {
    //printd(5, "VariableBlockHelper::~VariableBlockHelper() this=%p got %p\n", this, vnode->lvar);
 }
 
-StatementBlock::StatementBlock() : AbstractStatement(-1, -1) {
+StatementBlock::StatementBlock(qore_program_private_base* p) : AbstractStatement(p) {
 }
 
 StatementBlock::StatementBlock(int sline, int eline) : AbstractStatement(sline, eline) {
 }
 
 StatementBlock::StatementBlock(int sline, int eline, AbstractStatement* s) : AbstractStatement(sline, eline) {
-   addStatement(s);
+    addStatement(s);
 }
 
 QoreValue StatementBlock::exec(ExceptionSink* xsink) {
-   QoreValue return_value;
-   ThreadLocalProgramData* tlpd = get_thread_local_program_data();
-   tlpd->dbgFunctionEnter(this, xsink);
-   execImpl(return_value, xsink);
-   tlpd->dbgFunctionExit(this, return_value, xsink);
-   return return_value;
+    QoreValue return_value;
+    ThreadLocalProgramData* tlpd = get_thread_local_program_data();
+    tlpd->dbgFunctionEnter(this, xsink);
+    execImpl(return_value, xsink);
+    tlpd->dbgFunctionExit(this, return_value, xsink);
+    return return_value;
 }
 
 void StatementBlock::addStatement(AbstractStatement* s) {
-   //QORE_TRACE("StatementBlock::addStatement()");
+    //QORE_TRACE("StatementBlock::addStatement()");
 
-   if (s) {
-      statement_list.push_back(s);
-      OnBlockExitStatement* obe = dynamic_cast<OnBlockExitStatement* >(s);
-      if (obe)
-         on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
-
-      loc.end_line = s->loc.end_line;
-   }
+    if (s) {
+        statement_list.push_back(s);
+        OnBlockExitStatement* obe = dynamic_cast<OnBlockExitStatement*>(s);
+        if (obe)
+            on_block_exit_list.push_front(std::make_pair(obe->getType(), obe->getCode()));
+    }
 }
 
 void StatementBlock::del() {
-   //QORE_TRACE("StatementBlock::del()");
+    //QORE_TRACE("StatementBlock::del()");
 
-   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
-      delete *i;
+    for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
+        delete *i;
 
-   statement_list.clear();
+    statement_list.clear();
 
-   if (lvars) {
-      delete lvars;
-      lvars = 0;
-   }
+    if (lvars) {
+        delete lvars;
+        lvars = nullptr;
+    }
 }
 
 int StatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
@@ -412,7 +410,7 @@ int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t
         lvids += (*i)->parseInit(oflag, pflag);
         if (!ret && i != l && (*i)->endsBlock()) {
             // unreachable code found
-            qore_program_private::makeParseWarning(getProgram(), (*i)->loc, QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
+            qore_program_private::makeParseWarning(getProgram(), *(*i)->loc, QP_WARN_UNREACHABLE_CODE, "UNREACHABLE-CODE", "code after this statement can never be reached");
             ret = *i;
         }
     }
@@ -421,12 +419,12 @@ int StatementBlock::parseInitIntern(LocalVar* oflag, int pflag, statement_list_t
 }
 
 void StatementBlock::parseCommit(QoreProgram* pgm) {
-   // add block to the list only when no statements inside
-   qore_program_private::registerStatement(pgm, this, statement_list.empty());
-   for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i) {
-      // register and add statements
-      (*i)->parseCommit(pgm);
-   }
+    // add block to the list only when no statements inside
+    qore_program_private::registerStatement(pgm, this, statement_list.empty());
+    for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i) {
+        // register and add statements
+        (*i)->parseCommit(pgm);
+    }
 }
 
 int StatementBlock::parseInitImpl(LocalVar* oflag, int pflag) {
@@ -467,7 +465,7 @@ void StatementBlock::parseCheckReturn() {
          QoreStringNode* desc = new QoreStringNode("this code block has declared return type ");
          QoreTypeInfo::getThisType(returnTypeInfo, *desc);
          desc->concat(" but does not have a return statement as the last statement in the block");
-         qore_program_private::makeParseException(getProgram(), loc, "MISSING-RETURN", desc);
+         qore_program_private::makeParseException(getProgram(), *loc, "MISSING-RETURN", desc);
       }
    }
 }
@@ -534,7 +532,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    if (!first && lvars) {
       // push already-registered local variables on the stack
       for (unsigned i = 0; i < lvars->size(); ++i)
-         push_top_level_local_var(lvars->lv[i], loc);
+         push_top_level_local_var(lvars->lv[i], *loc);
    }
 
    int pflag = PF_TOP_LEVEL;

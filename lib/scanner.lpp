@@ -605,34 +605,34 @@ static char* make_cast(const char* s) {
 }
 
 static void qore_parse_define(YYLTYPE* yylloc, const char* pstr) {
-   QoreString str(pstr);
-   // trim trailing and leading whitespace
-   str.trim();
-   const char* p = strchr(str.getBuffer(), ' ');
-   QoreString arg;
-   if (p) {
-      // copy arg to arg string
-      arg.set(p + 1);
-      // trim leading whitespace, if any
-      arg.trim_leading();
-      // remove argument from define string
-      str.terminate(p - str.getBuffer());
-   }
-   // check define string
-   if (str.empty()) {
-      parse_error(get_loc(yylloc), "missing argument to %%define");
-      return;
-   }
+    QoreString str(pstr);
+    // trim trailing and leading whitespace
+    str.trim();
+    const char* p = strchr(str.getBuffer(), ' ');
+    QoreString arg;
+    if (p) {
+        // copy arg to arg string
+        arg.set(p + 1);
+        // trim leading whitespace, if any
+        arg.trim_leading();
+        // remove argument from define string
+        str.terminate(p - str.getBuffer());
+    }
+    // check define string
+    if (str.empty()) {
+        parse_error(get_loc(yylloc), "missing argument to %%define");
+        return;
+    }
 
-   AbstractQoreNode *v = 0;
-   if (!arg.empty()) {
-      bool ok;
-      v = qore_parse_get_define_value(get_loc(yylloc), str.getBuffer(), arg, ok);
-      if (!ok)
-         return;
-   }
+    QoreValue v;
+    if (!arg.empty()) {
+        bool ok;
+        v = qore_parse_get_define_value(get_loc(yylloc), str.getBuffer(), arg, ok);
+        if (!ok)
+            return;
+    }
 
-   qore_program_private::parseDefine(getProgram(), get_loc(yylloc), str.getBuffer(), v);
+    qore_program_private::parseDefine(getProgram(), get_loc(yylloc), str.getBuffer(), v);
 }
 
 static bool parse_is_defined(YYLTYPE* yylloc, const char* pstr, bool def = true) {
