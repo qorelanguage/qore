@@ -39,6 +39,7 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/ConstantList.h"
 #include "qore/intern/QoreTypeInfo.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/QC_Breakpoint.h"
 
 #include <string>
@@ -223,6 +224,11 @@ const QoreProgramLocation* qore_program_private_base::getLocation(int sline, int
         pgmloc.push_back(lp);
         i = loc_set.insert(i, lp);
     }
+    /*
+    else {
+        printd(0, "reusing location %s:%d-%d\n", (*i)->getFile(), (*i)->start_line, (*i)->end_line);
+    }
+    */
 
     return *i;
 }
