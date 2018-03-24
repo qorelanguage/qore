@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -55,7 +55,7 @@ AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *o
     e[2] = e[2]->parseInit(oflag, pflag, lvids, typeInfo2);
 
     if (pflag & PF_FOR_ASSIGNMENT)
-        parse_error(loc, "the range operator cannot be used in the left-hand side of an assignment expression");
+        parse_error(*loc, "the range operator cannot be used in the left-hand side of an assignment expression");
 
     if (QoreTypeInfo::hasType(typeInfo0)) {
         if (QoreTypeInfo::isType(typeInfo0, NT_LIST))
@@ -72,14 +72,14 @@ AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *o
             returnTypeInfo = binaryOrNothingTypeInfo;
         else {
             // raise an exception due to the invalid operand type
-            parseException(loc, "PARSE-TYPE-ERROR", "the operand for the range square brackets operator [m..n] is type '%s'; this operator only works with 'list', 'string', and 'binary'", QoreTypeInfo::getName(typeInfo0));
+            parseException(*loc, "PARSE-TYPE-ERROR", "the operand for the range square brackets operator [m..n] is type '%s'; this operator only works with 'list', 'string', and 'binary'", QoreTypeInfo::getName(typeInfo0));
         }
     }
     // ensure that the range operands can be converted to an integer
     if (!QoreTypeInfo::isType(typeInfo1, NT_NOTHING) && !QoreTypeInfo::canConvertToScalar(typeInfo1))
-        parseException(loc, "PARSE-TYPE-ERROR", "the start expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(typeInfo1));
+        parseException(*loc, "PARSE-TYPE-ERROR", "the start expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(typeInfo1));
     if (!QoreTypeInfo::isType(typeInfo2, NT_NOTHING) && !QoreTypeInfo::canConvertToScalar(typeInfo2))
-        parseException(loc, "PARSE-TYPE-ERROR", "the end expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(typeInfo2));
+        parseException(*loc, "PARSE-TYPE-ERROR", "the end expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(typeInfo2));
 
     typeInfo = returnTypeInfo;
     return this;

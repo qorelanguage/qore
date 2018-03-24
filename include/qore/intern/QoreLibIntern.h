@@ -166,8 +166,6 @@ struct ParseWarnOptions {
    }
 };
 
-enum prog_loc_e { RunTimeLocation = 0 };
-
 struct QoreProgramLineLocation {
     int16_t start_line, end_line;
 
@@ -193,9 +191,6 @@ public:
     // sets file position info from thread-local parse information
     DLLLOCAL QoreProgramLocation(int sline, int eline);
 
-    // sets from current runtime location in thread-local data
-    DLLLOCAL QoreProgramLocation(prog_loc_e loc);
-
     DLLLOCAL QoreProgramLocation(const QoreProgramLocation& old) : QoreProgramLineLocation(old), file(old.file), source(old.source), offset(old.offset) {
     }
 
@@ -207,15 +202,6 @@ public:
     }
 
     DLLLOCAL void toString(QoreString& str) const;
-
-    DLLLOCAL QoreProgramLocation combine(const QoreProgramLocation& loc1) const {
-        QoreProgramLocation loc(*this);
-        if ((file == loc1.file) && (source == loc1.source)) {
-            loc.end_line = loc1.end_line;
-        }
-
-        return loc;
-    }
 
     DLLLOCAL const char* getFile() const {
         return file;
@@ -272,6 +258,8 @@ protected:
     DLLLOCAL explicit QoreProgramLocation(const char* f, int sline = 0, int eline = 0) : QoreProgramLineLocation(sline, eline), file(f) {
     }
 };
+
+DLLLOCAL extern const QoreProgramLocation loc_builtin;
 
 struct QoreCommandLineLocation : public QoreProgramLocation {
     DLLLOCAL QoreCommandLineLocation() : QoreProgramLocation("<command-line>", 1, 1) {
@@ -383,10 +371,10 @@ typedef std::map<QoreCondition*, int> cond_map_t;
 #define DAH_TEXT(d) (d == DAH_RELEASE ? "RELEASE" : (d == DAH_ACQUIRE ? "ACQUIRE" : "NOCHANGE"))
 
 DLLLOCAL int check_lvalue(AbstractQoreNode* n, bool assign = true);
-DLLLOCAL int check_lvalue_int(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name);
-DLLLOCAL int check_lvalue_float(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name);
-DLLLOCAL int check_lvalue_int_float_number(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name);
-DLLLOCAL int check_lvalue_number(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name);
+DLLLOCAL int check_lvalue_int(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name);
+DLLLOCAL int check_lvalue_float(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name);
+DLLLOCAL int check_lvalue_int_float_number(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name);
+DLLLOCAL int check_lvalue_number(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name);
 
 DLLLOCAL extern QoreClass* QC_PSEUDOVALUE;
 DLLLOCAL extern QoreClass* QC_PSEUDONOTHING;
@@ -510,11 +498,11 @@ DLLLOCAL extern QoreThreadLock lck_gmtime;
 DLLLOCAL extern char table64[64];
 
 DLLLOCAL int get_nibble(char c, ExceptionSink* xsink);
-DLLLOCAL BinaryNode* parseHex(const QoreProgramLocation& loc, const char* buf, int len);
+DLLLOCAL BinaryNode* parseHex(const QoreProgramLocation* loc, const char* buf, int len);
 DLLLOCAL void print_node(FILE* fp, const QoreValue qv);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void init_lib_intern(char* env[]);
-DLLLOCAL QoreParseListNode* make_args(const QoreProgramLocation& loc, AbstractQoreNode* arg);
+DLLLOCAL QoreParseListNode* make_args(const QoreProgramLocation* loc, AbstractQoreNode* arg);
 
 DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
 DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink);
@@ -700,7 +688,7 @@ public:
    }
 };
 
-DLLLOCAL void raise_nonexistent_method_call_warning(const QoreProgramLocation& loc, const QoreClass* qc, const char* method);
+DLLLOCAL void raise_nonexistent_method_call_warning(const QoreProgramLocation* loc, const QoreClass* qc, const char* method);
 
 /*
 class abstract_assignment_helper {
@@ -933,7 +921,7 @@ DLLLOCAL extern QoreString YamlNullString;
 
 DLLLOCAL extern bool q_disable_gc;
 
-DLLLOCAL QoreValue qore_parse_get_define_value(const QoreProgramLocation& loc, const char* str, QoreString& arg, bool& ok);
+DLLLOCAL QoreValue qore_parse_get_define_value(const QoreProgramLocation* loc, const char* str, QoreString& arg, bool& ok);
 
 #ifndef HAVE_INET_NTOP
 DLLLOCAL const char* inet_ntop(int af, const void* src, char* dst, size_t size);
@@ -947,7 +935,7 @@ DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, const char* 
 DLLLOCAL AbstractQoreNode* missing_method_error(const char* meth, const char* opt, ExceptionSink* xsink);
 
 // checks for illegal $self assignments in an object context
-DLLLOCAL void check_self_assignment(const QoreProgramLocation& loc, AbstractQoreNode* n, LocalVar* selfid);
+DLLLOCAL void check_self_assignment(const QoreProgramLocation* loc, AbstractQoreNode* n, LocalVar* selfid);
 
 DLLLOCAL void ignore_return_value(AbstractQoreNode* n);
 

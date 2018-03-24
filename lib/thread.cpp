@@ -153,81 +153,81 @@ public:
 };
 
 struct ParseCountHelper {
-   unsigned count;
+    unsigned count;
 
-   DLLLOCAL ParseCountHelper() : count(0) {
-   }
+    DLLLOCAL ParseCountHelper() : count(0) {
+    }
 
-   DLLLOCAL void inc() {
-      ++count;
-   }
+    DLLLOCAL void inc() {
+        ++count;
+    }
 
-   DLLLOCAL bool dec(const QoreProgramLocation& loc) {
-      if (!count) {
-         parse_error(loc, "unmatched %%endtry");
-         return false;
-      }
-      return !--count;
-   }
+    DLLLOCAL bool dec(const QoreProgramLocation* loc) {
+        if (!count) {
+            parse_error(*loc, "unmatched %%endtry");
+            return false;
+        }
+        return !--count;
+    }
 
-   DLLLOCAL void purge() {
-      if (count) {
-         parse_error(QoreProgramLocation(), "%d %%try-module block%s left open at end of file", count, count == 1 ? "" : "s");
-         count = 0;
-      }
-   }
+    DLLLOCAL void purge() {
+        if (count) {
+            parse_error(QoreProgramLocation(), "%d %%try-module block%s left open at end of file", count, count == 1 ? "" : "s");
+            count = 0;
+        }
+    }
 };
 
 struct ParseConditionalStack {
-   unsigned count;
-   typedef std::vector<unsigned> ui_vec_t;
-   ui_vec_t markvec;
+    unsigned count;
+    typedef std::vector<unsigned> ui_vec_t;
+    ui_vec_t markvec;
 
-   DLLLOCAL ParseConditionalStack() : count(0) {
-   }
+    DLLLOCAL ParseConditionalStack() : count(0) {
+    }
 
-   DLLLOCAL void push(bool do_mark = false) {
-      if (do_mark) {
-         markvec.push_back(count);
-      }
-      ++count;
-   }
+    DLLLOCAL void push(bool do_mark = false) {
+        if (do_mark) {
+            markvec.push_back(count);
+        }
+        ++count;
+    }
 
-   DLLLOCAL bool checkElse() {
-      return count;
-   }
+    DLLLOCAL bool checkElse() {
+        return count;
+    }
 
-   DLLLOCAL bool test(const QoreProgramLocation& loc) const {
-      if (!count) {
-         parse_error(loc, "%%else without %%ifdef");
-         return false;
-      }
-      if (markvec.empty())
-         return false;
-      return markvec.back() == (count - 1);
-   }
+    DLLLOCAL bool test(const QoreProgramLocation* loc) const {
+        if (!count) {
+            parse_error(*loc, "%%else without %%ifdef");
+            return false;
+        }
+        if (markvec.empty())
+            return false;
+        return markvec.back() == (count - 1);
+    }
 
-   DLLLOCAL bool pop(const QoreProgramLocation& loc) {
-      if (!count) {
-         parse_error(loc, "unmatched %%endif");
-         return false;
-      }
-      --count;
-      assert(!markvec.empty());
-      if (count == markvec.back()) {
-         markvec.pop_back();
-         return true;
-      }
-      return false;
-   }
+    DLLLOCAL bool pop(const QoreProgramLocation* loc) {
+        if (!count) {
+            parse_error(*loc, "unmatched %%endif");
+            return false;
+        }
+        --count;
+        assert(!markvec.empty());
+        if (count == markvec.back()) {
+            markvec.pop_back();
+            return true;
+        }
+        return false;
+    }
 
-   DLLLOCAL void purge() {
-      if (count) {
-         parse_error(QoreProgramLocation(), "%d conditional block%s left open at end of file", count, count == 1 ? "" : "s");
-         count = 0;
-         markvec.clear();
-      }
-   }
+    DLLLOCAL void purge() {
+        if (count) {
+            parse_error(QoreProgramLocation(), "%d conditional block%s left open at end of file", count, count == 1 ? "" : "s");
+            count = 0;
+            markvec.clear();
+        }
+    }
 };
 
 class ProgramParseContext {
@@ -256,7 +256,7 @@ public:
 
    Context* context_stack = nullptr;
    ProgramParseContext* plStack = nullptr;
-   QoreProgramLocation runtime_loc;
+   const QoreProgramLocation* runtime_loc = &loc_builtin;
    const char* parse_code = nullptr; // the current function, method, or closure being parsed
    const char* parse_file = nullptr; // the current file or label being parsed
    const char* parse_source = nullptr; // the current source being parsed
@@ -610,17 +610,18 @@ public:
     AbstractQoreNode* fc;
     QoreProgram* pgm;
     int tid;
-    QoreProgramLocation loc;
+    const QoreProgramLocation* loc;
     bool registered = false,
         started = false;
 
     DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
-        : fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation) {
+        : fc(f), pgm(getProgram()), tid(t) {
         assert(xsink);
         {
             ThreadData* td = thread_data.get();
             call_obj = td->current_obj;
             class_ctx = td->current_class;
+            loc = td->runtime_loc;
         }
 
         //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj, call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", fc->getType());
@@ -1038,7 +1039,7 @@ void parse_try_module_inc() {
    td->tm.inc();
 }
 
-bool parse_try_module_dec(const QoreProgramLocation& loc) {
+bool parse_try_module_dec(const QoreProgramLocation* loc) {
    ThreadData* td = thread_data.get();
    return td->tm.dec(loc);
 }
@@ -1063,19 +1064,19 @@ bool parse_cond_else() {
    return td->pcs ? td->pcs->checkElse() : false;
 }
 
-bool parse_cond_pop(const QoreProgramLocation& loc) {
+bool parse_cond_pop(const QoreProgramLocation* loc) {
    ThreadData* td = thread_data.get();
    if (!td->pcs) {
-      parse_error(loc, "unmatched %%endif");
+      parse_error(*loc, "unmatched %%endif");
       return false;
    }
    return td->pcs->pop(loc);
 }
 
-bool parse_cond_test(const QoreProgramLocation& loc) {
+bool parse_cond_test(const QoreProgramLocation* loc) {
    ThreadData* td = thread_data.get();
    if (!td->pcs) {
-      parse_error(loc, "%%else without %%ifdef");
+      parse_error(*loc, "%%else without %%ifdef");
       return false;
    }
    return td->pcs->test(loc);
@@ -1173,17 +1174,17 @@ void update_context_stack(Context* cstack) {
    td->context_stack = cstack;
 }
 
-QoreProgramLocation get_runtime_location() {
+const QoreProgramLocation* get_runtime_location() {
    return thread_data.get()->runtime_loc;
 }
 
-QoreProgramLocation update_get_runtime_location(const QoreProgramLocation& loc) {
-   QoreProgramLocation rv = thread_data.get()->runtime_loc;
-   thread_data.get()->runtime_loc = loc;
-   return rv;
+const QoreProgramLocation* update_get_runtime_location(const QoreProgramLocation* loc) {
+    const QoreProgramLocation* rv = thread_data.get()->runtime_loc;
+    thread_data.get()->runtime_loc = loc;
+    return rv;
 }
 
-void update_runtime_location(const QoreProgramLocation& loc) {
+void update_runtime_location(const QoreProgramLocation* loc) {
    thread_data.get()->runtime_loc = loc;
 }
 
@@ -2452,7 +2453,7 @@ void delete_thread_local_data() {
    ThreadData* td = thread_data.get();
 
    // clear runtime location
-   td->runtime_loc.clear();
+   td->runtime_loc = nullptr;
 
    ExceptionSink xsink;
    // delete any thread data

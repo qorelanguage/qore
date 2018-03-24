@@ -42,7 +42,7 @@ QoreRWLock* thread_stack_lock;
 QoreRWLock thread_stack_lock;
 #endif
 
-CallNode::CallNode(const char *f, int t, QoreObject* o, const qore_class_private* c) : func(f), loc(RunTimeLocation), type(t), obj(o), cls(c) {
+CallNode::CallNode(const char *f, int t, QoreObject* o, const qore_class_private* c) : func(f), loc(get_runtime_location()), type(t), obj(o), cls(c) {
 }
 
 QoreHashNode* CallNode::getInfo() const {
@@ -57,11 +57,11 @@ QoreHashNode* CallNode::getInfo() const {
    qore_hash_private* ph = qore_hash_private::get(*h);
 
    ph->setKeyValueIntern("function", str);
-   ph->setKeyValueIntern("line",     loc.start_line);
-   ph->setKeyValueIntern("endline",  loc.end_line);
-   ph->setKeyValueIntern("file",     new QoreStringNode(loc.getFile()));
-   ph->setKeyValueIntern("source",   loc.getSource() ? new QoreStringNode(loc.getSource()) : QoreValue());
-   ph->setKeyValueIntern("offset",   loc.offset);
+   ph->setKeyValueIntern("line",     loc->start_line);
+   ph->setKeyValueIntern("endline",  loc->end_line);
+   ph->setKeyValueIntern("file",     new QoreStringNode(loc->getFile()));
+   ph->setKeyValueIntern("source",   loc->getSource() ? new QoreStringNode(loc->getSource()) : QoreValue());
+   ph->setKeyValueIntern("offset",   loc->offset);
    ph->setKeyValueIntern("typecode", type);
    // CT_RETHROW is only aded manually
    switch (type) {

@@ -162,13 +162,13 @@ void QoreModuleContext::commit() {
    mcnl.mcnl_t::clear();
 }
 
-void QoreModuleDefContext::set(const QoreProgramLocation& loc, const char* key, const AbstractQoreNode* val) {
+void QoreModuleDefContext::set(const QoreProgramLocation* loc, const char* key, const AbstractQoreNode* val) {
    qore_type_t t = get_node_type(val);
 
    // special handling for "init" and "del"
    if (!strcmp(key, "init")) {
       if (init_c)
-         parse_error(loc, "module key 'init' was given multiple times");
+         parse_error(*loc, "module key 'init' was given multiple times");
       else {
          // check type when code is committed
          init_c = val->refSelf();
@@ -177,7 +177,7 @@ void QoreModuleDefContext::set(const QoreProgramLocation& loc, const char* key, 
    }
    else if (!strcmp(key, "del")) {
       if (del_c)
-         parse_error(loc, "module key 'del' was given multiple times");
+         parse_error(*loc, "module key 'del' was given multiple times");
       else {
          // check type when code is committed
          del_c = val->refSelf();
@@ -185,11 +185,11 @@ void QoreModuleDefContext::set(const QoreProgramLocation& loc, const char* key, 
       }
    }
    else if (vset.find(key) == vset.end())
-      parse_error(loc, "module key '%s' is invalid", key);
+      parse_error(*loc, "module key '%s' is invalid", key);
    else if (vmap.find(key) != vmap.end())
-      parse_error(loc, "module key '%s' was given multiple times", key);
+      parse_error(*loc, "module key '%s' was given multiple times", key);
    else if (t != NT_STRING)
-      parse_error(loc, "module key '%s' assigned type '%s' (expecting 'string')", key, get_type_name(val));
+      parse_error(*loc, "module key '%s' assigned type '%s' (expecting 'string')", key, get_type_name(val));
    else
       vmap[key] = reinterpret_cast<const QoreStringNode*>(val)->getBuffer();
 }
@@ -202,14 +202,14 @@ void QoreModuleDefContext::parseInit() {
       initClosure(del_loc, del_c, "del");
 }
 
-void QoreModuleDefContext::initClosure(const QoreProgramLocation& loc, AbstractQoreNode*& c, const char* n) {
+void QoreModuleDefContext::initClosure(const QoreProgramLocation* loc, AbstractQoreNode*& c, const char* n) {
    // initialize closure
    int lvids = 0;
    const QoreTypeInfo* typeInfo = 0;
    // check for local variables at the top level - this can only happen if the expresion is not a closure
    c = c->parseInit(0, 0, lvids, typeInfo);
    if (lvids) {
-      parseException(loc, "ILLEGAL-LOCAL-VAR", "local variables may not be declared in module '%s' code", n);
+      parseException(*loc, "ILLEGAL-LOCAL-VAR", "local variables may not be declared in module '%s' code", n);
       // discard variables immediately
       for (int i = 0; i < lvids; ++i)
          pop_local_var();
@@ -217,7 +217,7 @@ void QoreModuleDefContext::initClosure(const QoreProgramLocation& loc, AbstractQ
 
    qore_type_t t = get_node_type(c);
    if (t != NT_CLOSURE && t != NT_FUNCREF)
-      parse_error(loc, "the module '%s' key must be assigned to a closure or call reference (got type '%s')", n, get_type_name(c));
+      parse_error(*loc, "the module '%s' key must be assigned to a closure or call reference (got type '%s')", n, get_type_name(c));
 }
 
 int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
@@ -399,9 +399,9 @@ void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) c
    QMM.trySetUserModuleDependency(this);
 }
 
-void QoreBuiltinModule::issueParseCmd(const QoreProgramLocation& loc, QoreString& cmd) {
+void QoreBuiltinModule::issueParseCmd(const QoreProgramLocation* loc, QoreString& cmd) {
    if (!module_parse_cmd) {
-      parseException(loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' has not registered a parse command handler", name.getBuffer(), filename.getBuffer());
+      parseException(*loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' has not registered a parse command handler", name.getBuffer(), filename.getBuffer());
       return;
    }
 
@@ -1388,21 +1388,7 @@ void QoreModuleManager::cleanup() {
    assert(modset.empty());
 }
 
-void QoreModuleManager::issueParseCmd(const QoreProgramLocation& loc, const char* mname, QoreProgram* pgm, QoreString& cmd) {
-   ExceptionSink xsink;
-
-   AutoLocker al(mutex); // make sure checking and loading are atomic
-   loadModuleIntern(xsink, mname, pgm);
-
-   if (xsink) {
-      parseException(loc, "PARSE-COMMAND-ERROR", loadModuleError(mname, xsink));
-      return;
-   }
-
-   QoreAbstractModule* mi = findModule(mname);
-   assert(mi);
-
-   mi->issueParseCmd(loc, cmd);
+void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char* mname, QoreProgram* pgm, QoreString& cmd) {
 }
 
 QoreHashNode* ModuleManager::getModuleHash() {

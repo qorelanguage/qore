@@ -228,8 +228,9 @@ const QoreProgramLocation* qore_program_private_base::getLocation(int sline, int
 }
 
 const QoreProgramLocation* qore_program_private_base::getLocation(const QoreProgramLocation& loc, int sline, int eline) {
-    assert(loc.start_line != sline);
-    assert(loc.end_line != eline);
+    if (loc.start_line == sline && loc.end_line == eline) {
+        return &loc;
+    }
     QoreProgramLocation loc1(loc);
     loc1.start_line = sline;
     loc1.end_line = eline;
@@ -537,7 +538,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
         del(xsink);
 
         // clear program location
-        update_runtime_location(QoreProgramLocation());
+        update_runtime_location(&loc_builtin);
     }
 }
 
@@ -1474,15 +1475,15 @@ bool QoreProgram::existsFunction(const char* name) {
 
 // DEPRECATED
 void QoreProgram::parseSetParseOptions(int po) {
-   priv->parseSetParseOptions(QoreProgramLocation(), (int64)po);
+   priv->parseSetParseOptions(&loc_builtin, (int64)po);
 }
 
 void QoreProgram::parseSetParseOptions(int64 po) {
-   priv->parseSetParseOptions(QoreProgramLocation(), po);
+   priv->parseSetParseOptions(&loc_builtin, po);
 }
 
 void QoreProgram::parseDisableParseOptions(int64 po) {
-   priv->parseDisableParseOptions(QoreProgramLocation(), po);
+   priv->parseDisableParseOptions(&loc_builtin, po);
 }
 
 // DEPRECATED
@@ -1822,7 +1823,7 @@ void QoreProgram::parseSetTimeZone(const char* zone) {
    return priv->parseSetTimeZone(zone);
 }
 
-QoreValue qore_parse_get_define_value(const QoreProgramLocation& loc, const char* str, QoreString& arg, bool& ok) {
+QoreValue qore_parse_get_define_value(const QoreProgramLocation* loc, const char* str, QoreString& arg, bool& ok) {
     ok = true;
     char c = arg[0];
     // see if a string is being defined
@@ -1830,7 +1831,7 @@ QoreValue qore_parse_get_define_value(const QoreProgramLocation& loc, const char
         // make sure the string is terminated in the same way
         char e = arg[arg.strlen() - 1];
         if (c != e || arg.strlen() == 1) {
-            parse_error(loc, "'%s' is defined with an unterminated string; %%define directives must be made on a single line", str);
+            parse_error(*loc, "'%s' is defined with an unterminated string; %%define directives must be made on a single line", str);
             ok = false;
             return QoreValue();
         }
@@ -1854,14 +1855,14 @@ QoreValue qore_parse_get_define_value(const QoreProgramLocation& loc, const char
     while (*p) {
         if (*p == '.') {
             if (flt) {
-                parse_error(loc, "'%s' is defined with an invalid number: '%s'", str, arg.getBuffer());
+                parse_error(*loc, "'%s' is defined with an invalid number: '%s'", str, arg.getBuffer());
                 ok = false;
                 return QoreValue();
             }
             flt = true;
         }
         else if (isalpha(*p)) {
-            parse_error(loc, "'%s' has unquoted alphabetic characters in the value; use quotes (\" or ') to define strings", str);
+            parse_error(*loc, "'%s' has unquoted alphabetic characters in the value; use quotes (\" or ') to define strings", str);
             ok = false;
             return QoreValue();
         }
@@ -1873,11 +1874,11 @@ QoreValue qore_parse_get_define_value(const QoreProgramLocation& loc, const char
 }
 
 void QoreProgram::parseDefine(const char* str, AbstractQoreNode* val) {
-   priv->parseDefine(qoreCommandLineLocation, str, val);
+   priv->parseDefine(&qoreCommandLineLocation, str, val);
 }
 
 void QoreProgram::parseDefine(const char* str, const char* val) {
-   priv->parseDefine(qoreCommandLineLocation, str, new QoreStringNode(val));
+   priv->parseDefine(&qoreCommandLineLocation, str, new QoreStringNode(val));
 }
 
 void QoreProgram::parseCmdLineDefines(const std::map<std::string, std::string> defmap, ExceptionSink& xs, ExceptionSink& ws, int wm) {
@@ -1904,10 +1905,10 @@ void QoreProgram::parseCmdLineDefines(ExceptionSink& xs, ExceptionSink& ws, int 
         arg.trim();
 
         bool ok;
-        QoreValue v = qore_parse_get_define_value(qoreCommandLineLocation, str, arg, ok);
+        QoreValue v = qore_parse_get_define_value(&qoreCommandLineLocation, str, arg, ok);
         if (!ok)
             break;
-        priv->parseDefine(qoreCommandLineLocation, str, v);
+        priv->parseDefine(&qoreCommandLineLocation, str, v);
     }
 
     priv->parseSink = nullptr;

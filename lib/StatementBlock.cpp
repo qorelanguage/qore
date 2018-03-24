@@ -279,68 +279,68 @@ void StatementBlock::exec() {
    exec(&xsink);
 }
 
-static void push_top_level_local_var(LocalVar* lv, const QoreProgramLocation& loc) {
-   new VNode(lv, &loc, 1, true);
+static void push_top_level_local_var(LocalVar* lv, const QoreProgramLocation* loc) {
+   new VNode(lv, loc, 1, true);
 }
 
 // used for constructor methods sharing a common "self" local variable
-void push_local_var(LocalVar* lv, const QoreProgramLocation& loc) {
-   new VNode(lv, &loc, 1);
+void push_local_var(LocalVar* lv, const QoreProgramLocation* loc) {
+   new VNode(lv, loc, 1);
 }
 
-LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto, int n_refs, int pflag) {
-   QoreProgram* pgm = getProgram();
+LocalVar* push_local_var(const char* name, const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, bool is_auto, int n_refs, int pflag) {
+    QoreProgram* pgm = getProgram();
 
-   if ((pflag & PF_TOP_LEVEL) && (pflag & PF_NO_TOP_LEVEL_LVARS))
-      parseException(loc, "ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "cannot declare local variable '%s' in the top-level block; local variables in the top-level block of a Program object can only be declared in the very first parse transaction to the Program object", name);
+    if ((pflag & PF_TOP_LEVEL) && (pflag & PF_NO_TOP_LEVEL_LVARS))
+        parseException(*loc, "ILLEGAL-TOP-LEVEL-LOCAL-VARIABLE", "cannot declare local variable '%s' in the top-level block; local variables in the top-level block of a Program object can only be declared in the very first parse transaction to the Program object", name);
 
-   LocalVar* lv = qore_program_private::get(*pgm)->createLocalVar(name, typeInfo);
+    LocalVar* lv = qore_program_private::get(*pgm)->createLocalVar(name, typeInfo);
 
-   QoreString ls;
-   loc.toString(ls);
-   //printd(5, "push_local_var() lv: %p name: %s type: %s %s\n", lv, name, QoreTypeInfo::getName(typeInfo), ls.getBuffer());
+    QoreString ls;
+    loc->toString(ls);
+    //printd(5, "push_local_var() lv: %p name: %s type: %s %s\n", lv, name, QoreTypeInfo::getName(typeInfo), ls.getBuffer());
 
-   bool found_block = false;
-   // check stack for duplicate entries
-   bool avs = parse_check_parse_option(PO_ASSUME_LOCAL);
-   if (is_auto) {
-      lv->parseAssigned();
-   }
-   else {
-      if (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS | QP_WARN_DUPLICATE_BLOCK_VARS) || avs) {
-         VNode* vnode = getVStack();
-         while (vnode) {
-            if (vnode->lvar) {
-               if (!found_block && vnode->isBlockStart())
-                  found_block = true;
-               if (!strcmp(vnode->getName(), name)) {
-                  if (!found_block) {
-                     QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in the same block", name);
-                     if (avs) {
+    bool found_block = false;
+    // check stack for duplicate entries
+    bool avs = parse_check_parse_option(PO_ASSUME_LOCAL);
+    if (is_auto) {
+        lv->parseAssigned();
+    }
+    else {
+        if (pgm->checkWarning(QP_WARN_DUPLICATE_LOCAL_VARS | QP_WARN_DUPLICATE_BLOCK_VARS) || avs) {
+            VNode* vnode = getVStack();
+            while (vnode) {
+                if (vnode->lvar) {
+                if (!found_block && vnode->isBlockStart())
+                    found_block = true;
+                if (!strcmp(vnode->getName(), name)) {
+                    if (!found_block) {
+                        QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in the same block", name);
+                        if (avs) {
+                            vnode->appendLocation(*desc);
+                            parseException(*loc, "PARSE-ERROR", desc);
+                        }
+                        else {
+                            vnode->appendLocation(*desc);
+                            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", desc);
+                        }
+                    }
+                    else if ((pflag & PF_TOP_LEVEL) || !vnode->isTopLevel()) {
+                        QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in this lexical scope", name);
                         vnode->appendLocation(*desc);
-                        parseException(loc, "PARSE-ERROR", desc);
-                     }
-                     else {
-                        vnode->appendLocation(*desc);
-                        qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", desc);
-                     }
-                  }
-                  else if ((pflag & PF_TOP_LEVEL) || !vnode->isTopLevel()) {
-                     QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already declared in this lexical scope", name);
-                     vnode->appendLocation(*desc);
-                     qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", desc);
-                  }
-                  break;
-               }
+                        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", desc);
+                    }
+                    break;
+                }
+                }
+                vnode = vnode->nextSearch();
             }
-            vnode = vnode->nextSearch();
-         }
-      }
-   }
+        }
+    }
 
-   //printd(5, "push_local_var(): pushing var %s\n", name);
-   new VNode(lv, &loc, n_refs, pflag & PF_TOP_LEVEL);
-   return lv;
+    //printd(5, "push_local_var(): pushing var %s\n", name);
+    new VNode(lv, loc, n_refs, pflag & PF_TOP_LEVEL);
+    return lv;
 }
 
 int pop_local_var_get_id() {
@@ -532,7 +532,7 @@ void TopLevelStatementBlock::parseInit(int64 po) {
    if (!first && lvars) {
       // push already-registered local variables on the stack
       for (unsigned i = 0; i < lvars->size(); ++i)
-         push_top_level_local_var(lvars->lv[i], *loc);
+         push_top_level_local_var(lvars->lv[i], loc);
    }
 
    int pflag = PF_TOP_LEVEL;

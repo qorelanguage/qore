@@ -82,7 +82,7 @@ public:
    DLLLOCAL Var* runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo);
 
    DLLLOCAL Var* parseFindVar(const char* name);
-   DLLLOCAL Var* parseCreatePendingVar(const QoreProgramLocation& loc, const char* name, const QoreTypeInfo* typeInfo);
+   DLLLOCAL Var* parseCreatePendingVar(const QoreProgramLocation* loc, const char* name, const QoreTypeInfo* typeInfo);
    DLLLOCAL const Var* parseFindVar(const char* name) const;
 
    DLLLOCAL void parseAdd(Var* v);

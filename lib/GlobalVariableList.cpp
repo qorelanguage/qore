@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,7 @@ GlobalVariableList::GlobalVariableList(const GlobalVariableList& old, int64 po) 
    for (map_var_t::const_iterator i = old.vmap.begin(), e = old.vmap.end(); i != e; ++i) {
       //printd(5, "GlobalVariableList::GlobalVariableList() this: %p v: %p '%s' pub: %d\n", this, i->second, i->second->getName(), i->second->isPublic());
       if (!i->second->isPublic())
-	 continue;
+         continue;
       Var* v = new Var(const_cast<Var*>(i->second));
       last = vmap.insert(last, map_var_t::value_type(v->getName(), v));
    }
@@ -54,7 +54,7 @@ void GlobalVariableList::mergePublic(const GlobalVariableList& old) {
    map_var_t::iterator last = vmap.begin();
    for (map_var_t::const_iterator i = old.vmap.begin(), e = old.vmap.end(); i != e; ++i) {
       if (!i->second->isPublic())
-	 continue;
+         continue;
       Var* v = new Var(const_cast<Var*>(i->second));
       last = vmap.insert(last, map_var_t::value_type(v->getName(), v));
    }
@@ -107,7 +107,7 @@ Var* GlobalVariableList::runtimeCreateVar(const char* name, const QoreTypeInfo* 
    return var;
 }
 
-Var* GlobalVariableList::parseCreatePendingVar(const QoreProgramLocation& loc, const char* name, const QoreTypeInfo* typeInfo) {
+Var* GlobalVariableList::parseCreatePendingVar(const QoreProgramLocation* loc, const char* name, const QoreTypeInfo* typeInfo) {
    assert(!parseFindVar(name));
 
    Var* var = new Var(loc, name, typeInfo);

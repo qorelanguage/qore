@@ -173,84 +173,84 @@ public:
 
 class UserSignature : public AbstractFunctionSignature {
 protected:
-   ptype_vec_t parseTypeList;
-   QoreParseTypeInfo* parseReturnTypeInfo;
+    ptype_vec_t parseTypeList;
+    QoreParseTypeInfo* parseReturnTypeInfo;
 
-   QoreProgramLocation loc;
+    const QoreProgramLocation* loc;
 
-   DLLLOCAL void pushParam(BarewordNode* b, bool needs_types, bool bare_refs);
-   DLLLOCAL void pushParam(QoreOperatorNode* t, bool needs_types);
-   DLLLOCAL void pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool needs_types);
+    DLLLOCAL void pushParam(BarewordNode* b, bool needs_types, bool bare_refs);
+    DLLLOCAL void pushParam(QoreOperatorNode* t, bool needs_types);
+    DLLLOCAL void pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool needs_types);
 
-   DLLLOCAL void param_error() {
-      parse_error(loc, "parameter list contains non-variable reference expressions");
-   }
+    DLLLOCAL void param_error() {
+        parse_error(*loc, "parameter list contains non-variable reference expressions");
+    }
 
 public:
-   lvar_vec_t lv;
-   LocalVar* argvid;
-   LocalVar* selfid;
-   bool resolved;
+    lvar_vec_t lv;
+    LocalVar* argvid;
+    LocalVar* selfid;
+    bool resolved;
 
-   DLLLOCAL UserSignature(int n_first_line, int n_last_line, AbstractQoreNode* params, RetTypeInfo* retTypeInfo, int64 po);
+    DLLLOCAL UserSignature(int n_first_line, int n_last_line, AbstractQoreNode* params, RetTypeInfo* retTypeInfo, int64 po);
 
-   DLLLOCAL virtual ~UserSignature() {
-      for (ptype_vec_t::iterator i = parseTypeList.begin(), e = parseTypeList.end(); i != e; ++i)
-         delete* i;
-      delete parseReturnTypeInfo;
-   }
+    DLLLOCAL virtual ~UserSignature() {
+        for (ptype_vec_t::iterator i = parseTypeList.begin(), e = parseTypeList.end(); i != e; ++i)
+            delete* i;
+        delete parseReturnTypeInfo;
+    }
 
-   DLLLOCAL void setFirstParamType(const QoreTypeInfo* typeInfo) {
-      assert(!typeList.empty());
-      typeList[0] = typeInfo;
-   }
+    DLLLOCAL void setFirstParamType(const QoreTypeInfo* typeInfo) {
+        assert(!typeList.empty());
+        typeList[0] = typeInfo;
+    }
 
-   DLLLOCAL void setSelfId(LocalVar* n_selfid) {
-      assert(!selfid);
-      selfid = n_selfid;
-   }
+    DLLLOCAL void setSelfId(LocalVar* n_selfid) {
+        assert(!selfid);
+        selfid = n_selfid;
+    }
 
-   DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const {
-      return num < parseTypeList.size() ? parseTypeList[num] : nullptr;
-   }
+    DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const {
+        return num < parseTypeList.size() ? parseTypeList[num] : nullptr;
+    }
 
-   // resolves all parse types to the final types
-   DLLLOCAL void resolve();
+    // resolves all parse types to the final types
+    DLLLOCAL void resolve();
 
-   DLLLOCAL virtual void addAbstractParameterSignature(std::string& str) const {
-      if (resolved) {
-         AbstractFunctionSignature::addAbstractParameterSignature(str);
-         return;
-      }
+    DLLLOCAL virtual void addAbstractParameterSignature(std::string& str) const {
+        if (resolved) {
+            AbstractFunctionSignature::addAbstractParameterSignature(str);
+            return;
+        }
 
-      for (unsigned i = 0; i < parseTypeList.size(); ++i) {
-         if (!parseTypeList[i] && typeList.size() > i && typeList[i])
-            str.append(QoreTypeInfo::getName(typeList[i]));
-         else
-            str.append(QoreParseTypeInfo::getName(parseTypeList[i]));
-         if (i != parseTypeList.size() - 1)
-            str.append(",");
-      }
-   }
+        for (unsigned i = 0; i < parseTypeList.size(); ++i) {
+            if (!parseTypeList[i] && typeList.size() > i && typeList[i])
+                str.append(QoreTypeInfo::getName(typeList[i]));
+            else
+                str.append(QoreParseTypeInfo::getName(parseTypeList[i]));
+            if (i != parseTypeList.size() - 1)
+                str.append(",");
+        }
+    }
 
-   // called at parse time to ensure types are resolved
-   DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const {
-      const_cast<UserSignature*>(this)->resolve();
-      return returnTypeInfo;
-   }
+    // called at parse time to ensure types are resolved
+    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const {
+        const_cast<UserSignature*>(this)->resolve();
+        return returnTypeInfo;
+    }
 
-   DLLLOCAL const QoreProgramLocation& getParseLocation() const {
-      return loc;
-   }
+    DLLLOCAL const QoreProgramLocation* getParseLocation() const {
+        return loc;
+    }
 
-   DLLLOCAL bool hasReturnTypeInfo() const {
-      return parseReturnTypeInfo || returnTypeInfo;
-   }
+    DLLLOCAL bool hasReturnTypeInfo() const {
+        return parseReturnTypeInfo || returnTypeInfo;
+    }
 
-   DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo);
+    DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo);
 
-   // returns the $argv reference count
-   DLLLOCAL void parseInitPopLocalVars();
+    // returns the $argv reference count
+    DLLLOCAL void parseInitPopLocalVars();
 };
 
 class AbstractQoreFunctionVariant;
@@ -261,7 +261,7 @@ protected:
    const char* name;
    ExceptionSink* xsink;
    const qore_class_private* qc;
-   QoreProgramLocation loc;
+   const QoreProgramLocation* loc;
    QoreValueListEvalOptionalRefHolder tmp;
    const QoreTypeInfo* returnTypeInfo; // saved return type info
    QoreProgram* pgm; // program used when evaluated (to find stacks for references)
@@ -930,7 +930,7 @@ public:
 
     // find variant at parse time, throw parse exception if no variant can be matched
     // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable
-    DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation& loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx);
+    DLLLOCAL const AbstractQoreFunctionVariant* parseFindVariant(const QoreProgramLocation* loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx);
 
     // returns true if there are no uncommitted parse variants in the function
     DLLLOCAL bool pendingEmpty() const {

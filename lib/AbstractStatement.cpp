@@ -41,8 +41,13 @@ AbstractStatement::AbstractStatement(qore_program_private_base* p) : breakpointF
 AbstractStatement::AbstractStatement(int sline, int eline) : breakpointFlag(false), breakpoints(0), loc(qore_program_private::get(*getProgram())->getLocation(sline, eline)) {
     QoreProgram* pgm = getProgram();
     assert(pgm);
-    //if (pgm)
-        pwo = qore_program_private::getParseWarnOptions(pgm);
+    pwo = qore_program_private::getParseWarnOptions(pgm);
+}
+
+AbstractStatement::AbstractStatement(const QoreProgramLocation* loc) : breakpointFlag(false), breakpoints(0), loc(loc) {
+    QoreProgram* pgm = getProgram();
+    assert(pgm);
+    pwo = qore_program_private::getParseWarnOptions(pgm);
 }
 
 AbstractStatement::~AbstractStatement() {
@@ -69,7 +74,7 @@ void AbstractStatement::finalizeBlock(int sline, int eline) {
 
 int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
     printd(1, "AbstractStatement::exec() this: %p file: %s line: %d\n", this, loc->getFile(), loc->start_line);
-    QoreProgramLocationHelper l(*loc);
+    QoreProgramLocationHelper l(loc);
 
 #ifdef QORE_MANAGE_STACK
     if (check_stack(xsink))

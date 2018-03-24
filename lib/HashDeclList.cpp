@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -161,19 +161,19 @@ void HashDeclList::assimilate(HashDeclList& n, qore_ns_private& ns) {
     hm_qth_t::iterator i = n.hm.begin();
     while (i != n.hm.end()) {
         if (ns.classList.find(i->first)) {
-           parse_error(typed_hash_decl_private::get(*i->second)->getParseLocation(), "class '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
+           parse_error(*typed_hash_decl_private::get(*i->second)->getParseLocation(), "class '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
            n.remove(i);
         }
         else if (ns.pendClassList.find(i->first)) {
-           parse_error(typed_hash_decl_private::get(*i->second)->getParseLocation(), "class '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
+           parse_error(*typed_hash_decl_private::get(*i->second)->getParseLocation(), "class '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
            n.remove(i);
         }
         else if (ns.hashDeclList.find(i->first)) {
-           parse_error(typed_hash_decl_private::get(*i->second)->getParseLocation(), "hashdecl '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
+           parse_error(*typed_hash_decl_private::get(*i->second)->getParseLocation(), "hashdecl '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
            n.remove(i);
         }
         else if (find(i->first)) {
-            parse_error(typed_hash_decl_private::get(*i->second)->getParseLocation(), "hashdecl '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
+            parse_error(*typed_hash_decl_private::get(*i->second)->getParseLocation(), "hashdecl '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
             n.remove(i);
         }
         else {

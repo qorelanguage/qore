@@ -41,7 +41,7 @@ class typed_hash_decl_private;
 
 class HashDeclMemberInfo : public QoreMemberInfoBase {
 public:
-   DLLLOCAL HashDeclMemberInfo(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr) : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e) {
+   DLLLOCAL HashDeclMemberInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr) : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e) {
    }
 
    DLLLOCAL HashDeclMemberInfo(const HashDeclMemberInfo& old) : QoreMemberInfoBase(old) {
@@ -56,10 +56,10 @@ typedef QoreMemberMapBase<HashDeclMemberInfo> HashDeclMemberMap;
 
 class typed_hash_decl_private {
 public:
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation& loc) : loc(loc) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc) {
     }
 
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation& loc, const char* n, TypedHashDecl* thd) : loc(loc), name(n), thd(thd), typeInfo(new QoreHashDeclTypeInfo(thd, n)), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, TypedHashDecl* thd) : loc(loc), name(n), thd(thd), typeInfo(new QoreHashDeclTypeInfo(thd, n)), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
     }
 
     DLLLOCAL typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd);
@@ -147,15 +147,15 @@ public:
         }
     }
 
-    DLLLOCAL int parseInitHashDeclInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreParseListNode* args, bool& runtime_check) const;
+    DLLLOCAL int parseInitHashDeclInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, bool& runtime_check) const;
 
-    DLLLOCAL void parseCheckHashDeclInitialization(const QoreProgramLocation& loc, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool& runtime_check, bool strict_check = true) const;
+    DLLLOCAL void parseCheckHashDeclInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool& runtime_check, bool strict_check = true) const;
 
-    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation& loc, const typed_hash_decl_private& hd, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
+    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation* loc, const typed_hash_decl_private& hd, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
 
-    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation& loc, const AbstractQoreNode* n, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
+    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation* loc, const AbstractQoreNode* n, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
 
-    DLLLOCAL void parseCheckComplexHashAssignment(const QoreProgramLocation& loc, const QoreTypeInfo* vti) const;
+    DLLLOCAL void parseCheckComplexHashAssignment(const QoreProgramLocation* loc, const QoreTypeInfo* vti) const;
 
     DLLLOCAL QoreHashNode* newHash(const QoreParseListNode* args, bool runtime_check, ExceptionSink* xsink) const;
 
@@ -173,7 +173,7 @@ public:
         return *xsink ? -1 : 0;
     }
 
-    DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const;
+    DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation* loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const;
 
     DLLLOCAL const HashDeclMemberInfo* findMember(const char* m) const {
         return members.find(m);
@@ -198,7 +198,7 @@ public:
         return name.c_str();
     }
 
-    DLLLOCAL const QoreProgramLocation& getParseLocation() const {
+    DLLLOCAL const QoreProgramLocation* getParseLocation() const {
         return loc;
     }
 
@@ -212,7 +212,7 @@ public:
 
     DLLLOCAL void addMember(const char* name, const QoreTypeInfo* memberTypeInfo, QoreValue init_val) {
         assert(!members.find(name));
-        members.addNoCheck(std::make_pair(strdup(name), new HashDeclMemberInfo(QoreProgramLocation(RunTimeLocation), memberTypeInfo, nullptr, init_val.takeNode())));
+        members.addNoCheck(std::make_pair(strdup(name), new HashDeclMemberInfo(&loc_builtin, memberTypeInfo, nullptr, init_val.takeNode())));
     }
 
     DLLLOCAL void setName(const char* n) {
@@ -222,7 +222,7 @@ public:
 protected:
     // references
     mutable QoreReferenceCounter refs;
-    QoreProgramLocation loc;
+    const QoreProgramLocation* loc;
     std::string name;
     TypedHashDecl* thd = nullptr;
 

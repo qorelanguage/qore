@@ -48,7 +48,7 @@ public:
    char *str;
 
    // object takes over ownership of str
-   DLLLOCAL BarewordNode(const QoreProgramLocation& loc, char *c_str);
+   DLLLOCAL BarewordNode(const QoreProgramLocation* loc, char *c_str);
 
    DLLLOCAL virtual ~BarewordNode();
 

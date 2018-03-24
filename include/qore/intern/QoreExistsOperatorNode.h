@@ -42,7 +42,7 @@ protected:
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& typeInfo);
 
 public:
-   DLLLOCAL QoreExistsOperatorNode(const QoreProgramLocation& loc, QoreValue exp) : QoreSingleValueExpressionOperatorNode<QoreOperatorNode>(loc, exp) {
+   DLLLOCAL QoreExistsOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : QoreSingleValueExpressionOperatorNode<QoreOperatorNode>(loc, exp) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;

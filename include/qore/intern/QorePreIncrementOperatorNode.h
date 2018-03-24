@@ -64,7 +64,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QorePreIncrementOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, n_exp) {
+   DLLLOCAL QorePreIncrementOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, n_exp) {
    }
 
    DLLLOCAL virtual bool hasEffect() const {

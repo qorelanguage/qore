@@ -111,17 +111,17 @@ public:
    DLLLOCAL QoreHashNode* makeExceptionObject();
 
    // called for runtime exceptions
-   DLLLOCAL QoreException(const char *n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreExceptionLocation(QoreProgramLocation(RunTimeLocation)), next(0) {
+   DLLLOCAL QoreException(const char *n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreExceptionLocation(*get_runtime_location()), next(0) {
    }
 
-   DLLLOCAL QoreException(QoreStringNode *n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0) : QoreExceptionBase(n_err, n_desc, n_arg), QoreExceptionLocation(QoreProgramLocation(RunTimeLocation)), next(0) {
+   DLLLOCAL QoreException(QoreStringNode *n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0) : QoreExceptionBase(n_err, n_desc, n_arg), QoreExceptionLocation(*get_runtime_location()), next(0) {
    }
 
    DLLLOCAL QoreException(const QoreException& old) : QoreExceptionBase(old), QoreExceptionLocation(old), next(old.next ? new QoreException(*old.next) : 0) {
    }
 
    // called for user exceptions
-   DLLLOCAL QoreException(const QoreListNode* n) : QoreExceptionBase(0, 0, 0, ET_USER), QoreExceptionLocation(QoreProgramLocation(RunTimeLocation)), next(0) {
+   DLLLOCAL QoreException(const QoreListNode* n) : QoreExceptionBase(0, 0, 0, ET_USER), QoreExceptionLocation(*get_runtime_location()), next(0) {
       if (n) {
          err = n->get_referenced_entry(0);
          desc = n->get_referenced_entry(1);
@@ -150,7 +150,7 @@ public:
       if (!fn)
          fn = "<unknown>";
 
-      QoreHashNode* h = getStackHash(CT_RETHROW, 0, fn, get_runtime_location());
+      QoreHashNode* h = getStackHash(CT_RETHROW, 0, fn, *get_runtime_location());
       l->insert(h);
 
       return e;
@@ -165,95 +165,95 @@ public:
 };
 
 struct qore_es_private {
-   bool thread_exit = false;
-   QoreException* head = 0, * tail = 0;
+    bool thread_exit = false;
+    QoreException* head = 0, * tail = 0;
 
-   DLLLOCAL qore_es_private() {
-   }
+    DLLLOCAL qore_es_private() {
+    }
 
-   DLLLOCAL ~qore_es_private() {
-   }
+    DLLLOCAL ~qore_es_private() {
+    }
 
-   DLLLOCAL void clearIntern() {
-      // delete all exceptions
-      ExceptionSink xs;
-      if (head) {
-         head->del(&xs);
-         head = tail = 0;
-      }
-   }
+    DLLLOCAL void clearIntern() {
+        // delete all exceptions
+        ExceptionSink xs;
+        if (head) {
+            head->del(&xs);
+            head = tail = 0;
+        }
+    }
 
-   DLLLOCAL void insert(QoreException *e) {
-      // append exception to the list
-      if (!head)
-         head = e;
-      else
-         tail->next = e;
-      tail = e;
-   }
+    DLLLOCAL void insert(QoreException *e) {
+        // append exception to the list
+        if (!head)
+            head = e;
+        else
+            tail->next = e;
+        tail = e;
+    }
 
-   DLLLOCAL void appendListIntern(QoreString& str) const {
-      QoreException* w = head;
-      while (w) {
-	 QoreStringNodeValueHelper err(w->err);
-	 QoreStringNodeValueHelper desc(w->desc);
+    DLLLOCAL void appendListIntern(QoreString& str) const {
+        QoreException* w = head;
+        while (w) {
+        QoreStringNodeValueHelper err(w->err);
+        QoreStringNodeValueHelper desc(w->desc);
 
-	 str.concat(" * ");
-	 if (!w->file.empty())
-	    str.sprintf("%s:", w->file.c_str());
-	 if (w->start_line) {
-	    str.sprintf("%d", w->start_line);
-            if (w->end_line && w->end_line != w->start_line)
-               str.sprintf("-%d", w->end_line);
-            str.concat(": ");
-         }
-	 str.sprintf("%s: %s", err->getBuffer(), desc->getBuffer());
-         if (w != tail)
-            str.concat('\n');
+        str.concat(" * ");
+        if (!w->file.empty())
+            str.sprintf("%s:", w->file.c_str());
+        if (w->start_line) {
+            str.sprintf("%d", w->start_line);
+                if (w->end_line && w->end_line != w->start_line)
+                str.sprintf("-%d", w->end_line);
+                str.concat(": ");
+            }
+        str.sprintf("%s: %s", err->getBuffer(), desc->getBuffer());
+            if (w != tail)
+                str.concat('\n');
 
-	 w = w->next;
-      }
-   }
+        w = w->next;
+        }
+    }
 
-   // creates a stack trace node and adds it to all exceptions in this sink
-   DLLLOCAL void addStackInfo(int type, const char *class_name, const char *code, const QoreProgramLocation& loc) {
-      assert(head);
-      QoreHashNode* n = QoreException::getStackHash(type, class_name, code, loc);
+    // creates a stack trace node and adds it to all exceptions in this sink
+    DLLLOCAL void addStackInfo(int type, const char *class_name, const char *code, const QoreProgramLocation& loc) {
+        assert(head);
+        QoreHashNode* n = QoreException::getStackHash(type, class_name, code, loc);
 
-      QoreException *w = head;
-      while (w) {
-         w->addStackInfo(n);
-         w = w->next;
-         if (w)
-            n->ref();
-      }
-   }
+        QoreException *w = head;
+        while (w) {
+            w->addStackInfo(n);
+            w = w->next;
+            if (w)
+                n->ref();
+        }
+    }
 
-   DLLLOCAL void addStackInfo(const QoreCallStackElement& cse) {
-      assert(head);
-      QoreHashNode* n = QoreException::getStackHash(cse);
+    DLLLOCAL void addStackInfo(const QoreCallStackElement& cse) {
+        assert(head);
+        QoreHashNode* n = QoreException::getStackHash(cse);
 
-      QoreException *w = head;
-      while (w) {
-         w->addStackInfo(n);
-         w = w->next;
-         if (w)
-            n->ref();
-      }
-   }
+        QoreException *w = head;
+        while (w) {
+            w->addStackInfo(n);
+            w = w->next;
+            if (w)
+                n->ref();
+        }
+    }
 
-   DLLLOCAL void addStackInfo(const QoreCallStack& stack) {
-      for (auto& i : stack)
-         addStackInfo(i);
-   }
+    DLLLOCAL void addStackInfo(const QoreCallStack& stack) {
+        for (auto& i : stack)
+            addStackInfo(i);
+    }
 
-   DLLLOCAL static void addStackInfo(ExceptionSink& xsink, int type, const char* class_name, const char* code, const QoreProgramLocation& loc) {
-      xsink.priv->addStackInfo(type, class_name, code, loc);
-   }
+    DLLLOCAL static void addStackInfo(ExceptionSink& xsink, int type, const char* class_name, const char* code, const QoreProgramLocation& loc) {
+        xsink.priv->addStackInfo(type, class_name, code, loc);
+    }
 
-   DLLLOCAL static void appendList(ExceptionSink& xsink, QoreString& str) {
-      xsink.priv->appendListIntern(str);
-   }
+    DLLLOCAL static void appendList(ExceptionSink& xsink, QoreString& str) {
+        xsink.priv->appendListIntern(str);
+    }
 };
 
 class ParseExceptionSink {

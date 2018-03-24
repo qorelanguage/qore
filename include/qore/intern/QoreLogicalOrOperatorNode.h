@@ -40,7 +40,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
 public:
-   DLLLOCAL QoreLogicalOrOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreLogicalAndOperatorNode(loc, n_left, n_right) {
+   DLLLOCAL QoreLogicalOrOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreLogicalAndOperatorNode(loc, n_left, n_right) {
    }
 
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be

@@ -67,7 +67,7 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
    bool in_closure;
    if (name.size() == 1 && (id = find_local_var(name.ostr, in_closure))) {
       if (typeInfo)
-         parse_error(loc, "type definition given for existing local variable '%s'", id->getName());
+         parse_error(*loc, "type definition given for existing local variable '%s'", id->getName());
 
       ref.id = id;
       if (in_closure)
@@ -124,7 +124,7 @@ QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) con
 
 AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {
     if (pflag & PF_CONST_EXPRESSION) {
-        parseException(loc, "ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name.ostr);
+        parseException(*loc, "ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name.ostr);
         return 0;
     }
 
@@ -230,12 +230,12 @@ bool VarRefNode::scanMembers(RSetHelper& rsh) {
    return false;
 }
 
-GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation& loc, char *n, const QoreTypeInfo* typeInfo) : VarRefNode(loc, n, 0, false, true) {
+GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation* loc, char *n, const QoreTypeInfo* typeInfo) : VarRefNode(loc, n, 0, false, true) {
    explicit_scope = true;
    ref.var = qore_root_ns_private::parseAddResolvedGlobalVarDef(loc, name, typeInfo);
 }
 
-GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation& loc, char *n, QoreParseTypeInfo* parseTypeInfo) : VarRefNode(loc, n, 0, false, true) {
+GlobalVarRefNode::GlobalVarRefNode(const QoreProgramLocation* loc, char *n, QoreParseTypeInfo* parseTypeInfo) : VarRefNode(loc, n, 0, false, true) {
    explicit_scope = true;
    ref.var = qore_root_ns_private::parseAddGlobalVarDef(loc, name, parseTypeInfo);
 }
@@ -287,13 +287,13 @@ void VarRefDeclNode::makeGlobal() {
    new_decl = true;
 }
 
-void VarRefNewObjectNode::parseInitConstructorCall(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const QoreClass* qc) {
+void VarRefNewObjectNode::parseInitConstructorCall(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, const QoreClass* qc) {
     assert(qc);
     // throw an exception if trying to instantiate a class with abstract method variants
     qore_class_private::get(*const_cast<QoreClass*>(qc))->parseCheckAbstractNew(loc);
 
     if (qore_program_private::parseAddDomain(getProgram(), qc->getDomain()))
-        parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", qc->getName());
+        parseException(*loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", qc->getName());
 
     // FIXME: make common code with ScopedObjectCallNode
     const QoreMethod* constructor = qc ? qc->parseGetConstructor() : nullptr;
@@ -304,25 +304,25 @@ void VarRefNewObjectNode::parseInitConstructorCall(const QoreProgramLocation& lo
 
     if (((constructor && (qore_method_private::getAccess(*constructor) > Public)) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*qc)) {
         if (variant)
-            parse_error(loc, "illegal external access to private constructor %s::constructor(%s)", qc->getName(), variant->getSignature()->getSignatureText());
+            parse_error(*loc, "illegal external access to private constructor %s::constructor(%s)", qc->getName(), variant->getSignature()->getSignatureText());
         else
-            parse_error(loc, "illegal external access to private constructor of class %s", qc->getName());
+            parse_error(*loc, "illegal external access to private constructor of class %s", qc->getName());
     }
 
     //printd(5, "VarRefFunctionCallBase::parseInitConstructorCall() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, qc->getName(), qc, constructor, constructor ? constructor->getFunction() : 0, variant);
 }
 
-void VarRefNewObjectNode::parseInitHashDeclInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, int &lvids, const TypedHashDecl* hd) {
+void VarRefNewObjectNode::parseInitHashDeclInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, int &lvids, const TypedHashDecl* hd) {
     assert(hd);
     lvids += typed_hash_decl_private::get(*hd)->parseInitHashDeclInitialization(loc, oflag, pflag, parse_args, runtime_check);
 }
 
-void VarRefNewObjectNode::parseInitComplexHashInitialization(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo* ti) {
+void VarRefNewObjectNode::parseInitComplexHashInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo* ti) {
     assert(ti);
     lvids += qore_hash_private::parseInitComplexHashInitialization(loc, oflag, pflag, parse_args, ti);
 }
 
-void VarRefNewObjectNode::parseInitComplexListInitialization(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo* ti) {
+void VarRefNewObjectNode::parseInitComplexListInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo* ti) {
     assert(ti);
     lvids += qore_list_private::parseInitComplexListInitialization(loc, oflag, pflag, takeParseArgs(), new_args, ti);
 }
@@ -355,13 +355,13 @@ AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar* oflag, int pflag,
                     vrn_type = VRN_COMPLEXLIST;
                 }
                 else
-                    parse_error(loc, "type '%s' does not support implied constructor instantiation", QoreTypeInfo::getName(typeInfo));
+                    parse_error(*loc, "type '%s' does not support implied constructor instantiation", QoreTypeInfo::getName(typeInfo));
             }
         }
     }
 
     if (pflag & PF_FOR_ASSIGNMENT)
-        parse_error(loc, "variable instantiation with the implied contructor syntax implies an assignment; it is an error to make an additional assignment");
+        parse_error(*loc, "variable instantiation with the implied contructor syntax implies an assignment; it is an error to make an additional assignment");
 
     outTypeInfo = typeInfo;
     return this;

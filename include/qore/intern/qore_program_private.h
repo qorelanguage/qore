@@ -1397,11 +1397,11 @@ public:
         return 0;
     }
 
-    DLLLOCAL int parseSetParseOptions(const QoreProgramLocation& loc, int64 po) {
+    DLLLOCAL int parseSetParseOptions(const QoreProgramLocation* loc, int64 po) {
         // only raise the exception if parse options are locked and the option is not a "free option"
         // also check if options may be made more restrictive and the option also does so
         if (((po & PO_FREE_OPTIONS) != po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
-            parse_error(loc, "parse options have been locked on this program object");
+            parse_error(*loc, "parse options have been locked on this program object");
             return -1;
         }
 
@@ -1409,11 +1409,11 @@ public:
         return 0;
     }
 
-    DLLLOCAL int parseDisableParseOptions(const QoreProgramLocation& loc, int64 po) {
+    DLLLOCAL int parseDisableParseOptions(const QoreProgramLocation* loc, int64 po) {
         // only raise the exception if parse options are locked and the option is not a "free option"
         // note: disabling PO_POSITIVE_OPTION is more restrictive so let's allow to disable
         if (((po & PO_FREE_OPTIONS) != po) && po_locked && !po_allow_restrict) {
-            parse_error(loc, "parse options have been locked on this program object");
+            parse_error(*loc, "parse options have been locked on this program object");
             return -1;
         }
 
@@ -1441,7 +1441,7 @@ public:
         TZ = tz;
     }
 
-    DLLLOCAL void makeParseException(const QoreProgramLocation &loc, const char* err, QoreStringNode* desc) {
+    DLLLOCAL void makeParseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc) {
         QORE_TRACE("QoreProgram::makeParseException()");
 
         QoreStringNodeHolder d(desc);
@@ -1454,7 +1454,7 @@ public:
         }
     }
 
-    DLLLOCAL void parseException(QoreProgramLocation &loc, const char* fmt, ...) {
+    DLLLOCAL void parseException(QoreProgramLocation& loc, const char* fmt, ...) {
         //printd(5, "qore_program_private::parseException(\"%s\", ...) called\n", fmt);
 
         // ignore if a "requires" exception has been raised
@@ -1538,17 +1538,17 @@ public:
         return isDefined(name);
     }
 
-    DLLLOCAL int checkDefine(const QoreProgramLocation &loc, const char* str, ExceptionSink* xsink) {
+    DLLLOCAL int checkDefine(const QoreProgramLocation* loc, const char* str, ExceptionSink* xsink) {
         const char* p = str;
         if (!isalpha(*p)) {
-            xsink->raiseException(loc, "PARSE-EXCEPTION", 0, "illegal define variable '%s'; does not begin with an alphabetic character", p);
+            xsink->raiseException(*loc, "PARSE-EXCEPTION", 0, "illegal define variable '%s'; does not begin with an alphabetic character", p);
             return -1;
         }
 
         while (*(++p)) {
             if (!isalnum(*p) && *p != '_') {
 
-                xsink->raiseException(loc, "PARSE-EXCEPTION", 0, "illegal character '%c' in define variable '%s'", *p, str);
+                xsink->raiseException(*loc, "PARSE-EXCEPTION", 0, "illegal character '%c' in define variable '%s'", *p, str);
                 return -1;
             }
         }
@@ -1556,7 +1556,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL void parseDefine(const QoreProgramLocation &loc, const char* str, QoreValue val) {
+    DLLLOCAL void parseDefine(const QoreProgramLocation* loc, const char* str, QoreValue val) {
         PreParseHelper pph(this);
 
         if (checkDefine(loc, str, parseSink))
@@ -1566,7 +1566,7 @@ public:
     }
 
     DLLLOCAL void runTimeDefine(const char* str, QoreValue val, ExceptionSink* xsink) {
-        QoreProgramLocation loc(RunTimeLocation);
+        const QoreProgramLocation* loc = get_runtime_location();
 
         if (checkDefine(loc, str, xsink))
             return;
@@ -1601,7 +1601,7 @@ public:
             }
         }
 
-        DLLLOCAL void addParseException(ExceptionSink& xsink, QoreProgramLocation* loc) {
+        DLLLOCAL void addParseException(ExceptionSink& xsink, const QoreProgramLocation* loc) {
             if (requires_exception) {
                 xsink.clear();
                 return;
@@ -1945,7 +1945,7 @@ public:
       return pgm->priv->runTimeIsDefined(name);
    }
 
-   DLLLOCAL static void parseDefine(QoreProgram* pgm, QoreProgramLocation loc, const char* str, QoreValue val) {
+   DLLLOCAL static void parseDefine(QoreProgram* pgm, const QoreProgramLocation* loc, const char* str, QoreValue val) {
       pgm->priv->parseDefine(loc, str, val);
    }
 
@@ -1953,13 +1953,13 @@ public:
       pgm->priv->runTimeDefine(str, val, xsink);
    }
 
-   DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink* xsink, QoreProgramLocation* loc = nullptr) {
+   DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink* xsink, const QoreProgramLocation* loc = nullptr) {
       assert(xsink);
       pgm->priv->addParseException(*xsink, loc);
       delete xsink;
    }
 
-   DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink& xsink, QoreProgramLocation* loc = nullptr) {
+   DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink& xsink, const QoreProgramLocation* loc = nullptr) {
       pgm->priv->addParseException(xsink, loc);
    }
 

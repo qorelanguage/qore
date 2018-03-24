@@ -99,7 +99,7 @@ class RSetHelper;
 // structure for global variables
 class Var : protected QoreReferenceCounter {
 private:
-   const QoreProgramLocation loc;      // location of the initial definition
+   const QoreProgramLocation* loc;      // location of the initial definition
    QoreLValue<qore_gvar_ref_u> val;
    std::string name;
    mutable QoreVarRWLock rwl;
@@ -126,13 +126,13 @@ protected:
       }
 
 public:
-   DLLLOCAL Var(const QoreProgramLocation& loc, const char* n_name) : loc(loc), val(QV_Node), name(n_name), parseTypeInfo(nullptr), typeInfo(nullptr), pub(false), finalized(false) {
+   DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name) : loc(loc), val(QV_Node), name(n_name), parseTypeInfo(nullptr), typeInfo(nullptr), pub(false), finalized(false) {
    }
 
-   DLLLOCAL Var(const QoreProgramLocation& loc, const char* n_name, QoreParseTypeInfo *n_parseTypeInfo) : loc(loc), val(QV_Node), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0), pub(false), finalized(false) {
+   DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name, QoreParseTypeInfo *n_parseTypeInfo) : loc(loc), val(QV_Node), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0), pub(false), finalized(false) {
    }
 
-   DLLLOCAL Var(const QoreProgramLocation& loc, const char* n_name, const QoreTypeInfo *n_typeInfo) : loc(loc), val(n_typeInfo), name(n_name), parseTypeInfo(nullptr), typeInfo(n_typeInfo), pub(false), finalized(false) {
+   DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name, const QoreTypeInfo *n_typeInfo) : loc(loc), val(n_typeInfo), name(n_name), parseTypeInfo(nullptr), typeInfo(n_typeInfo), pub(false), finalized(false) {
    }
 
    DLLLOCAL Var(Var* ref, bool ro = false) : loc(ref->loc), val(QV_Ref), name(ref->name), parseTypeInfo(nullptr), typeInfo(ref->typeInfo), pub(false), finalized(false) {
@@ -177,19 +177,19 @@ public:
 
    DLLLOCAL QoreValue eval() const;
 
-   DLLLOCAL void doDoubleDeclarationError(const QoreProgramLocation& loc) {
+   DLLLOCAL void doDoubleDeclarationError(const QoreProgramLocation* loc) {
       // make sure types are identical or throw an exception
       if (parseTypeInfo) {
-         parse_error(loc, "global variable '%s' previously declared with type '%s'", name.c_str(), QoreParseTypeInfo::getName(parseTypeInfo));
+         parse_error(*loc, "global variable '%s' previously declared with type '%s'", name.c_str(), QoreParseTypeInfo::getName(parseTypeInfo));
          assert(!typeInfo);
       }
       if (typeInfo) {
-         parse_error(loc, "global variable '%s' previously declared with type '%s'", name.c_str(), QoreTypeInfo::getName(typeInfo));
+         parse_error(*loc, "global variable '%s' previously declared with type '%s'", name.c_str(), QoreTypeInfo::getName(typeInfo));
          assert(!parseTypeInfo);
       }
    }
 
-   DLLLOCAL void checkAssignType(const QoreProgramLocation& loc, const QoreTypeInfo *n_typeInfo) {
+   DLLLOCAL void checkAssignType(const QoreProgramLocation* loc, const QoreTypeInfo *n_typeInfo) {
       //printd(5, "Var::parseCheckAssignType() this=%p %s: type=%s %s new type=%s %s\n", this, name.c_str(), typeInfo->getTypeName(), typeInfo->getCID(), n_typeInfo->getTypeName(), n_typeInfo->getCID());
       if (!QoreTypeInfo::hasType(n_typeInfo))
          return;
@@ -294,7 +294,7 @@ public:
       pub = true;
    }
 
-   DLLLOCAL const QoreProgramLocation& getParseLocation() const {
+   DLLLOCAL const QoreProgramLocation* getParseLocation() const {
       return loc;
    }
 };

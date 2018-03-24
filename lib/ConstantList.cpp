@@ -44,7 +44,7 @@ const char* ClassNs::getName() const {
 }
 #endif
 
-ConstantEntry::ConstantEntry(const QoreProgramLocation& loc, const char* n, QoreValue val, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin, ClassAccess n_access)
+ConstantEntry::ConstantEntry(const QoreProgramLocation* loc, const char* n, QoreValue val, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin, ClassAccess n_access)
    : loc(loc), name(n), typeInfo(ti), val(val), in_init(false), pub(n_pub),
      init(n_init), builtin(n_builtin), access(n_access) {
     QoreProgram* pgm = getProgram();
@@ -141,7 +141,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
         return 0;
 
     if (in_init) {
-        parse_error(loc, "recursive constant reference found to constant '%s'", name.c_str());
+        parse_error(*loc, "recursive constant reference found to constant '%s'", name.c_str());
         return 0;
     }
 
@@ -207,7 +207,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
     }
 
     if (xsink.isEvent())
-        qore_program_private::addParseException(pgm, xsink, &loc);
+        qore_program_private::addParseException(pgm, xsink, loc);
 
     // scan for call references
     if (scanValue(val)) {
@@ -292,10 +292,10 @@ void ConstantList::parseDeleteAll() {
         qore_program_private::addParseException(getProgram(), xsink);
 }
 
-cnemap_t::iterator ConstantList::parseAdd(const QoreProgramLocation& loc, const char* name, QoreValue value, const QoreTypeInfo* typeInfo, bool pub, ClassAccess access) {
+cnemap_t::iterator ConstantList::parseAdd(const QoreProgramLocation* loc, const char* name, QoreValue value, const QoreTypeInfo* typeInfo, bool pub, ClassAccess access) {
    // first check if the constant has already been defined
    if (cnemap.find(name) != cnemap.end()) {
-      parse_error(loc, "constant \"%s\" has already been defined", name);
+      parse_error(*loc, "constant \"%s\" has already been defined", name);
       value.discard(nullptr);
       return cnemap.end();
    }
@@ -311,7 +311,7 @@ cnemap_t::iterator ConstantList::add(const char* name, QoreValue value, const Qo
       assert(false);
    }
 #endif
-   ConstantEntry* ce = new ConstantEntry(QoreProgramLocation(), name, value, typeInfo || (value.hasNode() && value.getInternalNode()->needs_eval()) ? typeInfo : value.getTypeInfo(), true, true, true, access);
+   ConstantEntry* ce = new ConstantEntry(&loc_builtin, name, value, typeInfo || (value.hasNode() && value.getInternalNode()->needs_eval()) ? typeInfo : value.getTypeInfo(), true, true, true, access);
    return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 
@@ -394,12 +394,12 @@ void ConstantList::assimilate(ConstantList& n, const char* type, const char* nam
     // assimilate target list
     for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
         if (inList(i->first)) {
-            parse_error(i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
+            parse_error(*i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
             continue;
         }
 
         if (other && other->inList(i->first)) {
-            parse_error(i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
+            parse_error(*i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
             continue;
         }
 
@@ -410,9 +410,9 @@ void ConstantList::assimilate(ConstantList& n, const char* type, const char* nam
     n.parseDeleteAll();
 }
 
-void ConstantList::parseAdd(const QoreProgramLocation& loc, const std::string& name, QoreValue val, ClassAccess access, const char* cname) {
+void ConstantList::parseAdd(const QoreProgramLocation* loc, const std::string& name, QoreValue val, ClassAccess access, const char* cname) {
     if (inList(name)) {
-        parse_error(loc, "constant \"%s\" has already been defined in class \"%s\"", name.c_str(), cname);
+        parse_error(*loc, "constant \"%s\" has already been defined in class \"%s\"", name.c_str(), cname);
         val.discard(0);
         return;
     }

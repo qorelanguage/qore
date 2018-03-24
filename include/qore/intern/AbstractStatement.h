@@ -78,6 +78,7 @@ public:
 
     DLLLOCAL AbstractStatement(qore_program_private_base* p);
 
+    DLLLOCAL AbstractStatement(const QoreProgramLocation* loc);
     DLLLOCAL AbstractStatement(int sline, int eline);
     DLLLOCAL virtual ~AbstractStatement();
 
@@ -118,7 +119,7 @@ DLLLOCAL void pop_cvar();
 DLLLOCAL LocalVar* pop_local_var(bool set_unassigned = false);
 DLLLOCAL int pop_local_var_get_id();
 // used for constructor methods sharing a common "self" local variable and for top-level local variables
-DLLLOCAL void push_local_var(LocalVar* lv, const QoreProgramLocation& loc);
+DLLLOCAL void push_local_var(LocalVar* lv, const QoreProgramLocation* loc);
 
 // push a local variable on the stack at parse time
 /** @param name the name of the var
@@ -130,7 +131,7 @@ DLLLOCAL void push_local_var(LocalVar* lv, const QoreProgramLocation& loc);
 
     @return the LocalVar ptr (caller owns the pointer returned)
 */
-DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto = true, int n_refs = 0, int pflag = 0);
+DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, bool is_auto = true, int n_refs = 0, int pflag = 0);
 
 DLLLOCAL LocalVar* find_local_var(const char* name, bool &in_closure);
 
