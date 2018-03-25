@@ -2310,9 +2310,6 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
     //printd(5, "qore_ns_private::parseAssimilate() this: %p (%p) '%s' pub: %d imported: %d ans->pub: %d ans->imported: %d (%p)\n", this, ns, name.c_str(), pub, imported, ans->priv->pub, ans->priv->imported, ans);
 
     qore_ns_private* pns = ans->priv;
-    // make sure there are no objects in the committed lists in the namespace to be merged
-    assert(pns->nsl.empty());
-    assert(pns->constant.empty());
 
     // ensure that either both namespaces are public or both are not
     if (parse_check_parse_option(PO_IN_MODULE) && ((pub && !pns->pub) || (!pub && pns->pub))) {
