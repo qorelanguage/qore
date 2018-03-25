@@ -2020,8 +2020,8 @@ void qore_ns_private::parseRollback() {
     // delete hashdecls
     hashDeclList.reset();
 
-    // delete namespaces
-    nsl.reset();
+    // rollback namespaces
+    nsl.parseRollback();
 }
 
 qore_ns_private* qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
