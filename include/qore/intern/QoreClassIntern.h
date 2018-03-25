@@ -50,10 +50,7 @@
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
 
-#if 1
-typedef vector_map_t<std::string, QoreMethod*> hm_method_t;
-// vector map
-#else
+// cannot use vector_map here for performance reasons with method lookups
 #ifdef HAVE_QORE_HASH_MAP
 #include <qore/hash_map_include.h>
 #include "qore/intern/xxhash.h"
@@ -61,7 +58,6 @@ typedef vector_map_t<std::string, QoreMethod*> hm_method_t;
 typedef HASH_MAP<std::string, QoreMethod*> hm_method_t;
 #else
 typedef std::map<std::string, QoreMethod*> hm_method_t;
-#endif
 #endif
 
 // forward reference to private class implementation
