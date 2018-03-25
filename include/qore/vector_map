@@ -106,6 +106,16 @@ public:
         return std::find(vector.begin(), vector.end(), key);
     }
 
+    // same as find, just for map compatibility
+    DLLLOCAL iterator lower_bound(const K& key) {
+        return std::find(vector.begin(), vector.end(), key);
+    }
+
+    // same as find, just for map compatibility
+    DLLLOCAL const_iterator lower_bound(const K& key) const {
+        return std::find(vector.begin(), vector.end(), key);
+    }
+
     DLLLOCAL iterator begin() {
         return vector.begin();
     }

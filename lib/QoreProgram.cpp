@@ -922,13 +922,13 @@ void qore_program_private::del(ExceptionSink* xsink) {
 
     //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
-    for (std::map<const char*, section_sline_statement_map_t*>::iterator it = statementByFileIndex.begin(); it != statementByFileIndex.end(); it++) {
+    for (name_section_sline_statement_map_t::iterator it = statementByFileIndex.begin(); it != statementByFileIndex.end(); it++) {
         it->second->sectionMap.clear();
         it->second->statementMap.clear();
         delete it->second;
     }
     statementByFileIndex.clear();
-    for (std::map<const char*, section_sline_statement_map_t*>::iterator it = statementByLabelIndex.begin(); it != statementByLabelIndex.end(); it++) {
+    for (name_section_sline_statement_map_t::iterator it = statementByLabelIndex.begin(); it != statementByLabelIndex.end(); it++) {
         it->second->sectionMap.clear();
         it->second->statementMap.clear();
         delete it->second;
@@ -1072,39 +1072,39 @@ const QoreTypeInfo* qore_program_private::getComplexReferenceOrNothingType(const
 }
 
 void qore_program_private::addStatementToIndexIntern(name_section_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs, const char* section, int sectionOffs) {
-   // index is being built when parsing
-   if ((!statement && !section) || !key)
-      return;
-   section_sline_statement_map_t *sssm;
-   std::map<const char*, section_sline_statement_map_t*>::iterator it = statementIndex->find(key);
-   if (it == statementIndex->end()) {
-      printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s',%d,'%s',%d) key not found, this: %p\n", statementIndex, key, offs, section ? section : (const char*)"(null)",sectionOffs, this);
-      sssm = new section_sline_statement_map_t();
-      statementIndex->insert(std::pair<const char*, section_sline_statement_map_t*>(key, sssm));
-   } else {
-      sssm = it->second;
-      if (statement) {
-         std::map<int, AbstractStatement*>::iterator li = sssm->statementMap.find(statement->loc->start_line+offs);
-         while (li != sssm->statementMap.end() && li->first == statement->loc->start_line+offs) {
-            if (li->second->loc->end_line == statement->loc->end_line) {
-                // order of multimap values is not defined, so unless we want create extra index by statement position at line then we need insert only the first statement
-                printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s',%d) skipping line (%d-%d), this: %p\n", statementIndex, key, offs, statement->loc->start_line, statement->loc->end_line, this);
-                return;
+    // index is being built when parsing
+    if ((!statement && !section) || !key)
+        return;
+    section_sline_statement_map_t *sssm;
+    name_section_sline_statement_map_t::iterator it = statementIndex->find(key);
+    if (it == statementIndex->end()) {
+        printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s',%d,'%s',%d) key not found, this: %p\n", statementIndex, key, offs, section ? section : (const char*)"(null)",sectionOffs, this);
+        sssm = new section_sline_statement_map_t();
+        statementIndex->insert(name_section_sline_statement_map_t::value_type(key, sssm));
+    } else {
+        sssm = it->second;
+        if (statement) {
+            sline_statement_map_t::iterator li = sssm->statementMap.find(statement->loc->start_line+offs);
+            while (li != sssm->statementMap.end() && li->first == statement->loc->start_line+offs) {
+                if (li->second->loc->end_line == statement->loc->end_line) {
+                    // order of multimap values is not defined, so unless we want create extra index by statement position at line then we need insert only the first statement
+                    printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s',%d) skipping line (%d-%d), this: %p\n", statementIndex, key, offs, statement->loc->start_line, statement->loc->end_line, this);
+                    return;
+                }
+                ++li;
             }
-            ++li;
-         }
-      }
-   }
-   if (statement) {
-      printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s',%d) insert line %d (%d-%d), this: %p\n", statementIndex, key, offs, statement->loc->start_line+offs, statement->loc->start_line, statement->loc->end_line, this);
-      sssm->statementMap.insert(std::pair<int, AbstractStatement*>(statement->loc->start_line+offs, statement));
-   }
-   if (section) {
-      if (sssm->sectionMap.find(section) == sssm->sectionMap.end()) {
-         printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s','%s',%d) insert section, this: %p\n", statementIndex, key, section, sectionOffs, this);
-         sssm->sectionMap.insert(std::pair<const char*, int>(section, sectionOffs));
-      }
-   }
+        }
+    }
+    if (statement) {
+        printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s',%d) insert line %d (%d-%d), this: %p\n", statementIndex, key, offs, statement->loc->start_line+offs, statement->loc->start_line, statement->loc->end_line, this);
+        sssm->statementMap.insert(std::pair<int, AbstractStatement*>(statement->loc->start_line+offs, statement));
+    }
+    if (section) {
+        if (sssm->sectionMap.find(section) == sssm->sectionMap.end()) {
+            printd(5, "qore_program_private::addStatementToIndexIntern(%p,'%s','%s',%d) insert section, this: %p\n", statementIndex, key, section, sectionOffs, this);
+            sssm->sectionMap.insert(std::pair<const char*, int>(section, sectionOffs));
+        }
+    }
 }
 
 void qore_program_private::registerStatement(QoreProgram *pgm, AbstractStatement *statement, bool addToIndex) {

@@ -45,6 +45,7 @@ extern QoreHashNode* ENV;
 #include "qore/intern/QC_ProgramControl.h"
 #include "qore/QoreDebugProgram.h"
 #include "qore/QoreRWLock.h"
+#include "qore/vector_map"
 
 #include <stdarg.h>
 #include <errno.h>
@@ -52,7 +53,8 @@ extern QoreHashNode* ENV;
 #include <map>
 #include <vector>
 
-typedef std::map<int, unsigned> ptid_map_t;
+typedef vector_map_t<int, unsigned> ptid_map_t;
+//typedef std::map<int, unsigned> ptid_map_t;
 
 typedef std::vector<AbstractStatement*> stmt_vec_t;
 
@@ -278,13 +280,16 @@ public:
 };
 
 // maps from thread handles to thread-local data
-typedef std::map<ThreadProgramData*, ThreadLocalProgramData*> pgm_data_map_t;
+typedef vector_map_t<ThreadProgramData*, ThreadLocalProgramData*> pgm_data_map_t;
+//typedef std::map<ThreadProgramData*, ThreadLocalProgramData*> pgm_data_map_t;
 
 // map for "defines" in programs
-typedef std::map<std::string, QoreValue> dmap_t;
+typedef vector_map_t<std::string, QoreValue> dmap_t;
+//typedef std::map<std::string, QoreValue> dmap_t;
 
 // map for pushed parse options
-typedef std::map<const char*, int64, ltstr> ppo_t;
+typedef vector_map_t<const char*, int64> ppo_t;
+//typedef std::map<const char*, int64, ltstr> ppo_t;
 
 class AbstractQoreZoneInfo;
 
@@ -315,7 +320,8 @@ class qore_program_private_base {
 protected:
     DLLLOCAL void setDefines();
 
-    typedef std::map<const char*, AbstractQoreProgramExternalData*, ltstr> extmap_t;
+    typedef vector_map_t<const char*, AbstractQoreProgramExternalData*> extmap_t;
+    //typedef std::map<const char*, AbstractQoreProgramExternalData*, ltstr> extmap_t;
     extmap_t extmap;
 
 public:
@@ -359,7 +365,8 @@ public:
         csll,                 // complex softlist lock
         cslonl;               // complex softlist or nothing lock
 
-    typedef std::map<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
+    typedef vector_map_t<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
+    //typedef std::map<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
     tmap_t ch_map,          // complex hash map
         chon_map,            // complex hash or nothing map
         cl_map,              // complex list map
@@ -570,7 +577,8 @@ private:
     typedef section_sline_statement_map section_sline_statement_map_t;
 
     // map for filenames
-    typedef std::map<const char*, section_sline_statement_map_t*, ltstr> name_section_sline_statement_map_t;
+    typedef vector_map_t<const char*, section_sline_statement_map_t*> name_section_sline_statement_map_t;
+    //typedef std::map<const char*, section_sline_statement_map_t*, ltstr> name_section_sline_statement_map_t;
 
     // index source filename/label -> line -> statement
     name_section_sline_statement_map_t statementByFileIndex;
@@ -2102,7 +2110,7 @@ public:
    DLLLOCAL void getBreakpoints(QoreBreakpointList_t &bkptList) {
       QoreAutoRWReadLocker al(&lck_breakpoint);
       bkptList.clear();
-      for (std::list<QoreBreakpoint*>::iterator it = breakpointList.begin(); it != breakpointList.end(); ++it) {
+      for (QoreBreakpointList_t::iterator it = breakpointList.begin(); it != breakpointList.end(); ++it) {
          bkptList.push_back(*it);
          (*it)->ref();
       }
@@ -2185,7 +2193,7 @@ public:
     DLLLOCAL AbstractStatement* getStatementFromIndex(const char* name, int line) {
         printd(5, "qore_program_private::getStatementFromIndex('%s',%d), this: %p, file#: %d, label#: %d\n", name, line, this, statementByFileIndex.size(), statementByLabelIndex.size());
         AutoLocker al(&plock);
-        std::map<const char*, section_sline_statement_map_t*>::iterator it;
+        name_section_sline_statement_map_t::iterator it;
         if (statementByFileIndex.empty()) {
             return nullptr;
         }
@@ -2233,7 +2241,7 @@ public:
         if (ssm->size() == 0)
             return nullptr;
 
-        std::map<int, AbstractStatement*>::iterator li = ssm->upper_bound(line);
+        sline_statement_map_t::iterator li = ssm->upper_bound(line);
         if (li == ssm->begin()) {
             printd(5, "qore_program_private::getStatementFromIndex('%s',%d) no statement found by line #1, this: %p\n", name, line, this);
             return nullptr;
