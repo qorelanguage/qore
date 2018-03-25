@@ -39,6 +39,7 @@
 #include "qore/intern/qore_var_rwlock_priv.h"
 #include "qore/intern/VRMutex.h"
 #include "qore/vector_map"
+#include "qore/vector_set"
 
 #include <string.h>
 
@@ -1450,7 +1451,8 @@ public:
 };
 
 // set of private class pointers; used when checking for recursive class inheritance lists
-typedef std::set<qore_class_private*> qcp_set_t;
+typedef vector_set_t<qore_class_private*> qcp_set_t;
+//typedef std::set<qore_class_private*> qcp_set_t;
 
 // BCNode
 // base class pointer
@@ -1803,7 +1805,8 @@ public:
 #define QCCM_STATIC (1 << 1)
 
 // set of QoreClass pointers associted to a qore_class_private object
-typedef std::set<QoreClass*> qc_set_t;
+typedef vector_set_t<QoreClass*> qc_set_t;
+//typedef std::set<QoreClass*> qc_set_t;
 
 // private QoreClass implementation
 // only dynamically allocated; reference counter managed in "refs"

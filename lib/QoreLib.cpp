@@ -143,6 +143,50 @@ char table64[64] = {
    '4', '5', '6', '7', '8', '9', '+', '/',
 };
 
+template<>
+vector_set_t<const char*>::iterator vector_set_t<const char*>::find(const char* const& v) {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+template<>
+DLLLOCAL vector_set_t<const char*>::const_iterator vector_set_t<const char*>::find(const char* const& v) const {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+// same as find, just for map compatibility
+template<>
+DLLLOCAL vector_set_t<const char*>::iterator vector_set_t<const char*>::lower_bound(const char* const& v) {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+// same as find, just for map compatibility
+template<>
+DLLLOCAL vector_set_t<const char*>::const_iterator vector_set_t<const char*>::lower_bound(const char* const& v) const {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+template<>
+vector_set_t<char*>::iterator vector_set_t<char*>::find(char* const& v) {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+template<>
+DLLLOCAL vector_set_t<char*>::const_iterator vector_set_t<char*>::find(char* const& v) const {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+// same as find, just for map compatibility
+template<>
+DLLLOCAL vector_set_t<char*>::iterator vector_set_t<char*>::lower_bound(char* const& v) {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+// same as find, just for map compatibility
+template<>
+DLLLOCAL vector_set_t<char*>::const_iterator vector_set_t<char*>::lower_bound(char* const& v) const {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
 const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_ATOMIC_OPERATIONS,
      "HAVE_ATOMIC_OPERATIONS",
