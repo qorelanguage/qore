@@ -64,11 +64,11 @@ struct ClassNs {
     }
 
     DLLLOCAL qore_class_private* getClass() const {
-        return (!(ptr & (size_t)1)) ? (qore_class_private*)ptr : 0;
+        return (!(ptr & (size_t)1)) ? (qore_class_private*)ptr : nullptr;
     }
 
     DLLLOCAL qore_ns_private* getNs() const {
-        return (ptr & (size_t)1) ? (qore_ns_private*)(ptr & ~(size_t)1) : 0;
+        return (ptr & (size_t)1) ? (qore_ns_private*)(ptr & ~(size_t)1) : nullptr;
     }
 
     DLLLOCAL bool isNs() const {
@@ -209,6 +209,13 @@ public:
    }
 };
 
+#if 1
+#include <qore/vector_map>
+typedef vector_map_t<const char*, ConstantEntry*> cnemap_t;
+#define QORE_USE_VECTOR_MAP 1
+
+// FLAT_MAP
+#else
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
@@ -217,6 +224,7 @@ public:
 typedef HASH_MAP<const char*, ConstantEntry*, qore_hash_str, eqstr> cnemap_t;
 #else
 typedef std::map<const char*, ConstantEntry*, ltstr> cnemap_t;
+#endif
 #endif
 
 class ConstantList {
@@ -234,6 +242,7 @@ protected:
     ClassNs ptr;
 
 public:
+    vector_map_t<std::string, ConstantEntry*> new_cnemap;
     cnemap_t cnemap;
 
     DLLLOCAL ~ConstantList();

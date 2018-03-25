@@ -2005,7 +2005,7 @@ void qore_ns_private::parseRollback() {
     // delete pending global variable declarations
     pend_gvblist.clear();
 
-    // delete pending global variables
+    // delete global variables
     var_list.reset();
 
     // delete pending user functions

@@ -293,15 +293,15 @@ void ConstantList::parseDeleteAll() {
 }
 
 cnemap_t::iterator ConstantList::parseAdd(const QoreProgramLocation* loc, const char* name, QoreValue value, const QoreTypeInfo* typeInfo, bool pub, ClassAccess access) {
-   // first check if the constant has already been defined
-   if (cnemap.find(name) != cnemap.end()) {
-      parse_error(*loc, "constant \"%s\" has already been defined", name);
-      value.discard(nullptr);
-      return cnemap.end();
-   }
+    // first check if the constant has already been defined
+    if (cnemap.find(name) != cnemap.end()) {
+        parse_error(*loc, "constant \"%s\" has already been defined", name);
+        value.discard(nullptr);
+        return cnemap.end();
+    }
 
-   ConstantEntry* ce = new ConstantEntry(loc, name, value, typeInfo || (value.hasNode() && value.getInternalNode()->needs_eval()) ? typeInfo : value.getTypeInfo(), pub, false, false, access);
-   return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
+    ConstantEntry* ce = new ConstantEntry(loc, name, value, typeInfo || (value.hasNode() && value.getInternalNode()->needs_eval()) ? typeInfo : value.getTypeInfo(), pub, false, false, access);
+    return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 
 cnemap_t::iterator ConstantList::add(const char* name, QoreValue value, const QoreTypeInfo* typeInfo, ClassAccess access) {

@@ -1,0 +1,174 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+    vector_map
+
+    A map-type class implemented with std::vector for very fast iteration and
+    efficient memory storage for small(ish) data sets
+
+    ex: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0429r1.pdf
+
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    constants can only be defined when parsing
+    constants values will be substituted during the 2nd parse phase
+
+    reads and writes are (must be) wrapped under the program-level parse lock
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#ifndef _QORE_VECTOR_MAP_H
+
+#define _QORE_VECTOR_MAP_H
+
+#include <vector>
+#include <algorithm>
+#include <iterator>
+
+template <typename K, typename T>
+class vector_map_node_t : public std::pair<K, T> {
+public:
+    DLLLOCAL vector_map_node_t(const K& k, const T& t) {
+        this->first = k;
+        this->second = t;
+    }
+
+    DLLLOCAL bool operator==(const K& k) const {
+        return this->first == k;
+    };
+};
+
+template<typename T> // specialization for char*
+class vector_map_node_t<char*, T> : public std::pair<char*, T> {
+public:
+    DLLLOCAL vector_map_node_t(const char*& k, const T& t) {
+        this->first = k;
+        this->second = t;
+    }
+
+    DLLLOCAL bool operator==(const char*& k) const {
+        return !strcmp(this->first, k);
+    };
+};
+
+template<typename T> // specialization for const char*
+class vector_map_node_t<const char*, T> : public std::pair<const char*, T> {
+public:
+    DLLLOCAL vector_map_node_t(const char* const& k, const T& t) {
+        this->first = k;
+        this->second = t;
+    }
+
+    DLLLOCAL bool operator==(const char* const& k) const {
+        return !strcmp(this->first, k);
+    };
+};
+
+template <typename K, typename T>
+class vector_map_t {
+public:
+    typedef vector_map_node_t<K, T> value_type;
+
+private:
+    typedef std::vector<value_type> vector_t;
+
+public:
+    typedef typename vector_t::iterator iterator;
+    typedef typename vector_t::const_iterator const_iterator;
+
+    DLLLOCAL iterator find(const K& key) {
+        return std::find(vector.begin(), vector.end(), key);
+    }
+
+    DLLLOCAL const_iterator find(const K& key) const {
+        return std::find(vector.begin(), vector.end(), key);
+    }
+
+    DLLLOCAL iterator begin() {
+        return vector.begin();
+    }
+
+    DLLLOCAL const_iterator begin() const {
+        return vector.begin();
+    }
+
+    DLLLOCAL iterator end() {
+        return vector.end();
+    }
+
+    DLLLOCAL const_iterator end() const {
+        return vector.end();
+    }
+
+    DLLLOCAL bool empty() const {
+        return vector.empty();
+    }
+
+    DLLLOCAL void clear() {
+        vector.clear();
+    }
+
+    DLLLOCAL size_t size() const {
+        return vector.size();
+    }
+
+    // iterator arg ignored
+    DLLLOCAL iterator insert(iterator i, value_type vt) {
+        bool created;
+        i = find_create(vt.first, created);
+        i->second = vt.second;
+        return i;
+    }
+
+    DLLLOCAL std::pair<iterator, bool> insert(value_type vt) {
+        bool created;
+        iterator i = find_create(vt.first, created);
+        i->second = vt.second;
+        return std::pair<iterator, bool>(i, created);
+    }
+
+    DLLLOCAL T& operator[](const K& key) {
+        bool created;
+        iterator i = find_create(key, created);
+        return i->second;
+    }
+
+private:
+    DLLLOCAL iterator find_create(const K& key, bool& created) {
+        iterator i = find(key);
+        if (i == vector.end()) {
+            i = vector.insert(vector.end(), value_type(key, T()));
+            created = true;
+        }
+        else {
+            created = false;
+        }
+        return i;
+    }
+
+    vector_t vector;
+};
+
+#endif
