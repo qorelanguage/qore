@@ -38,6 +38,7 @@
 #include "qore/intern/QoreLValue.h"
 #include "qore/intern/qore_var_rwlock_priv.h"
 #include "qore/intern/VRMutex.h"
+#include "qore/vector_map"
 
 #include <string.h>
 
@@ -49,6 +50,10 @@
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
 
+#if 1
+typedef vector_map_t<std::string, QoreMethod*> hm_method_t;
+// vector map
+#else
 #ifdef HAVE_QORE_HASH_MAP
 #include <qore/hash_map_include.h>
 #include "qore/intern/xxhash.h"
@@ -57,12 +62,14 @@ typedef HASH_MAP<std::string, QoreMethod*> hm_method_t;
 #else
 typedef std::map<std::string, QoreMethod*> hm_method_t;
 #endif
+#endif
 
 // forward reference to private class implementation
 class qore_class_private;
 
 // map from abstract signature to variant for fast tracking of abstract variants
-typedef std::map<const char*, MethodVariantBase*, ltstr> vmap_t;
+typedef vector_map_t<const char*, MethodVariantBase*> vmap_t;
+//typedef std::map<const char*, MethodVariantBase*, ltstr> vmap_t;
 
 struct AbstractMethod {
     // committed abstract methods from this class and parent classes
@@ -108,10 +115,14 @@ struct AbstractMethod {
     }
 };
 
+#if 1
+typedef vector_map_t<std::string, AbstractMethod*> amap_t;
+#else
 #ifdef HAVE_QORE_HASH_MAP
 typedef HASH_MAP<std::string, AbstractMethod*> amap_t;
 #else
 typedef std::map<std::string, AbstractMethod*> amap_t;
+#endif
 #endif
 
 struct AbstractMethodMap : amap_t {
@@ -1210,10 +1221,14 @@ public:
     typedef std::pair<char*, T*> list_element_t;
     typedef std::vector<list_element_t> member_list_t;
     typedef typename member_list_t::const_iterator DeclOrderIterator;
+#if 1
+    typedef vector_map_t<char*, T*> member_map_t;
+#else
 #ifdef HAVE_QORE_HASH_MAP
     typedef HASH_MAP<char*, T*, qore_hash_str, eqstr> member_map_t;
 #else
     typedef std::map<char*, T*, ltstr> member_map_t;
+#endif
 #endif
     typedef typename member_map_t::const_iterator SigOrderIterator;
 
@@ -1664,7 +1679,8 @@ struct ltqc {
 };
 */
 
-typedef std::map<qore_classid_t, BCEANode*> bceamap_t;
+//typedef std::map<qore_classid_t, BCEANode*> bceamap_t;
+typedef vector_map_t<qore_classid_t, BCEANode*> bceamap_t;
 
 /*
   BCEAList

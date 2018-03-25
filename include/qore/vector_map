@@ -63,12 +63,12 @@ public:
 template<typename T> // specialization for char*
 class vector_map_node_t<char*, T> : public std::pair<char*, T> {
 public:
-    DLLLOCAL vector_map_node_t(const char*& k, const T& t) {
+    DLLLOCAL vector_map_node_t(char* k, const T& t) {
         this->first = k;
         this->second = t;
     }
 
-    DLLLOCAL bool operator==(const char*& k) const {
+    DLLLOCAL bool operator==(const char* k) const {
         return !strcmp(this->first, k);
     };
 };
@@ -76,12 +76,12 @@ public:
 template<typename T> // specialization for const char*
 class vector_map_node_t<const char*, T> : public std::pair<const char*, T> {
 public:
-    DLLLOCAL vector_map_node_t(const char* const& k, const T& t) {
+    DLLLOCAL vector_map_node_t(const char* const k, const T& t) {
         this->first = k;
         this->second = t;
     }
 
-    DLLLOCAL bool operator==(const char* const& k) const {
+    DLLLOCAL bool operator==(const char* const k) const {
         return !strcmp(this->first, k);
     };
 };

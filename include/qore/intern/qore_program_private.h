@@ -1591,37 +1591,37 @@ public:
         return qore_root_ns_private::runtimeGetCallReference(*RootNS, name, xsink);
     }
 
-        DLLLOCAL void pushParseOptions(const char* pf) {
-            // ignore %push-parse-options used multiple times in the same file
-            ppo_t::iterator i = ppo.lower_bound(pf);
-            if (i != ppo.end() && !strcmp(pf, i->first))
-                return;
-            ppo.insert(i, ppo_t::value_type(pf, pwo.parse_options));
-            //printd(5, "qore_program_private::pushParseOptions() this: %p %p '%s' saving %lld\n", this, pf, pf, pwo.parse_options);
+    DLLLOCAL void pushParseOptions(const char* pf) {
+        // ignore %push-parse-options used multiple times in the same file
+        ppo_t::iterator i = ppo.lower_bound(pf);
+        if (i != ppo.end() && !strcmp(pf, i->first))
+            return;
+        ppo.insert(i, ppo_t::value_type(pf, pwo.parse_options));
+        //printd(5, "qore_program_private::pushParseOptions() this: %p %p '%s' saving %lld\n", this, pf, pf, pwo.parse_options);
+    }
+
+    DLLLOCAL void restoreParseOptions(const char* pf) {
+        ppo_t::iterator i = ppo.find(pf);
+        if (i != ppo.end()) {
+            //printd(5, "qore_program_private::restoreParseOptions() this: %p %p '%s' restoring %lld\n", this, pf, pf, pwo.parse_options);
+            pwo.parse_options = i->second;
+            ppo.erase(i);
+        }
+    }
+
+    DLLLOCAL void addParseException(ExceptionSink& xsink, const QoreProgramLocation* loc) {
+        if (requires_exception) {
+            xsink.clear();
+            return;
         }
 
-        DLLLOCAL void restoreParseOptions(const char* pf) {
-            ppo_t::iterator i = ppo.find(pf);
-            if (i != ppo.end()) {
-                //printd(5, "qore_program_private::restoreParseOptions() this: %p %p '%s' restoring %lld\n", this, pf, pf, pwo.parse_options);
-                pwo.parse_options = i->second;
-                ppo.erase(i);
-            }
+        if (loc) {
+            // ensure that all exceptions reflect the current parse location
+            xsink.overrideLocation(*loc);
         }
 
-        DLLLOCAL void addParseException(ExceptionSink& xsink, const QoreProgramLocation* loc) {
-            if (requires_exception) {
-                xsink.clear();
-                return;
-            }
-
-            if (loc) {
-                // ensure that all exceptions reflect the current parse location
-                xsink.overrideLocation(*loc);
-            }
-
-            parseSink->assimilate(xsink);
-        }
+        parseSink->assimilate(xsink);
+    }
 
     // returns the mask of domain options not met in the current program
     DLLLOCAL int64 parseAddDomain(int64 n_dom) {
