@@ -566,17 +566,17 @@ public:
 };
 
 struct NSOInfoBase {
-   qore_ns_private* ns = nullptr;
+    qore_ns_private* ns = nullptr;
 
-   DLLLOCAL NSOInfoBase() {
-   }
+    DLLLOCAL NSOInfoBase() {
+    }
 
-   DLLLOCAL NSOInfoBase(qore_ns_private* n_ns) : ns(n_ns) {
-   }
+    DLLLOCAL NSOInfoBase(qore_ns_private* n_ns) : ns(n_ns) {
+    }
 
-   DLLLOCAL unsigned depth() const {
-      return ns->depth;
-   }
+    DLLLOCAL unsigned depth() const {
+        return ns->depth;
+    }
 };
 
 template <typename T>
@@ -596,55 +596,54 @@ struct NSOInfo : public NSOInfoBase {
     }
 };
 
+// cannot use vector_map here for performance reasons
 template <typename T>
-//class RootMap : public std::map<const char*, NSOInfo<T>, ltstr> {
-class RootMap : public vector_map_t<const char*, NSOInfo<T>> {
+class RootMap : public std::map<const char*, NSOInfo<T>, ltstr> {
 private:
-   // not implemented
-   DLLLOCAL RootMap(const RootMap& old);
-   // not implemented
-   DLLLOCAL RootMap& operator=(const RootMap& m);
+    // not implemented
+    DLLLOCAL RootMap(const RootMap& old);
+    // not implemented
+    DLLLOCAL RootMap& operator=(const RootMap& m);
 
 public:
-   typedef NSOInfo<T> info_t;
-   //typedef std::map<const char*, NSOInfo<T>, ltstr> map_t;
-   typedef vector_map_t<const char*, NSOInfo<T>> map_t;
+    typedef NSOInfo<T> info_t;
+    typedef std::map<const char*, NSOInfo<T>, ltstr> map_t;
 
-   DLLLOCAL RootMap() {
-   }
+    DLLLOCAL RootMap() {
+    }
 
-   DLLLOCAL void update(const char* name, qore_ns_private* ns, T* obj) {
-      // get current lookup map entry for this object
-      typename map_t::iterator i = this->find(name);
-      if (i == this->end())
-         this->insert(typename map_t::value_type(name, info_t(ns, obj)));
-      else // if the old depth is > the new depth, then replace
-         if (i->second.depth() > ns->depth)
-            i->second.assign(ns, obj);
-   }
+    DLLLOCAL void update(const char* name, qore_ns_private* ns, T* obj) {
+        // get current lookup map entry for this object
+        typename map_t::iterator i = this->find(name);
+        if (i == this->end())
+            this->insert(typename map_t::value_type(name, info_t(ns, obj)));
+        else // if the old depth is > the new depth, then replace
+            if (i->second.depth() > ns->depth)
+                i->second.assign(ns, obj);
+    }
 
-   DLLLOCAL void update(typename map_t::const_iterator ni) {
-      // get current lookup map entry for this object
-      typename map_t::iterator i = this->find(ni->first);
-      if (i == this->end()) {
-         //printd(5, "RootMap::update(iterator) inserting '%s' new depth: %d\n", ni->first, ni->second.depth());
-         this->insert(typename map_t::value_type(ni->first, ni->second));
-      }
-      else {
-         // if the old depth is > the new depth, then replace
-         if (i->second.depth() > ni->second.depth()) {
-            //printd(5, "RootMap::update(iterator) replacing '%s' current depth: %d new depth: %d\n", ni->first, i->second.depth(), ni->second.depth());
-            i->second = ni->second;
-         }
-         //else
-         //printd(5, "RootMap::update(iterator) ignoring '%s' current depth: %d new depth: %d\n", ni->first, i->second.depth(), ni->second.depth());
-      }
-   }
+    DLLLOCAL void update(typename map_t::const_iterator ni) {
+        // get current lookup map entry for this object
+        typename map_t::iterator i = this->find(ni->first);
+        if (i == this->end()) {
+            //printd(5, "RootMap::update(iterator) inserting '%s' new depth: %d\n", ni->first, ni->second.depth());
+            this->insert(typename map_t::value_type(ni->first, ni->second));
+        }
+        else {
+            // if the old depth is > the new depth, then replace
+            if (i->second.depth() > ni->second.depth()) {
+                //printd(5, "RootMap::update(iterator) replacing '%s' current depth: %d new depth: %d\n", ni->first, i->second.depth(), ni->second.depth());
+                i->second = ni->second;
+            }
+            //else
+            //printd(5, "RootMap::update(iterator) ignoring '%s' current depth: %d new depth: %d\n", ni->first, i->second.depth(), ni->second.depth());
+        }
+    }
 
-   T* findObj(const char* name) {
-      typename map_t::iterator i = this->find(name);
-      return i == this->end() ? 0 : i->second.obj;
-   }
+    T* findObj(const char* name) {
+        typename map_t::iterator i = this->find(name);
+        return i == this->end() ? 0 : i->second.obj;
+    }
 };
 
 struct FunctionEntryInfo {
@@ -669,8 +668,8 @@ struct FunctionEntryInfo {
     }
 };
 
-//typedef std::map<const char*, FunctionEntryInfo, ltstr> femap_t;
-typedef vector_map_t<const char*, FunctionEntryInfo> femap_t;
+// cannot use vector_map here for performance reasons
+typedef std::map<const char*, FunctionEntryInfo, ltstr> femap_t;
 class FunctionEntryRootMap : public femap_t {
 private:
     // not implemented
