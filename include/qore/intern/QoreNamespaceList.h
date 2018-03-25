@@ -41,8 +41,11 @@
 
 #define _QORE_NAMESPACELIST_H
 
-#include <map>
-
+#if 1
+#include <qore/vector_map>
+typedef vector_map_t<std::string, QoreNamespace*> nsmap_t;
+// vector map
+#else
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
@@ -50,7 +53,9 @@
 
 typedef HASH_MAP<std::string, QoreNamespace*> nsmap_t;
 #else
+#include <map>
 typedef std::map<std::string, QoreNamespace*> nsmap_t;
+#endif
 #endif
 
 class qore_ns_private;

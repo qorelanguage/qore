@@ -41,7 +41,6 @@
 #include <qore/common.h>
 #include "qore/intern/ParseNode.h"
 
-#include <map>
 #include <string>
 
 class qore_ns_private;
@@ -212,9 +211,7 @@ public:
 #if 1
 #include <qore/vector_map>
 typedef vector_map_t<const char*, ConstantEntry*> cnemap_t;
-#define QORE_USE_VECTOR_MAP 1
-
-// FLAT_MAP
+// vector map
 #else
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
@@ -223,6 +220,7 @@ typedef vector_map_t<const char*, ConstantEntry*> cnemap_t;
 
 typedef HASH_MAP<const char*, ConstantEntry*, qore_hash_str, eqstr> cnemap_t;
 #else
+#include <map>
 typedef std::map<const char*, ConstantEntry*, ltstr> cnemap_t;
 #endif
 #endif

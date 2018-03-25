@@ -40,13 +40,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <map>
-
-#ifdef HAVE_QORE_HASH_MAP
-//#warning compiling with hash_map
-#include <qore/hash_map_include.h>
-#include "qore/intern/xxhash.h"
-
 struct cl_rec_t {
     QoreClass* cls = nullptr;
     bool priv = false;
@@ -58,9 +51,21 @@ struct cl_rec_t {
     }
 };
 
+#if 1
+#include <qore/vector_map>
+typedef vector_map_t<const char*, cl_rec_t> hm_qc_t;
+// vector map
+#else
+#ifdef HAVE_QORE_HASH_MAP
+//#warning compiling with hash_map
+#include <qore/hash_map_include.h>
+#include "qore/intern/xxhash.h"
+
 typedef HASH_MAP<const char*, cl_rec_t, qore_hash_str, eqstr> hm_qc_t;
 #else
+#include <map>
 typedef std::map<const char*, cl_rec_t, ltstr> hm_qc_t;
+#endif
 #endif
 
 class QoreNamespaceList;

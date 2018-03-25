@@ -2,8 +2,8 @@
 /*
     vector_map
 
-    A map-type class implemented with std::vector for very fast iteration and
-    efficient memory storage for small(ish) data sets
+    An unordered map-type class implemented with std::vector for very fast
+    iteration and efficient memory storage for small(ish) data sets
 
     ex: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0429r1.pdf
 
@@ -132,6 +132,10 @@ public:
 
     DLLLOCAL size_t size() const {
         return vector.size();
+    }
+
+    DLLLOCAL void erase(iterator i) {
+        vector.erase(i);
     }
 
     // iterator arg ignored

@@ -37,10 +37,13 @@
 
 #include "qore/intern/Variable.h"
 
-#include <map>
-
 class Var;
 
+#if 1
+#include <qore/vector_map>
+typedef vector_map_t<const char*, Var*> map_var_t;
+// vector map
+#else
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
@@ -48,7 +51,9 @@ class Var;
 
 typedef HASH_MAP<const char*, Var*, qore_hash_str, eqstr> map_var_t;
 #else
+#include <map>
 typedef std::map<const char*, Var*, ltstr> map_var_t;
+#endif
 #endif
 
 // this is a "grow-only" container
