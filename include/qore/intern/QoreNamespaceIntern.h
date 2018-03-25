@@ -39,6 +39,7 @@
 #include "qore/intern/FunctionList.h"
 #include "qore/intern/GlobalVariableList.h"
 #include "qore/intern/typed_hash_decl_private.h"
+#include "qore/vector_map"
 
 #include <map>
 #include <vector>
@@ -565,7 +566,10 @@ public:
 };
 
 struct NSOInfoBase {
-   qore_ns_private* ns;
+   qore_ns_private* ns = nullptr;
+
+   DLLLOCAL NSOInfoBase() {
+   }
 
    DLLLOCAL NSOInfoBase(qore_ns_private* n_ns) : ns(n_ns) {
    }
@@ -577,20 +581,24 @@ struct NSOInfoBase {
 
 template <typename T>
 struct NSOInfo : public NSOInfoBase {
-   // object
-   T* obj;
+    // object
+    T* obj = nullptr;
 
-   DLLLOCAL NSOInfo(qore_ns_private* n_ns, T* n_obj) : NSOInfoBase(n_ns), obj(n_obj) {
-   }
+    DLLLOCAL NSOInfo() {
+    }
 
-   DLLLOCAL void assign(qore_ns_private* n_ns, T* n_obj) {
-      ns = n_ns;
-      obj = n_obj;
-   }
+    DLLLOCAL NSOInfo(qore_ns_private* n_ns, T* n_obj) : NSOInfoBase(n_ns), obj(n_obj) {
+    }
+
+    DLLLOCAL void assign(qore_ns_private* n_ns, T* n_obj) {
+        ns = n_ns;
+        obj = n_obj;
+    }
 };
 
 template <typename T>
-class RootMap : public std::map<const char*, NSOInfo<T>, ltstr> {
+//class RootMap : public std::map<const char*, NSOInfo<T>, ltstr> {
+class RootMap : public vector_map_t<const char*, NSOInfo<T>> {
 private:
    // not implemented
    DLLLOCAL RootMap(const RootMap& old);
@@ -599,7 +607,8 @@ private:
 
 public:
    typedef NSOInfo<T> info_t;
-   typedef std::map<const char*, NSOInfo<T>, ltstr> map_t;
+   //typedef std::map<const char*, NSOInfo<T>, ltstr> map_t;
+   typedef vector_map_t<const char*, NSOInfo<T>> map_t;
 
    DLLLOCAL RootMap() {
    }
@@ -639,7 +648,10 @@ public:
 };
 
 struct FunctionEntryInfo {
-    FunctionEntry* obj;
+    FunctionEntry* obj = nullptr;
+
+    DLLLOCAL FunctionEntryInfo() {
+    }
 
     DLLLOCAL FunctionEntryInfo(FunctionEntry* o) : obj(o) {
     }
@@ -657,7 +669,8 @@ struct FunctionEntryInfo {
     }
 };
 
-typedef std::map<const char*, FunctionEntryInfo, ltstr> femap_t;
+//typedef std::map<const char*, FunctionEntryInfo, ltstr> femap_t;
+typedef vector_map_t<const char*, FunctionEntryInfo> femap_t;
 class FunctionEntryRootMap : public femap_t {
 private:
     // not implemented
@@ -750,9 +763,11 @@ protected:
     // map from depth to namespace
     typedef std::multimap<unsigned, qore_ns_private*> nsdmap_t;
     // map from name to depth map
-    typedef std::map<const char*, nsdmap_t, ltstr> nsmap_t;
+    //typedef std::map<const char*, nsdmap_t, ltstr> nsmap_t;
+    typedef vector_map_t<const char*, nsdmap_t> nsmap_t;
     // map from namespace to depth for reindexing
-    typedef std::map<qore_ns_private*, unsigned> nsrmap_t;
+    //typedef std::map<qore_ns_private*, unsigned> nsrmap_t;
+    typedef vector_map_t<qore_ns_private*, unsigned> nsrmap_t;
 
     nsmap_t nsmap;   // name to depth to namespace map
     nsrmap_t nsrmap; // namespace to depth map (for fast reindexing)
