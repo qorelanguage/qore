@@ -54,7 +54,7 @@ void HashDeclMemberInfo::parseInit(const char* name, bool priv) {
         int lvids = 0;
         exp = exp->parseInit(nullptr, 0, lvids, argTypeInfo);
         if (lvids) {
-            parse_error(*loc, "illegal local variable declaration in hashdecl member initialization expression");
+            parse_error(*loc, "illegal local variable declaration in initialization expression for hashdecl member '%s'", name);
             while (lvids--)
                 pop_local_var();
         }
@@ -70,7 +70,7 @@ void HashDeclMemberInfo::parseInit(const char* name, bool priv) {
     }
 }
 
-typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd) : loc(old.loc), name(old.name), thd(thd), typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str())), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str())), pub(old.pub), sys(old.sys) {
+typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd) : loc(old.loc), name(old.name), thd(thd), typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str())), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str())), pub(old.pub), sys(old.sys), parse_init_done(old.parse_init_done) {
     // copy member list
     for (HashDeclMemberMap::DeclOrderIterator i = old.members.beginDeclOrder(), e = old.members.endDeclOrder(); i != e; ++i)
         members.addNoCheck(strdup(i->first), i->second ? new HashDeclMemberInfo(*i->second) : nullptr);

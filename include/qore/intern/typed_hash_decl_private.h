@@ -41,15 +41,15 @@ class typed_hash_decl_private;
 
 class HashDeclMemberInfo : public QoreMemberInfoBase {
 public:
-   DLLLOCAL HashDeclMemberInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr) : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e) {
-   }
+    DLLLOCAL HashDeclMemberInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr) : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e) {
+    }
 
-   DLLLOCAL HashDeclMemberInfo(const HashDeclMemberInfo& old) : QoreMemberInfoBase(old) {
-   }
+    DLLLOCAL HashDeclMemberInfo(const HashDeclMemberInfo& old) : QoreMemberInfoBase(old) {
+    }
 
-   DLLLOCAL bool equal(const HashDeclMemberInfo& other) const;
+    DLLLOCAL bool equal(const HashDeclMemberInfo& other) const;
 
-   DLLLOCAL void parseInit(const char* name, bool priv);
+    DLLLOCAL void parseInit(const char* name, bool priv);
 };
 
 typedef QoreMemberMapBase<HashDeclMemberInfo> HashDeclMemberMap;
@@ -134,7 +134,7 @@ public:
     }
 
     DLLLOCAL void parseInit() {
-        if (parse_init_done)
+        if (parse_init_done || sys)
             return;
         parse_init_done = true;
 

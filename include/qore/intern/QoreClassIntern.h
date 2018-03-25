@@ -192,66 +192,66 @@ class BCEAList;
 
 class MethodVariantBase : public AbstractQoreFunctionVariant {
 protected:
-   const QoreMethod* qmethod = nullptr;    // pointer to method that owns the variant
-   ClassAccess access;                     // variant access code
-   bool final;                             // is the variant final or not
-   bool abstract;                          // is the variant abstract or not
-   std::string asig;                       // abstract signature, only set for abstract method variants
+    const QoreMethod* qmethod = nullptr;    // pointer to method that owns the variant
+    ClassAccess access;                     // variant access code
+    bool final;                             // is the variant final or not
+    bool abstract;                          // is the variant abstract or not
+    std::string asig;                       // abstract signature, only set for abstract method variants
 
 public:
-   // add QC_USES_EXTRA_ARGS to abstract methods by default as derived methods could use extra arguments
-   DLLLOCAL MethodVariantBase(ClassAccess n_access, bool n_final, int64 n_flags, bool n_is_user = false, bool n_is_abstract = false) :
-      AbstractQoreFunctionVariant(n_flags | (n_is_abstract ? QC_USES_EXTRA_ARGS : 0), n_is_user), access(n_access), final(n_final), abstract(n_is_abstract) {
-   }
+    // add QC_USES_EXTRA_ARGS to abstract methods by default as derived methods could use extra arguments
+    DLLLOCAL MethodVariantBase(ClassAccess n_access, bool n_final, int64 n_flags, bool n_is_user = false, bool n_is_abstract = false) :
+        AbstractQoreFunctionVariant(n_flags | (n_is_abstract ? QC_USES_EXTRA_ARGS : 0), n_is_user), access(n_access), final(n_final), abstract(n_is_abstract) {
+    }
 
-   DLLLOCAL bool isAbstract() const {
-      return abstract;
-   }
+    DLLLOCAL bool isAbstract() const {
+        return abstract;
+    }
 
-   DLLLOCAL bool isPrivate() const {
-      return access > Public;
-   }
+    DLLLOCAL bool isPrivate() const {
+        return access > Public;
+    }
 
-   DLLLOCAL ClassAccess getAccess() const {
-      return access;
-   }
+    DLLLOCAL ClassAccess getAccess() const {
+        return access;
+    }
 
-   DLLLOCAL bool isFinal() const {
-      return final;
-   }
+    DLLLOCAL bool isFinal() const {
+        return final;
+    }
 
-   DLLLOCAL void clearAbstract() {
-      assert(abstract);
-      abstract = false;
-   }
+    DLLLOCAL void clearAbstract() {
+        assert(abstract);
+        abstract = false;
+    }
 
-   DLLLOCAL void setMethod(QoreMethod* n_qm) {
-      qmethod = n_qm;
-   }
+    DLLLOCAL void setMethod(QoreMethod* n_qm) {
+        qmethod = n_qm;
+    }
 
-   DLLLOCAL const QoreMethod* method() const {
-      assert(qmethod);
-      return qmethod;
-   }
+    DLLLOCAL const QoreMethod* method() const {
+        assert(qmethod);
+        return qmethod;
+    }
 
-   DLLLOCAL const QoreClass* getClass() const {
-      return qmethod->getClass();
-   }
+    DLLLOCAL const QoreClass* getClass() const {
+        return qmethod->getClass();
+    }
 
-   DLLLOCAL const char* getAbstractSignature();
+    DLLLOCAL const char* getAbstractSignature();
 
-   DLLLOCAL const qore_class_private* getClassPriv() const;
+    DLLLOCAL const qore_class_private* getClassPriv() const;
 
-   DLLLOCAL MethodVariantBase* ref() {
-      ROreference();
-      return this;
-   }
+    DLLLOCAL MethodVariantBase* ref() {
+        ROreference();
+        return this;
+    }
 
-   DLLLOCAL void deref() {
-      if (ROdereference()) {
-         delete this;
-      }
-   }
+    DLLLOCAL void deref() {
+        if (ROdereference()) {
+            delete this;
+        }
+    }
 };
 
 #define METHVB(f) (reinterpret_cast<MethodVariantBase*>(f))
@@ -1207,15 +1207,15 @@ typedef std::map<char*, QoreVarInfo*, ltstr> var_map_t;
 template <typename T>
 class QoreMemberMapBase {
 public:
-   typedef std::pair<char*, T*> list_element_t;
-   typedef std::vector<list_element_t> member_list_t;
-   typedef typename member_list_t::const_iterator DeclOrderIterator;
+    typedef std::pair<char*, T*> list_element_t;
+    typedef std::vector<list_element_t> member_list_t;
+    typedef typename member_list_t::const_iterator DeclOrderIterator;
 #ifdef HAVE_QORE_HASH_MAP
-   typedef HASH_MAP<char*, T*, qore_hash_str, eqstr> member_map_t;
+    typedef HASH_MAP<char*, T*, qore_hash_str, eqstr> member_map_t;
 #else
-   typedef std::map<char*, T*, ltstr> member_map_t;
+    typedef std::map<char*, T*, ltstr> member_map_t;
 #endif
-   typedef typename member_map_t::const_iterator SigOrderIterator;
+    typedef typename member_map_t::const_iterator SigOrderIterator;
 
 public:
     DLLLOCAL ~QoreMemberMapBase() {
@@ -1326,6 +1326,10 @@ public:
     DLLLOCAL void del() {
         for (member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
             assert(!i->second->val.hasValue());
+            /*
+            // when rolling back a failed parse, vars may have values, but no exception can happen, so xsink can be nullptr
+            i->second->delVar(nullptr);
+            */
             free(i->first);
             delete i->second;
         }
@@ -1409,29 +1413,29 @@ typedef std::vector<class_virt_pair_t> class_list_t;
 // this class also tracks virtual classes to ensure that they are not inserted into the list in a complex tree and executed here
 class BCSMList : public class_list_t {
 public:
-   DLLLOCAL BCSMList() {
-   }
+    DLLLOCAL BCSMList() {
+    }
 
-   DLLLOCAL BCSMList(const BCSMList &old);
+    DLLLOCAL BCSMList(const BCSMList &old);
 
-   DLLLOCAL ~BCSMList();
+    DLLLOCAL ~BCSMList();
 
-   DLLLOCAL int add(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
-   DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual);
+    DLLLOCAL int add(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
+    DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual);
 
-   DLLLOCAL void alignBaseClassesInSubclass(QoreClass* thisclass, QoreClass* child, bool is_virtual);
+    DLLLOCAL void alignBaseClassesInSubclass(QoreClass* thisclass, QoreClass* child, bool is_virtual);
 
-   // returns 0 = can add, non-0 = cannot add
-   DLLLOCAL void align(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
+    // returns 0 = can add, non-0 = cannot add
+    DLLLOCAL void align(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
 
-   DLLLOCAL QoreClass* getClass(qore_classid_t cid) const;
-   //DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
-   DLLLOCAL void execDestructors(QoreObject* o, ExceptionSink* xsink) const;
-   DLLLOCAL void execSystemDestructors(QoreObject* o, ExceptionSink* xsink) const;
-   DLLLOCAL void execCopyMethods(QoreObject* self, QoreObject* old, ExceptionSink* xsink) const;
+    DLLLOCAL QoreClass* getClass(qore_classid_t cid) const;
+    //DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
+    DLLLOCAL void execDestructors(QoreObject* o, ExceptionSink* xsink) const;
+    DLLLOCAL void execSystemDestructors(QoreObject* o, ExceptionSink* xsink) const;
+    DLLLOCAL void execCopyMethods(QoreObject* self, QoreObject* old, ExceptionSink* xsink) const;
 
-   // parseResolve classes to the new class pointer after all namespaces and classes have been copied
-   DLLLOCAL void resolveCopy();
+    // parseResolve classes to the new class pointer after all namespaces and classes have been copied
+    DLLLOCAL void resolveCopy();
 };
 
 // set of private class pointers; used when checking for recursive class inheritance lists
@@ -1536,103 +1540,103 @@ typedef std::vector<BCNode*> bclist_t;
 class BCList : public bclist_t {
 protected:
 public:
-   // special method (constructor, destructor, copy) list for superclasses
-   BCSMList sml;
-   bool valid = true;
-   bool rescanned = false;
+    // special method (constructor, destructor, copy) list for superclasses
+    BCSMList sml;
+    bool valid = true;
+    bool rescanned = false;
 
-   DLLLOCAL BCList(BCNode* n) {
-      push_back(n);
-   }
+    DLLLOCAL BCList(BCNode* n) {
+        push_back(n);
+    }
 
-   DLLLOCAL BCList() {
-   }
+    DLLLOCAL BCList() {
+    }
 
-   DLLLOCAL BCList(const BCList& old) : sml(old.sml) {
-      assert(old.valid);
-      reserve(old.size());
-      for (bclist_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i)
-         push_back(new BCNode(*(*i)));
-   }
+    DLLLOCAL BCList(const BCList& old) : sml(old.sml) {
+        assert(old.valid);
+        reserve(old.size());
+        for (bclist_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i)
+            push_back(new BCNode(*(*i)));
+    }
 
-   DLLLOCAL ~BCList() {
-      for (bclist_t::iterator i = begin(), e = end(); i != e; ++i)
-         delete *i;
-   }
+    DLLLOCAL ~BCList() {
+        for (bclist_t::iterator i = begin(), e = end(); i != e; ++i)
+            delete *i;
+    }
 
-   DLLLOCAL int initializeHierarchy(QoreClass* thisclass, qcp_set_t& qcp_set);
+    DLLLOCAL int initializeHierarchy(QoreClass* thisclass, qcp_set_t& qcp_set);
 
-   DLLLOCAL int initialize(QoreClass* thisclass, bool& has_delete_blocker);
+    DLLLOCAL int initialize(QoreClass* thisclass, bool& has_delete_blocker);
 
-   // inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation* loc, const char* name, const qore_class_private* class_ctx, bool allow_internal);
+    // inaccessible methods are ignored
+    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation* loc, const char* name, const qore_class_private* class_ctx, bool allow_internal);
 
-   // inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseFindNormalMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
-   // inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
+    // inaccessible methods are ignored
+    DLLLOCAL const QoreMethod* parseFindNormalMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
+    // inaccessible methods are ignored
+    DLLLOCAL const QoreMethod* parseFindStaticMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal);
 
-   DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
-   DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
+    DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
+    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
 
-   DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfo(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
-   DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
+    DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfo(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
+    DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
 
-   DLLLOCAL int runtimeInitInternalMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const;
+    DLLLOCAL int runtimeInitInternalMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const;
 
-   DLLLOCAL bool match(const QoreClass* cls);
-   DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
-   DLLLOCAL bool execDeleteBlockers(QoreObject* o, ExceptionSink* xsink) const;
+    DLLLOCAL bool match(const QoreClass* cls);
+    DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
+    DLLLOCAL bool execDeleteBlockers(QoreObject* o, ExceptionSink* xsink) const;
 
-   DLLLOCAL bool runtimeIsPrivateMember(const char* str, bool toplevel) const;
+    DLLLOCAL bool runtimeIsPrivateMember(const char* str, bool toplevel) const;
 
-   DLLLOCAL bool parseCheckHierarchy(const QoreClass* cls, ClassAccess& access, bool toplevel) const;
+    DLLLOCAL bool parseCheckHierarchy(const QoreClass* cls, ClassAccess& access, bool toplevel) const;
 
-   DLLLOCAL const QoreMemberInfo* parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const;
+    DLLLOCAL const QoreMemberInfo* parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const;
 
-   DLLLOCAL const QoreVarInfo* parseFindVar(const char* vname, const qore_class_private*& qc, ClassAccess& access, bool toplevel) const;
+    DLLLOCAL const QoreVarInfo* parseFindVar(const char* vname, const qore_class_private*& qc, ClassAccess& access, bool toplevel) const;
 
-   DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
+    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
 
-   DLLLOCAL const QoreClass* findInHierarchy(const qore_class_private& qc);
+    DLLLOCAL const QoreClass* findInHierarchy(const qore_class_private& qc);
 
-   DLLLOCAL const QoreClass* getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const;
-   DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
+    DLLLOCAL const QoreClass* getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const;
+    DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
 
-   DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
+    DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
 
-   DLLLOCAL void addNewAncestors(QoreMethod* m);
-   DLLLOCAL void addAncestors(QoreMethod* m);
-   DLLLOCAL void addNewStaticAncestors(QoreMethod* m);
-   DLLLOCAL void addStaticAncestors(QoreMethod* m);
-   DLLLOCAL void parseAddAncestors(QoreMethod* m);
-   DLLLOCAL void parseAddStaticAncestors(QoreMethod* m);
+    DLLLOCAL void addNewAncestors(QoreMethod* m);
+    DLLLOCAL void addAncestors(QoreMethod* m);
+    DLLLOCAL void addNewStaticAncestors(QoreMethod* m);
+    DLLLOCAL void addStaticAncestors(QoreMethod* m);
+    DLLLOCAL void parseAddAncestors(QoreMethod* m);
+    DLLLOCAL void parseAddStaticAncestors(QoreMethod* m);
 
-   DLLLOCAL QoreValue parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx, bool allow_internal) const;
+    DLLLOCAL QoreValue parseFindConstantValue(const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx, bool allow_internal) const;
 
-   DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& access, bool check, bool toplevel) const;
+    DLLLOCAL QoreVarInfo* parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& access, bool check, bool toplevel) const;
 
-   DLLLOCAL void resolveCopy();
+    DLLLOCAL void resolveCopy();
 
-   DLLLOCAL MethodVariantBase* matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const;
+    DLLLOCAL MethodVariantBase* matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const;
 
-   DLLLOCAL bool isBaseClass(QoreClass* qc, bool toplevel) const;
+    DLLLOCAL bool isBaseClass(QoreClass* qc, bool toplevel) const;
 
-   DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisparent, QoreClass* child, bool is_virtual) {
-      for (auto& i : *this) {
-         if ((*i).addBaseClassesToSubclass(child, is_virtual))
-            return -1;
-      }
-      return sml.addBaseClassesToSubclass(thisparent, child, is_virtual);
-   }
+    DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisparent, QoreClass* child, bool is_virtual) {
+        for (auto& i : *this) {
+            if ((*i).addBaseClassesToSubclass(child, is_virtual))
+                return -1;
+        }
+        return sml.addBaseClassesToSubclass(thisparent, child, is_virtual);
+    }
 
-   DLLLOCAL void rescanParents(QoreClass* cls);
+    DLLLOCAL void rescanParents(QoreClass* cls);
 
-   DLLLOCAL void initializeBuiltin() {
-      for (auto& i : *this) {
-         (*i).initializeBuiltin();
-      }
-   }
+    DLLLOCAL void initializeBuiltin() {
+        for (auto& i : *this) {
+            (*i).initializeBuiltin();
+        }
+    }
 };
 
 // BCEANode

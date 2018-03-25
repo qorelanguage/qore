@@ -379,26 +379,21 @@ int ConstantList::importSystemConstants(const ConstantList& src, ExceptionSink* 
 
 // no duplicate checking is done here
 void ConstantList::assimilate(ConstantList& n) {
-   for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
-      assert(!inList(i->first));
-      // "move" data to new list
-      cnemap[i->first] = i->second;
-      i->second = nullptr;
-   }
+    for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
+        assert(!inList(i->first));
+        // "move" data to new list
+        cnemap[i->first] = i->second;
+        i->second = nullptr;
+    }
 
-   n.parseDeleteAll();
+    n.parseDeleteAll();
 }
 
 // duplicate checking is done here
-void ConstantList::assimilate(ConstantList& n, const char* type, const char* name, const ConstantList* other) {
+void ConstantList::assimilate(ConstantList& n, const char* type, const char* name) {
     // assimilate target list
     for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
         if (inList(i->first)) {
-            parse_error(*i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
-            continue;
-        }
-
-        if (other && other->inList(i->first)) {
             parse_error(*i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
             continue;
         }

@@ -88,46 +88,46 @@ protected:
 
 class NewHashDeclNode : public ParseNode {
 protected:
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-      assert(false);
-      return nullptr;
-   }
+    DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+        assert(false);
+        return nullptr;
+    }
 
-   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return hd ? hd->getTypeInfo() : hashTypeInfo;
-   }
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return hd ? hd->getTypeInfo() : hashTypeInfo;
+    }
 
 public:
-   const TypedHashDecl* hd;
-   QoreParseListNode* args;
-   bool runtime_check;
+    const TypedHashDecl* hd;
+    QoreParseListNode* args;
+    bool runtime_check;
 
-   DLLLOCAL NewHashDeclNode(const QoreProgramLocation* loc, const TypedHashDecl* hd, QoreParseListNode* a, bool runtime_check) : ParseNode(loc, NT_SCOPE_REF), hd(hd), args(a), runtime_check(runtime_check) {
-   }
+    DLLLOCAL NewHashDeclNode(const QoreProgramLocation* loc, const TypedHashDecl* hd, QoreParseListNode* a, bool runtime_check) : ParseNode(loc, NT_SCOPE_REF), hd(hd), args(a), runtime_check(runtime_check) {
+    }
 
-   DLLLOCAL virtual ~NewHashDeclNode() {
-      if (args)
-         args->deref(nullptr);
-   }
+    DLLLOCAL virtual ~NewHashDeclNode() {
+        if (args)
+            args->deref(nullptr);
+    }
 
-   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-      str.sprintf("new hashdecl operator expression (hashdecl '%s')", hd->getName());
-      return 0;
-   }
+    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+        str.sprintf("new hashdecl operator expression (hashdecl '%s')", hd->getName());
+        return 0;
+    }
 
-   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-      del = true;
-      QoreString* rv = new QoreString;
-      getAsString(*rv, foff, xsink);
-      return rv;
-   }
+    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+        del = true;
+        QoreString* rv = new QoreString;
+        getAsString(*rv, foff, xsink);
+        return rv;
+    }
 
-   DLLLOCAL virtual const char* getTypeName() const {
-      return "new hashdecl operator expression";
-   }
+    DLLLOCAL virtual const char* getTypeName() const {
+        return "new hashdecl operator expression";
+    }
 };
 
 class NewComplexHashNode : public ParseNode {

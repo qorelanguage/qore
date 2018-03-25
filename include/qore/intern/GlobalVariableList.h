@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -57,51 +57,49 @@ class GlobalVariableList {
 protected:
 
 public:
-   map_var_t vmap, pending_vmap;
+    map_var_t vmap;
 
-   DLLLOCAL GlobalVariableList() {
-   }
+    DLLLOCAL GlobalVariableList() {
+    }
 
-   DLLLOCAL GlobalVariableList(const GlobalVariableList& old, int64 po);
+    DLLLOCAL GlobalVariableList(const GlobalVariableList& old, int64 po);
 
-   DLLLOCAL void mergePublic(const GlobalVariableList& old);
+    DLLLOCAL void mergePublic(const GlobalVariableList& old);
 
-   DLLLOCAL ~GlobalVariableList() {
-      parseRollback();
-      assert(vmap.empty());
-      assert(pending_vmap.empty());
-   }
+    DLLLOCAL ~GlobalVariableList() {
+        reset();
+        assert(vmap.empty());
+    }
 
-   DLLLOCAL void clearAll(ExceptionSink *xsink);
-   DLLLOCAL void deleteAll(ExceptionSink* xsink);
+    DLLLOCAL void clearAll(ExceptionSink *xsink);
+    DLLLOCAL void deleteAll(ExceptionSink* xsink);
 
-   // called at runtime
-   // returns a non-0 Var* if a new variable was created, 0 if not (because it already existed - exception raised)
-   DLLLOCAL Var* import(Var* var, ExceptionSink* xsink, bool readonly = false);
+    // called at runtime
+    // returns a non-0 Var* if a new variable was created, 0 if not (because it already existed - exception raised)
+    DLLLOCAL Var* import(Var* var, ExceptionSink* xsink, bool readonly = false);
 
-   DLLLOCAL Var* runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo);
+    DLLLOCAL Var* runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo);
 
-   DLLLOCAL Var* parseFindVar(const char* name);
-   DLLLOCAL Var* parseCreatePendingVar(const QoreProgramLocation* loc, const char* name, const QoreTypeInfo* typeInfo);
-   DLLLOCAL const Var* parseFindVar(const char* name) const;
+    DLLLOCAL Var* parseFindVar(const char* name);
+    DLLLOCAL Var* parseCreatePendingVar(const QoreProgramLocation* loc, const char* name, const QoreTypeInfo* typeInfo);
+    DLLLOCAL const Var* parseFindVar(const char* name) const;
 
-   DLLLOCAL void parseAdd(Var* v);
+    DLLLOCAL void parseAdd(Var* v);
 
-   // xxx DLLLOCAL Var* parseFindCreateVar(const char* name, QoreParseTypeInfo* typeInfo, bool& new_var);
-   // xxx DLLLOCAL Var* parseFindCreateVar(const char* name, const QoreTypeInfo* typeInfo, bool& new_var);
+    // xxx DLLLOCAL Var* parseFindCreateVar(const char* name, QoreParseTypeInfo* typeInfo, bool& new_var);
+    // xxx DLLLOCAL Var* parseFindCreateVar(const char* name, const QoreTypeInfo* typeInfo, bool& new_var);
 
-   DLLLOCAL Var* runtimeFindVar(const char* name) {
-      map_var_t::iterator i = vmap.find(name);
-      return i != vmap.end() ? i->second : 0;
-   }
+    DLLLOCAL Var* runtimeFindVar(const char* name) {
+        map_var_t::iterator i = vmap.find(name);
+        return i != vmap.end() ? i->second : 0;
+    }
 
-   DLLLOCAL QoreListNode* getVarList() const;
+    DLLLOCAL QoreListNode* getVarList() const;
 
-   DLLLOCAL void getGlobalVars(const std::string& path, QoreHashNode& h) const;
+    DLLLOCAL void getGlobalVars(const std::string& path, QoreHashNode& h) const;
 
-   DLLLOCAL void parseInit();
-   DLLLOCAL void parseCommit();
-   DLLLOCAL void parseRollback();
+    DLLLOCAL void parseInit();
+    DLLLOCAL void reset();
 };
 
 #endif

@@ -160,11 +160,10 @@ void QoreClassList::parseRollback() {
         qore_class_private::parseRollback(*(i->second.cls));
 }
 
-void QoreClassList::parseCommit(QoreClassList& l) {
-    assimilate(l);
-    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-        //printd(5, "QoreClassList::parseCommit() this: %p qc: %p '%s' pub: %d\n", this, i->second, i->second->getName(), qore_class_private::isPublic(*i->second));
-        qore_class_private::parseCommit(*(i->second.cls));
+void QoreClassList::parseCommit() {
+    for (auto& i : hm) {
+        //printd(5, "QoreClassList::parseCommit() this: %p qc: %p '%s' pub: %d\n", this, i.second, i.second->getName(), qore_class_private::isPublic(*i.second));
+        qore_class_private::parseCommit(*(i.second.cls));
     }
 }
 
@@ -177,27 +176,11 @@ void QoreClassList::reset() {
     deleteAll();
 }
 
-void QoreClassList::assimilate(QoreClassList& n) {
-    hm_qc_t::iterator i = n.hm.begin();
-    while (i != n.hm.end()) {
-        QoreClass *nc = i->second.cls;
-        n.hm.erase(i);
-        i = n.hm.begin();
-
-        assert(!find(nc->getName()));
-        addInternal(nc, false);
-    }
-}
-
 void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
     hm_qc_t::iterator i = n.hm.begin();
     while (i != n.hm.end()) {
         if (ns.hashDeclList.find(i->first)) {
             parse_error(*qore_class_private::get(*i->second.cls)->loc, "hashdecl '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
-            n.remove(i);
-        }
-        else if (ns.pendHashDeclList.find(i->first)) {
-            parse_error(*qore_class_private::get(*i->second.cls)->loc, "hashdecl '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
             n.remove(i);
         }
         else if (ns.classList.find(i->first)) {
@@ -210,10 +193,6 @@ void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
         }
         else if (ns.nsl.find(i->first)) {
             parse_error(*qore_class_private::get(*i->second.cls)->loc, "cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", i->first, ns.name.c_str());
-            n.remove(i);
-        }
-        else if (ns.pendNSL.find(i->first)) {
-            parse_error(*qore_class_private::get(*i->second.cls)->loc, "cannot add class '%s' to existing namespace '%s' because a pending subnamespace is already pending with this name", i->first, ns.name.c_str());
             n.remove(i);
         }
         else {
@@ -264,6 +243,13 @@ void QoreClassList::deleteClassData(ExceptionSink *xsink) {
     for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
         qore_class_private::deleteClassData(i->second.cls, xsink);
     }
+}
+
+void QoreClassList::deleteClearData(ExceptionSink* xsink) {
+    for (auto& i : hm) {
+        qore_class_private::get(*i.second.cls)->deref(xsink);
+    }
+    hm.clear();
 }
 
 bool ClassListIterator::isPublic() const {

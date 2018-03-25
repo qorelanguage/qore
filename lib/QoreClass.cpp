@@ -561,7 +561,12 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreProgra
 qore_class_private::~qore_class_private() {
     printd(5, "qore_class_private::~qore_class_private() this: %p %s\n", this, name.c_str());
 
-    assert(!spgm);
+    if (spgm) {
+        spgm->deref(nullptr);
+        spgm = nullptr;
+    }
+    //assert(!spgm);
+
     assert(!refs.reference_count());
 
     if (!vars.empty()) {
@@ -2786,18 +2791,20 @@ void QoreClass::addMember(const char* mname, ClassAccess access, const QoreTypeI
    priv->addMember(mname, access, n_typeInfo, initial_value);
 }
 
-BCSMList::BCSMList(const BCSMList &old) {
+BCSMList::BCSMList(const BCSMList& old) {
     reserve(old.size());
-    for (class_list_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
-        push_back(*i);
-        i->first->priv->ref();
+    for (auto& i : old) {
+        push_back(i);
+        //i.first->priv->ref();
     }
 }
 
 BCSMList::~BCSMList() {
-    for (class_list_t::iterator i = begin(), e = end(); i != e; ++i) {
-        i->first->priv->deref();
+    /*
+    for (auto& i : *this) {
+        i.first->priv->deref();
     }
+    */
 }
 
 void BCSMList::alignBaseClassesInSubclass(QoreClass* thisclass, QoreClass* child, bool is_virtual) {
