@@ -45,6 +45,7 @@ enum qore_var_t {
 #include "qore/intern/VRMutex.h"
 #include "qore/intern/QoreLValue.h"
 #include "qore/intern/qore_var_rwlock_priv.h"
+#include "qore/vector_set"
 
 #include <string.h>
 #include <stdlib.h>
@@ -303,7 +304,8 @@ DLLLOCAL void delete_global_variables();
 
 DLLLOCAL extern QoreHashNode *ENV;
 
-typedef std::set<const void*> lvid_set_t;
+//typedef std::set<const void*> lvid_set_t;
+typedef vector_set_t<const void*> lvid_set_t;
 
 // track obj count changes
 struct ObjCountRec {

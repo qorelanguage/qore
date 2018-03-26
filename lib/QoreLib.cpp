@@ -144,7 +144,7 @@ char table64[64] = {
 };
 
 template<>
-vector_set_t<const char*>::iterator vector_set_t<const char*>::find(const char* const& v) {
+DLLLOCAL vector_set_t<const char*>::iterator vector_set_t<const char*>::find(const char* const& v) {
     return std::find_if(vector.begin(), vector.end(), string_compare(v));
 }
 
@@ -166,7 +166,7 @@ DLLLOCAL vector_set_t<const char*>::const_iterator vector_set_t<const char*>::lo
 }
 
 template<>
-vector_set_t<char*>::iterator vector_set_t<char*>::find(char* const& v) {
+DLLLOCAL vector_set_t<char*>::iterator vector_set_t<char*>::find(char* const& v) {
     return std::find_if(vector.begin(), vector.end(), string_compare(v));
 }
 

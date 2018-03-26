@@ -60,6 +60,7 @@ public:
     };
 };
 
+// only full template specialization is supported, so we can't just override operator== :(
 template<typename T> // specialization for char*
 class vector_map_node_t<char*, T> : public std::pair<char*, T> {
 public:
@@ -73,6 +74,7 @@ public:
     };
 };
 
+// only full template specialization is supported, so we can't just override operator== :(
 template<typename T> // specialization for const char*
 class vector_map_node_t<const char*, T> : public std::pair<const char*, T> {
 public:

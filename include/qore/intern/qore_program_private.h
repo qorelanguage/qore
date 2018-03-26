@@ -46,6 +46,7 @@ extern QoreHashNode* ENV;
 #include "qore/QoreDebugProgram.h"
 #include "qore/QoreRWLock.h"
 #include "qore/vector_map"
+#include "qore/vector_set"
 
 #include <stdarg.h>
 #include <errno.h>
@@ -344,7 +345,7 @@ public:
     typedef std::set<const char*, ltstr> str_set_t;
     str_set_t str_set;
 
-    // temporary while parsing: unique locations
+    // temporary while parsing: unique locations; must be a set for performance reasons
     typedef std::set<const QoreProgramLocation*, ltpgm> loc_set_t;
     loc_set_t loc_set;
 

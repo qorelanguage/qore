@@ -47,95 +47,6 @@
 #include <algorithm>
 #include <iterator>
 
-/*
-template <typename T>
-class vector_set_node_t {
-public:
-    T val;
-
-    DLLLOCAL vector_set_node_t(const T& v) : val(v) {
-    }
-
-    DLLLOCAL T& operator*() {
-        return val;
-    }
-
-    DLLLOCAL const T& operator*() const {
-        return val;
-    }
-
-    DLLLOCAL T& operator->() {
-        return val;
-    }
-
-    DLLLOCAL const T& operator->() const {
-        return val;
-    }
-
-    DLLLOCAL bool operator==(const T& k) const {
-        return val == k;
-    };
-};
-
-template<> // specialization for char*
-class vector_set_node_t<char *> {
-public:
-    char* val;
-
-    DLLLOCAL vector_set_node_t(char* v) : val(v) {
-    }
-
-    DLLLOCAL char* operator*() {
-        return val;
-    }
-
-    DLLLOCAL const char* operator*() const {
-        return val;
-    }
-
-    DLLLOCAL char* operator->() {
-        return val;
-    }
-
-    DLLLOCAL const char* operator->() const {
-        return val;
-    }
-
-    DLLLOCAL bool operator==(const char* k) const {
-        return !strcmp(val, k);
-    };
-};
-
-template<> // specialization for const char*
-class vector_set_node_t<const char*> {
-public:
-    const char* val;
-
-    DLLLOCAL vector_set_node_t(const char* v) : val(v) {
-    }
-
-    DLLLOCAL const char* operator*() {
-        return val;
-    }
-
-    DLLLOCAL const char* operator*() const {
-        return val;
-    }
-
-    DLLLOCAL const char* operator->() {
-        return val;
-    }
-
-    DLLLOCAL const char* operator->() const {
-        return val;
-    }
-
-    DLLLOCAL bool operator==(const char* const k) const {
-        return !strcmp(val, k);
-    };
-};
-*/
-
 struct string_compare : public std::unary_function<const char*, bool> {
     DLLLOCAL explicit string_compare(const char* const& baseline) : baseline(baseline) {
     }
@@ -210,6 +121,12 @@ public:
 
     DLLLOCAL size_t size() const {
         return vector.size();
+    }
+
+    DLLLOCAL void erase(const T& v) {
+        iterator i = find(v);
+        if (i != vector.end())
+            vector.erase(i);
     }
 
     DLLLOCAL void erase(iterator i) {
