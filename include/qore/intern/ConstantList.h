@@ -208,11 +208,11 @@ public:
    }
 };
 
-#if 1
+// we use a vector map as the number of constants is generally relatively small
+// and lookups are only performed during parsing
 #include <qore/vector_map>
 typedef vector_map_t<const char*, ConstantEntry*> cnemap_t;
-// vector map
-#else
+/*
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
@@ -223,7 +223,7 @@ typedef HASH_MAP<const char*, ConstantEntry*, qore_hash_str, eqstr> cnemap_t;
 #include <map>
 typedef std::map<const char*, ConstantEntry*, ltstr> cnemap_t;
 #endif
-#endif
+*/
 
 class ConstantList {
     friend class ConstantListIterator;

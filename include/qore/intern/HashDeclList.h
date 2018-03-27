@@ -36,11 +36,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if 1
+// we use a vector map as the number of hashdecls is generally relatively small
 #include <qore/vector_map>
 typedef vector_map_t<const char*, TypedHashDecl*> hm_qth_t;
-// vector map
-#else
+/*
 #ifdef HAVE_QORE_HASH_MAP
 #include <qore/hash_map_include.h>
 #include "qore/intern/xxhash.h"
@@ -50,7 +49,7 @@ typedef HASH_MAP<const char*, TypedHashDecl*, qore_hash_str, eqstr> hm_qth_t;
 #include <map>
 typedef std::map<const char*, TypedHashDecl*, ltstr> hm_qth_t;
 #endif
-#endif
+*/
 
 class QoreNamespaceList;
 

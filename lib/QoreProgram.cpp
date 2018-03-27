@@ -580,6 +580,7 @@ int qore_program_private::internParseCommit() {
     }
     else { // otherwise commit them
         parsing_done = true;
+        parsing_in_progress = false;
 
         // merge pending namespace additions
         qore_root_ns_private::parseCommit(*RootNS);

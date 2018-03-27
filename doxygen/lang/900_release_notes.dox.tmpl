@@ -8,9 +8,19 @@
     WIP
 
     @subsection qore_09_compatibility Changes That Can Affect Backwards-Compatibility
+    - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
     - Qore classes and functions can no longer be modified after creation; any attempt to add a new user
       variant to an existing function or to add new declarations to an existing class will result in a
       parse error.
+    - @ref Qore::Program "Program" objects now only support a single complete parse action
+      (@ref Qore::Program::parse() "Program::parse()" or @ref Qore::Program::parseCommit() "Program::parseCommit()");
+      subsequent attempts to parse code into the same %Program object will fail with an exception.  If parsing fails
+      due to a parse exception, the @ref Qore::Program "Program" object is generally no longer usable and must be
+      recreated to be used.
+    - @ref Qore::Program::parseRollback() "Program::parseRollback()" is now deprecated; this action removes all user
+      code and most builtin code from the @ref Qore::Program "Program" object; delete the object instead of using
+      this method
+
     WIP
 
     @subsection qore_09_new_features New Features in Qore

@@ -1216,15 +1216,15 @@ public:
     typedef std::pair<char*, T*> list_element_t;
     typedef std::vector<list_element_t> member_list_t;
     typedef typename member_list_t::const_iterator DeclOrderIterator;
-#if 1
+    // we use a vector map as the number of members is generally relatively small
     typedef vector_map_t<char*, T*> member_map_t;
-#else
+    /*
 #ifdef HAVE_QORE_HASH_MAP
     typedef HASH_MAP<char*, T*, qore_hash_str, eqstr> member_map_t;
 #else
     typedef std::map<char*, T*, ltstr> member_map_t;
 #endif
-#endif
+    */
     typedef typename member_map_t::const_iterator SigOrderIterator;
 
 public:

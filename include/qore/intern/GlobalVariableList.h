@@ -39,11 +39,10 @@
 
 class Var;
 
-#if 1
+// we use a vector map as the number of constants is generally relatively small
 #include <qore/vector_map>
 typedef vector_map_t<const char*, Var*> map_var_t;
-// vector map
-#else
+/*
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
@@ -54,7 +53,7 @@ typedef HASH_MAP<const char*, Var*, qore_hash_str, eqstr> map_var_t;
 #include <map>
 typedef std::map<const char*, Var*, ltstr> map_var_t;
 #endif
-#endif
+*/
 
 // this is a "grow-only" container
 // all reading and writing is done within the parse lock on the containing program object

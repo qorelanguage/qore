@@ -51,11 +51,10 @@ struct cl_rec_t {
     }
 };
 
-#if 1
+// we use a vector map as the number of classes is generally relatively small
 #include <qore/vector_map>
 typedef vector_map_t<const char*, cl_rec_t> hm_qc_t;
-// vector map
-#else
+/*
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
@@ -66,7 +65,7 @@ typedef HASH_MAP<const char*, cl_rec_t, qore_hash_str, eqstr> hm_qc_t;
 #include <map>
 typedef std::map<const char*, cl_rec_t, ltstr> hm_qc_t;
 #endif
-#endif
+*/
 
 class QoreNamespaceList;
 

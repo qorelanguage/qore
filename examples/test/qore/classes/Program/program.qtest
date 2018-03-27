@@ -66,7 +66,6 @@ nothing sub funcParamTypeTest(
     ) {
 }
 
-
 namespace NS {
     list sub funcNSTest() {
         return list();
@@ -322,6 +321,13 @@ class ProgramTest inherits QUnit::Test {
             assertThrows("PARSE-EXCEPTION", \p5.parse(), ("#", ""));
             # issue #2175: the following code will crash without the fix
             assertThrows("PARSE-EXCEPTION", \p5.parse(), ("/*", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            # ensure that programs cannot be accessed while parsing
+            p.parsePending("class T { int t() { int a = 1; return a; }} T t();", "");
+            assertThrows("PROGRAM-ERROR", \p.run());
         }
     }
 

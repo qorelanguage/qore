@@ -396,7 +396,8 @@ public:
         exec_class : 1,
         base_object : 1,
         requires_exception : 1,
-        parsing_done : 1
+        parsing_done : 1,
+        parsing_in_progress : 1
         ;
 
     int tclear;   // clearing thread-local variables in progress? if so, this is the TID
@@ -445,6 +446,7 @@ public:
             only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
             requires_exception(false),
             parsing_done(false),
+            parsing_in_progress(false),
             tclear(0),
             exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(nullptr), twaiting(0),
             thr_init(nullptr), exec_class_rv(nullptr), pgm(n_pgm) {
@@ -725,6 +727,9 @@ public:
             xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
             return -1;
         }
+        if (parsing_in_progress) {
+            xsink->raiseException("PROGRAM-ERROR", "the Program accessed is currently undergoing parsing and cannot be accessed at runtime");
+        }
 
         ++tidmap[tid];
         ++thread_count;
@@ -738,8 +743,12 @@ public:
         // grab program-level lock
         AutoLocker al(plock);
 
-        if (ptid && ptid != tid)
+        if (ptid && ptid != tid) {
             throw QoreStandardException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
+        }
+        if (parsing_in_progress) {
+            throw QoreStandardException("PROGRAM-ERROR", "the Program accessed is currently undergoing parsing and cannot be accessed at runtime");
+        }
 
         ++tidmap[tid];
         ++thread_count;
@@ -919,6 +928,10 @@ public:
 
         beginParsing(sname, nullptr, src, offset);
 
+        if (!parsing_in_progress) {
+            parsing_in_progress = true;
+        }
+
         // no need to save buffer, because it's deleted automatically in lexer
         //printd(5, "qore_program_private::internParsePending() parsing tag: %s (%p): '%s'\n", label, label, code);
 
@@ -1061,6 +1074,10 @@ public:
             QoreParseLocationHelper qplh(sname, nullptr, 0);
 
             beginParsing(sname);
+
+            if (!parsing_in_progress) {
+                parsing_in_progress = true;
+            }
 
             //printd(5, "QoreProgram::parse(): about to call yyparse()\n");
             yylex_init(&lexer);
