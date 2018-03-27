@@ -1836,6 +1836,7 @@ void qore_ns_private::deleteData(ExceptionSink* xsink) {
     // clear all constants
     constant.deleteAll(xsink);
     // clear all constants and static class vars
+    classList.deleteClassData(xsink);
     classList.deleteClearData(xsink);
     // clear all user functions
     func_list.del();

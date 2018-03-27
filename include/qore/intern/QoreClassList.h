@@ -117,7 +117,7 @@ public:
 
     DLLLOCAL void clear(ExceptionSink* xsink);
     DLLLOCAL void clearConstants(QoreListNode& l);
-    //DLLLOCAL void deleteAll(ExceptionSink* xsink);
+    DLLLOCAL void deleteClassData(ExceptionSink* xsink);
     DLLLOCAL void deleteClearData(ExceptionSink* xsink);
 };
 

@@ -239,13 +239,11 @@ void QoreClassList::clear(ExceptionSink *xsink) {
     }
 }
 
-/*
 void QoreClassList::deleteClassData(ExceptionSink *xsink) {
     for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
         qore_class_private::deleteClassData(i->second.cls, xsink);
     }
 }
-*/
 
 void QoreClassList::deleteClearData(ExceptionSink* xsink) {
     for (auto& i : hm) {
