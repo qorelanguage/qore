@@ -218,32 +218,27 @@ qore_program_private::~qore_program_private() {
 
 const QoreProgramLocation* qore_program_private_base::getLocation(int sline, int eline) {
     QoreProgramLocation loc(sline, eline);
+
     loc_set_t::iterator i = loc_set.lower_bound(&loc);
-    if (i == loc_set.end() || **i != loc) {
+    if (i == loc_set.end() || (**i != loc)) {
         QoreProgramLocation* lp = new QoreProgramLocation(loc);
         pgmloc.push_back(lp);
         i = loc_set.insert(i, lp);
+        return lp;
     }
-    /*
-    else {
-        printd(0, "reusing location %s:%d-%d\n", (*i)->getFile(), (*i)->start_line, (*i)->end_line);
-    }
-    */
 
+    //printd(0, "gL: REUSE RV %d-%d\n", (*i)->start_line, (*i)->end_line);
     return *i;
 }
 
 const QoreProgramLocation* qore_program_private_base::getLocation(const QoreProgramLocation& loc, int sline, int eline) {
-    if (loc.start_line == sline && loc.end_line == eline) {
-        return &loc;
-    }
     QoreProgramLocation loc1(loc);
     loc1.start_line = sline;
     loc1.end_line = eline;
 
-    loc_set_t::iterator i = loc_set.lower_bound(&loc);
-    if (i == loc_set.end() || **i != loc) {
-        QoreProgramLocation* lp = new QoreProgramLocation(loc);
+    loc_set_t::iterator i = loc_set.lower_bound(&loc1);
+    if (i == loc_set.end() || **i != loc1) {
+        QoreProgramLocation* lp = new QoreProgramLocation(loc1);
         pgmloc.push_back(lp);
         i = loc_set.insert(i, lp);
     }

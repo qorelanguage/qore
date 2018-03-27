@@ -2826,7 +2826,7 @@ void BCSMList::align(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
             return;
         assert(i.first->getID() != thisclass->getID());
     }
-    qc->priv->ref();
+    //qc->priv->ref();
 
     // append to the end of the vector
     //printd(5, "BCSMList::align() adding %p '%s' (virt: %d) as a base class of %p '%s'\n", qc, qc->getName(), is_virtual, thisclass, thisclass->getName());
@@ -2864,7 +2864,7 @@ int BCSMList::add(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
       }
       i++;
    }
-   qc->priv->ref();
+   //qc->priv->ref();
 
    // append to the end of the list
    push_back(std::make_pair(qc, is_virtual));

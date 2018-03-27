@@ -1102,54 +1102,58 @@ public:
 
 class QoreVarInfo : public QoreMemberInfoBaseAccess {
 protected:
-   DLLLOCAL QoreVarInfo(const QoreVarInfo& old, ClassAccess n_access = Public) : QoreMemberInfoBaseAccess(old, n_access), val(old.val), finalized(old.finalized) {
-   }
+    DLLLOCAL QoreVarInfo(const QoreVarInfo& old, ClassAccess n_access = Public) : QoreMemberInfoBaseAccess(old, n_access), val(old.val), finalized(old.finalized) {
+    }
 
-   DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
-      if (finalized) {
-         xsink->raiseException("DESTRUCTOR-ERROR", "illegal class static variable assignment after second phase of variable destruction");
-         return -1;
-      }
-      return 0;
-   }
+    DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
+        if (finalized) {
+            xsink->raiseException("DESTRUCTOR-ERROR", "illegal class static variable assignment after second phase of variable destruction");
+            return -1;
+        }
+        return 0;
+    }
 
 public:
-   mutable QoreVarRWLock rwl;
-   QoreLValueGeneric val;
-   bool finalized;
+    mutable QoreVarRWLock rwl;
+    QoreLValueGeneric val;
+    bool finalized;
 
-   DLLLOCAL QoreVarInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeinfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr, ClassAccess n_access = Public) :
-      QoreMemberInfoBaseAccess(loc, n_typeinfo, n_parseTypeInfo, e, n_access), finalized(false) {
-   }
+    DLLLOCAL QoreVarInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeinfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr, ClassAccess n_access = Public) :
+        QoreMemberInfoBaseAccess(loc, n_typeinfo, n_parseTypeInfo, e, n_access), finalized(false) {
+    }
 
-   DLLLOCAL ~QoreVarInfo() {
-      assert(!val.hasValue());
-   }
+    DLLLOCAL ~QoreVarInfo() {
+        assert(!val.hasValue());
+    }
 
 #ifdef DEBUG
-   DLLLOCAL void del() {
-      assert(!val.hasValue());
-      QoreMemberInfoBaseAccess::del();
-   }
+    DLLLOCAL void del() {
+        assert(!val.hasValue());
+        QoreMemberInfoBaseAccess::del();
+    }
 #endif
 
-   DLLLOCAL void clear(ExceptionSink* xsink) {
-      ReferenceHolder<> tmp(xsink);
-      QoreAutoVarRWWriteLocker al(rwl);
-      if (!finalized)
-         finalized = true;
-      tmp = val.removeNode(true);
-   }
+    DLLLOCAL void clear(ExceptionSink* xsink) {
+        ReferenceHolder<> tmp(xsink);
+        QoreAutoVarRWWriteLocker al(rwl);
+        if (!finalized)
+            finalized = true;
+        tmp = val.removeNode(true);
+    }
 
-   DLLLOCAL void delVar(ExceptionSink* xsink) {
-      del();
-      discard(val.removeNode(true), xsink);
-   }
+    DLLLOCAL void delVar(ExceptionSink* xsink) {
+#ifdef DEBUG
+        QoreMemberInfoBaseAccess::del();
+#else
+        del();
+#endif
+        discard(val.removeNode(true), xsink);
+    }
 
-   DLLLOCAL QoreVarInfo* copy(const char* name) const {
-      const_cast<QoreVarInfo*>(this)->parseInit(name);
-      return new QoreVarInfo(*this);
-   }
+    DLLLOCAL QoreVarInfo* copy(const char* name) const {
+        const_cast<QoreVarInfo*>(this)->parseInit(name);
+        return new QoreVarInfo(*this);
+    }
 
     DLLLOCAL AbstractQoreNode* assignInit(QoreValue v) {
         // try to set an optimized value type for the value holder if possible
@@ -1157,47 +1161,47 @@ public:
         return val.assignInitial(v);
     }
 
-   DLLLOCAL void getLValue(LValueHelper& lvh) {
-      lvh.setAndLock(rwl);
-      if (checkFinalized(lvh.vl.xsink))
-         return;
-      lvh.setValue(val, getTypeInfo());
-   }
+    DLLLOCAL void getLValue(LValueHelper& lvh) {
+        lvh.setAndLock(rwl);
+        if (checkFinalized(lvh.vl.xsink))
+            return;
+        lvh.setValue(val, getTypeInfo());
+    }
 
-   DLLLOCAL void init() {
-      val.set(getTypeInfo());
+    DLLLOCAL void init() {
+        val.set(getTypeInfo());
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      // try to set an optimized value type for the value holder if possible
-      discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), 0);
+        // try to set an optimized value type for the value holder if possible
+        discard(val.assignInitial(QoreTypeInfo::getDefaultQoreValue(typeInfo)), 0);
 #endif
-   }
+    }
 
-   DLLLOCAL QoreValue getReferencedValue() const {
-      QoreAutoVarRWReadLocker al(rwl);
-      return val.getReferencedValue();
-   }
+    DLLLOCAL QoreValue getReferencedValue() const {
+        QoreAutoVarRWReadLocker al(rwl);
+        return val.getReferencedValue();
+    }
 
-   DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const {
-      QoreAutoVarRWReadLocker al(rwl);
-      return val.getReferencedNodeValue();
-   }
+    DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const {
+        QoreAutoVarRWReadLocker al(rwl);
+        return val.getReferencedNodeValue();
+    }
 
-   DLLLOCAL int64 getAsBigInt() const {
-      QoreAutoVarRWReadLocker al(rwl);
-      return val.getAsBigInt();
-   }
+    DLLLOCAL int64 getAsBigInt() const {
+        QoreAutoVarRWReadLocker al(rwl);
+        return val.getAsBigInt();
+    }
 
-   DLLLOCAL double getAsFloat() const {
-      QoreAutoVarRWReadLocker al(rwl);
-      return val.getAsFloat();
-   }
+    DLLLOCAL double getAsFloat() const {
+        QoreAutoVarRWReadLocker al(rwl);
+        return val.getAsFloat();
+    }
 
-   DLLLOCAL bool getAsBool() const {
-      QoreAutoVarRWReadLocker al(rwl);
-      return val.getAsBool();
-   }
+    DLLLOCAL bool getAsBool() const {
+        QoreAutoVarRWReadLocker al(rwl);
+        return val.getAsBool();
+    }
 
-   DLLLOCAL void parseInit(const char* name);
+    DLLLOCAL void parseInit(const char* name);
 };
 
 /*
@@ -1912,6 +1916,28 @@ public:
 
     DLLLOCAL void ref() const {
         refs.ROreference();
+    }
+
+    DLLLOCAL bool deref(ExceptionSink* xsink) {
+        if (refs.ROdereference()) {
+            // remove the private data pointer, delete the class object, then delete ourselves
+            cls->priv = nullptr;
+            delete cls;
+
+            // delete all linked QoreClass objects
+            for (auto& i : qcset) {
+                i->priv = nullptr;
+                delete i;
+            }
+
+            if (!vars.empty()) {
+                vars.del(xsink);
+            }
+
+            delete this;
+            return true;
+        }
+        return false;
     }
 
     DLLLOCAL bool deref(bool in_del = false) {

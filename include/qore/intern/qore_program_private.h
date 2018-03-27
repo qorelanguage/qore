@@ -310,7 +310,10 @@ struct pgmloc_vec_t : public std::vector<QoreProgramLocation*> {
     }
 
     DLLLOCAL void clear() {
-        std::for_each(begin(), end(), simple_delete<QoreProgramLocation>());
+        for (auto& i : *this) {
+            delete i;
+        }
+        //std::for_each(begin(), end(), simple_delete<QoreProgramLocation>());
         std::vector<QoreProgramLocation*>::clear();
     }
 };
