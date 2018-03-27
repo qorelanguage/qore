@@ -187,7 +187,7 @@ public:
       assert(type != VT_GLOBAL);
       type = VT_LOCAL;
       new_decl = true;
-      ref.id = 0;
+      ref.id = nullptr;
    }
    // called when a list of variables is declared
    DLLLOCAL virtual void makeGlobal();

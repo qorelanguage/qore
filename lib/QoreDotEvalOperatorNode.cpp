@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -103,7 +103,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
             m->parseSetClassAndMethod(qc, meth);
 
             // check parameters, if any
-            lvids += m->parseArgs(oflag, pflag, meth->getFunction(), returnTypeInfo);
+            lvids += m->parseArgs(oflag, pflag, meth->getFunction(), nullptr, returnTypeInfo);
             expTypeInfo = returnTypeInfo;
 
             return this;
@@ -183,10 +183,10 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    m->parseSetClassAndMethod(qc, meth);
 
    // check parameters, if any
-   lvids += m->parseArgs(oflag, pflag, meth->getFunction(), returnTypeInfo);
+   lvids += m->parseArgs(oflag, pflag, meth->getFunction(), nullptr ,returnTypeInfo);
    expTypeInfo = returnTypeInfo;
 
-   printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", mname, meth && (qore_method_private::parseGetAccess(*meth) > Public) ? "true" : "false", meth->isStatic() ? "true" : "false", QoreTypeInfo::getName(returnTypeInfo));
+   printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", mname, meth && (qore_method_private::getAccess(*meth) > Public) ? "true" : "false", meth->isStatic() ? "true" : "false", QoreTypeInfo::getName(returnTypeInfo));
 
    return this;
 }
