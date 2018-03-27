@@ -125,8 +125,8 @@ void ConstantEntry::del(ExceptionSink* xsink) {
 #endif
     }
     else {
-        // abort if an object is present and we are calling deref without an ExceptionSink object
-        assert(val.getType() != NT_OBJECT || xsink);
+        // note that objects may be present here when discarding with xsink == nullptr if there is a builtin object in a class constant
+        // in this case the destructor cannot throw an exception
         val.discard(xsink);
 #ifdef DEBUG
         val.clear();

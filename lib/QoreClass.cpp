@@ -295,30 +295,30 @@ void AbstractMethod::checkAbstract(const char* cname, const char* mname, vmap_t&
 
 // try to find match non-abstract variants in base classes (allows concrete variants to be inherited from another parent class)
 void AbstractMethodMap::parseInit(qore_class_private& qc, BCList* scl) {
-   if (!scl)
-      return;
-   //printd(5, "AbstractMethodMap::parseInit() this: %p cname: %s scl: %p ae: %d\n", this, qc.name.c_str(), scl, empty());
-   for (auto& i : *this) {
-      for (vmap_t::iterator vi = i.second->vlist.begin(), ve = i.second->vlist.end(); vi != ve;) {
-         // if there is a matching non-abstract variant in any parent class, then move the variant from vlist to pending_save
-         MethodVariantBase* v = scl->matchNonAbstractVariant(i.first, vi->second);
-         if (v) {
-            const char* sig = vi->second->getAbstractSignature();
-            i.second->pending_save.insert(vmap_t::value_type(sig, vi->second));
-            vmap_t::iterator ti = vi++;
-            i.second->vlist.erase(ti);
-            // replace abstract variant
-            QoreMethod* m = qc.parseFindLocalMethod(i.first);
-            if (!m) {
-               m = new QoreMethod(qc.cls, new NormalUserMethod(qc.cls, i.first.c_str()), false);
-               qc.hm[m->getName()] = m;
+    if (!scl)
+        return;
+    //printd(5, "AbstractMethodMap::parseInit() this: %p cname: %s scl: %p ae: %d\n", this, qc.name.c_str(), scl, empty());
+    for (auto& i : *this) {
+        for (vmap_t::iterator vi = i.second->vlist.begin(), ve = i.second->vlist.end(); vi != ve;) {
+            // if there is a matching non-abstract variant in any parent class, then move the variant from vlist to pending_save
+            MethodVariantBase* v = scl->matchNonAbstractVariant(i.first, vi->second);
+            if (v) {
+                const char* sig = vi->second->getAbstractSignature();
+                i.second->pending_save.insert(vmap_t::value_type(sig, vi->second));
+                vmap_t::iterator ti = vi++;
+                i.second->vlist.erase(ti);
+                // replace abstract variant
+                QoreMethod* m = qc.parseFindLocalMethod(i.first);
+                if (!m) {
+                    m = new QoreMethod(qc.cls, new NormalUserMethod(qc.cls, i.first.c_str()), false);
+                    qc.hm[m->getName()] = m;
+                }
+                m->getFunction()->replaceAbstractVariant(v);
+                continue;
             }
-            m->getFunction()->replaceAbstractVariant(v);
-            continue;
-         }
-         ++vi;
-      }
-   }
+            ++vi;
+        }
+    }
 }
 
 void AbstractMethodMap::parseAddAbstractVariant(const char* name, MethodVariantBase* f) {

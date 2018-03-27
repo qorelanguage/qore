@@ -363,54 +363,54 @@ QoreUserModule::~QoreUserModule() {
 }
 
 void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) const {
-   //printd(5, "QoreUserModule::addToProgram() tpgm po: %llx pgm dom: %llx\n", tpgm->getParseOptions64(), qore_program_private::getDomain(*pgm));
-   // first check the module's functional domain
-   int64 dom = qore_program_private::getDomain(*pgm);
-   if (tpgm->getParseOptions64() & dom) {
-      xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s' implements functionality restricted in the Program object trying to import the module (%xd)", name.getBuffer(), tpgm->getParseOptions64() & dom);
-      return;
-   }
+    //printd(5, "QoreUserModule::addToProgram() tpgm po: %llx pgm dom: %llx\n", tpgm->getParseOptions64(), qore_program_private::getDomain(*pgm));
+    // first check the module's functional domain
+    int64 dom = qore_program_private::getDomain(*pgm);
+    if (tpgm->getParseOptions64() & dom) {
+        xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s' implements functionality restricted in the Program object trying to import the module (%xd)", name.getBuffer(), tpgm->getParseOptions64() & dom);
+        return;
+    }
 
-   QoreModuleContextHelper qmc(name.getBuffer(), tpgm, xsink);
-   ProgramThreadCountContextHelper ptcch(&xsink, tpgm, false);
-   if (xsink) {
-      // rollback all module changes
-      qmc.rollback();
-      return;
-   }
+    QoreModuleContextHelper qmc(name.getBuffer(), tpgm, xsink);
+    ProgramThreadCountContextHelper ptcch(&xsink, tpgm, false);
+    if (xsink) {
+        // rollback all module changes
+        qmc.rollback();
+        return;
+    }
 
-   RootQoreNamespace* rns = tpgm->getRootNS();
-   qore_root_ns_private::scanMergeCommittedNamespace(*rns, *(pgm->getRootNS()), qmc);
+    RootQoreNamespace* rns = tpgm->getRootNS();
+    qore_root_ns_private::scanMergeCommittedNamespace(*rns, *(pgm->getRootNS()), qmc);
 
-   if (qmc.hasError()) {
-      // rollback all module changes
-      qmc.rollback();
-      return;
-   }
+    if (qmc.hasError()) {
+        // rollback all module changes
+        qmc.rollback();
+        return;
+    }
 
-   // commit all module changes
-   qore_root_ns_private::copyMergeCommittedNamespace(*rns, *(pgm->getRootNS()));
-   qore_program_private::addUserFeature(*tpgm, name.getBuffer());
-   //tpgm->addUserFeature(name.getBuffer());
+    // commit all module changes
+    qore_root_ns_private::copyMergeCommittedNamespace(*rns, *(pgm->getRootNS()));
+    qore_program_private::addUserFeature(*tpgm, name.getBuffer());
+    //tpgm->addUserFeature(name.getBuffer());
 
-   // add domain to current Program's domain
-   qore_program_private::runtimeAddDomain(*tpgm, dom);
+    // add domain to current Program's domain
+    qore_program_private::runtimeAddDomain(*tpgm, dom);
 
-   QMM.trySetUserModuleDependency(this);
+    QMM.trySetUserModuleDependency(this);
 }
 
 void QoreBuiltinModule::issueParseCmd(const QoreProgramLocation* loc, QoreString& cmd) {
-   if (!module_parse_cmd) {
-      parseException(*loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' has not registered a parse command handler", name.getBuffer(), filename.getBuffer());
-      return;
-   }
+    if (!module_parse_cmd) {
+        parseException(*loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' has not registered a parse command handler", name.getBuffer(), filename.getBuffer());
+        return;
+    }
 
-   ExceptionSink* pxsink = getProgram()->getParseExceptionSink();
-   // if parse exceptions have been disabled, then skip issuing the command
-   if (!pxsink)
-      return;
+    ExceptionSink* pxsink = getProgram()->getParseExceptionSink();
+    // if parse exceptions have been disabled, then skip issuing the command
+    if (!pxsink)
+        return;
 
-   module_parse_cmd(cmd, pxsink);
+    module_parse_cmd(cmd, pxsink);
 }
 
 ModuleManager::ModuleManager() {
@@ -1389,6 +1389,20 @@ void QoreModuleManager::cleanup() {
 }
 
 void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char* mname, QoreProgram* pgm, QoreString& cmd) {
+    ExceptionSink xsink;
+
+    AutoLocker al(mutex); // make sure checking and loading are atomic
+    loadModuleIntern(xsink, mname, pgm);
+
+    if (xsink) {
+        parseException(*loc, "PARSE-COMMAND-ERROR", loadModuleError(mname, xsink));
+        return;
+    }
+
+    QoreAbstractModule* mi = findModule(mname);
+    assert(mi);
+
+    mi->issueParseCmd(loc, cmd);
 }
 
 QoreHashNode* ModuleManager::getModuleHash() {

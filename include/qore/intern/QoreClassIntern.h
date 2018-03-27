@@ -65,8 +65,9 @@ typedef std::map<std::string, QoreMethod*> hm_method_t;
 class qore_class_private;
 
 // map from abstract signature to variant for fast tracking of abstract variants
-typedef vector_map_t<const char*, MethodVariantBase*> vmap_t;
-//typedef std::map<const char*, MethodVariantBase*, ltstr> vmap_t;
+//typedef vector_map_t<const char*, MethodVariantBase*> vmap_t;
+// must be a map to support deletion while iterating
+typedef std::map<const char*, MethodVariantBase*, ltstr> vmap_t;
 
 struct AbstractMethod {
     // committed abstract methods from this class and parent classes
@@ -112,75 +113,72 @@ struct AbstractMethod {
     }
 };
 
-#if 1
-typedef vector_map_t<std::string, AbstractMethod*> amap_t;
-#else
+// cannot be a vector map to support deletion while iterating with the map API
 #ifdef HAVE_QORE_HASH_MAP
 typedef HASH_MAP<std::string, AbstractMethod*> amap_t;
 #else
 typedef std::map<std::string, AbstractMethod*> amap_t;
 #endif
-#endif
 
 struct AbstractMethodMap : amap_t {
-   DLLLOCAL AbstractMethodMap(const AbstractMethodMap& old) {
-      for (amap_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
-         if (i->second->vlist.empty())
-            continue;
-         insert(amap_t::value_type(i->first, new AbstractMethod(*(i->second))));
-      }
-   }
+    DLLLOCAL AbstractMethodMap(const AbstractMethodMap& old) {
+        for (amap_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
+            if (i->second->vlist.empty())
+                continue;
+            insert(amap_t::value_type(i->first, new AbstractMethod(*(i->second))));
+        }
+    }
 
-   DLLLOCAL AbstractMethodMap() {
-   }
+    DLLLOCAL AbstractMethodMap() {
+    }
 
-   DLLLOCAL ~AbstractMethodMap() {
-      for (amap_t::iterator i = begin(), e = end(); i != e; ++i)
-         delete i->second;
-   }
-
-   DLLLOCAL AbstractMethod* findMethod(const std::string& name) {
-      amap_t::iterator i = find(name);
-      return i == end() ? 0 : i->second;
-   }
-
-   // adds a pending abstract variant if it doesn't already exist
-   DLLLOCAL void parseAddAbstractVariant(const char* name, MethodVariantBase* f);
-
-   DLLLOCAL void parseOverrideAbstractVariant(const char* name, MethodVariantBase* f);
-
-   // adds a committed abstract variant if it doesn't already exist
-   DLLLOCAL void addAbstractVariant(const char* name, MethodVariantBase* f);
-
-   // adds a committed non-abstract variant
-   DLLLOCAL void overrideAbstractVariant(const char* name, MethodVariantBase* f);
-
-   DLLLOCAL void parseCommit() {
-      for (amap_t::iterator i = begin(), e = end(); i != e;) {
-         if (i->second->parseCommit()) {
-            //printd(5, "AbstractMethodMap::parseCommit() removing abstract ???::%s()\n", i->first.c_str());
+    DLLLOCAL ~AbstractMethodMap() {
+        for (amap_t::iterator i = begin(), e = end(); i != e; ++i)
             delete i->second;
-            erase(i++);
-            continue;
-         }
-         ++i;
-      }
-   }
+    }
 
-   DLLLOCAL void parseRollback() {
-      for (amap_t::iterator i = begin(), e = end(); i != e; ++i)
-         i->second->parseRollback();
-   }
+    DLLLOCAL AbstractMethod* findMethod(const std::string& name) {
+        amap_t::iterator i = find(name);
+        return i == end() ? nullptr : i->second;
+    }
 
-   DLLLOCAL void parseInit(qore_class_private& qc, BCList* scl);
+    // adds a pending abstract variant if it doesn't already exist
+    DLLLOCAL void parseAddAbstractVariant(const char* name, MethodVariantBase* f);
 
-   DLLLOCAL QoreStringNode* checkAbstract(const char* cname) const;
+    DLLLOCAL void parseOverrideAbstractVariant(const char* name, MethodVariantBase* f);
 
-   // we check if there are any abstract method variants still in the committed lists
-   DLLLOCAL void parseCheckAbstractNew(const QoreProgramLocation* loc, const char* name) const;
+    // adds a committed abstract variant if it doesn't already exist
+    DLLLOCAL void addAbstractVariant(const char* name, MethodVariantBase* f);
 
-   // we check if there are any abstract method variants in the class at runtime (for use with exec-class)
-   DLLLOCAL int runtimeCheckInstantiateClass(const char* name, ExceptionSink* xsink) const;
+    // adds a committed non-abstract variant
+    DLLLOCAL void overrideAbstractVariant(const char* name, MethodVariantBase* f);
+
+    DLLLOCAL void parseCommit() {
+        for (amap_t::iterator i = begin(), e = end(); i != e;) {
+            if (i->second->parseCommit()) {
+                //printd(5, "AbstractMethodMap::parseCommit() removing abstract ???::%s()\n", i->first.c_str());
+                delete i->second;
+                erase(i++);
+                continue;
+            }
+            ++i;
+        }
+    }
+
+    DLLLOCAL void parseRollback() {
+        for (amap_t::iterator i = begin(), e = end(); i != e; ++i)
+            i->second->parseRollback();
+    }
+
+    DLLLOCAL void parseInit(qore_class_private& qc, BCList* scl);
+
+    DLLLOCAL QoreStringNode* checkAbstract(const char* cname) const;
+
+    // we check if there are any abstract method variants still in the committed lists
+    DLLLOCAL void parseCheckAbstractNew(const QoreProgramLocation* loc, const char* name) const;
+
+    // we check if there are any abstract method variants in the class at runtime (for use with exec-class)
+    DLLLOCAL int runtimeCheckInstantiateClass(const char* name, ExceptionSink* xsink) const;
 };
 
 class SignatureHash;
