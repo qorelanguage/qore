@@ -68,7 +68,7 @@ public:
     }
 
     // takes all values from and deletes the argument
-    DLLLOCAL NamedScope(NamedScope* ns) : del(ns->del), ostr(ns->ostr), strlist(ns->strlist) {
+    DLLLOCAL NamedScope(NamedScope* ns) : strlist(ns->strlist), del(ns->del), ostr(ns->ostr) {
         ns->strlist = nullptr;
         ns->ostr = nullptr;
         delete ns;
