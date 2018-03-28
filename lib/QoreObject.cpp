@@ -69,7 +69,7 @@ qore_object_private::~qore_object_private() {
    assert(!data);
    assert(!privateData);
    assert(!rset);
-   qore_class_private::get(*const_cast<QoreClass*>(theclass))->deref();
+   qore_class_private::get(*const_cast<QoreClass*>(theclass))->deref(false, false);
    // release weak reference
    if (pgm)
       pgm->depDeref();

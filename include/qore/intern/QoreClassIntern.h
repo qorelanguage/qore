@@ -1918,29 +1918,14 @@ public:
         refs.ROreference();
     }
 
-    DLLLOCAL bool deref(ExceptionSink* xsink) {
-        if (refs.ROdereference()) {
-            // remove the private data pointer, delete the class object, then delete ourselves
-            cls->priv = nullptr;
-            delete cls;
-
-            // delete all linked QoreClass objects
-            for (auto& i : qcset) {
-                i->priv = nullptr;
-                delete i;
-            }
-
-            if (!vars.empty()) {
-                vars.del(xsink);
-            }
-
-            delete this;
-            return true;
+    DLLLOCAL bool deref(bool ns_const, bool ns_vars, bool in_del = false) {
+        if (ns_const && const_refs.ROdereference()) {
+            assert(constlist.empty());
         }
-        return false;
-    }
+        if (ns_vars && var_refs.ROdereference()) {
+            assert(vars.empty());
+        }
 
-    DLLLOCAL bool deref(bool in_del = false) {
         if (refs.ROdereference()) {
             // remove the private data pointer, delete the class object, then delete ourselves
             cls->priv = nullptr;
@@ -2605,20 +2590,28 @@ public:
 
     DLLLOCAL void clear(ExceptionSink* xsink) {
         //printd(5, "qore_class_private::clear() this: %p '%s' %d -> %d\n", this, name.c_str(), var_refs.reference_count(), var_refs.reference_count() - 1);
+
         if (var_refs.ROdereference()) {
             vars.clear(xsink);
             vars.del(xsink);
         }
     }
 
-    DLLLOCAL void deleteClassData(ExceptionSink* xsink) {
-        // delete vars and constants again if possible
-        if (!var_refs.reference_count()) {
+    DLLLOCAL void deleteClassData(bool deref_vars, ExceptionSink* xsink) {
+        if (deref_vars && var_refs.ROdereference()) {
+            vars.clear(xsink);
             vars.del(xsink);
         }
+        else if (!var_refs.reference_count()) {
+            // delete vars again if possible
+            vars.del(xsink);
+        }
+
+        /*
         if (!const_refs.reference_count()) {
             constlist.deleteAll(xsink);
         }
+        */
         if (spgm) {
             spgm->deref(xsink);
             spgm = nullptr;
@@ -3147,18 +3140,6 @@ public:
       qc->priv->parseAddStaticVar(dname, access, VarInfo);
    }
 
-   DLLLOCAL static void clearConstants(QoreClass* qc, QoreListNode& l) {
-      qc->priv->clearConstants(l);
-   }
-
-   DLLLOCAL static void clear(QoreClass* qc, ExceptionSink* xsink) {
-      qc->priv->clear(xsink);
-   }
-
-   DLLLOCAL static void deleteClassData(QoreClass* qc, ExceptionSink* xsink) {
-      qc->priv->deleteClassData(xsink);
-   }
-
    // searches only the current class, returns 0 if private found and not accessible in the current parse context
    DLLLOCAL static QoreValue parseFindLocalConstantValue(QoreClass* qc, const char* cname, const QoreTypeInfo*& typeInfo, bool& found) {
       return qc->priv->parseFindLocalConstantValue(cname, typeInfo, found);
@@ -3269,8 +3250,9 @@ public:
    }
 
    DLLLOCAL ~qore_class_private_holder() {
-      if (c)
-         c->deref();
+      if (c) {
+         c->deref(true, true);
+      }
    }
 
    DLLLOCAL qore_class_private* operator*() {
@@ -3280,10 +3262,10 @@ public:
    DLLLOCAL QoreClass* release() {
       if (c) {
          QoreClass* rv = c->cls;
-         c = 0;
+         c = nullptr;
          return rv;
       }
-      return 0;
+      return nullptr;
    }
 };
 

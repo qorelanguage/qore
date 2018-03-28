@@ -78,6 +78,8 @@ class QoreClassList {
 
 private:
     hm_qc_t hm;        // hash_map for name lookups
+    bool ns_const : 1;
+    bool ns_vars : 1;
 
     DLLLOCAL void deleteAll();
 
@@ -86,7 +88,7 @@ private:
     DLLLOCAL void addInternal(QoreClass* ot, bool priv);
 
 public:
-    DLLLOCAL QoreClassList() {}
+    DLLLOCAL QoreClassList() : ns_const(false), ns_vars(false) {}
     DLLLOCAL ~QoreClassList();
     DLLLOCAL QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns);
 
@@ -117,8 +119,7 @@ public:
 
     DLLLOCAL void clear(ExceptionSink* xsink);
     DLLLOCAL void clearConstants(QoreListNode& l);
-    DLLLOCAL void deleteClassData(ExceptionSink* xsink);
-    DLLLOCAL void deleteClearData(ExceptionSink* xsink);
+    DLLLOCAL void deleteClassData(bool deref_vars, ExceptionSink* xsink);
 };
 
 class ClassListIterator {

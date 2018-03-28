@@ -42,22 +42,38 @@
 #  include "tests/QoreClassList_tests.cpp"
 #endif
 
-void QoreClassList::remove(hm_qc_t::iterator i) {
-    QoreClass* qc = i->second.cls;
-    //printd(5, "QCL::remove() this: %p '%s' (%p)\n", this, qc->getName(), qc);
-    hm.erase(i);
-    qore_class_private::get(*qc)->deref();
-}
-
-void QoreClassList::deleteAll() {
-    for (auto& i : hm) {
-        qore_class_private::get(*i.second.cls)->deref();
+QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns) : ns_const(false), ns_vars(false) {
+    for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
+        if (!i->second.cls->isSystem()) {
+            //printd(5, "QoreClassList::QoreClassList() this: %p c: %p '%s' po & PO_NO_INHERIT_USER_CLASSES: %s pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_INHERIT_USER_CLASSES ? "true": "false", qore_class_private::isPublic(*i->second) ? "true": "false");
+            if (po & PO_NO_INHERIT_USER_CLASSES || !qore_class_private::isPublic(*i->second.cls))
+                continue;
+        }
+        else
+            if (po & PO_NO_INHERIT_SYSTEM_CLASSES)
+                continue;
+        QoreClass* qc = new QoreClass(*i->second.cls);
+        qore_class_private::setNamespace(qc, ns);
+        addInternal(qc, true);
     }
-    hm.clear();
 }
 
 QoreClassList::~QoreClassList() {
     deleteAll();
+}
+
+void QoreClassList::remove(hm_qc_t::iterator i) {
+    QoreClass* qc = i->second.cls;
+    //printd(5, "QCL::remove() this: %p '%s' (%p)\n", this, qc->getName(), qc);
+    hm.erase(i);
+    qore_class_private::get(*qc)->deref(!ns_const, !ns_vars);
+}
+
+void QoreClassList::deleteAll() {
+    for (auto& i : hm) {
+        qore_class_private::get(*i.second.cls)->deref(!ns_const, !ns_vars);
+    }
+    hm.clear();
 }
 
 void QoreClassList::addInternal(QoreClass *oc, bool priv) {
@@ -85,22 +101,6 @@ QoreClass* QoreClassList::find(const char* name) {
 const QoreClass* QoreClassList::find(const char* name) const {
     hm_qc_t::const_iterator i = hm.find(name);
     return i != hm.end() ? i->second.cls : nullptr;
-}
-
-QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns) {
-    for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
-        if (!i->second.cls->isSystem()) {
-            //printd(5, "QoreClassList::QoreClassList() this: %p c: %p '%s' po & PO_NO_INHERIT_USER_CLASSES: %s pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_INHERIT_USER_CLASSES ? "true": "false", qore_class_private::isPublic(*i->second) ? "true": "false");
-            if (po & PO_NO_INHERIT_USER_CLASSES || !qore_class_private::isPublic(*i->second.cls))
-                continue;
-        }
-        else
-            if (po & PO_NO_INHERIT_SYSTEM_CLASSES)
-                continue;
-        QoreClass* qc = new QoreClass(*i->second.cls);
-        qore_class_private::setNamespace(qc, ns);
-        addInternal(qc, true);
-    }
 }
 
 void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* ns) {
@@ -207,7 +207,7 @@ void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
     }
 }
 
-QoreHashNode *QoreClassList::getInfo() {
+QoreHashNode* QoreClassList::getInfo() {
     QoreHashNode *h = new QoreHashNode;
     for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
         h->setKeyValue(i->first, i->second.cls->getMethodList(), nullptr);
@@ -228,28 +228,32 @@ QoreValue QoreClassList::findConstant(const char *cname, const QoreTypeInfo *&ty
 */
 
 void QoreClassList::clearConstants(QoreListNode& l) {
-    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-        qore_class_private::clearConstants(i->second.cls, l);
+    assert(!ns_const);
+    ns_const = true;
+    for (auto& i : hm) {
+        qore_class_private::get(*i.second.cls)->clearConstants(l);
     }
 }
 
 void QoreClassList::clear(ExceptionSink *xsink) {
-    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-        qore_class_private::clear(i->second.cls, xsink);
-    }
-}
-
-void QoreClassList::deleteClassData(ExceptionSink *xsink) {
-    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-        qore_class_private::deleteClassData(i->second.cls, xsink);
-    }
-}
-
-void QoreClassList::deleteClearData(ExceptionSink* xsink) {
+    assert(!ns_vars);
+    ns_vars = true;
     for (auto& i : hm) {
-        qore_class_private::get(*i.second.cls)->deref(xsink);
+        qore_class_private::get(*i.second.cls)->clear(xsink);
     }
-    hm.clear();
+}
+
+void QoreClassList::deleteClassData(bool deref_vars, ExceptionSink *xsink) {
+    if (deref_vars) {
+        assert(!ns_vars);
+        ns_vars = true;
+    }
+    else {
+        assert(ns_vars);
+    }
+    for (auto& i : hm) {
+        qore_class_private::get(*i.second.cls)->deleteClassData(deref_vars, xsink);
+    }
 }
 
 bool ClassListIterator::isPublic() const {

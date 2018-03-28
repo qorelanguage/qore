@@ -568,6 +568,8 @@ qore_class_private::~qore_class_private() {
     //assert(!spgm);
 
     assert(!refs.reference_count());
+    assert(!var_refs.reference_count());
+    assert(!const_refs.reference_count());
 
     if (!vars.empty()) {
         vars.del();
@@ -2966,7 +2968,7 @@ QoreClass::~QoreClass() {
             }
         }
 
-        priv->deref(true);
+        priv->deref(true, true, true);
     }
 }
 
@@ -5109,8 +5111,9 @@ void QoreVarMap::moveAllTo(QoreClass* qc, ClassAccess access) {
 }
 
 QoreClassHolder::~QoreClassHolder() {
-   if (c)
-      qore_class_private::get(*c)->deref();
+   if (c) {
+      qore_class_private::get(*c)->deref(true, true);
+   }
 }
 
 QoreBuiltinClass::QoreBuiltinClass(const char* name, int64 n_domain) : QoreClass(name, n_domain) {

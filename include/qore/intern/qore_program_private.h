@@ -361,24 +361,24 @@ public:
     mutable QoreThreadLock plock;
 
     QoreThreadLock chl,      // complex hash lock
-        chonl,                // complex hash or nothing lock
-        cll,                  // complex list lock
-        clonl,                // complex list or nothing lock
-        crl,                  // complex reference lock
-        cronl,                // complex reference or nothing lock
-        csll,                 // complex softlist lock
-        cslonl;               // complex softlist or nothing lock
+        chonl,               // complex hash or nothing lock
+        cll,                 // complex list lock
+        clonl,               // complex list or nothing lock
+        crl,                 // complex reference lock
+        cronl,               // complex reference or nothing lock
+        csll,                // complex softlist lock
+        cslonl;              // complex softlist or nothing lock
 
     typedef vector_map_t<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
     //typedef std::map<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
     tmap_t ch_map,          // complex hash map
-        chon_map,            // complex hash or nothing map
-        cl_map,              // complex list map
-        clon_map,            // complex list or nothing map
-        cr_map,              // complex reference map
-        cron_map,            // complex reference or nothing map
-        csl_map,             // complex softlist map
-        cslon_map;           // complex softlist or nothing map
+        chon_map,           // complex hash or nothing map
+        cl_map,             // complex list map
+        clon_map,           // complex list or nothing map
+        cr_map,             // complex reference map
+        cron_map,           // complex reference or nothing map
+        csl_map,            // complex softlist map
+        cslon_map;          // complex softlist or nothing map
 
     // set of signals being handled by code in this Program (to be deleted on exit)
     int_set_t sigset;
@@ -400,7 +400,9 @@ public:
         base_object : 1,
         requires_exception : 1,
         parsing_done : 1,
-        parsing_in_progress : 1
+        parsing_in_progress : 1,
+        ns_const : 1,
+        ns_vars : 1
         ;
 
     int tclear;   // clearing thread-local variables in progress? if so, this is the TID
@@ -450,6 +452,8 @@ public:
             requires_exception(false),
             parsing_done(false),
             parsing_in_progress(false),
+            ns_const(false),
+            ns_vars(false),
             tclear(0),
             exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(nullptr), twaiting(0),
             thr_init(nullptr), exec_class_rv(nullptr), pgm(n_pgm) {
@@ -548,9 +552,6 @@ typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
 class qore_program_private : public qore_program_private_base {
 private:
-    bool ns_cleared = false;
-    bool constants_cleared = false;
-
     mutable QoreCounter debug_program_counter;  // number of thread calls to debug program instance.
     DLLLOCAL void init(QoreProgram* n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo *n_TZ = QTZM.getLocalZoneInfo()) {
     }
@@ -2170,11 +2171,11 @@ public:
 
     // called locked
     DLLLOCAL void clearNamespaceData(ExceptionSink* xsink) {
-        if (ns_cleared) {
+        if (ns_vars) {
             return;
         }
         assert(RootNS);
-        ns_cleared = true;
+        ns_vars = true;
         // delete all global variables, etc
         // this call can only be made once
         qore_root_ns_private::clearData(*RootNS, xsink);

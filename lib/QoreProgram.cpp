@@ -478,11 +478,11 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
             // wait for all threads to terminate
             waitForAllThreadsToTerminateIntern();
             if (!ptid) {
-                if (!constants_cleared) {
+                if (!ns_const) {
                     l = new QoreListNode;
                     qore_root_ns_private::clearConstants(*RootNS, **l);
                     //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p cleared constants\n", this);
-                    constants_cleared = true;
+                    ns_const = true;
                 }
                 // mark the program so that only code from this thread can run during data destruction
                 ptid = gettid();
@@ -902,15 +902,15 @@ void qore_program_private::del(ExceptionSink* xsink) {
     clearNamespaceData(xsink);
 
     // clear constants if not already cleared
-    if (!constants_cleared) {
+    if (!ns_const) {
         ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
         qore_root_ns_private::clearConstants(*RootNS, **l);
-        constants_cleared = true;
+        ns_const = true;
         //printd(5, "qore_program_private::del() this: %p cleared constants\n", this);
     }
 
     // delete the namespace and all data
-    RootNS->deleteData(xsink);
+    qore_root_ns_private::get(*RootNS)->deleteData(!ns_vars, xsink);
     delete RootNS;
     RootNS = nullptr;
 

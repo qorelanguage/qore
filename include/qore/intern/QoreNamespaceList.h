@@ -118,7 +118,7 @@ public:
     DLLLOCAL void parseAssimilate(QoreNamespaceList& n, qore_ns_private* parent);
     DLLLOCAL void runtimeAssimilate(QoreNamespaceList& n, qore_ns_private* parent);
 
-    DLLLOCAL void deleteData(ExceptionSink *xsink);
+    DLLLOCAL void deleteData(bool deref_vars, ExceptionSink *xsink);
 
     DLLLOCAL bool empty() const {
         return nsmap.empty();

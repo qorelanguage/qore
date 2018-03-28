@@ -597,7 +597,7 @@ void QoreNamespace::clear(ExceptionSink* xsink) {
    ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
    priv->clearConstants(**l);
    priv->clearData(xsink);
-   priv->deleteData(xsink);
+   priv->deleteData(true, xsink);
 }
 
 QoreNamespace* QoreNamespace::copy(int po) const {
@@ -760,12 +760,12 @@ const QoreNamespace* QoreNamespace::getParent() const {
 }
 
 void QoreNamespace::deleteData(ExceptionSink* xsink) {
-   priv->deleteData(xsink);
+   priv->deleteData(true, xsink);
 }
 
-void QoreNamespaceList::deleteData(ExceptionSink* xsink) {
+void QoreNamespaceList::deleteData(bool deref_vars, ExceptionSink* xsink) {
    for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      i->second->deleteData(xsink);
+      i->second->priv->deleteData(deref_vars, xsink);
 }
 
 void QoreNamespaceList::getGlobalVars(QoreHashNode& h) const {
@@ -1489,7 +1489,7 @@ void qore_root_ns_private::parseAddClassIntern(const QoreProgramLocation* loc, c
    }
    else {
       //printd(5, "qore_root_ns_private::parseAddClassIntern() class '%s' not added: '%s' namespace not found\n", oc->getName(), nscope.ostr);
-      qore_class_private::get(*oc)->deref();
+      qore_class_private::get(*oc)->deref(true, true);
    }
 }
 
@@ -1832,19 +1832,18 @@ void qore_ns_private::deleteClearData(ExceptionSink* xsink) {
 }
 */
 
-void qore_ns_private::deleteData(ExceptionSink* xsink) {
+void qore_ns_private::deleteData(bool deref_vars, ExceptionSink* xsink) {
     // clear all constants
     constant.deleteAll(xsink);
     // clear all constants and static class vars
-    classList.deleteClassData(xsink);
-    classList.deleteClearData(xsink);
+    classList.deleteClassData(deref_vars, xsink);
     // clear all user functions
     func_list.del();
     // delete all global variables
     var_list.deleteAll(xsink);
 
     // repeat for all subnamespaces
-    nsl.deleteData(xsink);
+    nsl.deleteData(deref_vars, xsink);
 }
 
 void qore_ns_private::checkGlobalVarDecl(Var* v, const NamedScope& vname) {
@@ -2742,7 +2741,7 @@ QoreNamespace* qore_ns_private::parseFindLocalNamespace(const char* nname) {
 
 StaticSystemNamespace::~StaticSystemNamespace() {
    ExceptionSink xsink;
-   deleteData(&xsink);
+   priv->deleteData(true, &xsink);
    priv->purge();
 }
 

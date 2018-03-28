@@ -225,7 +225,7 @@ public:
 
     DLLLOCAL void clearConstants(QoreListNode& l);
     DLLLOCAL void clearData(ExceptionSink* xsink);
-    DLLLOCAL void deleteData(ExceptionSink* xsink);
+    DLLLOCAL void deleteData(bool deref_vars, ExceptionSink* xsink);
     //DLLLOCAL void deleteClearData(ExceptionSink* xsink);
 
     DLLLOCAL void parseAssimilate(QoreNamespace* ns);
