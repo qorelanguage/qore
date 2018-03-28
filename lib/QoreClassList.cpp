@@ -71,9 +71,12 @@ void QoreClassList::remove(hm_qc_t::iterator i) {
 
 void QoreClassList::deleteAll() {
     for (auto& i : hm) {
+        //printd(5, "QoreClassList::deleteAll() this: %p cls: '%s' %p priv: %p ns_const: %d ns_vars: %d\n", this, i.second.cls->getName(), i.second.cls, qore_class_private::get(*i.second.cls), ns_const, ns_vars);
         qore_class_private::get(*i.second.cls)->deref(!ns_const, !ns_vars);
     }
     hm.clear();
+    ns_const = false;
+    ns_vars = false;
 }
 
 void QoreClassList::addInternal(QoreClass *oc, bool priv) {
@@ -235,7 +238,17 @@ void QoreClassList::clearConstants(QoreListNode& l) {
     }
 }
 
-void QoreClassList::clear(ExceptionSink *xsink) {
+void QoreClassList::clearConstants(ExceptionSink* xsink) {
+    if (!ns_const) {
+        ns_const = true;
+        for (auto& i : hm) {
+            qore_class_private::get(*i.second.cls)->clearConstants(xsink);
+        }
+    }
+}
+
+// clears static class vars
+void QoreClassList::clear(ExceptionSink* xsink) {
     assert(!ns_vars);
     ns_vars = true;
     for (auto& i : hm) {
@@ -243,10 +256,14 @@ void QoreClassList::clear(ExceptionSink *xsink) {
     }
 }
 
-void QoreClassList::deleteClassData(bool deref_vars, ExceptionSink *xsink) {
+void QoreClassList::deleteClassData(bool deref_vars, ExceptionSink* xsink) {
     if (deref_vars) {
-        assert(!ns_vars);
-        ns_vars = true;
+        if (!ns_vars) {
+            ns_vars = true;
+        }
+        else {
+            deref_vars = false;
+        }
     }
     else {
         assert(ns_vars);

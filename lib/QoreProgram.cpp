@@ -440,9 +440,9 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
     }
 }
 
-void qore_program_private::internParseRollback() {
+void qore_program_private::internParseRollback(ExceptionSink* xsink) {
     // delete pending changes to namespaces
-    qore_root_ns_private::parseRollback(*RootNS);
+    qore_root_ns_private::get(*RootNS)->parseRollback(xsink);
 
     // delete pending statements
     sb.parseRollback();
@@ -589,7 +589,7 @@ int qore_program_private::internParseCommit() {
     // changes to the QoreProgram atomically
     int rc;
     if (parseSink->isEvent()) {
-        internParseRollback();
+        internParseRollback(parseSink);
         requires_exception = false;
         rc = -1;
     }

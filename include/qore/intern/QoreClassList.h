@@ -117,8 +117,10 @@ public:
         return hm.empty();
     }
 
+    // clears static class vars
     DLLLOCAL void clear(ExceptionSink* xsink);
     DLLLOCAL void clearConstants(QoreListNode& l);
+    DLLLOCAL void clearConstants(ExceptionSink* xsink);
     DLLLOCAL void deleteClassData(bool deref_vars, ExceptionSink* xsink);
 };
 

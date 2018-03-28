@@ -2588,6 +2588,12 @@ public:
         }
     }
 
+    DLLLOCAL void clearConstants(ExceptionSink* xsink) {
+        if (const_refs.ROdereference()) {
+            constlist.deleteAll(xsink);
+        }
+    }
+
     DLLLOCAL void clear(ExceptionSink* xsink) {
         //printd(5, "qore_class_private::clear() this: %p '%s' %d -> %d\n", this, name.c_str(), var_refs.reference_count(), var_refs.reference_count() - 1);
 

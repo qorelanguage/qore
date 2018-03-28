@@ -111,7 +111,7 @@ public:
     DLLLOCAL void parseInit();
     DLLLOCAL void parseCommit();
     DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* sink);
-    DLLLOCAL void parseRollback();
+    DLLLOCAL void parseRollback(ExceptionSink* sink);
     DLLLOCAL void deleteAllConstants(ExceptionSink *xsink);
     DLLLOCAL void reset();
 

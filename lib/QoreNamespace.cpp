@@ -671,9 +671,10 @@ void QoreNamespaceList::parseCommitRuntimeInit(ExceptionSink* xsink) {
       i->second->priv->parseCommitRuntimeInit(xsink);
 }
 
-void QoreNamespaceList::parseRollback() {
-   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      i->second->priv->parseRollback();
+void QoreNamespaceList::parseRollback(ExceptionSink* xsink) {
+    for (auto& i : nsmap) {
+        i.second->priv->parseRollback(xsink);
+    }
 }
 
 // public: only called during Qore initialization to setup
@@ -1999,8 +2000,8 @@ void qore_ns_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
    nsl.parseCommitRuntimeInit(xsink);
 }
 
-void qore_ns_private::parseRollback() {
-    printd(5, "qore_ns_private::parseRollback() '::%s' this: %p ns: %p\n", name.c_str(), this, ns);
+void qore_ns_private::parseRollback(ExceptionSink* xsink) {
+    //printd(5, "qore_ns_private::parseRollback() '::%s' this: %p ns: %p\n", name.c_str(), this, ns);
 
     // delete pending global variable declarations
     pend_gvblist.clear();
@@ -2010,6 +2011,12 @@ void qore_ns_private::parseRollback() {
 
     // delete pending user functions
     func_list.parseRollback();
+
+    // clear all constants
+    constant.deleteAll(xsink);
+    classList.clearConstants(xsink);
+    // clear all static class vars
+    classList.deleteClassData(true, xsink);
 
     // delete pending constant list
     constant.reset();
@@ -2021,7 +2028,7 @@ void qore_ns_private::parseRollback() {
     hashDeclList.reset();
 
     // rollback namespaces
-    nsl.parseRollback();
+    nsl.parseRollback(xsink);
 }
 
 qore_ns_private* qore_ns_private::parseAddNamespace(QoreNamespace* nns) {

@@ -910,10 +910,10 @@ public:
         return l;
     }
 
-    DLLLOCAL void internParseRollback();
+    DLLLOCAL void internParseRollback(ExceptionSink* xsink);
 
     // call must push the current program on the stack and pop it afterwards
-    DLLLOCAL int internParsePending(const char* code, const char* label, const char* orig_src = nullptr, int offset = 0) {
+    DLLLOCAL int internParsePending(ExceptionSink* xsink, const char* code, const char* label, const char* orig_src = nullptr, int offset = 0) {
         //printd(5, "qore_program_private::internParsePending() code: %p %d bytes label: '%s' src: '%s' offset: %d\n", code, strlen(code), label, orig_src ? orig_src : "(null)", offset);
 
         assert(code && code[0]);
@@ -952,7 +952,7 @@ public:
         if (parseSink->isException()) {
             rc = -1;
             printd(5, "qore_program_private::internParsePending() parse exception: calling parseRollback()\n");
-            internParseRollback();
+            internParseRollback(xsink);
             requires_exception = false;
         }
 
@@ -996,7 +996,7 @@ public:
 
         startParsing(xsink, wS, wm);
 
-        int rc = internParsePending(code, label, orig_src, offset);
+        int rc = internParsePending(xsink, code, label, orig_src, offset);
         warnSink = nullptr;
 #ifdef DEBUG
         parseSink = nullptr;
@@ -1038,7 +1038,7 @@ public:
             return -1;
 
         // back out all pending changes
-        internParseRollback();
+        internParseRollback(xsink);
         return 0;
     }
 
@@ -1144,7 +1144,7 @@ public:
         startParsing(xsink, wS, wm);
 
         // parse text given
-        if (!internParsePending(code, label, orig_src, offset))
+        if (!internParsePending(xsink, code, label, orig_src, offset))
             internParseCommit();   // finalize parsing, back out or commit all changes
 
 #ifdef DEBUG

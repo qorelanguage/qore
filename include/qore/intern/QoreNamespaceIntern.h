@@ -351,7 +351,7 @@ public:
 
     DLLLOCAL void parseInit();
     DLLLOCAL void parseInitConstants();
-    DLLLOCAL void parseRollback();
+    DLLLOCAL void parseRollback(ExceptionSink* xsink);
     DLLLOCAL void parseCommit();
     DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
 
@@ -451,10 +451,6 @@ public:
 
     DLLLOCAL static void parseAddConstant(QoreNamespace& ns, const QoreProgramLocation* loc, const NamedScope& name, AbstractQoreNode* value, bool pub) {
         ns.priv->parseAddConstant(loc, name, value, pub);
-    }
-
-    DLLLOCAL static void parseRollback(QoreNamespace& ns) {
-        ns.priv->parseRollback();
     }
 
     DLLLOCAL static void parseCommit(QoreNamespace& ns) {
@@ -1024,12 +1020,12 @@ protected:
         return nullptr;
     }
 
-        DLLLOCAL const FunctionEntry* runtimeFindFunctionEntryIntern(const char* name) {
-            fmap_t::const_iterator i = fmap.find(name);
-            return i != fmap.end() ? i->second.obj : nullptr;
-        }
+    DLLLOCAL const FunctionEntry* runtimeFindFunctionEntryIntern(const char* name) {
+        fmap_t::const_iterator i = fmap.find(name);
+        return i != fmap.end() ? i->second.obj : nullptr;
+    }
 
-        DLLLOCAL const FunctionEntry* runtimeFindFunctionEntryIntern(const NamedScope& name);
+    DLLLOCAL const FunctionEntry* runtimeFindFunctionEntryIntern(const NamedScope& name);
 
     DLLLOCAL FunctionEntry* parseFindFunctionEntryIntern(const char* name) {
         {
@@ -1090,23 +1086,6 @@ protected:
         qore_ns_private::parseCommit();
         // exceptions can be through thrown when performing runtime initialization
         qore_ns_private::parseCommitRuntimeInit(getProgram()->getParseExceptionSink());
-    }
-
-    DLLLOCAL void parseRollback() {
-        // roll back pending lookup entries
-        pend_fmap.clear();
-        cnmap.clear();
-
-        varmap.clear();
-        nsmap.clear();
-
-        // roll back pending global variables
-        pend_gvlist.clear();
-
-        clmap.clear();
-        thdmap.clear();
-
-        qore_ns_private::parseRollback();
     }
 
     DLLLOCAL ConstantEntry* parseFindOnlyConstantEntryIntern(const char* cname, qore_ns_private*& ns) {
@@ -1586,6 +1565,23 @@ public:
         }
     }
 
+    DLLLOCAL void parseRollback(ExceptionSink* xsink) {
+        // roll back pending lookup entries
+        pend_fmap.clear();
+        cnmap.clear();
+
+        varmap.clear();
+        nsmap.clear();
+
+        // roll back pending global variables
+        pend_gvlist.clear();
+
+        clmap.clear();
+        thdmap.clear();
+
+        qore_ns_private::parseRollback(xsink);
+    }
+
     DLLLOCAL TypedHashDecl* parseFindHashDecl(const QoreProgramLocation* loc, const NamedScope& name);
 
     DLLLOCAL const TypedHashDecl* runtimeFindHashDeclIntern(const NamedScope& name, const qore_ns_private*& ns);
@@ -1756,29 +1752,25 @@ public:
         rns.rpriv->parseCommit();
     }
 
-    DLLLOCAL static void parseRollback(RootQoreNamespace& rns) {
-        rns.rpriv->parseRollback();
+    DLLLOCAL static QoreValue parseFindConstantValue(const QoreProgramLocation* loc, const char* name, const QoreTypeInfo*& typeInfo, bool& found, bool error) {
+        found = false;
+        return getRootNS()->rpriv->parseFindConstantValueIntern(loc, name, typeInfo, found, error);
     }
 
-        DLLLOCAL static QoreValue parseFindConstantValue(const QoreProgramLocation* loc, const char* name, const QoreTypeInfo*& typeInfo, bool& found, bool error) {
-            found = false;
-            return getRootNS()->rpriv->parseFindConstantValueIntern(loc, name, typeInfo, found, error);
-        }
+    DLLLOCAL static QoreValue parseFindReferencedConstantValue(const QoreProgramLocation* loc, const NamedScope& name, const QoreTypeInfo*& typeInfo, bool& found, bool error) {
+        found = false;
+        return getRootNS()->rpriv->parseFindReferencedConstantValueIntern(loc, name, typeInfo, found, error);
+    }
 
-        DLLLOCAL static QoreValue parseFindReferencedConstantValue(const QoreProgramLocation* loc, const NamedScope& name, const QoreTypeInfo*& typeInfo, bool& found, bool error) {
-            found = false;
-            return getRootNS()->rpriv->parseFindReferencedConstantValueIntern(loc, name, typeInfo, found, error);
-        }
+    DLLLOCAL static QoreValue parseResolveBareword(const QoreProgramLocation* loc, const char* bword, const QoreTypeInfo*& typeInfo, bool& found) {
+        found = false;
+        return getRootNS()->rpriv->parseResolveBarewordIntern(loc, bword, typeInfo, found);
+    }
 
-        DLLLOCAL static QoreValue parseResolveBareword(const QoreProgramLocation* loc, const char* bword, const QoreTypeInfo*& typeInfo, bool& found) {
-            found = false;
-            return getRootNS()->rpriv->parseResolveBarewordIntern(loc, bword, typeInfo, found);
-        }
-
-        DLLLOCAL static QoreValue parseResolveReferencedScopedReference(const QoreProgramLocation* loc, const NamedScope& name, const QoreTypeInfo*& typeInfo, bool& found) {
-            found = false;
-            return getRootNS()->rpriv->parseResolveReferencedScopedReferenceIntern(loc, name, typeInfo, found);
-        }
+    DLLLOCAL static QoreValue parseResolveReferencedScopedReference(const QoreProgramLocation* loc, const NamedScope& name, const QoreTypeInfo*& typeInfo, bool& found) {
+        found = false;
+        return getRootNS()->rpriv->parseResolveReferencedScopedReferenceIntern(loc, name, typeInfo, found);
+    }
 
     DLLLOCAL static QoreClass* parseFindClass(const QoreProgramLocation* loc, const char* name) {
         QoreClass* qc = getRootNS()->rpriv->parseFindClassIntern(name);
