@@ -1920,10 +1920,16 @@ public:
 
     DLLLOCAL bool deref(bool ns_const, bool ns_vars, bool in_del = false) {
         if (ns_const && const_refs.ROdereference()) {
-            assert(constlist.empty());
+            // constants may not be empty when deleting an uninitialized user class
+            if (!constlist.empty()) {
+                constlist.deleteAll(nullptr);
+            }
         }
         if (ns_vars && var_refs.ROdereference()) {
-            assert(vars.empty());
+            // vars may not be empty when deleting an uninitialized user class
+            if (!vars.empty()) {
+                vars.del(nullptr);
+            }
         }
 
         if (refs.ROdereference()) {
