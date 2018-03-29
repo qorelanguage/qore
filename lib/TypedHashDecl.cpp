@@ -334,4 +334,3 @@ TypedHashDecl* TypedHashDeclHolder::operator=(TypedHashDecl* nhd) {
         typed_hash_decl_private::get(*thd)->deref();
     return thd = nhd;
 }
-
