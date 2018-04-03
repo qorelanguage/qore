@@ -31,7 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/QoreClassIntern.h"
 
-QoreClosureParseNode::QoreClosureParseNode(const QoreProgramLocation& loc, UserClosureFunction* n_uf, bool n_lambda) : ParseNode(loc, NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
+QoreClosureParseNode::QoreClosureParseNode(const QoreProgramLocation* loc, UserClosureFunction* n_uf, bool n_lambda) : ParseNode(loc, NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
 }
 
 QoreClosureNode* QoreClosureParseNode::evalClosure() const {

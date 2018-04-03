@@ -94,9 +94,9 @@ void pseudo_classes_init() {
 void pseudo_classes_del() {
    // delete pseudo-classes
    for (unsigned i = 0; i < NODE_ARRAY_LEN + 2; ++i)
-      qore_class_private::get(*po_list[i])->deref();
+      qore_class_private::get(*po_list[i])->deref(true, true);
 
-   qore_class_private::get(*QC_PSEUDOVALUE)->deref();
+   qore_class_private::get(*QC_PSEUDOVALUE)->deref(true, true);
 }
 
 // return the pseudo class for the given type

@@ -67,10 +67,10 @@ char* SelfVarrefNode::takeString() {
 AbstractQoreNode *SelfVarrefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%p\n", str, oflag);
    if (pflag & PF_CONST_EXPRESSION)
-      parseException(loc, "ILLEGAL-MEMBER-REFERENCE", "member '%s' referenced illegally in an expression executed at parse time to initialize a constant value", str);
+      parseException(*loc, "ILLEGAL-MEMBER-REFERENCE", "member '%s' referenced illegally in an expression executed at parse time to initialize a constant value", str);
 
    if (!oflag)
-      parse_error(loc, "cannot reference member \"%s\" when not in an object context", str);
+      parse_error(*loc, "cannot reference member \"%s\" when not in an object context", str);
    else {
       qore_class_private::parseCheckInternalMemberAccess(parse_get_class(), str, typeInfo, loc);
       returnTypeInfo = typeInfo;

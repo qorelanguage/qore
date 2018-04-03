@@ -42,22 +42,41 @@
 #  include "tests/QoreClassList_tests.cpp"
 #endif
 
-void QoreClassList::remove(hm_qc_t::iterator i) {
-    QoreClass* qc = i->second.cls;
-    //printd(5, "QCL::remove() this: %p '%s' (%p)\n", this, qc->getName(), qc);
-    hm.erase(i);
-    qore_class_private::get(*qc)->deref();
-}
-
-void QoreClassList::deleteAll() {
-    for (auto& i : hm) {
-        qore_class_private::get(*i.second.cls)->deref();
+QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns) : ns_const(false), ns_vars(false) {
+    for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
+        if (!i->second.cls->isSystem()) {
+            //printd(5, "QoreClassList::QoreClassList() this: %p c: %p '%s' po & PO_NO_INHERIT_USER_CLASSES: %s pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_INHERIT_USER_CLASSES ? "true": "false", qore_class_private::isPublic(*i->second) ? "true": "false");
+            if (po & PO_NO_INHERIT_USER_CLASSES || !qore_class_private::isPublic(*i->second.cls))
+                continue;
+        }
+        else
+            if (po & PO_NO_INHERIT_SYSTEM_CLASSES)
+                continue;
+        QoreClass* qc = new QoreClass(*i->second.cls);
+        qore_class_private::setNamespace(qc, ns);
+        addInternal(qc, true);
     }
-    hm.clear();
 }
 
 QoreClassList::~QoreClassList() {
     deleteAll();
+}
+
+void QoreClassList::remove(hm_qc_t::iterator i) {
+    QoreClass* qc = i->second.cls;
+    //printd(5, "QCL::remove() this: %p '%s' (%p)\n", this, qc->getName(), qc);
+    hm.erase(i);
+    qore_class_private::get(*qc)->deref(!ns_const, !ns_vars);
+}
+
+void QoreClassList::deleteAll() {
+    for (auto& i : hm) {
+        //printd(5, "QoreClassList::deleteAll() this: %p cls: '%s' %p priv: %p ns_const: %d ns_vars: %d\n", this, i.second.cls->getName(), i.second.cls, qore_class_private::get(*i.second.cls), ns_const, ns_vars);
+        qore_class_private::get(*i.second.cls)->deref(!ns_const, !ns_vars);
+    }
+    hm.clear();
+    ns_const = false;
+    ns_vars = false;
 }
 
 void QoreClassList::addInternal(QoreClass *oc, bool priv) {
@@ -85,22 +104,6 @@ QoreClass* QoreClassList::find(const char* name) {
 const QoreClass* QoreClassList::find(const char* name) const {
     hm_qc_t::const_iterator i = hm.find(name);
     return i != hm.end() ? i->second.cls : nullptr;
-}
-
-QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns) {
-    for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
-        if (!i->second.cls->isSystem()) {
-            //printd(5, "QoreClassList::QoreClassList() this: %p c: %p '%s' po & PO_NO_INHERIT_USER_CLASSES: %s pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_INHERIT_USER_CLASSES ? "true": "false", qore_class_private::isPublic(*i->second) ? "true": "false");
-            if (po & PO_NO_INHERIT_USER_CLASSES || !qore_class_private::isPublic(*i->second.cls))
-                continue;
-        }
-        else
-            if (po & PO_NO_INHERIT_SYSTEM_CLASSES)
-                continue;
-        QoreClass* qc = new QoreClass(*i->second.cls);
-        qore_class_private::setNamespace(qc, ns);
-        addInternal(qc, true);
-    }
 }
 
 void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* ns) {
@@ -160,11 +163,10 @@ void QoreClassList::parseRollback() {
         qore_class_private::parseRollback(*(i->second.cls));
 }
 
-void QoreClassList::parseCommit(QoreClassList& l) {
-    assimilate(l);
-    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-        //printd(5, "QoreClassList::parseCommit() this: %p qc: %p '%s' pub: %d\n", this, i->second, i->second->getName(), qore_class_private::isPublic(*i->second));
-        qore_class_private::parseCommit(*(i->second.cls));
+void QoreClassList::parseCommit() {
+    for (auto& i : hm) {
+        //printd(5, "QoreClassList::parseCommit() this: %p qc: %p '%s' pub: %d\n", this, i.second, i.second->getName(), qore_class_private::isPublic(*i.second));
+        qore_class_private::parseCommit(*(i.second.cls));
     }
 }
 
@@ -177,43 +179,23 @@ void QoreClassList::reset() {
     deleteAll();
 }
 
-void QoreClassList::assimilate(QoreClassList& n) {
-    hm_qc_t::iterator i = n.hm.begin();
-    while (i != n.hm.end()) {
-        QoreClass *nc = i->second.cls;
-        n.hm.erase(i);
-        i = n.hm.begin();
-
-        assert(!find(nc->getName()));
-        addInternal(nc, false);
-    }
-}
-
 void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
     hm_qc_t::iterator i = n.hm.begin();
     while (i != n.hm.end()) {
         if (ns.hashDeclList.find(i->first)) {
-            parse_error(qore_class_private::get(*i->second.cls)->loc, "hashdecl '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
-            n.remove(i);
-        }
-        else if (ns.pendHashDeclList.find(i->first)) {
-            parse_error(qore_class_private::get(*i->second.cls)->loc, "hashdecl '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
+            parse_error(*qore_class_private::get(*i->second.cls)->loc, "hashdecl '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
             n.remove(i);
         }
         else if (ns.classList.find(i->first)) {
-            parse_error(qore_class_private::get(*i->second.cls)->loc, "class '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
+            parse_error(*qore_class_private::get(*i->second.cls)->loc, "class '%s' has already been defined in namespace '%s'", i->first, ns.name.c_str());
             n.remove(i);
         }
         else if (find(i->first)) {
-            parse_error(qore_class_private::get(*i->second.cls)->loc, "class '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
+            parse_error(*qore_class_private::get(*i->second.cls)->loc, "class '%s' is already pending in namespace '%s'", i->first, ns.name.c_str());
             n.remove(i);
         }
         else if (ns.nsl.find(i->first)) {
-            parse_error(qore_class_private::get(*i->second.cls)->loc, "cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", i->first, ns.name.c_str());
-            n.remove(i);
-        }
-        else if (ns.pendNSL.find(i->first)) {
-            parse_error(qore_class_private::get(*i->second.cls)->loc, "cannot add class '%s' to existing namespace '%s' because a pending subnamespace is already pending with this name", i->first, ns.name.c_str());
+            parse_error(*qore_class_private::get(*i->second.cls)->loc, "cannot add class '%s' to existing namespace '%s' because a subnamespace has already been defined with this name", i->first, ns.name.c_str());
             n.remove(i);
         }
         else {
@@ -228,7 +210,7 @@ void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
     }
 }
 
-QoreHashNode *QoreClassList::getInfo() {
+QoreHashNode* QoreClassList::getInfo() {
     QoreHashNode *h = new QoreHashNode;
     for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
         h->setKeyValue(i->first, i->second.cls->getMethodList(), nullptr);
@@ -249,20 +231,45 @@ QoreValue QoreClassList::findConstant(const char *cname, const QoreTypeInfo *&ty
 */
 
 void QoreClassList::clearConstants(QoreListNode& l) {
-    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-        qore_class_private::clearConstants(i->second.cls, l);
+    assert(!ns_const);
+    ns_const = true;
+    for (auto& i : hm) {
+        qore_class_private::get(*i.second.cls)->clearConstants(l);
     }
 }
 
-void QoreClassList::clear(ExceptionSink *xsink) {
-    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-        qore_class_private::clear(i->second.cls, xsink);
+void QoreClassList::clearConstants(ExceptionSink* xsink) {
+    if (!ns_const) {
+        ns_const = true;
+        for (auto& i : hm) {
+            qore_class_private::get(*i.second.cls)->clearConstants(xsink);
+        }
     }
 }
 
-void QoreClassList::deleteClassData(ExceptionSink *xsink) {
-    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-        qore_class_private::deleteClassData(i->second.cls, xsink);
+// clears static class vars
+void QoreClassList::clear(ExceptionSink* xsink) {
+    assert(!ns_vars);
+    ns_vars = true;
+    for (auto& i : hm) {
+        qore_class_private::get(*i.second.cls)->clear(xsink);
+    }
+}
+
+void QoreClassList::deleteClassData(bool deref_vars, ExceptionSink* xsink) {
+    if (deref_vars) {
+        if (!ns_vars) {
+            ns_vars = true;
+        }
+        else {
+            deref_vars = false;
+        }
+    }
+    else {
+        assert(ns_vars);
+    }
+    for (auto& i : hm) {
+        qore_class_private::get(*i.second.cls)->deleteClassData(deref_vars, xsink);
     }
 }
 

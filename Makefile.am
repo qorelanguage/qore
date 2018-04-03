@@ -381,6 +381,8 @@ include_HEADERS = \
 	include/qore/ReferenceNode.h \
 	include/qore/CallReferenceNode.h \
 	include/qore/QoreFtpClient.h \
+	include/qore/vector_map \
+	include/qore/vector_set \
 	include/qore/safe_dslist \
 	include/qore/qlist \
 	include/qore/qore_bitopts.h \

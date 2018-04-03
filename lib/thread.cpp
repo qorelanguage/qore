@@ -103,143 +103,144 @@ DLLLOCAL QoreClass* initThreadPoolClass(QoreNamespace& ns);
 
 class ArgvRefStack {
 protected:
-   typedef std::vector<int> rvec_t;
-   rvec_t stack;
-   // ignore numeric count
-   int in;
+    typedef std::vector<int> rvec_t;
+    rvec_t stack;
+    // ignore numeric count
+    int in;
 
 public:
-   DLLLOCAL ArgvRefStack() : in(0) {
-      stack.push_back(0);
-   }
-   DLLLOCAL ~ArgvRefStack() {
-   }
-   DLLLOCAL void push() {
-      stack.push_back(0);
-   }
-   DLLLOCAL int pop() {
-      int rc = stack[stack.size() - 1];
-      if (stack.size() > 1)
-         stack.pop_back();
-      else
-         stack[0] = 0;
-      return rc;
-   }
-   DLLLOCAL int get() {
-      assert(stack.size() == 1);
-      int rc = stack[0];
-      stack[0] = 0;
-      return rc;
-   }
-   DLLLOCAL void push_numeric() {
-      ++in;
-   }
-   DLLLOCAL void pop_numeric() {
-      --in;
-      assert(in >= 0);
-   }
-   DLLLOCAL void inc_numeric() {
-      if (in)
-         return;
-      inc();
-   }
-   DLLLOCAL void inc() {
-      ++stack[stack.size() - 1];
-   }
-   DLLLOCAL void clear() {
-      stack.clear();
-      stack.push_back(0);
-   }
+    DLLLOCAL ArgvRefStack() : in(0) {
+        stack.push_back(0);
+    }
+    DLLLOCAL ~ArgvRefStack() {
+    }
+    DLLLOCAL void push() {
+        stack.push_back(0);
+    }
+    DLLLOCAL int pop() {
+        int rc = stack[stack.size() - 1];
+        if (stack.size() > 1)
+            stack.pop_back();
+        else
+            stack[0] = 0;
+        return rc;
+    }
+    DLLLOCAL int get() {
+        assert(stack.size() == 1);
+        int rc = stack[0];
+        stack[0] = 0;
+        return rc;
+    }
+    DLLLOCAL void push_numeric() {
+        ++in;
+    }
+    DLLLOCAL void pop_numeric() {
+        --in;
+        assert(in >= 0);
+    }
+    DLLLOCAL void inc_numeric() {
+        if (in)
+            return;
+        inc();
+    }
+    DLLLOCAL void inc() {
+        ++stack[stack.size() - 1];
+    }
+    DLLLOCAL void clear() {
+        stack.clear();
+        stack.push_back(0);
+    }
 };
 
 struct ParseCountHelper {
-   unsigned count;
+    unsigned count;
 
-   DLLLOCAL ParseCountHelper() : count(0) {
-   }
+    DLLLOCAL ParseCountHelper() : count(0) {
+    }
 
-   DLLLOCAL void inc() {
-      ++count;
-   }
+    DLLLOCAL void inc() {
+        ++count;
+    }
 
-   DLLLOCAL bool dec(const QoreProgramLocation& loc) {
-      if (!count) {
-         parse_error(loc, "unmatched %%endtry");
-         return false;
-      }
-      return !--count;
-   }
+    DLLLOCAL bool dec(const QoreProgramLocation* loc) {
+        if (!count) {
+            parse_error(*loc, "unmatched %%endtry");
+            return false;
+        }
+        return !--count;
+    }
 
-   DLLLOCAL void purge() {
-      if (count) {
-         parse_error(QoreProgramLocation(), "%d %%try-module block%s left open at end of file", count, count == 1 ? "" : "s");
-         count = 0;
-      }
-   }
+    DLLLOCAL void purge() {
+        if (count) {
+            parse_error(QoreProgramLocation(), "%d %%try-module block%s left open at end of file", count, count == 1 ? "" : "s");
+            count = 0;
+        }
+    }
 };
 
 struct ParseConditionalStack {
-   unsigned count;
-   typedef std::vector<unsigned> ui_vec_t;
-   ui_vec_t markvec;
+    unsigned count;
+    typedef std::vector<unsigned> ui_vec_t;
+    ui_vec_t markvec;
 
-   DLLLOCAL ParseConditionalStack() : count(0) {
-   }
+    DLLLOCAL ParseConditionalStack() : count(0) {
+    }
 
-   DLLLOCAL void push(bool do_mark = false) {
-      if (do_mark) {
-         markvec.push_back(count);
-      }
-      ++count;
-   }
+    DLLLOCAL void push(bool do_mark = false) {
+        if (do_mark) {
+            markvec.push_back(count);
+        }
+        ++count;
+    }
 
-   DLLLOCAL bool checkElse() {
-      return count;
-   }
+    DLLLOCAL bool checkElse() {
+        return count;
+    }
 
-   DLLLOCAL bool test(const QoreProgramLocation& loc) const {
-      if (!count) {
-         parse_error(loc, "%%else without %%ifdef");
-         return false;
-      }
-      if (markvec.empty())
-         return false;
-      return markvec.back() == (count - 1);
-   }
+    DLLLOCAL bool test(const QoreProgramLocation* loc) const {
+        if (!count) {
+            parse_error(*loc, "%%else without %%ifdef");
+            return false;
+        }
+        if (markvec.empty())
+            return false;
+        return markvec.back() == (count - 1);
+    }
 
-   DLLLOCAL bool pop(const QoreProgramLocation& loc) {
-      if (!count) {
-         parse_error(loc, "unmatched %%endif");
-         return false;
-      }
-      --count;
-      assert(!markvec.empty());
-      if (count == markvec.back()) {
-         markvec.pop_back();
-         return true;
-      }
-      return false;
-   }
+    DLLLOCAL bool pop(const QoreProgramLocation* loc) {
+        if (!count) {
+            parse_error(*loc, "unmatched %%endif");
+            return false;
+        }
+        --count;
+        assert(!markvec.empty());
+        if (count == markvec.back()) {
+            markvec.pop_back();
+            return true;
+        }
+        return false;
+    }
 
-   DLLLOCAL void purge() {
-      if (count) {
-         parse_error(QoreProgramLocation(), "%d conditional block%s left open at end of file", count, count == 1 ? "" : "s");
-         count = 0;
-         markvec.clear();
-      }
-   }
+    DLLLOCAL void purge() {
+        if (count) {
+            parse_error(QoreProgramLocation(), "%d conditional block%s left open at end of file", count, count == 1 ? "" : "s");
+            count = 0;
+            markvec.clear();
+        }
+    }
 };
 
 class ProgramParseContext {
 public:
-   const char* file, * src;
-   void* parseState;
-   int offset;
-   ParseConditionalStack* pcs;
-   ProgramParseContext* next;
+    const char* file;
+    const char* source;
+    int offset;
+    void* parseState;
+    ParseConditionalStack* pcs;
+    ProgramParseContext* next;
 
-   DLLLOCAL ProgramParseContext(const char* fname, void* ps, const char* psrc, int off, ParseConditionalStack* ppcs, ProgramParseContext* n) : file(fname), src(psrc), parseState(ps), offset(off), pcs(ppcs), next(n) {
-   }
+    DLLLOCAL ProgramParseContext(const char* fname, const char* source, int offset, void* ps, ParseConditionalStack* ppcs, ProgramParseContext* n) : file(fname), source(source), offset(offset), parseState(ps), pcs(ppcs), next(n) {
+    }
 };
 
 // for detecting circular references at runtime
@@ -255,9 +256,11 @@ public:
 
    Context* context_stack = nullptr;
    ProgramParseContext* plStack = nullptr;
-   QoreProgramLocation parse_loc;
-   QoreProgramLocation runtime_loc;
+   const QoreProgramLocation* runtime_loc = &loc_builtin;
    const char* parse_code = nullptr; // the current function, method, or closure being parsed
+   const char* parse_file = nullptr; // the current file or label being parsed
+   const char* parse_source = nullptr; // the current source being parsed
+   int parse_offset = 0; // the current offset in the source being parsed
    void* parseState = nullptr;
    VNode* vstack = nullptr;  // used during parsing (local variable stack)
    CVNode* cvarstack = nullptr;
@@ -607,17 +610,18 @@ public:
     AbstractQoreNode* fc;
     QoreProgram* pgm;
     int tid;
-    QoreProgramLocation loc;
+    const QoreProgramLocation* loc;
     bool registered = false,
         started = false;
 
     DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
-        : fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation) {
+        : fc(f), pgm(getProgram()), tid(t) {
         assert(xsink);
         {
             ThreadData* td = thread_data.get();
             call_obj = td->current_obj;
             class_ctx = td->current_class;
+            loc = td->runtime_loc;
         }
 
         //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj, call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", fc->getType());
@@ -1035,7 +1039,7 @@ void parse_try_module_inc() {
    td->tm.inc();
 }
 
-bool parse_try_module_dec(const QoreProgramLocation& loc) {
+bool parse_try_module_dec(const QoreProgramLocation* loc) {
    ThreadData* td = thread_data.get();
    return td->tm.dec(loc);
 }
@@ -1060,19 +1064,19 @@ bool parse_cond_else() {
    return td->pcs ? td->pcs->checkElse() : false;
 }
 
-bool parse_cond_pop(const QoreProgramLocation& loc) {
+bool parse_cond_pop(const QoreProgramLocation* loc) {
    ThreadData* td = thread_data.get();
    if (!td->pcs) {
-      parse_error(loc, "unmatched %%endif");
+      parse_error(*loc, "unmatched %%endif");
       return false;
    }
    return td->pcs->pop(loc);
 }
 
-bool parse_cond_test(const QoreProgramLocation& loc) {
+bool parse_cond_test(const QoreProgramLocation* loc) {
    ThreadData* td = thread_data.get();
    if (!td->pcs) {
-      parse_error(loc, "%%else without %%ifdef");
+      parse_error(*loc, "%%else without %%ifdef");
       return false;
    }
    return td->pcs->test(loc);
@@ -1080,7 +1084,7 @@ bool parse_cond_test(const QoreProgramLocation& loc) {
 
 void push_parse_options() {
    ThreadData* td = thread_data.get();
-   qore_program_private::pushParseOptions(td->current_pgm, td->parse_loc.file);
+   qore_program_private::get(*td->current_pgm)->pushParseOptions(td->parse_file);
 }
 
 // called when a StatementBlock has "on_exit" blocks
@@ -1105,46 +1109,46 @@ void advanceOnBlockExit() {
 
 // new file name, current parse state
 void beginParsing(const char* file, void* ps, const char* src, int offset) {
-   ThreadData* td = thread_data.get();
-   //printd(5, "beginParsing() td: %p of %p (%s), (stack: %s) src: %s:%d\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"), src ? src : "(null)", offset);
+    ThreadData* td = thread_data.get();
+    //printd(5, "beginParsing() td: %p of %p (%s), (stack: %s) src: %s:%d\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"), src ? src : "(null)", offset);
 
-   // store current position
-   ProgramParseContext* pl = new ProgramParseContext(td->parse_loc.file, td->parseState, td->parse_loc.source, td->parse_loc.offset, td->pcs, td->plStack);
-   td->plStack = pl;
+    // store current position
+    ProgramParseContext* pl = new ProgramParseContext(td->parse_file, td->parse_source, td->parse_offset, td->parseState, td->pcs, td->plStack);
+    td->plStack = pl;
 
-   // set new position
-   td->parse_loc.file = file;
-   td->parseState = ps;
-   td->parse_loc.source = src;
-   td->parse_loc.offset = offset;
-   td->pcs = 0;
+    // set new position
+    td->parse_file = file;
+    td->parse_source = src;
+    td->parse_offset = offset;
+    td->parseState = ps;
+    td->pcs = 0;
 }
 
 void* endParsing() {
-   ThreadData* td = thread_data.get();
-   //printd(5, "endParsing() td: %p restoreParseOptions pgm: %p parse_file: %p '%s' src: %s:%d\n", td, td->current_pgm, td->parse_loc.file, td->parse_loc.file, td->parse_loc.source ? td->parse_loc.source : "(null)", td->parse_loc.offset);
-   qore_program_private::restoreParseOptions(td->current_pgm, td->parse_loc.file);
+    ThreadData* td = thread_data.get();
+    //printd(5, "endParsing() td: %p restoreParseOptions pgm: %p parse_file: %p '%s' src: %s:%d\n", td, td->current_pgm, td->parse_loc.getFile(), td->parse_loc.getFile(), td->parse_loc.getSource() ? td->parse_loc.getSource() : "(null)", td->parse_loc.offset);
+    qore_program_private::get(*td->current_pgm)->restoreParseOptions(td->parse_file);
 
-   void* rv = td->parseState;
+    void* rv = td->parseState;
 
-   // ensure there are no conditional blocks left open at EOF
-   td->endFileParsing();
+    // ensure there are no conditional blocks left open at EOF
+    td->endFileParsing();
 
-   assert(td->plStack);
-   assert(!td->pcs);
+    assert(td->plStack);
+    assert(!td->pcs);
 
-   ProgramParseContext* pl = td->plStack->next;
-   //printd(5, "endParsing() td: %p ending parsing of '%s', returning %p, setting file: %p '%s'\n", td, td->parse_file, rv, td->plStack->file, td->plStack->file);
+    ProgramParseContext* pl = td->plStack->next;
+    //printd(5, "endParsing() td: %p ending parsing of '%s', returning %p, setting file: %p '%s'\n", td, td->parse_file, rv, td->plStack->file, td->plStack->file);
 
-   td->parse_loc.file   = td->plStack->file;
-   td->parseState       = td->plStack->parseState;
-   td->parse_loc.source = td->plStack->src;
-   td->parse_loc.offset = td->plStack->offset;
-   td->pcs              = td->plStack->pcs;
-   delete td->plStack;
-   td->plStack = pl;
+    td->parse_file       = td->plStack->file;
+    td->parse_source     = td->plStack->source;
+    td->parse_offset     = td->plStack->offset;
+    td->parseState       = td->plStack->parseState;
+    td->pcs              = td->plStack->pcs;
+    delete td->plStack;
+    td->plStack = pl;
 
-   return rv;
+    return rv;
 }
 
 // thread-local functions
@@ -1170,35 +1174,26 @@ void update_context_stack(Context* cstack) {
    td->context_stack = cstack;
 }
 
-QoreProgramLocation get_runtime_location() {
+const QoreProgramLocation* get_runtime_location() {
    return thread_data.get()->runtime_loc;
 }
 
-QoreProgramLocation update_get_runtime_location(const QoreProgramLocation& loc) {
-   QoreProgramLocation rv = thread_data.get()->runtime_loc;
-   thread_data.get()->runtime_loc = loc;
-   return rv;
+const QoreProgramLocation* update_get_runtime_location(const QoreProgramLocation* loc) {
+    const QoreProgramLocation* rv = thread_data.get()->runtime_loc;
+    thread_data.get()->runtime_loc = loc;
+    return rv;
 }
 
-void update_runtime_location(const QoreProgramLocation& loc) {
+void update_runtime_location(const QoreProgramLocation* loc) {
    thread_data.get()->runtime_loc = loc;
 }
 
 void set_parse_file_info(QoreProgramLocation& loc) {
    ThreadData* td = thread_data.get();
-   loc.file       = td->parse_loc.file;
-   loc.source     = td->parse_loc.source;
-   loc.offset     = td->parse_loc.offset;
-   //printd(5, "set_parse_file_info() setting %s src: %s:%d\n", loc.file, loc.source ? loc.source : "(null)", loc.offset);
-}
-
-QoreProgramLocation get_parse_location() {
-   return thread_data.get()->parse_loc;
-}
-
-void update_parse_location(const QoreProgramLocation& loc) {
-   //printd(5, "update_parse_location() setting %s:%d-%d src: %s%d\n", loc.file, loc.start_line, loc.end_line, loc.source ? loc.source : "(null)", loc.offset);
-   thread_data.get()->parse_loc = loc;
+   loc.setFile(td->parse_file);
+   loc.setSource(td->parse_source);
+   loc.offset = td->parse_offset;
+   //printd(5, "set_parse_file_info() setting %s src: %s:%d\n", loc.getFile(), loc.getSource() ? loc.getSource() : "(null)", loc.offset);
 }
 
 const char* get_parse_code() {
@@ -2458,7 +2453,7 @@ void delete_thread_local_data() {
    ThreadData* td = thread_data.get();
 
    // clear runtime location
-   td->runtime_loc.clear();
+   td->runtime_loc = nullptr;
 
    ExceptionSink xsink;
    // delete any thread data

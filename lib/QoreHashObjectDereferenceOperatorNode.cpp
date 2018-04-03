@@ -52,7 +52,7 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
    printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() l: %p %s (%s) r: %p %s\n", lti, QoreTypeInfo::getName(lti), QoreTypeInfo::getUniqueReturnClass(lti) ? QoreTypeInfo::getUniqueReturnClass(lti)->getName() : "n/a", rti, QoreTypeInfo::getName(rti));
 
    if (for_assignment && left && check_lvalue(left))
-      parse_error(loc, "expression used for assignment requires an lvalue, got '%s' instead", left->getTypeName());
+      parse_error(*loc, "expression used for assignment requires an lvalue, got '%s' instead", left->getTypeName());
 
    const QoreTypeInfo* complexKeyTypeInfo = nullptr;
 
@@ -126,14 +126,14 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
             QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
             QoreTypeInfo::getThisType(lti, *edesc);
             edesc->sprintf(" to a hash using the '.' or '{}' operator in an assignment expression");
-            qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
+            qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
          }
       }
       else if (!can_be_hash && !can_be_obj) {
          QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '.' or '{}' operator is ");
          QoreTypeInfo::getThisType(lti, *edesc);
          edesc->concat(" and so this expression will always return NOTHING; the '.' or '{}' operator only returns a value with hashes and objects");
-         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
          returnTypeInfo = nothingTypeInfo;
       }
    }

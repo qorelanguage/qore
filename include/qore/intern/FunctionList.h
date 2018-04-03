@@ -115,7 +115,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL ResolvedCallReferenceNode* makeCallReference(const QoreProgramLocation& loc) const;
+    DLLLOCAL ResolvedCallReferenceNode* makeCallReference(const QoreProgramLocation* loc) const;
 
     DLLLOCAL bool isPublic() const {
         return func->hasPublic();

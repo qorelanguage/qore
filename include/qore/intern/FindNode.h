@@ -51,7 +51,7 @@ public:
    AbstractQoreNode *where;
    AbstractQoreNode *find_exp;
 
-   DLLLOCAL FindNode(const QoreProgramLocation& loc, AbstractQoreNode *expr, AbstractQoreNode *FindNode_expr, AbstractQoreNode *w);
+   DLLLOCAL FindNode(const QoreProgramLocation* loc, AbstractQoreNode *expr, AbstractQoreNode *FindNode_expr, AbstractQoreNode *w);
    DLLLOCAL ~FindNode();
 
    // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks

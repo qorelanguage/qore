@@ -33,7 +33,7 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 
 // object takes over ownership of NamedScope
-ScopedRefNode::ScopedRefNode(const QoreProgramLocation& loc, char *ref) : ParseNoEvalNode(loc, NT_CONSTANT), scoped_ref(new NamedScope(ref)) {
+ScopedRefNode::ScopedRefNode(const QoreProgramLocation* loc, char *ref) : ParseNoEvalNode(loc, NT_CONSTANT), scoped_ref(new NamedScope(ref)) {
 }
 
 ScopedRefNode::~ScopedRefNode() {

@@ -34,7 +34,7 @@
 
 #include <string.h>
 
-ResolvedCallReferenceNode* FunctionEntry::makeCallReference(const QoreProgramLocation& loc) const {
+ResolvedCallReferenceNode* FunctionEntry::makeCallReference(const QoreProgramLocation* loc) const {
    return new LocalFunctionCallReferenceNode(loc, func);
 }
 

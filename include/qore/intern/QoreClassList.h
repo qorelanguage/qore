@@ -40,13 +40,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <map>
-
-#ifdef HAVE_QORE_HASH_MAP
-//#warning compiling with hash_map
-#include <qore/hash_map_include.h>
-#include "qore/intern/xxhash.h"
-
 struct cl_rec_t {
     QoreClass* cls = nullptr;
     bool priv = false;
@@ -58,10 +51,21 @@ struct cl_rec_t {
     }
 };
 
+// we use a vector map as the number of classes is generally relatively small
+#include <qore/vector_map>
+typedef vector_map_t<const char*, cl_rec_t> hm_qc_t;
+/*
+#ifdef HAVE_QORE_HASH_MAP
+//#warning compiling with hash_map
+#include <qore/hash_map_include.h>
+#include "qore/intern/xxhash.h"
+
 typedef HASH_MAP<const char*, cl_rec_t, qore_hash_str, eqstr> hm_qc_t;
 #else
+#include <map>
 typedef std::map<const char*, cl_rec_t, ltstr> hm_qc_t;
 #endif
+*/
 
 class QoreNamespaceList;
 
@@ -69,52 +73,55 @@ class ClassListIterator;
 class ConstClassListIterator;
 
 class QoreClassList {
-   friend class ClassListIterator;
-   friend class ConstClassListIterator;
+    friend class ClassListIterator;
+    friend class ConstClassListIterator;
 
 private:
-   hm_qc_t hm;        // hash_map for name lookups
+    hm_qc_t hm;        // hash_map for name lookups
+    bool ns_const : 1;
+    bool ns_vars : 1;
 
-   DLLLOCAL void deleteAll();
-   DLLLOCAL void assimilate(QoreClassList& n);
+    DLLLOCAL void deleteAll();
 
-   DLLLOCAL void remove(hm_qc_t::iterator i);
+    DLLLOCAL void remove(hm_qc_t::iterator i);
 
-   DLLLOCAL void addInternal(QoreClass* ot, bool priv);
+    DLLLOCAL void addInternal(QoreClass* ot, bool priv);
 
 public:
-   DLLLOCAL QoreClassList() {}
-   DLLLOCAL ~QoreClassList();
-   DLLLOCAL QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns);
+    DLLLOCAL QoreClassList() : ns_const(false), ns_vars(false) {}
+    DLLLOCAL ~QoreClassList();
+    DLLLOCAL QoreClassList(const QoreClassList& old, int64 po, qore_ns_private* ns);
 
-   DLLLOCAL void mergeUserPublic(const QoreClassList& old, qore_ns_private* ns);
+    DLLLOCAL void mergeUserPublic(const QoreClassList& old, qore_ns_private* ns);
 
-   // returns the number of classes imported
-   DLLLOCAL int importSystemClasses(const QoreClassList& source, qore_ns_private* ns, ExceptionSink* xsink);
+    // returns the number of classes imported
+    DLLLOCAL int importSystemClasses(const QoreClassList& source, qore_ns_private* ns, ExceptionSink* xsink);
 
-   DLLLOCAL int add(QoreClass* ot);
-   DLLLOCAL QoreClass* find(const char* name);
-   DLLLOCAL const QoreClass* find(const char* name) const;
-   DLLLOCAL void resolveCopy();
-   DLLLOCAL void parseInit();
-   DLLLOCAL void parseRollback();
-   DLLLOCAL void parseCommit(QoreClassList& n);
-   DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
-   DLLLOCAL void reset();
-   DLLLOCAL void assimilate(QoreClassList& n, qore_ns_private& ns);
-   DLLLOCAL QoreHashNode* getInfo();
+    DLLLOCAL int add(QoreClass* ot);
+    DLLLOCAL QoreClass* find(const char* name);
+    DLLLOCAL const QoreClass* find(const char* name) const;
+    DLLLOCAL void resolveCopy();
+    DLLLOCAL void parseInit();
+    DLLLOCAL void parseRollback();
+    DLLLOCAL void parseCommit();
+    DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
+    DLLLOCAL void reset();
+    DLLLOCAL void assimilate(QoreClassList& n, qore_ns_private& ns);
+    DLLLOCAL QoreHashNode* getInfo();
 
-   //DLLLOCAL QoreValue findConstant(const char* cname, const QoreTypeInfo*& typeInfo, bool& found);
+    //DLLLOCAL QoreValue findConstant(const char* cname, const QoreTypeInfo*& typeInfo, bool& found);
 
-   //DLLLOCAL AbstractQoreNode* parseResolveBareword(const QoreProgramLocation& loc, const char* name, const QoreTypeInfo*& typeInfo);
+    //DLLLOCAL AbstractQoreNode* parseResolveBareword(const QoreProgramLocation* loc, const char* name, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL bool empty() const {
-      return hm.empty();
-   }
+    DLLLOCAL bool empty() const {
+        return hm.empty();
+    }
 
-   DLLLOCAL void clear(ExceptionSink* xsink);
-   DLLLOCAL void clearConstants(QoreListNode& l);
-   DLLLOCAL void deleteClassData(ExceptionSink* xsink);
+    // clears static class vars
+    DLLLOCAL void clear(ExceptionSink* xsink);
+    DLLLOCAL void clearConstants(QoreListNode& l);
+    DLLLOCAL void clearConstants(ExceptionSink* xsink);
+    DLLLOCAL void deleteClassData(bool deref_vars, ExceptionSink* xsink);
 };
 
 class ClassListIterator {

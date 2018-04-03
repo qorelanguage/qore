@@ -61,7 +61,7 @@ AbstractQoreNode* QoreKeysOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
          QoreStringNode* edesc = new QoreStringNode("the expression with the 'keys' operator is ");
          QoreTypeInfo::getThisType(expTypeInfo, *edesc);
          edesc->concat(" and so this expression will always return NOTHING; the 'keys' operator can only return a value with hashes and objects");
-         qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
          returnTypeInfo = nothingTypeInfo;
       }
       else

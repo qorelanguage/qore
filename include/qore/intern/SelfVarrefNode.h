@@ -48,7 +48,7 @@ protected:
 public:
    char* str;
 
-   DLLLOCAL SelfVarrefNode(const QoreProgramLocation& loc, char *c_str) : ParseNode(loc, NT_SELF_VARREF), returnTypeInfo(nullptr), str(c_str) {
+   DLLLOCAL SelfVarrefNode(const QoreProgramLocation* loc, char *c_str) : ParseNode(loc, NT_SELF_VARREF), returnTypeInfo(nullptr), str(c_str) {
    }
 
    DLLLOCAL virtual ~SelfVarrefNode() {

@@ -64,30 +64,30 @@ QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, Excepti
    return o->evalMethodValue(c_str, args, xsink);
 }
 
-static void invalid_access(const QoreProgramLocation& loc, QoreFunction* func) {
+static void invalid_access(const QoreProgramLocation* loc, QoreFunction* func) {
    // func will always be non-zero with builtin functions
    const char* class_name = func->className();
-   parse_error(loc, "parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+   parse_error(*loc, "parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void warn_retval_ignored(const QoreProgramLocation& loc, QoreFunction* func) {
+static void warn_retval_ignored(const QoreProgramLocation* loc, QoreFunction* func) {
    const char* class_name = func->className();
-   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+   qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void warn_deprecated(const QoreProgramLocation& loc, QoreFunction* func) {
+static void warn_deprecated(const QoreProgramLocation* loc, QoreFunction* func) {
    const char* class_name = func->className();
-   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_DEPRECATED, "DEPRECATED", "call to deprecated %s %s%s%s(); to disable this warning, use '%%disable-warning deprecated' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+   qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_DEPRECATED, "DEPRECATED", "call to deprecated %s %s%s%s(); to disable this warning, use '%%disable-warning deprecated' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void check_flags(const QoreProgramLocation& loc, QoreFunction* func, int64 flags, int64 pflag) {
+static void check_flags(const QoreProgramLocation* loc, QoreFunction* func, int64 flags, int64 pflag) {
    if ((pflag & PF_RETURN_VALUE_IGNORED) && ((flags & QC_CONSTANT) == QC_CONSTANT))
       warn_retval_ignored(loc, func);
    if (flags & QC_DEPRECATED)
       warn_deprecated(loc, func);
 }
 
-int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, QoreFunction* func, qore_ns_private* ns, const QoreTypeInfo*& returnTypeInfo) {
+int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, QoreFunction* func, qore_ns_private* ns, const QoreTypeInfo*& returnTypeInfo) {
     // number of local variables declared in arguments
     int lvids = 0;
 
@@ -133,7 +133,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
                 if (mv->isAbstract())
                     variant = nullptr;
                 else if (mv->isPrivate() && !qore_class_private::parseCheckPrivateClassAccess(*qc))
-                    parse_error(loc, "illegal call to private method variant %s::%s(%s)", qc->getName(), func->getName(), variant->getSignature()->getSignatureText());
+                    parse_error(*loc, "illegal call to private method variant %s::%s(%s)", qc->getName(), func->getName(), variant->getSignature()->getSignatureText());
             }
             if (variant) {
                 int64 dflags = variant->getFunctionality();
@@ -170,7 +170,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation& loc, LocalVar*
 
             desc->concat(" in an expression initializing a constant value at parse time when the function has uncommitted variants and the variant cannot be matched at parse time; to fix this error, add enough type information to the call to allow the variant to be resolved");
 
-            parseException(loc, "ILLEGAL-CALL", desc);
+            parseException(*loc, "ILLEGAL-CALL", desc);
         }
     }
     else
@@ -187,7 +187,7 @@ QoreValue SelfFunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
     if (is_copy)
         return self->getClass()->execCopy(self, xsink);
 
-    if (ns.strlist.size() == 1)
+    if (ns.size() == 1)
         return exec(self, ns.ostr, xsink);
 
     assert(method);
@@ -213,7 +213,7 @@ void SelfFunctionCallNode::parseInitCall(LocalVar* oflag, int pflag, int& lvids,
 AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
     assert(!returnTypeInfo);
     if (!oflag) {
-        parse_error(loc, "cannot call method '%s' outside of class code", getName());
+        parse_error(*loc, "cannot call method '%s' outside of class code", getName());
         return this;
     }
 
@@ -223,12 +223,12 @@ AbstractQoreNode* SelfFunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag
         printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolving base class call '%s'\n", this, ns.ostr);
 
         // copy method calls will be recognized by name = 0
-        if (ns.strlist.size() == 1) {
+        if (ns.size() == 1) {
             if (!strcmp(ns.ostr, "copy")) {
                 printd(5, "SelfFunctionCallNode::parseInitImpl() this: %p resolved to copy constructor\n", this);
                 is_copy = true;
                 if (args)
-                    parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
+                    parse_error(*loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", class_ctx->name.c_str());
             }
             else {
                 assert(!qc);
@@ -367,7 +367,7 @@ AbstractQoreNode* FunctionCallNode::parseInitImpl(LocalVar* oflag, int pflag, in
             SelfFunctionCallNode* sfcn = nullptr;
             if (!strcmp(c_str, "copy")) {
                 if (args) {
-                    parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
+                    parse_error(*loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
                     return this;
                 }
                 sfcn = new SelfFunctionCallNode(loc, takeName(), 0);
@@ -463,10 +463,10 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
             // check if parse options allow access to this class
             int64 cflags = oc->getDomain();
             if (cflags && qore_program_private::parseAddDomain(getProgram(), cflags))
-                parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
+                parseException(*loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' class", oc->getName());
             // check if the class has pending changes and is used in a constant initialization expression
             if (pflag & PF_CONST_EXPRESSION && qore_class_private::parseHasPendingChanges(*oc))
-                parseException(loc, "ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment in a constant expression in the parse initialization phase when the class has uncommitted changes", oc->getName());
+                parseException(*loc, "ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment in a constant expression in the parse initialization phase when the class has uncommitted changes", oc->getName());
         }
         delete name;
         name = 0;
@@ -496,9 +496,9 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
 
     if (((constructor && (qore_method_private::getAccess(*constructor) > Public)) || (variant && CONMV_const(variant)->isPrivate())) && !qore_class_private::parseCheckPrivateClassAccess(*oc)) {
         if (variant)
-            parse_error(loc, "illegal external access to private constructor %s::constructor(%s)", oc->getName(), variant->getSignature()->getSignatureText());
+            parse_error(*loc, "illegal external access to private constructor %s::constructor(%s)", oc->getName(), variant->getSignature()->getSignatureText());
         else
-            parse_error(loc, "illegal external access to private constructor of class %s", oc->getName());
+            parse_error(*loc, "illegal external access to private constructor of class %s", oc->getName());
     }
 
     //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, oc->getName(), oc, constructor, constructor ? constructor->getFunction() : 0, variant);
@@ -521,7 +521,7 @@ QoreValue MethodCallNode::execPseudo(const AbstractQoreNode* n, ExceptionSink* x
 
 AbstractQoreNode* StaticMethodCallNode::makeReferenceNodeAndDeref() {
    if (args) {
-      parse_error(loc, "argument given to static method call reference");
+      parse_error(*loc, "argument given to static method call reference");
       return this;
    }
 
@@ -552,7 +552,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
                 // checks access already
                 method = qore_class_private::get(*qc)->parseFindAnyMethodStaticFirst(scope->getIdentifier(), class_ctx);
                 if (method && !method->isStatic() && !strcmp(method->getName(), "copy")) {
-                    parseException(loc, "INVALID-METHOD", "cannot explicitly call base class %s::%s() copy method", qc->getName(), scope->getIdentifier());
+                    parseException(*loc, "INVALID-METHOD", "cannot explicitly call base class %s::%s() copy method", qc->getName(), scope->getIdentifier());
                     return this;
                 }
                 //printd(5, "StaticMethodCallNode::parseInitImpl() '%s' pc: %s qc: %smethod: %p\n", scope->ostr, pc->getName(), qc->getName(), method);
@@ -595,13 +595,13 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
                 return crcn->parseInit(oflag, pflag, lvids, typeInfo);
             }
 
-            parse_error(loc, "cannot resolve call '%s()' to any reachable and callable object", scope->ostr);
+            parse_error(*loc, "cannot resolve call '%s()' to any reachable and callable object", scope->ostr);
             return this;
         }
 
         // check class capabilities against parse options
         if (qore_program_private::parseAddDomain(getProgram(), qc->getDomain())) {
-            parseException(loc, "INVALID-METHOD", "class '%s' implements capabilities that are not allowed by current parse options", qc->getName());
+            parseException(*loc, "INVALID-METHOD", "class '%s' implements capabilities that are not allowed by current parse options", qc->getName());
             return this;
         }
 
@@ -625,7 +625,7 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
         assert(!scope);
         // check class capabilities against parse options
         if (qore_program_private::parseAddDomain(getProgram(), method->getClass()->getDomain())) {
-            parseException(loc, "INVALID-METHOD", "class '%s' implements capabilities that are not allowed by current parse options", method->getClass()->getName());
+            parseException(*loc, "INVALID-METHOD", "class '%s' implements capabilities that are not allowed by current parse options", method->getClass()->getName());
             return this;
         }
     }

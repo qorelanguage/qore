@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-ContextrefNode::ContextrefNode(const QoreProgramLocation& loc, char *c_str) : ParseNode(loc, NT_CONTEXTREF), str(c_str) {
+ContextrefNode::ContextrefNode(const QoreProgramLocation* loc, char *c_str) : ParseNode(loc, NT_CONTEXTREF), str(c_str) {
 }
 
 ContextrefNode::~ContextrefNode() {
@@ -43,16 +43,16 @@ ContextrefNode::~ContextrefNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int ContextrefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("context reference '%s' (%p)", str ? str : "<null>", this);
-   return 0;
+    qstr.sprintf("context reference '%s' (%p)", str ? str : "<null>", this);
+    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *ContextrefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   QoreString *rv = new QoreString();
-   getAsString(*rv, foff, xsink);
-   return rv;
+    del = true;
+    QoreString *rv = new QoreString();
+    getAsString(*rv, foff, xsink);
+    return rv;
 }
 
 // returns the type name as a c string
@@ -68,6 +68,6 @@ AbstractQoreNode *ContextrefNode::parseInitImpl(LocalVar *oflag, int pflag, int 
    typeInfo = 0;
 
    if (!getCVarStack())
-      parse_error(loc, "context reference \"%s\" out of context", str);
+      parse_error(*loc, "context reference \"%s\" out of context", str);
    return this;
 }

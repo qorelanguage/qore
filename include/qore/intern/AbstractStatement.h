@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -53,58 +53,65 @@
 class QoreBreakpoint;
 typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
+// forward declaration
+class qore_program_private_base;
+
 class AbstractStatement {
 private:
-   volatile bool breakpointFlag;  // fast access to check if breakpoints are non-empty
-   QoreBreakpointList_t *breakpoints;
+    volatile bool breakpointFlag;  // fast access to check if breakpoints are non-empty
+    QoreBreakpointList_t *breakpoints;
 
-   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink) = 0;
-   DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0) = 0;
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink) = 0;
+    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0) = 0;
 
-   friend class qore_program_private;
-   // executed when qore_program_private::lck_breakpoint lock is acquired
-   DLLLOCAL QoreBreakpoint* getBreakpoint() const;
+    friend class qore_program_private;
+    // executed when qore_program_private::lck_breakpoint lock is acquired
+    DLLLOCAL QoreBreakpoint* getBreakpoint() const;
 
-   friend class QoreBreakpoint;
-   DLLLOCAL void assignBreakpoint(QoreBreakpoint *bkpt);
-   DLLLOCAL void unassignBreakpoint(QoreBreakpoint *bkpt);
+    friend class QoreBreakpoint;
+    DLLLOCAL void assignBreakpoint(QoreBreakpoint *bkpt);
+    DLLLOCAL void unassignBreakpoint(QoreBreakpoint *bkpt);
 
 public:
-   QoreProgramLocation loc;
-   struct ParseWarnOptions pwo;
+    const QoreProgramLocation* loc;
+    struct ParseWarnOptions pwo;
 
-   DLLLOCAL AbstractStatement(int sline, int eline);
-   DLLLOCAL virtual ~AbstractStatement();
+    DLLLOCAL AbstractStatement(qore_program_private_base* p);
 
-   DLLLOCAL int exec(QoreValue& return_value, ExceptionSink* xsink);
-   DLLLOCAL int parseInit(LocalVar* oflag, int pflag = 0);
+    DLLLOCAL AbstractStatement(const QoreProgramLocation* loc);
+    DLLLOCAL AbstractStatement(int sline, int eline);
+    DLLLOCAL virtual ~AbstractStatement();
 
-   // statement should return true if it ends a block (break, continue, return, throw, etc)
-   // meaning that any subsequent statements will be unconditionally skipped
-   DLLLOCAL virtual bool endsBlock() const {
-      return false;
-   }
+    DLLLOCAL int exec(QoreValue& return_value, ExceptionSink* xsink);
+    DLLLOCAL int parseInit(LocalVar* oflag, int pflag = 0);
 
-   // should return true if the statement is a declaration processed at parse time and should not go into the parse tree
-   DLLLOCAL virtual bool isParseDeclaration() const {
-      return false;
-   }
+    DLLLOCAL void finalizeBlock(int sline, int eline);
 
-   // should return true if the statement is a declaration and does not represent an executable statement
-   DLLLOCAL virtual bool isDeclaration() const {
-      return false;
-   }
+    DLLLOCAL bool getBreakpointFlag() const {
+        return breakpointFlag;
+    }
 
-   DLLLOCAL virtual bool hasFinalReturn() const {
-      return false;
-   }
+    // statement should return true if it ends a block (break, continue, return, throw, etc)
+    // meaning that any subsequent statements will be unconditionally skipped
+    DLLLOCAL virtual bool endsBlock() const {
+        return false;
+    }
 
-   DLLLOCAL inline bool getBreakpointFlag() const {
-      return breakpointFlag;
-   }
+    // should return true if the statement is a declaration processed at parse time and should not go into the parse tree
+    DLLLOCAL virtual bool isParseDeclaration() const {
+        return false;
+    }
 
-   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
+    // should return true if the statement is a declaration and does not represent an executable statement
+    DLLLOCAL virtual bool isDeclaration() const {
+        return false;
+    }
 
+    DLLLOCAL virtual bool hasFinalReturn() const {
+        return false;
+    }
+
+    DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 };
 
 DLLLOCAL void push_cvar(const char* name);
@@ -112,7 +119,7 @@ DLLLOCAL void pop_cvar();
 DLLLOCAL LocalVar* pop_local_var(bool set_unassigned = false);
 DLLLOCAL int pop_local_var_get_id();
 // used for constructor methods sharing a common "self" local variable and for top-level local variables
-DLLLOCAL void push_local_var(LocalVar* lv, const QoreProgramLocation& loc);
+DLLLOCAL void push_local_var(LocalVar* lv, const QoreProgramLocation* loc);
 
 // push a local variable on the stack at parse time
 /** @param name the name of the var
@@ -124,7 +131,7 @@ DLLLOCAL void push_local_var(LocalVar* lv, const QoreProgramLocation& loc);
 
     @return the LocalVar ptr (caller owns the pointer returned)
 */
-DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, bool is_auto = true, int n_refs = 0, int pflag = 0);
+DLLLOCAL LocalVar* push_local_var(const char* name, const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, bool is_auto = true, int n_refs = 0, int pflag = 0);
 
 DLLLOCAL LocalVar* find_local_var(const char* name, bool &in_closure);
 

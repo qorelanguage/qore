@@ -2079,7 +2079,7 @@ bool ClosureVarValue::scanMembers(RSetHelper& rsh) {
    return scanCheck(rsh, val.getInternalNode());
 }
 
-AbstractQoreNode* ClosureVarValue::getReference(const QoreProgramLocation& loc, const char* name, const void*& lvalue_id) {
+AbstractQoreNode* ClosureVarValue::getReference(const QoreProgramLocation* loc, const char* name, const void*& lvalue_id) {
    //printd(5, "ClosureVarValue::getReference() this: %p '%s' type: '%s' assigned: %d ti: '%s' rti: '%s'\n", this, name, val.getTypeName(), val.assigned, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
    {
       QoreSafeVarRWWriteLocker sl(rml);

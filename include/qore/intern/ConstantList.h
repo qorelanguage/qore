@@ -1,37 +1,37 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ConstantList.h
+    ConstantList.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  constants can only be defined when parsing
-  constants values will be substituted during the 2nd parse phase
+    constants can only be defined when parsing
+    constants values will be substituted during the 2nd parse phase
 
-  reads and writes are (must be) wrapped under the program-level parse lock
+    reads and writes are (must be) wrapped under the program-level parse lock
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_CONSTANTLIST_H
@@ -41,7 +41,6 @@
 #include <qore/common.h>
 #include "qore/intern/ParseNode.h"
 
-#include <map>
 #include <string>
 
 class qore_ns_private;
@@ -50,37 +49,37 @@ class qore_class_private;
 // tricky structure that holds 2 types of pointers and a flag in the space of 1 pointer
 // the flag is in the low bit since memory has to be aligned anyway we have at a few bits of space for flags
 struct ClassNs {
-   // if the low bit is set, then ptr is a qore_ns_priv*, otherwise it's a qore_class_private
-   size_t ptr;
+    // if the low bit is set, then ptr is a qore_ns_priv*, otherwise it's a qore_class_private
+    size_t ptr;
 
-   DLLLOCAL ClassNs(qore_class_private* qc) : ptr((size_t)qc) {
-   }
+    DLLLOCAL ClassNs(qore_class_private* qc) : ptr((size_t)qc) {
+    }
 
-   DLLLOCAL ClassNs(qore_ns_private* ns) {
-      ptr = ((size_t)ns) | (size_t)1;
-   }
+    DLLLOCAL ClassNs(qore_ns_private* ns) {
+        ptr = ((size_t)ns) | (size_t)1;
+    }
 
-   DLLLOCAL ClassNs(const ClassNs& old) : ptr(old.ptr) {
-   }
+    DLLLOCAL ClassNs(const ClassNs& old) : ptr(old.ptr) {
+    }
 
-   DLLLOCAL qore_class_private* getClass() const {
-      return (!(ptr & (size_t)1)) ? (qore_class_private*)ptr : 0;
-   }
+    DLLLOCAL qore_class_private* getClass() const {
+        return (!(ptr & (size_t)1)) ? (qore_class_private*)ptr : nullptr;
+    }
 
-   DLLLOCAL qore_ns_private* getNs() const {
-      return (ptr & (size_t)1) ? (qore_ns_private*)(ptr & ~(size_t)1) : 0;
-   }
+    DLLLOCAL qore_ns_private* getNs() const {
+        return (ptr & (size_t)1) ? (qore_ns_private*)(ptr & ~(size_t)1) : nullptr;
+    }
 
-   DLLLOCAL bool isNs() const {
-      return (bool)(ptr & (size_t)1);
-   }
+    DLLLOCAL bool isNs() const {
+        return (bool)(ptr & (size_t)1);
+    }
 
 #ifdef DEBUG
-   DLLLOCAL const char* getType() const {
-      return isNs() ? "namespace" : "class";
-   }
+    DLLLOCAL const char* getType() const {
+        return isNs() ? "namespace" : "class";
+    }
 
-   DLLLOCAL const char* getName() const;
+    DLLLOCAL const char* getName() const;
 #endif
 };
 
@@ -92,7 +91,7 @@ class ConstantEntry : public QoreReferenceCounter {
     friend class ConstantList;
 
 public:
-    QoreProgramLocation loc;
+    const QoreProgramLocation* loc;
     ParseWarnOptions pwo;
     std::string name;
     const QoreTypeInfo* typeInfo;
@@ -103,7 +102,7 @@ public:
         builtin : 1     // builtin vs user
         ;
 
-    DLLLOCAL ConstantEntry(const QoreProgramLocation& loc, const char* n, QoreValue v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false, ClassAccess n_access = Public);
+    DLLLOCAL ConstantEntry(const QoreProgramLocation* loc, const char* n, QoreValue v, const QoreTypeInfo* ti = 0, bool n_pub = false, bool n_init = false, bool n_builtin = false, ClassAccess n_access = Public);
     DLLLOCAL ConstantEntry(const ConstantEntry& old);
 
     DLLLOCAL void deref(ExceptionSink* xsink) {
@@ -131,9 +130,9 @@ public:
 
     DLLLOCAL int parseInit(ClassNs ptr);
 
-    DLLLOCAL QoreValue get(const QoreProgramLocation& loc, const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
+    DLLLOCAL QoreValue get(const QoreProgramLocation* loc, const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
         if (in_init) {
-            parse_error(loc, "recursive constant reference found to constant '%s'", name.c_str());
+            parse_error(*loc, "recursive constant reference found to constant '%s'", name.c_str());
             constantTypeInfo = nothingTypeInfo;
             return QoreValue();
         }
@@ -209,6 +208,11 @@ public:
    }
 };
 
+// we use a vector map as the number of constants is generally relatively small
+// and lookups are only performed during parsing
+#include <qore/vector_map>
+typedef vector_map_t<const char*, ConstantEntry*> cnemap_t;
+/*
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
 #include <qore/hash_map_include.h>
@@ -216,8 +220,10 @@ public:
 
 typedef HASH_MAP<const char*, ConstantEntry*, qore_hash_str, eqstr> cnemap_t;
 #else
+#include <map>
 typedef std::map<const char*, ConstantEntry*, ltstr> cnemap_t;
 #endif
+*/
 
 class ConstantList {
     friend class ConstantListIterator;
@@ -234,6 +240,7 @@ protected:
     ClassNs ptr;
 
 public:
+    vector_map_t<std::string, ConstantEntry*> new_cnemap;
     cnemap_t cnemap;
 
     DLLLOCAL ~ConstantList();
@@ -247,7 +254,7 @@ public:
     // do not delete the object returned by this function
     DLLLOCAL cnemap_t::iterator add(const char* name, QoreValue val, const QoreTypeInfo* typeInfo = nullptr, ClassAccess access = Public);
 
-    DLLLOCAL cnemap_t::iterator parseAdd(const QoreProgramLocation& loc, const char* name, QoreValue val, const QoreTypeInfo* typeInfo = nullptr, bool pub = false, ClassAccess access = Public);
+    DLLLOCAL cnemap_t::iterator parseAdd(const QoreProgramLocation* loc, const char* name, QoreValue val, const QoreTypeInfo* typeInfo = nullptr, bool pub = false, ClassAccess access = Public);
 
     DLLLOCAL ConstantEntry* findEntry(const char* name);
 
@@ -266,7 +273,7 @@ public:
     DLLLOCAL void assimilate(ConstantList& n);
 
     // assimilate a constant list in a namespace with duplicate checking (also in pending list)
-    DLLLOCAL void assimilate(ConstantList& n, const char* type, const char* name, const ConstantList* other = nullptr);
+    DLLLOCAL void assimilate(ConstantList& n, const char* type, const char* name);
 
     // copy all user/public elements of the source list to the target, assuming no duplicates
     DLLLOCAL void mergeUserPublic(const ConstantList& src);
@@ -274,7 +281,7 @@ public:
     DLLLOCAL int importSystemConstants(const ConstantList& src, ExceptionSink* xsink);
 
     // add a constant to a list with duplicate checking (pub & priv + pending)
-    DLLLOCAL void parseAdd(const QoreProgramLocation& loc, const std::string& name, QoreValue val, ClassAccess access, const char* cname);
+    DLLLOCAL void parseAdd(const QoreProgramLocation* loc, const std::string& name, QoreValue val, ClassAccess access, const char* cname);
 
     DLLLOCAL void parseInit();
     DLLLOCAL QoreHashNode* getInfo();
@@ -403,7 +410,7 @@ protected:
     }
 
 public:
-    DLLLOCAL RuntimeConstantRefNode(const QoreProgramLocation& loc, ConstantEntry* n_ce) : ParseNode(loc, NT_RTCONSTREF, true, false), ce(n_ce) {
+    DLLLOCAL RuntimeConstantRefNode(const QoreProgramLocation* loc, ConstantEntry* n_ce) : ParseNode(loc, NT_RTCONSTREF, true, false), ce(n_ce) {
         assert(ce->saved_node);
     }
 

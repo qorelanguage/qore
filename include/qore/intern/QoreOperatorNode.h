@@ -51,7 +51,7 @@ protected:
    DLLLOCAL virtual void ignoreReturnValueImpl() {}
 
 public:
-   DLLLOCAL QoreOperatorNode(const QoreProgramLocation& loc, bool n_ref_rv = true) : ParseNode(loc, NT_OPERATOR), in_parentheses(false), ref_rv(n_ref_rv) {
+   DLLLOCAL QoreOperatorNode(const QoreProgramLocation* loc, bool n_ref_rv = true) : ParseNode(loc, NT_OPERATOR), in_parentheses(false), ref_rv(n_ref_rv) {
    }
 
    // returns the type name as a c string
@@ -86,7 +86,7 @@ protected:
     }
 
 public:
-    DLLLOCAL QoreSingleExpressionOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp) : T(loc), exp(n_exp) {
+    DLLLOCAL QoreSingleExpressionOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_exp) : T(loc), exp(n_exp) {
     }
 
     DLLLOCAL AbstractQoreNode* getExp() {
@@ -137,7 +137,7 @@ protected:
     }
 
 public:
-    DLLLOCAL QoreSingleValueExpressionOperatorNode(const QoreProgramLocation& loc, QoreValue exp) : T(loc), exp(exp) {
+    DLLLOCAL QoreSingleValueExpressionOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : T(loc), exp(exp) {
     }
 
     DLLLOCAL QoreValue getExp() {
@@ -184,7 +184,7 @@ protected:
    AbstractQoreNode* left, * right;
 
 public:
-   DLLLOCAL QoreBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : T(loc), left(n_left), right(n_right) {
+   DLLLOCAL QoreBinaryOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : T(loc), left(n_left), right(n_right) {
    }
 
    DLLLOCAL ~QoreBinaryOperatorNode() {
@@ -251,7 +251,7 @@ public:
 
 class QoreBoolBinaryOperatorNode : public QoreBinaryOperatorNode<> {
 public:
-   DLLLOCAL QoreBoolBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
+   DLLLOCAL QoreBoolBinaryOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -261,7 +261,7 @@ public:
 
 class QoreIntBinaryOperatorNode : public QoreBinaryOperatorNode<> {
 public:
-   DLLLOCAL QoreIntBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
+   DLLLOCAL QoreIntBinaryOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -278,7 +278,7 @@ public:\
 
 class LValueOperatorNode : public QoreOperatorNode {
 public:
-   DLLLOCAL LValueOperatorNode(const QoreProgramLocation& loc) : QoreOperatorNode(loc) {
+   DLLLOCAL LValueOperatorNode(const QoreProgramLocation* loc) : QoreOperatorNode(loc) {
    }
 
    DLLLOCAL virtual bool hasEffect() const {
@@ -288,11 +288,11 @@ public:
    DLLLOCAL int checkLValue(AbstractQoreNode* exp, int pflag, bool assignment = true) {
       if (exp) {
          if (check_lvalue(exp, assignment)) {
-            parse_error(loc, "expecting lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
+            parse_error(*loc, "expecting lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
             return -1;
          }
          else if ((pflag & PF_BACKGROUND) && exp && exp->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(exp)->getType() == VT_LOCAL) {
-            parse_error(loc, "illegal local variable modification with the background operator in %s", getTypeName());
+            parse_error(*loc, "illegal local variable modification with the background operator in %s", getTypeName());
             return -1;
          }
       }
@@ -311,7 +311,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreNOperatorNodeBase(const QoreProgramLocation& loc, AbstractQoreNode* a0, ...) : T(loc) {
+   DLLLOCAL QoreNOperatorNodeBase(const QoreProgramLocation* loc, AbstractQoreNode* a0, ...) : T(loc) {
       e[0] = a0;
       va_list ap;
       va_start(ap, a0);

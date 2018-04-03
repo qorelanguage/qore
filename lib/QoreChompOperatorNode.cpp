@@ -113,7 +113,7 @@ AbstractQoreNode* QoreChompOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
       QoreStringNode* desc = new QoreStringNode("the lvalue expression with the chomp operator is ");
       QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
-      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
 
    returnTypeInfo = bigIntTypeInfo;

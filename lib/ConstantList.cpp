@@ -44,7 +44,7 @@ const char* ClassNs::getName() const {
 }
 #endif
 
-ConstantEntry::ConstantEntry(const QoreProgramLocation& loc, const char* n, QoreValue val, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin, ClassAccess n_access)
+ConstantEntry::ConstantEntry(const QoreProgramLocation* loc, const char* n, QoreValue val, const QoreTypeInfo* ti, bool n_pub, bool n_init, bool n_builtin, ClassAccess n_access)
    : loc(loc), name(n), typeInfo(ti), val(val), in_init(false), pub(n_pub),
      init(n_init), builtin(n_builtin), access(n_access) {
     QoreProgram* pgm = getProgram();
@@ -125,8 +125,8 @@ void ConstantEntry::del(ExceptionSink* xsink) {
 #endif
     }
     else {
-        // abort if an object is present and we are calling deref without an ExceptionSink object
-        assert(val.getType() != NT_OBJECT || xsink);
+        // note that objects may be present here when discarding with xsink == nullptr if there is a builtin object in a class constant
+        // in this case the destructor cannot throw an exception
         val.discard(xsink);
 #ifdef DEBUG
         val.clear();
@@ -141,7 +141,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
         return 0;
 
     if (in_init) {
-        parse_error(loc, "recursive constant reference found to constant '%s'", name.c_str());
+        parse_error(*loc, "recursive constant reference found to constant '%s'", name.c_str());
         return 0;
     }
 
@@ -153,9 +153,6 @@ int ConstantEntry::parseInit(ClassNs ptr) {
     int lvids = 0;
 
     if (!builtin) {
-        // set parse location in case of errors
-        ParseLocationHelper plh(loc);
-
         // push parse class context
         qore_class_private* p = ptr.getClass();
         QoreParseClassHelper qpch(p ? p->cls : nullptr);
@@ -210,7 +207,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
     }
 
     if (xsink.isEvent())
-        qore_program_private::addParseException(pgm, xsink, &loc);
+        qore_program_private::addParseException(pgm, xsink, loc);
 
     // scan for call references
     if (scanValue(val)) {
@@ -242,7 +239,6 @@ ConstantList::ConstantList(const ConstantList& old, int64 po, ClassNs p) : ptr(p
 
         ConstantEntry* ce = i->second;
         ce->ref();
-        //ConstantEntry* ce = new ConstantEntry(*(i->second));
 
         last = cnemap.insert(last, cnemap_t::value_type(ce->getName(), ce));
         //printd(5, "ConstantList::ConstantList(old=%p) this=%p copying %s (%p)\n", &old, this, i->first, i->second->node);
@@ -296,16 +292,16 @@ void ConstantList::parseDeleteAll() {
         qore_program_private::addParseException(getProgram(), xsink);
 }
 
-cnemap_t::iterator ConstantList::parseAdd(const QoreProgramLocation& loc, const char* name, QoreValue value, const QoreTypeInfo* typeInfo, bool pub, ClassAccess access) {
-   // first check if the constant has already been defined
-   if (cnemap.find(name) != cnemap.end()) {
-      parse_error(loc, "constant \"%s\" has already been defined", name);
-      value.discard(nullptr);
-      return cnemap.end();
-   }
+cnemap_t::iterator ConstantList::parseAdd(const QoreProgramLocation* loc, const char* name, QoreValue value, const QoreTypeInfo* typeInfo, bool pub, ClassAccess access) {
+    // first check if the constant has already been defined
+    if (cnemap.find(name) != cnemap.end()) {
+        parse_error(*loc, "constant \"%s\" has already been defined", name);
+        value.discard(nullptr);
+        return cnemap.end();
+    }
 
-   ConstantEntry* ce = new ConstantEntry(loc, name, value, typeInfo || (value.hasNode() && value.getInternalNode()->needs_eval()) ? typeInfo : value.getTypeInfo(), pub, false, false, access);
-   return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
+    ConstantEntry* ce = new ConstantEntry(loc, name, value, typeInfo || (value.hasNode() && value.getInternalNode()->needs_eval()) ? typeInfo : value.getTypeInfo(), pub, false, false, access);
+    return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 
 cnemap_t::iterator ConstantList::add(const char* name, QoreValue value, const QoreTypeInfo* typeInfo, ClassAccess access) {
@@ -315,7 +311,7 @@ cnemap_t::iterator ConstantList::add(const char* name, QoreValue value, const Qo
       assert(false);
    }
 #endif
-   ConstantEntry* ce = new ConstantEntry(QoreProgramLocation(), name, value, typeInfo || (value.hasNode() && value.getInternalNode()->needs_eval()) ? typeInfo : value.getTypeInfo(), true, true, true, access);
+   ConstantEntry* ce = new ConstantEntry(&loc_builtin, name, value, typeInfo || (value.hasNode() && value.getInternalNode()->needs_eval()) ? typeInfo : value.getTypeInfo(), true, true, true, access);
    return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 
@@ -383,27 +379,22 @@ int ConstantList::importSystemConstants(const ConstantList& src, ExceptionSink* 
 
 // no duplicate checking is done here
 void ConstantList::assimilate(ConstantList& n) {
-   for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
-      assert(!inList(i->first));
-      // "move" data to new list
-      cnemap[i->first] = i->second;
-      i->second = nullptr;
-   }
+    for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
+        assert(!inList(i->first));
+        // "move" data to new list
+        cnemap[i->first] = i->second;
+        i->second = nullptr;
+    }
 
-   n.parseDeleteAll();
+    n.parseDeleteAll();
 }
 
 // duplicate checking is done here
-void ConstantList::assimilate(ConstantList& n, const char* type, const char* name, const ConstantList* other) {
+void ConstantList::assimilate(ConstantList& n, const char* type, const char* name) {
     // assimilate target list
     for (cnemap_t::iterator i = n.cnemap.begin(), e = n.cnemap.end(); i != e; ++i) {
         if (inList(i->first)) {
-            parse_error(i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
-            continue;
-        }
-
-        if (other && other->inList(i->first)) {
-            parse_error(i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
+            parse_error(*i->second->loc, "constant \"%s\" has already been defined in %s \"%s\"", i->first, type, name);
             continue;
         }
 
@@ -414,9 +405,9 @@ void ConstantList::assimilate(ConstantList& n, const char* type, const char* nam
     n.parseDeleteAll();
 }
 
-void ConstantList::parseAdd(const QoreProgramLocation& loc, const std::string& name, QoreValue val, ClassAccess access, const char* cname) {
+void ConstantList::parseAdd(const QoreProgramLocation* loc, const std::string& name, QoreValue val, ClassAccess access, const char* cname) {
     if (inList(name)) {
-        parse_error(loc, "constant \"%s\" has already been defined in class \"%s\"", name.c_str(), cname);
+        parse_error(*loc, "constant \"%s\" has already been defined in class \"%s\"", name.c_str(), cname);
         val.discard(0);
         return;
     }

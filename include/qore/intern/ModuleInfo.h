@@ -243,7 +243,7 @@ public:
     DLLLOCAL virtual bool isBuiltin() const = 0;
     DLLLOCAL virtual bool isUser() const = 0;
     DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const = 0;
-    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation& loc, QoreString &cmd) = 0;
+    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation* loc, QoreString &cmd) = 0;
 };
 
 // list/dequeue of strings
@@ -455,7 +455,7 @@ public:
    DLLLOCAL void init(bool se);
    DLLLOCAL void delUser();
    DLLLOCAL void cleanup();
-   DLLLOCAL void issueParseCmd(const QoreProgramLocation& loc, const char* mname, QoreProgram* pgm, QoreString &cmd);
+   DLLLOCAL void issueParseCmd(const QoreProgramLocation* loc, const char* mname, QoreProgram* pgm, QoreString &cmd);
 
    DLLLOCAL void addModule(QoreAbstractModule* m) {
       assert(map.find(m->getName()) == map.end());
@@ -611,7 +611,7 @@ public:
         return dlptr;
     }
 
-    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation& loc, QoreString &cmd);
+    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation* loc, QoreString &cmd);
 };
 
 class QoreUserModule : public QoreAbstractModule {
@@ -648,8 +648,8 @@ public:
         return getHashIntern(with_filename);
     }
 
-    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation& loc, QoreString &cmd) {
-        parseException(loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' is a user module; only builtin modules can support parse commands", name.getBuffer(), filename.getBuffer());
+    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation* loc, QoreString &cmd) {
+        parseException(*loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' is a user module; only builtin modules can support parse commands", name.getBuffer(), filename.getBuffer());
     }
 };
 

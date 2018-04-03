@@ -940,25 +940,25 @@ qore_type_result_e QoreTypeInfo::runtimeAcceptsValue(const QoreValue& n) const {
    return QTI_NOT_EQUAL;
 }
 
-void QoreTypeInfo::doNonNumericWarning(const QoreProgramLocation& loc, const char* preface) const {
+void QoreTypeInfo::doNonNumericWarning(const QoreProgramLocation* loc, const char* preface) const {
    QoreStringNode* desc = new QoreStringNode(preface);
    getThisTypeImpl(*desc);
    desc->sprintf(", which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime");
-   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::doNonBooleanWarning(const QoreProgramLocation& loc, const char* preface) const {
+void QoreTypeInfo::doNonBooleanWarning(const QoreProgramLocation* loc, const char* preface) const {
    QoreStringNode* desc = new QoreStringNode(preface);
    getThisTypeImpl(*desc);
    desc->sprintf(", which does not evaluate to a numeric or boolean type, therefore will always evaluate to False at runtime");
-   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const {
+void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation* loc, const char* preface) const {
    QoreStringNode* desc = new QoreStringNode(preface);
    getThisTypeImpl(*desc);
    desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
-   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
 void QoreTypeInfo::stripTypeInfo(QoreValue& n, ExceptionSink* xsink) {
@@ -1119,7 +1119,7 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveRuntimeClass(const NamedScope& csc
    return or_nothing ? qc->getOrNothingTypeInfo() : qc->getTypeInfo();
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation& loc) const {
+const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation* loc) const {
    if (!strcmp(cscope->ostr, "hash")) {
       if (subtypes.size() == 1) {
          if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
@@ -1131,7 +1131,7 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
       }
       if (subtypes.size() == 2) {
          if (strcmp(subtypes[0]->cscope->ostr, "string")) {
-            parseException(loc, "PARSE-TYPE-ERROR", "invalid complex hash type '%s'; hash key type must be 'string'; cannot declare a hash with key type '%s'", getName(), subtypes[0]->cscope->ostr);
+            parseException(*loc, "PARSE-TYPE-ERROR", "invalid complex hash type '%s'; hash key type must be 'string'; cannot declare a hash with key type '%s'", getName(), subtypes[0]->cscope->ostr);
          }
          else {
             if (!strcmp(subtypes[1]->cscope->ostr, "auto"))
@@ -1147,7 +1147,7 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
          }
       }
       else {
-         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'hash' takes a single hashdecl name as a subtype argument or two type names giving the key and value types", getName(), (int)subtypes.size());
+         parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'hash' takes a single hashdecl name as a subtype argument or two type names giving the key and value types", getName(), (int)subtypes.size());
       }
       return or_nothing ? hashOrNothingTypeInfo : hashTypeInfo;
    }
@@ -1164,7 +1164,7 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
          }
       }
       else {
-         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'list' takes a single type name giving list element value type", getName(), (int)subtypes.size());
+         parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'list' takes a single type name giving list element value type", getName(), (int)subtypes.size());
       }
       return or_nothing ? listOrNothingTypeInfo : listTypeInfo;
    }
@@ -1181,7 +1181,7 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
          }
       }
       else {
-         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'softlist' takes a single type name giving list element value type", getName(), (int)subtypes.size());
+         parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'softlist' takes a single type name giving list element value type", getName(), (int)subtypes.size());
       }
       return or_nothing ? softListOrNothingTypeInfo : softListTypeInfo;
    }
@@ -1198,13 +1198,13 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
          }
       }
       else {
-         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'reference' takes a single type name giving referenced lvalue type", getName(), (int)subtypes.size());
+         parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'reference' takes a single type name giving referenced lvalue type", getName(), (int)subtypes.size());
       }
       return or_nothing ? referenceOrNothingTypeInfo : referenceTypeInfo;
    }
    if (!strcmp(cscope->ostr, "object")) {
       if (subtypes.size() != 1) {
-         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; base type 'object' takes a single class name as a subtype argument", getName());
+         parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; base type 'object' takes a single class name as a subtype argument", getName());
          return or_nothing ? objectOrNothingTypeInfo : objectTypeInfo;
       }
 
@@ -1215,18 +1215,18 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
       return resolveClass(loc, *subtypes[0]->cscope, or_nothing);
    }
 
-   parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; type '%s' does not take subtype declarations", getName(), cscope->getIdentifier());
+   parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; type '%s' does not take subtype declarations", getName(), cscope->getIdentifier());
    return autoTypeInfo;
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolve(const QoreProgramLocation& loc) const {
+const QoreTypeInfo* QoreParseTypeInfo::resolve(const QoreProgramLocation* loc) const {
    if (!subtypes.empty())
       return resolveSubtype(loc);
 
    return resolveClass(loc, *cscope, or_nothing);
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolveAny(const QoreProgramLocation& loc) const {
+const QoreTypeInfo* QoreParseTypeInfo::resolveAny(const QoreProgramLocation* loc) const {
    if (!subtypes.empty())
       return resolveSubtype(loc);
 
@@ -1234,19 +1234,19 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveAny(const QoreProgramLocation& loc
    return rv ? rv : resolveClass(loc, *cscope, or_nothing);
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
+const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation* loc) {
    std::unique_ptr<QoreParseTypeInfo> holder(this);
    return resolve(loc);
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolveClass(const QoreProgramLocation& loc, const NamedScope& cscope, bool or_nothing) {
+const QoreTypeInfo* QoreParseTypeInfo::resolveClass(const QoreProgramLocation* loc, const NamedScope& cscope, bool or_nothing) {
    // resolve class
    const QoreClass* qc = qore_root_ns_private::parseFindScopedClass(loc, cscope);
 
    if (qc && or_nothing) {
       const QoreTypeInfo* rv = qc->getOrNothingTypeInfo();
       if (!rv) {
-         parse_error(loc, "class %s cannot be typed with '*' as the class's type handler has an input filter and the filter does not accept NOTHING", qc->getName());
+         parse_error(*loc, "class %s cannot be typed with '*' as the class's type handler has an input filter and the filter does not accept NOTHING", qc->getName());
          return objectOrNothingTypeInfo;
       }
       return rv;
