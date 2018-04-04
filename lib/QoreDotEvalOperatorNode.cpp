@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -103,7 +103,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
             m->parseSetClassAndMethod(qc, meth);
 
             // check parameters, if any
-            lvids += m->parseArgs(oflag, pflag, meth->getFunction(), returnTypeInfo);
+            lvids += m->parseArgs(oflag, pflag, meth->getFunction(), nullptr, returnTypeInfo);
             expTypeInfo = returnTypeInfo;
 
             return this;
@@ -112,7 +112,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
             // issue an error if there was no match and it's not a hash
             QoreStringNode* edesc = new QoreStringNode;
             edesc->sprintf("no pseudo-method <%s>.%s() can be found", QoreTypeInfo::getName(typeInfo), mname);
-            qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
+            qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
          }
       }
 
@@ -143,7 +143,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    const QoreListNode* args = m->getArgs();
    if (!strcmp(mname, "copy")) {
       if (args && args->size())
-         parse_error(loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
+         parse_error(*loc, "no arguments may be passed to copy methods (%d argument%s given in call to %s::copy())", args->size(), args->size() == 1 ? "" : "s", qc->getName());
 
       // do not save method pointer for copy methods
       expTypeInfo = returnTypeInfo = qc->getTypeInfo();
@@ -183,22 +183,22 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
    m->parseSetClassAndMethod(qc, meth);
 
    // check parameters, if any
-   lvids += m->parseArgs(oflag, pflag, meth->getFunction(), returnTypeInfo);
+   lvids += m->parseArgs(oflag, pflag, meth->getFunction(), nullptr ,returnTypeInfo);
    expTypeInfo = returnTypeInfo;
 
-   printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", mname, meth && (qore_method_private::parseGetAccess(*meth) > Public) ? "true" : "false", meth->isStatic() ? "true" : "false", QoreTypeInfo::getName(returnTypeInfo));
+   printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", mname, meth && (qore_method_private::getAccess(*meth) > Public) ? "true" : "false", meth->isStatic() ? "true" : "false", QoreTypeInfo::getName(returnTypeInfo));
 
    return this;
 }
 
 AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
    if (m->getArgs()) {
-      parse_error(loc, "argument given to call reference");
+      parse_error(*loc, "argument given to call reference");
       return this;
    }
 
    if (!strcmp(m->getName(), "copy")) {
-      parse_error(loc, "cannot make a call reference to a copy() method");
+      parse_error(*loc, "cannot make a call reference to a copy() method");
       return this;
    }
 
@@ -208,7 +208,7 @@ AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
    AbstractQoreNode *exp = left;
    left = 0;
    char *meth = m->takeName();
-   QoreProgramLocation nloc = loc;
+   const QoreProgramLocation* nloc = loc;
    this->deref();
 
    //printd(5, "made parse object method reference: exp=%p meth=%s\n", exp, meth);

@@ -51,7 +51,7 @@ protected:
    }
 
 public:
-   DLLLOCAL CaseNodeRegex(const QoreProgramLocation& loc, QoreRegex *m_re, StatementBlock *blk);
+   DLLLOCAL CaseNodeRegex(const QoreProgramLocation* loc, QoreRegex *m_re, StatementBlock *blk);
 
    DLLLOCAL virtual ~CaseNodeRegex() {
       delete re;
@@ -62,7 +62,7 @@ public:
 
 class CaseNodeNegRegex : public CaseNodeRegex {
 public:
-   DLLLOCAL CaseNodeNegRegex(const QoreProgramLocation& loc, QoreRegex *m_re, StatementBlock *blk) : CaseNodeRegex(loc, m_re, blk) {
+   DLLLOCAL CaseNodeNegRegex(const QoreProgramLocation* loc, QoreRegex *m_re, StatementBlock *blk) : CaseNodeRegex(loc, m_re, blk) {
    }
 
    DLLLOCAL virtual bool matches(AbstractQoreNode *lhs_value, class ExceptionSink *xsink);

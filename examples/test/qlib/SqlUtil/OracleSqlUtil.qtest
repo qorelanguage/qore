@@ -417,6 +417,25 @@ class OracleTest inherits SqlTestBase {
             testSkip("no DB connection");
 
         AbstractDatasource ds = table.getDatasource();
+        on_exit {
+            try {
+                ds.exec("drop synonym oracle_test_syn3");
+            }
+            catch (hash<auto> ex) {}
+            try {
+                ds.exec("drop synonym oracle_test_syn2");
+            }
+            catch (hash<auto> ex) {}
+            try {
+                ds.exec("drop synonym oracle_test_syn1");
+            }
+            catch (hash<auto> ex) {}
+            try {
+                ds.exec("drop table test_oracle_syn");
+            }
+            catch (hash<auto> ex) {}
+        }
+
         ds.exec("create table test_oracle_syn (dummy varchar2(1))");
         ds.exec("insert into test_oracle_syn values ('X')");
         ds.exec("create or replace synonym oracle_test_syn1 for test_oracle_syn");
@@ -425,11 +444,6 @@ class OracleTest inherits SqlTestBase {
 
         Table t(ds, "oracle_test_syn3");
         assertEq("X", t.selectRow().dummy, "dummy must be resolved, returning X");
-
-        ds.exec("drop synonym oracle_test_syn3");
-        ds.exec("drop synonym oracle_test_syn2");
-        ds.exec("drop synonym oracle_test_syn1");
-        ds.exec("drop table test_oracle_syn");
     }
 
     private string getResultSetSql() {

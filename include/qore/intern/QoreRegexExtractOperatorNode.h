@@ -42,7 +42,7 @@ protected:
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
-   DLLLOCAL QoreRegexExtractOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp, QoreRegex* r) : QoreRegexMatchOperatorNode(loc, n_exp, r) {
+   DLLLOCAL QoreRegexExtractOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_exp, QoreRegex* r) : QoreRegexMatchOperatorNode(loc, n_exp, r) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
