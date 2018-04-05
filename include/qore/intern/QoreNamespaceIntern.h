@@ -1445,28 +1445,7 @@ protected:
         nsmap.update(ns);
     }
 
-    DLLLOCAL void parseAddNamespaceIntern(QoreNamespace* nns) {
-        qore_ns_private* ns = qore_ns_private::parseAddNamespace(nns);
-        if (!ns)
-            return;
-
-        // add all objects to the new (or assimilated) namespace
-
-        //printd(5, "qore_root_ns_private::parseAddNamespaceIntern() this: %p ns: %p\n", this, ns);
-
-        // take global variable decls
-        for (unsigned i = 0; i < ns->pend_gvblist.size(); ++i) {
-            //printd(5, "qore_root_ns_private::parseAddNamespaceIntern() merging global var decl '%s::%s' into the root list\n", ns->name.c_str(), ns->pend_gvblist[i].name->ostr);
-            pend_gvlist.push_back(GVEntry(ns->pend_gvblist[i], ns));
-        }
-        ns->pend_gvblist.zero();
-
-        {
-            QorePrivateNamespaceIterator qpni(ns);
-            while (qpni.next())
-                parseRebuildIndexes(qpni.get());
-        }
-    }
+    DLLLOCAL void parseAddNamespaceIntern(QoreNamespace* nns);
 
     DLLLOCAL void rebuildAllIndexes() {
         // clear depth list

@@ -1953,6 +1953,29 @@ Var* qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const QoreProgramLo
     return rv;
 }
 
+void qore_root_ns_private::parseAddNamespaceIntern(QoreNamespace* nns) {
+    qore_ns_private* ns = qore_ns_private::parseAddNamespace(nns);
+    if (!ns || qore_program_private::get(*getProgram())->parseExceptionRaised())
+        return;
+
+    // add all objects to the new (or assimilated) namespace
+
+    //printd(5, "qore_root_ns_private::parseAddNamespaceIntern() this: %p ns: %p\n", this, ns);
+
+    // take global variable decls
+    for (unsigned i = 0; i < ns->pend_gvblist.size(); ++i) {
+        //printd(5, "qore_root_ns_private::parseAddNamespaceIntern() merging global var decl '%s::%s' into the root list\n", ns->name.c_str(), ns->pend_gvblist[i].name->ostr);
+        pend_gvlist.push_back(GVEntry(ns->pend_gvblist[i], ns));
+    }
+    ns->pend_gvblist.zero();
+
+    {
+        QorePrivateNamespaceIterator qpni(ns);
+        while (qpni.next())
+            parseRebuildIndexes(qpni.get());
+    }
+}
+
 void qore_ns_private::parseInitConstants() {
    printd(5, "qore_ns_private::parseInitConstants() %s\n", name.c_str());
 
