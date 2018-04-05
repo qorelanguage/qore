@@ -1955,6 +1955,7 @@ Var* qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const QoreProgramLo
 
 void qore_root_ns_private::parseAddNamespaceIntern(QoreNamespace* nns) {
     qore_ns_private* ns = qore_ns_private::parseAddNamespace(nns);
+    // issue #2735: do not reindex namespaces where parse errors have occurred
     if (!ns || qore_program_private::get(*getProgram())->parseExceptionRaised())
         return;
 
