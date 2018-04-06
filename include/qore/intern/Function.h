@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  Function.h
+    Function.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_FUNCTION_H
@@ -60,115 +60,115 @@ typedef std::vector<LocalVar*> lvar_vec_t;
 
 class AbstractFunctionSignature {
 protected:
-   unsigned short num_param_types = 0,    // number of parameters that have type information
-      min_param_types = 0;                // minimum number of parameters with type info (without default args)
+    unsigned short num_param_types = 0,    // number of parameters that have type information
+        min_param_types = 0;                // minimum number of parameters with type info (without default args)
 
-   const QoreTypeInfo* returnTypeInfo;
-   type_vec_t typeList;
-   arg_vec_t defaultArgList;
-   name_vec_t names;
+    const QoreTypeInfo* returnTypeInfo;
+    type_vec_t typeList;
+    arg_vec_t defaultArgList;
+    name_vec_t names;
 
-   // parameter signature string
-   std::string str;
+    // parameter signature string
+    std::string str;
 
 public:
-   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo = nullptr) : returnTypeInfo(n_returnTypeInfo) {
-   }
+    DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo = nullptr) : returnTypeInfo(n_returnTypeInfo) {
+    }
 
-   DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& n_defaultArgList, const name_vec_t& n_names) : returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList), names(n_names) {
-   }
+    DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& n_defaultArgList, const name_vec_t& n_names) : returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList), names(n_names) {
+    }
 
-   DLLLOCAL virtual ~AbstractFunctionSignature() {
-      // delete all default argument expressions
-      for (arg_vec_t::iterator i = defaultArgList.begin(), e = defaultArgList.end(); i != e; ++i)
-         if (*i)
-            (*i)->deref(nullptr);
-   }
+    DLLLOCAL virtual ~AbstractFunctionSignature() {
+        // delete all default argument expressions
+        for (arg_vec_t::iterator i = defaultArgList.begin(), e = defaultArgList.end(); i != e; ++i)
+            if (*i)
+                (*i)->deref(nullptr);
+    }
 
-   // called at parse time to include optional type resolution
-   DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const = 0;
+    // called at parse time to include optional type resolution
+    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo() const = 0;
 
-   DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const = 0;
+    DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const = 0;
 
-   DLLLOCAL const QoreTypeInfo* getReturnTypeInfo() const {
-      return returnTypeInfo;
-   }
+    DLLLOCAL const QoreTypeInfo* getReturnTypeInfo() const {
+        return returnTypeInfo;
+    }
 
-   DLLLOCAL const arg_vec_t& getDefaultArgList() const {
-      return defaultArgList;
-   }
+    DLLLOCAL const arg_vec_t& getDefaultArgList() const {
+        return defaultArgList;
+    }
 
-   DLLLOCAL const type_vec_t& getTypeList() const {
-      return typeList;
-   }
+    DLLLOCAL const type_vec_t& getTypeList() const {
+        return typeList;
+    }
 
-   DLLLOCAL AbstractQoreNode* evalDefaultArg(unsigned i, ExceptionSink* xsink) const {
-      assert(i < defaultArgList.size());
-      return defaultArgList[i] ? defaultArgList[i]->eval(xsink) : 0;
-   }
+    DLLLOCAL AbstractQoreNode* evalDefaultArg(unsigned i, ExceptionSink* xsink) const {
+        assert(i < defaultArgList.size());
+        return defaultArgList[i] ? defaultArgList[i]->eval(xsink) : 0;
+    }
 
-   DLLLOCAL const char* getSignatureText() const {
-      return str.c_str();
-   }
+    DLLLOCAL const char* getSignatureText() const {
+        return str.c_str();
+    }
 
-   DLLLOCAL virtual void addAbstractParameterSignature(std::string& str) const {
-      for (unsigned i = 0; i < typeList.size(); ++i) {
-         str.append(QoreTypeInfo::getName(typeList[i]));
-         if (i != typeList.size() - 1)
-            str.append(",");
-      }
-   }
+    DLLLOCAL virtual void addAbstractParameterSignature(std::string& str) const {
+        for (unsigned i = 0; i < typeList.size(); ++i) {
+            str.append(QoreTypeInfo::getName(typeList[i]));
+            if (i != typeList.size() - 1)
+                str.append(",");
+        }
+    }
 
-   DLLLOCAL unsigned numParams() const {
-      return (unsigned)typeList.size();
-   }
+    DLLLOCAL unsigned numParams() const {
+        return (unsigned)typeList.size();
+    }
 
-   // number of params with type information
-   DLLLOCAL unsigned getParamTypes() const {
-      return num_param_types;
-   }
+    // number of params with type information
+    DLLLOCAL unsigned getParamTypes() const {
+        return num_param_types;
+    }
 
-   DLLLOCAL unsigned getMinParamTypes() const {
-      return min_param_types;
-   }
+    DLLLOCAL unsigned getMinParamTypes() const {
+        return min_param_types;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getParamTypeInfo(unsigned num) const {
-      return num >= typeList.size() ? 0 : typeList[num];
-   }
+    DLLLOCAL const QoreTypeInfo* getParamTypeInfo(unsigned num) const {
+        return num >= typeList.size() ? 0 : typeList[num];
+    }
 
-   DLLLOCAL bool hasDefaultArg(unsigned i) const {
-      return i >= defaultArgList.size() || !defaultArgList[i] ? false : true;
-   }
+    DLLLOCAL bool hasDefaultArg(unsigned i) const {
+        return i >= defaultArgList.size() || !defaultArgList[i] ? false : true;
+    }
 
-   // adds a description of the given default argument to the signature string
-   DLLLOCAL void addDefaultArgument(const AbstractQoreNode* arg);
+    // adds a description of the given default argument to the signature string
+    DLLLOCAL void addDefaultArgument(const AbstractQoreNode* arg);
 
-   DLLLOCAL const char* getName(unsigned i) const {
-      return i < names.size() ? names[i].c_str() : 0;
-   }
+    DLLLOCAL const char* getName(unsigned i) const {
+        return i < names.size() ? names[i].c_str() : 0;
+    }
 
-   DLLLOCAL bool operator==(const AbstractFunctionSignature& sig) const;
+    DLLLOCAL bool operator==(const AbstractFunctionSignature& sig) const;
 };
 
 // used to store return type info during parsing for user code
 class RetTypeInfo {
-   QoreParseTypeInfo* parseTypeInfo;
-   const QoreTypeInfo* typeInfo;
+    QoreParseTypeInfo* parseTypeInfo;
+    const QoreTypeInfo* typeInfo;
 
 public:
-   DLLLOCAL RetTypeInfo(QoreParseTypeInfo* n_parseTypeInfo, const QoreTypeInfo* n_typeInfo) : parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
-   }
-   DLLLOCAL ~RetTypeInfo() {
-      delete parseTypeInfo;
-   }
-   DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
-      return typeInfo;
-   }
-   DLLLOCAL QoreParseTypeInfo* takeParseTypeInfo() {
-      QoreParseTypeInfo* rv = parseTypeInfo;
-      parseTypeInfo = 0;
-      return rv;
-   }
+    DLLLOCAL RetTypeInfo(QoreParseTypeInfo* n_parseTypeInfo, const QoreTypeInfo* n_typeInfo) : parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
+    }
+    DLLLOCAL ~RetTypeInfo() {
+        delete parseTypeInfo;
+    }
+    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
+        return typeInfo;
+    }
+    DLLLOCAL QoreParseTypeInfo* takeParseTypeInfo() {
+        QoreParseTypeInfo* rv = parseTypeInfo;
+        parseTypeInfo = 0;
+        return rv;
+    }
 };
 
 class UserSignature : public AbstractFunctionSignature {
@@ -257,71 +257,71 @@ class AbstractQoreFunctionVariant;
 
 class CodeEvaluationHelper {
 protected:
-   qore_call_t ct;
-   const char* name;
-   ExceptionSink* xsink;
-   const qore_class_private* qc;
-   const QoreProgramLocation* loc;
-   QoreValueListEvalOptionalRefHolder tmp;
-   const QoreTypeInfo* returnTypeInfo; // saved return type info
-   QoreProgram* pgm; // program used when evaluated (to find stacks for references)
-   q_rt_flags_t rtflags; // runtime flags
+    qore_call_t ct;
+    const char* name;
+    ExceptionSink* xsink;
+    const qore_class_private* qc;
+    const QoreProgramLocation* loc;
+    QoreValueListEvalOptionalRefHolder tmp;
+    const QoreTypeInfo* returnTypeInfo; // saved return type info
+    QoreProgram* pgm; // program used when evaluated (to find stacks for references)
+    q_rt_flags_t rtflags; // runtime flags
 
     DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy, const qore_class_private* cctx);
 
 public:
-   // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = nullptr, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
+    // saves current program location in case there's an exception
+    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = nullptr, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
 
-   // saves current program location in case there's an exception
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
+    // saves current program location in case there's an exception
+    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
 
-   // saves current program location in case there's an exception
-   // performs destructive evaluation of "args"
-   DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
+    // saves current program location in case there's an exception
+    // performs destructive evaluation of "args"
+    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
 
-   DLLLOCAL ~CodeEvaluationHelper();
+    DLLLOCAL ~CodeEvaluationHelper();
 
-   DLLLOCAL void setReturnTypeInfo(const QoreTypeInfo* n_returnTypeInfo) {
-      returnTypeInfo = saveReturnTypeInfo(n_returnTypeInfo);
-   }
+    DLLLOCAL void setReturnTypeInfo(const QoreTypeInfo* n_returnTypeInfo) {
+        returnTypeInfo = saveReturnTypeInfo(n_returnTypeInfo);
+    }
 
-   // once this is set, exception information will be raised in the destructor if an exception has been raised
-   DLLLOCAL void setCallType(qore_call_t n_ct) {
-      ct = n_ct;
-   }
+    // once this is set, exception information will be raised in the destructor if an exception has been raised
+    DLLLOCAL void setCallType(qore_call_t n_ct) {
+        ct = n_ct;
+    }
 
-   DLLLOCAL int processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy = false);
+    DLLLOCAL int processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy = false);
 
-   DLLLOCAL void setArgs(QoreValueList* n_args) {
-      assert(!*tmp);
-      tmp.assign(true, n_args);
-   }
+    DLLLOCAL void setArgs(QoreValueList* n_args) {
+        assert(!*tmp);
+        tmp.assign(true, n_args);
+    }
 
     DLLLOCAL QoreValueListEvalOptionalRefHolder& getArgHolder() {
         return tmp;
     }
 
-   DLLLOCAL const QoreValueList* getArgs() const {
-      return *tmp;
-   }
+    DLLLOCAL const QoreValueList* getArgs() const {
+        return *tmp;
+    }
 
-   // returns the QoreProgram object where the call originated
-   DLLLOCAL QoreProgram* getSourceProgram() const {
-      return pgm;
-   }
+    // returns the QoreProgram object where the call originated
+    DLLLOCAL QoreProgram* getSourceProgram() const {
+        return pgm;
+    }
 
-   DLLLOCAL void restorePosition() const {
-      update_runtime_location(loc);
-   }
+    DLLLOCAL void restorePosition() const {
+        update_runtime_location(loc);
+    }
 
-   DLLLOCAL q_rt_flags_t getRuntimeFlags() const {
-      return rtflags;
-   }
+    DLLLOCAL q_rt_flags_t getRuntimeFlags() const {
+        return rtflags;
+    }
 
-   DLLLOCAL const qore_class_private* getClass() const {
-      return qc;
-   }
+    DLLLOCAL const qore_class_private* getClass() const {
+        return qc;
+    }
 };
 
 class UserVariantBase;
@@ -438,56 +438,56 @@ class UserVariantExecHelper;
 
 // base implementation shared between all user variants
 class UserVariantBase {
-   friend class UserVariantExecHelper;
+    friend class UserVariantExecHelper;
 
 protected:
-   UserSignature signature;
-   StatementBlock* statements;
-   // for "synchronized" functions
-   VRMutex* gate;
+    UserSignature signature;
+    StatementBlock* statements;
+    // for "synchronized" functions
+    VRMutex* gate;
 
 public:
-   QoreProgram* pgm;
+    QoreProgram* pgm;
 
 protected:
-   // flag to recheck params against committed after type resolution
-   bool recheck;
-   // flag to tell if variant has been initialized or not (still in pending list)
-   bool init;
+    // flag to recheck params against committed after type resolution
+    bool recheck;
+    // flag to tell if variant has been initialized or not (still in pending list)
+    bool init;
 
-   DLLLOCAL QoreValue evalIntern(ReferenceHolder<QoreListNode>& argv, QoreObject* self, ExceptionSink* xsink) const;
-   DLLLOCAL QoreValue eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const qore_class_private* qc = 0) const;
-   DLLLOCAL int setupCall(CodeEvaluationHelper* ceh, ReferenceHolder<QoreListNode>& argv, ExceptionSink* xsink) const;
+    DLLLOCAL QoreValue evalIntern(ReferenceHolder<QoreListNode>& argv, QoreObject* self, ExceptionSink* xsink) const;
+    DLLLOCAL QoreValue eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const qore_class_private* qc = 0) const;
+    DLLLOCAL int setupCall(CodeEvaluationHelper* ceh, ReferenceHolder<QoreListNode>& argv, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL UserVariantBase(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced);
-   DLLLOCAL virtual ~UserVariantBase();
-   DLLLOCAL UserSignature* getUserSignature() const {
-      return const_cast<UserSignature*>(&signature);
-   }
+    DLLLOCAL UserVariantBase(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced);
+    DLLLOCAL virtual ~UserVariantBase();
+    DLLLOCAL UserSignature* getUserSignature() const {
+        return const_cast<UserSignature*>(&signature);
+    }
 
-   DLLLOCAL void setInit() {
-      init = true;
-   }
+    DLLLOCAL void setInit() {
+        init = true;
+    }
 
-   DLLLOCAL bool getInit() const {
-      return init;
-   }
+    DLLLOCAL bool getInit() const {
+        return init;
+    }
 
-   DLLLOCAL bool hasBody() const {
-      return (bool)statements;
-   }
-   DLLLOCAL StatementBlock* getStatementBlock() const {
-      return statements;
-   }
+    DLLLOCAL bool hasBody() const {
+        return (bool)statements;
+    }
+    DLLLOCAL StatementBlock* getStatementBlock() const {
+        return statements;
+    }
 
-   DLLLOCAL int64 getParseOptions(int64 po) const;
+    DLLLOCAL int64 getParseOptions(int64 po) const;
 
-   DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo);
+    DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo);
 
-   DLLLOCAL void parseInitPopLocalVars();
+    DLLLOCAL void parseInitPopLocalVars();
 
-   DLLLOCAL void parseCommit();
+    DLLLOCAL void parseCommit();
 };
 
 // the following defines the pure virtual functions that are common to all user variants
@@ -502,57 +502,57 @@ public:
 // this class ensures that instantiated variables in user code are uninstantiated, even if an exception occurs
 class UserVariantExecHelper : ProgramThreadCountContextHelper, ThreadFrameBoundaryHelper {
 protected:
-   const UserVariantBase* uvb;
-   ReferenceHolder<QoreListNode> argv;
-   ExceptionSink* xsink;
+    const UserVariantBase* uvb;
+    ReferenceHolder<QoreListNode> argv;
+    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) : ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true), uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
-      assert(xsink);
-      if (*xsink || uvb->setupCall(ceh, argv, xsink))
-         uvb = nullptr;
-   }
+    DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) : ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true), uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
+        assert(xsink);
+        if (*xsink || uvb->setupCall(ceh, argv, xsink))
+            uvb = nullptr;
+    }
 
-   DLLLOCAL ~UserVariantExecHelper();
+    DLLLOCAL ~UserVariantExecHelper();
 
-   DLLLOCAL operator bool() const {
-      return uvb;
-   }
+    DLLLOCAL operator bool() const {
+        return uvb;
+    }
 
-   DLLLOCAL ReferenceHolder<QoreListNode>& getArgv() {
-      return argv;
-   }
+    DLLLOCAL ReferenceHolder<QoreListNode>& getArgv() {
+        return argv;
+    }
 };
 
 class UserFunctionVariant : public AbstractQoreFunctionVariant, public UserVariantBase {
 protected:
-   bool mod_pub; // is public in module
+    bool mod_pub; // is public in module
 
-   DLLLOCAL virtual ~UserFunctionVariant() {
-   }
+    DLLLOCAL virtual ~UserFunctionVariant() {
+    }
 
 public:
-   DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags = QC_NO_FLAGS) :
-      AbstractQoreFunctionVariant(n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced), mod_pub(false) {
-   }
+    DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags = QC_NO_FLAGS) :
+        AbstractQoreFunctionVariant(n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced), mod_pub(false) {
+    }
 
-   // the following defines the virtual functions that are common to all user variants
-   COMMON_USER_VARIANT_FUNCTIONS
+    // the following defines the virtual functions that are common to all user variants
+    COMMON_USER_VARIANT_FUNCTIONS
 
-   DLLLOCAL virtual QoreValue evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-      return eval(name, &ceh, 0, xsink);
-   }
+    DLLLOCAL virtual QoreValue evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
+        return eval(name, &ceh, 0, xsink);
+    }
 
-   DLLLOCAL virtual void parseInit(QoreFunction* f);
+    DLLLOCAL virtual void parseInit(QoreFunction* f);
 
-   DLLLOCAL virtual bool isModulePublic() const {
-      return mod_pub;
-   }
+    DLLLOCAL virtual bool isModulePublic() const {
+        return mod_pub;
+    }
 
-   DLLLOCAL void setModulePublic() {
-      assert(!mod_pub);
-      mod_pub = true;
-   }
+    DLLLOCAL void setModulePublic() {
+        assert(!mod_pub);
+        mod_pub = true;
+    }
 };
 
 #define UFV(f) (reinterpret_cast<UserFunctionVariant*>(f))
@@ -564,31 +564,31 @@ typedef safe_dslist<AbstractQoreFunctionVariant*> vlist_t;
 
 class VList : public vlist_t {
 public:
-   DLLLOCAL ~VList() {
-      del();
-   }
-   DLLLOCAL void del() {
-      // dereference all variants
-      for (vlist_t::iterator i = begin(), e = end(); i != e; ++i)
-         (*i)->deref();
-      clear();
-   }
+    DLLLOCAL ~VList() {
+        del();
+    }
+    DLLLOCAL void del() {
+        // dereference all variants
+        for (vlist_t::iterator i = begin(), e = end(); i != e; ++i)
+            (*i)->deref();
+        clear();
+    }
 };
 
 // inheritance noce
 struct INode {
-   QoreFunction* func;
-   ClassAccess access;
+    QoreFunction* func;
+    ClassAccess access;
 
-   DLLLOCAL INode(QoreFunction* f, ClassAccess a) : func(f), access(a) {
-   }
+    DLLLOCAL INode(QoreFunction* f, ClassAccess a) : func(f), access(a) {
+    }
 };
 
 // inheritance list type
 typedef std::vector<INode> ilist_t;
 
 struct IList : public ilist_t {
-   DLLLOCAL QoreFunction* getFunction(const qore_class_private* class_ctx, const qore_class_private*& last_class, const_iterator aqfi, bool& internal_access, bool& stop) const;
+    DLLLOCAL QoreFunction* getFunction(const qore_class_private* class_ctx, const qore_class_private*& last_class, const_iterator aqfi, bool& internal_access, bool& stop) const;
 };
 
 class QoreFunction : protected QoreReferenceCounter {
@@ -998,137 +998,137 @@ class MethodFunctionBase;
 class MethodFunctionBase : public QoreFunction {
 friend struct AbstractMethod;
 protected:
-   const QoreClass* qc;
+    const QoreClass* qc;
 
-   // for concrete variants for local abstract variants inherited from base classes
-   VList pending_save;
+    // for concrete variants for local abstract variants inherited from base classes
+    VList pending_save;
 
-   // pointer to copy, only valid during copy
-   mutable MethodFunctionBase* new_copy = nullptr;
+    // pointer to copy, only valid during copy
+    mutable MethodFunctionBase* new_copy = nullptr;
 
-   bool is_static,
-      has_final = false;
+    bool is_static,
+        has_final = false;
 
-   ClassAccess access;
+    ClassAccess access;
 
-   DLLLOCAL int checkFinalVariant(const MethodFunctionBase* m, const MethodVariantBase* v) const;
+    DLLLOCAL int checkFinalVariant(const MethodFunctionBase* m, const MethodVariantBase* v) const;
 
-   DLLLOCAL void replaceAbstractVariantIntern(MethodVariantBase* variant);
+    DLLLOCAL void replaceAbstractVariantIntern(MethodVariantBase* variant);
 
 public:
-   DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), qc(n_qc), is_static(n_is_static), has_final(false), access(Internal) {
-   }
+    DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), qc(n_qc), is_static(n_is_static), has_final(false), access(Internal) {
+    }
 
-   // copy constructor, only copies committed variants
-   DLLLOCAL MethodFunctionBase(const MethodFunctionBase& old, const QoreClass* n_qc)
-      : QoreFunction(old, 0, true),
-        qc(n_qc),
-        is_static(old.is_static),
-        has_final(old.has_final),
-        access(old.access) {
-      //printd(5, "MethodFunctionBase() copying old=%p -> new=%p %p %s::%s() %p %s::%s()\n",& old, this, old.qc, old.qc->getName(), old.getName(), qc, qc->getName(), old.getName());
+    // copy constructor, only copies committed variants
+    DLLLOCAL MethodFunctionBase(const MethodFunctionBase& old, const QoreClass* n_qc)
+        : QoreFunction(old, 0, true),
+            qc(n_qc),
+            is_static(old.is_static),
+            has_final(old.has_final),
+            access(old.access) {
+        //printd(5, "MethodFunctionBase() copying old=%p -> new=%p %p %s::%s() %p %s::%s()\n",& old, this, old.qc, old.qc->getName(), old.getName(), qc, qc->getName(), old.getName());
 
-      // set a pointer to the new function
-      old.new_copy = this;
+        // set a pointer to the new function
+        old.new_copy = this;
 
-      // copy ilist, will be adjusted for new class pointers after all classes have been copied
-      ilist.reserve(old.ilist.size());
-      ilist_t::const_iterator i = old.ilist.begin(), e = old.ilist.end();
-      ++i;
-      for (; i != e; ++i)
-         ilist.push_back(*i);
-   }
+        // copy ilist, will be adjusted for new class pointers after all classes have been copied
+        ilist.reserve(old.ilist.size());
+        ilist_t::const_iterator i = old.ilist.begin(), e = old.ilist.end();
+        ++i;
+        for (; i != e; ++i)
+            ilist.push_back(*i);
+    }
 
-   DLLLOCAL void resolveCopy() {
-      ilist_t::iterator i = ilist.begin(), e = ilist.end();
-      ++i;
-      for (; i != e; ++i) {
-         MethodFunctionBase* mfb = METHFB((*i).func);
+    DLLLOCAL void resolveCopy() {
+        ilist_t::iterator i = ilist.begin(), e = ilist.end();
+        ++i;
+        for (; i != e; ++i) {
+            MethodFunctionBase* mfb = METHFB((*i).func);
 #ifdef DEBUG
-         if (!mfb->new_copy)
-            printd(0, "error resolving %p %s::%s() base method %p %s::%s() nas no new method pointer\n", qc, qc->getName(), getName(), mfb->qc, mfb->qc->getName(), getName());
-         assert(mfb->new_copy);
-         //printd(5, "resolving %p %s::%s() base method %p %s::%s() from %p -> %p\n", qc, qc->getName(), getName(), mfb->qc, mfb->qc->getName(), getName(), mfb, mfb->new_copy);
+            if (!mfb->new_copy)
+                printd(0, "error resolving %p %s::%s() base method %p %s::%s() nas no new method pointer\n", qc, qc->getName(), getName(), mfb->qc, mfb->qc->getName(), getName());
+            assert(mfb->new_copy);
+            //printd(5, "resolving %p %s::%s() base method %p %s::%s() from %p -> %p\n", qc, qc->getName(), getName(), mfb->qc, mfb->qc->getName(), getName(), mfb, mfb->new_copy);
 #endif
-         (*i).func = mfb->new_copy;
-      }
-   }
+            (*i).func = mfb->new_copy;
+        }
+    }
 
-   DLLLOCAL void parseInit();
-   DLLLOCAL void parseCommit();
-   DLLLOCAL void parseRollback();
+    DLLLOCAL void parseInit();
+    DLLLOCAL void parseCommit();
+    DLLLOCAL void parseRollback();
 
-   // returns -1 for error, 0 = OK
-   DLLLOCAL int parseAddUserMethodVariant(MethodVariantBase* variant);
+    // returns -1 for error, 0 = OK
+    DLLLOCAL int parseAddUserMethodVariant(MethodVariantBase* variant);
 
-   // maintains access flag and commits the builtin variant
-   DLLLOCAL void addBuiltinMethodVariant(MethodVariantBase* variant);
+    // maintains access flag and commits the builtin variant
+    DLLLOCAL void addBuiltinMethodVariant(MethodVariantBase* variant);
 
-   // maintains access flag and commits user variants
-   DLLLOCAL void parseCommitMethod(QoreString& csig, const char* mod);
+    // maintains access flag and commits user variants
+    DLLLOCAL void parseCommitMethod(QoreString& csig, const char* mod);
 
-   DLLLOCAL void parseCommitMethod();
-   // processes method signatures
-   DLLLOCAL void parseSignatures(QoreString& csig, const char* mod) const;
+    DLLLOCAL void parseCommitMethod();
+    // processes method signatures
+    DLLLOCAL void parseSignatures(QoreString& csig, const char* mod) const;
 
-   // if an identical signature is found to the passed variant, then it is removed from the abstract list
-   DLLLOCAL MethodVariantBase* parseHasVariantWithSignature(MethodVariantBase* v) const;
+    // if an identical signature is found to the passed variant, then it is removed from the abstract list
+    DLLLOCAL MethodVariantBase* parseHasVariantWithSignature(MethodVariantBase* v) const;
 
-   DLLLOCAL void replaceAbstractVariant(MethodVariantBase* variant);
+    DLLLOCAL void replaceAbstractVariant(MethodVariantBase* variant);
 
-   DLLLOCAL void parseRollbackMethod();
+    DLLLOCAL void parseRollbackMethod();
 
-   DLLLOCAL bool isUniquelyPrivate() const {
-      return access > Public;
-   }
+    DLLLOCAL bool isUniquelyPrivate() const {
+        return access > Public;
+    }
 
-   DLLLOCAL ClassAccess getAccess() const {
-      return access;
-   }
+    DLLLOCAL ClassAccess getAccess() const {
+        return access;
+    }
 
-   DLLLOCAL virtual const QoreClass* getClass() const {
-      return qc;
-   }
+    DLLLOCAL virtual const QoreClass* getClass() const {
+        return qc;
+    }
 
-   DLLLOCAL const char* getClassName() const {
-      return qc->getName();
-   }
+    DLLLOCAL const char* getClassName() const {
+        return qc->getName();
+    }
 
-   DLLLOCAL bool isStatic() const {
-      return is_static;
-   }
+    DLLLOCAL bool isStatic() const {
+        return is_static;
+    }
 
-   DLLLOCAL void checkFinal() const;
+    DLLLOCAL void checkFinal() const;
 
-   // virtual copy constructor
-   DLLLOCAL virtual MethodFunctionBase* copy(const QoreClass* n_qc) const = 0;
+    // virtual copy constructor
+    DLLLOCAL virtual MethodFunctionBase* copy(const QoreClass* n_qc) const = 0;
 };
 
 class UserParamListLocalVarHelper {
 protected:
-   UserVariantBase* uvb;
+    UserVariantBase* uvb;
 
 public:
-   DLLLOCAL UserParamListLocalVarHelper(UserVariantBase* n_uvb, const QoreTypeInfo* classTypeInfo = 0) : uvb(n_uvb) {
-      uvb->parseInitPushLocalVars(classTypeInfo);
-   }
+    DLLLOCAL UserParamListLocalVarHelper(UserVariantBase* n_uvb, const QoreTypeInfo* classTypeInfo = 0) : uvb(n_uvb) {
+        uvb->parseInitPushLocalVars(classTypeInfo);
+    }
 
-   DLLLOCAL ~UserParamListLocalVarHelper() {
-      uvb->parseInitPopLocalVars();
-   }
+    DLLLOCAL ~UserParamListLocalVarHelper() {
+        uvb->parseInitPopLocalVars();
+    }
 };
 
 class UserClosureVariant : public UserFunctionVariant {
 protected:
 public:
-   DLLLOCAL UserClosureVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
-   }
+    DLLLOCAL UserClosureVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
+    }
 
-   DLLLOCAL virtual void parseInit(QoreFunction* f);
+    DLLLOCAL virtual void parseInit(QoreFunction* f);
 
-   DLLLOCAL QoreValue evalClosure(CodeEvaluationHelper& ceh, QoreObject* self, ExceptionSink* xsink) const {
-      return eval("<anonymous closure>", &ceh, self, xsink);
-   }
+    DLLLOCAL QoreValue evalClosure(CodeEvaluationHelper& ceh, QoreObject* self, ExceptionSink* xsink) const {
+        return eval("<anonymous closure>", &ceh, self, xsink);
+    }
 };
 
 #define UCLOV(f) (reinterpret_cast<UserClosureVariant*>(f))
@@ -1136,32 +1136,32 @@ public:
 
 class UserClosureFunction : public QoreFunction {
 protected:
-   LVarSet varlist;  // closure local variable environment
-   const QoreTypeInfo* classTypeInfo;
+    LVarSet varlist;  // closure local variable environment
+    const QoreTypeInfo* classTypeInfo;
 
 public:
-   DLLLOCAL UserClosureFunction(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : QoreFunction("<anonymous closure>"), classTypeInfo(0) {
-      addPendingVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags));
-   }
+    DLLLOCAL UserClosureFunction(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : QoreFunction("<anonymous closure>"), classTypeInfo(0) {
+        addPendingVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags));
+    }
 
-   DLLLOCAL QoreValue evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const;
+    DLLLOCAL QoreValue evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject* self, const qore_class_private* class_ctx, ExceptionSink* xsink) const;
 
-   DLLLOCAL void setClassType(const QoreTypeInfo* cti) {
-      classTypeInfo = cti;
-   }
+    DLLLOCAL void setClassType(const QoreTypeInfo* cti) {
+        classTypeInfo = cti;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getClassType() const {
-      return classTypeInfo;
-   }
+    DLLLOCAL const QoreTypeInfo* getClassType() const {
+        return classTypeInfo;
+    }
 
-   DLLLOCAL LVarSet* getVList() {
-      return &varlist;
-   }
+    DLLLOCAL LVarSet* getVList() {
+        return &varlist;
+    }
 
-   // returns true if at least one variable in the set of closure-bound local variables could contain an object or a closure (also through a container)
-   DLLLOCAL bool needsScan() const {
-      return varlist.needsScan();
-   }
+    // returns true if at least one variable in the set of closure-bound local variables could contain an object or a closure (also through a container)
+    DLLLOCAL bool needsScan() const {
+        return varlist.needsScan();
+    }
 };
 
 #endif // _QORE_FUNCTION_H
