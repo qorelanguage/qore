@@ -199,7 +199,7 @@ public:
     DLLLOCAL int parseAddPendingHashDecl(const QoreProgramLocation* loc, const NamedScope& n, TypedHashDecl* hashdecl);
     DLLLOCAL int parseAddPendingHashDecl(const QoreProgramLocation* loc, TypedHashDecl* hashdecl);
 
-    DLLLOCAL void addGlobalVars(gvlist_t& gvlist);
+    DLLLOCAL bool addGlobalVars(qore_root_ns_private& rns);
 
     DLLLOCAL cnemap_t::iterator parseAddConstant(const QoreProgramLocation* loc, const char* name, AbstractQoreNode* value, bool pub);
 

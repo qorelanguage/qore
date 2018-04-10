@@ -522,11 +522,22 @@ void QoreNamespaceList::deleteAll() {
     nsmap.clear();
 }
 
+bool QoreNamespaceList::addGlobalVars(qore_root_ns_private& rns) {
+    bool ok = true;
+    for (auto& i : nsmap) {
+        if (!i.second->priv->addGlobalVars(rns) && ok) {
+            ok = false;
+        }
+    }
+    return ok;
+}
+/*
 void QoreNamespaceList::addGlobalVars(gvlist_t& gvlist) {
     for (auto& i : nsmap) {
         i.second->priv->addGlobalVars(gvlist);
     }
 }
+*/
 
 void QoreNamespaceList::parseAssimilate(QoreNamespaceList& n, qore_ns_private* parent) {
     for (nsmap_t::iterator i = n.nsmap.begin(), e = n.nsmap.end(); i != e;) {
@@ -1904,7 +1915,8 @@ void qore_root_ns_private::parseInit() {
 }
 
 bool qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchiesIntern() {
-    bool retVal = true;
+    bool ok = addGlobalVars(*this);
+
     for (gvlist_t::iterator i = pend_gvlist.begin(), e = pend_gvlist.end(); i != e; ++i) {
         // resolve namespace
         const NamedScope& n = *((*i).name);
@@ -1919,22 +1931,24 @@ bool qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchiesIntern() {
         Var* v = tns->var_list.parseFindVar(n.getIdentifier());
         if (v) {
             parse_error(*loc, "global variable '%s::%s' has been %s this Program object multiple times", tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
-            retVal = false;
+            if (ok) {
+                ok = false;
+            }
             continue;
         }
 
         v = (*i).takeVar();
-        //printd(5, "qore_root_ns_private::parseResolveGlobalVars() resolved '%s::%s' ('%s') %p ns\n", tns->name.c_str(), n.getIdentifier(), n.ostr, v);
+        //printd(5, "qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchiesIntern() resolved '%s::%s' ('%s') %p ns\n", tns->name.c_str(), n.getIdentifier(), n.ostr, v);
         tns->var_list.parseAdd(v);
         varmap.update(v->getName(), tns, v);
     }
     pend_gvlist.clear();
 
-    if (retVal) {
+    if (ok) {
         parseResolveHierarchy();
     }
 
-    return retVal;
+    return ok;
 }
 
 Var* qore_root_ns_private::parseAddResolvedGlobalVarDefIntern(const QoreProgramLocation* loc, const NamedScope& vname, const QoreTypeInfo* typeInfo) {
@@ -1993,9 +2007,6 @@ Var* qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const QoreProgramLo
 }
 
 void qore_root_ns_private::parseAddNamespaceIntern(QoreNamespace* nns) {
-    // take all global variables
-    nns->priv->addGlobalVars(pend_gvlist);
-
     qore_ns_private* ns = qore_ns_private::parseAddNamespace(nns);
     // issue #2735: do not reindex namespaces where parse errors have occurred
     if (!ns || qore_program_private::get(*getProgram())->parseExceptionRaised())
@@ -2109,6 +2120,37 @@ void qore_ns_private::parseRollback(ExceptionSink* xsink) {
     nsl.parseRollback(xsink);
 }
 
+bool qore_ns_private::addGlobalVars(qore_root_ns_private& rns) {
+    bool ok = true;
+    for (gvblist_t::iterator i = pend_gvblist.begin(), e = pend_gvblist.end(); i != e; ++i) {
+        // resolve namespace
+        const NamedScope& n = *((*i).name);
+
+        const QoreProgramLocation* loc = (*i).var->getParseLocation();
+
+        Var* v = var_list.parseFindVar(n.getIdentifier());
+        if (v) {
+            parse_error(*loc, "global variable '%s::%s' has been %s this Program object multiple times", name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
+            if (ok) {
+                ok = false;
+            }
+            continue;
+        }
+
+        v = (*i).takeVar();
+        //printd(5, "qore_root_ns_private::addGlobalVars() resolved '%s::%s' ('%s') %p ns\n", name.c_str(), n.getIdentifier(), n.ostr, v);
+        var_list.parseAdd(v);
+        rns.varmap.update(v->getName(), this, v);
+    }
+    pend_gvblist.clear();
+
+    if (!nsl.addGlobalVars(rns) && ok) {
+        ok = false;
+    }
+
+    return ok;
+}
+/*
 void qore_ns_private::addGlobalVars(gvlist_t& pend_gvlist) {
     // take global variable decls
     for (unsigned i = 0; i < pend_gvblist.size(); ++i) {
@@ -2119,6 +2161,7 @@ void qore_ns_private::addGlobalVars(gvlist_t& pend_gvlist) {
 
     nsl.addGlobalVars(pend_gvlist);
 }
+*/
 
 qore_ns_private* qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
     std::unique_ptr<QoreNamespace> nnsh(nns);
@@ -2428,9 +2471,14 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
     func_list.assimilate(pns->func_list, this);
 
     // assimilate pending global variable declarations
-    //printd(5, "qore_ns_private::parseAssimilate() this: %p assimilating %p (%d -> %d gvars)\n", this, pns, pend_gvblist.size(), pns->pend_gvblist.size());
+    //printd(5, "qore_ns_private::parseAssimilate() this: %p assimilating %p (%d + %d gvars)\n", this, pns, pend_gvblist.size(), pns->pend_gvblist.size());
+    for (auto& i : pns->pend_gvblist) {
+        pend_gvblist.push_back(i);
+    }
+    /*
     assert(pend_gvblist.empty());
     pend_gvblist = pns->pend_gvblist;
+    */
     pns->pend_gvblist.zero();
 
     // assimilate sub namespaces
