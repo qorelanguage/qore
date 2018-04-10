@@ -8372,7 +8372,7 @@ string sql = t.getSqlFromList(list);
          */
         computeStatistics(*hash options) {
             validateOptionsIntern("COMPUTE-STATISTICS-ERROR", getComputeStatisticsOptions(), \options);
-            return computeStatisticsImpl(options);
+            computeStatisticsImpl(options);
         }
 
         #! Reclaim taken but unused space in the DB
@@ -8385,7 +8385,7 @@ string sql = t.getSqlFromList(list);
          */
         reclaimSpace(*hash options) {
             validateOptionsIntern("RECLAIM-SPACE-ERROR", getReclaimSpaceOptions(), \options);
-            return reclaimSpaceImpl(options);
+            reclaimSpaceImpl(options);
         }
 
         private validateOptionsIntern(string err, hash ropt, reference<hash> opt) {

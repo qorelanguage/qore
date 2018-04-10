@@ -50,46 +50,6 @@ class qore_ns_private;
 
 typedef std::list<const qore_ns_private*> nslist_t;
 
-struct GVEntryBase {
-   NamedScope* name;
-   Var* var;
-
-   DLLLOCAL GVEntryBase(const NamedScope& n, Var* v) : name(new NamedScope(n)), var(v) {
-   }
-
-   DLLLOCAL GVEntryBase(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo);
-
-   DLLLOCAL GVEntryBase(const GVEntryBase& old) : name(old.name), var(old.var) {
-   }
-
-   DLLLOCAL void clear();
-
-   DLLLOCAL Var* takeVar() {
-      Var* rv = var;
-      var = 0;
-      return rv;
-   }
-};
-
-template <class T>
-struct GVList : public std::vector<T> {
-   DLLLOCAL ~GVList() {
-      clear();
-   }
-
-   DLLLOCAL void clear() {
-      for (typename GVList<T>::iterator i = std::vector<T>::begin(), e = std::vector<T>::end(); i != e; ++i)
-         (*i).clear();
-      std::vector<T>::clear();
-   }
-
-   DLLLOCAL void zero() {
-      std::vector<T>::clear();
-   }
-};
-
-typedef GVList<GVEntryBase> gvblist_t;
-
 class qore_ns_private {
 private:
     // not implemented
@@ -239,6 +199,8 @@ public:
     DLLLOCAL int parseAddPendingHashDecl(const QoreProgramLocation* loc, const NamedScope& n, TypedHashDecl* hashdecl);
     DLLLOCAL int parseAddPendingHashDecl(const QoreProgramLocation* loc, TypedHashDecl* hashdecl);
 
+    DLLLOCAL void addGlobalVars(gvlist_t& gvlist);
+
     DLLLOCAL cnemap_t::iterator parseAddConstant(const QoreProgramLocation* loc, const char* name, AbstractQoreNode* value, bool pub);
 
     DLLLOCAL void parseAddConstant(const QoreProgramLocation* loc, const NamedScope& name, AbstractQoreNode* value, bool pub);
@@ -350,6 +312,8 @@ public:
     DLLLOCAL void addNamespace(qore_ns_private* nns);
 
     DLLLOCAL void parseInit();
+    DLLLOCAL void parseResolveHierarchy();
+    DLLLOCAL void parseResolveAbstract();
     DLLLOCAL void parseInitConstants();
     DLLLOCAL void parseRollback(ExceptionSink* xsink);
     DLLLOCAL void parseCommit();
@@ -897,26 +861,22 @@ typedef RootMap<TypedHashDecl> thdmap_t;
 
 typedef RootMap<Var> varmap_t;
 
-struct GVEntry : public GVEntryBase {
-    qore_ns_private* ns;
+struct deferred_new_check_t {
+    const qore_class_private* qc;
+    const QoreProgramLocation* loc;
 
-    DLLLOCAL GVEntry(qore_ns_private* n_ns, const NamedScope& n, Var* v) : GVEntryBase(n, v), ns(n_ns) {
-    }
-
-    DLLLOCAL GVEntry(const GVEntry& old) : GVEntryBase(old), ns(old.ns) {
-    }
-
-    DLLLOCAL GVEntry(const GVEntryBase& old, qore_ns_private* n_ns) : GVEntryBase(old), ns(n_ns) {
+    DLLLOCAL deferred_new_check_t(const qore_class_private* qc, const QoreProgramLocation* loc) : qc(qc), loc(loc) {
     }
 };
-
-typedef GVList<GVEntry> gvlist_t;
 
 class qore_root_ns_private : public qore_ns_private {
     friend class qore_ns_private;
     friend class QoreNamespace;
 
 protected:
+    typedef std::vector<deferred_new_check_t> deferred_new_check_vec_t;
+    deferred_new_check_vec_t deferred_new_check_vec;
+
     DLLLOCAL int addPendingVariantIntern(qore_ns_private& ns, const char* name, AbstractQoreFunctionVariant* v) {
         // try to add function variant to given namespace
         bool new_func = false;
@@ -1364,7 +1324,7 @@ protected:
         return v;
     }
 
-    DLLLOCAL bool parseResolveGlobalVarsIntern();
+    DLLLOCAL bool parseResolveGlobalVarsAndClassHierarchiesIntern();
 
     // returns 0 for success, non-zero for error
     DLLLOCAL int parseAddMethodToClassIntern(const QoreProgramLocation* loc, const NamedScope& name, MethodVariantBase* qcmethod, bool static_flag);
@@ -1513,6 +1473,10 @@ public:
         return rv;
     }
 
+    DLLLOCAL void deferParseCheckAbstractNew(const qore_class_private* qc, const QoreProgramLocation* loc) {
+        deferred_new_check_vec.push_back(deferred_new_check_t(qc, loc));
+    }
+
     /*
     DLLLOCAL void deleteClearData(ExceptionSink* xsink) {
     }
@@ -1557,6 +1521,9 @@ public:
 
         clmap.clear();
         thdmap.clear();
+
+        // delete any deferred new object checks for classes with abstract members
+        deferred_new_check_vec.clear();
 
         qore_ns_private::parseRollback(xsink);
     }
@@ -1608,6 +1575,8 @@ public:
     DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink);
 
     DLLLOCAL QoreValueList* runtimeFindCallVariants(const char* name, ExceptionSink* xsink);
+
+    DLLLOCAL void parseInit();
 
     DLLLOCAL static QoreHashNode* getGlobalVars(RootQoreNamespace& rns) {
         return rns.rpriv->getGlobalVars();
@@ -1716,15 +1685,8 @@ public:
         return getRootNS()->rpriv->parseResolveCallReferenceIntern(fr);
     }
 
-    DLLLOCAL static bool parseResolveGlobalVars() {
-        return getRootNS()->rpriv->parseResolveGlobalVarsIntern();
-    }
-
-    DLLLOCAL static void parseInit() {
-        qore_ns_private* p = getRootNS()->priv;
-        p->parseInitGlobalVars();
-        p->parseInitConstants();
-        p->parseInit();
+    DLLLOCAL static bool parseResolveGlobalVarsAndClassHierarchies() {
+        return getRootNS()->rpriv->parseResolveGlobalVarsAndClassHierarchiesIntern();
     }
 
     DLLLOCAL static void parseCommit(RootQoreNamespace& rns) {

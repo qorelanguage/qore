@@ -147,20 +147,34 @@ int QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_priv
 }
 
 void QoreClassList::resolveCopy() {
-    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-        qore_class_private::resolveCopy(*(i->second.cls));
+    for (auto& i : hm) {
+        qore_class_private::resolveCopy(*(i.second.cls));
+    }
 }
 
 void QoreClassList::parseInit() {
-    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-        //printd(5, "QoreClassList::parseInit() this: %p initializing %p '%s'\n", this, i->second, i->first);
-        qore_class_private::parseInit(*(i->second.cls));
+    for (auto& i : hm) {
+        //printd(5, "QoreClassList::parseInit() this: %p initializing %p '%s'\n", this, i.second, i.first);
+        qore_class_private::parseInit(*(i.second.cls));
+    }
+}
+
+void QoreClassList::parseResolveHierarchy() {
+    for (auto& i : hm) {
+        qore_class_private::get(*(i.second.cls))->parseResolveHierarchy();
+    }
+}
+
+void QoreClassList::parseResolveAbstract() {
+    for (auto& i : hm) {
+        qore_class_private::get(*(i.second.cls))->parseResolveAbstract();
     }
 }
 
 void QoreClassList::parseRollback() {
-    for (hm_qc_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-        qore_class_private::parseRollback(*(i->second.cls));
+    for (auto& i : hm) {
+        qore_class_private::parseRollback(*(i.second.cls));
+    }
 }
 
 void QoreClassList::parseCommit() {

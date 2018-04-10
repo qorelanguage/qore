@@ -82,6 +82,10 @@
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
 
+    - fixed a bug where class members could be initialized multiple times in a class with multiple
+      inheritance where the same class is inherited multiple times in the hierarchy
+      (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
+    - fixed bugs handling @ref abstract "abstract" methods in complex hierarchies with multiple inheritance (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
     - fixed bugs handling object scope in @ref background "background" expressions (<a href="https://github.com/qorelanguage/qore/issues/2653">issue 2653</a>)
 
     @section qore_08133 Qore 0.8.13.3

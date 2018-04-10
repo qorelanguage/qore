@@ -10,6 +10,42 @@
 
 %exec-class ClassesTest
 
+class Issue2741_B {
+    int t(int i) {
+        return t1(i);
+    }
+    abstract int t0(int i);
+    abstract int t1(int i);
+}
+
+class Issue2741_N inherits Issue2741_B {
+}
+
+class Issue2741_C1 inherits Issue2741_B {
+    private:internal {
+        int cv = 1;
+    }
+    int t0(int i) {
+        return i;
+    }
+    int t1(int i) {
+        return i + cv;
+    }
+    abstract int t2(int i);
+}
+
+class Issue2741_C2 inherits Issue2741_C1 {
+    int ta() {
+        return t1(2);
+    }
+}
+
+class Issue2741_C3 inherits Issue2741_N, Issue2741_C1, Issue2741_C2 {
+    int t2(int i) {
+        return i + 2;
+    }
+}
+
 class Test1 inherits Socket {
     private {
         int a;
@@ -209,8 +245,17 @@ class Issue2380Child inherits Issue2380 {
     }
 }
 
+namespace Issue2744_A {
+    namespace Issue2744_B {
+        our int v;
+    }
+}
+
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
+        v = 1;
+        addTestCase("issue 2744", \issue2744());
+        addTestCase("issue 2741", \issue2741());
         addTestCase("Class library test", \classLibraryTest());
         addTestCase("Deprecated method test", \deprecatedMethodTest());
         addTestCase("Deletion test", \deletionTest());
@@ -223,6 +268,21 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue2744() {
+        assertEq(1, v);
+        assertEq(1, Issue2744_B::v);
+        assertEq(1, Issue2744_A::Issue2744_B::v);
+    }
+
+    issue2741() {
+        Issue2741_C3 c();
+        #assertEq(1, c.t0(1));
+        #assertEq(2, c.t1(1));
+        assertEq(3, c.t2(1));
+        assertEq(3, c.ta());
+        assertEq(2, c.t(1));
     }
 
     issue2380() {
@@ -312,7 +372,7 @@ public class ClassesTest inherits QUnit::Test {
         catch (hash nex) {
             ex = nex;
         }
-        assertEq(120, ex.callstack[0].line);
+        assertEq(156, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);

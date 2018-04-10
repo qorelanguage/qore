@@ -520,77 +520,77 @@ void StatementBlock::parseInitClosure(UserVariantBase* uvb, UserClosureFunction*
 }
 
 void TopLevelStatementBlock::parseInit(int64 po) {
-   QORE_TRACE("TopLevelStatementBlock::parseInit");
+    QORE_TRACE("TopLevelStatementBlock::parseInit");
 
-   //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d\n", &rns, first);
+    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d\n", &rns, first);
 
-   // resolve global variables before initializing the top-level statements
-   if (!qore_root_ns_private::parseResolveGlobalVars()) {
-      return;
-   }
+    // resolve global variables before initializing the top-level statements
+    if (!qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchies()) {
+        return;
+    }
 
-   if (!first && lvars) {
-      // push already-registered local variables on the stack
-      for (unsigned i = 0; i < lvars->size(); ++i)
-         push_top_level_local_var(lvars->lv[i], loc);
-   }
+    if (!first && lvars) {
+        // push already-registered local variables on the stack
+        for (unsigned i = 0; i < lvars->size(); ++i)
+            push_top_level_local_var(lvars->lv[i], loc);
+    }
 
-   int pflag = PF_TOP_LEVEL;
-   if (!first)
-      pflag |= PF_NO_TOP_LEVEL_LVARS;
-   int lvids = parseInitIntern(0, pflag, hwm);
+    int pflag = PF_TOP_LEVEL;
+    if (!first)
+        pflag |= PF_NO_TOP_LEVEL_LVARS;
+    int lvids = parseInitIntern(0, pflag, hwm);
 
-   //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d, lvids=%d\n", &rns, first, lvids);
+    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d, lvids=%d\n", &rns, first, lvids);
 
-   if (!first && lvids) {
-      // discard variables immediately
-      for (int i = 0; i < lvids; ++i)
-         pop_local_var();
-   }
+    if (!first && lvids) {
+        // discard variables immediately
+        for (int i = 0; i < lvids; ++i)
+            pop_local_var();
+    }
 
-   // now initialize root namespace and functions before local variables are popped off the stack
-   qore_root_ns_private::parseInit();
+    // now initialize root namespace and functions before local variables are popped off the stack
+    qore_root_ns_private::get(*getRootNS())->parseInit();
 
-   if (first) {
-      // if parsing a module, then initialize the init function
-      QoreModuleDefContext* qmd = get_module_def_context();
-      if (qmd)
-         qmd->parseInit();
+    if (first) {
+        // if parsing a module, then initialize the init function
+        QoreModuleDefContext* qmd = get_module_def_context();
+        if (qmd)
+            qmd->parseInit();
 
-      // this call will pop all local vars off the stack
-      setupLVList(lvids);
-      first = false;
-   }
-   else if (lvars) {
-      for (unsigned i = 0; i < lvars->size(); ++i)
-         pop_local_var();
-   }
+        // this call will pop all local vars off the stack
+        setupLVList(lvids);
+        first = false;
+    }
+    else if (lvars) {
+        for (unsigned i = 0; i < lvars->size(); ++i)
+            pop_local_var();
+    }
 
-   assert(!getVStack());
+    assert(!getVStack());
 
-   //printd(5, "TopLevelStatementBlock::parseInitTopLevel(this=%p): done (lvars=%p, %d vars, vstack = %p)\n", this, lvars, lvids, getVStack());
-   return;
+    //printd(5, "TopLevelStatementBlock::parseInitTopLevel(this=%p): done (lvars=%p, %d vars, vstack = %p)\n", this, lvars, lvids, getVStack());
+    return;
 }
 
 void TopLevelStatementBlock::parseCommit(QoreProgram* pgm) {
-   //printd(5, "TopLevelStatementBlock::parseCommit(this=%p)\n", this);
-   statement_list_t::iterator start = hwm;
-   if (start != statement_list.end()) {
-      ++start;
-   } else {
-      start = statement_list.begin();
-   }
+    //printd(5, "TopLevelStatementBlock::parseCommit(this=%p)\n", this);
+    statement_list_t::iterator start = hwm;
+    if (start != statement_list.end()) {
+        ++start;
+    } else {
+        start = statement_list.begin();
+    }
 
-   while (start != statement_list.end()) {
-      //printd(5, "TopLevelStatementBlock::parseCommit (this=%p): (hwm=%p)\n", this, *start);
-      // register and add statements
-      (*start)->parseCommit(pgm);
-      start++;
-   }
-   hwm = statement_list.last();
+    while (start != statement_list.end()) {
+        //printd(5, "TopLevelStatementBlock::parseCommit (this=%p): (hwm=%p)\n", this, *start);
+        // register and add statements
+        (*start)->parseCommit(pgm);
+        start++;
+    }
+    hwm = statement_list.last();
 }
 
 int TopLevelStatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
-   // do not instantiate local vars here; they are instantiated by the QoreProgram object for each thread
-   return execIntern(return_value, xsink);
+    // do not instantiate local vars here; they are instantiated by the QoreProgram object for each thread
+    return execIntern(return_value, xsink);
 }

@@ -48,12 +48,12 @@ AbstractQoreClassUserData::~AbstractQoreClassUserData() {
 }
 
 QoreValue qore_method_private::evalNormalVariant(QoreObject* self, const QoreExternalMethodVariant* ev, const QoreListNode* args, ExceptionSink* xsink) const {
-   const AbstractQoreFunctionVariant* variant = reinterpret_cast<const AbstractQoreFunctionVariant*>(ev);
+    const AbstractQoreFunctionVariant* variant = reinterpret_cast<const AbstractQoreFunctionVariant*>(ev);
 
-   CodeEvaluationHelper ceh(xsink, getFunction(), variant, getName(), args, self, parent_class->priv);
-   if (*xsink) return QoreValue();
+    CodeEvaluationHelper ceh(xsink, getFunction(), variant, getName(), args, self, parent_class->priv);
+    if (*xsink) return QoreValue();
 
-   return METHV_const(variant)->evalMethod(self, ceh, xsink);
+    return METHV_const(variant)->evalMethod(self, ceh, xsink);
 }
 
 void qore_method_private::parseInit() {
@@ -284,8 +284,9 @@ void AbstractMethod::override(MethodVariantBase* v) {
 void AbstractMethod::checkAbstract(const char* cname, const char* mname, vmap_t& vlist, QoreStringNode*& desc) {
     //printd(5, "AbstractMethod::checkAbstract() checking %s::%s() vlist: %d\n", cname, mname, !vlist.empty());
     if (!vlist.empty()) {
-        if (!desc)
+        if (!desc) {
             desc = new QoreStringNodeMaker("class '%s' cannot be instantiated because it has the following unimplemented abstract variants:", cname);
+        }
         for (auto& vi : vlist) {
             MethodVariantBase* v = vi.second;
             desc->sprintf("\n * abstract %s %s::%s(%s);", QoreTypeInfo::getName(v->getReturnTypeInfo()), cname, mname, v->getSignature()->getSignatureText());
@@ -295,22 +296,33 @@ void AbstractMethod::checkAbstract(const char* cname, const char* mname, vmap_t&
 
 // try to find match non-abstract variants in base classes (allows concrete variants to be inherited from another parent class)
 void AbstractMethodMap::parseInit(qore_class_private& qc, BCList* scl) {
-    if (!scl)
-        return;
+    if (qc.name[0] == 'C' || qc.name[0] == 'B') {
+        printd(5, "AbstractMethodMap::parseInit() BEFORE this: %p qc: %p '%s' ahm size: %d\n", this, &qc, qc.name.c_str(), size());
+    }
+
     //printd(5, "AbstractMethodMap::parseInit() this: %p cname: %s scl: %p ae: %d\n", this, qc.name.c_str(), scl, empty());
-    for (auto& i : *this) {
-        for (vmap_t::iterator vi = i.second->vlist.begin(), ve = i.second->vlist.end(); vi != ve;) {
+    for (amap_t::iterator i = begin(), e = end(); i != e;) {
+        if (qc.name[0] == 'C' || qc.name[0] == 'B') {
+            printd(5, "AbstractMethodMap::parseInit() BEFORE this: %p '%s' size: %d\n", this, i->first.c_str(), i->second->vlist.size());
+        }
+        for (vmap_t::iterator vi = i->second->vlist.begin(), ve = i->second->vlist.end(); vi != ve;) {
             // if there is a matching non-abstract variant in any parent class, then move the variant from vlist to pending_save
-            MethodVariantBase* v = scl->matchNonAbstractVariant(i.first, vi->second);
+            if (qc.name[0] == 'C' || qc.name[0] == 'B') {
+                printd(5, "AbstractMethodMap::parseInit() this: %p qc: '%s' v: '%s'\n", this, qc.name.c_str(), i->first.c_str());
+            }
+            MethodVariantBase* v = scl->matchNonAbstractVariant(i->first, vi->second);
+            if (qc.name[0] == 'C' || qc.name[0] == 'B') {
+                printd(5, "AbstractMethodMap::parseInit() this: %p qc: '%s' v: '%s' = %p\n", this, qc.name.c_str(), i->first.c_str(), v);
+            }
             if (v) {
                 const char* sig = vi->second->getAbstractSignature();
-                i.second->pending_save.insert(vmap_t::value_type(sig, vi->second));
+                i->second->pending_save.insert(vmap_t::value_type(sig, vi->second));
                 vmap_t::iterator ti = vi++;
-                i.second->vlist.erase(ti);
+                i->second->vlist.erase(ti);
                 // replace abstract variant
-                QoreMethod* m = qc.parseFindLocalMethod(i.first);
+                QoreMethod* m = qc.parseFindLocalMethod(i->first);
                 if (!m) {
-                    m = new QoreMethod(qc.cls, new NormalUserMethod(qc.cls, i.first.c_str()), false);
+                    m = new QoreMethod(qc.cls, new NormalUserMethod(qc.cls, i->first.c_str()), false);
                     qc.hm[m->getName()] = m;
                 }
                 m->getFunction()->replaceAbstractVariant(v);
@@ -318,6 +330,25 @@ void AbstractMethodMap::parseInit(qore_class_private& qc, BCList* scl) {
             }
             ++vi;
         }
+        if (qc.name[0] == 'C' || qc.name[0] == 'B') {
+            printd(5, "AbstractMethodMap::parseInit() AFTER this: %p '%s' size: %d\n", this, i->first.c_str(), i->second->vlist.size());
+        }
+        // issue #2741: remove the abstract method if there are no more abstract variants
+        if (i->second->vlist.empty()) {
+            if (qc.name[0] == 'C' || qc.name[0] == 'B')
+                printd(5, "AbstractMethodMap::parseInit() erasing '%s::%s'\n", qc.name.c_str(), i->first.c_str());
+            amap_t::iterator i0 = i++;
+            erase(i0);
+        }
+        else {
+            if (qc.name[0] == 'C' || qc.name[0] == 'B')
+                printd(5, "AbstractMethodMap::parseInit() leaving '%s::%s'\n", qc.name.c_str(), i->first.c_str());
+            ++i;
+        }
+    }
+
+    if (qc.name[0] == 'C' || qc.name[0] == 'B') {
+        printd(5, "AbstractMethodMap::parseInit() AFTER this: %p qc: %p '%s' ahm size: %d\n", this, &qc, qc.name.c_str(), size());
     }
 }
 
@@ -371,32 +402,32 @@ void AbstractMethodMap::overrideAbstractVariant(const char* name, MethodVariantB
 }
 
 DLLLOCAL QoreStringNode* AbstractMethodMap::checkAbstract(const char* name) const {
-   if (empty())
-      return nullptr;
+    if (empty())
+        return nullptr;
 
-   QoreStringNode* desc = nullptr;
-   for (auto& i : *this) {
-      AbstractMethod::checkAbstract(name, i.first.c_str(), i.second->vlist, desc);
-   }
+    QoreStringNode* desc = nullptr;
+    for (auto& i : *this) {
+        AbstractMethod::checkAbstract(name, i.first.c_str(), i.second->vlist, desc);
+    }
 
-   //printd(5, "AbstractMethodMap::parseCheckAbstract() class: %s desc: %p (%s)\n", name, desc, desc ? desc->getBuffer() : "n/a");
-   return desc;
+    //printd(5, "AbstractMethodMap::parseCheckAbstract() class: %s desc: %p (%s)\n", name, desc, desc ? desc->getBuffer() : "n/a");
+    return desc;
 }
 
 int AbstractMethodMap::runtimeCheckInstantiateClass(const char* name, ExceptionSink* xsink) const {
-   QoreStringNode* desc = checkAbstract(name);
-   if (desc) {
-      xsink->raiseException("ABSTRACT-CLASS-ERROR", desc);
-      return -1;
-   }
-   return 0;
+    QoreStringNode* desc = checkAbstract(name);
+    if (desc) {
+        xsink->raiseException("ABSTRACT-CLASS-ERROR", desc);
+        return -1;
+    }
+    return 0;
 }
 
 // we check if there are any abstract method variants still in the committed lists
 void AbstractMethodMap::parseCheckAbstractNew(const QoreProgramLocation* loc, const char* name) const {
-   QoreStringNode* desc = checkAbstract(name);
-   if (desc)
-      parseException(*loc, "ABSTRACT-CLASS-ERROR", desc);
+    QoreStringNode* desc = checkAbstract(name);
+    if (desc)
+        parseException(*loc, "ABSTRACT-CLASS-ERROR", desc);
 }
 
 // FIXME: check private method variant access at runtime
@@ -433,7 +464,6 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
      classID(classIDSeq.next()),
      methodID(classID),
      sys(false),
-     hierarchy_initialized(false),
      initialized(false),
      parse_init_called(false),
      parse_init_partial_called(false),
@@ -450,6 +480,8 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
      inject(false),
      gate_access(false),
      committed(false),
+     parse_resolve_hierarchy(false),
+     parse_resolve_abstract(false),
      domain(dom),
      num_methods(0),
      num_user_methods(0),
@@ -472,7 +504,6 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreProgra
      classID(old.classID),
      methodID(old.methodID),
      sys(old.sys),
-     hierarchy_initialized(true),
      initialized(true),
      parse_init_called(false),
      parse_init_partial_called(false),
@@ -488,6 +519,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreProgra
      inject(inject),
      gate_access(old.gate_access),
      committed(true),
+     parse_resolve_hierarchy(true),
+     parse_resolve_abstract(true),
      domain(old.domain),
      num_methods(old.num_methods),
      num_user_methods(old.num_user_methods),
@@ -620,30 +653,22 @@ const QoreMethod* qore_class_private::doParseMethodAccess(const QoreMethod* m, c
 }
 
 void qore_class_private::initialize() {
-   //printd(5, "qore_class_private::initialize() this: %p '%s' initialized: %d scl: %p\n", this, name.c_str(), initialized, scl);
-   if (initialized)
-      return;
+    //printd(5, "qore_class_private::initialize() this: %p '%s' initialized: %d scl: %p\n", this, name.c_str(), initialized, scl);
+    if (initialized)
+        return;
 
-   qcp_set_t qcp_set = {this};
-   // issue #2657: initialize class hierarchy first before initializing code and members
-   if (initializeHierarchy(qcp_set))
-      return;
-
-   initializeIntern();
+    initializeIntern();
 }
 
 // issue #2657: initialize class hierarchy first before initializing code and members
 int qore_class_private::initializeHierarchy(qcp_set_t& qcp_set) {
-   if (!hierarchy_initialized) {
-      hierarchy_initialized = true;
-      if (scl) {
-         if (scl->initializeHierarchy(cls, qcp_set)) {
+    if (scl) {
+        if (scl->initializeHierarchy(cls, qcp_set)) {
             initialized = true;
             return -1;
-         }
-      }
-   }
-   return 0;
+        }
+    }
+    return 0;
 }
 
 // process signature entries for base classes
@@ -887,46 +912,55 @@ void qore_class_private::generateBuiltinSignature(const char* nspath) {
 
 // returns a non-static method if it exists in the local class and has been committed to the class
 QoreMethod* qore_class_private::findLocalCommittedMethod(const char* nme) {
-   QoreMethod* m = parseFindLocalMethod(nme);
-   return m && !m->priv->func->committedEmpty() ? m : 0;
+    QoreMethod* m = parseFindLocalMethod(nme);
+    return m && !m->priv->func->committedEmpty() ? m : nullptr;
 }
 
 // returns a non-static method if it exists in the local class and has been committed to the class
 const QoreMethod* qore_class_private::findLocalCommittedMethod(const char* nme) const {
-   const QoreMethod* m = parseFindLocalMethod(nme);
-   return m && !m->priv->func->committedEmpty() ? m : 0;
+    const QoreMethod* m = parseFindLocalMethod(nme);
+    return m && !m->priv->func->committedEmpty() ? m : nullptr;
 }
 
 // returns a static method if it exists in the local class and has been committed to the class
 QoreMethod* qore_class_private::findLocalCommittedStaticMethod(const char* nme) {
-   QoreMethod* m = parseFindLocalStaticMethod(nme);
-   return m && !m->priv->func->committedEmpty() ? m : 0;
+    QoreMethod* m = parseFindLocalStaticMethod(nme);
+    return m && !m->priv->func->committedEmpty() ? m : nullptr;
 }
 
 // returns a static method if it exists in the local class and has been committed to the class
 const QoreMethod* qore_class_private::findLocalCommittedStaticMethod(const char* nme) const {
-   const QoreMethod* m = parseFindLocalStaticMethod(nme);
-   return m && !m->priv->func->committedEmpty() ? m : 0;
+    const QoreMethod* m = parseFindLocalStaticMethod(nme);
+    return m && !m->priv->func->committedEmpty() ? m : nullptr;
 }
 
 int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const {
-   assert(xsink);
-   if (members.empty() && !scl)
-      return 0;
+    assert(xsink);
+    if (members.empty() && !scl)
+        return 0;
 
 #ifdef QORE_MANAGE_STACK
-   if (check_stack(xsink))
-      return -1;
+    if (check_stack(xsink))
+        return -1;
 #endif
 
-   // make sure the object context is set before evaluating members
-   CodeContextHelperBase cch("constructor", &o, this, xsink, false);
-   SelfInstantiatorHelper sih(&selfid, &o);
+    // make sure the object context is set before evaluating members
+    CodeContextHelperBase cch("constructor", &o, this, xsink, false);
+    SelfInstantiatorHelper sih(&selfid, &o);
 
-   return runtimeInitMembers(o, need_scan, false, xsink);
+    return runtimeInitMembers(o, need_scan, false, xsink);
 }
 
 int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool internal_only, ExceptionSink* xsink) const {
+    if (scl && scl->sml.runtimeInitInternalMembers(o, need_scan, xsink))
+        return -1;
+
+    return runtimeInitLocalMembers(o, need_scan, internal_only, xsink);
+}
+
+int qore_class_private::runtimeInitLocalMembers(QoreObject& o, bool& need_scan, bool internal_only, ExceptionSink* xsink) const {
+    //printd(5, "qore_class_private::runtimeInitLocalMembers() this: %p '%s' o: %p size: %d\n", this, name.c_str(), &o, (int)members.size());
+
     if (!members.empty()) {
         for (QoreMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
             if (!i->second || (i->second && internal_only && i->second->access != Internal))
@@ -963,9 +997,6 @@ int qore_class_private::runtimeInitMembers(QoreObject& o, bool& need_scan, bool 
         }
     }
 
-    if (scl)
-        scl->runtimeInitInternalMembers(o, need_scan, xsink);
-
     return 0;
 }
 
@@ -991,140 +1022,140 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bc
 
 QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVariant* variant, const QoreValueList* args, ExceptionSink* xsink) const {
 #ifdef DEBUG
-   // instantiation checks have to be made at parse time
-   for (auto& i : ahm) {
-      printd(0, "qore_class_private::execConstructor() %s::constructor() abstract error '%s':\n", name.c_str(), i.first.c_str());
-      vmap_t& v = i.second->vlist;
-      for (auto& vi : v) {
-         printd(0, " + vlist: %s\n", vi.first);
-      }
-      v = i.second->pending_save;
-      for (auto& vi : v) {
-         printd(0, " + pending_save: %s\n", vi.first);
-      }
-   }
-   assert(ahm.empty());
+    // instantiation checks have to be made at parse time
+    for (auto& i : ahm) {
+        printd(0, "qore_class_private::execConstructor() %s::constructor() abstract error '%s':\n", name.c_str(), i.first.c_str());
+        vmap_t& v = i.second->vlist;
+        for (auto& vi : v) {
+            printd(0, " + vlist: %s\n", vi.first);
+        }
+        v = i.second->pending_save;
+        for (auto& vi : v) {
+            printd(0, " + pending_save: %s\n", vi.first);
+        }
+    }
+    assert(ahm.empty());
 #endif
 
-   // create new object
-   QoreObject* self = new QoreObject(cls, getProgram());
+    // create new object
+    QoreObject* self = new QoreObject(cls, getProgram());
 
-   ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : nullptr, xsink);
+    ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : nullptr, xsink);
 
-   printd(5, "qore_class_private::execConstructor() class: %p %s::constructor() o: %p variant: %p\n", cls, name.c_str(), self, variant);
+    printd(5, "qore_class_private::execConstructor() class: %p %s::constructor() o: %p variant: %p\n", cls, name.c_str(), self, variant);
 
-   // if we made at least one assignment, then scan the object for recursive references after all assignments
-   bool need_scan = false;
+    // if we made at least one assignment, then scan the object for recursive references after all assignments
+    bool need_scan = false;
 
-   // instantiate members first
-   initMembers(*self, need_scan, xsink);
+    // instantiate members first
+    initMembers(*self, need_scan, xsink);
 
-   // scan object for recursive references after all member assignments
-   if (need_scan) {
-      LValueHelper lvh(*self, xsink);
-   }
+    // scan object for recursive references after all member assignments
+    if (need_scan) {
+        LValueHelper lvh(*self, xsink);
+    }
 
-   if (!*xsink) {
-      // it's possible for constructor = 0 and variant != 0, when a class is instantiated to initialize a constant
-      // and the matched variant is pending
-      if (!constructor && !variant) {
-         if (scl) { // execute superconstructors if any
-            CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, this);
+    if (!*xsink) {
+        // it's possible for constructor = 0 and variant != 0, when a class is instantiated to initialize a constant
+        // and the matched variant is pending
+        if (!constructor && !variant) {
+            if (scl) { // execute superconstructors if any
+                CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, this);
 
-            scl->execConstructors(self, *bceal, xsink);
-         }
-      }
-      else {
-         if (!constructor) {
-            hm_method_t::const_iterator i = hm.find("constructor");
-            assert(i != hm.end());
-            i->second->priv->evalConstructor(variant, self, args, *bceal, xsink);
-         }
-         else
-            constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
-         printd(5, "qore_class_private::execConstructor() class: %p %s done\n", cls, name.c_str());
-      }
-   }
+                scl->execConstructors(self, *bceal, xsink);
+            }
+        }
+        else {
+            if (!constructor) {
+                hm_method_t::const_iterator i = hm.find("constructor");
+                assert(i != hm.end());
+                i->second->priv->evalConstructor(variant, self, args, *bceal, xsink);
+            }
+            else
+                constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
+            printd(5, "qore_class_private::execConstructor() class: %p %s done\n", cls, name.c_str());
+        }
+    }
 
-   if (*xsink) {
-      // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
-      // which will clear out all the private data by running their dereference methods which must be OK
-      self->obliterate(xsink);
-      printd(5, "qore_class_private::execConstructor() this: %p %s::constructor() o: %p, exception in constructor, obliterating QoreObject and returning 0\n", this, name.c_str(), self);
-      return 0;
-   }
+    if (*xsink) {
+        // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
+        // which will clear out all the private data by running their dereference methods which must be OK
+        self->obliterate(xsink);
+        printd(5, "qore_class_private::execConstructor() this: %p %s::constructor() o: %p, exception in constructor, obliterating QoreObject and returning 0\n", this, name.c_str(), self);
+        return nullptr;
+    }
 
-   printd(5, "qore_class_private::execConstructor() this: %p %s::constructor() returning o: %p\n", this, name.c_str(), self);
-   return self;
+    printd(5, "qore_class_private::execConstructor() this: %p %s::constructor() returning o: %p\n", this, name.c_str(), self);
+    return self;
 }
 
 QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
 #ifdef DEBUG
-   // instantiation checks have to be made at parse time
-   for (auto& i : ahm) {
-      printd(0, "qore_class_private::execConstructor() %s::constructor() abstract error '%s':\n", name.c_str(), i.first.c_str());
-      vmap_t& v = i.second->vlist;
-      for (auto& vi : v) {
-         printd(0, " + vlist: %s\n", vi.first);
-      }
-      v = i.second->pending_save;
-      for (auto& vi : v) {
-        printd(0, " + pending_save: %s\n", vi.first);
-      }
-   }
-   assert(ahm.empty());
+    // instantiation checks have to be made at parse time
+    for (auto& i : ahm) {
+        printd(0, "qore_class_private::execConstructor() %s::constructor() abstract error '%s':\n", name.c_str(), i.first.c_str());
+        vmap_t& v = i.second->vlist;
+        for (auto& vi : v) {
+            printd(0, " + vlist: %s\n", vi.first);
+        }
+        v = i.second->pending_save;
+        for (auto& vi : v) {
+            printd(0, " + pending_save: %s\n", vi.first);
+        }
+    }
+    assert(ahm.empty());
 #endif
 
-   // create new object
-   QoreObject* self = new QoreObject(cls, getProgram());
+    // create new object
+    QoreObject* self = new QoreObject(cls, getProgram());
 
-   ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : 0, xsink);
+    ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : nullptr, xsink);
 
-   printd(5, "qore_class_private::execConstructor() class: %p %s::constructor() o: %p variant: %p\n", cls, name.c_str(), self, variant);
+    printd(5, "qore_class_private::execConstructor() class: %p %s::constructor() o: %p variant: %p\n", cls, name.c_str(), self, variant);
 
-   // if we made at least one assignment, then scan the object for recursive references after all assignments
-   bool need_scan = false;
+    // if we made at least one assignment, then scan the object for recursive references after all assignments
+    bool need_scan = false;
 
-   // instantiate members first
-   initMembers(*self, need_scan, xsink);
+    // instantiate members first
+    initMembers(*self, need_scan, xsink);
 
-   // scan object for recursive references after all member assignments
-   if (need_scan) {
-      LValueHelper lvh(*self, xsink);
-   }
+    // scan object for recursive references after all member assignments
+    if (need_scan) {
+        LValueHelper lvh(*self, xsink);
+    }
 
-   if (!*xsink) {
-      // it's possible for constructor = 0 and variant != 0, when a class is instantiated to initialize a constant
-      // and the matched variant is pending
-      if (!constructor && !variant) {
-         if (scl) { // execute superconstructors if any
-            CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, this);
+    if (!*xsink) {
+        // it's possible for constructor = 0 and variant != 0, when a class is instantiated to initialize a constant
+        // and the matched variant is pending
+        if (!constructor && !variant) {
+            if (scl) { // execute superconstructors if any
+                CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, this);
 
-            scl->execConstructors(self, *bceal, xsink);
-         }
-      }
-      else {
-         if (!constructor) {
-            hm_method_t::const_iterator i = hm.find("constructor");
-            assert(i != hm.end());
-            i->second->priv->evalConstructor(variant, self, args, *bceal, xsink);
-         }
-         else
-            constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
-         printd(5, "qore_class_private::execConstructor() class: %p %s done\n", cls, name.c_str());
-      }
-   }
+                scl->execConstructors(self, *bceal, xsink);
+            }
+        }
+        else {
+            if (!constructor) {
+                hm_method_t::const_iterator i = hm.find("constructor");
+                assert(i != hm.end());
+                i->second->priv->evalConstructor(variant, self, args, *bceal, xsink);
+            }
+            else
+                constructor->priv->evalConstructor(variant, self, args, *bceal, xsink);
+            printd(5, "qore_class_private::execConstructor() class: %p %s done\n", cls, name.c_str());
+        }
+    }
 
-   if (*xsink) {
-      // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
-      // which will clear out all the private data by running their dereference methods which must be OK
-      self->obliterate(xsink);
-      printd(5, "qore_class_private::execConstructor() this: %p %s::constructor() o: %p, exception in constructor, obliterating QoreObject and returning 0\n", this, name.c_str(), self);
-      return 0;
-   }
+    if (*xsink) {
+        // instead of executing the destructors for the superclasses that were already executed we call QoreObject::obliterate()
+        // which will clear out all the private data by running their dereference methods which must be OK
+        self->obliterate(xsink);
+        printd(5, "qore_class_private::execConstructor() this: %p %s::constructor() o: %p, exception in constructor, obliterating QoreObject and returning 0\n", this, name.c_str(), self);
+        return 0;
+    }
 
-   printd(5, "qore_class_private::execConstructor() this: %p %s::constructor() returning o: %p\n", this, name.c_str(), self);
-   return self;
+    printd(5, "qore_class_private::execConstructor() this: %p %s::constructor() returning o: %p\n", this, name.c_str(), self);
+    return self;
 }
 
 void qore_class_private::parseCommit() {
@@ -1435,61 +1466,61 @@ int BCEAList::add(qore_classid_t classid, const QoreListNode* arg, const Abstrac
 }
 
 void BCEAList::deref(ExceptionSink* xsink) {
-   bceamap_t::iterator i;
-   while ((i = begin()) != end()) {
-      BCEANode* n = i->second;
-      erase(i);
+    bceamap_t::iterator i;
+    while ((i = begin()) != end()) {
+        BCEANode* n = i->second;
+        erase(i);
 
-      if (n->args)
-         n->args->deref(xsink);
-      delete n;
-   }
-   delete this;
+        if (n->args)
+            n->args->deref(xsink);
+        delete n;
+    }
+    delete this;
 }
 
 // resolves classes, parses arguments, and attempts to find constructor variant
 void BCANode::parseInit(BCList* bcl, const char* classname) {
-   QoreClass* sclass = nullptr;
-   if (ns) {
-      sclass = qore_root_ns_private::parseFindScopedClass(loc, *ns);
-      printd(5, "BCANode::parseInit() this: %p resolved named scoped %s -> %p\n", this, ns->ostr, sclass);
-      delete ns;
-      ns = 0;
-   }
-   else {
-      sclass = qore_root_ns_private::parseFindClass(loc, name);
-      printd(5, "BCANode::parseInit() this: %p resolved %s -> %p\n", this, name, sclass);
-      free(name);
-      name = 0;
-   }
+    QoreClass* sclass = nullptr;
+    if (ns) {
+        sclass = qore_root_ns_private::parseFindScopedClass(loc, *ns);
+        printd(5, "BCANode::parseInit() this: %p resolved named scoped %s -> %p\n", this, ns->ostr, sclass);
+        delete ns;
+        ns = nullptr;
+    }
+    else {
+        sclass = qore_root_ns_private::parseFindClass(loc, name);
+        printd(5, "BCANode::parseInit() this: %p resolved %s -> %p\n", this, name, sclass);
+        free(name);
+        name = nullptr;
+    }
 
-   if (sclass) {
-      if (!bcl->match(sclass))
-         parse_error(*loc, "%s in base constructor argument list is not a base class of %s", sclass->getName(), classname);
-      else {
-         classid = sclass->getID();
+    if (sclass) {
+        if (!bcl->match(sclass))
+            parse_error(*loc, "%s in base constructor argument list is not a base class of %s", sclass->getName(), classname);
+        else {
+            classid = sclass->getID();
 
-         // find constructor variant
-         const QoreMethod* m = sclass->getConstructor();
-         int lvids = 0;
-         if (m) {
-            const QoreTypeInfo* argTypeInfo = nullptr;
-            lvids = parseArgsVariant(loc, qore_class_private::getSelfId(*sclass), 0, m->getFunction(), nullptr, argTypeInfo);
-         }
-         else {
-            if (parse_args) {
-               type_vec_t argTypeInfo;
-               lvids += parse_args->initArgs(qore_class_private::getSelfId(*sclass), 0, argTypeInfo, args);
-               parse_args = nullptr;
+            // find constructor variant
+            const QoreMethod* m = sclass->getConstructor();
+            int lvids = 0;
+            if (m) {
+                const QoreTypeInfo* argTypeInfo = nullptr;
+                lvids = parseArgsVariant(loc, qore_class_private::getSelfId(*sclass), 0, m->getFunction(), nullptr, argTypeInfo);
             }
-         }
-         if (lvids) {
-            parse_error(*loc, "illegal local variable declaration in base class constructor argument");
-            while (lvids--)
-               pop_local_var();
-         }
-      }
-   }
+            else {
+                if (parse_args) {
+                    type_vec_t argTypeInfo;
+                    lvids += parse_args->initArgs(qore_class_private::getSelfId(*sclass), 0, argTypeInfo, args);
+                    parse_args = nullptr;
+                }
+            }
+            if (lvids) {
+                parse_error(*loc, "illegal local variable declaration in base class constructor argument");
+                while (lvids--)
+                pop_local_var();
+            }
+        }
+    }
 }
 
 int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
@@ -1514,7 +1545,7 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
             cls->priv->scl->valid = false;
             sclass = nullptr;
         }
-        //printd(5, "BCNode::parseInit() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
+        //printd(5, "BCNode::initializeHierarchy() cls: %p '%s' inherits %p '%s' final: %d\n", cls, cls->getName(), sclass, sclass ? sclass->getName() : "n/a", sclass ? sclass->priv->final : 0);
     }
     int rc;
     // recursively add base classes to special method list
@@ -1524,7 +1555,7 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
             if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*sclass->priv)) {
                 parse_error(*sclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", sclass->getName());
                 if (sclass->priv->scl)
-                sclass->priv->scl->valid = false;
+                    sclass->priv->scl->valid = false;
                 return -1;
             }
             return 0;
@@ -1558,11 +1589,6 @@ int BCNode::initialize(QoreClass* cls, bool& has_delete_blocker) {
     return rc;
 }
 
-int BCNode::runtimeInitInternalMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const {
-    assert(sclass);
-    return sclass->priv->runtimeInitMembers(o, need_scan, true, xsink);
-}
-
 bool BCNode::isBaseClass(QoreClass* qc, bool toplevel) const {
     assert(sclass);
 
@@ -1591,27 +1617,27 @@ const QoreMethod* BCNode::runtimeFindCommittedMethod(const char* name, ClassAcce
 }
 
 const QoreMethod* BCNode::runtimeFindCommittedStaticMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const {
-   assert(sclass);
+    assert(sclass);
 
-   if (access == Internal && !allow_internal)
-      return 0;
+    if (access == Internal && !allow_internal)
+        return nullptr;
 
-   const QoreMethod* m = sclass->priv->runtimeFindCommittedStaticMethodIntern(name, n_access, class_ctx);
-   if (m && n_access < access)
-      n_access = access;
+    const QoreMethod* m = sclass->priv->runtimeFindCommittedStaticMethodIntern(name, n_access, class_ctx);
+    if (m && n_access < access)
+        n_access = access;
 
-   return m;
+    return m;
 }
 
 const QoreMethod* BCNode::parseFindNormalMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const {
-   // sclass can be 0 if the class could not be found during parse initialization
-   if (!sclass)
-      return 0;
+    // sclass can be 0 if the class could not be found during parse initialization
+    if (!sclass)
+        return nullptr;
 
-   if (access > Public && (!class_ctx || (access == Internal && !allow_internal)))
-      return 0;
+    if (access > Public && (!class_ctx || (access == Internal && !allow_internal)))
+        return nullptr;
 
-   return sclass->priv->parseFindNormalMethodIntern(name, class_ctx);
+    return sclass->priv->parseFindNormalMethodIntern(name, class_ctx);
 }
 
 const QoreMethod* BCNode::parseFindStaticMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const {
@@ -1725,7 +1751,7 @@ const QoreClass* BCNode::getClass(const qore_class_private& qc, ClassAccess& n_a
    return rv;
 }
 
-const QoreClass* BCNode::parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
+const QoreClass *BCNode::parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
       return nullptr;
@@ -1782,10 +1808,10 @@ bool BCNode::parseCheckHierarchy(const QoreClass* cls, ClassAccess& n_access, bo
 QoreVarInfo* BCNode::parseFindStaticVar(const char* vname, const QoreClass*& qc, ClassAccess& n_access, bool check, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
-      return 0;
+      return nullptr;
 
    if (access == Internal && !toplevel)
-      return 0;
+      return nullptr;
 
    QoreVarInfo* vi = sclass->priv->parseFindStaticVarIntern(vname, qc, n_access, check, false);
    if (vi && n_access < access)
@@ -1804,196 +1830,196 @@ void BCNode::execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsi
 }
 
 int BCNode::addBaseClassesToSubclass(QoreClass* child, bool is_virtual) {
-   // issue #2318 must check for duplicate base classes here
-   // sclass may be 0 in case of a parse exception
-   if (!sclass)
-      return 0;
+    // issue #2318 must check for duplicate base classes here
+    // sclass may be 0 in case of a parse exception
+    if (!sclass)
+        return 0;
 
-   if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*child->priv)) {
-       parse_error(*loc, "OOPS %s", child->getName());
-       return -1;
-   }
+    if (sclass->priv->scl && sclass->priv->scl->findInHierarchy(*child->priv)) {
+        parse_error(*loc, "OOPS %s", child->getName());
+        return -1;
+    }
 
-   return sclass->priv->addBaseClassesToSubclass(child, is_virtual);
+    return sclass->priv->addBaseClassesToSubclass(child, is_virtual);
 }
 
 void BCNode::initializeBuiltin() {
-   assert(sclass);
-   sclass->priv->initializeBuiltin();
+    assert(sclass);
+    sclass->priv->initializeBuiltin();
+}
+
+void BCList::parseResolveAbstract() {
+    for (auto& i : *this) {
+        if (i->sclass) {
+            i->sclass->priv->parseResolveAbstract();
+        }
+    }
 }
 
 void BCList::rescanParents(QoreClass* cls) {
-   if (rescanned)
-      return;
-   rescanned = true;
-   // iterate sml for all virtual parent classes; must iterate with offsets;
-   // the vector can be reallocated during this operation
-   for (unsigned i = 0; i < sml.size(); ++i) {
-      if (sml[i].second && sml[i].first->priv->scl) {
-         sml[i].first->priv->scl->rescanParents(sml[i].first);
-         sml[i].first->priv->scl->sml.alignBaseClassesInSubclass(sml[i].first, cls, true);
-      }
-   }
-}
-
-int BCList::runtimeInitInternalMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const {
-   for (auto& i : *this) {
-      if ((*i).runtimeInitInternalMembers(o, need_scan, xsink))
-         return -1;
-   }
-   return 0;
+    if (rescanned)
+        return;
+    rescanned = true;
+    // iterate sml for all virtual parent classes; must iterate with offsets;
+    // the vector can be reallocated during this operation
+    for (unsigned i = 0; i < sml.size(); ++i) {
+        if (sml[i].second && sml[i].first->priv->scl) {
+            sml[i].first->priv->scl->rescanParents(sml[i].first);
+            sml[i].first->priv->scl->sml.alignBaseClassesInSubclass(sml[i].first, cls, true);
+        }
+    }
 }
 
 bool BCList::isBaseClass(QoreClass* qc, bool toplevel) const {
-   for (auto& i : *this) {
-      if ((*i).isBaseClass(qc, toplevel))
-         return true;
-   }
-   //printd(5, "BCList::isBaseClass() %p %s (%d) FALSE\n", this, qc->getName(), qc->getID());
-   return false;
+    for (auto& i : *this) {
+        if ((*i).isBaseClass(qc, toplevel))
+            return true;
+    }
+    //printd(5, "BCList::isBaseClass() %p %s (%d) FALSE\n", this, qc->getName(), qc->getID());
+    return false;
 }
 
 int BCList::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
-   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
-      if ((*i)->initializeHierarchy(cls, qcp_set)) {
-         if (valid)
-            valid = false;
-      }
-   }
+    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
+        if ((*i)->initializeHierarchy(cls, qcp_set)) {
+            if (valid)
+                valid = false;
+        }
+    }
 
-   // compare each class in the list to ensure that there are no duplicates
-   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
-      if ((*i)->sclass) {
-         bclist_t::iterator j = i;
-         while (++j != e) {
-            if (!(*j)->sclass)
-               continue;
-            if ((*i)->sclass->getID() == (*j)->sclass->getID()) {
-               parse_error(*cls->priv->loc, "class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
-               if (valid)
-                  valid = false;
+    // compare each class in the list to ensure that there are no duplicates
+    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
+        if ((*i)->sclass) {
+            bclist_t::iterator j = i;
+            while (++j != e) {
+                if (!(*j)->sclass)
+                continue;
+                if ((*i)->sclass->getID() == (*j)->sclass->getID()) {
+                parse_error(*cls->priv->loc, "class '%s' cannot inherit '%s' more than once", cls->getName(), (*i)->sclass->getName());
+                if (valid)
+                    valid = false;
+                }
             }
-         }
-      }
-   }
+        }
+    }
 
-   return valid ? 0 : -1;
+    return valid ? 0 : -1;
 }
 
 int BCList::initialize(QoreClass* cls, bool& has_delete_blocker) {
-   printd(5, "BCList::initialize(%s) this: %p empty: %d\n", cls->getName(), this, empty());
-   for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
-      if ((*i)->initialize(cls, has_delete_blocker)) {
-         if (valid)
-            valid = false;
-      }
-   }
+    printd(5, "BCList::initialize(%s) this: %p empty: %d\n", cls->getName(), this, empty());
+    for (bclist_t::iterator i = begin(), e = end(); i != e; ++i) {
+        if ((*i)->initialize(cls, has_delete_blocker)) {
+            if (valid)
+                valid = false;
+        }
+    }
 
-   return valid ? 0 : -1;
+    return valid ? 0 : -1;
 }
 
 const qore_class_private* BCList::runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const {
-   for (auto& i : *this) {
-      const qore_class_private* rv = (*i).runtimeGetMemberClass(mem, access, class_ctx, allow_internal);
-      if (rv)
-         return rv;
-   }
+    for (auto& i : *this) {
+        const qore_class_private* rv = (*i).runtimeGetMemberClass(mem, access, class_ctx, allow_internal);
+        if (rv)
+            return rv;
+    }
 
-   return 0;
+    return nullptr;
 }
 
 bool BCList::parseHasPublicMembersInHierarchy() const {
-   for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
-      if ((*i)->sclass && (*i)->sclass->parseHasPublicMembersInHierarchy())
-         return true;
-   return false;
+    for (bclist_t::const_iterator i = begin(), e = end(); i != e; ++i)
+        if ((*i)->sclass && (*i)->sclass->parseHasPublicMembersInHierarchy())
+            return true;
+    return false;
 }
 
 const QoreMemberInfo* BCList::runtimeGetMemberInfo(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const {
-   for (auto& i : *this) {
-      const QoreMemberInfo* rv = (*i).runtimeGetMemberInfo(mem, access, class_ctx, allow_internal);
-      if (rv)
-         return rv;
-   }
+    for (auto& i : *this) {
+        const QoreMemberInfo* rv = (*i).runtimeGetMemberInfo(mem, access, class_ctx, allow_internal);
+        if (rv)
+            return rv;
+    }
 
-   return 0;
+    return nullptr;
 }
 
 const QoreMemberInfo* BCList::parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& access, bool toplevel) const {
-   if (!valid)
-      return 0;
+    if (!valid)
+        return 0;
 
-   for (auto& i : *this) {
-      const QoreMemberInfo* mi = (*i).parseFindMember(mem, qc, access, toplevel);
-      if (mi)
-         return mi;
-   }
-   return 0;
+    for (auto& i : *this) {
+        const QoreMemberInfo* mi = (*i).parseFindMember(mem, qc, access, toplevel);
+        if (mi)
+            return mi;
+    }
+    return nullptr;
 }
 
 const QoreVarInfo* BCList::parseFindVar(const char* name, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const {
-   if (!valid)
-      return 0;
+    if (!valid)
+        return 0;
 
-   for (auto& i : *this) {
-      const QoreVarInfo* rv = (*i).parseFindVar(name, qc, n_access, toplevel);
-      if (rv)
-         return rv;
-   }
-   return 0;
+    for (auto& i : *this) {
+        const QoreVarInfo* rv = (*i).parseFindVar(name, qc, n_access, toplevel);
+        if (rv)
+            return rv;
+    }
+    return nullptr;
 }
 
 // called at run time
 const QoreMethod* BCList::runtimeFindCommittedMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const {
-   for (auto& i : *this) {
-      const QoreMethod* m = (*i).runtimeFindCommittedMethod(name, access, class_ctx, allow_internal);
-      if (m)
-         return m;
-   }
-   return 0;
+    for (auto& i : *this) {
+        const QoreMethod* m = (*i).runtimeFindCommittedMethod(name, access, class_ctx, allow_internal);
+        if (m)
+            return m;
+    }
+    return nullptr;
 }
 
 // called at run time
 const QoreMethod* BCList::runtimeFindCommittedStaticMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const {
-   for (auto& i : *this) {
-      const QoreMethod* m = (*i).runtimeFindCommittedStaticMethod(name, access, class_ctx, allow_internal);
-      if (m)
-         return m;
-   }
-   return 0;
+    for (auto& i : *this) {
+        const QoreMethod* m = (*i).runtimeFindCommittedStaticMethod(name, access, class_ctx, allow_internal);
+        if (m)
+            return m;
+    }
+    return nullptr;
 }
 
 const QoreMethod* BCList::parseFindNormalMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) {
-   if (!valid)
-      return 0;
+    if (!valid)
+        return nullptr;
 
-   for (auto& i : *this) {
-      const QoreMethod* m = (*i).parseFindNormalMethod(name, class_ctx, allow_internal);
-      if (m)
-         return m;
-   }
-   return 0;
+    for (auto& i : *this) {
+        const QoreMethod* m = (*i).parseFindNormalMethod(name, class_ctx, allow_internal);
+        if (m)
+            return m;
+    }
+    return nullptr;
 }
 
 const QoreMethod* BCList::parseFindStaticMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) {
-   if (!valid)
-      return 0;
+    if (!valid)
+        return 0;
 
-   for (auto& i : *this) {
-      const QoreMethod* m = (*i).parseFindStaticMethod(name, class_ctx, allow_internal);
-      if (m)
-         return m;
-   }
-   return 0;
+    for (auto& i : *this) {
+        const QoreMethod* m = (*i).parseFindStaticMethod(name, class_ctx, allow_internal);
+        if (m)
+            return m;
+    }
+    return nullptr;
 }
 
 const QoreMethod* BCList::parseResolveSelfMethod(const QoreProgramLocation* loc, const char* name, const qore_class_private* class_ctx, bool allow_internal) {
-   for (auto& i : *this) {
-      const QoreMethod* m = (*i).parseResolveSelfMethod(loc, name, class_ctx, allow_internal);
-      if (m)
-         return m;
-   }
-   return 0;
+    for (auto& i : *this) {
+        const QoreMethod* m = (*i).parseResolveSelfMethod(loc, name, class_ctx, allow_internal);
+        if (m)
+            return m;
+    }
+    return nullptr;
 }
 
 bool BCList::match(const QoreClass* cls) {
@@ -2219,30 +2245,33 @@ const QoreClass* BCList::parseGetClass(const qore_class_private& qc, ClassAccess
 }
 
 MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const {
-   for (auto& i : *this) {
-      const QoreClass* nqc = (*i).sclass;
-      //printd(5, "BCList::matchNonAbstractVariant() this: %p %s::%s %p (%s) ncq: %p\n", this, nqc ? nqc->getName() : "n/a", name.c_str(), v, v->getAbstractSignature(), nqc);
+    for (auto& i : *this) {
+        const QoreClass* nqc = (*i).sclass;
+        //printd(5, "BCList::matchNonAbstractVariant() this: %p %s::%s %p (%s) ncq: %p\n", this, nqc ? nqc->getName() : "n/a", name.c_str(), v, v->getAbstractSignature(), nqc);
 
-      // nqc may be 0 if there were a parse error with an unknown class earlier
-      if (!nqc)
-         continue;
+        // nqc may be 0 if there were a parse error with an unknown class earlier
+        // also if the original abstract variant comes from the class being searched, then skip it
+        if (!nqc || v->getClass() == nqc)
+            continue;
 
-      QoreMethod* m = nqc->priv->parseFindLocalMethod(name);
-      if (m) {
-         MethodFunctionBase* f = m->getFunction();
-         MethodVariantBase* ov = f->parseHasVariantWithSignature(v);
-         //printd(5, "BCList::matchNonAbstractVariant() this: %p %s::%s %p (%s) m: %p (%s) ov: %p (%s) abstract: %d\n", this, nqc ? nqc->getName() : "n/a", name.c_str(), v, v->getAbstractSignature(), m, m->getName(), ov, ov ? ov->getAbstractSignature() : "n/a", ov ? ov->isAbstract() : 0);
-         if (ov && !ov->isAbstract())
-            return ov;
-      }
-      if (nqc->priv->scl) {
-         MethodVariantBase* ov = nqc->priv->scl->matchNonAbstractVariant(name, v);
-         if (ov)
-            return ov;
-      }
-   }
+        QoreMethod* m = nqc->priv->parseFindLocalMethod(name);
+        if (m) {
+            MethodFunctionBase* f = m->getFunction();
+            MethodVariantBase* ov = f->parseHasVariantWithSignature(v);
+            if (name[0] == 't') {
+                printd(5, "BCList::matchNonAbstractVariant() this: %p (source %s::%s()) %s::%s %p (%s) m: %p (%s) ov: %p (%s) abstract: %d\n", this, v->getClass()->getName(), v->method()->getName(), nqc ? nqc->getName() : "n/a", name.c_str(), v, v->getAbstractSignature(), m, m->getName(), ov, ov ? ov->getAbstractSignature() : "n/a", ov ? ov->isAbstract() : 0);
+            }
+            if (ov && !ov->isAbstract())
+                return ov;
+        }
+        if (nqc->priv->scl) {
+            MethodVariantBase* ov = nqc->priv->scl->matchNonAbstractVariant(name, v);
+            if (ov)
+                return ov;
+        }
+    }
 
-   return 0;
+    return nullptr;
 }
 
 int BCAList::execBaseClassConstructorArgs(BCEAList* bceal, ExceptionSink* xsink) const {
@@ -2426,48 +2455,55 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
    priv->scl->sml.add(this, qc, true);
 }
 
-const QoreMethod* qore_class_private::parseFindNormalMethod(const char* nme, const qore_class_private* class_ctx) {
-   // if we have a class context, first we have to check here for an internal method
-   if (class_ctx) {
-      const QoreMethod* m = class_ctx->parseFindLocalMethod(nme);
-      if (m && qore_method_private::getAccess(*m) == Internal)
-         return m;
-   }
+void qore_class_private::parseCheckAbstractNew(const QoreProgramLocation* loc) const {
+    // if we have abstract methods, we must defer the check until all classes are completely resolved
+    if (!ahm.empty()) {
+        qore_root_ns_private::get(*getRootNS())->deferParseCheckAbstractNew(this, loc);
+    }
+}
 
-   return parseFindNormalMethodIntern(nme, class_ctx);
+const QoreMethod* qore_class_private::parseFindNormalMethod(const char* nme, const qore_class_private* class_ctx) {
+    // if we have a class context, first we have to check here for an internal method
+    if (class_ctx) {
+        const QoreMethod* m = class_ctx->parseFindLocalMethod(nme);
+        if (m && qore_method_private::getAccess(*m) == Internal)
+            return m;
+    }
+
+    return parseFindNormalMethodIntern(nme, class_ctx);
 }
 
 const QoreMethod* qore_class_private::parseFindStaticMethod(const char* nme, const qore_class_private* class_ctx) {
-   // if we have a class context, first we have to check here for an internal method
-   if (class_ctx) {
-      const QoreMethod* m = class_ctx->parseFindLocalStaticMethod(nme);
-      if (m && qore_method_private::getAccess(*m) == Internal)
-         return m;
-   }
+    // if we have a class context, first we have to check here for an internal method
+    if (class_ctx) {
+        const QoreMethod* m = class_ctx->parseFindLocalStaticMethod(nme);
+        if (m && qore_method_private::getAccess(*m) == Internal)
+            return m;
+    }
 
-   return parseFindStaticMethodIntern(nme, class_ctx);
+    return parseFindStaticMethodIntern(nme, class_ctx);
 }
 
 const QoreMethod* qore_class_private::parseFindAnyMethod(const char* nme, const qore_class_private* class_ctx) {
-   const QoreMethod* m = 0;
+    const QoreMethod* m = nullptr;
 
-   // if we have a class context, first we have to check here for an internal method
-   if (class_ctx) {
-      m = class_ctx->parseFindAnyLocalMethod(nme);
-      if (m && qore_method_private::getAccess(*m) != Internal)
-         m = 0;
-   }
+    // if we have a class context, first we have to check here for an internal method
+    if (class_ctx) {
+        m = class_ctx->parseFindAnyLocalMethod(nme);
+        if (m && qore_method_private::getAccess(*m) != Internal)
+            m = nullptr;
+    }
 
-   if (!m)
-      m = parseFindNormalMethodIntern(nme, class_ctx);
+    if (!m)
+        m = parseFindNormalMethodIntern(nme, class_ctx);
 
-   //printd(5, "qore_class_private::parseFindAnyMethod() cls: '%s' nme: '%s' class_ctx: %p m: %p (%s) %s\n", name.c_str(), nme, class_ctx, m, m ? m->getName() : "n/a", m ? privpub(qore_method_private::getAccess(*m)) : "n/a");
+    //printd(5, "qore_class_private::parseFindAnyMethod() cls: '%s' nme: '%s' class_ctx: %p m: %p (%s::%s) %s\n", name.c_str(), nme, class_ctx, m, m ? m->getClass()->getName() : "n/a", m ? m->getName() : "n/a", m ? privpub(qore_method_private::getAccess(*m)) : "n/a");
 
-   if (m && strcmp(nme, "constructor") && strcmp(nme, "destructor") && strcmp(nme, "copy") && ((qore_method_private::getAccess(*m) == Public) || class_ctx))
-      return m;
+    if (m && strcmp(nme, "constructor") && strcmp(nme, "destructor") && strcmp(nme, "copy") && ((qore_method_private::getAccess(*m) == Public) || class_ctx))
+        return m;
 
-   m = parseFindStaticMethodIntern(nme, class_ctx);
-   return m && ((qore_method_private::getAccess(*m) == Public) || class_ctx) ? m : 0;
+    m = parseFindStaticMethodIntern(nme, class_ctx);
+    return m && ((qore_method_private::getAccess(*m) == Public) || class_ctx) ? m : 0;
 }
 
 const QoreMethod* qore_class_private::parseFindAnyMethodStaticFirst(const char* nme, const qore_class_private* class_ctx) {
@@ -2500,96 +2536,100 @@ const QoreMethod* qore_class_private::parseFindAnyMethodStaticFirst(const char* 
 
 // searches all methods, both pending and comitted
 const QoreMethod* qore_class_private::parseResolveSelfMethod(const QoreProgramLocation* loc, const char* nme, const qore_class_private* class_ctx) {
-   initialize();
+    initialize();
 
-   const QoreMethod* m = 0;
+    const QoreMethod* m = nullptr;
 
-   if (class_ctx) {
-      const QoreMethod* m = class_ctx->parseFindAnyLocalMethod(nme);
-      if (m && qore_method_private::getAccess(*m) != Internal)
-         m = 0;
-   }
-   if (!m)
-      m = parseResolveSelfMethodIntern(loc, nme, class_ctx);
+    if (class_ctx) {
+        const QoreMethod* m = class_ctx->parseFindAnyLocalMethod(nme);
+        if (m && qore_method_private::getAccess(*m) != Internal)
+            m = nullptr;
+    }
+    if (!m)
+        m = parseResolveSelfMethodIntern(loc, nme, class_ctx);
 
-   if (!m) {
-      parse_error(*loc, "no method %s::%s() has been defined; if you want to make a call to a method that will be defined in an inherited class, then use 'self.%s()' instead", name.c_str(), nme, nme);
-      return 0;
-   }
-   printd(5, "qore_class_private::parseResolveSelfMethod(%s) resolved to %s::%s() %p (static: %d)\n", nme, name.c_str(), nme, m, m->isStatic());
+    if (!m) {
+        parse_error(*loc, "no method %s::%s() has been defined; if you want to make a call to a method that will be defined in an inherited class, then use 'self.%s()' instead", name.c_str(), nme, nme);
+        return nullptr;
+    }
+    printd(5, "qore_class_private::parseResolveSelfMethod(%s) resolved to %s::%s() %p (static: %d)\n", nme, name.c_str(), nme, m, m->isStatic());
 
-   const char* mname = m->getName();
-   // make sure we're not calling a method that cannot be called directly
-   if (!m->isStatic() && (!strcmp(mname, "constructor") || !strcmp(mname, "destructor") || !strcmp(mname, "copy"))) {
-      parse_error(*loc, "explicit calls to %s() methods are not allowed", nme);
-      return 0;
-   }
+    const char* mname = m->getName();
+    // make sure we're not calling a method that cannot be called directly
+    if (!m->isStatic() && (!strcmp(mname, "constructor") || !strcmp(mname, "destructor") || !strcmp(mname, "copy"))) {
+        parse_error(*loc, "explicit calls to %s() methods are not allowed", nme);
+        return nullptr;
+    }
 
-   return m;
+    return m;
 }
 
 const QoreMethod* qore_class_private::parseFindSelfMethod(const char* nme) {
-   initialize();
+    initialize();
 
-   return parseFindAnyMethod(nme, this);
+    return parseFindAnyMethod(nme, this);
 }
 
 const QoreMethod* qore_class_private::parseResolveSelfMethod(const QoreProgramLocation* loc, NamedScope* nme) {
-   // first find class
-   QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(loc, *nme, true);
-   if (!qc)
-      return 0;
+    // first find class
+    QoreClass* qc = qore_root_ns_private::parseFindScopedClassWithMethod(loc, *nme, true);
+    if (!qc)
+        return nullptr;
 
-   // see if class is base class of this class
-   if (qc != cls && (!scl || !scl->isBaseClass(qc, true))) {
-      parse_error(*loc, "'%s' is not a base class of '%s'", qc->getName(), name.c_str());
-      return 0;
-   }
+    // see if class is base class of this class
+    if (qc != cls && (!scl || !scl->isBaseClass(qc, true))) {
+        parse_error(*loc, "'%s' is not a base class of '%s'", qc->getName(), name.c_str());
+        return nullptr;
+    }
 
-   return qc->priv->parseResolveSelfMethod(loc, nme->getIdentifier(), this);
+    return qc->priv->parseResolveSelfMethod(loc, nme->getIdentifier(), this);
 }
 
 // finds a non-static method in the class hierarchy at parse time, optionally initializes classes
 const QoreMethod* qore_class_private::parseFindNormalMethodIntern(const char* mname, const qore_class_private* class_ctx) {
-   initialize();
-   const QoreMethod* m = parseFindLocalMethod(mname);
-   if (m && doParseMethodAccess(m, class_ctx))
-      return m;
-   if (scl) {
-      m = scl->parseFindNormalMethod(mname, class_ctx, class_ctx == this);
-      if (m && doParseMethodAccess(m, class_ctx))
-         return m;
-   }
-   return 0;
+    initialize();
+    const QoreMethod* m = parseFindLocalMethod(mname);
+    if (m && doParseMethodAccess(m, class_ctx)) {
+        //printd(5, "qore_class_private::parseFindNormalMethodIntern() this: %p '%s' mname: '%s' m: %p\n", this, name.c_str(), mname, m);
+        return m;
+    }
+    //printd(5, "qore_class_private::parseFindNormalMethodIntern() this: %p '%s' mname: '%s' NOT FOUND\n", this, name.c_str(), mname);
+    if (scl) {
+        m = scl->parseFindNormalMethod(mname, class_ctx, class_ctx == this);
+        if (m && doParseMethodAccess(m, class_ctx)) {
+            return m;
+        }
+    }
+    return nullptr;
 }
 
 // finds a static method in the class hierarchy at parse time, optionally initializes classes
 const QoreMethod* qore_class_private::parseFindStaticMethodIntern(const char* mname, const qore_class_private* class_ctx) {
-   initialize();
-   const QoreMethod* m = parseFindLocalStaticMethod(mname);
-   if (m && doParseMethodAccess(m, class_ctx))
-      return m;
-   if (scl) {
-      m = scl->parseFindStaticMethod(mname, class_ctx, class_ctx == this);
-      if (m && doParseMethodAccess(m, class_ctx))
-         return m;
-   }
-   return 0;
+    initialize();
+    const QoreMethod* m = parseFindLocalStaticMethod(mname);
+    if (m && doParseMethodAccess(m, class_ctx))
+        return m;
+    if (scl) {
+        m = scl->parseFindStaticMethod(mname, class_ctx, class_ctx == this);
+        if (m && doParseMethodAccess(m, class_ctx))
+            return m;
+    }
+    return nullptr;
 }
 
 const QoreMethod* qore_class_private::parseResolveSelfMethodIntern(const QoreProgramLocation* loc, const char* nme, const qore_class_private* class_ctx) {
-   const QoreMethod* m = parseFindLocalMethod(nme);
-   if (m && doMethodAccess(m, qore_method_private::getAccess(*m), class_ctx))
-      return m;
-   m = parseFindLocalStaticMethod(nme);
-   if (m && doMethodAccess(m, qore_method_private::getAccess(*m), class_ctx))
-      return m;
-   if (scl) {
-      m = scl->parseResolveSelfMethod(loc, nme, class_ctx, this == class_ctx);
-      if (m && doMethodAccess(m, qore_method_private::getAccess(*m), class_ctx))
-         return m;
-   }
-   return 0;
+    const QoreMethod* m = parseFindLocalMethod(nme);
+    if (m && doMethodAccess(m, qore_method_private::getAccess(*m), class_ctx))
+        return m;
+    m = parseFindLocalStaticMethod(nme);
+    if (m && doMethodAccess(m, qore_method_private::getAccess(*m), class_ctx))
+        return m;
+    if (scl) {
+        m = scl->parseResolveSelfMethod(loc, nme, class_ctx, this == class_ctx);
+        if (m && doMethodAccess(m, qore_method_private::getAccess(*m), class_ctx))
+            return m;
+    }
+    return nullptr;
 }
 
 int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& b_mi, const qore_class_private& b_qc, const QoreMemberInfo& l_mi) {
@@ -2807,6 +2847,15 @@ BCSMList::~BCSMList() {
     }
 }
 
+int BCSMList::runtimeInitInternalMembers(QoreObject& o, bool& need_scan, ExceptionSink* xsink) const {
+    for (auto& i : *this) {
+        if (i.first->priv->runtimeInitLocalMembers(o, need_scan, true, xsink)) {
+            return -1;
+        }
+    }
+    return 0;
+}
+
 void BCSMList::alignBaseClassesInSubclass(QoreClass* thisclass, QoreClass* child, bool is_virtual) {
     //printd(5, "BCSMList::alignBaseClassesInSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(), sc->getName());
     // we must iterate with offsets, because the vector can be reallocated during this iteration
@@ -2834,41 +2883,42 @@ void BCSMList::align(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
 }
 
 int BCSMList::addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual) {
-   //printd(5, "BCSMList::addBaseClassesToSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(), sc->getName());
-   for (class_list_t::const_iterator i = begin(), e = end(); i != e; ++i) {
-      //printd(5, "BCSMList::addBaseClassesToSubclass() %s sc: %s is_virt: %d\n", thisclass->getName(), sc->getName(), is_virtual);
-      if (sc->priv->scl->sml.add(thisclass, (*i).first, is_virtual || (*i).second)) {
-         //printd(5, "BCSMList::addBaseClassesToSubclass() %s sc: %s is_virt: %d FAILED\n", thisclass->getName(), sc->getName(), is_virtual);
-         return -1;
-      }
-   }
-   return 0;
+    //printd(5, "BCSMList::addBaseClassesToSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(), sc->getName());
+    for (class_list_t::const_iterator i = begin(), e = end(); i != e; ++i) {
+        //printd(5, "BCSMList::addBaseClassesToSubclass() %s sc: %s is_virt: %d\n", thisclass->getName(), sc->getName(), is_virtual);
+        if (sc->priv->scl->sml.add(thisclass, (*i).first, is_virtual || (*i).second)) {
+            //printd(5, "BCSMList::addBaseClassesToSubclass() %s sc: %s is_virt: %d FAILED\n", thisclass->getName(), sc->getName(), is_virtual);
+            return -1;
+        }
+    }
+    return 0;
 }
 
 int BCSMList::add(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
-   if (thisclass->getID() == qc->getID()) {
-      thisclass->priv->scl->valid = false;
-      parse_error(*thisclass->priv->loc, "class '%s' cannot inherit itself", thisclass->getName());
-      return -1;
-   }
+    if (thisclass->getID() == qc->getID()) {
+        thisclass->priv->scl->valid = false;
+        parse_error(*thisclass->priv->loc, "class '%s' cannot inherit itself", thisclass->getName());
+        return -1;
+    }
 
-   // see if class already exists in list
-   class_list_t::const_iterator i = begin();
-   while (i != end()) {
-      if (i->first->getID() == qc->getID())
-         return 0;
-      if (i->first->getID() == thisclass->getID()) {
-         thisclass->priv->scl->valid = false;
-         parse_error(*thisclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
-         return -1;
-      }
-      i++;
-   }
-   qc->priv->ref();
+    // see if class already exists in list
+    class_list_t::const_iterator i = begin();
+    while (i != end()) {
+        if (i->first->getID() == qc->getID())
+            return 0;
+        if (i->first->getID() == thisclass->getID()) {
+            thisclass->priv->scl->valid = false;
+            parse_error(*thisclass->priv->loc, "circular reference in class hierarchy, '%s' is an ancestor of itself", thisclass->getName());
+            return -1;
+        }
+        ++i;
+    }
+    qc->priv->ref();
 
-   // append to the end of the list
-   push_back(std::make_pair(qc, is_virtual));
-   return 0;
+    // append to the end of the list
+    push_back(std::make_pair(qc, is_virtual));
+
+    return 0;
 }
 
 void BCSMList::execDestructors(QoreObject* o, ExceptionSink* xsink) const {
@@ -3096,34 +3146,34 @@ bool qore_class_private::runtimeIsPrivateMemberIntern(const char* str, bool topl
 }
 
 QoreValue QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
-   QORE_TRACE("QoreClass::evalMethod()");
-   assert(self);
+    QORE_TRACE("QoreClass::evalMethod()");
+    assert(self);
 
-   if (!strcmp(nme, "copy")) {
-      if (args) {
-         xsink->raiseException("COPY-ERROR", "while calling %s::copy(): it is illegal to pass arguments to copy methods", self->getClassName());
-         return QoreValue();
-      }
-      return execCopy(self, xsink);
-   }
+    if (!strcmp(nme, "copy")) {
+        if (args) {
+            xsink->raiseException("COPY-ERROR", "while calling %s::copy(): it is illegal to pass arguments to copy methods", self->getClassName());
+            return QoreValue();
+        }
+        return execCopy(self, xsink);
+    }
 
-   const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
-   if (*xsink)
-      return QoreValue();
+    const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
+    if (*xsink)
+        return QoreValue();
 
-   if (w)
-      return qore_method_private::eval(*w, xsink, self, args);
+    if (w)
+        return qore_method_private::eval(*w, xsink, self, args);
 
-   // first see if there is a pseudo-method for this
-   QoreClass* qc = nullptr;
-   w = pseudo_classes_find_method(NT_OBJECT, nme, qc);
-   if (w)
-      return qore_method_private::evalPseudoMethod(*w, xsink, 0, self, args);
-   else if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
-      return evalMethodGate(self, nme, args, xsink);
+    // first see if there is a pseudo-method for this
+    QoreClass* qc = nullptr;
+    w = pseudo_classes_find_method(NT_OBJECT, nme, qc);
+    if (w)
+        return qore_method_private::evalPseudoMethod(*w, xsink, 0, self, args);
+    else if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
+        return evalMethodGate(self, nme, args, xsink);
 
-   xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method <object>::%s() is available", self->getClassName(), nme, nme);
-   return QoreValue();
+    xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method <object>::%s() is available", self->getClassName(), nme, nme);
+    return QoreValue();
 }
 
 QoreValue QoreClass::evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -3333,131 +3383,131 @@ int qore_class_private::addBaseClassesToSubclass(QoreClass* child, bool is_virtu
 }
 
 int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, bool n_static) {
-   // FIXME: set class name at parse time
-   const char* tname = name.c_str();
-   printd(5, "QoreClass::addUserMethod(%s, umv: %p, priv: %d, static: %d) this: %p %s\n", mname, f, f->isPrivate(), n_static, this, tname);
+    // FIXME: set class name at parse time
+    const char* tname = name.c_str();
+    printd(5, "QoreClass::addUserMethod(%s, umv: %p, priv: %d, static: %d) this: %p %s\n", mname, f, f->isPrivate(), n_static, this, tname);
 
-   std::unique_ptr<MethodVariantBase> func(f);
+    std::unique_ptr<MethodVariantBase> func(f);
 
     if (sys || committed) {
         parseCheckSystemCommitted(static_cast<UserSignature*>(f->getSignature())->getParseLocation());
         return -1;
     }
 
-   if (f->isAbstract()) {
-      if (initialized) {
-         parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);
-         return -1;
-      }
-      if (n_static) {
-         parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be static", name.c_str(), mname);
-         return -1;
-      }
-   }
+    if (f->isAbstract()) {
+        if (initialized) {
+            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be added to a class once the class has been committed", name.c_str(), mname);
+            return -1;
+        }
+        if (n_static) {
+            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "abstract %s::%s(): abstract methods cannot be static", name.c_str(), mname);
+            return -1;
+        }
+    }
 
-   bool dst = !strcmp(mname, "destructor");
-   bool con = dst ? false : !strcmp(mname, "constructor");
+    bool dst = !strcmp(mname, "destructor");
+    bool con = dst ? false : !strcmp(mname, "constructor");
 
-   // check for illegal static method
-   if (n_static) {
-      if ((con || dst || checkSpecialStaticIntern(mname))) {
-         parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-STATIC-METHOD", "%s methods cannot be static", mname);
-         return -1;
-      }
-   }
+    // check for illegal static method
+    if (n_static) {
+        if ((con || dst || checkSpecialStaticIntern(mname))) {
+            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-STATIC-METHOD", "%s methods cannot be static", mname);
+            return -1;
+        }
+    }
 
-   bool cpy = dst || con ? false : !strcmp(mname, "copy");
-   // check for illegal method overloads
-   if (sys && (con || cpy)) {
-      parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD", "class %s is builtin; %s methods in builtin classes cannot be overloaded; create a subclass instead", name.c_str(), mname);
-      return -1;
-   }
+    bool cpy = dst || con ? false : !strcmp(mname, "copy");
+    // check for illegal method overloads
+    if (sys && (con || cpy)) {
+        parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD", "class %s is builtin; %s methods in builtin classes cannot be overloaded; create a subclass instead", name.c_str(), mname);
+        return -1;
+    }
 
-   // set flags for other special methods
-   bool methGate, memGate, hasMemberNotification;
-   if (dst || con || cpy)
-      methGate = memGate = hasMemberNotification = false;
-   else {
-      methGate = !strcmp(mname, "methodGate");
-      memGate = methGate ? false : !strcmp(mname, "memberGate");
-      hasMemberNotification = methGate || memGate ? false : !strcmp(mname, "memberNotification");
-   }
+    // set flags for other special methods
+    bool methGate, memGate, hasMemberNotification;
+    if (dst || con || cpy)
+        methGate = memGate = hasMemberNotification = false;
+    else {
+        methGate = !strcmp(mname, "methodGate");
+        memGate = methGate ? false : !strcmp(mname, "memberGate");
+        hasMemberNotification = methGate || memGate ? false : !strcmp(mname, "memberNotification");
+    }
 
-   // we cannot initialize the class here
-   QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindLocalMethod(mname) : parseFindLocalStaticMethod(mname));
-   if (!n_static && m && (dst || cpy || methGate || memGate || hasMemberNotification)) {
-      parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
-      return -1;
-   }
+    // we cannot initialize the class here
+    QoreMethod* m = const_cast<QoreMethod*>(!n_static ? parseFindLocalMethod(mname) : parseFindLocalStaticMethod(mname));
+    if (!n_static && m && (dst || cpy || methGate || memGate || hasMemberNotification)) {
+        parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-METHOD-OVERLOAD", "a %s::%s() method has already been defined; cannot overload %s methods", tname, mname, mname);
+        return -1;
+    }
 
-   // now we add the new variant to a method, creating the method if necessary
+    // now we add the new variant to a method, creating the method if necessary
 
-   if (!has_new_user_changes)
-      has_new_user_changes = true;
-   if (!has_sig_changes)
-      has_sig_changes = true;
+    if (!has_new_user_changes)
+        has_new_user_changes = true;
+    if (!has_sig_changes)
+        has_sig_changes = true;
 
-   bool is_new = false;
-   // if the method does not exist, then create it
-   if (!m) {
-      is_new = true;
-      MethodFunctionBase* mfb;
-      if (con) {
-         mfb = new ConstructorMethodFunction(cls);
-         // set selfid immediately if adding a constructor variant
-         reinterpret_cast<UserConstructorVariant*>(f)->getUserSignature()->setSelfId(&selfid);
-      }
-      else if (dst)
-         mfb = new DestructorMethodFunction(cls);
-      else if (cpy)
-         mfb = new CopyMethodFunction(cls);
-      else if (n_static)
-         mfb = new StaticUserMethod(cls, mname);
-      else
-         mfb = new NormalUserMethod(cls, mname);
+    bool is_new = false;
+    // if the method does not exist, then create it
+    if (!m) {
+        is_new = true;
+        MethodFunctionBase* mfb;
+        if (con) {
+            mfb = new ConstructorMethodFunction(cls);
+            // set selfid immediately if adding a constructor variant
+            reinterpret_cast<UserConstructorVariant*>(f)->getUserSignature()->setSelfId(&selfid);
+        }
+        else if (dst)
+            mfb = new DestructorMethodFunction(cls);
+        else if (cpy)
+            mfb = new CopyMethodFunction(cls);
+        else if (n_static)
+            mfb = new StaticUserMethod(cls, mname);
+        else
+            mfb = new NormalUserMethod(cls, mname);
 
-      m = new QoreMethod(cls, mfb, n_static);
-   }
+        m = new QoreMethod(cls, mfb, n_static);
+    }
 
-   // add this variant to the method
-   if (m->priv->addUserVariant(func.release())) {
-      if (is_new)
-         delete m;
-      return -1;
-   }
+    // add this variant to the method
+    if (m->priv->addUserVariant(func.release())) {
+        if (is_new)
+            delete m;
+        return -1;
+    }
 
-   //printd(5, "qore_class_private::addUserMethod() %s %s::%s(%s) f: %p (%d) new: %d\n", privpub(f->getAccess()), tname, mname, f->getSignature()->getSignatureText(), f, ((QoreReferenceCounter*)f)->reference_count(), is_new);
+    //printd(5, "qore_class_private::addUserMethod() %s %s::%s(%s) f: %p (%d) new: %d\n", privpub(f->getAccess()), tname, mname, f->getSignature()->getSignatureText(), f, ((QoreReferenceCounter*)f)->reference_count(), is_new);
 
-   // set the pointer from the variant back to the owning method
-   f->setMethod(m);
+    // set the pointer from the variant back to the owning method
+    f->setMethod(m);
 
-   // add the new method to the class if it's a new method
-   if (is_new) {
-      if (n_static) {
-         shm[m->getName()] = m;
-      }
-      else {
-         hm[m->getName()] = m;
-      }
-   }
+    // add the new method to the class if it's a new method
+    if (is_new) {
+        if (n_static) {
+            shm[m->getName()] = m;
+        }
+        else {
+            hm[m->getName()] = m;
+        }
+    }
 
-   // add this variant to the abstract map if it's an abstract variant
-   if (f->isAbstract()) {
-      assert(!n_static);
-      if (!f->hasBody()) {
-         //printd(5, "qore_class_private::addUserMethod() this: %p adding abstract method variant %s::%s()\n", this, name.c_str(), mname);
-         ahm.parseAddAbstractVariant(mname, f);
-      }
-      else {
-         // this is a concrete method variant that must have an abstract implementation in a parent class
-         f->clearAbstract();
-         ahm.parseOverrideAbstractVariant(mname, f);
-      }
-   }
-   else if (!n_static && !con && !dst)
-      ahm.parseOverrideAbstractVariant(mname, f);
+    // add this variant to the abstract map if it's an abstract variant
+    if (f->isAbstract()) {
+        assert(!n_static);
+        if (!f->hasBody()) {
+            //printd(5, "qore_class_private::addUserMethod() this: %p adding abstract method variant %s::%s()\n", this, name.c_str(), mname);
+            ahm.parseAddAbstractVariant(mname, f);
+        }
+        else {
+            // this is a concrete method variant that must have an abstract implementation in a parent class
+            f->clearAbstract();
+            ahm.parseOverrideAbstractVariant(mname, f);
+        }
+    }
+    else if (!n_static && !con && !dst)
+        ahm.parseOverrideAbstractVariant(mname, f);
 
-   return 0;
+    return 0;
 }
 
 void QoreClass::addMethod(const char* nme, q_method_n_t m, ClassAccess access, int64 flags, int64 domain, const QoreTypeInfo* returnTypeInfo, unsigned num_params, ...) {
@@ -3950,83 +4000,83 @@ QoreListNode* QoreClass::getStaticMethodList() const {
 }
 
 void qore_class_private::parseInitPartial() {
-   if (parse_init_partial_called)
-      return;
+    if (parse_init_partial_called)
+        return;
 
-   initialize();
+    initialize();
 
-   // the class could be initialized out of line during initialize9)
-   if (parse_init_partial_called)
-      return;
+    // the class could be initialized out of line during initialize9)
+    if (parse_init_partial_called)
+        return;
 
-   NamespaceParseContextHelper nspch(ns);
-   QoreParseClassHelper qpch(cls);
-   parseInitPartialIntern();
+    NamespaceParseContextHelper nspch(ns);
+    QoreParseClassHelper qpch(cls);
+    parseInitPartialIntern();
 }
 
 void qore_class_private::parseInitPartialIntern() {
-   assert(!parse_init_partial_called);
-   parse_init_partial_called = true;
+    assert(!parse_init_partial_called);
+    parse_init_partial_called = true;
 
-   //printd(5, "class_private::parseInitPartialIntern() this: %p '%s' scl: %p user_changes: %d\n", this, name.c_str(), scl, has_new_user_changes);
+    //printd(5, "class_private::parseInitPartialIntern() this: %p '%s' scl: %p user_changes: %d\n", this, name.c_str(), scl, has_new_user_changes);
 
-   // initialize parents first for abstract method handling
-   if (scl) {
-      for (bclist_t::iterator i = scl->begin(), e = scl->end(); i != e; ++i) {
-         if ((*i)->sclass) {
-            (*i)->sclass->priv->parseInit();
-            //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' merging base class abstract methods from %p '%s'\n", this, name.c_str(), (*i)->sclass, (*i)->sclass->getName());
+    // initialize parents first for abstract method handling
+    if (scl) {
+        for (bclist_t::iterator i = scl->begin(), e = scl->end(); i != e; ++i) {
+            if ((*i)->sclass) {
+                (*i)->sclass->priv->parseInit();
+                //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' merging base class abstract methods from %p '%s'\n", this, name.c_str(), (*i)->sclass, (*i)->sclass->getName());
 
-            // copy pending abstract changes from parent classes to the local class
+                // copy pending abstract changes from parent classes to the local class
 
-            // get parent's abstract method map
-            AbstractMethodMap& mm = (*i)->sclass->priv->ahm;
+                // get parent's abstract method map
+                AbstractMethodMap& mm = (*i)->sclass->priv->ahm;
 
-            // iterate parent's method map and merge parent changes to our method map
-            for (amap_t::iterator ai = mm.begin(), ae = mm.end(); ai != ae; ++ai) {
-               amap_t::iterator vi = ahm.find(ai->first);
-               //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' checking '%s::%s()' found: %d\n", this, name.c_str(), (*i)->sclass->getName(), ai->first.c_str(), vi != ahm.end());
-               if (vi != ahm.end()) {
-                  vi->second->parseMergeBase(*(ai->second));
-                  continue;
-               }
-               AbstractMethod* m = new AbstractMethod;
-               // see if there are pending normal variants...
-               hm_method_t::iterator mi = hm.find(ai->first);
-               //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' looking for local '%s': %d\n", this, name.c_str(), ai->first.c_str(), mi != hm.end());
-               m->parseMergeBase(*(ai->second), mi == hm.end() ? 0 : mi->second->getFunction());
-               if (m->empty())
-                  delete m;
-               else
-                  ahm.insert(amap_t::value_type(ai->first, m));
-               //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), name.c_str(), ai->first.c_str());
+                // iterate parent's method map and merge parent changes to our method map
+                for (amap_t::iterator ai = mm.begin(), ae = mm.end(); ai != ae; ++ai) {
+                    amap_t::iterator vi = ahm.find(ai->first);
+                    //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' checking '%s::%s()' found: %d\n", this, name.c_str(), (*i)->sclass->getName(), ai->first.c_str(), vi != ahm.end());
+                    if (vi != ahm.end()) {
+                        vi->second->parseMergeBase(*(ai->second));
+                        continue;
+                    }
+                    AbstractMethod* m = new AbstractMethod;
+                    // see if there are pending normal variants...
+                    hm_method_t::iterator mi = hm.find(ai->first);
+                    //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' looking for local '%s': %d\n", this, name.c_str(), ai->first.c_str(), mi != hm.end());
+                    m->parseMergeBase(*(ai->second), mi == hm.end() ? 0 : mi->second->getFunction());
+                    if (m->empty())
+                        delete m;
+                    else
+                        ahm.insert(amap_t::value_type(ai->first, m));
+                    //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), name.c_str(), ai->first.c_str());
+                }
             }
-         }
-      }
-   }
+        }
+    }
 
-   if (!has_new_user_changes)
-      return;
+    if (!has_new_user_changes)
+        return;
 
-   // do processing related to parent classes
-   if (scl) {
-      // setup inheritance list for new methods
-      for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
-         bool is_new = i->second->priv->func->committedEmpty();
+    // do processing related to parent classes
+    if (scl) {
+        // setup inheritance list for new methods
+        for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i) {
+            bool is_new = i->second->priv->func->committedEmpty();
 
-         //printd(5, "class_private::parseInitPartialIntern() this: %p %s::%s is_new: %d cs: %d (%s)\n", this, name.c_str(), i->first.c_str(), is_new, checkSpecial(i->second->getName()), i->second->getName());
+            //printd(5, "class_private::parseInitPartialIntern() this: %p %s::%s is_new: %d cs: %d (%s)\n", this, name.c_str(), i->first.c_str(), is_new, checkSpecial(i->second->getName()), i->second->getName());
 
-         if (is_new && !checkSpecial(i->second->getName()))
-            parseAddAncestors(i->second);
-      }
+            if (is_new && !checkSpecial(i->second->getName()))
+                parseAddAncestors(i->second);
+        }
 
-      // setup inheritance list for new static methods
-      for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
-         bool is_new = i->second->priv->func->committedEmpty();
-         if (is_new)
-            parseAddStaticAncestors(i->second);
-      }
-   }
+        // setup inheritance list for new static methods
+        for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
+            bool is_new = i->second->priv->func->committedEmpty();
+            if (is_new)
+                parseAddStaticAncestors(i->second);
+        }
+    }
 }
 
 void qore_class_private::parseInit() {
@@ -4034,8 +4084,9 @@ void qore_class_private::parseInit() {
     initialize();
 
     //printd(5, "qore_class_private::parseInit() this: %p '%s' parse_init_called: %d parse_init_partial_called: %d\n", this, name.c_str(), parse_init_called, parse_init_partial_called);
-    if (parse_init_called)
+    if (parse_init_called) {
         return;
+    }
 
     parse_init_called = true;
 
@@ -4058,41 +4109,66 @@ void qore_class_private::parseInit() {
         for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i) {
             i->second->priv->parseInitStatic();
         }
-        // search for new concrete variants of abstract variants last
-        ahm.parseInit(*this, scl);
     }
 
     //printd(5, "qore_class_private::parseInit() this: %p cls: %p %s scl: %p\n", this, cls, name.c_str(), scl);
 }
 
+void qore_class_private::parseResolveHierarchy() {
+    if (!parse_resolve_hierarchy) {
+        parse_resolve_hierarchy = true;
+
+        if (!scl)
+            return;
+
+        qcp_set_t qcp_set = {this};
+        // issue #2657: initialize class hierarchy first before initializing code and members
+        initializeHierarchy(qcp_set);
+    }
+}
+
+void qore_class_private::parseResolveAbstract() {
+    if (!parse_resolve_abstract) {
+        parse_resolve_abstract = true;
+
+        if (!scl)
+            return;
+
+        scl->parseResolveAbstract();
+
+        // search for new concrete variants of abstract variants last
+        ahm.parseInit(*this, scl);
+    }
+}
+
 void qore_class_private::recheckBuiltinMethodHierarchy() {
-   initialize();
+    initialize();
 
-   if (!scl)
-      return;
+    if (!scl)
+        return;
 
-   for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      scl->addNewAncestors(i->second);
+    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+        scl->addNewAncestors(i->second);
 
-   for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
-      scl->addNewStaticAncestors(i->second);
+    for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
+        scl->addNewStaticAncestors(i->second);
 }
 
 void qore_class_private::resolveCopy() {
-   if (resolve_copy_done)
-      return;
+    if (resolve_copy_done)
+        return;
 
-   resolve_copy_done = true;
+    resolve_copy_done = true;
 
-   // resolve inheritance lists in methods
-   for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
-      i->second->priv->func->resolveCopy();
+    // resolve inheritance lists in methods
+    for (hm_method_t::iterator i = hm.begin(), e = hm.end(); i != e; ++i)
+        i->second->priv->func->resolveCopy();
 
-   for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
-      i->second->priv->func->resolveCopy();
+    for (hm_method_t::iterator i = shm.begin(), e = shm.end(); i != e; ++i)
+        i->second->priv->func->resolveCopy();
 
-   if (scl)
-      scl->resolveCopy();
+    if (scl)
+        scl->resolveCopy();
 }
 
 int qore_class_private::checkExistingVarMember(const char* dname, const QoreMemberInfoBaseAccess* mi, const QoreMemberInfoBaseAccess* omi, const qore_class_private* qc, ClassAccess oaccess, bool var) const {
@@ -4516,21 +4592,22 @@ void MethodFunctionBase::replaceAbstractVariant(MethodVariantBase* variant) {
 
 // if an identical signature is found to the passed variant, then it is removed from the abstract list
 MethodVariantBase* MethodFunctionBase::parseHasVariantWithSignature(MethodVariantBase* v) const {
-   v->parseResolveUserSignature();
-   AbstractFunctionSignature& sig = *(v->getSignature());
-   for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
-      (*i)->parseResolveUserSignature();
-      if ((*i)->isSignatureIdentical(sig))
-         return reinterpret_cast<MethodVariantBase*>(*i);
-   }
-   return 0;
+    v->parseResolveUserSignature();
+    AbstractFunctionSignature& sig = *(v->getSignature());
+    for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
+        (*i)->parseResolveUserSignature();
+        if ((*i)->isSignatureIdentical(sig))
+            return reinterpret_cast<MethodVariantBase*>(*i);
+    }
+    return nullptr;
 }
 
 QoreValue UserMethodVariant::evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
-   VRMutexOptionalLockHelper vrmolh(synchronized ? (self ? qore_object_private::get(*self)->getGate() : ceh.getClass()->getGate()) : 0, xsink);
-   if (*xsink)
-      return QoreValue();
-   return eval(qmethod->getName(), &ceh, self, xsink, getClassPriv());
+    VRMutexOptionalLockHelper vrmolh(synchronized ? (self ? qore_object_private::get(*self)->getGate() : ceh.getClass()->getGate()) : 0, xsink);
+    if (*xsink)
+        return QoreValue();
+    //printd(5, "UserMethodVariant::evalMethod() this: %p %s::%s()\n", this, getClassPriv()->name.c_str(), qmethod->getName());
+    return eval(qmethod->getName(), &ceh, self, xsink, getClassPriv());
 }
 
 void BuiltinConstructorValueVariant::evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
@@ -4814,42 +4891,42 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 QoreValue NormalMethodFunction::evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, QoreObject* self, const QoreListNode* args, const qore_class_private* cctx) const {
-   const char* cname = getClassName();
-   const char* mname = getName();
-   //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
+    const char* cname = getClassName();
+    const char* mname = getName();
+    //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
 
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, self, qore_class_private::get(*qc), CT_UNUSED, false, cctx);
-   if (*xsink)
-      return QoreValue();
+    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, self, qore_class_private::get(*qc), CT_UNUSED, false, cctx);
+    if (*xsink)
+        return QoreValue();
 
-   const MethodVariant* mv = METHV_const(variant);
-   if (mv->isAbstract()) {
-      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", cname, mname, mv->getSignature()->getSignatureText());
-      return QoreValue();
-   }
-   //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s) variant: %p, mv: %p priv: %d access: %d (%p %s)\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()), runtime_get_class(), runtime_get_class() ? runtime_get_class()->name.c_str() : "n/a");
+    const MethodVariant* mv = METHV_const(variant);
+    if (mv->isAbstract()) {
+        xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", cname, mname, mv->getSignature()->getSignatureText());
+        return QoreValue();
+    }
+    //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s, v: %s) variant: %p, mv: %p priv: %d access: %d (%p %s)\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()), runtime_get_class(), runtime_get_class() ? runtime_get_class()->name.c_str() : "n/a");
 
-   return mv->evalMethod(self, ceh, xsink);
+    return mv->evalMethod(self, ceh, xsink);
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 QoreValue NormalMethodFunction::evalMethodTmpArgs(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, QoreObject* self, QoreListNode* args, const qore_class_private* cctx) const {
-   const char* cname = getClassName();
-   const char* mname = getName();
-   //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
+    const char* cname = getClassName();
+    const char* mname = getName();
+    //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
 
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, self, qore_class_private::get(*qc), CT_UNUSED, false, cctx);
-   if (*xsink)
-      return QoreValue();
+    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, self, qore_class_private::get(*qc), CT_UNUSED, false, cctx);
+    if (*xsink)
+        return QoreValue();
 
-   const MethodVariant* mv = METHV_const(variant);
-   if (mv->isAbstract()) {
-      xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", cname, mname, mv->getSignature()->getSignatureText());
-      return QoreValue();
-   }
-   //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s) variant: %p, mv: %p priv: %d access: %d (%p %s)\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()), runtime_get_class(), runtime_get_class() ? runtime_get_class()->name.c_str() : "n/a");
+    const MethodVariant* mv = METHV_const(variant);
+    if (mv->isAbstract()) {
+        xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly", cname, mname, mv->getSignature()->getSignatureText());
+        return QoreValue();
+    }
+    //printd(5, "NormalMethodFunction::evalMethod() %s::%s(%s) (self: %s) variant: %p, mv: %p priv: %d access: %d (%p %s)\n",getClassName(), mname, mv->getSignature()->getSignatureText(), self->getClass()->getName(), variant, mv, mv->isPrivate(), qore_class_private::runtimeCheckPrivateClassAccess(*mv->getClass()), runtime_get_class(), runtime_get_class() ? runtime_get_class()->name.c_str() : "n/a");
 
-   return mv->evalMethod(self, ceh, xsink);
+    return mv->evalMethod(self, ceh, xsink);
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
@@ -4874,32 +4951,32 @@ QoreValue StaticMethodFunction::evalMethod(ExceptionSink* xsink, const AbstractQ
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 QoreValue StaticMethodFunction::evalMethodTmpArgs(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant, QoreListNode* args, const qore_class_private* cctx) const {
-   const char* mname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, mname, args, 0, qore_class_private::get(*qc), CT_UNUSED, false, cctx);
-   if (*xsink)
-      return QoreValue();
+    const char* mname = getName();
+    CodeEvaluationHelper ceh(xsink, this, variant, mname, args, 0, qore_class_private::get(*qc), CT_UNUSED, false, cctx);
+    if (*xsink)
+        return QoreValue();
 
-   return METHV_const(variant)->evalMethod(0, ceh, xsink);
+    return METHV_const(variant)->evalMethod(0, ceh, xsink);
 }
 
 const qore_class_private* MethodVariantBase::getClassPriv() const {
-   return qore_class_private::get(*(qmethod->getClass()));
+    return qore_class_private::get(*(qmethod->getClass()));
 }
 
 const char* MethodVariantBase::getAbstractSignature() {
-   if (asig.empty())
-      getSignature()->addAbstractParameterSignature(asig);
-   return asig.c_str();
+    if (asig.empty())
+        getSignature()->addAbstractParameterSignature(asig);
+    return asig.c_str();
 }
 
 QoreValue BuiltinNormalMethodVariantBase::evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-   CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), self, qore_class_private::get(*qmethod->getClass()));
-   return qore_object_private::evalBuiltinMethodWithPrivateData(*self, *qmethod, this, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
+    CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName(), self, qore_class_private::get(*qmethod->getClass()));
+    return qore_object_private::evalBuiltinMethodWithPrivateData(*self, *qmethod, this, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
 }
 
 QoreValue BuiltinNormalMethodVariantBase::evalPseudoMethod(const QoreValue n, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
-   CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName());
-   return evalImpl(NULL, (AbstractPrivateData*)&n, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
+    CodeContextHelper cch(xsink, CT_BUILTIN, qmethod->getName());
+    return evalImpl(NULL, (AbstractPrivateData*)&n, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
 }
 
 class qmi_priv {

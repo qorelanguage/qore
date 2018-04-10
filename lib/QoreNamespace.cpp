@@ -459,12 +459,6 @@ void qore_ns_private::addNamespace(qore_ns_private* nns) {
         addCommitNamespaceIntern(nns);
 }
 
-void QoreNamespaceList::deleteAll() {
-   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      delete i->second;
-   nsmap.clear();
-}
-
 void qore_ns_private::updateDepthRecursive(unsigned ndepth) {
     //printd(5, "qore_ns_private::updateDepthRecursive(ndepth: %d) this: %p '%s' curr depth: %d\n", ndepth, this, name.c_str(), depth);
     assert(depth <= ndepth);
@@ -519,6 +513,19 @@ void qore_ns_private::addBuiltinVariantIntern(const char* fname, AbstractQoreFun
 
     assert(fe->getNamespace() == this);
     rns->fmap.update(fe->getName(), fe);
+}
+
+void QoreNamespaceList::deleteAll() {
+    for (auto& i : nsmap) {
+        delete i.second;
+    }
+    nsmap.clear();
+}
+
+void QoreNamespaceList::addGlobalVars(gvlist_t& gvlist) {
+    for (auto& i : nsmap) {
+        i.second->priv->addGlobalVars(gvlist);
+    }
 }
 
 void QoreNamespaceList::parseAssimilate(QoreNamespaceList& n, qore_ns_private* parent) {
@@ -656,8 +663,21 @@ void QoreNamespaceList::deleteAllConstants(ExceptionSink* xsink) {
 }
 
 void QoreNamespaceList::parseInit() {
-   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      i->second->priv->parseInit();
+    for (auto& i : nsmap) {
+        i.second->priv->parseInit();
+    }
+}
+
+void QoreNamespaceList::parseResolveHierarchy() {
+    for (auto& i : nsmap) {
+        i.second->priv->parseResolveHierarchy();
+    }
+}
+
+void QoreNamespaceList::parseResolveAbstract() {
+    for (auto& i : nsmap) {
+        i.second->priv->parseResolveAbstract();
+    }
 }
 
 void QoreNamespaceList::parseCommit() {
@@ -1869,7 +1889,21 @@ void qore_ns_private::parseAddGlobalVarDecl(const QoreProgramLocation* loc, char
     checkGlobalVarDecl(e.var, *e.name);
 }
 
-bool qore_root_ns_private::parseResolveGlobalVarsIntern() {
+void qore_root_ns_private::parseInit() {
+    qore_ns_private::parseInitGlobalVars();
+    qore_ns_private::parseInitConstants();
+    qore_ns_private::parseInit();
+    qore_ns_private::parseResolveAbstract();
+
+    if (!deferred_new_check_vec.empty()) {
+        for (auto& i : deferred_new_check_vec) {
+            i.qc->parseCheckAbstractNew(i.loc);
+        }
+        deferred_new_check_vec.clear();
+    }
+}
+
+bool qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchiesIntern() {
     bool retVal = true;
     for (gvlist_t::iterator i = pend_gvlist.begin(), e = pend_gvlist.end(); i != e; ++i) {
         // resolve namespace
@@ -1895,6 +1929,11 @@ bool qore_root_ns_private::parseResolveGlobalVarsIntern() {
         varmap.update(v->getName(), tns, v);
     }
     pend_gvlist.clear();
+
+    if (retVal) {
+        parseResolveHierarchy();
+    }
+
     return retVal;
 }
 
@@ -1954,6 +1993,9 @@ Var* qore_root_ns_private::parseCheckImplicitGlobalVarIntern(const QoreProgramLo
 }
 
 void qore_root_ns_private::parseAddNamespaceIntern(QoreNamespace* nns) {
+    // take all global variables
+    nns->priv->addGlobalVars(pend_gvlist);
+
     qore_ns_private* ns = qore_ns_private::parseAddNamespace(nns);
     // issue #2735: do not reindex namespaces where parse errors have occurred
     if (!ns || qore_program_private::get(*getProgram())->parseExceptionRaised())
@@ -1963,12 +2005,14 @@ void qore_root_ns_private::parseAddNamespaceIntern(QoreNamespace* nns) {
 
     //printd(5, "qore_root_ns_private::parseAddNamespaceIntern() this: %p ns: %p\n", this, ns);
 
+    /*
     // take global variable decls
     for (unsigned i = 0; i < ns->pend_gvblist.size(); ++i) {
         //printd(5, "qore_root_ns_private::parseAddNamespaceIntern() merging global var decl '%s::%s' into the root list\n", ns->name.c_str(), ns->pend_gvblist[i].name->ostr);
         pend_gvlist.push_back(GVEntry(ns->pend_gvblist[i], ns));
     }
     ns->pend_gvblist.zero();
+    */
 
     {
         QorePrivateNamespaceIterator qpni(ns);
@@ -2006,6 +2050,16 @@ void qore_ns_private::parseInit() {
 
     // do 2nd stage parse initialization in subnamespaces
     nsl.parseInit();
+}
+
+void qore_ns_private::parseResolveHierarchy() {
+    classList.parseResolveHierarchy();
+    nsl.parseResolveHierarchy();
+}
+
+void qore_ns_private::parseResolveAbstract() {
+    classList.parseResolveAbstract();
+    nsl.parseResolveAbstract();
 }
 
 void qore_ns_private::parseCommit() {
@@ -2055,10 +2109,21 @@ void qore_ns_private::parseRollback(ExceptionSink* xsink) {
     nsl.parseRollback(xsink);
 }
 
+void qore_ns_private::addGlobalVars(gvlist_t& pend_gvlist) {
+    // take global variable decls
+    for (unsigned i = 0; i < pend_gvblist.size(); ++i) {
+        //printd(5, "qore_root_ns_private::parseAddNamespaceIntern() merging global var decl '%s::%s' into the root list\n", ns->name.c_str(), ns->pend_gvblist[i].name->ostr);
+        pend_gvlist.push_back(GVEntry(pend_gvblist[i], this));
+    }
+    pend_gvblist.zero();
+
+    nsl.addGlobalVars(pend_gvlist);
+}
+
 qore_ns_private* qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
     std::unique_ptr<QoreNamespace> nnsh(nns);
 
-    //printd(5, "qore_ns_private::parseAddNamespace() this: %p '%s::' adding '%s' pub: %d nns->pub: %d\n", this, name.c_str(), nns->getName(), pub, nns->priv->pub);
+    //printd(5, "qore_ns_private::parseAddNamespace() this: %p '%s::' adding '%s' pub: %d nns->pub: %d gvars: %d\n", this, name.c_str(), nns->getName(), pub, nns->priv->pub, nns->priv->pend_gvblist.size());
 
     if (!pub && nns->priv->pub && parse_check_parse_option(PO_IN_MODULE))
         qore_program_private::makeParseWarning(getProgram(), *nns->priv->loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "namespace '%s::%s' is declared public but the enclosing namespace '%s::' is not public", name.c_str(), nns->getName(), name.c_str());
@@ -2363,6 +2428,7 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
     func_list.assimilate(pns->func_list, this);
 
     // assimilate pending global variable declarations
+    //printd(5, "qore_ns_private::parseAssimilate() this: %p assimilating %p (%d -> %d gvars)\n", this, pns, pend_gvblist.size(), pns->pend_gvblist.size());
     assert(pend_gvblist.empty());
     pend_gvblist = pns->pend_gvblist;
     pns->pend_gvblist.zero();
