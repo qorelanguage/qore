@@ -101,7 +101,9 @@ public:
     DLLLOCAL QoreClass* find(const char* name);
     DLLLOCAL const QoreClass* find(const char* name) const;
     DLLLOCAL void resolveCopy();
+    DLLLOCAL void parseResolveHierarchy();
     DLLLOCAL void parseInit();
+    DLLLOCAL void parseResolveAbstract();
     DLLLOCAL void parseRollback();
     DLLLOCAL void parseCommit();
     DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);

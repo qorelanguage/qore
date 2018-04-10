@@ -60,6 +60,60 @@ typedef std::map<std::string, QoreNamespace*> nsmap_t;
 class qore_ns_private;
 class qore_root_ns_private;
 
+struct GVEntryBase {
+    NamedScope* name;
+    Var* var;
+
+    DLLLOCAL GVEntryBase(const NamedScope& n, Var* v) : name(new NamedScope(n)), var(v) {
+    }
+
+    DLLLOCAL GVEntryBase(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo);
+
+    DLLLOCAL GVEntryBase(const GVEntryBase& old) : name(old.name), var(old.var) {
+    }
+
+    DLLLOCAL void clear();
+
+    DLLLOCAL Var* takeVar() {
+        Var* rv = var;
+        var = nullptr;
+        return rv;
+    }
+};
+
+struct GVEntry : public GVEntryBase {
+    qore_ns_private* ns;
+
+    DLLLOCAL GVEntry(qore_ns_private* n_ns, const NamedScope& n, Var* v) : GVEntryBase(n, v), ns(n_ns) {
+    }
+
+    DLLLOCAL GVEntry(const GVEntry& old) : GVEntryBase(old), ns(old.ns) {
+    }
+
+    DLLLOCAL GVEntry(const GVEntryBase& old, qore_ns_private* n_ns) : GVEntryBase(old), ns(n_ns) {
+    }
+};
+
+template <class T>
+struct GVList : public std::vector<T> {
+    DLLLOCAL ~GVList() {
+        clear();
+    }
+
+    DLLLOCAL void clear() {
+        for (typename GVList<T>::iterator i = std::vector<T>::begin(), e = std::vector<T>::end(); i != e; ++i)
+            (*i).clear();
+        std::vector<T>::clear();
+    }
+
+    DLLLOCAL void zero() {
+        std::vector<T>::clear();
+    }
+};
+
+typedef GVList<GVEntryBase> gvblist_t;
+typedef GVList<GVEntry> gvlist_t;
+
 class QoreNamespaceList {
 private:
     DLLLOCAL void deleteAll();
@@ -108,7 +162,9 @@ public:
     DLLLOCAL void clearData(ExceptionSink* sink);
     DLLLOCAL void deleteGlobalVars(ExceptionSink* sink);
 
+    DLLLOCAL void parseResolveHierarchy();
     DLLLOCAL void parseInit();
+    DLLLOCAL void parseResolveAbstract();
     DLLLOCAL void parseCommit();
     DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* sink);
     DLLLOCAL void parseRollback(ExceptionSink* sink);
@@ -117,6 +173,8 @@ public:
 
     DLLLOCAL void parseAssimilate(QoreNamespaceList& n, qore_ns_private* parent);
     DLLLOCAL void runtimeAssimilate(QoreNamespaceList& n, qore_ns_private* parent);
+
+    DLLLOCAL bool addGlobalVars(qore_root_ns_private& rns);
 
     DLLLOCAL void deleteData(bool deref_vars, ExceptionSink *xsink);
 

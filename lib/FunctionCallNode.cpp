@@ -130,8 +130,13 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
             if (qc) {
                 assert(dynamic_cast<const MethodVariantBase*>(variant));
                 const MethodVariantBase* mv = reinterpret_cast<const MethodVariantBase*>(variant);
-                if (mv->isAbstract())
+                if (mv->isAbstract()) {
+                    //printd(5, "FunctionCallBase::parseArgsVariant() found abstract %s::%s\n", qc->getName(), func->getName());
                     variant = nullptr;
+                    returnTypeInfo = nullptr;
+                    func = nullptr;
+                    return lvids;
+                }
                 else if (mv->isPrivate() && !qore_class_private::parseCheckPrivateClassAccess(*qc))
                     parse_error(*loc, "illegal call to private method variant %s::%s(%s)", qc->getName(), func->getName(), variant->getSignature()->getSignatureText());
             }
@@ -298,9 +303,9 @@ QoreString* FunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xs
     return rv;
 }
 
+static void breakit() {}
 // eval(): return value requires a deref(xsink)
 QoreValue FunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    //printd(5, "FunctionCallNode::evalImpl() calling %s() current pgm: %p new pgm: %p\n", func->getName(), ::getProgram(), pgm);
     QoreFunction* func = fe->getFunction();
     return tmp_args
         ? func->evalFunctionTmpArgs(variant, args, pgm, xsink)
