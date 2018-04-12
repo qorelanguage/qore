@@ -286,10 +286,12 @@ StaticTextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             p = new Program(po);
             p.setScriptPath(sprintf("Qore::WebUtil::%s", self.className()));
             # ensure old style for embedded Programs
-            if (!(po & PO_ALLOW_BARE_REFS))
+            if (!(po & PO_ALLOW_BARE_REFS)) {
                 p.disableParseOptions(PO_ALLOW_BARE_REFS);
-            if (!(po & PO_ASSUME_LOCAL))
+            }
+            if (!(po & PO_ASSUME_LOCAL)) {
                 p.disableParseOptions(PO_ASSUME_LOCAL);
+            }
         }
 
         #! returns the contained Program object
@@ -541,6 +543,9 @@ tm.add("/html/index.qhtml", qhtml);
             TextTemplateBase ttb();
             toh{name} = ttb;
 
+            # allow for the contained Program container to be customized
+            setupProgram(ttb.getProgram());
+
             src = StaticTextTemplateBase::add(ttb.getProgram(), fn, name, src);
 
             # derive content type if necessary
@@ -629,6 +634,10 @@ hash h = tm.render("html/index.qhtml", ctx);
         #! returns a list of template names, an empty list is returned if there are no templates
         list getTemplateList() {
             return th.keys();
+        }
+
+        #! override in subclasses to customize the setup of template Programs; this method performs no action
+        setupProgram(Program p) {
         }
     }
 
