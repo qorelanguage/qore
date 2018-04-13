@@ -37,9 +37,10 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
             ("type": "item", "record": ("type": 2, "item_no": 124, "item": "Nokia, Lumia", "pcs": 2, "price": 150)),
             ("type": "footer", "record": ("type": 3, "total": 250)),
         );
-}
+    }
 
     constructor() : Test("CsvUtilTest", "1.0") {
+        addTestCase("issue 2746 test", \issue2746());
         addTestCase("Basic CSV tests", \csvTest());
         addTestCase("Optional field CSV tests", \csvOptionalFieldTest());
         addTestCase("Multi-type CSV tests", \csvMultiTest());
@@ -55,6 +56,39 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue2746() {
+        hash opts = {
+            "header-names": False,
+            "headers": ("CC", "serno", "desc", "received", "na1",),
+        };
+
+        {
+            CsvDataIterator i(CsvInput, opts);
+            list<auto> l = map $1.na1, i;
+            assertEq((NOTHING, NOTHING, NOTHING, NOTHING, ), l);
+        }
+
+        {
+            CsvDataIterator i(CsvInput, opts + {"compat_force_empty_string": True});
+            list<auto> l = map $1.na1, i;
+            assertEq(("", "", "", "",), l);
+        }
+
+        {
+            csvutil_set_global_compat_force_empty_string(True);
+            CsvDataIterator i(CsvInput, opts);
+            list<auto> l = map $1.na1, i;
+            assertEq(("", "", "", "",), l);
+        }
+
+        {
+            csvutil_set_global_compat_force_empty_string(False);
+            CsvDataIterator i(CsvInput, opts);
+            list<auto> l = map $1.na1, i;
+            assertEq((NOTHING, NOTHING, NOTHING, NOTHING, ), l);
+        }
     }
 
     csvTest() {
