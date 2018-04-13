@@ -1908,7 +1908,7 @@ void qore_root_ns_private::parseInit() {
 
     if (!deferred_new_check_vec.empty()) {
         for (auto& i : deferred_new_check_vec) {
-            i.qc->parseCheckAbstractNew(i.loc);
+            i.qc->parseDoCheckAbstractNew(i.loc);
         }
         deferred_new_check_vec.clear();
     }
