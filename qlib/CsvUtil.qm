@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file CsvUtil.qm Qore user module for working with CSV files
 
-/*  CsvUtil.qm Copyright 2012 - 2017 Qore Technologies, s.r.o.
+/*  CsvUtil.qm Copyright 2012 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 %enable-all-warnings
 
 module CsvUtil {
-    version = "1.6";
+    version = "1.6.1";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -244,6 +244,12 @@ while (i.next()) {
 
     @section csvutil_relnotes Release Notes
 
+    @subsection csvutil_v1_6_1 Version 1.6.1
+    - implemented the @ref CsvUtil::csvutil_set_global_compat_force_empty_string() function and the
+    \c compat_force_empty_string CSV parsing option to force "*string" fields with no
+    value to return an empty string when parsing rather than @ref nothing for backwards compatibility
+    with very early versions of CsvUtil (<a href="https://github.com/qorelanguage/qore/issues/2476">issue 2476</a>)
+
     @subsection csvutil_v1_6 Version 1.6
     - added support for streams; the following stream-based classes have been added:
       - @ref CsvUtil::CsvIterator "CsvIterator": provides a more generic interface than @ref CsvUtil::CsvDataIterator "CsvDataIterator" and @ref CsvUtil::CsvFileIterator "CsvFileIterator"
@@ -340,7 +346,6 @@ class CsvHelper {
 
         # reorder data according headers set by options.headers or read from CsvHeader
         bool headerReorder = True;
-
     }
 
     #! @param n_errname class name used in exception to identify class
@@ -557,6 +562,14 @@ public namespace CsvUtil {
     #! Record type when multi-type is disabled
     public const CSV_TYPE_SINGLE = "<single>";
 
+    #! global option to force "*string" fields with no value to return an empty string when parsing rather than @ref nothing for backwards compatibility with very early versions of CsvUtil
+    our bool global_compat_force_empty_string;
+
+    #! sets the \c global_compat_force_empty_string variable to force "*string" fields with no value to return an empty string when parsing rather than @ref nothing for backwards compatibility with very early versions of CsvUtil
+    public sub csvutil_set_global_compat_force_empty_string(softbool val) {
+        global_compat_force_empty_string = val;
+    }
+
     #! the AbstractCsvIterator class is an abstract base class that allows abstract CSV data to be iterated
     /**
         @section abstractcsviterator_options AbstractCsvIterator Constructor Option Hash Overview
@@ -639,6 +652,7 @@ public namespace CsvUtil {
         private {
             #! valid options for the object (a hash for quick lookups of valid keys)
             const Options = (
+                "compat_force_empty_string": C_OPT1|C_OPT2,
                 "date_format": C_OPT1|C_OPT2,
                 "date-format": C_OPT1|C_OPT2,
                 "encoding": C_OPT1|C_OPT2,
@@ -689,6 +703,9 @@ public namespace CsvUtil {
 
             # getRecord/getValue returns extended hash
             bool extendedRecord = False;
+
+            # force "*string" fields with no value to return an empty string rather than @ref nothing for backwards compatibility with very early versions of CsvUtil
+            bool compat_force_empty_string = False;
 
             # column count for verifying column counts
             int cc;
@@ -766,6 +783,10 @@ public namespace CsvUtil {
                 if (!exists Options.(i.key) || ((Options.(i.key) & C_OPTx) == 0))
                     throw errname, sprintf("unknown option %y passed to AbstractCsvIterator::constructor() (valid options: %y)", i.key, (select Options.keys(), (Options.$1 & C_OPTx) != 0));
                 switch (i.key) {
+                    case "compat_force_empty_string": {
+                        compat_force_empty_string = parse_boolean(i.value);
+                        break;
+                    }
                     case "date_format":
                     case "date-format": {
                         if (i.value.typeCode() != NT_STRING)
@@ -1128,9 +1149,14 @@ while (i.next()) {
             auto rv;
             string type = fh.type;
             # if it's an "or nothing" type and there is no value, then return nothing
-            if (type =~ /^\*/) { #/){
-                if (val.empty())
+            if (type =~ /^\*/) {
+                if (val.empty()) {
+                    # see if the "compat force empty string" option is set (either local or global)
+                    if ((global_compat_force_empty_string || compat_force_empty_string) && type == "*string") {
+                        return "";
+                    }
                     return NOTHING;
+                }
                 splice type, 0, 1;
             }
 
