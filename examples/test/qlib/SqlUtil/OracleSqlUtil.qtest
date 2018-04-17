@@ -419,6 +419,9 @@ class OracleTest inherits SqlTestBase {
         AbstractDatasource ds = table.getDatasource();
         ds.exec("create table test_oracle_syn (dummy varchar2(1))");
         ds.exec("insert into test_oracle_syn values ('X')");
+        # issue #2757 OracleSqlUtil: synonym resolving can fail with duplicated object name
+        # some people are crazy to create objects with the same name for table and eg. index
+        ds.exec("create index test_oracle_syn on test_oracle_syn (dummy)");
         ds.exec("create or replace synonym oracle_test_syn1 for test_oracle_syn");
         ds.exec("create or replace synonym oracle_test_syn2 for oracle_test_syn1");
         ds.exec("create or replace synonym oracle_test_syn3 for oracle_test_syn2");
