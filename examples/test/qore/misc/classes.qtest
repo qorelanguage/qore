@@ -283,6 +283,18 @@ public class ClassesTest inherits QUnit::Test {
         assertEq(3, c.t2(1));
         assertEq(3, c.ta());
         assertEq(2, c.t(1));
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.importClass("Issue2741_N");
+            assertThrows("ABSTRACT-CLASS-ERROR", \p.parse(), ("sub t() {new Issue2741_N();}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.importClass("Issue2741_B");
+            assertThrows("ABSTRACT-CLASS-ERROR", \p.parse(), ("sub t() {new Issue2741_B();}", ""));
+        }
     }
 
     issue2380() {
