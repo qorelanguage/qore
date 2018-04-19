@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -89,9 +89,9 @@ public:
       params[1] = statement ? new QoreBigIntNode(pgm->getStatementId(statement)) : 0;
       /*
       if (!params[0]->getAsInt())
-         printd(5, "QoreDebugProgramWithCoreObject::onStep::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.file, blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
+         printd(5, "QoreDebugProgramWithCoreObject::onStep::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.getFile(), blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
       if (statement && !params[1]->getAsInt()) {
-         printd(5, "QoreDebugProgramWithCoreObject::onStep::statement:%s:%d-%d:%s\n", statement->loc.file, statement->loc.start_line, statement->loc.end_line, typeid(statement).name());
+         printd(5, "QoreDebugProgramWithCoreObject::onStep::statement:%s:%d-%d:%s\n", statement->loc.getFile(), statement->loc.start_line, statement->loc.end_line, typeid(statement).name());
       }*/
       params[2] = bkptId > 0 ? new QoreBigIntNode(bkptId): 0;
       // LocalVar will sanitize and discard non-node values so we cannot use the ReferenceHolder
@@ -108,7 +108,7 @@ public:
       params[0] = new QoreBigIntNode(pgm->getStatementId(blockStatement));
       /*
       if (!params[0]->getAsInt())
-         printd(5, "QoreDebugProgramWithCoreObject::onFunctionEnter::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.file, blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
+         printd(5, "QoreDebugProgramWithCoreObject::onFunctionEnter::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.getFile(), blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
       */
       callMethod("onFunctionEnter", pgm, 1, params, rs, xsink, xsink2);
    }
@@ -118,7 +118,7 @@ public:
       params[0] = new QoreBigIntNode(pgm->getStatementId(blockStatement));
       /*
       if (!params[0]->getAsInt())
-         printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.file, blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
+         printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.getFile(), blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
       */
       //printd(5, "QoreDebugProgramWithCoreObject::onFunctionExit() getRetValue#0: type: %d, in: %p\n", returnValue.type, returnValue.getInternalNode());
       ReferenceArgumentHelper rah(returnValue, &xsink2);
@@ -133,7 +133,7 @@ public:
       params[0] = new QoreBigIntNode(pgm->getStatementId(statement));
       /*
       if (!params[0]->getAsInt())
-         printd(5, "QoreDebugProgramWithCoreObject::onException::statement:%s:%d-%d:%s\n", statement->loc.file, statement->loc.start_line, statement->loc.end_line, typeid(statement).name());
+         printd(5, "QoreDebugProgramWithCoreObject::onException::statement:%s:%d-%d:%s\n", statement->loc.getFile(), statement->loc.start_line, statement->loc.end_line, typeid(statement).name());
       */
       QoreException* except = xsink->getException();
       params[1] = except->makeExceptionObject();
@@ -153,7 +153,7 @@ public:
       params[0] = new QoreBigIntNode(pgm->getStatementId(blockStatement));
       /*
       if (!params[0]->getAsInt())
-         printd(5, "QoreDebugProgramWithCoreObject::onExit::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.file, blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
+         printd(5, "QoreDebugProgramWithCoreObject::onExit::blockStatement:%s:%d-%d:%s\n", blockStatement->loc.getFile(), blockStatement->loc.start_line, blockStatement->loc.end_line, typeid(blockStatement).name());
       */
       //printd(5, "QoreDebugProgramWithCoreObject::onExit() getRetValue#0: type: %d, in: %p\n", returnValue.type, returnValue.getInternalNode());
       ReferenceArgumentHelper rah(returnValue, &xsink2);

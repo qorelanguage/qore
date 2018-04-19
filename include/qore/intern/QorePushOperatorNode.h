@@ -40,7 +40,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QorePushOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreUnshiftOperatorNode(loc, n_left, n_right) {
+   DLLLOCAL QorePushOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreUnshiftOperatorNode(loc, n_left, n_right) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,127 +37,127 @@ static inline void strindent(QoreString *s, int indent) {
       s->concat(' ');
 }
 
-static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, ExceptionSink *xsink) {
-   if (!n) {
-      s->concat("node=NULL");
-      return;
-   }
+static void dni(QoreStringNode *s, const QoreValue n, int indent, ExceptionSink *xsink) {
+    if (n.isNothing()) {
+        s->concat("node=NULL");
+        return;
+    }
 
-   s->sprintf("node=%p refs=%d type=%s ", n, n->reference_count(), n->getTypeName());
+    s->sprintf("node=%p refs=%d type=%s ", n.getInternalNode(), n.getInternalNode() ? n.getInternalNode()->reference_count() : 0, n.getTypeName());
 
-   qore_type_t ntype = n->getType();
+    qore_type_t ntype = n.getType();
 
-   if (ntype == NT_STRING) {
-      const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(n);
-      s->sprintf("val=(enc=%s, %d:%d) \"%s\"", str->getEncoding()->getCode(), str->length(), str->strlen(), str->getBuffer());
-      return;
-   }
+    if (ntype == NT_STRING) {
+        const QoreStringNode *str = n.get<const QoreStringNode>();
+        s->sprintf("val=(enc=%s, %d:%d) \"%s\"", str->getEncoding()->getCode(), str->length(), str->strlen(), str->getBuffer());
+        return;
+    }
 
-   if (ntype == NT_BOOLEAN) {
-      s->sprintf("val=%s", reinterpret_cast<const QoreBoolNode *>(n)->getValue() ? "True" : "False");
-      return;
-   }
+    if (ntype == NT_BOOLEAN) {
+        s->sprintf("val=%s", n.getAsBool() ? "True" : "False");
+        return;
+    }
 
-   if (ntype == NT_INT) {
-      s->sprintf("val=%lld", (reinterpret_cast<const QoreBigIntNode *>(n))->val);
-      return;
-   }
+    if (ntype == NT_INT) {
+        s->sprintf("val=%lld", n.getAsBigInt());
+        return;
+    }
 
-   if (ntype == NT_NOTHING) {
-      s->sprintf("val=NOTHING");
-      return;
-   }
+    if (ntype == NT_NOTHING) {
+        s->sprintf("val=NOTHING");
+        return;
+    }
 
-   if (ntype == NT_NULL) {
-      s->sprintf("val=SQL NULL");
-      return;
-   }
+    if (ntype == NT_NULL) {
+        s->sprintf("val=SQL NULL");
+        return;
+    }
 
-   if (ntype == NT_FLOAT) {
-      s->concat("val=");
-      size_t offset = s->size();
-      s->sprintf("%f", reinterpret_cast<const QoreFloatNode*>(n)->f);
-      // issue 1556: external modules that call setlocale() can change
-      // the decimal point character used here from '.' to ','
-      // only search the double added, QoreString::sprintf() concatenates
-      q_fix_decimal(s, offset);
-      return;
-   }
+    if (ntype == NT_FLOAT) {
+        s->concat("val=");
+        size_t offset = s->size();
+        s->sprintf("%f", n.getAsFloat());
+        // issue 1556: external modules that call setlocale() can change
+        // the decimal point character used here from '.' to ','
+        // only search the double added, QoreString::sprintf() concatenates
+        q_fix_decimal(s, offset);
+        return;
+    }
 
-   if (ntype == NT_LIST) {
-      const QoreListNode *l = reinterpret_cast<const QoreListNode *>(n);
-      s->sprintf("elements=%d", l->size());
-      ConstListIterator li(l);
-      while (li.next()) {
-	 s->concat('\n');
-	 strindent(s, indent);
-	 s->sprintf("list element %d/%d: ", li.index(), l->size());
-	 dni(s, li.getValue(), indent + 3, xsink);
-      }
-      return;
-   }
+    if (ntype == NT_LIST) {
+        const QoreListNode *l = n.get<const QoreListNode>();
+        s->sprintf("elements=%d", l->size());
+        ConstListIterator li(l);
+        while (li.next()) {
+            s->concat('\n');
+            strindent(s, indent);
+            s->sprintf("list element %d/%d: ", li.index(), l->size());
+            dni(s, li.getValue(), indent + 3, xsink);
+        }
+        return;
+    }
 
-   if (ntype == NT_OBJECT) {
-      const QoreObject *o = reinterpret_cast<const QoreObject *>(n);
-      s->sprintf("elements=%d (cls=%p, type=%s, valid=%s)", o->size(xsink),
-		 o->getClass(),
-		 o->getClass() ? o->getClass()->getName() : "<none>",
-		 o->isValid() ? "yes" : "no");
-      {
-	 // FIXME: this is inefficient, use copyData and a hashiterator instead
-	 ReferenceHolder<QoreListNode> l(o->getMemberList(xsink), xsink);
-	 if (l) {
-	    for (unsigned i = 0; i < l->size(); i++) {
-	       s->concat('\n');
-	       strindent(s, indent);
-	       QoreStringNode *entry = reinterpret_cast<QoreStringNode *>(l->retrieve_entry(i));
-	       s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());
-	       AbstractQoreNode *nn;
-	       dni(s, nn = o->getReferencedMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
-	       discard(nn, xsink);
-	    }
-	 }
-      }
-      return;
-   }
+    if (ntype == NT_OBJECT) {
+        const QoreObject *o = n.get<const QoreObject>();
+        s->sprintf("elements=%d (cls=%p, type=%s, valid=%s)", o->size(xsink),
+            o->getClass(),
+            o->getClass() ? o->getClass()->getName() : "<none>",
+            o->isValid() ? "yes" : "no");
+        {
+            // FIXME: this is inefficient, use copyData and a hashiterator instead
+            ReferenceHolder<QoreListNode> l(o->getMemberList(xsink), xsink);
+            if (l) {
+                for (unsigned i = 0; i < l->size(); i++) {
+                    s->concat('\n');
+                    strindent(s, indent);
+                    QoreStringNode *entry = reinterpret_cast<QoreStringNode*>(l->retrieve_entry(i));
+                    s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());
+                    AbstractQoreNode *nn;
+                    dni(s, nn = o->getReferencedMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
+                    discard(nn, xsink);
+                }
+            }
+        }
+        return;
+    }
 
-   if (ntype == NT_HASH) {
-      const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(n);
-      s->sprintf("elements=%d", h->size());
-      {
-	 int i = 0;
-	 ConstHashIterator hi(h);
-	 while (hi.next()) {
-	    s->concat('\n');
-	    strindent(s, indent);
-	    s->sprintf("key %d/%d \"%s\" = ", i++, h->size(), hi.getKey());
-	    dni(s, hi.getValue(), indent + 3, xsink);
-	 }
-      }
-      return;
-   }
+    if (ntype == NT_HASH) {
+        const QoreHashNode *h = n.get<const QoreHashNode>();
+        s->sprintf("elements=%d", h->size());
+        {
+            int i = 0;
+            ConstHashIterator hi(h);
+            while (hi.next()) {
+                s->concat('\n');
+                strindent(s, indent);
+                s->sprintf("key %d/%d \"%s\" = ", i++, h->size(), hi.getKey());
+                dni(s, hi.get(), indent + 3, xsink);
+            }
+        }
+        return;
+    }
 
-   if (ntype == NT_DATE) {
-      const DateTimeNode *date = reinterpret_cast<const DateTimeNode *>(n);
-      qore_tm info;
-      date->getInfo(info);
-      s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%06d",
-		 info.year, info.month, info.day, info.hour,
-		 info.minute, info.second, info.us);
-      if (date->isRelative())
-	 s->concat(" (relative)");
-      else
-	 s->sprintf(" %s (%s)", info.zone_name, info.regionName());
-      return;
-   }
+    if (ntype == NT_DATE) {
+        const DateTimeNode *date = n.get<const DateTimeNode>();
+        qore_tm info;
+        date->getInfo(info);
+        s->sprintf("%04d-%02d-%02d %02d:%02d:%02d.%06d",
+            info.year, info.month, info.day, info.hour,
+            info.minute, info.second, info.us);
+        if (date->isRelative())
+            s->concat(" (relative)");
+        else
+            s->sprintf(" %s (%s)", info.zone_name, info.regionName());
+        return;
+    }
 
-   if (ntype == NT_BINARY) {
-      const BinaryNode *b = reinterpret_cast<const BinaryNode *>(n);
-      s->sprintf("ptr=%p len=%d", b->getPtr(), b->size());
-      return;
-   }
+    if (ntype == NT_BINARY) {
+        const BinaryNode *b = n.get<const BinaryNode>();
+        s->sprintf("ptr=%p len=%d", b->getPtr(), b->size());
+        return;
+    }
 
-   s->sprintf("don't know how to print type %d: '%s' :-(", ntype, n->getTypeName());
+    s->sprintf("don't know how to print type %d: '%s' :-(", ntype, n.getTypeName());
 }
 
 //static

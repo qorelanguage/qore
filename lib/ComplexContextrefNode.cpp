@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,15 +33,15 @@
 // parse context stack
 class CVNode {
 public:
-   const char *name;
-   CVNode *next;
+    const char *name;
+    CVNode *next;
 
-   DLLLOCAL CVNode(const char *n) : name(n), next(getCVarStack()) {
-      updateCVarStack(this);
-   }
-   DLLLOCAL ~CVNode() {
-      updateCVarStack(next);
-   }
+    DLLLOCAL CVNode(const char *n) : name(n), next(getCVarStack()) {
+        updateCVarStack(this);
+    }
+    DLLLOCAL ~CVNode() {
+        updateCVarStack(next);
+    }
 };
 
 void push_cvar(const char *name) {
@@ -52,7 +52,7 @@ void pop_cvar() {
    delete getCVarStack();
 }
 
-ComplexContextrefNode::ComplexContextrefNode(const QoreProgramLocation& loc, char *str) : ParseNode(loc, NT_COMPLEXCONTEXTREF) {
+ComplexContextrefNode::ComplexContextrefNode(const QoreProgramLocation* loc, char *str) : ParseNode(loc, NT_COMPLEXCONTEXTREF) {
    char *c = strchr(str, ':');
    *c = '\0';
    name = strdup(str);
@@ -105,7 +105,7 @@ AbstractQoreNode *ComplexContextrefNode::parseInitImpl(LocalVar *oflag, int pfla
    typeInfo = 0;
 
    if (!getCVarStack()) {
-      parse_error(loc, "complex context reference \"%s:%s\" encountered out of context", name, member);
+      parse_error(*loc, "complex context reference \"%s:%s\" encountered out of context", name, member);
       return this;
    }
 
@@ -121,7 +121,7 @@ AbstractQoreNode *ComplexContextrefNode::parseInitImpl(LocalVar *oflag, int pfla
       cur_stack_offset++;
    }
    if (!found)
-      parse_error(loc, "\"%s\" does not match any current context", name);
+      parse_error(*loc, "\"%s\" does not match any current context", name);
    else
       stack_offset = cur_stack_offset;
 

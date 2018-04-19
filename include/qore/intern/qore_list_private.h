@@ -242,13 +242,13 @@ struct qore_list_private {
       obj_count += dt;
    }
 
-   DLLLOCAL static int parseInitComplexListInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreParseListNode* args, AbstractQoreNode*& new_args, const QoreTypeInfo* vti);
+   DLLLOCAL static int parseInitComplexListInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, AbstractQoreNode*& new_args, const QoreTypeInfo* vti);
 
-   DLLLOCAL static int parseInitListInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, int& lvids, QoreParseListNode* args, AbstractQoreNode*& new_args, const QoreTypeInfo*& argTypeInfo);
+   DLLLOCAL static int parseInitListInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, int& lvids, QoreParseListNode* args, AbstractQoreNode*& new_args, const QoreTypeInfo*& argTypeInfo);
 
-   DLLLOCAL static void parseCheckComplexListInitialization(const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool strict_check = true);
+   DLLLOCAL static void parseCheckComplexListInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool strict_check = true);
 
-   DLLLOCAL static void parseCheckTypedAssignment(const QoreProgramLocation& loc, const AbstractQoreNode* arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check = true);
+   DLLLOCAL static void parseCheckTypedAssignment(const QoreProgramLocation* loc, const AbstractQoreNode* arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check = true);
 
    DLLLOCAL static QoreListNode* newComplexList(const QoreTypeInfo* typeInfo, const AbstractQoreNode* args, ExceptionSink* xsink);
 

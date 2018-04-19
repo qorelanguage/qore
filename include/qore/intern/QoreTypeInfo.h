@@ -618,19 +618,19 @@ public:
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static void checkDoNonNumericWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
+   DLLLOCAL static void checkDoNonNumericWarning(const QoreTypeInfo* ti, const QoreProgramLocation* loc, const char* preface) {
       if (ti && !ti->canConvertToScalarImpl())
          ti->doNonNumericWarning(loc, preface);
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static void checkDoNonBooleanWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
+   DLLLOCAL static void checkDoNonBooleanWarning(const QoreTypeInfo* ti, const QoreProgramLocation* loc, const char* preface) {
       if (ti && !ti->canConvertToScalarImpl())
          ti->doNonBooleanWarning(loc, preface);
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static void checkDoNonStringWarning(const QoreTypeInfo* ti, const QoreProgramLocation& loc, const char* preface) {
+   DLLLOCAL static void checkDoNonStringWarning(const QoreTypeInfo* ti, const QoreProgramLocation* loc, const char* preface) {
       if (ti && !ti->canConvertToScalarImpl())
          ti->doNonStringWarning(loc, preface);
    }
@@ -740,9 +740,9 @@ public:
       doAcceptError(false, obj, param_num, param_name, n, xsink);
    }
 
-   DLLLOCAL void doNonNumericWarning(const QoreProgramLocation& loc, const char* preface) const;
-   DLLLOCAL void doNonBooleanWarning(const QoreProgramLocation& loc, const char* preface) const;
-   DLLLOCAL void doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const;
+   DLLLOCAL void doNonNumericWarning(const QoreProgramLocation* loc, const char* preface) const;
+   DLLLOCAL void doNonBooleanWarning(const QoreProgramLocation* loc, const char* preface) const;
+   DLLLOCAL void doNonStringWarning(const QoreProgramLocation* loc, const char* preface) const;
 
 protected:
    DLLLOCAL int doObjectPrivateClassException(const char* param_name, ExceptionSink* xsink) const {
@@ -1075,17 +1075,17 @@ public:
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* resolveAndDelete(QoreParseTypeInfo* pti, const QoreProgramLocation& loc) {
+   DLLLOCAL static const QoreTypeInfo* resolveAndDelete(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
       return pti ? pti->resolveAndDelete(loc) : nullptr;
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* resolve(QoreParseTypeInfo* pti, const QoreProgramLocation& loc) {
+   DLLLOCAL static const QoreTypeInfo* resolve(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
       return pti ? pti->resolve(loc) : nullptr;
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static const QoreTypeInfo* resolveAny(QoreParseTypeInfo* pti, const QoreProgramLocation& loc) {
+   DLLLOCAL static const QoreTypeInfo* resolveAny(QoreParseTypeInfo* pti, const QoreProgramLocation* loc) {
       return pti ? pti->resolveAny(loc) : nullptr;
    }
 
@@ -1152,12 +1152,12 @@ private:
    }
 
    // resolves complex types (classes, hashdecls, etc)
-   DLLLOCAL const QoreTypeInfo* resolve(const QoreProgramLocation& loc) const;
+   DLLLOCAL const QoreTypeInfo* resolve(const QoreProgramLocation* loc) const;
    // also resolves base types
-   DLLLOCAL const QoreTypeInfo* resolveAny(const QoreProgramLocation& loc) const;
+   DLLLOCAL const QoreTypeInfo* resolveAny(const QoreProgramLocation* loc) const;
    // resolves the current type to an QoreTypeInfo pointer and deletes itself
-   DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation& loc);
-   DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation& loc) const;
+   DLLLOCAL const QoreTypeInfo* resolveAndDelete(const QoreProgramLocation* loc);
+   DLLLOCAL const QoreTypeInfo* resolveSubtype(const QoreProgramLocation* loc) const;
 
    DLLLOCAL const QoreTypeInfo* resolveRuntime() const;
    DLLLOCAL const QoreTypeInfo* resolveRuntimeSubtype() const;
@@ -1171,7 +1171,7 @@ private:
       str.append(tname);
    }
 
-   DLLLOCAL static const QoreTypeInfo* resolveClass(const QoreProgramLocation& loc, const NamedScope& cscope, bool or_nothing);
+   DLLLOCAL static const QoreTypeInfo* resolveClass(const QoreProgramLocation* loc, const NamedScope& cscope, bool or_nothing);
 };
 
 class QoreAnyTypeInfo : public QoreTypeInfo {

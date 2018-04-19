@@ -75,7 +75,7 @@ AbstractQoreNode *QoreRegexSubstOperatorNode::parseInitImpl(LocalVar *oflag, int
       desc->sprintf("%s operator is ", op_str.c_str());
       QoreTypeInfo::getThisType(leftTypeInfo, *desc);
       desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings");
-      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
       returnTypeInfo = nothingTypeInfo;
    }
    else

@@ -63,7 +63,7 @@ public:
    //! creates the ReferenceNode object with the given lvalue expression
    /** @param exp must be a parse expression for an lvalue
     */
-   DLLLOCAL ParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, const QoreTypeInfo* typeInfo = referenceTypeInfo) : ParseNode(loc, NT_PARSEREFERENCE, true, false), lvexp(exp), typeInfo(typeInfo) {
+   DLLLOCAL ParseReferenceNode(const QoreProgramLocation* loc, AbstractQoreNode* exp, const QoreTypeInfo* typeInfo = referenceTypeInfo) : ParseNode(loc, NT_PARSEREFERENCE, true, false), lvexp(exp), typeInfo(typeInfo) {
    }
 
    //! concatenate the verbose string representation of the value to an existing QoreString
@@ -122,7 +122,7 @@ protected:
    }
 
 public:
-   DLLLOCAL IntermediateParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, const QoreTypeInfo* typeInfo, QoreObject* o, const void* lvid, const qore_class_private* n_cls);
+   DLLLOCAL IntermediateParseReferenceNode(const QoreProgramLocation* loc, AbstractQoreNode* exp, const QoreTypeInfo* typeInfo, QoreObject* o, const void* lvid, const qore_class_private* n_cls);
 
    // returns a runtime reference
    DLLLOCAL virtual ReferenceNode* evalToRef(ExceptionSink* xsink) const {

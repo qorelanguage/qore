@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -103,128 +103,131 @@ public:
    }
 };
 
+// forward declaration
+class qore_program_private_base;
+
 class StatementBlock : public AbstractStatement {
 protected:
-   typedef safe_dslist<AbstractStatement*> statement_list_t;
-   statement_list_t statement_list;
-   block_list_t on_block_exit_list;
-   LVList* lvars = nullptr;
+    typedef safe_dslist<AbstractStatement*> statement_list_t;
+    statement_list_t statement_list;
+    block_list_t on_block_exit_list;
+    LVList* lvars = nullptr;
 
-   // start must be the element before the start position
-   DLLLOCAL int parseInitIntern(LocalVar* oflag, int pflag, statement_list_t::iterator start);
-   DLLLOCAL void parseCommitIntern(statement_list_t::iterator start);
-   DLLLOCAL bool hasLastReturn(AbstractStatement* as);
-   DLLLOCAL void parseCheckReturn();
+    // start must be the element before the start position
+    DLLLOCAL int parseInitIntern(LocalVar* oflag, int pflag, statement_list_t::iterator start);
+    DLLLOCAL void parseCommitIntern(statement_list_t::iterator start);
+    DLLLOCAL bool hasLastReturn(AbstractStatement* as);
+    DLLLOCAL void parseCheckReturn();
 
-   DLLLOCAL int execIntern(QoreValue& return_value, ExceptionSink* xsink);
+    DLLLOCAL int execIntern(QoreValue& return_value, ExceptionSink* xsink);
 
-   DLLLOCAL StatementBlock();
+    DLLLOCAL StatementBlock(qore_program_private_base* p);
 
 public:
-   DLLLOCAL StatementBlock(int sline, int eline);
+    DLLLOCAL StatementBlock(int sline, int eline);
 
-   // line numbers on statement blocks are set later
-   DLLLOCAL StatementBlock(int sline, int eline, AbstractStatement* s);
+    // line numbers on statement blocks are set later
+    DLLLOCAL StatementBlock(int sline, int eline, AbstractStatement* s);
 
-   DLLLOCAL virtual ~StatementBlock() {
-      del();
-   }
+    DLLLOCAL virtual ~StatementBlock() {
+        del();
+    }
 
-   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
-   DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
+    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
 
-   DLLLOCAL void del();
+    DLLLOCAL void del();
 
-   DLLLOCAL void addStatement(AbstractStatement* s);
+    DLLLOCAL void addStatement(AbstractStatement* s);
 
-   using AbstractStatement::exec;
-   DLLLOCAL QoreValue exec(ExceptionSink* xsink);
+    using AbstractStatement::exec;
+    DLLLOCAL QoreValue exec(ExceptionSink* xsink);
 
-   using AbstractStatement::parseInit;
-   DLLLOCAL void parseInit(UserVariantBase* uvb);
+    using AbstractStatement::parseInit;
+    DLLLOCAL void parseInit(UserVariantBase* uvb);
 
-   // initialize methods
-   DLLLOCAL void parseInitMethod(const QoreTypeInfo* typeInfo, UserVariantBase* uvb);
-   DLLLOCAL void parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, const QoreClass& cls);
+    // initialize methods
+    DLLLOCAL void parseInitMethod(const QoreTypeInfo* typeInfo, UserVariantBase* uvb);
+    DLLLOCAL void parseInitConstructor(const QoreTypeInfo* typeInfo, UserVariantBase* uvb, BCAList* bcal, const QoreClass& cls);
 
-   // initialize closure blocks
-   DLLLOCAL void parseInitClosure(UserVariantBase* uvb, UserClosureFunction* cf);
+    // initialize closure blocks
+    DLLLOCAL void parseInitClosure(UserVariantBase* uvb, UserClosureFunction* cf);
 
-   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
+    DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 
-   DLLLOCAL void exec();
+    DLLLOCAL void exec();
 
-   DLLLOCAL const LVList* getLVList() const {
-      return lvars;
-   }
+    DLLLOCAL const LVList* getLVList() const {
+        return lvars;
+    }
 
-   DLLLOCAL virtual bool hasFinalReturn() const {
-      if (statement_list.empty())
-         return false;
+    DLLLOCAL virtual bool hasFinalReturn() const {
+        if (statement_list.empty())
+            return false;
 
-      return (*statement_list.last())->hasFinalReturn();
-   }
+        return (*statement_list.last())->hasFinalReturn();
+    }
 
-   DLLLOCAL void setupLVList(int lvids) {
-      assert(!lvars);
-      if (!lvids)
-         return;
+    DLLLOCAL void setupLVList(int lvids) {
+        assert(!lvars);
+        if (!lvids)
+            return;
 
-      lvars = new LVList(lvids);
-   }
+        lvars = new LVList(lvids);
+    }
 };
 
 class TopLevelStatementBlock : public StatementBlock {
 protected:
-   // iterator to last commit element in statement list
-   statement_list_t::iterator hwm;
-   // true only the first time parseInit() is called
-   bool first;
+    // iterator to last commit element in statement list
+    statement_list_t::iterator hwm;
+    // true only the first time parseInit() is called
+    bool first;
 
 public:
-   DLLLOCAL TopLevelStatementBlock() : hwm(statement_list.end()), first(true) {
-   }
+    DLLLOCAL TopLevelStatementBlock(qore_program_private_base* p) : StatementBlock(p), hwm(statement_list.end()), first(true) {
+    }
 
-   DLLLOCAL virtual ~TopLevelStatementBlock() {
-   }
+    DLLLOCAL virtual ~TopLevelStatementBlock() {
+    }
 
-   using StatementBlock::parseInit;
-   DLLLOCAL void parseInit(int64 po);
+    using StatementBlock::parseInit;
+    DLLLOCAL void parseInit(int64 po);
 
-   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
+    DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 
-   DLLLOCAL void parseRollback() {
-      // delete all statements after the high water mark (hwm) to the end of the list
-      statement_list_t::iterator start = hwm;
-      if (start != statement_list.end())
-         ++start;
-      else
-         start = statement_list.begin();
+    DLLLOCAL void parseRollback() {
+        // delete all statements after the high water mark (hwm) to the end of the list
+        statement_list_t::iterator start = hwm;
+        if (start != statement_list.end())
+            ++start;
+        else
+            start = statement_list.begin();
 
-      for (statement_list_t::iterator i = start, e = statement_list.end(); i != e; ++i)
-         delete *i;
+        for (statement_list_t::iterator i = start, e = statement_list.end(); i != e; ++i)
+            delete *i;
 
-      statement_list.erase_to_end(hwm);
-   }
+        statement_list.erase_to_end(hwm);
+    }
 
-   // local vars are not instantiated here because they are instantiated by the QoreProgram object
-   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
+    // local vars are not instantiated here because they are instantiated by the QoreProgram object
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
 
-   // assign inherited local var list from parent program
-   DLLLOCAL void assignLocalVars(const LVList* lvl) {
-      assert(!lvars);
-      lvars = new LVList(*lvl);
-   }
+    // assign inherited local var list from parent program
+    DLLLOCAL void assignLocalVars(const LVList* lvl) {
+        assert(!lvars);
+        lvars = new LVList(*lvl);
+    }
 
-   DLLLOCAL void setupLVList(int lvids) {
-      if (!lvids)
-         return;
+    DLLLOCAL void setupLVList(int lvids) {
+        if (!lvids)
+            return;
 
-      if (lvars)
-         lvars->add(lvids);
-      else
-         lvars = new LVList(lvids);
-   }
+        if (lvars)
+            lvars->add(lvids);
+        else
+            lvars = new LVList(lvids);
+    }
 };
 
 #endif // _QORE_STATEMENT_BLOCK_H
