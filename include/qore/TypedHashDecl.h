@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -72,36 +72,36 @@ private:
  */
 class TypedHashDeclHolder {
 public:
-   //! creates the object
-   DLLLOCAL TypedHashDeclHolder(TypedHashDecl* thd) : thd(thd) {
-   }
+    //! creates the object
+    DLLLOCAL TypedHashDeclHolder(TypedHashDecl* thd) : thd(thd) {
+    }
 
-   //! deletes the TypedHashDecl object if still managed
-   DLLEXPORT ~TypedHashDeclHolder();
+    //! deletes the TypedHashDecl object if still managed
+    DLLEXPORT ~TypedHashDeclHolder();
 
-   //! implicit conversion to TypedHashDecl*
-   DLLLOCAL TypedHashDecl* operator*() const {
-      return thd;
-   }
+    //! implicit conversion to TypedHashDecl*
+    DLLLOCAL TypedHashDecl* operator*() const {
+        return thd;
+    }
 
-   //! implicit conversion to TypedHashDecl*
-   DLLLOCAL TypedHashDecl* operator->() const {
-      return thd;
-   }
+    //! implicit conversion to TypedHashDecl*
+    DLLLOCAL TypedHashDecl* operator->() const {
+        return thd;
+    }
 
-   //! assign new TypedHashDecl value; any managed object is deleted if still managed
-   DLLLOCAL TypedHashDecl* operator=(TypedHashDecl* nhd);
+    //! assign new TypedHashDecl value; any managed object is deleted if still managed
+    DLLLOCAL TypedHashDecl* operator=(TypedHashDecl* nhd);
 
-   //! releases the TypedHashDecl*
-   DLLLOCAL TypedHashDecl* release() {
-      auto rv = thd;
-      thd = nullptr;
-      return rv;
-   }
+    //! releases the TypedHashDecl*
+    DLLLOCAL TypedHashDecl* release() {
+        auto rv = thd;
+        thd = nullptr;
+        return rv;
+    }
 
 private:
-   //! the object being managed
-   TypedHashDecl* thd;
+    //! the object being managed
+    TypedHashDecl* thd;
 };
 
 //! StatInfo hashdecl
@@ -127,5 +127,8 @@ DLLEXPORT extern const TypedHashDecl* hashdeclExceptionInfo;
 
 //! StatementInfo hashdecl
 DLLEXPORT extern const TypedHashDecl* hashdeclStatementInfo;
+
+//! NetIfInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclNetIfInfo;
 
 #endif

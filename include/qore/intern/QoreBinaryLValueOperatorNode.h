@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,7 @@ protected:
 public:
    const QoreTypeInfo *ti; // typeinfo of lhs
 
-   DLLLOCAL QoreBinaryLValueOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(loc, n_left, n_right), ti(0) {
+   DLLLOCAL QoreBinaryLValueOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(loc, n_left, n_right), ti(0) {
    }
 
    DLLLOCAL virtual bool hasEffect() const {
@@ -58,7 +58,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreBinaryIntLValueOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(loc, n_left, n_right) {
+   DLLLOCAL QoreBinaryIntLValueOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<LValueOperatorNode>(loc, n_left, n_right) {
    }
 
    DLLLOCAL void parseInitIntLValue(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

@@ -67,7 +67,7 @@ AbstractQoreNode* QoreDivisionOperatorNode::parseInitIntern(const char* name, Lo
       }
       // check for division by zero here
       if (!right->getAsFloat()) {
-	 parse_error(loc, "division by zero found in parse expression");
+	 parse_error(*loc, "division by zero found in parse expression");
 	 return this;
       }
    }

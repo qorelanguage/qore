@@ -2,7 +2,7 @@
 /*
   QoreRegex.cpp
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -123,7 +123,7 @@ bool QoreRegex::exec(const char* str, size_t len) const {
       rc = pcre_exec(p, 0, str, len, 0, 0, ovector, vsize);
       if (!rc) {
          // rc == 0 means not enough space was available in ovector
-         printd(0, "QoreRegex::exec() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
+         printd(5, "QoreRegex::exec() ovector too small: vsize: %d -> %d (max: %d)\n", vsize, vsize << 1, OVECMAX);
          vsize <<= 1;
          if (vsize >= OVECMAX) {
             rc = -1;

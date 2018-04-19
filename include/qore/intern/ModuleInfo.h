@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -87,186 +87,163 @@ public:
 
 class QoreAbstractModule {
 private:
-   // not implemented
-   DLLLOCAL QoreAbstractModule(const QoreAbstractModule&);
-   DLLLOCAL QoreAbstractModule& operator=(const QoreAbstractModule&);
+    // not implemented
+    DLLLOCAL QoreAbstractModule(const QoreAbstractModule&);
+    DLLLOCAL QoreAbstractModule& operator=(const QoreAbstractModule&);
 
 protected:
-   QoreString filename,
-      name,
-      desc,
-      author,
-      url,
-      license,
-      orig_name;
+    QoreString filename,
+        name,
+        desc,
+        author,
+        url,
+        license,
+        orig_name;
 
-   // link to associated modules (originals with reinjection, etc)
-   QoreAbstractModule* prev, * next;
+    // link to associated modules (originals with reinjection, etc)
+    QoreAbstractModule* prev, * next;
 
-   bool priv : 1,
-      injected : 1,
-      reinjected : 1;
+    bool priv : 1,
+        injected : 1,
+        reinjected : 1;
 
-   DLLLOCAL QoreHashNode* getHashIntern(bool with_filename = true) const {
-      QoreHashNode* h = new QoreHashNode;
+    DLLLOCAL QoreHashNode* getHashIntern(bool with_filename = true) const;
 
-      if (with_filename)
-         h->setKeyValue("filename", new QoreStringNode(filename), 0);
-      h->setKeyValue("name", new QoreStringNode(name), 0);
-      h->setKeyValue("desc", new QoreStringNode(desc), 0);
-      h->setKeyValue("version", new QoreStringNode(*version_list), 0);
-      h->setKeyValue("author", new QoreStringNode(author), 0);
-      if (!url.empty())
-         h->setKeyValue("url", new QoreStringNode(url), 0);
-      if (!license.empty())
-         h->setKeyValue("license", new QoreStringNode(license), 0);
-      if (!rmod.empty()) {
-         QoreListNode* l = new QoreListNode;
-         for (name_vec_t::const_iterator i = rmod.begin(), e = rmod.end(); i != e; ++i)
-            l->push(new QoreStringNode(*i));
-         h->setKeyValue("reexported-modules", l, 0);
-      }
-      h->setKeyValue("injected", get_bool_node(injected), 0);
-      h->setKeyValue("reinjected", get_bool_node(injected), 0);
+    DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const = 0;
 
-      return h;
-   }
-
-   DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const = 0;
-
-   DLLLOCAL void set(const char* d, const char* v, const char* a, const char* u, const QoreString& l) {
-      desc = d;
-      author = a;
-      url = u;
-      license = l;
-      version_list = v;
-   }
+    DLLLOCAL void set(const char* d, const char* v, const char* a, const char* u, const QoreString& l) {
+        desc = d;
+        author = a;
+        url = u;
+        license = l;
+        version_list = v;
+    }
 
 public:
-   version_list_t version_list;
-   // list of dependent modules to reexport
-   name_vec_t rmod;
+    version_list_t version_list;
+    // list of dependent modules to reexport
+    name_vec_t rmod;
 
-   // for binary modules
-   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), prev(0), next(0), priv(false), injected(false), reinjected(false), version_list(v) {
-      q_normalize_path(filename, cwd);
-   }
+    // for binary modules
+    DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l) : filename(fn), name(n), desc(d), author(a), url(u), license(l), prev(0), next(0), priv(false), injected(false), reinjected(false), version_list(v) {
+        q_normalize_path(filename, cwd);
+    }
 
-   // for user modules
-   DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, unsigned load_opt) : filename(fn), name(n), prev(0), next(0), priv(load_opt & QMLO_PRIVATE), injected(load_opt & QMLO_INJECT), reinjected(load_opt & QMLO_REINJECT) {
-      q_normalize_path(filename, cwd);
-   }
+    // for user modules
+    DLLLOCAL QoreAbstractModule(const char* cwd, const char* fn, const char* n, unsigned load_opt) : filename(fn), name(n), prev(0), next(0), priv(load_opt & QMLO_PRIVATE), injected(load_opt & QMLO_INJECT), reinjected(load_opt & QMLO_REINJECT) {
+        q_normalize_path(filename, cwd);
+    }
 
-   DLLLOCAL virtual ~QoreAbstractModule() {
-      //printd(5, "QoreAbstractModule::~QoreAbstractModule() this: %p name: %s\n", this, name.getBuffer());
-      if (next) {
-         assert(next->prev == this);
-         next->prev = prev;
-      }
-      if (prev) {
-         assert(prev->next == this);
-         prev->next = next;
-      }
-   }
+    DLLLOCAL virtual ~QoreAbstractModule() {
+        //printd(5, "QoreAbstractModule::~QoreAbstractModule() this: %p name: %s\n", this, name.getBuffer());
+        if (next) {
+            assert(next->prev == this);
+            next->prev = prev;
+        }
+        if (prev) {
+            assert(prev->next == this);
+            prev->next = next;
+        }
+    }
 
-   DLLLOCAL const char* getName() const {
-      return name.getBuffer();
-   }
+    DLLLOCAL const char* getName() const {
+        return name.getBuffer();
+    }
 
-   DLLLOCAL const char* getFileName() const {
-      return filename.getBuffer();
-   }
+    DLLLOCAL const char* getFileName() const {
+        return filename.getBuffer();
+    }
 
-   DLLLOCAL const QoreString& getFileNameStr() const {
-      return filename;
-   }
+    DLLLOCAL const QoreString& getFileNameStr() const {
+        return filename;
+    }
 
-   DLLLOCAL const char* getDesc() const {
-      return desc.getBuffer();
-   }
+    DLLLOCAL const char* getDesc() const {
+        return desc.getBuffer();
+    }
 
-   DLLLOCAL const char* getVersion() const {
-      return* version_list;
-   }
+    DLLLOCAL const char* getVersion() const {
+        return* version_list;
+    }
 
-   DLLLOCAL const char* getURL() const {
-      return url.getBuffer();
-   }
+    DLLLOCAL const char* getURL() const {
+        return url.getBuffer();
+    }
 
-   DLLLOCAL const char* getOrigName() const {
-      return orig_name.empty() ? 0 : orig_name.getBuffer();
-   }
+    DLLLOCAL const char* getOrigName() const {
+        return orig_name.empty() ? 0 : orig_name.getBuffer();
+    }
 
-   DLLLOCAL void resetName() {
-      assert(!orig_name.empty());
-      name = orig_name;
-      orig_name.clear();
-   }
+    DLLLOCAL void resetName() {
+        assert(!orig_name.empty());
+        name = orig_name;
+        orig_name.clear();
+    }
 
-   DLLLOCAL bool isInjected() const {
-      return injected;
-   }
+    DLLLOCAL bool isInjected() const {
+        return injected;
+    }
 
-   DLLLOCAL bool isReInjected() const {
-      return reinjected;
-   }
+    DLLLOCAL bool isReInjected() const {
+        return reinjected;
+    }
 
-   DLLLOCAL void addModuleReExport(const char* m) {
-      rmod.push_back(m);
-   }
+    DLLLOCAL void addModuleReExport(const char* m) {
+        rmod.push_back(m);
+    }
 
-   DLLLOCAL void reexport(ExceptionSink& xsink, QoreProgram* pgm) const;
+    DLLLOCAL void reexport(ExceptionSink& xsink, QoreProgram* pgm) const;
 
-   DLLLOCAL void addToProgram(QoreProgram* pgm, ExceptionSink& xsink) const {
-      addToProgramImpl(pgm, xsink);
-      if (!xsink)
-         reexport(xsink, pgm);
-   }
+    DLLLOCAL void addToProgram(QoreProgram* pgm, ExceptionSink& xsink) const {
+        addToProgramImpl(pgm, xsink);
+        if (!xsink)
+            reexport(xsink, pgm);
+    }
 
-   DLLLOCAL bool equalTo(const QoreAbstractModule* m) const {
-      assert(name == m->name);
-      return filename == m->filename;
-   }
+    DLLLOCAL bool equalTo(const QoreAbstractModule* m) const {
+        assert(name == m->name);
+        return filename == m->filename;
+    }
 
-   DLLLOCAL bool isPath(const char* p) const {
-      return filename == p;
-   }
+    DLLLOCAL bool isPath(const char* p) const {
+        return filename == p;
+    }
 
-   DLLLOCAL void rename(const QoreString& n) {
-      assert(orig_name.empty());
-      name = n;
-   }
+    DLLLOCAL void rename(const QoreString& n) {
+        assert(orig_name.empty());
+        name = n;
+    }
 
-   DLLLOCAL void setOrigName(const char* n) {
-      assert(orig_name.empty());
-      orig_name = n;
-   }
+    DLLLOCAL void setOrigName(const char* n) {
+        assert(orig_name.empty());
+        orig_name = n;
+    }
 
-   DLLLOCAL bool isPrivate() const {
-      return priv;
-   }
+    DLLLOCAL bool isPrivate() const {
+        return priv;
+    }
 
-   DLLLOCAL void setPrivate(bool p = true) {
-      assert(priv != p);
-      priv = p;
-   }
+    DLLLOCAL void setPrivate(bool p = true) {
+        assert(priv != p);
+        priv = p;
+    }
 
-   DLLLOCAL void setLink(QoreAbstractModule* n) {
-      //printd(5, "AbstractQoreModule::setLink() n: %p '%s'\n", n, n->getName());
-      assert(!next);
-      assert(!n->prev);
-      next = n;
-      n->prev = this;
-   }
+    DLLLOCAL void setLink(QoreAbstractModule* n) {
+        //printd(5, "AbstractQoreModule::setLink() n: %p '%s'\n", n, n->getName());
+        assert(!next);
+        assert(!n->prev);
+        next = n;
+        n->prev = this;
+    }
 
-   DLLLOCAL QoreAbstractModule* getNext() const {
-      return next;
-   }
+    DLLLOCAL QoreAbstractModule* getNext() const {
+        return next;
+    }
 
-   DLLLOCAL virtual bool isBuiltin() const = 0;
-   DLLLOCAL virtual bool isUser() const = 0;
-   DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const = 0;
-   DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation& loc, QoreString &cmd) = 0;
+    DLLLOCAL virtual bool isBuiltin() const = 0;
+    DLLLOCAL virtual bool isUser() const = 0;
+    DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const = 0;
+    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation* loc, QoreString &cmd) = 0;
 };
 
 // list/dequeue of strings
@@ -478,7 +455,7 @@ public:
    DLLLOCAL void init(bool se);
    DLLLOCAL void delUser();
    DLLLOCAL void cleanup();
-   DLLLOCAL void issueParseCmd(const QoreProgramLocation& loc, const char* mname, QoreProgram* pgm, QoreString &cmd);
+   DLLLOCAL void issueParseCmd(const QoreProgramLocation* loc, const char* mname, QoreProgram* pgm, QoreString &cmd);
 
    DLLLOCAL void addModule(QoreAbstractModule* m) {
       assert(map.find(m->getName()) == map.end());
@@ -529,10 +506,10 @@ public:
 #ifdef DEBUG
       /*
       else {
-	 QoreString str("[");
-	 for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
-	    str.sprintf("'%s',", (*si).c_str());
-	 str.concat("]");
+         QoreString str("[");
+         for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
+            str.sprintf("'%s',", (*si).c_str());
+         str.concat("]");
          //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET NOT SET: md_map: %s\n", name, str.getBuffer());
       }
       */
@@ -592,96 +569,88 @@ DLLLOCAL extern QoreModuleManager QMM;
 
 class QoreBuiltinModule : public QoreAbstractModule {
 protected:
-   unsigned api_major, api_minor;
-   qore_module_init_t module_init;
-   qore_module_ns_init_t module_ns_init;
-   qore_module_delete_t module_delete;
-   qore_module_parse_cmd_t module_parse_cmd;
-   const void* dlptr;
+    unsigned api_major, api_minor;
+    qore_module_init_t module_init;
+    qore_module_ns_init_t module_ns_init;
+    qore_module_delete_t module_delete;
+    qore_module_parse_cmd_t module_parse_cmd;
+    const void* dlptr;
 
-   DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const;
+    DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const;
 
 public:
-   DLLLOCAL QoreBuiltinModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l, unsigned major, unsigned minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const void* p) : QoreAbstractModule(cwd, fn, n, d, v, a, u, l), api_major(major), api_minor(minor), module_init(init), module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), dlptr(p) {
-   }
+    DLLLOCAL QoreBuiltinModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l, unsigned major, unsigned minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const void* p) : QoreAbstractModule(cwd, fn, n, d, v, a, u, l), api_major(major), api_minor(minor), module_init(init), module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), dlptr(p) {
+    }
 
-   DLLLOCAL virtual ~QoreBuiltinModule() {
-      printd(5, "QoreBuiltinModule::~QoreBuiltinModule() '%s': %s calling module_delete: %p\n", name.getBuffer(), filename.getBuffer(), module_delete);
-      module_delete();
-      // we do not close binary modules because we may have thread local data that needs to be
-      // destroyed when exit() is called
-   }
+    DLLLOCAL virtual ~QoreBuiltinModule() {
+        printd(5, "QoreBuiltinModule::~QoreBuiltinModule() '%s': %s calling module_delete: %p\n", name.getBuffer(), filename.getBuffer(), module_delete);
+        module_delete();
+        // we do not close binary modules because we may have thread local data that needs to be
+        // destroyed when exit() is called
+    }
 
-   DLLLOCAL unsigned getAPIMajor() const {
-      return api_major;
-   }
+    DLLLOCAL unsigned getAPIMajor() const {
+        return api_major;
+    }
 
-   DLLLOCAL unsigned getAPIMinor() const {
-      return api_minor;
-   }
+    DLLLOCAL unsigned getAPIMinor() const {
+        return api_minor;
+    }
 
-   DLLLOCAL virtual bool isBuiltin() const {
-      return true;
-   }
+    DLLLOCAL virtual bool isBuiltin() const {
+        return true;
+    }
 
-   DLLLOCAL virtual bool isUser() const {
-      return false;
-   }
+    DLLLOCAL virtual bool isUser() const {
+        return false;
+    }
 
-   DLLLOCAL QoreHashNode* getHash(bool with_filename = true) const {
-      QoreHashNode* h = getHashIntern(with_filename);
+    DLLLOCAL QoreHashNode* getHash(bool with_filename = true) const;
 
-      h->setKeyValue("user", &False, 0);
-      h->setKeyValue("api_major", new QoreBigIntNode(api_major), 0);
-      h->setKeyValue("api_minor", new QoreBigIntNode(api_minor), 0);
+    DLLLOCAL const void* getPtr() const {
+        return dlptr;
+    }
 
-      return h;
-   }
-
-   DLLLOCAL const void* getPtr() const {
-      return dlptr;
-   }
-
-   DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation& loc, QoreString &cmd);
+    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation* loc, QoreString &cmd);
 };
 
 class QoreUserModule : public QoreAbstractModule {
 protected:
-   QoreProgram* pgm;
-   QoreClosureParseNode* del; // deletion closure
+    QoreProgram* pgm;
+    QoreClosureParseNode* del; // deletion closure
 
-   DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const;
+    DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const;
 
 public:
-   DLLLOCAL QoreUserModule(const char* cwd, const char* fn, const char* n, QoreProgram* p, unsigned load_opt) : QoreAbstractModule(cwd, fn, n, load_opt), pgm(p), del(0) {
-   }
+    DLLLOCAL QoreUserModule(const char* cwd, const char* fn, const char* n, QoreProgram* p, unsigned load_opt) : QoreAbstractModule(cwd, fn, n, load_opt), pgm(p), del(0) {
+    }
 
-   DLLLOCAL void set(const char* d, const char* v, const char* a, const char* u, const QoreString& l, QoreClosureParseNode* dl) {
-      QoreAbstractModule::set(d, v, a, u, l);
-      del = dl;
-   }
+    DLLLOCAL void set(const char* d, const char* v, const char* a, const char* u, const QoreString& l, QoreClosureParseNode* dl) {
+        QoreAbstractModule::set(d, v, a, u, l);
+        del = dl;
+    }
 
-   DLLLOCAL QoreProgram* getProgram() const {
-      return pgm;
-   }
+    DLLLOCAL QoreProgram* getProgram() const {
+        return pgm;
+    }
 
-   DLLLOCAL virtual ~QoreUserModule();
+    DLLLOCAL virtual ~QoreUserModule();
 
-   DLLLOCAL virtual bool isBuiltin() const {
-      return false;
-   }
+    DLLLOCAL virtual bool isBuiltin() const {
+        return false;
+    }
 
-   DLLLOCAL virtual bool isUser() const {
-      return true;
-   }
+    DLLLOCAL virtual bool isUser() const {
+        return true;
+    }
 
-   DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const {
-      return getHashIntern(with_filename);
-   }
+    DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const {
+        return getHashIntern(with_filename);
+    }
 
-   DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation& loc, QoreString &cmd) {
-      parseException(loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' is a user module; only builtin modules can support parse commands", name.getBuffer(), filename.getBuffer());
-   }
+    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation* loc, QoreString &cmd) {
+        parseException(*loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' is a user module; only builtin modules can support parse commands", name.getBuffer(), filename.getBuffer());
+    }
 };
 
 class QoreUserModuleDefContextHelper : public QoreModuleDefContextHelper {

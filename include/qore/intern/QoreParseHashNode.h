@@ -46,7 +46,7 @@ public:
     typedef std::vector<AbstractQoreNode*> nvec_t;
     typedef std::vector<const QoreTypeInfo*> tvec_t;
 
-    DLLLOCAL QoreParseHashNode(const QoreProgramLocation& loc, bool curly = false) : ParseNode(loc, NT_PARSE_HASH, true), curly(curly) {
+    DLLLOCAL QoreParseHashNode(const QoreProgramLocation* loc, bool curly = false) : ParseNode(loc, NT_PARSE_HASH, true), curly(curly) {
     }
 
     // to resolve local vars in a background expression before evaluation
@@ -81,7 +81,7 @@ public:
         values.clear();
     }
 
-    DLLLOCAL void add(AbstractQoreNode* n, AbstractQoreNode* v, const QoreProgramLocation& loc) {
+    DLLLOCAL void add(AbstractQoreNode* n, AbstractQoreNode* v, const QoreProgramLocation* loc) {
         keys.push_back(n);
         values.push_back(v);
         lvec.push_back(loc);
@@ -121,9 +121,7 @@ public:
         return curly;
     }
 
-    DLLLOCAL void updateLastLine(int last_line) {
-        loc.end_line = last_line;
-    }
+    DLLLOCAL void finalizeBlock(int start_line, int end_line);
 
     DLLLOCAL const nvec_t& getKeys() const{
         return keys;
@@ -147,7 +145,7 @@ public:
 
 protected:
     typedef std::map<std::string, bool> kmap_t;
-    typedef std::vector<QoreProgramLocation> lvec_t;
+    typedef std::vector<const QoreProgramLocation*> lvec_t;
     nvec_t keys, values;
     tvec_t vtypes;
     lvec_t lvec;
@@ -164,9 +162,9 @@ protected:
         return typeInfo;
     }
 
-    DLLLOCAL static void doDuplicateWarning(const QoreProgramLocation& newoc1, const char* key);
+    DLLLOCAL static void doDuplicateWarning(const QoreProgramLocation* newoc1, const char* key);
 
-    DLLLOCAL void checkDup(const QoreProgramLocation& loc, const char* key) {
+    DLLLOCAL void checkDup(const QoreProgramLocation* loc, const char* key) {
         std::string kstr(key);
         kmap_t::iterator i = kmap.lower_bound(kstr);
         if (i == kmap.end() || i->first != kstr)

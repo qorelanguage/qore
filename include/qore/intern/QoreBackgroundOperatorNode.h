@@ -46,7 +46,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreBackgroundOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp) {
+   DLLLOCAL QoreBackgroundOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp) {
    }
 
    DLLLOCAL virtual ~QoreBackgroundOperatorNode() {
