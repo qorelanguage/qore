@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,50 +38,50 @@
 
 class CaseNode {
 private:
-   DLLLOCAL virtual bool isCaseNodeImpl() const;
+    DLLLOCAL virtual bool isCaseNodeImpl() const;
 
 public:
-   QoreProgramLocation loc;
-   AbstractQoreNode* val;
-   StatementBlock* code;
-   CaseNode* next = nullptr;
+    const QoreProgramLocation* loc;
+    AbstractQoreNode* val;
+    StatementBlock* code;
+    CaseNode* next = nullptr;
 
-   DLLLOCAL CaseNode(const QoreProgramLocation& loc, AbstractQoreNode* v, StatementBlock* c);
+    DLLLOCAL CaseNode(const QoreProgramLocation* loc, AbstractQoreNode* v, StatementBlock* c);
 
-   DLLLOCAL virtual bool matches(AbstractQoreNode* lhs_value, ExceptionSink* xsink);
+    DLLLOCAL virtual bool matches(AbstractQoreNode* lhs_value, ExceptionSink* xsink);
 
-   DLLLOCAL virtual bool isDefault() const {
-      return !val;
-   }
+    DLLLOCAL virtual bool isDefault() const {
+        return !val;
+    }
 
-   DLLLOCAL bool isCaseNode() const;
+    DLLLOCAL bool isCaseNode() const;
 
-   DLLLOCAL virtual ~CaseNode();
+    DLLLOCAL virtual ~CaseNode();
 };
 
 class SwitchStatement : public AbstractStatement {
 private:
-   CaseNode* head, *tail;
-   AbstractQoreNode* sexp;
-   CaseNode* deflt;
+    CaseNode* head, *tail;
+    AbstractQoreNode* sexp;
+    CaseNode* deflt;
 
-   DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
-   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
+    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
 
 public:
     LVList *lvars;
 
-   // start and end line are set later
-   DLLLOCAL SwitchStatement(CaseNode* f);
-   DLLLOCAL virtual ~SwitchStatement();
-   DLLLOCAL void setSwitch(AbstractQoreNode* s);
-   DLLLOCAL void addCase(CaseNode* c);
+    // start and end line are set later
+    DLLLOCAL SwitchStatement(CaseNode* f);
+    DLLLOCAL virtual ~SwitchStatement();
+    DLLLOCAL void setSwitch(AbstractQoreNode* s);
+    DLLLOCAL void addCase(CaseNode* c);
 
-   // fake it here and let it be checked at runtime
-   DLLLOCAL virtual bool hasFinalReturn() const {
-      return true;
-   }
-   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
+    // fake it here and let it be checked at runtime
+    DLLLOCAL virtual bool hasFinalReturn() const {
+        return true;
+    }
+    DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 };
 
 #endif

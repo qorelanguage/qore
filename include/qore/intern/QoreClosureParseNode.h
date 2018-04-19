@@ -86,7 +86,7 @@ private:
    DLLLOCAL QoreObjectClosureNode* evalObjectClosure() const;
 
 public:
-   DLLLOCAL QoreClosureParseNode(const QoreProgramLocation& loc, UserClosureFunction* n_uf, bool n_lambda = false);
+   DLLLOCAL QoreClosureParseNode(const QoreProgramLocation* loc, UserClosureFunction* n_uf, bool n_lambda = false);
 
    DLLLOCAL ~QoreClosureParseNode() {
       delete uf;
@@ -142,7 +142,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreClosureParseNodeBackground(const QoreProgramLocation& loc, QoreClosureParseNode* c) : ParseNode(loc, NT_CLOSURE), closure(c), cvec(thread_get_all_closure_vars()) {
+   DLLLOCAL QoreClosureParseNodeBackground(const QoreProgramLocation* loc, QoreClosureParseNode* c) : ParseNode(loc, NT_CLOSURE), closure(c), cvec(thread_get_all_closure_vars()) {
    }
 
    DLLLOCAL ~QoreClosureParseNodeBackground() {

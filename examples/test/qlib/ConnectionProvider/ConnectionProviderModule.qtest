@@ -24,27 +24,32 @@ public class ConnectionProviderModuleTest inherits QUnit::Test {
 
     urlProviderTest() {
         Program mp(PO_NO_CHILD_PO_RESTRICTIONS|PO_NEW_STYLE);
-        mp.parse("sub doenv() { ENV.QORE_CONNECTION_PROVIDERS = '" + get_script_dir() + "./TestConnectionProvider.qm'; }", "");
-        mp.callFunction("doenv");
+        mp.setGlobalVarValue("ENV", ENV + {"QORE_CONNECTION_PROVIDERS": get_script_dir() + "./TestConnectionProvider.qm"});
         mp.loadApplyToUserModule(get_script_dir() + "../../../../qlib/ConnectionProvider.qm", True);
 
-        Program p();
-        p.loadModule("ConnectionProvider");
-        p.parse("string sub test(string str) { return get_connection_url(str); }", "");
-        assertEq("test://user:pass@x", p.callFunction("test", "X"));
-        assertThrows("CONNECTION-ERROR", \p.callFunction(), ("test", "Y"));
+        {
+            Program p();
+            p.loadModule("ConnectionProvider");
+            p.parse("string sub test(string str) { return get_connection_url(str); }", "");
+            assertEq("test://user:pass@x", p.callFunction("test", "X"));
+            assertThrows("CONNECTION-ERROR", \p.callFunction(), ("test", "Y"));
+        }
 
-        p.parse("AbstractConnection sub get_obj(string str) { return get_connection(str); }", "");
-        p.parse("hash sub get_conn() { return get_connections(); }", "");
-        p.parse("hash sub get_hash() { return get_connection_hash(); }", "");
-        any obj = p.callFunction("get_obj", "X");
-        assertEq(Type::Object, obj.type());
-        assertEq("test://user@x", obj.getInfo().url);
-        assertEq(NOTHING, obj.getInfo().url_hash.password);
-        assertEq("test://user:pass@x", obj.getInfo(True).url);
-        assertEq("pass", obj.getInfo(True).url_hash.password);
-        assertEq(Type::Hash, p.callFunction("get_conn").type());
-        assertEq(Type::Hash, p.callFunction("get_hash").type());
+        {
+            Program p();
+            p.loadModule("ConnectionProvider");
+            p.parsePending("AbstractConnection sub get_obj(string str) { return get_connection(str); }", "");
+            p.parsePending("hash sub get_conn() { return get_connections(); }", "");
+            p.parse("hash sub get_hash() { return get_connection_hash(); }", "");
+            any obj = p.callFunction("get_obj", "X");
+            assertEq(Type::Object, obj.type());
+            assertEq("test://user@x", obj.getInfo().url);
+            assertEq(NOTHING, obj.getInfo().url_hash.password);
+            assertEq("test://user:pass@x", obj.getInfo(True).url);
+            assertEq("pass", obj.getInfo(True).url_hash.password);
+            assertEq(Type::Hash, p.callFunction("get_conn").type());
+            assertEq(Type::Hash, p.callFunction("get_hash").type());
+        }
     }
 
     urlProviderNegativeTest() {

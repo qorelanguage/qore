@@ -925,10 +925,37 @@ void QoreValueListEvalOptionalRefHolder::evalIntern(const QoreListNode* exp) {
    ConstListIterator li(exp);
    while (li.next()) {
       const AbstractQoreNode* v = li.getValue();
-      if (!v || v->is_value() || v->getType() == NT_REFERENCE) {
+      if (!v || v->is_value() || !v->needs_eval() || v->getType() == NT_REFERENCE || v->getType() == NT_WEAKREF) {
          QoreValue qv;
          qv.assignAndSanitize(v);
          val->push(qv.refSelf());
+         continue;
+      }
+      val->push(v->evalValue(xsink));
+      if (*xsink)
+         return;
+   }
+   assert(val->size() == exp->size());
+}
+
+// destructive argument evaluation
+void QoreValueListEvalOptionalRefHolder::evalIntern(QoreListNode* exp) {
+    assert(!exp || exp->reference_count() == 1);
+
+   if (!exp || exp->empty()) {
+      val = 0;
+      needs_deref = false;
+      return;
+   }
+   val = new QoreValueList;
+   needs_deref = true;
+
+   ListIterator li(exp);
+   while (li.next()) {
+      const AbstractQoreNode* v = li.getValue();
+      if (!v || v->is_value() || !v->needs_eval() || v->getType() == NT_REFERENCE || v->getType() == NT_WEAKREF) {
+         QoreValue qv(li.takeValue());
+         val->push(qv);
          continue;
       }
       val->push(v->evalValue(xsink));

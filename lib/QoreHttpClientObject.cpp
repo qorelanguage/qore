@@ -317,12 +317,10 @@ struct qore_httpclient_priv {
         return str.release();
     }
 
-    DLLLOCAL static void addAppendHeader(strcase_set_t& hdrs, QoreHashNode& nh, const char* key, const AbstractQoreNode* v, ExceptionSink* xsink) {
-        assert(v);
-
-        if (v->getType() == NT_LIST) {
+    DLLLOCAL static void addAppendHeader(strcase_set_t& hdrs, QoreHashNode& nh, const char* key, const QoreValue v, ExceptionSink* xsink) {
+        if (v.getType() == NT_LIST) {
             QoreStringNode* str = getHeaderString(hdrs, nh, key, xsink);
-            ConstListIterator li(static_cast<const QoreListNode*>(v));
+            ConstListIterator li(v.get<const QoreListNode>());
             while (li.next()) {
                 QoreStringNodeValueHelper vh(li.getValue());
                 if (!vh->empty()) {
@@ -507,22 +505,22 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         const QoreHashNode* h = n.get<const QoreHashNode>();
         ConstHashIterator hi(h);
         while (hi.next()) {
-            const AbstractQoreNode* v = hi.getValue();
-            qore_type_t vtype = v ? v->getType() : 0;
-            if (!v || (vtype != NT_HASH && vtype != NT_INT)) {
+            const QoreValue v = hi.get();
+            qore_type_t vtype = v.getType();
+            if (vtype != NT_HASH && vtype != NT_INT) {
                 xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "value of protocol hash key '%s' is not a hash or an int", hi.getKey());
                 return -1;
             }
             bool need_ssl = false;
             int need_port;
             if (vtype == NT_INT)
-                need_port = (int)((reinterpret_cast<const QoreBigIntNode*>(v))->val);
+                need_port = (int)v.getAsBigInt();
             else {
-                const QoreHashNode* vh = static_cast<const QoreHashNode*>(v);
+                const QoreHashNode* vh = v.get<const QoreHashNode>();
                 need_port = (int)vh->getValueKeyValue("port").getAsBigInt();
                 if (!need_port) {
-                xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "'port' key in protocol hash key '%s' is missing or zero", hi.getKey());
-                return -1;
+                    xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "'port' key in protocol hash key '%s' is missing or zero", hi.getKey());
+                    return -1;
                 }
                 need_ssl = vh->getValueKeyValue("ssl").getAsBool();
             }
@@ -595,7 +593,7 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         }
         ConstHashIterator hi(n.get<const QoreHashNode>());
         while (hi.next()) {
-            http_priv->addHttpMethod(hi.getKey(), hi.getValue()->getAsBool());
+            http_priv->addHttpMethod(hi.getKey(), hi.get().getAsBool());
         }
     }
 
@@ -981,12 +979,12 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                 continue;
 
             // otherwise set the value in the hash
-            const AbstractQoreNode* n = hi.getValue();
-            if (!is_nothing(n)) {
+            const QoreValue n = hi.get();
+            if (!n.isNothing()) {
                 if (!strcasecmp(hi.getKey(), "transfer-encoding"))
-                transfer_encoding = true;
+                    transfer_encoding = true;
 
-                addAppendHeader(hdrs, **nh, hi.getKey(), hi.getValue(), xsink);
+                addAppendHeader(hdrs, **nh, hi.getKey(), n, xsink);
 
                 if (!strcasecmp(hi.getKey(), "connection") || (proxy_connection.has_url() && !strcasecmp(hi.getKey(), "proxy-connection"))) {
                     const char* conn = get_string_header(xsink, **nh, hi.getKey(), true);

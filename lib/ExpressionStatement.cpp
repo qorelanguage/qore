@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,26 +31,26 @@
 #include <qore/Qore.h>
 #include "qore/intern/ExpressionStatement.h"
 
-ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQoreNode* v) : AbstractStatement(start_line, end_line), exp(v) {
-   // if it is a global variable declaration, then do not register
-   if (exp->getType() == NT_VARREF) {
-      VarRefNode *vr = reinterpret_cast<VarRefNode*>(exp);
-      // used by QoreProgram to detect invalid top-level statements
-      is_declaration = !vr->has_effect();
-      // used in parsing to eliminate noops from the parse tree
-      is_parse_declaration = !vr->stayInTree();
-      return;
-   }
+ExpressionStatement::ExpressionStatement(const QoreProgramLocation* loc, AbstractQoreNode* v) : AbstractStatement(loc), exp(v) {
+    // if it is a global variable declaration, then do not register
+    if (exp->getType() == NT_VARREF) {
+        VarRefNode *vr = reinterpret_cast<VarRefNode*>(exp);
+        // used by QoreProgram to detect invalid top-level statements
+        is_declaration = !vr->has_effect();
+        // used in parsing to eliminate noops from the parse tree
+        is_parse_declaration = !vr->stayInTree();
+        return;
+    }
 
-   QoreParseListNode *l = exp->getType() == NT_PARSE_LIST ? reinterpret_cast<QoreParseListNode*>(exp) : nullptr;
-   if (l && l->isVariableList()) {
-      is_declaration = true;
-      is_parse_declaration = reinterpret_cast<VarRefNode*>(l->get(0))->getType() == VT_GLOBAL ? true : false;
-      return;
-   }
+    QoreParseListNode *l = exp->getType() == NT_PARSE_LIST ? reinterpret_cast<QoreParseListNode*>(exp) : nullptr;
+    if (l && l->isVariableList()) {
+        is_declaration = true;
+        is_parse_declaration = reinterpret_cast<VarRefNode*>(l->get(0))->getType() == VT_GLOBAL ? true : false;
+        return;
+    }
 
-   is_declaration = false;
-   is_parse_declaration = false;
+    is_declaration = false;
+    is_parse_declaration = false;
 }
 
 ExpressionStatement::~ExpressionStatement() {
