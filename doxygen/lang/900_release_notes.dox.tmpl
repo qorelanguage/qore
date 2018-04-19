@@ -88,6 +88,20 @@
     - fixed bugs handling @ref abstract "abstract" methods in complex hierarchies with multiple inheritance (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
     - fixed bugs handling object scope in @ref background "background" expressions (<a href="https://github.com/qorelanguage/qore/issues/2653">issue 2653</a>)
 
+    @section qore_08134 Qore 0.8.13.4
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08134_bug_fixes Bug Fixes in Qore
+    - module fixes:
+      - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>:
+        - implemented the \c csvutil_set_global_compat_force_empty_string() function and
+          the \c compat_force_empty_string CSV parsing option to force \c "*string" fields with no
+          value to return an empty string when parsing rather than @ref nothing for backwards compatibility
+          with very early versions of CsvUtil
+          (<a href="https://github.com/qorelanguage/qore/issues/2476">issue 2476</a>)
+
     @section qore_08133 Qore 0.8.13.3
 
     @par Release Summary
