@@ -278,8 +278,9 @@ QoreListNode::QoreListNode(bool i) : AbstractQoreNode(NT_LIST, !i, i), priv(new 
 }
 
 QoreListNode::QoreListNode(const QoreTypeInfo* valueTypeInfo) : QoreListNode() {
-   if (QoreTypeInfo::hasType(valueTypeInfo))
+   if (QoreTypeInfo::hasType(valueTypeInfo) || valueTypeInfo == autoTypeInfo) {
       priv->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(valueTypeInfo);
+   }
 }
 
 QoreListNode::~QoreListNode() {
