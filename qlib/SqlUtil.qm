@@ -38,11 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-<<<<<<< HEAD
-    version = "1.4.4";
-=======
     version = "1.5";
->>>>>>> origin/develop
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
