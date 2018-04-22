@@ -31,6 +31,7 @@ const TestList = (1, 2, 3);
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("issue 2767", \issue2767());
         addTestCase("complex assignments", \testComplexAssignments());
         addTestCase("auto", \testComplexAutoTypes());
         addTestCase("complex type compat", \testComplexTypesCompat());
@@ -39,6 +40,16 @@ class TypeTest inherits QUnit::Test {
         addTestCase("issue 2647", \issue2647());
 
         set_return_value(main());
+    }
+
+    issue2767() {
+        hash<auto> h;
+        h.a = 1;
+        assertEq("hash<auto>", h.fullType());
+
+        list<auto> l;
+        l[0] = 1;
+        assertEq("list<auto>", l.fullType());
     }
 
     testComplexAssignments() {

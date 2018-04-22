@@ -448,8 +448,9 @@ public:
 
     // static version of method, checking for null pointer
     DLLLOCAL static const QoreTypeInfo* getReturnComplexHashOrNothing(const QoreTypeInfo* ti) {
-        if (!ti || !hasType(ti))
+        if (!ti || !hasType(ti)) {
             return nullptr;
+        }
         if (ti->return_vec.size() > 1) {
             if (ti->return_vec.size() != 2 || (ti->return_vec[1].spec.match(NT_NOTHING) != QTI_IDENT))
                 return nullptr;
@@ -487,7 +488,7 @@ public:
 
    // static version of method, checking for null pointer
    DLLLOCAL static const char* getName(const QoreTypeInfo* ti) {
-      return ti && hasType(ti) ? ti->tname.c_str() : NO_TYPE_INFO;
+      return ti ? ti->tname.c_str() : NO_TYPE_INFO;
    }
 
    // static version of method, checking for null pointer
@@ -1297,7 +1298,12 @@ protected:
 class QoreComplexHashTypeInfo : public QoreTypeInfo {
 public:
    DLLLOCAL QoreComplexHashTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexHashTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexHashTypeSpec(vti), true}}) {
-       tname.sprintf("hash<string, %s>", QoreTypeInfo::getName(vti));
+       if (vti == autoTypeInfo) {
+           tname = "hash<auto>";
+       }
+       else {
+           tname.sprintf("hash<string, %s>", QoreTypeInfo::getName(vti));
+       }
    }
 
 protected:
