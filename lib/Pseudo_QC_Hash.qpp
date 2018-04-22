@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -151,8 +151,7 @@ auto v = h.firstValue();
     @see <hash>::lastValue()
  */
 auto <hash>::firstValue() [flags=CONSTANT] {
-   AbstractQoreNode* rv = qore_hash_private::getFirstKeyValue(h);
-   return rv ? rv->refSelf() : 0;
+    return qore_hash_private::getFirstKeyValue(h).refSelf();
 }
 
 //! Returns the last key name in the hash or @ref nothing if the hash has no keys
@@ -187,8 +186,7 @@ auto v = h.lastValue();
     @see <hash>::firstValue()
  */
 auto <hash>::lastValue() [flags=CONSTANT] {
-   AbstractQoreNode* rv = qore_hash_private::getLastKeyValue(h);
-   return rv ? rv->refSelf() : 0;
+    return qore_hash_private::getLastKeyValue(h).refSelf();
 }
 
 //! Returns @ref True if the key exists in the hash (may or may not be assigned a value), @ref False if not

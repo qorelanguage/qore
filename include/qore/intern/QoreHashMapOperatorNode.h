@@ -36,7 +36,7 @@
 
 class QoreHashMapOperatorNode : public QoreNOperatorNodeBase<3> {
 public:
-   DLLLOCAL QoreHashMapOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2) :
+   DLLLOCAL QoreHashMapOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2) :
       QoreNOperatorNodeBase<3>(loc, p0, p1, p2) {
    }
 

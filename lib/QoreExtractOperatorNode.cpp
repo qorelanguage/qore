@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,7 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
    // check lvalue expression
    lvalue_exp = lvalue_exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
    //if (lvalue_exp && check_lvalue(lvalue_exp))
-   //   parse_error(loc, "the extract operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
+   //   parse_error(*loc, "the extract operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
    checkLValue(lvalue_exp, pflag);
 
    if (QoreTypeInfo::hasType(expTypeInfo)) {
@@ -62,7 +62,7 @@ AbstractQoreNode *QoreExtractOperatorNode::parseInitImpl(LocalVar *oflag, int pf
          QoreStringNode *desc = new QoreStringNode("the lvalue expression (1st position) with the 'extract' operator is ");
          QoreTypeInfo::getThisType(expTypeInfo, *desc);
          desc->sprintf(", therefore this operation is invalid and would throw an exception at run-time; the 'extract' operator only operates on lists, strings, and binary objects");
-         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+         qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
       }
       else
          returnTypeInfo = typeInfo = expTypeInfo;
@@ -130,7 +130,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
    }
 
    if (vt != NT_LIST && vt != NT_STRING && vt != NT_BINARY) {
-      xsink->raiseException(loc, "EXTRACT-ERROR", nullptr, "first (lvalue) argument to the extract operator is not a list, string, or binary object");
+      xsink->raiseException(*loc, "EXTRACT-ERROR", nullptr, "first (lvalue) argument to the extract operator is not a list, string, or binary object");
       return QoreValue();
    }
 

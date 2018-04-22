@@ -45,7 +45,7 @@ protected:
    DLLLOCAL AbstractQoreNode* parseInitIntern(const char *name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
-   DLLLOCAL QoreHashObjectDereferenceOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right), typeInfo(nullptr) {
+   DLLLOCAL QoreHashObjectDereferenceOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right), typeInfo(nullptr) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {

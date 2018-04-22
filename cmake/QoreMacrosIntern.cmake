@@ -43,7 +43,7 @@ macro(qore_check_funcs)
 
     foreach (FUNCTION_TO_CHECK ${_FUNCS_UNPARSED_ARGUMENTS})
         string(TOUPPER ${FUNCTION_TO_CHECK} UPPER_FUNCTION_TO_CHECK)
-	check_function_exists(${FUNCTION_TO_CHECK} "HAVE_${UPPER_FUNCTION_TO_CHECK}")
+        check_function_exists(${FUNCTION_TO_CHECK} "HAVE_${UPPER_FUNCTION_TO_CHECK}")
 #	string(CONCAT file_output ${file_output} "\n#cmakedefine " ${HAVE_VAR})
     endforeach()
 #    file(WRITE ${CMAKE_BINARY_DIR}/funcs_defines.txt ${file_output})

@@ -61,7 +61,7 @@ AbstractQoreNode* QoreShiftRightOperatorNode::parseInitImpl(LocalVar* oflag, int
       QoreStringNode* desc = new QoreStringNode("the right hand side of the 'shift right' (>>) expression is ");
       QoreTypeInfo::getThisType(rti, *desc);
       desc->concat(", which cannot be converted to an integer, therefore the entire expression will always return the integer value of the left hand side");
-      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
 
    // see if both arguments are constant values, then eval immediately and substitute this node with the result

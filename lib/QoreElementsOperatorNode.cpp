@@ -82,7 +82,7 @@ AbstractQoreNode* QoreElementsOperatorNode::parseInitImpl(LocalVar* oflag, int p
       QoreStringNode* edesc = new QoreStringNode("the argument given to the 'elements' operator is ");
       QoreTypeInfo::getThisType(lti, *edesc);
       edesc->concat(", so this expression will always return 0; the 'elements' operator can only return a value with lists, hashes, strings, binary objects, and objects");
-      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+      qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
    }
 
    // see the argument is a constant value, then eval immediately and substitute this node with the result
