@@ -80,35 +80,35 @@ void qore_hash_private::merge(const qore_hash_private& h, ExceptionSink* xsink) 
 }
 
 int qore_hash_private::getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink) {
-   const QoreTypeInfo* memTypeInfo = nullptr;
+    const QoreTypeInfo* memTypeInfo = nullptr;
 
-   if (hashdecl) {
-      const HashDeclMemberInfo* m = typed_hash_decl_private::get(*hashdecl)->findMember(key);
-      if (!m) {
-         xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of hashdecl '%s'", key, hashdecl->getName());
-         lvh.clearPtr();
-         return -1;
-      }
+    if (hashdecl) {
+        const HashDeclMemberInfo* m = typed_hash_decl_private::get(*hashdecl)->findMember(key);
+        if (!m) {
+            xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of hashdecl '%s'", key, hashdecl->getName());
+            lvh.clearPtr();
+            return -1;
+        }
 
-      memTypeInfo = m->getTypeInfo();
-   }
-   else if (complexTypeInfo)
-      memTypeInfo = QoreTypeInfo::getUniqueReturnComplexHash(complexTypeInfo);
+        memTypeInfo = m->getTypeInfo();
+    }
+    else if (complexTypeInfo)
+        memTypeInfo = QoreTypeInfo::getUniqueReturnComplexHash(complexTypeInfo);
 
-   hm_hm_t::const_iterator i = hm.find(key);
-   HashMember* m;
-   if (i == hm.end()) {
-      if (for_remove)
-         return -1;
-      m = findCreateMember(key);
-   }
-   else
-      m = (*(i->second));
+    hm_hm_t::const_iterator i = hm.find(key);
+    HashMember* m;
+    if (i == hm.end()) {
+        if (for_remove)
+            return -1;
+        m = findCreateMember(key);
+    }
+    else
+        m = (*(i->second));
 
-   //printd(5, "qore_hash_private::getLValue() this: %p hd: %p ct: %p key: '%s' type: '%s'\n", this, hashdecl, complexTypeInfo, key, QoreTypeInfo::getName(memTypeInfo));
+    //printd(5, "qore_hash_private::getLValue() this: %p hd: %p ct: %p key: '%s' type: '%s'\n", this, hashdecl, complexTypeInfo, key, QoreTypeInfo::getName(memTypeInfo));
 
-   lvh.resetPtr(&m->node, memTypeInfo);
-   return 0;
+    lvh.resetPtr(&m->node, memTypeInfo);
+    return 0;
 }
 
 int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation& loc, LocalVar* oflag, int pflag, int& lvids, QoreParseListNode* args, const QoreTypeInfo*& argTypeInfo, const AbstractQoreNode*& arg) {
