@@ -16,11 +16,13 @@
           value to return an empty string when parsing rather than @ref nothing for backwards compatibility
           with very early versions of CsvUtil
           (<a href="https://github.com/qorelanguage/qore/issues/2476">issue 2476</a>)
-      - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes
-        - synonym resolving can fail with duplicated object name (<a href="https://github.com/qorelanguage/qore/issues/2758">issue 758</a>)
       - <a href="../../modules/Mime/html/index.html">Mime</a>
         - mime_parse_form_urlencoded_string raies a parse exception when there is no value for a key
           (<a href="https://github.com/qorelanguage/qore/issues/2760">issue 2760</a>)
+      - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes
+        - synonym resolving can fail with duplicated object name (<a href="https://github.com/qorelanguage/qore/issues/2758">issue 758</a>)
+      - <a href="../../modules/TableMapper/html/index.html">TableMapper</a>
+        - fixed a performance issue where (non-raw) outbound mappers would do a full table scan when initializing the mapper (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
 
     @section qore_08133 Qore 0.8.13.3
 
