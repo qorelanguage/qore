@@ -8,7 +8,12 @@
     Bugfix release; see details below
 
     @subsection qore_08134_bug_fixes Bug Fixes in Qore
-    - fixed a bug where hashes and lists with subtype @ref auto_type "auto" were not created correctly with implicit initialization causing excess type stripping which could lead to performance issues with large data structures (<a href="https://github.com/qorelanguage/qore/issues/2767">issue 2767</a>)
+    - fixed a bug where hashes and lists with subtype @ref auto_type "auto" were not created correctly with
+      implicit initialization causing excess type stripping which could lead to performance issues with large
+      data structures (<a href="https://github.com/qorelanguage/qore/issues/2767">issue 2767</a>)
+    - implemented a new optional DBI statement method to allow for statement execution only for describing the
+      result set to solve performance issues when describing statements with large data sets
+      (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
     - module fixes:
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>:
         - implemented the \c csvutil_set_global_compat_force_empty_string() function and
@@ -16,11 +21,20 @@
           value to return an empty string when parsing rather than @ref nothing for backwards compatibility
           with very early versions of CsvUtil
           (<a href="https://github.com/qorelanguage/qore/issues/2476">issue 2476</a>)
-      - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes
-        - synonym resolving can fail with duplicated object name (<a href="https://github.com/qorelanguage/qore/issues/2758">issue 758</a>)
-      - <a href="../../modules/Mime/html/index.html">Mime</a>
+      - <a href="../../modules/Mime/html/index.html">Mime</a>:
         - mime_parse_form_urlencoded_string raies a parse exception when there is no value for a key
           (<a href="https://github.com/qorelanguage/qore/issues/2760">issue 2760</a>)
+      - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes
+        - synonym resolving can fail with duplicated object name
+          (<a href="https://github.com/qorelanguage/qore/issues/2758">issue 758</a>)
+      - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>:
+        - implemented the \c AbstractTable::getRowIteratorNoExec() method (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
+      - <a href="../../modules/TableMapper/html/index.html">TableMapper</a>:
+        - updated to use the new SQL statement DBI method for efficient execution of queries only for describing
+          result sets with outbound mappers to solve performance problems related to mappers that
+          have statements with large data sets (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
+        - fixed @ref TableMapper::RawSqlStatementOutboundMapper "RawSqlStatementOutboundMapper" to be usable without subclassing
+          (<a href="https://github.com/qorelanguage/qore/issues/2775">issue 2775</a>)
 
     @section qore_08133 Qore 0.8.13.3
 

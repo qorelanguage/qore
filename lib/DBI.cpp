@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -171,7 +171,7 @@ void qore_dbi_method_list::add(int code, q_dbi_stmt_bind_t method) {
 
 // covers stmt exec, close, define, and affectedRows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_exec_t method) {
-   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS || code == QDBI_METHOD_STMT_FREE);
+   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS || code == QDBI_METHOD_STMT_FREE || code == QDBI_METHOD_STMT_EXEC_DESCRIBE);
    assert(priv->l.find(code) == priv->l.end());
    priv->l[code] = (void*)method;
 }
@@ -342,6 +342,10 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
          case QDBI_METHOD_STMT_BIND_VALUES:
             assert(!f.stmt.bind_values);
             f.stmt.bind_values = (q_dbi_stmt_bind_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_EXEC_DESCRIBE:
+            assert(!f.stmt.exec_describe);
+            f.stmt.exec_describe = (q_dbi_stmt_exec_t)(*i).second;
             break;
          case QDBI_METHOD_STMT_EXEC:
             assert(!f.stmt.exec);

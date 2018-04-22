@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file TableMapper.qm provides mapping functionality to an SQL Table target
 
-/*  TableMapper.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
+/*  TableMapper.qm Copyright 2014 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@
 %requires SqlUtil
 
 module TableMapper {
-    version = "1.2.1";
+    version = "1.2.2";
     desc = "user module providing data mapping infrastructure to an SQL Table target";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -216,6 +216,13 @@ on_error table1.rollback();
     Additionally, the value is provided to any row code set with @ref TableMapper::InboundTableMapper::setRowCode(); see @ref tablemapper_bulk_insert_api for more information.
 
     @section tablemapperrelnotes Release Notes
+
+    @subsection tablemapperv1_2_2 TableMapper v1.2.2
+    - updated to use the new SQL statement DBI method for efficient execution of queries only for describing
+      result sets with outbound mappers to solve performance problems related to mappers that
+      have statements with large data sets (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
+    - fixed @ref TableMapper::RawSqlStatementOutboundMapper "RawSqlStatementOutboundMapper" to be usable without subclassing
+      (<a href="https://github.com/qorelanguage/qore/issues/2775">issue 2775</a>)
 
     @subsection tablemapperv1_2_1 TableMapper v1.2.1
     - fixed issues where where description fields of input and output records for automatically-generated options did not reflect column comments and could not be overridden with user input (<a href="https://github.com/qorelanguage/qore/issues/2520">issue 2520</a>)
@@ -1743,16 +1750,14 @@ InboundTableMapperIterator i(input, mapper);
     public class AbstractSqlStatementOutboundMapper inherits Mapper::Mapper {
         public {
             #! option keys for this object
-            const OptionKeys = Mapper::OptionKeys + (
-                "table": "(required) the AbstractTable object for the source of the data",
-                "sh": "(optional) an SqlUtil select hash",
+            const OptionKeys = Mapper::OptionKeys + {
                 "select_block" : sprintf("the row block size used when bulk DML / batch inserts are used; default: %y", OptionDefaults.select_block),
-                );
+            };
 
             #! default option values
-            const OptionDefaults = (
+            const OptionDefaults = {
                 "select_block": 1000,
-                );
+            };
         }
 
         private {
@@ -1793,7 +1798,7 @@ InboundTableMapperIterator i(input, mapper);
         #! returns a list of valid constructor options for this class (can be overridden in subclasses)
         /** @return a list of valid constructor options for this class (can be overridden in subclasses)
         */
-        hash optionKeys() {
+        hash<auto> optionKeys() {
             return OptionKeys;
         }
 
@@ -1900,6 +1905,12 @@ InboundTableMapperIterator i(input, mapper);
             SqlUtil::AbstractTable m_table;
             # SqlUtil select hash
             *hash m_sh;
+
+            #! option keys for this object
+            const OptionKeys = AbstractSqlStatementOutboundMapper::OptionKeys + {
+                "table": "(required) the AbstractTable object for the source of the data",
+                "sh": "(optional) an SqlUtil select hash",
+            };
         }
 
         #! builds the object based on an optional hash providing field mappings, data constraints, and optionally custom mapping logic
@@ -1958,13 +1969,20 @@ InboundTableMapperIterator i(input, mapper);
             bool trans = table.getDatasource().currentThreadInTransaction();
             on_exit if (!trans) table.rollback();
 
-            SQLStatement stmt = table.getRowIterator(select_hash, \sql);
+            SQLStatement stmt = table.getRowIteratorNoExec(select_hash, \sql);
             return map {$1.key.lwr(): ("desc": sprintf("%s%s%s", $1.value.native_type.lwr(), ($1.value.maxsize ? sprintf("(%d)", $1.value.maxsize) : ""), (input{$1.key.lwr()}.desc ? "; " + input{$1.key.lwr()}.desc : "")))}, stmt.describe().pairIterator();
         }
 
         #! initializes the internal statement object
         initStatement() {
             m_stmt = m_table.getRowIterator(m_sh);
+        }
+
+        #! returns a list of valid constructor options for this class (can be overridden in subclasses)
+        /** @return a list of valid constructor options for this class (can be overridden in subclasses)
+        */
+        hash<auto> optionKeys() {
+            return OptionKeys;
         }
 
         #! initializes options
@@ -1988,6 +2006,12 @@ InboundTableMapperIterator i(input, mapper);
             AbstractDatasource m_ds;
             string m_sql;
             *list m_sqlargs;
+
+            const OptionKeys = AbstractSqlStatementOutboundMapper::OptionKeys + {
+                "datasource": "(internal) the datasource containing the target table",
+                "select": "(internal) the SQL statement used",
+                "bind": "(internal) a runtime bind-variable (soft)list",
+            };
         }
 
         #! builds the obejct based on real SQL statement
@@ -2028,6 +2052,13 @@ printf("%N\n", m.getDataRows());
         #! returns the @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object associated with this object
         Qore::SQL::AbstractDatasource getDatasource() {
             return m_ds;
+        }
+
+        #! returns a list of valid constructor options for this class (can be overridden in subclasses)
+        /** @return a list of valid constructor options for this class (can be overridden in subclasses)
+        */
+        hash<auto> optionKeys() {
+            return OptionKeys;
         }
 
         #! returns a description of the input record based on @ref Qore::SQL::SQLStatement::describe()
