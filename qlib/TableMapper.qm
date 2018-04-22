@@ -747,7 +747,7 @@ table_mapper.setRowCode(rowcode);
             @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
             @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
         */
-        *hash queueData(hash rec, *hash crec) {
+        *hash queueData(hash<auto> rec, *hash<auto> crec) {
             if (unstable_input)
                 throw "MAPPER-BATCH-ERROR", sprintf("cannot call %s::queueData() when the unstable_input option is set", self.className());
 
