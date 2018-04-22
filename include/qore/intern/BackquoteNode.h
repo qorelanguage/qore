@@ -53,7 +53,7 @@ protected:
 public:
    char *str;
 
-   DLLLOCAL BackquoteNode(const QoreProgramLocation& loc, char *c_str);
+   DLLLOCAL BackquoteNode(const QoreProgramLocation* loc, char *c_str);
 
    DLLLOCAL virtual ~BackquoteNode();
 

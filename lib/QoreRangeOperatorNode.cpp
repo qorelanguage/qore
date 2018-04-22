@@ -48,9 +48,9 @@ AbstractQoreNode* QoreRangeOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
 
     // see if any of the arguments cannot be converted to an integer, if so raise a parse exception
     if (!QoreTypeInfo::canConvertToScalar(lti))
-        parseException(loc, "PARSE-TYPE-ERROR", "the start expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(lti));
+        parseException(*loc, "PARSE-TYPE-ERROR", "the start expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(lti));
     if (!QoreTypeInfo::canConvertToScalar(rti))
-        parseException(loc, "PARSE-TYPE-ERROR", "the end expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(rti));
+        parseException(*loc, "PARSE-TYPE-ERROR", "the end expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(rti));
 
     // do not evaluate at parse time, even if the arguments are both constant values, so we can support lazy evaluation
     // with functional operators

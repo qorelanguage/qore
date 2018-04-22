@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -542,54 +542,6 @@ public:
       reset();
    }
 
-   // NOTE: destructive for "val":
-   DLLLOCAL AbstractQoreNode* assignAssume(QoreValue& val) {
-      if (fixed_type) {
-         if (!assigned)
-            assigned = true;
-         switch (type) {
-            case QV_Bool: v.b = val.getAsBool(); break;
-            case QV_Int: v.i = val.getAsBigInt(); break;
-            case QV_Float: v.f = val.getAsFloat(); break;
-            default: assert(false);
-               // no break
-         }
-         return val.takeIfNode();
-      }
-
-      AbstractQoreNode* rv;
-      if (assigned) {
-         if (type == QV_Node) {
-            if (!is_closure)
-               check_lvalue_object_in_out(0, v.n);
-            rv = v.n;
-         }
-         else
-            rv = 0;
-      }
-      else {
-         assigned = true;
-         rv = 0;
-      }
-
-      switch (val.type) {
-         case QV_Bool: v.b = val.v.b; if (type != QV_Bool) type = QV_Bool; break;
-         case QV_Int: v.i = val.v.i; if (type != QV_Int) type = QV_Int; break;
-         case QV_Float: v.f = val.v.f; if (type != QV_Float) type = QV_Float; break;
-         case QV_Node:
-            v.n = val.takeNode();
-            if (type != QV_Node)
-               type = QV_Node;
-            if (!is_closure)
-               check_lvalue_object_in_out(v.n, 0);
-            break;
-         default: assert(false);
-            // no break
-      }
-
-      return rv;
-   }
-
    DLLLOCAL AbstractQoreNode* assign(bool b) {
       if (fixed_type) {
          if (!assigned)
@@ -825,6 +777,59 @@ public:
          check_lvalue_object_in_out(v.n, 0);
       return 0;
    }
+
+    DLLLOCAL AbstractQoreNode* assignInitial(QoreValue n) {
+        assert(!assigned);
+        return assignAssume(n);
+    }
+
+    // NOTE: destructive for "val":
+    DLLLOCAL AbstractQoreNode* assignAssume(QoreValue& val) {
+        if (fixed_type) {
+            if (!assigned)
+                assigned = true;
+            switch (type) {
+                case QV_Bool: v.b = val.getAsBool(); break;
+                case QV_Int: v.i = val.getAsBigInt(); break;
+                case QV_Float: v.f = val.getAsFloat(); break;
+                default: assert(false);
+                // no break
+            }
+            return val.takeIfNode();
+        }
+
+        AbstractQoreNode* rv;
+        if (assigned) {
+            if (type == QV_Node) {
+                if (!is_closure)
+                check_lvalue_object_in_out(0, v.n);
+                rv = v.n;
+            }
+            else
+                rv = nullptr;
+        }
+        else {
+            assigned = true;
+            rv = nullptr;
+        }
+
+        switch (val.type) {
+            case QV_Bool: v.b = val.v.b; if (type != QV_Bool) type = QV_Bool; break;
+            case QV_Int: v.i = val.v.i; if (type != QV_Int) type = QV_Int; break;
+            case QV_Float: v.f = val.v.f; if (type != QV_Float) type = QV_Float; break;
+            case QV_Node:
+                v.n = val.takeNode();
+                if (type != QV_Node)
+                    type = QV_Node;
+                if (!is_closure)
+                    check_lvalue_object_in_out(v.n, 0);
+                break;
+            default: assert(false);
+                // no break
+        }
+
+        return rv;
+    }
 
    // the node is already referenced for the assignment
    DLLLOCAL AbstractQoreNode* assign(AbstractQoreNode* n) {
