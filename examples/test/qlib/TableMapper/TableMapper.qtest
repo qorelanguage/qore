@@ -214,6 +214,8 @@ public class TableMapperTest inherits QUnit::Test {
             "orderby": "id",
             );
 
+        const SelectSql = "select * from table_mapper_test order by id";
+
         const OutputBulk1 = (
             ("id": 19, "code1": "code", "string": "string_1"),
             ("id": 20, "code1": "code", "string": "string_2"),
@@ -359,6 +361,7 @@ public class TableMapperTest inherits QUnit::Test {
         addTestCase("InboundTableMapper insert", \inboundTableMapperTest());
         addTestCase("InboundTableMapper upsert", \inboundTableMapperUpsertTest());
         addTestCase("OutputTableMapper", \outputTableMapperTest());
+        addTestCase("OutputTableMapper", \rawOutputTableMapperTest());
 
         set_return_value(main());
     }
@@ -1142,6 +1145,22 @@ public class TableMapperTest inherits QUnit::Test {
         assertEq(3, m.getCount());
         # issue #2520
         assertRegex("; test$", m.getInputRecord().id.desc);
+    }
+
+    rawOutputTableMapperTest() {
+        if (!table)
+            testSkip("no DB connection");
+
+        RawSqlStatementOutboundMapper m(table.getDatasource(), SelectSql, NOTHING, OutMap1, ("input": ("id": ("desc": "test"))));
+        SqlStatementMapperIterator i = m.iterator();
+        list l;
+        while (list tl = i.mapBulk(2)) {
+            l += tl;
+        }
+
+        assertEq(Output2, l, "mapBulk");
+        assertEq(3, i.getCount());
+        assertEq(3, m.getCount());
     }
 
     # FIXME this is very ad-hoc checking - 'ol' used only

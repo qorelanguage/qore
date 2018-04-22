@@ -150,6 +150,7 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
     constructor() : SqlUtil::AbstractTable(fds, "foo_table") {}
     AbstractIterator getRowIterator(hash h, *reference<string> sql) { return new FakeSQLStatement(); }
     AbstractIterator getStatement(hash h, *reference<string> sql) { return new FakeSQLStatement(); }
+    AbstractIterator getStatementNoExec(hash h, *reference<string> sql) { return new FakeSQLStatement(); }
 
     string getRenameSqlImpl(string new_name) {}
     AbstractPrimaryKey getPrimaryKeyImpl(any a) {}

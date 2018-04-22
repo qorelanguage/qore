@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2006 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -68,6 +68,7 @@ protected:
 
    DLLLOCAL int closeIntern(ExceptionSink* xsink);
    DLLLOCAL int execIntern(DBActionHelper& dba, ExceptionSink* xsink);
+   DLLLOCAL int execDescribeIntern(DBActionHelper& dba, ExceptionSink* xsink);
    DLLLOCAL int defineIntern(ExceptionSink* xsink);
    DLLLOCAL int prepareIntern(ExceptionSink* xsink);
    DLLLOCAL int prepareArgs(bool n_raw, const QoreString& n_str, const QoreListNode* args, ExceptionSink* xsink);
