@@ -350,10 +350,11 @@ public class TableMapperTest inherits QUnit::Test {
             table = (new Table(schema.getDatasource(), "table_mapper_test")).getTable();
             upsert_table = (new Table(schema.getDatasource(), "table_mapper_upsert_test")).getTable();
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             if (m_options.verbose)
                 printf("%s: %s\n", ex.err, ex.desc);
         }
+
         # add test cases
         addTestCase("BulkInboundTableMapper", \bulkInboundTableMapperTest());
         # NOTE: inboundTableMapperTest must immediately precede outputTableMapperTest
@@ -402,7 +403,7 @@ public class TableMapperTest inherits QUnit::Test {
                 if (!ret) { ret = mapper.flush(); }
 
                 # issue #1849 test
-                assertEq(True, fl[0] =~ /flushing 3 row/);
+                assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
 
                 checkMap((map $1, ret.contextIterator()), ConstOutput);
                 checkMap(table.selectRows(("orderby": "id")), ConstOutput);
@@ -429,7 +430,7 @@ public class TableMapperTest inherits QUnit::Test {
                 if (!ret) { ret = mapper.flush(); }
 
                 # issue #1849 test
-                assertEq(True, fl[0] =~ /flushing 4 row/);
+                assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 4 row/);
 
                 #checkMap((map $1, ret.contextIterator()), Output4);
                 #checkMap(table.selectRows(("orderby": "string")), Output4);
@@ -475,7 +476,7 @@ public class TableMapperTest inherits QUnit::Test {
                 assertEq(3, mapper.getCount());
 
                 # issue #1849 test
-                assertEq(True, fl[0] =~ /flushing 3 row/);
+                assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
             }
 
             # issue #1754: queueData() followed by insertRow - produces an ORA error
@@ -501,11 +502,11 @@ public class TableMapperTest inherits QUnit::Test {
                         assertEq(4, mapper.getCount());
                         assertEq(OutputHash7, ret);
                     }
-                    catch(hash ex) {
+                    catch (hash<ExceptionInfo> ex) {
                         assertEq("DBI:ORACLE:OCI-ERROR", ex.err);
                     }
                 }
-                catch(hash ex1) {
+                catch (hash<ExceptionInfo> ex1) {
                     # NOTE: must accept exceptions from the TableMapper destructor
                     # that there are still rows to process
                     assertEq("BLOCK-ERROR", ex1.err);
@@ -531,7 +532,6 @@ public class TableMapperTest inherits QUnit::Test {
         list output2 = Output1;
         output2[2].string = "str2_3";
 
-        # issue #1849: check flush messages
         list fl = ();
         code info_log = sub (string fmt) {
             fl += vsprintf(fmt, argv);
@@ -569,13 +569,14 @@ public class TableMapperTest inherits QUnit::Test {
             fl = ();
 
             InboundTableMapper mapper(table, Map1, ("info_log": info_log));
+            printf("DOING IT\n");
             map mapper.queueData($1), Input1;
             checkMap((map $1, mapper.flush().contextIterator()), output1);
             checkMap(table.selectRows(("orderby": "id")), output1);
             assertEq(3, mapper.getCount());
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 3 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
         }
 
         # queueData(list of hashes) test with code referring to the input
@@ -596,7 +597,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 3 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
         }
 
         # issue #1754: queueData(hash of lists) test with code referring to the input
@@ -614,7 +615,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 3 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
         }
 
         # issue #1754: two queueData() in sequence with 'index' in the mapper
@@ -653,7 +654,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(OutputHash5, ret);
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 4 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 4 row/);
         }
 
         # issue #1754: two queueData() in sequence with 'index' in the mapper
@@ -691,7 +692,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(OutputHash5, ret);
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 4 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 4 row/);
         }
 
         # issue #1754: two queueData() in sequence with 'runtime' in the mapper
@@ -731,7 +732,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(OutputRTHash, ret);
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 4 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 4 row/);
         }
 
         # issue #1754: queueData() test with False-convertible value in 1st value
@@ -756,7 +757,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(1, mapper.getCount());
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 1 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 1 row/);
         }
 
         # issue #1754: queueData(hash of lists) with insert_block=1 and 'crec'
@@ -809,7 +810,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 3 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
         }
 
         # issue #1754: queueData(hash of lists) with code using 1st val with constant
@@ -828,7 +829,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 3 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
         }
 
         # issue #1754: queueData(hash of lists) with 'crec' and identity
@@ -847,7 +848,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 3 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
         }
 
         # issue #1754: multiple queueData(hash of lists) and 'crec'
@@ -883,7 +884,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(6, mapper.getCount());
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 6 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 6 row/);
         }
 
         # issue #1754: queueData(hash of lists) with insert_block=1
@@ -942,7 +943,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(ConstOutputHash, ret);
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 3 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
         }
 
         # queueData() test with some mapping with empty lists on input
@@ -991,7 +992,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 3 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
         }
 
         # issue #1754: queueData(hash of lists) test with code, rowcode + a constant mapping
@@ -1013,7 +1014,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(OutputBulk1, rl);
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 3 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
         }
 
         # issue #1736: InboundTableMapper::queueData() error with hashes of lists
@@ -1042,7 +1043,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(outputBulk2, rl);
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 3 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
         }
 
         # queueData(list) test
@@ -1061,7 +1062,7 @@ public class TableMapperTest inherits QUnit::Test {
             assertEq(3, mapper.getCount());
 
             # issue #1849 test
-            assertEq(True, fl[0] =~ /flushing 3 row/);
+            assertEq(True, !table.hasArrayBind() || fl[0] =~ /flushing 3 row/);
         }
     }
 
