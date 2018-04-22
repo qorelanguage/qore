@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -252,7 +252,7 @@ public:
       // try to lock
       if (ro->rml.tryRSectionLockNotifyWaitRead(&n_orsh->notifier)) {
          ro = 0;
-	 return;
+         return;
       }
 
       orsh = n_orsh;
@@ -262,13 +262,13 @@ public:
 
    DLLLOCAL ~RSectionScanHelper() {
       if (!orsh)
-	 return;
+         return;
 
       // if no objects were added to the set, then unlock the lock
       if (orsh->size() == size) {
-	 ro->rml.rSectionUnlock();
+         ro->rml.rSectionUnlock();
          orsh->deccnt();
-	 return;
+         return;
       }
 
       // otherwise try to add the lock to the list to be released at the end of the scan
@@ -281,93 +281,93 @@ public:
 };
 
 bool RSetHelper::checkIntern(AbstractQoreNode* n) {
-   if (!needs_scan(n))
-      return false;
+    if (!needs_scan(n))
+        return false;
 
-   //printd(5, "RSetHelper::checkIntern() checking %p %s\n", n, get_type_name(n));
+    //printd(5, "RSetHelper::checkIntern() checking %p %s\n", n, get_type_name(n));
 
-   switch (get_node_type(n)) {
-      case NT_OBJECT:
-         return checkIntern(*qore_object_private::get(*reinterpret_cast<QoreObject*>(n)));
+    switch (get_node_type(n)) {
+        case NT_OBJECT:
+            return checkIntern(*qore_object_private::get(*reinterpret_cast<QoreObject*>(n)));
 
-      case NT_LIST: {
-         QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
-         ListIterator li(l);
-         while (li.next()) {
-            if (checkIntern(li.getValue()))
-               return true;
-         }
-
-         return false;
-      }
-
-      case NT_HASH: {
-         QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
-         HashIterator hi(h);
-         while (hi.next()) {
-            assert(hi.getValue() != h);
-            if (checkIntern(hi.getValue()))
-               return true;
-         }
-
-         return false;
-      }
-
-      case NT_RUNTIME_CLOSURE: {
-         QoreClosureBase* c = reinterpret_cast<QoreClosureBase*>(n);
-         // do not lock or scan if the closure cannot contain any closure-bound local vars with objects or closures (also not through a container)
-         if (!c->needsScan()) {
-            printd(QRO_LVL, "RSetHelper::checkIntern() closure %p: no scan\n", c);
-            return false;
-         }
-	 closure_set_t::iterator ci = closure_set.lower_bound(c);
-	 // return false if already scanned
-	 if (ci != closure_set.end() && *ci == c) {
-            printd(QRO_LVL, "RSetHelper::checkIntern() found dup closure %p\n", c);
-	    return false;
-         }
-	 // insert into scanned closure set
-	 closure_set.insert(ci, c);
-
-	 // do not scan any closure object since weak references are used
-         // iterate captured lvars
-         const cvar_map_t& cmap = c->getMap();
-
-         for (cvar_map_t::const_iterator i = cmap.begin(), e = cmap.end(); i != e; ++i) {
-            // do not grab the lock if the lvalue cannot contain an object or closure (also not through a container)
-            if (!i->second->needsScan(true)) {
-               printd(QRO_LVL, "RSetHelper::checkIntern() closure %p: var %s: no scan\n", c, i->first->getName());
-               continue;
+        case NT_LIST: {
+            QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
+            ListIterator li(l);
+            while (li.next()) {
+                if (checkIntern(li.getValue()))
+                return true;
             }
-	    RSectionScanHelper rssh(this, i->second);
-            if (rssh.lockError())
-               return true;
+
+            return false;
+        }
+
+        case NT_HASH: {
+            QoreHashNode* h = reinterpret_cast<QoreHashNode*>(n);
+            HashIterator hi(h);
+            while (hi.next()) {
+                assert(hi.get().getInternalNode() != h);
+                if (hi.get().hasNode() && checkIntern(hi.get().getInternalNode()))
+                    return true;
+            }
+
+            return false;
+        }
+
+        case NT_RUNTIME_CLOSURE: {
+            QoreClosureBase* c = reinterpret_cast<QoreClosureBase*>(n);
+            // do not lock or scan if the closure cannot contain any closure-bound local vars with objects or closures (also not through a container)
+            if (!c->needsScan()) {
+                printd(QRO_LVL, "RSetHelper::checkIntern() closure %p: no scan\n", c);
+                return false;
+            }
+            closure_set_t::iterator ci = closure_set.lower_bound(c);
+            // return false if already scanned
+            if (ci != closure_set.end() && *ci == c) {
+                printd(QRO_LVL, "RSetHelper::checkIntern() found dup closure %p\n", c);
+                return false;
+            }
+            // insert into scanned closure set
+            closure_set.insert(ci, c);
+
+            // do not scan any closure object since weak references are used
+            // iterate captured lvars
+            const cvar_map_t& cmap = c->getMap();
+
+            for (cvar_map_t::const_iterator i = cmap.begin(), e = cmap.end(); i != e; ++i) {
+                // do not grab the lock if the lvalue cannot contain an object or closure (also not through a container)
+                if (!i->second->needsScan(true)) {
+                    printd(QRO_LVL, "RSetHelper::checkIntern() closure %p: var %s: no scan\n", c, i->first->getName());
+                    continue;
+                }
+                RSectionScanHelper rssh(this, i->second);
+                if (rssh.lockError())
+                    return true;
 #ifdef DEBUG
-	    unsigned csize = size();
+                unsigned csize = size();
 #endif
 
-            if (checkIntern(*i->second))
-               return true;
+                if (checkIntern(*i->second))
+                    return true;
 
 #ifdef DEBUG
-	    if (csize != size())
-               printd(QRO_LVL, "RSetHelper::checkIntern() closure var '%s' found rref (type: %s)\n", i->first->getName(), i->second->val.getTypeName());
-            else
-               printd(QRO_LVL, "RSetHelper::checkIntern() closure var '%s' no rref; size: %d (type: %s)\n", i->first->getName(), csize, i->second->val.getTypeName());
+                if (csize != size())
+                    printd(QRO_LVL, "RSetHelper::checkIntern() closure var '%s' found rref (type: %s)\n", i->first->getName(), i->second->val.getTypeName());
+                else
+                    printd(QRO_LVL, "RSetHelper::checkIntern() closure var '%s' no rref; size: %d (type: %s)\n", i->first->getName(), csize, i->second->val.getTypeName());
 #endif
-         }
+            }
 
-         return false;
-      }
+            return false;
+        }
 
-      case NT_REFERENCE:
-         return lvalue_ref::get(static_cast<ReferenceNode*>(n))->scanReference(*this);
+        case NT_REFERENCE:
+            return lvalue_ref::get(static_cast<ReferenceNode*>(n))->scanReference(*this);
 
-      case NT_VALUE_LIST:
-         assert(false);
-   }
+        case NT_VALUE_LIST:
+            assert(false);
+    }
 
-   return false;
+    return false;
 }
 
 bool RSetHelper::removeInvalidate(RSet* ors, int tid) {
@@ -519,161 +519,161 @@ bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
 // XXX RSectionScanHelper
 bool RSetHelper::checkIntern(RObject& obj) {
 #ifdef DEBUG
-   bool hl = obj.rml.hasRSectionLock();
+    bool hl = obj.rml.hasRSectionLock();
 #endif
-   if (obj.rml.tryRSectionLockNotifyWaitRead(&notifier)) {
-      printd(QRO_LVL, "RSetHelper::checkIntern() + obj %p '%s' cannot enter rsection: rsection tid: %d\n", &obj, obj.getName(), obj.rml.rSectionTid());
-      return true;
-   }
+    if (obj.rml.tryRSectionLockNotifyWaitRead(&notifier)) {
+        printd(QRO_LVL, "RSetHelper::checkIntern() + obj %p '%s' cannot enter rsection: rsection tid: %d\n", &obj, obj.getName(), obj.rml.rSectionTid());
+        return true;
+    }
 #ifdef DEBUG
-   if (!hl)
-      inccnt();
+    if (!hl)
+        inccnt();
 #endif
 
-   // check object status; do not scan invalid objects or objects being deleted
-   if (!obj.isValid()) {
-      obj.rml.rSectionUnlock();
-      deccnt();
-      return false;
-   }
+    // check object status; do not scan invalid objects or objects being deleted
+    if (!obj.isValid()) {
+        obj.rml.rSectionUnlock();
+        deccnt();
+        return false;
+    }
 
-   int tid = gettid();
+    int tid = gettid();
 
-   // see if the object has been scanned
-   omap_t::iterator fi = fomap.lower_bound(&obj);
-   if (fi != fomap.end() && fi->first == &obj) {
-      printd(QRO_LVL, "RSetHelper::checkIntern() + found obj %p '%s' rcount: %d in_cycle: %d ok: %d\n", &obj, obj.getName(), fi->second.rcount, fi->second.in_cycle, fi->second.ok);
-      //printd(QRO_LVL, "RSetHelper::checkIntern() found obj %p '%s' incrementing rcount: %d -> %d\n", &obj, obj.getName(), fi->second.rcount, fi->second.rcount + 1);
+    // see if the object has been scanned
+    omap_t::iterator fi = fomap.lower_bound(&obj);
+    if (fi != fomap.end() && fi->first == &obj) {
+        printd(QRO_LVL, "RSetHelper::checkIntern() + found obj %p '%s' rcount: %d in_cycle: %d ok: %d\n", &obj, obj.getName(), fi->second.rcount, fi->second.in_cycle, fi->second.ok);
+        //printd(QRO_LVL, "RSetHelper::checkIntern() found obj %p '%s' incrementing rcount: %d -> %d\n", &obj, obj.getName(), fi->second.rcount, fi->second.rcount + 1);
 
-      if (fi->second.ok) {
-         assert(!fi->second.in_cycle);
-         printd(QRO_LVL, " + %p '%s' already scanned and ok\n", &obj, obj.getName());
-         return false;
-      }
-
-      if (fi->second.in_cycle) {
-         assert(fi->second.rset);
-         // check if this object is part of the current cycle already - if
-         // 1) it's already in the current scan vector, or
-         // 2) the parent object of the current object is already a part of the recursive set
-         if (inCurrentSet(fi)) {
-            printd(QRO_LVL, " + recursive obj %p '%s' already finalized and in current cycle (rcount: %d -> %d)\n", &obj, obj.getName(), fi->second.rcount, fi->second.rcount + 1);
-            ++fi->second.rcount;
-            // rcount can never be more than real references for the target object
-            assert(fi->first->references >= fi->second.rcount);
-         }
-         else if (!ovec.empty()) {
-            // FIXME: use this optimization in the loop below
-            if (ovec.back()->second.rset == fi->second.rset) {
-               printd(QRO_LVL, " + %p '%s': parent object %p '%s' in same cycle (rcount: %d -> %d)\n", &obj, obj.getName(), ovec.back()->first, ovec.back()->first->getName(), fi->second.rcount, fi->second.rcount + 1);
-               ++fi->second.rcount;
-               // rcount can never be more than real references for the target object
-               assert(fi->first->references >= fi->second.rcount);
-               return false;
-            }
-
-            // see if any parent of the current object is already in the same recursive cycle, if so, we have a new chain (quick comparison first)
-            for (int i = ovec.size() - 1; i >= 0; --i) {
-               if (fi->second.rset == ovec[i]->second.rset) {
-                  printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in current cycle\n", &obj, obj.getName(), ovec[i]->first, ovec[i]->first->getName());
-
-                  return makeChain(i, fi, tid);
-               }
-            }
-
-            // see if any parent of the current object is already in a recursive cycle to be joined, if so, we have a new chain (slower comparison second)
-            for (int i = ovec.size() - 1; i >= 0; --i) {
-               if (fi->second.rset->find((ovec[i])->first) != fi->second.rset->end()) {
-                  printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in current cycle\n", &obj, obj.getName(), ovec[i]->first, ovec[i]->first->getName());
-
-                  return makeChain(i, fi, tid);
-               }
-            }
-
-            printd(QRO_LVL, " + recursive obj %p '%s' already finalized but not in current cycle\n", &obj, obj.getName());
+        if (fi->second.ok) {
+            assert(!fi->second.in_cycle);
+            printd(QRO_LVL, " + %p '%s' already scanned and ok\n", &obj, obj.getName());
             return false;
-         }
-      }
-      else {
-         if (!inCurrentSet(fi)) {
-            printd(QRO_LVL, " + recursive obj %p '%s' not in current cycle\n", &obj, obj.getName());
-            return false;
-         }
-      }
+        }
 
-      // finalize current objects immediately
-      RSet* rset = fi->second.rset;
+        if (fi->second.in_cycle) {
+            assert(fi->second.rset);
+            // check if this object is part of the current cycle already - if
+            // 1) it's already in the current scan vector, or
+            // 2) the parent object of the current object is already a part of the recursive set
+            if (inCurrentSet(fi)) {
+                printd(QRO_LVL, " + recursive obj %p '%s' already finalized and in current cycle (rcount: %d -> %d)\n", &obj, obj.getName(), fi->second.rcount, fi->second.rcount + 1);
+                ++fi->second.rcount;
+                // rcount can never be more than real references for the target object
+                assert(fi->first->references >= fi->second.rcount);
+            }
+            else if (!ovec.empty()) {
+                // FIXME: use this optimization in the loop below
+                if (ovec.back()->second.rset == fi->second.rset) {
+                    printd(QRO_LVL, " + %p '%s': parent object %p '%s' in same cycle (rcount: %d -> %d)\n", &obj, obj.getName(), ovec.back()->first, ovec.back()->first->getName(), fi->second.rcount, fi->second.rcount + 1);
+                    ++fi->second.rcount;
+                    // rcount can never be more than real references for the target object
+                    assert(fi->first->references >= fi->second.rcount);
+                    return false;
+                }
+
+                // see if any parent of the current object is already in the same recursive cycle, if so, we have a new chain (quick comparison first)
+                for (int i = ovec.size() - 1; i >= 0; --i) {
+                    if (fi->second.rset == ovec[i]->second.rset) {
+                        printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in current cycle\n", &obj, obj.getName(), ovec[i]->first, ovec[i]->first->getName());
+
+                        return makeChain(i, fi, tid);
+                    }
+                }
+
+                // see if any parent of the current object is already in a recursive cycle to be joined, if so, we have a new chain (slower comparison second)
+                for (int i = ovec.size() - 1; i >= 0; --i) {
+                    if (fi->second.rset->find((ovec[i])->first) != fi->second.rset->end()) {
+                        printd(QRO_LVL, " + recursive obj %p '%s' already finalized, cyclic ancestor %p '%s' in current cycle\n", &obj, obj.getName(), ovec[i]->first, ovec[i]->first->getName());
+
+                        return makeChain(i, fi, tid);
+                    }
+                }
+
+                printd(QRO_LVL, " + recursive obj %p '%s' already finalized but not in current cycle\n", &obj, obj.getName());
+                return false;
+            }
+        }
+        else {
+            if (!inCurrentSet(fi)) {
+                printd(QRO_LVL, " + recursive obj %p '%s' not in current cycle\n", &obj, obj.getName());
+                return false;
+            }
+        }
+
+        // finalize current objects immediately
+        RSet* rset = fi->second.rset;
 #ifdef DEBUG
-      if (rset)
-         printd(QRO_LVL, " + %p '%s': reusing RSet: %p\n", &obj, obj.getName(), rset);
+        if (rset)
+            printd(QRO_LVL, " + %p '%s': reusing RSet: %p\n", &obj, obj.getName(), rset);
 #endif
 
-      int i = (int)ovec.size() - 1;
-      while (i >= 0) {
-         assert(i >= 0);
+        int i = (int)ovec.size() - 1;
+        while (i >= 0) {
+            assert(i >= 0);
 
-         // get iterator to object record
-         omap_t::iterator oi = ovec[i];
+            // get iterator to object record
+            omap_t::iterator oi = ovec[i];
 
-         // merge rsets
-         if (!oi->second.rset) {
-            if (!rset) {
-               rset = new RSet;
-               printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p new RSet: %p\n", oi->first, oi->first->getName(), obj.rcycle, oi->second.rset, rset);
+            // merge rsets
+            if (!oi->second.rset) {
+                if (!rset) {
+                    rset = new RSet;
+                    printd(QRO_LVL, " + %p '%s': rcycle: %d second.rset: %p new RSet: %p\n", oi->first, oi->first->getName(), obj.rcycle, oi->second.rset, rset);
+                }
+
+                if (addToRSet(oi, rset, tid))
+                    return true;
+            }
+            else {
+                if (i > 0 && oi->first != &obj && !ovec[i-1]->second.in_cycle) {
+                    printd(QRO_LVL, " + %p '%s': parent not yet in cycle (rcount: %d -> %d)\n", &obj, obj.getName(), oi->second.rcount, oi->second.rcount + 1);
+                    ++oi->second.rcount;
+                }
+
+                mergeRSet(i, rset);
             }
 
-            if (addToRSet(oi, rset, tid))
-               return true;
-         }
-         else {
-            if (i > 0 && oi->first != &obj && !ovec[i-1]->second.in_cycle) {
-               printd(QRO_LVL, " + %p '%s': parent not yet in cycle (rcount: %d -> %d)\n", &obj, obj.getName(), oi->second.rcount, oi->second.rcount + 1);
-               ++oi->second.rcount;
-            }
+            if (oi->first == &obj)
+                break;
 
-            mergeRSet(i, rset);
-         }
+            --i;
+        }
 
-         if (oi->first == &obj)
-            break;
+        return false;
+    }
+    else {
+        printd(QRO_LVL, "RSetHelper::checkIntern() + adding new obj %p '%s' setting rcount = 0 (current: %d rset: %p)\n", &obj, obj.getName(), obj.rcount, obj.rset);
 
-         --i;
-      }
+        // insert into total scanned object set
+        fi = fomap.insert(fi, omap_t::value_type(&obj, RSetStat()));
 
-      return false;
-   }
-   else {
-      printd(QRO_LVL, "RSetHelper::checkIntern() + adding new obj %p '%s' setting rcount = 0 (current: %d rset: %p)\n", &obj, obj.getName(), obj.rcount, obj.rset);
+        // check if the object should be iterated
+        if (!obj.needsScan(true)) {
+            // remove from invalidation set if present
+            tr_out.erase(&obj);
 
-      // insert into total scanned object set
-      fi = fomap.insert(fi, omap_t::value_type(&obj, RSetStat()));
+            printd(QRO_LVL, "RSetHelper::checkIntern() obj %p '%s' will not be iterated since object count is 0\n", &obj, obj.getName());
+            fi->second.ok = true;
+            assert(!fi->second.rset);
+            return false;
+        }
+    }
 
-      // check if the object should be iterated
-      if (!obj.needsScan(true)) {
-         // remove from invalidation set if present
-         tr_out.erase(&obj);
+    // push on current vector chain
+    ovec.push_back(fi);
 
-         printd(QRO_LVL, "RSetHelper::checkIntern() obj %p '%s' will not be iterated since object count is 0\n", &obj, obj.getName());
-         fi->second.ok = true;
-         assert(!fi->second.rset);
-         return false;
-      }
-   }
+    // remove from invalidation set if present
+    tr_out.erase(&obj);
 
-   // push on current vector chain
-   ovec.push_back(fi);
+    // recursively check data members
+    if (obj.scanMembers(*this))
+        return true;
 
-   // remove from invalidation set if present
-   tr_out.erase(&obj);
+    // remove from current vector chain
+    ovec.pop_back();
 
-   // recursively check data members
-   if (obj.scanMembers(*this))
-      return true;
-
-   // remove from current vector chain
-   ovec.pop_back();
-
-   return false;
+    return false;
 }
 
 class RScanHelper {

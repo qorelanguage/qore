@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -55,27 +55,27 @@
  */
 class StackList : public QoreListNode {
 private:
-   ExceptionSink* xsink;
+    ExceptionSink* xsink;
 
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void *operator new(size_t);
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL StackList();
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL StackList(bool i);
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL StackList(const StackList&);
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL StackList& operator=(const StackList&);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL void *operator new(size_t);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL StackList();
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL StackList(bool i);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL StackList(const StackList&);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL StackList& operator=(const StackList&);
 
 public:
-   DLLLOCAL StackList(class ExceptionSink* xs) {
-      xsink = xs;
-   }
-   DLLLOCAL ~StackList() {
-      derefImpl(xsink);
-   }
-   DLLLOCAL AbstractQoreNode* getAndClear(qore_size_t i);
+    DLLLOCAL StackList(class ExceptionSink* xs) {
+        xsink = xs;
+    }
+    DLLLOCAL ~StackList() {
+        derefImpl(xsink);
+    }
+    DLLLOCAL AbstractQoreNode* getAndClear(qore_size_t i);
 };
 
 int qore_list_private::getLValue(size_t ind, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink) {
@@ -113,7 +113,7 @@ AbstractQoreNode** qore_list_private::getExistingEntryPtr(qore_size_t num) {
    return &entry[num];
 }
 
-int qore_list_private::parseInitComplexListInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreParseListNode* args, AbstractQoreNode*& new_args, const QoreTypeInfo* vti) {
+int qore_list_private::parseInitComplexListInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, AbstractQoreNode*& new_args, const QoreTypeInfo* vti) {
     int lvids = 0;
     const QoreTypeInfo* argTypeInfo = nullptr;
     if (!parseInitListInitialization(loc, oflag, pflag, lvids, args, new_args, argTypeInfo))
@@ -121,7 +121,7 @@ int qore_list_private::parseInitComplexListInitialization(const QoreProgramLocat
     return lvids;
 }
 
-int qore_list_private::parseInitListInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, int& lvids, QoreParseListNode* args, AbstractQoreNode*& new_args, const QoreTypeInfo*& argTypeInfo) {
+int qore_list_private::parseInitListInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, int& lvids, QoreParseListNode* args, AbstractQoreNode*& new_args, const QoreTypeInfo*& argTypeInfo) {
     assert(!lvids);
     assert(!argTypeInfo);
     assert(!new_args);
@@ -135,18 +135,18 @@ int qore_list_private::parseInitListInitialization(const QoreProgramLocation& lo
     return 0;
 }
 
-void qore_list_private::parseCheckComplexListInitialization(const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool strict_check) {
+void qore_list_private::parseCheckComplexListInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool strict_check) {
     const QoreTypeInfo* vti2 = QoreTypeInfo::getUniqueReturnComplexList(expTypeInfo);
     if (vti2) {
         if (!QoreTypeInfo::parseAccepts(typeInfo, vti2))
-            parse_error(loc, "cannot %s 'list<%s>' from a list typed with incompatible value type '%s'", context_action, QoreTypeInfo::getName(typeInfo),
+            parse_error(*loc, "cannot %s 'list<%s>' from a list typed with incompatible value type '%s'", context_action, QoreTypeInfo::getName(typeInfo),
             QoreTypeInfo::getName(vti2));
     }
     else
         parseCheckTypedAssignment(loc, exp, typeInfo, context_action, strict_check);
 }
 
-void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation& loc, const AbstractQoreNode* arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check) {
+void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation* loc, const AbstractQoreNode* arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check) {
     switch (get_node_type(arg)) {
         case NT_LIST: {
             ConstListIterator i(reinterpret_cast<const QoreListNode*>(arg));
@@ -156,7 +156,7 @@ void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation& loc
                 qore_type_result_e res = QoreTypeInfo::parseAccepts(vti, vti2, may_not_match);
                 if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                     continue;
-                parse_error(loc, "cannot %s 'list<%s>' from element %d/%d of a list with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), (int)i.index() + 1, (int)i.max(), QoreTypeInfo::getName(vti2));
+                parse_error(*loc, "cannot %s 'list<%s>' from element %d/%d of a list with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), (int)i.index() + 1, (int)i.max(), QoreTypeInfo::getName(vti2));
             }
             break;
         }
@@ -169,7 +169,7 @@ void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation& loc
                 qore_type_result_e res = QoreTypeInfo::parseAccepts(vti, vti2, may_not_match);
                 if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                     continue;
-                parse_error(loc, "cannot %s 'list<%s>' from element %d/%d of a list with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), (int)(i + 1), (int)vtypes.size(), QoreTypeInfo::getName(vti2));
+                parse_error(*loc, "cannot %s 'list<%s>' from element %d/%d of a list with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), (int)(i + 1), (int)vtypes.size(), QoreTypeInfo::getName(vti2));
             }
             break;
         }
@@ -180,7 +180,7 @@ void qore_list_private::parseCheckTypedAssignment(const QoreProgramLocation& loc
             if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                 break;
 
-            parse_error(loc, "cannot %s 'list<%s>' from a value with incompatible type '%s'", context_action, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(vti2));
+            parse_error(*loc, "cannot %s 'list<%s>' from a value with incompatible type '%s'", context_action, QoreTypeInfo::getName(vti), QoreTypeInfo::getName(vti2));
         }
         break;
     }

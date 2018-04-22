@@ -48,10 +48,18 @@ class  BreakAndContinueTest inherits QUnit::Test {
     }
 
     breakNotAllowed() {
-        Program p();
-        assertThrows("BREAK-NOT-ALLOWED", \p.parse(), ("sub f() { break; }", ""));
-        assertThrows("BREAK-NOT-ALLOWED", \p.parse(), ("sub f() { do { sub() {break;}(); } while (False); }", ""));
-        assertThrows("BREAK-NOT-ALLOWED", \p.parse(), ("sub f() { do { on_exit break; } while (False); }", ""));
+        {
+            Program p();
+            assertThrows("BREAK-NOT-ALLOWED", \p.parse(), ("sub f() { break; }", ""));
+        }
+        {
+            Program p();
+            assertThrows("BREAK-NOT-ALLOWED", \p.parse(), ("sub f() { do { sub() {break;}(); } while (False); }", ""));
+        }
+        {
+            Program p();
+            assertThrows("BREAK-NOT-ALLOWED", \p.parse(), ("sub f() { do { on_exit break; } while (False); }", ""));
+        }
     }
 
     continueAllowed() {
@@ -64,21 +72,27 @@ class  BreakAndContinueTest inherits QUnit::Test {
     }
 
     continueNotAllowed() {
-        Program p();
-        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { continue; }", ""));
-        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { switch(0) {case 0: continue; }}", ""));
-        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { do { sub() {continue;}(); } while (False); }", ""));
-        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { do { on_exit continue; } while (False); }", ""));
+        {
+            Program p();
+            assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { continue; }", ""));
+            assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { switch(0) {case 0: continue; }}", ""));
+            assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { do { sub() {continue;}(); } while (False); }", ""));
+            assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("sub f() { do { on_exit continue; } while (False); }", ""));
 
-        p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
-        assertEq(NOTHING, p.parse("sub f_x() { continue; }", ""));
-        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { continue; }", ""));
-        p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
-        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { switch(0) {case 0: continue; }}", ""));
-        p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
-        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { do { sub() {continue;}(); } while (False); }", ""));
-        p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
-        assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { do { on_exit continue; } while (False); }", ""));
+            p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
+            assertEq(NOTHING, p.parse("sub f_x() { continue; }", ""));
+        }
+        {
+            Program p(PO_BROKEN_LOOP_STATEMENT);
+
+            assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { continue; }", ""));
+            p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
+            assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { switch(0) {case 0: continue; }}", ""));
+            p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
+            assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { do { sub() {continue;}(); } while (False); }", ""));
+            p.setParseOptions(PO_BROKEN_LOOP_STATEMENT);
+            assertThrows("CONTINUE-NOT-ALLOWED", \p.parse(), ("%correct-loop-statement\nsub f() { do { on_exit continue; } while (False); }", ""));
+        }
     }
 
     legacyContinueInSwitch() {

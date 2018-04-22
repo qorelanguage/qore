@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -199,6 +199,30 @@
 #define QORE_CONST_HAVE_CLOSE_ALL_FD 0
 #endif
 
+#ifdef HAVE_GETIFADDRS
+#define QORE_CONST_HAVE_GET_NETIF_LIST 1
+#else
+#define QORE_CONST_HAVE_GET_NETIF_LIST 0
+#endif
+
+#ifdef QORE_MANAGE_STACK
+#define QORE_CONST_HAVE_MANAGE_STACK 1
+#else
+#define QORE_CONST_HAVE_MANAGE_STACK 0
+#endif
+
+#ifdef QORE_HAVE_GET_STACK_SIZE
+#define QORE_CONST_HAVE_GET_STACK_SIZE 1
+#else
+#define QORE_CONST_HAVE_GET_STACK_SIZE 0
+#endif
+
+#ifdef QORE_HAVE_THREAD_NAME
+#define QORE_CONST_HAVE_THREAD_NAME 1
+#else
+#define QORE_CONST_HAVE_THREAD_NAME 0
+#endif
+
 /** @defgroup option_constants Option Constants
     Option constants
 */
@@ -330,4 +354,24 @@ const HAVE_DSS = bool(QORE_CONST_HAVE_DSS);
 
 //! Indicates if the close_all_fd() function is available
 const HAVE_CLOSE_ALL_FD = bool(QORE_CONST_HAVE_CLOSE_ALL_FD);
+
+//! Indicates if the get_netif_list() function is available
+/** @since %Qore 0.9.0
+*/
+const HAVE_GET_NETIF_LIST = bool(QORE_CONST_HAVE_GET_NETIF_LIST);
+
+//! Indicates if the get_default_thread_stack_size() and set_default_thread_stack_size() functions are available
+/** @since %Qore 0.9.0
+*/
+const HAVE_MANAGE_STACK = bool(QORE_CONST_HAVE_MANAGE_STACK);
+
+//! Indicates if the get_stack_size() function is available
+/** @since %Qore 0.9.0
+*/
+const HAVE_GET_STACK_SIZE = bool(QORE_CONST_HAVE_GET_STACK_SIZE);
+
+//! Indicates if the get_thread_name() and set_thread_name() functions are available
+/** @since %Qore 0.9.0
+*/
+const HAVE_THREAD_NAME = bool(QORE_CONST_HAVE_THREAD_NAME);
 //@}

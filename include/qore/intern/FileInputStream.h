@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,12 +33,12 @@
 #define _QORE_FILEINPUTSTREAM_H
 
 #include <stdint.h>
-#include "qore/intern/InputStreamBase.h"
+#include "qore/InputStream.h"
 
 /**
  * @brief Private data for the Qore::FileInputStream class.
  */
-class FileInputStream : public InputStreamBase {
+class FileInputStream : public InputStream {
 public:
    DLLLOCAL FileInputStream(const QoreStringNode *fileName, int64 timeout, ExceptionSink *xsink) : timeout(timeout) {
       f.open2(xsink, fileName->getBuffer(), O_RDONLY);

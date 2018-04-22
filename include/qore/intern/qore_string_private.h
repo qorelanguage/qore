@@ -39,10 +39,10 @@
 #define MAX_INT_STRING_LEN     48
 #define MAX_BIGINT_STRING_LEN  48
 #define MAX_FLOAT_STRING_LEN   48
-#define STR_CLASS_BLOCK        80
-#define STR_CLASS_EXTRA        40
+#define STR_CLASS_BLOCK        (0x10 * 4)
+#define STR_CLASS_EXTRA        (0x10 * 3)
 
-#define MIN_SPRINTF_BUFSIZE   120
+#define MIN_SPRINTF_BUFSIZE   64
 
 #define QUS_PATH     0
 #define QUS_QUERY    1
@@ -63,28 +63,28 @@ public:
    }
 
    DLLLOCAL qore_string_private(const qore_string_private &p) {
-      allocated = p.len + STR_CLASS_EXTRA;
-      buf = (char*)malloc(sizeof(char) * allocated);
-      len = p.len;
-      if (len)
-         memcpy(buf, p.buf, len);
-      buf[len] = '\0';
-      charset = p.getEncoding();
+        allocated = p.len + STR_CLASS_EXTRA;
+        allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
+        buf = (char*)malloc(sizeof(char) * allocated);
+        len = p.len;
+        if (len)
+            memcpy(buf, p.buf, len);
+        buf[len] = '\0';
+        charset = p.getEncoding();
    }
 
    DLLLOCAL ~qore_string_private() {
-      if (buf)
-         free(buf);
+        if (buf)
+            free(buf);
    }
 
    DLLLOCAL void check_char(qore_size_t i) {
-      if (i >= allocated) {
-         qore_size_t d = i >> 2;
-         allocated = i + (d < STR_CLASS_BLOCK ? STR_CLASS_BLOCK : d);
-         //allocated = i + STR_CLASS_BLOCK;
-         allocated = (allocated / 16 + 1) * 16; // use complete cache line
-         buf = (char*)realloc(buf, allocated * sizeof(char));
-      }
+        if (i >= allocated) {
+            qore_size_t d = i >> 2;
+            allocated = i + (d < STR_CLASS_BLOCK ? STR_CLASS_BLOCK : d);
+            allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
+            buf = (char*)realloc(buf, allocated * sizeof(char));
+        }
    }
 
    DLLLOCAL qore_size_t check_offset(qore_offset_t offset) {
@@ -467,18 +467,18 @@ public:
    }
 
    DLLLOCAL void concat(char c) {
-      if (allocated) {
-         buf[len] = c;
-         check_char(++len);
-         buf[len] = '\0';
-         return;
-      }
-      // allocate new string buffer
-      allocated = STR_CLASS_BLOCK;
-      len = 1;
-      buf = (char *)malloc(sizeof(char) * allocated);
-      buf[0] = c;
-      buf[1] = '\0';
+        if (allocated) {
+            buf[len] = c;
+            check_char(++len);
+            buf[len] = '\0';
+            return;
+        }
+        // allocate new string buffer
+        allocated = STR_CLASS_BLOCK;
+        len = 1;
+        buf = (char*)malloc(sizeof(char) * allocated);
+        buf[0] = c;
+        buf[1] = '\0';
    }
 
    DLLLOCAL void concat(const qore_string_private* str) {
@@ -517,55 +517,58 @@ public:
 
    // return 0 for success
    DLLLOCAL int vsprintf(const char *fmt, va_list args) {
-      size_t fmtlen = ::strlen(fmt);
-      // ensure minimum space is free
-      if ((allocated - len - fmtlen) < MIN_SPRINTF_BUFSIZE) {
-         allocated += fmtlen + MIN_SPRINTF_BUFSIZE;
-         // resize buffer
-         buf = (char *)realloc(buf, allocated * sizeof(char));
-      }
-      // set free buffer size
-      qore_offset_t free = allocated - len;
+        size_t fmtlen = ::strlen(fmt);
+        // ensure minimum space is free
+        if ((allocated - len - fmtlen) < MIN_SPRINTF_BUFSIZE) {
+            allocated += fmtlen + MIN_SPRINTF_BUFSIZE;
+            allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
+            // resize buffer
+            buf = (char*)realloc(buf, allocated * sizeof(char));
+        }
+        // set free buffer size
+        qore_offset_t free = allocated - len;
 
-      // copy formatted string to buffer
-      int i = ::vsnprintf(buf + len, free, fmt, args);
+        // copy formatted string to buffer
+        int i = ::vsnprintf(buf + len, free, fmt, args);
 
 #ifdef HPUX
-      // vsnprintf failed but didn't tell us how big the buffer should be
-      if (i < 0) {
-         //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
-         // resize buffer
-         allocated += STR_CLASS_EXTRA;
-         buf = (char *)realloc(buf, sizeof(char) * allocated);
-         *(buf + len) = '\0';
-         return -1;
-      }
+        // vsnprintf failed but didn't tell us how big the buffer should be
+        if (i < 0) {
+            //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+            // resize buffer
+            allocated += STR_CLASS_EXTRA;
+            allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
+            buf = (char*)realloc(buf, sizeof(char) * allocated);
+            *(buf + len) = '\0';
+            return -1;
+        }
 #else
-      if (i >= free) {
-         //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
-         // resize buffer
-         allocated = len + i + STR_CLASS_EXTRA;
-         buf = (char *)realloc(buf, sizeof(char) * allocated);
-         *(buf + len) = '\0';
-         return -1;
-      }
+        if (i >= free) {
+            //printf("DEBUG: vsnprintf() failed: i=%d allocated=" QSD " len=" QSD " buf=%p fmtlen=" QSD " (new=i+%d = %d)\n", i, allocated, len, buf, fmtlen, STR_CLASS_EXTRA, i + STR_CLASS_EXTRA);
+            // resize buffer
+            allocated = len + i + STR_CLASS_EXTRA;
+            allocated = (allocated / 0x10 + 1) * 0x10; // use complete cache line
+            buf = (char*)realloc(buf, sizeof(char) * allocated);
+            *(buf + len) = '\0';
+            return -1;
+        }
 #endif
 
-      len += i;
-      return 0;
-   }
+        len += i;
+        return 0;
+    }
 
-   DLLLOCAL int sprintf(const char *fmt, ...) {
-      va_list args;
-      while (true) {
-         va_start(args, fmt);
-         int rc = vsprintf(fmt, args);
-         va_end(args);
-         if (!rc)
-            break;
-      }
-      return 0;
-   }
+    DLLLOCAL int sprintf(const char *fmt, ...) {
+        va_list args;
+        while (true) {
+            va_start(args, fmt);
+            int rc = vsprintf(fmt, args);
+            va_end(args);
+            if (!rc)
+                break;
+        }
+        return 0;
+    }
 
    DLLLOCAL void concatUTF8FromUnicode(unsigned code);
 
@@ -616,20 +619,20 @@ public:
       return 0;
    }
 
-   DLLLOCAL int allocate(unsigned requested_size) {
-      if ((unsigned)allocated >= requested_size)
-         return 0;
-      requested_size = (requested_size / 16 + 1) * 16; // fill complete cache line
-      char* aux = (char*)realloc(buf, requested_size * sizeof(char));
-      if (!aux) {
-         assert(false);
-         // FIXME: std::bad_alloc() should be thrown here;
-         return -1;
-      }
-      buf = aux;
-      allocated = requested_size;
-      return 0;
-   }
+    DLLLOCAL int allocate(unsigned requested_size) {
+        if ((unsigned)allocated >= requested_size)
+            return 0;
+        requested_size = (requested_size / 0x10 + 1) * 0x10; // fill complete cache line
+        char* aux = (char*)realloc(buf, requested_size * sizeof(char));
+        if (!aux) {
+            assert(false);
+            // FIXME: std::bad_alloc() should be thrown here;
+            return -1;
+        }
+        buf = aux;
+        allocated = requested_size;
+        return 0;
+    }
 
    DLLLOCAL const QoreEncoding* getEncoding() const {
       return charset ? charset : QCS_USASCII;

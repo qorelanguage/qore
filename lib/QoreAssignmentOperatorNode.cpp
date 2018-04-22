@@ -62,7 +62,7 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
 
    if (left->getType() == NT_VARREF && right->getType() == NT_VARREF
        && !strcmp(static_cast<VarRefNode*>(left)->getName(), static_cast<VarRefNode*>(right)->getName()))
-      qore_program_private::makeParseException(getProgram(), loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode*>(left)->getName()));
+      qore_program_private::makeParseException(getProgram(), *loc, "PARSE-EXCEPTION", new QoreStringNodeMaker("illegal assignment of variable \"%s\" to itself", static_cast<VarRefNode*>(left)->getName()));
 
    qore_type_result_e res;
    if (ti == autoTypeInfo) {
@@ -85,7 +85,7 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
       QoreTypeInfo::getThisType(ti, *edesc);
       edesc->concat(", but right-hand side is ");
       QoreTypeInfo::getThisType(r, *edesc);
-      qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
+      qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
    }
 }
 

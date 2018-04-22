@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -61,185 +61,185 @@ typedef QoreClass* (*q_ns_class_handler_t)(QoreNamespace* ns, const char* cname)
 
 //! contains constants, classes, and subnamespaces in QoreProgram objects
 class QoreNamespace {
-   friend class QoreNamespaceList;
-   friend class RootQoreNamespace;
-   friend class qore_ns_private;
-   friend class qore_root_ns_private;
-   friend struct NSOInfoBase;
+    friend class QoreNamespaceList;
+    friend class RootQoreNamespace;
+    friend class qore_ns_private;
+    friend class qore_root_ns_private;
+    friend struct NSOInfoBase;
 
 private:
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreNamespace(const QoreNamespace&);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreNamespace(const QoreNamespace&);
 
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL QoreNamespace& operator=(const QoreNamespace&);
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreNamespace& operator=(const QoreNamespace&);
 
 protected:
-   class qore_ns_private* priv; // private implementation
+    class qore_ns_private* priv; // private implementation
 
-   // protected, function not exported in the API
-   DLLLOCAL QoreNamespace(qore_ns_private* p);
+    // protected, function not exported in the API
+    DLLLOCAL QoreNamespace(qore_ns_private* p);
 
 public:
-   //! creates a namespace with the given name
-   /** the name of a subnamespace must be unique in the parent namespace and must not have the same name as a class in the parent namespace either
-       @param n the name of the namespace
-   */
-   DLLEXPORT QoreNamespace(const char* n);
-
-   //! destroys the object and frees all associated memory
-   DLLEXPORT ~QoreNamespace();
-
-   //! clears the contents of the namespace before deleting
-   /** use if the namespace could contain objects
-
-       @since %Qore 0.8.13
+    //! creates a namespace with the given name
+    /** the name of a subnamespace must be unique in the parent namespace and must not have the same name as a class in the parent namespace either
+        @param n the name of the namespace
     */
-   DLLEXPORT void clear(ExceptionSink* xsink);
+    DLLEXPORT QoreNamespace(const char* n);
 
-   //! adds a constant definition to the namespace
-   /** use addConstant(const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo) when adding
-       constants of externally-defined base (non-class) types; all other types (and all objects) can have
-       their type information automatically added
-       @param name the name of the constant to add
-       @param value the value of the constant
-   */
-   DLLEXPORT void addConstant(const char* name, AbstractQoreNode* value);
+    //! destroys the object and frees all associated memory
+    DLLEXPORT ~QoreNamespace();
 
-   //! adds a constant definition to the namespace with type information
-   /**
-      @param name the name of the constant to add
-      @param value the value of the constant
-      @param typeInfo the type of the constant
-      @see QoreTypeInfoHelper
-   */
-   DLLEXPORT void addConstant(const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo);
+    //! clears the contents of the namespace before deleting
+    /** use if the namespace could contain objects
 
-   //! adds a class to a namespace
-   /**
-      @param oc the class to add to the namespace
-   */
-   DLLEXPORT void addSystemClass(QoreClass* oc);
+        @since %Qore 0.8.13
+        */
+    DLLEXPORT void clear(ExceptionSink* xsink);
 
-   //! adds a hashdecl to a namespace
-   /**
-      @param hd the hashdecl to add to the namespace
-
-      @since %Qore 0.8.13
-   */
-   DLLEXPORT void addSystemHashDecl(TypedHashDecl* hashdecl);
-
-   //! returns a deep copy of the namespace; DEPRECATED: use copy(int64) instead
-   /** @param po parse options to use when copying the namespace
-       @return a deep copy of the namespace
+    //! adds a constant definition to the namespace
+    /** use addConstant(const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo) when adding
+        constants of externally-defined base (non-class) types; all other types (and all objects) can have
+        their type information automatically added
+        @param name the name of the constant to add
+        @param value the value of the constant
     */
-   DLLEXPORT QoreNamespace* copy(int po) const;
+    DLLEXPORT void addConstant(const char* name, AbstractQoreNode* value);
 
-   //! returns a deep copy of the namespace
-   /** @param po parse options to use when copying the namespace
-       @return a deep copy of the namespace
+    //! adds a constant definition to the namespace with type information
+    /**
+        @param name the name of the constant to add
+        @param value the value of the constant
+        @param typeInfo the type of the constant
+        @see QoreTypeInfoHelper
     */
-   DLLEXPORT QoreNamespace* copy(int64 po = PO_DEFAULT) const;
+    DLLEXPORT void addConstant(const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo);
 
-   //! gets a hash of all classes in the namespace, the hash keys are the class names and the values are lists of strings giving the method names
-   /**
-      @see QoreHashNode
-      @see QoreListNode
-      @return a hash of all classes in the namespace, the hash keys are the class names and the values are lists of strings giving the method names
-   */
-   DLLEXPORT QoreHashNode* getClassInfo() const;
-
-   //! a hash of all constants in the namespace, the hash keys are the constant names and the values are the values of the constants
-   /**
-      @see QoreHashNode
-      @see QoreListNode
-      @return a hash of all constants in the namespace, the hash keys are the constant names and the values are the values of the constants
-   */
-   DLLEXPORT QoreHashNode* getConstantInfo() const;
-
-   //! returns a hash giving information about the definitions in the namespace
-   /** the return value has the following keys: "constants", "classes", and "subnamespaces"
-       having as values the result of calling QoreNamespace::getConstantInfo(),
-       QoreNamespace::getClassInfo(), and a hash of subnamespace names having as values
-       the result of calling this function on each, respectively.
-       @return a hash giving information about the definitions in the namespace
-   */
-   DLLEXPORT QoreHashNode* getInfo() const;
-
-   //! returns the name of the namespace
-   /**
-      @return the name of the namespace
-   */
-   DLLEXPORT const char* getName() const;
-
-   //! adds a namespace to the namespace tree
-   /** the namespace must be unique, must also not clash with a class name in the same parent namespace
-       @param ns the namespace to add, memory is now owned by parent namespace
+    //! adds a class to a namespace
+    /**
+        @param oc the class to add to the namespace
     */
-   DLLEXPORT void addNamespace(QoreNamespace* ns);
+    DLLEXPORT void addSystemClass(QoreClass* oc);
 
-   //! adds a subnamespace to the namespace
-   /** use this function when the QoreNamespace can be added directly to the tree
-       (does not need to be merged with another namespace of the same name and does
-       not contain user code)
-       @param ns the subnamespace to add to the namespace
-   */
-   DLLEXPORT void addInitialNamespace(QoreNamespace* ns);
+    //! adds a hashdecl to a namespace
+    /**
+        @param hd the hashdecl to add to the namespace
 
-   //! finds a Namespace based on the argument; creates it (or the whole path) if necessary
-   /** can only be called in the parse lock
-
-       @param nspath must be a complete path ("ns1::ns2[::ns3...]" to a namespace, which will be found or created in this namespace
-
-       @return the namespace found or created according to the path
-
-       @note namespaces are created private by default
+        @since %Qore 0.8.13
     */
-   DLLEXPORT QoreNamespace* findCreateNamespacePath(const char* nspath);
+    DLLEXPORT void addSystemHashDecl(TypedHashDecl* hashdecl);
 
-   //! finds a class in this namespace, does not search child namespaces
-   /** can only be called in the parse lock
-       does not call the class handler
-       @param cname the class name to find in this namespace, must be unqualified (without a namespace path)
-       @return the class found or 0 if not present
+    //! returns a deep copy of the namespace; DEPRECATED: use copy(int64) instead
+    /** @param po parse options to use when copying the namespace
+        @return a deep copy of the namespace
+        */
+    DLLEXPORT QoreNamespace* copy(int po) const;
+
+    //! returns a deep copy of the namespace
+    /** @param po parse options to use when copying the namespace
+        @return a deep copy of the namespace
+        */
+    DLLEXPORT QoreNamespace* copy(int64 po = PO_DEFAULT) const;
+
+    //! gets a hash of all classes in the namespace, the hash keys are the class names and the values are lists of strings giving the method names
+    /**
+        @see QoreHashNode
+        @see QoreListNode
+        @return a hash of all classes in the namespace, the hash keys are the class names and the values are lists of strings giving the method names
     */
-   DLLEXPORT QoreClass* findLocalClass(const char* cname) const;
+    DLLEXPORT QoreHashNode* getClassInfo() const;
 
-   //! finds a subnamespace in this namespace, does not search child namespaces
-   /** can only be called in the parse lock
-       @param nsname the subnamespace name to find in this namespace, must be unqualified (without a namespace path)
-       @return the namespace found or 0 if not present
+    //! a hash of all constants in the namespace, the hash keys are the constant names and the values are the values of the constants
+    /**
+        @see QoreHashNode
+        @see QoreListNode
+        @return a hash of all constants in the namespace, the hash keys are the constant names and the values are the values of the constants
     */
-   DLLEXPORT QoreNamespace* findLocalNamespace(const char* nsname) const;
+    DLLEXPORT QoreHashNode* getConstantInfo() const;
 
-   //! sets the namespace class handler
-   /** to be called when a class cannot be found in the namespace
-       @param class_handler pointer to the class handler function
-   */
-   DLLEXPORT void setClassHandler(q_ns_class_handler_t class_handler);
-
-   //! returns a pointer to the parent namespace or 0 if there is no parent
-   /** @return a pointer to the parent namespace or 0 if there is no parent
+    //! returns a hash giving information about the definitions in the namespace
+    /** the return value has the following keys: "constants", "classes", and "subnamespaces"
+        having as values the result of calling QoreNamespace::getConstantInfo(),
+        QoreNamespace::getClassInfo(), and a hash of subnamespace names having as values
+        the result of calling this function on each, respectively.
+        @return a hash giving information about the definitions in the namespace
     */
-   DLLEXPORT const QoreNamespace* getParent() const;
+    DLLEXPORT QoreHashNode* getInfo() const;
 
-   //! this function must be called before the QoreNamespace object is deleted or a crash could result due if constants and/or class static vars contain objects
-   DLLEXPORT void deleteData(ExceptionSink* xsink);
+    //! returns the name of the namespace
+    /**
+        @return the name of the namespace
+    */
+    DLLEXPORT const char* getName() const;
 
-   // adds a function variant
-   DLLEXPORT void addBuiltinVariant(const char* name, q_func_n_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+    //! adds a namespace to the namespace tree
+    /** the namespace must be unique, must also not clash with a class name in the same parent namespace
+        @param ns the namespace to add, memory is now owned by parent namespace
+        */
+    DLLEXPORT void addNamespace(QoreNamespace* ns);
 
-   // @deprecated superceded by value version
-   DLLEXPORT void addBuiltinVariant(const char* name, q_func_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+    //! adds a subnamespace to the namespace
+    /** use this function when the QoreNamespace can be added directly to the tree
+        (does not need to be merged with another namespace of the same name and does
+        not contain user code)
+        @param ns the subnamespace to add to the namespace
+    */
+    DLLEXPORT void addInitialNamespace(QoreNamespace* ns);
 
-   // @deprecated superceded by value version
-   DLLEXPORT void addBuiltinVariant(const char* name, q_func_int64_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+    //! finds a Namespace based on the argument; creates it (or the whole path) if necessary
+    /** can only be called in the parse lock
 
-   // @deprecated superceded by value version
-   DLLEXPORT void addBuiltinVariant(const char* name, q_func_double_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+        @param nspath must be a complete path ("ns1::ns2[::ns3...]" to a namespace, which will be found or created in this namespace
 
-   // @deprecated superceded by value version
-   DLLEXPORT void addBuiltinVariant(const char* name, q_func_bool_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+        @return the namespace found or created according to the path
+
+        @note namespaces are created private by default
+        */
+    DLLEXPORT QoreNamespace* findCreateNamespacePath(const char* nspath);
+
+    //! finds a class in this namespace, does not search child namespaces
+    /** can only be called in the parse lock
+        does not call the class handler
+        @param cname the class name to find in this namespace, must be unqualified (without a namespace path)
+        @return the class found or 0 if not present
+        */
+    DLLEXPORT QoreClass* findLocalClass(const char* cname) const;
+
+    //! finds a subnamespace in this namespace, does not search child namespaces
+    /** can only be called in the parse lock
+        @param nsname the subnamespace name to find in this namespace, must be unqualified (without a namespace path)
+        @return the namespace found or 0 if not present
+        */
+    DLLEXPORT QoreNamespace* findLocalNamespace(const char* nsname) const;
+
+    //! sets the namespace class handler
+    /** to be called when a class cannot be found in the namespace
+        @param class_handler pointer to the class handler function
+    */
+    DLLEXPORT void setClassHandler(q_ns_class_handler_t class_handler);
+
+    //! returns a pointer to the parent namespace or 0 if there is no parent
+    /** @return a pointer to the parent namespace or 0 if there is no parent
+    */
+    DLLEXPORT const QoreNamespace* getParent() const;
+
+    //! this function must be called before the QoreNamespace object is deleted or a crash could result due if constants and/or class static vars contain objects
+    DLLEXPORT void deleteData(ExceptionSink* xsink);
+
+    // adds a function variant
+    DLLEXPORT void addBuiltinVariant(const char* name, q_func_n_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+    // @deprecated superceded by value version
+    DLLEXPORT void addBuiltinVariant(const char* name, q_func_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+    // @deprecated superceded by value version
+    DLLEXPORT void addBuiltinVariant(const char* name, q_func_int64_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+    // @deprecated superceded by value version
+    DLLEXPORT void addBuiltinVariant(const char* name, q_func_double_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+    // @deprecated superceded by value version
+    DLLEXPORT void addBuiltinVariant(const char* name, q_func_bool_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 };
 
 //! the root namespace of a QoreProgram object
@@ -248,26 +248,26 @@ public:
     @see QoreNamespace
 */
 class RootQoreNamespace : public QoreNamespace {
-   friend class qore_ns_private;
-   friend class qore_root_ns_private;
-   friend class StaticSystemNamespace;
+    friend class qore_ns_private;
+    friend class qore_root_ns_private;
+    friend class StaticSystemNamespace;
 
 private:
-   DLLLOCAL RootQoreNamespace(class qore_root_ns_private* p);
+    DLLLOCAL RootQoreNamespace(class qore_root_ns_private* p);
 
 protected:
-   // private implementation
-   class qore_root_ns_private* rpriv;
+    // private implementation
+    class qore_root_ns_private* rpriv;
 
 public:
-   //! returns a pointer to the QoreNamespace for the "Qore" namespace
-   /**
-       @return a pointer to the QoreNamespace for the "Qore" namespace; do not delete the object returned
-   */
-   DLLEXPORT QoreNamespace* rootGetQoreNamespace() const;
+    //! returns a pointer to the QoreNamespace for the "Qore" namespace
+    /**
+        @return a pointer to the QoreNamespace for the "Qore" namespace; do not delete the object returned
+    */
+    DLLEXPORT QoreNamespace* rootGetQoreNamespace() const;
 
-   //! destructor is not exported in the library's public API
-   DLLLOCAL ~RootQoreNamespace();
+    //! destructor is not exported in the library's public API
+    DLLLOCAL ~RootQoreNamespace();
 };
 
 class QorePrivateNamespaceIterator;
@@ -277,27 +277,27 @@ class QorePrivateNamespaceIterator;
  */
 class QoreNamespaceIterator {
 private:
-   QorePrivateNamespaceIterator* priv;
+    QorePrivateNamespaceIterator* priv;
 
 public:
-   //! creates the iterator
-   DLLEXPORT QoreNamespaceIterator(QoreNamespace* ns);
-   //! moves to the next position; returns true if on a valid position
-   DLLEXPORT bool next();
+    //! creates the iterator
+    DLLEXPORT QoreNamespaceIterator(QoreNamespace* ns);
+    //! moves to the next position; returns true if on a valid position
+    DLLEXPORT bool next();
 
-   //! returns the namespace
-   DLLEXPORT QoreNamespace* operator->();
-   //! returns the namespace
-   DLLEXPORT QoreNamespace* operator*();
-   //! returns the namespace
-   DLLEXPORT QoreNamespace* get();
+    //! returns the namespace
+    DLLEXPORT QoreNamespace* operator->();
+    //! returns the namespace
+    DLLEXPORT QoreNamespace* operator*();
+    //! returns the namespace
+    DLLEXPORT QoreNamespace* get();
 
-   //! returns the namespace
-   DLLEXPORT const QoreNamespace* operator->() const;
-   //! returns the namespace
-   DLLEXPORT const QoreNamespace* operator*() const;
-   //! returns the namespace
-   DLLEXPORT const QoreNamespace* get() const;
+    //! returns the namespace
+    DLLEXPORT const QoreNamespace* operator->() const;
+    //! returns the namespace
+    DLLEXPORT const QoreNamespace* operator*() const;
+    //! returns the namespace
+    DLLEXPORT const QoreNamespace* get() const;
 };
 
 //! allows namespaces to be iterated
@@ -305,20 +305,20 @@ public:
  */
 class QoreNamespaceConstIterator {
 private:
-   QorePrivateNamespaceIterator* priv;
+    QorePrivateNamespaceIterator* priv;
 
 public:
-   //! creates the iterator
-   DLLEXPORT QoreNamespaceConstIterator(const QoreNamespace* ns);
-   //! moves to the next position; returns true if on a valid position
-   DLLEXPORT bool next();
+    //! creates the iterator
+    DLLEXPORT QoreNamespaceConstIterator(const QoreNamespace* ns);
+    //! moves to the next position; returns true if on a valid position
+    DLLEXPORT bool next();
 
-   //! returns the namespace
-   DLLEXPORT const QoreNamespace* operator->() const;
-   //! returns the namespace
-   DLLEXPORT const QoreNamespace* operator*() const;
-   //! returns the namespace
-   DLLEXPORT const QoreNamespace* get() const;
+    //! returns the namespace
+    DLLEXPORT const QoreNamespace* operator->() const;
+    //! returns the namespace
+    DLLEXPORT const QoreNamespace* operator*() const;
+    //! returns the namespace
+    DLLEXPORT const QoreNamespace* get() const;
 };
 
 #endif // QORE_NAMESPACE_H
