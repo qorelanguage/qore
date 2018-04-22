@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -223,9 +223,14 @@ public:
 //! non-thread-safe vector for storing "char*" that you want to delete
 class cstr_vector_t : public std::vector<char*> {
 public:
-   DLLLOCAL ~cstr_vector_t() {
-      std::for_each(begin(), end(), free_ptr<char>());
-   }
+    DLLLOCAL ~cstr_vector_t() {
+        clear();
+    }
+
+    DLLLOCAL void clear() {
+        std::for_each(begin(), end(), free_ptr<char>());
+        std::vector<char*>::clear();
+    }
 };
 
 //! vector of type information for parameter lists

@@ -53,7 +53,7 @@ public:
    char *member;
    int stack_offset;
 
-   DLLLOCAL ComplexContextrefNode(const QoreProgramLocation& loc, char *str);
+   DLLLOCAL ComplexContextrefNode(const QoreProgramLocation* loc, char *str);
 
    DLLLOCAL virtual ~ComplexContextrefNode();
 

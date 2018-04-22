@@ -52,7 +52,7 @@ protected:
     DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
 
 public:
-    DLLLOCAL QoreRangeOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right)
+    DLLLOCAL QoreRangeOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right)
         : QoreIntBinaryOperatorNode(loc, n_left, n_right) {
     }
 

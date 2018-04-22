@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,9 @@
 #include "qore/intern/QC_Datasource.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
-extern QoreClass* QC_ABSTRACTDATASOURCE;
+DLLLOCAL extern QoreClass* QC_ABSTRACTDATASOURCE;
+DLLLOCAL extern QoreClass* QC_ABSTRACTSQLSTATEMENT;
+DLLLOCAL extern QoreClass* QC_SQLSTATEMENT;
 
 static const char* DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
 
@@ -43,7 +45,7 @@ static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, Excep
       if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
          continue;
 
-      if (ds->setOptionInit(hi.getKey(), hi.getValue(), xsink))
+      if (ds->setOptionInit(hi.getKey(), hi.get(), xsink))
          return -1;
    }
    return 0;
@@ -1325,4 +1327,23 @@ nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg) {
  */
 nothing Datasource::clearEventQueue() {
    ds->setEventQueue(0, 0, xsink);
+}
+
+//! Returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object based on the current database connection object
+/** @par Example:
+    @code{.py}
+AbstractSQLStatement stmt = ds.getSQLStatement();
+    @endcode
+
+    @throw SQLSTATEMENT-ERROR the DBI driver for the given object does not support the prepared statement API
+
+    @since Qore 0.9.0
+*/
+AbstractSQLStatement Datasource::getSQLStatement() {
+    if (!ds->getDriver()->hasStatementAPI()) {
+        xsink->raiseException("SQLSTATEMENT-ERROR", "DBI driver '%s' does not support the prepared statement API", ds->getDriver()->getName());
+        return QoreValue();
+     }
+
+    return new QoreObject(QC_SQLSTATEMENT, getProgram(), new QoreSQLStatement(ds));
 }

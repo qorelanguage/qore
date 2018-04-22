@@ -49,7 +49,7 @@ private:
 
 public:
    // offset = -1 means return the entire "$argv" list
-   DLLLOCAL QoreImplicitArgumentNode(const QoreProgramLocation& loc, int n_offset = -1);
+   DLLLOCAL QoreImplicitArgumentNode(const QoreProgramLocation* loc, int n_offset = -1);
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
    DLLLOCAL virtual QoreString* getAsString(bool &del, int foff, ExceptionSink *xsink) const;

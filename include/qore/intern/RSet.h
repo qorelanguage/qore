@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,8 @@
 #define _QORE_INTERN_RSETHELPER_H
 
 #include "qore/intern/RSection.h"
+#include "qore/vector_set"
+#include "qore/vector_map"
 
 #include <set>
 #include <atomic>
@@ -155,7 +157,8 @@ public:
    DLLLOCAL virtual const char* getName() const = 0;
 };
 
-typedef std::set<RObject*> rset_t;
+// use a vector set for performance
+typedef vector_set_t<RObject*> rset_t;
 
 /* Qore recursive reference handling works as follows: objects are sorted into sets making up
    directed cyclic graphs.
@@ -169,7 +172,6 @@ typedef std::set<RObject*> rset_t;
 // set of objects in recursive directed graph
 class RSet {
 protected:
-   // we assume set::size() is O(1); this should be a safe assumption
    rset_t set;
    unsigned acnt;
    bool valid;
@@ -309,7 +311,8 @@ public:
 
 typedef std::vector<RObject*> rvec_t;
 class RSetHelper;
-typedef std::set<RSet*> rs_set_t;
+//typedef std::set<RSet*> rs_set_t;
+typedef vector_set_t<RSet*> rs_set_t;
 
 struct RSetStat {
    RSet* rset;
@@ -339,26 +342,27 @@ private:
    DLLLOCAL RSetHelper(const RSetHelper&);
 
 protected:
-   typedef std::map<RObject*, RSetStat> omap_t;
-   typedef std::set<QoreClosureBase*> closure_set_t;
-   // map of all objects scanned to rset (rset = finalized, 0 = not finalized, in current list)
-   omap_t fomap;
+    // these must be a map and a set for performance reasons
+    typedef std::map<RObject*, RSetStat> omap_t;
+    typedef std::set<QoreClosureBase*> closure_set_t;
+    // map of all objects scanned to rset (rset = finalized, 0 = not finalized, in current list)
+    omap_t fomap;
 
-   typedef std::vector<omap_t::iterator> ovec_t;
-   // current objects being scanned, used to establish a cycle
-   ovec_t ovec;
+    typedef std::vector<omap_t::iterator> ovec_t;
+    // current objects being scanned, used to establish a cycle
+    ovec_t ovec;
 
-   // list of RSet objects to be invalidated when the transaction is committed
-   rs_set_t tr_invalidate;
+    // list of RSet objects to be invalidated when the transaction is committed
+    rs_set_t tr_invalidate;
 
-   // set of RObjects not participating in any recursive set
-   rset_t tr_out;
+    // set of RObjects not participating in any recursive set
+    rset_t tr_out;
 
-   // RSectionLock notification helper when waiting on locks
-   RNotifier notifier;
+    // RSectionLock notification helper when waiting on locks
+    RNotifier notifier;
 
-   // set of scanned closures
-   closure_set_t closure_set;
+    // set of scanned closures
+    closure_set_t closure_set;
 
 #ifdef DEBUG
    int lcnt;
