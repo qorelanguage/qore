@@ -310,7 +310,7 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
         // create a hash of the required type if the lvalue has a complex hash type and currently has no value
         if (!getValue() && typeInfo) {
             // issue #2652: assign the current runtime type based on the declared complex list type
-            const QoreTypeInfo* sti = QoreTypeInfo::getReturnComplexListOrNothing(typeInfo);
+            const QoreTypeInfo* sti = typeInfo == autoTypeInfo ? autoTypeInfo : QoreTypeInfo::getReturnComplexListOrNothing(typeInfo);
             if (sti) {
                 assignIntern((l = new QoreListNode(sti)));
             }
@@ -352,7 +352,7 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
         // create a hash of the required type if the lvalue has a complex hash type and currently has no value
         if (!getValue() && typeInfo) {
             // issue #2652: assign the current runtime type based on the declared complex list type
-            const QoreTypeInfo* sti = QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo);
+            const QoreTypeInfo* sti = typeInfo == autoTypeInfo ? autoTypeInfo : QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo);
             if (sti) {
                 assignIntern((h = new QoreHashNode(sti)));
             }
