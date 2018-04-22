@@ -43,13 +43,21 @@ class TypeTest inherits QUnit::Test {
     }
 
     issue2767() {
-        hash<auto> h;
-        h.a = 1;
-        assertEq("hash<auto>", h.fullType());
+        {
+            hash<auto> h;
+            h.a = 1;
+            assertEq("hash<auto>", h.fullType());
+            h.b.a = 1;
+            assertEq("hash<auto>", h.b.fullType());
+        }
 
-        list<auto> l;
-        l[0] = 1;
-        assertEq("list<auto>", l.fullType());
+        {
+            list<auto> l;
+            l[0] = 1;
+            assertEq("list<auto>", l.fullType());
+            l[1][0] = 1;
+            assertEq("list<auto>", l[1].fullType());
+        }
     }
 
     testComplexAssignments() {
