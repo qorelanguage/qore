@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.4.3";
+    version = "1.4.4";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -100,7 +100,10 @@ module SqlUtil {
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
-   @subsection sqlutilv1_4_3 SqlUtil v1.4.3
+    @subsection sqlutilv1_4_3 SqlUtil v1.4.4
+    - implemented the @ref SqlUtil::AbstractTable::getRowIteratorNoExec() "AbstractTable::getRowIteratorNoExec()" method (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
+
+    @subsection sqlutilv1_4_3 SqlUtil v1.4.3
     - implemented support for an optional error-handling method in SQL callbacks to allow SqlUtil to recover from error scenarios in schema creation/alignment (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
 
     @subsection sqlutilv1_4_2 SqlUtil v1.4.2
@@ -12038,12 +12041,39 @@ SQLStatement i = table.getRowIterator(sh);
             @note
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+
+            @see getRowIteratorNoExec()
          */
         Qore::SQL::SQLStatement getRowIterator(*hash sh, *reference<string> sql, *hash opt) {
             return getRowIteratorIntern(sh, \sql, opt);
         }
 
-        private Qore::SQL::SQLStatement getRowIteratorIntern(*hash sh, *reference<string> sql, *hash opt) {
+        #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments without executing the statement itself; the statement is only prepared
+        /** @par Example:
+            @code{.py}
+SQLStatement i = table.getRowIteratorNoExec(sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - no transaction thread resources / locks are acquired with this method as the SQL statement is not executed
+
+            @see getRowIterator()
+         */
+        Qore::SQL::SQLStatement getRowIteratorNoExec(*hash sh, *reference<string> sql, *hash opt) {
+            return getRowIteratorIntern(sh, \sql, opt, True);
+        }
+
+        private Qore::SQL::SQLStatement getRowIteratorIntern(*hash sh, *reference<string> sql, *hash opt, *bool no_exec) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
@@ -12051,7 +12081,9 @@ SQLStatement i = table.getRowIterator(sh);
 
             SQLStatement stmt(ds);
             stmt.prepare(sql);
-            execData(stmt, opt, args);
+            if (!no_exec) {
+                execData(stmt, opt, args);
+            }
 
             return stmt;
         }
