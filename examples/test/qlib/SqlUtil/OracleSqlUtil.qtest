@@ -225,6 +225,7 @@ class OracleTest inherits SqlTestBase {
             # get table object
             table = (new Table(schema.getDatasource(), "oracle_test")).getTable();
 
+            addTestCase("issue 2795", \issue2785());
             addTestCase("sequence operators", \testSequenceOperators());
             addTestCase("pseudo-columns", \testPseudoColumns());
             addTestCase("character semantics", \testCharacterSemantics());
@@ -239,6 +240,22 @@ class OracleTest inherits SqlTestBase {
         }
 
         set_return_value(main());
+    }
+
+    issue2785() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash sh = {
+            "where": {
+                "id": op_in(1, 2, 3),
+            },
+        };
+
+        SQLStatement stmt = table.getRowIteratorNoExec(sh);
+        # make sure this does not throw an ORA-22905 error
+        hash h = stmt.describe();
+        assertEq(Type::Hash, h.type());
     }
 
     testCharacterSemantics() {

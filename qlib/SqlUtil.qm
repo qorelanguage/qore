@@ -12081,7 +12081,12 @@ SQLStatement i = table.getRowIteratorNoExec(sh);
 
             SQLStatement stmt(ds);
             stmt.prepare(sql);
-            if (!no_exec) {
+            if (no_exec) {
+                if (args) {
+                    stmt.bindArgs(args);
+                }
+            }
+            else {
                 execData(stmt, opt, args);
             }
 
