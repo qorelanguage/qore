@@ -12465,7 +12465,12 @@ AbstractSQLStatement i = table.getStatement();
 
             AbstractSQLStatement stmt = ds.getSQLStatement();
             stmt.prepare(sql);
-            if (!no_exec) {
+            if (no_exec) {
+                if (args) {
+                    stmt.bindArgs(args);
+                }
+            }
+            else {
                 execData(stmt, opt, args);
             }
 
