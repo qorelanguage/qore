@@ -45,7 +45,7 @@ protected:
    val_vec_t vvec;
 
 public:
-   DLLLOCAL ParseList(const QoreProgramLocation& loc, bool needs_eval = true) : ParseNode(loc, NT_PARSE_LIST, needs_eval) {
+   DLLLOCAL ParseList(const QoreProgramLocation* loc, bool needs_eval = true) : ParseNode(loc, NT_PARSE_LIST, needs_eval) {
    }
 
    DLLLOCAL ~QorParseList() {

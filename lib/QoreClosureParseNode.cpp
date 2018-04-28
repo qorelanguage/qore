@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/QoreClassIntern.h"
 
-QoreClosureParseNode::QoreClosureParseNode(const QoreProgramLocation& loc, UserClosureFunction* n_uf, bool n_lambda) : ParseNode(loc, NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
+QoreClosureParseNode::QoreClosureParseNode(const QoreProgramLocation* loc, UserClosureFunction* n_uf, bool n_lambda) : ParseNode(loc, NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
 }
 
 QoreClosureNode* QoreClosureParseNode::evalClosure() const {
@@ -66,7 +66,7 @@ AbstractQoreNode* QoreClosureParseNode::parseInitImpl(LocalVar* oflag, int pflag
       in_method = true;
       uf->setClassType(oflag->getTypeInfo());
    }
-   uf->parseInit();
+   uf->parseInit(nullptr);
    uf->parseCommit();
    typeInfo = runTimeClosureTypeInfo;
    return this;

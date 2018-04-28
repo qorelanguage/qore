@@ -11,8 +11,16 @@
 
 %exec-class Test
 
+class BGTest {
+    int add(int arg) {
+        return arg;
+    }
+}
+
 class Test inherits QUnit::Test {
     public {
+        BGTest test();
+
         const Code = "
 %exec-class T
 
@@ -21,6 +29,8 @@ class T {
     method() {}
 }
 ";
+
+        const ThreadName = "my-thread";
     }
 
     constructor() : QUnit::Test("background", "1.0", \ARGV) {
@@ -28,7 +38,14 @@ class T {
         addTestCase("issue 1467", \issue1467());
         addTestCase("issue 2637", \issue2637());
         addTestCase("issue 2679", \issue2679());
+        addTestCase("issue 2653", \issue2653());
+        addTestCase("issue 2701", \issue2701());
+        addTestCase("issue 2444", \issue2444());
         set_return_value(main());
+    }
+
+    issue2653() {
+        background test.add(1);
     }
 
     issue1467() {
@@ -115,6 +132,38 @@ class T {
         cnt.inc();
         testAssertion("create complex closure in background exp", sub () {Test::f2(cnt);}, NOTHING, new TestResultValue());
         cnt.waitForZero();
+    }
+
+    issue2701() {
+        if (!HAVE_MANAGE_STACK) {
+            testSkip("cannot manage the stack");
+        }
+
+        int size = get_default_thread_stack_size();
+        #printf("size: %d\n", size);
+        assertGt(0, size);
+        int orig_size = size;
+        size = set_default_thread_stack_size(size * 2);
+        assertEq(orig_size * 2, size);
+        if (HAVE_GET_STACK_SIZE) {
+            Queue q();
+            background checkStackSize(q);
+            # issue #2701: the actual stack size assigned may be larger than requested
+            assertGe(size, q.get());
+        }
+    }
+
+    issue2444() {
+        if (!HAVE_THREAD_NAME) {
+            testSkip("no thread names available");
+        }
+        assertEq("qore/" + gettid(), get_thread_name());
+        set_thread_name(ThreadName);
+        assertEq(ThreadName, get_thread_name());
+    }
+
+    private static checkStackSize(Queue q) {
+        q.push(get_stack_size());
     }
 
     static any f1(Counter cnt) {

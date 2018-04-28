@@ -40,7 +40,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QorePopOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp) : QoreShiftOperatorNode(loc, n_exp) {
+   DLLLOCAL QorePopOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_exp) : QoreShiftOperatorNode(loc, n_exp) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,7 @@
 class QoreParseCastOperatorNode : public QoreSingleExpressionOperatorNode<> {
 friend class QoreCastOperatorNode;
 public:
-   DLLLOCAL QoreParseCastOperatorNode(const QoreProgramLocation& loc, QoreParseTypeInfo* pti, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp), pti(pti) {
+   DLLLOCAL QoreParseCastOperatorNode(const QoreProgramLocation* loc, QoreParseTypeInfo* pti, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp), pti(pti) {
    }
 
    // type is unknown before resolution
@@ -76,7 +76,7 @@ protected:
 
 class QoreCastOperatorNode : public QoreSingleExpressionOperatorNode<> {
 public:
-   DLLLOCAL QoreCastOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp) {
+   DLLLOCAL QoreCastOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_exp) : QoreSingleExpressionOperatorNode<>(loc, n_exp) {
    }
 
    DLLLOCAL virtual ~QoreCastOperatorNode() = default;
@@ -105,7 +105,7 @@ protected:
 
 class QoreClassCastOperatorNode : public QoreCastOperatorNode {
 public:
-   DLLLOCAL QoreClassCastOperatorNode(const QoreProgramLocation& loc, const QoreClass* qc, AbstractQoreNode *exp) : QoreCastOperatorNode(loc, exp), qc(qc) {
+   DLLLOCAL QoreClassCastOperatorNode(const QoreProgramLocation* loc, const QoreClass* qc, AbstractQoreNode *exp) : QoreCastOperatorNode(loc, exp), qc(qc) {
    }
 
    DLLLOCAL virtual ~QoreClassCastOperatorNode() = default;
@@ -129,7 +129,7 @@ protected:
 
 class QoreHashDeclCastOperatorNode : public QoreCastOperatorNode {
 public:
-   DLLLOCAL QoreHashDeclCastOperatorNode(const QoreProgramLocation& loc, const TypedHashDecl* hd, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), hd(hd) {
+   DLLLOCAL QoreHashDeclCastOperatorNode(const QoreProgramLocation* loc, const TypedHashDecl* hd, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), hd(hd) {
    }
 
    DLLLOCAL virtual ~QoreHashDeclCastOperatorNode() = default;
@@ -153,7 +153,7 @@ protected:
 
 class QoreComplexHashCastOperatorNode : public QoreCastOperatorNode {
 public:
-   DLLLOCAL QoreComplexHashCastOperatorNode(const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), typeInfo(typeInfo) {
+   DLLLOCAL QoreComplexHashCastOperatorNode(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), typeInfo(typeInfo) {
    }
 
    DLLLOCAL virtual ~QoreComplexHashCastOperatorNode() = default;
@@ -178,7 +178,7 @@ protected:
 
 class QoreComplexListCastOperatorNode : public QoreCastOperatorNode {
 public:
-   DLLLOCAL QoreComplexListCastOperatorNode(const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), typeInfo(typeInfo) {
+   DLLLOCAL QoreComplexListCastOperatorNode(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, AbstractQoreNode* exp) : QoreCastOperatorNode(loc, exp), typeInfo(typeInfo) {
    }
 
    DLLLOCAL virtual ~QoreComplexListCastOperatorNode() = default;
