@@ -166,10 +166,11 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
     ValueHolder rv(h.release(), xsink);
 
     // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
-    if (vtype && vtype != anyTypeInfo) {
-        const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
-        qore_hash_private::get(*rv->get<QoreHashNode>())->complexTypeInfo = ti;
+    if (!vtype || vtype == anyTypeInfo) {
+        vtype = autoTypeInfo;
     }
+    const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
+    qore_hash_private::get(*rv->get<QoreHashNode>())->complexTypeInfo = ti;
 
     return rv.release();
 }

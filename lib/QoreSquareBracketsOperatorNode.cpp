@@ -335,12 +335,14 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
                 ValueHolder rv(ret.release(), xsink);
 
                 // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
-                if (vtype && vtype != anyTypeInfo) {
-                    const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexListType(vtype);
-                    qore_list_private::get(*rv->get<QoreListNode>())->complexTypeInfo = ti;
-                    if (QoreTypeInfo::hasType(vtype)) {
-                        QoreTypeInfo::acceptAssignment(ti, "<type folding>", *rv, xsink);
-                    }
+                if (!vtype || vtype == anyTypeInfo) {
+                    vtype = autoTypeInfo;
+                }
+
+                const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+                qore_list_private::get(*rv->get<QoreListNode>())->complexTypeInfo = ti;
+                if (QoreTypeInfo::hasType(vtype)) {
+                    QoreTypeInfo::acceptAssignment(ti, "<type folding>", *rv, xsink);
                 }
 
                 return rv.release();

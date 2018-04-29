@@ -132,10 +132,11 @@ QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
     ValueHolder rv(l.release(), xsink);
 
     // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
-    if (vtype && vtype != anyTypeInfo) {
-        const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexListType(vtype);
-        qore_list_private::get(*rv->get<QoreListNode>())->complexTypeInfo = ti;
+    if (!vtype || vtype == anyTypeInfo) {
+        vtype = autoTypeInfo;
     }
+    const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+    qore_list_private::get(*rv->get<QoreListNode>())->complexTypeInfo = ti;
 
     return rv.release();
 }

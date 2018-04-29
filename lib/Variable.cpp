@@ -1354,9 +1354,10 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
                 }
 
                 // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
-                if (vtype && vtype != anyTypeInfo) {
-                    qore_list_private::get(*static_cast<QoreListNode*>(*v))->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+                if (!vtype || vtype == anyTypeInfo) {
+                    vtype = autoTypeInfo;
                 }
+                qore_list_private::get(*static_cast<QoreListNode*>(*v))->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
 
                 // now collapse the list by rewriting it without the elements removed
                 for (auto& i : iset) {
