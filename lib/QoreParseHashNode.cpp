@@ -97,26 +97,11 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
         return this;
 
     // evaluate immediately
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode(vtype), nullptr);
-    qore_hash_private* ph = qore_hash_private::get(**h);
-    for (size_t i = 0; i < keys.size(); ++i) {
-        QoreStringValueHelper key(keys[i]);
-
-        // issue #2791: ensure that type folding is performed at the source if necessary
-        const QoreTypeInfo* vt = getTypeInfoForValue(values[i]);
-        if (vtype != vt && !QoreTypeInfo::hasComplexType(vtype) && QoreTypeInfo::hasComplexType(vt)) {
-            QoreValue val = values[i];
-            // this can never throw an exception; it's only used for type folding/stripping
-            QoreTypeInfo::acceptInputKey(vtype, key->c_str(), val, nullptr);
-            values[i] = val.takeNode();
-        }
-
-        discard(ph->swapKeyValue(key->c_str(), values[i], nullptr), nullptr);
-        values[i] = nullptr;
-    }
-
-    deref();
-    return h.release();
+    SimpleRefHolder<QoreParseHashNode> holder(this);
+    ExceptionSink xsink;
+    ValueEvalRefHolder rv(this, &xsink);
+    assert(!xsink);
+    return rv.getReferencedValue();
 }
 
 QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

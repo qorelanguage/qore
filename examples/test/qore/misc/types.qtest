@@ -5286,7 +5286,7 @@ class TypeTest inherits QUnit::Test {
         {
             auto x = {};
             hash<string, bool> h = x;
-            assertEq("hash", x.fullType());
+            assertEq("hash<auto>", x.fullType());
             assertEq("hash<string, bool>", h.fullType());
         }
         # test parse and runtime type folding
@@ -5302,7 +5302,7 @@ class TypeTest inherits QUnit::Test {
         {
             auto x = ();
             list<bool> l = x;
-            assertEq("list", x.fullType());
+            assertEq("list<auto>", x.fullType());
             assertEq("list<bool>", l.fullType());
         }
         # test parse and runtime type folding
