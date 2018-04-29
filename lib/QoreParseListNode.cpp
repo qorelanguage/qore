@@ -52,11 +52,11 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
     for (size_t i = 0; i < values.size(); ++i) {
         values[i] = values[i]->parseInit(oflag, pflag, lvids, vtypes[i]);
 
-        //printd(5, "QoreParseListNode::parseInitIntern() %d: vcommon: %d vt: %p '%s' vtype: %p '%s'\n", i, vcommon, vtypes[i], QoreTypeInfo::getName(vtypes[i]), vtype, QoreTypeInfo::getName(vtype));
+        //printd(5, "QoreParseListNode::parseInitIntern() this: %p %d: vcommon: %d vt: %p '%s' vtype: %p '%s'\n", this, i, vcommon, vtypes[i], QoreTypeInfo::getName(vtypes[i]), vtype, QoreTypeInfo::getName(vtype));
 
         if (!i) {
-            if (QoreTypeInfo::hasType(vtypes[i])) {
-                vtype = vtypes[i];
+            if (vtypes[0] && vtypes[0] != anyTypeInfo) {
+                vtype = vtypes[0];
                 vcommon = true;
             }
         }
@@ -67,10 +67,10 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
             needs_eval = true;
     }
 
-    if (vtype && !QoreTypeInfo::hasType(vtype))
-        vtype = nullptr;
+    //printd(5, "QoreParseListNode::parseInitIntern() this: %p vcommon: %d vtype: %p '%s'\n", this, vcommon, vtype, QoreTypeInfo::getName(vtype));
 
-    if (vtype) {
+    // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+    if (vtype && vtype != anyTypeInfo) {
         this->typeInfo = typeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
     }
     else {
@@ -121,8 +121,10 @@ QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
             vcommon = false;
     }
 
-    if (QoreTypeInfo::hasType(vtype))
+    // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+    if (vtype && vtype != anyTypeInfo) {
        qore_list_private::get(**l)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+    }
 
     return l.release();
 }

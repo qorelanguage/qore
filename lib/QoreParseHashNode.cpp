@@ -68,8 +68,8 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
         values[i] = values[i]->parseInit(oflag, pflag, lvids, vtypes[i]);
 
         if (!i) {
-            if (QoreTypeInfo::hasType(vtypes[i])) {
-                vtype = vtypes[i];
+            if (vtypes[0] && vtypes[0] != anyTypeInfo) {
+                vtype = vtypes[0];
                 vcommon = true;
             }
         }
@@ -82,10 +82,8 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
 
     kmap.clear();
 
-    if (vtype && !QoreTypeInfo::hasType(vtype))
-        vtype = nullptr;
-
-    if (vtype) {
+    // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+    if (vtype && vtype != anyTypeInfo) {
         this->typeInfo = typeInfo = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
     }
     else {
@@ -143,8 +141,10 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
             vcommon = false;
     }
 
-    if (vcommon && QoreTypeInfo::hasType(vtype))
+    // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+    if (vtype && vtype != anyTypeInfo) {
        qore_hash_private::get(**h)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
+    }
 
     return h.release();
 }

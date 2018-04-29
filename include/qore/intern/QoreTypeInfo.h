@@ -644,52 +644,55 @@ public:
          str.append(NO_TYPE_INFO);
    }
 
-   // check for a common type
-   DLLLOCAL static bool matchCommonType(const QoreTypeInfo*& ctype, const QoreTypeInfo* ntype) {
-      assert(QoreTypeInfo::hasType(ctype));
-      if (ctype == ntype)
-         return true;
-      if (!QoreTypeInfo::hasType(ntype)) {
-         ctype = nullptr;
-         return false;
-      }
+    // check for a common type
+    DLLLOCAL static bool matchCommonType(const QoreTypeInfo*& ctype, const QoreTypeInfo* ntype) {
+        assert(ctype && ctype != anyTypeInfo);
+        if (ctype == ntype)
+            return true;
+        if (!QoreTypeInfo::hasType(ntype)) {
+            // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+            ctype = ntype == anyTypeInfo ? nullptr : ntype;
+            return false;
+        }
 
-      // ctype |* NOTHING -> *type
-      if (!QoreTypeInfo::parseReturns(ctype, NT_NOTHING) && QoreTypeInfo::isType(ntype, NT_NOTHING)) {
-         const QoreTypeInfo* ti = get_or_nothing_type(ctype);
-         ctype = ti;
-         return ctype ? true : false;
-      }
+        // ctype |* NOTHING -> *type
+        if (!QoreTypeInfo::parseReturns(ctype, NT_NOTHING) && QoreTypeInfo::isType(ntype, NT_NOTHING)) {
+            const QoreTypeInfo* ti = get_or_nothing_type(ctype);
+            ctype = ti;
+            return ctype != autoTypeInfo ? true : false;
+        }
 
-      // ctype==NOTHING | type -> *type
-      if (QoreTypeInfo::isType(ctype, NT_NOTHING)) {
-         ctype = get_or_nothing_type_check(ntype);
-         return ctype ? true : false;
-      }
+        // ctype==NOTHING | type -> *type
+        if (QoreTypeInfo::isType(ctype, NT_NOTHING)) {
+            ctype = get_or_nothing_type_check(ntype);
+            return ctype != autoTypeInfo ? true : false;
+        }
 
-      // ctype |* *ctype -> *ctype
-      // if the new type is a superset of the existing common type, then use the new type
-      if (ntype->superSetOf(ctype)) {
-         ctype = ntype;
-         return true;
-      }
+        // ctype |* *ctype -> *ctype
+        // if the new type is a superset of the existing common type, then use the new type
+        if (ntype->superSetOf(ctype)) {
+            ctype = ntype;
+            return true;
+        }
 
-      // try to find a common base type
-      // if we're dealing with types that return multiple types, then they are not compatible
-      if (ctype->return_vec.size() > 1 || ntype->return_vec.size() > 1) {
-         ctype = nullptr;
-         return false;
-      }
+        // try to find a common base type
+        // if we're dealing with types that return multiple types, then they are not compatible
+        if (ctype->return_vec.size() > 1 || ntype->return_vec.size() > 1) {
+            // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+            ctype = autoTypeInfo;
+            return false;
+        }
 
-      // see if we have a complex type
-      const QoreTypeInfo* bti = ctype->return_vec[0].spec.getBaseTypeInfo();
-      if (bti == ntype->return_vec[0].spec.getBaseTypeInfo()) {
-         ctype = bti;
-         return true;
-      }
-      ctype = nullptr;
-      return false;
-   }
+        // see if we have a complex type
+        const QoreTypeInfo* bti = ctype->return_vec[0].spec.getBaseTypeInfo();
+        if (bti == ntype->return_vec[0].spec.getBaseTypeInfo()) {
+            ctype = bti;
+            return true;
+        }
+        // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+        ctype = autoTypeInfo;
+        return false;
+    }
 
    // returns true if ti could return a complex type
    DLLLOCAL static bool isComplex(const QoreTypeInfo* ti) {
