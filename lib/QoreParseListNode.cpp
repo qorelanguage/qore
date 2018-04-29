@@ -135,10 +135,6 @@ QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
     if (vtype && vtype != anyTypeInfo) {
         const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexListType(vtype);
         qore_list_private::get(*rv->get<QoreListNode>())->complexTypeInfo = ti;
-
-        if (QoreTypeInfo::hasType(vtype) && vtype != vtypes[0]) {
-            QoreTypeInfo::acceptAssignment(ti, "<type folding>", *rv, xsink);
-        }
     }
 
     return rv.release();

@@ -339,7 +339,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
                     const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexListType(vtype);
                     qore_list_private::get(*rv->get<QoreListNode>())->complexTypeInfo = ti;
                     if (QoreTypeInfo::hasType(vtype)) {
-                        QoreTypeInfo::acceptAssignment(ti, "type folding", *rv, xsink);
+                        QoreTypeInfo::acceptAssignment(ti, "<type folding>", *rv, xsink);
                     }
                 }
 
