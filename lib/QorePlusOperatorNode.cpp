@@ -31,6 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/qore_list_private.h"
 
 QoreString QorePlusOperatorNode::plus_str("+ operator expression");
 
