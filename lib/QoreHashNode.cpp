@@ -73,6 +73,12 @@ QoreListNode* qore_hash_private::getValues(bool with_type_info) const {
     return list;
 }
 
+void qore_hash_private::mergeStrip(const qore_hash_private& h, ExceptionSink* xsink) {
+    for (auto& i : h.member_list) {
+        setKeyValue(i->key, copy_strip_complex_types(i->node), xsink);
+    }
+}
+
 void qore_hash_private::merge(const qore_hash_private& h, ExceptionSink* xsink) {
    for (auto& i : h.member_list) {
       setKeyValue(i->key, i->node ? i->node->refSelf() : nullptr, xsink);

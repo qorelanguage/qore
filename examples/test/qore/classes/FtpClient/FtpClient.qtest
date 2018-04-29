@@ -421,7 +421,16 @@ class FtpTest inherits QUnit::Test {
 
         serv.setBroken("retr", 2s);
         fc.setTimeout(1ms);
-        assertThrows("SOCKET-TIMEOUT", \fc.get(), (local_path, local_path));
+        {
+            string err;
+            try {
+                fc.get(local_path, local_path);
+            }
+            catch (hash<ExceptionInfo> ex) {
+                err = ex.err;
+            }
+            assertTrue(err == "SOCKET-TIMEOUT" || err == "FTP-RECEIVE-ERROR");
+        }
 
         fc.setTimeout(60s);
         serv.setBroken("retr", 0);

@@ -68,8 +68,8 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
         values[i] = values[i]->parseInit(oflag, pflag, lvids, vtypes[i]);
 
         if (!i) {
-            if (QoreTypeInfo::hasType(vtypes[i])) {
-                vtype = vtypes[i];
+            if (vtypes[0] && vtypes[0] != anyTypeInfo) {
+                vtype = vtypes[0];
                 vcommon = true;
             }
         }
@@ -82,10 +82,8 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
 
     kmap.clear();
 
-    if (vtype && !QoreTypeInfo::hasType(vtype))
-        vtype = nullptr;
-
-    if (vtype) {
+    // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+    if (vtype && vtype != anyTypeInfo) {
         this->typeInfo = typeInfo = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
     }
     else {
@@ -99,16 +97,11 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
         return this;
 
     // evaluate immediately
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode(vtype), nullptr);
-    qore_hash_private* ph = qore_hash_private::get(**h);
-    for (size_t i = 0; i < keys.size(); ++i) {
-        QoreStringValueHelper key(keys[i]);
-        discard(ph->swapKeyValue(key->c_str(), values[i], nullptr), nullptr);
-        values[i] = nullptr;
-    }
-
-    deref();
-    return h.release();
+    SimpleRefHolder<QoreParseHashNode> holder(this);
+    ExceptionSink xsink;
+    ValueEvalRefHolder rv(this, &xsink);
+    assert(!xsink);
+    return rv.getReferencedValue();
 }
 
 QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -121,30 +114,48 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
     bool vcommon = false;
 
     for (size_t i = 0; i < keys.size(); ++i) {
-        QoreNodeEvalOptionalRefHolder k(keys[i], xsink);
+        ValueEvalRefHolder k(keys[i], xsink);
         if (xsink && *xsink)
             return QoreValue();
 
-        QoreNodeEvalOptionalRefHolder v(values[i], xsink);
+        ValueEvalRefHolder v(values[i], xsink);
         if (xsink && *xsink)
             return QoreValue();
 
-        QoreStringValueHelper key(*k);
-        AbstractQoreNode* val = v.getReferencedValue();
-        h->setKeyValue(key->c_str(), val, xsink);
-        if (xsink && *xsink)
-            return QoreValue();
+        const QoreTypeInfo* vt = v->getTypeInfo();
 
         if (!i) {
-            vtype = getTypeInfoForValue(val);
+            vtype = vt;
             vcommon = true;
         }
-        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(val)))
+        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vt)) {
             vcommon = false;
+        }
+
+        QoreStringValueHelper key(*k);
+
+        // issue #2791: ensure that type folding is performed at the source if necessary
+        QoreValue val = v.takeReferencedValue();
+        //printd(5, "QoreParseHashNode::evalValueImpl() '%s' this->vtype: '%s' (c: %d) vt: '%s' (c: %d)\n", key->c_str(), QoreTypeInfo::getName(this->vtype), QoreTypeInfo::hasComplexType(this->vtype), QoreTypeInfo::getName(vt), QoreTypeInfo::hasComplexType(vt));
+        if (this->vtype != vt && !QoreTypeInfo::hasComplexType(this->vtype) && QoreTypeInfo::hasComplexType(vt)) {
+            // this can never throw an exception; it's only used for type folding/stripping
+            QoreTypeInfo::acceptInputKey(this->vtype, key->c_str(), val, xsink);
+        }
+
+        h->setValueKeyValue(key->c_str(), val, xsink);
+        if (xsink && *xsink) {
+            return QoreValue();
+        }
     }
 
-    if (vcommon && QoreTypeInfo::hasType(vtype))
-       qore_hash_private::get(**h)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
+    ValueHolder rv(h.release(), xsink);
 
-    return h.release();
+    // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+    if (!vtype || vtype == anyTypeInfo) {
+        vtype = autoTypeInfo;
+    }
+    const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
+    qore_hash_private::get(*rv->get<QoreHashNode>())->complexTypeInfo = ti;
+
+    return rv.release();
 }

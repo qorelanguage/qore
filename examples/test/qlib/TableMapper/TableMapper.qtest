@@ -569,7 +569,6 @@ public class TableMapperTest inherits QUnit::Test {
             fl = ();
 
             InboundTableMapper mapper(table, Map1, ("info_log": info_log));
-            printf("DOING IT\n");
             map mapper.queueData($1), Input1;
             checkMap((map $1, mapper.flush().contextIterator()), output1);
             checkMap(table.selectRows(("orderby": "id")), output1);

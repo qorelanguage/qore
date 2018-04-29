@@ -368,44 +368,45 @@ const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo) {
 }
 
 const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo) {
-   assert(!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING));
+    assert(!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING));
 
-   typeinfo_map_t::iterator i = typeinfo_map.find(typeInfo);
-   if (i != typeinfo_map.end())
-      return i->second;
+    typeinfo_map_t::iterator i = typeinfo_map.find(typeInfo);
+    if (i != typeinfo_map.end())
+        return i->second;
 
-   // see if we have a complex type
-   {
-      const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
-      if (hd)
-         return hd->getTypeInfo(true);
-   }
+    // see if we have a complex type
+    {
+        const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(typeInfo);
+        if (hd)
+            return hd->getTypeInfo(true);
+    }
 
-   {
-      const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
-      if (ti)
-         return qore_program_private::get(*getProgram())->getComplexHashOrNothingType(ti);
-   }
+    {
+        const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
+        if (ti)
+            return qore_program_private::get(*getProgram())->getComplexHashOrNothingType(ti);
+    }
 
-   {
-      const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexSoftList(typeInfo);
-      if (ti)
-         return qore_program_private::get(*getProgram())->getComplexSoftListOrNothingType(ti);
-   }
+    {
+        const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexSoftList(typeInfo);
+        if (ti)
+            return qore_program_private::get(*getProgram())->getComplexSoftListOrNothingType(ti);
+    }
 
-   {
-      const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
-      if (ti)
-         return qore_program_private::get(*getProgram())->getComplexListOrNothingType(ti);
-   }
+    {
+        const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
+        if (ti)
+            return qore_program_private::get(*getProgram())->getComplexListOrNothingType(ti);
+    }
 
-   {
-      const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexReference(typeInfo);
-      if (ti)
-         return qore_program_private::get(*getProgram())->getComplexReferenceOrNothingType(ti);
-   }
+    {
+        const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexReference(typeInfo);
+        if (ti)
+            return qore_program_private::get(*getProgram())->getComplexReferenceOrNothingType(ti);
+    }
 
-   return nullptr;
+    // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+    return autoTypeInfo;
 }
 
 const QoreTypeInfo* qore_get_complex_hash_type(const QoreTypeInfo* vti) {
