@@ -61,6 +61,27 @@ class TypeTest inherits QUnit::Test {
             assertEq(Type::Hash, h.a.fullType());
         }
         {
+            auto h = {
+                "a": {"a": 1},
+                "b": {"a": "1"},
+            };
+            # ensure consistent type folding
+            assertEq("hash<string, hash>", h.fullType());
+            assertEq(Type::Hash, h.a.fullType());
+            h.a.b = "1";
+        }
+        {
+            auto h = {
+                "a": {"a": 1},
+            } + {
+                "b": {"a": "1"},
+            };
+            # ensure consistent type folding
+            #assertEq("hash<string, hash>", h.fullType());
+            assertEq(Type::Hash, h.a.fullType());
+            h.a.b = "1";
+        }
+        {
             any h;
             h.a = hash<MyHash>{};
             # ensure types are stripped on assignment with internal values of untyped hashes
@@ -70,6 +91,12 @@ class TypeTest inherits QUnit::Test {
             hash<auto> h;
             h.a = hash<MyHash>{};
             assertEq("hash<MyHash>", h.a.fullType());
+        }
+        {
+            auto h = {"a": {"a": 2}} + {"b": {"a": "1"}};
+            assertEq(Type::Hash, h.a.fullType());
+            assertEq(Type::Hash, h.b.fullType());
+            #assertEq(Type::Hash, h.fullType());
         }
         {
             list l;
@@ -94,6 +121,22 @@ class TypeTest inherits QUnit::Test {
             l += hash<MyHash>{};
             # ensure types are stripped on assignment with internal values of untyped lists
             assertEq(Type::Hash, l[0].fullType());
+        }
+        {
+            auto l = (1, 2,) + ("3",);
+            assertEq(Type::List, l.fullType());
+        }
+        {
+            auto l = (1, 2,) + "3";
+            assertEq(Type::List, l.fullType());
+        }
+        {
+            auto l = ("3",) + (1, 2,);
+            assertEq(Type::List, l.fullType());
+        }
+        {
+            auto l = "3" + (1, 2,);
+            assertEq(Type::List, l.fullType());
         }
     }
 

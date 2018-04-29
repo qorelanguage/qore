@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,138 +35,134 @@
 QoreString QorePlusOperatorNode::plus_str("+ operator expression");
 
 QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   ValueEvalRefHolder lh(left, xsink);
-   if (*xsink)
-      return QoreValue();
-   ValueEvalRefHolder rh(right, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder lh(left, xsink);
+    if (*xsink)
+        return QoreValue();
+    ValueEvalRefHolder rh(right, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   qore_type_t lt = lh->getType();
-   qore_type_t rt = rh->getType();
+    qore_type_t lt = lh->getType();
+    qore_type_t rt = rh->getType();
 
-   if (lt == NT_LIST) {
-      const QoreListNode* l = lh->get<const QoreListNode>();
-      QoreListNode* rv = l->copy();
-      if (rt == NT_LIST)
-         rv->merge(rh->get<const QoreListNode>());
-      else
-         rv->push(rh->getReferencedValue());
-      //printd(5, "QorePlusOperatorNode::evalValueImpl() returning list=%p size=%d\n", rv, rv->size());
-      return rv;
-   }
+    if (lt == NT_LIST) {
+        const QoreListNode* l = lh->get<const QoreListNode>();
+        // issue #2791: perform type folding at the source
+        if (rt == NT_LIST) {
+            return qore_list_private::get(*l)->concatenate(rh->get<const QoreListNode>(), xsink);
+        }
+        else {
+            return qore_list_private::get(*l)->concatenateElement(rh->getReferencedValue(), xsink);
+        }
+    }
 
-   if (rt == NT_LIST) {
-      const QoreListNode* r = rh->get<const QoreListNode>();
+    if (rt == NT_LIST) {
+        // issue #2791: perform type folding at the source
+        return qore_list_private::get(*rh->get<const QoreListNode>())->prependElement(lh->getReferencedValue(), xsink);
+    }
 
-      QoreListNode* rv = new QoreListNode;
-      rv->push(lh->getReferencedValue());
-      rv->merge(r);
-      return rv;
-   }
+    if (lt == NT_STRING) {
+        QoreStringNodeHolder str(new QoreStringNode(*lh->get<const QoreStringNode>()));
 
-   if (lt == NT_STRING) {
-      QoreStringNodeHolder str(new QoreStringNode(*lh->get<const QoreStringNode>()));
+        if (rt == NT_STRING)
+            str->concat(rh->get<const QoreStringNode>(), xsink);
+        else {
+            QoreStringValueHelper r(*rh, str->getEncoding(), xsink);
+            if (*xsink)
+                return QoreValue();
+            str->concat(*r, xsink);
+        }
+        return str.release();
+    }
 
-      if (rt == NT_STRING)
-         str->concat(rh->get<const QoreStringNode>(), xsink);
-      else {
-         QoreStringValueHelper r(*rh, str->getEncoding(), xsink);
-         if (*xsink)
+    if (rt == NT_STRING) {
+        const QoreStringNode* r = rh->get<const QoreStringNode>();
+        QoreStringNodeValueHelper strval(*lh, r->getEncoding(), xsink);
+        if (*xsink)
             return QoreValue();
-         str->concat(*r, xsink);
-      }
-      return str.release();
-   }
+        SimpleRefHolder<QoreStringNode> str(strval->is_unique() ? strval.getReferencedValue() : new QoreStringNode(*strval));
+        assert(str->reference_count() == 1);
 
-   if (rt == NT_STRING) {
-      const QoreStringNode* r = rh->get<const QoreStringNode>();
-      QoreStringNodeValueHelper strval(*lh, r->getEncoding(), xsink);
-      if (*xsink)
-         return QoreValue();
-      SimpleRefHolder<QoreStringNode> str(strval->is_unique() ? strval.getReferencedValue() : new QoreStringNode(*strval));
-      assert(str->reference_count() == 1);
+        QoreStringNode* rv = const_cast<QoreStringNode*>(*str);
 
-      QoreStringNode* rv = const_cast<QoreStringNode*>(*str);
+        rv->concat(r, xsink);
+        if (*xsink)
+            return QoreValue();
+        return str.release();
+    }
 
-      rv->concat(r, xsink);
-      if (*xsink)
-         return QoreValue();
-      return str.release();
-   }
+    if (lt == NT_DATE || rt == NT_DATE) {
+        DateTimeNodeValueHelper l(*lh);
+        DateTimeValueHelper r(*rh);
+        return l->add(*r);
+    }
 
-   if (lt == NT_DATE || rt == NT_DATE) {
-      DateTimeNodeValueHelper l(*lh);
-      DateTimeValueHelper r(*rh);
-      return l->add(*r);
-   }
+    if (lt == NT_NUMBER || rt == NT_NUMBER) {
+        QoreNumberNodeHelper l(*lh);
+        QoreNumberNodeHelper r(*rh);
+        return l->doPlus(**r);
+    }
 
-   if (lt == NT_NUMBER || rt == NT_NUMBER) {
-      QoreNumberNodeHelper l(*lh);
-      QoreNumberNodeHelper r(*rh);
-      return l->doPlus(**r);
-   }
+    if (lt == NT_FLOAT || rt == NT_FLOAT) {
+        return lh->getAsFloat() + rh->getAsFloat();
+    }
 
-   if (lt == NT_FLOAT || rt == NT_FLOAT) {
-      return lh->getAsFloat() + rh->getAsFloat();
-   }
+    if (lt == NT_INT || rt == NT_INT) {
+        return lh->getAsBigInt() + rh->getAsBigInt();
+    }
 
-   if (lt == NT_INT || rt == NT_INT) {
-      return lh->getAsBigInt() + rh->getAsBigInt();
-   }
+    if (lt == NT_HASH) {
+        const QoreHashNode* l = lh->get<const QoreHashNode>();
+        if (rt == NT_HASH) {
+            return qore_hash_private::get(*l)->plusEquals(rh->get<const QoreHashNode>(), xsink);
+        }
+        if (rt == NT_OBJECT) {
+            QoreObject* r = rh->get<QoreObject>();
+            ReferenceHolder<QoreHashNode> rv(qore_hash_private::get(*l)->copy(true), xsink);
+            qore_object_private::get(*r)->mergeDataToHash(*rv, xsink);
+            if (*xsink)
+                return 0;
 
-   if (lt == NT_HASH) {
-      const QoreHashNode* l = lh->get<const QoreHashNode>();
-      if (rt == NT_HASH) {
-         return qore_hash_private::get(*l)->plusEquals(rh->get<const QoreHashNode>(), xsink);
-      }
-      if (rt == NT_OBJECT) {
-         QoreObject* r = rh->get<QoreObject>();
-         ReferenceHolder<QoreHashNode> rv(qore_hash_private::get(*l)->copy(true), xsink);
-         qore_object_private::get(*r)->mergeDataToHash(*rv, xsink);
-         if (*xsink)
+            return rv.release();
+        }
+        return l->refSelf();
+    }
+
+    if (lt == NT_OBJECT) {
+        QoreObject* l = lh->get<QoreObject>();
+        if (rt != NT_HASH)
+            return l->refSelf();
+        const QoreHashNode* r = rh->get<const QoreHashNode>();
+
+        ReferenceHolder<QoreHashNode> h(qore_object_private::get(*l)->getRuntimeMemberHash(xsink), xsink);
+        if (*xsink)
             return 0;
 
-         return rv.release();
-      }
-      return l->refSelf();
-   }
+        h->merge(r, xsink);
+        if (*xsink)
+            return 0;
 
-   if (lt == NT_OBJECT) {
-      QoreObject* l = lh->get<QoreObject>();
-      if (rt != NT_HASH)
-         return l->refSelf();
-      const QoreHashNode* r = rh->get<const QoreHashNode>();
+        return h.release();
+    }
 
-      ReferenceHolder<QoreHashNode> h(qore_object_private::get(*l)->getRuntimeMemberHash(xsink), xsink);
-      if (*xsink)
-         return 0;
+    if (rt == NT_HASH || rt == NT_OBJECT) {
+        return rh->getReferencedValue();
+    }
 
-      h->merge(r, xsink);
-      if (*xsink)
-         return 0;
+    if (lt == NT_BINARY) {
+        if (rt != NT_BINARY)
+            return lh->getReferencedValue();
 
-      return h.release();
-   }
+        BinaryNode* rv = lh->get<const BinaryNode>()->copy();
+        rv->append(rh->get<const BinaryNode>());
+        return rv;
+    }
 
-   if (rt == NT_HASH || rt == NT_OBJECT) {
-      return rh->getReferencedValue();
-   }
+    if (rt == NT_BINARY) {
+        return rh->getReferencedValue();
+    }
 
-   if (lt == NT_BINARY) {
-      if (rt != NT_BINARY)
-         return lh->getReferencedValue();
-
-      BinaryNode* rv = lh->get<const BinaryNode>()->copy();
-      rv->append(rh->get<const BinaryNode>());
-      return rv;
-   }
-
-   if (rt == NT_BINARY) {
-      return rh->getReferencedValue();
-   }
-
-   return QoreValue();
+    return QoreValue();
 }
 
 AbstractQoreNode* QorePlusOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {

@@ -332,12 +332,18 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
                     //printd(5, "%d: vc: %d vtype: '%s' et: '%s'\n", it.index(), (int)vcommon, QoreTypeInfo::getName(vtype), QoreTypeInfo::getName(entry->getTypeInfo()));
                 }
 
+                ValueHolder rv(ret.release(), xsink);
+
                 // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
                 if (vtype && vtype != anyTypeInfo) {
-                    qore_list_private::get(**ret)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+                    const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+                    qore_list_private::get(*rv->get<QoreListNode>())->complexTypeInfo = ti;
+                    if (QoreTypeInfo::hasType(vtype)) {
+                        QoreTypeInfo::acceptAssignment(ti, "type folding", *rv, xsink);
+                    }
                 }
 
-                return ret.release();
+                return rv.release();
             }
             case NT_STRING: {
                 SimpleRefHolder<QoreStringNode> ret(new QoreStringNode);

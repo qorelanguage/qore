@@ -476,6 +476,14 @@ public:
             : ti->return_vec[0].spec.getComplexList();
     }
 
+    // static version of method, checking for null pointer
+    DLLLOCAL static bool hasComplexType(const QoreTypeInfo* ti) {
+        if (!ti) {
+            return false;
+        }
+        return ti == autoTypeInfo || isComplex(ti);
+    }
+
    // static version of method, checking for null pointer
    DLLLOCAL static bool hasType(const QoreTypeInfo* ti) {
       return !ti || ti->accept_vec[0].spec.getType() == NT_ALL ? false : true;

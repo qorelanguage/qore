@@ -110,23 +110,38 @@ QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
         if (xsink && *xsink)
             return QoreValue();
 
-        AbstractQoreNode* val = v.getReferencedValue();
-        l->push(val);
+        const QoreTypeInfo* vt = getTypeInfoForValue(*v);
 
         if (!i) {
-            vtype = getTypeInfoForValue(val);
+            vtype = vt;
             vcommon = true;
         }
-        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(val)))
+        else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vt))
             vcommon = false;
+
+        // issue #2791: ensure that type folding is performed at the source if necessary
+        QoreValue val = v.getReferencedValue();
+        if (this->vtype != vt && !QoreTypeInfo::hasComplexType(this->vtype) && QoreTypeInfo::hasComplexType(vt)) {
+            // this can never throw an exception; it's only used for type folding/stripping
+            QoreTypeInfo::acceptAssignment(this->vtype, "<type folding>", val, xsink);
+        }
+
+        l->push(val.takeNode());
     }
+
+    ValueHolder rv(l.release(), xsink);
 
     // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
     if (vtype && vtype != anyTypeInfo) {
-       qore_list_private::get(**l)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+        const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+        qore_list_private::get(*rv->get<QoreListNode>())->complexTypeInfo = ti;
+
+        if (QoreTypeInfo::hasType(vtype) && vtype != vtypes[0]) {
+            QoreTypeInfo::acceptAssignment(ti, "<type folding>", *rv, xsink);
+        }
     }
 
-    return l.release();
+    return rv.release();
 }
 
 int QoreParseListNode::initArgs(LocalVar* oflag, int pflag, type_vec_t& arg_types, QoreListNode*& args) {

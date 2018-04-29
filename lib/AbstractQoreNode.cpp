@@ -681,33 +681,24 @@ void inc_container_obj(const AbstractQoreNode* n, int dt) {
 }
 
 bool has_complex_type(const AbstractQoreNode* n) {
-   switch (get_node_type(n)) {
-      case NT_LIST: {
-         const QoreListNode* l = static_cast<const QoreListNode*>(n);
-         if (QoreTypeInfo::hasType(l->getValueTypeInfo()))
-            return true;
-         ConstListIterator i(l);
-         while (i.next()) {
-            if (has_complex_type(i.getValue()))
-               return true;
-         }
-         return false;
-      }
-      case NT_HASH: {
-         const QoreHashNode* h = static_cast<const QoreHashNode*>(n);
-         if (QoreTypeInfo::hasType(h->getValueTypeInfo()) || h->getHashDecl())
-            return true;
-         ConstHashIterator i(h);
-         while (i.next()) {
-            if (has_complex_type(i.getValue()))
-               return true;
-         }
-         return false;
-      }
-      default:
-         break;
-   }
-   return false;
+    switch (get_node_type(n)) {
+        case NT_LIST: {
+            const QoreListNode* l = static_cast<const QoreListNode*>(n);
+            const QoreTypeInfo* ti = l->getValueTypeInfo();
+            return ti && ti != anyTypeInfo;
+        }
+        case NT_HASH: {
+            const QoreHashNode* h = static_cast<const QoreHashNode*>(n);
+            if (h->getHashDecl()) {
+                return true;
+            }
+            const QoreTypeInfo* ti = h->getValueTypeInfo();
+            return ti && ti != anyTypeInfo;
+        }
+        default:
+            break;
+    }
+    return false;
 }
 
 static QoreHashNode* do_copy_strip(const QoreHashNode* h) {
@@ -724,7 +715,7 @@ static QoreHashNode* do_copy_strip(const QoreHashNode* h) {
 }
 
 static QoreListNode* do_copy_strip(const QoreListNode* l) {
-    // issue #2791: do not strip types from a plain hash; no complex types can be stored there anyway
+    // issue #2791: do not strip types from a plain list; no complex types can be stored there anyway
     if (l->getTypeInfo() == listTypeInfo) {
         return l->listRefSelf();
     }
