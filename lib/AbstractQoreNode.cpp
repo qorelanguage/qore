@@ -711,21 +711,29 @@ bool has_complex_type(const AbstractQoreNode* n) {
 }
 
 static QoreHashNode* do_copy_strip(const QoreHashNode* h) {
-   ReferenceHolder<QoreHashNode> nh(new QoreHashNode, nullptr);
-   ConstHashIterator i(h);
-   while (i.next()) {
-      nh->setKeyValue(i.getKey(), copy_strip_complex_types(i.getValue()), nullptr);
-   }
-   return nh.release();
+    // issue #2791: do not strip types from a plain hash; no complex types can be stored there anyway
+    if (h->getTypeInfo() == hashTypeInfo) {
+        return h->hashRefSelf();
+    }
+    ReferenceHolder<QoreHashNode> nh(new QoreHashNode, nullptr);
+    ConstHashIterator i(h);
+    while (i.next()) {
+        nh->setKeyValue(i.getKey(), copy_strip_complex_types(i.getValue()), nullptr);
+    }
+    return nh.release();
 }
 
 static QoreListNode* do_copy_strip(const QoreListNode* l) {
-   ReferenceHolder<QoreListNode> nl(new QoreListNode, nullptr);
-   ConstListIterator i(l);
-   while (i.next()) {
-      nl->push(copy_strip_complex_types(i.getValue()));
-   }
-   return nl.release();
+    // issue #2791: do not strip types from a plain hash; no complex types can be stored there anyway
+    if (l->getTypeInfo() == listTypeInfo) {
+        return l->listRefSelf();
+    }
+    ReferenceHolder<QoreListNode> nl(new QoreListNode, nullptr);
+    ConstListIterator i(l);
+    while (i.next()) {
+        nl->push(copy_strip_complex_types(i.getValue()));
+    }
+    return nl.release();
 }
 
 AbstractQoreNode* copy_strip_complex_types(const AbstractQoreNode* n) {

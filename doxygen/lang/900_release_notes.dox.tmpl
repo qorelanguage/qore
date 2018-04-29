@@ -14,6 +14,8 @@
     - implemented a new optional DBI statement method to allow for statement execution only for describing the
       result set to solve performance issues when describing statements with large data sets
       (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
+    - fixed a performance bug by eliminating overzealous and unnecessary internal type stripping
+      (<a href="https://github.com/qorelanguage/qore/issues/2791">issue 2791</a>)
     - module fixes:
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>:
         - implemented the \c csvutil_set_global_compat_force_empty_string() function and
