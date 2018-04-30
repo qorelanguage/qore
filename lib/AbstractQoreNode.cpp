@@ -715,9 +715,10 @@ static QoreHashNode* do_copy_strip(const QoreHashNode* h) {
         return h->hashRefSelf();
     }
     ReferenceHolder<QoreHashNode> nh(new QoreHashNode, nullptr);
+    qore_hash_private* nhp = qore_hash_private::get(**nh);
     ConstHashIterator i(h);
     while (i.next()) {
-        nh->setKeyValue(i.getKey(), copy_strip_complex_types(i.getValue()), nullptr);
+        nhp->setKeyValueIntern(i.getKey(), copy_strip_complex_types(i.get()));
     }
     return nh.release();
 }
@@ -749,4 +750,14 @@ AbstractQoreNode* copy_strip_complex_types(const AbstractQoreNode* n) {
          break;
    }
    return n->refSelf();
+}
+
+DLLLOCAL QoreValue copy_strip_complex_types(const QoreValue& n) {
+    if (n.isNothing()) {
+        return QoreValue();
+    }
+    if (!n.hasNode()) {
+        return const_cast<QoreValue&>(n);
+    }
+    return QoreValue(copy_strip_complex_types(n.getInternalNode()));
 }

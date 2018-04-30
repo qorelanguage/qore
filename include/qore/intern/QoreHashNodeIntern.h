@@ -378,9 +378,9 @@ public:
         // copy all members to new object
         for (auto& i : member_list) {
             hash_assignment_priv ha(*h, i->key.c_str());
-            AbstractQoreNode* v = copy_strip_complex_types(i->node);
+            QoreValue v = copy_strip_complex_types(i->val);
 #ifdef DEBUG
-            assert(!ha.swap(v));
+            assert(ha.swap(v).isNothing());
 #else
             ha.swap(v);
 #endif

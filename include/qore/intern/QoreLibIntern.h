@@ -983,6 +983,7 @@ DLLLOCAL qore_offset_t q_UTF16LE_get_char_len(const char* p, qore_size_t len);
 DLLLOCAL int64 get_ms_zero(const QoreValue& v);
 
 DLLLOCAL AbstractQoreNode* copy_strip_complex_types(const AbstractQoreNode* n);
+DLLLOCAL QoreValue copy_strip_complex_types(const QoreValue& n);
 
 // for IPv4/v6 only
 DLLLOCAL void* qore_get_in_addr(struct sockaddr *sa);
