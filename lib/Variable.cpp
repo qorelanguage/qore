@@ -1467,8 +1467,9 @@ static void do_list_value(QoreListNode& v, QoreListNode& l, int64 ind, const Qor
         vtype = getTypeInfoForValue(p);
         vcommon = true;
     }
-    else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(p)))
+    else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, getTypeInfoForValue(p))) {
         vcommon = false;
+    }
 
     v.push(p);
 }
@@ -1543,8 +1544,11 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
                     do_list_value(*static_cast<QoreListNode*>(*v), *l, li.getValue() ? li.getValue()->getAsBigInt() : 0, vtype, vcommon, iset, li.index());
                 }
 
-                if (QoreTypeInfo::hasType(vtype))
-                    qore_list_private::get(*static_cast<QoreListNode*>(*v))->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+                // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+                if (!vtype || vtype == anyTypeInfo) {
+                    vtype = autoTypeInfo;
+                }
+                qore_list_private::get(*static_cast<QoreListNode*>(*v))->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
 
                 // now collapse the list by rewriting it without the elements removed
                 for (auto& i : iset) {
@@ -1687,8 +1691,10 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
                 }
             }
 
-            if (QoreTypeInfo::hasType(vtype))
+            // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
+            if (vtype && vtype != anyTypeInfo) {
                 qore_list_private::get(**v)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+            }
 
             // now collapse the list by rewriting it without the elements removed
             for (auto& i : iset) {

@@ -334,6 +334,9 @@ public:
 
     DLLLOCAL QoreListNode* getValues(bool with_type_info = true) const;
 
+    // issue #2791: perform type stripping at the source
+    DLLLOCAL void mergeStrip(const qore_hash_private& h, ExceptionSink* xsink);
+
     DLLLOCAL void merge(const qore_hash_private& h, ExceptionSink* xsink);
 
     DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink);
@@ -365,8 +368,24 @@ public:
 
     // strip = copy without type information
     DLLLOCAL QoreHashNode* copy(bool strip = false) const {
-        QoreHashNode* h = strip ? new QoreHashNode : getCopy();
-        copyIntern(*h->priv);
+        // issue #2791: perform type stripping at the source
+        if (!strip || (!complexTypeInfo && !hashdecl)) {
+            QoreHashNode* h = getCopy();
+            copyIntern(*h->priv);
+            return h;
+        }
+        QoreHashNode* h = new QoreHashNode;
+        // copy all members to new object
+        for (auto& i : member_list) {
+            hash_assignment_priv ha(*h, i->key.c_str());
+            QoreValue v = copy_strip_complex_types(i->val);
+#ifdef DEBUG
+            assert(ha.swap(v).isNothing());
+#else
+            ha.swap(v);
+#endif
+        }
+
         return h;
     }
 
@@ -383,9 +402,16 @@ public:
     }
 
     DLLLOCAL QoreHashNode* plusEquals(const QoreHashNode* h, ExceptionSink* xsink) const {
+        // issue #2791: perform type stripping at the source
         bool strip = hashdecl || h->priv->hashdecl || !QoreTypeInfo::equal(complexTypeInfo, h->priv->complexTypeInfo);
+        //printd(5, "qore_hash_private::plusEquals() this: %p '%s' h: %p '%s' strip: %d\n", this, QoreTypeInfo::getName(complexTypeInfo), h, QoreTypeInfo::getName(h->priv->complexTypeInfo), strip);
         ReferenceHolder<QoreHashNode> rv(copy(strip), xsink);
-        rv->merge(h, xsink);
+        if (strip) {
+            rv->priv->mergeStrip(*h->priv, xsink);
+        }
+        else {
+            rv->priv->merge(*h->priv, xsink);
+        }
         return *xsink ? nullptr : rv.release();
     }
 
