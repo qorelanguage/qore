@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -57,7 +57,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
                 QoreStringNode* edesc = new QoreStringNode("cannot convert lvalue defined as ");
                 QoreTypeInfo::getThisType(lti, *edesc);
                 edesc->sprintf(" to a list using the '[]' operator in an assignment expression");
-                qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
+                qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
             }
         }
         else {
@@ -78,7 +78,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
                 QoreStringNode* edesc = new QoreStringNode("left-hand side of the expression with the '[]' operator is ");
                 QoreTypeInfo::getThisType(lti, *edesc);
                 edesc->concat(" and so this expression will always return NOTHING; the '[]' operator only returns a value within the legal bounds of lists, strings, and binary objects");
-                qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+                qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
                 returnTypeInfo = nothingTypeInfo;
             }
         }
@@ -113,12 +113,12 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
         QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
         QoreTypeInfo::getThisType(rti, *edesc);
         edesc->concat(" and so will always evaluate to zero");
-        qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
     }
 
     if (rti_is_list) {
         if (pflag & PF_FOR_ASSIGNMENT)
-            parse_error(loc, "a slice cannot be used on the left-hand side of an assignment expression");
+            parse_error(*loc, "a slice cannot be used on the left-hand side of an assignment expression");
 
         // check element types in list
         switch (get_node_type(right)) {
@@ -159,7 +159,7 @@ void QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreParseListNod
                 rhs_list_range = true;
             continue;
         }
-        parseException(loc, "PARSE-TYPE-ERROR", "cannot make a slice with offset %d/%d of type '%s'; need a type convertible to an integer or a range", i, (int)vtypes.size(), QoreTypeInfo::getName(vtypes[i]));
+        parseException(*loc, "PARSE-TYPE-ERROR", "cannot make a slice with offset %d/%d of type '%s'; need a type convertible to an integer or a range", i, (int)vtypes.size(), QoreTypeInfo::getName(vtypes[i]));
     }
 }
 
@@ -169,7 +169,7 @@ void QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreListNode* ln
         const QoreTypeInfo* vti = getTypeInfoForValue(i.getValue());
         if (QoreTypeInfo::canConvertToScalar(vti))
             continue;
-        parseException(loc, "PARSE-TYPE-ERROR", "cannot make a slice with offset %d/%d of type '%s'; need a type convertible to an integer or a range", i.index(), (int)i.max(), QoreTypeInfo::getName(vti));
+        parseException(*loc, "PARSE-TYPE-ERROR", "cannot make a slice with offset %d/%d of type '%s'; need a type convertible to an integer or a range", i.index(), (int)i.max(), QoreTypeInfo::getName(vti));
     }
 }
 

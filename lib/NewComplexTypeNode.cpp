@@ -73,7 +73,7 @@ AbstractQoreNode* ParseNewComplexTypeNode::parseInitImpl(LocalVar* oflag, int pf
         }
     }
 
-    parse_error(loc, "type '%s' does not support instantiation with the new operator", QoreTypeInfo::getName(typeInfo));
+    parse_error(*loc, "type '%s' does not support instantiation with the new operator", QoreTypeInfo::getName(typeInfo));
 
     return this;
 }

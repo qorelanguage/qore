@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -634,7 +634,6 @@ const WARN_WARNING_MASK_UNCHANGED = QP_WARN_WARNING_MASK_UNCHANGED;
     @since %Qore 0.8.12.11
 */
 const WARN_BROKEN_LOGIC_PRECEDENCE = QP_WARN_BROKEN_LOGIC_PRECEDENCE;
-
 //@}
 
 //! Program objects allow %Qore programs to support subprograms with the option to restrict capabilities, for example, to support user-defined logic for application actions
@@ -646,6 +645,10 @@ const WARN_BROKEN_LOGIC_PRECEDENCE = QP_WARN_BROKEN_LOGIC_PRECEDENCE;
     stages of parsing (Program::parsePending(), Program::parseCommit() and Program::parseRollback()) are atomic within themselves,
     but not between calls, so one thread may inadvertently commit changes to a Program object if two or more threads are trying to
     perform transaction-safe two-stage parsing on a Program object without explicit user locking.
+
+    A complete parse action (Program::parse() or Program::parseCommit()) can only be performed once; subsequent attempts to parse
+    code into the same %Program object will fail with an exception.  If parsing fails due to a parse exception, the Program
+    object is generally no longer usable and must be recreated to be used.
 
     @ref parse_options "Parse option constants" can be used to limit the capabilities of a Program object. These options should be
     binary-OR'ed together and passed to the Program object's constructor. Also see @ref command_line_processing for equivalent
@@ -762,7 +765,13 @@ while (wh) {
 
     @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
 
-    @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
+    @note A complete parse action (Program::parse() or Program::parseCommit()) can only be performed once; subsequent attempts to parse
+    code into the same %Program object will fail with an exception.  If parsing fails due to a parse exception, the Program
+    object is generally no longer usable and must be recreated to be used.
+
+    @since
+    - %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
+    - %Qore 0.9 parsing can only be executed once per %Program object
  */
 *hash Program::parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
    QoreStringMaker nlabel(label->getEncoding(), format_label ? "<run-time-loaded: %s>" : "%s", label->getBuffer());
@@ -816,7 +825,13 @@ pgm.parseCommit();
 
     @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
 
-    @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
+    @note A complete parse action (Program::parse() or Program::parseCommit()) can only be performed once; subsequent attempts to parse
+    code into the same %Program object will fail with an exception.  If parsing fails due to a parse exception, the Program
+    object is generally no longer usable and must be recreated to be used.
+
+    @since
+    - %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
+    - %Qore 0.9 parsing can only be executed once per %Program object
  */
 *hash Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
    QoreStringMaker nlabel(label->getEncoding(), format_label ? "<run-time-loaded: %s>" : "%s", label->getBuffer());
@@ -851,6 +866,12 @@ pgm.parseCommit();
     - Qore::parse()
 
     @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
+
+    @note A complete parse action (Program::parse() or Program::parseCommit()) can only be performed once; subsequent attempts to parse
+    code into the same %Program object will fail with an exception.  If parsing fails due to a parse exception, the Program
+    object is generally no longer usable and must be recreated to be used.
+
+    @since %Qore 0.9 parsing can only be executed once per %Program object
  */
 nothing Program::parseCommit() {
    p->parseCommit(xsink);
@@ -877,6 +898,12 @@ while (exists wh) {
     - Qore::parse()
 
     @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
+
+    @note A complete parse action (Program::parse() or Program::parseCommit()) can only be performed once; subsequent attempts to parse
+    code into the same %Program object will fail with an exception.  If parsing fails due to a parse exception, the Program
+    object is generally no longer usable and must be recreated to be used.
+
+    @since %Qore 0.9 parsing can only be executed once per %Program object
  */
 *hash Program::parseCommit(int warning_mask) {
    ExceptionSink wsink;
@@ -888,13 +915,8 @@ while (exists wh) {
    return e->makeExceptionObjectAndDelete(xsink);
 }
 
-//! Rolls back any pending code processed with Program::parsePending() that has not yet been committed to the Program object with Program::parseCommit()
+//! Removes all partially or fully-parsed code from the object along with other builtin objects; a %Program object is not usable after calling this method; do not use this method but instead destroy the %Program object
 /**
-    @par Example:
-    @code{.py}
-pgm.parseRollback();
-    @endcode
-
     @see
     - Qore::Program::parse()
     - Qore::Program::parseCommit()
@@ -902,8 +924,10 @@ pgm.parseRollback();
     - Qore::parse()
 
     @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
+
+    @deprecated if parsing fails or is rolled back, the %Program object is no longer usable
  */
-nothing Program::parseRollback() {
+nothing Program::parseRollback() [flags=DEPRECATED] {
    p->parseRollback(xsink);
 }
 
@@ -1457,11 +1481,11 @@ bool Program::isDefined(string def) {
 auto val = pgm.getDefine("PRODUCTION");
     @endcode
 
-    @note A parse define may be defined with no value; use Program::isDefined to check if a parse define is actually defined or not
+    @note A parse define may be defined with no value; use Program::isDefined() to check if a parse define is actually defined or not
  */
 auto Program::getDefine(string def) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
-   return t ? qore_program_private::runTimeGetDefine(p, t->getBuffer()) : 0;
+   return t ? qore_program_private::runTimeGetDefine(p, t->c_str()) : QoreValue();
 }
 
 //! Retrieves all @ref conditional_parsing "parse defines" in the current Program

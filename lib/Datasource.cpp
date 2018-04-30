@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   NOTE that 2 copies of connection values are kept in case
   the values are changed while a connection is in use
@@ -34,6 +34,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_dbi_private.h"
 #include "qore/intern/qore_ds_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/QoreSQLStatement.h"
 #include "qore/intern/QC_SQLStatement.h"
 
@@ -54,6 +55,29 @@ void qore_ds_private::statementExecuted(int rc) {
    }
    else if (!rc && !active_transaction)
       active_transaction = true;
+}
+
+QoreHashNode* qore_ds_private::getCurrentOptionHash(bool ensure_hash) const {
+    QoreHashNode* options = nullptr;
+
+    ReferenceHolder<QoreHashNode> opts(getOptionHash(), nullptr);
+    ConstHashIterator hi(*opts);
+    while (hi.next()) {
+        const QoreHashNode* ov = hi.get().get<const QoreHashNode>();
+        const QoreValue v = ov->getValueKeyValue("value");
+        if (v.isNothing() || (v.getType() == NT_BOOLEAN && !v.getAsBool()))
+            continue;
+
+        if (!options)
+            options = new QoreHashNode;
+
+        qore_hash_private::get(*options)->setKeyValueIntern(hi.getKey(), v.refSelf());
+    }
+
+    if (ensure_hash && !options)
+        options = new QoreHashNode;
+
+    return options;
 }
 
 Datasource::Datasource(DBIDriver* ndsl, DatasourceStatementHelper* dsh) : priv(new qore_ds_private(this, ndsl, dsh)) {
@@ -505,48 +529,48 @@ QoreHashNode* Datasource::getCurrentOptionHash() const {
 }
 
 QoreStringNode* Datasource::getConfigString() const {
-   QoreStringNode* str = new QoreStringNode(priv->dsl->getName());
-   str->concat(':');
+    QoreStringNode* str = new QoreStringNode(priv->dsl->getName());
+    str->concat(':');
 
-   if (!priv->username.empty())
-      str->concat(priv->username);
-   if (!priv->password.empty())
-      str->sprintf("/%s", priv->password.c_str());
-   if (!priv->dbname.empty())
-      str->sprintf("@%s", priv->dbname.c_str());
-   if (!priv->db_encoding.empty())
-      str->sprintf("(%s)", priv->db_encoding.c_str());
-   if (!priv->hostname.empty())
-      str->sprintf("%%%s", priv->hostname.c_str());
-   if (priv->port)
-      str->sprintf(":%d", priv->port);
+    if (!priv->username.empty())
+        str->concat(priv->username);
+    if (!priv->password.empty())
+        str->sprintf("/%s", priv->password.c_str());
+    if (!priv->dbname.empty())
+        str->sprintf("@%s", priv->dbname.c_str());
+    if (!priv->db_encoding.empty())
+        str->sprintf("(%s)", priv->db_encoding.c_str());
+    if (!priv->hostname.empty())
+        str->sprintf("%%%s", priv->hostname.c_str());
+    if (priv->port)
+        str->sprintf(":%d", priv->port);
 
-   bool first = false;
-   ReferenceHolder<QoreHashNode> opts(qore_dbi_private::get(*priv->dsl)->getOptionHash(this), nullptr);
-   ConstHashIterator hi(*opts);
-   while (hi.next()) {
-      const QoreHashNode* ov = reinterpret_cast<const QoreHashNode*>(hi.getValue());
-      const AbstractQoreNode* v = ov->getKeyValue("value");
-      if (!v || v == &False)
-         continue;
+    bool first = false;
+    ReferenceHolder<QoreHashNode> opts(qore_dbi_private::get(*priv->dsl)->getOptionHash(this), nullptr);
+    ConstHashIterator hi(*opts);
+    while (hi.next()) {
+        const QoreHashNode* ov = hi.get().get<const QoreHashNode>();
+        const QoreValue v = ov->getValueKeyValue("value");
+        if (v.isNothing() || (v.getType() == NT_BOOLEAN && !v.getAsBool()))
+            continue;
 
-      if (first)
-         str->concat(',');
-      else {
-         str->concat('{');
-         first = true;
-      }
-      str->concat(hi.getKey());
-      if (v == &True)
-         continue;
+        if (first)
+            str->concat(',');
+        else {
+            str->concat('{');
+            first = true;
+        }
+        str->concat(hi.getKey());
+        if (v.getType() == NT_BOOLEAN && v.getAsBool())
+            continue;
 
-      QoreStringValueHelper sv(v);
-      str->sprintf("=%s", sv->getBuffer());
-   }
-   if (first)
-      str->concat('}');
+        QoreStringValueHelper sv(v);
+        str->sprintf("=%s", sv->getBuffer());
+    }
+    if (first)
+        str->concat('}');
 
-   return str;
+    return str;
 }
 
 void Datasource::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink) {

@@ -18,6 +18,7 @@ class FileTest inherits QUnit::Test {
 
     constructor() : QUnit::Test("File", "1.0") {
         addTestCase("FileTest", \fileTest());
+        addTestCase("redirect test", \redirectTest());
         set_return_value(main());
     }
 
@@ -41,5 +42,21 @@ class FileTest inherits QUnit::Test {
         assertEq("dfaä", f.read(4));
         f.setPos(0);
         assertEq(Data, f.read(-1));
+    }
+
+    redirectTest() {
+        string file = sprintf(tmp_location() + DirSep + get_random_string());
+        File f();
+        f.open2(file, O_CREAT|O_WRONLY|O_TRUNC);
+        on_exit unlink(file);
+
+        f.write("test1");
+        assertEq("test1", ReadOnlyFile::readTextFile(file));
+
+        stderr.redirect(f);
+        stderr.setPos(0);
+        stderr.write("test2");
+
+        assertEq("test2", ReadOnlyFile::readTextFile(file));
     }
 }

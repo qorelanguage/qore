@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@
 class QoreAssignmentOperatorNode : public QoreBinaryLValueOperatorNode {
 OP_COMMON
 public:
-    DLLLOCAL QoreAssignmentOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryLValueOperatorNode(loc, n_left, n_right) {
+    DLLLOCAL QoreAssignmentOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryLValueOperatorNode(loc, n_left, n_right) {
     }
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
@@ -65,7 +65,7 @@ protected:
 class QoreWeakAssignmentOperatorNode : public QoreAssignmentOperatorNode {
 OP_COMMON
 public:
-    DLLLOCAL QoreWeakAssignmentOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreAssignmentOperatorNode(loc, n_left, n_right) {
+    DLLLOCAL QoreWeakAssignmentOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreAssignmentOperatorNode(loc, n_left, n_right) {
     }
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
