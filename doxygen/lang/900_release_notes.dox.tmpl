@@ -8,6 +8,9 @@
     Bugfix release; see details below
 
     @subsection qore_08135_bug_fixes Bug Fixes in Qore
+    - fixed a bug where user modules with global variables could not be loaded into @ref Qore::Program "Program"
+      containers where @ref Qore::PO_NO_GLOBAL_VARS "PO_NO_GLOBAL_VARS" was set
+      (<a href="https://github.com/qorelanguage/qore/issues/2807">issue 2807</a>)
     - module fixes:
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>:
         - implemented the \c number_format option to allow numbers with alternative decimal separators

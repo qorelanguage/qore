@@ -980,7 +980,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
    int64 po = USER_MOD_PO;
    // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
    if (tpgm)
-      po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_REQUIRE_TYPES));
+      po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_REQUIRE_TYPES|PO_NO_GLOBAL_VARS));
 
    QoreProgram* p = tpgm ? tpgm : path_pgm;
    if (!p) {

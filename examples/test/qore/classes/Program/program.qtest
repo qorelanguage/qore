@@ -201,6 +201,7 @@ class ProgramTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
+        addTestCase("issue 2807", \issue2807());
         addTestCase("Program test", \programTest());
         addTestCase("Combine test", \combineTest());
         addTestCase("Int assignments test", \intAssignmentsTest());
@@ -213,6 +214,12 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("Program info test", \programInfoTest());
 	    addTestCase("Find runtime function test", \findRuntimeTest());
     	set_return_value(main());
+    }
+
+    issue2807() {
+        Program p(PO_NO_GLOBAL_VARS);
+        p.loadModule("CsvUtil");
+        assertTrue(True);
     }
 
     programTest() {
