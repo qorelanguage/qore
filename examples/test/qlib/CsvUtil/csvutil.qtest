@@ -37,9 +37,28 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
             ("type": "item", "record": ("type": 2, "item_no": 124, "item": "Nokia, Lumia", "pcs": 2, "price": 150)),
             ("type": "footer", "record": ("type": 3, "total": 250)),
         );
+
+        const CsvIntInput = "f1:2,03:3:4,05
+f2:3,00:5:25,34";
+
+        const CsvNumOutput = (
+            {
+                "label": "f1",
+                "amount1": 2.03,
+                "amount2": 3,
+                "amount3": 4.05n,
+            },
+            {
+                "label": "f2",
+                "amount1": 3.0,
+                "amount2": 5,
+                "amount3": 25.34n,
+            },
+        );
     }
 
     constructor() : Test("CsvUtilTest", "1.0") {
+        addTestCase("issue 2806 test", \issue2806());
         addTestCase("issue 2746 test", \issue2746());
         addTestCase("Basic CSV tests", \csvTest());
         addTestCase("Optional field CSV tests", \csvOptionalFieldTest());
@@ -56,6 +75,29 @@ UK,1234567893,\"Sony, Xperia S\",31052012";
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue2806() {
+        hash opts = {
+            "fields": {
+                "label": "string",
+                "amount1": "float",
+                "amount2": "int",
+                "amount3": "number",
+            },
+            "number_format": ".,",
+            "separator": ":",
+        };
+
+        {
+            CsvDataIterator i(CsvIntInput, opts);
+            list<auto> l = map $1, i;
+            assertEq(CsvNumOutput, l);
+
+            CsvStringWriter w({"number_format": ".,3"});
+            string str = w.write((l[0].values(),));
+            assertEq("f1,\"2,030\",\"3,000\",\"4,050\"\n", str);
+        }
     }
 
     issue2746() {

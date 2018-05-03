@@ -34,7 +34,7 @@
 %enable-all-warnings
 
 module CsvUtil {
-    version = "1.6.1";
+    version = "1.6.2";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -244,6 +244,10 @@ while (i.next()) {
 
     @section csvutil_relnotes Release Notes
 
+    @subsection csvutil_v1_6_2 Version 1.6.2
+    - implemented the \c number_format option to allow numbers with alternative decimal separators to be parsed
+      and generated (<a href="https://github.com/qorelanguage/qore/issues/2806">issue 2806</a>)
+
     @subsection csvutil_v1_6_1 Version 1.6.1
     - implemented the @ref CsvUtil::csvutil_set_global_compat_force_empty_string() function and the
     \c compat_force_empty_string CSV parsing option to force "*string" fields with no
@@ -337,6 +341,9 @@ class CsvHelper {
 
         #! default date->string format
         string date_format;
+
+        #! default {int|float|number}->string format
+        string number_format;
 
         #! hash of field information (types, formats, and possible code), hash key = column name or number (starting with 0)
         hash m_specs;
@@ -580,17 +587,18 @@ public namespace CsvUtil {
         |!Option|!Data Type|!Description
         |\c "date_format"|@ref string_type "string"|the default date format for \c "date" fields (see @ref date_formatting "date formatting" for the value in this case)
         |\c "encoding"|@ref string_type "string"|the @ref character_encoding "character encoding" for the file (and for tagging string data read); if the value of this key is not a string then it will be ignored
-        |\c "separator"|@ref string_type "string"|the string separating the fields in the file (default: \c ",")
-        |\c "quote"|@ref string_type "string"|the field quote character (default: \c '\"')
         |\c "eol"|@ref string_type "string"|the end of line character(s) (default: auto-detect); if the value of this key is not a string then it will be ignored
+        |\c "header_lines"|@ref int_type "int"|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True")
+        |\c "header_names"|@ref bool_type "bool"|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref Qore::False "False".
+        |\c "header_reorder"|@ref bool_type "bool"|if @ref Qore::True "True" (default value) then if \"headers\" are provided by options or read from file then data fields are reordered to follow headers. It has a major effect on the return value of @ref AbstractCsvIterator::getRecordList() and also a minor effect on the hash result of AbstractCsvIterator::getRecord() when a program  depends on the order of keys. If this value is @ref Qore::False "False" then fields not yet specified are pushed at the end of the field definition.
         |\c "ignore_empty"|@ref bool_type "bool"|if @ref Qore::True "True" (the default) then empty lines will be ignored; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
         |\c "ignore_whitespace"|@ref bool_type "bool"|if @ref Qore::True "True" (the default) then leading and trailing whitespace will be stripped from non-quoted fields; this option is processed with @ref Qore::parse_boolean() "parse_boolean()"
-        |\c "header_names"|@ref bool_type "bool"|if @ref Qore::True "True" then the object will parse the header names from the first header row, in this case \c "header_lines" must be &gt; 0. In case of multi-type lines \c "header_names" is mandatory @ref Qore::False "False".
-        |\c "header_lines"|@ref int_type "int"|the number of headers lines in the file (must be &gt; 0 if \c "header_names" is @ref Qore::True "True")
-        |\c "header_reorder"|@ref bool_type "bool"|if @ref Qore::True "True" (default value) then if \"headers\" are provided by options or read from file then data fields are reordered to follow headers. It has a major effect on the return value of @ref AbstractCsvIterator::getRecordList() and also a minor effect on the hash result of AbstractCsvIterator::getRecord() when a program  depends on the order of keys. If this value is @ref Qore::False "False" then fields not yet specified are pushed at the end of the field definition.
-        |\c "verify_columns"|@ref bool_type "bool"|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column or field count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
+        |\c "number_format"|@ref string_type "string"|the default format for \c "int", \c "float", and \c "number" fields as a string giving the thousands separator character followed by the decimal separator character (ex: \c ".," for continental-European-style numbers)
+        |\c "quote"|@ref string_type "string"|the field quote character (default: \c '\"')
+        |\c "separator"|@ref string_type "string"|the string separating the fields in the file (default: \c ",")
         |\c "timezone"|@ref string_type "string"|the timezone to use when parsing dates (will be passed to @ref Qore::TimeZone::constructor())
         |\c "tolwr"|@ref bool_type "bool"|if @ref Qore::True "True" then all header names will be converted to lower case letters
+        |\c "verify_columns"|@ref bool_type "bool"|if @ref Qore::True "True" (the default is @ref Qore::False "False") then if a line is parsed with a different column or field count than other lines, a \c CSVFILEITERATOR-DATA-ERROR exception is thrown
 
         <b>AbstractCsvIterator Single-type-only Options </b>
         |!Option|!Data Type|!Description
@@ -635,7 +643,7 @@ public namespace CsvUtil {
 
         |!Key|!Value Description
         |\c "type"|one of the @ref abstractcsviterator_option_field_types "option type values" giving the field type
-        |\c "format"|used only with the \c "date" type; this is a @ref date_mask "date/time format mask" for parsing dates
+        |\c "format"|when used with \c "date", this is a @ref date_mask "date/time format mask" for parsing dates, when used with \c "int", \c "float", or \c "number" types, this is a number format as in @ref Qore::format_number() "format_number()"
         |\c "timezone"|used only with the \c "date" type; this value is passed to @ref Qore::TimeZone::constructor() and the resulting timezone is used to parse the date (this value overrides any default time zone for the object; use only in the rare case that date/time values from different time zones are present in different columns of the same file)
         |\c "code"|this is a @ref closure "closure" or @ref call_reference "call reference" that takes a single argument of the value (after formatting with any optional \c "type" formats) and returns the value that will be output for the field
 
@@ -669,6 +677,7 @@ public namespace CsvUtil {
                 "ignore_empty": C_OPT1|C_OPT2,
                 "ignore-whitespace": C_OPT1|C_OPT2,
                 "ignore_whitespace": C_OPT1|C_OPT2,
+                "number_format": C_OPT1|C_OPT2,
                 "quote": C_OPT1|C_OPT2,
                 "separator": C_OPT1|C_OPT2,
                 "timezone": C_OPT1|C_OPT2,
@@ -792,6 +801,12 @@ public namespace CsvUtil {
                         if (i.value.typeCode() != NT_STRING)
                             throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
                         date_format = i.value;
+                        break;
+                    }
+                    case "number_format": {
+                        if (i.value.typeCode() != NT_STRING)
+                            throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        number_format = i.value;
                         break;
                     }
                     case "separator": {
@@ -1162,21 +1177,57 @@ while (i.next()) {
 
             switch (type) {
                 case "int": {
-                    if (!is_int(val))
-                        throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
-                    rv = int(val);
+                    *string fmt = fh.format ?? number_format;
+                    if (fmt) {
+                        # check for invalid chars
+                        string tmp = replace(val, fmt[0], "");
+                        tmp = replace(tmp, fmt[1], "");
+                        if (!is_int(tmp)) {
+                            throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
+                        }
+                        rv = parse_int(val, fmt);
+                    }
+                    else {
+                        if (!is_int(val))
+                            throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
+                        rv = int(val);
+                    }
                     break;
                 }
                 case "float": {
-                    if (!is_float(val))
-                        throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
-                    rv = float(val);
+                    *string fmt = fh.format ?? number_format;
+                    if (fmt) {
+                        # check for invalid chars
+                        string tmp = replace(val, fmt[0], "");
+                        tmp = replace(tmp, fmt[1], "");
+                        if (!is_float(tmp)) {
+                            throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
+                        }
+                        rv = parse_float(val, fmt);
+                    }
+                    else {
+                        if (!is_float(val))
+                            throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
+                        rv = float(val);
+                    }
                     break;
                 }
                 case "number": {
-                    if (!is_number(val))
-                        throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
-                    rv = number(val);
+                    *string fmt = fh.format ?? number_format;
+                    if (fmt) {
+                        # check for invalid chars
+                        string tmp = replace(val, fmt[0], "");
+                        tmp = replace(tmp, fmt[1], "");
+                        if (!is_number(tmp)) {
+                            throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
+                        }
+                        rv = parse_number(val, fmt);
+                    }
+                    else {
+                        if (!is_number(val))
+                            throw "FIELD-VALUE-ERROR", sprintf("invalid %s value: %y", type, val);
+                        rv = number(val);
+                    }
                     break;
                 }
                 case "date": {
@@ -1522,6 +1573,7 @@ while (i.next()) {
                 "headers": C_OPT1,
                 "header_reorder": C_OPT1,
                 "info_log": C_OPT1|C_OPT2,
+                "number_format": C_OPT1|C_OPT2,
                 "optimal_quotes": C_OPT1|C_OPT2,
                 "optimal-quotes": C_OPT1|C_OPT2,
                 "quote": C_OPT1|C_OPT2,
@@ -1695,6 +1747,12 @@ while (i.next()) {
                         date_format = i.value;
                         break;
                     }
+                    case "number_format": {
+                        if (i.value.typeCode() != NT_STRING)
+                            throw errname, sprintf("expecting a string value to option %y; got %y (type %s) instead", i.key, i.value, i.value.type());
+                        number_format = i.value;
+                        break;
+                    }
                     case "verify_columns":
                     case "verify-columns": {
                         checkElementCounts = parse_boolean(i.value);
@@ -1798,6 +1856,7 @@ while (i.next()) {
                 int i = j;
                 #! format date to string by options. Priority: 1) column definition 2) standard format
                 string dateFmt = date_format;
+                *string numFmt = number_format;
                 if (m_out_by_idx{type} && j < m_out_by_idx{type}.size()) {
                     # get correct input value
                     i = m_out_by_idx{type}[j];
@@ -1806,31 +1865,37 @@ while (i.next()) {
                         case "int": {
                             if (int(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain an integer value %n vs %n", lineNo, j, int(values[i]), values[i]);
+                            numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "*int": {
                             if (!values[i].empty() && int(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain an integer value %n vs %n", lineNo, j, int(values[i]), values[i]);
+                            numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "float": {
                             if (float(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain a float value %n vs %n", lineNo, j, float(values[i]), values[i]);
+                            numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "*float": {
                             if (!values[i].empty() && float(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain a float value %n vs %n", lineNo, j, float(values[i]), values[i]);
+                            numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "number": {
                             if (number(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain a number value %n vs %n", lineNo, j, number(values[i]), values[i]);
+                            numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "*number": {
                             if (!values[i].empty() && number(values[i]) != values[i])
                                 throw errname, sprintf("Line (%d), Column (%d) does not contain a number value %n vs %n", lineNo, j, number(values[i]), values[i]);
+                            numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "date": {
@@ -1852,11 +1917,17 @@ while (i.next()) {
                 if (values[i].typeCode() == NT_DATE) {
                     values[i] = format_date(dateFmt, values[i]);
                 }
+                if (numFmt) {
+                    switch (values[i].typeCode()) {
+                        case NT_INT: values[i] = values[i].format(numFmt); break;
+                        case NT_FLOAT: values[i] = values[i].format(numFmt); break;
+                        case NT_NUMBER: values[i] = values[i].format(numFmt); break;
+                    }
+                }
                 push rawValues, values[i];
             }
 
             writeRawLine(rawValues);
-
         }
 
         #! Write a line for a specific record from a hash to the output
