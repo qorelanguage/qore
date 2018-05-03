@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -94,8 +94,10 @@ const char* qore_build_host          = QORE_BUILD_HOST;
 int qore_min_mod_api_major = QORE_MODULE_COMPAT_API_MAJOR;
 int qore_min_mod_api_minor = QORE_MODULE_COMPAT_API_MINOR;
 
-DLLLOCAL QoreListNode* ARGV = 0;
-DLLLOCAL QoreListNode* QORE_ARGV = 0;
+DLLLOCAL QoreListNode* ARGV = nullptr;
+DLLLOCAL QoreListNode* QORE_ARGV = nullptr;
+
+const QoreProgramLocation loc_builtin;
 
 QoreString random_salt;
 
@@ -138,7 +140,52 @@ char table64[64] = {
    'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
    'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
    'w', 'x', 'y', 'z', '0', '1', '2', '3',
-   '4', '5', '6', '7', '8', '9', '+', '/' };
+   '4', '5', '6', '7', '8', '9', '+', '/',
+};
+
+template<>
+DLLLOCAL vector_set_t<const char*>::iterator vector_set_t<const char*>::find(const char* const& v) {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+template<>
+DLLLOCAL vector_set_t<const char*>::const_iterator vector_set_t<const char*>::find(const char* const& v) const {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+// same as find, just for map compatibility
+template<>
+DLLLOCAL vector_set_t<const char*>::iterator vector_set_t<const char*>::lower_bound(const char* const& v) {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+// same as find, just for map compatibility
+template<>
+DLLLOCAL vector_set_t<const char*>::const_iterator vector_set_t<const char*>::lower_bound(const char* const& v) const {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+template<>
+DLLLOCAL vector_set_t<char*>::iterator vector_set_t<char*>::find(char* const& v) {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+template<>
+DLLLOCAL vector_set_t<char*>::const_iterator vector_set_t<char*>::find(char* const& v) const {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+// same as find, just for map compatibility
+template<>
+DLLLOCAL vector_set_t<char*>::iterator vector_set_t<char*>::lower_bound(char* const& v) {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
+
+// same as find, just for map compatibility
+template<>
+DLLLOCAL vector_set_t<char*>::const_iterator vector_set_t<char*>::lower_bound(char* const& v) const {
+    return std::find_if(vector.begin(), vector.end(), string_compare(v));
+}
 
 const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_ATOMIC_OPERATIONS,
@@ -400,6 +447,24 @@ const qore_option_s qore_option_list_l[] = {
      false
 #endif
    },
+   { QORE_OPT_FUNC_CLOSE_ALL_FD,
+     "HAVE_CLOSE_ALL_FD",
+     QO_FUNCTION,
+#if defined(HAVE_UNISTD_H) && defined(_SC_OPEN_MAX)
+     true
+#else
+     false
+#endif
+   },
+   { QORE_OPT_FUNC_GET_NETIF_LIST,
+     "HAVE_GET_NETIF_LIST",
+     QO_FUNCTION,
+#ifdef HAVE_GETIFADDRS
+     true
+#else
+     false
+#endif
+   },
 };
 
 const qore_option_s* qore_option_list = qore_option_list_l;
@@ -409,29 +474,29 @@ const qore_option_s* qore_option_list = qore_option_list_l;
 size_t qore_option_list_size = QORE_OPTION_LIST_SIZE;
 
 bool q_get_option_value(const char* opt) {
-   for (unsigned i = 0; i < QORE_OPTION_LIST_SIZE; ++i) {
-      if (!strcasecmp(opt, qore_option_list_l[i].option))
-         return qore_option_list_l[i].value;
-   }
-   return false;
+    for (unsigned i = 0; i < QORE_OPTION_LIST_SIZE; ++i) {
+        if (!strcasecmp(opt, qore_option_list_l[i].option))
+            return qore_option_list_l[i].value;
+    }
+    return false;
 }
 
 bool q_get_option_constant_value(const char* opt) {
-   for (unsigned i = 0; i < QORE_OPTION_LIST_SIZE; ++i) {
-      if (!strcasecmp(opt, qore_option_list_l[i].constant))
-         return qore_option_list_l[i].value;
-   }
-   return false;
+    for (unsigned i = 0; i < QORE_OPTION_LIST_SIZE; ++i) {
+        if (!strcasecmp(opt, qore_option_list_l[i].constant))
+            return qore_option_list_l[i].value;
+    }
+    return false;
 }
 
-static inline int get_number(char** param) {
-   int num = 0;
-   while (isdigit(**param)) {
-      num = num*10 + (**param - '0');
-      ++(*param);
-   }
-   //printd(0, "get_number(%x: %s) num: %d\n", *param, *param, num);
-   return num;
+static int get_number(char** param) {
+    int num = 0;
+    while (isdigit(**param)) {
+        num = num*10 + (**param - '0');
+        ++(*param);
+    }
+    //printd(0, "get_number(%x: %s) num: %d\n", *param, *param, num);
+    return num;
 }
 
 // print options
@@ -446,6 +511,21 @@ bool qore_has_debug() {
 #else
    return false;
 #endif
+}
+
+void parse_init_value(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    if (val.hasNode()) {
+        AbstractQoreNode* n = val.getInternalNode();
+        //printd(5, "parse_init_value() n: %p '%s'\n", n, get_type_name(n));
+        AbstractQoreNode* nn = n->parseInit(oflag, pflag, lvids, typeInfo);
+        //printd(5, "parse_init_value() n: %p nn: %p '%s'\n", n, nn, get_type_name(nn));
+        if (nn != n) {
+            val = nn;
+        }
+        return;
+    }
+
+    typeInfo = val.getTypeInfo();
 }
 
 QoreAbstractIteratorBase::QoreAbstractIteratorBase() : tid(gettid()) {
@@ -972,7 +1052,7 @@ BinaryNode* parseHex(const char* buf, int len, ExceptionSink* xsink) {
    return new BinaryNode(binbuf, blen);
 }
 
-static int parse_get_nibble(const QoreProgramLocation& loc, char c) {
+static int parse_get_nibble(const QoreProgramLocation* loc, char c) {
    if (isdigit(c))
       return c - 48;
    if (c >= 'A' && c <= 'F')
@@ -980,12 +1060,12 @@ static int parse_get_nibble(const QoreProgramLocation& loc, char c) {
    if (c >= 'a' && c <= 'f')
       return c - 87;
 
-   parseException(loc, "PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
+   parseException(*loc, "PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
    return -1;
 }
 
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors
-BinaryNode* parseHex(const QoreProgramLocation& loc, const char* buf, int len) {
+BinaryNode* parseHex(const QoreProgramLocation* loc, const char* buf, int len) {
    if (!buf || !(*buf))
       return new BinaryNode();
 
@@ -1399,7 +1479,7 @@ int64 q_epoch_ns(int &ns) {
    return ts.tv_sec;
 }
 
-QoreParseListNode* make_args(const QoreProgramLocation& loc, AbstractQoreNode* arg) {
+QoreParseListNode* make_args(const QoreProgramLocation* loc, AbstractQoreNode* arg) {
    if (!arg)
       return nullptr;
 
@@ -1732,17 +1812,6 @@ bool q_path_is_readable(const char* path) {
 
 QoreProgramLocation::QoreProgramLocation(int sline, int eline) : QoreProgramLineLocation(sline, eline) {
    set_parse_file_info(*this);
-}
-
-QoreProgramLocation::QoreProgramLocation(prog_loc_e loc) {
-   if (loc == ParseLocation)
-      *this = get_parse_location();
-   else
-      *this = get_runtime_location();
-}
-
-void QoreProgramLocation::parseSet() const {
-   update_parse_location(*this);
 }
 
 void QoreProgramLocation::toString(QoreString& str) const {
@@ -2193,19 +2262,19 @@ void ensure_unique(AbstractQoreNode* *v, ExceptionSink* xsink) {
 }
 
 // checks for illegal "self" assignments in an object context
-void check_self_assignment(const QoreProgramLocation& loc, AbstractQoreNode* n, LocalVar* selfid) {
+void check_self_assignment(const QoreProgramLocation* loc, AbstractQoreNode* n, LocalVar* selfid) {
    qore_type_t ntype = n->getType();
 
    // if it's a variable reference
    if (ntype == NT_VARREF) {
       VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
       if (v->getType() == VT_LOCAL && v->ref.id == selfid)
-         parse_error(loc, "illegal assignment to 'self' in an object context");
+         parse_error(*loc, "illegal assignment to 'self' in an object context");
       return;
    }
 }
 
-int check_lvalue_int(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
+int check_lvalue_int(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_INT)) {
@@ -2213,40 +2282,40 @@ int check_lvalue_int(const QoreProgramLocation& loc, const QoreTypeInfo*& typeIn
          QoreStringNode* desc = new QoreStringNode("lvalue has type ");
          QoreTypeInfo::getThisType(typeInfo, *desc);
          desc->sprintf(", but the %s will assign it an integer value", name);
-         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+         qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
       }
       return -1;
    }
    return 0;
 }
 
-int check_lvalue_number(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
+int check_lvalue_number(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned a floating-point value
    // raise a parse exception only if parse exceptions are not suppressed
    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NUMBER) && getProgram()->getParseExceptionSink()) {
       QoreStringNode* desc = new QoreStringNode("lvalue has type ");
       QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", but the %s will assign it a number value", name);
-      qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+      qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
       return -1;
    }
    return 0;
 }
 
-int check_lvalue_float(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
+int check_lvalue_float(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned a floating-point value
    // raise a parse exception only if parse exceptions are not suppressed
    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_FLOAT) && getProgram()->getParseExceptionSink()) {
       QoreStringNode* desc = new QoreStringNode("lvalue has type ");
       QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", but the %s will assign it a float value", name);
-      qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+      qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
       return -1;
    }
    return 0;
 }
 
-int check_lvalue_int_float_number(const QoreProgramLocation& loc, const QoreTypeInfo*& typeInfo, const char* name) {
+int check_lvalue_int_float_number(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name) {
    // make sure the lvalue can be assigned an integer value
    // raise a parse exception only if parse exceptions are not suppressed
    if (!QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_INT)
@@ -2256,7 +2325,7 @@ int check_lvalue_int_float_number(const QoreProgramLocation& loc, const QoreType
          QoreStringNode* desc = new QoreStringNode("lvalue has type ");
          QoreTypeInfo::getThisType(typeInfo, *desc);
          desc->sprintf(", but the %s only works with integer, floating-point, or numeric lvalues", name);
-         qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", desc);
+         qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
       }
       return -1;
    }

@@ -53,7 +53,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreLogicalAbsoluteNotEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreLogicalAbsoluteEqualsOperatorNode(loc, n_left, n_right) {
+   DLLLOCAL QoreLogicalAbsoluteNotEqualsOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreLogicalAbsoluteEqualsOperatorNode(loc, n_left, n_right) {
    }
 
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be

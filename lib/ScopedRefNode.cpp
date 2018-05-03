@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 
 // object takes over ownership of NamedScope
-ScopedRefNode::ScopedRefNode(const QoreProgramLocation& loc, char *ref) : ParseNoEvalNode(loc, NT_CONSTANT), scoped_ref(new NamedScope(ref)) {
+ScopedRefNode::ScopedRefNode(const QoreProgramLocation* loc, char *ref) : ParseNoEvalNode(loc, NT_CONSTANT), scoped_ref(new NamedScope(ref)) {
 }
 
 ScopedRefNode::~ScopedRefNode() {
@@ -75,14 +75,20 @@ NamedScope *ScopedRefNode::takeName() {
 }
 
 AbstractQoreNode* ScopedRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   assert(!typeInfo);
-   printd(5, "ScopedRefNode::parseInit() resolving scoped constant \"%s\"\n", scoped_ref->ostr);
+    assert(!typeInfo);
+    printd(5, "ScopedRefNode::parseInit() resolving scoped constant \"%s\"\n", scoped_ref->ostr);
 
-   AbstractQoreNode* rv = qore_root_ns_private::parseResolveReferencedScopedReference(loc, *scoped_ref, typeInfo);
-   if (!rv)
-      return this;
+    bool found;
+    QoreValue rv = qore_root_ns_private::parseResolveReferencedScopedReference(loc, *scoped_ref, typeInfo, found);
+    if (!found) {
+        return this;
+    }
 
-   deref(0);
-   typeInfo = 0;
-   return rv->parseInit(oflag, pflag, lvids, typeInfo);
+    deref(nullptr);
+    if (rv.isNothing()) {
+        typeInfo = nothingTypeInfo;
+        return &Nothing;
+    }
+    typeInfo = nullptr;
+    return rv.takeNode()->parseInit(oflag, pflag, lvids, typeInfo);
 }

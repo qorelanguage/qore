@@ -839,295 +839,336 @@ public:
 class qore_relative_time : public qore_simple_tm {
    friend class qore_absolute_time;
 protected:
-   DLLLOCAL void normalize(bool for_comparison = false) {
-      //printd(5, "DT:cD() sec: %lld ms: %d\n", sec, ms);
+    DLLLOCAL void normalize(bool for_comparison = false) {
+        //printd(5, "DT:cD() sec: %lld ms: %d\n", sec, ms);
 
-      // normalize seconds from microseconds
-      normalize_units<int, int>(second, us, 1000000);
+        // normalize seconds from microseconds
+        normalize_units<int, int>(second, us, 1000000);
 
-      // normalize minutes from seconds
-      normalize_units<int, int>(minute, second, 60);
+        // normalize minutes from seconds
+        normalize_units<int, int>(minute, second, 60);
 
-      // normalize hours from minutes
-      normalize_units<int, int>(hour, minute, 60);
+        // normalize hours from minutes
+        normalize_units<int, int>(hour, minute, 60);
 
-      // only normalize hours to days and days to months if we are comparing
-      // we use an average year length of 365 days and an maximum month length of 31 days
-      if (for_comparison) {
-         normalize_units<int, int>(day, hour, 24);
-         normalize_units<int, int>(year, day, 365);
-         normalize_units<int, int>(month, day, 31);
-      }
+        // only normalize hours to days and days to months if we are comparing
+        // we use an average year length of 365 days and an maximum month length of 31 days
+        if (for_comparison) {
+            normalize_units<int, int>(day, hour, 24);
+            normalize_units<int, int>(year, day, 365);
+            normalize_units<int, int>(month, day, 31);
+        }
 
-      // normalize years from months
-      normalize_units<int, int>(year, month, 12);
-   }
+        // normalize years from months
+        normalize_units<int, int>(year, month, 12);
+    }
 
-   DLLLOCAL void setIso8601(const char* str);
+    DLLLOCAL void setIso8601(const char* str);
 
 public:
-   DLLLOCAL void set(int n_year, int n_month, int n_day, int n_hour, int n_minute, int n_second, int n_us) {
-      qore_simple_tm::set(n_year, n_month, n_day, n_hour, n_minute, n_second, n_us);
-      normalize();
-   }
+    DLLLOCAL void set(int n_year, int n_month, int n_day, int n_hour, int n_minute, int n_second, int n_us) {
+        qore_simple_tm::set(n_year, n_month, n_day, n_hour, n_minute, n_second, n_us);
+        normalize();
+    }
 
-   DLLLOCAL void set(const QoreValue v);
+    DLLLOCAL void set(const QoreValue v);
 
-   DLLLOCAL void set(const char* str);
+    DLLLOCAL void set(const char* str);
 
-   DLLLOCAL void set(const qore_relative_time& p) {
-      year = p.year;
-      month = p.month;
-      day = p.day;
-      hour = p.hour;
-      minute = p.minute;
-      second = p.second;
-      us = p.us;
-   }
+    DLLLOCAL void set(const qore_relative_time& p) {
+        year = p.year;
+        month = p.month;
+        day = p.day;
+        hour = p.hour;
+        minute = p.minute;
+        second = p.second;
+        us = p.us;
+    }
 
-   // takes the different between seconds.micros - dt and sets this to the relative date/time difference
-   DLLLOCAL void setDifference(int64 seconds, int micros, const qore_absolute_time& dt) {
-      int64 sec = seconds - dt.epoch;
-      us = micros - dt.us;
+    // takes the different between seconds.micros - dt and sets this to the relative date/time difference
+    DLLLOCAL void setDifference(int64 seconds, int micros, const qore_absolute_time& dt) {
+        int64 sec = seconds - dt.epoch;
+        us = micros - dt.us;
 
-      year = month = day = hour = minute = 0;
+        year = month = day = hour = minute = 0;
 
-      // normalize seconds from microseconds
-      normalize_units<int64, int>(sec, us, 1000000);
+        // normalize seconds from microseconds
+        normalize_units<int64, int>(sec, us, 1000000);
 
-      // do not normalize days, as with DST not all days are 24 hours
+        // do not normalize days, as with DST not all days are 24 hours
 
-      // normalize hours from seconds
-      normalize_units<int, int64>(hour, sec, 3600);
+        // normalize hours from seconds
+        normalize_units<int, int64>(hour, sec, 3600);
 
-      // normalize minutes from seconds
-      normalize_units<int, int64>(minute, sec, 60);
+        // normalize minutes from seconds
+        normalize_units<int, int64>(minute, sec, 60);
 
-      second = (int)sec;
-   }
+        second = (int)sec;
+    }
 
-   DLLLOCAL void setLiteral(int64 date, int usecs = 0) {
-      year = (int)(date / 10000000000ll);
-      date -= year*  10000000000ll;
-      month = (int)(date / 100000000ll);
-      date -= month * 100000000ll;
-      day = (int)(date / 1000000ll);
-      date -= day * 1000000ll;
-      hour = (int)(date / 10000ll);
-      date -= hour * 10000ll;
-      minute = (int)(date / 100ll);
-      second = (int)(date - minute*  100ll);
-      us = usecs;
+    DLLLOCAL void setLiteral(int64 date, int usecs = 0) {
+        year = (int)(date / 10000000000ll);
+        date -= year*  10000000000ll;
+        month = (int)(date / 100000000ll);
+        date -= month * 100000000ll;
+        day = (int)(date / 1000000ll);
+        date -= day * 1000000ll;
+        hour = (int)(date / 10000ll);
+        date -= hour * 10000ll;
+        minute = (int)(date / 100ll);
+        second = (int)(date - minute*  100ll);
+        us = usecs;
 
-      normalize();
-   }
+        normalize();
+    }
 
-   DLLLOCAL void setSeconds(int64 s, int usecs = 0) {
-      year = 0;
-      month = 0;
-      day = 0;
-      hour = s / 3600;
-      if (hour)
-         s -= hour * 3600;
-      minute = s / 60;
-      if (minute)
-         s -= minute * 60;
-      second = s;
-      us = usecs;
-   }
+    DLLLOCAL void addFractionalYear(double d) {
+        d *= 365.0;
+        int dy = (int)d;
+        day += dy;
+        addFractionalDay(d - dy);
+    }
 
-   DLLLOCAL void setTime(int h, int m, int s, int usecs) {
-      hour = h;
-      minute = m;
-      second = s;
-      us = usecs;
-   }
+    // this does not make sense because a month does not have a fixed number of days, but we use an approximation of 30 days in a month
+    DLLLOCAL void addFractionalMonth(double d) {
+        d *= 30.0;
+        int dy = (int)d;
+        day += dy;
+        addFractionalDay(d - dy);
+    }
 
-   DLLLOCAL short getYear() const {
-      return year;
-   }
+    DLLLOCAL void addFractionalDay(double d) {
+        d *= 24.0;
+        int h = (int)d;
+        hour += h;
+        addFractionalHour(d - h);
+    }
 
-   DLLLOCAL int getMonth() const {
-      return month;
-   }
+    DLLLOCAL void addFractionalHour(double d) {
+        d *= 60.0;
+        int m = (int)d;
+        minute += m;
+        addFractionalMinute(d - m);
+    }
 
-   DLLLOCAL int getDay() const {
-      return day;
-   }
+    DLLLOCAL void addFractionalMinute(double d) {
+        d *= 60.0;
+        int s = (int)d;
+        second += s;
+        addFractionalSecond(d - s);
+    }
 
-   DLLLOCAL int getHour() const {
-      return hour;
-   }
+    DLLLOCAL void addFractionalSecond(double d) {
+        d *= 1000000.0;
+        us += d;
+    }
 
-   DLLLOCAL int getMinute() const {
-      return minute;
-   }
+    DLLLOCAL void setSeconds(int64 s, int usecs = 0) {
+        year = 0;
+        month = 0;
+        day = 0;
+        hour = s / 3600;
+        if (hour)
+            s -= hour * 3600;
+        minute = s / 60;
+        if (minute)
+            s -= minute * 60;
+        second = s;
+        us = usecs;
+    }
 
-   DLLLOCAL int getSecond() const {
-      return second;
-   }
+    DLLLOCAL void setTime(int h, int m, int s, int usecs) {
+        hour = h;
+        minute = m;
+        second = s;
+        us = usecs;
+    }
 
-   DLLLOCAL int getMillisecond() const {
-      return us / 1000;
-   }
+    DLLLOCAL short getYear() const {
+        return year;
+    }
 
-   DLLLOCAL int getMicrosecond() const {
-      return us;
-   }
+    DLLLOCAL int getMonth() const {
+        return month;
+    }
 
-   DLLLOCAL int compare(const qore_relative_time& rt) const {
-      // compare normalized values
-      qore_relative_time l;
-      l.set(year, month, day, hour, minute, second, us);
-      l.normalize(true);
-      qore_relative_time r;
-      r.set(rt.year, rt.month, rt.day, rt.hour, rt.minute, rt.second, rt.us);
-      r.normalize(true);
+    DLLLOCAL int getDay() const {
+        return day;
+    }
 
-      if (l.year > r.year)
-         return 1;
-      if (l.year < r.year)
-         return -1;
-      if (l.month > r.month)
-         return 1;
-      if (l.month < r.month)
-         return -1;
-      if (l.day > r.day)
-         return 1;
-      if (l.day < r.day)
-         return -1;
-      if (l.hour > r.hour)
-         return 1;
-      if (l.hour < r.hour)
-         return -1;
-      if (l.minute > r.minute)
-         return 1;
-      if (l.minute < r.minute)
-         return -1;
-      if (l.second > r.second)
-         return 1;
-      if (l.second < r.second)
-         return -1;
-      if (l.us > r.us)
-         return 1;
-      if (l.us < r.us)
-         return -1;
-      return 0;
-   }
+    DLLLOCAL int getHour() const {
+        return hour;
+    }
 
-   DLLLOCAL void unaryMinus() {
-      year = -year;
-      month = -month;
-      day = -day;
-      hour = -hour;
-      minute = -minute;
-      second = -second;
-      us = -us;
-   }
+    DLLLOCAL int getMinute() const {
+        return minute;
+    }
 
-   DLLLOCAL int64 getRelativeSeconds() const {
-      return getRelativeMicroseconds() / 1000000;
-   }
+    DLLLOCAL int getSecond() const {
+        return second;
+    }
 
-   DLLLOCAL int64 getRelativeMilliseconds() const {
-      return getRelativeMicroseconds() / 1000;
-   }
+    DLLLOCAL int getMillisecond() const {
+        return us / 1000;
+    }
 
-   DLLLOCAL int64 getRelativeMicroseconds() const {
-      return (int64)us + (int64)second * MICROSECS_PER_SEC
-         + (int64)minute*  MICROSECS_PER_MINUTE
-         + (int64)hour * MICROSECS_PER_HOUR
-         + (int64)day * MICROSECS_PER_AVG_DAY
-         + (month ? (int64)month * MICROSECS_PER_MAX_MONTH : 0ll)
-         + (year ? (int64)year * MICROSECS_PER_AVG_YEAR : 0ll);
-   }
+    DLLLOCAL int getMicrosecond() const {
+        return us;
+    }
 
-   DLLLOCAL double getRelativeSecondsDouble() const {
-      return ((double)getRelativeMicroseconds()) / 1000000.0;
-   }
+    DLLLOCAL int compare(const qore_relative_time& rt) const {
+        // compare normalized values
+        qore_relative_time l;
+        l.set(year, month, day, hour, minute, second, us);
+        l.normalize(true);
+        qore_relative_time r;
+        r.set(rt.year, rt.month, rt.day, rt.hour, rt.minute, rt.second, rt.us);
+        r.normalize(true);
 
-   DLLLOCAL qore_relative_time& operator+=(const qore_relative_time& dt);
-   DLLLOCAL qore_relative_time& operator-=(const qore_relative_time& dt);
-   DLLLOCAL qore_relative_time& operator-=(const qore_absolute_time& dt);
+        if (l.year > r.year)
+            return 1;
+        if (l.year < r.year)
+            return -1;
+        if (l.month > r.month)
+            return 1;
+        if (l.month < r.month)
+            return -1;
+        if (l.day > r.day)
+            return 1;
+        if (l.day < r.day)
+            return -1;
+        if (l.hour > r.hour)
+            return 1;
+        if (l.hour < r.hour)
+            return -1;
+        if (l.minute > r.minute)
+            return 1;
+        if (l.minute < r.minute)
+            return -1;
+        if (l.second > r.second)
+            return 1;
+        if (l.second < r.second)
+            return -1;
+        if (l.us > r.us)
+            return 1;
+        if (l.us < r.us)
+            return -1;
+        return 0;
+    }
 
-   DLLLOCAL void getAsString(QoreString& str) const {
-      int f = 0;
-      str.concat("<time:");
+    DLLLOCAL void unaryMinus() {
+        year = -year;
+        month = -month;
+        day = -day;
+        hour = -hour;
+        minute = -minute;
+        second = -second;
+        us = -us;
+    }
+
+    DLLLOCAL int64 getRelativeSeconds() const {
+        return getRelativeMicroseconds() / 1000000;
+    }
+
+    DLLLOCAL int64 getRelativeMilliseconds() const {
+        return getRelativeMicroseconds() / 1000;
+    }
+
+    DLLLOCAL int64 getRelativeMicroseconds() const {
+        return (int64)us + (int64)second * MICROSECS_PER_SEC
+            + (int64)minute*  MICROSECS_PER_MINUTE
+            + (int64)hour * MICROSECS_PER_HOUR
+            + (int64)day * MICROSECS_PER_AVG_DAY
+            + (month ? (int64)month * MICROSECS_PER_MAX_MONTH : 0ll)
+            + (year ? (int64)year * MICROSECS_PER_AVG_YEAR : 0ll);
+    }
+
+    DLLLOCAL double getRelativeSecondsDouble() const {
+        return ((double)getRelativeMicroseconds()) / 1000000.0;
+    }
+
+    DLLLOCAL qore_relative_time& operator+=(const qore_relative_time& dt);
+    DLLLOCAL qore_relative_time& operator-=(const qore_relative_time& dt);
+    DLLLOCAL qore_relative_time& operator-=(const qore_absolute_time& dt);
+
+    DLLLOCAL void getAsString(QoreString& str) const {
+        int f = 0;
+        str.concat("<time:");
 
 #define PL(n) (n == 1 ? "" : "s")
 
-      if (year)
-         str.sprintf(" %d year%s", year, PL(year)), f++;
-      if (month)
-         str.sprintf(" %d month%s", month, PL(month)), f++;
-      if (day)
-         str.sprintf(" %d day%s", day, PL(day)), f++;
-      if (hour)
-         str.sprintf(" %d hour%s", hour, PL(hour)), f++;
-      if (minute)
-         str.sprintf(" %d minute%s", minute, PL(minute)), f++;
-      if (second || (!f && !us))
-         str.sprintf(" %d second%s", second, PL(second));
+        if (year)
+            str.sprintf(" %d year%s", year, PL(year)), f++;
+        if (month)
+            str.sprintf(" %d month%s", month, PL(month)), f++;
+        if (day)
+            str.sprintf(" %d day%s", day, PL(day)), f++;
+        if (hour)
+            str.sprintf(" %d hour%s", hour, PL(hour)), f++;
+        if (minute)
+            str.sprintf(" %d minute%s", minute, PL(minute)), f++;
+        if (second || (!f && !us))
+            str.sprintf(" %d second%s", second, PL(second));
 
-      if (us) {
-         int ms = us / 1000;
-         if (ms * 1000 == us)
-            str.sprintf(" %d millisecond%s", ms, PL(ms));
-         else
-            str.sprintf(" %d microsecond%s", us, PL(us));
-      }
+        if (us) {
+            int ms = us / 1000;
+            if (ms * 1000 == us)
+                str.sprintf(" %d millisecond%s", ms, PL(ms));
+            else
+                str.sprintf(" %d microsecond%s", us, PL(us));
+        }
 
 #undef PL
 
-      str.concat('>');
-   }
+        str.concat('>');
+    }
 
-   DLLLOCAL void getTM(struct tm& tms) const {
-      tms.tm_year = year;
-      tms.tm_mon = month;
-      tms.tm_mday = day;
-      tms.tm_hour = hour;
-      tms.tm_min = minute;
-      tms.tm_sec = second;
-      tms.tm_wday = 0;
-      tms.tm_yday = 0;
-      tms.tm_isdst = -1;
-   }
+    DLLLOCAL void getTM(struct tm& tms) const {
+        tms.tm_year = year;
+        tms.tm_mon = month;
+        tms.tm_mday = day;
+        tms.tm_hour = hour;
+        tms.tm_min = minute;
+        tms.tm_sec = second;
+        tms.tm_wday = 0;
+        tms.tm_yday = 0;
+        tms.tm_isdst = -1;
+    }
 
-   DLLLOCAL void get(qore_time_info& info) const {
-      info = *this;
+    DLLLOCAL void get(qore_time_info& info) const {
+        info = *this;
 
-      info.zname = 0;
-      info.utcoffset = 0;
-      info.isdst = false;
-      info.zone = 0;
-   }
+        info.zname = 0;
+        info.utcoffset = 0;
+        info.isdst = false;
+        info.zone = 0;
+    }
 
-   DLLLOCAL void zero() {
-      qore_simple_tm::zero();
-   }
+    DLLLOCAL void zero() {
+        qore_simple_tm::zero();
+    }
 
-   DLLLOCAL bool hasValue() const {
-      return qore_simple_tm::hasValue();
-   }
+    DLLLOCAL bool hasValue() const {
+        return qore_simple_tm::hasValue();
+    }
 
-   DLLLOCAL void addSecondsTo(double secs) {
-      addSecondsTo((int64)secs, (int)((secs - (float)((int)secs)) * 1000000));
-   }
+    DLLLOCAL void addSecondsTo(double secs) {
+        addSecondsTo((int64)secs, (int)((secs - (float)((int)secs)) * 1000000));
+    }
 
-   DLLLOCAL void addSecondsTo(int64 secs, int n_us = 0) {
-      int h = secs / 3600;
-      if (h)
-         secs -= (h * 3600);
-      int m = secs / 60;
-      if (m)
-         secs -= (m * 60);
+    DLLLOCAL void addSecondsTo(int64 secs, int n_us = 0) {
+        int h = secs / 3600;
+        if (h)
+            secs -= (h * 3600);
+        int m = secs / 60;
+        if (m)
+            secs -= (m * 60);
 
-      hour += h;
-      minute += m;
-      second += secs;
-      us += n_us;
-   }
+        hour += h;
+        minute += m;
+        second += secs;
+        us += n_us;
+    }
 };
 
 static inline void zero_tm(struct tm& tms) {

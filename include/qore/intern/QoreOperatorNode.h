@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #include <stdarg.h>
 
 DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
+DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink);
 
 // type of logical operator function
 typedef bool (*op_log_func_t)(QoreValue l, QoreValue r, ExceptionSink* xsink);
@@ -50,7 +51,7 @@ protected:
    DLLLOCAL virtual void ignoreReturnValueImpl() {}
 
 public:
-   DLLLOCAL QoreOperatorNode(const QoreProgramLocation& loc, bool n_ref_rv = true) : ParseNode(loc, NT_OPERATOR), in_parentheses(false), ref_rv(n_ref_rv) {
+   DLLLOCAL QoreOperatorNode(const QoreProgramLocation* loc, bool n_ref_rv = true) : ParseNode(loc, NT_OPERATOR), in_parentheses(false), ref_rv(n_ref_rv) {
    }
 
    // returns the type name as a c string
@@ -77,53 +78,104 @@ public:
 template <class T = QoreOperatorNode>
 class QoreSingleExpressionOperatorNode : public T {
 protected:
-   AbstractQoreNode* exp;
+    AbstractQoreNode* exp;
 
-   DLLLOCAL ~QoreSingleExpressionOperatorNode() {
-      if (exp)
-         exp->deref(nullptr);
-   }
+    DLLLOCAL ~QoreSingleExpressionOperatorNode() {
+        if (exp)
+            exp->deref(nullptr);
+    }
 
 public:
-   DLLLOCAL QoreSingleExpressionOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp) : T(loc), exp(n_exp) {
-   }
+    DLLLOCAL QoreSingleExpressionOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_exp) : T(loc), exp(n_exp) {
+    }
 
-   DLLLOCAL AbstractQoreNode* getExp() {
-      return exp;
-   }
+    DLLLOCAL AbstractQoreNode* getExp() {
+        return exp;
+    }
 
-   DLLLOCAL const AbstractQoreNode* getExp() const {
-      return exp;
-   }
+    DLLLOCAL const AbstractQoreNode* getExp() const {
+        return exp;
+    }
 
-   DLLLOCAL AbstractQoreNode* takeExp() {
-      AbstractQoreNode* rv = exp;
-      exp = nullptr;
-      return rv;
-   }
+    DLLLOCAL AbstractQoreNode* takeExp() {
+        AbstractQoreNode* rv = exp;
+        exp = nullptr;
+        return rv;
+    }
 
-   template <class O>
-   DLLLOCAL QoreSingleExpressionOperatorNode* makeSpecialization() {
-      AbstractQoreNode* e = exp;
-      exp = nullptr;
-      SimpleRefHolder<QoreSingleExpressionOperatorNode> del(this);
-      O* rv = new O(this->loc, e);
-      if (!this->ref_rv)
-         rv->ignoreReturnValue();
-      return rv;
-   }
+    template <class O>
+    DLLLOCAL QoreSingleExpressionOperatorNode* makeSpecialization() {
+        AbstractQoreNode* e = exp;
+        exp = nullptr;
+        SimpleRefHolder<QoreSingleExpressionOperatorNode> del(this);
+        O* rv = new O(this->loc, e);
+        if (!this->ref_rv)
+            rv->ignoreReturnValue();
+        return rv;
+    }
 
-   DLLLOCAL virtual bool hasEffect() const {
-      return ::node_has_effect(exp);
-   }
+    DLLLOCAL virtual bool hasEffect() const {
+        return ::node_has_effect(exp);
+    }
 
-   template <class O>
-   DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
-      ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
-      if (*xsink)
-         return 0;
-      return new O(this->loc, n_exp.release());
-   }
+    template <class O>
+    DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
+        ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
+        if (*xsink)
+            return 0;
+        return new O(this->loc, n_exp.release());
+    }
+};
+
+template <class T = QoreOperatorNode>
+class QoreSingleValueExpressionOperatorNode : public T {
+protected:
+    QoreValue exp;
+
+    DLLLOCAL ~QoreSingleValueExpressionOperatorNode() {
+        exp.discard(nullptr);
+    }
+
+public:
+    DLLLOCAL QoreSingleValueExpressionOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : T(loc), exp(exp) {
+    }
+
+    DLLLOCAL QoreValue getExp() {
+        return exp;
+    }
+
+    DLLLOCAL const QoreValue getExp() const {
+        return exp;
+    }
+
+    DLLLOCAL QoreValue takeExp() {
+        QoreValue rv = exp;
+        exp.clear();
+        return rv;
+    }
+
+    template <class O>
+    DLLLOCAL QoreSingleValueExpressionOperatorNode* makeSpecialization() {
+        QoreValue e = exp;
+        exp.clear();
+        SimpleRefHolder<QoreSingleValueExpressionOperatorNode> del(this);
+        O* rv = new O(this->loc, e);
+        if (!this->ref_rv)
+            rv->ignoreReturnValue();
+        return rv;
+    }
+
+    DLLLOCAL virtual bool hasEffect() const {
+        return exp.hasNode() && ::node_has_effect(exp.getInternalNode());
+    }
+
+    template <class O>
+    DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
+        ValueHolder n_exp(copy_value_and_resolve_lvar_refs(exp, xsink), xsink);
+        if (*xsink)
+            return nullptr;
+        return new O(this->loc, n_exp.release());
+    }
 };
 
 template <class T = QoreOperatorNode>
@@ -132,7 +184,7 @@ protected:
    AbstractQoreNode* left, * right;
 
 public:
-   DLLLOCAL QoreBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : T(loc), left(n_left), right(n_right) {
+   DLLLOCAL QoreBinaryOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : T(loc), left(n_left), right(n_right) {
    }
 
    DLLLOCAL ~QoreBinaryOperatorNode() {
@@ -199,7 +251,7 @@ public:
 
 class QoreBoolBinaryOperatorNode : public QoreBinaryOperatorNode<> {
 public:
-   DLLLOCAL QoreBoolBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
+   DLLLOCAL QoreBoolBinaryOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -209,7 +261,7 @@ public:
 
 class QoreIntBinaryOperatorNode : public QoreBinaryOperatorNode<> {
 public:
-   DLLLOCAL QoreIntBinaryOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
+   DLLLOCAL QoreIntBinaryOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
    }
 
    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -226,7 +278,7 @@ public:\
 
 class LValueOperatorNode : public QoreOperatorNode {
 public:
-   DLLLOCAL LValueOperatorNode(const QoreProgramLocation& loc) : QoreOperatorNode(loc) {
+   DLLLOCAL LValueOperatorNode(const QoreProgramLocation* loc) : QoreOperatorNode(loc) {
    }
 
    DLLLOCAL virtual bool hasEffect() const {
@@ -236,11 +288,11 @@ public:
    DLLLOCAL int checkLValue(AbstractQoreNode* exp, int pflag, bool assignment = true) {
       if (exp) {
          if (check_lvalue(exp, assignment)) {
-            parse_error(loc, "expecting lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
+            parse_error(*loc, "expecting lvalue for %s, got '%s' instead", getTypeName(), exp->getTypeName());
             return -1;
          }
          else if ((pflag & PF_BACKGROUND) && exp && exp->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(exp)->getType() == VT_LOCAL) {
-            parse_error(loc, "illegal local variable modification with the background operator in %s", getTypeName());
+            parse_error(*loc, "illegal local variable modification with the background operator in %s", getTypeName());
             return -1;
          }
       }
@@ -259,7 +311,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreNOperatorNodeBase(const QoreProgramLocation& loc, AbstractQoreNode* a0, ...) : T(loc) {
+   DLLLOCAL QoreNOperatorNodeBase(const QoreProgramLocation* loc, AbstractQoreNode* a0, ...) : T(loc) {
       e[0] = a0;
       va_list ap;
       va_start(ap, a0);

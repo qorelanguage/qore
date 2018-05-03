@@ -34,6 +34,15 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/qore_program_private.h"
 
+void QoreParseHashNode::finalizeBlock(int sline, int eline) {
+    QoreProgramLocation tl(sline, eline);
+    if (tl.getFile() == loc->getFile()
+        && tl.getSource() == loc->getSource()
+        && (sline != loc->start_line || eline != loc->end_line)) {
+        loc = qore_program_private::get(*getProgram())->getLocation(*loc, sline, eline);
+    }
+}
+
 AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(keys.size() == values.size());
     bool needs_eval = false;

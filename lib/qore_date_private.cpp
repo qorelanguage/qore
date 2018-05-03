@@ -77,41 +77,52 @@ static const struct date_s days[] = {
 };
 
 static int ampm(int hour) {
-   int i = hour % 12;
-   return i ? i : 12;
+    int i = hour % 12;
+    return i ? i : 12;
 }
 
 static int get_uint(const char *&p, int digits) {
-   int rc = 0;
-   for (int i = 0; i < digits; ++i) {
-      if (*p < '0' || *p > '9')
-         return -1;
-      rc = (10 * rc) + ((*p) - '0');
-      ++p;
-   }
-   return rc;
+    int rc = 0;
+    for (int i = 0; i < digits; ++i) {
+        if (*p < '0' || *p > '9')
+            return -1;
+        rc = (10 * rc) + ((*p) - '0');
+        ++p;
+    }
+    return rc;
 }
 
-static int get_int(const char *&p, bool &err) {
-   int rc = 0;
+static int get_int_or_float(const char*& p, double& d, bool& err) {
+    int rc = 0;
 
-   int sign = 1;
-   if (*p == '-') {
-      sign = -1;
-      ++p;
-   }
+    int sign = 1;
+    if (*p == '-') {
+        sign = -1;
+        ++p;
+    }
 
-   if (!isdigit(*p)) {
-      err = true;
-      return 0;
-   }
+    if (!isdigit(*p)) {
+        err = true;
+        return 0;
+    }
 
-   do {
-      rc = (10 * rc) + ((*p) - '0');
-      ++p;
-   } while (isdigit(*p));
+    do {
+        rc = (10 * rc) + ((*p) - '0');
+        ++p;
+    } while (isdigit(*p));
 
-   return rc * sign;
+    if (*p == '.') {
+        const char* p0 = p;
+
+        // find end of digits
+        while (isdigit(*(++p)));
+
+        QoreString str(p0, p - p0);
+        str.prepend("0");
+        d = atof(str.c_str());
+    }
+
+    return rc * sign;
 }
 
 bool qore_date_info::isLeapYear(int year) {
@@ -193,280 +204,280 @@ void qore_absolute_time::set(const AbstractQoreZoneInfo* n_zone, const QoreValue
 }
 
 void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone, ExceptionSink* xsink) {
-   size_t len = strlen(str);
+    size_t len = strlen(str);
 
-   // we need at least YYYYMMDD
-   if (len < 8) {
-      if (xsink)
-         xsink->raiseException("INVALID-DATE", "date '%s' is too short; need at least 8 digits for a date/time value (ex: YYYYMMDD)", str);
-      set(n_zone, 0, 0);
-      return;
-   }
+    // we need at least YYYYMMDD
+    if (len < 8) {
+        if (xsink)
+            xsink->raiseException("INVALID-DATE", "date '%s' is too short; need at least 8 digits for a date/time value (ex: YYYYMMDD)", str);
+        set(n_zone, 0, 0);
+        return;
+    }
 
-   const char* p = str;
+    const char* p = str;
 
-   int year = get_uint(p, 4);
-   if (year < 0) {
-      if (xsink)
-         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse year value", str);
-      set(n_zone, 0, 0);
-      return;
-   }
+    int year = get_uint(p, 4);
+    if (year < 0) {
+        if (xsink)
+            xsink->raiseException("INVALID-DATE", "date '%s': cannot parse year value", str);
+        set(n_zone, 0, 0);
+        return;
+    }
 
-   bool needs_sep = false;
-   if (*p == '-') {
-      needs_sep = true;
-      ++p;
-   }
+    bool needs_sep = false;
+    if (*p == '-') {
+        needs_sep = true;
+        ++p;
+    }
 
-   int month = get_uint(p, 2);
-   if (month < 0) {
-      if (xsink)
-         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse month value; expecting 1 - 12 inclusive", str);
-      set(n_zone, year, 1, 1, 0, 0, 0, 0);
-      return;
-   }
+    int month = get_uint(p, 2);
+    if (month < 0) {
+        if (xsink)
+            xsink->raiseException("INVALID-DATE", "date '%s': cannot parse month value; expecting 1 - 12 inclusive", str);
+        set(n_zone, year, 1, 1, 0, 0, 0, 0);
+        return;
+    }
 
-   if (xsink && (month < 1 || month > 12)) {
-      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid month value: %d; expecting 1 - 12 inclusive", str, month);
-      set(n_zone, year, month, 1, 0, 0, 0, 0);
-      return;
-   }
+    if (xsink && (month < 1 || month > 12)) {
+        xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid month value: %d; expecting 1 - 12 inclusive", str, month);
+        set(n_zone, year, month, 1, 0, 0, 0, 0);
+        return;
+    }
 
-   if (needs_sep) {
-      if (*p == '-')
-         ++p;
-      else {
-         if (xsink) {
-            if (*p)
-               xsink->raiseException("INVALID-DATE", "cannot parse date string '%s'; encountered unknown char '%c'", str, *p);
-            else
-               xsink->raiseException("INVALID-DATE", "cannot parse date string '%s'; encountered end of data after month", str);
-         }
+    if (needs_sep) {
+        if (*p == '-')
+            ++p;
+        else {
+            if (xsink) {
+                if (*p)
+                    xsink->raiseException("INVALID-DATE", "cannot parse date string '%s'; encountered unknown char '%c'", str, *p);
+                else
+                    xsink->raiseException("INVALID-DATE", "cannot parse date string '%s'; encountered end of data after month", str);
+            }
 
-         set(n_zone, year, month, 1, 0, 0, 0, 0);
-         return;
-      }
-   }
+            set(n_zone, year, month, 1, 0, 0, 0, 0);
+            return;
+        }
+    }
 
-   int day = get_uint(p, 2);
-   if (day < 0) {
-      if (xsink)
-         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse day value", str);
-      set(n_zone, year, month, 1, 0, 0, 0, 0);
-      return;
-   }
+    int day = get_uint(p, 2);
+    if (day < 0) {
+        if (xsink)
+            xsink->raiseException("INVALID-DATE", "date '%s': cannot parse day value", str);
+        set(n_zone, year, month, 1, 0, 0, 0, 0);
+        return;
+    }
 
-   // check if day is valid
-   if (xsink) {
-      if (day < 1) {
-         xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid day of the month: %d; %04d-%02 has %d days", str, day, year, month);
-         set(n_zone, year, month, day, 0, 0, 0, 0);
-         return;
-      }
-      else if (day > 28) {
-         // check how many days in the given month
-         int dom = qore_date_info::getLastDayOfMonth(month, year);
-         if (day > dom) {
-            xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid day of the month: %d; %04d-%02 has %d days", str, day, year, month, dom);
+    // check if day is valid
+    if (xsink) {
+        if (day < 1) {
+            xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid day of the month: %d; %04d-%02 has %d days", str, day, year, month);
             set(n_zone, year, month, day, 0, 0, 0, 0);
             return;
-         }
-      }
-   }
-
-   //printd(5, "set: date: %04d-%02d-%02d\n", year, month, day);
-
-   if (*p == 'Z' || (*p == ' ' && *(p + 1) == 'Z')) {
-      set(0, year, month, day, 0, 0, 0, 0);
-      return;
-   }
-
-   if (*p == ' ' || *p == 't' || *p == 'T' || *p == '-')
-      ++p;
-
-   int hour = get_uint(p, 2);
-   if (hour < 0) {
-      set(n_zone, year, month, day, 0, 0, 0, 0);
-      return;
-   }
-
-   if (xsink && hour > 23) {
-      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid hour value: %d; expecting 0 - 23 inclusive", str, hour);
-      set(n_zone, year, month, day, hour, 0, 0, 0);
-      return;
-   }
-
-   needs_sep = false;
-   if (*p == ':') {
-      needs_sep = true;
-      ++p;
-   }
-
-   int minute = get_uint(p, 2);
-   if (minute < 0) {
-      if (xsink)
-         xsink->raiseException("INVALID-DATE", "date '%s': cannot parse minute value; expecting 0 - 59 inclusive", str);
-      set(n_zone, year, month, day, hour, 0, 0, 0);
-      return;
-   }
-
-   if (xsink && minute > 59)
-      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid minute value: %d; expecting 0 - 59 inclusive", str, minute);
-
-   if (needs_sep) {
-      if (*p == ':')
-         ++p;
-      else {
-         if (*p && xsink)
-            xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c'", str, *p);
-         set(n_zone, year, month, day, hour, minute, 0, 0);
-         return;
-      }
-   }
-
-   int second = get_uint(p, 2);
-   if (second < 0) {
-      set(n_zone, year, month, day, hour, minute, 0, 0);
-      return;
-   }
-
-   if (xsink && second > 59) {
-      xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid second value: %d; expecting 0 - 59 inclusive", str, second);
-      set(n_zone, year, month, day, hour, minute, second, 0);
-      return;
-   }
-
-   if (!*p) {
-      set(n_zone, year, month, day, hour, minute, second, 0);
-      return;
-   }
-
-   int us = 0;
-   if (*p == '.') {
-      ++p;
-      if (!isdigit(*p)) {
-         if (xsink) {
-            if (*p)
-               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing microseconds", str, *p);
-            else
-               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data after decimal point", str);
-         }
-         set(n_zone, year, month, day, hour, minute, second, 0);
-         return;
-      }
-
-      // read all digits
-      int dlen = 0;
-      while (isdigit(*p)) {
-         // ignore excess digits beyond microsecond resolution
-         if (dlen < 6) {
-            us *= 10;
-            us += *p - '0';
-         }
-         ++dlen;
-         ++p;
-      }
-
-      // adjust to microseconds
-      while (dlen < 6) {
-         us *= 10;
-         ++dlen;
-      }
-
-      if (!*p) {
-         set(n_zone, year, month, day, hour, minute, second, us);
-         return;
-      }
-   }
-
-   // get time zone offset
-
-   // read
-   if (*p == ' ')
-      ++p;
-
-   if (*p == 'Z') {
-      n_zone = 0;
-      ++p;
-   }
-   else if (*p == '+' || *p == '-') {
-      int mult = *p == '-' ? -1 : 1;
-
-      ++p;
-      if (!isdigit(*p)) {
-         if (xsink) {
-            if (*p)
-               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing the UTC offset", str, *p);
-            else
-               xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data when parsing the UTC offset", str);
-         }
-         set(n_zone, year, month, day, hour, minute, second, us);
-         return;
-      }
-
-      int utc_h = *p - '0';
-      ++p;
-      if (isdigit(*p)) {
-         utc_h = utc_h * 10 + (*p - '0');
-         ++p;
-      }
-
-      int offset = utc_h * 3600;
-
-      if (*p) {
-         if (*p == ':')
-            ++p;
-
-         if (!isdigit(*p)) {
-            if (xsink) {
-               if (*p)
-                  xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing the UTC offset minutes", str, *p);
-               else
-                  xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data when parsing the UTC offset minutes", str);
+        }
+        else if (day > 28) {
+            // check how many days in the given month
+            int dom = qore_date_info::getLastDayOfMonth(month, year);
+            if (day > dom) {
+                xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid day of the month: %d; %04d-%02 has %d days", str, day, year, month, dom);
+                set(n_zone, year, month, day, 0, 0, 0, 0);
+                return;
             }
-            // ignore any time zone passed
-            n_zone = findCreateOffsetZone(offset * mult);
+        }
+    }
+
+    //printd(5, "set: date: %04d-%02d-%02d\n", year, month, day);
+
+    if (*p == 'Z' || (*p == ' ' && *(p + 1) == 'Z')) {
+        set(0, year, month, day, 0, 0, 0, 0);
+        return;
+    }
+
+    if (*p == ' ' || *p == 't' || *p == 'T' || *p == '-')
+        ++p;
+
+    int hour = get_uint(p, 2);
+    if (hour < 0) {
+        set(n_zone, year, month, day, 0, 0, 0, 0);
+        return;
+    }
+
+    if (xsink && hour > 23) {
+        xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid hour value: %d; expecting 0 - 23 inclusive", str, hour);
+        set(n_zone, year, month, day, hour, 0, 0, 0);
+        return;
+    }
+
+    needs_sep = false;
+    if (*p == ':') {
+        needs_sep = true;
+        ++p;
+    }
+
+    int minute = get_uint(p, 2);
+    if (minute < 0) {
+        if (xsink)
+            xsink->raiseException("INVALID-DATE", "date '%s': cannot parse minute value; expecting 0 - 59 inclusive", str);
+        set(n_zone, year, month, day, hour, 0, 0, 0);
+        return;
+    }
+
+    if (xsink && minute > 59)
+        xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid minute value: %d; expecting 0 - 59 inclusive", str, minute);
+
+    if (needs_sep) {
+        if (*p == ':')
+            ++p;
+        else {
+            if (*p && xsink)
+                xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c'", str, *p);
+            set(n_zone, year, month, day, hour, minute, 0, 0);
+            return;
+        }
+    }
+
+    int second = get_uint(p, 2);
+    if (second < 0) {
+        set(n_zone, year, month, day, hour, minute, 0, 0);
+        return;
+    }
+
+    if (xsink && second > 59) {
+        xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid second value: %d; expecting 0 - 59 inclusive", str, second);
+        set(n_zone, year, month, day, hour, minute, second, 0);
+        return;
+    }
+
+    if (!*p) {
+        set(n_zone, year, month, day, hour, minute, second, 0);
+        return;
+    }
+
+    int us = 0;
+    if (*p == '.') {
+        ++p;
+        if (!isdigit(*p)) {
+            if (xsink) {
+                if (*p)
+                    xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing microseconds", str, *p);
+                else
+                    xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data after decimal point", str);
+            }
+            set(n_zone, year, month, day, hour, minute, second, 0);
+            return;
+        }
+
+        // read all digits
+        int dlen = 0;
+        while (isdigit(*p)) {
+            // ignore excess digits beyond microsecond resolution
+            if (dlen < 6) {
+                us *= 10;
+                us += *p - '0';
+            }
+            ++dlen;
+            ++p;
+        }
+
+        // adjust to microseconds
+        while (dlen < 6) {
+            us *= 10;
+            ++dlen;
+        }
+
+        if (!*p) {
             set(n_zone, year, month, day, hour, minute, second, us);
             return;
-         }
+        }
+    }
 
-         int utc_m = *p - '0';
-         ++p;
-         if (isdigit(*p)) {
-            utc_m = utc_m * 10 + (*p - '0');
+    // get time zone offset
+
+    // read
+    if (*p == ' ')
+        ++p;
+
+    if (*p == 'Z') {
+        n_zone = 0;
+        ++p;
+    }
+    else if (*p == '+' || *p == '-') {
+        int mult = *p == '-' ? -1 : 1;
+
+        ++p;
+        if (!isdigit(*p)) {
+            if (xsink) {
+                if (*p)
+                    xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing the UTC offset", str, *p);
+                else
+                    xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data when parsing the UTC offset", str);
+            }
+            set(n_zone, year, month, day, hour, minute, second, us);
+            return;
+        }
+
+        int utc_h = *p - '0';
+        ++p;
+        if (isdigit(*p)) {
+            utc_h = utc_h * 10 + (*p - '0');
             ++p;
-         }
+        }
 
-         offset += utc_m * 60;
+        int offset = utc_h * 3600;
 
-         if (*p) {
+        if (*p) {
             if (*p == ':')
-               ++p;
+                ++p;
 
             if (!isdigit(*p)) {
-               // ignore any time zone passed
-               n_zone = findCreateOffsetZone(offset * mult);
-               set(n_zone, year, month, day, hour, minute, second, us);
-               return;
+                if (xsink) {
+                    if (*p)
+                        xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing the UTC offset minutes", str, *p);
+                    else
+                        xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered end of data when parsing the UTC offset minutes", str);
+                    }
+                // ignore any time zone passed
+                n_zone = findCreateOffsetZone(offset * mult);
+                set(n_zone, year, month, day, hour, minute, second, us);
+                return;
             }
 
-            int utc_s = *p - '0';
+            int utc_m = *p - '0';
             ++p;
             if (isdigit(*p)) {
-               utc_s = utc_s * 10 + (*p - '0');
-               ++p;
+                utc_m = utc_m * 10 + (*p - '0');
+                ++p;
             }
 
-            offset += utc_s;
-         }
-      }
+            offset += utc_m * 60;
 
-      // ignore any time zone passed
-      n_zone = findCreateOffsetZone(offset * mult);
-   }
+            if (*p) {
+                if (*p == ':')
+                    ++p;
 
-   set(n_zone, year, month, day, hour, minute, second, us);
+                if (!isdigit(*p)) {
+                    // ignore any time zone passed
+                    n_zone = findCreateOffsetZone(offset * mult);
+                    set(n_zone, year, month, day, hour, minute, second, us);
+                    return;
+                }
+
+                int utc_s = *p - '0';
+                ++p;
+                if (isdigit(*p)) {
+                utc_s = utc_s * 10 + (*p - '0');
+                ++p;
+                }
+
+                offset += utc_s;
+            }
+        }
+
+        // ignore any time zone passed
+        n_zone = findCreateOffsetZone(offset * mult);
+    }
+
+    set(n_zone, year, month, day, hour, minute, second, us);
 }
 
 int64 qore_absolute_time::getRelativeMicroseconds() const {
@@ -587,90 +598,90 @@ qore_relative_time &qore_relative_time::operator-=(const qore_absolute_time &dt)
 }
 
 void qore_relative_time::set(const QoreValue v) {
-   switch (v.type) {
-      case QV_Bool: {
-         set(0, 0, 0, 0, 0, (int)v.v.b, 0);
-         break;
-      }
-      case QV_Int: {
-         zero();
-         addSecondsTo(v.v.i);
-         break;
-      }
-      case QV_Float: {
-         zero();
-         addSecondsTo(v.v.f);
-         break;
-      }
-      case QV_Node:
-         switch (get_node_type(v.v.n)) {
-            case NT_BOOLEAN: {
-               set(0, 0, 0, 0, 0, (int)reinterpret_cast<const QoreBoolNode*>(v.v.n)->getValue(), 0);
-               break;
+    switch (v.type) {
+        case QV_Bool: {
+            set(0, 0, 0, 0, 0, (int)v.v.b, 0);
+            break;
+        }
+        case QV_Int: {
+            zero();
+            addSecondsTo(v.v.i);
+            break;
+        }
+        case QV_Float: {
+            zero();
+            addSecondsTo(v.v.f);
+            break;
+        }
+        case QV_Node:
+            switch (get_node_type(v.v.n)) {
+                case NT_BOOLEAN: {
+                    set(0, 0, 0, 0, 0, (int)reinterpret_cast<const QoreBoolNode*>(v.v.n)->getValue(), 0);
+                    break;
+                }
+                case NT_INT: {
+                    // issue #2591: zero the value before adding
+                    zero();
+                    addSecondsTo(reinterpret_cast<const QoreBigIntNode*>(v.v.n)->val, 0);
+                    break;
+                }
+                case NT_FLOAT: {
+                    double f = reinterpret_cast<const QoreFloatNode*>(v.v.n)->f;
+                    zero();
+                    addSecondsTo(f);
+                    break;
+                }
+                case NT_STRING: {
+                    const char* str = reinterpret_cast<const QoreStringNode*>(v.v.n)->getBuffer();
+                    set(str);
+                    break;
+                }
+                case NT_DATE: {
+                    const DateTimeNode* d = reinterpret_cast<const DateTimeNode*>(v.v.n);
+                    if (d->priv->relative)
+                        set(d->priv->d.rel);
+                    else {
+                        zero();
+                        addSecondsTo(d->priv->d.abs.epoch, d->priv->d.abs.us);
+                    }
+                    break;
+                }
+                default:
+                    double f = v.v.n ? v.v.n->getAsFloat() : 0.0;
+                    zero();
+                    addSecondsTo(f);
+                    break;
             }
-            case NT_INT: {
-               // issue #2591: zero the value before adding
-               zero();
-               addSecondsTo(reinterpret_cast<const QoreBigIntNode*>(v.v.n)->val, 0);
-               break;
-            }
-            case NT_FLOAT: {
-               double f = reinterpret_cast<const QoreFloatNode*>(v.v.n)->f;
-               zero();
-               addSecondsTo(f);
-               break;
-            }
-            case NT_STRING: {
-               const char* str = reinterpret_cast<const QoreStringNode*>(v.v.n)->getBuffer();
-               set(str);
-               break;
-            }
-            case NT_DATE: {
-               const DateTimeNode* d = reinterpret_cast<const DateTimeNode*>(v.v.n);
-               if (d->priv->relative)
-                  set(d->priv->d.rel);
-               else {
-                  zero();
-                  addSecondsTo(d->priv->d.abs.epoch, d->priv->d.abs.us);
-               }
-               break;
-            }
-            default:
-               double f = v.v.n ? v.v.n->getAsFloat() : 0.0;
-               zero();
-               addSecondsTo(f);
-               break;
-         }
-         break;
-   }
+            break;
+    }
 }
 
 void qore_relative_time::set(const char* str) {
-   if (*str == 'P' || *str == 'p') {
-      setIso8601(str);
-      return;
-   }
+    if (*str == 'P' || *str == 'p') {
+        setIso8601(str);
+        return;
+    }
 
 #ifdef HAVE_STRTOLL
-   int64 date = strtoll(str, 0, 10);
+    int64 date = strtoll(str, 0, 10);
 #else
-   int64 date = atoll(str);
+    int64 date = atoll(str);
 #endif
-   const char *p = strchr(str, '.');
+    const char *p = strchr(str, '.');
 
-   int l = p ? p - str : strlen(str);
-   // for date-only strings, move the date up to the right position
-   if (l == 8)
-      date *= 1000000;
+    int l = p ? p - str : strlen(str);
+    // for date-only strings, move the date up to the right position
+    if (l == 8)
+        date *= 1000000;
 
-   int us = p ? atoi(p + 1) : 0;
-   if (us) {
-      l = strlen(p + 1);
-      assert(l < 7);
-      us *= (int)pow((double)10, 6 - l);
-   }
+    int us = p ? atoi(p + 1) : 0;
+    if (us) {
+        l = strlen(p + 1);
+        assert(l < 7);
+        us *= (int)pow((double)10, 6 - l);
+    }
 
-   setLiteral(date, us);
+    setLiteral(date, us);
 }
 
 void concatOffset(int utcoffset, QoreString &str) {
@@ -694,245 +705,360 @@ void concatOffset(int utcoffset, QoreString &str) {
 }
 
 void qore_date_private::format(QoreString &str, const char *fmt) const {
-   qore_time_info i;
-   get(i);
+    qore_time_info i;
+    get(i);
 
-   const char *s = fmt;
-   while (*s) {
-      switch (*s) {
-         case 'Y':
-            if (s[1] != 'Y') {
-               str.concat('Y');
-               break;
+    const char *s = fmt;
+    while (*s) {
+        switch (*s) {
+            case 'Y':
+                if (s[1] != 'Y') {
+                    str.concat('Y');
+                    break;
+                }
+                s++;
+                if ((s[1] == 'Y') && (s[2] == 'Y')) {
+                    str.sprintf("%04d", i.year);
+                    s += 2;
+                }
+                else
+                    str.sprintf("%02d", i.year - (i.year / 100) * 100);
+                break;
+            case 'M':
+                if (s[1] == 'M') {
+                    str.sprintf("%02d", i.month);
+                    s++;
+                    break;
+                }
+                if ((s[1] == 'o') && (s[2] == 'n')) {
+                    s += 2;
+                    if ((s[1] == 't') && (s[2] == 'h')) {
+                        s += 2;
+                        if (i.month && (i.month <= 12))
+                            str.sprintf("%s", months[(int)i.month - 1].long_name);
+                        else
+                            str.sprintf("Month%d", i.month - 1);
+                        break;
+                    }
+                    if (i.month && (i.month <= 12))
+                        str.sprintf("%s", months[(int)i.month - 1].abbr);
+                    else
+                        str.sprintf("M%02d", i.month);
+                    break;
+                }
+                if ((s[1] == 'O') && (s[2] == 'N')) {
+                    s += 2;
+                    if ((s[1] == 'T') && (s[2] == 'H')) {
+                        s += 2;
+                        if (i.month && (i.month <= 12)) {
+                            str.sprintf("%s", months[(int)i.month - 1].upper_long_name);
+                        }
+                        else
+                            str.sprintf("MONTH%d", i.month);
+                        break;
+                    }
+                    if (i.month && (i.month <= 12)) {
+                        str.sprintf("%s", months[(int)i.month - 1].upper_abbr);
+                    }
+                    else
+                        str.sprintf("M%02d", i.month);
+                    break;
+                }
+                str.sprintf("%d", i.month);
+                break;
+            case 'D':
+                if (s[1] == 'D') {
+                    str.sprintf("%02d", i.day);
+                    s++;
+                    break;
+                }
+                if ((s[1] == 'a') && (s[2] == 'y')) {
+                    s += 2;
+                    int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
+                    str.sprintf("%s", days[wday].long_name);
+                    break;
+                }
+                if ((s[1] == 'A') && (s[2] == 'Y')) {
+                    s += 2;
+                    int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
+                    str.sprintf("%s", days[wday].upper_long_name);
+                    break;
+                }
+                if ((s[1] == 'y') || (s[1] == 'Y')) {
+                    s++;
+                    int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
+                    str.sprintf("%s", *s == 'Y' ? days[wday].upper_abbr : days[wday].abbr);
+                    break;
+                }
+                if (s[1] == 'n' || s[1] == 'N') { // day number
+                    int dn = !relative ? d.abs.getDayNumber() : 0;
+                    ++s;
+                    str.sprintf(*s == 'n' ? "%d" : "%03d", dn);
+                    break;
+                }
+                str.sprintf("%d", i.day);
+                break;
+            case 'H':
+                if (s[1] == 'H') {
+                    str.sprintf("%02d", i.hour);
+                    s++;
+                }
+                else
+                    str.sprintf("%d", i.hour);
+                break;
+            case 'h':
+                if (s[1] == 'h') {
+                    str.sprintf("%02d", ampm(i.hour));
+                    s++;
+                }
+                else
+                    str.sprintf("%d", ampm(i.hour));
+                break;
+            case 'I': {
+                if (s[1] == 'F') {
+                    ++s;
+                    if (!relative) {
+                        str.sprintf("%04d-%02d-%02dT%02d:%02d:%02d", i.year, i.month, i.day, i.hour, i.minute, i.second);
+                        if (i.us) {
+                            str.sprintf(".%06d", i.us);
+                            // trim trailing zeros
+                            str.trim_trailing("0");
+                        }
+                        concatOffset(i.utcoffset, str);
+                    }
+                    else {
+                        str.concat('P');
+                        size_t len = str.size();
+                        if (i.year) {
+                            str.sprintf("%dY", i.year);
+                        }
+                        if (i.month) {
+                            str.sprintf("%dM", i.month);
+                        }
+                        if (i.day) {
+                            str.sprintf("%dD", i.day);
+                        }
+                        if (i.hour || i.minute || i.second || i.us) {
+                            str.concat('T');
+                            if (i.hour) {
+                                str.sprintf("%dH", i.hour);
+                            }
+                            if (i.minute) {
+                                str.sprintf("%dM", i.minute);
+                            }
+                            if (i.us) {
+                                str.sprintf("%d.%06d", i.second, i.us);
+                                // trim trailing zeros
+                                str.trim_trailing("0");
+                                str.concat('S');
+                            }
+                            else if (i.second) {
+                                str.sprintf("%dS", i.second);
+                            }
+                        }
+                        // output "P0D" if all elements are zero indicating a zero-length duration
+                        if (len == str.size()) {
+                            str.concat("0D");
+                        }
+                    }
+                    break;
+                }
+                int yr, wk, wd;
+                if (!relative) {
+                    d.abs.getISOWeek(yr, wk, wd);
+                }
+                else {
+                    yr = 0;
+                    wk = 0;
+                    wd = 0;
+                }
+                if (s[1] == 'y' || s[1] == 'Y') {
+                    ++s;
+                    str.sprintf(*s == 'y' ? "%d" : "%04d", yr);
+                    break;
+                }
+                if (s[1] == 'w' || s[1] == 'W') {
+                    ++s;
+                    str.sprintf(*s == 'w' ? "%d" : "%02d", wk);
+                    break;
+                }
+                if (s[1] == 'd' || s[1] == 'D') {
+                    ++s;
+                    str.sprintf("%d", wd);
+                    break;
+                }
+                str.sprintf("%04d-W%02d-%d", yr, wk, wd);
+                break;
             }
-            s++;
-            if ((s[1] == 'Y') && (s[2] == 'Y')) {
-               str.sprintf("%04d", i.year);
-               s += 2;
-            }
-            else
-               str.sprintf("%02d", i.year - (i.year / 100) * 100);
-            break;
-         case 'M':
-            if (s[1] == 'M') {
-               str.sprintf("%02d", i.month);
-               s++;
-               break;
-            }
-            if ((s[1] == 'o') && (s[2] == 'n')) {
-               s += 2;
-               if ((s[1] == 't') && (s[2] == 'h')) {
-                  s += 2;
-                  if (i.month && (i.month <= 12))
-                     str.sprintf("%s", months[(int)i.month - 1].long_name);
-                  else
-                     str.sprintf("Month%d", i.month - 1);
-                  break;
-               }
-               if (i.month && (i.month <= 12))
-                  str.sprintf("%s", months[(int)i.month - 1].abbr);
-               else
-                  str.sprintf("M%02d", i.month);
-               break;
-            }
-            if ((s[1] == 'O') && (s[2] == 'N')) {
-               s += 2;
-               if ((s[1] == 'T') && (s[2] == 'H')) {
-                  s += 2;
-                  if (i.month && (i.month <= 12)) {
-                     str.sprintf("%s", months[(int)i.month - 1].upper_long_name);
-                  }
-                  else
-                     str.sprintf("MONTH%d", i.month);
-                  break;
-               }
-               if (i.month && (i.month <= 12)) {
-                  str.sprintf("%s", months[(int)i.month - 1].upper_abbr);
-               }
-               else
-                  str.sprintf("M%02d", i.month);
-               break;
-            }
-            str.sprintf("%d", i.month);
-            break;
-         case 'D':
-            if (s[1] == 'D') {
-               str.sprintf("%02d", i.day);
-               s++;
-               break;
-            }
-            if ((s[1] == 'a') && (s[2] == 'y')) {
-               s += 2;
-               int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
-               str.sprintf("%s", days[wday].long_name);
-               break;
-            }
-            if ((s[1] == 'A') && (s[2] == 'Y')) {
-               s += 2;
-               int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
-               str.sprintf("%s", days[wday].upper_long_name);
-               break;
-            }
-            if ((s[1] == 'y') || (s[1] == 'Y')) {
-               s++;
-               int wday = qore_date_info::getDayOfWeek(i.year, i.month, i.day);
-               str.sprintf("%s", *s == 'Y' ? days[wday].upper_abbr : days[wday].abbr);
-               break;
-            }
-            str.sprintf("%d", i.day);
-            break;
-         case 'H':
-            if (s[1] == 'H') {
-               str.sprintf("%02d", i.hour);
-               s++;
-            }
-            else
-               str.sprintf("%d", i.hour);
-            break;
-         case 'h':
-            if (s[1] == 'h') {
-               str.sprintf("%02d", ampm(i.hour));
-               s++;
-            }
-            else
-               str.sprintf("%d", ampm(i.hour));
-            break;
-         case 'P':
-            if (i.hour > 11)
-               str.sprintf("PM");
-            else
-               str.sprintf("AM");
-            break;
-         case 'p':
-            if (i.hour > 11)
-               str.sprintf("pm");
-            else
-               str.sprintf("am");
-            break;
-         case 'm':
-            if (s[1] == 'm') {
-               str.sprintf("%02d", i.minute);
-               s++;
-            }
-            else if (s[1] == 's') {
-               str.sprintf("%03d", i.us / 1000);
-               s++;
-            }
-            else
-               str.sprintf("%d", i.minute);
-            break;
-         case 'S':
-            if (s[1] == 'S') {
-               str.sprintf("%02d", i.second);
-               s++;
-            }
-            else
-               str.sprintf("%d", i.second);
-            break;
-         case 'u':
-            if (s[1] == 'u') {
-               str.sprintf("%03d", i.us / 1000);
-               s++;
-            }
-            else if (s[1] == 's') {
-               str.sprintf("%06d", i.us);
-               s++;
-            }
-            else
-               str.sprintf("%d", i.us / 1000);
-            break;
-         case 'x':
-            if (s[1] == 'x') {
-               str.sprintf("%06d", i.us);
-               s++;
-            }
-            else
-               str.sprintf("%d", i.us);
-            break;
-         case 'y':
-            str.sprintf("%06d", i.us);
-            str.trim_trailing('0');
-            break;
-         case 'z':
-            str.sprintf("%s", i.zname);
-            break;
-            // add iso8601 UTC offset
-         case 'Z':
-            concatOffset(i.utcoffset, str);
-            break;
-         default:
-            str.concat(*s);
-            break;
-      }
-      s++;
-   }
+            case 'P':
+                if (i.hour > 11)
+                    str.sprintf("PM");
+                else
+                    str.sprintf("AM");
+                break;
+            case 'p':
+                if (i.hour > 11)
+                    str.sprintf("pm");
+                else
+                    str.sprintf("am");
+                break;
+            case 'm':
+                if (s[1] == 'm') {
+                    str.sprintf("%02d", i.minute);
+                    s++;
+                }
+                else if (s[1] == 's') {
+                    str.sprintf("%03d", i.us / 1000);
+                    s++;
+                }
+                else
+                str.sprintf("%d", i.minute);
+                break;
+            case 'S':
+                if (s[1] == 'S') {
+                str.sprintf("%02d", i.second);
+                s++;
+                }
+                else
+                str.sprintf("%d", i.second);
+                break;
+            case 'u':
+                if (s[1] == 'u') {
+                    str.sprintf("%03d", i.us / 1000);
+                    s++;
+                }
+                else if (s[1] == 's') {
+                    str.sprintf("%06d", i.us);
+                    s++;
+                }
+                else
+                    str.sprintf("%d", i.us / 1000);
+                break;
+            case 'x':
+                if (s[1] == 'x') {
+                    str.sprintf("%06d", i.us);
+                    s++;
+                }
+                else
+                    str.sprintf("%d", i.us);
+                break;
+            case 'y':
+                str.sprintf("%06d", i.us);
+                str.trim_trailing('0');
+                break;
+            case 'z':
+                str.sprintf("%s", i.zname);
+                break;
+                // add iso8601 UTC offset
+            case 'Z':
+                concatOffset(i.utcoffset, str);
+                break;
+            default:
+                str.concat(*s);
+                break;
+        }
+        s++;
+    }
 }
 
 void qore_relative_time::setIso8601(const char* str) {
-   const char *p = str;
-   if (*p == 'P' || *p == 'p')
-      ++p;
+    const char *p = str;
+    if (*p == 'P' || *p == 'p')
+        ++p;
 
-   bool time = false;
-   zero();
+    bool time = false;
+    zero();
 
-   bool err = false;
-   while (true) {
-      if (*p == 'T' || *p == 't') {
-         time = true;
-         ++p;
-      }
-      int val = get_int(p, err);
-      if (err)
-         break;
-
-      switch (*p) {
-         case 'Y':
-         case 'y':
-            year += val;
+    bool err = false;
+    while (true) {
+        if (*p == 'T' || *p == 't') {
+            time = true;
+            ++p;
+        }
+        double d = 0.0;
+        int val = get_int_or_float(p, d, err);
+        if (err)
             break;
 
-         case 'M':
-         case 'm':
-            if (time)
-               minute += val;
-            else
-               month += val;
-            break;
+        switch (*p) {
+            case 'Y':
+            case 'y':
+                year += val;
 
-         case 'D':
-         case 'd':
-            day += val;
-            break;
+                if (d) {
+                    addFractionalYear(d);
+                }
 
-         case 'H':
-         case 'h':
-            if (!time)
-               return;
+                break;
 
-            hour += val;
-            break;
+            case 'M':
+            case 'm':
+                if (time) {
+                    minute += val;
 
-         case 'S':
-         case 's':
-            if (!time)
-               return;
+                    if (d) {
+                        addFractionalMinute(d);
+                    }
+                }
+                else {
+                    month += val;
 
-            second += val;
-            break;
+                    if (d) {
+                        addFractionalMonth(d);
+                    }
+                }
+
+                break;
+
+            case 'D':
+            case 'd':
+                day += val;
+
+                if (d) {
+                    addFractionalDay(d);
+                }
+
+                break;
+
+            case 'H':
+            case 'h':
+                if (!time)
+                    return;
+
+                hour += val;
+
+                if (d) {
+                    addFractionalHour(d);
+                }
+
+                break;
+
+            case 'S':
+            case 's':
+                if (!time)
+                    return;
+
+                second += val;
+
+                if (d) {
+                    addFractionalSecond(d);
+                }
+
+                break;
 
             // non-ISO-8601 extension: <int>u for microseconds
-         case 'u':
-            if (!time)
-               return;
+            case 'u':
+                if (!time)
+                    return;
 
-            us += val;
-            break;
-         default:
-            break;
-      }
-      ++p;
-   }
+                us += val;
+                break;
+
+            default:
+                break;
+        }
+        ++p;
+    }
 }
 
 void qore_date_private::setRelativeDate(const char *str) {
