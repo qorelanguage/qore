@@ -13,6 +13,12 @@
 
 %exec-class TypeTest
 
+class Test {
+    public {
+        auto a;
+    }
+}
+
 public hashdecl MyHash {
     int x = 1;
 }
@@ -44,6 +50,19 @@ class TypeTest inherits QUnit::Test {
     }
 
     issue2791() {
+        {
+            Test t();
+            t.a = {"a": "two"};
+            hash h = t{"a",};
+            assertEq(Type::Hash, h.a.fullType());
+        }
+        {
+            hash<auto> h1 = {
+                "a": {"a": "a"},
+            };
+            hash h = h1{"a",};
+            assertEq(Type::Hash, h.a.fullType());
+        }
         {
             hash h;
             h.a = hash<MyHash>{};
@@ -97,6 +116,15 @@ class TypeTest inherits QUnit::Test {
             assertEq(Type::Hash, h.a.fullType());
             assertEq(Type::Hash, h.b.fullType());
             #assertEq(Type::Hash, h.fullType());
+        }
+        {
+            list<auto> l = ({"a": "a"}, );
+            list l1 = l[0..];
+            assertEq("list<hash<string, string>>", l.fullType());
+            assertEq("hash<string, string>", l[0].fullType());
+            assertEq(Type::Hash, l1[0].fullType());
+            l1 = extract l, 0;
+            assertEq(Type::Hash, l1[0].fullType());
         }
         {
             list l;

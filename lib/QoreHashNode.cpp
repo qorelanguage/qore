@@ -306,7 +306,9 @@ QoreHashNode::QoreHashNode(const TypedHashDecl* hd, ExceptionSink* xsink) : Qore
 
 QoreHashNode::QoreHashNode(const QoreTypeInfo* valueTypeInfo) : QoreHashNode() {
     if (QoreTypeInfo::hasType(valueTypeInfo) || valueTypeInfo == autoTypeInfo) {
-       priv->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(valueTypeInfo);
+        priv->complexTypeInfo = valueTypeInfo == autoTypeInfo
+            ? autoHashTypeInfo
+            : qore_program_private::get(*getProgram())->getComplexHashType(valueTypeInfo);
     }
 }
 
@@ -814,25 +816,25 @@ QoreString* QoreHashNode::getAsString(bool &del, int foff, ExceptionSink* xsink)
 }
 
 QoreHashNode* QoreHashNode::getSlice(const QoreListNode* value_list, ExceptionSink* xsink) const {
-   ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> rv(iv->getCopy(), xsink);
 
-   ConstListIterator li(value_list);
-   while (li.next()) {
-      QoreStringValueHelper key(li.getValue(), QCS_DEFAULT, xsink);
-      if (*xsink)
-         return nullptr;
+    ConstListIterator li(value_list);
+    while (li.next()) {
+        QoreStringValueHelper key(li.getValue(), QCS_DEFAULT, xsink);
+        if (*xsink)
+            return nullptr;
 
-      bool exists;
-      QoreValue v = getValueKeyValueExistence(key->c_str(), exists, xsink);
-      if (*xsink)
-         return nullptr;
-      if (!exists)
-         continue;
-      rv->setValueKeyValue(key->c_str(), v.refSelf(), xsink);
-      if (*xsink)
-         return nullptr;
-   }
-   return rv.release();
+        bool exists;
+        QoreValue v = getValueKeyValueExistence(key->c_str(), exists, xsink);
+        if (*xsink)
+            return nullptr;
+        if (!exists)
+            continue;
+        rv->setValueKeyValue(key->c_str(), v.refSelf(), xsink);
+        if (*xsink)
+            return nullptr;
+    }
+    return rv.release();
 }
 
 AbstractQoreNode* QoreHashNode::parseInit(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

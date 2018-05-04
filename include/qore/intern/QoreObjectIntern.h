@@ -392,20 +392,20 @@ public:
       return i != cdmap->end() ? i->second : 0;
    }
 
-   // must be called in the object write lock
-   DLLLOCAL QoreHashNode* getCreateInternalData(const qore_class_private* class_ctx) {
-      if (cdmap) {
-         cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
-         if (i != cdmap->end())
-            return i->second;
-      }
-      else
-         cdmap = new cdmap_t;
+    // must be called in the object write lock
+    DLLLOCAL QoreHashNode* getCreateInternalData(const qore_class_private* class_ctx) {
+        if (cdmap) {
+            cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
+            if (i != cdmap->end())
+                return i->second;
+        }
+        else
+            cdmap = new cdmap_t;
 
-      QoreHashNode* id = new QoreHashNode;
-      cdmap->insert(cdmap_t::value_type(class_ctx->getHash(), id));
-      return id;
-   }
+        QoreHashNode* id = new QoreHashNode(autoTypeInfo);
+        cdmap->insert(cdmap_t::value_type(class_ctx->getHash(), id));
+        return id;
+    }
 
    DLLLOCAL void setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink);
 
