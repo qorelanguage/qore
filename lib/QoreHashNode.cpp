@@ -816,7 +816,7 @@ QoreString* QoreHashNode::getAsString(bool &del, int foff, ExceptionSink* xsink)
 }
 
 QoreHashNode* QoreHashNode::getSlice(const QoreListNode* value_list, ExceptionSink* xsink) const {
-    ReferenceHolder<QoreHashNode> rv(iv->getCopy(), xsink);
+    ReferenceHolder<QoreHashNode> rv(priv->getCopy(), xsink);
 
     ConstListIterator li(value_list);
     while (li.next()) {
