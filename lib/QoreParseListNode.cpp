@@ -34,11 +34,17 @@
 #include "qore/intern/qore_list_private.h"
 #include "qore/intern/qore_program_private.h"
 
+void QoreParseListNode::finalizeBlock(int sline, int eline) {
+    QoreProgramLocation tl(sline, eline);
+    if (tl.getFile() == loc->getFile()
+        && tl.getSource() == loc->getSource()
+        && (sline != loc->start_line || eline != loc->end_line)) {
+        loc = qore_program_private::get(*getProgram())->getLocation(*loc, sline, eline);
+    }
+}
+
 bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     bool needs_eval = false;
-
-    if (lvec.size())
-       loc.end_line = lvec[lvec.size() - 1].end_line;
 
     // turn off "return value ignored" flag before performing parse init
     pflag &= ~PF_RETURN_VALUE_IGNORED;

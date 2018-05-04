@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -76,7 +76,7 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, Abstra
                   (*i)->c.exp = 0;
                }
                else
-                  parseException(loc, "CONTEXT-PARSE-ERROR", "multiple where conditions found for context statement!");
+                  parseException(*loc, "CONTEXT-PARSE-ERROR", "multiple where conditions found for context statement!");
                break;
             case CM_SORT_ASCENDING:
                if (!sort_ascending && !sort_descending) {
@@ -84,7 +84,7 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, Abstra
                   (*i)->c.exp = 0;
                }
                else
-                  parseException(loc, "CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
+                  parseException(*loc, "CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
                break;
             case CM_SORT_DESCENDING:
                if (!sort_descending && !sort_ascending) {
@@ -92,7 +92,7 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, Abstra
                   (*i)->c.exp = 0;
                }
                else
-                  parseException(loc, "CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
+                  parseException(*loc, "CONTEXT-PARSE-ERROR", "multiple sort conditions found for context statement!");
                break;
          }
       }
@@ -101,18 +101,18 @@ ContextStatement::ContextStatement(int start_line, int end_line, char *n, Abstra
 }
 
 ContextStatement::~ContextStatement() {
-   if (name)
-      free(name);
-   if (exp)
-      exp->deref(0);
-   delete code;
-   delete lvars;
-   if (where_exp)
-      where_exp->deref(0);
-   if (sort_ascending)
-      sort_ascending->deref(0);
-   if (sort_descending)
-      sort_descending->deref(0);
+    if (name)
+        free(name);
+    if (exp)
+        exp->deref(0);
+    delete code;
+    delete lvars;
+    if (where_exp)
+        where_exp->deref(0);
+    if (sort_ascending)
+        sort_ascending->deref(0);
+    if (sort_descending)
+        sort_descending->deref(0);
 }
 
 // FIXME: local vars should only be instantiated if there is a non-null context
@@ -154,7 +154,7 @@ int ContextStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    pflag &= (~PF_TOP_LEVEL);
 
    if (!exp && !getCVarStack())
-      parse_error(loc, "subcontext statement out of context");
+      parse_error(*loc, "subcontext statement out of context");
 
    const QoreTypeInfo *argTypeInfo = 0;
 

@@ -110,8 +110,10 @@ class SQLStatementTest inherits QUnit::Test {
         {
             # check parse and runtime type resolution with AbstractDatasource
             AbstractDatasource ds = dsp;
-            SQLStatement stmt(ds);
+            AbstractSQLStatement stmt = ds.getSQLStatement();
             on_error dsp.rollback();
+
+            assertEq(True, stmt instanceof AbstractIterator);
 
             stmt.prepare("insert into test (string) values (%v)");
             stmt.exec("hi");
@@ -141,7 +143,7 @@ class SQLStatementTest inherits QUnit::Test {
             stmt.rollback();
         }
         {
-            SQLStatement stmt(ds);
+            AbstractSQLStatement stmt = ds.getSQLStatement();
             on_error ds.rollback();
             on_success ds.commit();
 

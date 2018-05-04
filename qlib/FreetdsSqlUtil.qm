@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
-/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2017 Qore Technologies, s.r.o.
+/*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,11 +22,11 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum qore version
-%requires qore >= 0.8.13
+# minimum required Qore version
+%requires qore >= 0.9
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.4.1
+%requires SqlUtil >= 1.5
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module FreetdsSqlUtil {
-    version = "1.2.1";
+    version = "1.3";
     desc = "user module for working with FreeTDS SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -113,6 +113,9 @@ module FreetdsSqlUtil {
     To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
     native FreeTDS type name instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
 
+    @subsection freetdssqlutilv13 FreetdsSqlUtil v1.3
+    - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+
     @subsection freetdssqlutilv121 FreetdsSqlUtil v1.2.1
     - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
 
@@ -159,6 +162,10 @@ public namespace FreetdsSqlUtil {
             *string filegroup;
         }
 
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractIndex(h) {
+        }
+
         #! creates the object from the arguments
         constructor(string n_name, bool n_unique, hash n_cols, *string n_filegroup) : AbstractIndex(n_name, n_unique, n_cols) {
             filegroup = n_filegroup;
@@ -187,6 +194,10 @@ public namespace FreetdsSqlUtil {
 
     #! represents a FreeTDS-specific foreign constraint
     public class FreetdsForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractForeignConstraint(h) {
+        }
+
         #! creates the constraint from the supplied arguments
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
         }
@@ -212,6 +223,10 @@ public namespace FreetdsSqlUtil {
 
     #! represents a FreeTDS-specific check constraint
     public class FreetdsCheckConstraint inherits SqlUtil::AbstractCheckConstraint {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractCheckConstraint(h) {
+        }
+
         #! creates the constraint from the supplied arguments
         constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
         }
@@ -240,6 +255,14 @@ public namespace FreetdsSqlUtil {
         public {
             #! byte size of the column
             int byte_size;
+        }
+
+        #! empty constructor for subclasses
+        private constructor() {
+        }
+
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractColumn(h) {
         }
 
         #! creates the column from the supplied arguments
@@ -336,6 +359,11 @@ string str = col.getRenameSql(t, "new_name");
 
     #! represents a FreeTDS-specific numeric column
     public class FreetdsNumericColumn inherits FreetdsColumn, SqlUtil::NumericColumnInfo {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) {
+            deserialize(h.members);
+        }
+
         #! creates the column from the supplied arguments
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : FreetdsColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
         }
@@ -351,6 +379,14 @@ string str = col.getRenameSql(t, "new_name");
         private {
             #! any filegroup for the unique key index
             *string filegroup;
+        }
+
+        #! empty constructor for subclasses
+        private constructor() {
+        }
+
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractUniqueConstraint(h) {
         }
 
         #! creates the constraint with an optional filegroup name
@@ -396,6 +432,11 @@ string str = col.getRenameSql(t, "new_name");
         private {
             #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
+        }
+
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) {
+            deserialize(h.members);
         }
 
         #! creates the object with the given attributes
@@ -457,6 +498,11 @@ auto v = c.name;
 
     #! represents a FreeTDS-specific primary key constraint
     public class FreetdsPrimaryKey inherits SqlUtil::AbstractPrimaryKey, FreetdsUniqueConstraintCommon {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) {
+            deserialize(h.members);
+        }
+
         #! creates an empty primary key object
         constructor() {
         }
@@ -506,6 +552,10 @@ any v = c.name;
 
     #! class for FreeTDS sequences
     public class FreetdsSequence inherits SqlUtil::AbstractSequence {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractSequence(h) {
+        }
+
         #! creates the object from the arguments
         constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
         }
@@ -530,6 +580,10 @@ any v = c.name;
 
     #! represents a FreeTDS view
     public class FreetdsView inherits SqlUtil::AbstractView {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractView(h) {
+        }
+
         #! creates the object from the arguments
         constructor(string n_name, string n_src, *string n_schemaname) : AbstractView(n_name, n_src) {
             schema = n_schemaname;
@@ -560,6 +614,10 @@ any v = c.name;
 
     #! represents a FreeTDS-specific trigger
     public class FreetdsTrigger inherits SqlUtil::AbstractTrigger {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractTrigger(h) {
+        }
+
         #! creates the object and sets its name and the trigger source
         constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
         }
@@ -590,6 +648,10 @@ any v = c.name;
     public class FreetdsFunction inherits SqlUtil::AbstractFunction {
         public {
             *string args;
+        }
+
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractFunction(h) {
         }
 
         constructor(string n, string n_src, *string a) : AbstractFunction(n, "function", n_src) {
@@ -2004,6 +2066,10 @@ order by
             list args = row{updc}.values() + row{cols.keys()}.values();
             auto x = ds.vexec(sql, args);
             return x.typeCode() == NT_HASH ? x.firstValue() : x;
+        }
+
+        #! used to deserialize table data
+        constructor(hash<SqlUtilDeserialization> h) : AbstractTable(h) {
         }
     }
 }

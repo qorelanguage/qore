@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -50,10 +50,10 @@ public:
    const QoreClass* oc;
    QoreString desc;
 
-   DLLLOCAL ScopedObjectCallNode(const QoreProgramLocation& loc, NamedScope* n, QoreParseListNode* a) : AbstractFunctionCallNode(loc, NT_SCOPE_REF, a), name(n), oc(nullptr) {
+   DLLLOCAL ScopedObjectCallNode(const QoreProgramLocation* loc, NamedScope* n, QoreParseListNode* a) : AbstractFunctionCallNode(loc, NT_SCOPE_REF, a), name(n), oc(nullptr) {
    }
 
-   DLLLOCAL ScopedObjectCallNode(const QoreProgramLocation& loc, const QoreClass* qc, QoreParseListNode* a) : AbstractFunctionCallNode(loc, NT_SCOPE_REF, a), name(nullptr), oc(qc) {
+   DLLLOCAL ScopedObjectCallNode(const QoreProgramLocation* loc, const QoreClass* qc, QoreParseListNode* a) : AbstractFunctionCallNode(loc, NT_SCOPE_REF, a), name(nullptr), oc(qc) {
    }
 
    DLLLOCAL virtual ~ScopedObjectCallNode() {

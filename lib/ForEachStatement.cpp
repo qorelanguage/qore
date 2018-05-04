@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -204,7 +204,7 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    qore_type_t t = get_node_type(var);
    if (t != NT_VARREF && t != NT_SELF_VARREF)
-      parse_error(loc, "foreach variable expression is not a variable reference (got type '%s' instead)", get_type_name(var));
+      parse_error(*loc, "foreach variable expression is not a variable reference (got type '%s' instead)", get_type_name(var));
 
    if (list) {
       argTypeInfo = 0;
