@@ -112,7 +112,7 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
       // if we are taking a slice of an object or a hash, then the return type is a hash
       if (QoreTypeInfo::hasType(rti)) {
          if (QoreTypeInfo::isType(rti, NT_LIST) && (is_obj || is_hash))
-            returnTypeInfo = complexKeyTypeInfo ? lti : hashTypeInfo;
+            returnTypeInfo = complexKeyTypeInfo ? lti : autoHashTypeInfo;
          else if (complexKeyTypeInfo && !QoreTypeInfo::parseReturns(rti, NT_LIST))
             returnTypeInfo = complexKeyTypeInfo;
       }

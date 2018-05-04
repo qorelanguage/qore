@@ -307,7 +307,9 @@ QoreHashNode::QoreHashNode(const TypedHashDecl* hd, ExceptionSink* xsink) : Qore
 
 QoreHashNode::QoreHashNode(const QoreTypeInfo* valueTypeInfo) : QoreHashNode() {
     if (QoreTypeInfo::hasType(valueTypeInfo) || valueTypeInfo == autoTypeInfo) {
-       priv->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(valueTypeInfo);
+        priv->complexTypeInfo = valueTypeInfo == autoTypeInfo
+            ? autoHashTypeInfo
+            : qore_program_private::get(*getProgram())->getComplexHashType(valueTypeInfo);
     }
 }
 
@@ -818,7 +820,7 @@ QoreString* QoreHashNode::getAsString(bool &del, int foff, ExceptionSink* xsink)
 }
 
 QoreHashNode* QoreHashNode::getSlice(const QoreListNode* value_list, ExceptionSink* xsink) const {
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> rv(priv->getCopy(), xsink);
 
     ConstListIterator li(value_list);
     while (li.next()) {
@@ -1184,8 +1186,17 @@ void hash_assignment_priv::assign(QoreValue v, ExceptionSink* xsink) {
     }
     else if (h.complexTypeInfo) {
         QoreTypeInfo::acceptInputKey(QoreTypeInfo::getUniqueReturnComplexHash(h.complexTypeInfo), om->key.c_str(), *val, xsink);
-        if (*xsink)
+#ifdef DEBUG
+        // allow this function to be called with xsink = nullptr, otherwise the *xsink will assert
+        // anyway if there is an exception is would dump core when the exception is raised
+        if (xsink && *xsink) {
             return;
+        }
+#else
+        if (*xsink) {
+            return;
+        }
+#endif
     }
 
     swapImpl(val.release()).discard(xsink);

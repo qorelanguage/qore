@@ -400,7 +400,7 @@ public:
         else
             cdmap = new cdmap_t;
 
-        QoreHashNode* id = new QoreHashNode;
+        QoreHashNode* id = new QoreHashNode(autoTypeInfo);
         cdmap->insert(cdmap_t::value_type(class_ctx->getHash(), id));
         return id;
     }

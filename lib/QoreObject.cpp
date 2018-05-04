@@ -304,7 +304,8 @@ QoreHashNode* qore_object_private::getRuntimeMemberHash(ExceptionSink* xsink) co
         return h;
     }
 
-    QoreHashNode* h = new QoreHashNode;
+    // issue #2791: make sure the return hash has type hash<auto> so that types can be stripped if necessary
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
 
     ConstHashIterator hi(data);
     while (hi.next()) {
@@ -386,7 +387,8 @@ void qore_object_private::takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, 
     if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
         class_ctx = nullptr;
 
-    QoreHashNode* rvh = new QoreHashNode;
+    // issue #2791: make sure the return hash has type hash<auto> so that types can be stripped if necessary
+    QoreHashNode* rvh = new QoreHashNode(autoTypeInfo);
     // in case the lvalue cannot hold a hash, then dereference after the lock is released
     ReferenceHolder<> holder(rv.assignInitial(rvh), lvh.vl.xsink);
 
@@ -792,10 +794,12 @@ void QoreObject::externalDelete(qore_classid_t key, ExceptionSink* xsink) {
    priv->doDeleteIntern(xsink);
 }
 
-QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, new QoreHashNode)) {
+// issue #2791: make sure that the internal data hash has type hash<auto> so that types can be stripped if necessary
+QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, new QoreHashNode(autoTypeInfo))) {
 }
 
-QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, AbstractPrivateData* data) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, new QoreHashNode)) {
+// issue #2791: make sure that the internal data hash has type hash<auto> so that types can be stripped if necessary
+QoreObject::QoreObject(const QoreClass* oc, QoreProgram* p, AbstractPrivateData* data) : AbstractQoreNode(NT_OBJECT, false, false, false, true), priv(new qore_object_private(this, oc, p, new QoreHashNode(autoTypeInfo))) {
    assert(data);
    priv->setPrivate(oc->getID(), data);
 }
