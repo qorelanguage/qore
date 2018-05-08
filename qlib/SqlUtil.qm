@@ -4824,14 +4824,14 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         # serializes the object's data to a hash
         hash<SqlUtilDeserialization> serialize() {
             return new hash<SqlUtilDeserialization>({
-                "members": (map {$1: serializeValue($1, self{$1})}, keys self),
+                "members": (map {$1: serializeValue($1, self{$1})}, keys self, exists self{$1}),
                 "className": self.className(),
             });
         }
 
         # used to deserialize data from a hash
         private deserialize(hash<auto> members) {
-            map self{$1.key} = deserializeValue($1.key, $1.value), members.pairIterator(), exists $1.value;
+            map self{$1.key} = deserializeValue($1.key, $1.value), members.pairIterator();
         }
 
         # returns a serialized value or throws an exception if the value cannot be serialized
@@ -6981,7 +6981,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                 "mod": mod,
                 "members": {
                     "ds": sqlutil_ds(ds),
-                } + map {$1: serializeValue($1, self{$1})}, keys self, $1 != "ds" && $1 != "l",
+                } + map {$1: serializeValue($1, self{$1})}, keys self, exists self{$1} && $1 != "ds" && $1 != "l",
             });
         }
 
