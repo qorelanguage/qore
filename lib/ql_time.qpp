@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -359,12 +359,22 @@ hashdecl IsoWeekInfo {
     |\c DD|zero-padded day number (01 - 31)
     |\c Day|long day of week string (ex: \c "Monday")
     |\c DAY|long day of week string, capitalized (ex: \c "MONDAY")
+    |\c Dn|the ordinal day number in the year without zero padding (\c "1" - \c "366" for leap years; ex: \c "85")
+    |\c DN|the day number in the year with zero padding to 3 digits (\c "001" - \c "366" for leap years; ex: \c "085")
     |\c Dy|abbreviated day of week string (ex: \c "Mon")
     |\c DY|abbreviated day of week string capitalized (ex: \c "MON")
     |\c H|non zero-padded hour number (0 - 23)
     |\c HH|zero-padded hour number (00 - 23)
     |\c h|non zero-padded hour number, 12-hour clock (1 - 12)
     |\c hh|zero-padded hour number, 12-hour clock (01 - 12)
+    |\c I|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week string</a> for the date (ex: \c "2018-W12-5")
+    |\c Id|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week day number</a> in the week (\c "1" - \c "7")
+    |\c ID|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week day number</a> in the week (\c "1" - \c "7")
+    |\c IF|the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_date "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
+    |\c Iw|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week number</a> for the year without zero padding (\c "1" - \c "53")
+    |\c IW|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week number</a> for the year with zero padding to 2 digits (\c "01" - \c "53")
+    |\c Iy|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week year number</a> without zero padding (ex: \c "2018")
+    |\c IY|the <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week year number</a> with zero padding to 4 digits (ex: \c "2018")
     |\c m|non zero-padded minute number (0 - 59)
     |\c mm|zero-padded minute number (00 - 59)
     |\c S|non zero-padded second number (0 - 59)
@@ -379,7 +389,9 @@ hashdecl IsoWeekInfo {
     |\c z|local time zone name (ex: \c "EST") if available, otherwise the UTC offset (ex: \c "+01:00")
     |\c Z|time zone UTC offset like +HH:mm[:SS] (ex: \c "+01:00"), seconds are only included if non-zero
 
-    @since \c "us" was added in %Qore 0.8.7
+    @since
+    - \c us was added in %Qore 0.8.7
+    - \c Dn, \c DN, \c I, \c Id, \c ID, \c IF, \c Iw, \c IW, \c Iy, \c IY format codes were added in %Qore 0.9
 
     @bug the \c "u" and \c "uu" format codes work with milliseconds and not microseconds since they were implemented before
     qore supported microsecond time resolution; this cannot be changed without breaking backwards-compatibility

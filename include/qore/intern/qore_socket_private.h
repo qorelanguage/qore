@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -372,75 +372,63 @@ struct qore_socket_private {
       return port;
    }
 
-   DLLLOCAL static void do_header(const char* key, QoreString& hdr, const AbstractQoreNode* v) {
-      switch (get_node_type(v)) {
-         case NT_STRING:
-            hdr.sprintf("%s: %s\r\n", key, reinterpret_cast<const QoreStringNode*>(v)->getBuffer());
-            break;
-         case NT_INT:
-            hdr.sprintf("%s: " QLLD "\r\n", key, reinterpret_cast<const QoreBigIntNode*>(v)->val);
-            break;
-         case NT_FLOAT: {
-            hdr.sprintf("%s: ", key);
-            size_t offset = hdr.size();
-            hdr.sprintf("%f\r\n", reinterpret_cast<const QoreFloatNode*>(v)->f);
-            // issue 1556: external modules that call setlocale() can change
-            // the decimal point character used here from '.' to ','
-            // only search the double added, QoreString::sprintf() concatenates
-            q_fix_decimal(&hdr, offset);
-            break;
-         }
-         case NT_NUMBER:
-            hdr.sprintf("%s: ", key);
-            reinterpret_cast<const QoreNumberNode*>(v)->toString(hdr);
-            hdr.concat("\r\n");
-            break;
-         case NT_BOOLEAN:
-            hdr.sprintf("%s: %d\r\n", key, reinterpret_cast<const QoreBoolNode*>(v)->getValue());
-            break;
-      }
-   }
-
-   DLLLOCAL static void do_headers(QoreString& hdr, const QoreHashNode* headers, qore_size_t size, bool addsize = false) {
-      // RFC-2616 4.4 (http://tools.ietf.org/html/rfc2616#section-4.4)
-      // add Content-Length: 0 to headers for responses without a body where there is no transfer-encoding
-      if (headers) {
-         ConstHashIterator hi(headers);
-
-         while (hi.next()) {
-            const AbstractQoreNode* v = hi.getValue();
-            const char* key = hi.getKey();
-            if (addsize && !strcasecmp(key, "transfer-encoding"))
-               addsize = false;
-            if (addsize && !strcasecmp(key, "content-length"))
-               addsize = false;
-            if (v && v->getType() == NT_LIST) {
-               ConstListIterator li(reinterpret_cast<const QoreListNode* >(v));
-               while (li.next())
-                  do_header(key, hdr, li.getValue());
+    DLLLOCAL static void do_header(const char* key, QoreString& hdr, const QoreValue& v) {
+        switch (v.getType()) {
+            case NT_STRING:
+                hdr.sprintf("%s: %s\r\n", key, v.get<const QoreStringNode>()->c_str());
+                break;
+            case NT_INT:
+                hdr.sprintf("%s: " QLLD "\r\n", key, v.getAsBigInt());
+                break;
+            case NT_FLOAT: {
+                hdr.sprintf("%s: ", key);
+                size_t offset = hdr.size();
+                hdr.sprintf("%f\r\n", v.getAsFloat());
+                // issue 1556: external modules that call setlocale() can change
+                // the decimal point character used here from '.' to ','
+                // only search the double added, QoreString::sprintf() concatenates
+                q_fix_decimal(&hdr, offset);
+                break;
             }
-            else
-               do_header(key, hdr, hi.getValue());
-         }
-      }
-      // add data and content-length header if necessary
-      if (size || addsize)
-         hdr.sprintf("Content-Length: " QSD "\r\n", size);
+            case NT_NUMBER:
+                hdr.sprintf("%s: ", key);
+                v.get<const QoreNumberNode>()->toString(hdr);
+                hdr.concat("\r\n");
+                break;
+            case NT_BOOLEAN:
+                hdr.sprintf("%s: %d\r\n", key, (int)v.getAsBool());
+                break;
+        }
+    }
 
-      hdr.concat("\r\n");
-   }
+    DLLLOCAL static void do_headers(QoreString& hdr, const QoreHashNode* headers, qore_size_t size, bool addsize = false) {
+        // RFC-2616 4.4 (http://tools.ietf.org/html/rfc2616#section-4.4)
+        // add Content-Length: 0 to headers for responses without a body where there is no transfer-encoding
+        if (headers) {
+            ConstHashIterator hi(headers);
 
-   DLLLOCAL static void *get_in_addr(struct sockaddr *sa) {
-      if (sa->sa_family == AF_INET)
-         return &(((struct sockaddr_in *)sa)->sin_addr);
-      return &(((struct sockaddr_in6 *)sa)->sin6_addr);
-   }
+            while (hi.next()) {
+                const QoreValue v = hi.get();
+                const char* key = hi.getKey();
+                if (addsize && !strcasecmp(key, "transfer-encoding"))
+                    addsize = false;
+                if (addsize && !strcasecmp(key, "content-length"))
+                    addsize = false;
+                if (v.getType() == NT_LIST) {
+                    ConstListIterator li(v.get<const QoreListNode>());
+                    while (li.next())
+                        do_header(key, hdr, li.getValue());
+                }
+                else
+                    do_header(key, hdr, v);
+            }
+        }
+        // add data and content-length header if necessary
+        if (size || addsize)
+            hdr.sprintf("Content-Length: " QSD "\r\n", size);
 
-   DLLLOCAL static size_t get_in_len(struct sockaddr *sa) {
-      if (sa->sa_family == AF_INET)
-         return sizeof(struct sockaddr_in);
-      return sizeof(struct sockaddr_in6);
-   }
+        hdr.concat("\r\n");
+    }
 
    DLLLOCAL int listen(int backlog = 20) {
       if (sock == QORE_INVALID_SOCKET)
@@ -545,13 +533,13 @@ struct qore_socket_private {
             char host[NI_MAXHOST + 1];
             char service[NI_MAXSERV + 1];
 
-            if (!getnameinfo((struct sockaddr *)&addr_in, get_in_len((struct sockaddr *)&addr_in), host, sizeof(host), service, sizeof(service), NI_NUMERICSERV)) {
+            if (!getnameinfo((struct sockaddr *)&addr_in, qore_get_in_len((struct sockaddr *)&addr_in), host, sizeof(host), service, sizeof(service), NI_NUMERICSERV)) {
                source->priv->setHostName(host);
             }
 
             // get ipv4 or ipv6 address
             char ifname[INET6_ADDRSTRLEN];
-            if (inet_ntop(addr_in.ss_family, get_in_addr((struct sockaddr *)&addr_in), ifname, sizeof(ifname))) {
+            if (inet_ntop(addr_in.ss_family, qore_get_in_addr((struct sockaddr *)&addr_in), ifname, sizeof(ifname))) {
                //printd(5, "inet_ntop() '%s' host: '%s'\n", ifname, host);
                source->priv->setAddress(ifname);
             }
@@ -1422,7 +1410,7 @@ struct qore_socket_private {
          if (host_lookup) {
             char host[NI_MAXHOST + 1];
 
-            if (!getnameinfo((struct sockaddr*)&addr, get_in_len((struct sockaddr*)&addr), host, sizeof(host), 0, 0, 0)) {
+            if (!getnameinfo((struct sockaddr*)&addr, qore_get_in_len((struct sockaddr*)&addr), host, sizeof(host), 0, 0, 0)) {
                QoreStringNode* hoststr = new QoreStringNode(host);
                h->setKeyValue("hostname", hoststr, 0);
                h->setKeyValue("hostname_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, hoststr->getBuffer()), 0);
@@ -1431,7 +1419,7 @@ struct qore_socket_private {
 
          // get ipv4 or ipv6 address
          char ifname[INET6_ADDRSTRLEN];
-         if (inet_ntop(addr.ss_family, get_in_addr((struct sockaddr*)&addr), ifname, sizeof(ifname))) {
+         if (inet_ntop(addr.ss_family, qore_get_in_addr((struct sockaddr*)&addr), ifname, sizeof(ifname))) {
             QoreStringNode* addrstr = new QoreStringNode(ifname);
             h->setKeyValue("address", addrstr, 0);
             h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(addr.ss_family, addrstr->getBuffer()), 0);
@@ -1476,13 +1464,13 @@ struct qore_socket_private {
       if (addr.ss_family == AF_INET || addr.ss_family == AF_INET6) {
          // get ipv4 or ipv6 address
          char ifname[INET6_ADDRSTRLEN];
-         if (inet_ntop(addr.ss_family, get_in_addr((struct sockaddr *)&addr), ifname, sizeof(ifname))) {
+         if (inet_ntop(addr.ss_family, qore_get_in_addr((struct sockaddr *)&addr), ifname, sizeof(ifname))) {
             //printd(5, "inet_ntop() '%s' host: '%s'\n", ifname, host);
             o->setValue("source", new QoreStringNode(ifname), 0);
          }
 
          char host[NI_MAXHOST + 1];
-         if (!getnameinfo((struct sockaddr *)&addr, get_in_len((struct sockaddr *)&addr), host, sizeof(host), 0, 0, 0))
+         if (!getnameinfo((struct sockaddr *)&addr, qore_get_in_len((struct sockaddr *)&addr), host, sizeof(host), 0, 0, 0))
             o->setValue("source_host", new QoreStringNode(host), 0);
       }
 #ifndef _Q_WINDOWS
@@ -2146,149 +2134,149 @@ struct qore_socket_private {
       return 0;
    }
 
-   DLLLOCAL int sendHttpChunkedWithCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& send_callback, QoreThreadLock& l, int source, int timeout_ms = -1, bool* aborted = 0) {
-      assert(xsink);
-      assert(!aborted || !(*aborted));
+    DLLLOCAL int sendHttpChunkedWithCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& send_callback, QoreThreadLock& l, int source, int timeout_ms = -1, bool* aborted = 0) {
+        assert(xsink);
+        assert(!aborted || !(*aborted));
 
-      if (sock == QORE_INVALID_SOCKET) {
-         se_not_open(cname, mname, xsink);
-         return QSE_NOT_OPEN;
-      }
-      if (in_op >= 0) {
-         if (in_op == gettid()) {
-            se_in_op(cname, mname, xsink);
+        if (sock == QORE_INVALID_SOCKET) {
+            se_not_open(cname, mname, xsink);
+            return QSE_NOT_OPEN;
+        }
+        if (in_op >= 0) {
+            if (in_op == gettid()) {
+                se_in_op(cname, mname, xsink);
+                return 0;
+            }
+            se_in_op_thread(cname, mname, xsink);
             return 0;
-         }
-         se_in_op_thread(cname, mname, xsink);
-         return 0;
-      }
+        }
 
-      PrivateQoreSocketThroughputHelper th(this, true);
+        PrivateQoreSocketThroughputHelper th(this, true);
 
-      // set the non-blocking flag (for use with non-ssl connections)
-      bool nb = (timeout_ms >= 0);
-      // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
-      OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
-      if (*xsink)
-         return -1;
+        // set the non-blocking flag (for use with non-ssl connections)
+        bool nb = (timeout_ms >= 0);
+        // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
+        OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
+        if (*xsink)
+            return -1;
 
-      qore_socket_op_helper oh(this);
+        qore_socket_op_helper oh(this);
 
-      qore_offset_t rc;
-      int64 total = 0;
-      bool done = false;
+        qore_offset_t rc;
+        int64 total = 0;
+        bool done = false;
 
-      while (!done) {
-         // if we have response data already, then we assume an error and abort
-         if (aborted) {
-            bool data_available = tryReadSocketData(mname, xsink);
-            //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p aborted: %p iDA: %d\n", this, aborted, data_available);
-            if (data_available || *xsink) {
-               *aborted = true;
-               return *xsink ? -1 : 0;
-            }
-         }
-
-         // FIXME: subtract callback execution time from socket performance measurement
-         ValueHolder res(xsink);
-         rc = runCallback(xsink, cname, mname, res, send_callback, &l);
-         if (rc)
-            return rc;
-
-         //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p res: %s\n", this, get_type_name(*res));
-
-         // check callback return val
-         QoreString buf;
-
-         switch (res->getType()) {
-            case NT_STRING: {
-               const QoreStringNode* str = res->get<const QoreStringNode>();
-               if (str->empty()) {
-                  done = true;
-                  break;
-               }
-               buf.sprintf("%x\r\n", (int)str->size());
-               buf.concat(str->getBuffer(), str->size());
-               break;
+        while (!done) {
+            // if we have response data already, then we assume an error and abort
+            if (aborted) {
+                bool data_available = tryReadSocketData(mname, xsink);
+                //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p aborted: %p iDA: %d\n", this, aborted, data_available);
+                if (data_available || *xsink) {
+                    *aborted = true;
+                    return *xsink ? -1 : 0;
+                }
             }
 
-            case NT_BINARY: {
-               const BinaryNode* b = res->get<const BinaryNode>();
-               if (b->empty()) {
-                  done = true;
-                  break;
-               }
-               buf.sprintf("%x\r\n", (int)b->size());
-               buf.concat((const char*)b->getPtr(), b->size());
-               break;
+            // FIXME: subtract callback execution time from socket performance measurement
+            ValueHolder res(xsink);
+            rc = runCallback(xsink, cname, mname, res, send_callback, &l);
+            if (rc)
+                return rc;
+
+            //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p res: %s\n", this, get_type_name(*res));
+
+            // check callback return val
+            QoreString buf;
+
+            switch (res->getType()) {
+                case NT_STRING: {
+                    const QoreStringNode* str = res->get<const QoreStringNode>();
+                    if (str->empty()) {
+                        done = true;
+                        break;
+                    }
+                    buf.sprintf("%x\r\n", (int)str->size());
+                    buf.concat(str->getBuffer(), str->size());
+                    break;
+                }
+
+                case NT_BINARY: {
+                    const BinaryNode* b = res->get<const BinaryNode>();
+                    if (b->empty()) {
+                        done = true;
+                        break;
+                    }
+                    buf.sprintf("%x\r\n", (int)b->size());
+                    buf.concat((const char*)b->getPtr(), b->size());
+                    break;
+                }
+
+                case NT_HASH: {
+                    buf.concat("0\r\n");
+
+                    ConstHashIterator hi(res->get<const QoreHashNode>());
+
+                    while (hi.next()) {
+                        const QoreValue v = hi.get();
+                        const char* key = hi.getKey();
+
+                        //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p trailer %s\n", this, key);
+
+                        if (v.getType() == NT_LIST) {
+                            ConstListIterator li(v.get<const QoreListNode>());
+                            while (li.next())
+                                do_header(key, buf, li.getValue());
+                        }
+                        else
+                            do_header(key, buf, v);
+                    }
+
+                    // fall through to next case
+                }
+
+                case NT_NOTHING:
+                case NT_NULL:
+                    done = true;
+                    break;
+
+                default:
+                    xsink->raiseException("SOCKET-CALLBACK-ERROR", "HTTP chunked data callback returned type '%s'; expecting one of: 'string', 'binary', 'hash', 'nothing' (or 'NULL')", res->getTypeName());
+                    return -1;
             }
 
-            case NT_HASH: {
-               buf.concat("0\r\n");
+            if (buf.empty())
+                buf.concat("0\r\n");
 
-               ConstHashIterator hi(res->get<const QoreHashNode>());
+            // add trailing \r\n
+            buf.concat("\r\n");
 
-               while (hi.next()) {
-                  const AbstractQoreNode* v = hi.getValue();
-                  const char* key = hi.getKey();
+            // send chunk buffer data
+            rc = sendIntern(xsink, cname, mname, buf.getBuffer(), buf.size(), timeout_ms, total, true);
 
-                  //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p trailer %s\n", this, key);
+            if (rc < 0) {
+                // if we have a socket I/O error, but also data to be read on the socket, then clear the exception and return 0
+                if (aborted && *xsink) {
+                    bool data_available = tryReadSocketData(mname, xsink);
+                    //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p aborted: %p iDA: %d\n", this, aborted, data_available);
+                    if (data_available) {
+                        *aborted = true;
+                        return *xsink ? -1 : 0;
+                    }
+                }
 
-                  if (v && v->getType() == NT_LIST) {
-                     ConstListIterator li(reinterpret_cast<const QoreListNode* >(v));
-                     while (li.next())
-                        do_header(key, buf, li.getValue());
-                  }
-                  else
-                     do_header(key, buf, hi.getValue());
-               }
-
-               // fall through to next case
+                //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p rc: %d sock: %d xsink: %d\n", this, rc, sock, xsink->isException());
             }
 
-            case NT_NOTHING:
-            case NT_NULL:
-               done = true;
-               break;
+            //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p sent: %s\n", this, buf.getBuffer());
 
-            default:
-               xsink->raiseException("SOCKET-CALLBACK-ERROR", "HTTP chunked data callback returned type '%s'; expecting one of: 'string', 'binary', 'hash', 'nothing' (or 'NULL')", res->getTypeName());
-               return -1;
-         }
+            if (rc < 0 || sock == QORE_INVALID_SOCKET)
+                break;
+        }
 
-         if (buf.empty())
-            buf.concat("0\r\n");
+        th.finalize(total);
 
-         // add trailing \r\n
-         buf.concat("\r\n");
-
-         // send chunk buffer data
-         rc = sendIntern(xsink, cname, mname, buf.getBuffer(), buf.size(), timeout_ms, total, true);
-
-         if (rc < 0) {
-            // if we have a socket I/O error, but also data to be read on the socket, then clear the exception and return 0
-            if (aborted && *xsink) {
-               bool data_available = tryReadSocketData(mname, xsink);
-               //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p aborted: %p iDA: %d\n", this, aborted, data_available);
-               if (data_available) {
-                  *aborted = true;
-                  return *xsink ? -1 : 0;
-               }
-            }
-
-            //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p rc: %d sock: %d xsink: %d\n", this, rc, sock, xsink->isException());
-         }
-
-         //printd(5, "qore_socket_private::sendHttpChunkedWithCallback() this: %p sent: %s\n", this, buf.getBuffer());
-
-         if (rc < 0 || sock == QORE_INVALID_SOCKET)
-            break;
-      }
-
-      th.finalize(total);
-
-      return rc < 0 || sock == QORE_INVALID_SOCKET ? -1 : 0;
-   }
+        return rc < 0 || sock == QORE_INVALID_SOCKET ? -1 : 0;
+    }
 
    DLLLOCAL int sendIntern(ExceptionSink* xsink, const char* cname, const char* mname, const char* buf, qore_size_t size, int timeout_ms, int64& total, bool stream = false) {
       assert(xsink);
@@ -2545,41 +2533,41 @@ struct qore_socket_private {
       th.finalize(total);
    }
 
-   DLLLOCAL void sendHttpChunkedBodyTrailer(const QoreHashNode* headers, int timeout, ExceptionSink* xsink) {
-      if (sock == QORE_INVALID_SOCKET) {
-         se_not_open("Socket", "sendHttpChunkedBodyTrailer", xsink);
-         return;
-      }
-      if (in_op >= 0) {
-         if (in_op == gettid()) {
-            se_in_op("Socket", "sendHttpChunkedBodyTrailer", xsink);
+    DLLLOCAL void sendHttpChunkedBodyTrailer(const QoreHashNode* headers, int timeout, ExceptionSink* xsink) {
+        if (sock == QORE_INVALID_SOCKET) {
+            se_not_open("Socket", "sendHttpChunkedBodyTrailer", xsink);
             return;
-         }
-         se_in_op_thread("Socket", "sendHttpChunkedBodyTrailer", xsink);
-         return;
-      }
-
-      QoreString buf;
-      if (!headers) {
-         ConstHashIterator hi(headers);
-
-         while (hi.next()) {
-            const AbstractQoreNode* v = hi.getValue();
-            const char* key = hi.getKey();
-
-            if (v && v->getType() == NT_LIST) {
-               ConstListIterator li(reinterpret_cast<const QoreListNode* >(v));
-               while (li.next())
-                  do_header(key, buf, li.getValue());
+        }
+        if (in_op >= 0) {
+            if (in_op == gettid()) {
+                se_in_op("Socket", "sendHttpChunkedBodyTrailer", xsink);
+                return;
             }
-            else
-               do_header(key, buf, hi.getValue());
-         }
-      }
-      buf.concat("\r\n");
-      int64 total;
-      sendIntern(xsink, "Socket", "sendHttpChunkedBodyTrailer", buf.getBuffer(), buf.size(), timeout, total, true);
-   }
+            se_in_op_thread("Socket", "sendHttpChunkedBodyTrailer", xsink);
+            return;
+        }
+
+        QoreString buf;
+        if (!headers) {
+            ConstHashIterator hi(headers);
+
+            while (hi.next()) {
+                const QoreValue v = hi.get();
+                const char* key = hi.getKey();
+
+                if (v.getType() == NT_LIST) {
+                    ConstListIterator li(v.get<const QoreListNode>());
+                    while (li.next())
+                        do_header(key, buf, li.getValue());
+                }
+                else
+                do_header(key, buf, v);
+            }
+        }
+        buf.concat("\r\n");
+        int64 total;
+        sendIntern(xsink, "Socket", "sendHttpChunkedBodyTrailer", buf.getBuffer(), buf.size(), timeout, total, true);
+    }
 
    DLLLOCAL int sendHttpMessage(ExceptionSink* xsink, QoreHashNode* info, const char* cname, const char* mname, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void *data, qore_size_t size, const ResolvedCallReferenceNode* send_callback, InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback, int source, int timeout_ms = -1, QoreThreadLock* l = 0, bool* aborted = 0) {
       assert(xsink);
@@ -3177,13 +3165,13 @@ struct qore_socket_private {
 
          // see if header exists, and if so make it a list and add value to the list
          hash_assignment_priv ha(*h, buf);
-         if (*ha) {
+         if (!(*ha).isNothing()) {
             QoreListNode* l;
-            if ((*ha)->getType() == NT_LIST)
-               l = reinterpret_cast<QoreListNode* >(*ha);
+            if ((*ha).getType() == NT_LIST)
+               l = (*ha).get<QoreListNode>();
             else {
                l = new QoreListNode;
-               l->push(ha.swap(l));
+               l->push(ha.swap(l).takeNode());
             }
             l->push(val);
          }

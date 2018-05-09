@@ -35,5 +35,6 @@
 
 DLLLOCAL void init_lib_functions(QoreNamespace& ns);
 DLLLOCAL TypedHashDecl* init_hashdecl_ExceptionInfo(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_NetIfInfo(QoreNamespace& ns);
 
 #endif
