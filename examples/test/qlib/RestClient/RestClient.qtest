@@ -29,8 +29,6 @@
 
 %exec-class Main
 
-const TEST_PORT = 12345;
-
 const VALUE_TEXT = (
         "input" : "Lorem Ipsum",
         "output" : "Lorem Ipsum",
@@ -54,22 +52,25 @@ const VALUE_JSON = (
 
 class SimpleStringHandler inherits AbstractHttpRequestHandler {
     private {
-        string m_data;
+        *string m_data;
         string m_mime;
     }
-    constructor (string mime, string str) {
+    constructor (string mime, *string str) {
         m_mime = mime;
         m_data = str;
     }
     hash handleRequest(hash cx, hash hdr, *data body) {
         if (hdr.method == "GET") {
-            return makeResponse( ("Content-Type" : m_mime), 200, m_data);
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
         }
         else if (hdr.method == "PUT") {
-            return makeResponse( ("Content-Type" : m_mime), 200, m_data);
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
         }
         else if (hdr.method == "PATCH") {
-            return makeResponse(("Content-Type": m_mime), 200, m_data);
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
+        }
+        else if (hdr.method == "POST") {
+            return makeResponse(200, m_data ?? binary(body), {"Content-Type": m_mime});
         }
     }
 }
@@ -81,11 +82,14 @@ sub log(string str) {
 public class Main inherits QUnit::Test {
     private {
         HttpServer m_http;
+
+        int port;
     }
 
     constructor() : Test("RestClientTest", "1.0") {
-        addTestCase("GET tests", \methodGetTest(), NOTHING);
-        addTestCase("PUT tests", \methodPutTest(), NOTHING);
+        #addTestCase("GET tests", \methodGetTest());
+        #addTestCase("PUT tests", \methodPutTest());
+        addTestCase("POST tests", \methodPostTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -98,7 +102,8 @@ public class Main inherits QUnit::Test {
         m_http.setHandler("/api_rpc", "/api_rpc", MimeTypeXml, new SimpleStringHandler(MimeTypeXml, VALUE_XMLRPC.input));
         m_http.setHandler("/api_json", "/api_json", MimeTypeJson, new SimpleStringHandler(MimeTypeJson, VALUE_JSON.input));
         m_http.setHandler("/api_yaml", "/api_yaml", MimeTypeYaml, new SimpleStringHandler(MimeTypeYaml, VALUE_YAML.input));
-        m_http.addListener(TEST_PORT);
+        m_http.setHandler("/api_bin", "/api_bin", MimeTypeOctetStream, new SimpleStringHandler(MimeTypeOctetStream));
+        port = m_http.addListener(0).port;
     }
 
     tearDown() {
@@ -106,8 +111,8 @@ public class Main inherits QUnit::Test {
     }
 
     methodGetTest() {
-        RestClient rest(("url" : "http://localhost:"+TEST_PORT));
-        any ret;
+        RestClient rest(("url" : "http://localhost:"+port));
+        auto ret;
 
         ret = rest.get("/api_text");
         testAssertionValue("/api_text", ret.body, VALUE_TEXT.output);
@@ -132,8 +137,8 @@ public class Main inherits QUnit::Test {
     }
 
     methodPutTest() {
-        RestClient rest(("url" : "http://localhost:"+TEST_PORT));
-        any ret;
+        RestClient rest(("url" : "http://localhost:"+port));
+        auto ret;
 
         rest.setSerialization("text");
         ret = rest.put("/api_text", VALUE_TEXT.output);
@@ -165,4 +170,23 @@ public class Main inherits QUnit::Test {
 %endif
     }
 
+    methodPostTest() {
+        RestClient rest({"url": "http://localhost:" + port});
+        auto ret;
+
+        rest.setSerialization("text");
+        hash<auto> info;
+        #on_exit printf("info: %N\n", info);
+        ret = rest.post("/api_bin", <abcd>, \info);
+        #printf("ret: %y\n", ret);
+        assertEq(<abcd>, binary(ret.body));
+        assertEq(MimeTypeOctetStream, ret."content-type");
+
+        rest.setSerialization("bin");
+        #on_exit printf("info: %N\n", info);
+        ret = rest.post("/api_bin", <abcd>, \info);
+        #printf("ret: %y\n", ret);
+        assertEq(<abcd>, binary(ret.body));
+        assertEq(MimeTypeOctetStream, ret."content-type");
+    }
 } # class Main
