@@ -122,12 +122,32 @@ synchronized sub internal_deadlock_b(Test t, *Counter c) {
 
 class DeadlockTest inherits QUnit::Test {
     constructor() : QUnit::Test("Deadlock test", "1.0") {
+        addTestCase("issue 2817", \issue2817());
         addTestCase("Test deadlocks", \testDeadlocks());
         set_return_value(main());
     }
 
     globalSetUp() {
         dl = False;
+    }
+
+    issue2817() {
+        RWLock l();
+        Condition c();
+        Counter cnt(1);
+        code waiter = sub () {
+            l.readLock();
+            l.readLock();
+            cnt.dec();
+            on_exit {l.readUnlock(); l.readUnlock();}
+            c.wait(l);
+        };
+        background waiter();
+        cnt.waitForZero();
+        l.writeLock();
+        on_exit l.writeUnlock();
+        c.broadcast();
+        assertTrue(True);
     }
 
     mutex_gate_deadlock_a(Counter c, Mutex m, Gate g) {
