@@ -60,7 +60,7 @@ aωb\r
         addTestCase("Header word b test", \wordBTest());
         addTestCase("urlencoding", \urlEncodingTest());
         addTestCase("form data", \formDataTest());
-        addTestCase("mime_parse_form_urlencoded_string empty arguments", \parseFormUrlencodedTest());
+        addTestCase("mime_parse_form_urlencoded_string", \parseFormUrlencodedTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -114,6 +114,7 @@ aωb\r
             "foo=bar&baz=1" : { "foo" : "bar", "baz" : "1", },
             "foo=bar&baz=" : { "foo" : "bar", "baz" : NOTHING, },
             "0=1&1=0" : { "0" : "1", "1" : "0", },
+            "foo=bar&baz=1&foo=barber": {"foo": ("bar", "barber"), "baz": "1"},
         };
 
         HashIterator it(test_data);
