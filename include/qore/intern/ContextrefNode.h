@@ -50,7 +50,7 @@ protected:
 public:
    char *str;
 
-   DLLLOCAL ContextrefNode(const QoreProgramLocation& loc, char *c_str);
+   DLLLOCAL ContextrefNode(const QoreProgramLocation* loc, char *c_str);
 
    DLLLOCAL virtual ~ContextrefNode();
 

@@ -138,9 +138,7 @@ public class OverloadTest inherits QUnit::Test {
     issue1928() {
         Program p(PO_NEW_STYLE);
         p.parsePending(Api, "");
-        p.parse("sub t() {}", "");
-        p.parse("int sub t1(){string vstr = ''; string p1 = vstr + ''; any x = ''; int rv = p(x, p1); return rv;}", "");
-        p.parse("hash sub t2(){any a1 = ''; any a2; hash rv = p(a1, a2); return rv;}", "");
+        p.parse("sub t() {} int sub t1(){string vstr = ''; string p1 = vstr + ''; any x = ''; int rv = p(x, p1); return rv;} hash sub t2(){any a1 = ''; any a2; hash rv = p(a1, a2); return rv;}", "");
         assertEq(1, p.callFunction("t1"));
         assertEq({}, p.callFunction("t2"));
     }

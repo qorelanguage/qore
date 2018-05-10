@@ -39,7 +39,7 @@ const OUTPUT = (
     );
 
 # just return INPUTs as it would be returned by SQLStatement
-class FakeSQLStatement inherits Qore::AbstractIterator {
+class FakeSQLStatement inherits Qore::SQL::AbstractSQLStatement {
     private {
         int m_ix = 0;
     }
@@ -87,11 +87,28 @@ class FakeSQLStatement inherits Qore::AbstractIterator {
 
     prepare(string s) {}
     execArgs(list l) {}
-    getOutput() {}
+    hash getOutput() {}
     getSQL() {}
 
     *hash describe() {
     }
+
+    nothing execArgs(softlist vargs) { throw "X"; }
+    hash getOutputRows() { throw "X"; }
+    nothing prepareRaw(string sql) { throw "X"; }
+    bool active() { throw "X"; }
+    nothing bindPlaceholders() { throw "X"; }
+    *hash fetchRow() { throw "X"; }
+    nothing define() { throw "X"; }
+    bool currentThreadInTransaction() { throw "X"; }
+    nothing bindValues() { throw "X"; }
+    int affectedRows() { throw "X"; }
+    nothing bind() { throw "X"; }
+    nothing bindValuesArgs(softlist vargs) { throw "X"; }
+    nothing close() { throw "X"; }
+    nothing exec() { throw "X"; }
+    nothing beginTransaction() { throw "X"; }
+    nothing bindPlaceholdersArgs(softlist vargs) { throw "X"; }
 }
 
 # dummy datasource-like class for FakeAbstractTable
@@ -122,16 +139,18 @@ class FakeDatasource inherits Qore::SQL::AbstractDatasource {
     any vexec(string sql, *softlist vargs) {}
     *string getUserName() {}
     bool currentThreadInTransaction() { return False; }
+    AbstractSQLStatement getSQLStatement() { return new FakeSQLStatement(); }
 }
 
-# Actually we don't need real table. Just a FakeSQLStatement returned from getRowIterator()
+# Actually we don't need real table. Just a FakeSQLStatement returned from getStatement()
 class FakeAbstractTable inherits SqlUtil::AbstractTable {
     public {
         FakeDatasource fds();
     }
     constructor() : SqlUtil::AbstractTable(fds, "foo_table") {}
     AbstractIterator getRowIterator(hash h, *reference<string> sql) { return new FakeSQLStatement(); }
-    AbstractIterator getRowIteratorNoExec(hash h, *reference<string> sql) { return new FakeSQLStatement(); }
+    AbstractIterator getStatement(hash h, *reference<string> sql) { return new FakeSQLStatement(); }
+    AbstractIterator getStatementNoExec(hash h, *reference<string> sql) { return new FakeSQLStatement(); }
 
     string getRenameSqlImpl(string new_name) {}
     AbstractPrimaryKey getPrimaryKeyImpl(any a) {}
