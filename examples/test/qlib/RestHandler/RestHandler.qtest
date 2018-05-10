@@ -107,6 +107,8 @@ public class RestHandlerTest inherits QUnit::Test {
             "rawxml": SimpleHashValue,
 %endif
             "url": (SimpleHashValue, LargerHashValue),
+            "text": "string",
+            "bin": <abcd>,
         );
 
         const TestSchema = (
@@ -391,7 +393,7 @@ public class RestHandlerTest inherits QUnit::Test {
         hash info;
         on_error printf("info: %N\n", info);
 
-        foreach any val in (values) {
+        foreach auto val in (values) {
             hash h = mClient.get("test?action=echo", val, \info);
             assertEq(val, h.body, sprintf("GET %s: %s", data, val.type()));
             h = mClient.put("test?action=echo", val, \info);
@@ -400,8 +402,10 @@ public class RestHandlerTest inherits QUnit::Test {
 
         hash h = mClient.get("test?action=echoArgs;arg=1", NOTHING, \info);
         assertEq(("arg": "1"), h.body);
-        h = mClient.get("test?action=echoArgs", ("arg": "1"), \info);
-        assertEq(("arg": "1"), h.body);
+        if (data != "text" && data != "bin") {
+            h = mClient.get("test?action=echoArgs", ("arg": "1"), \info);
+            assertEq(("arg": "1"), h.body);
+        }
         h = mClient.get("test?action=echoArgs", NOTHING, \info);
         assertEq({}, h.body);
     }
