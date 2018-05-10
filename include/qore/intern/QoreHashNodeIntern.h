@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,22 +33,23 @@
 
 #define _QORE_QOREHASHNODEINTERN_H
 
-#include <qore/qlist>
+#include <list>
 
 // to maintain the order of inserts
 class HashMember {
 public:
-   AbstractQoreNode* node;
-   std::string key;
+    QoreValue val;
+    //AbstractQoreNode* node = nullptr;
+    std::string key;
 
-   DLLLOCAL HashMember(const char* n_key) : node(0), key(n_key) {
-   }
+    DLLLOCAL HashMember(const char* n_key) : key(n_key) {
+    }
 
-   DLLLOCAL ~HashMember() {
-   }
+    DLLLOCAL ~HashMember() {
+    }
 };
 
-typedef qlist<HashMember*> qhlist_t;
+typedef std::list<HashMember*> qhlist_t;
 
 #ifdef HAVE_QORE_HASH_MAP
 //#warning compiling with hash_map
@@ -63,298 +64,307 @@ typedef std::map<const char*, qhlist_t::iterator, ltstr> hm_hm_t;
 // QoreHashIterator private class
 class qhi_priv {
 public:
-   qhlist_t::iterator i;
-   bool val;
+    qhlist_t::iterator i;
+    bool val;
 
-   DLLLOCAL qhi_priv() : val(false) {
-   }
+    DLLLOCAL qhi_priv() : val(false) {
+    }
 
-   DLLLOCAL qhi_priv(const qhi_priv& old) : i(old.i), val(old.val) {
-   }
+    DLLLOCAL qhi_priv(const qhi_priv& old) : i(old.i), val(old.val) {
+    }
 
-   DLLLOCAL bool valid() const {
-      return val;
-   }
+    DLLLOCAL bool valid() const {
+        return val;
+    }
 
-   DLLLOCAL bool next(qhlist_t& ml) {
-      //printd(0, "qhi_priv::next() this: %p val: %d\n", this, val);
-      if (!val) {
-         if (ml.begin() != ml.end()) {
-            i = ml.begin();
-            val = true;
-         }
-      }
-      else {
-         ++i;
-         if (i == ml.end())
-            val = false;
-      }
-      return val;
-   }
+    DLLLOCAL bool next(qhlist_t& ml) {
+        //printd(0, "qhi_priv::next() this: %p val: %d\n", this, val);
+        if (!val) {
+            if (ml.begin() != ml.end()) {
+                i = ml.begin();
+                val = true;
+            }
+        }
+        else {
+            ++i;
+            if (i == ml.end())
+                val = false;
+        }
+        return val;
+    }
 
-   DLLLOCAL bool prev(qhlist_t& ml) {
-      if (!val) {
-         if (ml.begin() != ml.end()) {
-            i = ml.end();
-            --i;
-            val = true;
-         }
-      }
-      else {
-         if (i == ml.begin())
-            val = false;
-         else
-            --i;
-      }
-      return val;
-   }
+    DLLLOCAL bool prev(qhlist_t& ml) {
+        if (!val) {
+            if (ml.begin() != ml.end()) {
+                i = ml.end();
+                --i;
+                val = true;
+            }
+        }
+        else {
+            if (i == ml.begin())
+                val = false;
+            else
+                --i;
+        }
+        return val;
+    }
 
-   DLLLOCAL void reset() {
-      val = false;
-   }
+    DLLLOCAL void reset() {
+        val = false;
+    }
 
-   DLLLOCAL static qhi_priv* get(HashIterator& i) {
-       return i.priv;
-   }
+    DLLLOCAL static qhi_priv* get(HashIterator& i) {
+        return i.priv;
+    }
 };
 
 class qore_hash_private {
 public:
-   qhlist_t member_list;
-   hm_hm_t hm;
-   // either hashdecl or complexTypeInfo can be set, but not both
-   const TypedHashDecl* hashdecl = nullptr;
-   const QoreTypeInfo* complexTypeInfo = nullptr;
-   unsigned obj_count = 0;
+    qhlist_t member_list;
+    hm_hm_t hm;
+    // either hashdecl or complexTypeInfo can be set, but not both
+    const TypedHashDecl* hashdecl = nullptr;
+    const QoreTypeInfo* complexTypeInfo = nullptr;
+    unsigned obj_count = 0;
 #ifdef DEBUG
-   bool is_obj = false;
+    bool is_obj = false;
 #endif
 
-   DLLLOCAL qore_hash_private() {
-   }
+    DLLLOCAL qore_hash_private() {
+    }
 
-   // hashes should always be empty by the time they are deleted
-   // because object destructors need to be run...
-   DLLLOCAL ~qore_hash_private() {
-      assert(member_list.empty());
-   }
+    // hashes should always be empty by the time they are deleted
+    // because object destructors need to be run...
+    DLLLOCAL ~qore_hash_private() {
+        assert(member_list.empty());
+    }
 
-   DLLLOCAL QoreValue getValueKeyValueIntern(const char* key) const;
+    DLLLOCAL QoreValue getValueKeyValueIntern(const char* key) const;
 
-   DLLLOCAL QoreValue getValueKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const;
+    DLLLOCAL QoreValue getValueKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const;
 
-   DLLLOCAL QoreValue getValueKeyValueExistenceIntern(const char* key, bool& exists) const;
+    DLLLOCAL QoreValue getValueKeyValueExistenceIntern(const char* key, bool& exists) const;
 
-   DLLLOCAL int checkKey(const char* key, ExceptionSink* xsink) const;
+    DLLLOCAL int checkKey(const char* key, ExceptionSink* xsink) const;
 
-   DLLLOCAL AbstractQoreNode* getReferencedKeyValueIntern(const char* key) const {
-      bool exists;
-      return getReferencedKeyValueIntern(key, exists);
-   }
+    DLLLOCAL QoreValue getReferencedKeyValueIntern(const char* key) const {
+        bool exists;
+        return getReferencedKeyValueIntern(key, exists);
+    }
 
-   DLLLOCAL AbstractQoreNode* getReferencedKeyValueIntern(const char* key, bool& exists) const {
-      assert(key);
+    DLLLOCAL QoreValue getReferencedKeyValueIntern(const char* key, bool& exists) const {
+        assert(key);
 
-      hm_hm_t::const_iterator i = hm.find(key);
+        hm_hm_t::const_iterator i = hm.find(key);
+        if (i != hm.end()) {
+            exists = true;
+            return (*(i->second))->val.refSelf();
+        }
 
-      if (i != hm.end()) {
-         exists = true;
-         if ((*i->second)->node)
-            return (*i->second)->node->refSelf();
+        exists = false;
+        return QoreValue();
+    }
 
-         return nullptr;
-      }
-      exists = false;
-      return nullptr;
-   }
+    DLLLOCAL int64 getKeyAsBigInt(const char* key, bool &found) const {
+        assert(key);
+        hm_hm_t::const_iterator i = hm.find(key);
 
-   DLLLOCAL int64 getKeyAsBigInt(const char* key, bool &found) const {
-      assert(key);
-      hm_hm_t::const_iterator i = hm.find(key);
+        if (i != hm.end()) {
+            found = true;
+            return (*(i->second))->val.getAsBigInt();
+        }
 
-      if (i != hm.end()) {
-         found = true;
-         return (*(i->second))->node ? (*(i->second))->node->getAsBigInt() : 0;
-      }
+        found = false;
+        return 0;
+    }
 
-      found = false;
-      return 0;
-   }
+    DLLLOCAL bool getKeyAsBool(const char* key, bool& found) const {
+        assert(key);
+        hm_hm_t::const_iterator i = hm.find(key);
 
-   DLLLOCAL bool getKeyAsBool(const char* key, bool& found) const {
-      assert(key);
-      hm_hm_t::const_iterator i = hm.find(key);
+        if (i != hm.end()) {
+            found = true;
+            return (*(i->second))->val.getAsBool();
+        }
 
-      if (i != hm.end()) {
-         found = true;
-         return (*(i->second))->node ? (*(i->second))->node->getAsBool() : false;
-      }
+        found = false;
+        return false;
+    }
 
-      found = false;
-      return false;
-   }
+    DLLLOCAL bool existsKey(const char* key) const {
+        assert(key);
+        return hm.find(key) != hm.end();
+    }
 
-   DLLLOCAL bool existsKey(const char* key) const {
-      assert(key);
-      return hm.find(key) != hm.end();
-   }
+    DLLLOCAL bool existsKeyValue(const char* key) const {
+        assert(key);
+        hm_hm_t::const_iterator i = hm.find(key);
+        if (i == hm.end())
+            return false;
+        return !(*(i->second))->val.isNothing();
+    }
 
-   DLLLOCAL bool existsKeyValue(const char* key) const {
-      assert(key);
-      hm_hm_t::const_iterator i = hm.find(key);
-      if (i == hm.end())
-         return false;
-      return !is_nothing((*(i->second))->node);
-   }
-
-   DLLLOCAL HashMember* findMember(const char* key) {
-      assert(key);
-      hm_hm_t::iterator i = hm.find(key);
-      return i != hm.end() ? (*(i->second)) : nullptr;
-   }
+    DLLLOCAL HashMember* findMember(const char* key) {
+        assert(key);
+        hm_hm_t::iterator i = hm.find(key);
+        return i != hm.end() ? (*(i->second)) : nullptr;
+    }
 
    DLLLOCAL HashMember* findCreateMember(const char* key) {
-      // otherwise create the new hash entry
-      HashMember* om = findMember(key);
-      if (om)
-         return om;
+        // otherwise create the new hash entry
+        HashMember* om = findMember(key);
+        if (om)
+            return om;
 
-      om = new HashMember(key);
-      member_list.push_back(om);
+        om = new HashMember(key);
+        assert(om->val.isNothing());
+        member_list.push_back(om);
 
-      // add to the map
-      qhlist_t::iterator i = member_list.end();
-      --i;
-      hm[om->key.c_str()] = i;
+        // add to the map
+        qhlist_t::iterator i = member_list.end();
+        --i;
+        hm[om->key.c_str()] = i;
 
-      // return the new member
-      return om;
-   }
+        // return the new member
+        return om;
+    }
 
-   DLLLOCAL AbstractQoreNode** getKeyValuePtr(const char* key) {
-      return &findCreateMember(key)->node;
-   }
+    DLLLOCAL static void convertToNode(QoreValue& val) {
+        switch (val.type) {
+            case QV_Bool:
+                val.v.n = get_bool_node(val.v.b);
+                val.type = QV_Node;
+                break;
+            case QV_Int:
+                val.v.n = new QoreBigIntNode(val.v.i);
+                val.type = QV_Node;
+                break;
+            case QV_Float:
+                val.v.n = new QoreFloatNode(val.v.f);
+                val.type = QV_Node;
+                break;
+            case QV_Ref:
+                assert(false);
+            default:
+                break;
+        }
+    }
 
-   // NOTE: does not delete the value, this must be done by the caller before this call
-   // also does not delete map entry; must be done outside this call
-   DLLLOCAL void internDeleteKey(qhlist_t::iterator i) {
-      HashMember* om = *i;
+    DLLLOCAL AbstractQoreNode** getKeyValuePtr(const char* key) {
+        QoreValue& val = findCreateMember(key)->val;
+        convertToNode(val);
+        return &val.v.n;
+    }
 
-      member_list.erase(i);
+    DLLLOCAL QoreValue& getValueRef(const char* key) {
+        return findCreateMember(key)->val;
+    }
 
-      // free om memory
-      delete om;
-   }
+    // NOTE: does not delete the value, this must be done by the caller before this call
+    // also does not delete map entry; must be done outside this call
+    DLLLOCAL void internDeleteKey(qhlist_t::iterator i) {
+        HashMember* om = *i;
 
-   DLLLOCAL void deleteKey(const char* key, ExceptionSink *xsink) {
-      assert(key);
+        member_list.erase(i);
 
-      hm_hm_t::iterator i = hm.find(key);
+        // free om memory
+        delete om;
+    }
 
-      if (i == hm.end())
-         return;
+    DLLLOCAL void deleteKey(const char* key, ExceptionSink *xsink) {
+        assert(key);
 
-      qhlist_t::iterator li = i->second;
-      hm.erase(i);
+        hm_hm_t::iterator i = hm.find(key);
 
-      // dereference node if present
-      if ((*li)->node) {
-         if (needs_scan((*li)->node))
+        if (i == hm.end())
+            return;
+
+        qhlist_t::iterator li = i->second;
+        hm.erase(i);
+
+        // dereference node if present
+        AbstractQoreNode* n = (*li)->val.assignNothing();
+        if (n) {
+            if (needs_scan(n))
+                incScanCount(-1);
+
+            if (n->getType() == NT_OBJECT)
+                reinterpret_cast<QoreObject*>(n)->doDelete(xsink);
+            n->deref(xsink);
+        }
+
+        internDeleteKey(li);
+    }
+
+    // removes the value and dereferences it, without performing a delete on it
+    DLLLOCAL void removeKey(const char* key, ExceptionSink *xsink) {
+        takeKeyValueIntern(key).discard(xsink);
+    }
+
+    DLLLOCAL QoreValue takeKeyValueIntern(const char* key) {
+        assert(key);
+
+        hm_hm_t::iterator i = hm.find(key);
+
+        if (i == hm.end())
+            return QoreValue();
+
+        qhlist_t::iterator li = i->second;
+        hm.erase(i);
+
+        QoreValue rv = (*li)->val;
+        internDeleteKey(li);
+
+        if (needs_scan(rv))
             incScanCount(-1);
 
-         if ((*li)->node->getType() == NT_OBJECT)
-            reinterpret_cast<QoreObject*>((*li)->node)->doDelete(xsink);
-         (*li)->node->deref(xsink);
-      }
+        return rv;
+    }
 
-      internDeleteKey(li);
-   }
+    DLLLOCAL const char* getFirstKey() const  {
+        return member_list.empty() ? nullptr : member_list.front()->key.c_str();
+    }
 
-   // removes the value and dereferences it, without performing a delete on it
-   DLLLOCAL void removeKey(const char* key, ExceptionSink *xsink) {
-      assert(key);
+    DLLLOCAL const char* getLastKey() const {
+        return member_list.empty() ? nullptr : member_list.back()->key.c_str();
+    }
 
-      hm_hm_t::iterator i = hm.find(key);
+    DLLLOCAL QoreListNode* getKeys() const;
 
-      if (i == hm.end())
-         return;
-
-      qhlist_t::iterator li = i->second;
-      hm.erase(i);
-
-      // dereference node if present
-      if ((*li)->node) {
-         if (needs_scan((*li)->node))
-            incScanCount(-1);
-         (*li)->node->deref(xsink);
-      }
-
-      internDeleteKey(li);
-   }
-
-   DLLLOCAL AbstractQoreNode* takeKeyValue(const char* key) {
-      assert(key);
-
-      hm_hm_t::iterator i = hm.find(key);
-
-      if (i == hm.end())
-         return 0;
-
-      qhlist_t::iterator li = i->second;
-      hm.erase(i);
-
-      AbstractQoreNode *rv = (*li)->node;
-      internDeleteKey(li);
-
-      if (needs_scan(rv))
-         incScanCount(-1);
-
-      return rv;
-   }
-
-   DLLLOCAL const char* getFirstKey() const  {
-      return member_list.empty() ? nullptr : member_list.front()->key.c_str();
-   }
-
-   DLLLOCAL const char* getLastKey() const {
-      return member_list.empty() ? nullptr : member_list.back()->key.c_str();
-   }
-
-   DLLLOCAL QoreListNode* getKeys() const;
-
-   DLLLOCAL QoreListNode* getValues(bool with_type_info = true) const;
+    DLLLOCAL QoreListNode* getValues(bool with_type_info = true) const;
 
     // issue #2791: perform type stripping at the source
     DLLLOCAL void mergeStrip(const qore_hash_private& h, ExceptionSink* xsink);
 
-   DLLLOCAL void merge(const qore_hash_private& h, ExceptionSink* xsink);
+    DLLLOCAL void merge(const qore_hash_private& h, ExceptionSink* xsink);
 
-   DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink);
+    DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink);
 
-   DLLLOCAL void getTypeName(QoreString& str) const {
-       if (hashdecl)
-          str.sprintf("hash<%s>", hashdecl->getName());
-       else if (complexTypeInfo)
-          str.concat(QoreTypeInfo::getName(complexTypeInfo));
-       else
-          str.concat("hash");
-   }
+    DLLLOCAL void getTypeName(QoreString& str) const {
+        if (hashdecl)
+            str.sprintf("hash<%s>", hashdecl->getName());
+        else if (complexTypeInfo)
+            str.concat(QoreTypeInfo::getName(complexTypeInfo));
+        else
+            str.concat("hash");
+    }
 
-   DLLLOCAL QoreHashNode* getCopy() const {
-      QoreHashNode* h = new QoreHashNode;
-      if (hashdecl)
-         h->priv->hashdecl = hashdecl;
-      if (complexTypeInfo)
-         h->priv->complexTypeInfo = complexTypeInfo;
-      return h;
-   }
+    DLLLOCAL QoreHashNode* getCopy() const {
+        QoreHashNode* h = new QoreHashNode;
+        if (hashdecl)
+            h->priv->hashdecl = hashdecl;
+        if (complexTypeInfo)
+            h->priv->complexTypeInfo = complexTypeInfo;
+        return h;
+    }
 
-   DLLLOCAL QoreHashNode* copy(const QoreTypeInfo* newComplexTypeInfo) const {
-      QoreHashNode* h = new QoreHashNode;
-      h->priv->complexTypeInfo = newComplexTypeInfo;
-      copyIntern(*h->priv);
-      return h;
-   }
+    DLLLOCAL QoreHashNode* copy(const QoreTypeInfo* newComplexTypeInfo) const {
+        QoreHashNode* h = new QoreHashNode;
+        h->priv->complexTypeInfo = newComplexTypeInfo;
+        copyIntern(*h->priv);
+        return h;
+    }
 
     // strip = copy without type information
     DLLLOCAL QoreHashNode* copy(bool strip = false) const {
@@ -368,9 +378,9 @@ public:
         // copy all members to new object
         for (auto& i : member_list) {
             hash_assignment_priv ha(*h, i->key.c_str());
-            AbstractQoreNode* v = copy_strip_complex_types(i->node);
+            QoreValue v = copy_strip_complex_types(i->val);
 #ifdef DEBUG
-            assert(!ha.swap(v));
+            assert(ha.swap(v).isNothing());
 #else
             ha.swap(v);
 #endif
@@ -379,17 +389,17 @@ public:
         return h;
     }
 
-   DLLLOCAL void copyIntern(qore_hash_private& h) const {
-      // copy all members to new object
-      for (auto& i : member_list) {
-         hash_assignment_priv ha(h, i->key.c_str());
+    DLLLOCAL void copyIntern(qore_hash_private& h) const {
+        // copy all members to new object
+        for (auto& i : member_list) {
+            hash_assignment_priv ha(h, i->key.c_str());
 #ifdef DEBUG
-         assert(!ha.swap(i->node ? i->node->refSelf() : nullptr));
+            assert(ha.swap(i->val.refSelf()).isNothing());
 #else
-         ha.swap(i->node ? i->node->refSelf() : nullptr);
+            ha.swap(i->val.refSelf());
 #endif
-      }
-   }
+        }
+    }
 
     DLLLOCAL QoreHashNode* plusEquals(const QoreHashNode* h, ExceptionSink* xsink) const {
         // issue #2791: perform type stripping at the source
@@ -405,153 +415,156 @@ public:
         return *xsink ? nullptr : rv.release();
     }
 
-   DLLLOCAL AbstractQoreNode* evalImpl(ExceptionSink* xsink) const {
-      QoreHashNodeHolder h(getCopy(), xsink);
+    DLLLOCAL AbstractQoreNode* evalImpl(ExceptionSink* xsink) const {
+        QoreHashNodeHolder h(getCopy(), xsink);
 
-      for (qhlist_t::const_iterator i = member_list.begin(), e = member_list.end(); i != e; ++i) {
-         h->setKeyValue((*i)->key, (*i)->node ? (*i)->node->eval(xsink) : nullptr, xsink);
-         if (*xsink)
-            return nullptr;
-      }
+        for (qhlist_t::const_iterator i = member_list.begin(), e = member_list.end(); i != e; ++i) {
+            h->priv->setKeyValue((*i)->key, (*i)->val.refSelf(), xsink);
+            if (*xsink)
+                return nullptr;
+        }
 
-      return h.release();
-   }
+        return h.release();
+    }
 
-   DLLLOCAL void setKeyValueIntern(const char* key, QoreValue v) {
-      hash_assignment_priv ha(*this, key);
+    DLLLOCAL void setKeyValueIntern(const char* key, QoreValue v) {
+        hash_assignment_priv ha(*this, key);
 #ifdef DEBUG
-      assert(!ha.swap(v.takeNode()));
+        assert(ha.swap(v.takeNode()).isNothing());
 #else
-      ha.swap(v.takeNode());
+        ha.swap(v.takeNode());
 #endif
-   }
+    }
 
-   DLLLOCAL void setKeyValue(const std::string& key, AbstractQoreNode* val, ExceptionSink* xsink) {
-      hash_assignment_priv ha(*this, key.c_str());
-      ha.assign(val, xsink);
-   }
+    DLLLOCAL void setKeyValue(const char* key, QoreValue val, ExceptionSink* xsink) {
+        hash_assignment_priv ha(*this, key);
+        ha.assign(val, xsink);
+    }
 
-   DLLLOCAL void setKeyValue(const char* key, AbstractQoreNode* val, qore_object_private* o, ExceptionSink* xsink) {
-      hash_assignment_priv ha(*this, key, false, o);
-      ha.assign(val, xsink);
-   }
+    DLLLOCAL void setKeyValue(const std::string& key, QoreValue val, ExceptionSink* xsink) {
+        hash_assignment_priv ha(*this, key.c_str());
+        ha.assign(val, xsink);
+    }
 
-   DLLLOCAL bool derefImpl(ExceptionSink* xsink, bool reverse = false) {
-      if (reverse) {
-         for (qhlist_t::reverse_iterator i = member_list.rbegin(), e = member_list.rend(); i != e; ++i) {
-            if ((*i)->node)
-               (*i)->node->deref(xsink);
-            delete *i;
-         }
-      } else {
-         for (qhlist_t::iterator i = member_list.begin(), e = member_list.end(); i != e; ++i) {
-            if ((*i)->node)
-               (*i)->node->deref(xsink);
-            delete *i;
-         }
-      }
+    DLLLOCAL void setKeyValue(const char* key, QoreValue val, qore_object_private* o, ExceptionSink* xsink) {
+        hash_assignment_priv ha(*this, key, false, o);
+        ha.assign(val, xsink);
+    }
 
-      member_list.clear();
-      hm.clear();
-      obj_count = 0;
-      return true;
-   }
+    DLLLOCAL bool derefImpl(ExceptionSink* xsink, bool reverse = false) {
+        if (reverse) {
+            for (qhlist_t::reverse_iterator i = member_list.rbegin(), e = member_list.rend(); i != e; ++i) {
+                (*i)->val.discard(xsink);
+                delete *i;
+            }
+        } else {
+            for (qhlist_t::iterator i = member_list.begin(), e = member_list.end(); i != e; ++i) {
+                (*i)->val.discard(xsink);
+                delete *i;
+            }
+        }
 
-   DLLLOCAL AbstractQoreNode* swapKeyValue(const char* key, AbstractQoreNode* val, qore_object_private* o) {
-      //printd(0, "qore_hash_private::swapKeyValue() this: %p key: %s val: %p (%s) deprecated API called\n", this, key, val, get_node_type(val));
-      //assert(false);
-      hash_assignment_priv ha(*this, key, false, o);
-      return ha.swap(val);
-   }
+        member_list.clear();
+        hm.clear();
+        obj_count = 0;
+        return true;
+    }
 
-   DLLLOCAL void clear(ExceptionSink* xsink, bool reverse) {
-      derefImpl(xsink, reverse);
-   }
+    DLLLOCAL QoreValue swapKeyValue(const char* key, QoreValue val, qore_object_private* o) {
+        //printd(0, "qore_hash_private::swapKeyValue() this: %p key: %s val: %p (%s) deprecated API called\n", this, key, val, get_node_type(val));
+        //assert(false);
+        hash_assignment_priv ha(*this, key, false, o);
+        return ha.swap(val);
+    }
 
-   DLLLOCAL size_t size() const {
-      return member_list.size();
-   }
+    DLLLOCAL void clear(ExceptionSink* xsink, bool reverse) {
+        derefImpl(xsink, reverse);
+    }
 
-   DLLLOCAL bool empty() const {
-      return member_list.empty();
-   }
+    DLLLOCAL size_t size() const {
+        return member_list.size();
+    }
 
-   DLLLOCAL void incScanCount(int dt) {
-      assert(!is_obj);
-      assert(dt);
-      assert(obj_count || dt > 0);
-      //printd(5, "qore_hash_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
-      obj_count += dt;
-   }
+    DLLLOCAL bool empty() const {
+        return member_list.empty();
+    }
 
-   DLLLOCAL const QoreTypeInfo* getValueTypeInfo() const {
-      return complexTypeInfo ? QoreTypeInfo::getUniqueReturnComplexHash(complexTypeInfo) : nullptr;
-   }
+    DLLLOCAL void incScanCount(int dt) {
+        assert(!is_obj);
+        assert(dt);
+        assert(obj_count || dt > 0);
+        //printd(5, "qore_hash_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
+        obj_count += dt;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
-      if (hashdecl)
-          return hashdecl->getTypeInfo();
-      if (complexTypeInfo)
-          return complexTypeInfo;
-      return hashTypeInfo;
-   }
+    DLLLOCAL const QoreTypeInfo* getValueTypeInfo() const {
+        return complexTypeInfo ? QoreTypeInfo::getUniqueReturnComplexHash(complexTypeInfo) : nullptr;
+    }
 
-   DLLLOCAL const TypedHashDecl* getHashDecl() const {
-      return hashdecl;
-   }
+    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
+        if (hashdecl)
+            return hashdecl->getTypeInfo();
+        if (complexTypeInfo)
+            return complexTypeInfo;
+        return hashTypeInfo;
+    }
 
-   DLLLOCAL static QoreHashNode* getPlainHash(QoreHashNode* h) {
-       if (!h->priv->hashdecl && !h->priv->complexTypeInfo)
-          return h;
-       // no exception is possible
-       ReferenceHolder<QoreHashNode> holder(h, nullptr);
-       return h->priv->copy(true);
-   }
+    DLLLOCAL const TypedHashDecl* getHashDecl() const {
+        return hashdecl;
+    }
 
-   DLLLOCAL static QoreHashNode* newHashDecl(const TypedHashDecl* hd) {
-      QoreHashNode* rv = new QoreHashNode;
-      rv->priv->hashdecl = hd;
-      return rv;
-   }
+    DLLLOCAL static QoreHashNode* getPlainHash(QoreHashNode* h) {
+        if (!h->priv->hashdecl && !h->priv->complexTypeInfo)
+            return h;
+        // no exception is possible
+        ReferenceHolder<QoreHashNode> holder(h, nullptr);
+        return h->priv->copy(true);
+    }
 
-   DLLLOCAL static qore_hash_private* get(QoreHashNode& h) {
-      return h.priv;
-   }
+    DLLLOCAL static QoreHashNode* newHashDecl(const TypedHashDecl* hd) {
+        QoreHashNode* rv = new QoreHashNode;
+        rv->priv->hashdecl = hd;
+        return rv;
+    }
 
-   DLLLOCAL static const qore_hash_private* get(const QoreHashNode& h) {
-      return h.priv;
-   }
+    DLLLOCAL static qore_hash_private* get(QoreHashNode& h) {
+        return h.priv;
+    }
 
-   // returns -1 if no checks are needed or if an error is raised, 0 if OK to check
-   DLLLOCAL static int parseInitHashInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, int& lvids, QoreParseListNode* args, const QoreTypeInfo*& argTypeInfo, const AbstractQoreNode*& arg);
+    DLLLOCAL static const qore_hash_private* get(const QoreHashNode& h) {
+        return h.priv;
+    }
 
-   DLLLOCAL static int parseInitComplexHashInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreParseListNode* args, const QoreTypeInfo* vti);
+    // returns -1 if no checks are needed or if an error is raised, 0 if OK to check
+    DLLLOCAL static int parseInitHashInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, int& lvids, QoreParseListNode* args, const QoreTypeInfo*& argTypeInfo, const AbstractQoreNode*& arg);
 
-   DLLLOCAL static void parseCheckComplexHashInitialization(const QoreProgramLocation& loc, const QoreTypeInfo* typeInfo, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool strict_check = true);
+    DLLLOCAL static int parseInitComplexHashInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, const QoreTypeInfo* vti);
 
-   DLLLOCAL static void parseCheckTypedAssignment(const QoreProgramLocation& loc, const AbstractQoreNode* arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check = true);
+    DLLLOCAL static void parseCheckComplexHashInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool strict_check = true);
 
-   DLLLOCAL static QoreHashNode* newComplexHash(const QoreTypeInfo* typeInfo, const QoreParseListNode* args, ExceptionSink* xsink);
+    DLLLOCAL static void parseCheckTypedAssignment(const QoreProgramLocation* loc, const AbstractQoreNode* arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check = true);
 
-   DLLLOCAL static QoreHashNode* newComplexHashFromHash(const QoreTypeInfo* typeInfo, QoreHashNode* init, ExceptionSink* xsink);
+    DLLLOCAL static QoreHashNode* newComplexHash(const QoreTypeInfo* typeInfo, const QoreParseListNode* args, ExceptionSink* xsink);
 
-   DLLLOCAL static unsigned getScanCount(const QoreHashNode& h) {
-      assert(!h.priv->is_obj);
-      return h.priv->obj_count;
-   }
+    DLLLOCAL static QoreHashNode* newComplexHashFromHash(const QoreTypeInfo* typeInfo, QoreHashNode* init, ExceptionSink* xsink);
 
-   DLLLOCAL static void incScanCount(const QoreHashNode& h, int dt) {
-      assert(!h.priv->is_obj);
-      h.priv->incScanCount(dt);
-   }
+    DLLLOCAL static unsigned getScanCount(const QoreHashNode& h) {
+        assert(!h.priv->is_obj);
+        return h.priv->obj_count;
+    }
 
-   DLLLOCAL static AbstractQoreNode* getFirstKeyValue(const QoreHashNode* h) {
-      return h->priv->member_list.empty() ? nullptr : h->priv->member_list.front()->node;
-   }
+    DLLLOCAL static void incScanCount(const QoreHashNode& h, int dt) {
+        assert(!h.priv->is_obj);
+        h.priv->incScanCount(dt);
+    }
 
-   DLLLOCAL static AbstractQoreNode* getLastKeyValue(const QoreHashNode* h) {
-      return h->priv->member_list.empty() ? nullptr : h->priv->member_list.back()->node;
-   }
+    DLLLOCAL static QoreValue getFirstKeyValue(const QoreHashNode* h) {
+        return h->priv->member_list.empty() ? QoreValue() : h->priv->member_list.front()->val;
+    }
+
+    DLLLOCAL static QoreValue getLastKeyValue(const QoreHashNode* h) {
+        return h->priv->member_list.empty() ? QoreValue() : h->priv->member_list.back()->val;
+    }
 };
 
 #endif

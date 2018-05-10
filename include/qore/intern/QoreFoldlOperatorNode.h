@@ -62,7 +62,7 @@ protected:
    DLLLOCAL FunctionalOperatorInterface* getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, bool fwd, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreFoldlOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(nullptr), iterator_func(nullptr) {
+   DLLLOCAL QoreFoldlOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(nullptr), iterator_func(nullptr) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -88,7 +88,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreFoldrOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* l, AbstractQoreNode* r) : QoreFoldlOperatorNode(loc, l, r) {
+   DLLLOCAL QoreFoldrOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* l, AbstractQoreNode* r) : QoreFoldlOperatorNode(loc, l, r) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;

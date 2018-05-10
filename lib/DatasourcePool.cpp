@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -76,7 +76,7 @@ Datasource* DatasourceConfig::get(DatasourceStatementHelper* dsh, ExceptionSink*
       if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
          continue;
 
-      if (ds->setOption(hi.getKey(), hi.getValue(), xsink))
+      if (ds->setOption(hi.getKey(), hi.get(), xsink))
          break;
    }
 

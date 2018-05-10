@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
 
-IntermediateParseReferenceNode::IntermediateParseReferenceNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, const QoreTypeInfo* typeInfo, QoreObject* o, const void* lvid, const qore_class_private* n_cls) : ParseReferenceNode(loc, exp, typeInfo), self(o), lvalue_id(lvid), cls(n_cls) {
+IntermediateParseReferenceNode::IntermediateParseReferenceNode(const QoreProgramLocation* loc, AbstractQoreNode* exp, const QoreTypeInfo* typeInfo, QoreObject* o, const void* lvid, const qore_class_private* n_cls) : ParseReferenceNode(loc, exp, typeInfo), self(o), lvalue_id(lvid), cls(n_cls) {
 }
 
 AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObject*& self, const void*& lvalue_id, const qore_class_private*& qc, ExceptionSink* xsink) const {
@@ -131,7 +131,7 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
       return this;
 
    if (check_lvalue(lvexp)) {
-      parse_error(loc, "the reference operator was expecting an lvalue, got '%s' instead", lvexp->getTypeName());
+      parse_error(*loc, "the reference operator was expecting an lvalue, got '%s' instead", lvexp->getTypeName());
       return this;
    }
    //printd(5, "ParseReferenceNode::parseInitImpl() lv: '%s'\n", QoreTypeInfo::getName(argTypeInfo));

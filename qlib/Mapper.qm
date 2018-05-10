@@ -606,8 +606,9 @@ Mapper mapv(DataMap);
             if (exists fh.constant || exists fh.index) {
                 *list cl = keys fh{ConstantConflictList};
                 string fieldType = exists fh.constant ? "constant" : "index";
-                if (cl)
-                    error("output field %y has key %y which conflicts with following key(s): %y", fieldType, getFieldName(k), cl);
+                if (cl) {
+                    error("output field %y (value %y) has key %y which conflicts with following key(s): %y", getFieldName(k), fh{fieldType}, fieldType, cl);
+                }
             }
 
             switch (fh.struct.typeCode()) {

@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum Qore version
+%requires qore >= 0.9
 
 # do not use $ for vars, assume local var scope
 %new-style
@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.3";
+    version = "1.4";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -73,6 +73,7 @@ module Util {
       - @ref Util::normalize_dir_unix()
       - @ref Util::normalize_dir_windows()
     - @ref Util::ordinal()
+    - @ref Util::parse_ranges()
     - @ref Util::parse_to_qore_value()
     - @ref Util::parse_uri_query()
     - @ref Util::plural()
@@ -85,6 +86,10 @@ module Util {
     - @ref Util::zip()
 
     @section utilrelnotes Release Notes
+
+    @subsection util_1_4 Util 1.4
+    - added the @ref Util::parse_ranges() "parse_ranges()" function (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
+    - added the @ref Util::check_ip_address() "check_ip_address()" function (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
 
     @subsection util_1_3 Util 1.3
     - updated for complex types
@@ -1308,6 +1313,31 @@ list f = flatten (((1, 2), (3, 4), 5)); # returns (1, 2, 3, 4, 5)
         return r ?? ();
     }
 
+    #! Parses a string and returns a list of integers.
+    /**
+        @param text the string to parse
+        @return a list of integer numbers
+
+        @par Example:
+        @code{.py}
+list ints = parse_ranges ("3,5, 7-9"); # returns (3, 5, 7, 8, 9)
+        @endcode
+
+        @since Util 1.4
+    */
+    public list sub parse_ranges (string text) {
+        list numbers = ();
+        list parts = select (map trim($1), text.split(',')), $1;
+        foreach string str in (parts) {
+            list bounds = str.split("-");
+            if (bounds.size() == 2)
+                numbers += range (int(bounds[0]), int(bounds[1]));
+            else
+                numbers += int(str);
+        }
+        return numbers;
+    }
+
     #! Returns a duplicate-free version of the list.
     /**
         @param  arg a list of values to filter out
@@ -1360,4 +1390,32 @@ list z = zip ((1, 2, 3), (4, 5)); # returns ((1,4), (2,5), (3,NOTHING))
         }
         return r ?? ();
     }
+
+    #! verifies if a string is an IPv4 or IPv6 address
+    /** @par Example:
+        @code{.py}
+check_ip_address(str, True);
+        @endcode
+
+        @param ip the string in dot-notation (for IPv4 addresses) or colon notation (for IPv6 addresses) to check; the string should not contain any network component which would cause the comparison to fail; note that IPv4 address components must be in the range of 0 - 255 and must not have leading zeros
+        @param exception if @ref True an exception will be thrown if the string is not a valid IPv4 or IPv6 address, if @ref False the return value of the function indicates the string's validation status
+
+        @return @ref True if the string is a valid IPv4 or IPv6 address, @ref False if not (note that if \c exception is @ref True then an \c INVALID-IP-ADDRESS exception is thrown if the string is invalid)
+
+        @throw INVALID-IP-ADDRESS this exception is thrown if \c ip is not a valid IPv4 or IPv6 address and \c exception is @ref True
+
+        @since Util 1.4
+    */
+    public bool sub check_ip_address(string ip, bool exception = False) {
+        # check for IPv4 addresses (checks for 0 - 255 in each IPv4 component)
+        if (ip =~ /^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9]))\.((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9]))\.((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9]))\.((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9]))$/)
+            return True;
+        # check for IPv6 addresses
+        if (ip =~ /^(([0-9a-f]{1,4}:){7,7}[0-9a-f]{1,4}|([0-9a-f]{1,4}:){1,7}:|([0-9a-f]{1,4}:){1,6}:[0-9a-f]{1,4}|([0-9a-f]{1,4}:){1,5}(:[0-9a-f]{1,4}){1,2}|([0-9a-f]{1,4}:){1,4}(:[0-9a-f]{1,4}){1,3}|([0-9a-f]{1,4}:){1,3}(:[0-9a-f]{1,4}){1,4}|([0-9a-f]{1,4}:){1,2}(:[0-9a-f]{1,4}){1,5}|[0-9a-f]{1,4}:((:[0-9a-f]{1,4}){1,6})|:((:[0-9a-f]{1,4}){1,7}|:)|fe80:(:[0-9a-f]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-f]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/i)
+            return True;
+        if (exception)
+            throw "INVALID-IP-ADDRESS", sprintf("%y: is not a valid IPv4 or IPv6 address", ip);
+        return False;
+    }
+
 }
