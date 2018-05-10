@@ -17,6 +17,14 @@
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>:
         - implemented the \c number_format option to allow numbers with alternative decimal separators
           to be parsed and generated (<a href="https://github.com/qorelanguage/qore/issues/2806">issue 2806</a>)
+      - <a href="../../modules/RestClient/html/index.html">RestClient</a>:
+        - added support for REST requests with binary message bodies; added the \c "bin" serialization method
+        (<a href="https://github.com/qorelanguage/qore/issues/2816">issue 2816</a>)
+      - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a>:
+        - fixed the null validator to handle binary message bodies; fixed issues with \c "text"
+          serialization with binary message bodies
+          (<a href="https://github.com/qorelanguage/qore/issues/2816">issue 2816</a>)
+
       - <a href="../../modules/Mime/html/index.html">Mime</a>:
         - fixed a bug in \c mime_parse_form_urlencoded_string() where
           repeated elements would be overwriteen by subsequent keys with the same name
