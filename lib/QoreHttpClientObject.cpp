@@ -825,13 +825,13 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
         }
 
         // check HTTP status code
-        AbstractQoreNode* v = ans->getKeyValue("status_code");
-        if (!v) {
+        QoreValue v = ans->getValueKeyValue("status_code");
+        if (v.isNothing()) {
             xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "no HTTP status code received in response");
             return 0;
         }
 
-        code = v->getAsInt();
+        code = (int)v.getAsBigInt();
         // continue processing if "100 Continue" response received (ignore this response)
         if (code == 100)
             continue;
@@ -903,33 +903,33 @@ void check_headers(const char* str, int len, bool &multipart, QoreHashNode& ans,
 }
 
 static const QoreStringNode* get_string_header_node(ExceptionSink* xsink, QoreHashNode& h, const char* header, bool allow_multiple = false) {
-   AbstractQoreNode* n = h.getKeyValue(header);
-   if (!n)
-      return nullptr;
+    QoreValue n = h.getValueKeyValue(header);
+    if (n.isNothing())
+        return nullptr;
 
-   qore_type_t t = get_node_type(n);
-   if (t == NT_STRING)
-      return reinterpret_cast<const QoreStringNode*>(n);
-   assert(t == NT_LIST);
-   if (!allow_multiple) {
-      xsink->raiseException("HTTP-HEADER-ERROR", "multiple \"%s\" headers received in HTTP message", header);
-      return nullptr;
-   }
-   // convert list to a comma-separated string
-   QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
-   // get first list entry
-   n = l->retrieve_entry(0);
-   assert(get_node_type(n) == NT_STRING);
-   QoreStringNode* rv = reinterpret_cast<QoreStringNode*>(n)->copy();
-   for (size_t i = 1; i < l->size(); ++i) {
-      n = l->retrieve_entry(i);
-      assert(get_node_type(n) == NT_STRING);
-      rv->concat(',');
-      rv->concat(reinterpret_cast<QoreStringNode*>(n));
-   }
-   // dereference old list and save reference to return value in header hash
-   h.setKeyValue(header, rv, xsink);
-   return rv;
+    qore_type_t t = n.getType();
+    if (t == NT_STRING)
+        return n.get<const QoreStringNode>();
+    assert(t == NT_LIST);
+    if (!allow_multiple) {
+        xsink->raiseException("HTTP-HEADER-ERROR", "multiple \"%s\" headers received in HTTP message", header);
+        return nullptr;
+    }
+    // convert list to a comma-separated string
+    const QoreListNode* l = n.get<const QoreListNode>();
+    // get first list entry
+    n = l->retrieveEntry(0);
+    assert(n.getType() == NT_STRING);
+    QoreStringNode* rv = n.get<QoreStringNode>()->copy();
+    for (size_t i = 1; i < l->size(); ++i) {
+        n = l->retrieveEntry(i);
+        assert(n.getType() == NT_STRING);
+        rv->concat(',');
+        rv->concat(n.get<const QoreStringNode>());
+    }
+    // dereference old list and save reference to return value in header hash
+    h.setKeyValue(header, rv, xsink);
+    return rv;
 }
 
 static const char* get_string_header(ExceptionSink* xsink, QoreHashNode& h, const char* header, bool allow_multiple = false) {

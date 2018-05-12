@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 207 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -186,6 +186,27 @@ public:
    DLLLOCAL static const char *getStaticTypeName() {
       return "list";
    }
+
+   //! returns the element at "index" (first element is index 0)
+   /** the value is not referenced for the caller
+       @param index the index of the element (first element is index 0)
+       @return the value of the element at "index", not referenced for the caller
+   */
+   DLLEXPORT QoreValue retrieveEntry(qore_size_t index);
+
+   //! returns the element at "index" (first element is index 0)
+   /** the value is not referenced for the caller
+       @param index the index of the element (first element is index 0)
+       @return the value of the element at "index", not referenced for the caller
+   */
+   DLLEXPORT const QoreValue retrieveEntry(qore_size_t index) const;
+
+   //! returns the element at "index" (first element is index 0), the caller owns the reference
+   /**
+      @param index the index of the element (first element is index 0)
+      @return the value of the element at "index" with an incremented reference count for the caller
+   */
+   DLLEXPORT QoreValue getReferencedEntry(size_t index) const;
 
    //! returns the element at "index" (first element is index 0)
    /** the value is not referenced for the caller

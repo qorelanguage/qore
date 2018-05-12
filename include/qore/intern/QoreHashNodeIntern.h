@@ -39,7 +39,6 @@
 class HashMember {
 public:
     QoreValue val;
-    //AbstractQoreNode* node = nullptr;
     std::string key;
 
     DLLLOCAL HashMember(const char* n_key) : key(n_key) {
@@ -230,7 +229,9 @@ public:
         return om;
     }
 
+    // FIXME: this function needs to be eliminated
     DLLLOCAL static void convertToNode(QoreValue& val) {
+        assert(false);
         switch (val.type) {
             case QV_Bool:
                 val.v.n = get_bool_node(val.v.b);

@@ -452,7 +452,7 @@ int QoreHashNode::setValueKeyValue(const char* key, QoreValue value, ExceptionSi
 }
 
 int QoreHashNode::setValueKeyValue(const QoreString& key, QoreValue value, ExceptionSink* xsink) {
-    assert(*xsink);
+    assert(xsink);
     TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
     if (*xsink) {
         value.discard(xsink);
@@ -921,6 +921,13 @@ QoreValue HashIterator::get() const {
     return (*(priv->i))->val;
 }
 
+const QoreTypeInfo* HashIterator::getTypeInfo() const {
+    if (!priv->valid())
+        return nullptr;
+
+    return (*(priv->i))->val.getTypeInfo();
+}
+
 AbstractQoreNode* HashIterator::takeValueAndDelete() {
     if (!priv->valid())
         return nullptr;
@@ -1068,6 +1075,13 @@ const QoreValue ConstHashIterator::get() const {
         return QoreValue();
 
     return (*(priv->i))->val;
+}
+
+const QoreTypeInfo* ConstHashIterator::getTypeInfo() const {
+    if (!priv->valid())
+        return nullptr;
+
+    return (*(priv->i))->val.getTypeInfo();
 }
 
 bool ConstHashIterator::last() const {
@@ -1255,6 +1269,11 @@ void HashAssignmentHelper::assign(AbstractQoreNode* v, ExceptionSink* xsink) {
 AbstractQoreNode* HashAssignmentHelper::swap(AbstractQoreNode* v, ExceptionSink* xsink) {
    assert(priv);
    return priv->swap(v).takeNode();
+}
+
+QoreValue HashAssignmentHelper::get() const {
+    assert(priv);
+    return **priv;
 }
 
 AbstractQoreNode* HashAssignmentHelper::operator*() const {

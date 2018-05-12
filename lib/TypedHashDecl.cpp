@@ -132,7 +132,7 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
                 if (!m)
                     parse_error(*loc, "hashdecl '%s' initializer value from %s contains unknown key '%s'", name.c_str(), context, i.getKey());
                 else {
-                    const QoreTypeInfo* kti = getTypeInfoForValue(i.getValue());
+                    const QoreTypeInfo* kti = i.getTypeInfo();
                     bool may_not_match = false;
                     qore_type_result_e res = QoreTypeInfo::parseAccepts(m->getTypeInfo(), kti, may_not_match);
                     if (may_not_match && !runtime_check)

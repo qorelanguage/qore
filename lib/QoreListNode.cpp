@@ -328,6 +328,25 @@ bool QoreListNode::is_value() const {
 }
 */
 
+const QoreValue QoreListNode::retrieveEntry(size_t num) const {
+    if (num >= priv->length)
+        return QoreValue();
+    return priv->entry[num];
+}
+
+QoreValue QoreListNode::retrieveEntry(size_t num) {
+    if (num >= priv->length)
+        return QoreValue();
+    return priv->entry[num];
+}
+
+QoreValue QoreListNode::getReferencedEntry(size_t num) const {
+    if (num >= priv->length)
+        return QoreValue();
+    AbstractQoreNode* rv = priv->entry[num];
+    return rv ? rv->refSelf() : QoreValue();
+}
+
 const AbstractQoreNode* QoreListNode::retrieve_entry(qore_size_t num) const {
    if (num >= priv->length)
       return 0;
