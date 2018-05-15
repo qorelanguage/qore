@@ -53,9 +53,9 @@ AbstractQoreNode* QoreListAssignmentOperatorNode::parseInitImpl(LocalVar* oflag,
 
       if (v) {
          if (check_lvalue(v))
-            parse_error(loc, "expecting lvalue in position %d of left-hand-side list in list assignment, got '%s' instead", li.index() + 1, v->getTypeName());
+            parse_error(*loc, "expecting lvalue in position %d of left-hand-side list in list assignment, got '%s' instead", li.index() + 1, v->getTypeName());
          else if ((pflag & PF_BACKGROUND) && v->getType() == NT_VARREF && reinterpret_cast<const VarRefNode*>(v)->getType() == VT_LOCAL)
-            parse_error(loc, "illegal local variable modification with the background operator in position %d of left-hand-side list in list assignment", li.index() + 1);
+            parse_error(*loc, "illegal local variable modification with the background operator in position %d of left-hand-side list in list assignment", li.index() + 1);
       }
 
       // check for illegal assignment to $self
@@ -73,7 +73,7 @@ AbstractQoreNode* QoreListAssignmentOperatorNode::parseInitImpl(LocalVar* oflag,
                QoreTypeInfo::getThisType(prototypeInfo, *edesc);
                edesc->concat(", but right-hand side is ");
                QoreTypeInfo::getThisType(argInfo, *edesc);
-               qore_program_private::makeParseException(getProgram(), loc, "PARSE-TYPE-ERROR", edesc);
+               qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", edesc);
             }
          }
       }

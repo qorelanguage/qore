@@ -163,8 +163,16 @@ struct qore_dbi_private {
         // set option if init was successful
         if (!rc && f.opt.set) {
             ConstHashIterator hi(ds->getConnectOptions());
-            while (hi.next())
-                f.opt.set(ds, hi.getKey(), hi.getValue(), xsink);
+            while (hi.next()) {
+                // FIXME: convert DBI options to QoreValue
+                if (!hi.get().getInternalNode()) {
+                    ReferenceHolder<> h(hi.getReferencedValue(), xsink);
+                    f.opt.set(ds, hi.getKey(), *h, xsink);
+                }
+                else {
+                    f.opt.set(ds, hi.getKey(), hi.get().getInternalNode(), xsink);
+                }
+            }
         }
         return rc;
     }
@@ -191,7 +199,7 @@ struct qore_dbi_private {
 
         ReferenceHolder<AbstractQoreNode> res(f.selectRows(ds, sql, *dargs, xsink), xsink);
         if (!res)
-            return nullptr;
+            return 0;
 
         if (res->getType() != NT_HASH) {
             assert(res->getType() == NT_LIST);
@@ -213,7 +221,7 @@ struct qore_dbi_private {
     DLLLOCAL AbstractQoreNode* execRawSQL(Datasource* ds, const QoreString* sql, ExceptionSink* xsink) const {
         if (!f.execRawSQL) {
             xsink->raiseException("DBI-EXEC-RAW-SQL-ERROR", "this driver does not implement the Datasource::execRawSQL() method");
-            return nullptr;
+            return 0;
         }
         return f.execRawSQL(ds, sql, xsink);
     }
@@ -221,7 +229,7 @@ struct qore_dbi_private {
     DLLLOCAL QoreHashNode* describe(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {
         if (!f.describe) {
             xsink->raiseException("DBI-DESCRIBE-ERROR", "this driver does not implement the Datasource::describe() method");
-            return nullptr;
+            return 0;
         }
         DbiArgHelper dargs(args, (caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
         return f.describe(ds, sql, *dargs, xsink);
@@ -253,13 +261,13 @@ struct qore_dbi_private {
     DLLLOCAL AbstractQoreNode* getServerVersion(Datasource* ds, ExceptionSink* xsink) const {
         if (f.get_server_version)
             return f.get_server_version(ds, xsink);
-        return nullptr;
+        return 0;
     }
 
     DLLLOCAL AbstractQoreNode* getClientVersion(const Datasource* ds, ExceptionSink* xsink) const {
         if (f.get_client_version)
             return f.get_client_version(ds, xsink);
-        return nullptr;
+        return 0;
     }
 
     DLLLOCAL int getCaps() const {
@@ -338,7 +346,7 @@ struct qore_dbi_private {
     DLLLOCAL QoreHashNode* stmt_describe(SQLStatement* stmt, ExceptionSink* xsink) const {
         if (!f.stmt.describe) {
             xsink->raiseException("DBI-DESCRIBE-ERROR", "this driver does not implement the SQLStatement::describe() method");
-            return nullptr;
+            return 0;
         }
         return f.stmt.describe(stmt, xsink);
     }
@@ -366,7 +374,7 @@ struct qore_dbi_private {
     DLLLOCAL AbstractQoreNode* opt_get(const Datasource* ds, const char* opt, ExceptionSink* xsink) {
         OptInputHelper oh(xsink, *this, opt);
         if (!oh)
-            return nullptr;
+            return 0;
 
         return f.opt.get(ds, opt);
     }

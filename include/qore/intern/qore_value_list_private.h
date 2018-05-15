@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -349,6 +349,9 @@ private:
 
    DLLLOCAL void evalIntern(const QoreListNode* exp);
 
+    // destructive evaluation of the list
+   DLLLOCAL void evalIntern(QoreListNode* exp);
+
    //! will create a unique list so the list can be edited
    DLLLOCAL void editIntern() {
       if (!val) {
@@ -402,6 +405,13 @@ public:
       evalIntern(exp);
    }
 
+   //! assigns a new value by executing the given list and dereference flag to this object, dereferences the old object if necessary
+   // exp is evaluated destructively in this function
+   DLLLOCAL void assignEval(QoreListNode* exp) {
+      discardIntern();
+      evalIntern(exp);
+   }
+
    //! assigns a new value and dereference flag to this object, dereferences the old object if necessary
    DLLLOCAL void assign(bool n_needs_deref, QoreValueList* n_val) {
       discardIntern();
@@ -436,6 +446,11 @@ public:
       return val ? val->size() : 0;
    }
 
+    //! returns true if the value being managed can be edited/updated
+    DLLLOCAL bool canEdit() const {
+        return !val || needs_deref || val->is_unique();
+    }
+
    //! returns a pointer to the QoreValueList object being managed
    /**
       if you need a referenced value, use getReferencedValue()
@@ -445,6 +460,16 @@ public:
 
    //! returns a pointer to the QoreValueList object being managed
    DLLLOCAL const QoreValueList* operator*() const { return val; }
+
+   //! returns a pointer to the QoreValueList object being managed
+   /**
+      if you need a referenced value, use getReferencedValue()
+      @return a pointer to the QoreValueList object being managed (or 0 if none)
+   */
+   DLLLOCAL QoreValueList* operator->() { return val; }
+
+   //! returns a pointer to the QoreValueList object being managed
+   DLLLOCAL QoreValueList* operator*() { return val; }
 
    //! returns true if a QoreValueList object pointer is being managed, false if the pointer is 0
    DLLLOCAL operator bool() const { return val != 0; }
