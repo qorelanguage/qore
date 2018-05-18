@@ -918,24 +918,6 @@ void qore_program_private::del(ExceptionSink* xsink) {
     // method call can be repeated
     sb.del();
 
-    // delete stored type information
-    for (auto& i : ch_map)
-        delete i.second;
-    for (auto& i : chon_map)
-        delete i.second;
-    for (auto& i : cl_map)
-        delete i.second;
-    for (auto& i : clon_map)
-        delete i.second;
-    for (auto& i : cr_map)
-        delete i.second;
-    for (auto& i : cron_map)
-        delete i.second;
-    for (auto& i : csl_map)
-        delete i.second;
-    for (auto& i : cslon_map)
-        delete i.second;
-
     //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
     for (name_section_sline_statement_map_t::iterator it = statementByFileIndex.begin(); it != statementByFileIndex.end(); it++) {
@@ -989,108 +971,6 @@ LocalVar* qore_program_private::createLocalVar(const char* name, const QoreTypeI
    LocalVar* lv = new LocalVar(name, typeInfo);
    local_var_list.push_back(lv);
    return lv;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexHashType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(chl);
-
-    tmap_t::iterator i = ch_map.lower_bound(vti);
-    if (i != ch_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexHashTypeInfo* ti = new QoreComplexHashTypeInfo(vti);
-    ch_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexHashOrNothingType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(chonl);
-
-    tmap_t::iterator i = chon_map.lower_bound(vti);
-    if (i != chon_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexHashOrNothingTypeInfo* ti = new QoreComplexHashOrNothingTypeInfo(vti);
-    chon_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexListType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(cll);
-
-    tmap_t::iterator i = cl_map.lower_bound(vti);
-    if (i != cl_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexListTypeInfo* ti = new QoreComplexListTypeInfo(vti);
-    cl_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexListOrNothingType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(clonl);
-
-    tmap_t::iterator i = clon_map.lower_bound(vti);
-    if (i != clon_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexListOrNothingTypeInfo* ti = new QoreComplexListOrNothingTypeInfo(vti);
-    clon_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexSoftListType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(csll);
-
-    tmap_t::iterator i = csl_map.lower_bound(vti);
-    if (i != csl_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexSoftListTypeInfo* ti = new QoreComplexSoftListTypeInfo(vti);
-    csl_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexSoftListOrNothingType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(cslonl);
-
-    tmap_t::iterator i = cslon_map.lower_bound(vti);
-    if (i != cslon_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexSoftListOrNothingTypeInfo* ti = new QoreComplexSoftListOrNothingTypeInfo(vti);
-    cslon_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexReferenceType(const QoreTypeInfo* vti) {
-   AutoLocker al(crl);
-
-   tmap_t::iterator i = cr_map.lower_bound(vti);
-   if (i != cr_map.end() && i->first == vti)
-      return i->second;
-
-   QoreComplexReferenceTypeInfo* ti = new QoreComplexReferenceTypeInfo(vti);
-   cr_map.insert(i, tmap_t::value_type(vti, ti));
-   return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexReferenceOrNothingType(const QoreTypeInfo* vti) {
-   AutoLocker al(cronl);
-
-   tmap_t::iterator i = cron_map.lower_bound(vti);
-   if (i != cron_map.end() && i->first == vti)
-      return i->second;
-
-   QoreComplexReferenceOrNothingTypeInfo* ti = new QoreComplexReferenceOrNothingTypeInfo(vti);
-   cron_map.insert(i, tmap_t::value_type(vti, ti));
-   return ti;
 }
 
 void qore_program_private::addStatementToIndexIntern(name_section_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs, const char* section, int sectionOffs) {

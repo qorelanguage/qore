@@ -37,13 +37,13 @@ QoreString QoreHashMapOperatorNode::map_str("map operator expression");
 
 // if del is true, then the returned QoreString * should be mapd, if false, then it must not be
 QoreString* QoreHashMapOperatorNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = false;
-   return &map_str;
+    del = false;
+    return &map_str;
 }
 
 int QoreHashMapOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   str.concat(&map_str);
-   return 0;
+    str.concat(&map_str);
+    return 0;
 }
 
 const QoreTypeInfo* QoreHashMapOperatorNode::setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo2, const QoreTypeInfo* iteratorTypeInfo) {
@@ -52,10 +52,10 @@ const QoreTypeInfo* QoreHashMapOperatorNode::setReturnTypeInfo(const QoreTypeInf
     // this operator returns no value if the iterator expression has no value
     bool or_nothing = QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_NOTHING);
     if (QoreTypeInfo::hasType(expTypeInfo2)) {
-        returnTypeInfo = qore_program_private::get(*getProgram())->getComplexHashType(expTypeInfo2);
+        returnTypeInfo = qore_get_complex_hash_type(expTypeInfo2);
 
         if (or_nothing) {
-            typeInfo = qore_program_private::get(*getProgram())->getComplexHashOrNothingType(expTypeInfo2);
+            typeInfo = qore_get_complex_hash_or_nothing_type(expTypeInfo2);
         }
         else
             typeInfo = returnTypeInfo;
@@ -72,29 +72,29 @@ const QoreTypeInfo* QoreHashMapOperatorNode::setReturnTypeInfo(const QoreTypeInf
 }
 
 AbstractQoreNode* QoreHashMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   assert(!typeInfo);
+    assert(!typeInfo);
 
-   pflag &= ~PF_RETURN_VALUE_IGNORED;
+    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
-   // check iterator expression
-   const QoreTypeInfo* iteratorTypeInfo = nullptr;
-   e[2] = e[2]->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
+    // check iterator expression
+    const QoreTypeInfo* iteratorTypeInfo = nullptr;
+    e[2] = e[2]->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
 
-   const QoreTypeInfo* expTypeInfo = nullptr;
-   const QoreTypeInfo* expTypeInfo2 = nullptr;
-   {
-      // set implicit argv arg type
-      ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
+    const QoreTypeInfo* expTypeInfo = nullptr;
+    const QoreTypeInfo* expTypeInfo2 = nullptr;
+    {
+        // set implicit argv arg type
+        ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
 
-      // check key expression
-      e[0] = e[0]->parseInit(oflag, pflag, lvids, expTypeInfo);
-      // check value expression2
-      e[1] = e[1]->parseInit(oflag, pflag, lvids, expTypeInfo2);
-   }
+        // check key expression
+        e[0] = e[0]->parseInit(oflag, pflag, lvids, expTypeInfo);
+        // check value expression2
+        e[1] = e[1]->parseInit(oflag, pflag, lvids, expTypeInfo2);
+    }
 
-   typeInfo = setReturnTypeInfo(returnTypeInfo, expTypeInfo2, iteratorTypeInfo);
+    typeInfo = setReturnTypeInfo(returnTypeInfo, expTypeInfo2, iteratorTypeInfo);
 
-   return this;
+    return this;
 }
 
 QoreHashNode* QoreHashMapOperatorNode::getNewHash() const {

@@ -360,26 +360,6 @@ public:
     // parse lock, making parsing actions atomic and thread-safe, also for runtime thread attachment
     mutable QoreThreadLock plock;
 
-    QoreThreadLock chl,      // complex hash lock
-        chonl,               // complex hash or nothing lock
-        cll,                 // complex list lock
-        clonl,               // complex list or nothing lock
-        crl,                 // complex reference lock
-        cronl,               // complex reference or nothing lock
-        csll,                // complex softlist lock
-        cslonl;              // complex softlist or nothing lock
-
-    typedef vector_map_t<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
-    //typedef std::map<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
-    tmap_t ch_map,          // complex hash map
-        chon_map,           // complex hash or nothing map
-        cl_map,             // complex list map
-        clon_map,           // complex list or nothing map
-        cr_map,             // complex reference map
-        cron_map,           // complex reference or nothing map
-        csl_map,            // complex softlist map
-        cslon_map;          // complex softlist or nothing map
-
     // set of signals being handled by code in this Program (to be deleted on exit)
     int_set_t sigset;
 
@@ -1776,17 +1756,9 @@ public:
 
    DLLLOCAL LocalVar* createLocalVar(const char* name, const QoreTypeInfo* typeInfo);
 
-   DLLLOCAL const QoreTypeInfo* getComplexHashType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexHashOrNothingType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexListType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexListOrNothingType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexReferenceType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexReferenceOrNothingType(const QoreTypeInfo* vti);
    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink);
 
    DLLLOCAL QoreValueList* runtimeFindCallVariants(const char* name, ExceptionSink* xsink);
-   DLLLOCAL const QoreTypeInfo* getComplexSoftListType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexSoftListOrNothingType(const QoreTypeInfo* vti);
 
    DLLLOCAL static const QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);

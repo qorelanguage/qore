@@ -118,23 +118,21 @@ int qore_hash_private::getLValue(const char* key, LValueHelper& lvh, bool for_re
     return 0;
 }
 
-int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, QoreParseListNode* args, const QoreTypeInfo*& argTypeInfo, const AbstractQoreNode*& arg) {
+int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, QoreParseListNode* args, const QoreTypeInfo*& argTypeInfo, QoreValue& arg) {
     assert(!lvids);
     assert(!argTypeInfo);
 
     if (!args || args->empty())
         return -1;
 
-    arg = nullptr;
     if (args->size() > 1) {
         parse_error(*loc, "illegal arguments to typed hash initialization; a single hash argument is expected; %d arguments supplied instead", (int)args->size());
         return -1;
     }
 
     // initialize argument
-    QoreValue& n = args->getReference(0);
-    parse_init_value(n, oflag, pflag & ~(PF_RETURN_VALUE_IGNORED), lvids, argTypeInfo);
-    arg = n.takeNode();
+    parse_init_value(args->getReference(0), oflag, pflag & ~(PF_RETURN_VALUE_IGNORED), lvids, argTypeInfo);
+    arg = args->get(0);
 
     if (!QoreTypeInfo::parseReturns(argTypeInfo, NT_HASH)) {
         parse_error(*loc, "illegal argument to typed hash initialization; a single hash argument is expected; got type '%s' instead", QoreTypeInfo::getName(argTypeInfo));
@@ -147,13 +145,13 @@ int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation* lo
 int qore_hash_private::parseInitComplexHashInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, const QoreTypeInfo* vti) {
     int lvids = 0;
     const QoreTypeInfo* argTypeInfo = nullptr;
-    const AbstractQoreNode* arg;
+    QoreValue arg;
     if (!parseInitHashInitialization(loc, oflag, pflag, lvids, args, argTypeInfo, arg))
-       parseCheckComplexHashInitialization(loc, vti, argTypeInfo, arg, "initialize", true);
+        parseCheckComplexHashInitialization(loc, vti, argTypeInfo, arg, "initialize", true);
     return lvids;
 }
 
-void qore_hash_private::parseCheckComplexHashInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* valueTypeInfo, const QoreTypeInfo* argTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool strict_check) {
+void qore_hash_private::parseCheckComplexHashInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* valueTypeInfo, const QoreTypeInfo* argTypeInfo, QoreValue exp, const char* context_action, bool strict_check) {
     const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(argTypeInfo);
     if (hd)
         typed_hash_decl_private::get(*hd)->parseCheckComplexHashAssignment(loc, valueTypeInfo);
@@ -169,10 +167,10 @@ void qore_hash_private::parseCheckComplexHashInitialization(const QoreProgramLoc
     }
 }
 
-void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation* loc, const AbstractQoreNode* arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check) {
-    switch (get_node_type(arg)) {
+void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation* loc, QoreValue arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check) {
+    switch (arg.getType()) {
         case NT_HASH: {
-            ConstHashIterator i(reinterpret_cast<const QoreHashNode*>(arg));
+            ConstHashIterator i(arg.get<const QoreHashNode>());
             while (i.next()) {
                 const QoreTypeInfo* kti = i.get().getTypeInfo();
                 bool may_not_match = false;
@@ -184,7 +182,7 @@ void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation* loc
             break;
         }
         case NT_PARSE_HASH: {
-            const QoreParseHashNode* phn = reinterpret_cast<const QoreParseHashNode*>(arg);
+            const QoreParseHashNode* phn = arg.get<const QoreParseHashNode>();
             const QoreParseHashNode::nvec_t& keys = phn->getKeys();
             const QoreParseHashNode::tvec_t& vtypes = phn->getValueTypes();
             assert(keys.size() == vtypes.size());
@@ -308,7 +306,7 @@ QoreHashNode::QoreHashNode(const QoreTypeInfo* valueTypeInfo) : QoreHashNode() {
     if (QoreTypeInfo::hasType(valueTypeInfo) || valueTypeInfo == autoTypeInfo) {
         priv->complexTypeInfo = valueTypeInfo == autoTypeInfo
             ? autoHashTypeInfo
-            : qore_program_private::get(*getProgram())->getComplexHashType(valueTypeInfo);
+            : qore_get_complex_hash_type(valueTypeInfo);
     }
 }
 

@@ -569,7 +569,7 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
     if (n.type == QV_Node && n.v.n == &Nothing)
         n.v.n = nullptr;
 
-    //printd(5, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getTypeName(), val, qv);
+    //printd(5, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getFullTypeName(), val, qv);
     if (check_types) {
         // check type for assignment
         QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
@@ -1545,7 +1545,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
                 if (!vtype || vtype == anyTypeInfo) {
                     vtype = autoTypeInfo;
                 }
-                qore_list_private::get(*v->get<QoreListNode>())->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+                qore_list_private::get(*v->get<QoreListNode>())->complexTypeInfo = qore_get_complex_list_type(vtype);
 
                 // now collapse the list by rewriting it without the elements removed
                 for (auto& i : iset) {
@@ -1689,7 +1689,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
 
             // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
             if (vtype && vtype != anyTypeInfo) {
-                qore_list_private::get(**v)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+                qore_list_private::get(**v)->complexTypeInfo = qore_get_complex_list_type(vtype);
             }
 
             // now collapse the list by rewriting it without the elements removed

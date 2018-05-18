@@ -78,7 +78,7 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
 
     // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
     if (vtype && vtype != anyTypeInfo) {
-        this->typeInfo = typeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+        this->typeInfo = typeInfo = qore_get_complex_list_type(vtype);
     }
     else {
         this->typeInfo = listTypeInfo;
@@ -87,7 +87,7 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
         typeInfo = vtypes.empty() ? emptyListTypeInfo : listTypeInfo;
     }
 
-    //printd(5, "QoreParseListNode::parseInitIntern() typeInfo: %p '%s'\n", typeInfo, QoreTypeInfo::getName(typeInfo));
+    //printd(5, "QoreParseListNode::parseInitIntern() this: %p size: %d typeInfo: %p '%s'\n", this, size(), typeInfo, QoreTypeInfo::getName(typeInfo));
 
     return needs_eval;
 }
@@ -105,7 +105,8 @@ AbstractQoreNode* QoreParseListNode::parseInitImpl(LocalVar* oflag, int pflag, i
 QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(needs_deref);
     ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
-    qore_list_private::get(**l)->reserve(values.size());
+    qore_list_private* ll = qore_list_private::get(**l);
+    ll->reserve(values.size());
 
     // issue #2106 we must calculate the runtime type again because lvalues can return NOTHING despite their declared type
     const QoreTypeInfo* vtype = nullptr;
@@ -131,10 +132,11 @@ QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
         if (this->vtype != vt && !QoreTypeInfo::hasComplexType(this->vtype) && QoreTypeInfo::hasComplexType(vt)) {
             // this can never throw an exception; it's only used for type folding/stripping
             QoreTypeInfo::acceptAssignment(this->vtype, "<type folding>", val, xsink);
-            assert(!*xsink);
+            // can be called with xsink == nullptr when called at parse time
+            assert(!xsink || !*xsink);
         }
 
-        l->push(val, nullptr);
+        ll->pushIntern(val);
     }
 
     ValueHolder rv(l.release(), xsink);
@@ -143,8 +145,10 @@ QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
     if (!vtype || vtype == anyTypeInfo) {
         vtype = autoTypeInfo;
     }
-    const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexListType(vtype);
-    qore_list_private::get(*rv->get<QoreListNode>())->complexTypeInfo = ti;
+    const QoreTypeInfo* ti = qore_get_complex_list_type(vtype);
+    ll->complexTypeInfo = ti;
+
+    //printd(5, "QoreParseListNode::evalValueImpl() this: %p size: %d typeInfo: %p '%s' (vtype: '%s')\n", this, size(), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::getName(vtype));
 
     return rv.release();
 }
@@ -157,9 +161,11 @@ int QoreParseListNode::initArgs(LocalVar* oflag, int pflag, type_vec_t& arg_type
     arg_types = std::move(vtypes);
 
     ReferenceHolder<QoreListNode> l(new QoreListNode(needs_eval()), nullptr);
-    qore_list_private::get(**l)->reserve(values.size());
+    qore_list_private* ll = qore_list_private::get(**l);
+    ll->complexTypeInfo = qore_get_complex_list_type(autoTypeInfo);
+    ll->reserve(values.size());
     for (auto& i : values) {
-        l->push(i, nullptr);
+        ll->pushIntern(i);
     }
     values.clear();
     args = l.release();

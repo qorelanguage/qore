@@ -138,33 +138,33 @@ static void add_args(QoreStringNode &desc, const QoreListNode* args) {
 }
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
-   : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(get_runtime_location()), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1), pgm(getProgram()), rtflags(0) {
-   if (self && !self->isValid()) {
-      assert(n_qc);
-      xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
-      return;
-   }
+    : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(get_runtime_location()), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1), pgm(getProgram()), rtflags(0) {
+    if (self && !self->isValid()) {
+        assert(n_qc);
+        xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
+        return;
+    }
 
-   tmp.assignEval(args);
-   if (*xsink)
-      return;
+    tmp.assignEval(args);
+    if (*xsink)
+        return;
 
-    init(func, variant, is_copy, cctx);
+        init(func, variant, is_copy, cctx);
 }
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
-   : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(get_runtime_location()), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1), pgm(getProgram()), rtflags(0) {
-   if (self && !self->isValid()) {
-      assert(n_qc);
-      xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
-      return;
-   }
+    : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc), loc(get_runtime_location()), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1), pgm(getProgram()), rtflags(0) {
+    if (self && !self->isValid()) {
+        assert(n_qc);
+        xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
+        return;
+    }
 
-   tmp.assignEval(args);
-   if (*xsink)
-      return;
+    tmp.assignEval(args);
+    if (*xsink)
+        return;
 
-    init(func, variant, is_copy, cctx);
+        init(func, variant, is_copy, cctx);
 }
 
 CodeEvaluationHelper::~CodeEvaluationHelper() {

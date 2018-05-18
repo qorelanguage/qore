@@ -235,7 +235,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreVa
 
             // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
             if (vtype && vtype != anyTypeInfo) {
-                qore_list_private::get(**ret)->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+                qore_list_private::get(**ret)->complexTypeInfo = qore_get_complex_list_type(vtype);
             }
 
             return ret.release();
@@ -329,7 +329,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
 
                     ret->push(entry->takeNode(), xsink);
 
-                    //printd(5, "%d: vc: %d vtype: '%s' et: '%s'\n", it.index(), (int)vcommon, QoreTypeInfo::getName(vtype), QoreTypeInfo::getName(entry->getTypeInfo()));
+                    //printd(5, "QoreSquareBracketsOperatorNode::doSquareBrackets() i: %d: vc: %d vtype: '%s' et: '%s'\n", it.index(), (int)vcommon, QoreTypeInfo::getName(vtype), QoreTypeInfo::getName(entry->getTypeInfo()));
                 }
 
                 ValueHolder rv(ret.release(), xsink);
@@ -339,11 +339,13 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
                     vtype = autoTypeInfo;
                 }
 
-                const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexListType(vtype);
+                const QoreTypeInfo* ti = qore_get_complex_list_type(vtype);
                 qore_list_private::get(*rv->get<QoreListNode>())->complexTypeInfo = ti;
                 if (QoreTypeInfo::hasType(vtype)) {
                     QoreTypeInfo::acceptAssignment(ti, "<type folding>", *rv, xsink);
                 }
+
+                //printd(5, "QoreSquareBracketsOperatorNode::doSquareBrackets() vc: %d vtype: '%s' ti: '%s'\n", (int)vcommon, QoreTypeInfo::getName(vtype), QoreTypeInfo::getName(ti));
 
                 return rv.release();
             }
@@ -371,8 +373,9 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
     // rhs not a list, handled as an integer offset
     int64 offset = r.getAsBigInt();
     switch (left_type) {
-        case NT_LIST:
+        case NT_LIST: {
             return l.get<const QoreListNode>()->getReferencedEntry(offset);
+        }
         case NT_STRING:
             return l.get<const QoreStringNode>()->substr(offset, 1, xsink);
         case NT_BINARY: {

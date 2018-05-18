@@ -219,7 +219,7 @@ QoreListNode::QoreListNode(bool i) : AbstractQoreNode(NT_LIST, !i, i), priv(new 
 
 QoreListNode::QoreListNode(const QoreTypeInfo* valueTypeInfo) : QoreListNode() {
     if (QoreTypeInfo::hasType(valueTypeInfo) || valueTypeInfo == autoTypeInfo) {
-        priv->complexTypeInfo = qore_program_private::get(*getProgram())->getComplexListType(valueTypeInfo);
+        priv->complexTypeInfo = qore_get_complex_list_type(valueTypeInfo);
     }
 }
 
@@ -505,11 +505,13 @@ QoreListNode* QoreListNode::sortDescending(const ResolvedCallReferenceNode* fr, 
 
 QoreListNode* qore_list_private::eval(ExceptionSink* xsink) {
     ReferenceHolder<QoreListNode> nl(getCopy(), xsink);
+    //printd(5, "qore_list_private::eval() '%s' -> '%s'\n", QoreTypeInfo::getName(complexTypeInfo), get_full_type_name(*nl));
     for (qore_size_t i = 0; i < length; ++i) {
         ValueEvalRefHolder v(entry[i], xsink);
         if (*xsink) {
             return nullptr;
         }
+        //printd(5, "qore_list_private::eval() %d: '%s'\n", i, v->getFullTypeName());
         nl->push(v.takeReferencedValue(), xsink);
         assert(!*xsink);
     }

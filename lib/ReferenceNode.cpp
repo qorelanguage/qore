@@ -1,31 +1,31 @@
 /*
-  ReferenceNode.h
+    ReferenceNode.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -35,70 +35,70 @@ IntermediateParseReferenceNode::IntermediateParseReferenceNode(const QoreProgram
 }
 
 AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObject*& self, const void*& lvalue_id, const qore_class_private*& qc, ExceptionSink* xsink) const {
-   qore_type_t ntype = n->getType();
+    qore_type_t ntype = n->getType();
 
-   //printd(5, "ParseReferenceNode::doPartialEval() this: %p type: '%s' %d '%s'\n", this, get_type_name(n), ntype, QoreTypeInfo::getName(typeInfo));
+    //printd(5, "ParseReferenceNode::doPartialEval() this: %p type: '%s' %d '%s'\n", this, get_type_name(n), ntype, QoreTypeInfo::getName(typeInfo));
 
-   if (ntype == NT_SELF_VARREF) {
-      assert(!self);
-      runtime_get_object_and_class(self, qc);
-      lvalue_id = self;
-      return n->refSelf();
-   }
+    if (ntype == NT_SELF_VARREF) {
+        assert(!self);
+        runtime_get_object_and_class(self, qc);
+        lvalue_id = self;
+        return n->refSelf();
+    }
 
-   if (ntype == NT_VARREF) {
-      VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
-      //printd(5, "ParseReferenceNode::doPartialEval() this: %p v: '%s' type: %d\n", this, v->getName(), v->getType());
-      if (v->getType() == VT_CLOSURE) {
-         const char* name = v->ref.id->getName();
-         ClosureVarValue* cvv = thread_get_runtime_closure_var(v->ref.id);
-         //assert(QoreTypeInfo::equal(cvv->typeInfo, v->ref.id->getTypeInfo()));
-         return cvv->getReference(loc, name, lvalue_id);
-      }
+    if (ntype == NT_VARREF) {
+        VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
+        //printd(5, "ParseReferenceNode::doPartialEval() this: %p v: '%s' type: %d\n", this, v->getName(), v->getType());
+        if (v->getType() == VT_CLOSURE) {
+            const char* name = v->ref.id->getName();
+            ClosureVarValue* cvv = thread_get_runtime_closure_var(v->ref.id);
+            //assert(QoreTypeInfo::equal(cvv->typeInfo, v->ref.id->getTypeInfo()));
+            return cvv->getReference(loc, name, lvalue_id);
+        }
 
-      if (v->getType() == VT_LOCAL_TS) {
-         const char* name = v->ref.id->getName();
-         ClosureVarValue* cvv = thread_find_closure_var(name);
-         //assert(QoreTypeInfo::equal(cvv->typeInfo, v->ref.id->getTypeInfo()));
-         return cvv->getReference(loc, name, lvalue_id);
-      }
-   }
+        if (v->getType() == VT_LOCAL_TS) {
+            const char* name = v->ref.id->getName();
+            ClosureVarValue* cvv = thread_find_closure_var(name);
+            //assert(QoreTypeInfo::equal(cvv->typeInfo, v->ref.id->getTypeInfo()));
+            return cvv->getReference(loc, name, lvalue_id);
+        }
+    }
 
-   if (ntype == NT_OPERATOR) {
-      {
-         QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
-         if (op) {
-            ValueEvalRefHolder rh(op->getRight(), xsink);
-            if (*xsink)
-               return nullptr;
+    if (ntype == NT_OPERATOR) {
+        {
+            QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
+            if (op) {
+                ValueEvalRefHolder rh(op->getRight(), xsink);
+                if (*xsink)
+                    return nullptr;
 
-            AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, qc, xsink);
-            if (*xsink) {
-               assert(!nl);
-               return nullptr;
+                AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, qc, xsink);
+                if (*xsink) {
+                    assert(!nl);
+                    return nullptr;
+                }
+                return new QoreSquareBracketsOperatorNode(loc, nl, rh.getReferencedValue());
             }
-            return new QoreSquareBracketsOperatorNode(loc, nl, rh.getReferencedValue());
-         }
-      }
-      {
-         QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(n);
-         if (op) {
-            ValueEvalRefHolder rh(op->getRight(), xsink);
-            if (*xsink)
-               return nullptr;
+        }
+        {
+            QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(n);
+            if (op) {
+                ValueEvalRefHolder rh(op->getRight(), xsink);
+                if (*xsink)
+                    return nullptr;
 
-            AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, qc, xsink);
-            if (*xsink) {
-               assert(!nl);
-               return nullptr;
+                AbstractQoreNode* nl = doPartialEval(op->getLeft(), self, lvalue_id, qc, xsink);
+                if (*xsink) {
+                    assert(!nl);
+                    return nullptr;
+                }
+                return new QoreHashObjectDereferenceOperatorNode(loc, nl, rh.getReferencedValue());
             }
-            return new QoreHashObjectDereferenceOperatorNode(loc, nl, rh.getReferencedValue());
-         }
-      }
-   }
+        }
+    }
 
-   lvalue_id = n;
-   return n->refSelf();
+    lvalue_id = n;
+    return n->refSelf();
 }
 
 ReferenceNode* ParseReferenceNode::evalToRef(ExceptionSink* xsink) const {
@@ -121,49 +121,49 @@ IntermediateParseReferenceNode* ParseReferenceNode::evalToIntermediate(Exception
 }
 
 AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
-   returnTypeInfo = typeInfo;
-   if (!lvexp)
-      return this;
+    returnTypeInfo = typeInfo;
+    if (!lvexp)
+        return this;
 
-   const QoreTypeInfo* argTypeInfo = nullptr;
-   lvexp = lvexp->parseInit(oflag, pflag, lvids, argTypeInfo);
-   if (!lvexp)
-      return this;
+    const QoreTypeInfo* argTypeInfo = nullptr;
+    lvexp = lvexp->parseInit(oflag, pflag, lvids, argTypeInfo);
+    if (!lvexp)
+        return this;
 
-   if (check_lvalue(lvexp)) {
-      parse_error(*loc, "the reference operator was expecting an lvalue, got '%s' instead", lvexp->getTypeName());
-      return this;
-   }
-   //printd(5, "ParseReferenceNode::parseInitImpl() lv: '%s'\n", QoreTypeInfo::getName(argTypeInfo));
-   // check lvalue, and convert "normal" local vars to thread-safe local vars
-   AbstractQoreNode* n = lvexp;
-   while (true) {
-      qore_type_t ntype = n->getType();
-      // references to objects members and static class vars are already thread-safe
-      if (ntype == NT_SELF_VARREF || ntype == NT_CLASS_VARREF)
-         break;
-      if (ntype == NT_VARREF) {
-         reinterpret_cast<VarRefNode*>(n)->setThreadSafe();
-         break;
-      }
-      assert(ntype == NT_OPERATOR);
-      {
-         QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
-         if (op) {
-            n = op->getLeft();
-            continue;
-         }
-      }
-      assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n));
-      QoreHashObjectDereferenceOperatorNode* op = reinterpret_cast<QoreHashObjectDereferenceOperatorNode*>(n);
-      n = op->getLeft();
-   }
+    if (check_lvalue(lvexp)) {
+        parse_error(*loc, "the reference operator was expecting an lvalue, got '%s' instead", lvexp->getTypeName());
+        return this;
+    }
+    //printd(5, "ParseReferenceNode::parseInitImpl() lv: '%s'\n", QoreTypeInfo::getName(argTypeInfo));
+    // check lvalue, and convert "normal" local vars to thread-safe local vars
+    AbstractQoreNode* n = lvexp;
+    while (true) {
+        qore_type_t ntype = n->getType();
+        // references to objects members and static class vars are already thread-safe
+        if (ntype == NT_SELF_VARREF || ntype == NT_CLASS_VARREF)
+            break;
+        if (ntype == NT_VARREF) {
+            reinterpret_cast<VarRefNode*>(n)->setThreadSafe();
+            break;
+        }
+        assert(ntype == NT_OPERATOR);
+        {
+            QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n);
+            if (op) {
+                n = op->getLeft();
+                continue;
+            }
+        }
+        assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n));
+        QoreHashObjectDereferenceOperatorNode* op = reinterpret_cast<QoreHashObjectDereferenceOperatorNode*>(n);
+        n = op->getLeft();
+    }
 
-   if (QoreTypeInfo::hasType(argTypeInfo)) {
-      returnTypeInfo = typeInfo = qore_program_private::get(*getProgram())->getComplexReferenceType(argTypeInfo);
-   }
-   //printd(5, "ParseReferenceNode::parseInitImpl() thid: %p '%s' -> '%s'\n", this, QoreTypeInfo::getName(argTypeInfo), QoreTypeInfo::getName(typeInfo));
-   return this;
+    if (QoreTypeInfo::hasType(argTypeInfo)) {
+        returnTypeInfo = typeInfo = qore_get_complex_reference_type(argTypeInfo);
+    }
+    //printd(5, "ParseReferenceNode::parseInitImpl() thid: %p '%s' -> '%s'\n", this, QoreTypeInfo::getName(argTypeInfo), QoreTypeInfo::getName(typeInfo));
+    return this;
 }
 
 ReferenceNode::ReferenceNode(AbstractQoreNode* exp, const QoreTypeInfo* typeInfo, QoreObject* self, const void* lvalue_id, const qore_class_private* cls) : AbstractQoreNode(NT_REFERENCE, false, true), priv(new lvalue_ref(exp, typeInfo, self, lvalue_id, cls)) {

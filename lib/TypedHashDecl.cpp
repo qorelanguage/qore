@@ -81,14 +81,14 @@ int typed_hash_decl_private::parseInitHashDeclInitialization(const QoreProgramLo
 
     int lvids = 0;
     const QoreTypeInfo* argTypeInfo = nullptr;
-    const AbstractQoreNode* arg;
+    QoreValue arg;
     if (!qore_hash_private::parseInitHashInitialization(loc, oflag, pflag, lvids, args, argTypeInfo, arg))
         parseCheckHashDeclInitialization(loc, argTypeInfo, arg, "initializer value", runtime_check, true);
 
     return lvids;
 }
 
-void typed_hash_decl_private::parseCheckHashDeclInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool& runtime_check, bool strict_check) const {
+void typed_hash_decl_private::parseCheckHashDeclInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* expTypeInfo, QoreValue exp, const char* context_action, bool& runtime_check, bool strict_check) const {
     const TypedHashDecl* hd2 = QoreTypeInfo::getUniqueReturnHashDecl(expTypeInfo);
     if (hd2)
         parseCheckHashDeclAssignment(loc, *hd2->priv, context_action, runtime_check, strict_check);
@@ -121,12 +121,12 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
 }
 
 // see if the assignment is valid
-void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLocation* loc, const AbstractQoreNode* n, const char* context, bool& runtime_check, bool strict_check) const {
+void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLocation* loc, QoreValue n, const char* context, bool& runtime_check, bool strict_check) const {
     assert(!runtime_check);
 
-    switch (get_node_type(n)) {
+    switch (n.getType()) {
         case NT_HASH: {
-            ConstHashIterator i(reinterpret_cast<const QoreHashNode*>(n));
+            ConstHashIterator i(n.get<const QoreHashNode>());
             while (i.next()) {
                 HashDeclMemberInfo* m = members.find(i.getKey());
                 if (!m)
@@ -145,7 +145,7 @@ void typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLoca
             break;
         }
         case NT_PARSE_HASH: {
-            const QoreParseHashNode* phn = reinterpret_cast<const QoreParseHashNode*>(n);
+            const QoreParseHashNode* phn = n.get<const QoreParseHashNode>();
             const QoreParseHashNode::nvec_t& keys = phn->getKeys();
             const QoreParseHashNode::tvec_t& vtypes = phn->getValueTypes();
             assert(keys.size() == vtypes.size());
