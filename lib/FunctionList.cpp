@@ -143,7 +143,7 @@ QoreListNode* FunctionList::getList() {
     QoreListNode* l = new QoreListNode;
 
     for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
-        l->push(new QoreStringNode(i->first));
+        l->push(new QoreStringNode(i->first), nullptr);
 
     return l;
 }

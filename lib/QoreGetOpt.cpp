@@ -95,7 +95,7 @@ static void addError(QoreHashNode* h, QoreStringNode* err) {
         ha.assign(l, 0);
     }
 
-    l->push(err);
+    l->push(err, nullptr);
 }
 
 // private, static method
@@ -166,7 +166,7 @@ void QoreGetOpt::doOption(class QoreGetOptNode* n, class QoreHashNode* h, const 
             ha.assign(l, nullptr);
         }
         //else printf("cv->getType()=%s\n", cv->getTypeName());
-        l->push(v.takeNode());
+        l->push(v, nullptr);
         return;
     }
 
@@ -188,127 +188,131 @@ void QoreGetOpt::doOption(class QoreGetOptNode* n, class QoreHashNode* h, const 
 char* QoreGetOpt::getNextArgument(QoreListNode* l, QoreHashNode* h, unsigned& i, const char* lopt, char sopt) {
     if (i < (l->size() - 1)) {
         i++;
-        QoreStringNode* n = dynamic_cast<QoreStringNode* >(l->retrieve_entry(i));
-        if (n)
+        QoreValue v = l->retrieveEntry(i);
+        QoreStringNode* n = v.getType() == NT_STRING ? v.get<QoreStringNode>() : nullptr;
+        if (n) {
             return (char*)n->c_str();
+        }
     }
     QoreStringNode* err = new QoreStringNode;
-    if (lopt)
+    if (lopt) {
         err->sprintf("long option '--%s' requires an argument", lopt);
-    else
+    }
+    else {
         err->sprintf("short option '-%c' requires an argument", sopt);
+    }
     addError(h, err);
     return nullptr;
 }
 
 void QoreGetOpt::processLongArg(const char* arg, QoreListNode* l, class QoreHashNode* h, unsigned &i, bool modify) {
-   const char* opt;
-   char* val;
+    const char* opt;
+    char* val;
 
-   // get a copy of the argument
-   QoreString vstr(arg);
-   arg = vstr.getBuffer();
+    // get a copy of the argument
+    QoreString vstr(arg);
+    arg = vstr.getBuffer();
 
-   // see if there is an assignment character
-   char* tok = (char* )strchr(arg, '=');
-   if (tok) {
-      (*tok) = '\0';
-      opt = arg;
-      val = tok + 1;
-   }
-   else {
-      opt = arg;
-      val = 0;
-   }
-   // find option
-   QoreGetOptNode* w = find(opt);
-   if (!w) {
-      QoreStringNode* err = new QoreStringNodeMaker("unknown long option '--%s'", opt);
+    // see if there is an assignment character
+    char* tok = (char* )strchr(arg, '=');
+    if (tok) {
+        (*tok) = '\0';
+        opt = arg;
+        val = tok + 1;
+    }
+    else {
+        opt = arg;
+        val = 0;
+    }
+    // find option
+    QoreGetOptNode* w = find(opt);
+    if (!w) {
+        QoreStringNode* err = new QoreStringNodeMaker("unknown long option '--%s'", opt);
 
-      addError(h, err);
-      return;
-   }
-   bool do_modify = false;
-   // if we need a value and there isn't one, then try to get the next argument in the list
-   if (w->argtype && !val && (w->option & QGO_OPT_MANDATORY)) {
-      val = (char* )getNextArgument(l, h, i, opt, '\0');
-      if (val && modify)
-         do_modify = true;
-      if (!val)
-         return;
-   }
-   doOption(w, h, val);
-   if (do_modify)
-      l->pop_entry(--i, 0);
+        addError(h, err);
+        return;
+    }
+    bool do_modify = false;
+    // if we need a value and there isn't one, then try to get the next argument in the list
+    if (w->argtype && !val && (w->option & QGO_OPT_MANDATORY)) {
+        val = (char* )getNextArgument(l, h, i, opt, '\0');
+        if (val && modify)
+            do_modify = true;
+        if (!val)
+            return;
+    }
+    doOption(w, h, val);
+    if (do_modify)
+        l->splice(--i, 1, nullptr);
 }
 
 int QoreGetOpt::processShortArg(const char* arg, QoreListNode* l, class QoreHashNode* h, unsigned &i, int &j, bool modify) {
-   char opt = (arg + j)[0];
-   // find option
-   QoreGetOptNode* w = find(opt);
-   if (!w) {
-      QoreStringNode* err = new QoreStringNodeMaker("unknown short option '-%c'", opt);
-      addError(h, err);
-      return 0;
-   }
-   bool do_modify = false;
-   const char* val = 0;
-   if (w->argtype != -1) {
-      if ((j < (signed)(strlen(arg) - 1))
-          && ((w->option & QGO_OPT_MANDATORY) || ((arg + j + 1)[0] == '='))) {
-         val = arg + j + 1;
-         if (*val == '=')
-            val++;
-         j = 0;
-      }
-      else if (w->option & QGO_OPT_MANDATORY) {
-         if (!(val = getNextArgument(l, h, i, 0, opt)))
-            return 0;
-         if (modify)
-            do_modify = true;
-      }
-   }
-   doOption(w, h, val);
-   if (do_modify)
-      l->pop_entry(--i, 0);
-   //printd(5, "processShortArg(%c) val=%p %s returning %d\n", opt, val, val, !j);
-   return !j;
+    char opt = (arg + j)[0];
+    // find option
+    QoreGetOptNode* w = find(opt);
+    if (!w) {
+        QoreStringNode* err = new QoreStringNodeMaker("unknown short option '-%c'", opt);
+        addError(h, err);
+        return 0;
+    }
+    bool do_modify = false;
+    const char* val = 0;
+    if (w->argtype != -1) {
+        if ((j < (signed)(strlen(arg) - 1))
+            && ((w->option & QGO_OPT_MANDATORY) || ((arg + j + 1)[0] == '='))) {
+            val = arg + j + 1;
+            if (*val == '=')
+                val++;
+            j = 0;
+        }
+        else if (w->option & QGO_OPT_MANDATORY) {
+            if (!(val = getNextArgument(l, h, i, 0, opt)))
+                return 0;
+            if (modify)
+                do_modify = true;
+        }
+    }
+    doOption(w, h, val);
+    if (do_modify)
+        l->splice(--i, 1, nullptr);
+    //printd(5, "processShortArg(%c) val=%p %s returning %d\n", opt, val, val, !j);
+    return !j;
 }
 
 QoreHashNode* QoreGetOpt::parse(QoreListNode* l, bool modify, ExceptionSink *xsink) {
-   QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode;
 
-   for (unsigned i = 0; i < l->size(); i++) {
-      //printf("QoreGetOpt::parse() %d/%d\n", i, l->size());
-      AbstractQoreNode* n = l->retrieve_entry(i);
-      if (get_node_type(n) != NT_STRING)
-         continue;
-
-      QoreStringNode* str = reinterpret_cast<QoreStringNode*>(n);
-      const char* arg = str->getBuffer();
-
-      if (arg[0] == '-') {
-         if (!arg[1])
+    for (unsigned i = 0; i < l->size(); ++i) {
+        //printf("QoreGetOpt::parse() %d/%d\n", i, l->size());
+        QoreValue n = l->retrieveEntry(i);
+        if (n.getType() != NT_STRING)
             continue;
-         if (arg[1] == '-') {
-            if (!arg[2])
-               break;
-            processLongArg(arg + 2, l, h, i, modify);
-            if (modify) {
-               //printd(5, "parse() opt=%s size=%d\n", arg, l->size());
-               l->pop_entry(i--, 0);
-               //printd(5, "parse() popped entry, size=%d\n", l->size());
+
+        QoreStringNode* str = n.get<QoreStringNode>();
+        const char* arg = str->c_str();
+
+        if (arg[0] == '-') {
+            if (!arg[1])
+                continue;
+            if (arg[1] == '-') {
+                if (!arg[2])
+                    break;
+                processLongArg(arg + 2, l, h, i, modify);
+                if (modify) {
+                    //printd(5, "parse() opt=%s size=%d\n", arg, l->size());
+                    l->splice(i--, 1, xsink);
+                    //printd(5, "parse() popped entry, size=%d\n", l->size());
+                }
+                continue;
             }
-            continue;
-         }
-         int len = strlen(arg);
-         for (int j = 1; j < len; j++)
-            if (processShortArg(arg, l, h, i, j, modify))
-               break;
-         if (modify)
-            l->pop_entry(i--, 0);
-      }
-   }
-   //printd(5, "QoreGetOpt::parse() returning h=%p (size %d)\n", h, h->size());
-   return h;
+            int len = strlen(arg);
+            for (int j = 1; j < len; j++)
+                if (processShortArg(arg, l, h, i, j, modify))
+                    break;
+            if (modify)
+                l->splice(i--, 1, xsink);
+        }
+    }
+    //printd(5, "QoreGetOpt::parse() returning h=%p (size %d)\n", h, h->size());
+    return h;
 }

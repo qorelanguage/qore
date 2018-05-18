@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  qpp.cpp
+    qpp.cpp
 
-  Qore Pre-Processor
+    Qore Pre-Processor
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 // cannot include Qore.h with the Oracle Sun Studio compiler
@@ -982,7 +982,7 @@ static int get_dox_value(const std::string& qv, std::string& v) {
     return 0;
 }
 
-static int get_qore_value(const std::string& qv, std::string& v, const char* cname = nullptr, const char** prefix = nullptr) {
+static int get_qore_value(const std::string& qv, std::string& v, const char* cname = nullptr, const char** prefix = nullptr, bool force_node = false) {
     if (qv[0] == '{') {
         size_t i = qv.find('}', 1);
         if (i == std::string::npos) {
@@ -1036,14 +1036,14 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
         }
 
         case T_INT: {
-            v = "new QoreBigIntNode(";
+            v = force_node ? "new QoreBigIntNode(" : "((int64)";
             v += qv;
             v += ")";
             return 0;
         }
 
         case T_FLOAT: {
-            v = "new QoreFloatNode(";
+            v = force_node ? "new QoreFloatNode(" : "((double)";
             v += qv;
             v += ")";
             return 0;
@@ -1064,7 +1064,7 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
         }
 
         case T_BOOL: {
-            v = "get_bool_node(";
+            v = force_node ? "get_bool_node(": "((bool)";
             v.append(qv, 5, qv.size() - 6);
             v += ")";
             return 0;
@@ -1862,7 +1862,7 @@ protected:
                     fputs("NULL", fp);
                 else {
                     std::string vs;
-                    if (get_qore_value(params[i].val, vs))
+                    if (get_qore_value(params[i].val, vs, nullptr, nullptr, true))
                         return -1;
                     fputs(vs.c_str(), fp);
                 }

@@ -83,7 +83,7 @@ QoreValue QoreUnshiftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
     // value is not a list, so throw exception
     if (val.getType() != NT_LIST) {
         // no need to check for PO_STRICT_ARGS; this exception was always thrown
-        xsink->raiseException(*loc, "UNSHIFT-ERROR", nullptr, "the lvalue argument to unshift is type \"%s\"; expecting \"list\"", val.getTypeName());
+        xsink->raiseException(*loc, "UNSHIFT-ERROR", QoreValue(), "the lvalue argument to unshift is type \"%s\"; expecting \"list\"", val.getTypeName());
         return QoreValue();
     }
 
@@ -92,7 +92,7 @@ QoreValue QoreUnshiftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
 
     QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
 
-    l->insert(res.getReferencedValue());
+    l->insert(res.takeReferencedValue(), xsink);
 
     // reference for return value
     return ref_rv ? l->refSelf() : QoreValue();

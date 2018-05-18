@@ -268,7 +268,7 @@ public:
    /** @par Example:
        @code
        // the actual function can be declared with the class to be expected as the private data as follows:
-       static QoreValue AL_lock(QoreObject* self, QoreAutoLock* m, const QoreValueList* args, q_rt_flags_t rtflag, ExceptionSink* xsink);
+       static QoreValue AL_lock(QoreObject* self, QoreAutoLock* m, const QoreListNode* args, q_rt_flags_t rtflag, ExceptionSink* xsink);
        ...
        // and then casted to (q_method_t) in the addMethod call:
        QC_AutoLock->addMethod("lock", (q_method_n_t)AL_lock, Public, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
@@ -300,7 +300,7 @@ public:
    /** @par Example:
        @code
        // the actual function can be declared with the class to be expected as the private data as follows:
-       static QoreValue AL_lock(const QoreMethod& method, const void* ptr, QoreObject* self, QoreAutoLock* m, const QoreValueList* args, q_rt_flags_t flags, ExceptionSink* xsink)
+       static QoreValue AL_lock(const QoreMethod& method, const void* ptr, QoreObject* self, QoreAutoLock* m, const QoreListNode* args, q_rt_flags_t flags, ExceptionSink* xsink)
        ...
        // and then casted to (q_method_t) in the addMethod call:
        QC_AutoLock->addMethod(nullptr, "lock", (q_external_method_t)AL_lock, Public, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
@@ -345,7 +345,7 @@ public:
    /** @par Example:
        @code
        // the actual function can be declared with the class to be expected as the private data as follows:
-       static QoreValue AL_lock(QoreObject* self, QoreAutoLock* m, const QoreValueList* args, q_rt_flags_t rtflag, ExceptionSink* xsink);
+       static QoreValue AL_lock(QoreObject* self, QoreAutoLock* m, const QoreListNode* args, q_rt_flags_t rtflag, ExceptionSink* xsink);
        ...
        // and then casted to (q_method_t) in the addMethod call:
        QC_AutoLock->addMethod("lock", (q_method_n_t)AL_lock, Public, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
@@ -753,17 +753,6 @@ public:
        @param xsink Qore-language exception information is added here
 
        @return the object created
-   */
-   DLLEXPORT QoreObject* execConstructor(const QoreValueList* args, ExceptionSink* xsink) const;
-
-   //! creates a new object and executes the constructor on it and returns the new object
-   /** if a Qore-language exception occurs, 0 is returned.
-       @param args the arguments for the method
-       @param xsink Qore-language exception information is added here
-
-       @return the object created
-
-       @deprecated use execConstructor(const QoreValueList*, ExceptionSink*) instead
    */
    DLLEXPORT QoreObject* execConstructor(const QoreListNode* args, ExceptionSink* xsink) const;
 

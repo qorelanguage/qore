@@ -233,7 +233,7 @@ AstTreeSearcher::constructor() {
         location->setKeyValue("range", range.release(), xsink);
         if (xsink && *xsink)
             return QoreValue();
-        lst->push(location.release());
+        lst->push(location.release(), xsink);
     }
 
     return lst.release();
@@ -286,7 +286,7 @@ AstTreeSearcher::constructor() {
         symbolInfo->setKeyValue("location", location.release(), xsink);
         if (xsink && *xsink)
             return QoreValue();
-        lst->push(symbolInfo.release());
+        lst->push(symbolInfo.release(), xsink);
     }
 
     return lst.release();
@@ -342,7 +342,7 @@ AstTreeSearcher::constructor() {
         symbolInfo->setKeyValue("location", location.release(), xsink);
         if (xsink && *xsink)
             return QoreValue();
-        lst->push(symbolInfo.release());
+        lst->push(symbolInfo.release(), xsink);
     }
 
     return lst.release();

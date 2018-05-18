@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  thread.cpp
+    thread.cpp
 
-  threading functionality for Qore
+    threading functionality for Qore
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -508,41 +508,42 @@ bool ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
 }
 
 void ThreadProgramData::del(ExceptionSink* xsink) {
-   // first purge all data
-   arg_vec_t* cl = 0;
+    // first purge all data
+    arg_vec_t* cl = 0;
 
-   // remove and finalize all thread-local data in all referenced programs
-   {
-      AutoLocker al(pslock);
-      for (pgm_set_t::iterator i = pgm_set.begin(), e = pgm_set.end(); i != e; ++i)
-         qore_program_private::finalizeThreadData(*i, this, cl);
-   }
+    // remove and finalize all thread-local data in all referenced programs
+    {
+        AutoLocker al(pslock);
+        for (pgm_set_t::iterator i = pgm_set.begin(), e = pgm_set.end(); i != e; ++i)
+            qore_program_private::finalizeThreadData(*i, this, cl);
+    }
 
-   // delete thread-local data
-   if (cl) {
-      for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i)
-         (*i)->deref(xsink);
-      delete cl;
-   }
+    // delete thread-local data
+    if (cl) {
+        for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i) {
+            (*i).discard(xsink);
+        }
+        delete cl;
+    }
 
-   // purge thread data in contained programs
-   while (true) {
-      QoreProgram* pgm;
-      {
-         AutoLocker al(pslock);
-         pgm_set_t::iterator i = pgm_set.begin();
-         if (i == pgm_set.end())
-            break;
+    // purge thread data in contained programs
+    while (true) {
+        QoreProgram* pgm;
+        {
+            AutoLocker al(pslock);
+            pgm_set_t::iterator i = pgm_set.begin();
+            if (i == pgm_set.end())
+                break;
 
-         pgm = (*i);
-         pgm_set.erase(i);
-      }
-      //printd(5, "ThreadProgramData::del() this: %p pgm: %p\n", this, pgm);
-      pgm->depDeref();
-      // only dereference the current object if the thread was deleted from the program
-      if (!qore_program_private::endThread(pgm, this, xsink))
-         deref();
-   }
+            pgm = (*i);
+            pgm_set.erase(i);
+        }
+        //printd(5, "ThreadProgramData::del() this: %p pgm: %p\n", this, pgm);
+        pgm->depDeref();
+        // only dereference the current object if the thread was deleted from the program
+        if (!qore_program_private::endThread(pgm, this, xsink))
+            deref();
+    }
 }
 
 int ThreadProgramData::gettid() {
@@ -1474,24 +1475,25 @@ ArgvContextHelper::~ArgvContextHelper() {
 }
 
 SingleArgvContextHelper::SingleArgvContextHelper(QoreValue val, ExceptionSink* n_xsink) : xsink(n_xsink) {
-   //printd(5, "SingleArgvContextHelper::SingleArgvContextHelper() this: %p arg: %p (%s)\n", this, val, val ? val->getTypeName() : 0);
-   ThreadData* td  = thread_data.get();
-   old_argv = td->current_implicit_arg;
-   QoreListNode* argv;
-   if (!val.isNothing()) {
-      argv = new QoreListNode;
-      argv->push(val.takeNode());
-   }
-   else
-      argv = 0;
-   td->current_implicit_arg = argv;
+    //printd(5, "SingleArgvContextHelper::SingleArgvContextHelper() this: %p arg: %p (%s)\n", this, val, val ? val->getTypeName() : 0);
+    ThreadData* td = thread_data.get();
+    old_argv = td->current_implicit_arg;
+    QoreListNode* argv;
+    if (!val.isNothing()) {
+        argv = new QoreListNode;
+        argv->push(val, n_xsink);
+    }
+    else {
+        argv = nullptr;
+    }
+    td->current_implicit_arg = argv;
 }
 
 SingleArgvContextHelper::~SingleArgvContextHelper() {
-   ThreadData* td  = thread_data.get();
-   if (td->current_implicit_arg)
-      td->current_implicit_arg->deref(xsink);
-   td->current_implicit_arg = old_argv;
+    ThreadData* td = thread_data.get();
+    if (td->current_implicit_arg)
+        td->current_implicit_arg->deref(xsink);
+    td->current_implicit_arg = old_argv;
 }
 
 const QoreListNode* thread_get_implicit_args() {
@@ -2488,14 +2490,15 @@ void delete_qore_threads() {
 }
 
 QoreListNode* get_thread_list() {
-   QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode;
 
-   QoreThreadListIterator i;
+    QoreThreadListIterator i;
 
-   while (i.next())
-      l->push(new QoreBigIntNode(*i));
+    while (i.next()) {
+        l->push(*i, nullptr);
+    }
 
-   return l;
+    return l;
 }
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE

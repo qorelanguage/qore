@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,85 +42,87 @@ extern QoreClass* QC_LISTHASHITERATOR;
 // the c++ object
 class QoreListHashIterator : public QoreListIterator {
 protected:
-   DLLLOCAL virtual ~QoreListHashIterator() {
-   }
+    DLLLOCAL virtual ~QoreListHashIterator() {
+    }
 
-   DLLLOCAL const QoreHashNode* checkHash(ExceptionSink* xsink) const {
-      if (checkPtr(xsink))
-         return 0;
-      const AbstractQoreNode* n = getValue();
-      if (get_node_type(n) != NT_HASH) {
-         xsink->raiseException("ITERATOR-ERROR", "The %s object is not a list of hashes, element " QSD " (starting with 0) is type '%s' instead (expected 'hash')", getName(), index(), get_type_name(n));
-         return 0;
-      }
-      return static_cast<const QoreHashNode*>(n);
-   }
+    DLLLOCAL const QoreHashNode* checkHash(ExceptionSink* xsink) const {
+        if (checkPtr(xsink))
+            return 0;
+        QoreValue n = getValue();
+        if (n.getType() != NT_HASH) {
+            xsink->raiseException("ITERATOR-ERROR", "The %s object is not a list of hashes, element " QSD " (starting with 0) is type '%s' instead (expected 'hash')", getName(), index(), n.getTypeName());
+            return 0;
+        }
+        return n.get<const QoreHashNode>();
+    }
 
-   DLLLOCAL AbstractQoreNode* getReferencedKeyValueIntern(const QoreHashNode* h, const char* key, ExceptionSink* xsink) const {
-      bool exists = false;
-      const AbstractQoreNode* n = h->getKeyValueExistence(key, exists);
-      if (!exists) {
-         xsink->raiseException("LISTHASHITERATOR-ERROR", "key '%s' does not exist in the hash at element " QSD " (starting with 0)", key, index());
-         return 0;
-      }
-      return n ? n->refSelf() : 0;
-   }
+    DLLLOCAL QoreValue getReferencedKeyValueIntern(const QoreHashNode* h, const char* key, ExceptionSink* xsink) const {
+        bool exists = false;
+        QoreValue n = h->getKeyValueExistence(key, exists);
+        if (!exists) {
+            xsink->raiseException("LISTHASHITERATOR-ERROR", "key '%s' does not exist in the hash at element " QSD " (starting with 0)", key, index());
+            return 0;
+        }
+        return n.refSelf();
+    }
 
 public:
-   DLLLOCAL QoreListHashIterator(const QoreListNode* n_l) : QoreListIterator(n_l) {
-   }
+    DLLLOCAL QoreListHashIterator(const QoreListNode* n_l) : QoreListIterator(n_l) {
+    }
 
-   DLLLOCAL QoreListHashIterator(const QoreListHashIterator& old) : QoreListIterator(old) {
-   }
+    DLLLOCAL QoreListHashIterator(const QoreListHashIterator& old) : QoreListIterator(old) {
+    }
 
-   DLLLOCAL AbstractQoreNode* getReferencedKeyValue(const char* key, ExceptionSink* xsink) const {
-      if (checkPtr(xsink))
-         return 0;
+    DLLLOCAL QoreValue getReferencedKeyValue(const char* key, ExceptionSink* xsink) const {
+        if (checkPtr(xsink)) {
+            return QoreValue();
+        }
 
-      const QoreHashNode* h = checkHash(xsink);
-      if (!h)
-         return 0;
-      return getReferencedKeyValueIntern(h, key, xsink);
-   }
+        const QoreHashNode* h = checkHash(xsink);
+        if (!h) {
+            return QoreValue();
+        }
+        return getReferencedKeyValueIntern(h, key, xsink);
+    }
 
-   DLLLOCAL QoreHashNode* getRow(ExceptionSink* xsink) const {
-      if (checkPtr(xsink))
-         return 0;
-
-      const QoreHashNode* h = checkHash(xsink);
-      return h ? h->hashRefSelf() : 0;
-   }
-
-   DLLLOCAL QoreHashNode* getSlice(const QoreListNode* args, ExceptionSink* xsink) const {
-      if (checkPtr(xsink))
-         return 0;
-
-      const QoreHashNode* h = checkHash(xsink);
-      if (!h)
-         return 0;
-
-      ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
-
-      ConstListIterator li(args);
-      while (li.next()) {
-         QoreStringValueHelper str(li.getValue(), QCS_UTF8, xsink);
-         if (*xsink)
+    DLLLOCAL QoreHashNode* getRow(ExceptionSink* xsink) const {
+        if (checkPtr(xsink))
             return 0;
-         const char* key = str->getBuffer();
-         AbstractQoreNode* n = getReferencedKeyValueIntern(h, key, xsink);
-         if (*xsink)
+
+        const QoreHashNode* h = checkHash(xsink);
+        return h ? h->hashRefSelf() : nullptr;
+    }
+
+    DLLLOCAL QoreHashNode* getSlice(const QoreListNode* args, ExceptionSink* xsink) const {
+        if (checkPtr(xsink))
             return 0;
-         rv->setKeyValue(key, n, xsink);
-         // cannot have an exception here
-         assert(!*xsink);
-      }
 
-      return rv.release();
-   }
+        const QoreHashNode* h = checkHash(xsink);
+        if (!h)
+            return 0;
 
-   DLLLOCAL virtual const char* getName() const {
-      return "ListHashIterator";
-   }
+        ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+
+        ConstListIterator li(args);
+        while (li.next()) {
+            QoreStringValueHelper str(li.getValue(), QCS_UTF8, xsink);
+            if (*xsink)
+                return nullptr;
+            const char* key = str->getBuffer();
+            QoreValue n = getReferencedKeyValueIntern(h, key, xsink);
+            if (*xsink)
+                return nullptr;
+            rv->setKeyValue(key, n, xsink);
+            // cannot have an exception here
+            assert(!*xsink);
+        }
+
+        return rv.release();
+    }
+
+    DLLLOCAL virtual const char* getName() const {
+        return "ListHashIterator";
+    }
 };
 
 #endif // _QORE_QORELISTHASHITERATOR_H

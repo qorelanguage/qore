@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreObject.h
+    QoreObject.h
 
-  thread-safe object definition
+    thread-safe object definition
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREOBJECT_H
@@ -137,6 +137,9 @@ public:
       @param data the private data corresponding to the class ID of the class passed
    */
    DLLEXPORT QoreObject(const QoreClass* oc, QoreProgram* p, AbstractPrivateData* data);
+
+   //! returns true if the object has the given member (note that the member may not have a value)
+   DLLEXPORT bool hasMember(const char* mem, ExceptionSink* xsink) const;
 
    //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
    /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
@@ -252,7 +255,7 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value removed from the object; caller owns the reference
    */
-   DLLEXPORT AbstractQoreNode* takeMember(const QoreString* key, ExceptionSink* xsink);
+   DLLEXPORT QoreValue takeMember(const QoreString* key, ExceptionSink* xsink);
 
    //! removes a member from the object without explicitly calling destructors and returns the value removed; the caller owns the reference returned
    /** if a Qore-language exception is raised, the return value is always 0
@@ -260,7 +263,7 @@ public:
        @param xsink if an error occurs, the Qore-language exception information will be added here
        @return the value removed from the object; caller owns the reference
    */
-   DLLEXPORT AbstractQoreNode* takeMember(const char* key, ExceptionSink* xsink);
+   DLLEXPORT QoreValue takeMember(const char* key, ExceptionSink* xsink);
 
    //! returns the number of members of the object
    /**
@@ -559,7 +562,7 @@ public:
        @param vl the AutoVLock container for nested locking
        @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT AbstractQoreNode* getMemberValueNoMethod(const QoreString* key, AutoVLock* vl, ExceptionSink* xsink) const;
+   DLLEXPORT QoreValue getMemberValueNoMethod(const QoreString* key, AutoVLock* vl, ExceptionSink* xsink) const;
 
    //! returns the pointer to the value of the member
    /**
@@ -568,7 +571,7 @@ public:
       @param vl the AutoVLock container for nested locking
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
-   DLLEXPORT AbstractQoreNode* getMemberValueNoMethod(const char* key, AutoVLock* vl, ExceptionSink* xsink) const;
+   DLLEXPORT QoreValue getMemberValueNoMethod(const char* key, AutoVLock* vl, ExceptionSink* xsink) const;
 
    //! increment the reference count of the object, to be called only from within a delete blocker
    /** it is an error to call this function from anything other than a delete blocker
@@ -634,27 +637,6 @@ public:
       @param xsink if an error occurs, the Qore-language exception information will be added here
    */
    DLLLOCAL void defaultSystemDestructor(qore_classid_t classID, ExceptionSink* xsink);
-
-   //! returns a pointer to a pointer to the value of the member only if it already exists, so it can be set externally
-   /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
-       an exception will be thrown if the character encoding conversion fails
-       also if the object has a deleted status an exception will be thrown
-       @param mem the name of the member
-       @param vl the AutoVLock container for nested locking
-       @param xsink if an error occurs, the Qore-language exception information will be added here
-       @return a pointer to the pointer for the value of the member or 0 if it didn't already exist
-   */
-   DLLLOCAL AbstractQoreNode** getExistingValuePtr(const QoreString* mem, AutoVLock* vl, ExceptionSink* xsink) const;
-
-   //! returns a pointer to a pointer to the value of the member only if it already exists
-   /** if no exception occurs, the lock is held and added to the AutoVLock "vl", otherwise the lock is released
-       if the object has a deleted status an exception will be thrown
-       @param mem the name of the member, assumed to be in the default encoding (QCS_DEFAULT)
-       @param vl the AutoVLock container for nested locking
-       @param xsink if an error occurs, the Qore-language exception information will be added here
-       @return a pointer to the pointer for the value of the member or 0 if it didn't already exist
-   */
-   DLLLOCAL AbstractQoreNode** getExistingValuePtr(const char* mem, AutoVLock* vl, ExceptionSink* xsink) const;
 
    // returns a new hash consisting of just the members of value_list
    DLLLOCAL QoreHashNode* getSlice(const QoreListNode* value_list, ExceptionSink* xsink) const;

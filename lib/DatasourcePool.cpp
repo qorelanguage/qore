@@ -1,31 +1,31 @@
 /*
-  DatasourcePool.cpp
+    DatasourcePool.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -345,31 +345,32 @@ Datasource* DatasourcePool::getAllocatedDS() {
 
 // must be called in the lock
 int DatasourcePool::checkWait(int64 wait_total, ExceptionSink* xsink) {
-   assert(wait_total);
+    assert(wait_total);
 
-   ReferenceHolder<ResolvedCallReferenceNode> wc(xsink);
+    ReferenceHolder<ResolvedCallReferenceNode> wc(xsink);
 
-   {
-      // get reference to callback and check wait threshold only while holding lock
-      AutoLocker al((QoreThreadLock*)this);
-      if (!warning_callback || (wait_total / 1000) < tl_warning_ms)
-         return 0;
+    {
+        // get reference to callback and check wait threshold only while holding lock
+        AutoLocker al((QoreThreadLock*)this);
+        if (!warning_callback || (wait_total / 1000) < tl_warning_ms) {
+            return 0;
+        }
 
-      wc = warning_callback->refRefSelf();
-   }
+        wc = warning_callback->refRefSelf();
+    }
 
-   // build argument list
-   ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
-   // in case of failure to acquire a connection to get the config string, the warning callback is not called
-   SimpleRefHolder<QoreStringNode> cstr(getConfigString(xsink));
-   if (*xsink)
-      return -1;
-   args->push(cstr.release());
-   args->push(new QoreBigIntNode(wait_total));
-   args->push(new QoreBigIntNode(tl_warning_ms));
-   args->push(callback_arg ? callback_arg->refSelf() : nullptr);
-   wc->execValue(*args, xsink).discard(xsink);
-   return *xsink ? -1 : 0;
+    // build argument list
+    ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
+    // in case of failure to acquire a connection to get the config string, the warning callback is not called
+    SimpleRefHolder<QoreStringNode> cstr(getConfigString(xsink));
+    if (*xsink)
+        return -1;
+    args->push(cstr.release(), xsink);
+    args->push(wait_total, xsink);
+    args->push(tl_warning_ms, xsink);
+    args->push(callback_arg ? callback_arg->refSelf() : nullptr, xsink);
+    wc->execValue(*args, xsink).discard(xsink);
+    return *xsink ? -1 : 0;
 }
 
 Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, ExceptionSink* xsink) {
@@ -631,45 +632,45 @@ bool DatasourcePool::inTransaction() {
 }
 
 QoreHashNode* DatasourcePool::getConfigHash(ExceptionSink* xsink) {
-   QoreHashNode* h;
-   {
-      DatasourcePoolActionHelper dpah(*this, xsink);
-      if (!dpah)
-         return 0;
+    QoreHashNode* h;
+    {
+        DatasourcePoolActionHelper dpah(*this, xsink);
+        if (!dpah)
+            return 0;
 
-      h = dpah->getConfigHash();
-   }
+        h = dpah->getConfigHash();
+    }
 
-   // add min and max options
-   QoreHashNode* opt = reinterpret_cast<QoreHashNode*>(h->getKeyValue("options"));
-   if (!opt) {
-      opt = new QoreHashNode;
-      h->setKeyValue("options", opt, nullptr);
-   }
-   opt->setKeyValue("min", new QoreBigIntNode(min), nullptr);
-   opt->setKeyValue("max", new QoreBigIntNode(max), nullptr);
+    // add min and max options
+    QoreHashNode* opt = h->getKeyValue("options").get<QoreHashNode>();
+    if (!opt) {
+        opt = new QoreHashNode;
+        h->setKeyValue("options", opt, nullptr);
+    }
+    opt->setKeyValue("min", min, nullptr);
+    opt->setKeyValue("max", max, nullptr);
 
-   return h;
+    return h;
 }
 
 QoreStringNode* DatasourcePool::getConfigString(ExceptionSink* xsink) {
-   QoreStringNode* str;
-   {
-      DatasourcePoolActionHelper dpah(*this, xsink);
-      if (!dpah)
-         return 0;
+QoreStringNode* str;
+{
+    DatasourcePoolActionHelper dpah(*this, xsink);
+    if (!dpah)
+        return 0;
 
-      str = dpah->getConfigString();
-   }
+    str = dpah->getConfigString();
+}
 
-   // add min and max options
-   QoreStringMaker mm(",min=%d,max=%d", min, max);
-   if ((*str)[str->size() - 1] == '}')
-      str->splice(str->size() - 1, 0, mm, xsink);
-   else
-      str->sprintf("{%s}", mm.getBuffer() + 1);
+// add min and max options
+QoreStringMaker mm(",min=%d,max=%d", min, max);
+if ((*str)[str->size() - 1] == '}')
+    str->splice(str->size() - 1, 0, mm, xsink);
+else
+    str->sprintf("{%s}", mm.getBuffer() + 1);
 
-   return str;
+return str;
 }
 
 void DatasourcePool::clearWarningCallback(ExceptionSink* xsink) {
@@ -704,11 +705,11 @@ QoreHashNode* DatasourcePool::getUsageInfo() const {
    if (warning_callback) {
       h->setKeyValue("callback", warning_callback->refRefSelf(), nullptr);
       h->setKeyValue("arg", callback_arg ? callback_arg->refSelf() : nullptr, nullptr);
-      h->setKeyValue("timeout", new QoreBigIntNode(tl_warning_ms), nullptr);
+      h->setKeyValue("timeout", tl_warning_ms, nullptr);
    }
-   h->setKeyValue("wait_max", new QoreBigIntNode(wait_max), nullptr);
-   h->setKeyValue("stats_reqs", new QoreBigIntNode(stats_reqs), nullptr);
-   h->setKeyValue("stats_hits", new QoreBigIntNode(stats_hits), nullptr);
+   h->setKeyValue("wait_max", wait_max, nullptr);
+   h->setKeyValue("stats_reqs", stats_reqs, nullptr);
+   h->setKeyValue("stats_hits", stats_hits, nullptr);
    return h;
 }
 

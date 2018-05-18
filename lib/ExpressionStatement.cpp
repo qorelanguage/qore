@@ -45,7 +45,7 @@ ExpressionStatement::ExpressionStatement(const QoreProgramLocation* loc, Abstrac
     QoreParseListNode *l = exp->getType() == NT_PARSE_LIST ? reinterpret_cast<QoreParseListNode*>(exp) : nullptr;
     if (l && l->isVariableList()) {
         is_declaration = true;
-        is_parse_declaration = reinterpret_cast<VarRefNode*>(l->get(0))->getType() == VT_GLOBAL ? true : false;
+        is_parse_declaration = l->get(0).get<VarRefNode>()->getType() == VT_GLOBAL ? true : false;
         return;
     }
 

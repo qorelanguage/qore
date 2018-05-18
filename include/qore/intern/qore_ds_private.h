@@ -139,8 +139,8 @@ struct qore_ds_private {
 
    DLLLOCAL void copyOptions(const Datasource* ods);
 
-   DLLLOCAL void setOption(const char* name, const AbstractQoreNode* v, ExceptionSink* xsink) {
-      opt->setKeyValue(name, v ? v->refSelf() : 0, xsink);
+   DLLLOCAL void setOption(const char* name, QoreValue v, ExceptionSink* xsink) {
+      opt->setKeyValue(name, v.refSelf(), xsink);
    }
 
    DLLLOCAL QoreHashNode* getOptionHash() const {
@@ -167,7 +167,7 @@ struct qore_ds_private {
          h->setKeyValue("user", new QoreStringNode(username), 0);
       if (!dbname.empty())
          h->setKeyValue("db", new QoreStringNode(dbname), 0);
-      h->setKeyValue("eventtype", new QoreBigIntNode(event_code), 0);
+      h->setKeyValue("eventtype", event_code, 0);
       if (event_arg)
          h->setKeyValue("arg", event_arg->refSelf(), 0);
       return h;

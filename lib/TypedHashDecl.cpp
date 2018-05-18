@@ -52,7 +52,7 @@ void HashDeclMemberInfo::parseInit(const char* name, bool priv) {
     if (exp) {
         const QoreTypeInfo* argTypeInfo = nullptr;
         int lvids = 0;
-        exp = exp->parseInit(nullptr, 0, lvids, argTypeInfo);
+        parse_init_value(exp, nullptr, 0, lvids, argTypeInfo);
         if (lvids) {
             parse_error(*loc, "illegal local variable declaration in initialization expression for hashdecl member '%s'", name);
             while (lvids--)
@@ -209,7 +209,7 @@ int typed_hash_decl_private::parseCheckMemberAccess(const QoreProgramLocation* l
 
 QoreHashNode* typed_hash_decl_private::newHash(const QoreParseListNode* args, bool runtime_check, ExceptionSink* xsink) const {
     assert(!args || args->empty() || args->size() == 1);
-    ValueEvalRefHolder a(args && !args->empty() ? args->get(0) : nullptr, xsink);
+    ValueEvalRefHolder a(args && !args->empty() ? args->get(0) : QoreValue(), xsink);
     if (*xsink)
         return nullptr;
 

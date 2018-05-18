@@ -67,7 +67,7 @@ AbstractQoreNode* ParseNewComplexTypeNode::parseInitImpl(LocalVar* oflag, int pf
         const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
         if (ti) {
             ReferenceHolder<> holder(this, nullptr);
-            AbstractQoreNode* new_args = nullptr;
+            QoreValue new_args;
             lvids += qore_list_private::parseInitComplexListInitialization(loc, oflag, pflag, takeArgs(), new_args, ti);
             return new NewComplexListNode(loc, typeInfo, new_args);
         }

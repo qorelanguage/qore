@@ -139,11 +139,11 @@ public:
         assert(member_list.empty());
     }
 
-    DLLLOCAL QoreValue getValueKeyValueIntern(const char* key) const;
+    DLLLOCAL QoreValue getKeyValueIntern(const char* key) const;
 
-    DLLLOCAL QoreValue getValueKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const;
+    DLLLOCAL QoreValue getKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const;
 
-    DLLLOCAL QoreValue getValueKeyValueExistenceIntern(const char* key, bool& exists) const;
+    DLLLOCAL QoreValue getKeyValueExistenceIntern(const char* key, bool& exists) const;
 
     DLLLOCAL int checkKey(const char* key, ExceptionSink* xsink) const;
 
@@ -231,17 +231,19 @@ public:
 
     // FIXME: this function needs to be eliminated
     DLLLOCAL static void convertToNode(QoreValue& val) {
-        assert(false);
         switch (val.type) {
             case QV_Bool:
+                assert(false);
                 val.v.n = get_bool_node(val.v.b);
                 val.type = QV_Node;
                 break;
             case QV_Int:
+                assert(false);
                 val.v.n = new QoreBigIntNode(val.v.i);
                 val.type = QV_Node;
                 break;
             case QV_Float:
+                assert(false);
                 val.v.n = new QoreFloatNode(val.v.f);
                 val.type = QV_Node;
                 break;

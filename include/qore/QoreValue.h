@@ -317,6 +317,12 @@ public:
         return detail::QoreValueCastHelper<const T>::cast(this, type);
     }
 
+    //! evaluates the node and returns the result
+    DLLEXPORT QoreValue eval(ExceptionSink* xsink) const;
+
+    //! evaluates the node and returns the result
+    DLLEXPORT QoreValue eval(bool& needs_deref, ExceptionSink* xsink) const;
+
     //! returns a referenced AbstractQoreNode pointer; leaving the "this" untouched; the caller owns the reference returned
     DLLEXPORT AbstractQoreNode* getReferencedValue() const;
 
@@ -351,6 +357,18 @@ public:
 
     //! returns true if the object contains NOTHING or NULL
     DLLEXPORT bool isNullOrNothing() const;
+
+    //! return true if the value needs evaluation
+    DLLEXPORT bool needsEval() const;
+
+    //! return true if the value needs evaluation and has a side effect
+    DLLEXPORT bool hasEffect() const;
+
+    //! returns true if the value holds a referenced-counted node
+    DLLEXPORT bool isReferenceCounted() const;
+
+    //! returns true if the value is not NOTHING
+    DLLEXPORT operator bool() const;
 };
 
 //! base class for holding a QoreValue object

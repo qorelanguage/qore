@@ -1,31 +1,31 @@
 /*
-  QoreFoldlOperatorNode.cpp
+    QoreFoldlOperatorNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -39,13 +39,13 @@ QoreString QoreFoldrOperatorNode::foldr_str("foldr operator expression");
 
 // if del is true, then the returned QoreString * should be foldld, if false, then it must not be
 QoreString *QoreFoldlOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = false;
-   return &foldl_str;
+    del = false;
+    return &foldl_str;
 }
 
 int QoreFoldlOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.concat(&foldl_str);
-   return 0;
+    str.concat(&foldl_str);
+    return 0;
 }
 
 AbstractQoreNode* QoreFoldlOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -98,38 +98,39 @@ QoreValue QoreFoldlOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink*
 }
 
 QoreValue QoreFoldlOperatorNode::doFold(bool fwd, bool& needs_deref, ExceptionSink* xsink) const {
-   FunctionalOperator::FunctionalValueType value_type;
-   std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, fwd, xsink));
-   if (*xsink || value_type == FunctionalOperator::nothing)
-      return QoreValue();
+    FunctionalOperator::FunctionalValueType value_type;
+    std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, fwd, xsink));
+    if (*xsink || value_type == FunctionalOperator::nothing)
+        return QoreValue();
 
-   // get first value
-   ValueOptionalRefHolder iv(xsink);
-   if (f->getNext(iv, xsink))
-      return QoreValue();
-   if (*xsink)
-      return QoreValue();
+    // get first value
+    ValueOptionalRefHolder iv(xsink);
+    if (f->getNext(iv, xsink))
+        return QoreValue();
+    if (*xsink)
+        return QoreValue();
 
-   ValueHolder result(iv.takeReferencedValue(), xsink);
+    ValueHolder result(iv.takeReferencedValue(), xsink);
 
-   while (true) {
-      // get next argument value
-      if (f->getNext(iv, xsink))
-         break;
-      if (*xsink)
-         return QoreValue();
+    while (true) {
+        // get next argument value
+        if (f->getNext(iv, xsink))
+            break;
+        if (*xsink)
+            return QoreValue();
 
-      // create argument list for fold expression
-      QoreListNode* args = new QoreListNode;
-      args->push(result.getReferencedValue());
-      args->push(iv.getReferencedValue());
-      ArgvContextHelper argv_helper(args, xsink);
-      result = left->eval(xsink);
-      if (*xsink)
-         return QoreValue();
-   }
+        // create argument list for fold expression
+        QoreListNode* args = new QoreListNode;
+        args->push(result.release(), xsink);
+        args->push(iv.takeReferencedValue(), xsink);
+        ArgvContextHelper argv_helper(args, xsink);
+        result = left->eval(xsink);
+        if (*xsink) {
+            return QoreValue();
+        }
+    }
 
-   return result.release();
+    return result.release();
 }
 
 FunctionalOperatorInterface* QoreFoldlOperatorNode::getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, bool fwd, ExceptionSink* xsink) const {

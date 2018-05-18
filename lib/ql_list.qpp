@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ql_list.qpp
+    ql_list.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -42,16 +42,18 @@ ResolvedCallReferenceNode* getCallReference(const QoreString* str, ExceptionSink
 }
 
 bool inlist_intern(const QoreValue arg, const QoreListNode* l, ExceptionSink* xsink) {
-   assert(xsink);
-   ConstListIterator li(l);
-   while (li.next()) {
-      bool b = QoreLogicalEqualsOperatorNode::softEqual(arg, li.getValue(), xsink);
-      if (*xsink)
-         return false;
-      if (b)
-         return true;
-   }
-   return false;
+    assert(xsink);
+    ConstListIterator li(l);
+    while (li.next()) {
+        bool b = QoreLogicalEqualsOperatorNode::softEqual(arg, li.getValue(), xsink);
+        if (*xsink) {
+            return false;
+        }
+        if (b) {
+            return true;
+        }
+    }
+    return false;
 }
 
 QoreListNode* range_intern(int64 start, int64 stop, int64 step, ExceptionSink* xsink) {
@@ -63,12 +65,12 @@ QoreListNode* range_intern(int64 start, int64 stop, int64 step, ExceptionSink* x
     QoreListNode* l = new QoreListNode;
     if (start < stop) {
         for (int64 i = start; i <= stop; i += step) {
-            l->push(new QoreBigIntNode(i));
+            l->push(i, xsink);
         }
     }
     else {
         for (int64 i = start; i >= stop; i -= step) {
-            l->push(new QoreBigIntNode(i));
+            l->push(i, xsink);
         }
     }
     return l;
@@ -103,7 +105,7 @@ list nl = sort(l);
     - sortDescending(list)
 */
 list sort(list l) [flags=CONSTANT] {
-   return l->sort();
+   return l->sort(xsink);
 }
 
 //! Performs an unstable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
@@ -125,7 +127,7 @@ list nl = sort(l, "my_sort_function");
 */
 list sort(list l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
-   return !fr ? 0 : l->sort(*fr, xsink);
+   return !fr ? QoreValue() : l->sort(*fr, xsink);
 }
 
 //! Performs an unstable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
@@ -172,7 +174,7 @@ auto sortDescending(auto arg) [flags=NOOP,DEPRECATED] {
     @deprecated use sort_descending(); camel-case function names were deprecated in %Qore 0.8.12
 */
 list sortDescending(list l) [flags=CONSTANT,DEPRECATED] {
-   return l->sortDescending();
+   return l->sortDescending(xsink);
 }
 
 //! Performs an unstable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
@@ -191,7 +193,7 @@ list sortDescending(list l) [flags=CONSTANT,DEPRECATED] {
 */
 list sortDescending(list l, string func) [flags=CONSTANT,DEPRECATED] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
-   return !fr ? 0 : l->sortDescending(*fr, xsink);
+   return !fr ? QoreValue() : l->sortDescending(*fr, xsink);
 }
 
 //! Performs an unstable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
@@ -239,7 +241,7 @@ list nl = sort_descending(l);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescending()
 */
 list sort_descending(list l) [flags=CONSTANT] {
-   return l->sortDescending();
+   return l->sortDescending(xsink);
 }
 
 //! Performs an unstable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
@@ -263,7 +265,7 @@ list nl = sort_descending(l, "my_sort_function");
 */
 list sort_descending(list l, string func) [flags=CONSTANT] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
-   return !fr ? 0 : l->sortDescending(*fr, xsink);
+   return !fr ? QoreValue() : l->sortDescending(*fr, xsink);
 }
 
 //! Performs an unstable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
@@ -312,7 +314,7 @@ auto sortStable(auto arg) [flags=NOOP,DEPRECATED] {
     @deprecated use sort_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
 list sortStable(list l) [flags=CONSTANT,DEPRECATED] {
-   return l->sortStable();
+   return l->sortStable(xsink);
 }
 
 //! Performs a stable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
@@ -331,7 +333,7 @@ list sortStable(list l) [flags=CONSTANT,DEPRECATED] {
 */
 list sortStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
-   return !fr ? 0 : l->sortStable(*fr, xsink);
+   return !fr ? QoreValue() : l->sortStable(*fr, xsink);
 }
 
 //! Performs a stable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
@@ -385,7 +387,7 @@ list nl = sort_stable(l);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortStable()
 */
 list sort_stable(list l) [flags=CONSTANT] {
-   return l->sortStable();
+   return l->sortStable(xsink);
 }
 
 //! Performs a stable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
@@ -409,7 +411,7 @@ list nl = sort_stable(l, "my_sort_function");
 */
 list sort_stable(list l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
-   return !fr ? 0 : l->sortStable(*fr, xsink);
+   return !fr ? QoreValue() : l->sortStable(*fr, xsink);
 }
 
 //! Performs a stable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
@@ -463,7 +465,7 @@ list nl = sortDescendingStable(l);
     @deprecated use sort_descending_stable(); camel-case function names were deprecated in %Qore 0.8.12
 */
 list sortDescendingStable(list l) [flags=CONSTANT,DEPRECATED] {
-   return l->sortDescendingStable();
+   return l->sortDescendingStable(xsink);
 }
 
 //! Performs a stable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
@@ -487,7 +489,7 @@ list nl = sortDescending(l, "my_sort_function");
 */
 list sortDescendingStable(list l, string func) [flags=RET_VALUE_ONLY,DEPRECATED] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
-   return !fr ? 0 : l->sortDescendingStable(*fr, xsink);
+   return !fr ? QoreValue() : l->sortDescendingStable(*fr, xsink);
 }
 
 //! Performs a stable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
@@ -541,7 +543,7 @@ list nl = sort_descending_stable(l);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case sortDescendingStable()
 */
 list sort_descending_stable(list l) [flags=CONSTANT] {
-   return l->sortDescendingStable();
+   return l->sortDescendingStable(xsink);
 }
 
 //! Performs a stable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
@@ -565,7 +567,7 @@ list nl = sort_descending_stable(l, "my_sort_function");
 */
 list sort_descending_stable(list l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
-   return !fr ? 0 : l->sortDescendingStable(*fr, xsink);
+   return !fr ? QoreValue() : l->sortDescendingStable(*fr, xsink);
 }
 
 //! Performs a stable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
@@ -607,7 +609,7 @@ auto v = min(l);
     @see max(list)
 */
 auto min(list l) [flags=CONSTANT] {
-   return l->min();
+   return l->min(xsink);
 }
 
 //! Returns the minumum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
@@ -626,7 +628,7 @@ auto v = min(l, "my_sort_function");
 */
 auto min(list l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
-   return !fr ? 0 : l->min(*fr, xsink);
+   return !fr ? QoreValue() : l->min(*fr, xsink);
 }
 
 //! Returns the minumum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
@@ -663,7 +665,7 @@ auto v = min(v1, v2, v3);
     @see max(...)
 */
 auto min(...) [flags=CONSTANT] {
-   return args ? args->minValue(xsink) : 0;
+   return args ? args->min(xsink) : QoreValue();
 }
 
 //! Returns the maximum value in a list
@@ -681,7 +683,7 @@ auto v = max(l);
     @see min(list)
 */
 auto max(list l) [flags=CONSTANT] {
-   return l->max();
+   return l->max(xsink);
 }
 
 //! Returns the maximum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
@@ -700,7 +702,7 @@ auto v = max(l, "my_sort_function");
 */
 auto max(list l, string func) [flags=RET_VALUE_ONLY] {
    ReferenceHolder<ResolvedCallReferenceNode> fr(getCallReference(func, xsink), xsink);
-   return !fr ? 0 : l->max(*fr, xsink);
+   return !fr ? QoreValue() : l->max(*fr, xsink);
 }
 
 //! Returns the maximum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
@@ -737,7 +739,7 @@ auto v = max(v1, v2, v3);
     @see min(...)
 */
 auto max(...) [flags=CONSTANT] {
-   return args ? args->maxValue(xsink) : 0;
+   return args ? args->max(xsink) : QoreValue();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -826,29 +828,33 @@ if (inlist_hard(str, strlist))
     @see inlist(any, softlist)
 */
 bool inlist_hard(auto arg, softlist l) [flags=RET_VALUE_ONLY] {
-   bool arg_is_nothing = arg.isNothing();
+    bool arg_is_nothing = arg.isNothing();
 
-   ConstListIterator li(l);
-   while (li.next()) {
-      const AbstractQoreNode* lp = li.getValue();
+    ConstListIterator li(l);
+    while (li.next()) {
+        QoreValue lp = li.getValue();
 
-      bool b;
+        bool b;
 
-      // do hard comparison inline
-      if (is_nothing(lp))
-	 b = arg_is_nothing;
-      else if (arg_is_nothing)
-	 b = false;
-      else {
-	 b = arg.isEqualHard(lp);
-	 if (*xsink)
-	    return QoreValue();
-      }
+        // do hard comparison inline
+        if (lp.isNothing()) {
+            b = arg_is_nothing;
+        }
+        else if (arg_is_nothing) {
+            b = false;
+        }
+        else {
+            b = arg.isEqualHard(lp);
+            if (*xsink) {
+                return QoreValue();
+            }
+        }
 
-      if (b)
-	 return true;
-   }
-   return false;
+        if (b) {
+            return true;
+        }
+    }
+    return false;
 }
 
 //! Returns a list containing an arithmetic progression of integers.

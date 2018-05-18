@@ -378,12 +378,40 @@ QoreString* QoreValue::getAsString(bool& del, int format_offset, ExceptionSink* 
     return nullptr;
 }
 
+QoreValue QoreValue::eval(ExceptionSink* xsink) const {
+    if (type != QV_Node || !v.n) {
+        return *this;
+    }
+
+    if (v.n->hasValueApi()) {
+        const ParseNode* pn = get<const ParseNode>();
+        bool needs_deref = true;
+        QoreValue rv = pn->evalValue(needs_deref, xsink);
+        return needs_deref ? rv : rv.refSelf();
+    }
+    return v.n->eval(xsink);
+}
+
+QoreValue QoreValue::eval(bool& needs_deref, ExceptionSink* xsink) const {
+    assert(needs_deref == true);
+    if (type != QV_Node || !v.n) {
+        needs_deref = false;
+        return *this;
+    }
+
+    if (v.n->hasValueApi()) {
+        const ParseNode* pn = get<const ParseNode>();
+        return pn->evalValue(needs_deref, xsink);
+    }
+    return v.n->eval(needs_deref, xsink);
+}
+
 AbstractQoreNode* QoreValue::getReferencedValue() const {
    switch (type) {
       case QV_Bool: return get_bool_node(v.b);
       case QV_Int: return new QoreBigIntNode(v.i);
       case QV_Float: return new QoreFloatNode(v.f);
-      case QV_Node: return v.n ? v.n->refSelf() : 0;
+      case QV_Node: return v.n ? v.n->refSelf() : nullptr;
       default: assert(false);
          // no break
    }
@@ -464,6 +492,22 @@ bool QoreValue::isNull() const {
 
 bool QoreValue::isNullOrNothing() const {
     return type == QV_Node && (is_nothing(v.n) || is_null(v.n));
+}
+
+bool QoreValue::needsEval() const {
+    return type == QV_Node && v.n && v.n->needs_eval();
+}
+
+bool QoreValue::hasEffect() const {
+    return type == QV_Node && v.n && node_has_effect(v.n);
+}
+
+bool QoreValue::isReferenceCounted() const {
+    return type == QV_Node && v.n && v.n->isReferenceCounted();
+}
+
+QoreValue::operator bool() const {
+    return !isNothing();
 }
 
 const QoreTypeInfo* QoreValue::getTypeInfo() const {
@@ -582,9 +626,12 @@ ValueEvalRefHolder::ValueEvalRefHolder(ExceptionSink* xs) : ValueOptionalRefHold
 }
 
 int ValueEvalRefHolder::evalIntern(const AbstractQoreNode* exp) {
-    if (!exp)
+    if (!exp) {
+        needs_deref = false;
         return 0;
+    }
 
+    needs_deref = true;
     if (exp->hasValueApi()) {
         const ParseNode* pn = reinterpret_cast<const ParseNode*>(exp);
         v = pn->evalValue(needs_deref, xsink);
@@ -597,23 +644,8 @@ int ValueEvalRefHolder::evalIntern(const AbstractQoreNode* exp) {
 }
 
 int ValueEvalRefHolder::evalIntern(const QoreValue exp) {
-    if (exp.isNothing())
-        return 0;
-
-    if (!exp.hasNode()) {
-        needs_deref = false;
-        v = exp;
-        return 0;
-    }
-
-    if (exp.getInternalNode()->hasValueApi()) {
-        const ParseNode* pn = exp.get<const ParseNode>();
-        v = pn->evalValue(needs_deref, xsink);
-    }
-    else {
-        v = exp.getInternalNode()->eval(needs_deref, xsink);
-    }
-
+    needs_deref = true;
+    v = exp.eval(needs_deref, xsink);
     return xsink && *xsink ? -1 : 0;
 }
 

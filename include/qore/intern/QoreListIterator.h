@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,41 +38,41 @@ extern QoreClass* QC_LISTITERATOR;
 // the c++ object
 class QoreListIterator : public QoreIteratorBase, public ConstListIterator {
 protected:
-   DLLLOCAL virtual ~QoreListIterator() {
-   }
+    DLLLOCAL virtual ~QoreListIterator() {
+    }
 
-   DLLLOCAL int checkPtr(ExceptionSink* xsink) const {
-      if (pos == -1) {
-         xsink->raiseException("ITERATOR-ERROR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
-         return -1;
-      }
-      return 0;
-   }
+    DLLLOCAL int checkPtr(ExceptionSink* xsink) const {
+        if (pos == -1) {
+            xsink->raiseException("ITERATOR-ERROR", "the %s is not pointing at a valid element; make sure %s::next() returns True before calling this method", getName(), getName());
+            return -1;
+        }
+        return 0;
+    }
 
 public:
-   DLLLOCAL QoreListIterator(const QoreListNode* l) : ConstListIterator(l->listRefSelf()) {
-   }
+    DLLLOCAL QoreListIterator(const QoreListNode* l) : ConstListIterator(l->listRefSelf()) {
+    }
 
-   DLLLOCAL QoreListIterator(const QoreListIterator& old) : ConstListIterator(old.l->listRefSelf(), old.pos) {
-   }
+    DLLLOCAL QoreListIterator(const QoreListIterator& old) : ConstListIterator(old.l->listRefSelf(), old.pos) {
+    }
 
-   using AbstractPrivateData::deref;
-   DLLLOCAL virtual void deref(ExceptionSink* xsink) {
-      if (ROdereference()) {
-         const_cast<QoreListNode*>(l)->deref(xsink);
-         delete this;
-      }
-   }
+    using AbstractPrivateData::deref;
+    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
+        if (ROdereference()) {
+            const_cast<QoreListNode*>(l)->deref(xsink);
+            delete this;
+        }
+    }
 
-   DLLLOCAL AbstractQoreNode* getReferencedValue(ExceptionSink* xsink) const {
-      if (checkPtr(xsink))
-         return 0;
-      return ConstListIterator::getReferencedValue();
-   }
+    DLLLOCAL QoreValue getReferencedValue(ExceptionSink* xsink) const {
+        if (checkPtr(xsink))
+            return QoreValue();
+        return ConstListIterator::getReferencedValue();
+    }
 
-   DLLLOCAL virtual const char* getName() const {
-      return "ListIterator";
-   }
+    DLLLOCAL virtual const char* getName() const {
+        return "ListIterator";
+    }
 };
 
 #endif // _QORE_QORELISTITERATOR_H

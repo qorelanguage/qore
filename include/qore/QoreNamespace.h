@@ -104,7 +104,7 @@ public:
         @param name the name of the constant to add
         @param value the value of the constant
     */
-    DLLEXPORT void addConstant(const char* name, AbstractQoreNode* value);
+    DLLEXPORT void addConstant(const char* name, QoreValue value);
 
     //! adds a constant definition to the namespace with type information
     /**
@@ -113,7 +113,7 @@ public:
         @param typeInfo the type of the constant
         @see QoreTypeInfoHelper
     */
-    DLLEXPORT void addConstant(const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo);
+    DLLEXPORT void addConstant(const char* name, QoreValue value, const QoreTypeInfo* typeInfo);
 
     //! adds a class to a namespace
     /**

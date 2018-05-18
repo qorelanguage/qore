@@ -66,16 +66,17 @@ QoreValue QoreTrimOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
     }
     else if (vtype == NT_LIST) {
         QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
+        qore_list_private* ll = qore_list_private::get(*l);
         ListIterator li(l);
         while (li.next()) {
-            AbstractQoreNode** v = li.getValuePtr();
-            if (*v && (*v)->getType() == NT_STRING) {
+            QoreValue& v = ll->getEntryReference(li.index());
+            if (v.getType() == NT_STRING) {
                 // note that no exception can happen here
                 ensure_unique(v, xsink);
-                assert(!*xsink);
-                QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
-                if (vs->trim(xsink))
-                return QoreValue();
+                QoreStringNode* vs = v.get<QoreStringNode>();
+                if (vs->trim(xsink)) {
+                    return QoreValue();
+                }
             }
         }
     }
@@ -85,13 +86,8 @@ QoreValue QoreTrimOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
         while (hi.next()) {
             if (hi.get().getType() == NT_STRING) {
                 QoreValue& v = (*qhi_priv::get(hi)->i)->val;
+                ensure_unique(v, xsink);
                 QoreStringNode* vs = v.get<QoreStringNode>();
-                if (!vs->is_unique()) {
-                    QoreStringNode* old = vs;
-                    vs = vs->copy();
-                    old->deref();
-                    v = vs;
-                }
                 if (vs->trim(xsink)) {
                     return QoreValue();
                 }
@@ -100,8 +96,9 @@ QoreValue QoreTrimOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
     }
 
     // reference for return value
-    if (!ref_rv)
+    if (!ref_rv) {
         return QoreValue();
+    }
     return val.getReferencedValue();
 }
 

@@ -47,15 +47,15 @@ private:
    QoreObject* qo;
 
    DLLLOCAL void callMethod(const char* name, QoreProgram *pgm, int paramCount, AbstractQoreNode** params, DebugRunStateEnum &rs, ExceptionSink* xsink, ExceptionSink &xsink2) {
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), &xsink2);
-      args->push(QoreProgram::getQoreObject(pgm));
+      ReferenceHolder<QoreListNode> args(new QoreListNode, &xsink2);
+      args->push(QoreProgram::getQoreObject(pgm), nullptr);
       for (int i=0; i<paramCount; i++) {
          //printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, param: %d/%d, type: %s\n", name, this, i, paramCount, params[i]?params[i]->getTypeName():"n/a");
-         args->push(params[i]);
+         args->push(params[i], nullptr);
       }
       // LocalVar will sanitize and discard non-node values so we cannot use the ReferenceHolder
       ReferenceArgumentHelper rah(rs, &xsink2);
-      args->push(rah.getArg()); // caller owns ref
+      args->push(rah.getArg(), nullptr); // caller owns ref
       printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, param#: %d, rs: %d, xsink2: %d\n", name, this, pgm, paramCount, rs, xsink2.isEvent());
       discard(qo->evalMethod(name, *args, &xsink2), &xsink2);
       QoreValue v(rah.getOutputQoreValue());

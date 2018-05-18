@@ -56,7 +56,7 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
     bool vcommon = false;
 
     for (size_t i = 0; i < values.size(); ++i) {
-        values[i] = values[i]->parseInit(oflag, pflag, lvids, vtypes[i]);
+        parse_init_value(values[i], oflag, pflag, lvids, vtypes[i]);
 
         //printd(5, "QoreParseListNode::parseInitIntern() this: %p %d: vcommon: %d vt: %p '%s' vtype: %p '%s'\n", this, i, vcommon, vtypes[i], QoreTypeInfo::getName(vtypes[i]), vtype, QoreTypeInfo::getName(vtype));
 
@@ -69,8 +69,9 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
         else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vtypes[i]))
             vcommon = false;
 
-        if (!needs_eval && values[i] && values[i]->needs_eval())
+        if (!needs_eval && values[i].needsEval()) {
             needs_eval = true;
+        }
     }
 
     //printd(5, "QoreParseListNode::parseInitIntern() this: %p vcommon: %d vtype: %p '%s'\n", this, vcommon, vtype, QoreTypeInfo::getName(vtype));
@@ -112,11 +113,11 @@ QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
     bool vcommon = false;
 
     for (size_t i = 0; i < values.size(); ++i) {
-        QoreNodeEvalOptionalRefHolder v(values[i], xsink);
+        ValueEvalRefHolder v(values[i], xsink);
         if (xsink && *xsink)
             return QoreValue();
 
-        const QoreTypeInfo* vt = getTypeInfoForValue(*v);
+        const QoreTypeInfo* vt = v->getTypeInfo();
 
         if (!i) {
             vtype = vt;
@@ -126,13 +127,14 @@ QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
             vcommon = false;
 
         // issue #2791: ensure that type folding is performed at the source if necessary
-        QoreValue val = v.getReferencedValue();
+        QoreValue val = v.takeReferencedValue();
         if (this->vtype != vt && !QoreTypeInfo::hasComplexType(this->vtype) && QoreTypeInfo::hasComplexType(vt)) {
             // this can never throw an exception; it's only used for type folding/stripping
             QoreTypeInfo::acceptAssignment(this->vtype, "<type folding>", val, xsink);
+            assert(!*xsink);
         }
 
-        l->push(val.takeNode());
+        l->push(val, nullptr);
     }
 
     ValueHolder rv(l.release(), xsink);
@@ -154,10 +156,10 @@ int QoreParseListNode::initArgs(LocalVar* oflag, int pflag, type_vec_t& arg_type
     parseInitIntern(oflag, pflag, lvids, ti);
     arg_types = std::move(vtypes);
 
-    ReferenceHolder<QoreListNode> l(new QoreListNode, nullptr);
+    ReferenceHolder<QoreListNode> l(new QoreListNode(needs_eval()), nullptr);
     qore_list_private::get(**l)->reserve(values.size());
     for (auto& i : values) {
-        l->push(i);
+        l->push(i, nullptr);
     }
     values.clear();
     args = l.release();

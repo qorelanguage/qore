@@ -67,11 +67,11 @@ protected:
             return QoreValue();
         }
 
-        return l->get_referenced_entry(i);
+        return l->getReferencedEntry(i);
     }
 
     DLLLOCAL QoreValue getReferencedKeyValueIntern(const char* key, ExceptionSink* xsink) const {
-        return getReferencedValueIntern(h->getValueKeyValue(key), key, xsink);
+        return getReferencedValueIntern(h->getKeyValue(key), key, xsink);
     }
 
 public:
@@ -190,7 +190,7 @@ public:
             n = getReferencedValueIntern(n, hi.getKey(), xsink);
             if (*xsink)
                 return nullptr;
-            rv->setValueKeyValue(hi.getKey(), n, xsink);
+            rv->setKeyValue(hi.getKey(), n, xsink);
             // cannot have an exception here
             assert(!*xsink);
         }
@@ -213,7 +213,7 @@ public:
             QoreValue n = getReferencedKeyValueIntern(key, xsink);
             if (*xsink)
                 return nullptr;
-            rv->setValueKeyValue(key, n, xsink);
+            rv->setKeyValue(key, n, xsink);
             // cannot have an exception here
             assert(!*xsink);
         }

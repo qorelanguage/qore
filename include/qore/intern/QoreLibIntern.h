@@ -289,6 +289,7 @@ DLLLOCAL void qore_process_params(unsigned num_params, type_vec_t& typeList, arg
 
 // call to get a node with reference count 1 (copy on write)
 void ensure_unique(AbstractQoreNode** v, ExceptionSink* xsink);
+void ensure_unique(QoreValue& v, ExceptionSink* xsink);
 
 #ifndef HAVE_ATOLL
 #ifdef HAVE_STRTOIMAX
@@ -370,6 +371,7 @@ typedef std::map<QoreCondition*, int> cond_map_t;
 
 #define DAH_TEXT(d) (d == DAH_RELEASE ? "RELEASE" : (d == DAH_ACQUIRE ? "ACQUIRE" : "NOCHANGE"))
 
+DLLLOCAL int check_lvalue(QoreValue n, bool assign = true);
 DLLLOCAL int check_lvalue(AbstractQoreNode* n, bool assign = true);
 DLLLOCAL int check_lvalue_int(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name);
 DLLLOCAL int check_lvalue_float(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name);
@@ -530,162 +532,89 @@ public:
 // master namespace of all builtin classes, constants, etc
 DLLLOCAL extern StaticSystemNamespace* staticSystemNamespace;
 
-class QoreListNodeParseInitHelper : public ListIterator {
-private:
-   LocalVar* oflag;
-   int pflag;
-   int& lvids;
-
-public:
-   DLLLOCAL QoreListNodeParseInitHelper(QoreListNode* n_l, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
-      ListIterator(n_l), oflag(n_oflag), pflag(n_pflag), lvids(n_lvids) {
-   }
-
-   DLLLOCAL AbstractQoreNode* parseInit(const QoreTypeInfo*& typeInfo) {
-      //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
-
-      typeInfo = nullptr;
-      AbstractQoreNode** n = getValuePtr();
-      if (n && *n) {
-         (*n) = (*n)->parseInit(oflag, pflag, lvids, typeInfo);
-
-         //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) prototype: %s (%s)\n", this, index(), getList()->size(), getList(), typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a");
-
-         return *n;
-      }
-
-      return nullptr;
-   }
-};
-
 class QoreParseListNodeParseInitHelper {
 private:
-   QoreParseListNode* l;
-   int pos = -1;
-   LocalVar* oflag;
-   int pflag;
-   int& lvids;
+    QoreParseListNode* l;
+    int pos = -1;
+    LocalVar* oflag;
+    int pflag;
+    int& lvids;
 
 public:
-   DLLLOCAL QoreParseListNodeParseInitHelper(QoreParseListNode* n_l, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
-      l(n_l), oflag(n_oflag), pflag(n_pflag), lvids(n_lvids) {
-   }
+    DLLLOCAL QoreParseListNodeParseInitHelper(QoreParseListNode* n_l, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
+        l(n_l), oflag(n_oflag), pflag(n_pflag), lvids(n_lvids) {
+    }
 
-   DLLLOCAL AbstractQoreNode* parseInit(const QoreTypeInfo*& typeInfo) {
-      //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
+    DLLLOCAL QoreValue parseInit(const QoreTypeInfo*& typeInfo) {
+        //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(), getList()->size(), getList());
 
-      typeInfo = nullptr;
-      AbstractQoreNode** n = l->getPtr(pos);
-      if (n && *n) {
-         (*n) = (*n)->parseInit(oflag, pflag, lvids, typeInfo);
+        typeInfo = nullptr;
+        QoreValue& n = l->getReference(pos);
+        parse_init_value(n, oflag, pflag, lvids, typeInfo);
+        return n;
+    }
 
-         //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) prototype: %s (%s)\n", this, index(), getList()->size(), getList(), typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a");
+    DLLLOCAL bool next() {
+        ++pos;
+        if (pos == (int)l->size()) {
+            pos = -1;
+            return false;
+        }
+        return true;
+    }
 
-         return *n;
-      }
-
-      return nullptr;
-   }
-
-   DLLLOCAL bool next() {
-      ++pos;
-      if (pos == (int)l->size()) {
-         pos = -1;
-         return false;
-      }
-      return true;
-   }
-
-   DLLLOCAL int index() {
-      return pos;
-   }
+    DLLLOCAL int index() {
+        return pos;
+    }
 };
 
 class QorePossibleListNodeParseInitHelper {
 private:
-   LocalVar* oflag;
-   int pflag;
-   int& lvids;
-   QoreListNode* l;
-   bool finished;
-   qore_size_t pos = -1;
-   const QoreTypeInfo* singleTypeInfo = nullptr;
+    LocalVar* oflag;
+    int pflag;
+    int& lvids;
+    QoreListNode* l;
+    bool finished;
+    qore_size_t pos = -1;
+    const QoreTypeInfo* singleTypeInfo = nullptr;
 
 public:
-   DLLLOCAL QorePossibleListNodeParseInitHelper(AbstractQoreNode** n, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
-      oflag(n_oflag),
-      pflag(n_pflag),
-      lvids(n_lvids),
-      l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>(*n) : nullptr),
-      finished(!l) {
-      // if the expression is not a list, then initialize it now
-      // and save the return type
-      if (!l) {
-         *n = (*n)->parseInit(oflag, pflag, lvids, singleTypeInfo);
-         // set type info to 0 if the expression can return a list
-         // FIXME: set list element type here when list elements can have types
-         //printd(0, "singleTypeInfo=%s la=%d\n", QoreTypeInfo::getName(singleTypeInfo), QoreTypeInfo::parseAccepts(listTypeInfo, singleTypeInfo));
-         if (QoreTypeInfo::parseAccepts(listTypeInfo, singleTypeInfo))
-            singleTypeInfo = 0;
-      }
-   }
+    DLLLOCAL QorePossibleListNodeParseInitHelper(AbstractQoreNode** n, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
+        oflag(n_oflag),
+        pflag(n_pflag),
+        lvids(n_lvids),
+        l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>(*n) : nullptr),
+        finished(!l) {
+        // if the expression is not a list, then initialize it now
+        // and save the return type
+        if (!l) {
+            *n = (*n)->parseInit(oflag, pflag, lvids, singleTypeInfo);
+            // set type info to 0 if the expression can return a list
+            // FIXME: set list element type here when list elements can have types
+            //printd(0, "singleTypeInfo=%s la=%d\n", QoreTypeInfo::getName(singleTypeInfo), QoreTypeInfo::parseAccepts(listTypeInfo, singleTypeInfo));
+            if (QoreTypeInfo::parseAccepts(listTypeInfo, singleTypeInfo))
+                singleTypeInfo = 0;
+        }
+    }
 
-   DLLLOCAL bool noArgument() const {
-      return finished;
-   }
+    DLLLOCAL bool noArgument() const {
+        return finished;
+    }
 
-   DLLLOCAL bool next() {
-      ++pos;
+    DLLLOCAL bool next() {
+        ++pos;
 
-      if (finished)
-         return false;
+        if (finished)
+            return false;
 
-      if (pos == l->size()) {
-         finished = true;
-         return false;
-      }
-      return true;
-   }
+        if (pos == l->size()) {
+            finished = true;
+            return false;
+        }
+        return true;
+    }
 
-   DLLLOCAL AbstractQoreNode** getValuePtr() {
-      if (finished)
-         return 0;
-
-      return l->get_entry_ptr(pos);
-   }
-
-   DLLLOCAL void parseInit(const QoreTypeInfo*& typeInfo) {
-      //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, l ? pos : 0, l ? l->size() : 1, l);
-
-      typeInfo = 0;
-      if (!l) {
-         // FIXME: return list type info when list elements can be typed
-         if (!pos) {
-            if (singleTypeInfo)
-               typeInfo = singleTypeInfo;
-         }
-         else {
-            // no argument available
-            if (singleTypeInfo)
-               typeInfo = nothingTypeInfo;
-         }
-         return;
-      }
-
-      AbstractQoreNode** p = getValuePtr();
-      if (!p || !(*p)) {
-         // no argument available
-         typeInfo = nothingTypeInfo;
-      }
-      else {
-         (*p) = (*p)->parseInit(oflag, pflag, lvids, typeInfo);
-
-         //printd(0, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n", this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");
-
-         if (l && !l->needs_eval() && (*p) && (*p)->needs_eval())
-            l->setNeedsEval();
-      }
-   }
+    DLLLOCAL void parseInit(const QoreTypeInfo*& typeInfo);
 };
 
 DLLLOCAL void raise_nonexistent_method_call_warning(const QoreProgramLocation* loc, const QoreClass* qc, const char* method);
@@ -935,7 +864,7 @@ DLLLOCAL AbstractQoreNode* missing_function_error(const char* func, const char* 
 DLLLOCAL AbstractQoreNode* missing_method_error(const char* meth, const char* opt, ExceptionSink* xsink);
 
 // checks for illegal $self assignments in an object context
-DLLLOCAL void check_self_assignment(const QoreProgramLocation* loc, AbstractQoreNode* n, LocalVar* selfid);
+DLLLOCAL void check_self_assignment(const QoreProgramLocation* loc, QoreValue n, LocalVar* selfid);
 
 DLLLOCAL void ignore_return_value(AbstractQoreNode* n);
 

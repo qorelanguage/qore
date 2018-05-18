@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_DatasourcePool.cpp
+    QC_DatasourcePool.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -78,7 +78,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
    if (*xsink) return;
 
    bool found;
-   int port = (int)opts->getValueKeyValue("port").getAsBigInt();
+   int port = (int)opts->getKeyValue("port").getAsBigInt();
    if (port < 0) {
       xsink->raiseException(DSPC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
       return;
@@ -87,7 +87,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
    // get options
    int min = 0, max = 0;
 
-   QoreValue p = opts->getValueKeyValue("options");
+   QoreValue p = opts->getKeyValue("options");
    const QoreHashNode* opt_hash;
    if (!p.isNothing()) {
       if (p.getType() != NT_HASH) {
@@ -97,7 +97,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
 
       opt_hash = p.get<const QoreHashNode>();
 
-      min = (int)opt_hash->getValueKeyValueExistence("min", found, xsink).getAsBigInt();
+      min = (int)opt_hash->getKeyValueExistence("min", found, xsink).getAsBigInt();
       if (*xsink)
          return;
       if (found) {
@@ -107,7 +107,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
          }
       }
 
-      max = (int)opt_hash->getValueKeyValueExistence("max", found, xsink).getAsBigInt();
+      max = (int)opt_hash->getKeyValueExistence("max", found, xsink).getAsBigInt();
       if (*xsink)
          return;
       if (found) {
@@ -356,7 +356,7 @@ int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, num
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 auto DatasourcePool::exec(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
    return ds->exec(sql, *vargs, xsink);
 }
 
@@ -435,7 +435,7 @@ if (query.firstValue())
     - @ref context
  */
 auto DatasourcePool::select(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
    return ds->select(sql, *vargs, xsink);
 }
 
@@ -461,7 +461,7 @@ auto DatasourcePool::select(string sql, ...) {
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 auto DatasourcePool::selectRow(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
    return ds->selectRow(sql, *vargs, xsink);
 }
 
@@ -489,7 +489,7 @@ auto DatasourcePool::selectRow(string sql, ...) {
     @see DatasourcePool::select()
  */
 auto DatasourcePool::selectRows(string sql, ...) {
-   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->getOldList(1) : 0, xsink);
+   ReferenceHolder<QoreListNode> vargs(args->size() > 1 ? args->copyListFrom(1) : 0, xsink);
    return ds->selectRows(sql, *vargs, xsink);
 }
 

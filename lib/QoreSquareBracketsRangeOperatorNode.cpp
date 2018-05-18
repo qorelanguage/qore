@@ -102,12 +102,12 @@ QoreValue QoreSquareBracketsRangeOperatorNode::evalValueImpl(bool& needs_deref, 
             ReferenceHolder<QoreListNode> rv(new QoreListNode(l->getValueTypeInfo()), xsink);
             if (start < stop) {
                 for (int64 i = start; i <= stop; ++i) {
-                    rv->push(l->get_referenced_entry(i));
+                    rv->push(l->getReferencedEntry(i), xsink);
                 }
             }
             else {
                 for (int64 i = start; i >= stop; --i) {
-                    rv->push(l->get_referenced_entry(i));
+                    rv->push(l->getReferencedEntry(i), xsink);
                 }
             }
             return rv.release();
@@ -184,7 +184,7 @@ bool QoreFunctionalSquareBracketsRangeOperator::getNextImpl(ValueOptionalRefHold
 
     switch (seq->getType()) {
         case NT_LIST:
-            val.setValue(seq->get<const QoreListNode>()->get_referenced_entry(i), true);
+            val.setValue(seq->get<const QoreListNode>()->getReferencedEntry(i), true);
             break;
         case NT_STRING:
             val.setValue(seq->get<const QoreStringNode>()->substr(i, 1, xsink), true);

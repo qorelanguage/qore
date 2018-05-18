@@ -660,8 +660,9 @@ public:
 
         // dereference finalized thread-local data outside the lock to avoid deadlocks
         if (cl) {
-            for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i)
-                (*i)->deref(xsink);
+            for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i) {
+                (*i).discard(xsink);
+            }
             delete cl;
         }
 
@@ -778,7 +779,7 @@ public:
         AutoLocker al(plock);
 
         for (auto& i : tidmap) {
-            l.push(new QoreBigIntNode(i.first));
+            l.push(i.first, nullptr);
         }
     }
 
@@ -902,10 +903,10 @@ public:
         QoreListNode* l = new QoreListNode;
 
         for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
-            l->push(new QoreStringNode(*i));
+            l->push(new QoreStringNode(*i), nullptr);
 
         for (CharPtrList::const_iterator i = userFeatureList.begin(), e = userFeatureList.end(); i != e; ++i)
-            l->push(new QoreStringNode(*i));
+            l->push(new QoreStringNode(*i), nullptr);
 
         return l;
     }
@@ -2364,7 +2365,7 @@ public:
             printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, new second: %p\n", i->first, i->first->getProgramId(), i->second);
             i->first->ref();
          }
-         (*l)->push(i->second);
+         (*l)->push(i->second, nullptr);
          ++i;
       }
       return l.release();
@@ -2448,7 +2449,7 @@ public:
       while (i != qore_program_map.end()) {
          QoreObject* o = QoreProgram::getQoreObject(i->first);
          if (o) {
-            (*l)->push(o);
+            (*l)->push(o, nullptr);
          }
          i++;
       }

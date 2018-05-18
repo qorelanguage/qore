@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -115,9 +115,7 @@ public:
    DLLLOCAL virtual QoreValue evalFunction(const char* name, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
       CodeContextHelper cch(xsink, CT_BUILTIN, name);
 
-      const QoreValueList* l = ceh.getArgs();
-      ReferenceHolder<QoreListNode> arg_holder(l ? l->getOldList() : 0, xsink);
-      return func(*arg_holder, xsink);
+      return func(ceh.getArgs(), xsink);
    }
 };
 

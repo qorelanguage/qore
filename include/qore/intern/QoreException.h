@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreException.h
+    QoreException.h
 
-  Qore programming language exception handling support
+    Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREEXCEPTION_H
@@ -44,16 +44,16 @@
 struct QoreExceptionBase {
    int type;
    QoreListNode* callStack = new QoreListNode;
-   AbstractQoreNode* err, *desc, *arg;
+   QoreValue err, desc, arg;
 
-   DLLLOCAL QoreExceptionBase(AbstractQoreNode* n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0, int n_type = ET_SYSTEM)
+   DLLLOCAL QoreExceptionBase(QoreValue n_err, QoreValue n_desc, QoreValue n_arg = QoreValue(), int n_type = ET_SYSTEM)
       : type(n_type), err(n_err), desc(n_desc), arg(n_arg) {
    }
 
    DLLLOCAL QoreExceptionBase(const QoreExceptionBase& old) :
                type(old.type), callStack(old.callStack->copy()),
-               err(old.err ? old.err->refSelf() : 0), desc(old.desc ? old.desc->refSelf() : 0),
-               arg(old.arg ? old.arg->refSelf() : 0) {
+               err(old.err.refSelf()), desc(old.desc.refSelf()),
+               arg(old.arg.refSelf()) {
    }
 };
 
@@ -90,12 +90,12 @@ private:
 protected:
     DLLLOCAL ~QoreException() {
         assert(!callStack);
-        assert(!err);
-        assert(!desc);
-        assert(!arg);
+        assert(!err.hasNode());
+        assert(!desc.hasNode());
+        assert(!arg.hasNode());
     }
 
-    DLLLOCAL void addStackInfo(AbstractQoreNode* n);
+    DLLLOCAL void addStackInfo(QoreValue n);
 
     DLLLOCAL static const char* getType(qore_call_t type);
 
@@ -111,10 +111,10 @@ public:
     DLLLOCAL QoreHashNode* makeExceptionObject();
 
     // called for runtime exceptions
-    DLLLOCAL QoreException(const char *n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreExceptionLocation(*get_runtime_location()) {
+    DLLLOCAL QoreException(const char *n_err, QoreValue n_desc, QoreValue n_arg = QoreValue()) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg), QoreExceptionLocation(*get_runtime_location()) {
     }
 
-    DLLLOCAL QoreException(QoreStringNode *n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = 0) : QoreExceptionBase(n_err, n_desc, n_arg), QoreExceptionLocation(*get_runtime_location()) {
+    DLLLOCAL QoreException(QoreStringNode *n_err, QoreValue n_desc, QoreValue n_arg = QoreValue()) : QoreExceptionBase(n_err, n_desc, n_arg), QoreExceptionLocation(*get_runtime_location()) {
     }
 
     DLLLOCAL QoreException(const QoreException& old) : QoreExceptionBase(old), QoreExceptionLocation(old), next(old.next ? new QoreException(*old.next) : nullptr) {
@@ -123,13 +123,13 @@ public:
     // called for user exceptions
     DLLLOCAL QoreException(const QoreListNode* n) : QoreExceptionBase(0, 0, 0, ET_USER), QoreExceptionLocation(*get_runtime_location()) {
         if (n) {
-            err = n->get_referenced_entry(0);
-            desc = n->get_referenced_entry(1);
-            arg = n->size() > 3 ? n->copyListFrom(2) : n->get_referenced_entry(2);
+            err = n->getReferencedEntry(0);
+            desc = n->getReferencedEntry(1);
+            arg = n->size() > 3 ? n->copyListFrom(2) : n->getReferencedEntry(2);
         }
     }
 
-    DLLLOCAL QoreException(const QoreProgramLocation& n_loc, const char *n_err, AbstractQoreNode* n_desc, AbstractQoreNode* n_arg = nullptr, int n_type = ET_SYSTEM) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg, n_type), QoreExceptionLocation(n_loc) {
+    DLLLOCAL QoreException(const QoreProgramLocation& n_loc, const char *n_err, QoreValue n_desc, QoreValue n_arg = QoreValue(), int n_type = ET_SYSTEM) : QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg, n_type), QoreExceptionLocation(n_loc) {
     }
 
     DLLLOCAL void del(ExceptionSink *xsink);
@@ -142,10 +142,10 @@ public:
         const char *fn = nullptr;
         QoreHashNode* n = l->retrieveEntry(0).get<QoreHashNode>();
         // get function name
-        fn = !n ? "<unknown>" : n->getValueKeyValue("function").get<QoreStringNode>()->c_str();
+        fn = !n ? "<unknown>" : n->getKeyValue("function").get<QoreStringNode>()->c_str();
 
         QoreHashNode* h = getStackHash(CT_RETHROW, 0, fn, *get_runtime_location());
-        l->insert(h);
+        l->insert(h, nullptr);
 
         return e;
     }
@@ -153,14 +153,14 @@ public:
 
 class ParseException : public QoreException {
 public:
-   // called for parse exceptions
-   DLLLOCAL ParseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc) : QoreException(loc, err, desc) {
-   }
+    // called for parse exceptions
+    DLLLOCAL ParseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc) : QoreException(loc, err, desc) {
+    }
 };
 
 struct qore_es_private {
     bool thread_exit = false;
-    QoreException* head = 0, * tail = 0;
+    QoreException* head = nullptr, * tail = nullptr;
 
     DLLLOCAL qore_es_private() {
     }
@@ -173,7 +173,7 @@ struct qore_es_private {
         ExceptionSink xs;
         if (head) {
             head->del(&xs);
-            head = tail = 0;
+            head = tail = nullptr;
         }
     }
 
@@ -189,23 +189,23 @@ struct qore_es_private {
     DLLLOCAL void appendListIntern(QoreString& str) const {
         QoreException* w = head;
         while (w) {
-        QoreStringNodeValueHelper err(w->err);
-        QoreStringNodeValueHelper desc(w->desc);
+            QoreStringNodeValueHelper err(w->err);
+            QoreStringNodeValueHelper desc(w->desc);
 
-        str.concat(" * ");
-        if (!w->file.empty())
-            str.sprintf("%s:", w->file.c_str());
-        if (w->start_line) {
-            str.sprintf("%d", w->start_line);
+            str.concat(" * ");
+            if (!w->file.empty())
+                str.sprintf("%s:", w->file.c_str());
+            if (w->start_line) {
+                str.sprintf("%d", w->start_line);
                 if (w->end_line && w->end_line != w->start_line)
-                str.sprintf("-%d", w->end_line);
+                    str.sprintf("-%d", w->end_line);
                 str.concat(": ");
             }
-        str.sprintf("%s: %s", err->getBuffer(), desc->getBuffer());
+            str.sprintf("%s: %s", err->getBuffer(), desc->getBuffer());
             if (w != tail)
                 str.concat('\n');
 
-        w = w->next;
+            w = w->next;
         }
     }
 
@@ -252,14 +252,14 @@ struct qore_es_private {
 
 class ParseExceptionSink {
 protected:
-   ExceptionSink xsink;
+    ExceptionSink xsink;
 
 public:
-   DLLLOCAL ~ParseExceptionSink();
+    DLLLOCAL ~ParseExceptionSink();
 
-   DLLLOCAL ExceptionSink *operator*() {
-      return &xsink;
-   }
+    DLLLOCAL ExceptionSink *operator*() {
+        return &xsink;
+    }
 };
 
 #endif

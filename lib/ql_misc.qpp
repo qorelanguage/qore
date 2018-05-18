@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ql_misc.qpp
+    ql_misc.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -556,12 +556,13 @@ auto result = call_function("func_name", arg1, arg2);
     @note The function called could also throw other exceptions
 */
 auto call_function(string name, ...) {
-   ReferenceHolder<QoreListNode> vargs(xsink);
-   // if there are arguments to pass, create argument list by copying current list
-   if (num_args(args) > 1)
-      vargs = args->getOldList(1);
+    ReferenceHolder<QoreListNode> vargs(xsink);
+    // if there are arguments to pass, create argument list by copying current list
+    if (num_args(args) > 1) {
+        vargs = args->copyListFrom(1);
+    }
 
-   return getProgram()->callFunction(name->getBuffer(), *vargs, xsink);
+    return getProgram()->callFunction(name->c_str(), *vargs, xsink);
 }
 
 //! Calls the given @ref call_reference "call reference" or @ref closure "closure" and returns the result, passing the remaining arguments to the @ref call_reference "call reference" or @ref closure "closure"
@@ -577,12 +578,13 @@ auto result = call_function(call_ref, arg1, arg2);
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
 */
 auto call_function(code f, ...) {
-   ReferenceHolder<QoreListNode> vargs(xsink);
-   // if there are arguments to pass, create argument list by copying current list
-   if (num_args(args) > 1)
-      vargs = args->getOldList(1);
+    ReferenceHolder<QoreListNode> vargs(xsink);
+    // if there are arguments to pass, create argument list by copying current list
+    if (num_args(args) > 1) {
+        vargs = args->copyListFrom(1);
+    }
 
-   return f->execValue(*vargs, xsink).takeNode();
+    return f->execValue(*vargs, xsink).takeNode();
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
@@ -642,16 +644,17 @@ auto result = call_builtin_function("func_name", arg1, arg2);
     @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
 auto call_builtin_function(string name, ...) {
-   const QoreFunction* f = get_builtin_func(name, xsink);
-   if (!f)
-      return QoreValue();
+    const QoreFunction* f = get_builtin_func(name, xsink);
+    if (!f)
+        return QoreValue();
 
-   ReferenceHolder<QoreListNode> vargs(xsink);
-   // if there are arguments to pass, create argument list by copying current list
-   if (num_args(args) > 1)
-      vargs = args->getOldList(1);
+    ReferenceHolder<QoreListNode> vargs(xsink);
+    // if there are arguments to pass, create argument list by copying current list
+    if (num_args(args) > 1) {
+        vargs = args->copyListFrom(1);
+    }
 
-   return f->evalDynamic(*vargs, xsink).takeNode();
+    return f->evalDynamic(*vargs, xsink).takeNode();
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
@@ -1389,7 +1392,7 @@ list hash_values(hash h) [flags=CONSTANT] {
 
    ConstHashIterator hi(h);
    while (hi.next())
-      l->push(hi.getReferencedValue());
+      l->push(hi.getReferenced(), xsink);
 
    return l;
 }
@@ -1417,12 +1420,12 @@ bool b = has_key(hash, "key");
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
 */
 bool has_key(hash h, string key) {
-   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return QoreValue();
-   bool exists;
-   h->getValueKeyValueExistence(tmp->c_str(), exists);
-   return exists;
+    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+    if (*xsink)
+        return QoreValue();
+    bool exists;
+    h->getKeyValueExistence(tmp->c_str(), exists);
+    return exists;
 }
 
 //! Returns @ref True if the given key exists in the object (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered or in case of object access errors.
@@ -1437,9 +1440,10 @@ bool b = has_key(obj, "key");
     @note object access exceptions could also be raised
 */
 bool has_key(object obj, string key) {
-   AutoVLock vl(xsink);
-   AbstractQoreNode* *ptr = obj->getExistingValuePtr(key, &vl, xsink);
-   return (bool)ptr;
+    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+    if (*xsink)
+        return QoreValue();
+    return obj->hasMember(tmp->c_str(), xsink);
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -2456,17 +2460,18 @@ list l = get_qore_option_list();
     @see get_qore_option_hash()
 */
 list get_qore_option_list() [flags=CONSTANT] {
-   QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode;
 
-   for (unsigned j = 0; j < qore_option_list_size; ++j) {
-      QoreHashNode* h = new QoreHashNode;
-      h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
-      h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
-      h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
-      h->setKeyValue("value", get_bool_node(qore_option_list[j].value), xsink);
-      l->push(h);
-   }
-   return l;
+    for (unsigned j = 0; j < qore_option_list_size; ++j) {
+        QoreHashNode* h = new QoreHashNode;
+        qore_hash_private* hh = qore_hash_private::get(*h);
+        hh->setKeyValueIntern("option", new QoreStringNode(qore_option_list[j].option));
+        hh->setKeyValueIntern("constant", new QoreStringNode(qore_option_list[j].constant));
+        hh->setKeyValueIntern("type", new QoreStringNode(tlist[qore_option_list[j].type]));
+        hh->setKeyValueIntern("value", qore_option_list[j].value);
+        l->push(h, xsink);
+    }
+    return l;
 }
 
 //! Returns a hash of hashes giving information about %Qore library options for the current build
@@ -2486,18 +2491,18 @@ hash h = get_qore_option_hash();
     @since %Qore 0.8.4
 */
 hash get_qore_option_hash() [flags=CONSTANT] {
-   QoreHashNode* rv = new QoreHashNode;
+    QoreHashNode* rv = new QoreHashNode;
 
-   for (unsigned j = 0; j < qore_option_list_size; ++j) {
-      QoreHashNode* h = new QoreHashNode;
-      h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
-      h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
-      h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
-      h->setKeyValue("value", get_bool_node(qore_option_list[j].value), xsink);
+    for (unsigned j = 0; j < qore_option_list_size; ++j) {
+        QoreHashNode* h = new QoreHashNode;
+        h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
+        h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
+        h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
+        h->setKeyValue("value", qore_option_list[j].value, xsink);
 
-      rv->setKeyValue(qore_option_list[j].constant, h, 0);
-   }
-   return rv;
+        rv->setKeyValue(qore_option_list[j].constant, h, 0);
+    }
+    return rv;
 }
 
 //! Returns a hash of library build and version info
@@ -2526,10 +2531,10 @@ hash get_qore_library_info() [flags=CONSTANT] {
    h->setKeyValue("PlatformOS", new QoreStringNode(qore_target_os), xsink);
    h->setKeyValue("PlatformCPU", new QoreStringNode(qore_target_arch), xsink);
    h->setKeyValue("VersionString", new QoreStringNode(qore_version_string), xsink);
-   h->setKeyValue("VersionMajor", new QoreBigIntNode(qore_version_major), xsink);
-   h->setKeyValue("VersionMinor", new QoreBigIntNode(qore_version_minor), xsink);
-   h->setKeyValue("VersionSub", new QoreBigIntNode(qore_version_sub), xsink);
-   h->setKeyValue("Build", new QoreBigIntNode(qore_build_number), xsink);
+   h->setKeyValue("VersionMajor", qore_version_major, xsink);
+   h->setKeyValue("VersionMinor", qore_version_minor, xsink);
+   h->setKeyValue("VersionSub", qore_version_sub, xsink);
+   h->setKeyValue("Build", qore_build_number, xsink);
 
    h->setKeyValue("UserModuleVerDir", new QoreStringNode(qore_user_module_ver_dir), xsink);
    h->setKeyValue("UserModuleDir", new QoreStringNode(qore_user_module_dir), xsink);
@@ -2593,15 +2598,15 @@ catch (hash ex) {
     @since %Qore 0.8.7
  */
 string get_ex_pos(hash ex) [flags=CONSTANT] {
-   QoreValue n = ex->getValueKeyValue("file");
+   QoreValue n = ex->getKeyValue("file");
    QoreStringNode* str = new QoreStringNode(n.getType() == NT_STRING ? n.get<const QoreStringNode>()->c_str() : "<unknown>");
-   int ln = (int)ex->getValueKeyValue("line").getAsBigInt();
+   int ln = (int)ex->getKeyValue("line").getAsBigInt();
    str->sprintf(":%d", ln);
-   n = ex->getValueKeyValue("source");
+   n = ex->getKeyValue("source");
    if (n.getType() == NT_STRING) {
       const QoreStringNode* sstr = n.get<const QoreStringNode>();
       if (!sstr->empty()) {
-         int offset = (int)ex->getValueKeyValue("offset").getAsBigInt();
+         int offset = (int)ex->getKeyValue("offset").getAsBigInt();
          str->sprintf(" (source \"%s\":%d)", sstr->c_str(), ln + offset);
       }
    }

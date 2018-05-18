@@ -120,24 +120,29 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag,
 QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
     FunctionalValueType value_type;
     std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, xsink));
-    if (*xsink || value_type == nothing)
+    if (*xsink || value_type == nothing) {
         return QoreValue();
+    }
 
     ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode(f->getValueType()) : nullptr, xsink);
 
     while (true) {
         ValueOptionalRefHolder iv(xsink);
-        if (f->getNext(iv, xsink))
+        if (f->getNext(iv, xsink)) {
             break;
+        }
 
-        if (*xsink)
+        if (*xsink) {
             return QoreValue();
+        }
 
-        if (value_type == single)
+        if (value_type == single) {
             return ref_rv ? iv.takeReferencedValue() : QoreValue();
+        }
 
-        if (ref_rv)
-            rv->push(iv.getReferencedValue());
+        if (ref_rv) {
+            rv->push(iv.takeReferencedValue(), xsink);
+        }
     }
 
     return rv.release();

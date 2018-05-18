@@ -48,7 +48,7 @@ void QoreSignalHandler::init() {
 void QoreSignalHandler::runHandler(int sig, ExceptionSink *xsink) {
     // create signal number argument
     ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
-    args->push(new QoreBigIntNode(sig));
+    args->push(sig, nullptr);
     funcref->execValue(*args, xsink).discard(xsink);
 }
 

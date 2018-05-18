@@ -91,7 +91,7 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    if (*xsink) return;
    if (str) ds->setPendingHostName(str);
 
-   int port = (int)opts->getValueKeyValue("port").getAsBigInt();
+   int port = (int)opts->getKeyValue("port").getAsBigInt();
    if (port) {
       if (port < 0) {
          xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
@@ -101,7 +101,7 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    }
 
    {
-      QoreValue p = opts->getValueKeyValue("options", xsink);
+      QoreValue p = opts->getKeyValue("options", xsink);
       if (!p.isNothing()) {
          if (p.getType() != NT_HASH) {
             xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", p.getTypeName());
@@ -564,7 +564,7 @@ int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, num
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 auto Datasource::exec(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->exec(sql, *argl, xsink);
 }
 
@@ -649,7 +649,7 @@ if (query.firstValue())
     - @ref context
  */
 auto Datasource::select(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->select(sql, *argl, xsink);
 }
 
@@ -676,7 +676,7 @@ auto Datasource::select(string sql, ...) {
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 *hash Datasource::selectRow(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->selectRow(sql, *argl, xsink);
 }
 
@@ -708,7 +708,7 @@ auto Datasource::select(string sql, ...) {
     @see Datasource::select()
  */
 auto Datasource::selectRows(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->selectRows(sql, *argl, xsink);
 }
 
@@ -834,7 +834,7 @@ auto Datasource::vselectRows(string sql, *softlist vargs) {
     @since %Qore 0.8.9
  */
 *hash Datasource::describe(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->getOldList(1) : 0), xsink);
+   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
    return ds->describe(sql, *argl, xsink);
 }
 

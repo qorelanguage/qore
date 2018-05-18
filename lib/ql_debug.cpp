@@ -110,10 +110,10 @@ static void dni(QoreStringNode *s, const QoreValue n, int indent, ExceptionSink 
                 for (unsigned i = 0; i < l->size(); i++) {
                     s->concat('\n');
                     strindent(s, indent);
-                    QoreStringNode *entry = reinterpret_cast<QoreStringNode*>(l->retrieve_entry(i));
-                    s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->getBuffer());
+                    QoreStringNode *entry = l->retrieveEntry(i).get<QoreStringNode>();
+                    s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->c_str());
                     AbstractQoreNode *nn;
-                    dni(s, nn = o->getReferencedMemberNoMethod(entry->getBuffer(), xsink), indent + 3, xsink);
+                    dni(s, nn = o->getReferencedMemberNoMethod(entry->c_str(), xsink), indent + 3, xsink);
                     discard(nn, xsink);
                 }
             }

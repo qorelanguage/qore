@@ -280,15 +280,15 @@ nothing ProgramControl::deleteAllBreakpoints() {
 /**
  */
 list ProgramControl::getBreakpoints() {
-   if (!p->checkAllowDebugging(xsink))
-     return QoreValue();
-   QoreBreakpointList_t bl;
-   p->getBreakpoints(bl);
-   QoreListNode *l = new QoreListNode;
-   for (QoreBreakpointList_t::iterator it = bl.begin(); it != bl.end(); ++it) {
-      l->push((*it)->getQoreObject());
-   }
-   return l;
+    if (!p->checkAllowDebugging(xsink))
+        return QoreValue();
+    QoreBreakpointList_t bl;
+    p->getBreakpoints(bl);
+    QoreListNode *l = new QoreListNode;
+    for (QoreBreakpointList_t::iterator it = bl.begin(); it != bl.end(); ++it) {
+        l->push((*it)->getQoreObject(), nullptr);
+    }
+    return l;
 }
 
 //! get information related to statement id
@@ -365,12 +365,12 @@ int ProgramControl::findFunctionStatementId(string function, *list params) {
     - \c params: a QoreValueList object that gives the params in a format that can be used by @ref findFunctionStatementId
 */
 list ProgramControl::findFunctionVariants(string function) {
-   if (!p->checkAllowDebugging(xsink))
-      return QoreValue();
-   ReferenceHolder<QoreValueList> vl(p->runtimeFindCallVariants(function->c_str(), xsink), xsink);
-   if (!vl)
-      return xsink->raiseException("PROGRAM-ERROR", "cannot find any function or method \"%s\"", function->c_str());
-   return vl->getOldList();
+    if (!p->checkAllowDebugging(xsink))
+        return QoreValue();
+    ReferenceHolder<QoreListNode> vl(p->runtimeFindCallVariants(function->c_str(), xsink), xsink);
+    if (!vl)
+        return xsink->raiseException("PROGRAM-ERROR", "cannot find any function or method \"%s\"", function->c_str());
+    return vl.release();
 }
 
 //! Get list of label names which has been registered to a statement when parsing source code

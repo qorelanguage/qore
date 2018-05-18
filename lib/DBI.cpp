@@ -1,33 +1,33 @@
 /*
-  DBI.cpp
+    DBI.cpp
 
-  Database Independent SQL Layer
+    Database Independent SQL Layer
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -97,10 +97,10 @@ qore_dbi_method_list::~qore_dbi_method_list() {
 // covers open, commit, rollback, and begin transaction
 void qore_dbi_method_list::add(int code, q_dbi_open_t method) {
    assert(code == QDBI_METHOD_OPEN
-	  || code == QDBI_METHOD_COMMIT
-	  || code == QDBI_METHOD_ROLLBACK
-	  || code == QDBI_METHOD_BEGIN_TRANSACTION
-	  || code == QDBI_METHOD_ABORT_TRANSACTION_START
+          || code == QDBI_METHOD_COMMIT
+          || code == QDBI_METHOD_ROLLBACK
+          || code == QDBI_METHOD_BEGIN_TRANSACTION
+          || code == QDBI_METHOD_ABORT_TRANSACTION_START
       );
    assert(priv->l.find(code) == priv->l.end());
    priv->l[code] = (void*)method;
@@ -221,24 +221,25 @@ void qore_dbi_method_list::registerOption(const char* name, const char* desc, co
 }
 
 DbiArgHelper::DbiArgHelper(const QoreListNode* ol, bool numeric, ExceptionSink* xs) : orig(ol), nl(0), xsink(xs) {
-   if (numeric || !orig)
-      return;
+    if (numeric || !orig)
+        return;
 
-   // scan input list
-   ConstListIterator li(orig);
-   while (li.next()) {
-      if (get_node_type(li.getValue()) == NT_NUMBER) {
-         if (!nl) {
-            nl = new QoreListNode;
-            for (unsigned i = 0; i < li.index(); ++i)
-               nl->push(orig->get_referenced_entry(i));
-         }
-         nl->push(new QoreFloatNode(li.getValue()->getAsFloat()));
-         continue;
-      }
-      if (nl)
-         nl->push(li.getReferencedValue());
-   }
+    // scan input list
+    ConstListIterator li(orig);
+    while (li.next()) {
+        if (li.getValue().getType() == NT_NUMBER) {
+            if (!nl) {
+                nl = new QoreListNode;
+                for (unsigned i = 0; i < li.index(); ++i) {
+                    nl->push(orig->getReferencedEntry(i), xs);
+                }
+            }
+            nl->push(li.getValue().getAsFloat(), xs);
+            continue;
+        }
+        if (nl)
+            nl->push(li.getReferencedValue(), xs);
+    }
 }
 
 OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver, const char* opt, bool set, const AbstractQoreNode* v) : xsink(xs), val(const_cast<AbstractQoreNode*>(v)), tmp(false) {
@@ -297,7 +298,7 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
             f.execRawSQL = (q_dbi_execraw_t)(*i).second;
             cps |= DBI_CAP_HAS_EXECRAW;
             break;
-	 case QDBI_METHOD_DESCRIBE:
+         case QDBI_METHOD_DESCRIBE:
             assert(!f.describe);
             f.describe = (q_dbi_describe_t)(*i).second;
             cps |= DBI_CAP_HAS_DESCRIBE;
@@ -406,9 +407,9 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
             break;
 
 #ifdef DEBUG
-	 // ignore unsupported method
-	 case QDBI_METHOD_ABORT_TRANSACTION_START:
-	    break;
+         // ignore unsupported method
+         case QDBI_METHOD_ABORT_TRANSACTION_START:
+            break;
          default:
             assert(false);
 #endif
@@ -450,11 +451,11 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
 }
 
 QoreListNode* qore_dbi_private::getCapList() const {
-   QoreListNode* l = new QoreListNode;
-   for (unsigned i = 0; i < NUM_DBI_CAPS; ++i)
-      if (caps & dbi_cap_list[i].cap)
-         l->push(new QoreStringNode(dbi_cap_list[i].desc));
-   return l;
+    QoreListNode* l = new QoreListNode;
+    for (unsigned i = 0; i < NUM_DBI_CAPS; ++i)
+        if (caps & dbi_cap_list[i].cap)
+            l->push(new QoreStringNode(dbi_cap_list[i].desc), nullptr);
+    return l;
 }
 
 DBIDriver::DBIDriver(qore_dbi_private* p) : priv(p) {
@@ -484,36 +485,40 @@ QoreHashNode* DBIDriver::getOptionHash() const {
    should be acceptable...
 */
 struct qore_dbi_dlist_private {
-   dbi_list_t l;
+    dbi_list_t l;
 
-   DLLLOCAL ~qore_dbi_dlist_private() {
-      dbi_list_t::iterator i;
-      while ((i = l.begin()) != l.end()) {
-	 DBIDriver* driv = *i;
-	 l.erase(i);
-	 delete driv;
-      }
-   }
+    DLLLOCAL ~qore_dbi_dlist_private() {
+        dbi_list_t::iterator i;
+        while ((i = l.begin()) != l.end()) {
+            DBIDriver* driv = *i;
+            l.erase(i);
+            delete driv;
+        }
+    }
 
-   DLLLOCAL DBIDriver* find_intern(const char* name) const {
-      for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
-	 if (!strcmp(name, (*i)->getName()))
-	    return *i;
+    DLLLOCAL DBIDriver* find_intern(const char* name) const {
+        for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++) {
+            if (!strcmp(name, (*i)->getName())) {
+                return *i;
+            }
+        }
 
-      return 0;
-   }
+        return nullptr;
+    }
 
-   DLLLOCAL QoreListNode* getDriverList() const {
-      if (l.empty())
-	 return 0;
+    DLLLOCAL QoreListNode* getDriverList() const {
+        if (l.empty()) {
+            return nullptr;
+        }
 
-      QoreListNode* lst = new QoreListNode;
+        QoreListNode* lst = new QoreListNode;
 
-      for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
-	 lst->push(new QoreStringNode((*i)->getName()));
+        for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++) {
+            lst->push(new QoreStringNode((*i)->getName()), nullptr);
+        }
 
-      return lst;
-   }
+        return lst;
+    }
 };
 
 DBIDriverList::DBIDriverList() : priv(new qore_dbi_dlist_private) {
@@ -638,7 +643,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
    if (p) {
       *p = '\0';
       if (*str)
-	 h->setKeyValue("user", new QoreStringNode(str), 0);
+         h->setKeyValue("user", new QoreStringNode(str), 0);
       str = p + 1;
       has_pass = true;
    }
@@ -653,9 +658,9 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
    *p = '\0';
    if (p != str) {
       if (has_pass)
-	 h->setKeyValue("pass", new QoreStringNode(str), 0);
+         h->setKeyValue("pass", new QoreStringNode(str), 0);
       else
-	 h->setKeyValue("user", new QoreStringNode(str), 0);
+         h->setKeyValue("user", new QoreStringNode(str), 0);
    }
    str = p + 1;
 
@@ -664,8 +669,8 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
    if (p) {
       char* end = strchr(p, ')');
       if (!end) {
-	 xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing parenthesis in charset specification in '%s'", ds);
-	 return 0;
+         xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing parenthesis in charset specification in '%s'", ds);
+         return 0;
       }
       *p = '\0';  // terminate for db
       *end = '\0';  // terminate charset
@@ -686,121 +691,121 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
       str = p + 1;
 
       if (tok == '%') {
-	 p = strchrs(str, ":{");
+         p = strchrs(str, ":{");
 
-	 if ((p == str) || !*str) {
-	    xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing hostname string after '%%' delimeter in '%s'", ds);
-	    return 0;
-	 }
+         if ((p == str) || !*str) {
+            xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing hostname string after '%%' delimeter in '%s'", ds);
+            return 0;
+         }
 
-	 const char* hstr = str;
+         const char* hstr = str;
 
-	 if (p) {
-	    tok = *p;
-	    *p = '\0';
-	    str = p + 1;
-	 }
-	 else
-	    str += strlen(str);
+         if (p) {
+            tok = *p;
+            *p = '\0';
+            str = p + 1;
+         }
+         else
+            str += strlen(str);
 
-	 h->setKeyValue("host", new QoreStringNode(hstr), 0);
+         h->setKeyValue("host", new QoreStringNode(hstr), 0);
       }
 
       if (tok == ':') {
-	 int port = atoi(str);
-	 if (!port) {
-	    xsink->raiseException(DATASOURCE_PARSE_ERROR, "invalid port number in datasource string");
-	    return 0;
-	 }
-	 h->setKeyValue("port", new QoreBigIntNode(port), 0);
+         int port = atoi(str);
+         if (!port) {
+            xsink->raiseException(DATASOURCE_PARSE_ERROR, "invalid port number in datasource string");
+            return 0;
+         }
+         h->setKeyValue("port", port, 0);
 
-	 const char* pstr = str;
-	 p = strchr(str, '{');
-	 if (p) {
-	    tok = *p;
-	    *p = '\0';
-	    str = p + 1;
-	 }
-	 else
-	    str += strlen(str);
+         const char* pstr = str;
+         p = strchr(str, '{');
+         if (p) {
+            tok = *p;
+            *p = '\0';
+            str = p + 1;
+         }
+         else
+            str += strlen(str);
 
-	 while (isdigit(*pstr))
-	    ++pstr;
+         while (isdigit(*pstr))
+            ++pstr;
 
-	 if (*pstr) {
-	    xsink->raiseException(DATASOURCE_PARSE_ERROR, "invalid characters present in port number in '%s'", ds);
-	    return 0;
-	 }
+         if (*pstr) {
+            xsink->raiseException(DATASOURCE_PARSE_ERROR, "invalid characters present in port number in '%s'", ds);
+            return 0;
+         }
       }
 
       if (tok == '{') {
-	 char* end = strchr(str, '}');
-	 if (!end) {
-	    xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing curly bracket '}' in option specification in '%s'", ds);
-	    return 0;
-	 }
-	 *end = '\0';
-	 p = str;
-	 str = end + 1;
+         char* end = strchr(str, '}');
+         if (!end) {
+            xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing curly bracket '}' in option specification in '%s'", ds);
+            return 0;
+         }
+         *end = '\0';
+         p = str;
+         str = end + 1;
 
-	 // parse option hash
-	 ReferenceHolder<QoreHashNode> opt(new QoreHashNode, xsink);
+         // parse option hash
+         ReferenceHolder<QoreHashNode> opt(new QoreHashNode, xsink);
 
-	 while (true) {
-	    if (!*p)
-	       break;
-	    char* eq = strchr(p, '=');
-	    char* oend = strchr(p, ',');
-	    qore_size_t len = 0;
-	    // if there is only an option left with no more options and no value
-	    if (!eq && !oend) {
-	       opt->setKeyValue(p, &True, 0);
+         while (true) {
+            if (!*p)
+               break;
+            char* eq = strchr(p, '=');
+            char* oend = strchr(p, ',');
+            qore_size_t len = 0;
+            // if there is only an option left with no more options and no value
+            if (!eq && !oend) {
+               opt->setKeyValue(p, &True, 0);
                p += strlen(p);
-	    }
-	    else {
-	       // if there is more than one option and the next option to be parsed has no value
-	       if (oend && (!eq || oend < eq)) {
+            }
+            else {
+               // if there is more than one option and the next option to be parsed has no value
+               if (oend && (!eq || oend < eq)) {
                   len = oend - p;
                   QoreString tmp(p, len);
-	          opt->setKeyValue(tmp.getBuffer(), &True, 0);
-	          p += len;
-	       }
-	       else {
-	          // here we must have an equals sign
-	          assert(eq);
-	          if (eq == p) {
-	             xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing value after '=' in option specification in '%s'", ds);
-	             return 0;
-	          }
-	          *eq = '\0';
-	          ++eq;
-	          len = oend ? oend - eq : strlen(eq);
-	          if (opt->existsKey(p)) {
-	             xsink->raiseException(DATASOURCE_PARSE_ERROR, "option '%s' repeated in '%s'", p, ds);
-	             return 0;
-	          }
+                  opt->setKeyValue(tmp.getBuffer(), &True, 0);
+                  p += len;
+               }
+               else {
+                  // here we must have an equals sign
+                  assert(eq);
+                  if (eq == p) {
+                     xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing value after '=' in option specification in '%s'", ds);
+                     return 0;
+                  }
+                  *eq = '\0';
+                  ++eq;
+                  len = oend ? oend - eq : strlen(eq);
+                  if (opt->existsKey(p)) {
+                     xsink->raiseException(DATASOURCE_PARSE_ERROR, "option '%s' repeated in '%s'", p, ds);
+                     return 0;
+                  }
 
-	          QoreString key(p);
-	          key.trim();
+                  QoreString key(p);
+                  key.trim();
 
-	          QoreString value(eq, len);
-	          value.trim();
+                  QoreString value(eq, len);
+                  value.trim();
 
-	          opt->setKeyValue(key.getBuffer(), new QoreStringNode(value), 0);
+                  opt->setKeyValue(key.getBuffer(), new QoreStringNode(value), 0);
 
-	          p = eq + len;
-	       }
-	    }
+                  p = eq + len;
+               }
+            }
             if (oend)
                ++p;
-	 }
+         }
 
-	 h->setKeyValue("options", opt.release(), 0);
+         h->setKeyValue("options", opt.release(), 0);
       }
 
       if (*str) {
-	 xsink->raiseException(DATASOURCE_PARSE_ERROR, "unrecognized characters at end of datasource definition in '%s'", ds);
-	 return 0;
+         xsink->raiseException(DATASOURCE_PARSE_ERROR, "unrecognized characters at end of datasource definition in '%s'", ds);
+         return 0;
       }
    }
 

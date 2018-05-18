@@ -2758,7 +2758,7 @@ public:
          },
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               l->push(n, nullptr);
                n.assign(l);
             }
          },
@@ -2796,7 +2796,7 @@ public:
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               l->push(n, nullptr);
                n.assign(l);
             }
          },
@@ -2829,7 +2829,7 @@ public:
          },
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               l->push(n, nullptr);
                n.assign(l);
             }
          },
@@ -2845,7 +2845,7 @@ public:
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               l->push(n, nullptr);
                n.assign(l);
             }
          },

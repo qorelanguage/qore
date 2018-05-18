@@ -957,7 +957,7 @@ auto Program::callFunction(string name, ...) {
 
    ReferenceHolder<QoreListNode> vargs(xsink);
    if (args->size() > 1)
-      vargs = args->getOldList(1);
+      vargs = args->copyListFrom(1);
 
    return p->callFunction(tmp->getBuffer(), *vargs, xsink);
 }
@@ -1795,10 +1795,10 @@ nothing Program::setGlobalVarValue(string name, auto value) {
     @since %Qore 0.8.13
 */
 list Program::findFunctionVariants(string function) {
-   ReferenceHolder<QoreValueList> vl(p->runtimeFindCallVariants(function->c_str(), xsink), xsink);
-   if (!vl)
-      return xsink->raiseException("PROGRAM-ERROR", "cannot find any function \"%s\"", function->c_str());
-   return vl->getOldList();
+    ReferenceHolder<QoreValueList> vl(p->runtimeFindCallVariants(function->c_str(), xsink), xsink);
+    if (!vl)
+        return xsink->raiseException("PROGRAM-ERROR", "cannot find any function \"%s\"", function->c_str());
+    return vl.release();
 }
 
 //! returns a list of thread IDs active in this Program

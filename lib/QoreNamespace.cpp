@@ -711,11 +711,11 @@ void QoreNamespaceList::parseRollback(ExceptionSink* xsink) {
 // public: only called during Qore initialization to setup
 // system constant types directly in Qore system namespaces
 // FIXME: change to addSystemConstant() to avoid confusion
-void QoreNamespace::addConstant(const char* cname, AbstractQoreNode* val) {
+void QoreNamespace::addConstant(const char* cname, QoreValue val) {
    return addConstant(cname, val, 0);
 }
 
-void QoreNamespace::addConstant(const char* cname, AbstractQoreNode* val, const QoreTypeInfo* typeInfo) {
+void QoreNamespace::addConstant(const char* cname, QoreValue val, const QoreTypeInfo* typeInfo) {
    // see if namespace is attached to the root
    qore_root_ns_private* rns = priv->getRoot();
    if (!rns) {
@@ -1525,7 +1525,7 @@ void qore_root_ns_private::parseAddClassIntern(const QoreProgramLocation* loc, c
    }
 }
 
-void qore_root_ns_private::addConstant(qore_ns_private& ns, const char* cname, AbstractQoreNode* val, const QoreTypeInfo* typeInfo) {
+void qore_root_ns_private::addConstant(qore_ns_private& ns, const char* cname, QoreValue val, const QoreTypeInfo* typeInfo) {
    cnemap_t::iterator i = ns.constant.add(cname, val, typeInfo);
    if (i == ns.constant.end())
       return;
@@ -1533,8 +1533,8 @@ void qore_root_ns_private::addConstant(qore_ns_private& ns, const char* cname, A
    cnmap.update(i->first, &ns, i->second);
 }
 
-void qore_root_ns_private::parseAddConstantIntern(const QoreProgramLocation* loc, QoreNamespace& ns, const NamedScope& name, AbstractQoreNode* value, bool cpub) {
-    ReferenceHolder<> vh(value, 0);
+void qore_root_ns_private::parseAddConstantIntern(const QoreProgramLocation* loc, QoreNamespace& ns, const NamedScope& name, QoreValue value, bool cpub) {
+    ValueHolder vh(value, 0);
 
     QoreNamespace* sns = ns.priv->resolveNameScope(loc, name);
     if (!sns)
@@ -1660,38 +1660,38 @@ const FunctionEntry* qore_root_ns_private::parseResolveFunctionEntryIntern(const
 }
 
 AbstractCallReferenceNode* qore_root_ns_private::parseResolveCallReferenceIntern(UnresolvedProgramCallReferenceNode* fr) {
-   std::unique_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
-   char* fname = fr->str;
+    std::unique_ptr<UnresolvedProgramCallReferenceNode> fr_holder(fr);
+    char* fname = fr->str;
 
-   FunctionEntry* fe = parseFindFunctionEntryIntern(fname);
-   if (fe) {
-      // check parse options to see if access is allowed
-      if (!qore_program_private::parseAddDomain(getProgram(), fe->getFunction()->parseGetUniqueFunctionality()))
-         return fe->makeCallReference(fr->loc);
-      parse_error(*fr->loc, "parse options do not allow access to function '%s'", fname);
-   }
-   else // cannot find function, throw exception
-      parse_error(*fr->loc, "reference to function '%s()' cannot be resolved", fname);
+    FunctionEntry* fe = parseFindFunctionEntryIntern(fname);
+    if (fe) {
+        // check parse options to see if access is allowed
+        if (!qore_program_private::parseAddDomain(getProgram(), fe->getFunction()->parseGetUniqueFunctionality()))
+            return fe->makeCallReference(fr->loc);
+        parse_error(*fr->loc, "parse options do not allow access to function '%s'", fname);
+    }
+    else // cannot find function, throw exception
+        parse_error(*fr->loc, "reference to function '%s()' cannot be resolved", fname);
 
-   return fr_holder.release();
+    return fr_holder.release();
 }
 
-static void get_params(const QoreValueList* params, QoreString& desc) {
-   ConstValueListIterator li(params);
-   while (li.next()) {
-      QoreValue v = li.getValue();
-      if (v.getType() != NT_STRING) {
-         desc.concat("<unknown>");
-      }
-      else {
-         desc.concat(v.get<QoreStringNode>()->c_str());
-      }
-      if (!li.last())
-         desc.concat(", ");
-   }
+static void get_params(const QoreListNode* params, QoreString& desc) {
+    ConstListIterator li(params);
+    while (li.next()) {
+        QoreValue v = li.getValue();
+        if (v.getType() != NT_STRING) {
+            desc.concat("<unknown>");
+        }
+        else {
+            desc.concat(v.get<QoreStringNode>()->c_str());
+        }
+        if (!li.last())
+            desc.concat(", ");
+    }
 }
 
-const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) {
+const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const char* name, const QoreListNode* params, ExceptionSink* xsink) {
     // function or method
     const QoreFunction* qf = nullptr;
 
@@ -1756,7 +1756,7 @@ const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const c
     if (params && !params->empty()) {
         // resolve types
         tvec.reserve(params->size());
-        ConstValueListIterator li(params);
+        ConstListIterator li(params);
         while (li.next()) {
             QoreValue v = li.getValue();
             if (v.getType() != NT_STRING) {
@@ -1783,7 +1783,7 @@ const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const c
     return qf->runtimeFindExactVariant(xsink, tvec, qc ? qore_class_private::get(*qc) : nullptr);
 }
 
-QoreValueList* qore_root_ns_private::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) {
+QoreListNode* qore_root_ns_private::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) {
     // function or method
     const QoreFunction* qf = nullptr;
 
@@ -2192,8 +2192,8 @@ qore_ns_private* qore_ns_private::parseAddNamespace(QoreNamespace* nns) {
 }
 
 // only called while parsing before addition to namespace tree, no locking needed
-cnemap_t::iterator qore_ns_private::parseAddConstant(const QoreProgramLocation* loc, const char* cname, AbstractQoreNode* value, bool cpub) {
-   ReferenceHolder<> vh(value, 0);
+cnemap_t::iterator qore_ns_private::parseAddConstant(const QoreProgramLocation* loc, const char* cname, QoreValue value, bool cpub) {
+   ValueHolder vh(value, 0);
 
    if (constant.inList(cname)) {
       std::string path;
@@ -2209,8 +2209,8 @@ cnemap_t::iterator qore_ns_private::parseAddConstant(const QoreProgramLocation* 
 }
 
 // only called while parsing before addition to namespace tree, no locking needed
-void qore_ns_private::parseAddConstant(const QoreProgramLocation* loc, const NamedScope& nscope, AbstractQoreNode* value, bool cpub) {
-   ReferenceHolder<> vh(value, 0);
+void qore_ns_private::parseAddConstant(const QoreProgramLocation* loc, const NamedScope& nscope, QoreValue value, bool cpub) {
+   ValueHolder vh(value, 0);
 
    QoreNamespace* sns = resolveNameScope(loc, nscope);
    if (!sns)

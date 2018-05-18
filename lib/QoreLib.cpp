@@ -741,89 +741,6 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, in
 QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
    assert(xsink);
    unsigned i, j, l;
-   const QoreStringNode* p;
-
-   if (!(p = test_string_param(params, offset)))
-      return new QoreStringNode;
-
-   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(p->getEncoding()));
-
-   j = 1 + offset;
-
-   const char* pstr = p->getBuffer();
-   l = p->strlen();
-   for (i = 0; i < l; i++) {
-      int taken = 1;
-      if ((pstr[i] == '%') && (j < params->size())) {
-         const AbstractQoreNode* node = get_param(params, j++);
-         i += process_opt(*buf, (char*)&pstr[i], node, field, &taken, xsink);
-         if (*xsink)
-            return 0;
-         if (!taken)
-            j--;
-      }
-      else {
-         buf->concat(pstr[i]);
-         if (pstr[i] == '%' && pstr[i+1] == '%')
-             ++i;
-      }
-   }
-
-   return buf.release();
-}
-
-QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
-   assert(xsink);
-   const QoreStringNode* fmt;
-
-   if (!(fmt = test_string_param(params, offset)))
-      return new QoreStringNode;
-
-   const AbstractQoreNode* args = get_param(params, offset + 1);
-   const QoreListNode* arg_list = get_node_type(args) == NT_LIST ? reinterpret_cast<const QoreListNode*>(args) : 0;
-
-   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
-   unsigned j = 0;
-
-   const char* pstr = fmt->getBuffer();
-   size_t l = fmt->strlen();
-   for (unsigned i = 0; i < l; i++) {
-      int taken = 1;
-      bool havearg = false;
-      const AbstractQoreNode* arg = 0;
-
-      if ((pstr[i] == '%')) {
-         if (args) {
-            if (arg_list && j < arg_list->size()) {
-               havearg = true;
-               arg = get_param(arg_list, j);
-            }
-            else if (!j) {
-               arg = args;
-               havearg = true;
-            }
-         }
-      }
-      if (havearg) {
-         ++j;
-         i += process_opt(*buf, (char*)&pstr[i], arg, field, &taken, xsink);
-         if (*xsink)
-            return 0;
-         if (!taken)
-            --j;
-      }
-      else {
-         buf->concat(pstr[i]);
-         if (pstr[i] == '%' && pstr[i+1] == '%')
-             ++i;
-      }
-   }
-   return buf.release();
-}
-
-QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
-   assert(xsink);
-   unsigned i, j, l;
 
    QoreValue pv = get_param_value(params, offset);
    if (pv.getType() != NT_STRING)
@@ -857,52 +774,52 @@ QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, Ex
    return buf.release();
 }
 
-QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink) {
-   assert(xsink);
-   QoreValue pv = get_param_value(params, offset);
-   if (pv.getType() != NT_STRING)
-      return new QoreStringNode;
+QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
+    assert(xsink);
+    QoreValue pv = get_param_value(params, offset);
+    if (pv.getType() != NT_STRING)
+        return new QoreStringNode;
 
-   const QoreStringNode* fmt = pv.get<QoreStringNode>();
+    const QoreStringNode* fmt = pv.get<QoreStringNode>();
 
-   pv = get_param_value(params, offset + 1);
-   const QoreListNode* arg_list = pv.getType() == NT_LIST ? pv.get<const QoreListNode>() : 0;
+    pv = get_param_value(params, offset + 1);
+    const QoreListNode* arg_list = pv.getType() == NT_LIST ? pv.get<const QoreListNode>() : 0;
 
-   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
-   unsigned j = 0;
+    SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
+    unsigned j = 0;
 
-   const char* pstr = fmt->getBuffer();
-   size_t l = fmt->strlen();
-   for (unsigned i = 0; i < l; i++) {
-      int taken = 1;
-      bool havearg = false;
+    const char* pstr = fmt->getBuffer();
+    size_t l = fmt->strlen();
+    for (unsigned i = 0; i < l; i++) {
+        int taken = 1;
+        bool havearg = false;
 
-      QoreValue cv;
+        QoreValue cv;
 
-      if ((pstr[i] == '%')) {
-         if (!pv.isNothing()) {
-            havearg = true;
-            if (arg_list && j < arg_list->size())
-               cv = get_param(arg_list, j);
-            else if (!j)
-               cv = pv;
-         }
-      }
-      if (havearg) {
-         ++j;
-         i += process_opt(*buf, (char*)&pstr[i], cv, field, &taken, xsink);
-         if (*xsink)
-            return 0;
-         if (!taken)
-            --j;
-      }
-      else {
-         buf->concat(pstr[i]);
-         if (pstr[i] == '%' && pstr[i+1] == '%')
-             ++i;
-      }
-   }
-   return buf.release();
+        if ((pstr[i] == '%')) {
+            if (!pv.isNothing()) {
+                havearg = true;
+                if (arg_list && j < arg_list->size())
+                    cv = get_param_value(arg_list, j);
+                else if (!j)
+                    cv = pv;
+            }
+        }
+        if (havearg) {
+            ++j;
+            i += process_opt(*buf, (char*)&pstr[i], cv, field, &taken, xsink);
+            if (*xsink)
+                return nullptr;
+            if (!taken)
+                --j;
+        }
+        else {
+            buf->concat(pstr[i]);
+            if (pstr[i] == '%' && pstr[i+1] == '%')
+                ++i;
+        }
+    }
+    return buf.release();
 }
 
 static void concatASCII(QoreString &str, unsigned char c) {
@@ -1121,14 +1038,14 @@ void print_node(FILE* fp, const QoreValue qv) {
 }
 
 void qore_setup_argv(int pos, int argc, char* argv[]) {
-   ARGV = new QoreListNode();
-   QORE_ARGV = new QoreListNode();
-   int end = argc - pos;
-   for (int i = 0; i < argc; i++) {
-      if (i < end)
-         ARGV->push(new QoreStringNode(argv[i + pos]));
-      QORE_ARGV->push(new QoreStringNode(argv[i]));
-   }
+    ARGV = new QoreListNode;
+    QORE_ARGV = new QoreListNode;
+    int end = argc - pos;
+    for (int i = 0; i < argc; i++) {
+        if (i < end)
+            ARGV->push(new QoreStringNode(argv[i + pos]), nullptr);
+        QORE_ARGV->push(new QoreStringNode(argv[i]), nullptr);
+    }
 }
 
 void init_lib_intern(char* env[]) {
@@ -1165,13 +1082,13 @@ void init_lib_intern(char* env[]) {
 }
 
 void delete_global_variables() {
-   QORE_TRACE("delete_global_variables()");
-   if (QORE_ARGV)
-      QORE_ARGV->deref(0);
-   if (ARGV)
-      ARGV->deref(0);
-   if (ENV)
-      ENV->deref(0);
+    QORE_TRACE("delete_global_variables()");
+    if (QORE_ARGV)
+        QORE_ARGV->deref(0);
+    if (ARGV)
+        ARGV->deref(0);
+    if (ENV)
+        ENV->deref(0);
 }
 
 struct tm *q_localtime(const time_t* clock, struct tm* tms) {
@@ -1272,7 +1189,7 @@ static inline void assign_hv(QoreHashNode* h, const char* key, char* val) {
 }
 
 static inline void assign_hv(QoreHashNode* h, const char* key, int val) {
-   h->setKeyValue(key, new QoreBigIntNode(val), 0);
+   h->setKeyValue(key, val, 0);
 }
 
 #ifdef HAVE_PWD_H
@@ -1342,18 +1259,18 @@ int q_uname2uid(const char* name, uid_t& uid) {
 }
 
 static QoreHashNode* gr2hash(struct group& gr) {
-   QoreHashNode* h = new QoreHashNode;
-   // assign values
-   assign_hv(h, "gr_name", gr.gr_name);
-   assign_hv(h, "gr_passwd", gr.gr_passwd);
-   assign_hv(h, "gr_gid", gr.gr_gid);
+    QoreHashNode* h = new QoreHashNode;
+    // assign values
+    assign_hv(h, "gr_name", gr.gr_name);
+    assign_hv(h, "gr_passwd", gr.gr_passwd);
+    assign_hv(h, "gr_gid", gr.gr_gid);
 
-   QoreListNode* l = new QoreListNode;
-   for (char* *p = gr.gr_mem; *p; ++p)
-      l->push(new QoreStringNode(*p));
+    QoreListNode* l = new QoreListNode;
+    for (char* *p = gr.gr_mem; *p; ++p)
+        l->push(new QoreStringNode(*p), nullptr);
 
-   h->setKeyValue("gr_mem", l, 0);
-   return h;
+    h->setKeyValue("gr_mem", l, 0);
+    return h;
 }
 
 QoreHashNode* q_getgrgid(gid_t gid) {
@@ -1496,7 +1413,7 @@ QoreParseListNode* make_args(const QoreProgramLocation* loc, AbstractQoreNode* a
 }
 
 const char* check_hash_key(const QoreHashNode* h, const char* key, const char* err, ExceptionSink* xsink) {
-   QoreValue p = h->getValueKeyValue(key);
+   QoreValue p = h->getKeyValue(key);
    if (p.isNothing())
       return nullptr;
 
@@ -1577,6 +1494,15 @@ int qore_release_signals(const sig_vec_t& sig_vec, const char* name) {
 }
 
 // returns 0 for OK, -1 for error
+int check_lvalue(QoreValue n, bool assignment) {
+    if (n.isNothing() || !n.hasNode()) {
+        return 0;
+    }
+
+    return check_lvalue(n.getInternalNode(), assignment);
+}
+
+// returns 0 for OK, -1 for error
 int check_lvalue(AbstractQoreNode* node, bool assignment) {
    qore_type_t ntype = node->getType();
    //printd(5, "type: %s\n", node->getTypeName());
@@ -1631,29 +1557,29 @@ static void stat_get_blocks(const struct stat &sbuf, int64& blksize, int64& bloc
 }
 
 QoreListNode* stat_to_list(const struct stat& sbuf) {
-   QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode;
 
-   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
-   l->push(new QoreBigIntNode((int64)sbuf.st_dev));
-   l->push(new QoreBigIntNode(sbuf.st_ino));
-   l->push(new QoreBigIntNode(sbuf.st_mode));
-   l->push(new QoreBigIntNode(sbuf.st_nlink));
-   l->push(new QoreBigIntNode(sbuf.st_uid));
-   l->push(new QoreBigIntNode(sbuf.st_gid));
-   // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
-   l->push(new QoreBigIntNode((int64)sbuf.st_rdev));
-   l->push(new QoreBigIntNode(sbuf.st_size));
+    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+    l->push(((int64)sbuf.st_dev), nullptr);
+    l->push(sbuf.st_ino, nullptr);
+    l->push(sbuf.st_mode, nullptr);
+    l->push(sbuf.st_nlink, nullptr);
+    l->push(sbuf.st_uid, nullptr);
+    l->push(sbuf.st_gid, nullptr);
+    // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
+    l->push((int64)sbuf.st_rdev, nullptr);
+    l->push(sbuf.st_size, nullptr);
 
-   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_atime));
-   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime));
-   l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime));
+    l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_atime), nullptr);
+    l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_mtime), nullptr);
+    l->push(DateTimeNode::makeAbsolute(currentTZ(), (int64)sbuf.st_ctime), nullptr);
 
-   int64 blksize, blocks;
-   stat_get_blocks(sbuf, blksize, blocks);
-   l->push(new QoreBigIntNode(blksize));
-   l->push(new QoreBigIntNode(blocks));
+    int64 blksize, blocks;
+    stat_get_blocks(sbuf, blksize, blocks);
+    l->push(blksize, nullptr);
+    l->push(blocks, nullptr);
 
-   return l;
+    return l;
 }
 
 TypedHashDecl* qore_get_hashdecl(const char* name) {
@@ -1702,18 +1628,18 @@ QoreHashNode* statvfs_to_hash(const struct statvfs& vfs) {
 
 #ifdef DARWIN
 #else
-   h->setKeyValue("namemax", new QoreBigIntNode(vfs.f_namemax), nullptr);
+   h->setKeyValue("namemax", vfs.f_namemax, nullptr);
 #endif
-   h->setKeyValue("fsid", new QoreBigIntNode(vfs.f_fsid), nullptr);
-   h->setKeyValue("frsize", new QoreBigIntNode(vfs.f_frsize), nullptr);
-   h->setKeyValue("bsize", new QoreBigIntNode(vfs.f_bsize), nullptr);
-   h->setKeyValue("flag", new QoreBigIntNode(vfs.f_flag), nullptr);
-   h->setKeyValue("blocks", new QoreBigIntNode(vfs.f_blocks), nullptr);
-   h->setKeyValue("bfree", new QoreBigIntNode(vfs.f_bfree), nullptr);
-   h->setKeyValue("bavail", new QoreBigIntNode(vfs.f_bavail), nullptr);
-   h->setKeyValue("files", new QoreBigIntNode(vfs.f_files), nullptr);
-   h->setKeyValue("ffree", new QoreBigIntNode(vfs.f_ffree), nullptr);
-   h->setKeyValue("favail", new QoreBigIntNode(vfs.f_favail), nullptr);
+   h->setKeyValue("fsid", vfs.f_fsid, nullptr);
+   h->setKeyValue("frsize", vfs.f_frsize, nullptr);
+   h->setKeyValue("bsize", vfs.f_bsize, nullptr);
+   h->setKeyValue("flag", vfs.f_flag, nullptr);
+   h->setKeyValue("blocks", vfs.f_blocks, nullptr);
+   h->setKeyValue("bfree", vfs.f_bfree, nullptr);
+   h->setKeyValue("bavail", vfs.f_bavail, nullptr);
+   h->setKeyValue("files", vfs.f_files, nullptr);
+   h->setKeyValue("ffree", vfs.f_ffree, nullptr);
+   h->setKeyValue("favail", vfs.f_favail, nullptr);
 
    return h;
 }
@@ -2252,26 +2178,40 @@ int q_fstatvfs(const char* filepath, struct statvfs* buf) {
 
 // call to get a node with reference count 1 (copy on write)
 void ensure_unique(AbstractQoreNode* *v, ExceptionSink* xsink) {
-   assert(*v);
-   if (!(*v)->is_unique()) {
-      AbstractQoreNode* old = *v;
-      (*v) = old->realCopy();
-      old->deref(xsink);
-      assert(!*xsink);
-   }
+    assert(*v);
+    if (!(*v)->is_unique()) {
+        AbstractQoreNode* old = *v;
+        (*v) = old->realCopy();
+        old->deref(xsink);
+        assert(!*xsink);
+    }
+}
+
+void ensure_unique(QoreValue& v, ExceptionSink* xsink) {
+    if (!v.hasNode()) {
+        return;
+    }
+    AbstractQoreNode* n = v.getInternalNode();
+    if (!n->is_unique()) {
+        AbstractQoreNode* old = n;
+        n = old->realCopy();
+        old->deref(xsink);
+        assert(!*xsink);
+        v = n;
+    }
 }
 
 // checks for illegal "self" assignments in an object context
-void check_self_assignment(const QoreProgramLocation* loc, AbstractQoreNode* n, LocalVar* selfid) {
-   qore_type_t ntype = n->getType();
+void check_self_assignment(const QoreProgramLocation* loc, QoreValue n, LocalVar* selfid) {
+    qore_type_t ntype = n.getType();
 
-   // if it's a variable reference
-   if (ntype == NT_VARREF) {
-      VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
-      if (v->getType() == VT_LOCAL && v->ref.id == selfid)
-         parse_error(*loc, "illegal assignment to 'self' in an object context");
-      return;
-   }
+    // if it's a variable reference
+    if (ntype == NT_VARREF) {
+        VarRefNode* v = n.get<VarRefNode>();
+        if (v->getType() == VT_LOCAL && v->ref.id == selfid)
+            parse_error(*loc, "illegal assignment to 'self' in an object context");
+        return;
+    }
 }
 
 int check_lvalue_int(const QoreProgramLocation* loc, const QoreTypeInfo*& typeInfo, const char* name) {
@@ -2630,3 +2570,38 @@ const char* get_full_type_name(const AbstractQoreNode* n) {
    }
    return get_type_name(n);
 }
+
+void QorePossibleListNodeParseInitHelper::parseInit(const QoreTypeInfo*& typeInfo) {
+    //printd(0, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, l ? pos : 0, l ? l->size() : 1, l);
+
+    typeInfo = nullptr;
+    if (!l) {
+        // FIXME: return list type info when list elements can be typed
+        if (!pos) {
+            if (singleTypeInfo)
+            typeInfo = singleTypeInfo;
+        }
+        else {
+            // no argument available
+            if (singleTypeInfo)
+            typeInfo = nothingTypeInfo;
+        }
+        return;
+    }
+
+    if (finished) {
+        // no argument available
+        typeInfo = nothingTypeInfo;
+    }
+    else {
+        QoreValue& v = qore_list_private::get(*l)->getEntryReference(pos);
+        parse_init_value(v, oflag, pflag, lvids, typeInfo);
+
+        //printd(0, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n", this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a", typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");
+
+        if (l && !l->needs_eval() && v.hasNode() && v.getInternalNode()->needs_eval()) {
+            qore_list_private::setNeedsEval(*l);
+        }
+    }
+}
+

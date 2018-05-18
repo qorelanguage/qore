@@ -166,7 +166,7 @@ struct qore_dbi_private {
             while (hi.next()) {
                 // FIXME: convert DBI options to QoreValue
                 if (!hi.get().getInternalNode()) {
-                    ReferenceHolder<> h(hi.getReferencedValue(), xsink);
+                    ReferenceHolder<> h(hi.get().getReferencedValue(), xsink);
                     f.opt.set(ds, hi.getKey(), *h, xsink);
                 }
                 else {
@@ -205,9 +205,9 @@ struct qore_dbi_private {
             assert(res->getType() == NT_LIST);
             QoreListNode* l = reinterpret_cast<QoreListNode*>(*res);
             assert(l->size() <= 1);
-            AbstractQoreNode* n = l->shift();
-            assert(!n || n->getType() == NT_HASH);
-            return reinterpret_cast<QoreHashNode*>(n);
+            QoreValue n = l->shift();
+            assert(n.isNothing() || n.getType() == NT_HASH);
+            return n.get<QoreHashNode>();
         }
 
         return reinterpret_cast<QoreHashNode*>(res.release());

@@ -65,14 +65,15 @@ QoreValue QoreChompOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink*
 
     if (vtype == NT_LIST) {
         QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
+        qore_list_private* ll = qore_list_private::get(*l);
         ListIterator li(l);
         while (li.next()) {
-            AbstractQoreNode** v = li.getValuePtr();
-            if (*v && (*v)->getType() == NT_STRING) {
+            QoreValue& v = ll->getEntryReference(li.index());
+            if (v.getType() == NT_STRING) {
                 // note that no exception can happen here
                 ensure_unique(v, xsink);
                 assert(!*xsink);
-                QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
+                QoreStringNode* vs = v.get<QoreStringNode>();
                 count += vs->chomp();
             }
         }

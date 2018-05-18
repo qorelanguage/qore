@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -401,8 +401,9 @@ list getgroups() [dom=EXTERNAL_INFO] {
       return xsink->raiseErrnoException("GETGROUPS-ERROR", errno, "error calling getgroups()");
 
    QoreListNode* rv = new QoreListNode;
-   for (int i = 0; i < n; ++i)
-      rv->push(new QoreBigIntNode(l[i]));
+   for (int i = 0; i < n; ++i) {
+      rv->push(l[i], xsink);
+   }
    return rv;
 #else
    missing_function_error("getgroups", "UNIX_USERMGT", xsink);
@@ -424,27 +425,26 @@ setgroups(l);
 */
 nothing setgroups(softlist gids) [dom=PROCESS] {
 #ifdef HAVE_SETGROUPS
-   if (gids->empty())
-      return QoreValue();
+    if (gids->empty())
+        return QoreValue();
 
 #ifdef HAVE_LOCAL_VARIADIC_ARRAYS_X
-   gid_t l[gids->size()];
+    gid_t l[gids->size()];
 #else
-   gid_t* l = (gid_t*)malloc(sizeof(gid_t) * gids->size());
-   if (!l) {
-      xsink->outOfMemory();
-      return QoreValue();
-   }
-   ON_BLOCK_EXIT(free, l);
+    gid_t* l = (gid_t*)malloc(sizeof(gid_t) * gids->size());
+    if (!l) {
+        xsink->outOfMemory();
+        return QoreValue();
+    }
+    ON_BLOCK_EXIT(free, l);
 #endif
-   for (qore_size_t i = 0, e = gids->size(); i < e; ++i) {
-      const AbstractQoreNode* n = gids->retrieve_entry(i);
-      l[i] = n ? n->getAsInt() : 0;
-   }
-   if (setgroups(gids->size(), l))
-      xsink->raiseErrnoException("SETGROUPS-ERROR", errno, "error calling setgroups()");
+    for (qore_size_t i = 0, e = gids->size(); i < e; ++i) {
+        l[i] = (int)gids->retrieveEntry(i).getAsBigInt();
+    }
+    if (setgroups(gids->size(), l))
+        xsink->raiseErrnoException("SETGROUPS-ERROR", errno, "error calling setgroups()");
 #else
-   missing_function_error("setgroups", "UNIX_USERMGT", xsink);
+    missing_function_error("setgroups", "UNIX_USERMGT", xsink);
 #endif
 }
 
@@ -1114,8 +1114,6 @@ list: (8 elements)
 */
 list<hash<NetIfInfo>> get_netif_list() [dom=EXTERNAL_INFO] {
 #ifdef HAVE_GETIFADDRS
-    ReferenceHolder<QoreListNode> rv(new QoreListNode(hashdeclNetIfInfo->getTypeInfo()), xsink);
-
     struct ifaddrs* ifap;
     if (getifaddrs(&ifap)) {
         xsink->raiseErrnoException("GETGETIFLIST-ERROR", errno, "getidaddrs() failed");
@@ -1123,14 +1121,17 @@ list<hash<NetIfInfo>> get_netif_list() [dom=EXTERNAL_INFO] {
     }
     ON_BLOCK_EXIT(freeifaddrs, ifap);
 
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(hashdeclNetIfInfo->getTypeInfo()), xsink);
+
     for (struct ifaddrs* ifa = ifap; ifa; ifa = ifa->ifa_next) {
         // skip interfaces with no address
         if (!ifa->ifa_addr)
             continue;
 
         ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclNetIfInfo), xsink);
+        qore_hash_private* hh = qore_hash_private::get(**h);
 
-        h->setKeyValue("interface", new QoreStringNode(ifa->ifa_name), xsink);
+        hh->setKeyValueIntern("interface", new QoreStringNode(ifa->ifa_name));
 
         switch (ifa->ifa_addr->sa_family) {
             case AF_INET:
@@ -1139,8 +1140,8 @@ list<hash<NetIfInfo>> get_netif_list() [dom=EXTERNAL_INFO] {
                 char ifname[INET6_ADDRSTRLEN];
                 if (inet_ntop(ifa->ifa_addr->sa_family, qore_get_in_addr(ifa->ifa_addr), ifname, sizeof(ifname))) {
                     QoreStringNode* addrstr = new QoreStringNode(ifname);
-                    h->setKeyValue("address", addrstr, xsink);
-                    h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()), xsink);
+                    hh->setKeyValueIntern("address", addrstr);
+                    hh->setKeyValueIntern("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()));
                 }
                 break;
             }
@@ -1151,25 +1152,25 @@ list<hash<NetIfInfo>> get_netif_list() [dom=EXTERNAL_INFO] {
                 for (unsigned i = 0; i < s->sll_halen; ++i) {
                     addrstr->sprintf("%02x%s", s->sll_addr[i], i < (s->sll_halen - 1) ? ":" : "");
                 }
-                h->setKeyValue("address", addrstr, xsink);
-                h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()), xsink);
+                hh->setKeyValueIntern("address", addrstr);
+                hh->setKeyValueIntern("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()));
                 break;
             }
 #endif
 #ifdef AF_LINK
             case AF_LINK: {
                 QoreStringNode* addrstr = new QoreStringNode(link_ntoa((struct sockaddr_dl*)ifa->ifa_addr));
-                h->setKeyValue("address", addrstr, xsink);
-                h->setKeyValue("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()), xsink);
+                hh->setKeyValueIntern("address", addrstr);
+                hh->setKeyValueIntern("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()));
                 break;
             }
 #endif
         }
 
-         h->setKeyValue("family", new QoreBigIntNode(ifa->ifa_addr->sa_family), xsink);
-         h->setKeyValue("familystr", new QoreStringNode(QoreAddrInfo::getFamilyName(ifa->ifa_addr->sa_family)), xsink);
+         hh->setKeyValueIntern("family", ifa->ifa_addr->sa_family);
+         hh->setKeyValueIntern("familystr", new QoreStringNode(QoreAddrInfo::getFamilyName(ifa->ifa_addr->sa_family)));
 
-         rv->push(h.release());
+         rv->push(h.release(), xsink);
     }
 
     return rv.release();

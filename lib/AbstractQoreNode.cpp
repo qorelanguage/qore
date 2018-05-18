@@ -420,14 +420,15 @@ int64 getMicroSecZeroInt64(const AbstractQoreNode* a) {
 }
 
 static QoreListNode* crlr_list_copy(const QoreListNode* n, ExceptionSink* xsink) {
-   assert(xsink);
-   ReferenceHolder<QoreListNode> l(new QoreListNode(true), xsink);
-   for (unsigned i = 0; i < n->size(); i++) {
-      l->push(copy_and_resolve_lvar_refs(n->retrieve_entry(i), xsink));
-      if (*xsink)
-         return 0;
-   }
-   return l.release();
+    assert(xsink);
+    ReferenceHolder<QoreListNode> l(new QoreListNode(true), xsink);
+    for (unsigned i = 0; i < n->size(); i++) {
+        l->push(copy_value_and_resolve_lvar_refs(n->retrieveEntry(i), xsink), nullptr);
+        if (*xsink) {
+            return 0;
+        }
+    }
+    return l.release();
 }
 
 static QoreParseListNode* crlr_list_copy(const QoreParseListNode* n, ExceptionSink* xsink) {
@@ -441,7 +442,7 @@ static QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSink* xsin
    assert(xsink);
    ReferenceHolder<QoreValueList> l(new QoreValueList, xsink);
    for (unsigned i = 0; i < n->size(); i++) {
-      l->push(copy_value_and_resolve_lvar_refs(n->retrieveEntry(i), xsink));
+      l->push(copy_value_and_resolve_lvar_refs(n->retrieveEntry(i), xsink), nullptr);
       if (*xsink)
          return 0;
    }
@@ -454,7 +455,7 @@ static AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionSink* xs
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
     ConstHashIterator hi(n);
     while (hi.next()) {
-        h->setValueKeyValue(hi.getKey(), copy_value_and_resolve_lvar_refs(hi.get(), xsink), xsink);
+        h->setKeyValue(hi.getKey(), copy_value_and_resolve_lvar_refs(hi.get(), xsink), xsink);
         if (*xsink)
             return nullptr;
     }
@@ -600,8 +601,6 @@ AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, Exceptio
    if (ntype == NT_CLOSURE)
       return reinterpret_cast<const QoreClosureParseNode*>(n)->evalBackground(xsink);
 
-   assert(ntype != NT_VALUE_LIST);
-
    return n->refSelf();
 }
 
@@ -650,11 +649,11 @@ AbstractQoreNode* UniqueValueQoreNode::realCopy() const {
 }
 
 int64 get_ms_zero(const QoreValue& n) {
-   if (n.isNothing())
-      return -1;
-   if (n.getType() == NT_DATE)
-      return n.get<const DateTimeNode>()->getRelativeMilliseconds();
-   return n.getAsBigInt();
+    if (n.isNothing())
+        return -1;
+    if (n.getType() == NT_DATE)
+        return n.get<const DateTimeNode>()->getRelativeMilliseconds();
+    return n.getAsBigInt();
 }
 
 bool needs_scan(const AbstractQoreNode* n) {
@@ -665,7 +664,6 @@ bool needs_scan(const AbstractQoreNode* n) {
         case NT_LIST: return qore_list_private::getScanCount(*static_cast<const QoreListNode*>(n)) ? true : false;
         case NT_HASH: return qore_hash_private::getScanCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
         case NT_OBJECT: return true;
-        case NT_VALUE_LIST: /*assert(false);*/ return qore_value_list_private::getScanCount(*static_cast<const QoreValueList*>(n)) ? true : false;
         case NT_RUNTIME_CLOSURE: return static_cast<const QoreClosureBase*>(n)->needsScan();
         case NT_REFERENCE: return lvalue_ref::get(static_cast<const ReferenceNode*>(n))->needsScan();
     }
@@ -678,14 +676,13 @@ bool needs_scan(const QoreValue& v) {
 }
 
 void inc_container_obj(const AbstractQoreNode* n, int dt) {
-   assert(n);
-   switch (n->getType()) {
-      case NT_LIST: qore_list_private::incScanCount(*static_cast<const QoreListNode*>(n), dt); break;
-      case NT_HASH: qore_hash_private::incScanCount(*static_cast<const QoreHashNode*>(n), dt); break;
-      case NT_OBJECT: qore_object_private::incScanCount(*static_cast<const QoreObject*>(n), dt); break;
-      case NT_VALUE_LIST: /*assert(false);*/ qore_value_list_private::incScanCount(*static_cast<const QoreValueList*>(n), dt); break;
-      default: assert(false);
-   }
+    assert(n);
+    switch (n->getType()) {
+        case NT_LIST: qore_list_private::incScanCount(*static_cast<const QoreListNode*>(n), dt); break;
+        case NT_HASH: qore_hash_private::incScanCount(*static_cast<const QoreHashNode*>(n), dt); break;
+        case NT_OBJECT: qore_object_private::incScanCount(*static_cast<const QoreObject*>(n), dt); break;
+        default: assert(false);
+    }
 }
 
 bool has_complex_type(const AbstractQoreNode* n) {
@@ -731,25 +728,25 @@ static QoreListNode* do_copy_strip(const QoreListNode* l) {
     ReferenceHolder<QoreListNode> nl(new QoreListNode, nullptr);
     ConstListIterator i(l);
     while (i.next()) {
-        nl->push(copy_strip_complex_types(i.getValue()));
+        nl->push(copy_strip_complex_types(i.getValue()), nullptr);
     }
     return nl.release();
 }
 
 AbstractQoreNode* copy_strip_complex_types(const AbstractQoreNode* n) {
-   if (!n)
-      return nullptr;
-   if (!has_complex_type(n))
-      return n->refSelf();
-   switch (get_node_type(n)) {
-      case NT_LIST:
-         return do_copy_strip(static_cast<const QoreListNode*>(n));
-      case NT_HASH:
-         return do_copy_strip(static_cast<const QoreHashNode*>(n));
-      default:
-         break;
-   }
-   return n->refSelf();
+    if (!n)
+        return nullptr;
+    if (!has_complex_type(n))
+        return n->refSelf();
+    switch (get_node_type(n)) {
+        case NT_LIST:
+            return do_copy_strip(static_cast<const QoreListNode*>(n));
+        case NT_HASH:
+            return do_copy_strip(static_cast<const QoreHashNode*>(n));
+        default:
+            break;
+    }
+    return n->refSelf();
 }
 
 DLLLOCAL QoreValue copy_strip_complex_types(const QoreValue& n) {

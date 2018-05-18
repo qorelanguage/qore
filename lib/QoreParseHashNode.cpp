@@ -151,7 +151,7 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
             QoreTypeInfo::acceptInputKey(this->vtype, key->c_str(), val, xsink);
         }
 
-        h->setValueKeyValue(key->c_str(), val, xsink);
+        h->setKeyValue(key->c_str(), val, xsink);
         if (xsink && *xsink) {
             return QoreValue();
         }

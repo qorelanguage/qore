@@ -409,7 +409,7 @@ public:
    const QoreTypeInfo* typeInfo = nullptr;
 
    DLLLOCAL LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove = false);
-   DLLLOCAL LValueHelper(const AbstractQoreNode* exp, ExceptionSink* xsink, bool for_remove = false);
+   DLLLOCAL LValueHelper(QoreValue exp, ExceptionSink* xsink, bool for_remove = false);
 
    DLLLOCAL LValueHelper(ExceptionSink* xsink);
 

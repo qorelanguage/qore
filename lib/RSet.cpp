@@ -294,8 +294,8 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
             QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
             ListIterator li(l);
             while (li.next()) {
-                if (checkIntern(li.getValue()))
-                return true;
+                if (li.getValue().hasNode() && checkIntern(li.getValue().getInternalNode()))
+                    return true;
             }
 
             return false;

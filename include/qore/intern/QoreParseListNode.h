@@ -38,11 +38,11 @@
 #include <vector>
 #include <string>
 
-DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
+DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink);
 
 class QoreParseListNode : public ParseNode {
 public:
-    typedef std::vector<AbstractQoreNode*> nvec_t;
+    typedef std::vector<QoreValue> nvec_t;
 
     DLLLOCAL QoreParseListNode(const QoreProgramLocation* loc) : ParseNode(loc, NT_PARSE_LIST, true) {
     }
@@ -52,7 +52,7 @@ public:
         lvec.reserve(old.lvec.size());
 
         for (unsigned i = 0; i < old.values.size(); ++i) {
-            add(copy_and_resolve_lvar_refs(old.values[i], xsink), old.lvec[i]);
+            add(copy_value_and_resolve_lvar_refs(old.values[i], xsink), old.lvec[i]);
             if (*xsink)
                 return;
         }
@@ -60,45 +60,45 @@ public:
 
     DLLLOCAL ~QoreParseListNode() {
         for (auto& i : values)
-            discard(i, nullptr);
+            i.discard(nullptr);
     }
 
-    DLLLOCAL void add(AbstractQoreNode* v, const QoreProgramLocation* loc) {
+    DLLLOCAL void add(QoreValue v, const QoreProgramLocation* loc) {
         values.push_back(v);
         lvec.push_back(loc);
 
         if (!size()) {
-            if (node_has_effect(v))
+            if (v.hasNode() && v.hasEffect())
                 set_effect(true);
         }
-        else if (has_effect() && !node_has_effect(v)) {
+        else if (has_effect() && !v.hasEffect()) {
             set_effect(false);
         }
     }
 
-    DLLLOCAL AbstractQoreNode* shift() {
+    DLLLOCAL QoreValue shift() {
         if (!values.size())
-            return nullptr;
+            return QoreValue();
         assert(vtypes.empty());
-        AbstractQoreNode* rv = values[0];
+        QoreValue rv = values[0];
         values.erase(values.begin());
         lvec.erase(lvec.begin());
         return rv;
     }
 
-    DLLLOCAL AbstractQoreNode* get(size_t i) {
+    DLLLOCAL QoreValue get(size_t i) {
         assert(i < values.size());
         return values[i];
     }
 
-    DLLLOCAL const AbstractQoreNode* get(size_t i) const {
+    DLLLOCAL const QoreValue get(size_t i) const {
         assert(i < values.size());
         return values[i];
     }
 
-    DLLLOCAL AbstractQoreNode** getPtr(size_t i) {
+    DLLLOCAL QoreValue& getReference(size_t i) {
         assert(i < values.size());
-        return &values[i];
+        return values[i];
     }
 
     DLLLOCAL const QoreProgramLocation* getLocation(size_t i) const {
@@ -106,8 +106,8 @@ public:
         return lvec[i];
     }
 
-    DLLLOCAL AbstractQoreNode* swap(size_t i, AbstractQoreNode* v) {
-        AbstractQoreNode* rv = values[i];
+    DLLLOCAL QoreValue swap(size_t i, QoreValue v) {
+        QoreValue rv = values[i];
         values[i] = v;
         return rv;
     }
@@ -120,10 +120,10 @@ public:
         return values.empty();
     }
 
-        DLLLOCAL void setFinalized() {
-            if (!finalized)
-                finalized = true;
-        }
+    DLLLOCAL void setFinalized() {
+        if (!finalized)
+            finalized = true;
+    }
 
     DLLLOCAL bool isFinalized() const {
         return finalized;

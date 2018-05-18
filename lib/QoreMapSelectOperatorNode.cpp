@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -97,29 +97,33 @@ AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int 
 }
 
 QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   FunctionalValueType value_type;
-   std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, xsink));
-   if (*xsink || value_type == nothing)
-      return QoreValue();
+    FunctionalValueType value_type;
+    std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, xsink));
+    if (*xsink || value_type == nothing)
+        return QoreValue();
 
-   ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode(f->getValueType()) : nullptr, xsink);
+    ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode(f->getValueType()) : nullptr, xsink);
 
-   while (true) {
-      ValueOptionalRefHolder iv(xsink);
-      if (f->getNext(iv, xsink))
-         break;
+    while (true) {
+        ValueOptionalRefHolder iv(xsink);
+        if (f->getNext(iv, xsink)) {
+            break;
+        }
 
-      if (*xsink)
-         return QoreValue();
+        if (*xsink) {
+            return QoreValue();
+        }
 
-      if (value_type == single)
-         return ref_rv ? iv.takeReferencedValue() : QoreValue();
+        if (value_type == single) {
+            return ref_rv ? iv.takeReferencedValue() : QoreValue();
+        }
 
-      if (ref_rv)
-         rv->push(iv.getReferencedValue());
-   }
+        if (ref_rv) {
+            rv->push(iv.takeReferencedValue(), nullptr);
+        }
+    }
 
-   return rv.release();
+    return rv.release();
 }
 
 FunctionalOperatorInterface* QoreMapSelectOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {

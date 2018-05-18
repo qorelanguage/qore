@@ -123,7 +123,7 @@ QoreHashNode* QoreAbstractModule::getHashIntern(bool with_filename) const {
     if (!rmod.empty()) {
         QoreListNode* l = new QoreListNode;
         for (name_vec_t::const_iterator i = rmod.begin(), e = rmod.end(); i != e; ++i)
-            l->push(new QoreStringNode(*i));
+            l->push(new QoreStringNode(*i), nullptr);
         ph->setKeyValueIntern("reexported-modules", l);
     }
     ph->setKeyValueIntern("injected", injected);
@@ -1426,14 +1426,14 @@ QoreListNode* ModuleManager::getModuleList() {
 }
 
 QoreListNode* QoreModuleManager::getModuleList() {
-   bool with_filename = !(runtime_get_parse_options() & PO_NO_EXTERNAL_INFO);
-   QoreListNode* l = new QoreListNode(hashTypeInfo);
-   AutoLocker al(mutex);
-   for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i) {
-      if (!i->second->isPrivate())
-         l->push(i->second->getHash(with_filename));
-   }
-   return l;
+    bool with_filename = !(runtime_get_parse_options() & PO_NO_EXTERNAL_INFO);
+    QoreListNode* l = new QoreListNode(hashTypeInfo);
+    AutoLocker al(mutex);
+    for (module_map_t::const_iterator i = map.begin(); i != map.end(); ++i) {
+        if (!i->second->isPrivate())
+            l->push(i->second->getHash(with_filename), nullptr);
+    }
+    return l;
 }
 
 char version_list_t::set(const char* v) {

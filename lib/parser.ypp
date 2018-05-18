@@ -339,98 +339,98 @@ struct GVarSingleDecl : public GVarDecl {
 };
 
 struct GVarListDecl : public GVarDecl {
-   QoreParseListNode* l;
+    QoreParseListNode* l;
 
-   DLLLOCAL GVarListDecl(const QoreProgramLocation* loc, QoreParseListNode* list, bool p) : GVarDecl(loc, p), l(list) {
-      bool bareok = parse_check_parse_option(PO_ALLOW_BARE_REFS);
+    DLLLOCAL GVarListDecl(const QoreProgramLocation* loc, QoreParseListNode* list, bool p) : GVarDecl(loc, p), l(list) {
+        bool bareok = parse_check_parse_option(PO_ALLOW_BARE_REFS);
 
-      QoreParseListNode::nvec_t& vl = l->getValues();
-      for (unsigned i = 0; i < vl.size(); ++i) {
-         AbstractQoreNode* n = vl[i];
-         qore_type_t t = get_node_type(n);
-         if (t == NT_BAREWORD) {
-            BarewordNode* b = reinterpret_cast<BarewordNode*>(n);
-            if (!bareok)
-               parse_error(*loc, "global variable '%s' in global variable declaration list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", b->str);
-         }
-         else if (t == NT_VARREF) {
-            VarRefNode* vrn = reinterpret_cast<VarRefNode*>(n);
-            if (vrn->explicitScope()) {
-               if (vrn->getType() == VT_LOCAL)
-                  parse_error(*loc, "illegal use of 'my %s' in global variable declaration list", vrn->getName());
-               else if (vrn->getType() == VT_GLOBAL)
-                  parse_error(*loc, "illegal use of 'our %s' in global variable declaration list", vrn->getName());
+        QoreParseListNode::nvec_t& vl = l->getValues();
+        for (unsigned i = 0; i < vl.size(); ++i) {
+            QoreValue n = vl[i];
+            qore_type_t t = n.getType();
+            if (t == NT_BAREWORD) {
+                BarewordNode* b = n.get<BarewordNode>();
+                if (!bareok)
+                    parse_error(*loc, "global variable '%s' in global variable declaration list declared without '$' prefix, but parse option 'allow-bare-refs' is not set", b->str);
             }
-         }
-         else
-            parse_error(*loc, "element %d in list following 'our' is not a variable reference (%s)", i, get_type_name(n));
-      }
-   }
-
-   DLLLOCAL virtual ~GVarListDecl() {
-      if (l)
-         l->deref(0);
-   }
-
-   DLLLOCAL QoreParseListNode* takeList() {
-      QoreParseListNode* rv = l;
-      l = nullptr;
-      return rv;
-   }
-
-   DLLLOCAL virtual void add(qore_ns_private& ns) {
-      QoreParseListNode::nvec_t& vl = l->getValues();
-      for (unsigned i = 0; i < vl.size(); ++i) {
-         AbstractQoreNode* n = vl[i];
-         qore_type_t t = get_node_type(n);
-         if (t == NT_BAREWORD) {
-            BarewordNode* b = reinterpret_cast<BarewordNode*>(n);
-            ns.parseAddGlobalVarDecl(loc, b->takeString(), 0, 0, pub);
-         }
-         else if (t == NT_VARREF) {
-            VarRefNode* vrn = reinterpret_cast<VarRefNode*>(n);
-            if (!vrn->explicitScope()) {
-               VarRefDeclNode* vrdn = dynamic_cast<VarRefDeclNode*>(vrn);
-               if (vrdn)
-                  ns.parseAddGlobalVarDecl(loc, vrn->takeName(), vrdn->getTypeInfo(), vrdn->takeParseTypeInfo(), pub);
-               else
-                  ns.parseAddGlobalVarDecl(loc, vrn->takeName(), 0, 0, pub);
+            else if (t == NT_VARREF) {
+                VarRefNode* vrn = n.get<VarRefNode>();
+                if (vrn->explicitScope()) {
+                    if (vrn->getType() == VT_LOCAL)
+                        parse_error(*loc, "illegal use of 'my %s' in global variable declaration list", vrn->getName());
+                    else if (vrn->getType() == VT_GLOBAL)
+                        parse_error(*loc, "illegal use of 'our %s' in global variable declaration list", vrn->getName());
+                }
             }
-         }
-      }
+            else
+                parse_error(*loc, "element %d in list following 'our' is not a variable reference (%s)", i, n.getTypeName());
+        }
+    }
 
-      delete this;
-   }
+    DLLLOCAL virtual ~GVarListDecl() {
+        if (l)
+            l->deref(0);
+    }
 
-   DLLLOCAL virtual AbstractQoreNode* makeVar() {
-      l->setVariableList();
-      QoreParseListNode::nvec_t& vl = l->getValues();
-      for (unsigned i = 0; i < vl.size(); ++i) {
-         AbstractQoreNode*& n = vl[i];
-         qore_type_t t = get_node_type(n);
-         VarRefNode* vrn = nullptr;
-         if (t == NT_BAREWORD) {
-            BarewordNode* b = reinterpret_cast<BarewordNode*>(n);
-            GlobalVarRefNode* v = new GlobalVarRefNode(loc, b->takeString());
-            b->deref();
-            n = vrn = v;
-         }
-         else if (t == NT_VARREF) {
-            vrn = reinterpret_cast<VarRefNode*>(n);
-            if (!vrn->explicitScope()) {
-               vrn->makeGlobal();
-               vrn->setExplicitScope();
+    DLLLOCAL QoreParseListNode* takeList() {
+        QoreParseListNode* rv = l;
+        l = nullptr;
+        return rv;
+    }
+
+    DLLLOCAL virtual void add(qore_ns_private& ns) {
+        QoreParseListNode::nvec_t& vl = l->getValues();
+        for (unsigned i = 0; i < vl.size(); ++i) {
+            QoreValue n = vl[i];
+            qore_type_t t = n.getType();
+            if (t == NT_BAREWORD) {
+                BarewordNode* b = n.get<BarewordNode>();
+                ns.parseAddGlobalVarDecl(loc, b->takeString(), 0, 0, pub);
             }
-         }
+            else if (t == NT_VARREF) {
+                VarRefNode* vrn = n.get<VarRefNode>();
+                if (!vrn->explicitScope()) {
+                    VarRefDeclNode* vrdn = dynamic_cast<VarRefDeclNode*>(vrn);
+                    if (vrdn)
+                        ns.parseAddGlobalVarDecl(loc, vrn->takeName(), vrdn->getTypeInfo(), vrdn->takeParseTypeInfo(), pub);
+                    else
+                        ns.parseAddGlobalVarDecl(loc, vrn->takeName(), 0, 0, pub);
+                }
+            }
+        }
 
-         if (vrn && pub)
-            vrn->setPublic();
-      }
+        delete this;
+    }
 
-      QoreParseListNode* rv = takeList();
-      delete this;
-      return rv;
-   }
+    DLLLOCAL virtual AbstractQoreNode* makeVar() {
+        l->setVariableList();
+        QoreParseListNode::nvec_t& vl = l->getValues();
+        for (unsigned i = 0; i < vl.size(); ++i) {
+            QoreValue& n = vl[i];
+            qore_type_t t = n.getType();
+            VarRefNode* vrn = nullptr;
+            if (t == NT_BAREWORD) {
+                BarewordNode* b = n.get<BarewordNode>();
+                GlobalVarRefNode* v = new GlobalVarRefNode(loc, b->takeString());
+                b->deref();
+                n = vrn = v;
+            }
+            else if (t == NT_VARREF) {
+                vrn = n.get<VarRefNode>();
+                if (!vrn->explicitScope()) {
+                    vrn->makeGlobal();
+                    vrn->setExplicitScope();
+                }
+            }
+
+            if (vrn && pub)
+                vrn->setPublic();
+        }
+
+        QoreParseListNode* rv = takeList();
+        delete this;
+        return rv;
+    }
 };
 
 static int check_method(const QoreProgramLocation* loc, const char* name, BCAList* bcal, RetTypeInfo* returnTypeInfo) {
@@ -582,46 +582,46 @@ struct MethodDef {
 };
 
 static AbstractQoreNode* parse_hash_map(const QoreProgramLocation* loc, QoreParseHashNode* exp, QoreParseListNode* l) {
-   assert(l && (l->size() == 1 || l->size() == 2));
-   ReferenceHolder<> exph(exp, 0);
-   ReferenceHolder<> lh(l, 0);
+    assert(l && (l->size() == 1 || l->size() == 2));
+    ReferenceHolder<> exph(exp, 0);
+    ReferenceHolder<> lh(l, 0);
 
-   // check hash expression
-   size_t len = exp->size();
+    // check hash expression
+    size_t len = exp->size();
 
-   if (len == 0) {
-       qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
-            "empty hash as an argument to the hash map operator, this expression will always evaluate to an empty hash");
-       return new QoreHashNode;
-   }
+    if (len == 0) {
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+                "empty hash as an argument to the hash map operator, this expression will always evaluate to an empty hash");
+        return new QoreHashNode;
+    }
 
-   if (len != 1) {
-      parse_error(*loc, "invalid initial argument to hash map operator, expected a single key value pair; got %d hash elements instead", len);
-      return &True;
-   }
+    if (len != 1) {
+        parse_error(*loc, "invalid initial argument to hash map operator, expected a single key value pair; got %d hash elements instead", len);
+        return &True;
+    }
 
-   if (l->size() == 1) {
-      AbstractQoreNode* iter = l->shift();
-      return new QoreHashMapOperatorNode(loc, exp->takeFirstKeyNode(), exp->takeFirstValueNode(), iter);
-   }
+    if (l->size() == 1) {
+        QoreValue iter = l->shift();
+        return new QoreHashMapOperatorNode(loc, exp->takeFirstKeyNode(), exp->takeFirstValueNode(), iter.takeNode());
+    }
 
-   AbstractQoreNode* iter = l->shift();
-   AbstractQoreNode* select = l->shift();
-   return new QoreHashMapSelectOperatorNode(loc, exp->takeFirstKeyNode(), exp->takeFirstValueNode(), iter, select);
+    QoreValue iter = l->shift();
+    QoreValue select = l->shift();
+    return new QoreHashMapSelectOperatorNode(loc, exp->takeFirstKeyNode(), exp->takeFirstValueNode(), iter.takeNode(), select.takeNode());
 }
 
-static AbstractQoreNode* parse_map(const QoreProgramLocation* loc, AbstractQoreNode* exp, QoreParseListNode* l) {
-   assert(l && (l->size() == 1 || l->size() == 2));
-   ReferenceHolder<> lh(l, 0);
+static AbstractQoreNode* parse_map(const QoreProgramLocation* loc, QoreValue exp, QoreParseListNode* l) {
+    assert(l && (l->size() == 1 || l->size() == 2));
+    ReferenceHolder<> lh(l, 0);
 
-   if (l->size() == 1) {
-      AbstractQoreNode* arg = l->shift();
-      return new QoreMapOperatorNode(loc, exp, arg);
-   }
+    if (l->size() == 1) {
+        QoreValue arg = l->shift();
+        return new QoreMapOperatorNode(loc, exp.takeNode(), arg.takeNode());
+    }
 
-   AbstractQoreNode* iterator_exp = l->shift();
-   AbstractQoreNode* select_exp = l->shift();
-   return new QoreMapSelectOperatorNode(loc, exp, iterator_exp, select_exp);
+    QoreValue iterator_exp = l->shift();
+    QoreValue select_exp = l->shift();
+    return new QoreMapSelectOperatorNode(loc, exp.takeNode(), iterator_exp.takeNode(), select_exp.takeNode());
 }
 
 #define NSN_NONE     0
@@ -1303,48 +1303,49 @@ public:
    }
 };
 
-static AbstractQoreNode* is_rewritable_op(AbstractQoreNode* n) {
-   qore_type_t nt = get_node_type(n);
-   if (nt == NT_OPERATOR) {
-      QoreBinaryLValueOperatorNode* op = dynamic_cast<QoreBinaryLValueOperatorNode*>(n);
-      if (op)
-         return op->getRight();
-   }
+static QoreValue is_rewritable_op(QoreValue n) {
+    qore_type_t nt = n.getType();
+    if (nt == NT_OPERATOR) {
+        QoreBinaryLValueOperatorNode* op = dynamic_cast<QoreBinaryLValueOperatorNode*>(n.getInternalNode());
+        if (op)
+            return op->getRight();
+    }
 
-   return 0;
+    return QoreValue();
 }
 
 static AbstractQoreNode* check_rewrite_list(QoreParseListNode* l) {
-   if (!parse_check_parse_option(PO_BROKEN_LIST_PARSING))
-      return l;
+    if (!parse_check_parse_option(PO_BROKEN_LIST_PARSING))
+        return l;
 
-   // rewrite expression if it's a list without parentheses and
-   // the first expression has one of the following operators:
-   // =, +=, -=
-   if (l->isFinalized())
-      return l;
+    // rewrite expression if it's a list without parentheses and
+    // the first expression has one of the following operators:
+    // =, +=, -=
+    if (l->isFinalized())
+        return l;
 
-   AbstractQoreNode* e0 = l->get(0);
+    QoreValue e0 = l->get(0);
 
-   AbstractQoreNode* r = is_rewritable_op(e0);
-   if (r) {
-      AbstractQoreNode* last = e0;
-      AbstractQoreNode* top = e0;
-      while (true) {
-         AbstractQoreNode* nr = is_rewritable_op(r);
-         if (!nr)
-            break;
-         last = r;
-         r = nr;
-      }
-      assert(dynamic_cast<QoreBinaryLValueOperatorNode*>(last));
-      // take first element from list (the tree) and make it the new expression
-      QoreBinaryLValueOperatorNode* op = reinterpret_cast<QoreBinaryLValueOperatorNode*>(last);
-      l->swap(0, op->swapRight(l));
-      return top;
-   }
+    QoreValue r = is_rewritable_op(e0);
+    if (!r.isNothing()) {
+        QoreValue last = e0;
+        QoreValue top = e0;
+        while (true) {
+            QoreValue nr = is_rewritable_op(r);
+            if (nr.isNothing()) {
+                break;
+            }
+            last = r;
+            r = nr;
+        }
+        assert(dynamic_cast<QoreBinaryLValueOperatorNode*>(last.getInternalNode()));
+        // take first element from list (the tree) and make it the new expression
+        QoreBinaryLValueOperatorNode* op = last.get<QoreBinaryLValueOperatorNode>();
+        l->swap(0, op->swapRight(l));
+        return top.takeNode();
+    }
 
-   return l;
+    return l;
 }
 
 void ignore_return_value(AbstractQoreNode* n) {
@@ -3335,10 +3336,10 @@ exp_c:
             QoreParseListNode::nvec_t& vl = $3->getValues();
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @4.last_line);
             for (unsigned i = 0; i < vl.size(); ++i) {
-                AbstractQoreNode*& n = vl[i];
-                qore_type_t t = get_node_type(n);
+                QoreValue& n = vl[i];
+                qore_type_t t = n.getType();
                 if (t == NT_BAREWORD) {
-                    BarewordNode* b = reinterpret_cast<BarewordNode*>(n);
+                    BarewordNode* b = n.get<BarewordNode>();
                     if (parse_check_parse_option(PO_REQUIRE_TYPES))
                         parse_error(*loc, "local variable '%s' declared without type information, but parse options require all declarations to have type information", b->str);
                     if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
@@ -3349,7 +3350,7 @@ exp_c:
                     n = v;
                 }
                 else if (t == NT_VARREF) {
-                    VarRefNode* v = reinterpret_cast<VarRefNode*>(n);
+                    VarRefNode* v = n.get<VarRefNode>();
                     // see if types are required
                     if (parse_check_parse_option(PO_REQUIRE_TYPES) && !v->isDecl())
                         parse_error(*loc, "local variable '%s' declared without type information, but parse options require all declarations to have type information", v->getName());
@@ -3360,11 +3361,11 @@ exp_c:
                             parse_error(*loc, "illegal use of 'our %s' in local variable declaration list", v->getName());
                     }
                     else
-                    v->makeLocal();
+                        v->makeLocal();
                     v->setExplicitScope();
                 }
                 else
-                    parse_error(*loc, "element %d in list following 'my' is not a variable reference (%s)", i, get_type_name(n));
+                    parse_error(*loc, "element %d in list following 'my' is not a variable reference (%s)", i, n.getTypeName());
             }
             $$ = $3;
         }
@@ -3421,8 +3422,8 @@ exp_c:
                 $$ = makeErrorTree($2, nullptr);
             }
             else {
-                AbstractQoreNode* lv = l->shift();
-                $$ = new QoreUnshiftOperatorNode(loc, lv, l->shift());
+                QoreValue lv = l->shift();
+                $$ = new QoreUnshiftOperatorNode(loc, lv.takeNode(), l->shift().takeNode());
                 $2->deref(nullptr);
             }
         }
@@ -3438,8 +3439,8 @@ exp_c:
                 $$ = makeErrorTree($2, nullptr);
             }
             else {
-                AbstractQoreNode* lv = l->shift();
-                $$ = new QorePushOperatorNode(loc, lv, l->shift());
+                QoreValue lv = l->shift();
+                $$ = new QorePushOperatorNode(loc, lv.takeNode(), l->shift().takeNode());
                 $2->deref(0);
             }
         }
@@ -3471,8 +3472,8 @@ exp_c:
                 $$ = makeErrorTree($2, 0);
             }
             else {
-                AbstractQoreNode* lv = l->shift();
-                $$ = new QoreSpliceOperatorNode(loc, lv, l->shift(), l->shift(), l->shift());
+                QoreValue lv = l->shift();
+                $$ = new QoreSpliceOperatorNode(loc, lv.takeNode(), l->shift().takeNode(), l->shift().takeNode(), l->shift().takeNode());
                 discard(l, 0);
             }
         }
@@ -3492,8 +3493,8 @@ exp_c:
                 $$ = makeErrorTree($2, 0);
             }
             else {
-                AbstractQoreNode* lv = l->shift();
-                $$ = new QoreExtractOperatorNode(loc, lv, l->shift(), l->shift(), l->shift());
+                QoreValue lv = l->shift();
+                $$ = new QoreExtractOperatorNode(loc, lv.takeNode(), l->shift().takeNode(), l->shift().takeNode(), l->shift().takeNode());
                 discard(l, 0);
             }
         }
@@ -3508,13 +3509,13 @@ exp_c:
             }
             else {
                 // get first expression from list
-                AbstractQoreNode* exp = l->shift();
-                qore_type_t t = get_node_type(exp);
+                QoreValue exp = l->shift();
+                qore_type_t t = exp.getType();
                 $$ = 0;
                 if (t == NT_PARSE_HASH) {
-                    QoreParseHashNode* phn = reinterpret_cast<QoreParseHashNode*>(exp);
+                    QoreParseHashNode* phn = exp.get<QoreParseHashNode>();
                     if (phn->isCurly())
-                    $$ = parse_hash_map(loc, phn, l);
+                        $$ = parse_hash_map(loc, phn, l);
                 }
 
                 if (!$$)
@@ -3530,9 +3531,9 @@ exp_c:
                 $$ = makeErrorTree($2, 0);
             }
             else {
-                AbstractQoreNode* code_exp = l->shift();
-                AbstractQoreNode* arg = l->shift();
-                $$ = new QoreFoldrOperatorNode(loc, code_exp, arg);
+                QoreValue code_exp = l->shift();
+                QoreValue arg = l->shift();
+                $$ = new QoreFoldrOperatorNode(loc, code_exp.takeNode(), arg.takeNode());
                 $2->deref(0);
             }
         }
@@ -3545,9 +3546,9 @@ exp_c:
                 $$ = makeErrorTree($2, 0);
             }
             else {
-                AbstractQoreNode* code_exp = l->shift();
-                AbstractQoreNode* arg = l->shift();
-                $$ = new QoreFoldlOperatorNode(loc, code_exp, arg);
+                QoreValue code_exp = l->shift();
+                QoreValue arg = l->shift();
+                $$ = new QoreFoldlOperatorNode(loc, code_exp.takeNode(), arg.takeNode());
                 $2->deref(0);
             }
         }
@@ -3560,9 +3561,9 @@ exp_c:
                 $$ = makeErrorTree($2, 0);
             }
             else {
-                AbstractQoreNode* arg = l->shift();
-                AbstractQoreNode* select_exp = l->shift();
-                $$ = new QoreSelectOperatorNode(loc, arg, select_exp);
+                QoreValue arg = l->shift();
+                QoreValue select_exp = l->shift();
+                $$ = new QoreSelectOperatorNode(loc, arg.takeNode(), select_exp.takeNode());
                 $2->deref(0);
             }
         }

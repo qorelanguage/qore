@@ -328,35 +328,35 @@ void Context::deref(ExceptionSink *xsink) {
    delete this;
 }
 
-AbstractQoreNode* evalContextRef(const char* key, ExceptionSink* xsink) {
+QoreValue eval_context_ref(const char* key, ExceptionSink* xsink) {
    Context* c = get_context_stack();
    return c->evalValue(key, xsink);
 }
 
-AbstractQoreNode* evalContextRow(ExceptionSink *xsink) {
+AbstractQoreNode* eval_context_row(ExceptionSink *xsink) {
    return get_context_stack()->getRow(xsink);
 }
 
-AbstractQoreNode* Context::evalValue(const char* field, ExceptionSink* xsink) {
-    if (!value)
-        return nullptr;
+QoreValue Context::evalValue(const char* field, ExceptionSink* xsink) {
+    if (!value) {
+        return QoreValue();
+    }
 
     bool exists;
 
     ValueHolder val(qore_hash_private::get(*value)->getReferencedKeyValueIntern(field, exists), xsink);
     if (!exists) {
         xsink->raiseException("CONTEXT-EXCEPTION", "\"%s\" is not a valid key for this context", field);
-        return nullptr;
+        return QoreValue();
     }
-    QoreListNode* l = val->getType() == NT_LIST ? val->get<QoreListNode>() : nullptr;
-    if (!l)
-        return nullptr;
+    if (val->getType() != NT_LIST) {
+        return QoreValue();
+    }
 
-    AbstractQoreNode* rv = l->retrieve_entry(row_list[pos]);
-    if (rv) rv->ref();
-    //printd(5, "Context::evalValue(%s) this: %p pos: %d rv: %p %s %lld\n", field, this, pos, rv, rv ? rv->getTypeName() : "none", rv && rv->getType() == NT_INT ? ((QoreBigIntNode *)rv)->val : -1);
-    //printd(5, "Context::evalValue(%s) pos: %d, val: %s\n", field, pos, rv && rv->getType() == NT_STRING ? rv->val.String->getBuffer() : "?");
-    return rv;
+    QoreValue rv = val->get<QoreListNode>()->retrieveEntry(row_list[pos]);
+    //printd(5, "Context::evalValue(%s) this: %p pos: %d rv: %p %s %lld\n", field, this, pos, rv, rv.getTypeName(), rv.getType() == NT_INT ? rv.getAsBigInt() : -1);
+    //printd(5, "Context::evalValue(%s) pos: %d, val: %s\n", field, pos, rv.getType() == NT_STRING ? rv.get<const QoreStringNode>()->c_str() : "?");
+    return rv.refSelf();
 }
 
 QoreHashNode* Context::getRow(ExceptionSink *xsink) {
@@ -381,7 +381,7 @@ QoreHashNode* Context::getRow(ExceptionSink *xsink) {
         else {
             // set key value to list entry
             QoreListNode* l = v.get<QoreListNode>();
-            hp->setKeyValueIntern(key, l->eval_entry(row_list[pos], xsink));
+            hp->setKeyValueIntern(key, l->getReferencedEntry(row_list[pos]));
         }
     }
 

@@ -1,31 +1,31 @@
 /*
-  QoreException.cpp
+    QoreException.cpp
 
-  Qore programming language exception handling support
+    Qore programming language exception handling support
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -39,62 +39,43 @@
 #define Q_MAX_EXCEPTIONS 10
 
 void QoreException::del(ExceptionSink *xsink) {
-   if (callStack) {
-      callStack->deref(xsink);
+    if (callStack) {
+        callStack->deref(xsink);
 #ifdef DEBUG
-      callStack = nullptr;
+        callStack = nullptr;
 #endif
-   }
-   if (err) {
-      err->deref(xsink);
-#ifdef DEBUG
-      err = nullptr;
-#endif
-   }
-   if (desc) {
-      desc->deref(xsink);
-#ifdef DEBUG
-      desc = nullptr;
-#endif
-   }
-   if (arg) {
-      arg->deref(xsink);
-#ifdef DEBUG
-      arg = nullptr;
-#endif
-   }
-   if (next)
-      next->del(xsink);
+    }
+    err.discard(xsink);
+    desc.discard(xsink);
+    arg.discard(xsink);
+    if (next)
+        next->del(xsink);
 
-   delete this;
+    delete this;
 }
 
 QoreHashNode* QoreException::makeExceptionObject() {
-   QORE_TRACE("makeExceptionObject()");
+    QORE_TRACE("makeExceptionObject()");
 
-   QoreHashNode* h = new QoreHashNode(hashdeclExceptionInfo, nullptr);
-   auto ph = qore_hash_private::get(*h);
+    QoreHashNode* h = new QoreHashNode(hashdeclExceptionInfo, nullptr);
+    auto ph = qore_hash_private::get(*h);
 
-   ph->setKeyValueIntern("type", new QoreStringNode(type == ET_USER ? "User" : "System"));
-   ph->setKeyValueIntern("file", new QoreStringNode(file));
-   ph->setKeyValueIntern("line", start_line);
-   ph->setKeyValueIntern("endline", end_line);
-   ph->setKeyValueIntern("source", new QoreStringNode(source));
-   ph->setKeyValueIntern("offset", offset);
-   ph->setKeyValueIntern("callstack", callStack->refSelf());
+    ph->setKeyValueIntern("type", new QoreStringNode(type == ET_USER ? "User" : "System"));
+    ph->setKeyValueIntern("file", new QoreStringNode(file));
+    ph->setKeyValueIntern("line", start_line);
+    ph->setKeyValueIntern("endline", end_line);
+    ph->setKeyValueIntern("source", new QoreStringNode(source));
+    ph->setKeyValueIntern("offset", offset);
+    ph->setKeyValueIntern("callstack", callStack->refSelf());
+    ph->setKeyValueIntern("err", err.refSelf());
+    ph->setKeyValueIntern("desc", desc.refSelf());
+    ph->setKeyValueIntern("arg", arg.refSelf());
 
-   if (err)
-      ph->setKeyValueIntern("err", err->refSelf());
-   if (desc)
-      ph->setKeyValueIntern("desc", desc->refSelf());
-   if (arg)
-      ph->setKeyValueIntern("arg", arg->refSelf());
+    // add chained exceptions with this "chain reaction" call
+    if (next)
+        ph->setKeyValueIntern("next", next->makeExceptionObject());
 
-   // add chained exceptions with this "chain reaction" call
-   if (next)
-      ph->setKeyValueIntern("next", next->makeExceptionObject());
-
-   return h;
+    return h;
 }
 
 QoreHashNode *QoreException::makeExceptionObjectAndDelete(ExceptionSink *xsink) {
@@ -105,223 +86,223 @@ QoreHashNode *QoreException::makeExceptionObjectAndDelete(ExceptionSink *xsink) 
    return rv;
 }
 
-void QoreException::addStackInfo(AbstractQoreNode *n) {
-   callStack->push(n);
+void QoreException::addStackInfo(QoreValue n) {
+   callStack->push(n, nullptr);
 }
 
 // static member function
 void ExceptionSink::defaultExceptionHandler(QoreException* e) {
-   ExceptionSink xsink;
+    ExceptionSink xsink;
 
-   QoreString nstr;
-   {
-      DateTime now;
-      now.setNow();
-      now.format(nstr, "YYYY-MM-DD HH:mm:SS.xx Dy Z (z)");
-   }
+    QoreString nstr;
+    {
+        DateTime now;
+        now.setNow();
+        now.format(nstr, "YYYY-MM-DD HH:mm:SS.xx Dy Z (z)");
+    }
 
-   unsigned ecnt = 0;
+    unsigned ecnt = 0;
 
-   while (e) {
-      //printd(5, "ExceptionSink::defaultExceptionHandler() cs size=%d\n", cs->size());
-      printe("unhandled QORE %s exception thrown in TID %d at %s", e->type == ET_USER ? "User" : "System", gettid(), nstr.getBuffer());
+    while (e) {
+        //printd(5, "ExceptionSink::defaultExceptionHandler() cs size=%d\n", cs->size());
+        printe("unhandled QORE %s exception thrown in TID %d at %s", e->type == ET_USER ? "User" : "System", gettid(), nstr.getBuffer());
 
-      QoreListNode *cs = e->callStack;
-      bool found = false;
-      if (cs->size()) {
-         // find first non-rethrow element
-         unsigned i = 0;
+        QoreListNode *cs = e->callStack;
+        bool found = false;
+        if (cs->size()) {
+            // find first non-rethrow element
+            unsigned i = 0;
 
-         QoreHashNode *h;
-         while (true) {
-            h = reinterpret_cast<QoreHashNode*>(cs->retrieve_entry(i));
-            assert(h);
-            if ((reinterpret_cast<QoreBigIntNode*>(h->getKeyValue("typecode")))->val != CT_RETHROW)
-               break;
-            i++;
-            if (i == cs->size())
-               break;
-         }
-
-         if (i < cs->size()) {
-            found = true;
-            QoreStringNode *func = reinterpret_cast<QoreStringNode*>(h->getKeyValue("function"));
-            QoreStringNode *type = reinterpret_cast<QoreStringNode*>(h->getKeyValue("type"));
-
-            printe(" in %s() (%s:%d", func->getBuffer(), e->file.c_str(), e->start_line);
-
-            if (e->start_line == e->end_line) {
-               if (!e->source.empty())
-                  printe(", source %s:%d", e->source.c_str(), e->start_line + e->offset);
+            QoreHashNode *h;
+            while (true) {
+                h = cs->retrieveEntry(i).get<QoreHashNode>();
+                assert(h);
+                if (h->getKeyValue("typecode").getAsBigInt() != CT_RETHROW)
+                    break;
+                i++;
+                if (i == cs->size())
+                    break;
             }
-            else {
-               printe("-%d", e->end_line);
-               if (!e->source.empty())
-                  printe(", source %s:%d-%d", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
-            }
-            printe(", %s code)\n", type->getBuffer());
-         }
-      }
 
-      if (!found) {
-         if (!e->file.empty()) {
-            printe(" at %s:", e->file.c_str());
-            if (e->start_line == e->end_line) {
-               if (!e->start_line) {
-                  printe("<init>");
-                  if (!e->source.empty())
-                     printe(" (source %s)", e->source.c_str());
-               }
-               else {
-                  printe("%d", e->start_line);
-                  if (!e->source.empty())
-                     printe(" (source %s:%d)", e->source.c_str(), e->start_line + e->offset);
-               }
+            if (i < cs->size()) {
+                found = true;
+                QoreStringNode *func = h->getKeyValue("function").get<QoreStringNode>();
+                QoreStringNode *type = h->getKeyValue("type").get<QoreStringNode>();
+
+                printe(" in %s() (%s:%d", func->getBuffer(), e->file.c_str(), e->start_line);
+
+                if (e->start_line == e->end_line) {
+                    if (!e->source.empty())
+                        printe(", source %s:%d", e->source.c_str(), e->start_line + e->offset);
+                }
+                else {
+                    printe("-%d", e->end_line);
+                    if (!e->source.empty())
+                        printe(", source %s:%d-%d", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
+                }
+                printe(", %s code)\n", type->getBuffer());
             }
-            else {
-               printe("%d-%d", e->start_line, e->end_line);
-               if (!e->source.empty())
-                  printe(" (source %s:%d-%d)", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
+        }
+
+        if (!found) {
+            if (!e->file.empty()) {
+                printe(" at %s:", e->file.c_str());
+                if (e->start_line == e->end_line) {
+                    if (!e->start_line) {
+                        printe("<init>");
+                        if (!e->source.empty())
+                            printe(" (source %s)", e->source.c_str());
+                    }
+                    else {
+                        printe("%d", e->start_line);
+                        if (!e->source.empty())
+                            printe(" (source %s:%d)", e->source.c_str(), e->start_line + e->offset);
+                    }
+                }
+                else {
+                    printe("%d-%d", e->start_line, e->end_line);
+                    if (!e->source.empty())
+                        printe(" (source %s:%d-%d)", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
+                }
             }
-         }
-         else if (e->start_line) {
-            if (e->start_line == e->end_line) {
-               if (!e->start_line)
-                  printe(" at <init>");
-               else
-                  printe(" on line %d", e->start_line);
+            else if (e->start_line) {
+                if (e->start_line == e->end_line) {
+                if (!e->start_line)
+                    printe(" at <init>");
+                else
+                    printe(" on line %d", e->start_line);
+                }
+                else
+                printe(" on lines %d through %d", e->start_line, e->end_line);
+            }
+            printe("\n");
+        }
+
+        if (e->type == ET_SYSTEM) {
+            QoreStringNode* err = e->err.get<QoreStringNode>();
+            QoreStringNode* desc = e->desc.get<QoreStringNode>();
+            printe("%s: %s\n", err->c_str(), desc->c_str());
+        }
+        else {
+            bool hdr = false;
+            if (!e->err.isNothing()) {
+                if (e->err.getType() == NT_STRING) {
+                    QoreStringNode *err = e->err.get<QoreStringNode>();
+                    printe("%s", err->c_str());
+                }
+                else {
+                    QoreNodeAsStringHelper str(e->err, FMT_NORMAL, &xsink);
+                    printe("EXCEPTION: %s", str->c_str());
+                    hdr = true;
+                }
             }
             else
-               printe(" on lines %d through %d", e->start_line, e->end_line);
-         }
-         printe("\n");
-      }
+                printe("EXCEPTION");
 
-      if (e->type == ET_SYSTEM) {
-         QoreStringNode* err = reinterpret_cast<QoreStringNode*>(e->err);
-         QoreStringNode* desc = reinterpret_cast<QoreStringNode*>(e->desc);
-         printe("%s: %s\n", err->getBuffer(), desc->getBuffer());
-      }
-      else {
-         bool hdr = false;
-         if (e->err) {
-            if (e->err->getType() == NT_STRING) {
-               QoreStringNode *err = reinterpret_cast<QoreStringNode*>(e->err);
-               printe("%s", err->getBuffer());
+            if (!e->desc.isNothing()) {
+                if (e->desc.getType() == NT_STRING) {
+                    QoreStringNode *desc = e->desc.get<QoreStringNode>();
+                    printe("%s%s", hdr ? ", desc: " : ": ", desc->c_str());
+                }
+                else {
+                    QoreNodeAsStringHelper str(e->desc, FMT_NORMAL, &xsink);
+                    printe(", desc: %s", str->c_str());
+                    if (!hdr)
+                        hdr = true;
+                }
             }
-            else {
-               QoreNodeAsStringHelper str(e->err, FMT_NORMAL, &xsink);
-               printe("EXCEPTION: %s", str->getBuffer());
-               hdr = true;
+
+            if (!e->arg.isNothing()) {
+                if (e->arg.getType() == NT_STRING) {
+                    QoreStringNode *arg = e->arg.get<QoreStringNode>();
+                    printe("%s%s", hdr ? ", arg: " : ": ", arg->c_str());
+                }
+                else {
+                    QoreNodeAsStringHelper str(e->arg, FMT_NORMAL, &xsink);
+                    printe(", arg: %s", str->c_str());
+                }
             }
-         }
-         else
-            printe("EXCEPTION");
+            printe("\n");
+        }
 
-         if (e->desc) {
-            if (e->desc->getType() == NT_STRING) {
-               QoreStringNode *desc = reinterpret_cast<QoreStringNode*>(e->desc);
-               printe("%s%s", hdr ? ", desc: " : ": ", desc->getBuffer());
-            }
-            else {
-               QoreNodeAsStringHelper str(e->desc, FMT_NORMAL, &xsink);
-               printe(", desc: %s", str->getBuffer());
-               if (!hdr)
-                  hdr = true;
-            }
-         }
+        if (cs->size()) {
+            printe("call stack:\n");
+            for (unsigned i = 0; i < cs->size(); i++) {
+                int pos = cs->size() - i;
+                QoreHashNode* h = cs->retrieveEntry(i).get<QoreHashNode>();
+                QoreStringNode* strtype = h->getKeyValue("type").get<QoreStringNode>();
+                const char* type = strtype->getBuffer();
+                int typecode = (int)h->getKeyValue("typecode").getAsBigInt();
+                if (!strcmp(type, "new-thread"))
+                    printe(" %2d: *thread start*\n", pos);
+                else {
+                    QoreStringNode* fn = h->getKeyValue("file").get<QoreStringNode>();
+                    const char* fns = fn && !fn->empty() ? fn->getBuffer() : 0;
+                    int start_line = (int)h->getKeyValue("line").getAsBigInt();
+                    int end_line = (int)h->getKeyValue("endline").getAsBigInt();
 
-         if (e->arg) {
-            if (e->arg->getType() == NT_STRING) {
-               QoreStringNode *arg = reinterpret_cast<QoreStringNode*>(e->arg);
-               printe("%s%s", hdr ? ", arg: " : ": ", arg->getBuffer());
-            }
-            else {
-               QoreNodeAsStringHelper str (e->arg, FMT_NORMAL, &xsink);
-               printe(", arg: %s", str->getBuffer());
-            }
-         }
-         printe("\n");
-      }
+                    QoreStringNode* src = h->getKeyValue("source").get<QoreStringNode>();
+                    const char* srcs = src && !src->empty() ? src->getBuffer() : 0;
+                    int offset = (int)h->getKeyValue("offset").getAsBigInt();
 
-      if (cs->size()) {
-         printe("call stack:\n");
-         for (unsigned i = 0; i < cs->size(); i++) {
-            int pos = cs->size() - i;
-            QoreHashNode* h = reinterpret_cast<QoreHashNode*>(cs->retrieve_entry(i));
-            QoreStringNode* strtype = reinterpret_cast<QoreStringNode*>(h->getKeyValue("type"));
-            const char* type = strtype->getBuffer();
-            int typecode = (int)reinterpret_cast<QoreBigIntNode*>(h->getKeyValue("typecode"))->val;
-            if (!strcmp(type, "new-thread"))
-               printe(" %2d: *thread start*\n", pos);
-            else {
-               QoreStringNode* fn = reinterpret_cast<QoreStringNode*>(h->getKeyValue("file"));
-               const char* fns = fn && !fn->empty() ? fn->getBuffer() : 0;
-               int start_line = (int)reinterpret_cast<QoreBigIntNode*>(h->getKeyValue("line"))->val;
-               int end_line = (int)reinterpret_cast<QoreBigIntNode*>(h->getKeyValue("endline"))->val;
+                    printe(" %2d: ", pos);
 
-               QoreStringNode* src = reinterpret_cast<QoreStringNode*>(h->getKeyValue("source"));
-               const char* srcs = src && !src->empty() ? src->getBuffer() : 0;
-               int offset = (int)reinterpret_cast<QoreBigIntNode*>(h->getKeyValue("offset"))->val;
-
-               printe(" %2d: ", pos);
-
-               if (typecode == CT_RETHROW) {
-                  printe("RETHROW at ");
-                  if (fn) {
-                     printe("%s:", fn->getBuffer());
-                  }
-                  else
-                     printe("line");
-                  printe("%d", start_line);
-                  if (srcs)
-                     printe(" (source %s:%d)", srcs, offset + start_line);
-               }
-               else {
-                  QoreStringNode* fs = reinterpret_cast<QoreStringNode*>(h->getKeyValue("function"));
-                  printe("%s() (", fs->getBuffer());
-                  if (fns) {
-                     if (start_line == end_line) {
-                        if (!start_line)
-                           printe("%s:<init>", fns);
-                        else {
-                           printe("%s:%d", fns, start_line);
-                           if (srcs)
-                              printe(" (source %s:%d)", srcs, start_line + offset);
+                    if (typecode == CT_RETHROW) {
+                        printe("RETHROW at ");
+                        if (fn) {
+                            printe("%s:", fn->getBuffer());
                         }
-                     }
-                     else {
-                        printe("%s:%d-%d", fns, start_line, end_line);
-                        if (srcs)
-                           printe(" (source %s:%d-%d)", srcs, start_line + offset, end_line + offset);
-                     }
-                  }
-                  else {
-                     if (start_line == end_line) {
-                        if (!start_line)
-                           printe("<init>");
                         else
-                           printe("line %d", start_line);
-                     }
-                     else
-                        printe("line %d - %d", start_line, end_line);
-                  }
-                  printe(", %s code)", type);
-               }
-               printe("\n");
+                            printe("line");
+                        printe("%d", start_line);
+                        if (srcs)
+                            printe(" (source %s:%d)", srcs, offset + start_line);
+                    }
+                    else {
+                        QoreStringNode* fs = h->getKeyValue("function").get<QoreStringNode>();
+                        printe("%s() (", fs->getBuffer());
+                        if (fns) {
+                            if (start_line == end_line) {
+                                if (!start_line)
+                                    printe("%s:<init>", fns);
+                                else {
+                                    printe("%s:%d", fns, start_line);
+                                    if (srcs)
+                                        printe(" (source %s:%d)", srcs, start_line + offset);
+                                }
+                            }
+                            else {
+                                printe("%s:%d-%d", fns, start_line, end_line);
+                                if (srcs)
+                                    printe(" (source %s:%d-%d)", srcs, start_line + offset, end_line + offset);
+                            }
+                        }
+                        else {
+                            if (start_line == end_line) {
+                                if (!start_line)
+                                    printe("<init>");
+                                else
+                                    printe("line %d", start_line);
+                            }
+                            else
+                                printe("line %d - %d", start_line, end_line);
+                        }
+                        printe(", %s code)", type);
+                    }
+                    printe("\n");
+                }
             }
-         }
-      }
-      e = e->next;
-      if (e) {
-         ++ecnt;
-         if (ecnt == Q_MAX_EXCEPTIONS) {
-            printe("*** maximum exception count reached (%d); suppressing further output\n", ecnt);
-            break;
-         }
-         printe("chained exception:\n");
-      }
-   }
+        }
+        e = e->next;
+        if (e) {
+            ++ecnt;
+            if (ecnt == Q_MAX_EXCEPTIONS) {
+                printe("*** maximum exception count reached (%d); suppressing further output\n", ecnt);
+                break;
+            }
+            printe("chained exception:\n");
+        }
+    }
 }
 
 // static member function
@@ -363,10 +344,10 @@ void ExceptionSink::defaultWarningHandler(QoreException *e) {
       }
       printe("\n");
 
-      QoreStringNode* err  = reinterpret_cast<QoreStringNode*>(e->err);
-      QoreStringNode* desc = reinterpret_cast<QoreStringNode*>(e->desc);
+      QoreStringNode* err  = e->err.get<QoreStringNode>();
+      QoreStringNode* desc = e->desc.get<QoreStringNode>();
 
-      printe("%s: %s\n", err->getBuffer(), desc->getBuffer());
+      printe("%s: %s\n", err->c_str(), desc->c_str());
 
       e = e->next;
       if (e)
