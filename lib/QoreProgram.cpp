@@ -479,7 +479,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
             waitForAllThreadsToTerminateIntern();
             if (!ptid) {
                 if (!ns_const) {
-                    l = new QoreListNode;
+                    l = new QoreListNode(autoTypeInfo);
                     qore_root_ns_private::clearConstants(*RootNS, **l);
                     //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p cleared constants\n", this);
                     ns_const = true;
@@ -903,7 +903,7 @@ void qore_program_private::del(ExceptionSink* xsink) {
 
     // clear constants if not already cleared
     if (!ns_const) {
-        ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+        ReferenceHolder<QoreListNode> l(new QoreListNode(autoTypeInfo), xsink);
         qore_root_ns_private::clearConstants(*RootNS, **l);
         ns_const = true;
         //printd(5, "qore_program_private::del() this: %p cleared constants\n", this);

@@ -338,10 +338,17 @@ void QoreValue::discard(ExceptionSink* xsink) {
 }
 
 void QoreValue::clear() {
+#ifdef DEBUG
+    // this makes valgrind happier, but is functionally equivalent to the below,
+    // which is more efficient as it doesn't write to memory unnecessarily
+    type = QV_Node;
+    v.n = nullptr;
+#else
     if (type != QV_Node)
         type = QV_Node;
     if (v.n)
         v.n = nullptr;
+#endif
 }
 
 int QoreValue::getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const {

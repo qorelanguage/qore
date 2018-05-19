@@ -42,19 +42,23 @@
 #define ET_USER       1
 
 struct QoreExceptionBase {
-   int type;
-   QoreListNode* callStack = new QoreListNode;
-   QoreValue err, desc, arg;
+    int type;
+    QoreListNode* callStack = new QoreListNode(autoTypeInfo);
+    QoreValue err, desc, arg;
 
-   DLLLOCAL QoreExceptionBase(QoreValue n_err, QoreValue n_desc, QoreValue n_arg = QoreValue(), int n_type = ET_SYSTEM)
-      : type(n_type), err(n_err), desc(n_desc), arg(n_arg) {
-   }
+    DLLLOCAL QoreExceptionBase(QoreValue n_err, QoreValue n_desc, QoreValue n_arg = QoreValue(), int n_type = ET_SYSTEM)
+        : type(n_type), err(n_err), desc(n_desc), arg(n_arg) {
+    }
 
-   DLLLOCAL QoreExceptionBase(const QoreExceptionBase& old) :
-               type(old.type), callStack(old.callStack->copy()),
-               err(old.err.refSelf()), desc(old.desc.refSelf()),
-               arg(old.arg.refSelf()) {
-   }
+    DLLLOCAL QoreExceptionBase(const QoreExceptionBase& old) :
+                type(old.type), callStack(old.callStack->copy()),
+                err(old.err.refSelf()), desc(old.desc.refSelf()),
+                arg(old.arg.refSelf()) {
+    }
+
+    DLLLOCAL ~QoreExceptionBase() {
+        assert(!callStack);
+    }
 };
 
 struct QoreExceptionLocation : QoreProgramLineLocation {
@@ -95,7 +99,7 @@ protected:
         assert(!arg.hasNode());
     }
 
-    DLLLOCAL void addStackInfo(QoreValue n);
+    DLLLOCAL void addStackInfo(QoreHashNode* n);
 
     DLLLOCAL static const char* getType(qore_call_t type);
 
@@ -214,7 +218,8 @@ struct qore_es_private {
         assert(head);
         QoreHashNode* n = QoreException::getStackHash(type, class_name, code, loc);
 
-        QoreException *w = head;
+        assert(head);
+        QoreException* w = head;
         while (w) {
             w->addStackInfo(n);
             w = w->next;
@@ -227,7 +232,8 @@ struct qore_es_private {
         assert(head);
         QoreHashNode* n = QoreException::getStackHash(cse);
 
-        QoreException *w = head;
+        assert(head);
+        QoreException* w = head;
         while (w) {
             w->addStackInfo(n);
             w = w->next;

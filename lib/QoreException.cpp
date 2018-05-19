@@ -38,8 +38,9 @@
 
 #define Q_MAX_EXCEPTIONS 10
 
-void QoreException::del(ExceptionSink *xsink) {
+void QoreException::del(ExceptionSink* xsink) {
     if (callStack) {
+        //printd(5, "QoreException::del() this: %p callStack: %p (r: %d)\n", this, callStack, callStack->reference_count());
         callStack->deref(xsink);
 #ifdef DEBUG
         callStack = nullptr;
@@ -92,8 +93,9 @@ QoreHashNode *QoreException::makeExceptionObjectAndDelete(ExceptionSink *xsink) 
    return rv;
 }
 
-void QoreException::addStackInfo(QoreValue n) {
-   callStack->push(n, nullptr);
+void QoreException::addStackInfo(QoreHashNode* n) {
+    //printd(5, "QoreException::addStackInfo() this: %p callStack: %p (r: %d) n: %p (nr: %d)\n", this, callStack, callStack->reference_count(), n, n->reference_count());
+    callStack->push(n, nullptr);
 }
 
 // static member function
@@ -113,7 +115,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
         //printd(5, "ExceptionSink::defaultExceptionHandler() cs size=%d\n", cs->size());
         printe("unhandled QORE %s exception thrown in TID %d at %s", e->type == ET_USER ? "User" : "System", gettid(), nstr.getBuffer());
 
-        QoreListNode *cs = e->callStack;
+        QoreListNode* cs = e->callStack;
         bool found = false;
         if (cs->size()) {
             // find first non-rethrow element
@@ -396,7 +398,7 @@ QoreHashNode* QoreException::getStackHash(const QoreCallStackElement& cse) {
 }
 
 // static function
-QoreHashNode *QoreException::getStackHash(int type, const char *class_name, const char *code, const QoreProgramLocation& loc) {
+QoreHashNode* QoreException::getStackHash(int type, const char* class_name, const char* code, const QoreProgramLocation& loc) {
     QoreHashNode* h = new QoreHashNode;
 
     qore_hash_private* ph = qore_hash_private::get(*h);

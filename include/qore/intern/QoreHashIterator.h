@@ -76,13 +76,13 @@ public:
             if (h) {
                 const_cast<QoreHashNode*>(h)->deref(xsink);
 #ifdef DEBUG
-                h = 0;
+                h = nullptr;
 #endif
             }
             if (pairHash) {
                 pairHash->deref(xsink);
 #ifdef DEBUG
-                pairHash = 0;
+                pairHash = nullptr;
 #endif
             }
             delete this;
@@ -91,25 +91,25 @@ public:
 
     DLLLOCAL QoreValue getReferencedValue(ExceptionSink* xsink) const {
         if (checkPtr(xsink))
-            return 0;
+            return QoreValue();
         return ConstHashIterator::getReferenced();
     }
 
     DLLLOCAL QoreValue getReferencedKeyValue(ExceptionSink* xsink) const {
         if (checkPtr(xsink))
-            return 0;
+            return QoreValue();
         return ConstHashIterator::getReferenced();
     }
 
     DLLLOCAL QoreHashNode* getReferencedValuePair(ExceptionSink* xsink) const {
         if (checkPtr(xsink))
-            return 0;
+            return nullptr;
         // create or re-use the pair hash if possible
         if (!pairHash)
-            pairHash = new QoreHashNode;
+            pairHash = new QoreHashNode(autoTypeInfo);
         else if (!pairHash->is_unique()) {
             pairHash->deref(xsink);
-            pairHash = new QoreHashNode;
+            pairHash = new QoreHashNode(autoTypeInfo);
         }
         pairHash->setKeyValue("key", new QoreStringNode(ConstHashIterator::getKey()), xsink);
         pairHash->setKeyValue("value", ConstHashIterator::getReferenced(), xsink);
@@ -118,7 +118,7 @@ public:
 
     DLLLOCAL QoreStringNode* getKey(ExceptionSink* xsink) const {
         if (checkPtr(xsink))
-            return 0;
+            return nullptr;
         return new QoreStringNode(ConstHashIterator::getKey());
     }
 

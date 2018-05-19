@@ -154,7 +154,7 @@ struct qore_list_private {
         if (complexTypeInfo) {
             QoreValue v(holder.release());
             QoreTypeInfo::acceptInputParam(QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo), -1, nullptr, v, xsink);
-            holder = v.takeNode();
+            holder = v;
             return xsink && *xsink ? -1 : 0;
         }
         else {
@@ -162,7 +162,8 @@ struct qore_list_private {
                 case NT_LIST:
                 case NT_HASH: {
                     {
-                        holder = copy_strip_complex_types(holder.release());
+                        ValueHolder v(holder.release(), xsink);
+                        holder = copy_strip_complex_types(*v);
                     }
                     return xsink && *xsink ? -1 : 0;
                 }
