@@ -709,8 +709,8 @@ string DatasourcePool::getOSCharset() [flags=CONSTANT] {
     @endcode
  */
 *int DatasourcePool::getPort() [flags=CONSTANT] {
-   int port = ds->getPendingPort();
-   return port ? new QoreBigIntNode(port) : 0;
+    int port = ds->getPendingPort();
+    return port ? QoreValue(port) : QoreValue();
 }
 
 //! Returns the name of the driver used for the object

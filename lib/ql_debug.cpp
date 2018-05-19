@@ -1,31 +1,31 @@
 /*
-  ql_debug.cpp
+    ql_debug.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -112,9 +112,9 @@ static void dni(QoreStringNode *s, const QoreValue n, int indent, ExceptionSink 
                     strindent(s, indent);
                     QoreStringNode *entry = l->retrieveEntry(i).get<QoreStringNode>();
                     s->sprintf("key %d/%d \"%s\" = ", i, l->size(), entry->c_str());
-                    AbstractQoreNode *nn;
+                    QoreValue nn;
                     dni(s, nn = o->getReferencedMemberNoMethod(entry->c_str(), xsink), indent + 3, xsink);
-                    discard(nn, xsink);
+                    nn.discard(xsink);
                 }
             }
         }
@@ -164,14 +164,14 @@ static void dni(QoreStringNode *s, const QoreValue n, int indent, ExceptionSink 
 AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink) {
    assert(xsink);
    QoreStringNodeHolder s(new QoreStringNode());
-   dni(*s, get_param(params, 0), 0, xsink);
+   dni(*s, get_param_value(params, 0), 0, xsink);
    if (*xsink)
       return 0;
    return s.release();
 }
 
 int64 f_dbg_node_addr(const QoreListNode *params, ExceptionSink *xsink) {
-   return (int64)get_param(params, 0);
+    return 0;
 }
 
 // returns a hash of all namespace information

@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreObjectIntern.h
+    QoreObjectIntern.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREOBJECTINTERN_H
@@ -43,7 +43,7 @@
 #include <set>
 #include <vector>
 
-//#define _QORE_CYCLE_CHECK 1
+//#define _QORE_CYCLE_CHECK 0
 #ifdef _QORE_CYCLE_CHECK
 #define QORE_DEBUG_OBJ_REFS 0
 #define QRO_LVL 0
@@ -102,67 +102,67 @@ typedef std::map<qore_classid_t, private_pair_t> keymap_t;
 // for objects with multiple classes, private data has to be keyed
 class KeyList {
 private:
-   keymap_t keymap;
+    keymap_t keymap;
 
 public:
-   DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key) const {
-      keymap_t::const_iterator i = keymap.find(key);
-      if (i == keymap.end())
-         return 0;
+    DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key) const {
+        keymap_t::const_iterator i = keymap.find(key);
+        if (i == keymap.end())
+            return 0;
 
-      AbstractPrivateData* apd = i->second.first;
-      apd->ref();
-      return apd;
-   }
+        AbstractPrivateData* apd = i->second.first;
+        apd->ref();
+        return apd;
+    }
 
-   DLLLOCAL void addToString(QoreString* str) const {
-      for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-         str->sprintf("%d=<%p>, ", i->first, i->second.first);
-   }
+    DLLLOCAL void addToString(QoreString* str) const {
+        for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
+            str->sprintf("%d=<%p>, ", i->first, i->second.first);
+    }
 
-   DLLLOCAL void derefAll(ExceptionSink* xsink) const {
-      for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-         if (!i->second.second)
-            i->second.first->deref(xsink);
-   }
+    DLLLOCAL void derefAll(ExceptionSink* xsink) const {
+        for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
+            if (!i->second.second)
+                i->second.first->deref(xsink);
+    }
 
-   DLLLOCAL AbstractPrivateData* getAndClearPtr(qore_classid_t key) {
-      keymap_t::iterator i = keymap.find(key);
-      //printd(5, "KeyList::getAndClearPtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
-      if (i == keymap.end() || i->second.second) {
-         //printd(5, "KeyList::getAndClearPtr second: %d\n", i->second.second);
-         return 0;
-      }
-      //printd(5, "KeyList::getAndClearPtr first: %p\n", i->second.first);
-      return i->second.first;
-   }
+    DLLLOCAL AbstractPrivateData* getAndClearPtr(qore_classid_t key) {
+        keymap_t::iterator i = keymap.find(key);
+        //printd(5, "KeyList::getAndClearPtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
+        if (i == keymap.end() || i->second.second) {
+            //printd(5, "KeyList::getAndClearPtr second: %d\n", i->second.second);
+            return 0;
+        }
+        //printd(5, "KeyList::getAndClearPtr first: %p\n", i->second.first);
+        return i->second.first;
+    }
 
-   DLLLOCAL AbstractPrivateData* getAndRemovePtr(qore_classid_t key) {
-      keymap_t::iterator i = keymap.find(key);
-      //printd(5, "KeyList::getAndRemovePtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
-      if (i == keymap.end() || i->second.second) {
-         //printd(5, "KeyList::getAndRemovePtr second: %d\n", i->second.second);
-         return 0;
-      }
-      AbstractPrivateData* rv = i->second.first;
-      //printd(5, "KeyList::getAndRemovePtr first: %p\n", i->second.first);
-      i->second.first = 0;
-      return rv;
-   }
+    DLLLOCAL AbstractPrivateData* getAndRemovePtr(qore_classid_t key) {
+        keymap_t::iterator i = keymap.find(key);
+        //printd(5, "KeyList::getAndRemovePtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
+        if (i == keymap.end() || i->second.second) {
+            //printd(5, "KeyList::getAndRemovePtr second: %d\n", i->second.second);
+            return 0;
+        }
+        AbstractPrivateData* rv = i->second.first;
+        //printd(5, "KeyList::getAndRemovePtr first: %p\n", i->second.first);
+        i->second.first = 0;
+        return rv;
+    }
 
-   DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData* pd) {
-      assert(pd);
-      assert(keymap.find(key) == keymap.end());
-      //printd(5, "KeyList::insert this: %p, key: %d, pd: %p\n", this, key, pd);
-      keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
-   }
+    DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData* pd) {
+        assert(pd);
+        assert(keymap.find(key) == keymap.end());
+        //printd(5, "KeyList::insert this: %p, key: %d, pd: %p\n", this, key, pd);
+        keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
+    }
 
-   DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData* pd) {
-      assert(pd);
-      //printd(5, "KeyList::insertVirtual this: %p, key: %d, pd: %p, test: %d\n", this, key, pd, keymap.find(key) == keymap.end());
-      if (keymap.find(key) == keymap.end())
-         keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
-   }
+    DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData* pd) {
+        assert(pd);
+        //printd(5, "KeyList::insertVirtual this: %p, key: %d, pd: %p, test: %d\n", this, key, pd, keymap.find(key) == keymap.end());
+        if (keymap.find(key) == keymap.end())
+            keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
+    }
 };
 
 class VRMutex;

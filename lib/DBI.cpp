@@ -570,40 +570,40 @@ QoreListNode* DBIDriverList::getDriverList() const {
    return priv->getDriverList();
 }
 
-void DBI_concat_numeric(QoreString* str, const AbstractQoreNode* v) {
-   if (is_nothing(v) || is_null(v)) {
-      str->concat("null");
-      return;
-   }
+void DBI_concat_numeric(QoreString* str, QoreValue v) {
+    if (v.isNullOrNothing()) {
+        str->concat("null");
+        return;
+    }
 
-   qore_type_t t = v->getType();
-   if (t == NT_FLOAT || (t == NT_STRING && strchr((reinterpret_cast<const QoreStringNode*>(v))->c_str(), '.'))) {
-      size_t offset = str->size();
-      str->sprintf("%g", v->getAsFloat());
-      // issue 1556: external modules that call setlocale() can change
-      // the decimal point character used here from '.' to ','
-      // only search the double added, QoreString::sprintf() concatenates
-      q_fix_decimal(str, offset);
-      return;
-   }
-   else if (t == NT_NUMBER) {
-      reinterpret_cast<const QoreNumberNode*>(v)->getStringRepresentation(*str);
-      return;
-   }
-   str->sprintf("%lld", v->getAsBigInt());
+    qore_type_t t = v.getType();
+    if (t == NT_FLOAT || (t == NT_STRING && strchr((v.get<const QoreStringNode>())->c_str(), '.'))) {
+        size_t offset = str->size();
+        str->sprintf("%g", v.getAsFloat());
+        // issue 1556: external modules that call setlocale() can change
+        // the decimal point character used here from '.' to ','
+        // only search the double added, QoreString::sprintf() concatenates
+        q_fix_decimal(str, offset);
+        return;
+    }
+    else if (t == NT_NUMBER) {
+        v.get<const QoreNumberNode>()->getStringRepresentation(*str);
+        return;
+    }
+    str->sprintf("%lld", v.getAsBigInt());
 }
 
-int DBI_concat_string(QoreString* str, const AbstractQoreNode* v, ExceptionSink* xsink) {
-   assert(xsink);
-   if (is_nothing(v) || is_null(v))
-      return 0;
+int DBI_concat_string(QoreString* str, QoreValue v, ExceptionSink* xsink) {
+    assert(xsink);
+    if (v.isNullOrNothing())
+        return 0;
 
-   QoreStringValueHelper tstr(v, str->getEncoding(), xsink);
-   if (*xsink)
-      return -1;
+    QoreStringValueHelper tstr(v, str->getEncoding(), xsink);
+    if (*xsink)
+        return -1;
 
-   str->concat(*tstr, xsink);
-   return *xsink;
+    str->concat(*tstr, xsink);
+    return *xsink;
 }
 
 /*

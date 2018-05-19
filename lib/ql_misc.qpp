@@ -1286,7 +1286,7 @@ list<hash> getModuleList() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-list l = get_module_list();
+list<hash> l = get_module_list();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1335,7 +1335,7 @@ hash<string, hash> getModuleHash() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-hash mh = get_module_hash();
+hash<string, hash> mh = get_module_hash();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1353,7 +1353,7 @@ hash<string, hash> get_module_hash() {
 
     @deprecated use get_feature_list(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list getFeatureList() [flags=DEPRECATED] {
+list<string> getFeatureList() [flags=DEPRECATED] {
    return getProgram()->getFeatureList();
 }
 
@@ -1362,14 +1362,14 @@ list getFeatureList() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-list list = get_feature_list();
+list<string> l = get_feature_list();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getFeatureList()
 */
-list get_feature_list() {
+list<string> get_feature_list() {
    return getProgram()->getFeatureList();
 }
 
@@ -1380,21 +1380,21 @@ list get_feature_list() {
 
     @par Example:
     @code{.py}
-list vl = hash_values(vl);
+list<auto> vl = hash_values(vl);
     @endcode
 
     @note equivalent to <hash>::values()
 
     @see <hash>::keys()
 */
-list hash_values(hash h) [flags=CONSTANT] {
-   QoreListNode* l = new QoreListNode;
+list<auto> hash_values(hash<auto> h) [flags=CONSTANT] {
+    QoreListNode* l = new QoreListNode(autoTypeInfo);
 
-   ConstHashIterator hi(h);
-   while (hi.next())
-      l->push(hi.getReferenced(), xsink);
+    ConstHashIterator hi(h);
+    while (hi.next())
+        l->push(hi.getReferenced(), xsink);
 
-   return l;
+    return l;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1419,7 +1419,7 @@ bool b = has_key(hash, "key");
 
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
 */
-bool has_key(hash h, string key) {
+bool has_key(hash<auto> h, string key) {
     TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
     if (*xsink)
         return QoreValue();
@@ -1893,13 +1893,13 @@ nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
     @see get_word_64()
 */
 *int get_word_64_lsb(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char* ptr = (unsigned char* )b->getPtr();
-   int size = b->size();
+    unsigned char* ptr = (unsigned char* )b->getPtr();
+    int size = b->size();
 
-   if (offset >= (size - 7) || offset < 0)
-      return QoreValue();
+    if (offset >= (size - 7) || offset < 0)
+        return QoreValue();
 
-   return (int64)LSBi8(*((int64 *)&ptr[offset]));
+    return (int64)LSBi8(*((int64 *)&ptr[offset]));
 }
 
 //! This function always returns an empty string \c ""
@@ -1910,7 +1910,7 @@ nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return always returns an empty string \c ""
 */
 string splice(string[doc] str) [flags=NOOP] {
-   return new QoreStringNode;
+    return new QoreStringNode;
 }
 
 //! Returns a string based on the argument string but with characters removed from a certain character index
@@ -1929,9 +1929,9 @@ string str = splice(str2, 5);
     @see the @ref splice "splice operator"
 */
 string splice(string str, softint start) {
-   QoreStringNodeHolder pstr(str->copy());
-   pstr->splice(start, xsink);
-   return *xsink ? QoreValue() : pstr.release();
+    QoreStringNodeHolder pstr(str->copy());
+    pstr->splice(start, xsink);
+    return *xsink ? QoreValue() : pstr.release();
 }
 
 //! Returns a string based on the argument string but optionally with characters removed and/or added from a certain character index
@@ -1952,9 +1952,9 @@ string str = splice(str2, 5, 7, "hello");
     @see the @ref splice "splice operator"
 */
 string splice(string str, softint start, softint len, *string nstr) {
-   QoreStringNodeHolder pstr(str->copy());
-   pstr->splice(start, len, nstr, xsink);
-   return *xsink ? QoreValue() : pstr.release();
+    QoreStringNodeHolder pstr(str->copy());
+    pstr->splice(start, len, nstr, xsink);
+    return *xsink ? QoreValue() : pstr.release();
 }
 
 //! Returns a list based on the argument list but with elements removed from the given index to the end of the list
@@ -1965,15 +1965,15 @@ string splice(string str, softint start, softint len, *string nstr) {
 
     @par Example:
     @code{.py}
-list l = splice(l2, 5);
+list<auto> l = splice(l2, 5);
     @endcode
 
     @see the @ref splice "splice operator"
 */
-list splice(list l, softint start) {
-   ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
-   lst->splice(start, xsink);
-   return *xsink ? QoreValue() : lst.release();
+list<auto> splice(list<auto> l, softint start) {
+    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
+    lst->splice(start, xsink);
+    return *xsink ? QoreValue() : lst.release();
 }
 
 //! Returns a list based on the argument list but optionally with elements removed and/or added from a certain index
@@ -1982,21 +1982,43 @@ list splice(list l, softint start) {
     @param l the list to process
     @param start the starting element (where the first element is 0) to start removing (and/or adding) elements; if this value is negative, it gives the offset from the end of the list
     @param len the number of list elements to remove; if this argument is 0 then no elements are removed; if this value is negative, then it gives an offset from the end of the list (ie -2 means remove all elements up to but not including the two last elements)
-    @param nlist the optional list for inserting new elements
 
     @return the processed list with elements removed and/or added according to the arguments
 
     @par Example:
     @code{.py}
-list l = splice(l2, 5, 7, "hello");
+list<auto> l = splice(l2, 5, 7);
     @endcode
 
     @see the @ref splice "splice operator"
 */
-list splice(list l, softint start, softint len, *softlist nlist) {
-   ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
-   lst->splice(start, len, nlist, xsink);
-   return *xsink ? QoreValue() : lst.release();
+list<auto> splice(list<auto> l, softint start, softint len) {
+    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
+    lst->splice(start, len, xsink);
+    return *xsink ? QoreValue() : lst.release();
+}
+
+//! Returns a list based on the argument list but optionally with elements removed and/or added from a certain index
+/** Exceptions can only be thrown here if objects are removed from the list and this causes them to go out of scope and an exception is thrown in one of the destructors
+
+    @param l the list to process
+    @param start the starting element (where the first element is 0) to start removing (and/or adding) elements; if this value is negative, it gives the offset from the end of the list
+    @param len the number of list elements to remove; if this argument is 0 then no elements are removed; if this value is negative, then it gives an offset from the end of the list (ie -2 means remove all elements up to but not including the two last elements)
+    @param nlist the new  list for inserting new elements
+
+    @return the processed list with elements removed and/or added according to the arguments
+
+    @par Example:
+    @code{.py}
+list<auto> l = splice(l2, 5, 7, "hello");
+    @endcode
+
+    @see the @ref splice "splice operator"
+*/
+list<auto> splice(list<auto> l, softint start, softint len, softlist<auto> nlist) {
+    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
+    lst->splice(start, len, nlist, xsink);
+    return *xsink ? QoreValue() : lst.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -2018,9 +2040,9 @@ nothing splice() [flags=RUNTIME_NOOP] {
     @deprecated use make_hex_string(); camel-case function names were deprecated in %Qore 0.8.12
 */
 string makeHexString(string str) [flags=CONSTANT,DEPRECATED] {
-   QoreStringNode* rv = new QoreStringNode;
-   rv->concatHex(str);
-   return rv;
+    QoreStringNode* rv = new QoreStringNode;
+    rv->concatHex(str);
+    return rv;
 }
 
 //! Returns a hex-encoded representation of a binary object
@@ -2036,9 +2058,9 @@ string makeHexString(string str) [flags=CONSTANT,DEPRECATED] {
     @deprecated use make_hex_string(); camel-case function names were deprecated in %Qore 0.8.12
 */
 string makeHexString(binary bin) [flags=CONSTANT,DEPRECATED] {
-   QoreStringNode* str = new QoreStringNode;
-   str->concatHex(bin);
-   return str;
+    QoreStringNode* str = new QoreStringNode;
+    str->concatHex(bin);
+    return str;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -2065,9 +2087,9 @@ string str = make_hex_string(str2);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case makeHexString()
 */
 string make_hex_string(string str) [flags=CONSTANT] {
-   QoreStringNode* rv = new QoreStringNode;
-   rv->concatHex(str);
-   return rv;
+    QoreStringNode* rv = new QoreStringNode;
+    rv->concatHex(str);
+    return rv;
 }
 
 //! Returns a hex-encoded representation of a binary object
@@ -2088,9 +2110,9 @@ string str = make_hex_string(bin);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case makeHexString()
 */
 string make_hex_string(binary bin) [flags=CONSTANT] {
-   QoreStringNode* str = new QoreStringNode;
-   str->concatHex(bin);
-   return str;
+    QoreStringNode* str = new QoreStringNode;
+    str->concatHex(bin);
+    return str;
 }
 
 //! Parses a hex-encoded string and returns the binary object
@@ -2454,16 +2476,16 @@ string encode_uri_request(string url) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-list l = get_qore_option_list();
+list<hash> l = get_qore_option_list();
     @endcode
 
     @see get_qore_option_hash()
 */
-list get_qore_option_list() [flags=CONSTANT] {
-    QoreListNode* l = new QoreListNode;
+list<hash> get_qore_option_list() [flags=CONSTANT] {
+    QoreListNode* l = new QoreListNode(hashTypeInfo);
 
     for (unsigned j = 0; j < qore_option_list_size; ++j) {
-        QoreHashNode* h = new QoreHashNode;
+        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
         qore_hash_private* hh = qore_hash_private::get(*h);
         hh->setKeyValueIntern("option", new QoreStringNode(qore_option_list[j].option));
         hh->setKeyValueIntern("constant", new QoreStringNode(qore_option_list[j].constant));
@@ -2483,18 +2505,18 @@ list get_qore_option_list() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-hash h = get_qore_option_hash();
+hash<string, hash<auto>> h = get_qore_option_hash();
     @endcode
 
     @see get_qore_option_list()
 
     @since %Qore 0.8.4
 */
-hash get_qore_option_hash() [flags=CONSTANT] {
-    QoreHashNode* rv = new QoreHashNode;
+hash<string, hash<auto>> get_qore_option_hash() [flags=CONSTANT] {
+    QoreHashNode* rv = new QoreHashNode(hashTypeInfo);
 
     for (unsigned j = 0; j < qore_option_list_size; ++j) {
-        QoreHashNode* h = new QoreHashNode;
+        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
         h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
         h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
         h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
@@ -2522,11 +2544,11 @@ hash get_qore_option_hash() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-hash h = get_qore_library_info();
+hash<auto> h = get_qore_library_info();
     @endcode
 */
-hash get_qore_library_info() [flags=CONSTANT] {
-   QoreHashNode* h = new QoreHashNode;
+hash<auto> get_qore_library_info() [flags=CONSTANT] {
+   QoreHashNode* h = new QoreHashNode(autoTypeInfo);
 
    h->setKeyValue("PlatformOS", new QoreStringNode(qore_target_os), xsink);
    h->setKeyValue("PlatformCPU", new QoreStringNode(qore_target_arch), xsink);

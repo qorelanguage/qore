@@ -1117,14 +1117,14 @@ void qore_program_private::onExit(const StatementBlock *statement, QoreValue& re
     }
 }
 
-const AbstractQoreFunctionVariant* qore_program_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) {
+const AbstractQoreFunctionVariant* qore_program_private::runtimeFindCall(const char* name, const QoreListNode* params, ExceptionSink* xsink) {
     // acquire safe access to parse structures in the source program
     ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
     return qore_root_ns_private::get(*RootNS)->runtimeFindCall(name, params, xsink);
 }
 
-QoreValueList* qore_program_private::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) {
+QoreListNode* qore_program_private::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) {
     // acquire safe access to parse structures in the source program
     ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
@@ -1564,7 +1564,7 @@ void QoreProgram::runClass(const char* classname, ExceptionSink* xsink) {
 
    ProgramThreadCountContextHelper tch(xsink, this, true);
    if (!*xsink)
-      discard(qc->execConstructor((QoreValueList*)0, xsink), xsink);
+      discard(qc->execConstructor((QoreListNode*)0, xsink), xsink);
 }
 
 void QoreProgram::parseFileAndRunClass(const char* filename, const char* classname) {
@@ -1940,15 +1940,15 @@ AbstractStatement* QoreProgram::findStatement(const char* fileName, int line) co
    return priv->getStatementFromIndex(fileName, line);
 }
 
-AbstractStatement* QoreProgram::findFunctionStatement(const char* functionName, const QoreValueList* params, ExceptionSink* xsink) const {
-   const AbstractQoreFunctionVariant* uv = runtimeFindCall(functionName, params, xsink);
-   if (!uv)
-      return nullptr;
-   const UserVariantBase* uvb = uv->getUserVariantBase();
-   //printd(5, "QoreProgram::findFunctionStatement() '%s' -> %p\n", functionName, uvb);
-   if (!uvb)
-      return nullptr;
-   return uvb->getStatementBlock();
+AbstractStatement* QoreProgram::findFunctionStatement(const char* functionName, const QoreListNode* params, ExceptionSink* xsink) const {
+    const AbstractQoreFunctionVariant* uv = runtimeFindCall(functionName, params, xsink);
+    if (!uv)
+        return nullptr;
+    const UserVariantBase* uvb = uv->getUserVariantBase();
+    //printd(5, "QoreProgram::findFunctionStatement() '%s' -> %p\n", functionName, uvb);
+    if (!uvb)
+        return nullptr;
+    return uvb->getStatementBlock();
 }
 
 unsigned long QoreProgram::getStatementId(const AbstractStatement* statement) const {
@@ -1999,11 +1999,11 @@ bool QoreProgram::checkAllowDebugging(ExceptionSink* xsink) {
    return priv->checkAllowDebugging(xsink);
 }
 
-const AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const {
+const AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreListNode* params, ExceptionSink* xsink) const {
    return priv->runtimeFindCall(name, params, xsink);
 }
 
-QoreValueList* QoreProgram::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const {
+QoreListNode* QoreProgram::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const {
    return priv->runtimeFindCallVariants(name, xsink);
 }
 

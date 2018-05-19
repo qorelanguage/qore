@@ -1813,124 +1813,125 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
 }
 
 void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op) {
-   // we must evaluate range arguments before acquiring any lvalue locks in LValueHelper
-   ValueEvalRefHolder start_index(op->get(1), xsink);
-   if (*xsink)
-       return;
-   ValueEvalRefHolder stop_index(op->get(2), xsink);
-   if (*xsink)
-       return;
+    // we must evaluate range arguments before acquiring any lvalue locks in LValueHelper
+    ValueEvalRefHolder start_index(op->get(1), xsink);
+    if (*xsink)
+        return;
+    ValueEvalRefHolder stop_index(op->get(2), xsink);
+    if (*xsink)
+        return;
 
-   // find variable ptr, exit if doesn't exist anyway
-   LValueHelper lvh(op->get(0), xsink, true);
-   if (!lvh)
-       return;
+    // find variable ptr, exit if doesn't exist anyway
+    LValueHelper lvh(op->get(0), xsink, true);
+    if (!lvh)
+        return;
 
-   int64 start, stop, seq_size;
-   {
-       QoreValue tmp(lvh.getValue());
-       if (!op->getEffectiveRange(tmp, start, stop, seq_size, *start_index, *stop_index, xsink)) {
-          if (!*xsink) {
-             AbstractQoreNode* v;
-             switch (lvh.getType()) {
-                case NT_LIST: {
-                    v = new QoreListNode;
-                    int d = stop - start;
-                    if (d < 0)
-                        d = -d;
-                    ++d;
-                    while (d--) {
-                        static_cast<QoreListNode*>(v)->push(QoreValue(), nullptr);
+    int64 start, stop, seq_size;
+    {
+        QoreValue tmp(lvh.getValue());
+        if (!op->getEffectiveRange(tmp, start, stop, seq_size, *start_index, *stop_index, xsink)) {
+            if (!*xsink) {
+                AbstractQoreNode* v;
+                switch (lvh.getType()) {
+                    case NT_LIST: {
+                        v = new QoreListNode;
+                        int d = stop - start;
+                        if (d < 0)
+                            d = -d;
+                        ++d;
+                        while (d--) {
+                            static_cast<QoreListNode*>(v)->push(QoreValue(), xsink);
+                        }
+                        break;
                     }
-                    break;
+                    case NT_STRING:
+                        v = new QoreStringNode;
+                        break;
+                    case NT_BINARY:
+                        v = new BinaryNode;
+                        break;
+                    default:
+                        v = nullptr;
+                        break;
                 }
-                case NT_STRING:
-                    v = new QoreStringNode;
-                    break;
-                case NT_BINARY:
-                    v = new BinaryNode;
-                    break;
-                default:
-                    v = nullptr;
-                    break;
-             }
 #ifdef DEBUG
-             // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-             assert(!rv.assignInitial(v));
+                // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
+                assert(!rv.assignInitial(v));
 #else
-             rv.assignInitial(v);
+                rv.assignInitial(v);
 #endif
-          }
-          return;
-       }
-   }
+            }
+            return;
+        }
+    }
 
-   bool reverse;
-   if (stop < start) {
-       reverse = true;
-       int64 t = stop;
-       stop = start;
-       start = t;
-   }
-   else
-       reverse = false;
+    bool reverse;
+    if (stop < start) {
+        reverse = true;
+        int64 t = stop;
+        stop = start;
+        start = t;
+    }
+    else
+        reverse = false;
 
-   direct_list = true;
+    direct_list = true;
 
-   ReferenceHolder<> v(xsink);
-   switch (lvh.getType()) {
-       case NT_LIST: {
-           lvh.ensureUnique();
-           QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
-           size_t orig_size = l->size();
-           QoreListNode* nl = l->extract(start, stop - start + 1, xsink);
-           // add additional elements if necessary
-           //printd(5, "l->size: %d start: %d stop: %d\n", (int)orig_size, (int)start, (int)stop);
-           if (stop >= (int64)orig_size)
-              qore_list_private::get(*nl)->resize(nl->size() + stop - orig_size + 1);
-           v = nl;
-           if (*xsink)
-               return;
-           if (reverse) {
-               nl = nl->reverse();
-               v = nl;
-           }
-           break;
-       }
-       case NT_STRING: {
-           lvh.ensureUnique();
-           QoreStringNode* str = static_cast<QoreStringNode*>(lvh.getValue());
-           QoreStringNode* ns = str->extract(start, stop - start + 1, xsink);
-           v = ns;
-           if (*xsink)
-               return;
-           if (reverse) {
-               ns = ns->reverse();
-               v = ns;
-           }
-           break;
-       }
-       case NT_BINARY: {
-           lvh.ensureUnique();
-           BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
-           BinaryNode* nb = new BinaryNode;
-           bin->splice(start, stop - start + 1, nullptr, 0, nb);
-           v = nb;
-           if (*xsink)
-               return;
-           // NOTE: it would be more efficient to swap the bytes in place
-           if (reverse) {
-               BinaryNode* rb = new BinaryNode;
-               for (size_t i = 0; i < nb->size(); ++i) {
-                   rb->append(((char*)nb->getPtr()) + nb->size() - i - 1, 1);
-               }
-               v = rb;
-           }
-           break;
-       }
+    ReferenceHolder<> v(xsink);
+    switch (lvh.getType()) {
+        case NT_LIST: {
+            lvh.ensureUnique();
+            QoreListNode* l = static_cast<QoreListNode*>(lvh.getValue());
+            size_t orig_size = l->size();
+            QoreListNode* nl = l->extract(start, stop - start + 1, xsink);
+            // add additional elements if necessary
+            //printd(5, "l->size: %d start: %d stop: %d\n", (int)orig_size, (int)start, (int)stop);
+            if (stop >= (int64)orig_size) {
+                qore_list_private::get(*nl)->resize(nl->size() + stop - orig_size + 1);
+            }
+            v = nl;
+            if (*xsink)
+                return;
+            if (reverse) {
+                nl = nl->reverse();
+                v = nl;
+            }
+            break;
+        }
+        case NT_STRING: {
+            lvh.ensureUnique();
+            QoreStringNode* str = static_cast<QoreStringNode*>(lvh.getValue());
+            QoreStringNode* ns = str->extract(start, stop - start + 1, xsink);
+            v = ns;
+            if (*xsink)
+                return;
+            if (reverse) {
+                ns = ns->reverse();
+                v = ns;
+            }
+            break;
+        }
+        case NT_BINARY: {
+            lvh.ensureUnique();
+            BinaryNode* bin = static_cast<BinaryNode*>(lvh.getValue());
+            BinaryNode* nb = new BinaryNode;
+            bin->splice(start, stop - start + 1, nullptr, 0, nb);
+            v = nb;
+            if (*xsink)
+                return;
+            // NOTE: it would be more efficient to swap the bytes in place
+            if (reverse) {
+                BinaryNode* rb = new BinaryNode;
+                for (size_t i = 0; i < nb->size(); ++i) {
+                    rb->append(((char*)nb->getPtr()) + nb->size() - i - 1, 1);
+                }
+                v = rb;
+            }
+            break;
+        }
 
-       default:
-           return;
+        default:
+            return;
     }
 
 #ifdef DEBUG

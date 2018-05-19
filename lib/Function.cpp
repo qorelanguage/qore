@@ -149,7 +149,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
     if (*xsink)
         return;
 
-        init(func, variant, is_copy, cctx);
+    init(func, variant, is_copy, cctx);
 }
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
@@ -164,7 +164,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
     if (*xsink)
         return;
 
-        init(func, variant, is_copy, cctx);
+    init(func, variant, is_copy, cctx);
 }
 
 CodeEvaluationHelper::~CodeEvaluationHelper() {

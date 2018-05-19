@@ -165,7 +165,7 @@ public:
    */
    DLLEXPORT virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
-   //! performs a deep copy of the list and returns the new list
+   //! performs a the same object with its reference count increased
    DLLEXPORT virtual AbstractQoreNode* realCopy() const;
 
    //! tests for equality ("deep compare" including all contained values) with possible type conversion (soft compare)
@@ -289,17 +289,9 @@ public:
    /**
       @param mem the name member to retrieve the value for
       @param xsink if an error occurs, the Qore-language exception information will be added here
-      @return the value of the given member with the reference count incremented, the caller owns the AbstractQoreNode (reference) returned
-   */
-   DLLEXPORT AbstractQoreNode* getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const;
-
-   //! returns the value of the given member with the reference count incremented, the caller owns the AbstractQoreNode (reference) returned
-   /**
-      @param mem the name member to retrieve the value for
-      @param xsink if an error occurs, the Qore-language exception information will be added here
       @return the value of the given member with the reference count incremented, the caller owns any reference returned
    */
-   DLLEXPORT QoreValue getReferencedMemberValueNoMethod(const char* mem, ExceptionSink* xsink) const;
+   DLLEXPORT QoreValue getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const;
 
    //! returns the value of the given member as an int64
    /**

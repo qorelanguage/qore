@@ -62,6 +62,35 @@ QoreValue& QoreListNodeEvalOptionalRefHolder::getEntryReference(size_t index) {
     return qore_list_private::get(*val)->getEntryReference(index);
 }
 
+// with this variant, we can edit and reuse references from "exp"
+void QoreListNodeEvalOptionalRefHolder::evalIntern(QoreListNode* exp) {
+    assert(!exp || exp->reference_count() == 1);
+
+    if (!exp || exp->empty()) {
+        val = 0;
+        needs_deref = false;
+        return;
+    }
+    needs_deref = true;
+    val = new QoreListNode;
+    qore_list_private* vl = qore_list_private::get(*val);
+    vl->reserve(exp->size());
+
+    for (unsigned i = 0; i < exp->size(); ++i) {
+        QoreValue& ev = exp->getEntryReference(i);
+        QoreValue& vv = val->getEntryReference(i);
+        if (!ev.needsEval() || ev.getType() == NT_REFERENCE || ev.getType() == NT_WEAKREF) {
+            vv.swap(ev);
+            continue;
+        }
+        vv = ev.eval(xsink);
+        if (*xsink) {
+            return;
+        }
+    }
+    assert(exp->size() == val->size());
+}
+
 int qore_list_private::getLValue(size_t ind, LValueHelper& lvh, bool for_remove, ExceptionSink* xsink) {
     if (ind >= length) {
         resize(ind + 1);
@@ -300,6 +329,20 @@ int QoreListNode::merge(const QoreListNode* list, ExceptionSink* xsink) {
    return priv->merge(list, xsink);
 }
 
+int QoreListNode::setEntry(qore_size_t index, QoreValue val, ExceptionSink* xsink) {
+    assert(reference_count() == 1);
+    if (needs_scan(priv->entry[index])) {
+        priv->incScanCount(-1);
+    }
+    priv->entry[index].discard(xsink);
+    priv->entry[index] = val;
+
+    if (needs_scan(val)) {
+        priv->incScanCount(1);
+    }
+    return xsink && *xsink ? -1 : 0;
+}
+
 int QoreListNode::push(QoreValue val, ExceptionSink* xsink) {
     return priv->push(val, xsink);
 }
@@ -327,7 +370,7 @@ QoreValue QoreListNode::shift() {
     if (!priv->length) {
         return QoreValue();
     }
-    QoreValue& rv = priv->entry[0];
+    QoreValue rv = priv->entry[0];
     size_t pos = priv->length - 1;
     memmove(priv->entry, priv->entry + 1, sizeof(QoreValue) * pos);
     priv->entry[pos] = QoreValue();
@@ -345,7 +388,7 @@ QoreValue QoreListNode::pop() {
     if (!priv->length) {
         return QoreValue();
     }
-    QoreValue& rv = priv->entry[priv->length - 1];
+    QoreValue rv = priv->entry[priv->length - 1];
     size_t pos = priv->length - 1;
     priv->entry[pos] = QoreValue();
     priv->resize(pos);
@@ -534,10 +577,10 @@ int qore_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool ascen
     size_t mid = length / 2;
     {
         size_t i = 0;
-        for (; i < mid; i++) {
+        for (; i < mid; ++i) {
             l->pushIntern(entry[i]);
         }
-        for (; i < length; i++) {
+        for (; i < length; ++i) {
             r->pushIntern(entry[i]);
         }
     }
@@ -554,8 +597,8 @@ int qore_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool ascen
     // use offsets and getAndClear() to avoid moving a lot of memory around
     size_t li = 0, ri = 0;
     while ((li < l->length) && (ri < r->length)) {
-        QoreValue& lv = l->entry[li];
-        QoreValue& rv = r->entry[ri];
+        QoreValue lv = l->entry[li];
+        QoreValue rv = r->entry[ri];
         int rc;
         if (fr) {
             safe_qorelist_t args(do_args(lv, rv), xsink);
@@ -572,7 +615,7 @@ int qore_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool ascen
             }
         }
         if ((ascending && rc <= 0)
-            || (!ascending && rc > 0)) {
+            || (!ascending && rc >= 0)) {
             pushIntern(l->getAndClear(li++));
         }
         else {
@@ -596,7 +639,7 @@ int qore_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool ascen
 // quicksort for controlled and interruptible sorts (unstable)
 // I am so smart that I did not comment this code
 // and now I don't know how it works anymore
-int qore_list_private::qsort(const ResolvedCallReferenceNode* fr, qore_size_t left, qore_size_t right, bool ascending, ExceptionSink* xsink) {
+int qore_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t left, size_t right, bool ascending, ExceptionSink* xsink) {
     size_t l_hold = left;
     size_t r_hold = right;
     QoreValue pivot = entry[left];
@@ -714,7 +757,7 @@ QoreListNode* QoreListNode::sortDescendingStable(ExceptionSink* xsink) const {
 QoreListNode* QoreListNode::sortDescendingStable(const ResolvedCallReferenceNode* fr, ExceptionSink* xsink) const {
     ReferenceHolder<QoreListNode> rv(copy(), xsink);
     if (priv->length) {
-        if (rv->priv->qsort(fr, 0, priv->length - 1, false, xsink)) {
+        if (rv->priv->mergesort(fr, false, xsink)) {
             return nullptr;
         }
     }

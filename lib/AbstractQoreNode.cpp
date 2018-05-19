@@ -155,48 +155,48 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
 }
 
 QoreValue AbstractQoreNode::evalValue(ExceptionSink* xsink) const {
-   if (!needs_eval_flag)
-      return refSelf();
+    if (!needs_eval_flag)
+        return refSelf();
 
-   if (has_value_api) {
-      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
-      ValueEvalRefHolder v(pn, xsink);
-      return v.takeReferencedValue();
-   }
+    if (has_value_api) {
+        const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
+        ValueEvalRefHolder v(pn, xsink);
+        return v.takeReferencedValue();
+    }
 
-   return evalImpl(xsink);
+    return evalImpl(xsink);
 }
 
 QoreValue AbstractQoreNode::evalValue(bool& needs_deref, ExceptionSink* xsink) const {
-   if (!needs_eval_flag) {
-      needs_deref = false;
-      return const_cast<AbstractQoreNode*>(this);
-   }
+    if (!needs_eval_flag) {
+        needs_deref = false;
+        return const_cast<AbstractQoreNode*>(this);
+    }
 
-   if (has_value_api) {
-      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
-      ValueEvalRefHolder v(pn, xsink);
-      return v.takeValue(needs_deref);
-   }
+    if (has_value_api) {
+        const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
+        ValueEvalRefHolder v(pn, xsink);
+        return v.takeValue(needs_deref);
+    }
 
-   return evalImpl(needs_deref, xsink);
+    return evalImpl(needs_deref, xsink);
 }
 
 // AbstractQoreNode::eval(): return value requires a dereference
 AbstractQoreNode* AbstractQoreNode::eval(ExceptionSink* xsink) const {
-   if (!needs_eval_flag)
-      return refSelf();
-   return evalImpl(xsink);
+    if (!needs_eval_flag)
+        return refSelf();
+    return evalImpl(xsink);
 }
 
 // AbstractQoreNode::eval(): return value requires a dereference if needs_deref is true
 AbstractQoreNode* AbstractQoreNode::eval(bool& needs_deref, ExceptionSink* xsink) const {
-   if (!needs_eval_flag) {
-      needs_deref = false;
-      return const_cast<AbstractQoreNode*>(this);
-   }
+    if (!needs_eval_flag) {
+        needs_deref = false;
+        return const_cast<AbstractQoreNode*>(this);
+    }
 
-   return evalImpl(needs_deref, xsink);
+    return evalImpl(needs_deref, xsink);
 }
 
 int64 AbstractQoreNode::bigIntEvalImpl(ExceptionSink* xsink) const {
@@ -516,102 +516,102 @@ static AbstractQoreNode* crlr_smcall_copy(const StaticMethodCallNode* m, Excepti
 }
 
 static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, ExceptionSink* xsink) {
-   assert(xsink);
-   ReferenceHolder<AbstractQoreNode> exp(copy_and_resolve_lvar_refs(n->getExp(), xsink), xsink);
-   if (*xsink)
-      return 0;
+    assert(xsink);
+    ReferenceHolder<AbstractQoreNode> exp(copy_and_resolve_lvar_refs(n->getExp(), xsink), xsink);
+    if (*xsink)
+        return 0;
 
-   QoreListNode* args = const_cast<QoreListNode*>(n->getArgs());
-   if (args) {
-      ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
-      if (*xsink)
-         return 0;
+    QoreListNode* args = const_cast<QoreListNode*>(n->getArgs());
+    if (args) {
+        ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
+        if (*xsink)
+            return 0;
 
-      args = args_holder.release();
-   }
+        args = args_holder.release();
+    }
 
-   return new CallReferenceCallNode(n->loc, exp.release(), args);
+    return new CallReferenceCallNode(n->loc, exp.release(), args);
 }
 
 static AbstractQoreNode* eval_notnull(const AbstractQoreNode* n, ExceptionSink* xsink) {
-   assert(xsink);
-   ReferenceHolder<AbstractQoreNode> exp(n->eval(xsink), xsink);
-   if (*xsink)
-      return 0;
+    assert(xsink);
+    ReferenceHolder<AbstractQoreNode> exp(n->eval(xsink), xsink);
+    if (*xsink)
+        return 0;
 
-   return exp ? exp.release() : nothing();
+    return exp ? exp.release() : nothing();
 }
 
 QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink) {
-   if (!n.hasNode())
-      return const_cast<QoreValue&>(n);
-   return copy_and_resolve_lvar_refs(n.getInternalNode(), xsink);
+    if (!n.hasNode())
+        return const_cast<QoreValue&>(n);
+    return copy_and_resolve_lvar_refs(n.getInternalNode(), xsink);
 }
 
 AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink) {
-   if (!n) return 0;
+    if (!n) return 0;
 
-   qore_type_t ntype = n->getType();
+    qore_type_t ntype = n->getType();
 
-   if (ntype == NT_LIST)
-      return crlr_list_copy(reinterpret_cast<const QoreListNode*>(n), xsink);
+    if (ntype == NT_LIST)
+        return crlr_list_copy(reinterpret_cast<const QoreListNode*>(n), xsink);
 
-   if (ntype == NT_PARSE_LIST)
-      return crlr_list_copy(reinterpret_cast<const QoreParseListNode*>(n), xsink);
+    if (ntype == NT_PARSE_LIST)
+        return crlr_list_copy(reinterpret_cast<const QoreParseListNode*>(n), xsink);
 
-   if (ntype == NT_HASH)
-      return crlr_hash_copy(reinterpret_cast<const QoreHashNode*>(n), xsink);
+    if (ntype == NT_HASH)
+        return crlr_hash_copy(reinterpret_cast<const QoreHashNode*>(n), xsink);
 
-   if (ntype == NT_PARSE_HASH)
-      return crlr_hash_copy(reinterpret_cast<const QoreParseHashNode*>(n), xsink);
+    if (ntype == NT_PARSE_HASH)
+        return crlr_hash_copy(reinterpret_cast<const QoreParseHashNode*>(n), xsink);
 
-   if (ntype == NT_OPERATOR)
-      return reinterpret_cast<const QoreOperatorNode*>(n)->copyBackground(xsink);
+    if (ntype == NT_OPERATOR)
+        return reinterpret_cast<const QoreOperatorNode*>(n)->copyBackground(xsink);
 
-   if (ntype == NT_SELF_CALL)
-      return crlr_selfcall_copy(reinterpret_cast<const SelfFunctionCallNode*>(n), xsink);
+    if (ntype == NT_SELF_CALL)
+        return crlr_selfcall_copy(reinterpret_cast<const SelfFunctionCallNode*>(n), xsink);
 
-   if (ntype == NT_SELF_VARREF)
-      return eval_notnull(n, xsink);
+    if (ntype == NT_SELF_VARREF)
+        return eval_notnull(n, xsink);
 
-   if (ntype == NT_FUNCTION_CALL || ntype == NT_PROGRAM_FUNC_CALL)
-      return crlr_fcall_copy(reinterpret_cast<const FunctionCallNode*>(n), xsink);
+    if (ntype == NT_FUNCTION_CALL || ntype == NT_PROGRAM_FUNC_CALL)
+        return crlr_fcall_copy(reinterpret_cast<const FunctionCallNode*>(n), xsink);
 
-   // must make sure to return a value here or it could cause a segfault - parse expressions expect non-NULL values for the operands
-   if (ntype == NT_FIND)
-      return eval_notnull(n, xsink);
+    // must make sure to return a value here or it could cause a segfault - parse expressions expect non-NULL values for the operands
+    if (ntype == NT_FIND)
+        return eval_notnull(n, xsink);
 
-   if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode*>(n)->getType() != VT_GLOBAL)
-      return eval_notnull(n, xsink);
+    if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode*>(n)->getType() != VT_GLOBAL)
+        return eval_notnull(n, xsink);
 
-   if (ntype == NT_FUNCREFCALL)
-      return call_ref_call_copy(reinterpret_cast<const CallReferenceCallNode*>(n), xsink);
+    if (ntype == NT_FUNCREFCALL)
+        return call_ref_call_copy(reinterpret_cast<const CallReferenceCallNode*>(n), xsink);
 
-   if (ntype == NT_METHOD_CALL)
-      return crlr_mcall_copy(reinterpret_cast<const MethodCallNode*>(n), xsink);
+    if (ntype == NT_METHOD_CALL)
+        return crlr_mcall_copy(reinterpret_cast<const MethodCallNode*>(n), xsink);
 
-   if (ntype == NT_STATIC_METHOD_CALL)
-      return crlr_smcall_copy(reinterpret_cast<const StaticMethodCallNode*>(n), xsink);
+    if (ntype == NT_STATIC_METHOD_CALL)
+        return crlr_smcall_copy(reinterpret_cast<const StaticMethodCallNode*>(n), xsink);
 
-   if (ntype == NT_PARSEREFERENCE)
-      return reinterpret_cast<const ParseReferenceNode*>(n)->evalToIntermediate(xsink);
+    if (ntype == NT_PARSEREFERENCE)
+        return reinterpret_cast<const ParseReferenceNode*>(n)->evalToIntermediate(xsink);
 
-   // ensure closures are evaluated in the parent thread so closure-bound local vars can be found and bound before
-   // launching the background thread (fixes https://github.com/qorelanguage/qore/issues/12)
-   if (ntype == NT_CLOSURE)
-      return reinterpret_cast<const QoreClosureParseNode*>(n)->evalBackground(xsink);
+    // ensure closures are evaluated in the parent thread so closure-bound local vars can be found and bound before
+    // launching the background thread (fixes https://github.com/qorelanguage/qore/issues/12)
+    if (ntype == NT_CLOSURE)
+        return reinterpret_cast<const QoreClosureParseNode*>(n)->evalBackground(xsink);
 
-   return n->refSelf();
+    return n->refSelf();
 }
 
 void SimpleQoreNode::deref() {
-   if (there_can_be_only_one) {
-      assert(is_unique());
-      return;
-   }
+    if (there_can_be_only_one) {
+        assert(is_unique());
+        return;
+    }
 
-   if (ROdereference())
-      delete this;
+    if (ROdereference())
+        delete this;
 }
 
 AbstractQoreNode* SimpleValueQoreNode::evalImpl(ExceptionSink* xsink) const {

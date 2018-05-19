@@ -57,6 +57,8 @@ private:
         }
     }
 
+    DLLLOCAL void evalIntern(QoreListNode* exp);
+
     DLLLOCAL void editIntern() {
         if (!val) {
             val = new QoreListNode;
@@ -99,6 +101,12 @@ public:
 
     //! assigns a new value by executing the given list and dereference flag to this object, dereferences the old object if necessary
     DLLLOCAL void assignEval(const QoreListNode* exp) {
+        discardIntern();
+        evalIntern(exp);
+    }
+
+    //! assigns a new value by executing the given list and dereference flag to this object, dereferences the old object if necessary
+    DLLLOCAL void assignEval(QoreListNode* exp) {
         discardIntern();
         evalIntern(exp);
     }

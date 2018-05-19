@@ -64,13 +64,13 @@ BuiltinFunctionList builtinFunctions;
 //typedef std::map<const char*, QoreFunction*, class ltstr> hm_bf_t;
 
 void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, va_list args) {
-   typeList.reserve(num_params);
-   defaultArgList.reserve(num_params);
-   for (unsigned i = 0; i < num_params; ++i) {
-      typeList.push_back(va_arg(args, const QoreTypeInfo*));
-      defaultArgList.push_back(va_arg(args, AbstractQoreNode*));
-      //printd(0, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
-   }
+    typeList.reserve(num_params);
+    defaultArgList.reserve(num_params);
+    for (unsigned i = 0; i < num_params; ++i) {
+        typeList.push_back(va_arg(args, const QoreTypeInfo*));
+        defaultArgList.push_back(va_arg(args, AbstractQoreNode*));
+        //printd(0, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
+    }
 }
 
 void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &defaultArgList, name_vec_t& nameList, va_list args) {

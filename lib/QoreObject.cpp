@@ -101,7 +101,7 @@ bool qore_object_private::scanMembersIntern(RSetHelper& rsh, QoreHashNode* odata
         QoreValue v = hi.get();
 #ifdef DEBUG
         if (v.getType() == NT_OBJECT || v.getType() == NT_RUNTIME_CLOSURE)
-            printd(QRO_LVL, "RSetHelper::checkIntern() search %p '%s' key '%s' %p (%s)\n", obj, theclass->getName(), hi.getKey(), v.getInternalNode(), v.getType());
+            printd(QRO_LVL, "RSetHelper::checkIntern() search %p '%s' key '%s' %p (%s)\n", obj, theclass->getName(), hi.getKey(), v.getInternalNode(), v.getTypeName());
 #endif
         if (v.hasNode() && scanCheck(rsh, v.getInternalNode()))
             return true;
@@ -1061,13 +1061,13 @@ void QoreObject::doDelete(ExceptionSink* xsink) {
 }
 
 void qore_object_private::customRefIntern(bool real) {
-   if (!references.load())
-      tRef();
+    if (!references.load())
+        tRef();
 
-   printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customRefIntern() this: %p obj: %p '%s' references %d->%d rrefs: %d->%d\n", this, obj, getClassName(), references.load(), references.load() + 1, rrefs, rrefs + (real ? 1 : 0));
-   ++references;
-   if (real)
-      ++rrefs;
+    printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::customRefIntern() this: %p obj: %p '%s' references %d->%d rrefs: %d->%d\n", this, obj, getClassName(), references.load(), references.load() + 1, rrefs, rrefs + (real ? 1 : 0));
+    ++references;
+    if (real)
+        ++rrefs;
 }
 
 void QoreObject::customRef() const {
@@ -1236,11 +1236,7 @@ int64 QoreObject::getMemberAsBigInt(const char* mem, bool& found, ExceptionSink*
    return priv->data->getKeyValueExistence(mem, found, xsink).getAsBigInt();
 }
 
-AbstractQoreNode* QoreObject::getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const {
-   return priv->getReferencedMemberNoMethod(mem, xsink).takeNode();
-}
-
-QoreValue QoreObject::getReferencedMemberValueNoMethod(const char* mem, ExceptionSink* xsink) const {
+QoreValue QoreObject::getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const {
    return priv->getReferencedMemberNoMethod(mem, xsink).takeNode();
 }
 

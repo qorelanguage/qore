@@ -880,7 +880,7 @@ public:
     }
 
     DLLLOCAL QoreListNode* getFeatureList() const {
-        QoreListNode* l = new QoreListNode;
+        QoreListNode* l = new QoreListNode(stringTypeInfo);
 
         for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
             l->push(new QoreStringNode(*i), nullptr);

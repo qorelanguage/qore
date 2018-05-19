@@ -230,7 +230,7 @@ struct qore_list_private {
         else
             end = offset + len;
 
-        QoreListNode* rv = extract ? new QoreListNode(autoTypeInfo) : nullptr;
+        QoreListNode* rv = extract ? getCopy() : nullptr;
 
         // dereference all entries that will be removed or add to return value list
         for (size_t i = offset; i < end; i++) {

@@ -632,12 +632,12 @@ endif (WIN32 AND MINGW AND MSYS)
 
 set_target_properties(libqore PROPERTIES OUTPUT_NAME qore)
 if (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 5)
-    set_target_properties(libqore PROPERTIES SOVERSION 5)
+    set_target_properties(libqore PROPERTIES VERSION 6)
+    set_target_properties(libqore PROPERTIES SOVERSION 6)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 5.14.2)
-    set_target_properties(libqore PROPERTIES SOVERSION 5)
+    set_target_properties(libqore PROPERTIES VERSION 6.0.0)
+    set_target_properties(libqore PROPERTIES SOVERSION 6)
 endif (APPLE)
 
 # prepare qore target

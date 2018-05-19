@@ -67,9 +67,15 @@ QoreHashNode* QoreException::makeExceptionObject() {
     ph->setKeyValueIntern("source", new QoreStringNode(source));
     ph->setKeyValueIntern("offset", offset);
     ph->setKeyValueIntern("callstack", callStack->refSelf());
-    ph->setKeyValueIntern("err", err.refSelf());
-    ph->setKeyValueIntern("desc", desc.refSelf());
-    ph->setKeyValueIntern("arg", arg.refSelf());
+    if (err) {
+        ph->setKeyValueIntern("err", err.refSelf());
+    }
+    if (desc) {
+        ph->setKeyValueIntern("desc", desc.refSelf());
+    }
+    if (arg) {
+        ph->setKeyValueIntern("arg", arg.refSelf());
+    }
 
     // add chained exceptions with this "chain reaction" call
     if (next)

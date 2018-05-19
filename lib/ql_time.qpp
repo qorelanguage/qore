@@ -103,30 +103,30 @@ static unsigned parse_int_6(const char *p) {
 }
 
 QoreHashNode* date_info(const DateTime& d) {
-   qore_tm info;
-   d.getInfo(info);
+    qore_tm info;
+    d.getInfo(info);
 
-   QoreHashNode* h = new QoreHashNode(hashdeclDateTimeInfo, nullptr);
-   qore_hash_private* ph = qore_hash_private::get(*h);
-   ph->setKeyValueIntern("relative", get_bool_node(d.isRelative()));
-   ph->setKeyValueIntern("year", new QoreBigIntNode(info.year));
-   ph->setKeyValueIntern("month", new QoreBigIntNode(info.month));
-   ph->setKeyValueIntern("day", new QoreBigIntNode(info.day));
-   ph->setKeyValueIntern("hour", new QoreBigIntNode(info.hour));
-   ph->setKeyValueIntern("minute", new QoreBigIntNode(info.minute));
-   ph->setKeyValueIntern("second", new QoreBigIntNode(info.second));
-   ph->setKeyValueIntern("microsecond", new QoreBigIntNode(info.us));
+    QoreHashNode* h = new QoreHashNode(hashdeclDateTimeInfo, nullptr);
+    qore_hash_private* ph = qore_hash_private::get(*h);
+    ph->setKeyValueIntern("relative", d.isRelative());
+    ph->setKeyValueIntern("year", info.year);
+    ph->setKeyValueIntern("month", info.month);
+    ph->setKeyValueIntern("day", info.day);
+    ph->setKeyValueIntern("hour", info.hour);
+    ph->setKeyValueIntern("minute", info.minute);
+    ph->setKeyValueIntern("second", info.second);
+    ph->setKeyValueIntern("microsecond", info.us);
 
-   if (d.isAbsolute()) {
-      ph->setKeyValueIntern("dow", new QoreBigIntNode(d.getDayOfWeek()));
-      ph->setKeyValueIntern("doy", new QoreBigIntNode(d.getDayNumber()));
-      ph->setKeyValueIntern("utc_secs_east", new QoreBigIntNode(info.utc_secs_east));
-      ph->setKeyValueIntern("dst", get_bool_node(info.dst));
-      ph->setKeyValueIntern("zone_name", new QoreStringNode(info.zone_name));
-      ph->setKeyValueIntern("zone", new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(info.zone)));
-   }
+    if (d.isAbsolute()) {
+        ph->setKeyValueIntern("dow", d.getDayOfWeek());
+        ph->setKeyValueIntern("doy", d.getDayNumber());
+        ph->setKeyValueIntern("utc_secs_east", info.utc_secs_east);
+        ph->setKeyValueIntern("dst", info.dst);
+        ph->setKeyValueIntern("zone_name", new QoreStringNode(info.zone_name));
+        ph->setKeyValueIntern("zone", new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(info.zone)));
+    }
 
-   return h;
+    return h;
 }
 
 DateTimeNode* make_date_with_mask(const AbstractQoreZoneInfo* tz, const QoreString& dtstr, const QoreString& mask, ExceptionSink* xsink) {
@@ -1300,9 +1300,9 @@ hash<IsoWeekInfo> getISOWeekHash(date dt) [flags=CONSTANT,DEPRECATED] {
 
    QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo, xsink);
    qore_hash_private* ph = qore_hash_private::get(*h);
-   ph->setKeyValueIntern("year", new QoreBigIntNode(year));
-   ph->setKeyValueIntern("week", new QoreBigIntNode(week));
-   ph->setKeyValueIntern("day", new QoreBigIntNode(day));
+   ph->setKeyValueIntern("year", year);
+   ph->setKeyValueIntern("week", week);
+   ph->setKeyValueIntern("day", day);
 
    return h;
 }
@@ -1332,16 +1332,16 @@ hash<IsoWeekInfo> h = get_iso_week_hash(2007-05-15); # returns year=2007, week=2
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getISOWeekHash()
 */
 hash<IsoWeekInfo> get_iso_week_hash(date dt) [flags=CONSTANT] {
-   int year, week, day;
-   dt->getISOWeek(year, week, day);
+    int year, week, day;
+    dt->getISOWeek(year, week, day);
 
-   QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo, xsink);
-   qore_hash_private* ph = qore_hash_private::get(*h);
-   ph->setKeyValueIntern("year", new QoreBigIntNode(year));
-   ph->setKeyValueIntern("week", new QoreBigIntNode(week));
-   ph->setKeyValueIntern("day", new QoreBigIntNode(day));
+    QoreHashNode* h = new QoreHashNode(hashdeclIsoWeekInfo, xsink);
+    qore_hash_private* ph = qore_hash_private::get(*h);
+    ph->setKeyValueIntern("year", year);
+    ph->setKeyValueIntern("week", week);
+    ph->setKeyValueIntern("day", day);
 
-   return h;
+    return h;
 }
 
 //! Returns a string representing the ISO-8601 calendar week information for the @ref absolute_dates "absolute date" passed (ex: 2006-01-01 = "2005-W52-7")
