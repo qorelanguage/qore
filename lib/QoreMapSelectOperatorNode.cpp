@@ -112,7 +112,11 @@ QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionS
     if (*xsink || value_type == nothing)
         return QoreValue();
 
-    ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode(f->getValueType()) : nullptr, xsink);
+    ReferenceHolder<QoreListNode> rv(ref_rv && (value_type != single) ? new QoreListNode(expTypeInfo) : nullptr, xsink);
+
+    // calculate the runtime element type if possible
+    const QoreTypeInfo* vtype = nullptr;
+    bool vcommon = false;
 
     while (true) {
         ValueOptionalRefHolder iv(xsink);
@@ -129,8 +133,24 @@ QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionS
         }
 
         if (ref_rv) {
-            rv->push(iv.takeReferencedValue(), nullptr);
+            QoreValue val = iv.takeReferencedValue();
+            if (rv->empty()) {
+                vtype = val.getTypeInfo();
+                vcommon = true;
+            }
+            else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, val.getTypeInfo())) {
+                vcommon = false;
+            }
+
+            rv->push(val, xsink);
         }
+    }
+
+    if (rv && vcommon) {
+        if (vtype == anyTypeInfo) {
+            vtype = nullptr;
+        }
+        qore_list_private::get(**rv)->complexTypeInfo = qore_get_complex_list_type(vtype);
     }
 
     return rv.release();

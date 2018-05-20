@@ -139,6 +139,10 @@ public:
     }
 
     DLLLOCAL virtual const char* getName() const { return "HashIterator"; }
+
+    DLLLOCAL virtual const QoreTypeInfo* getElementType() const {
+        return h->getValueTypeInfo();
+    }
 };
 
 // internal reverse iterator class implementation only for the getName() function - the iterators remain

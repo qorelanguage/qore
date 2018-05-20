@@ -412,7 +412,13 @@ public:
     DLLLOCAL QoreValue* operator->() { return &v; }
 
     //! returns the value being managed
+    DLLLOCAL const QoreValue* operator->() const { return &v; }
+
+    //! returns the value being managed
     DLLLOCAL QoreValue& operator*() { return v; }
+
+    //! returns the value being managed
+    DLLLOCAL const QoreValue& operator*() const { return v; }
 };
 
 //! holds an object and dereferences it in the destructor

@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  AbstractIteratorHelper.h
+    AbstractIteratorHelper.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_ABSTRACTITERATORHELPER_H
@@ -37,88 +37,88 @@
 
 class AbstractIteratorHelper {
 protected:
-   DLLLOCAL static const QoreExternalMethodVariant* getCheckVariant(const char* op, const QoreMethod* m, ExceptionSink* xsink) {
-      const qore_class_private* class_ctx = runtime_get_class();
-      const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->runtimeFindVariant(xsink, (QoreValueList*)0, false, class_ctx));
-      // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
-      assert(xsink);
-      if (*xsink)
-         return 0;
-      // we must have a variant here because we have an instance of AbstractIterator
-      assert(variant);
-      if (variant->isPrivate()) {
-         // check for access to the class holding the private method
-         if (!qore_class_private::runtimeCheckPrivateClassAccess(*(variant->method()->getClass()), class_ctx)) {
-            QoreString opstr(op);
-            opstr.toupr();
-            opstr.concat("-ITERATOR-ERROR");
-            xsink->raiseException(opstr.getBuffer(), "cannot access private %s::next() iterator method with the %s", variant->method()->getClass()->getName(), op);
+    DLLLOCAL static const QoreExternalMethodVariant* getCheckVariant(const char* op, const QoreMethod* m, ExceptionSink* xsink) {
+        const qore_class_private* class_ctx = runtime_get_class();
+        const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(m->getFunction()->runtimeFindVariant(xsink, (QoreValueList*)0, false, class_ctx));
+        // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
+        assert(xsink);
+        if (*xsink)
             return 0;
-         }
-      }
-      return reinterpret_cast<const QoreExternalMethodVariant*>(variant);
-   }
+        // we must have a variant here because we have an instance of AbstractIterator
+        assert(variant);
+        if (variant->isPrivate()) {
+            // check for access to the class holding the private method
+            if (!qore_class_private::runtimeCheckPrivateClassAccess(*(variant->method()->getClass()), class_ctx)) {
+                QoreString opstr(op);
+                opstr.toupr();
+                opstr.concat("-ITERATOR-ERROR");
+                xsink->raiseException(opstr.getBuffer(), "cannot access private %s::next() iterator method with the %s", variant->method()->getClass()->getName(), op);
+                return 0;
+            }
+        }
+        return reinterpret_cast<const QoreExternalMethodVariant*>(variant);
+    }
 
 public:
-   QoreObject* obj;
-   const QoreMethod* nextMethod;
-   const QoreExternalMethodVariant* nextVariant;
-   const QoreMethod* getValueMethod;
-   const QoreExternalMethodVariant* getValueVariant;
-   bool valid;
+    QoreObject* obj;
+    const QoreMethod* nextMethod;
+    const QoreExternalMethodVariant* nextVariant;
+    const QoreMethod* getValueMethod;
+    const QoreExternalMethodVariant* getValueVariant;
+    bool valid;
 
-   DLLLOCAL AbstractIteratorHelper(ExceptionSink* xsink, const char* op, QoreObject* o, bool fwd = true, bool get_value = true) : obj(0), nextMethod(0), nextVariant(0), getValueMethod(0), getValueVariant(0), valid(false) {
-      bool priv;
-      const QoreClass* qc = o->getClass()->getClass(fwd ? *QC_ABSTRACTITERATOR : *QC_ABSTRACTBIDIRECTIONALITERATOR, priv);
-      if (!qc)
-         return;
-
-      const qore_class_private* class_ctx = runtime_get_class();
-      if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass(), class_ctx))
-         class_ctx = 0;
-      ClassAccess access;
-      obj = o;
-      // get "next" method if accessible
-      nextMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod(fwd ? "next" : "prev", access, class_ctx);
-      // method must be found because we have an instance of AbstractIterator/AbstractBidirectionalIterator
-      assert(nextMethod);
-      nextVariant = getCheckVariant(op, nextMethod, xsink);
-      if (!nextVariant)
-         return;
-      if (get_value) {
-         getValueMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod("getValue", access, class_ctx);
-         // method must be found because we have an instance of AbstractIterator
-         assert(getValueMethod);
-         getValueVariant = getCheckVariant(op, getValueMethod, xsink);
-         if (!getValueVariant)
+    DLLLOCAL AbstractIteratorHelper(ExceptionSink* xsink, const char* op, QoreObject* o, bool fwd = true, bool get_value = true) : obj(0), nextMethod(0), nextVariant(0), getValueMethod(0), getValueVariant(0), valid(false) {
+        bool priv;
+        const QoreClass* qc = o->getClass()->getClass(fwd ? *QC_ABSTRACTITERATOR : *QC_ABSTRACTBIDIRECTIONALITERATOR, priv);
+        if (!qc)
             return;
-      }
-      valid = true;
-   }
 
-   DLLLOCAL operator bool() const {
-      return valid;
-   }
+        const qore_class_private* class_ctx = runtime_get_class();
+        if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*o->getClass(), class_ctx))
+            class_ctx = 0;
+        ClassAccess access;
+        obj = o;
+        // get "next" method if accessible
+        nextMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod(fwd ? "next" : "prev", access, class_ctx);
+        // method must be found because we have an instance of AbstractIterator/AbstractBidirectionalIterator
+        assert(nextMethod);
+        nextVariant = getCheckVariant(op, nextMethod, xsink);
+        if (!nextVariant)
+            return;
+        if (get_value) {
+            getValueMethod = qore_class_private::get(*o->getClass())->runtimeFindCommittedMethod("getValue", access, class_ctx);
+            // method must be found because we have an instance of AbstractIterator
+            assert(getValueMethod);
+            getValueVariant = getCheckVariant(op, getValueMethod, xsink);
+            if (!getValueVariant)
+                return;
+        }
+        valid = true;
+    }
 
-   DLLLOCAL bool next(ExceptionSink* xsink) {
-      assert(nextMethod);
-      assert(nextVariant);
-      ValueHolder rv(qore_method_private::evalNormalVariant(*nextMethod, xsink, obj, nextVariant, 0), xsink);
-      return rv->getAsBool();
-   }
+    DLLLOCAL operator bool() const {
+        return valid;
+    }
 
-   DLLLOCAL QoreValue getValue(ExceptionSink* xsink) {
-      assert(getValueMethod);
-      assert(getValueVariant);
-      return qore_method_private::evalNormalVariant(*getValueMethod, xsink, obj, getValueVariant, 0);
-   }
+    DLLLOCAL bool next(ExceptionSink* xsink) {
+        assert(nextMethod);
+        assert(nextVariant);
+        ValueHolder rv(qore_method_private::evalNormalVariant(*nextMethod, xsink, obj, nextVariant, 0), xsink);
+        return rv->getAsBool();
+    }
 
-   /*
-   DLLLOCAL QoreObject* getReferencedObject() const {
-      obj->ref();
-      return obj;
-   }
-   */
+    DLLLOCAL QoreValue getValue(ExceptionSink* xsink) {
+        assert(getValueMethod);
+        assert(getValueVariant);
+        return qore_method_private::evalNormalVariant(*getValueMethod, xsink, obj, getValueVariant, 0);
+    }
+
+    /*
+    DLLLOCAL QoreObject* getReferencedObject() const {
+        obj->ref();
+        return obj;
+    }
+    */
 };
 
 #endif

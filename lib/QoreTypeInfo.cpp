@@ -580,16 +580,16 @@ const char* getBuiltinTypeName(qore_type_t type) {
 }
 
 static qore_type_result_e match_type(const QoreTypeInfo* this_type, const QoreTypeInfo* that_type, bool& may_not_match, bool& may_need_filter) {
-   //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
-   qore_type_result_e res = QoreTypeInfo::parseAccepts(this_type, that_type, may_not_match, may_need_filter);
-   if (may_not_match)
-      return QTI_NOT_EQUAL;
-   // even if types are 100% compatible, if they are not equal, then we perform type folding
-   if (res == QTI_IDENT && !may_need_filter && !QoreTypeInfo::equal(this_type, that_type)) {
-      may_need_filter = true;
-      res = QTI_AMBIGUOUS;
-   }
-   return res;
+    //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
+    qore_type_result_e res = QoreTypeInfo::parseAccepts(this_type, that_type, may_not_match, may_need_filter);
+    if (may_not_match)
+        return QTI_NOT_EQUAL;
+    // even if types are 100% compatible, if they are not equal, then we perform type folding
+    if (res == QTI_IDENT && !may_need_filter && !QoreTypeInfo::equal(this_type, that_type)) {
+        may_need_filter = true;
+        res = QTI_AMBIGUOUS;
+    }
+    return res;
 }
 
 qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const {
@@ -615,6 +615,13 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             switch (t.typespec) {
                 case QTS_HASHDECL:
                     return typed_hash_decl_private::get(*t.u.hd)->parseEqual(*typed_hash_decl_private::get(*u.hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
+                case QTS_TYPE:
+                    // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
+                    if (t.getType() == NT_ALL || t.getType() == NT_HASH) {
+                        may_not_match = true;
+                        return QTI_AMBIGUOUS;
+                    }
+                    // fall down to the next case
                 default: {
                     return QTI_NOT_EQUAL;
                 }
@@ -628,6 +635,13 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                     return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
                 case QTS_EMPTYHASH:
                     return QTI_NEAR;
+                case QTS_TYPE:
+                    // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
+                    if (t.getType() == NT_ALL || t.getType() == NT_HASH) {
+                        may_not_match = true;
+                        return QTI_AMBIGUOUS;
+                    }
+                    // fall down to the next case
                 default: {
                     return QTI_NOT_EQUAL;
                 }
@@ -640,9 +654,17 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             switch (t.typespec) {
                 case QTS_COMPLEXSOFTLIST:
                 case QTS_COMPLEXLIST:
+                    //printd(5, "QoreTypeSpec::match() t.typespec: complexlist <- %d '%s' <- '%s' rc: %d)\n", (int)t.typespec, QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti), match_type(u.ti, t.u.ti, may_not_match, may_need_filter));
                     return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
                 case QTS_EMPTYLIST:
                     return QTI_NEAR;
+                case QTS_TYPE:
+                    // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
+                    if (t.getType() == NT_ALL || t.getType() == NT_LIST) {
+                        may_not_match = true;
+                        return QTI_AMBIGUOUS;
+                    }
+                    // fall down to the next case
                 default: {
                     return QTI_NOT_EQUAL;
                 }

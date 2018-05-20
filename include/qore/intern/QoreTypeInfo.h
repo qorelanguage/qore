@@ -944,6 +944,7 @@ protected:
    DLLLOCAL virtual bool canConvertToScalarImpl() const = 0;
 
    DLLLOCAL static qore_type_result_e parseAcceptsIntern(const QoreAcceptSpec& at, const QoreReturnSpec& rt, bool& may_not_match, bool& may_need_filter, bool& t_no_match, bool& ok) {
+      //printd(5, "QoreTypeInfo::parseAcceptsIntern() at: %d rt: %d rc: %d\n", (int)at.spec.getTypeSpec(), (int)rt.spec.getTypeSpec(), at.spec.match(rt.spec, may_not_match, may_need_filter));
       qore_type_result_e res = at.spec.match(rt.spec, may_not_match, may_need_filter);
       switch (res) {
          case QTI_IDENT:

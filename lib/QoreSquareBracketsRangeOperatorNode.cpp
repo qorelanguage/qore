@@ -31,7 +31,6 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
 
-
 QoreString QoreSquareBracketsRangeOperatorNode::op_str("x[m..n] operator expression");
 
 QoreString *QoreSquareBracketsRangeOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {

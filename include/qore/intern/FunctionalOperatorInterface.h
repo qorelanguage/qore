@@ -48,13 +48,11 @@ public:
 
     virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) = 0;
 
-    DLLLOCAL const QoreTypeInfo* getValueType() const {
+    DLLLOCAL virtual const QoreTypeInfo* getValueType() const {
         return getValueTypeImpl();
     }
 
-    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
-        return autoTypeInfo;
-    }
+    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const = 0;
 
     DLLLOCAL static FunctionalOperatorInterface* getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, AbstractQoreNode* exp, bool fwd, const char* who, ExceptionSink* xsink);
 };
@@ -70,6 +68,10 @@ public:
 
     DLLLOCAL virtual ~QoreFunctionalListOperator() {
         const_cast<QoreListNode*>(getList())->deref(xsink);
+    }
+
+    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
+        return l->getValueTypeInfo();
     }
 
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
@@ -89,6 +91,10 @@ public:
         v.discard(xsink);
     }
 
+    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
+        return v.getTypeInfo();
+    }
+
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 };
 
@@ -106,6 +112,10 @@ public:
     DLLLOCAL ~QoreFunctionalIteratorOperator() {
         if (temp)
             h.obj->deref(xsink);
+    }
+
+    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
+        return autoTypeInfo;
     }
 
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
