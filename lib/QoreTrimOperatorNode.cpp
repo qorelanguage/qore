@@ -31,6 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/qore_list_private.h"
 
 QoreString QoreTrimOperatorNode::trim_str("trim operator expression");
 
