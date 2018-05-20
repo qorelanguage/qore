@@ -993,7 +993,7 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
         }
 
         std::string tmp(qv, i + 1);
-        return get_qore_value(tmp, v, cname, prefix);
+        return get_qore_value(tmp, v, cname, prefix, force_node);
     }
 
     {

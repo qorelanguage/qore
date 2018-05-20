@@ -152,10 +152,14 @@ struct qore_list_private {
 
     DLLLOCAL int checkVal(ValueHolder& holder, ExceptionSink* xsink) {
         if (complexTypeInfo) {
-            QoreValue v(holder.release());
-            QoreTypeInfo::acceptInputParam(QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo), -1, nullptr, v, xsink);
-            holder = v;
-            return xsink && *xsink ? -1 : 0;
+            const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo);
+            if (!QoreTypeInfo::superSetOf(vti, holder->getTypeInfo()) && QoreTypeInfo::hasType(complexTypeInfo)) {
+                QoreValue v(holder.release());
+                QoreTypeInfo::acceptInputParam(vti, -1, nullptr, v, xsink);
+                holder = v;
+                return xsink && *xsink ? -1 : 0;
+            }
+            return 0;
         }
         else {
             switch (holder->getType()) {

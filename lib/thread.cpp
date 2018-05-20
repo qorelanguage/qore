@@ -1480,7 +1480,7 @@ SingleArgvContextHelper::SingleArgvContextHelper(QoreValue val, ExceptionSink* n
     old_argv = td->current_implicit_arg;
     QoreListNode* argv;
     if (!val.isNothing()) {
-        argv = new QoreListNode;
+        argv = new QoreListNode(autoTypeInfo);
         argv->push(val, n_xsink);
     }
     else {
@@ -2490,7 +2490,7 @@ void delete_qore_threads() {
 }
 
 QoreListNode* get_thread_list() {
-    QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode(bigIntTypeInfo);
 
     QoreThreadListIterator i;
 

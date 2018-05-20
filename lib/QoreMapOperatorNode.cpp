@@ -64,9 +64,9 @@ const QoreTypeInfo* QoreMapOperatorNode::setReturnTypeInfo(const QoreTypeInfo*& 
             typeInfo = returnTypeInfo;
     }
     else {
-        returnTypeInfo = listTypeInfo;
+        returnTypeInfo = autoListTypeInfo;
         // this operator returns no value if the iterator expression has no value
-        typeInfo = or_nothing ? listOrNothingTypeInfo : listTypeInfo;
+        typeInfo = or_nothing ? autoListOrNothingTypeInfo : autoListTypeInfo;
     }
 
     //printd(5, "e: '%s' t: '%s' r: '%s'\n", QoreTypeInfo::getName(expTypeInfo2), QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(returnTypeInfo));
@@ -93,6 +93,7 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag,
     // use lazy evaluation if the iterator expression supports it
     iterator_func = dynamic_cast<FunctionalOperator*>(right);
 
+    bool is_list = false;
     // if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression
     if (QoreTypeInfo::hasType(iteratorTypeInfo)) {
         if (QoreTypeInfo::isType(iteratorTypeInfo, NT_NOTHING)) {
@@ -100,19 +101,27 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag,
             typeInfo = nothingTypeInfo;
         }
         else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
-            typeInfo = listTypeInfo;
+            typeInfo = iteratorTypeInfo;
+            is_list = true;
         }
         else {
             const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
             if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
-                typeInfo = listTypeInfo;
+                typeInfo = autoListTypeInfo;
             else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
-                && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
+                && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL)) {
                 typeInfo = iteratorTypeInfo;
+            }
         }
     }
-    if (typeInfo == listTypeInfo)
-        typeInfo = setReturnTypeInfo(returnTypeInfo, expTypeInfo, iteratorTypeInfo);
+
+    if (!QoreTypeInfo::hasType(expTypeInfo)) {
+        expTypeInfo = autoTypeInfo;
+    }
+
+    if (is_list) {
+        typeInfo = QoreMapOperatorNode::setReturnTypeInfo(returnTypeInfo, expTypeInfo, iteratorTypeInfo);
+    }
 
     return this;
 }
@@ -158,7 +167,9 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
 
     ValueEvalRefHolder marg(right, xsink);
     if (*xsink)
-        return 0;
+        return nullptr;
+
+    //printd(5, "QoreMapOperatorNode::getFunctionalIteratorImpl() this: %p marg: '%s'\n", this, marg->getFullTypeName());
 
     qore_type_t t = marg->getType();
     if (t != NT_LIST) {
