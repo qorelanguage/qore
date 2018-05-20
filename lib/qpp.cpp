@@ -129,6 +129,8 @@ static strmap_t mtmap;
 
 // qore value to c++ value map
 static strmap_t valmap;
+// qore value to c++ QoreSinpleValue map
+static strmap_t simple_valmap;
 
 // set of types indicating objects
 static strset_t oset;
@@ -995,8 +997,9 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
     }
 
     {
-        strmap_t::iterator i = valmap.find(qv);
-        if (i != valmap.end()) {
+        strmap_t& vmap = force_node ? simple_valmap : valmap;
+        strmap_t::iterator i = vmap.find(qv);
+        if (i != vmap.end()) {
             v = i->second;
             return 0;
         }
@@ -1008,7 +1011,10 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
             int val = atoi(qv.c_str());
             size_t len = qv.size();
             char lc = qv[len - 1];
-            v = "DateTimeNode::makeRelative(0, 0, 0, 0, ";
+            if (force_node) {
+                v = "QoreSimpleValue().assign(";
+            }
+            v += "DateTimeNode::makeRelative(0, 0, 0, 0, ";
             if (qv[len - 2] == 'm' && lc == 's') {
                 v += "0, 0, ";
                 char buf[20];
@@ -1031,47 +1037,78 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
                     error("cannot interpret relative date/time value '%s'\n", qv.c_str());
             }
             v += ")";
+            if (force_node) {
+                v += ")";
+            }
 
             return 0;
         }
 
         case T_INT: {
-            v = force_node ? "new QoreBigIntNode(" : "((int64)";
+            if (force_node) {
+                v = "QoreSimpleValue().assign";
+            }
+            v += "((int64)";
             v += qv;
             v += ")";
             return 0;
         }
 
         case T_FLOAT: {
-            v = force_node ? "new QoreFloatNode(" : "((double)";
+            if (force_node) {
+                v = "QoreSimpleValue().assign";
+            }
+            v += "((double)";
             v += qv;
             v += ")";
             return 0;
         }
 
         case T_STRING: {
-            v = "new QoreStringNode(";
+            if (force_node) {
+                v = "QoreSimpleValue().assign(";
+            }
+            v += "new QoreStringNode(";
             v += qv;
             v += ")";
+            if (force_node) {
+                v += ")";
+            }
             return 0;
         }
 
         case T_CSTRING: {
-            v = "new QoreStringNode(";
+            if (force_node) {
+                v = "QoreSimpleValue().assign(";
+            }
+            v += "new QoreStringNode(";
             v.append(qv, 4, qv.size() - 5);
             v += ")";
+            if (force_node) {
+                v += ")";
+            }
             return 0;
         }
 
         case T_BOOL: {
-            v = force_node ? "get_bool_node(": "((bool)";
+            if (force_node) {
+                v = "QoreSimpleValue().assign";
+            }
+            v = "((bool)";
             v.append(qv, 5, qv.size() - 6);
             v += ")";
             return 0;
         }
 
         case T_QORE: {
-            v.assign(qv, 4, qv.size() - 4);
+            if (force_node) {
+                v = "QoreSimpleValue().assign(";
+                v.append(qv, 4, qv.size() - 4);
+                v += ")";
+            }
+            else {
+                v.assign(qv, 4, qv.size() - 4);
+            }
             return 0;
         }
 
@@ -1080,7 +1117,7 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
                 error("cannot create a binary object for a non-constant value\n");
                 return -1;
             }
-
+            assert(!force_node);
             assert(prefix);
             (*prefix) = "bin";
 
@@ -1108,6 +1145,7 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
                 error("cannot create a hash for a non-constant value\n");
                 return -1;
             }
+            assert(!force_node);
             assert(prefix);
             (*prefix) = "hash";
 
@@ -1165,7 +1203,13 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
     {
         strmap_t::iterator i = qppval.find(qv);
         if (i != qppval.end()) {
-            v = i->second;
+            if (force_node) {
+                v = "QoreSimpleValue().assign(";
+            }
+            v += i->second;
+            if (force_node) {
+                v += ")";
+            }
             return 0;
         }
     }
@@ -1859,7 +1903,7 @@ protected:
                     return -1;
                 fprintf(fp, ", %s, ", str.c_str());
                 if (params[i].val.empty())
-                    fputs("NULL", fp);
+                    fputs("QORE_PARAM_NO_ARG", fp);
                 else {
                     std::string vs;
                     if (get_qore_value(params[i].val, vs, nullptr, nullptr, true))
@@ -4403,6 +4447,13 @@ void init() {
     valmap["True"] = "&True";
     valmap["False"] = "&False";
 
+    // initialize qore value to QoreSimpleValue map
+    simple_valmap["0"] = "QoreSimpleValue().assign((int64)0)";
+    simple_valmap["0.0"] = "QoreSimpleValue().assign((double)0.0)";
+    simple_valmap["binary()"] = "QoreSimpleValue().assign(new BinaryNode)";
+    simple_valmap["True"] = "QoreSimpleValue().assign(true)";
+    simple_valmap["False"] = "QoreSimpleValue().assign(false)";
+
     // initialize domain maps
     dmap["DEFAULT"] = "PO_DEFAULT";
     dmap["PROCESS"] = "PO_NO_PROCESS_CONTROL";
@@ -4444,7 +4495,7 @@ void process_command_line(int& argc, char**& argv) {
     pn = basename(argv[0]);
 
     int ch;
-    while ((ch = getopt_long(argc, argv, "d:ho:t:v:V", pgm_opts, NULL)) != -1) {
+    while ((ch = getopt_long(argc, argv, "d:ho:t:v:V", pgm_opts, nullptr)) != -1) {
         //log(LL_INFO, "ch=%c optarg=%p (%s)\n", ch, optarg, optarg ? optarg : "(null)");
 
         switch (ch) {
@@ -4470,7 +4521,7 @@ void process_command_line(int& argc, char**& argv) {
 
         case 'v':
             if (optarg)
-                opts.verbose = strtoll(optarg, NULL, 10);
+                opts.verbose = strtoll(optarg, nullptr, 10);
             else
                 ++opts.verbose;
             break;

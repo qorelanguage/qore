@@ -68,7 +68,7 @@ void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &d
     defaultArgList.reserve(num_params);
     for (unsigned i = 0; i < num_params; ++i) {
         typeList.push_back(va_arg(args, const QoreTypeInfo*));
-        defaultArgList.push_back(va_arg(args, AbstractQoreNode*));
+        defaultArgList.push_back(va_arg(args, QoreSimpleValue));
         //printd(0, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
     }
 }
@@ -79,7 +79,7 @@ void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &d
     nameList.reserve(num_params);
     for (unsigned i = 0; i < num_params; ++i) {
         typeList.push_back(va_arg(args, const QoreTypeInfo*));
-        defaultArgList.push_back(va_arg(args, AbstractQoreNode*));
+        defaultArgList.push_back(va_arg(args, QoreSimpleValue));
         nameList.push_back(va_arg(args, const char*));
         //printd(0, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
     }

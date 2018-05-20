@@ -135,6 +135,26 @@ public:
         v.n = n;
     }
 
+    DLLLOCAL QoreSimpleValue& assign(int64 i) {
+        set(i);
+        return *this;
+    }
+
+    DLLLOCAL QoreSimpleValue& assign(double f) {
+        set(f);
+        return *this;
+    }
+
+    DLLLOCAL QoreSimpleValue& assign(bool b) {
+        set(b);
+        return *this;
+    }
+
+    DLLLOCAL QoreSimpleValue& assign(AbstractQoreNode* n) {
+        set(n);
+        return *this;
+    }
+
     DLLLOCAL AbstractQoreNode* takeNode();
 };
 
@@ -193,8 +213,8 @@ public:
     */
     DLLEXPORT QoreValue(const AbstractQoreNode* n);
 
-    //! creates with no value (i.e. @ref QoreNothingNode)
-    DLLEXPORT QoreValue(const QoreSimpleValue v);
+    //! creates the value from the argument
+    DLLEXPORT QoreValue(const QoreSimpleValue& v);
 
     //! copies the value, in case type == QV_Node, no additional references are made in this function
     DLLEXPORT QoreValue(const QoreValue& old);

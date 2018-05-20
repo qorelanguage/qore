@@ -108,7 +108,7 @@ QoreValue::QoreValue(const AbstractQoreNode* n) {
     v.n = const_cast<AbstractQoreNode*>(n);
 }
 
-QoreValue::QoreValue(const QoreSimpleValue n): type(n.type) {
+QoreValue::QoreValue(const QoreSimpleValue& n): type(n.type) {
     switch (type) {
         case QV_Bool: v.b = n.v.b; break;
         case QV_Int: v.i = n.v.i; break;
