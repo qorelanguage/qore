@@ -1271,7 +1271,7 @@ bool QoreObject::hasMember(const char* mem, ExceptionSink* xsink) const {
     }
 
     bool exists;
-    QoreValue v = odata->getKeyValueExistence(mem, exists);
+    odata->getKeyValueExistence(mem, exists);
     return exists;
 }
 
