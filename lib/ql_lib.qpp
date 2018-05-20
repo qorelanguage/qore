@@ -33,6 +33,7 @@
 #include "qore/intern/ql_lib.h"
 #include "qore/intern/ExecArgList.h"
 #include "qore/intern/QoreSignal.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 #include <qore/minitest.hpp>
 
 #include <errno.h>
