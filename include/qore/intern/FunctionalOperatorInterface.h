@@ -54,7 +54,7 @@ public:
 
     DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const = 0;
 
-    DLLLOCAL static FunctionalOperatorInterface* getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, AbstractQoreNode* exp, bool fwd, const char* who, ExceptionSink* xsink);
+    DLLLOCAL static FunctionalOperatorInterface* getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, QoreValue exp, bool fwd, const char* who, ExceptionSink* xsink);
 };
 
 class QoreFunctionalListOperator : public FunctionalOperatorInterface, public ConstListIterator {

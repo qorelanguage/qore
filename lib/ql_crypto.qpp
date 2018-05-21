@@ -68,7 +68,7 @@ private:
       return n == 1 ? "first" : (n == 2 ? "second" : "third");
    }
 
-   DLLLOCAL void setKey(const QoreValueList *args, int n) {
+   DLLLOCAL void setKey(const QoreListNode *args, int n) {
       assert(n > 0 && n <= 3);
       const QoreValue pt = get_param_value(args, n);
       if (pt.getType() == NT_STRING) {
@@ -83,7 +83,7 @@ private:
       keylen[n - 1] = b->size();
    }
 
-   DLLLOCAL void setEncoding(const QoreValueList* args, int n) {
+   DLLLOCAL void setEncoding(const QoreListNode* args, int n) {
       QoreValue qv = get_param_value(args, n);
       qe = qv.getType() == NT_STRING ? QEM.findCreate(qv.get<const QoreStringNode>()) : QCS_DEFAULT;
    }
@@ -139,7 +139,7 @@ public:
       return str;
    }
 
-   DLLLOCAL int setSingleKey(const char *err, const QoreValueList *params, ExceptionSink *xsink, bool has_encoding = false) {
+   DLLLOCAL int setSingleKey(const char *err, const QoreListNode *params, ExceptionSink *xsink, bool has_encoding = false) {
       if (setIV(err, get_param_value(params, 2), xsink))
          return -1;
 

@@ -160,32 +160,26 @@ static void dni(QoreStringNode *s, const QoreValue n, int indent, ExceptionSink 
     s->sprintf("don't know how to print type %d: '%s' :-(", ntype, n.getTypeName());
 }
 
-//static
-AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink) {
-   assert(xsink);
-   QoreStringNodeHolder s(new QoreStringNode());
-   dni(*s, get_param_value(params, 0), 0, xsink);
-   if (*xsink)
-      return 0;
-   return s.release();
-}
-
-int64 f_dbg_node_addr(const QoreListNode *params, ExceptionSink *xsink) {
-    return 0;
+QoreValue f_dbg_node_info(const QoreListNode* params, q_rt_flags_t flags, ExceptionSink *xsink) {
+    assert(xsink);
+    QoreStringNodeHolder s(new QoreStringNode);
+    dni(*s, get_param_value(params, 0), 0, xsink);
+    if (*xsink)
+        return QoreValue();
+    return s.release();
 }
 
 // returns a hash of all namespace information
-static AbstractQoreNode *f_dbg_get_ns_info(const QoreListNode *params, ExceptionSink *xsink) {
-   return getRootNS()->getInfo();
+static QoreValue f_dbg_get_ns_info(const QoreListNode* params, q_rt_flags_t flags, ExceptionSink* xsink) {
+    return getRootNS()->getInfo();
 }
 
-static AbstractQoreNode *f_dbg_global_vars(const QoreListNode *params, ExceptionSink *xsink) {
-   return getProgram()->getVarList();
+static QoreValue f_dbg_global_vars(const QoreListNode* params, q_rt_flags_t flags, ExceptionSink* xsink) {
+    return getProgram()->getVarList();
 }
 
 void init_debug_functions(QoreNamespace& qns) {
-    qns.addBuiltinVariant("dbg_node_info", f_dbg_node_info, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG, "node");
-    qns.addBuiltinVariant("dbg_node_addr", f_dbg_node_addr, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, anyTypeInfo, QORE_PARAM_NO_ARG, "node");
+    qns.addBuiltinVariant("dbg_node_info", f_dbg_node_info, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, autoTypeInfo, QORE_PARAM_NO_ARG, "node");
     qns.addBuiltinVariant("dbg_global_vars", f_dbg_global_vars, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
     qns.addBuiltinVariant("dbg_get_ns_info", f_dbg_get_ns_info, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
 }

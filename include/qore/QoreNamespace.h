@@ -228,18 +228,6 @@ public:
 
     // adds a function variant
     DLLEXPORT void addBuiltinVariant(const char* name, q_func_n_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
-
-    // @deprecated superceded by value version
-    DLLEXPORT void addBuiltinVariant(const char* name, q_func_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
-
-    // @deprecated superceded by value version
-    DLLEXPORT void addBuiltinVariant(const char* name, q_func_int64_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
-
-    // @deprecated superceded by value version
-    DLLEXPORT void addBuiltinVariant(const char* name, q_func_double_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
-
-    // @deprecated superceded by value version
-    DLLEXPORT void addBuiltinVariant(const char* name, q_func_bool_t f, int64 code_flags = QC_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 };
 
 //! the root namespace of a QoreProgram object

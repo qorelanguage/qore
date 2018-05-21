@@ -398,7 +398,6 @@ set(LIBQORE_CPP_SRC
     lib/QoreImplicitArgumentNode.cpp
     lib/QoreImplicitElementNode.cpp
     lib/Function.cpp
-    lib/BuiltinFunctionList.cpp
     lib/GlobalVariableList.cpp
     lib/FunctionList.cpp
     lib/AbstractStatement.cpp

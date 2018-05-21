@@ -37,7 +37,7 @@ bool FunctionalOperatorInterface::getNext(ValueOptionalRefHolder& val, Exception
     return getNextImpl(val, xsink);
 }
 
-FunctionalOperatorInterface* FunctionalOperatorInterface::getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, AbstractQoreNode* exp, bool fwd, const char* who, ExceptionSink* xsink) {
+FunctionalOperatorInterface* FunctionalOperatorInterface::getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, QoreValue exp, bool fwd, const char* who, ExceptionSink* xsink) {
     ValueEvalRefHolder marg(exp, xsink);
     if (*xsink)
         return nullptr;

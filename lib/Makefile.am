@@ -142,7 +142,6 @@ libqore_la_SOURCES = \
 	QoreNullNode.cpp \
 	QoreNothingNode.cpp \
 	Function.cpp \
-	BuiltinFunctionList.cpp \
 	GlobalVariableList.cpp \
 	FunctionList.cpp \
 	AbstractStatement.cpp \
@@ -331,7 +330,6 @@ libqore_la_SOURCES = \
 	Transform.cpp \
 	xxhash.cpp \
 	minitest.cpp \
-	QoreValueList.cpp \
 	FunctionalOperatorInterface.cpp \
 	FunctionalOperator.cpp
 

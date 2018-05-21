@@ -343,7 +343,6 @@ include_HEADERS = \
 	include/qore/QoreQueueHelper.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
-	include/qore/BuiltinFunctionList.h \
 	include/qore/QoreThreadLock.h \
 	include/qore/QoreThreadLocalStorage.h \
 	include/qore/QoreClass.h \
@@ -423,7 +422,6 @@ noinst_HEADERS = \
 	include/qore/intern/git-revision.h \
 	include/qore/intern/glob.h \
 	include/qore/intern/RSet.h \
-	include/qore/intern/ParseList.h \
 	include/qore/intern/AbstractIteratorHelper.h \
 	include/qore/intern/ParseReferenceNode.h \
 	include/qore/intern/ReferenceHelper.h \

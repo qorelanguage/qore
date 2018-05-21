@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreProgram.h
+    QoreProgram.h
 
-  Program Object Definition
+    Program Object Definition
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREPROGRAM_H
@@ -667,20 +667,20 @@ public:
 
        @since %Qore 0.8.13
    */
-   DLLEXPORT const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const;
+   DLLEXPORT const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreListNode* params, ExceptionSink* xsink) const;
 
    // finds all variants of a function or class method and returns a list of the results
    /** @param name the function or class method name; may also be namespace-justified
 
        @return a list of hashes or nullptr if the name cannot be resolved; when matched, each hash element has the following keys:
        - \c desc: a string description of the call which includes the name and the full text call signature
-       - \c params: a QoreValueList object that gives the params in a format that can be used by runtimeFindCall()
+       - \c params: a QoreListNode object that gives the params in a format that can be used by runtimeFindCall()
 
        @note the caller owns the reference count returned for non-nullptr values
 
        @since %Qore 0.8.13
    */
-   DLLEXPORT QoreValueList* runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const;
+   DLLEXPORT QoreListNode* runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const;
 
    //! returns a list of threads active in this Program object
    /** @return a list of threads active in this Program object
@@ -752,7 +752,7 @@ public:
    /** find statement related to particular function
     *
     */
-   DLLEXPORT AbstractStatement* findFunctionStatement(const char* functionName, const QoreValueList* params, ExceptionSink* xsink) const;
+   DLLEXPORT AbstractStatement* findFunctionStatement(const char* functionName, const QoreListNode* params, ExceptionSink* xsink) const;
 
    //! get the statement id
    /**
