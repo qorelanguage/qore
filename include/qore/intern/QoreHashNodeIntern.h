@@ -229,37 +229,6 @@ public:
         return om;
     }
 
-    // FIXME: this function needs to be eliminated
-    DLLLOCAL static void convertToNode(QoreValue& val) {
-        switch (val.type) {
-            case QV_Bool:
-                assert(false);
-                val.v.n = get_bool_node(val.v.b);
-                val.type = QV_Node;
-                break;
-            case QV_Int:
-                assert(false);
-                val.v.n = new QoreBigIntNode(val.v.i);
-                val.type = QV_Node;
-                break;
-            case QV_Float:
-                assert(false);
-                val.v.n = new QoreFloatNode(val.v.f);
-                val.type = QV_Node;
-                break;
-            case QV_Ref:
-                assert(false);
-            default:
-                break;
-        }
-    }
-
-    DLLLOCAL AbstractQoreNode** getKeyValuePtr(const char* key) {
-        QoreValue& val = findCreateMember(key)->val;
-        convertToNode(val);
-        return &val.v.n;
-    }
-
     DLLLOCAL QoreValue& getValueRef(const char* key) {
         return findCreateMember(key)->val;
     }
@@ -355,6 +324,15 @@ public:
 
     DLLLOCAL QoreHashNode* getCopy() const {
         QoreHashNode* h = new QoreHashNode;
+        if (hashdecl)
+            h->priv->hashdecl = hashdecl;
+        if (complexTypeInfo)
+            h->priv->complexTypeInfo = complexTypeInfo;
+        return h;
+    }
+
+    DLLLOCAL QoreHashNode* getEmptyCopy(bool is_value) const {
+        QoreHashNode* h = new QoreHashNode(!is_value);
         if (hashdecl)
             h->priv->hashdecl = hashdecl;
         if (complexTypeInfo)

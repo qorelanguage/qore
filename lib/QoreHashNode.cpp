@@ -1,31 +1,31 @@
 /*
-  QoreHashNode.cpp
+    QoreHashNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -726,14 +726,6 @@ const char* HashIterator::getKey() const {
    return (*(priv->i))->key.c_str();
 }
 
-AbstractQoreNode* HashIterator::getValue() const {
-    if (!priv->valid())
-        return nullptr;
-
-    qore_hash_private::convertToNode((*(priv->i))->val);
-    return (*(priv->i))->val.getInternalNode();
-}
-
 QoreValue HashIterator::get() const {
     if (!priv->valid())
         return QoreValue();
@@ -749,18 +741,46 @@ const QoreTypeInfo* HashIterator::getTypeInfo() const {
 }
 
 void HashIterator::deleteKey(ExceptionSink* xsink) {
-   if (!priv->valid())
-      return;
+    if (!priv->valid())
+        return;
 
-   (*(priv->i))->val.discard(xsink);
+    assert(h->is_unique());
 
-   qhlist_t::iterator ni = priv->i;
-   priv->prev(h->priv->member_list);
+    if (needs_scan((*(priv->i))->val)) {
+        h->priv->incScanCount(-1);
+    }
 
-   hm_hm_t::iterator i = h->priv->hm.find((*ni)->key.c_str());
-   assert(i != h->priv->hm.end());
-   h->priv->hm.erase(i);
-   h->priv->internDeleteKey(ni);
+    (*(priv->i))->val.discard(xsink);
+
+    qhlist_t::iterator ni = priv->i;
+    priv->prev(h->priv->member_list);
+
+    hm_hm_t::iterator i = h->priv->hm.find((*ni)->key.c_str());
+    assert(i != h->priv->hm.end());
+    h->priv->hm.erase(i);
+    h->priv->internDeleteKey(ni);
+}
+
+QoreValue HashIterator::removeKeyValue() {
+    if (!priv->valid())
+        return QoreValue();
+
+    assert(h->is_unique());
+
+    QoreValue rv = (*(priv->i))->val;
+
+    if (needs_scan(rv)) {
+        h->priv->incScanCount(-1);
+    }
+
+    qhlist_t::iterator ni = priv->i;
+    priv->prev(h->priv->member_list);
+
+    hm_hm_t::iterator i = h->priv->hm.find((*ni)->key.c_str());
+    assert(i != h->priv->hm.end());
+    h->priv->hm.erase(i);
+
+    return rv;
 }
 
 bool HashIterator::last() const {
@@ -849,14 +869,6 @@ const char* ConstHashIterator::getKey() const {
    if (!priv->valid())
       return 0;
    return (*(priv->i))->key.c_str();
-}
-
-const AbstractQoreNode* ConstHashIterator::getValue() const {
-    if (!priv->valid())
-        return nullptr;
-
-    qore_hash_private::convertToNode((*(priv->i))->val);
-    return (*(priv->i))->val.getInternalNode();
 }
 
 const QoreValue ConstHashIterator::get() const {
@@ -1044,14 +1056,14 @@ HashAssignmentHelper::operator bool() const {
    return priv;
 }
 
-void HashAssignmentHelper::assign(AbstractQoreNode* v, ExceptionSink* xsink) {
+void HashAssignmentHelper::assign(QoreValue v, ExceptionSink* xsink) {
    assert(priv);
    priv->assign(v, xsink);
 }
 
-AbstractQoreNode* HashAssignmentHelper::swap(AbstractQoreNode* v, ExceptionSink* xsink) {
+QoreValue HashAssignmentHelper::swap(QoreValue v, ExceptionSink* xsink) {
    assert(priv);
-   return priv->swap(v).takeNode();
+   return priv->swap(v);
 }
 
 QoreValue HashAssignmentHelper::get() const {
@@ -1059,10 +1071,9 @@ QoreValue HashAssignmentHelper::get() const {
     return **priv;
 }
 
-AbstractQoreNode* HashAssignmentHelper::operator*() const {
+QoreValue HashAssignmentHelper::operator*() const {
     assert(priv);
-    qore_hash_private::convertToNode(priv->om->val);
-    return (**priv).getInternalNode();
+    return (**priv);
 }
 
 void QoreParseHashNode::doDuplicateWarning(const QoreProgramLocation* newloc, const char* key) {

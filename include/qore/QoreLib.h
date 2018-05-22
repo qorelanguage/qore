@@ -286,34 +286,34 @@ static inline char* strtoupper(char* str) {
 }
 
 //! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getSecZeroInt(const AbstractQoreNode* a);
+DLLEXPORT int getSecZeroInt(QoreValue a);
 
 //! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getSecZeroBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getSecZeroBigInt(QoreValue a);
 
 //! for getting an integer number of seconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int getSecMinusOneInt(const AbstractQoreNode* a);
+DLLEXPORT int getSecMinusOneInt(QoreValue a);
 
 //! for getting an integer number of seconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getSecMinusOneBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getSecMinusOneBigInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMsZeroInt(const AbstractQoreNode* a);
+DLLEXPORT int getMsZeroInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMsZeroBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getMsZeroBigInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMsMinusOneInt(const AbstractQoreNode* a);
+DLLEXPORT int getMsMinusOneInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMsMinusOneBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getMsMinusOneBigInt(QoreValue a);
 
 //! for getting an integer number of microseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMicroSecZeroInt(const AbstractQoreNode* a);
+DLLEXPORT int getMicroSecZeroInt(QoreValue a);
 
 //! for getting an integer number of microseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMicroSecZeroInt64(const AbstractQoreNode* a);
+DLLEXPORT int64 getMicroSecZeroInt64(QoreValue a);
 
 //! to check if an AbstractQoreNode object is NOTHING
 static inline bool is_nothing(const AbstractQoreNode* n) {
@@ -568,7 +568,7 @@ DLLEXPORT bool qore_is_gc_enabled();
 DLLEXPORT bool q_path_is_readable(const char* path);
 
 //! tries to parse a boolean value - standard conversion or uses q_parse_bool(const char*) if it's a string
-DLLEXPORT bool q_parse_bool(const AbstractQoreNode* n);
+DLLEXPORT bool q_parse_bool(QoreValue n);
 
 //! parses a string and returns a boolean (ie case-insensitive "on","true","enable*","yes" are True, the rest is interpreted as a number where 0=false, everything else=true)
 DLLEXPORT bool q_parse_bool(const char* str);

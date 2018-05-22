@@ -317,111 +317,111 @@ bool AbstractQoreNode::hasValueApi() const {
 }
 
 // for getting relative time values or integer values
-int getSecZeroInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
+int getSecZeroInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
 
-   if (a->getType() == NT_DATE)
-      return (int)(reinterpret_cast<const DateTimeNode*>(a)->getRelativeSeconds());
+    if (a.getType() == NT_DATE)
+        return (int)(a.get<const DateTimeNode>()->getRelativeSeconds());
 
-   return a->getAsInt();
+    return (int)a.getAsBigInt();
 }
 
-int64 getSecZeroBigInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
+int64 getSecZeroBigInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
 
-   if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode*>(a)->getRelativeSeconds();
+    if (a.getType() == NT_DATE)
+        return a.get<const DateTimeNode>()->getRelativeSeconds();
 
-   return a->getAsBigInt();
-}
-
-// for getting relative time values or integer values
-int getSecMinusOneInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return -1;
-
-   if (a->getType() == NT_DATE)
-      return (int)(reinterpret_cast<const DateTimeNode*>(a)->getRelativeSeconds());
-
-   return a->getAsInt();
-}
-
-int64 getSecMinusOneBigInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return -1;
-
-   if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode*>(a)->getRelativeSeconds();
-
-   return a->getAsBigInt();
-}
-
-int getMsZeroInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
-
-   if (a->getType() == NT_DATE)
-      return (int)(reinterpret_cast<const DateTimeNode*>(a)->getRelativeMilliseconds());
-
-   return a->getAsInt();
-}
-
-int64 getMsZeroBigInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
-
-   if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode*>(a)->getRelativeMilliseconds();
-
-   return a->getAsBigInt();
+    return a.getAsBigInt();
 }
 
 // for getting relative time values or integer values
-int getMsMinusOneInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return -1;
+int getSecMinusOneInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return -1;
 
-   if (a->getType() == NT_DATE)
-      return (int)(reinterpret_cast<const DateTimeNode*>(a)->getRelativeMilliseconds());
+    if (a.getType() == NT_DATE)
+        return (int)(a.get<const DateTimeNode>()->getRelativeSeconds());
 
-   return a->getAsInt();
+    return (int)a.getAsBigInt();
 }
 
-int64 getMsMinusOneBigInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return -1;
+int64 getSecMinusOneBigInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return -1;
 
-   if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode*>(a)->getRelativeMilliseconds();
+    if (a.getType() == NT_DATE)
+        return a.get<const DateTimeNode>()->getRelativeSeconds();
 
-   return a->getAsBigInt();
+    return a.getAsBigInt();
 }
 
-int getMicroSecZeroInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
+int getMsZeroInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
 
-   if (a->getType() == NT_DATE)
-      return (int)(reinterpret_cast<const DateTimeNode*>(a)->getRelativeMicroseconds());
+    if (a.getType() == NT_DATE)
+        return (int)(a.get<const DateTimeNode>()->getRelativeMilliseconds());
 
-   return a->getAsInt();
+    return (int)a.getAsBigInt();
 }
 
-int64 getMicroSecZeroInt64(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
+int64 getMsZeroBigInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
 
-   if (a->getType() == NT_DATE)
-      return (reinterpret_cast<const DateTimeNode*>(a)->getRelativeMicroseconds());
+    if (a.getType() == NT_DATE)
+        return a.get<const DateTimeNode>()->getRelativeMilliseconds();
 
-   return a->getAsBigInt();
+    return a.getAsBigInt();
+}
+
+// for getting relative time values or integer values
+int getMsMinusOneInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return -1;
+
+    if (a.getType() == NT_DATE)
+        return (int)(a.get<const DateTimeNode>()->getRelativeMilliseconds());
+
+    return (int)a.getAsBigInt();
+}
+
+int64 getMsMinusOneBigInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return -1;
+
+    if (a.getType() == NT_DATE)
+        return a.get<const DateTimeNode>()->getRelativeMilliseconds();
+
+    return a.getAsBigInt();
+}
+
+int getMicroSecZeroInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
+
+    if (a.getType() == NT_DATE)
+        return (int)(a.get<const DateTimeNode>()->getRelativeMicroseconds());
+
+    return (int)a.getAsBigInt();
+}
+
+int64 getMicroSecZeroInt64(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
+
+    if (a.getType() == NT_DATE)
+        return (a.get<const DateTimeNode>()->getRelativeMicroseconds());
+
+    return a.getAsBigInt();
 }
 
 static QoreListNode* crlr_list_copy(const QoreListNode* n, ExceptionSink* xsink) {
     assert(xsink);
-    ReferenceHolder<QoreListNode> l(new QoreListNode(true), xsink);
+    ReferenceHolder<QoreListNode> l(qore_list_private::get(*n)->getEmptyCopy(n->is_value()), xsink);
     for (unsigned i = 0; i < n->size(); i++) {
         l->push(copy_value_and_resolve_lvar_refs(n->retrieveEntry(i), xsink), nullptr);
         if (*xsink) {
@@ -439,7 +439,7 @@ static QoreParseListNode* crlr_list_copy(const QoreParseListNode* n, ExceptionSi
 
 static AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionSink* xsink) {
     assert(xsink);
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
+    ReferenceHolder<QoreHashNode> h(qore_hash_private::get(*n)->getEmptyCopy(n->is_value()), xsink);
     ConstHashIterator hi(n);
     while (hi.next()) {
         h->setKeyValue(hi.getKey(), copy_value_and_resolve_lvar_refs(hi.get(), xsink), xsink);

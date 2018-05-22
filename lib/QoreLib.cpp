@@ -1759,11 +1759,10 @@ void LVarSet::add(LocalVar* var) {
    insert(var);
 }
 
-bool q_parse_bool(const AbstractQoreNode* n) {
-   if (get_node_type(n) == NT_STRING)
-      return q_parse_bool(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
-
-   return n->getAsBool();
+bool q_parse_bool(QoreValue n) {
+    return n.getType() == NT_STRING
+        ? q_parse_bool(n.get<const QoreStringNode>()->c_str())
+        : n.getAsBool();
 }
 
 bool q_parse_bool(const char* str) {

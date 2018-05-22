@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreHashNode.h
+    QoreHashNode.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREHASHNODE_H
@@ -499,17 +499,15 @@ public:
     //! returns the type info for the current value
     DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
 
-    //! returns the value of the current key
-    /** @deprecated use get() instead
-    */
-    DLLEXPORT AbstractQoreNode* getValue() const;
-
     //! deletes the key from the hash and dereferences the value
     /** the pointer is moved to the previous element (or before the beginning)
         so that the next call to next() will put the pointer on the element after
         the one being deleted
     */
     DLLEXPORT void deleteKey(ExceptionSink* xsink);
+
+    //! removes the key value and returns the value returned
+    DLLEXPORT QoreValue removeKeyValue();
 
     //! returns the value of the current key with an incremented reference count
     DLLEXPORT QoreValue getReferenced() const;
@@ -624,11 +622,6 @@ public:
 
     //! returns the type info for the current value
     DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
-
-    //! returns the value of the current key
-    /** @deprecated use get() instead
-    */
-    DLLEXPORT const AbstractQoreNode* getValue() const;
 
     //! returns the value of the current key with an incremented reference count
     DLLEXPORT QoreValue getReferenced() const;
@@ -763,25 +756,8 @@ public:
     /** a Qore-language exception could be raised when the existing value is dereferenced
         (i.e. if it's an object that goes out of scope and the destructor raises an
         exception, for example)
-
-            @deprecated use assign(QoreValue, ExceptionSink*) instead
-    */
-    DLLEXPORT void assign(AbstractQoreNode* v, ExceptionSink* xsink);
-
-    //! assigns a value to the hash key, dereferences any old value, assumes that the value is already referenced for the assignment
-    /** a Qore-language exception could be raised when the existing value is dereferenced
-        (i.e. if it's an object that goes out of scope and the destructor raises an
-        exception, for example)
     */
     DLLEXPORT void assign(QoreValue v, ExceptionSink* xsink);
-
-    //! swaps the current value with the new value of the hash key, assumes that the new value is already referenced for the assignment; returns the old value
-    /** could throw a Qore-language exception if there is a type error; in this case 0 is returned and the value passed for the assignment is dereferenced
-        @return the old value of the hash key including its reference count (the old value is not dereferenced); the caller owns the value returned
-
-        @deprecated use swap(QoreValue, ExceptionSink*) instead
-    */
-    DLLEXPORT AbstractQoreNode* swap(AbstractQoreNode* v, ExceptionSink* xsink);
 
     //! swaps the current value with the new value of the hash key, assumes that the new value is already referenced for the assignment; returns the old value
     /** could throw a Qore-language exception if there is a type error; in this case 0 is returned and the value passed for the assignment is dereferenced
@@ -796,10 +772,10 @@ public:
     */
     DLLEXPORT QoreValue get() const;
 
-    //! returns the current value of the hash key; the pointer returned is still owned by the hash
+    //! returns the current value of the hash key; any pointer returned is still owned by the hash
     /** @return the current value of the hash key
     */
-    DLLEXPORT AbstractQoreNode* operator*() const;
+    DLLEXPORT QoreValue operator*() const;
 
 protected:
     //! private implementation
