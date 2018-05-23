@@ -39,7 +39,6 @@ class DataTest {
 
 class Test inherits QUnit::Test {
     constructor() : QUnit::Test("operators", "1.0", \ARGV) {
-        addTestCase("cast tests", \castTests());
         addTestCase("basic operator tests", \basicTests());
         addTestCase("date tests", \dateTests());
         addTestCase("lvalue tests", \lvalueTests());
@@ -65,11 +64,6 @@ class Test inherits QUnit::Test {
         addTestCase("push & += tests", \pushPlusEqualsTests());
 
         set_return_value(main());
-    }
-
-    castTests() {
-        list<hash<StatInfo>> l = cast<list<hash<StatInfo>>>(({"dev": 1},));
-        assertEq("list<hash<StatInfo>>", l.fullType());
     }
 
     pushPlusEqualsTests() {
