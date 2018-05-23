@@ -332,7 +332,6 @@ include_HEADERS = \
 	include/qore/QoreIteratorBase.h \
 	include/qore/QoreType.h \
 	include/qore/QoreListNode.h \
-	include/qore/QoreValueList.h \
 	include/qore/QoreBigIntNode.h \
 	include/qore/QoreBoolNode.h \
 	include/qore/QoreFloatNode.h \
@@ -430,7 +429,6 @@ noinst_HEADERS = \
 	include/qore/intern/lvalue_ref.h \
 	include/qore/intern/qore_thread_intern.h \
 	include/qore/intern/qore_list_private.h \
-	include/qore/intern/qore_value_list_private.h \
 	include/qore/intern/inline_printf.h \
 	include/qore/intern/qore_qf_private.h \
 	include/qore/intern/qore_encoding_private.h \
