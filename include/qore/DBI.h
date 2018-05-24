@@ -69,34 +69,33 @@
 #define QDBI_METHOD_COMMIT                    6
 #define QDBI_METHOD_ROLLBACK                  7
 #define QDBI_METHOD_BEGIN_TRANSACTION         8
-#define QDBI_METHOD_ABORT_TRANSACTION_START   9 //!< @deprecated this is no longer called / used as of Qore 0.8.12
-#define QDBI_METHOD_GET_SERVER_VERSION       10
-#define QDBI_METHOD_GET_CLIENT_VERSION       11
-#define QDBI_METHOD_EXECRAW                  12
-#define QDBI_METHOD_STMT_PREPARE             13
-#define QDBI_METHOD_STMT_PREPARE_RAW         14
-#define QDBI_METHOD_STMT_BIND                15
-#define QDBI_METHOD_STMT_BIND_PLACEHOLDERS   16
-#define QDBI_METHOD_STMT_BIND_VALUES         17
-#define QDBI_METHOD_STMT_EXEC                18
-#define QDBI_METHOD_STMT_FETCH_ROW           19
-#define QDBI_METHOD_STMT_FETCH_ROWS          20
-#define QDBI_METHOD_STMT_FETCH_COLUMNS       21
-#define QDBI_METHOD_STMT_NEXT                22
-#define QDBI_METHOD_STMT_CLOSE               23
-#define QDBI_METHOD_STMT_AFFECTED_ROWS       24
-#define QDBI_METHOD_STMT_GET_OUTPUT          25
-#define QDBI_METHOD_STMT_GET_OUTPUT_ROWS     26
-#define QDBI_METHOD_STMT_DEFINE              27
-#define QDBI_METHOD_SELECT_ROW               28
-#define QDBI_METHOD_OPT_SET                  29
-#define QDBI_METHOD_OPT_GET                  30
-#define QDBI_METHOD_STMT_DESCRIBE            31
-#define QDBI_METHOD_DESCRIBE                 32
-#define QDBI_METHOD_STMT_FREE                33
-#define QDBI_METHOD_STMT_EXEC_DESCRIBE         34
+#define QDBI_METHOD_GET_SERVER_VERSION        9
+#define QDBI_METHOD_GET_CLIENT_VERSION       10
+#define QDBI_METHOD_EXECRAW                  11
+#define QDBI_METHOD_STMT_PREPARE             12
+#define QDBI_METHOD_STMT_PREPARE_RAW         13
+#define QDBI_METHOD_STMT_BIND                14
+#define QDBI_METHOD_STMT_BIND_PLACEHOLDERS   15
+#define QDBI_METHOD_STMT_BIND_VALUES         16
+#define QDBI_METHOD_STMT_EXEC                17
+#define QDBI_METHOD_STMT_FETCH_ROW           18
+#define QDBI_METHOD_STMT_FETCH_ROWS          19
+#define QDBI_METHOD_STMT_FETCH_COLUMNS       20
+#define QDBI_METHOD_STMT_NEXT                21
+#define QDBI_METHOD_STMT_CLOSE               22
+#define QDBI_METHOD_STMT_AFFECTED_ROWS       23
+#define QDBI_METHOD_STMT_GET_OUTPUT          24
+#define QDBI_METHOD_STMT_GET_OUTPUT_ROWS     25
+#define QDBI_METHOD_STMT_DEFINE              26
+#define QDBI_METHOD_SELECT_ROW               27
+#define QDBI_METHOD_OPT_SET                  28
+#define QDBI_METHOD_OPT_GET                  29
+#define QDBI_METHOD_STMT_DESCRIBE            30
+#define QDBI_METHOD_DESCRIBE                 31
+#define QDBI_METHOD_STMT_FREE                32
+#define QDBI_METHOD_STMT_EXEC_DESCRIBE       33
 
-#define QDBI_VALID_CODES 34
+#define QDBI_VALID_CODES 33
 
 /* DBI EVENT Types
    all DBI events must have the following keys:
@@ -111,7 +110,6 @@ class Datasource;
 class ExceptionSink;
 class QoreString;
 class QoreListNode;
-class AbstractQoreNode;
 class QoreHashNode;
 class QoreNamespace;
 class SQLStatement;
@@ -142,7 +140,7 @@ typedef int (*q_dbi_close_t)(Datasource* ds);
     @param xsink if any errors occur, error information should be added to this object
     @return the data returned by executing the SQL or 0
 */
-typedef AbstractQoreNode* (*q_dbi_select_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_select_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
 
 //! signature for the DBI "selectRows" method - must be defined in each DBI driver
 /**
@@ -152,7 +150,7 @@ typedef AbstractQoreNode* (*q_dbi_select_t)(Datasource* ds, const QoreString* st
     @param xsink if any errors occur, error information should be added to this object
     @return the data returned by executing the SQL or 0
 */
-typedef AbstractQoreNode* (*q_dbi_select_rows_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_select_rows_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
 
 //! signature for the DBI "selectRow" method - must be defined in each DBI driver
 /** if the SQL causes more than 1 row to be returned, then the driver must raise an exception
@@ -173,7 +171,7 @@ typedef QoreHashNode* (*q_dbi_select_row_t)(Datasource* ds, const QoreString* st
     @param xsink if any errors occur, error information should be added to this object
     @return the data returned by executing the SQL or 0
 */
-typedef AbstractQoreNode* (*q_dbi_exec_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_exec_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
 
 //! signature for the DBI "execRawSQL" method - must be defined in each DBI driver
 /**
@@ -182,7 +180,7 @@ typedef AbstractQoreNode* (*q_dbi_exec_t)(Datasource* ds, const QoreString* str,
    @param xsink if any errors occur, error information should be added to this object
    @return the data returned by executing the SQL or 0
 */
-typedef AbstractQoreNode* (*q_dbi_execraw_t)(Datasource* ds, const QoreString* str, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_execraw_t)(Datasource* ds, const QoreString* str, ExceptionSink* xsink);
 
 //! signature for the DBI "commit" method - must be defined in each DBI driver
 /**
@@ -224,7 +222,7 @@ typedef int (*q_dbi_abort_transaction_start_t)(Datasource* ds, ExceptionSink* xs
     @param xsink if any errors occur, error information should be added to this object
     @return a value describing the server's version
 */
-typedef AbstractQoreNode* (*q_dbi_get_server_version_t)(Datasource* ds, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_get_server_version_t)(Datasource* ds, ExceptionSink* xsink);
 
 //! signature for the "get_client_version" method
 /**
@@ -232,7 +230,7 @@ typedef AbstractQoreNode* (*q_dbi_get_server_version_t)(Datasource* ds, Exceptio
     @param xsink if any errors occur, error information should be added to this object
     @return a value describing the client's version
 */
-typedef AbstractQoreNode* (*q_dbi_get_client_version_t)(const Datasource* ds, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_get_client_version_t)(const Datasource* ds, ExceptionSink* xsink);
 
 // FIXME: document
 //! prepare statement and process placeholder specifications and bind parameters
@@ -277,8 +275,8 @@ typedef QoreListNode* (*q_dbi_stmt_fetch_rows_t)(SQLStatement* stmt, int rows, E
 typedef bool (*q_dbi_stmt_next_t)(SQLStatement* stmt, ExceptionSink* xsink);
 typedef int (*q_dbi_stmt_close_t)(SQLStatement* stmt, ExceptionSink* xsink);
 
-typedef int (*q_dbi_option_set_t)(Datasource* ds, const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink);
-typedef AbstractQoreNode* (*q_dbi_option_get_t)(const Datasource* ds, const char* opt);
+typedef int (*q_dbi_option_set_t)(Datasource* ds, const char* opt, const QoreValue val, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_option_get_t)(const Datasource* ds, const char* opt);
 
 //! signature for the DBI "describe" method
 /**
@@ -451,10 +449,10 @@ DLLEXPORT extern DBIDriverList DBI;
 //! parses a datasource string and returns a hash of the component parts
 DLLEXPORT QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink);
 
-//! concatenates a numeric value to the QoreString from the QoreNode
+//! concatenates a numeric value to the QoreString from the value
 DLLEXPORT void DBI_concat_numeric(QoreString* str, QoreValue v);
 
-//! concatenates a string value to the QoreString from the AbstractQoreNode
+//! concatenates a string value to the QoreString from the value
 /** NOTE: no escaping is done here
     this function is most useful for table prefixes, etc in queries
 */

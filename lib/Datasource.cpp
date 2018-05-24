@@ -93,138 +93,138 @@ Datasource::Datasource(const Datasource& old) : priv(new qore_ds_private(*old.pr
 }
 
 Datasource::~Datasource() {
-   if (priv->isopen)
-      close();
+    if (priv->isopen)
+        close();
 
-   delete priv;
+    delete priv;
 }
 
 void Datasource::setPendingConnectionValues(const Datasource* other) {
-   priv->setPendingConnectionValues(other->priv);
+    priv->setPendingConnectionValues(other->priv);
 }
 
 void Datasource::setTransactionStatus(bool t) {
-   //printd(5, "Datasource::setTS(%d) this=%p\n", t, this);
-   priv->in_transaction = t;
+    //printd(5, "Datasource::setTS(%d) this=%p\n", t, this);
+    priv->in_transaction = t;
 }
 
 QoreListNode* Datasource::getCapabilityList() const {
-   return qore_dbi_private::get(*priv->dsl)->getCapList();
+    return qore_dbi_private::get(*priv->dsl)->getCapList();
 }
 
 int Datasource::getCapabilities() const {
-   return qore_dbi_private::get(*priv->dsl)->getCaps();
+    return qore_dbi_private::get(*priv->dsl)->getCaps();
 }
 
 bool Datasource::isInTransaction() const {
-   return priv->in_transaction;
+    return priv->in_transaction;
 }
 
 bool Datasource::activeTransaction() const {
-   return priv->active_transaction;
+    return priv->active_transaction;
 }
 
 bool Datasource::getAutoCommit() const {
-   return priv->autocommit;
+    return priv->autocommit;
 }
 
 bool Datasource::isOpen() const {
-   return priv->isopen;
+    return priv->isopen;
 }
 
 Datasource* Datasource::copy() const {
-   return new Datasource(*this);
+    return new Datasource(*this);
 }
 
 void Datasource::setConnectionValues() {
-   priv->setConnectionValues();
+    priv->setConnectionValues();
 }
 
 void Datasource::setAutoCommit(bool ac) {
-   priv->autocommit = ac;
+    priv->autocommit = ac;
 }
 
-AbstractQoreNode* Datasource::select(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
-   assert(xsink);
-   AbstractQoreNode* rv = qore_dbi_private::get(*priv->dsl)->select(this, query_str, args, xsink);
-   autoCommit(xsink);
+QoreValue Datasource::select(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+    assert(xsink);
+    QoreValue rv = qore_dbi_private::get(*priv->dsl)->select(this, query_str, args, xsink);
+    autoCommit(xsink);
 
-   // set active_transaction flag if in a transaction and the active_transaction flag
-   // has not yet been set and no exception was raised
-   if (priv->in_transaction && !priv->active_transaction && !*xsink)
-      priv->active_transaction = true;
+    // set active_transaction flag if in a transaction and the active_transaction flag
+    // has not yet been set and no exception was raised
+    if (priv->in_transaction && !priv->active_transaction && !*xsink)
+        priv->active_transaction = true;
 
-   return rv;
+    return rv;
 }
 
-AbstractQoreNode* Datasource::selectRows(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
-   assert(xsink);
-   AbstractQoreNode* rv = qore_dbi_private::get(*priv->dsl)->selectRows(this, query_str, args, xsink);
-   autoCommit(xsink);
+QoreValue Datasource::selectRows(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+    assert(xsink);
+    QoreValue rv = qore_dbi_private::get(*priv->dsl)->selectRows(this, query_str, args, xsink);
+    autoCommit(xsink);
 
-   // set active_transaction flag if in a transaction and the active_transaction flag
-   // has not yet been set and no exception was raised
-   if (priv->in_transaction && !priv->active_transaction && !*xsink)
-      priv->active_transaction = true;
+    // set active_transaction flag if in a transaction and the active_transaction flag
+    // has not yet been set and no exception was raised
+    if (priv->in_transaction && !priv->active_transaction && !*xsink)
+        priv->active_transaction = true;
 
-   return rv;
+    return rv;
 }
 
 QoreHashNode* Datasource::selectRow(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
-   assert(xsink);
-   QoreHashNode* rv = qore_dbi_private::get(*priv->dsl)->selectRow(this, query_str, args, xsink);
-   autoCommit(xsink);
+    assert(xsink);
+    QoreHashNode* rv = qore_dbi_private::get(*priv->dsl)->selectRow(this, query_str, args, xsink);
+    autoCommit(xsink);
 
-   // set active_transaction flag if in a transaction and the active_transaction flag
-   // has not yet been set and no exception was raised
-   if (priv->in_transaction && !priv->active_transaction && !*xsink)
-      priv->active_transaction = true;
+    // set active_transaction flag if in a transaction and the active_transaction flag
+    // has not yet been set and no exception was raised
+    if (priv->in_transaction && !priv->active_transaction && !*xsink)
+        priv->active_transaction = true;
 
-   return rv;
+    return rv;
 }
 
-AbstractQoreNode* Datasource::exec_internal(bool doBind, const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
-   assert(xsink);
-   if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
-      return nullptr;
+QoreValue Datasource::exec_internal(bool doBind, const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+    assert(xsink);
+    if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
+        return QoreValue();
 
-   assert(priv->isopen && priv->private_data);
+    assert(priv->isopen && priv->private_data);
 
-   AbstractQoreNode* rv = doBind ? qore_dbi_private::get(*priv->dsl)->execSQL(this, query_str, args, xsink)
-      : qore_dbi_private::get(*priv->dsl)->execRawSQL(this, query_str, xsink);;
-   //printd(5, "Datasource::exec_internal() this=%p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
+    QoreValue rv = doBind ? qore_dbi_private::get(*priv->dsl)->execSQL(this, query_str, args, xsink)
+        : qore_dbi_private::get(*priv->dsl)->execRawSQL(this, query_str, xsink);;
+    //printd(5, "Datasource::exec_internal() this=%p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
 
-   if (priv->connection_aborted) {
-      assert(*xsink);
-      assert(!rv);
-      return nullptr;
-   }
+    if (priv->connection_aborted) {
+        assert(*xsink);
+        assert(!rv);
+        return QoreValue();
+    }
 
-   if (priv->autocommit)
-      qore_dbi_private::get(*priv->dsl)->autoCommit(this, xsink);
-   else
-      priv->statementExecuted(*xsink);
+    if (priv->autocommit)
+        qore_dbi_private::get(*priv->dsl)->autoCommit(this, xsink);
+    else
+        priv->statementExecuted(*xsink);
 
-   return rv;
+    return rv;
 }
 
 int Datasource::autoCommit(ExceptionSink* xsink) {
-   if (priv->autocommit && !priv->connection_aborted)
-      return qore_dbi_private::get(*priv->dsl)->autoCommit(this, xsink);
-   return 0;
+    if (priv->autocommit && !priv->connection_aborted)
+        return qore_dbi_private::get(*priv->dsl)->autoCommit(this, xsink);
+    return 0;
 }
 
-AbstractQoreNode* Datasource::exec(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+QoreValue Datasource::exec(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
    return exec_internal(true, query_str, args, xsink);
 }
 
 // deprecated: remove due to extraneous ignored "args" argument
-AbstractQoreNode* Datasource::execRaw(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+QoreValue Datasource::execRaw(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
    assert(!args);
    return exec_internal(false, query_str, nullptr, xsink);
 }
 
-AbstractQoreNode* Datasource::execRaw(const QoreString* query_str, ExceptionSink* xsink) {
+QoreValue Datasource::execRaw(const QoreString* query_str, ExceptionSink* xsink) {
    return exec_internal(false, query_str, nullptr, xsink);
 }
 
@@ -458,70 +458,62 @@ int Datasource::getPendingPort() const {
 }
 
 const char* Datasource::getDriverName() const {
-   return priv->dsl->getName();
+    return priv->dsl->getName();
 }
 
 const DBIDriver* Datasource::getDriver() const {
-   return priv->dsl;
+    return priv->dsl;
 }
 
-AbstractQoreNode* Datasource::getServerVersion(ExceptionSink* xsink) {
-   return qore_dbi_private::get(*priv->dsl)->getServerVersion(this, xsink);
+QoreValue Datasource::getServerVersion(ExceptionSink* xsink) {
+    return qore_dbi_private::get(*priv->dsl)->getServerVersion(this, xsink);
 }
 
-AbstractQoreNode* Datasource::getClientVersion(ExceptionSink* xsink) const {
-   return qore_dbi_private::get(*priv->dsl)->getClientVersion(this, xsink);
+QoreValue Datasource::getClientVersion(ExceptionSink* xsink) const {
+    return qore_dbi_private::get(*priv->dsl)->getClientVersion(this, xsink);
 }
 
 QoreHashNode* Datasource::getOptionHash() const {
-   return priv->getOptionHash();
+    return priv->getOptionHash();
 }
 
-int Datasource::setOption(const char* opt, const QoreValue v, ExceptionSink* xsink) {
-   ReferenceHolder<> val(v.getReferencedValue(), xsink);
-   // maintain a copy of the option internally
-   priv->setOption(opt, *val, xsink);
-   // only set options in private data if private data is already set
-   return priv->private_data ? qore_dbi_private::get(*priv->dsl)->opt_set(this, opt, *val, xsink) : 0;
-}
-
-int Datasource::setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {
-   // maintain a copy of the option internally
-   priv->setOption(opt, val, xsink);
-   // only set options in private data if private data is already set
-   return priv->private_data ? qore_dbi_private::get(*priv->dsl)->opt_set(this, opt, val, xsink) : 0;
+int Datasource::setOption(const char* opt, const QoreValue val, ExceptionSink* xsink) {
+    // maintain a copy of the option internally
+    priv->setOption(opt, val, xsink);
+    // only set options in private data if private data is already set
+    return priv->private_data ? qore_dbi_private::get(*priv->dsl)->opt_set(this, opt, val, xsink) : 0;
 }
 
 const QoreHashNode* Datasource::getConnectOptions() const {
-   return priv->opt;
+    return priv->opt;
 }
 
-AbstractQoreNode* Datasource::getOption(const char* opt, ExceptionSink* xsink) {
-   return qore_dbi_private::get(*priv->dsl)->opt_get(this, opt, xsink);
+QoreValue Datasource::getOption(const char* opt, ExceptionSink* xsink) {
+    return qore_dbi_private::get(*priv->dsl)->opt_get(this, opt, xsink);
 }
 
 QoreHashNode* Datasource::getConfigHash() const {
-   QoreHashNode* h = new QoreHashNode;
+    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
 
-   h->setKeyValue("type", new QoreStringNode(priv->dsl->getName()), nullptr);
-   if (!priv->username.empty())
-      h->setKeyValue("user", new QoreStringNode(priv->username), nullptr);
-   if (!priv->password.empty())
-      h->setKeyValue("pass", new QoreStringNode(priv->password), nullptr);
-   if (!priv->dbname.empty())
-      h->setKeyValue("db", new QoreStringNode(priv->dbname), nullptr);
-   if (!priv->db_encoding.empty())
-      h->setKeyValue("charset", new QoreStringNode(priv->db_encoding), nullptr);
-   if (!priv->hostname.empty())
-      h->setKeyValue("host", new QoreStringNode(priv->hostname), nullptr);
-   if (priv->port)
-      h->setKeyValue("port", priv->port, nullptr);
+    h->setKeyValue("type", new QoreStringNode(priv->dsl->getName()), nullptr);
+    if (!priv->username.empty())
+        h->setKeyValue("user", new QoreStringNode(priv->username), nullptr);
+    if (!priv->password.empty())
+        h->setKeyValue("pass", new QoreStringNode(priv->password), nullptr);
+    if (!priv->dbname.empty())
+        h->setKeyValue("db", new QoreStringNode(priv->dbname), nullptr);
+    if (!priv->db_encoding.empty())
+        h->setKeyValue("charset", new QoreStringNode(priv->db_encoding), nullptr);
+    if (!priv->hostname.empty())
+        h->setKeyValue("host", new QoreStringNode(priv->hostname), nullptr);
+    if (priv->port)
+        h->setKeyValue("port", priv->port, nullptr);
 
-   QoreHashNode* options = priv->getCurrentOptionHash();
-   if (options)
-      h->setKeyValue("options", options, nullptr);
+    QoreHashNode* options = priv->getCurrentOptionHash();
+    if (options)
+        h->setKeyValue("options", options, nullptr);
 
-   return h;
+    return h;
 }
 
 QoreHashNode* Datasource::getCurrentOptionHash() const {
@@ -573,14 +565,14 @@ QoreStringNode* Datasource::getConfigString() const {
     return str;
 }
 
-void Datasource::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink) {
-   priv->setEventQueue(q, arg, xsink);
+void Datasource::setEventQueue(Queue* q, QoreValue arg, ExceptionSink* xsink) {
+    priv->setEventQueue(q, arg, xsink);
 }
 
 QoreHashNode* Datasource::getEventQueueHash(Queue*& q, int event_code) const {
-   return priv->getEventQueueHash(q, event_code);
+    return priv->getEventQueueHash(q, event_code);
 }
 
 QoreObject* Datasource::getSQLStatementObjectForResultSet(void* stmt_private_data) {
-   return new QoreObject(QC_SQLSTATEMENT, getProgram(), new QoreSQLStatement(this, stmt_private_data, priv->dsh, STMT_EXECED));
+    return new QoreObject(QC_SQLSTATEMENT, getProgram(), new QoreSQLStatement(this, stmt_private_data, priv->dsh, STMT_EXECED));
 }
