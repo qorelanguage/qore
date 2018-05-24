@@ -4285,12 +4285,12 @@ void init() {
     mtmap["..."] = "VV";
 
     // initialize qore value to c++ value map
-    valmap["0"] = "zero()";
-    valmap["0.0"] = "zero_float()";
+    valmap["0"] = "0";
+    valmap["0.0"] = "(double)0.0";
     valmap["binary()"] = "new BinaryNode";
     valmap["QCS_DEFAULT->getCode()"] = "QCS_DEFAULT->getCode()";
-    valmap["True"] = "&True";
-    valmap["False"] = "&False";
+    valmap["True"] = "true";
+    valmap["False"] = "false";
 
     // initialize qore value to QoreSimpleValue map
     simple_valmap["0"] = "QoreSimpleValue().assign((int64)0)";

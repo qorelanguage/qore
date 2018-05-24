@@ -206,16 +206,6 @@ typedef int (*q_dbi_rollback_t)(Datasource* ds, ExceptionSink* xsink);
 */
 typedef int (*q_dbi_begin_transaction_t)(Datasource* ds, ExceptionSink* xsink);
 
-//! signature for the rollback method to be executed when the first statement in an explicit transaction started implicitly with the DBI "begin_transaction" method fails
-/** this should just be a pointer to the rollback method for those drivers that need it (ex: pgsql)
-    @param ds the Datasource for the connection
-    @param xsink if any errors occur, error information should be added to this object
-    @return 0 for OK, non-zero for error
-
-    @deprecated do not define, no longer used as of Qore 0.8.12
-*/
-typedef int (*q_dbi_abort_transaction_start_t)(Datasource* ds, ExceptionSink* xsink);
-
 //! signature for the "get_server_version" method
 /**
     @param ds the Datasource for the connection
