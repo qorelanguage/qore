@@ -102,22 +102,22 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
 }
 
 ReferenceNode* ParseReferenceNode::evalToRef(ExceptionSink* xsink) const {
-   //printd(5, "ParseReferenceNode::evalToRef() '%s'\n", QoreTypeInfo::getName(typeInfo));
-   QoreObject* self = nullptr;
-   const void* lvalue_id = nullptr;
-   const qore_class_private* qc = nullptr;
-   AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, qc, xsink);
-   //printd(5, "ParseReferenceNode::evalToRef() this: %p nv: %p lvexp: %p lvalue_id: %p\n", this, nv, lvexp, lvalue_id);
-   return nv ? new ReferenceNode(nv, QoreTypeInfo::getUniqueReturnComplexReference(typeInfo), self, lvalue_id, qc) : 0;
+    //printd(5, "ParseReferenceNode::evalToRef() '%s'\n", QoreTypeInfo::getName(typeInfo));
+    QoreObject* self = nullptr;
+    const void* lvalue_id = nullptr;
+    const qore_class_private* qc = nullptr;
+    AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, qc, xsink);
+    //printd(5, "ParseReferenceNode::evalToRef() this: %p nv: %p lvexp: %p lvalue_id: %p\n", this, nv, lvexp, lvalue_id);
+    return nv ? new ReferenceNode(nv, QoreTypeInfo::getUniqueReturnComplexReference(typeInfo), self, lvalue_id, qc) : 0;
 }
 
 IntermediateParseReferenceNode* ParseReferenceNode::evalToIntermediate(ExceptionSink* xsink) const {
-   //printd(5, "ParseReferenceNode::evalToIntermediate() '%s'\n", QoreTypeInfo::getName(typeInfo));
-   QoreObject* self = nullptr;
-   const void* lvalue_id = nullptr;
-   const qore_class_private* qc = nullptr;
-   AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, qc, xsink);
-   return nv ? new IntermediateParseReferenceNode(loc, nv, QoreTypeInfo::getUniqueReturnComplexReference(typeInfo), self, lvalue_id, qc) : 0;
+    //printd(5, "ParseReferenceNode::evalToIntermediate() '%s'\n", QoreTypeInfo::getName(typeInfo));
+    QoreObject* self = nullptr;
+    const void* lvalue_id = nullptr;
+    const qore_class_private* qc = nullptr;
+    AbstractQoreNode* nv = doPartialEval(lvexp, self, lvalue_id, qc, xsink);
+    return nv ? new IntermediateParseReferenceNode(loc, nv, QoreTypeInfo::getUniqueReturnComplexReference(typeInfo), self, lvalue_id, qc) : 0;
 }
 
 AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
@@ -173,12 +173,12 @@ ReferenceNode::ReferenceNode(const ReferenceNode& old) : AbstractQoreNode(NT_REF
 }
 
 ReferenceNode::~ReferenceNode() {
-   delete priv;
+    delete priv;
 }
 
 ReferenceNode* ReferenceNode::refRefSelf() const {
-   ref();
-   return const_cast<ReferenceNode*>(this);
+    ref();
+    return const_cast<ReferenceNode*>(this);
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -186,16 +186,16 @@ ReferenceNode* ReferenceNode::refRefSelf() const {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int ReferenceNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   str.sprintf("reference expression (%p)", this);
-   return 0;
+    str.sprintf("reference expression (%p)", this);
+    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString* ReferenceNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = true;
-   QoreString* rv = new QoreString;
-   getAsString(*rv, foff, xsink);
-   return rv;
+    del = true;
+    QoreString* rv = new QoreString;
+    getAsString(*rv, foff, xsink);
+    return rv;
 }
 
 /*
@@ -207,26 +207,26 @@ QoreValue ReferenceNode::evalValue(bool& needs_deref, ExceptionSink* xsink) cons
 */
 
 AbstractQoreNode* ReferenceNode::realCopy() const {
-   return new ReferenceNode(*this);
+    return new ReferenceNode(*this);
 }
 
 // the type passed must always be equal to the current type
 bool ReferenceNode::is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
-   ReferenceHolder<> val(ReferenceNode::evalImpl(xsink), xsink);
-   if (*xsink)
-      return false;
-   if (!val)
-      return is_nothing(v) ? true : false;
-   return val->is_equal_soft(v, xsink);
+    ReferenceHolder<> val(ReferenceNode::evalImpl(xsink), xsink);
+    if (*xsink)
+        return false;
+    if (!val)
+        return is_nothing(v) ? true : false;
+    return val->is_equal_soft(v, xsink);
 }
 
 bool ReferenceNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
-   ReferenceHolder<> val(ReferenceNode::evalImpl(xsink), xsink);
-   if (*xsink)
-      return false;
-   if (!val)
-      return is_nothing(v) ? true : false;
-   return val->is_equal_hard(v, xsink);
+    ReferenceHolder<> val(ReferenceNode::evalImpl(xsink), xsink);
+    if (*xsink)
+        return false;
+    if (!val)
+        return is_nothing(v) ? true : false;
+    return val->is_equal_hard(v, xsink);
 }
 
 // returns the type name as a c string
@@ -235,42 +235,42 @@ const char* ReferenceNode::getTypeName() const {
 }
 
 bool ReferenceNode::derefImpl(ExceptionSink* xsink) {
-   priv->del(xsink);
-   return true;
+    priv->del(xsink);
+    return true;
 }
 
 AbstractQoreNode* ReferenceNode::evalImpl(ExceptionSink* xsink) const {
-   LValueHelper lvh(this, xsink);
-   return lvh ? lvh.getReferencedNodeValue() : nullptr;
+    LValueHelper lvh(this, xsink);
+    return lvh ? lvh.getReferencedValue().takeNode() : nullptr;
 }
 
 AbstractQoreNode* ReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   needs_deref = true;
-   return ReferenceNode::evalImpl(xsink);
+    needs_deref = true;
+    return ReferenceNode::evalImpl(xsink);
 }
 
 int64 ReferenceNode::bigIntEvalImpl(ExceptionSink* xsink) const {
-   LValueHelper lvh(this, xsink);
-   return lvh ? lvh.getAsBigInt() : 0;
+    LValueHelper lvh(this, xsink);
+    return lvh ? lvh.getAsBigInt() : 0;
 }
 
 int ReferenceNode::integerEvalImpl(ExceptionSink* xsink) const {
-   LValueHelper lvh(this, xsink);
-   return lvh ? (int)lvh.getAsBigInt() : 0;
+    LValueHelper lvh(this, xsink);
+    return lvh ? (int)lvh.getAsBigInt() : 0;
 }
 
 bool ReferenceNode::boolEvalImpl(ExceptionSink *xsink) const {
-   LValueHelper lvh(this, xsink);
-   return lvh ? lvh.getAsBool() : false;
+    LValueHelper lvh(this, xsink);
+    return lvh ? lvh.getAsBool() : false;
 }
 
 double ReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
-   LValueHelper lvh(this, xsink);
-   return lvh ? lvh.getAsFloat() : 0.0;
+    LValueHelper lvh(this, xsink);
+    return lvh ? lvh.getAsFloat() : 0.0;
 }
 
 const QoreTypeInfo* ReferenceNode::getTypeInfo() const {
-  return priv->typeInfo;
+    return priv->typeInfo;
 }
 
 const QoreTypeInfo* ReferenceNode::getLValueTypeInfo() const {

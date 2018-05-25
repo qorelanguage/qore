@@ -141,11 +141,11 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
 
 #ifdef DEBUG
     if (vt == NT_LIST) {
-        QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
+        QoreListNode *vl = val.getValue().get<QoreListNode>();
         printd(5, "op_extract() val: %p (size: " QSD ") offset: " QSD "\n", vl, vl->size(), offset);
     }
     else if (vt == NT_STRING) {
-        QoreStringNode *vs = reinterpret_cast<QoreStringNode *>(val.getValue());
+        QoreStringNode *vs = val.getValue().get<QoreStringNode>();
         printd(5, "op_extract() val: %p (strlen: " QSD ") offset: " QSD "\n", vs, vs->strlen(), offset);
     }
 #endif
@@ -153,7 +153,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
     ReferenceHolder<AbstractQoreNode> rv(xsink);
 
     if (vt == NT_LIST) {
-        QoreListNode *vl = reinterpret_cast<QoreListNode*>(val.getValue());
+        QoreListNode *vl = val.getValue().get<QoreListNode>();
         if (!length_exp && !new_exp)
             rv = vl->extract(offset, xsink);
         else {
@@ -165,7 +165,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
         }
     }
     else if (vt == NT_STRING) {
-        QoreStringNode *vs = reinterpret_cast<QoreStringNode*>(val.getValue());
+        QoreStringNode *vs = val.getValue().get<QoreStringNode>();
         if (!length_exp && !new_exp)
             rv = vs->extract(offset, xsink);
         else {
@@ -177,7 +177,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
         }
     }
     else { // must be a binary
-        BinaryNode* b = reinterpret_cast<BinaryNode*>(val.getValue());
+        BinaryNode* b = val.getValue().get<BinaryNode>();
         BinaryNode* bout = new BinaryNode;
         rv = bout;
         if (!length_exp && !new_exp)

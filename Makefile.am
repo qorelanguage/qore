@@ -423,7 +423,6 @@ noinst_HEADERS = \
 	include/qore/intern/RSet.h \
 	include/qore/intern/AbstractIteratorHelper.h \
 	include/qore/intern/ParseReferenceNode.h \
-	include/qore/intern/ReferenceHelper.h \
 	include/qore/intern/ThreadResourceList.h \
 	include/qore/intern/ssl_constants.h \
 	include/qore/intern/lvalue_ref.h \

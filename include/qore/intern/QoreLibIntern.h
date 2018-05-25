@@ -811,7 +811,7 @@ public:
         if (!rh)
             return;
 
-        rh.assign(info.release(), &xs);
+        rh.assign(info.release());
         if (xs)
             xsink->assimilate(xs);
     }

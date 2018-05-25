@@ -997,10 +997,12 @@ public:
         return val.getReferencedValue();
     }
 
+    /*
     DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const {
         QoreAutoVarRWReadLocker al(rwl);
         return val.getReferencedNodeValue();
     }
+    */
 
     DLLLOCAL int64 getAsBigInt() const {
         QoreAutoVarRWReadLocker al(rwl);

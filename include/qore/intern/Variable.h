@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  Variable.h
+    Variable.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_VARIABLE_H
@@ -325,144 +325,104 @@ typedef std::vector<ObjCountRec> ocvec_t;
 // this class grabs global variable or object locks for the duration of the scope of the object
 // no evaluations can be done while this object is in scope or a deadlock may result
 class LValueHelper {
-   friend class LValueRemoveHelper;
-   friend class LValueLockHandoffHelper;
+    friend class LValueRemoveHelper;
+    friend class LValueLockHandoffHelper;
 
 private:
-   // not implemented
-   DLLLOCAL LValueHelper(const LValueHelper&) = delete;
-   DLLLOCAL LValueHelper& operator=(const LValueHelper&) = delete;
+    // not implemented
+    DLLLOCAL LValueHelper(const LValueHelper&) = delete;
+    DLLLOCAL LValueHelper& operator=(const LValueHelper&) = delete;
 
 protected:
-   template <class T, typename t, int nt>
-   DLLLOCAL T* ensureUnique(const QoreTypeInfo* typeTypeInfo, const char* desc) {
-      assert(v);
-      if (nt == get_node_type(*v)) {
-         if (!(*v)->is_unique()) {
-            //printd(5, "LValueHelper::ensureUnique() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
-            AbstractQoreNode* old = *v;
-            (*v) = (*v)->realCopy();
-            saveTemp(old);
-         }
-      }
-      else {
-         if (!QoreTypeInfo::parseAccepts(typeInfo, typeTypeInfo)) {
-            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(typeTypeInfo), vl.xsink);
-            return 0;
-         }
-         if (!(*v))
-            (*v) = new T;
-         else {
-            t i = T::getValue(*v);
-            //printd(5, "LValueHelper::ensureUnique() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
-            saveTemp(*v);
-            (*v) = new T(i);
-         }
-      }
+    DLLLOCAL void assignNodeIntern(AbstractQoreNode* n) {
+        //printd(5, "LValueHelper::assignNodeIntern() this: %p n: %p '%s'\n", this, n, get_type_name(n));
 
-      return reinterpret_cast<T*>(*v);
-   }
-
-   DLLLOCAL void assignIntern(AbstractQoreNode* n) {
+        assert(val || qv);
         if (val)
             val->assign(n);
-        else if (qv)
-            *qv = n;
         else
-            *v = n;
-   }
+            *qv = n;
+    }
 
-   DLLLOCAL int doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove);
-   DLLLOCAL int doHashLValue(qore_type_t t, const char* mem, bool for_remove);
-   DLLLOCAL int doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove);
+    DLLLOCAL int doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove);
+    DLLLOCAL int doHashLValue(qore_type_t t, const char* mem, bool for_remove);
+    DLLLOCAL int doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove);
 
-   DLLLOCAL int makeInt(const char* desc);
-   DLLLOCAL int makeFloat(const char* desc);
-   DLLLOCAL int makeNumber(const char* desc);
+    DLLLOCAL int makeInt(const char* desc);
+    DLLLOCAL int makeFloat(const char* desc);
+    DLLLOCAL int makeNumber(const char* desc);
 
-   DLLLOCAL int doRecursiveException() {
-      vl.xsink->raiseException("REFERENCE-ERROR", "recursive reference detected in assignment");
-      return -1;
-   }
+    DLLLOCAL int doRecursiveException() {
+        vl.xsink->raiseException("REFERENCE-ERROR", "recursive reference detected in assignment");
+        return -1;
+    }
 
 public:
-   AutoVLock vl;
-   AbstractQoreNode** v = nullptr;     // ptr to ptr for lvalue expression
+    AutoVLock vl;
+    //AbstractQoreNode** v = nullptr;     // ptr to ptr for lvalue expression
+
 private:
-   typedef std::vector<AbstractQoreNode*> nvec_t;
-   nvec_t tvec;
-   lvid_set_t* lvid_set = nullptr;
-   // to track object count changes
-   ocvec_t ocvec;
+    typedef std::vector<AbstractQoreNode*> nvec_t;
+    nvec_t tvec;
+    lvid_set_t* lvid_set = nullptr;
+    // to track object count changes
+    ocvec_t ocvec;
 
-   // flag if the changed value was a container before the assignment
-   bool before = false;
+    // flag if the changed value was a container before the assignment
+    bool before = false;
 
-   // recursive delta: change to recursive reference count
-   int rdt = 0;
+    // recursive delta: change to recursive reference count
+    int rdt = 0;
 
-   RObject* robj = nullptr;
+    RObject* robj = nullptr;
 
 public:
-   QoreLValueGeneric* val = nullptr;
-   QoreValue* qv = nullptr;
-   const QoreTypeInfo* typeInfo = nullptr;
+    QoreLValueGeneric* val = nullptr;
+    QoreValue* qv = nullptr;
+    const QoreTypeInfo* typeInfo = nullptr;
 
-   DLLLOCAL LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove = false);
-   DLLLOCAL LValueHelper(QoreValue exp, ExceptionSink* xsink, bool for_remove = false);
+    DLLLOCAL LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove = false);
+    DLLLOCAL LValueHelper(QoreValue exp, ExceptionSink* xsink, bool for_remove = false);
 
-   DLLLOCAL LValueHelper(ExceptionSink* xsink);
+    DLLLOCAL LValueHelper(ExceptionSink* xsink);
 
-   DLLLOCAL LValueHelper(LValueHelper&& o);
+    DLLLOCAL LValueHelper(LValueHelper&& o);
 
-   // to scan objects after initialization
-   DLLLOCAL LValueHelper(QoreObject& obj, ExceptionSink* xsink);
+    // to scan objects after initialization
+    DLLLOCAL LValueHelper(QoreObject& obj, ExceptionSink* xsink);
 
-   DLLLOCAL ~LValueHelper();
+    DLLLOCAL ~LValueHelper();
 
-   DLLLOCAL void setClosure(RObject* c) {
-      robj = c;
-   }
+    DLLLOCAL void setClosure(RObject* c) {
+        robj = c;
+    }
 
-   DLLLOCAL void saveTemp(QoreValue& n);
-   DLLLOCAL void saveTemp(AbstractQoreNode* n);
+    DLLLOCAL void saveTemp(QoreValue& n);
+    DLLLOCAL void saveTemp(AbstractQoreNode* n);
 
-   DLLLOCAL AbstractQoreNode*& getTempRef() {
-      tvec.push_back(0);
-      return tvec[tvec.size() - 1];
-   }
+    DLLLOCAL AbstractQoreNode*& getTempRef() {
+        tvec.push_back(0);
+        return tvec[tvec.size() - 1];
+    }
 
-   DLLLOCAL int doLValue(const AbstractQoreNode* exp, bool for_remove);
+    DLLLOCAL int doLValue(const AbstractQoreNode* exp, bool for_remove);
 
-   DLLLOCAL int doLValue(const ReferenceNode* ref, bool for_remove);
+    DLLLOCAL int doLValue(const ReferenceNode* ref, bool for_remove);
 
-   DLLLOCAL void setAndLock(QoreVarRWLock& rwl);
-   DLLLOCAL void set(QoreVarRWLock& rwl);
+    DLLLOCAL void setAndLock(QoreVarRWLock& rwl);
+    DLLLOCAL void set(QoreVarRWLock& rwl);
 
-   DLLLOCAL AutoVLock& getAutoVLock() {
-      return vl;
-   }
+    DLLLOCAL AutoVLock& getAutoVLock() {
+        return vl;
+    }
 
-   DLLLOCAL void setTypeInfo(const QoreTypeInfo* ti) {
-      typeInfo = ti;
-   }
-
-   DLLLOCAL void setPtr(AbstractQoreNode*& ptr) {
-      assert(!v);
-      assert(!val);
-      assert(!qv);
-      v = &ptr;
-      before = needs_scan(ptr);
-   }
-
-   DLLLOCAL bool isNode() const {
-      return (bool)v;
-   }
+    DLLLOCAL void setTypeInfo(const QoreTypeInfo* ti) {
+        typeInfo = ti;
+    }
 
     DLLLOCAL void setValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
         //printd(5, "LValueHelper::setValue() this: %p new val: %p\n", this, &nv);
 
-        assert(!v);
         assert(!val);
         assert(!qv);
         val = &nv;
@@ -474,7 +434,6 @@ public:
 
    DLLLOCAL void setValue(QoreValue& nqv, const QoreTypeInfo* ti = nullptr) {
         //printd(5, "LValueHelper::setValue() this: %p new qv: %p\n", this, &nqv);
-        assert(!v);
         assert(!val);
         assert(!qv);
         qv = &nqv;
@@ -484,13 +443,9 @@ public:
         typeInfo = ti;
    }
 
-   DLLLOCAL void resetValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
+    DLLLOCAL void resetValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
         //printd(5, "LValueHelper::resetValue() this: %p new val: %p\n", this, &nv);
-        if (v) {
-            assert(!val);
-            v = nullptr;
-        }
-        else if (qv) {
+        if (qv) {
             qv = nullptr;
         }
         else {
@@ -501,15 +456,11 @@ public:
         before = nv.assigned && nv.type == QV_Node ? needs_scan(nv.v.n) : false;
 
         typeInfo = ti;
-   }
+    }
 
-   DLLLOCAL void resetValue(QoreValue& nqv, const QoreTypeInfo* ti = nullptr) {
+    DLLLOCAL void resetValue(QoreValue& nqv, const QoreTypeInfo* ti = nullptr) {
         //printd(5, "LValueHelper::resetValue() this: %p new qv: %p\n", this, &nqv);
-        if (v) {
-            assert(!val);
-            v = nullptr;
-        }
-        else if (val) {
+        if (val) {
             val = nullptr;
         }
         else {
@@ -520,101 +471,78 @@ public:
         before = needs_scan(nqv);
 
         typeInfo = ti;
-   }
+    }
 
-   DLLLOCAL void setPtr(AbstractQoreNode*& ptr, const QoreTypeInfo* ti) {
-      assert(!v);
-      assert(!val);
-      assert(!qv);
-      v = &ptr;
-
-      before = needs_scan(ptr);
-
-      typeInfo = ti;
-   }
-
-   DLLLOCAL void resetPtr(AbstractQoreNode** ptr, const QoreTypeInfo* ti = nullptr) {
-        //printd(5, "LValueHelper::resetPtr() ptr: %p ti: %p '%s'\n", ptr, ti, QoreTypeInfo::getName(ti));
-        if (val) {
-            assert(!v);
-            assert(!qv);
-            val = nullptr;
-        }
-        else if (qv) {
-            assert(!v);
-            qv = nullptr;
-        }
-        else {
-            assert(v);
-        }
-        v = ptr;
-
-        before = needs_scan(*ptr);
-
-        typeInfo = ti;
-   }
-
-   DLLLOCAL void clearPtr() {
+    DLLLOCAL void clearPtr() {
         if (val)
             val = nullptr;
         else if (qv)
             qv = nullptr;
-        else if (v)
-            v = nullptr;
         typeInfo = nullptr;
         before = false;
-   }
+    }
 
-   DLLLOCAL operator bool() const {
-      return val || qv || v;
-   }
+    DLLLOCAL operator bool() const {
+        return val || qv;
+    }
 
-   DLLLOCAL bool isOptimized() const {
-      return val && val->optimized();
-   }
+    DLLLOCAL bool isOptimized() const {
+        return val && val->optimized();
+    }
 
-   DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
-      return typeInfo;
-   }
+    DLLLOCAL const QoreTypeInfo* getTypeInfo() const {
+        return typeInfo;
+    }
 
-   DLLLOCAL qore_type_t getType() const {
-      return val ? val->getType() : (qv ? qv->getType() : get_node_type(*v));
-   }
+    DLLLOCAL qore_type_t getType() const {
+        return val ? val->getType() : qv->getType();
+    }
 
-   DLLLOCAL AbstractQoreNode* getValue() {
-      return val ? val->getInternalNode() : (qv ? qv->getInternalNode() : *v);
-   }
+    DLLLOCAL const QoreValue getValue() const {
+        return val ? val->getValue() : *qv;
+    }
 
-   DLLLOCAL const AbstractQoreNode* getValue() const {
-      return val ? val->getInternalNode() : (qv ? qv -> getInternalNode() : *v);
-   }
+    DLLLOCAL QoreValue getValue() {
+        return val ? val->getValue() : *qv;
+    }
 
-   DLLLOCAL const char* getTypeName() const {
-      return val ? val->getTypeName() : (qv ? qv->getTypeName() : get_type_name(*v));
-   }
+    DLLLOCAL AbstractQoreNode* getNodeValue() {
+        assert((val && val->getInternalNode()) || (qv && qv->getInternalNode()));
+        return val ? val->getInternalNode() : qv->getInternalNode();
+    }
 
-   DLLLOCAL bool checkType(const qore_type_t t) const {
-      return getType() == t;
-   }
+    /*
+    DLLLOCAL const AbstractQoreNode* getValue() const {
+        return val ? val->getInternalNode() : qv->getInternalNode();
+    }
+    */
 
-   DLLLOCAL bool isNothing() const {
-      return checkType(NT_NOTHING);
-   }
+    DLLLOCAL const char* getTypeName() const {
+        return val ? val->getTypeName() : qv->getTypeName();
+    }
 
-   DLLLOCAL QoreValue getReferencedValue() const;
+    DLLLOCAL bool checkType(const qore_type_t t) const {
+        return getType() == t;
+    }
 
-   DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const;
+    DLLLOCAL bool isNothing() const {
+        return checkType(NT_NOTHING);
+    }
 
-    // only call if there is a value in place
+    DLLLOCAL QoreValue getReferencedValue() const;
+
+    //DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const;
+
+    // only call if there is a reference-counted AbstractQoreNode value in place
     // FIXME: port operators to LValueHelper instead and remove this function
     DLLLOCAL void ensureUnique() {
-        AbstractQoreNode* current_value = getValue();
+        AbstractQoreNode* current_value = getNodeValue();
         assert(current_value && current_value->getType() != NT_OBJECT);
 
         if (!current_value->is_unique()) {
-            //printd(5, "LValueHelper::ensureUnique() this: %p saving old value: %p '%s'\n", this, *v, get_type_name(*v));
+            //printd(5, "LValueHelper::ensureUnique() this: %p saving old value: %p '%s'\n", this, current_value, get_type_name(current_value));
             AbstractQoreNode* old = current_value;
-            assignIntern(current_value->realCopy());
+            assignNodeIntern(current_value->realCopy());
             saveTemp(old);
         }
     }
@@ -663,14 +591,11 @@ public:
                 return nullptr;
             p = &val->v.n;
         }
-        else if (qv) {
+        else {
+            assert(qv);
             if (makeNumber(desc))
                 return nullptr;
             p = &qv->v.n;
-        }
-        else {
-            assert(v);
-            p = v;
         }
 
         // if we converted from val above, then we already have a QoreNumberNode
@@ -706,51 +631,51 @@ public:
 
 class LValueRemoveHelper {
 private:
-   // not implemented
-   DLLLOCAL LValueRemoveHelper(const LValueRemoveHelper&);
-   DLLLOCAL LValueRemoveHelper& operator=(const LValueRemoveHelper&);
-   DLLLOCAL void* operator new(size_t);
+    // not implemented
+    DLLLOCAL LValueRemoveHelper(const LValueRemoveHelper&);
+    DLLLOCAL LValueRemoveHelper& operator=(const LValueRemoveHelper&);
+    DLLLOCAL void* operator new(size_t);
 
-   DLLLOCAL void doRemove(const QoreSquareBracketsOperatorNode* op);
-   DLLLOCAL void doRemove(const QoreSquareBracketsOperatorNode* op, const QoreParseListNode* l);
-   DLLLOCAL void doRemove(const QoreSquareBracketsRangeOperatorNode* op);
+    DLLLOCAL void doRemove(const QoreSquareBracketsOperatorNode* op);
+    DLLLOCAL void doRemove(const QoreSquareBracketsOperatorNode* op, const QoreParseListNode* l);
+    DLLLOCAL void doRemove(const QoreSquareBracketsRangeOperatorNode* op);
 
 protected:
-   ExceptionSink* xsink;
-   QoreLValueGeneric rv;
-   bool for_del,
-      direct_list = false;
+    ExceptionSink* xsink;
+    QoreLValueGeneric rv;
+    bool for_del,
+        direct_list = false;
 
 public:
-   DLLLOCAL LValueRemoveHelper(const ReferenceNode& ref, ExceptionSink* n_xsink, bool fd);
-   DLLLOCAL LValueRemoveHelper(const AbstractQoreNode* exp, ExceptionSink* n_xsink, bool fd);
+    DLLLOCAL LValueRemoveHelper(const ReferenceNode& ref, ExceptionSink* n_xsink, bool fd);
+    DLLLOCAL LValueRemoveHelper(const AbstractQoreNode* exp, ExceptionSink* n_xsink, bool fd);
 
-   DLLLOCAL void doRemove(AbstractQoreNode* exp);
+    DLLLOCAL void doRemove(AbstractQoreNode* exp);
 
-   DLLLOCAL operator bool() const {
-      return !*xsink;
-   }
+    DLLLOCAL operator bool() const {
+        return !*xsink;
+    }
 
-   DLLLOCAL ExceptionSink* getExceptionSink() const {
-      return xsink;
-   }
+    DLLLOCAL ExceptionSink* getExceptionSink() const {
+        return xsink;
+    }
 
-   DLLLOCAL bool forDel() const {
-      return for_del;
-   }
+    DLLLOCAL bool forDel() const {
+        return for_del;
+    }
 
-   DLLLOCAL void doRemove(QoreLValueGeneric& qv, const QoreTypeInfo* ti) {
+    DLLLOCAL void doRemove(QoreLValueGeneric& qv, const QoreTypeInfo* ti) {
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
-      rv.assignSetInitialSwap(qv, QoreTypeInfo::getDefaultQoreValue(ti));
+        rv.assignSetInitialSwap(qv, QoreTypeInfo::getDefaultQoreValue(ti));
 #else
-      rv.assignSetTakeInitial(qv);
+        rv.assignSetTakeInitial(qv);
 #endif
-   }
+    }
 
-   DLLLOCAL AbstractQoreNode* removeNode();
-   DLLLOCAL QoreValue remove(bool& static_assignment);
+    DLLLOCAL AbstractQoreNode* removeNode();
+    DLLLOCAL QoreValue remove(bool& static_assignment);
 
-   DLLLOCAL void deleteLValue();
+    DLLLOCAL void deleteLValue();
 };
 
 #endif // _QORE_VARIABLE_H

@@ -1,31 +1,31 @@
 /*
-  QorePlusEqualsOperatorNode.cpp
+    QorePlusEqualsOperatorNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -120,7 +120,7 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
 
     if (vtype == NT_LIST) {
         v.ensureUnique(); // no exception possible here
-        QoreListNode* l = reinterpret_cast<QoreListNode*>(v.getValue());
+        QoreListNode* l = v.getValue().get<QoreListNode>();
         if (new_right->getType() == NT_LIST)
             l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()), xsink);
         else
@@ -129,16 +129,16 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
     else if (vtype == NT_HASH) {
         if (new_right->getType() == NT_HASH) {
             v.ensureUnique();
-            reinterpret_cast<QoreHashNode*>(v.getValue())->merge(new_right->get<const QoreHashNode>(), xsink);
+            v.getValue().get<QoreHashNode>()->merge(new_right->get<const QoreHashNode>(), xsink);
         }
         else if (new_right->getType() == NT_OBJECT) {
             v.ensureUnique();
-            qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(reinterpret_cast<QoreHashNode*>(v.getValue()), xsink);
+            qore_object_private::get(*new_right->get<QoreObject>())->mergeDataToHash(v.getValue().get<QoreHashNode>(), xsink);
         }
     }
     // do hash/object plus-equals if left side is an object
     else if (vtype == NT_OBJECT) {
-        QoreObject* o = reinterpret_cast<QoreObject*>(v.getValue());
+        QoreObject* o = v.getValue().get<QoreObject>();
         qore_object_private::plusEquals(o, new_right->getInternalNode(), v.getAutoVLock(), xsink);
     }
     // do string plus-equals if left-hand side is a string
@@ -147,7 +147,7 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
             QoreStringValueHelper str(*new_right);
 
             v.ensureUnique();
-            QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(v.getValue());
+            QoreStringNode* vs = v.getValue().get<QoreStringNode>();
             vs->concat(*str, xsink);
         }
     }
@@ -163,13 +163,13 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
         if (!new_right->isNullOrNothing()) {
             // gets a relative date/time value from the value
             DateTime date(*new_right);
-            v.assign(reinterpret_cast<DateTimeNode*>(v.getValue())->add(date));
+            v.assign(v.getValue().get<DateTimeNode>()->add(date));
         }
     }
     else if (vtype == NT_BINARY) {
         if (!new_right->isNullOrNothing()) {
             v.ensureUnique();
-            BinaryNode *b = reinterpret_cast<BinaryNode*>(v.getValue());
+            BinaryNode *b = v.getValue().get<BinaryNode>();
             if (new_right->getType() == NT_BINARY) {
                 const BinaryNode *arg = new_right->get<const BinaryNode>();
                 b->append(arg);

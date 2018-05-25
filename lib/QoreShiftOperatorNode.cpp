@@ -87,7 +87,7 @@ QoreValue QoreShiftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink*
     // no exception can occur here
     val.ensureUnique();
 
-    QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
+    QoreListNode* l = val.getValue().get<QoreListNode>();
 
     printd(5, "QoreShiftOperatorNode::evalValueImpl() about to call QoreListNode::shift() on list node %p (%d)\n", l, l->size());
     // the list reference will now be the reference for the return value
