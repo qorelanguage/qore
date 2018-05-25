@@ -40,10 +40,10 @@
 
 class QoreQueueNode {
 public:
-   AbstractQoreNode* node;
+   QoreValue node;
    QoreQueueNode* prev,
                 * next;
-   DLLLOCAL QoreQueueNode(AbstractQoreNode* n, QoreQueueNode* p, QoreQueueNode* nx) : node(n), prev(p), next(nx) {
+   DLLLOCAL QoreQueueNode(QoreValue n, QoreQueueNode* p, QoreQueueNode* nx) : node(n), prev(p), next(nx) {
    }
 
 #ifdef DEBUG
@@ -53,19 +53,18 @@ public:
 #endif
 
    DLLLOCAL void del(ExceptionSink* xsink) {
-      if (node)
-         node->deref(xsink);
+      node.discard(xsink);
 
 #ifdef DEBUG
-      node = 0;
+      node = QoreValue();
 #endif
       delete this;
    }
 
-   DLLLOCAL AbstractQoreNode* takeAndDel() {
-      AbstractQoreNode* rv = node;
+   DLLLOCAL QoreValue takeAndDel() {
+      QoreValue rv = node;
 #ifdef DEBUG
-      node = 0;
+      node = QoreValue();
 #endif
       delete this;
       return rv;
@@ -95,9 +94,9 @@ private:
    DLLLOCAL int waitReadIntern(ExceptionSink *xsink, int timeout_ms);
    DLLLOCAL int waitWriteIntern(ExceptionSink *xsink, int timeout_ms);
 
-   DLLLOCAL void pushNode(AbstractQoreNode* v);
-   DLLLOCAL void pushIntern(AbstractQoreNode* v);
-   DLLLOCAL void insertIntern(AbstractQoreNode* v);
+   DLLLOCAL void pushNode(QoreValue v);
+   DLLLOCAL void pushIntern(QoreValue v);
+   DLLLOCAL void insertIntern(QoreValue v);
 
    DLLLOCAL void clearIntern(ExceptionSink* xsink);
 
@@ -117,7 +116,7 @@ public:
 
       QoreQueueNode* w = orig.head;
       while (w) {
-         pushIntern(w->node ? w->node->refSelf() : 0);
+         pushIntern(w->node.refSelf());
          w = w->next;
       }
 
@@ -136,16 +135,16 @@ public:
    }
 
    // push at the end of the queue and take the reference - can only be used when len == -1
-   DLLLOCAL void pushAndTakeRef(AbstractQoreNode* n);
+   DLLLOCAL void pushAndTakeRef(QoreValue n);
 
    // push at the end of the queue
-   DLLLOCAL void push(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool& to);
+   DLLLOCAL void push(ExceptionSink* xsink, QoreValue n, int timeout_ms, bool& to);
 
    // insert at the beginning of the queue
-   DLLLOCAL void insert(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool& to);
+   DLLLOCAL void insert(ExceptionSink* xsink, QoreValue n, int timeout_ms, bool& to);
 
-   DLLLOCAL AbstractQoreNode* shift(ExceptionSink* xsink, int timeout_ms, bool& to);
-   DLLLOCAL AbstractQoreNode* pop(ExceptionSink* xsink, int timeout_ms, bool& to);
+   DLLLOCAL QoreValue shift(ExceptionSink* xsink, int timeout_ms, bool& to);
+   DLLLOCAL QoreValue pop(ExceptionSink* xsink, int timeout_ms, bool& to);
 
    DLLLOCAL bool empty() const {
       return !len;

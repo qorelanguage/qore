@@ -209,8 +209,10 @@ struct qore_ds_private {
     // @param clear if true then clears the statements' datasource ptrs and the stmt_set, if false, does not
     DLLLOCAL void transactionDone(bool clear, bool close, ExceptionSink* xsink) {
         AutoLocker al(m);
-        for (stmt_set_t::iterator i = stmt_set.begin(), e = stmt_set.end(); i != e; ++i)
+        for (stmt_set_t::iterator i = stmt_set.begin(), e = stmt_set.end(); i != e; ++i) {
+            //printd(5, "qore_ds_private::transactionDone() this: %p stmt: %p clear: %d close: %d\n", this, *i, clear, close);
             (*i)->transactionDone(clear, close, xsink);
+        }
         if (clear)
             stmt_set.clear();
     }

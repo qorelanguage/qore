@@ -62,51 +62,51 @@ void qore_queue_private::destructor(ExceptionSink* xsink) {
 }
 
 void qore_queue_private::clearIntern(ExceptionSink* xsink) {
-   while (head) {
-      printd(5, "qore_queue_private::clearIntern() this: %p deleting %p (node %p type %s)\n", this, head, head->node, get_node_type(head->node));
-      QoreQueueNode* w = head->next;
-      head->del(xsink);
-      head = w;
-   }
-   head = 0;
-   tail = 0;
+    while (head) {
+        printd(5, "qore_queue_private::clearIntern() this: %p deleting %p (node '%s' %s)\n", this, head, head->node.getTypeName(), head->node.getType());
+        QoreQueueNode* w = head->next;
+        head->del(xsink);
+        head = w;
+    }
+    head = 0;
+    tail = 0;
 }
 
 int qore_queue_private::waitReadIntern(ExceptionSink *xsink, int timeout_ms) {
-   // if there is no data, then wait for condition variable
-   while (!head) {
-      if (!err.empty()) {
-         xsink->raiseException(err.c_str(), desc->stringRefSelf());
-         return QW_ERROR;
-      }
+    // if there is no data, then wait for condition variable
+    while (!head) {
+        if (!err.empty()) {
+            xsink->raiseException(err.c_str(), desc->stringRefSelf());
+            return QW_ERROR;
+        }
 
-      ++read_waiting;
-      int rc = timeout_ms ? read_cond.wait(l, timeout_ms) : read_cond.wait(l);
-      --read_waiting;
+        ++read_waiting;
+        int rc = timeout_ms ? read_cond.wait(l, timeout_ms) : read_cond.wait(l);
+        --read_waiting;
 
-      if (rc) {
+        if (rc) {
 #ifdef DEBUG
-         // if an error has occurred, then it must be due to a timeout
-         if (!timeout_ms)
-            printd(0, "qore_queue_private::waitReadIntern(timeout_ms=0) this: %p pthread_cond_wait() returned rc: %d\n", this, rc);
+            // if an error has occurred, then it must be due to a timeout
+            if (!timeout_ms)
+                printd(0, "qore_queue_private::waitReadIntern(timeout_ms=0) this: %p pthread_cond_wait() returned rc: %d\n", this, rc);
 #endif
-         assert(timeout_ms);
-         assert(rc == ETIMEDOUT);
-         return QW_TIMEOUT;
-      }
+            assert(timeout_ms);
+            assert(rc == ETIMEDOUT);
+            return QW_TIMEOUT;
+        }
 
-      if (len == Queue_Deleted) {
-         xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
-         return QW_DEL;
-      }
-   }
+        if (len == Queue_Deleted) {
+            xsink->raiseException("QUEUE-ERROR", "Queue has been deleted in another thread");
+            return QW_DEL;
+        }
+    }
 
-   if (!err.empty()) {
-      xsink->raiseException(err.c_str(), desc->stringRefSelf());
-      return QW_ERROR;
-   }
+    if (!err.empty()) {
+        xsink->raiseException(err.c_str(), desc->stringRefSelf());
+        return QW_ERROR;
+    }
 
-   return 0;
+    return 0;
 }
 
 int qore_queue_private::waitWriteIntern(ExceptionSink *xsink, int timeout_ms) {
@@ -146,7 +146,7 @@ int qore_queue_private::waitWriteIntern(ExceptionSink *xsink, int timeout_ms) {
    return 0;
 }
 
-void qore_queue_private::pushNode(AbstractQoreNode* v) {
+void qore_queue_private::pushNode(QoreValue v) {
    if (!head) {
       head = new QoreQueueNode(v, 0, 0);
       tail = head;
@@ -161,7 +161,7 @@ void qore_queue_private::pushNode(AbstractQoreNode* v) {
    //printd(5, "qore_queue_private::pushNode(%p '%s') this: %p head: %p (%p) tail: %p (%p) read_waiting: %d len: %d\n", v, get_type_name(v), this, head, head->node, tail, tail->node, read_waiting, len);
 }
 
-void qore_queue_private::pushIntern(AbstractQoreNode* v) {
+void qore_queue_private::pushIntern(QoreValue v) {
    pushNode(v);
    //printd(5, "qore_queue_private::push_internal(%p) this: %p head: %p (%p) tail: %p (%p) waiting: %d len: %d\n", v, this, head, head->node, tail, tail->node, waiting, len);
 
@@ -170,7 +170,7 @@ void qore_queue_private::pushIntern(AbstractQoreNode* v) {
       read_cond.signal();
 }
 
-void qore_queue_private::insertIntern(AbstractQoreNode* v) {
+void qore_queue_private::insertIntern(QoreValue v) {
    if (!head) {
       head = new QoreQueueNode(v, 0, 0);
       tail = head;
@@ -202,21 +202,21 @@ int qore_queue_private::checkWriteIntern(ExceptionSink* xsink, bool always_error
    return 0;
 }
 
-void qore_queue_private::pushAndTakeRef(AbstractQoreNode* n) {
+void qore_queue_private::pushAndTakeRef(QoreValue n) {
    AutoLocker al(&l);
    if (len == Queue_Deleted || !err.empty())
       return;
 
    assert(max == -1);
 
-   printd(5, "qore_queue_private::pushAndTakeRef(%p) this: %p\n", n, this);
+   printd(5, "qore_queue_private::pushAndTakeRef('%s') this: %p\n", n.getTypeName(), this);
    // reference value for being stored in queue
    pushIntern(n);
 }
 
-void qore_queue_private::push(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool& to) {
+void qore_queue_private::push(ExceptionSink* xsink, QoreValue n, int timeout_ms, bool& to) {
    to = false;
-   ReferenceHolder<> holder(n, xsink);
+   ValueHolder holder(n, xsink);
 
    AutoLocker al(&l);
    if (checkWriteIntern(xsink))
@@ -233,9 +233,9 @@ void qore_queue_private::push(ExceptionSink* xsink, AbstractQoreNode* n, int tim
    pushIntern(holder.release());
 }
 
-void qore_queue_private::insert(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool& to) {
+void qore_queue_private::insert(ExceptionSink* xsink, QoreValue n, int timeout_ms, bool& to) {
    to = false;
-   ReferenceHolder<> holder(n, xsink);
+   ValueHolder holder(n, xsink);
 
    AutoLocker al(&l);
    if (checkWriteIntern(xsink))
@@ -252,12 +252,12 @@ void qore_queue_private::insert(ExceptionSink* xsink, AbstractQoreNode* n, int t
    insertIntern(holder.release());
 }
 
-AbstractQoreNode* qore_queue_private::shift(ExceptionSink* xsink, int timeout_ms, bool& to) {
+QoreValue qore_queue_private::shift(ExceptionSink* xsink, int timeout_ms, bool& to) {
    to = false;
    SafeLocker sl(&l);
 
    if (checkWriteIntern(xsink, true))
-      return 0;
+      return QoreValue();
 
 #ifdef DEBUG
    //if (!head) printd(5, "qore_queue_private::shift(timeout_ms: %d) WAITING this: %p head: %p tail: %p waiting: %d len: %d\n", timeout_ms, this, head, tail, waiting, len);
@@ -268,7 +268,7 @@ AbstractQoreNode* qore_queue_private::shift(ExceptionSink* xsink, int timeout_ms
       if (rc == QW_TIMEOUT)
          to = true;
       if (rc)
-         return 0;
+         return QoreValue();
    }
 
    //printd(5, "qore_queue_private::shift() GOT DATA this: %p head: %p (rv: %p '%s') tail: %p (%p) write_waiting: %d len: %d\n", this, head, head->node, get_type_name(head->node), tail, tail->node, write_waiting, len);
@@ -276,9 +276,9 @@ AbstractQoreNode* qore_queue_private::shift(ExceptionSink* xsink, int timeout_ms
    QoreQueueNode* n = head;
    head = head->next;
    if (!head)
-      tail = 0;
+      tail = nullptr;
    else
-      head->prev = 0;
+      head->prev = nullptr;
 
    len--;
    if (write_waiting)
@@ -288,27 +288,27 @@ AbstractQoreNode* qore_queue_private::shift(ExceptionSink* xsink, int timeout_ms
    return n->takeAndDel();
 }
 
-AbstractQoreNode* qore_queue_private::pop(ExceptionSink* xsink, int timeout_ms, bool& to) {
+QoreValue qore_queue_private::pop(ExceptionSink* xsink, int timeout_ms, bool& to) {
    to = false;
    SafeLocker sl(&l);
 
    if (checkWriteIntern(xsink, true))
-      return 0;
+      return QoreValue();
 
    {
       int rc = waitReadIntern(xsink, timeout_ms);
       if (rc == QW_TIMEOUT)
          to = true;
       if (rc)
-         return 0;
+         return QoreValue();
    }
 
    QoreQueueNode* n = tail;
    tail = tail->prev;
    if (!tail)
-      head = 0;
+      head = nullptr;
    else
-      tail->next = 0;
+      tail->next = nullptr;
 
    len--;
    if (write_waiting)
@@ -382,28 +382,12 @@ QoreQueue::~QoreQueue() {
 }
 
 // push at the end of the queue and take the reference - can only be used when len == -1
-void QoreQueue::pushAndTakeRef(AbstractQoreNode* n) {
+void QoreQueue::pushAndTakeRef(QoreValue n) {
    priv->pushAndTakeRef(n);
 }
 
 // push at the end of the queue
-void QoreQueue::push(ExceptionSink* xsink, const AbstractQoreNode* n, int timeout_ms, bool* to) {
-   bool timeout;
-   priv->push(xsink, n ? n->refSelf() : 0, timeout_ms, timeout);
-   if (to)
-      *to = timeout;
-}
-
-// insert at the beginning of the queue
-void QoreQueue::insert(ExceptionSink* xsink, const AbstractQoreNode* n, int timeout_ms, bool* to) {
-   bool timeout;
-   priv->insert(xsink, n ? n->refSelf() : 0, timeout_ms, timeout);
-   if (to)
-      *to = timeout;
-}
-
-// push at the end of the queue
-void QoreQueue::push(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool* to) {
+void QoreQueue::push(ExceptionSink* xsink, QoreValue n, int timeout_ms, bool* to) {
    bool timeout;
    priv->push(xsink, n, timeout_ms, timeout);
    if (to)
@@ -411,24 +395,24 @@ void QoreQueue::push(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, 
 }
 
 // insert at the beginning of the queue
-void QoreQueue::insert(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool* to) {
+void QoreQueue::insert(ExceptionSink* xsink, QoreValue n, int timeout_ms, bool* to) {
    bool timeout;
    priv->insert(xsink, n, timeout_ms, timeout);
    if (to)
       *to = timeout;
 }
 
-AbstractQoreNode* QoreQueue::shift(ExceptionSink* xsink, int timeout_ms, bool* to) {
+QoreValue QoreQueue::shift(ExceptionSink* xsink, int timeout_ms, bool* to) {
    bool timeout;
-   AbstractQoreNode* rv = priv->shift(xsink, timeout_ms, timeout);
+   QoreValue rv = priv->shift(xsink, timeout_ms, timeout);
    if (to)
       *to = timeout;
    return rv;
 }
 
-AbstractQoreNode* QoreQueue::pop(ExceptionSink* xsink, int timeout_ms, bool* to) {
+QoreValue QoreQueue::pop(ExceptionSink* xsink, int timeout_ms, bool* to) {
    bool timeout;
-   AbstractQoreNode* rv = priv->pop(xsink, timeout_ms, timeout);
+   QoreValue rv = priv->pop(xsink, timeout_ms, timeout);
    if (to)
       *to = timeout;
    return rv;

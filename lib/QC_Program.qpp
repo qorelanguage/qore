@@ -1346,7 +1346,7 @@ auto Program::getGlobalVariable(string varname, *reference<bool> rexists) {
         return QoreValue();
 
     bool found;
-    ReferenceHolder<AbstractQoreNode> rv(p->getGlobalVariableValue(t->getBuffer(), found), xsink);
+    ValueHolder rv(p->getGlobalVariableValue(t->c_str(), found), xsink);
 
     if (rexists) {
         QoreTypeSafeReferenceHelper r(rexists, xsink);

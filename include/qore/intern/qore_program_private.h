@@ -420,7 +420,7 @@ public:
     ResolvedCallReferenceNode* thr_init;
 
     // return value for use with %exec-class
-    AbstractQoreNode* exec_class_rv;
+    QoreValue exec_class_rv;
 
     // public object that owns this private implementation
     QoreProgram* pgm;
@@ -436,7 +436,7 @@ public:
             ns_vars(false),
             tclear(0),
             exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(nullptr), twaiting(0),
-            thr_init(nullptr), exec_class_rv(nullptr), pgm(n_pgm) {
+            thr_init(nullptr), pgm(n_pgm) {
         printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
 
 #ifdef DEBUG
@@ -1768,13 +1768,13 @@ public:
       pgm.priv->doThreadInit(xsink);
    }
 
-   DLLLOCAL static int setReturnValue(QoreProgram& pgm, AbstractQoreNode* val, ExceptionSink* xsink) {
-      ReferenceHolder<> rv(val, xsink);
+   DLLLOCAL static int setReturnValue(QoreProgram& pgm, QoreValue val, ExceptionSink* xsink) {
+      ValueHolder rv(val, xsink);
       if (!pgm.priv->exec_class) {
          xsink->raiseException("SETRETURNVALUE-ERROR", "cannot set return value when not running in %%exec-class mode; in this case simply return the value directly (or call exit(<val>))");
          return -1;
       }
-      discard(pgm.priv->exec_class_rv, xsink);
+      pgm.priv->exec_class_rv.discard(xsink);
       pgm.priv->exec_class_rv = rv.release();
       return 0;
    }
@@ -1952,7 +1952,7 @@ public:
       pgm->priv->parseDefine(loc, str, val);
    }
 
-   DLLLOCAL static void runTimeDefine(QoreProgram* pgm, const char* str, AbstractQoreNode* val, ExceptionSink* xsink) {
+   DLLLOCAL static void runTimeDefine(QoreProgram* pgm, const char* str, QoreValue val, ExceptionSink* xsink) {
       pgm->priv->runTimeDefine(str, val, xsink);
    }
 

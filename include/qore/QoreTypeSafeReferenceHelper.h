@@ -42,15 +42,15 @@
     as given by the lvalue expression, so the object should be checked for this state right
     after the constructor as in the following example:
     @code
-    const AbstractQoreNode *p = get_param(params, 0);
-    if (p && p->getType() == NT_REFERENCE) {
-       const ReferenceNode *r = reinterpret_cast<const ReferenceNode *>(p);
-       QoreTypeSafeReferenceHelper ref(r, xsink);
-       // a deadlock exception occurred accessing the reference's value pointer
-       if (!ref)
-          return 0;
+    QoreValue p = get_param_value(args, 0);
+    if (p.getType() == NT_REFERENCE) {
+        const ReferenceNode *r = p.get<const ReferenceNode>();
+        QoreTypeSafeReferenceHelper ref(r, xsink);
+        // a deadlock exception occurred accessing the reference's value pointer
+        if (!ref)
+            return QoreValue();
 
-       // more code to access the reference
+        // more code to access the reference
     }
     @endcode
  */

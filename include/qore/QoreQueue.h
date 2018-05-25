@@ -59,25 +59,19 @@ public:
    DLLEXPORT ~QoreQueue();
 
    //! push at the end of the queue and take the reference; can only be used when len == -1
-   DLLEXPORT void pushAndTakeRef(AbstractQoreNode* n);
+   DLLEXPORT void pushAndTakeRef(QoreValue n);
 
    //! push at the end of the queue
-   DLLEXPORT void push(ExceptionSink* xsink, const AbstractQoreNode* n, int timeout_ms = 0, bool* to = 0);
+   DLLEXPORT void push(ExceptionSink* xsink, QoreValue n, int timeout_ms = 0, bool* to = 0);
 
    //! insert at the beginning of the queue
-   DLLEXPORT void insert(ExceptionSink* xsink, const AbstractQoreNode* n, int timeout_ms = 0, bool* to = 0);
-
-   //! push at the end of the queue
-   DLLEXPORT void push(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms = 0, bool* to = 0);
-
-   //! insert at the beginning of the queue
-   DLLEXPORT void insert(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms = 0, bool* to = 0);
+   DLLEXPORT void insert(ExceptionSink* xsink, QoreValue n, int timeout_ms = 0, bool* to = 0);
 
    //! remove a node from the beginning of the queue
-   DLLEXPORT AbstractQoreNode* shift(ExceptionSink* xsink, int timeout_ms = 0, bool* to = 0);
+   DLLEXPORT QoreValue shift(ExceptionSink* xsink, int timeout_ms = 0, bool* to = 0);
 
    //! remove a node from the end of the queue
-   DLLEXPORT AbstractQoreNode* pop(ExceptionSink* xsink, int timeout_ms = 0, bool* to = 0);
+   DLLEXPORT QoreValue pop(ExceptionSink* xsink, int timeout_ms = 0, bool* to = 0);
 
    //! returns true if the queue is empty
    DLLEXPORT bool empty() const;

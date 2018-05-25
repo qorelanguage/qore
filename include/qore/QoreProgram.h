@@ -148,10 +148,12 @@ public:
    //! calls a function from the function name and returns the return value
    /** if the function does not exist, an exception is added to "xsink"
        @param name the name of the function to call
-       @param args the argument to the function (can be 0)
+       @param args the argument to the function (can be nullptr)
        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+       @return the value returned by the function (if any)
    */
-   DLLEXPORT AbstractQoreNode* callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink);
+   DLLEXPORT QoreValue callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink);
 
    //! runs the program (instantiates the program class if a program class has been set) and returns the return value (if any)
    /** @note if the program is run as a class it's not possible to return a value
@@ -160,9 +162,9 @@ public:
        QoreProgram::waitForTerminationAndDeref()
        @see QoreProgram::setExecClass()
        @param xsink if an error occurs, the Qore-language exception information will be added here
-       @return the value returned by the final return statement (if any, can be 0)
+       @return the value returned by the final return statement (if any)
    */
-   DLLEXPORT AbstractQoreNode* run(ExceptionSink* xsink);
+   DLLEXPORT QoreValue run(ExceptionSink* xsink);
 
    //! tuns the top level code and returns any return value
    /**
@@ -170,9 +172,9 @@ public:
       to wait for them to terminate, call QoreProgram::waitForTermination() or
       QoreProgram::waitForTerminationAndDeref()
       @param xsink if an error occurs, the Qore-language exception information will be added here
-      @return the value returned by the final return statement (if any, can be 0)
+      @return the value returned by the final return statement (if any)
    */
-   DLLEXPORT AbstractQoreNode* runTopLevel(ExceptionSink* xsink);
+   DLLEXPORT QoreValue runTopLevel(ExceptionSink* xsink);
 
    //! parses the given filename and runs the file
    /** any errors opening the file are added as Qore-language exceptions
@@ -564,7 +566,7 @@ public:
        @param found returns true if the variable exists, false if not
        @return the value of the global variable given; if a non-zero pointer is returned, the caller owns the reference count returned
    */
-   DLLEXPORT AbstractQoreNode* getGlobalVariableValue(const char* var, bool &found) const;
+   DLLEXPORT QoreValue getGlobalVariableValue(const char* var, bool &found) const;
 
    //! returns the value of the global variable given (do not include the "$" symbol), the caller owns the reference count returned
    /** @param var the variable name to return (do not include the "$" symbol)
@@ -600,7 +602,7 @@ public:
 
        @see runtimeDefine()
    */
-   DLLEXPORT void parseDefine(const char* str, AbstractQoreNode* val);
+   DLLEXPORT void parseDefine(const char* str, QoreValue val);
 
    //! defines a parse-time variable; call only at parse time (or before parsing)
    /** @param str the name of the variable

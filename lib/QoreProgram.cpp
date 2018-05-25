@@ -544,12 +544,12 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
         // merge pending parse exceptions into the passed exception sink, if any
         if (pendingParseSink) {
             xsink->assimilate(pendingParseSink);
-            pendingParseSink = 0;
+            pendingParseSink = nullptr;
         }
 
         // clear any exec-class return value
-        discard(exec_class_rv, xsink);
-        exec_class_rv = 0;
+        exec_class_rv.discard(xsink);
+        exec_class_rv = QoreValue();
 
         // delete code
         // method call can be repeated
@@ -1419,11 +1419,11 @@ QoreHashNode* QoreProgram::getThreadData() {
    return priv->getThreadData();
 }
 
-AbstractQoreNode* QoreProgram::run(ExceptionSink* xsink) {
+QoreValue QoreProgram::run(ExceptionSink* xsink) {
    if (!priv->exec_class_name.empty()) {
       runClass(priv->exec_class_name.c_str(), xsink);
-      AbstractQoreNode* rv = priv->exec_class_rv;
-      priv->exec_class_rv = 0;
+      QoreValue rv = priv->exec_class_rv;
+      priv->exec_class_rv = QoreValue();
       return rv;
    }
    return runTopLevel(xsink);
@@ -1494,38 +1494,36 @@ void QoreProgram::parsePending(const char* code, const char* label, ExceptionSin
    priv->parsePending(code, label, xsink, wS, wm, source, offset);
 }
 
-AbstractQoreNode* QoreProgram::runTopLevel(ExceptionSink* xsink) {
+QoreValue QoreProgram::runTopLevel(ExceptionSink* xsink) {
    ProgramThreadCountContextHelper tch(xsink, this, true);
    if (*xsink)
-      return 0;
-   return priv->sb.exec(xsink).takeNode();
+      return QoreValue();
+   return priv->sb.exec(xsink);
 }
 
-AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
+QoreValue QoreProgram::callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
     SimpleRefHolder<FunctionCallNode> fc;
 
     printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
 
-    //const qore_ns_private* ns = nullptr;
-    //const QoreFunction* qf;
     const FunctionEntry* fe;
 
     // need to grab parse lock for safe access to the user function map and imported function map
     {
         ProgramRuntimeParseAccessHelper pah(xsink, this);
         if (*xsink)
-            return nullptr;
+            return QoreValue();
         fe = qore_root_ns_private::runtimeFindFunctionEntry(*priv->RootNS, name);
     }
 
     if (!fe) {
         xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
-        return nullptr;
+        return QoreValue();
     }
 
     // we assign the args to 0 below so that they will not be deleted
     fc = new FunctionCallNode(get_runtime_location(), fe, const_cast<QoreListNode*>(args), this);
-    AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : nullptr;
+    QoreValue rv = !*xsink ? fc->eval(xsink) : QoreValue();
 
     // let caller delete function arguments if necessary
     fc->takeArgs();
@@ -1700,8 +1698,8 @@ QoreValue QoreProgram::getGlobalVariableVal(const char* var, bool& found) const 
    return v->eval();
 }
 
-AbstractQoreNode* QoreProgram::getGlobalVariableValue(const char* var, bool& found) const {
-   return getGlobalVariableVal(var, found).takeNode();
+QoreValue QoreProgram::getGlobalVariableValue(const char* var, bool& found) const {
+   return getGlobalVariableVal(var, found);
 }
 
 // only called when parsing, therefore in the parse thread lock
@@ -1780,7 +1778,7 @@ QoreValue qore_parse_get_define_value(const QoreProgramLocation* loc, const char
     return flt ? q_strtod(p) : strtoll(p, 0, 10);
 }
 
-void QoreProgram::parseDefine(const char* str, AbstractQoreNode* val) {
+void QoreProgram::parseDefine(const char* str, QoreValue val) {
    priv->parseDefine(&qoreCommandLineLocation, str, val);
 }
 
