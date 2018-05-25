@@ -1613,15 +1613,15 @@ void QoreString::splice(qore_offset_t offset, qore_offset_t num, const QoreStrin
    splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen(), 0);
 }
 
-void QoreString::splice(qore_offset_t offset, qore_offset_t num, const AbstractQoreNode *strn, ExceptionSink* xsink) {
-   QoreStringNodeValueHelper sv(strn);
+void QoreString::splice(qore_offset_t offset, qore_offset_t num, QoreValue strn, ExceptionSink* xsink) {
+    QoreStringNodeValueHelper sv(strn);
 
-   if (!sv->strlen()) {
-      splice(offset, num, xsink);
-      return;
-   }
+    if (!sv->strlen()) {
+        splice(offset, num, xsink);
+        return;
+    }
 
-   splice(offset, num, **sv, xsink);
+    splice(offset, num, **sv, xsink);
 }
 
 QoreString* QoreString::extract(qore_offset_t offset, ExceptionSink* xsink) {
@@ -1649,31 +1649,29 @@ QoreString* QoreString::extract(qore_offset_t offset, qore_offset_t num, Excepti
    return str;
 }
 
-QoreString* QoreString::extract(qore_offset_t offset, qore_offset_t num, const AbstractQoreNode *strn, ExceptionSink* xsink) {
-   QoreStringNodeValueHelper sv(strn);
+QoreString* QoreString::extract(qore_offset_t offset, qore_offset_t num, QoreValue strn, ExceptionSink* xsink) {
+    QoreStringValueHelper tmp(strn, priv->charset, xsink);
+    if (*xsink) {
+        return nullptr;
+    }
 
-   if (!sv->strlen())
-      return extract(offset, num, xsink);
+    if (!tmp->strlen())
+        return extract(offset, num, xsink);
 
-   const QoreStringNode *str = *sv;
-   TempEncodingHelper tmp(str, priv->getEncoding(), xsink);
-   if (!tmp)
-       return 0;
-
-   QoreString* rv = new QoreString(priv->getEncoding());
-   if (!priv->getEncoding()->isMultiByte()) {
-      qore_size_t n_offset, n_num;
-      priv->check_offset(offset, num, n_offset, n_num);
-      if (n_offset == priv->len) {
-         if (!tmp->priv->len)
-            return rv;
-         n_num = 0;
-      }
-      splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen(), rv);
-   }
-   else
-      splice_complex(offset, num, *tmp, xsink, rv);
-   return rv;
+    QoreString* rv = new QoreString(priv->getEncoding());
+    if (!priv->getEncoding()->isMultiByte()) {
+        qore_size_t n_offset, n_num;
+        priv->check_offset(offset, num, n_offset, n_num);
+        if (n_offset == priv->len) {
+            if (!tmp->priv->len)
+                return rv;
+            n_num = 0;
+        }
+        splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen(), rv);
+    }
+    else
+        splice_complex(offset, num, *tmp, xsink, rv);
+    return rv;
 }
 
 // removes a single trailing newline

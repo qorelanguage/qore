@@ -57,7 +57,7 @@ private:
       args->push(rah.getArg(), nullptr); // caller owns ref
       printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, param#: %d, rs: %d, xsink2: %d\n", name, this, pgm, paramCount, rs, xsink2.isEvent());
       qo->evalMethod(name, *args, &xsink2).discard(&xsink2);
-      QoreValue v(rah.getOutputQoreValue());
+      QoreValue v(rah.getOutputValue());
       rs = (DebugRunStateEnum) v.getAsBigInt();
       v.discard(&xsink2);
       //printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, rs: %d\n", name, this, pgm, rs);
@@ -97,7 +97,7 @@ public:
       ReferenceArgumentHelper rah(flow, &xsink2);
       params[3] = rah.getArg(); // caller owns ref
       callMethod("onStep", pgm, 4, params, rs, xsink, xsink2);
-      QoreValue v(rah.getOutputQoreValue());
+      QoreValue v(rah.getOutputValue());
       flow = v.getAsBigInt();
       v.discard(&xsink2);
    }
@@ -140,7 +140,7 @@ public:
       ReferenceArgumentHelper rah(QoreValue(false), &xsink2);
       params[2] = rah.getArg(); // caller owns ref
       callMethod("onException", pgm, 3, params, rs, xsink, xsink2);
-      QoreValue v(rah.getOutputQoreValue());
+      QoreValue v(rah.getOutputValue());
       if (v.getAsBool()) {
          xsink->clear();  // dismiss exception
       }

@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreStringNode.h
+    QoreStringNode.h
 
-  QoreStringNode Class Definition
+    QoreStringNode Class Definition
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QORESTRINGNODE_H
@@ -257,7 +257,7 @@ public:
        @param xsink invalid multi-byte encodings can cause an exception to be thrown
        @return a string of the characters removed; if no characters a removed, an empty string is returned, however if an exception is raised converting encodings, then 0 is returned
    */
-   DLLEXPORT QoreStringNode* extract(qore_offset_t offset, qore_offset_t length, const AbstractQoreNode* strn, ExceptionSink* xsink);
+   DLLEXPORT QoreStringNode* extract(qore_offset_t offset, qore_offset_t length, QoreValue strn, ExceptionSink* xsink);
 
    //! constructor using the private implementation of QoreString; not exported in the library
    DLLLOCAL QoreStringNode(struct qore_string_private* p);
@@ -317,11 +317,8 @@ protected:
    DLLLOCAL void setup(ExceptionSink* xsink, const QoreValue n, const QoreEncoding* enc = 0);
 
 public:
-   //! creates the object and acquires a pointer to the QoreString representation of the AbstractQoreNode passed
-   DLLEXPORT QoreStringValueHelper(const AbstractQoreNode* n);
-
    //! creates the object and acquires a pointer to the QoreString representation of the QoreValue passed
-   DLLEXPORT explicit QoreStringValueHelper(const QoreValue& n);
+   DLLEXPORT QoreStringValueHelper(const QoreValue n);
 
    //! gets the QoreString representation and ensures that it's in the desired encoding
    /** a Qore-language exception may be thrown if an encoding error occurs
@@ -336,10 +333,7 @@ public:
        return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
        @endcode
    */
-   DLLEXPORT QoreStringValueHelper(const AbstractQoreNode* n, const QoreEncoding* enc, ExceptionSink* xsink);
-
-   //! gets the QoreString representation and ensures that it's in the desired encoding
-   DLLEXPORT QoreStringValueHelper(const QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink);
+   DLLEXPORT QoreStringValueHelper(const QoreValue n, const QoreEncoding* enc, ExceptionSink* xsink);
 
    //! destroys the object and deletes the QoreString pointer being managed if it was a temporary pointer
    DLLLOCAL ~QoreStringValueHelper() {
@@ -422,9 +416,7 @@ private:
    DLLLOCAL void setup(ExceptionSink* xsink, const QoreValue n, const QoreEncoding* enc = 0);
 
 public:
-   DLLEXPORT QoreStringNodeValueHelper(const AbstractQoreNode* n);
-
-   DLLEXPORT QoreStringNodeValueHelper(const QoreValue& n);
+   DLLEXPORT QoreStringNodeValueHelper(const QoreValue n);
 
    //! gets the QoreString representation and ensures that it's in the desired encoding
    /** a Qore-language exception may be thrown if an encoding error occurs
@@ -439,10 +431,7 @@ public:
        return new MStringData(t->getBuffer(), MEncoding::M_ASCII);
        @endcode
    */
-   DLLEXPORT QoreStringNodeValueHelper(const AbstractQoreNode* n, const QoreEncoding* enc, ExceptionSink* xsink);
-
-   //! gets the QoreString representation and ensures that it's in the desired encoding
-   DLLEXPORT QoreStringNodeValueHelper(const QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink);
+   DLLEXPORT QoreStringNodeValueHelper(const QoreValue n, const QoreEncoding* enc, ExceptionSink* xsink);
 
    //! destroys the object and dereferences the QoreStringNode if it is a temporary pointer
    DLLEXPORT ~QoreStringNodeValueHelper();

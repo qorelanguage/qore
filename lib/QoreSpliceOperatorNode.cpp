@@ -177,7 +177,7 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
             if (!new_exp)
                 vs->splice(offset, length, xsink);
             else
-                vs->splice(offset, length, *exp_holder, xsink);
+                vs->splice(offset, length, QoreValue(*exp_holder), xsink);
         }
     }
     else { // must be a binary

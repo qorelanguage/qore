@@ -1953,7 +1953,7 @@ string str = splice(str2, 5, 7, "hello");
 */
 string splice(string str, softint start, softint len, *string nstr) {
     QoreStringNodeHolder pstr(str->copy());
-    pstr->splice(start, len, nstr, xsink);
+    pstr->splice(start, len, QoreValue(nstr), xsink);
     return *xsink ? QoreValue() : pstr.release();
 }
 
