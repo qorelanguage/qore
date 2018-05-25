@@ -1179,7 +1179,7 @@ QoreValue hash_assignment_priv::swapImpl(QoreValue v) {
 }
 
 void hash_assignment_priv::assign(AbstractQoreNode* v, ExceptionSink* xsink) {
-    ReferenceHolder<> val(v, xsink);
+    ValueHolder val(v, xsink);
     if (h.hashdecl) {
         if (typed_hash_decl_private::get(*h.hashdecl)->runtimeAssignKey(om->key.c_str(), val, xsink))
             return;
