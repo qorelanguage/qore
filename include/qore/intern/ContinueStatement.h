@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -43,7 +43,7 @@ private:
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) {
       if (!(pflag & PF_CONTINUE_OK)) {
          if (!(getProgram()->getParseOptions64() & PO_BROKEN_LOOP_STATEMENT)) {
-            parseException(loc, "CONTINUE-NOT-ALLOWED", "continue statements are only allowed in loop statements");
+            parseException(*loc, "CONTINUE-NOT-ALLOWED", "continue statements are only allowed in loop statements");
          }
       }
       return 0;

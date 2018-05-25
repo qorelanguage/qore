@@ -46,7 +46,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreLogicalAndOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
+   DLLLOCAL QoreLogicalAndOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
    }
 
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be

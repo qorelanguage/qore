@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -54,13 +54,21 @@ public:
    DLLLOCAL virtual void write(const void *ptr, int64 count, ExceptionSink *xsink) override {
       assert(count >= 0);
 
-      SimpleRefHolder<BinaryNode> buf(new BinaryNode());
+      SimpleRefHolder<BinaryNode> buf(new BinaryNode);
       buf->preallocate(count);
       memcpy(const_cast<void *>(buf->getPtr()), ptr, count);
 
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+      ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
       args->push(buf.release());
       self->evalMethodValue("write", *args, xsink);
+   }
+
+   DLLLOCAL bool isClosed() override {
+      return false;
+   }
+
+   DLLLOCAL virtual const char* getName() override {
+      return "OutputStreamWrapper";
    }
 
 private:

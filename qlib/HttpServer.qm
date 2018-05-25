@@ -31,7 +31,7 @@
 %new-style
 
 module HttpServer {
-    version = "0.3.12";
+    version = "0.3.13";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -111,6 +111,11 @@ log("started listener on %s", lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http0313 HttpServer 0.3.13
+    - added support for adding new HTTP methods to the server with the
+      @ref HttpServer::HttpServer::addHttpMethod() "HttpServer::addHttpMethod()" method
+      (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
 
     @subsection http0312 HttpServer 0.3.12
     - added a minimal substring of string bodies received to the log message when logging HTTP requests
@@ -621,6 +626,9 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         *string override_encoding;
 
         string http_server_string;
+
+        #! valid HTTP methods
+        hash http_methods = HttpMethods;
     }
     #! @endcond
 
@@ -646,6 +654,13 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     #! calls stop() and destroys the object
     destructor() {
         stop();
+    }
+
+    #! add a new supported HTTP method
+    /** @param m the HTTP method to add; the string is converted to upper case if necessary
+    */
+    addHttpMethod(string m) {
+        http_methods{m.upr()} = True;
     }
 
     #! returns the HTTP server version string
@@ -1427,7 +1442,16 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
     # don't reimplement this method; fix/enhance it in the module
-    final handleRequest(HttpListener listener, Socket s, reference<hash> cx, hash hdr, hash hh, *data body, bool head = False, HttpPersistentHandlerInfo phi) {
+    final handleRequest(HttpListener listener, Socket s, reference<hash> cx, hash hdr, hash hh, *data body, bool head = False, HttpPersistentHandlerInfo phi, hash<auto> info) {
+        if (!http_methods{hdr.method}) {
+            string err = sprintf("unknown / unsupported HTTP method %n", hdr.method);
+            string str = sprintf("%s: received from %s via %s", err, info.address_desc, listener.getListenerSocketInfo().address_desc);
+            listener.logError(str);
+            cx.close = True;
+            sendHttpError(listener, cx, s, 501, err, NOTHING, cx."response-encoding");
+            return;
+        }
+
         foreach string enc in (hh."accept-encoding") {
             *string e = ContentEncodings{enc};
             if (!e)
@@ -1858,6 +1882,10 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         defaultHandler = handlers.handlers{name};
     }
 
+    hash getListenerSocketInfo() {
+        return socket_info;
+    }
+
     copy() {
         throw "COPY-ERROR", "this object cannot be copied";
     }
@@ -2246,17 +2274,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     log(lstr);
                 }
 
-                if (!HttpServer::HttpMethods.(hdr.method)) {
-                    string err = sprintf("unknown / unsupported HTTP method %n", hdr.method);
-                    string str = sprintf("%s: received from %s via %s", err, info.address_desc, socket_info.address_desc);
-                    logError(str);
-                    cx.close = True;
-                    serv.sendHttpError(self, cx, s, 501, err, NOTHING, cx."response-encoding");
-                }
-                else {
-                    cx.uctx = get_thread_data("uctx");
-                    serv.handleRequest(self, s, \cx, hdr, hi, body, hdr.method == "HEAD", phi);
-                }
+                cx.uctx = get_thread_data("uctx");
+                serv.handleRequest(self, s, \cx, hdr, hi, body, hdr.method == "HEAD", phi, info);
 
                 #log("DBG cid %d: cx.close: %y", cx.id, cx.close);
 

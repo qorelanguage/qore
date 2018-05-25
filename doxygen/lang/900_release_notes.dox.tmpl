@@ -2,6 +2,95 @@
 
     @tableofcontents
 
+    @section qore_09 Qore 0.9
+
+    @par Release Summary
+    WIP
+
+    @subsection qore_09_compatibility Changes That Can Affect Backwards-Compatibility
+    - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
+    - Qore classes and functions can no longer be modified after creation; any attempt to add a new user
+      variant to an existing function or to add new declarations to an existing class will result in a
+      parse error.
+    - @ref Qore::Program "Program" objects now only support a single complete parse action
+      (@ref Qore::Program::parse() "Program::parse()" or @ref Qore::Program::parseCommit() "Program::parseCommit()");
+      subsequent attempts to parse code into the same %Program object will fail with an exception.  If parsing fails
+      due to a parse exception, the @ref Qore::Program "Program" object is generally no longer usable and must be
+      recreated to be used.
+    - @ref Qore::Program::parseRollback() "Program::parseRollback()" is now deprecated; this action removes all user
+      code and most builtin code from the @ref Qore::Program "Program" object; delete the object instead of using
+      this method
+
+    WIP
+
+    @subsection qore_09_new_features New Features in Qore
+    - the default thread stack size was changed from 8MB to 512KB resulting in a large reduction in the total
+      memory used in programs with many threads (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
+    - new classes:
+      - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
+      - @ref Qore::StreamBase "StreamBase": a base class for stream classes allowing for a controlled handoff of the stream to another thread
+    - new and updated methods in existing classes:
+      - @ref Qore::SQL::AbstractDatasource::getSQLStatement() "AbstractDatasource::getSQLStatement()"
+      - @ref Qore::SQL::Datasource::getSQLStatement() "Datasource::getSQLStatement()"
+      - @ref Qore::SQL::DatasourcePool::getSQLStatement() "DatasourcePool::getSQLStatement()"
+      - @ref Qore::File::redirect() "File::redirect()"
+      - @ref Qore::StreamReader::getInputStream() "StreamReader::getInputStream()"
+      - @ref Qore::StreamWriter::getOutputStream() "StreamWriter::getOutputStream()"
+    - new functions:
+      - @ref Qore::get_default_thread_stack_size() "get_default_thread_stack_size()"
+      - @ref Qore::get_netif_list() "get_netif_list()"
+      - @ref Qore::get_stack_size() "get_stack_size()"
+      - @ref Qore::get_thread_name() "get_thread_name()"
+      - @ref Qore::set_default_thread_stack_size() "set_default_thread_stack_size()"
+      - @ref Qore::set_thread_name() "set_thread_name()"
+    - new hashdecls:
+      - @ref Qore::NetIfInfo "NetIfInfo"
+    - new constants:
+      - @ref Qore::HAVE_GET_NETIF_LIST "HAVE_GET_NETIF_LIST"
+      - @ref Qore::HAVE_GET_STACK_SIZE "HAVE_GET_STACK_SIZE"
+      - @ref Qore::HAVE_MANAGE_STACK "HAVE_MANAGE_STACK"
+      - @ref Qore::HAVE_THREAD_NAME "HAVE_THREAD_NAME"
+    - new @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
+      - \c "Dn" and \c "DN": the ordinal day number in the year
+      - \c "I": ISO-8601 week string
+      - \c "Id" and \c "ID": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> day number
+      - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_date "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
+      - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
+      - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
+    - module updates
+      - <a href="../../modules/ConnectionProvider/html.indexhtml">ConnectionProvider</a> module changes:
+        - the \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
+          connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+      - <a href="../../modules/FreetdsSqlUtil/html.indexhtml">FreetdsSqlUtil</a> module changes:
+        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/HttpServer/html.indexhtml">HttpServer</a> module changes:
+        - added support for adding new HTTP methods to the server with the \c HttpServer::addHttpMethod() method
+          (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
+      - <a href="../../modules/MysqlSqlUtil/html.indexhtml">MysqlSqlUtil</a> module changes:
+        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/PgsqlSqlUtil/html.indexhtml">PgsqlSqlUtil</a> module changes:
+        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/OracleSqlUtil/html.indexhtml">OracleSqlUtil</a> module changes:
+        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/SqlUtil/html.indexhtml">SqlUtil</a> module changes:
+        - deprecated \c AbstractTable::getRowIterator() for \c AbstractTable::getStatement() (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
+        - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
+        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/Util/html/index.html">Util</a> module updates:
+        - added public function \c parse_ranges() (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
+        - added public function \c check_ip_address() (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
+    - @ref relative_dates "relative date" changes
+        - fraction seconds are accepted in the @ref single_reldates
+        - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
+
+    @subsection qore_09_bug_fixes Bug Fixes in Qore
+
+    - fixed a bug where class members could be initialized multiple times in a class with multiple
+      inheritance where the same class is inherited multiple times in the hierarchy
+      (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
+    - fixed bugs handling @ref abstract "abstract" methods in complex hierarchies with multiple inheritance (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
+    - fixed bugs handling object scope in @ref background "background" expressions (<a href="https://github.com/qorelanguage/qore/issues/2653">issue 2653</a>)
+
     @section qore_08136 Qore 0.8.13.6
 
     @par Release Summary

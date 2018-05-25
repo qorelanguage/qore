@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@
 #  include "tests/SwitchStatementWithOperators_tests.cpp"
 #endif
 
-CaseNode::CaseNode(const QoreProgramLocation& loc, AbstractQoreNode* v, StatementBlock* c) : loc(loc), val(v), code(c) {
+CaseNode::CaseNode(const QoreProgramLocation* loc, AbstractQoreNode* v, StatementBlock* c) : loc(loc), val(v), code(c) {
 }
 
 CaseNode::~CaseNode() {
@@ -88,7 +88,7 @@ void SwitchStatement::addCase(CaseNode *c) {
    tail = c;
    if (c->isDefault()) {
       if (deflt)
-         parse_error(c->loc, "multiple defaults in switch statement");
+         parse_error(*c->loc, "multiple defaults in switch statement");
       deflt = c;
    }
 }
@@ -147,7 +147,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
          argTypeInfo = 0;
          w->val = w->val->parseInit(oflag, pflag | PF_CONST_EXPRESSION, lvids, argTypeInfo);
          if (lvids) {
-            parse_error(w->loc, "illegal local variable declaration in assignment expression for case block");
+            parse_error(*w->loc, "illegal local variable declaration in assignment expression for case block");
             while (lvids--)
                pop_local_var();
 
@@ -181,7 +181,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
             // not those with relational operators. Could be changed later to provide more checking.
             // note that no exception can be raised here as the case node values are parse values
             if (w->isCaseNode() && cw->isCaseNode() && !compareHard(w->val, cw->val, &xsink))
-               parse_error(w->loc, "duplicate case values in switch");
+               parse_error(*w->loc, "duplicate case values in switch");
             assert(!xsink);
             cw = cw->next;
          }
@@ -211,7 +211,7 @@ void SwitchStatement::parseCommit(QoreProgram* pgm) {
 }
 
 
-CaseNodeWithOperator::CaseNodeWithOperator(const QoreProgramLocation& loc, AbstractQoreNode* v, StatementBlock* c, op_log_func_t op) : CaseNode(loc, v, c), op_func(op) {
+CaseNodeWithOperator::CaseNodeWithOperator(const QoreProgramLocation* loc, AbstractQoreNode* v, StatementBlock* c, op_log_func_t op) : CaseNode(loc, v, c), op_func(op) {
 }
 
 bool CaseNodeWithOperator::isCaseNodeImpl() const {
@@ -222,7 +222,7 @@ bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *x
    return op_func(lhs_value, val, xsink);
 }
 
-CaseNodeRegex::CaseNodeRegex(const QoreProgramLocation& loc, QoreRegex *m_re, StatementBlock *blk) : CaseNode(loc, nullptr, blk), re(m_re) {
+CaseNodeRegex::CaseNodeRegex(const QoreProgramLocation* loc, QoreRegex *m_re, StatementBlock *blk) : CaseNode(loc, nullptr, blk), re(m_re) {
 }
 
 bool CaseNodeRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {

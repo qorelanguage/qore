@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,10 +33,10 @@
 #define _QORE_TRANSFORMINPUTSTREAM_H
 
 #include <cassert>
-#include "qore/intern/InputStreamBase.h"
+#include "qore/InputStream.h"
 #include "qore/Transform.h"
 
-class TransformInputStream : public InputStreamBase {
+class TransformInputStream : public InputStream {
 public:
    DLLLOCAL TransformInputStream(InputStream *is, Transform *t) :
       is(is),
