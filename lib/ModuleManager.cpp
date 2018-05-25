@@ -767,55 +767,8 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
             mi = loadUserModuleFromPath(xsink, name, n.getBuffer(), pgm, reexport, pholder.release(), load_opt & QMLO_REINJECT ? mpgm : 0, load_opt);
         }
 
-<<<<<<< HEAD
-      if (xsink) {
-         assert(!mi);
-         return;
-      }
-
-      assert(mi);
-      qore_check_load_module_intern(mi, op, version, pgm, xsink);
-      return;
-   }
-
-   // otherwise, try to find module in the module path
-   QoreString str;
-   struct stat sb;
-
-   strdeque_t::const_iterator w = moduleDirList.begin();
-   while (w != moduleDirList.end()) {
-      // try to find module with supported api tags
-      for (unsigned ai = 0; ai <= qore_mod_api_list_len; ++ai) {
-         // build path to binary module
-         str.clear();
-         str.sprintf("%s" QORE_DIR_SEP_STR "%s", (*w).c_str(), name);
-
-         // make new extension string
-         if (ai < qore_mod_api_list_len)
-            str.sprintf("-api-%d.%d.qmod", qore_mod_api_list[ai].major, qore_mod_api_list[ai].minor);
-         else
-            str.concat(".qmod");
-
-         //printd(5, "ModuleManager::loadModule(%s) trying binary module: %s\n", name, str.getBuffer());
-         if (!stat(str.getBuffer(), &sb)) {
-            printd(5, "ModuleManager::loadModule(%s) found binary module: %s\n", name, str.getBuffer());
-            if (mpgm) {
-               xsink.raiseException("LOAD-MODULE-ERROR", "cannot load binary module '%s' with a Program container", name);
-               return;
-            }
-
-            mi = loadBinaryModuleFromPath(xsink, str.getBuffer(), name, pgm, reexport);
-            if (xsink) {
-               assert(!mi);
-               return;
-            }
-
-            assert(mi);
-            qore_check_load_module_intern(mi, op, version, pgm, xsink);
-=======
         if (xsink) {
             assert(!mi);
->>>>>>> develop
             return;
         }
 
