@@ -501,37 +501,50 @@ int check_component(mod_op_e op, int mod_ver, int req_ver, bool last) {
    return mod_ver > req_ver ? MVC_FINAL_OK : MVC_FAIL;
 }
 
+// issue #2834: add context to exception description if possible
+static void try_add_module_context(QoreStringNode* desc) {
+    const char* mod = get_user_module_context_name();
+    if (mod) {
+        QoreStringMaker str("while loading module '%s': ", mod);
+        desc->prepend(str.c_str(), str.size());
+    }
+}
+
 static void check_qore_version(const char* name, mod_op_e op, version_list_t& version, ExceptionSink& xsink) {
-   unsigned max = version.size() > 3 ? version.size() : 3;
-   for (unsigned i = 0; i < max; ++i) {
-      int mv = (!i ? QORE_VERSION_MAJOR :
-                (i == 1 ? QORE_VERSION_MINOR :
-                 (i == 2 ? QORE_VERSION_SUB : 0)));
-      int rv = (i >= version.size() ? 0 : version[i]);
-      int res = check_component(op, mv, rv, i == (max - 1));
-      if (res == MVC_FAIL) {
-         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "feature '%s' is built in, but the following version requirement is not satisfied: Qore library %s %s %s", name, QORE_VERSION, get_op_string(op), *version);
-         return;
-      }
-      if (res == MVC_FINAL_OK)
-         break;
-   }
+    unsigned max = version.size() > 3 ? version.size() : 3;
+    for (unsigned i = 0; i < max; ++i) {
+        int mv = (!i ? QORE_VERSION_MAJOR :
+                    (i == 1 ? QORE_VERSION_MINOR :
+                    (i == 2 ? QORE_VERSION_SUB : 0)));
+        int rv = (i >= version.size() ? 0 : version[i]);
+        int res = check_component(op, mv, rv, i == (max - 1));
+        if (res == MVC_FAIL) {
+            QoreStringNode* desc = new QoreStringNodeMaker("feature '%s' is built in, but the following version requirement is not satisfied: Qore library %s %s %s", name, QORE_VERSION, get_op_string(op), *version);
+            try_add_module_context(desc);
+            xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), desc);
+            return;
+        }
+        if (res == MVC_FINAL_OK)
+            break;
+    }
 }
 
 static void check_module_version(QoreAbstractModule* mi, mod_op_e op, version_list_t& version, ExceptionSink& xsink) {
-   unsigned max = version.size() > mi->version_list.size() ? version.size() : mi->version_list.size();
-   //printd(5, "check_module_version(%s %s %s) max=%d vs=%d ms=%d\n", mi->getVersion(), get_op_string(op), version->getString(), max, version->size(), mi->version_list.size());
-   for (unsigned i = 0; i < max; ++i) {
-      int mv = (i >= mi->version_list.size() ? 0 : mi->version_list[i]);
-      int rv = (i >= version.size() ? 0 : version[i]);
-      int res = check_component(op, mv, rv, i == (max - 1));
-      if (res == MVC_FAIL) {
-         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(mi->getName()), "loaded module '%s' does not satisfy the following requirement: %s %s %s", mi->getName(), mi->getVersion(), get_op_string(op), *version);
-         return;
-      }
-      if (res == MVC_FINAL_OK)
-         break;
-   }
+    unsigned max = version.size() > mi->version_list.size() ? version.size() : mi->version_list.size();
+    //printd(5, "check_module_version(%s %s %s) max=%d vs=%d ms=%d\n", mi->getVersion(), get_op_string(op), version->getString(), max, version->size(), mi->version_list.size());
+    for (unsigned i = 0; i < max; ++i) {
+        int mv = (i >= mi->version_list.size() ? 0 : mi->version_list[i]);
+        int rv = (i >= version.size() ? 0 : version[i]);
+        int res = check_component(op, mv, rv, i == (max - 1));
+        if (res == MVC_FAIL) {
+            QoreStringNode* desc = new QoreStringNodeMaker("loaded module '%s' does not satisfy the following requirement: %s %s %s", mi->getName(), mi->getVersion(), get_op_string(op), *version);
+            try_add_module_context(desc);
+            xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(mi->getName()), desc);
+            return;
+        }
+        if (res == MVC_FINAL_OK)
+            break;
+    }
 }
 
 static void qore_check_load_module_intern(QoreAbstractModule* mi, mod_op_e op, version_list_t* version, QoreProgram* pgm, ExceptionSink& xsink) {
@@ -689,7 +702,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
       size_t len = strlen(name);
       if (len > 5 && !strcasecmp(".qmod", name + len - 5)) {
          if (mpgm) {
-            xsink.raiseException("LOAD-MODULE-ERROR", "cannot load a binary module with a Program container");
+            xsink.raiseException("LOAD-MODULE-ERROR", "cannot load binary module '%s' with a Program container", name);
             return;
          }
          if (load_opt & QMLO_REINJECT) {
@@ -747,7 +760,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
          if (!stat(str.getBuffer(), &sb)) {
             printd(5, "ModuleManager::loadModule(%s) found binary module: %s\n", name, str.getBuffer());
             if (mpgm) {
-               xsink.raiseException("LOAD-MODULE-ERROR", "cannot load a binary module with a Program container");
+               xsink.raiseException("LOAD-MODULE-ERROR", "cannot load binary module '%s' with a Program container", name);
                return;
             }
 
@@ -839,19 +852,19 @@ void QoreModuleManager::parseLoadModule(ExceptionSink& xsink, const char* name, 
       else if (!op.compare(">"))
          mo = MOD_OP_GT;
       else {
-         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "cannot parse module operator '%s'; expecting one of: '<', '<=', '=', '>=', or '>'", op.getBuffer());
+         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': cannot parse module operator '%s'; expecting one of: '<', '<=', '=', '>=', or '>'", name, op.getBuffer());
          return;
       }
 
       version_list_t iv;
       char ec = iv.set(p);
       if (ec) {
-         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "only numeric digits and '.' characters are allowed in module/feature version specifications, got '%c'", ec);
+         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': only numeric digits and '.' characters are allowed in module/feature version specifications, got '%c'", name, ec);
          return;
       }
 
       if (!iv.size()) {
-         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "empty version specification given in feature/module request");
+         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), "module '%s': empty version specification given in feature/module request", name);
          return;
       }
 

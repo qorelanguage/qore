@@ -1163,17 +1163,11 @@ void hash_assignment_priv::assign(AbstractQoreNode* v, ExceptionSink* xsink) {
       QoreValue v(val.release());
       QoreTypeInfo::acceptInputKey(QoreTypeInfo::getUniqueReturnComplexHash(h.complexTypeInfo), om->key.c_str(), v, xsink);
       val = v.takeNode();
-#ifdef DEBUG
       // allow this function to be called with xsink = nullptr, otherwise the *xsink will assert
       // anyway if there is an exception is would dump core when the exception is raised
       if (xsink && *xsink) {
           return;
       }
-#else
-      if (*xsink) {
-         return;
-      }
-#endif
    }
 
    AbstractQoreNode* old = swapImpl(val.release());
