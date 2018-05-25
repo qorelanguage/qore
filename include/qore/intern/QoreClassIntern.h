@@ -950,11 +950,11 @@ public:
 #endif
 
     DLLLOCAL void clear(ExceptionSink* xsink) {
-        ReferenceHolder<> tmp(xsink);
+        ValueHolder tmp(xsink);
         QoreAutoVarRWWriteLocker al(rwl);
         if (!finalized)
             finalized = true;
-        tmp = val.removeNode(true);
+        tmp = val.removeValue(true);
     }
 
     DLLLOCAL void delVar(ExceptionSink* xsink) {
@@ -963,7 +963,7 @@ public:
 #else
         del();
 #endif
-        discard(val.removeNode(true), xsink);
+        val.removeValue(true).discard(xsink);
     }
 
     DLLLOCAL QoreVarInfo* copy(const char* name) const {

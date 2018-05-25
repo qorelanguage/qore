@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  LocalVar.h
+    LocalVar.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_LOCALVAR_H
@@ -94,64 +94,64 @@ public:
 
 class VarValueBase {
 protected:
-   DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
-      if (finalized) {
-         xsink->raiseException("DESTRUCTOR-ERROR", "illegal variable assignment after second phase of variable destruction");
-         return -1;
-      }
-      return 0;
-   }
+    DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
+        if (finalized) {
+            xsink->raiseException("DESTRUCTOR-ERROR", "illegal variable assignment after second phase of variable destruction");
+            return -1;
+        }
+        return 0;
+    }
 
 public:
-   QoreLValueGeneric val;
-   const char* id;
-   mutable bool skip : 1;
-   bool finalized : 1;
-   bool frame_boundary : 1;
+    QoreLValueGeneric val;
+    const char* id;
+    mutable bool skip : 1;
+    bool finalized : 1;
+    bool frame_boundary : 1;
 
-   DLLLOCAL VarValueBase(const char* n_id, valtype_t t = QV_Node, bool n_skip = false) : val(t), id(n_id), skip(n_skip), finalized(false), frame_boundary(false) {
-   }
+    DLLLOCAL VarValueBase(const char* n_id, valtype_t t = QV_Node, bool n_skip = false) : val(t), id(n_id), skip(n_skip), finalized(false), frame_boundary(false) {
+    }
 
-   DLLLOCAL VarValueBase(const char* n_id, const QoreTypeInfo* varTypeInfo) : val(varTypeInfo), id(n_id), skip(false), finalized(false), frame_boundary(false) {
-   }
+    DLLLOCAL VarValueBase(const char* n_id, const QoreTypeInfo* varTypeInfo) : val(varTypeInfo), id(n_id), skip(false), finalized(false), frame_boundary(false) {
+    }
 
-   DLLLOCAL VarValueBase() : val(QV_Bool), id(0), skip(false), finalized(false), frame_boundary(false) {
-   }
+    DLLLOCAL VarValueBase() : val(QV_Bool), id(0), skip(false), finalized(false), frame_boundary(false) {
+    }
 
-   DLLLOCAL void setFrameBoundary() {
-      assert(!frame_boundary);
-      frame_boundary = true;
-   }
+    DLLLOCAL void setFrameBoundary() {
+        assert(!frame_boundary);
+        frame_boundary = true;
+    }
 
-   DLLLOCAL void del(ExceptionSink* xsink) {
-      discard(val.removeNode(true), xsink);
-   }
+    DLLLOCAL void del(ExceptionSink* xsink) {
+        val.removeValue(true).discard(xsink);
+    }
 
-   DLLLOCAL bool isRef() const {
-      return val.getType() == NT_REFERENCE;
-   }
+    DLLLOCAL bool isRef() const {
+        return val.getType() == NT_REFERENCE;
+    }
 
-   DLLLOCAL AbstractQoreNode* finalize() {
-      if (finalized)
-         return 0;
+    DLLLOCAL QoreValue finalize() {
+        if (finalized)
+            return 0;
 
-      finalized = true;
+        finalized = true;
 
-      return val.removeNode(true);
-   }
+        return val.removeValue(true);
+    }
 };
 
 struct SkipHelper {
-   VarValueBase* vvb;
+    VarValueBase* vvb;
 
-   DLLLOCAL SkipHelper(VarValueBase* n_vvb) : vvb(n_vvb) {
-      assert(!vvb->skip);
-      vvb->skip = true;
-   }
+    DLLLOCAL SkipHelper(VarValueBase* n_vvb) : vvb(n_vvb) {
+        assert(!vvb->skip);
+        vvb->skip = true;
+    }
 
-   DLLLOCAL ~SkipHelper() {
-      vvb->skip = false;
-   }
+    DLLLOCAL ~SkipHelper() {
+        vvb->skip = false;
+    }
 };
 
 class LocalVarValue : public VarValueBase {
@@ -276,7 +276,7 @@ public:
    }
 
    // sets the current variable to finalized, sets the value to 0, and returns the value held (for dereferencing outside the lock)
-   DLLLOCAL AbstractQoreNode* finalize() {
+   DLLLOCAL QoreValue finalize() {
       QoreSafeVarRWWriteLocker sl(rml);
       return VarValueBase::finalize();
    }

@@ -148,7 +148,7 @@ public:
 
     DLLLOCAL void clearLocal(ExceptionSink* xsink) {
         if (val.type != QV_Ref) {
-            ReferenceHolder<> h(xsink);
+            ValueHolder h(xsink);
             QoreAutoVarRWWriteLocker al(rwl);
             if (!finalized)
                 finalized = true;
@@ -156,7 +156,7 @@ public:
 #ifdef QORE_ENFORCE_DEFAULT_LVALUE
             h = val.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo));
 #else
-            h = val.removeNode(true);
+            h = val.removeValue(true);
 #endif
         }
 #ifdef DEBUG
@@ -210,7 +210,7 @@ public:
         typeInfo = n_typeInfo;
         refTypeInfo = QoreTypeInfo::getReferenceTarget(typeInfo);
 
-        assert(!val.removeNode(true));
+        assert(!val.removeValue(true));
     }
 
     DLLLOCAL void parseInit() {
@@ -511,12 +511,6 @@ public:
         return val ? val->getInternalNode() : qv->getInternalNode();
     }
 
-    /*
-    DLLLOCAL const AbstractQoreNode* getValue() const {
-        return val ? val->getInternalNode() : qv->getInternalNode();
-    }
-    */
-
     DLLLOCAL const char* getTypeName() const {
         return val ? val->getTypeName() : qv->getTypeName();
     }
@@ -530,8 +524,6 @@ public:
     }
 
     DLLLOCAL QoreValue getReferencedValue() const;
-
-    //DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const;
 
     // only call if there is a reference-counted AbstractQoreNode value in place
     // FIXME: port operators to LValueHelper instead and remove this function
@@ -575,10 +567,10 @@ public:
     DLLLOCAL double postIncrementFloat(const char* desc = "<lvalue>");
     DLLLOCAL double postDecrementFloat(const char* desc = "<lvalue>");
 
-    DLLLOCAL void plusEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
-    DLLLOCAL void minusEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
-    DLLLOCAL void multiplyEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
-    DLLLOCAL void divideEqualsNumber(const AbstractQoreNode* r, const char* desc = "<lvalue>");
+    DLLLOCAL void plusEqualsNumber(QoreValue r, const char* desc = "<lvalue>");
+    DLLLOCAL void minusEqualsNumber(QoreValue r, const char* desc = "<lvalue>");
+    DLLLOCAL void multiplyEqualsNumber(QoreValue r, const char* desc = "<lvalue>");
+    DLLLOCAL void divideEqualsNumber(QoreValue r, const char* desc = "<lvalue>");
     DLLLOCAL void preIncrementNumber(const char* desc = "<lvalue>");
     DLLLOCAL void preDecrementNumber(const char* desc = "<lvalue>");
     DLLLOCAL QoreNumberNode* postIncrementNumber(bool ref_rv, const char* desc = "<lvalue>");
@@ -598,29 +590,18 @@ public:
             p = &qv->v.n;
         }
 
-        // if we converted from val above, then we already have a QoreNumberNode
-        if (get_node_type(*p) == NT_NUMBER) {
-            if (!(*p)->is_unique()) {
-                AbstractQoreNode* old = (*p);
-                (*p) = (*p)->realCopy();
-                saveTemp(old);
-            }
-        }
-        else {
-            if (!QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
-                typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
-                return nullptr;
-            }
-
-            saveTemp(*p);
-            *p = new QoreNumberNode(*p);
+        assert(get_node_type(*p) == NT_NUMBER);
+        if (!(*p)->is_unique()) {
+            AbstractQoreNode* old = (*p);
+            (*p) = (*p)->realCopy();
+            saveTemp(old);
         }
         return reinterpret_cast<QoreNumberNode*>(*p);
     }
 
     DLLLOCAL int assign(QoreValue val, const char* desc = "<lvalue>", bool check_types = true, bool weak_assignment = false);
 
-    DLLLOCAL AbstractQoreNode* removeNode(bool for_del);
+    DLLLOCAL QoreValue removeValue(bool for_del);
     DLLLOCAL QoreValue remove(bool& static_assignment);
 
     DLLLOCAL void setDelta(int dt) {
@@ -672,7 +653,7 @@ public:
 #endif
     }
 
-    DLLLOCAL AbstractQoreNode* removeNode();
+    DLLLOCAL QoreValue removeValue();
     DLLLOCAL QoreValue remove(bool& static_assignment);
 
     DLLLOCAL void deleteLValue();
