@@ -48,7 +48,7 @@ public:
     }
 
     DLLLOCAL virtual void close(ExceptionSink* xsink) override {
-        self->evalMethodValue("close", 0, xsink);
+        self->evalMethod("close", 0, xsink);
     }
 
     DLLLOCAL virtual void write(const void* ptr, int64 count, ExceptionSink* xsink) override {
@@ -60,7 +60,7 @@ public:
 
         ReferenceHolder<QoreListNode> args(new QoreListNode, xsink);
         args->push(buf.release(), xsink);
-        self->evalMethodValue("write", *args, xsink);
+        self->evalMethod("write", *args, xsink);
     }
 
     DLLLOCAL bool isClosed() override {

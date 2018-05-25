@@ -633,7 +633,7 @@ qore_class_private::~qore_class_private() {
         mud->doDeref();
 }
 
-void qore_class_private::addBuiltinStaticVar(const char* vname, AbstractQoreNode* value, ClassAccess access, const QoreTypeInfo* vTypeInfo) {
+void qore_class_private::addBuiltinStaticVar(const char* vname, QoreValue value, ClassAccess access, const QoreTypeInfo* vTypeInfo) {
     assert(!vars.inList(vname));
 
     if (!sys) {
@@ -2752,16 +2752,8 @@ static const QoreClass* getStackClass() {
    return qc ? qc->cls : nullptr;
 }
 
-void QoreClass::addPublicMember(const char* mname, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value) {
-   priv->addMember(mname, Public, n_typeInfo, initial_value);
-}
-
-void QoreClass::addPrivateMember(const char* mname, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value) {
-   priv->addMember(mname, Private, n_typeInfo, initial_value);
-}
-
-void QoreClass::addMember(const char* mname, ClassAccess access, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value) {
-   priv->addMember(mname, access, n_typeInfo, initial_value);
+void QoreClass::addMember(const char* mname, ClassAccess access, const QoreTypeInfo* n_typeInfo, QoreValue initial_value) {
+    priv->addMember(mname, access, n_typeInfo, initial_value);
 }
 
 BCSMList::BCSMList(const BCSMList& old) {
@@ -3160,7 +3152,7 @@ void QoreClass::execMemberNotification(QoreObject* self, const char* mem, Except
 
    ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
    args->push(new QoreStringNode(mem), nullptr);
-   discard(self->evalMethod(*priv->memberNotification, *args, xsink), xsink);
+   self->evalMethod(*priv->memberNotification, *args, xsink).discard(xsink);
 }
 
 // FIXME: remove
@@ -3987,20 +3979,12 @@ void QoreClass::unsetPublicMemberFlag() {
    priv->has_public_memdecl = false;
 }
 
-void QoreClass::addBuiltinConstant(const char* name, AbstractQoreNode* value, bool is_priv, const QoreTypeInfo* typeInfo) {
-   priv->addBuiltinConstant(name, value, is_priv ? Private : Public, typeInfo);
-}
-
-void QoreClass::addBuiltinStaticVar(const char* name, AbstractQoreNode* value, bool is_priv, const QoreTypeInfo* typeInfo) {
-   priv->addBuiltinStaticVar(name, value, is_priv ? Private : Public, typeInfo);
-}
-
 void QoreClass::addBuiltinConstant(const char* name, QoreValue value, ClassAccess access, const QoreTypeInfo* typeInfo) {
-   priv->addBuiltinConstant(name, value.takeNode(), access, typeInfo);
+    priv->addBuiltinConstant(name, value.takeNode(), access, typeInfo);
 }
 
 void QoreClass::addBuiltinStaticVar(const char* name, QoreValue value, ClassAccess access, const QoreTypeInfo* typeInfo) {
-   priv->addBuiltinStaticVar(name, value.takeNode(), access, typeInfo);
+    priv->addBuiltinStaticVar(name, value.takeNode(), access, typeInfo);
 }
 
 void QoreClass::rescanParents() {

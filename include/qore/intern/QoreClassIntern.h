@@ -997,13 +997,6 @@ public:
         return val.getReferencedValue();
     }
 
-    /*
-    DLLLOCAL AbstractQoreNode* getReferencedNodeValue() const {
-        QoreAutoVarRWReadLocker al(rwl);
-        return val.getReferencedNodeValue();
-    }
-    */
-
     DLLLOCAL int64 getAsBigInt() const {
         QoreAutoVarRWReadLocker al(rwl);
         return val.getAsBigInt();
@@ -2145,7 +2138,7 @@ public:
         delete VarInfo;
     }
 
-    DLLLOCAL void addBuiltinConstant(const char* cname, AbstractQoreNode* value, ClassAccess access = Public, const QoreTypeInfo* cTypeInfo = nullptr) {
+    DLLLOCAL void addBuiltinConstant(const char* cname, QoreValue value, ClassAccess access = Public, const QoreTypeInfo* cTypeInfo = nullptr) {
         assert(!constlist.inList(cname));
         if (!sys) {
             sys = committed = true;
@@ -2153,7 +2146,7 @@ public:
         constlist.add(cname, value, cTypeInfo, access);
     }
 
-    DLLLOCAL void addBuiltinStaticVar(const char* vname, AbstractQoreNode* value, ClassAccess access = Public, const QoreTypeInfo* vTypeInfo = nullptr);
+    DLLLOCAL void addBuiltinStaticVar(const char* vname, QoreValue value, ClassAccess access = Public, const QoreTypeInfo* vTypeInfo = nullptr);
 
     DLLLOCAL void parseAssimilateConstants(ConstantList &cmap, ClassAccess access) {
         assert(!sys && !committed);
@@ -2167,8 +2160,8 @@ public:
         constlist.assimilate(cmap, "class", name.c_str());
     }
 
-    DLLLOCAL void parseAddConstant(const QoreProgramLocation* loc, const std::string &cname, AbstractQoreNode* val, ClassAccess access) {
-        ReferenceHolder<> val_holder(val, nullptr);
+    DLLLOCAL void parseAddConstant(const QoreProgramLocation* loc, const std::string &cname, QoreValue val, ClassAccess access) {
+        ValueHolder val_holder(val, nullptr);
         if (parseCheckSystemCommitted(loc)) {
             return;
         }
@@ -2867,7 +2860,7 @@ public:
       return qc.priv->getHash();
    }
 
-   DLLLOCAL static void parseAddConstant(QoreClass& qc, const QoreProgramLocation* loc, const std::string &cname, AbstractQoreNode* val, ClassAccess access) {
+   DLLLOCAL static void parseAddConstant(QoreClass& qc, const QoreProgramLocation* loc, const std::string &cname, QoreValue val, ClassAccess access) {
       qc.priv->parseAddConstant(loc, cname, val, access);
    }
 

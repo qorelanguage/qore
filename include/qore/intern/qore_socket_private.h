@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  qore_socket_private.h
+    qore_socket_private.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QORE_SOCKET_PRIVATE_H
@@ -233,7 +233,7 @@ struct qore_socket_private {
       tp_us_min = 0             // throughput: minimum time for transfer to be considered
       ;
 
-   AbstractQoreNode* callback_arg = nullptr;
+   QoreValue callback_arg;
    bool del = false,
       http_exp_chunked_body = false,
       ssl_accept_all_certs = false;
@@ -575,8 +575,8 @@ struct qore_socket_private {
          warn_queue->deref(xsink);
          warn_queue = 0;
          if (callback_arg) {
-            callback_arg->deref(xsink);
-            callback_arg = 0;
+            callback_arg.discard(xsink);
+            callback_arg = QoreValue();
          }
       }
    }
@@ -3231,8 +3231,8 @@ struct qore_socket_private {
    DLLLOCAL void clearWarningQueue(ExceptionSink* xsink) {
       if (warn_queue) {
          if (callback_arg) {
-            callback_arg->deref(xsink);
-            callback_arg = 0;
+            callback_arg.discard(xsink);
+            callback_arg = QoreValue();
          }
          warn_queue->deref(xsink);
          warn_queue = 0;
@@ -3242,9 +3242,9 @@ struct qore_socket_private {
       }
    }
 
-   DLLLOCAL void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms = 1000) {
+   DLLLOCAL void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, QoreValue arg, int64 min_ms = 1000) {
       ReferenceHolder<Queue> qholder(wq, xsink);
-      ReferenceHolder<> holder(arg, xsink);
+      ValueHolder holder(arg, xsink);
       if (warning_ms <=0 && warning_bs <= 0) {
          xsink->raiseException("SOCKET-SETWARNINGQUEUE-ERROR", "Socket::setWarningQueue() at least one of warning ms argument: " QLLD " and warning B/s argument: " QLLD " must be greater than zero; to clear, call Socket::clearWarningQueue() with no arguments", warning_ms, warning_bs);
          return;
@@ -3257,7 +3257,7 @@ struct qore_socket_private {
 
       if (warn_queue) {
          warn_queue->deref(xsink);
-         discard(callback_arg, xsink);
+         callback_arg.discard(xsink);
       }
 
       warn_queue = qholder.release();
@@ -3269,7 +3269,7 @@ struct qore_socket_private {
 
    DLLLOCAL void getUsageInfo(QoreHashNode& h, qore_socket_private& s) const {
       if (warn_queue) {
-         h.setKeyValue("arg", callback_arg ? callback_arg->refSelf() : 0, 0);
+         h.setKeyValue("arg", callback_arg.refSelf(), 0);
          h.setKeyValue("timeout", tl_warning_us, 0);
          h.setKeyValue("min_throughput", (int64)tp_warning_bs, 0);
          h.setKeyValue("min_throughput_us", (int64)tp_us_min, 0);
@@ -3283,7 +3283,7 @@ struct qore_socket_private {
 
    DLLLOCAL void getUsageInfo(QoreHashNode& h) const {
       if (warn_queue) {
-         h.setKeyValue("arg", callback_arg ? callback_arg->refSelf() : 0, 0);
+         h.setKeyValue("arg", callback_arg.refSelf(), 0);
          h.setKeyValue("timeout", tl_warning_us, 0);
          h.setKeyValue("min_throughput", (int64)tp_warning_bs, 0);
          h.setKeyValue("min_throughput_us", (int64)tp_us_min, 0);
@@ -3319,7 +3319,7 @@ struct qore_socket_private {
       h->setKeyValue("us", dt, 0);
       h->setKeyValue("timeout", tl_warning_us, 0);
       if (callback_arg)
-         h->setKeyValue("arg", callback_arg->refSelf(), 0);
+         h->setKeyValue("arg", callback_arg.refSelf(), 0);
 
       warn_queue->pushAndTakeRef(h);
    }
@@ -3337,7 +3337,7 @@ struct qore_socket_private {
       h->setKeyValue("bytes_sec", bs, 0);
       h->setKeyValue("threshold", (int64)tp_warning_bs, 0);
       if (callback_arg)
-         h->setKeyValue("arg", callback_arg->refSelf(), 0);
+         h->setKeyValue("arg", callback_arg.refSelf(), 0);
 
       warn_queue->pushAndTakeRef(h);
    }

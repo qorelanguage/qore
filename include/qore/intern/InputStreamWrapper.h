@@ -51,7 +51,7 @@ public:
       assert(limit > 0);
       ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
       args->push(limit, xsink);
-      ValueHolder bufHolder(self->evalMethodValue("read", *args, xsink), xsink);
+      ValueHolder bufHolder(self->evalMethod("read", *args, xsink), xsink);
       if (!bufHolder) {
          return 0;
       }
@@ -75,7 +75,7 @@ public:
 
    DLLLOCAL virtual int64 peek(ExceptionSink *xsink) override {
       ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
-      ValueHolder resHolder(self->evalMethodValue("peek", *args, xsink), xsink);
+      ValueHolder resHolder(self->evalMethod("peek", *args, xsink), xsink);
       if (!resHolder) {
          return -2;
       }

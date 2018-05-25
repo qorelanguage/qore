@@ -56,7 +56,7 @@ private:
       ReferenceArgumentHelper rah(rs, &xsink2);
       args->push(rah.getArg(), nullptr); // caller owns ref
       printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, param#: %d, rs: %d, xsink2: %d\n", name, this, pgm, paramCount, rs, xsink2.isEvent());
-      discard(qo->evalMethod(name, *args, &xsink2), &xsink2);
+      qo->evalMethod(name, *args, &xsink2).discard(&xsink2);
       QoreValue v(rah.getOutputQoreValue());
       rs = (DebugRunStateEnum) v.getAsBigInt();
       v.discard(&xsink2);

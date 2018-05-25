@@ -527,7 +527,7 @@ QoreValue qore_object_private::getReferencedMemberNoMethod(const char* mem, Exce
     return rv;
 }
 
-void qore_object_private::setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
+void qore_object_private::setValue(const char* key, QoreValue val, ExceptionSink* xsink) {
    // get the current class context
    const qore_class_private* class_ctx = runtime_get_class();
    if (class_ctx && (!qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx) || !class_ctx->runtimeIsMemberInternal(key)))
@@ -888,83 +888,24 @@ bool QoreObject::validInstanceOf(const QoreClass& qc) const {
    return priv->theclass->getClass(qc, p);
 }
 
-QoreValue QoreObject::evalMethodValue(const QoreString* name, const QoreListNode* args, ExceptionSink* xsink) {
+QoreValue QoreObject::evalMethod(const QoreString* name, const QoreListNode* args, ExceptionSink* xsink) {
    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
    if (!tmp)
       return QoreValue();
 
-   return evalMethodValue(tmp->getBuffer(), args, xsink);
+   return evalMethod(tmp->c_str(), args, xsink);
 }
 
-QoreValue QoreObject::evalMethodValue(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
+QoreValue QoreObject::evalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
    return priv->theclass->evalMethod(this, name, args, xsink);
 }
 
-AbstractQoreNode* QoreObject::evalMethod(const QoreString* name, const QoreListNode* args, ExceptionSink* xsink) {
-   TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
-   if (!tmp)
-      return 0;
-
-   return evalMethod(tmp->getBuffer(), args, xsink);
-}
-
-AbstractQoreNode* QoreObject::evalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(priv->theclass->evalMethod(this, name, args, xsink), xsink);
-   return *xsink ? 0 : rv.getReferencedValue();
-}
-
-int64 QoreObject::bigIntEvalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(priv->theclass->evalMethod(this, name, args, xsink), xsink);
-   return *xsink ? 0 : rv->getAsBigInt();
-}
-
-int QoreObject::intEvalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(priv->theclass->evalMethod(this, name, args, xsink), xsink);
-   return *xsink ? 0 : rv->getAsBigInt();
-}
-
-bool QoreObject::boolEvalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(priv->theclass->evalMethod(this, name, args, xsink), xsink);
-   return *xsink ? false : rv->getAsBool();
-}
-
-double QoreObject::floatEvalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(priv->theclass->evalMethod(this, name, args, xsink), xsink);
-   return *xsink ? 0.0 : rv->getAsFloat();
-}
-
-QoreValue QoreObject::evalMethodValue(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
+QoreValue QoreObject::evalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
    return qore_method_private::eval(method, xsink, this, args);
 }
 
-AbstractQoreNode* QoreObject::evalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(qore_method_private::eval(method, xsink, this, args), xsink);
-   return *xsink ? 0 : rv.getReferencedValue();
-}
-
-int64 QoreObject::bigIntEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(qore_method_private::eval(method, xsink, this, args), xsink);
-   return *xsink ? 0 : rv->getAsBigInt();
-}
-
-int QoreObject::intEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(qore_method_private::eval(method, xsink, this, args), xsink);
-   return *xsink ? 0 : rv->getAsBigInt();
-}
-
-bool QoreObject::boolEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(qore_method_private::eval(method, xsink, this, args), xsink);
-   return *xsink ? false : rv->getAsBool();
-}
-
-double QoreObject::floatEvalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(qore_method_private::eval(method, xsink, this, args), xsink);
-   return *xsink ? 0.0 : rv->getAsFloat();
-}
-
-AbstractQoreNode* QoreObject::evalMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
-   ValueHolder rv(qore_method_private::evalNormalVariant(method, xsink, this, variant, args), xsink);
-   return *xsink ? 0 : rv.getReferencedValue();
+QoreValue QoreObject::evalMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
+    return qore_method_private::evalNormalVariant(method, xsink, this, variant, args);
 }
 
 const QoreClass* QoreObject::getClass(qore_classid_t cid) const {
@@ -1212,7 +1153,7 @@ QoreHashNode* QoreObject::getSlice(const QoreListNode* value_list, ExceptionSink
    return priv->getSlice(value_list, xsink);
 }
 
-void QoreObject::setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
+void QoreObject::setValue(const char* key, QoreValue val, ExceptionSink* xsink) {
    priv->setValue(key, val, xsink);
 }
 

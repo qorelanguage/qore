@@ -559,7 +559,7 @@ public:
 
     // FIXME: remove with new API/ABI
     //! converts pointers to efficient representations and manages the reference count
-    DLLEXPORT void sanitize();
+    DLLLOCAL void sanitize();
 };
 
 //! evaluates an AbstractQoreNode and dereferences the stored value in the destructor

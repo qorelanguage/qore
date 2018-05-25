@@ -405,7 +405,7 @@ public:
         return id;
     }
 
-    DLLLOCAL void setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink);
+    DLLLOCAL void setValue(const char* key, QoreValue val, ExceptionSink* xsink);
 
     DLLLOCAL void setValueIntern(const qore_class_private* class_ctx, const char* key, QoreValue val, ExceptionSink* xsink);
 

@@ -61,7 +61,7 @@ QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, Excepti
          : qore_method_private::eval(*method, xsink, o, args);
    }
    //printd(5, "AbstractMethodCallNode::exec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
-   return o->evalMethodValue(c_str, args, xsink);
+   return o->evalMethod(c_str, args, xsink);
 }
 
 static void invalid_access(const QoreProgramLocation* loc, QoreFunction* func) {

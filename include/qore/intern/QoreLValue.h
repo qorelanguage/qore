@@ -1137,190 +1137,190 @@ public:
         return 0;
     }
 
-   DLLLOCAL int64 shiftRightEqualsBigInt(int64 i, AbstractQoreNode*& old) {
-      assert(type == QV_Int);
+    DLLLOCAL int64 shiftRightEqualsBigInt(int64 i, AbstractQoreNode*& old) {
+        assert(type == QV_Int);
 
-      switch (type) {
-         case QV_Int:
-            if (!assigned) {
-               assigned = true;
-               return v.i = 0;
-            }
-         return v.i >>= i;
-
-            // to avoid warnings about missing enum values
-         default:
-            assert(false);
-            // no break
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 postIncrementBigInt(AbstractQoreNode*& old) {
-      assert(type == QV_Int);
-
-      switch (type) {
-         case QV_Int: {
-            if (!assigned) {
-               assigned = true;
-               v.i = 1;
-               return 0;
-            }
-            int64 rv = (int64)v.i;
-            ++v.i;
-            return rv;
-         }
+        switch (type) {
+            case QV_Int:
+                if (!assigned) {
+                    assigned = true;
+                    return v.i = 0;
+                }
+                return v.i >>= i;
 
             // to avoid warnings about missing enum values
-         default:
-            assert(false);
-            // no break
-      }
+            default:
+                assert(false);
+                // no break
+        }
 
-      return 0;
-   }
+        return 0;
+    }
 
-   DLLLOCAL int64 preIncrementBigInt(AbstractQoreNode*& old) {
-      assert(type == QV_Int);
+    DLLLOCAL int64 postIncrementBigInt(AbstractQoreNode*& old) {
+        assert(type == QV_Int);
 
-      switch (type) {
-         case QV_Int:
-            if (!assigned) {
-               assigned = true;
-               return v.i = 1;
+        switch (type) {
+            case QV_Int: {
+                if (!assigned) {
+                    assigned = true;
+                    v.i = 1;
+                    return 0;
+                }
+                int64 rv = (int64)v.i;
+                ++v.i;
+                return rv;
             }
-            return ++v.i;
 
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-            // no break
-      }
+                // to avoid warnings about missing enum values
+            default:
+                assert(false);
+                // no break
+        }
 
-      return 0;
-   }
+        return 0;
+    }
 
-   DLLLOCAL int64 postDecrementBigInt(AbstractQoreNode*& old) {
-      assert(type == QV_Int);
+    DLLLOCAL int64 preIncrementBigInt(AbstractQoreNode*& old) {
+        assert(type == QV_Int);
 
-      switch (type) {
-         case QV_Int:
-            if (!assigned) {
-               assigned = true;
-               v.i = -1;
-               return 0;
-            }
-            return v.i--;
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-            // no break
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL int64 preDecrementBigInt(AbstractQoreNode*& old) {
-      assert(type == QV_Int);
-
-      switch (type) {
-         case QV_Int:
-            if (!assigned) {
-               assigned = true;
-               return v.i = -1;
-            }
-            return --v.i;
+        switch (type) {
+            case QV_Int:
+                if (!assigned) {
+                    assigned = true;
+                    return v.i = 1;
+                }
+                return ++v.i;
 
             // to avoid warnings about missing enum values
-         default:
-            assert(false);
-            // no break
-      }
-      return 0;
-   }
+            default:
+                assert(false);
+                // no break
+        }
 
-   DLLLOCAL double postIncrementFloat(AbstractQoreNode*& old) {
-      assert(type == QV_Float);
+        return 0;
+    }
 
-      switch (type) {
-         case QV_Float:
-            if (!assigned) {
-               assigned = true;
-               v.f = 1.0;
-               return 0.0;
-            }
-            return v.f++;
+    DLLLOCAL int64 postDecrementBigInt(AbstractQoreNode*& old) {
+        assert(type == QV_Int);
 
-            // to avoid warnings about missing enum values
-         default:
-            assert(false);
-            // no break
-      }
-
-      return 0.0;
-   }
-
-   DLLLOCAL double preIncrementFloat(AbstractQoreNode*& old) {
-      assert(type == QV_Float);
-
-      switch (type) {
-         case QV_Float:
-            if (!assigned) {
-               assigned = true;
-               return v.f = 1.0;
-            }
-            return ++v.f;
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-            // no break
-      }
-
-      return 0.0;
-   }
-
-   DLLLOCAL double postDecrementFloat(AbstractQoreNode*& old) {
-      assert(type == QV_Float);
-
-      switch (type) {
-         case QV_Float:
-            if (!assigned) {
-               assigned = true;
-               v.f = -1.0;
-               return 0.0;
-            }
-            return v.f--;
-
-         // to avoid warnings about missing enum values
-         default:
-            assert(false);
-            // no break
-      }
-
-      return 0.0;
-   }
-
-   DLLLOCAL double preDecrementFloat(AbstractQoreNode*& old) {
-      assert(type == QV_Float);
-
-      switch (type) {
-         case QV_Float:
-            if (!assigned) {
-               assigned = true;
-               return v.f = -1.0;
-            }
-            return --v.f;
+        switch (type) {
+            case QV_Int:
+                if (!assigned) {
+                    assigned = true;
+                    v.i = -1;
+                    return 0;
+                }
+                return v.i--;
 
             // to avoid warnings about missing enum values
-         default:
-            assert(false);
-            // no break
-      }
-      return 0;
-   }
+            default:
+                assert(false);
+                // no break
+        }
+
+        return 0;
+    }
+
+    DLLLOCAL int64 preDecrementBigInt(AbstractQoreNode*& old) {
+        assert(type == QV_Int);
+
+        switch (type) {
+            case QV_Int:
+                if (!assigned) {
+                    assigned = true;
+                    return v.i = -1;
+                }
+                return --v.i;
+
+                // to avoid warnings about missing enum values
+            default:
+                assert(false);
+                // no break
+        }
+        return 0;
+    }
+
+    DLLLOCAL double postIncrementFloat(AbstractQoreNode*& old) {
+        assert(type == QV_Float);
+
+        switch (type) {
+            case QV_Float:
+                if (!assigned) {
+                    assigned = true;
+                    v.f = 1.0;
+                    return 0.0;
+                }
+                return v.f++;
+
+                // to avoid warnings about missing enum values
+            default:
+                assert(false);
+                // no break
+        }
+
+        return 0.0;
+    }
+
+    DLLLOCAL double preIncrementFloat(AbstractQoreNode*& old) {
+        assert(type == QV_Float);
+
+        switch (type) {
+            case QV_Float:
+                if (!assigned) {
+                    assigned = true;
+                    return v.f = 1.0;
+                }
+                return ++v.f;
+
+            // to avoid warnings about missing enum values
+            default:
+                assert(false);
+                // no break
+        }
+
+        return 0.0;
+    }
+
+    DLLLOCAL double postDecrementFloat(AbstractQoreNode*& old) {
+        assert(type == QV_Float);
+
+        switch (type) {
+            case QV_Float:
+                if (!assigned) {
+                    assigned = true;
+                    v.f = -1.0;
+                    return 0.0;
+                }
+                return v.f--;
+
+            // to avoid warnings about missing enum values
+            default:
+                assert(false);
+                // no break
+        }
+
+        return 0.0;
+    }
+
+    DLLLOCAL double preDecrementFloat(AbstractQoreNode*& old) {
+        assert(type == QV_Float);
+
+        switch (type) {
+            case QV_Float:
+                if (!assigned) {
+                    assigned = true;
+                    return v.f = -1.0;
+                }
+                return --v.f;
+
+                // to avoid warnings about missing enum values
+            default:
+                assert(false);
+                // no break
+        }
+        return 0;
+    }
 
     DLLLOCAL double multiplyEqualsFloat(double f, AbstractQoreNode*& old) {
         assert(type == QV_Float);
@@ -1342,26 +1342,26 @@ public:
         return 0;
     }
 
-   DLLLOCAL double divideEqualsFloat(double f, AbstractQoreNode*& old) {
-      assert(type == QV_Float);
-      assert(f);
+    DLLLOCAL double divideEqualsFloat(double f, AbstractQoreNode*& old) {
+        assert(type == QV_Float);
+        assert(f);
 
-      switch (type) {
-         case QV_Float:
-            if (!assigned) {
-               assigned = true;
-               return v.f = 0;
-            }
-            return v.f /= f;
+        switch (type) {
+            case QV_Float:
+                if (!assigned) {
+                    assigned = true;
+                    return v.f = 0;
+                }
+                return v.f /= f;
 
-            // to avoid warnings about missing enum values
-         default:
-            assert(false);
-            // no break
-      }
+                // to avoid warnings about missing enum values
+            default:
+                assert(false);
+                // no break
+        }
 
-      return 0;
-   }
+        return 0;
+    }
 
     DLLLOCAL QoreValue remove(bool& was_static_assignment) {
         assert(!was_static_assignment);

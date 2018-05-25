@@ -761,12 +761,12 @@ public:
       data.clearWarningQueue(xsink);
    }
 
-   DLLLOCAL void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms) {
+   DLLLOCAL void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, QoreValue arg, int64 min_ms) {
       AutoLocker al(m);
       control.setWarningQueue(xsink, warning_ms, warning_bs, wq, arg, min_ms);
       if (!*xsink) {
          wq->ref();
-         data.setWarningQueue(xsink, warning_ms, warning_bs, wq, arg ? arg->refSelf() : 0, min_ms);
+         data.setWarningQueue(xsink, warning_ms, warning_bs, wq, arg.refSelf(), min_ms);
       }
    }
 
@@ -1580,7 +1580,7 @@ void QoreFtpClient::clearWarningQueue(ExceptionSink* xsink) {
    priv->clearWarningQueue(xsink);
 }
 
-void QoreFtpClient::setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, AbstractQoreNode* arg, int64 min_ms) {
+void QoreFtpClient::setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, QoreValue arg, int64 min_ms) {
    priv->setWarningQueue(xsink, warning_ms, warning_bs, wq, arg, min_ms);
 }
 

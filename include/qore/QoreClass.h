@@ -679,17 +679,7 @@ public:
    DLLEXPORT const QoreTypeInfo* getOrNothingTypeInfo() const;
 
    //! adds a member
-   DLLEXPORT void addMember(const char* mem, ClassAccess access, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
-
-   //! adds a public member
-   /** @deprecated use addMember() instead
-    */
-   DLLEXPORT void addPublicMember(const char* mem, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
-
-   //! adds a private member
-   /** @deprecated use addMember() instead
-    */
-   DLLEXPORT void addPrivateMember(const char* mem, const QoreTypeInfo* n_typeInfo, AbstractQoreNode* initial_value = 0);
+   DLLEXPORT void addMember(const char* mem, ClassAccess access, const QoreTypeInfo* n_typeInfo, QoreValue initial_value = QoreValue());
 
    //! sets a pointer to user-specific data in the class
    /** @deprecated use setManagedUserData(AbstractQoreClassUserData*) instead
@@ -730,26 +720,10 @@ public:
    //! adds a class constant to the class
    /** @param name the name of the constant; cannot be the same as the name of a static variable
        @param value the value of the constant
-       @param priv true if private, false if public
-       @param typeInfo only need to set if the value assigned to the constant is not an internally-defined type and therefore the type info cannot be automatically determined, otherwise this parameter may be passed as NULL, in which case the type info will be automatically determined
-    */
-   DLLEXPORT void addBuiltinConstant(const char* name, AbstractQoreNode* value, bool priv = false, const QoreTypeInfo* typeInfo = 0);
-
-   //! adds a static variable to the class
-   /** @param name the name of the static variable; cannot be the same as the name of a class constant
-       @param value the initial of the static variable
-       @param priv true if private, false if public
-       @param typeInfo only need to set if the initial value assigned to the static variable (as given by the 'value' parameter) is not an internally-defined type and therefore the type info cannot be automatically determined, otherwise this parameter may be passed as NULL, in which case the type info will be automatically determined
-    */
-   DLLEXPORT void addBuiltinStaticVar(const char* name, AbstractQoreNode* value, bool priv = false, const QoreTypeInfo* typeInfo = 0);
-
-   //! adds a class constant to the class
-   /** @param name the name of the constant; cannot be the same as the name of a static variable
-       @param value the value of the constant
        @param access the access protection of the constant
        @param typeInfo only need to set if the value assigned to the constant is not an internally-defined type and therefore the type info cannot be automatically determined, otherwise this parameter may be passed as NULL, in which case the type info will be automatically determined
     */
-   DLLEXPORT void addBuiltinConstant(const char* name, QoreValue value, ClassAccess access = Public, const QoreTypeInfo* typeInfo = 0);
+   DLLEXPORT void addBuiltinConstant(const char* name, QoreValue value, ClassAccess access = Public, const QoreTypeInfo* typeInfo = nullptr);
 
    //! adds a static variable to the class
    /** @param name the name of the static variable; cannot be the same as the name of a class constant
@@ -757,7 +731,7 @@ public:
        @param access the access protection of the static variable
        @param typeInfo only need to set if the initial value assigned to the static variable (as given by the 'value' parameter) is not an internally-defined type and therefore the type info cannot be automatically determined, otherwise this parameter may be passed as NULL, in which case the type info will be automatically determined
     */
-   DLLEXPORT void addBuiltinStaticVar(const char* name, QoreValue value, ClassAccess access = Public, const QoreTypeInfo* typeInfo = 0);
+   DLLEXPORT void addBuiltinStaticVar(const char* name, QoreValue value, ClassAccess access = Public, const QoreTypeInfo* typeInfo = nullptr);
 
    //! returns true if the class has at least one abstract method variant
    /** @return true if the class has at least one abstract method variant
