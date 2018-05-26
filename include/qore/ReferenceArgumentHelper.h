@@ -66,57 +66,51 @@ private:
    DLLLOCAL ReferenceArgumentHelper& operator=(const ReferenceArgumentHelper&);
 
 public:
-   //! creates a fake local variable assigned to "val" and creates a reference to the local variable
-   /**
-       @param name of argument
-       @param val the value to assign to the local variable
-       @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
-       @since %Qore 0.8.13
-   */
-   DLLEXPORT ReferenceArgumentHelper(QoreValue val, ExceptionSink* xsink);
+    //! creates a fake local variable assigned to "val" and creates a reference to the local variable
+    /**
+        @param val the value to assign to the local variable
+        @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
 
-   // creates a fake local variable assigned to "val" and creates a reference to the local variable
-   /*
-      @param val the value to assign to the local variable
-      @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
+        @code
+        // incorrect - MEMORY LEAK!
+        ReferenceArgumentHelper rah(new QoreHashNode, &xsink2);
+
+        // correct
+        ValueHolder holder(new QoreHashNode, &xsink2);
+        ReferenceArgumentHelper rah(*holder, &xsink2);
+        @endcode
     */
-   //DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, ExceptionSink* xsink);
-   // creates a fake local variable assigned to "val" and creates a reference to the local variable
-   /*
-         @param val the value to assign to the local variable
-         @param typeInfo the type restriction for the lvalue
-         @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
-         @since %Qore 0.8.13
+    DLLEXPORT ReferenceArgumentHelper(QoreValue val, ExceptionSink* xsink);
 
-       Warning using this constructor may lead to memory leak when value is changed in Qore script. Problem is
-       when AbstractQoreNode is created and assigned to helper then QoreValue is taken but original reference in node
-       is not dereferenced. So when is AbstractQoreNode is to be destroyed then destroys invalid QoreValue which has been
-       destroyed is script. The other option is to leave AbstractQoreNode referenced but it causes memory leak.
+    //! creates a fake local variable assigned to "val" and creates a reference to the local variable
+    /**
+        @param val the value to assign to the local variable
+        @param typeInfo type information for the lvalue
+        @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
 
-    @code
-      // wrong
-      QoreBigIntNode *rc = new QoreBigIntNode(retCode);   // 48 bytes in 2 blocks are definitely lost in loss record .... allocated here by: operator new(unsigned long)
-      ReferenceArgumentHelper rah(rc, &xsink2);
+        @code
+        // incorrect - MEMORY LEAK!
+        ReferenceArgumentHelper rah(new QoreHashNode, autoHashTypeInfo, &xsink2);
 
-      // correct
-      ReferenceArgumentHelper rah(retCode, &xsink2);
-    @endcode
-
-   */
-   //DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, const QoreTypeInfo* typeInfo, ExceptionSink* xsink);
-
-   //! frees all memory still managed by the object
-   DLLEXPORT ~ReferenceArgumentHelper();
-
-   //! returns the reference to the fake local variable for use in an argument list, the caller owns the reference returned
-   /** @return the reference to the fake local variable for use in an argument list, the caller owns the reference returned
+        // correct
+        ValueHolder holder(new QoreHashNode, &xsink2);
+        ReferenceArgumentHelper rah(*holder, autoHashTypeInfo, &xsink2);
+        @endcode
     */
-   DLLEXPORT AbstractQoreNode* getArg() const;
+    DLLEXPORT ReferenceArgumentHelper(QoreValue val, const QoreTypeInfo* typeInfo, ExceptionSink* xsink);
 
-   //! returns the value of the reference and leaves the reference empty, the caller owns the reference returned
-   /** @return the value of the reference and leaves the reference empty, the caller owns the reference returned
+    //! frees all memory still managed by the object
+    DLLEXPORT ~ReferenceArgumentHelper();
+
+    //! returns the reference to the fake local variable for use in an argument list, the caller owns the reference returned
+    /** @return the reference to the fake local variable for use in an argument list, the caller owns the reference returned
     */
-   DLLEXPORT QoreValue getOutputValue();
+    DLLEXPORT ReferenceNode* getArg() const;
+
+    //! returns the value of the reference and leaves the reference empty, the caller owns the reference returned
+    /** @return the value of the reference and leaves the reference empty, the caller owns the reference returned
+    */
+    DLLEXPORT QoreValue getOutputValue();
 };
 
 #endif

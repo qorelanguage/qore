@@ -98,7 +98,7 @@ public:
     DLLEXPORT void clear(ExceptionSink* xsink);
 
     //! adds a constant definition to the namespace
-    /** use addConstant(const char* name, AbstractQoreNode* value, const QoreTypeInfo* typeInfo) when adding
+    /** use addConstant(const char* name, QoreValue value, const QoreTypeInfo* typeInfo) when adding
         constants of externally-defined base (non-class) types; all other types (and all objects) can have
         their type information automatically added
         @param name the name of the constant to add

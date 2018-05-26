@@ -65,21 +65,25 @@ struct lvih_intern {
         QoreValue rv = vp.remove(static_assignment);
         if (static_assignment)
             rv.ref();
-        return rv;   }
+        return rv;
+    }
 
-    DLLLOCAL AbstractQoreNode* getArg() {
-        return ref->refSelf();
+    DLLLOCAL ReferenceNode* getArg() {
+        return ref->refRefSelf();
     }
 };
 
 ReferenceArgumentHelper::ReferenceArgumentHelper(QoreValue val, ExceptionSink *xsink) : priv(new lvih_intern(val, nullptr, xsink)) {
 }
 
+ReferenceArgumentHelper::ReferenceArgumentHelper(QoreValue val, const QoreTypeInfo* typeInfo, ExceptionSink *xsink) : priv(new lvih_intern(val, typeInfo, xsink)) {
+}
+
 ReferenceArgumentHelper::~ReferenceArgumentHelper() {
     delete priv;
 }
 
-AbstractQoreNode* ReferenceArgumentHelper::getArg() const {
+ReferenceNode* ReferenceArgumentHelper::getArg() const {
     return priv->getArg();
 }
 
