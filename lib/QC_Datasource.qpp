@@ -114,7 +114,7 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
    }
 
    if (queue)
-      ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
+      ds->setEventQueue(q.release(), arg.refSelf(), xsink);
 
    self->setPrivate(CID_DATASOURCE, ds.release());
 }
@@ -368,7 +368,7 @@ Datasource::constructor(string driver, *string user, *string pass, *string db, *
       ds_set_options(*ds, options, xsink);
 
    if (queue)
-      ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
+      ds->setEventQueue(q.release(), arg.refSelf(), xsink);
 
    self->setPrivate(CID_DATASOURCE, ds.release());
 }
@@ -1318,7 +1318,7 @@ nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg) {
    if (queue->getMax() != -1)
       return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
-   ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
+   ds->setEventQueue(q.release(), arg.refSelf(), xsink);
 }
 
 //! Clears the queue object for DBI events on the datasource

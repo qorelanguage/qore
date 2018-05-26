@@ -113,9 +113,7 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
    if (vtype == NT_FLOAT)
       return v.minusEqualsFloat(new_right->getAsFloat());
    else if (vtype == NT_NUMBER) {
-      // FIXME: could be more efficient
-      ReferenceHolder<> ra(new_right.getReferencedValue(), xsink);
-      v.minusEqualsNumber(*ra, "<-= operator>");
+      v.minusEqualsNumber(*new_right, "<-= operator>");
    }
    else if (vtype == NT_DATE) {
       // get a relative date-time value

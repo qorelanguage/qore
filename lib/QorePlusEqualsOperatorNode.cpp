@@ -109,7 +109,7 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
         else {
             if (!new_right->isNothing()) {
                 // assign rhs to lhs (take reference for plusequals)
-                if (v.assign(new_right.getReferencedValue()))
+                if (v.assign(new_right.takeReferencedValue()))
                     return QoreValue();
             }
             // v has been assigned to a value by this point
@@ -124,7 +124,7 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
         if (new_right->getType() == NT_LIST)
             l->merge(reinterpret_cast<const QoreListNode*>(new_right->getInternalNode()), xsink);
         else
-            l->push(new_right.getReferencedValue(), xsink);
+            l->push(new_right.takeReferencedValue(), xsink);
     } // do hash plus-equals if left side is a hash
     else if (vtype == NT_HASH) {
         if (new_right->getType() == NT_HASH) {
@@ -152,9 +152,7 @@ QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, Exception
         }
     }
     else if (vtype == NT_NUMBER) {
-        // FIXME: inefficient
-        ReferenceHolder<> nr(new_right.getReferencedValue(), xsink);
-        v.plusEqualsNumber(*nr, "<+= operator>");
+        v.plusEqualsNumber(*new_right, "<+= operator>");
     }
     else if (vtype == NT_FLOAT) {
         v.plusEqualsFloat(new_right->getAsFloat());

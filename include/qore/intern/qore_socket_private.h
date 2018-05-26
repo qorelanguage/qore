@@ -2089,7 +2089,7 @@ struct qore_socket_private {
          case NT_NOTHING:
             break;
          case NT_HASH: {
-            hdr = static_cast<QoreHashNode*>(rv.getReferencedValue());
+            hdr = rv.release().get<QoreHashNode>();
             break;
          }
          default:

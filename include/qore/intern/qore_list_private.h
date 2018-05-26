@@ -130,7 +130,7 @@ struct qore_list_private {
         const QoreTypeInfo* et = QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo);
         bool strip = !QoreTypeInfo::equal(et, e.getTypeInfo());
         ReferenceHolder<QoreListNode> rv(copy(strip), xsink);
-        return rv->priv->push(e.takeNode(), xsink) ? nullptr : rv.release();
+        return rv->priv->push(e, xsink) ? nullptr : rv.release();
     }
 
     DLLLOCAL QoreListNode* prependElement(QoreValue e, ExceptionSink* xsink) const {
@@ -142,7 +142,7 @@ struct qore_list_private {
             rv->priv->complexTypeInfo = complexTypeInfo;
         }
 
-        rv->priv->pushIntern(e.takeNode());
+        rv->priv->pushIntern(e);
 
         for (size_t i = 0; i < length; ++i) {
             QoreValue v = entry[i];
@@ -207,7 +207,7 @@ struct qore_list_private {
 
     DLLLOCAL void pushIntern(QoreValue val) {
         getEntryReference(length) = val;
-        if (val.hasNode() && needs_scan(val.v.n)) {
+        if (needs_scan(val)) {
             incScanCount(1);
         }
     }
@@ -302,15 +302,15 @@ struct qore_list_private {
         // add in new entries
         if (l.getType() != NT_LIST) {
             entry[offset] = l.refSelf();
-            if (l.hasNode() && needs_scan(l.getInternalNode()))
+            if (needs_scan(l))
                 incScanCount(1);
         }
         else {
             const QoreListNode* lst = l.get<const QoreListNode>();
             for (size_t i = 0; i < n; ++i) {
                 const QoreValue v = lst->retrieveEntry(i);
-                if (v.hasNode() && needs_scan(v.v.n))
-                incScanCount(1);
+                if (needs_scan(v))
+                    incScanCount(1);
                 entry[offset + i] = v.refSelf();
             }
         }
@@ -332,7 +332,7 @@ struct qore_list_private {
         QoreValue rv = entry[i];
         entry[i] = QoreValue();
 
-        if (rv.hasNode() && needs_scan(rv.v.n)) {
+        if (needs_scan(rv)) {
             incScanCount(-1);
         }
 
@@ -427,9 +427,8 @@ struct qore_list_private {
     }
 
     DLLLOCAL void removeEntry(QoreValue& v, QoreListNode*& rv) {
-        if (v.hasNode()) {
-            if (needs_scan(v.v.n))
-                incScanCount(-1);
+        if (needs_scan(v)) {
+            incScanCount(-1);
         }
         if (!rv)
             rv = new QoreListNode(autoTypeInfo);

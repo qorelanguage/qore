@@ -77,7 +77,7 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
                     assert(!nl);
                     return nullptr;
                 }
-                return new QoreSquareBracketsOperatorNode(loc, nl, rh.getReferencedValue());
+                return new QoreSquareBracketsOperatorNode(loc, nl, rh.takeReferencedValue().takeNode());
             }
         }
         {
@@ -92,7 +92,7 @@ AbstractQoreNode* ParseReferenceNode::doPartialEval(AbstractQoreNode* n, QoreObj
                     assert(!nl);
                     return nullptr;
                 }
-                return new QoreHashObjectDereferenceOperatorNode(loc, nl, rh.getReferencedValue());
+                return new QoreHashObjectDereferenceOperatorNode(loc, nl, rh.takeReferencedValue().takeNode());
             }
         }
     }

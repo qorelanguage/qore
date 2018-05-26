@@ -110,7 +110,7 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
     ExceptionSink xsink;
     ValueEvalRefHolder rv(this, &xsink);
     assert(!xsink);
-    return rv.getReferencedValue();
+    return rv.takeReferencedValue().takeNode();
 }
 
 QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

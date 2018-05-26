@@ -379,7 +379,7 @@ void qore_program_private_base::newProgram() {
             continue;
         }
 
-        dmap[cli.getName()] = v.getReferencedValue();
+        dmap[cli.getName()] = v.refSelf();
     }
 
 #ifdef DEBUG

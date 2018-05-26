@@ -1440,7 +1440,7 @@ pgm.define("PRODUCTION", True);
 nothing Program::define(string def, auto val) {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    if (t)
-      qore_program_private::runTimeDefine(p, t->getBuffer(), val.getReferencedValue(), xsink);
+      qore_program_private::runTimeDefine(p, t->getBuffer(), val.refSelf(), xsink);
 }
 
 //! Unsets a @ref conditional_parsing "parse define" for the current Program

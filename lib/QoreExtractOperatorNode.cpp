@@ -107,10 +107,6 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
     if (*xsink)
         return QoreValue();
 
-    ReferenceHolder<> exp_holder(xsink);
-    if (new_exp)
-        exp_holder = exp.getReferencedValue();
-
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper val(lvalue_exp, xsink);
     if (!val)
@@ -161,7 +157,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
             if (!new_exp)
                 rv = vl->extract(offset, length, xsink);
             else
-                rv = vl->extract(offset, length, *exp_holder, xsink);
+                rv = vl->extract(offset, length, *exp, xsink);
         }
     }
     else if (vt == NT_STRING) {
@@ -173,7 +169,7 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
             if (!new_exp)
                 rv = vs->extract(offset, length, xsink);
             else
-                rv = vs->extract(offset, length, *exp_holder, xsink);
+                rv = vs->extract(offset, length, *exp, xsink);
         }
     }
     else { // must be a binary
@@ -187,13 +183,13 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
             if (!new_exp)
                 b->splice(offset, length, bout);
             else {
-                qore_type_t t = get_node_type(*exp_holder);
+                qore_type_t t = exp->getType();
                 if (t == NT_BINARY) {
-                    const BinaryNode* b1 = reinterpret_cast<const BinaryNode*>(*exp_holder);
+                    const BinaryNode* b1 = exp->get<const BinaryNode>();
                     b->splice(offset, length, b1->getPtr(), b1->size(), bout);
                 }
                 else {
-                    QoreStringNodeValueHelper sv(*exp_holder);
+                    QoreStringNodeValueHelper sv(*exp);
                     if (!sv->strlen())
                         b->splice(offset, length, bout);
                     else

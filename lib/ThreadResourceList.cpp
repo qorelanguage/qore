@@ -1,33 +1,33 @@
 /*
-  ThreadResourceList.cpp
+    ThreadResourceList.cpp
 
-  POSIX thread library for Qore
+    POSIX thread library for Qore
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -37,36 +37,36 @@
 Sequence ThreadResourceList::seq;
 
 void ThreadResourceList::set(AbstractThreadResource* atr) {
-   //printd(5, "TRL::set() this: %p atr: %p\n", this, atr);
-   // ignore object if already set
-   if (trset.find(atr) != trset.end())
-      return;
+    //printd(5, "TRL::set() this: %p atr: %p\n", this, atr);
+    // ignore object if already set
+    if (trset.find(atr) != trset.end())
+        return;
 
-   atr->ref();
-   trset.insert(atr);
+    atr->ref();
+    trset.insert(atr);
 }
 
 void ThreadResourceList::set(const ResolvedCallReferenceNode* rcr, QoreValue arg) {
-   //printd(5, "TRL::set() this: %p rcr: %p\n", this, rcr);
-   // ignore object if already set
-   crmap_t::iterator i = crmap.lower_bound(const_cast<ResolvedCallReferenceNode*>(rcr));
-   if (i != crmap.end() && i->first == rcr)
-      return;
+    //printd(5, "TRL::set() this: %p rcr: %p\n", this, rcr);
+    // ignore object if already set
+    crmap_t::iterator i = crmap.lower_bound(const_cast<ResolvedCallReferenceNode*>(rcr));
+    if (i != crmap.end() && i->first == rcr)
+        return;
 
-   QoreProgram* pgm = rcr->getProgram();
-   if (!pgm)
-      pgm = getProgram();
+    QoreProgram* pgm = rcr->getProgram();
+    if (!pgm)
+        pgm = getProgram();
 
-   crmap.insert(i, crmap_t::value_type(rcr->refRefSelf(), ArgPgm(arg.getReferencedValue(), pgm)));
+    crmap.insert(i, crmap_t::value_type(rcr->refRefSelf(), ArgPgm(arg, pgm)));
 }
 
 bool ThreadResourceList::check(AbstractThreadResource* atr) const {
-   //printd(5, "TRL::check(atr: %p)\n", atr);
-   return trset.find(atr) != trset.end();
+    //printd(5, "TRL::check(atr: %p)\n", atr);
+    return trset.find(atr) != trset.end();
 }
 
 void ThreadResourceList::purge(ExceptionSink* xsink) {
-   purge(0, xsink);
+    purge(0, xsink);
    /*
    while (true) {
       trset_t::iterator i = trset.begin();
@@ -133,7 +133,7 @@ void ThreadResourceList::purge(const QoreProgram* pgm, ExceptionSink* xsink) {
         ResolvedCallReferenceNode* rcr = i->first;
         //printd(5, "TRL::purge() this: %p cleaning up rcr: %p (pgm: %p) pgm: %p\n", this, rcr, i->second.pgm, pgm);
         if (!pgm || (i->second.pgm == pgm)) {
-            AbstractQoreNode* arg = i->second.arg;
+            QoreValue arg = i->second.arg;
             crmap_t::iterator j = i;
             ++i;
 
@@ -177,7 +177,7 @@ int ThreadResourceList::remove(const ResolvedCallReferenceNode* rcr, ExceptionSi
         return -1;
 
     i->first->deref(xsink);
-    discard(i->second.arg, xsink);
+    i->second.arg.discard(xsink);
     crmap.erase(i);
     return 0;
 }

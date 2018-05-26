@@ -2599,7 +2599,7 @@ set_return_value(1);
     @since %Qore 0.8.12
  */
 set_return_value(auto val) [dom=PROCESS] {
-   qore_program_private::setReturnValue(*getProgram(), val.getReferencedValue(), xsink);
+    qore_program_private::setReturnValue(*getProgram(), val.refSelf(), xsink);
 }
 
 //! returns a descriptive string for an exception location; the \c source and \c offset information will also be included in the string returned if present in the @ref Qore::ExceptionInfo "ExceptionInfo" hash argument

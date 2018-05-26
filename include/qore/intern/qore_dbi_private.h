@@ -164,14 +164,7 @@ struct qore_dbi_private {
         if (!rc && f.opt.set) {
             ConstHashIterator hi(ds->getConnectOptions());
             while (hi.next()) {
-                // FIXME: convert DBI options to QoreValue
-                if (!hi.get().getInternalNode()) {
-                    ReferenceHolder<> h(hi.get().getReferencedValue(), xsink);
-                    f.opt.set(ds, hi.getKey(), *h, xsink);
-                }
-                else {
-                    f.opt.set(ds, hi.getKey(), hi.get().getInternalNode(), xsink);
-                }
+                f.opt.set(ds, hi.getKey(), hi.get(), xsink);
             }
         }
         return rc;

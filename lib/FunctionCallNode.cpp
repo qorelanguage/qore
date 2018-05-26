@@ -517,10 +517,10 @@ QoreValue ScopedObjectCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
    return qore_class_private::execConstructor(*oc, variant, args, xsink);
 }
 
-QoreValue MethodCallNode::execPseudo(const AbstractQoreNode* n, ExceptionSink* xsink) const {
+QoreValue MethodCallNode::execPseudo(const QoreValue n, ExceptionSink* xsink) const {
    //printd(5, "MethodCallNode::execPseudo() %s::%s() variant: %p\n", qc->getName(), method->getName(), variant);
    // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
-   if (is_nothing(n) && qc != QC_PSEUDONOTHING)
+   if (n.isNothing() && qc != QC_PSEUDONOTHING)
       return qore_class_private::evalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
    else
       return qore_class_private::evalPseudoMethod(qc, method, variant, n, args, xsink);
@@ -583,7 +583,8 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
                 }
             }
 
-            QoreValue n;
+            /*
+            ValueHolder n(nullptr);
 
             if (abr) {
                 Var* v = qore_root_ns_private::parseFindGlobalVar(*scope);
@@ -592,14 +593,21 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
             }
 
             bool found = false;
-            if (n.isNothing()) {
+            if (n->isNothing()) {
                 n = qore_root_ns_private::parseFindReferencedConstantValue(loc, *scope, typeInfo, found, false);
             }
+            */
+
+            bool found = false;
+            QoreValue n = qore_root_ns_private::parseFindReferencedConstantValue(loc, *scope, typeInfo, found, false);
 
             if (found) {
-                CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n.getReferencedValue(), takeParseArgs());
+                CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n.takeNode(), takeParseArgs());
                 deref();
                 return crcn->parseInit(oflag, pflag, lvids, typeInfo);
+            }
+            else {
+                assert(!n);
             }
 
             parse_error(*loc, "cannot resolve call '%s()' to any reachable and callable object", scope->ostr);

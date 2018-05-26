@@ -71,11 +71,10 @@ QoreValue QoreDotEvalOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
     }
 
     // FIXME: inefficient
-    ReferenceHolder<> nop(op.getReferencedValue(), xsink);
     if (m->isPseudo())
-        return m->execPseudo(*nop, xsink);
+        return m->execPseudo(*op, xsink);
 
-    return pseudo_classes_eval(*nop, m->getName(), m->getArgs(), xsink);
+    return pseudo_classes_eval(*op, m->getName(), m->getArgs(), xsink);
 }
 
 AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& expTypeInfo) {

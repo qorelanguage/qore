@@ -84,7 +84,7 @@ QoreListNode* range_intern(int64 start, int64 stop, int64 step, ExceptionSink* x
 /**
 */
 auto sort(auto arg) [flags=NOOP] {
-   return arg.getReferencedValue();
+   return arg.refSelf();
 }
 
 //! Performs an unstable sort in ascending order and returns the new list
@@ -156,7 +156,7 @@ list sort(list l, code f) [flags=RET_VALUE_ONLY] {
 /**
 */
 auto sortDescending(auto arg) [flags=NOOP,DEPRECATED] {
-   return arg.getReferencedValue();
+   return arg.refSelf();
 }
 
 //! Performs an unstable sort in descending order and returns the new list
@@ -218,7 +218,7 @@ list sortDescending(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
 /**
 */
 auto sort_descending(auto arg) [flags=NOOP] {
-   return arg.getReferencedValue();
+   return arg.refSelf();
 }
 
 //! Performs an unstable sort in descending order and returns the new list
@@ -296,7 +296,7 @@ list sort_descending(list l, code f) [flags=RET_VALUE_ONLY] {
 /**
 */
 auto sortStable(auto arg) [flags=NOOP,DEPRECATED] {
-   return arg.getReferencedValue();
+   return arg.refSelf();
 }
 
 //! Performs a stable sort in ascending order and returns the new list
@@ -364,7 +364,7 @@ list sortStable(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
 /**
 */
 auto sort_stable(auto arg) [flags=NOOP] {
-   return arg.getReferencedValue();
+   return arg.refSelf();
 }
 
 //! Performs a stable sort in ascending order and returns the new list
@@ -442,7 +442,7 @@ list sort_stable(list l, code f) [flags=RET_VALUE_ONLY] {
 /**
 */
 auto sortDescendingStable(auto arg) [flags=NOOP,DEPRECATED] {
-   return arg.getReferencedValue();
+   return arg.refSelf();
 }
 
 //! Performs a stable sort in descending order and returns the new list
@@ -520,7 +520,7 @@ list sortDescendingStable(list l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
 /**
 */
 auto sort_descending_stable(auto arg) [flags=NOOP] {
-   return arg.getReferencedValue();
+   return arg.refSelf();
 }
 
 //! Performs a stable sort in descending order and returns the new list

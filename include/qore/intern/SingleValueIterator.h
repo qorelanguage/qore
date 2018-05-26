@@ -61,8 +61,8 @@ public:
         return 0;
     }
 
-    DLLLOCAL AbstractQoreNode* getValue() {
-        return val.getReferencedValue();
+    DLLLOCAL QoreValue getValue() {
+        return val.refSelf();
     }
 
     DLLLOCAL bool valid() const {

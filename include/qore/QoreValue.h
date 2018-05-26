@@ -343,8 +343,8 @@ public:
     //! evaluates the node and returns the result
     DLLEXPORT QoreValue eval(bool& needs_deref, ExceptionSink* xsink) const;
 
-    //! returns a referenced AbstractQoreNode pointer; leaving the "this" untouched; the caller owns the reference returned
-    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
+    //! returns a referenced value; leaving the "this" untouched; the caller owns the reference returned
+    //DLLEXPORT QoreValue refSelf() const;
 
     //! returns a referenced AbstractQoreNode pointer leaving "this" empty (value is taken from "this"); the caller owns the reference returned
     DLLEXPORT AbstractQoreNode* takeNode();
@@ -435,8 +435,8 @@ public:
     //! dereferences any contained node
     DLLEXPORT ~ValueHolder();
 
-    //! returns a referenced AbstractQoreNode ptr; caller owns the reference; the current object is left empty
-    DLLEXPORT AbstractQoreNode* getReferencedValue();
+    //! returns a referenced value; caller owns the reference; the current object is left undisturbed
+    DLLEXPORT QoreValue getReferencedValue();
 
     //! returns a QoreValue object and leaves the current object empty; the caller owns any reference contained in the return value
     DLLEXPORT QoreValue release();
@@ -524,8 +524,8 @@ public:
         return rv;
     }
 
-    //! returns a referenced AbstractQoreNode ptr; caller owns the reference; the current object is left empty
-    DLLEXPORT AbstractQoreNode* getReferencedValue();
+    //! returns a referenced value; caller owns the reference; the current object is not disturbed
+    DLLEXPORT QoreValue getReferencedValue();
 
     //! returns the stored AbstractQoreNode pointer and sets the dereference flag as an output variable
     DLLLOCAL AbstractQoreNode* takeNode(bool& nd) {
@@ -554,7 +554,7 @@ public:
         v = val.takeValue(needs_deref);
     }
 
-    //! returns a QoreValue after incrementing the reference count of any node value stored
+    //! returns a QoreValue after incrementing the reference count of any node value stored if necessary
     DLLEXPORT QoreValue takeReferencedValue();
 
     // FIXME: remove with new API/ABI

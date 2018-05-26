@@ -130,7 +130,7 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
    if (!max)
       max = DP_MAX;
 
-   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, opt_hash, q.release(), arg.getReferencedValue()));
+   SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user, pass, db, charset, host, min, max, port, opt_hash, q.release(), arg.refSelf()));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
    else
@@ -232,7 +232,7 @@ DatasourcePool::constructor(string driver, *string user, *string pass, *string d
 
    SimpleRefHolder<DatasourcePool> ds(new DatasourcePool(xsink, db_driver, user ? user->getBuffer() : 0, pass ? pass->getBuffer() : 0,
 							 db ? db->getBuffer() : 0, encoding ? encoding->getBuffer() : 0, host ? host->getBuffer() : 0,
-							 min, max, port, 0, q.release(), arg.getReferencedValue()));
+							 min, max, port, 0, q.release(), arg.refSelf()));
    if (!*xsink)
       self->setPrivate(CID_DATASOURCEPOOL, ds.release());
    else
@@ -900,7 +900,7 @@ ds.setWarningCallback(5s, cb);
     @since %Qore 0.8.9
 */
 DatasourcePool::setWarningCallback(timeout ms, code callback, auto arg) {
-   ds->setWarningCallback(ms, callback->refRefSelf(), arg.getReferencedValue(), xsink);
+   ds->setWarningCallback(ms, callback->refRefSelf(), arg.refSelf(), xsink);
 }
 
 //! Returns a hash with usage information about the DatasourcePool object
@@ -968,7 +968,7 @@ nothing DatasourcePool::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg
    if (queue->getMax() != -1)
       return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
-   ds->setEventQueue(q.release(), arg.getReferencedValue(), xsink);
+   ds->setEventQueue(q.release(), arg.refSelf(), xsink);
 }
 
 //! Clears the queue object for DBI events on the pool
