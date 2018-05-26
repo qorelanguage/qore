@@ -337,8 +337,8 @@ void AbstractMethodMap::parseInit(qore_class_private& qc, BCList* scl) {
         if (i->second->vlist.empty()) {
             if (qc.name[0] == 'C' || qc.name[0] == 'B')
                 printd(5, "AbstractMethodMap::parseInit() erasing '%s::%s'\n", qc.name.c_str(), i->first.c_str());
-            amap_t::iterator i0 = i++;
-            erase(i0);
+            delete i->second;
+            erase(i++);
         }
         else {
             if (qc.name[0] == 'C' || qc.name[0] == 'B')
@@ -826,39 +826,39 @@ int qore_class_private::initializeIntern() {
 }
 
 void qore_class_private::mergeAbstract() {
-   assert(scl);
-   // merge direct base class abstract method lists to ourselves
-   for (auto& i : *scl) {
-      if ((*i).sclass) {
-         assert((*i).sclass->priv->initialized);
+    assert(scl);
+    // merge direct base class abstract method lists to ourselves
+    for (auto& i : *scl) {
+        if ((*i).sclass) {
+            assert((*i).sclass->priv->initialized);
 
-         // called during class initialization to copy committed abstract variants to our variant lists
-         AbstractMethodMap& mm = (*i).sclass->priv->ahm;
-         //printd(5, "qore_class_private::initializeIntern() this: %p '%s' parent: %p '%s' mm empty: %d\n", this, name.c_str(), (*i).sclass, (*i).sclass->getName(), (int)mm.empty());
-         for (auto& j : mm) {
-            // skip if vlists are empty
-            if (j.second->vlist.empty()) {
-               //printd(5, "qore_class_private::initializeIntern() this: %p '%s' skipping %s::%s(): vlist empty\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str());
-               continue;
+            // called during class initialization to copy committed abstract variants to our variant lists
+            AbstractMethodMap& mm = (*i).sclass->priv->ahm;
+            //printd(5, "qore_class_private::initializeIntern() this: %p '%s' parent: %p '%s' mm empty: %d\n", this, name.c_str(), (*i).sclass, (*i).sclass->getName(), (int)mm.empty());
+            for (auto& j : mm) {
+                // skip if vlists are empty
+                if (j.second->vlist.empty()) {
+                    //printd(5, "qore_class_private::initializeIntern() this: %p '%s' skipping %s::%s(): vlist empty\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str());
+                    continue;
+                }
+                amap_t::iterator vi = ahm.find(j.first);
+                if (vi != ahm.end()) {
+                    vi->second->parseMergeBase(*(j.second), true);
+                    continue;
+                }
+                // now we import the abstract method to our class
+                std::unique_ptr<AbstractMethod> m(new AbstractMethod);
+                // see if there are pending normal variants...
+                hm_method_t::iterator mi = hm.find(j.first);
+                // merge committed parent abstract variants with any pending local variants
+                m->parseMergeBase((*j.second), mi == hm.end() ? 0 : mi->second->getFunction(), true);
+                if (!m->empty()) {
+                    ahm.insert(amap_t::value_type(j.first, m.release()));
+                    //printd(5, "qore_class_private::initializeIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str());
+                }
             }
-            amap_t::iterator vi = ahm.find(j.first);
-            if (vi != ahm.end()) {
-               vi->second->parseMergeBase(*(j.second), true);
-               continue;
-            }
-            // now we import the abstract method to our class
-            std::unique_ptr<AbstractMethod> m(new AbstractMethod);
-            // see if there are pending normal variants...
-            hm_method_t::iterator mi = hm.find(j.first);
-            // merge committed parent abstract variants with any pending local variants
-            m->parseMergeBase((*j.second), mi == hm.end() ? 0 : mi->second->getFunction(), true);
-            if (!m->empty()) {
-               ahm.insert(amap_t::value_type(j.first, m.release()));
-               //printd(5, "qore_class_private::initializeIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str());
-            }
-         }
-      }
-   }
+        }
+    }
 }
 
 void qore_class_private::finalizeBuiltin(const char* nspath) {
@@ -3592,15 +3592,14 @@ void qore_class_private::parseInitPartialIntern() {
                         vi->second->parseMergeBase(*(ai->second));
                         continue;
                     }
-                    AbstractMethod* m = new AbstractMethod;
+                    std::unique_ptr<AbstractMethod> m(new AbstractMethod);
                     // see if there are pending normal variants...
                     hm_method_t::iterator mi = hm.find(ai->first);
                     //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' looking for local '%s': %d\n", this, name.c_str(), ai->first.c_str(), mi != hm.end());
                     m->parseMergeBase(*(ai->second), mi == hm.end() ? 0 : mi->second->getFunction());
-                    if (m->empty())
-                        delete m;
-                    else
-                        ahm.insert(amap_t::value_type(ai->first, m));
+                    if (!m->empty()) {
+                        ahm.insert(amap_t::value_type(ai->first, m.release()));
+                    }
                     //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), name.c_str(), ai->first.c_str());
                 }
             }

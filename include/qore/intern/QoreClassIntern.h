@@ -122,10 +122,10 @@ typedef std::map<std::string, AbstractMethod*> amap_t;
 
 struct AbstractMethodMap : amap_t {
     DLLLOCAL AbstractMethodMap(const AbstractMethodMap& old) {
-        for (amap_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
-            if (i->second->vlist.empty())
+        for (auto& i : *this) {
+            if (i.second->vlist.empty())
                 continue;
-            insert(amap_t::value_type(i->first, new AbstractMethod(*(i->second))));
+            insert(amap_t::value_type(i.first, new AbstractMethod(*(i.second))));
         }
     }
 
@@ -133,8 +133,9 @@ struct AbstractMethodMap : amap_t {
     }
 
     DLLLOCAL ~AbstractMethodMap() {
-        for (amap_t::iterator i = begin(), e = end(); i != e; ++i)
-            delete i->second;
+        for (auto& i : *this) {
+            delete i.second;
+        }
     }
 
     DLLLOCAL AbstractMethod* findMethod(const std::string& name) {
@@ -166,8 +167,8 @@ struct AbstractMethodMap : amap_t {
     }
 
     DLLLOCAL void parseRollback() {
-        for (amap_t::iterator i = begin(), e = end(); i != e; ++i)
-            i->second->parseRollback();
+        for (auto& i : *this)
+            i.second->parseRollback();
     }
 
     DLLLOCAL void parseInit(qore_class_private& qc, BCList* scl);
