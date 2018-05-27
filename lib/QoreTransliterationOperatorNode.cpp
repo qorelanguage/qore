@@ -35,56 +35,56 @@
 QoreString QoreTransliterationOperatorNode::op_str("transliteration (=~ tr///) operator expression");
 
 QoreValue QoreTransliterationOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(exp, xsink);
-   if (!v)
-      return QoreValue();
+    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
+    LValueHelper v(exp, xsink);
+    if (!v)
+        return QoreValue();
 
-   // if it's not a string, then do nothing
-   if (!v.checkType(NT_STRING))
-      return QoreValue();
+    // if it's not a string, then do nothing
+    if (!v.checkType(NT_STRING))
+        return QoreValue();
 
-   const QoreStringNode* str = v.getValue().get<const QoreStringNode>();
+    const QoreStringNode* str = v.getValue().get<const QoreStringNode>();
 
-   // get new value
-   QoreStringNode* nv = regex->exec(str, xsink);
+    // get new value
+    QoreStringNode* nv = regex->exec(str, xsink);
 
-   // if there is an exception above, nv = 0
-   if (*xsink) {
-      assert(!nv);
-      return QoreValue();
-   }
+    // if there is an exception above, nv = 0
+    if (*xsink) {
+        assert(!nv);
+        return QoreValue();
+    }
 
-   // assign new value to lvalue (no exception possible here)
-   v.assign(nv);
-   assert(!*xsink);
+    // assign new value to lvalue (no exception possible here)
+    v.assign(nv);
+    assert(!*xsink);
 
-   // reference for return value if necessary
-   return ref_rv ? nv->refSelf() : QoreValue();
+    // reference for return value if necessary
+    return ref_rv ? nv->refSelf() : QoreValue();
 }
 
 AbstractQoreNode *QoreTransliterationOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
-   // turn off "reference ok" and "return value ignored" flags
-   pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    // turn off "reference ok" and "return value ignored" flags
+    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   const QoreTypeInfo *leftTypeInfo = 0;
-   exp = exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
+    const QoreTypeInfo *leftTypeInfo = 0;
+    parse_init_value(exp, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
-   if (!QoreTypeInfo::parseAcceptsReturns(leftTypeInfo, NT_STRING)) {
-      QoreStringNode* desc = new QoreStringNode("the lvalue expression with the ");
-      desc->sprintf("%s operator is ", op_str.c_str());
-      QoreTypeInfo::getThisType(leftTypeInfo, *desc);
-      desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings");
-      qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-      returnTypeInfo = nothingTypeInfo;
-   }
-   else
-      returnTypeInfo = stringTypeInfo;
+    if (!QoreTypeInfo::parseAcceptsReturns(leftTypeInfo, NT_STRING)) {
+        QoreStringNode* desc = new QoreStringNode("the lvalue expression with the ");
+        desc->sprintf("%s operator is ", op_str.c_str());
+        QoreTypeInfo::getThisType(leftTypeInfo, *desc);
+        desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings");
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+        returnTypeInfo = nothingTypeInfo;
+    }
+    else
+        returnTypeInfo = stringTypeInfo;
 
-   if (exp)
-      checkLValue(exp, pflag);
+    if (exp)
+        checkLValue(exp, pflag);
 
-   typeInfo = returnTypeInfo;
+    typeInfo = returnTypeInfo;
 
-   return this;
+    return this;
 }

@@ -34,18 +34,18 @@ QoreString QoreLogicalEqualsOperatorNode::logical_equals_str("logical equals ope
 QoreString QoreLogicalNotEqualsOperatorNode::logical_not_equals_str("logical not equals operator expression");
 
 QoreValue QoreLogicalEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   if (pfunc)
-      return (this->*pfunc)(xsink);
+    if (pfunc)
+        return (this->*pfunc)(xsink);
 
-   ValueEvalRefHolder l(left, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder l(left, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   ValueEvalRefHolder r(right, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder r(right, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   return softEqual(*l, *r, xsink);
+    return softEqual(*l, *r, xsink);
 }
 
 AbstractQoreNode *QoreLogicalEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -53,11 +53,11 @@ AbstractQoreNode *QoreLogicalEqualsOperatorNode::parseInitImpl(LocalVar *oflag, 
 
     const QoreTypeInfo *lti = 0, *rti = 0;
 
-    left = left->parseInit(oflag, pflag, lvids, lti);
-    right = right->parseInit(oflag, pflag, lvids, rti);
+    parse_init_value(left, oflag, pflag, lvids, lti);
+    parse_init_value(right, oflag, pflag, lvids, rti);
 
     // see if both arguments are constants, then eval immediately and substitute this node with the result
-    if (left && left->is_value() && right && right->is_value()) {
+    if (left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalEqualsOperatorNode> del(this);
         ParseExceptionSink xsink;
         return get_bool_node(softEqual(left, right, *xsink));
@@ -158,28 +158,28 @@ bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue left, const QoreVa
 }
 
 bool QoreLogicalEqualsOperatorNode::floatSoftEqual(ExceptionSink *xsink) const {
-    double l = left->floatEval(xsink);
+    ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return false;
-    double r = right->floatEval(xsink);
+    ValueEvalRefHolder rh(right, xsink);
     if (*xsink) return false;
 
-    return l == r;
+    return lh->getAsFloat() == rh->getAsFloat();
 }
 
 bool QoreLogicalEqualsOperatorNode::bigIntSoftEqual(ExceptionSink *xsink) const {
-    int64 l = left->bigIntEval(xsink);
+    ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return false;
-    int64 r = right->bigIntEval(xsink);
+    ValueEvalRefHolder rh(right, xsink);
     if (*xsink) return false;
 
-    return l == r;
+    return lh->getAsBigInt() == rh->getAsBigInt();
 }
 
 bool QoreLogicalEqualsOperatorNode::boolSoftEqual(ExceptionSink *xsink) const {
-    bool l = left->boolEval(xsink);
+    ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return false;
-    bool r = right->boolEval(xsink);
+    ValueEvalRefHolder rh(right, xsink);
     if (*xsink) return false;
 
-    return l == r;
+    return lh->getAsBool() == rh->getAsBool();
 }

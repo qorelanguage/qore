@@ -32,6 +32,17 @@
 #include <qore/Qore.h>
 #include "qore/intern/ParseNode.h"
 
+void QoreSimpleValue::set(QoreValue& val) {
+    type = val.type;
+    switch (type) {
+        case QV_Bool: v.b = val.v.b; break;
+        case QV_Float: v.f = val.v.f; break;
+        case QV_Int: v.i = val.v.i; break;
+        case QV_Node: v.n = val.v.n; break;
+        default: assert(false);
+    }
+}
+
 AbstractQoreNode* QoreSimpleValue::takeNode() {
     switch (type) {
         case QV_Int: return new QoreBigIntNode(v.i);
@@ -515,6 +526,10 @@ bool QoreValue::isReferenceCounted() const {
     return type == QV_Node && v.n && v.n->isReferenceCounted();
 }
 
+bool QoreValue::isValue() const {
+    return type != QV_Node || (v.n && v.n->is_value());
+}
+
 QoreValue::operator bool() const {
     return !isNothing();
 }
@@ -658,6 +673,11 @@ int ValueEvalRefHolder::evalIntern(const QoreValue exp) {
 }
 
 int ValueEvalRefHolder::eval(const AbstractQoreNode* exp) {
+    v.discard(xsink);
+    return evalIntern(exp);
+}
+
+int ValueEvalRefHolder::eval(const QoreValue exp) {
     v.discard(xsink);
     return evalIntern(exp);
 }

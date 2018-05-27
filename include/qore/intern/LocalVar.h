@@ -37,6 +37,7 @@
 #include "qore/intern/QoreLValue.h"
 #include "qore/intern/RSection.h"
 #include "qore/intern/RSet.h"
+#include "qore/ReferenceNode.h"
 #include "qore/intern/WeakReferenceNode.h"
 
 #include <atomic>
@@ -156,175 +157,175 @@ struct SkipHelper {
 
 class LocalVarValue : public VarValueBase {
 public:
-   DLLLOCAL void set(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue nval, bool assign, bool static_assignment) {
-      //printd(5, "LocalVarValue::set() this: %p id: '%s' type: '%s' code: %d static_assignment: %d\n", this, n_id, QoreTypeInfo::getName(typeInfo), nval.getType(), static_assignment);
-      assert(!finalized);
+    DLLLOCAL void set(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue nval, bool assign, bool static_assignment) {
+        //printd(5, "LocalVarValue::set() this: %p id: '%s' type: '%s' code: %d static_assignment: %d\n", this, n_id, QoreTypeInfo::getName(typeInfo), nval.getType(), static_assignment);
+        assert(!finalized);
 
-      skip = false;
-      id = n_id;
+        skip = false;
+        id = n_id;
 
-      // try to set an optimized value type for the value holder if possible
-      val.set(varTypeInfo);
+        // try to set an optimized value type for the value holder if possible
+        val.set(varTypeInfo);
 
-      // no exception is possible here as there was no previous value
-      // also since only basic value types could be returned, no exceptions can occur with the value passed either
-      if (assign)
-         discard(val.assignAssumeInitial(nval, static_assignment), nullptr);
+        // no exception is possible here as there was no previous value
+        // also since only basic value types could be returned, no exceptions can occur with the value passed either
+        if (assign)
+            discard(val.assignAssumeInitial(nval, static_assignment), nullptr);
 #ifdef DEBUG
-      else
-         assert(!val.assigned);
+        else
+            assert(!val.assigned);
 #endif
-   }
+    }
 
-   DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
-      del(xsink);
-   }
+    DLLLOCAL void uninstantiate(ExceptionSink* xsink) {
+        del(xsink);
+    }
 
-   DLLLOCAL void uninstantiateSelf() {
-      val.unassignIgnore();
-   }
+    DLLLOCAL void uninstantiateSelf() {
+        val.unassignIgnore();
+    }
 
-   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo, const QoreTypeInfo* refTypeInfo) const;
-   DLLLOCAL void remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo);
+    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo, const QoreTypeInfo* refTypeInfo) const;
+    DLLLOCAL void remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo);
 
-   DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
-      //printd(5, "LocalVarValue::evalValue() this: %p '%s' type: %d '%s'\n", this, id, val.getType(), val.getTypeName());
-      if (val.getType() == NT_REFERENCE) {
-         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
-         LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
-         if (!helper)
-            return QoreValue();
+    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
+        //printd(5, "LocalVarValue::evalValue() this: %p '%s' type: %d '%s'\n", this, id, val.getType(), val.getTypeName());
+        if (val.getType() == NT_REFERENCE) {
+            ReferenceNode* ref = const_cast<ReferenceNode*>(val.get<ReferenceNode>());
+            LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
+            if (!helper)
+                return QoreValue();
 
-         ValueEvalRefHolder erh(lvalue_ref::get(ref)->vexp, xsink);
-         return erh.takeValue(needs_deref);
-      }
+            ValueEvalRefHolder erh(lvalue_ref::get(ref)->vexp, xsink);
+            return erh.takeValue(needs_deref);
+        }
 
-      if (val.getType() == NT_WEAKREF) {
-         needs_deref = false;
-         return static_cast<WeakReferenceNode*>(val.v.n)->get();
-      }
+        if (val.getType() == NT_WEAKREF) {
+            needs_deref = false;
+            return val.get<WeakReferenceNode>()->get();
+        }
 
-      return val.getReferencedValue(needs_deref);
-   }
+        return val.getReferencedValue(needs_deref);
+    }
 
-   DLLLOCAL QoreValue evalValue(ExceptionSink* xsink) const {
-      if (val.getType() == NT_REFERENCE) {
-         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
-         LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
-         if (!helper)
-            return QoreValue();
+    DLLLOCAL QoreValue evalValue(ExceptionSink* xsink) const {
+        if (val.getType() == NT_REFERENCE) {
+            ReferenceNode* ref = const_cast<ReferenceNode*>(val.get<ReferenceNode>());
+            LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
+            if (!helper)
+                return QoreValue();
 
-         ValueEvalRefHolder erh(lvalue_ref::get(ref)->vexp, xsink);
-         return *xsink ? QoreValue() : erh.takeReferencedValue();
-      }
+            ValueEvalRefHolder erh(lvalue_ref::get(ref)->vexp, xsink);
+            return *xsink ? QoreValue() : erh.takeReferencedValue();
+        }
 
-      if (val.getType() == NT_WEAKREF) {
-         return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
-      }
+        if (val.getType() == NT_WEAKREF) {
+            return val.get<WeakReferenceNode>()->get()->refSelf();
+        }
 
-      return val.getReferencedValue();
-   }
+        return val.getReferencedValue();
+    }
 };
 
 struct ClosureVarValue : public VarValueBase, public RObject {
 public:
-   const QoreTypeInfo* typeInfo = nullptr; // type restriction for lvalue
-   const QoreTypeInfo* refTypeInfo;
-   // reference count; access serialized with rlck from RObject
-   mutable std::atomic_int references;
+    const QoreTypeInfo* typeInfo = nullptr; // type restriction for lvalue
+    const QoreTypeInfo* refTypeInfo;
+    // reference count; access serialized with rlck from RObject
+    mutable std::atomic_int references;
 
-   DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval, bool assign) : VarValueBase(n_id, varTypeInfo), RObject(references), typeInfo(varTypeInfo), refTypeInfo(QoreTypeInfo::getReferenceTarget(varTypeInfo)), references(1) {
-      //printd(5, "ClosureVarValue::ClosureVarValue() this: %p refs: 0 -> 1 val: %s\n", this, val.getTypeName());
-      val.setClosure();
+    DLLLOCAL ClosureVarValue(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue& nval, bool assign) : VarValueBase(n_id, varTypeInfo), RObject(references), typeInfo(varTypeInfo), refTypeInfo(QoreTypeInfo::getReferenceTarget(varTypeInfo)), references(1) {
+        //printd(5, "ClosureVarValue::ClosureVarValue() this: %p refs: 0 -> 1 val: %s\n", this, val.getTypeName());
+        val.setClosure();
 
-      // try to set an optimized value type for the value holder if possible
-      val.set(varTypeInfo);
+        // try to set an optimized value type for the value holder if possible
+        val.set(varTypeInfo);
 
-      //printd(5, "ClosureVarValue::ClosureVarValue() this: %p pgm: %p val: %s\n", this, getProgram(), nval.getTypeName());
-      // also since only basic value types could be returned, no exceptions can occur with the value passed either
-      if (assign)
-         discard(val.assignAssumeInitial(nval), nullptr);
+        //printd(5, "ClosureVarValue::ClosureVarValue() this: %p pgm: %p val: %s\n", this, getProgram(), nval.getTypeName());
+        // also since only basic value types could be returned, no exceptions can occur with the value passed either
+        if (assign)
+            discard(val.assignAssumeInitial(nval), nullptr);
 #ifdef DEBUG
-      else
-         assert(!val.assigned);
+        else
+            assert(!val.assigned);
 #endif
-      }
+        }
 
-   DLLLOCAL virtual ~ClosureVarValue() {
-      //printd(5, "ClosureVarValue::~ClosureVarValue() this: %p\n", this);
-   }
+    DLLLOCAL virtual ~ClosureVarValue() {
+        //printd(5, "ClosureVarValue::~ClosureVarValue() this: %p\n", this);
+    }
 
-   DLLLOCAL void ref() const;
+    DLLLOCAL void ref() const;
 
-   DLLLOCAL void deref(ExceptionSink* xsink);
+    DLLLOCAL void deref(ExceptionSink* xsink);
 
-   DLLLOCAL const void* getLValueId() const;
+    DLLLOCAL const void* getLValueId() const;
 
-   // returns true if the value could contain an object or a closure
-   DLLLOCAL virtual bool needsScan(bool scan_now) {
-      return QoreTypeInfo::needsScan(typeInfo);
-   }
+    // returns true if the value could contain an object or a closure
+    DLLLOCAL virtual bool needsScan(bool scan_now) {
+        return QoreTypeInfo::needsScan(typeInfo);
+    }
 
-   DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
+    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
 
-   DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
-   DLLLOCAL void remove(LValueRemoveHelper& lvrh);
+    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
+    DLLLOCAL void remove(LValueRemoveHelper& lvrh);
 
-   DLLLOCAL ClosureVarValue* refSelf() const {
-      ref();
-      return const_cast<ClosureVarValue*>(this);
-   }
+    DLLLOCAL ClosureVarValue* refSelf() const {
+        ref();
+        return const_cast<ClosureVarValue*>(this);
+    }
 
-   // sets the current variable to finalized, sets the value to 0, and returns the value held (for dereferencing outside the lock)
-   DLLLOCAL QoreValue finalize() {
-      QoreSafeVarRWWriteLocker sl(rml);
-      return VarValueBase::finalize();
-   }
+    // sets the current variable to finalized, sets the value to 0, and returns the value held (for dereferencing outside the lock)
+    DLLLOCAL QoreValue finalize() {
+        QoreSafeVarRWWriteLocker sl(rml);
+        return VarValueBase::finalize();
+    }
 
-   DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
-      QoreSafeVarRWReadLocker sl(rml);
-      if (val.getType() == NT_REFERENCE) {
-         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
-         sl.unlock();
-         LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
-         return helper ? lvalue_ref::get(*ref)->vexp->eval(needs_deref, xsink) : QoreValue();
-      }
+    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
+        QoreSafeVarRWReadLocker sl(rml);
+        if (val.getType() == NT_REFERENCE) {
+            ReferenceHolder<ReferenceNode> ref(val.get<ReferenceNode>()->refRefSelf(), xsink);
+            sl.unlock();
+            LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
+            return helper ? lvalue_ref::get(*ref)->vexp.eval(needs_deref, xsink) : QoreValue();
+        }
 
-      if (val.getType() == NT_WEAKREF) {
-         needs_deref = false;
-         return static_cast<WeakReferenceNode*>(val.v.n)->get();
-      }
+        if (val.getType() == NT_WEAKREF) {
+            needs_deref = false;
+            return val.get<WeakReferenceNode>()->get();
+        }
 
-      return val.getReferencedValue();
-   }
+        return val.getReferencedValue();
+    }
 
-   DLLLOCAL QoreValue evalValue(ExceptionSink* xsink) const {
-      QoreSafeVarRWReadLocker sl(rml);
-      if (val.getType() == NT_REFERENCE) {
-         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), xsink);
-         sl.unlock();
-         LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
-         return helper ? lvalue_ref::get(*ref)->vexp->eval(xsink) : QoreValue();
-      }
+    DLLLOCAL QoreValue evalValue(ExceptionSink* xsink) const {
+        QoreSafeVarRWReadLocker sl(rml);
+        if (val.getType() == NT_REFERENCE) {
+            ReferenceHolder<ReferenceNode> ref(val.get<ReferenceNode>()->refRefSelf(), xsink);
+            sl.unlock();
+            LocalRefHelper<ClosureVarValue> helper(this, **ref, xsink);
+            return helper ? lvalue_ref::get(*ref)->vexp.eval(xsink) : QoreValue();
+        }
 
-      if (val.getType() == NT_WEAKREF) {
-         return static_cast<WeakReferenceNode*>(val.v.n)->get()->refSelf();
-      }
+        if (val.getType() == NT_WEAKREF) {
+            return val.get<WeakReferenceNode>()->get()->refSelf();
+        }
 
-      return val.getReferencedValue();
-   }
+        return val.getReferencedValue();
+    }
 
-   DLLLOCAL AbstractQoreNode* getReference(const QoreProgramLocation* loc, const char* name, const void*& lvalue_id);
+    DLLLOCAL AbstractQoreNode* getReference(const QoreProgramLocation* loc, const char* name, const void*& lvalue_id);
 
-   // deletes the object itself
-   DLLLOCAL virtual void deleteObject() {
-      delete this;
-   }
+    // deletes the object itself
+    DLLLOCAL virtual void deleteObject() {
+        delete this;
+    }
 
-   // returns the name of the object
-   DLLLOCAL virtual const char* getName() const {
-      return id;
-   }
+    // returns the name of the object
+    DLLLOCAL virtual const char* getName() const {
+        return id;
+    }
 };
 
 // now shared between parent and child Program objects for top-level local variables with global scope

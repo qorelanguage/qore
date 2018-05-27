@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,27 +34,27 @@ QoreString QoreLogicalAbsoluteEqualsOperatorNode::logical_absolute_equals_str("l
 QoreString QoreLogicalAbsoluteNotEqualsOperatorNode::logical_absolute_not_equals_str("logical absolute not equals (!==) operator expression");
 
 QoreValue QoreLogicalAbsoluteEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   ValueEvalRefHolder l(left, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder l(left, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   ValueEvalRefHolder r(right, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder r(right, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   return hardEqual(*l, *r, xsink);
+    return hardEqual(*l, *r, xsink);
 }
 
-AbstractQoreNode *QoreLogicalAbsoluteEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* QoreLogicalAbsoluteEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     typeInfo = boolTypeInfo;
 
     const QoreTypeInfo *lti = 0, *rti = 0;
 
-    left = left->parseInit(oflag, pflag, lvids, lti);
-    right = right->parseInit(oflag, pflag, lvids, rti);
+    parse_init_value(left, oflag, pflag, lvids, lti);
+    parse_init_value(right, oflag, pflag, lvids, rti);
 
     // see if both arguments are constants, then eval immediately and substitute this node with the result
-    if (left && left->is_value() && right && right->is_value()) {
+    if (left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalAbsoluteEqualsOperatorNode> del(this);
         ParseExceptionSink xsink;
         return get_bool_node(hardEqual(left, right, *xsink));

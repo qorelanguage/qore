@@ -49,48 +49,47 @@ int QoreFoldlOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink 
 }
 
 AbstractQoreNode* QoreFoldlOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   assert(!typeInfo);
+    assert(!typeInfo);
 
-   pflag &= ~PF_RETURN_VALUE_IGNORED;
+    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
-   // check iterator expression
-   const QoreTypeInfo* iteratorTypeInfo = 0;
-   right = right->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
+    // check iterator expression
+    const QoreTypeInfo* iteratorTypeInfo = 0;
+    parse_init_value(right, oflag, pflag, lvids, iteratorTypeInfo);
 
+    // check iterated expression
+    const QoreTypeInfo* expTypeInfo = 0;
+    {
+        // set implicit argv arg type
+        // FIXME: only works if the result of the fold operation results in the exact same type as the argument type
+        ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
 
-   // check iterated expression
-   const QoreTypeInfo* expTypeInfo = 0;
-   {
-      // set implicit argv arg type
-      // FIXME: only works if the result of the fold operation results in the exact same type as the argument type
-      ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
+        parse_init_value(left, oflag, pflag, lvids, expTypeInfo);
+    }
 
-      left = left->parseInit(oflag, pflag, lvids, expTypeInfo);
-   }
+    // use lazy evaluation if the iterator expression supports it
+    iterator_func = dynamic_cast<FunctionalOperator*>(right.getInternalNode());
 
-   // use lazy evaluation if the iterator expression supports it
-   iterator_func = dynamic_cast<FunctionalOperator*>(right);
-
-   // if "right" (iterator exp) is a list or an iterator, then the return type is expTypeInfo, otherwise it's the return type of the iterated expression
-   if (QoreTypeInfo::hasType(iteratorTypeInfo)) {
-      if (QoreTypeInfo::isType(iteratorTypeInfo, NT_NOTHING)) {
-         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the foldl/r operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
-         typeInfo = nothingTypeInfo;
-      }
-      else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
-         typeInfo = expTypeInfo;
-      }
-      else {
-         const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
-         if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
+    // if "right" (iterator exp) is a list or an iterator, then the return type is expTypeInfo, otherwise it's the return type of the iterated expression
+    if (QoreTypeInfo::hasType(iteratorTypeInfo)) {
+        if (QoreTypeInfo::isType(iteratorTypeInfo, NT_NOTHING)) {
+            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the foldl/r operator (the second expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
+            typeInfo = nothingTypeInfo;
+        }
+        else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
             typeInfo = expTypeInfo;
-         else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
-            && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
-            typeInfo = iteratorTypeInfo;
-      }
-   }
+        }
+        else {
+            const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
+            if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
+                typeInfo = expTypeInfo;
+            else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
+                && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
+                typeInfo = iteratorTypeInfo;
+        }
+    }
 
-   return this;
+    return this;
 }
 
 QoreValue QoreFoldlOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -120,11 +119,11 @@ QoreValue QoreFoldlOperatorNode::doFold(bool fwd, bool& needs_deref, ExceptionSi
             return QoreValue();
 
         // create argument list for fold expression
-        QoreListNode* args = new QoreListNode;
+        QoreListNode* args = new QoreListNode(autoTypeInfo);
         args->push(result.release(), xsink);
         args->push(iv.takeReferencedValue(), xsink);
         ArgvContextHelper argv_helper(args, xsink);
-        result = left->eval(xsink);
+        result = left.eval(xsink);
         if (*xsink) {
             return QoreValue();
         }
@@ -134,24 +133,24 @@ QoreValue QoreFoldlOperatorNode::doFold(bool fwd, bool& needs_deref, ExceptionSi
 }
 
 FunctionalOperatorInterface* QoreFoldlOperatorNode::getFunctionalIterator(FunctionalOperator::FunctionalValueType& value_type, bool fwd, ExceptionSink* xsink) const {
-   // we can only use the iterator_func with foldl
-   if (iterator_func && fwd)
-      return iterator_func->getFunctionalIterator(value_type, xsink);
+    // we can only use the iterator_func with foldl
+    if (iterator_func && fwd)
+        return iterator_func->getFunctionalIterator(value_type, xsink);
 
-   return FunctionalOperatorInterface::getFunctionalIterator(value_type, right, fwd, fwd ? "foldl operator" : "foldr operator", xsink);
+    return FunctionalOperatorInterface::getFunctionalIterator(value_type, right, fwd, fwd ? "foldl operator" : "foldr operator", xsink);
 }
 
 // if del is true, then the returned QoreString * should be derefed, if false, then it must not be
 QoreString* QoreFoldrOperatorNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = false;
-   return &foldr_str;
+    del = false;
+    return &foldr_str;
 }
 
 int QoreFoldrOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   str.concat(&foldr_str);
-   return 0;
+    str.concat(&foldr_str);
+    return 0;
 }
 
 QoreValue QoreFoldrOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   return doFold(false, needs_deref, xsink);
+    return doFold(false, needs_deref, xsink);
 }

@@ -54,11 +54,11 @@ AbstractQoreNode *QoreLogicalLessThanOrEqualsOperatorNode::parseInitIntern(const
 
     const QoreTypeInfo *lti = 0, *rti = 0;
 
-    left = left->parseInit(oflag, pflag, lvids, lti);
-    right = right->parseInit(oflag, pflag, lvids, rti);
+    parse_init_value(left, oflag, pflag, lvids, lti);
+    parse_init_value(right, oflag, pflag, lvids, rti);
 
     // see if both arguments are constants, then eval immediately and substitute this node with the result
-    if (left && left->is_value() && right && right->is_value()) {
+    if (left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalLessThanOrEqualsOperatorNode> del(this);
         ParseExceptionSink xsink;
         return get_bool_node(doLessThanOrEquals(left, right, *xsink));
@@ -82,21 +82,21 @@ AbstractQoreNode *QoreLogicalLessThanOrEqualsOperatorNode::parseInitIntern(const
 }
 
 bool QoreLogicalLessThanOrEqualsOperatorNode::floatLessThanOrEquals(ExceptionSink *xsink) const {
-    double l = left->floatEval(xsink);
+    ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return false;
-    double r = right->floatEval(xsink);
+    ValueEvalRefHolder rh(right, xsink);
     if (*xsink) return false;
 
-    return l <= r;
+    return lh->getAsFloat() <= rh->getAsFloat();
 }
 
 bool QoreLogicalLessThanOrEqualsOperatorNode::bigIntLessThanOrEquals(ExceptionSink *xsink) const {
-    int64 l = left->bigIntEval(xsink);
+    ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return false;
-    int64 r = right->bigIntEval(xsink);
+    ValueEvalRefHolder rh(right, xsink);
     if (*xsink) return false;
 
-    return l <= r;
+    return lh->getAsBigInt() <= rh->getAsBigInt();
 }
 
 bool QoreLogicalLessThanOrEqualsOperatorNode::doLessThanOrEquals(QoreValue lh, QoreValue rh, ExceptionSink* xsink) {

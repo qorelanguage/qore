@@ -101,23 +101,21 @@ QoreValue QoreChompOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink*
 }
 
 AbstractQoreNode* QoreChompOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   assert(!typeInfo);
-   if (!exp)
-      return this;
-   exp = exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, typeInfo);
-   if (exp)
-      checkLValue(exp, pflag);
+    assert(!typeInfo);
+    parse_init_value(exp, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, typeInfo);
+    if (exp)
+        checkLValue(exp, pflag);
 
-   if (QoreTypeInfo::hasType(typeInfo)
-       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_STRING)
-       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_LIST)
-       && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
-      QoreStringNode* desc = new QoreStringNode("the lvalue expression with the chomp operator is ");
-      QoreTypeInfo::getThisType(typeInfo, *desc);
-      desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
-      qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
-   }
+    if (QoreTypeInfo::hasType(typeInfo)
+        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_STRING)
+        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_LIST)
+        && !QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_HASH)) {
+        QoreStringNode* desc = new QoreStringNode("the lvalue expression with the chomp operator is ");
+        QoreTypeInfo::getThisType(typeInfo, *desc);
+        desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+    }
 
-   returnTypeInfo = bigIntTypeInfo;
-   return this;
+    returnTypeInfo = bigIntTypeInfo;
+    return this;
 }

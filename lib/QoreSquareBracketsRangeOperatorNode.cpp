@@ -49,9 +49,9 @@ AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *o
     assert(!returnTypeInfo);
 
     const QoreTypeInfo* typeInfo0 = nullptr, *typeInfo1 = nullptr, *typeInfo2 = nullptr;
-    e[0] = e[0]->parseInit(oflag, pflag, lvids, typeInfo0);
-    e[1] = e[1]->parseInit(oflag, pflag, lvids, typeInfo1);
-    e[2] = e[2]->parseInit(oflag, pflag, lvids, typeInfo2);
+    parse_init_value(e[0], oflag, pflag, lvids, typeInfo0);
+    parse_init_value(e[1], oflag, pflag, lvids, typeInfo1);
+    parse_init_value(e[2], oflag, pflag, lvids, typeInfo2);
 
     if (pflag & PF_FOR_ASSIGNMENT)
         parse_error(*loc, "the range operator cannot be used in the left-hand side of an assignment expression");

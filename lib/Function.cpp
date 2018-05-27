@@ -335,7 +335,7 @@ UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* pa
     ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
 
     if (params->getType() == NT_VARREF) {
-        pushParam(reinterpret_cast<VarRefNode*>(params), nullptr, needs_types);
+        pushParam(reinterpret_cast<VarRefNode*>(params), QoreValue(), needs_types);
         return;
     }
 
@@ -368,7 +368,7 @@ UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* pa
         else if (t == NT_BAREWORD)
             pushParam(n.get<BarewordNode>(), needs_types, bare_refs);
         else if (t == NT_VARREF)
-            pushParam(n.get<VarRefNode>(), nullptr, needs_types);
+            pushParam(n.get<VarRefNode>(), QoreValue(), needs_types);
         else {
             if (!n.isNothing())
                 param_error();
@@ -388,13 +388,13 @@ void UserSignature::pushParam(QoreOperatorNode* t, bool needs_types) {
         return;
     }
 
-    AbstractQoreNode* l = op->getLeft();
-    if (l && l->getType() != NT_VARREF) {
+    QoreValue l = op->getLeft();
+    if (l.getType() != NT_VARREF) {
         param_error();
         return;
     }
-    VarRefNode* v = reinterpret_cast<VarRefNode*>(l);
-    AbstractQoreNode* defArg = op->swapRight(0);
+    VarRefNode* v = l.get<VarRefNode>();
+    QoreValue defArg = op->swapRight(0);
     pushParam(v, defArg, needs_types);
 }
 
@@ -415,7 +415,7 @@ void UserSignature::pushParam(BarewordNode* b, bool needs_types, bool bare_refs)
    return;
 }
 
-void UserSignature::pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool needs_types) {
+void UserSignature::pushParam(VarRefNode* v, QoreValue defArg, bool needs_types) {
    // check for duplicate name
    for (name_vec_t::iterator i = names.begin(), e = names.end(); i != e; ++i)
       if (*i == v->getName())

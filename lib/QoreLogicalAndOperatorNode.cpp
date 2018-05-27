@@ -33,31 +33,38 @@
 QoreString QoreLogicalAndOperatorNode::logical_and_str("logical and (&&) operator expression");
 
 QoreValue QoreLogicalAndOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   // if left side is 0, then do not evaluate right side (logical short circuiting)
-   bool l = left->boolEval(xsink);
-   if (!l || *xsink)
-      return false;
-   return right->boolEval(xsink);
+    // if left side is 0, then do not evaluate right side (logical short circuiting)
+    ValueEvalRefHolder lh(left, xsink);
+    if (*xsink)
+        return QoreValue();
+    if (!lh->getAsBool()) {
+        return false;
+    }
+
+    ValueEvalRefHolder rh(right, xsink);
+    if (*xsink)
+        return QoreValue();
+    return rh->getAsBool();
 }
 
 AbstractQoreNode *QoreLogicalAndOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   pflag &= ~PF_RETURN_VALUE_IGNORED;
+    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
-   typeInfo = boolTypeInfo;
+    typeInfo = boolTypeInfo;
 
-   const QoreTypeInfo *lti = 0, *rti = 0;
+    const QoreTypeInfo *lti = 0, *rti = 0;
 
-   left = left->parseInit(oflag, pflag, lvids, lti);
-   right = right->parseInit(oflag, pflag, lvids, rti);
+    parse_init_value(left, oflag, pflag, lvids, lti);
+    parse_init_value(right, oflag, pflag, lvids, rti);
 
-   // see if both arguments are constants, then eval immediately and substitute this node with the result
-   if (left && left->is_value() && right && right->is_value()) {
-      SimpleRefHolder<QoreLogicalAndOperatorNode> del(this);
-      ParseExceptionSink xsink;
-      ValueEvalRefHolder v(this, *xsink);
-      assert(!**xsink);
-      return v.takeReferencedValue().takeNode();
-   }
+    // see if both arguments are constants, then eval immediately and substitute this node with the result
+    if (left.isValue() && right.isValue()) {
+        SimpleRefHolder<QoreLogicalAndOperatorNode> del(this);
+        ParseExceptionSink xsink;
+        ValueEvalRefHolder v(this, *xsink);
+        assert(!**xsink);
+        return v.takeReferencedValue().takeNode();
+    }
 
-   return this;
+    return this;
 }

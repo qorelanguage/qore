@@ -33,42 +33,42 @@
 QoreString QoreQuestionMarkOperatorNode::question_mark_str("question mark (?:) operator expression");
 
 AbstractQoreNode* QoreQuestionMarkOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
-   const QoreTypeInfo* leftTypeInfo = 0;
-   e[0] = e[0]->parseInit(oflag, pflag, lvids, leftTypeInfo);
+    const QoreTypeInfo* leftTypeInfo = 0;
+    parse_init_value(e[0], oflag, pflag, lvids, leftTypeInfo);
 
-   if (!QoreTypeInfo::canConvertToScalar(leftTypeInfo) && parse_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
-      leftTypeInfo->doNonBooleanWarning(loc, "the initial expression with the '?:' operator is ");
+    if (!QoreTypeInfo::canConvertToScalar(leftTypeInfo) && parse_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
+        leftTypeInfo->doNonBooleanWarning(loc, "the initial expression with the '?:' operator is ");
 
-   leftTypeInfo = 0;
-   e[1] = e[1]->parseInit(oflag, pflag, lvids, leftTypeInfo);
+    leftTypeInfo = 0;
+    parse_init_value(e[1], oflag, pflag, lvids, leftTypeInfo);
 
-   const QoreTypeInfo* rightTypeInfo = 0;
-   e[2] = e[2]->parseInit(oflag, pflag, lvids, rightTypeInfo);
+    const QoreTypeInfo* rightTypeInfo = 0;
+    parse_init_value(e[2], oflag, pflag, lvids, rightTypeInfo);
 
-   // see if all arguments are constant values, then eval immediately and substitute this node with the result
-   if (e[0] && e[0]->is_value() && e[1] && e[1]->is_value() && e[2] && e[2]->is_value()) {
-      SimpleRefHolder<QoreQuestionMarkOperatorNode> del(this);
-      ParseExceptionSink xsink;
-      ValueEvalRefHolder v(this, *xsink);
-      assert(!**xsink);
-      return v.takeReferencedValue().takeNode();
-   }
+    // see if all arguments are constant values, then eval immediately and substitute this node with the result
+    if (e[0].isValue() && e[1].isValue() && e[2].isValue()) {
+        SimpleRefHolder<QoreQuestionMarkOperatorNode> del(this);
+        ParseExceptionSink xsink;
+        ValueEvalRefHolder v(this, *xsink);
+        assert(!**xsink);
+        return v.takeReferencedValue().takeNode();
+    }
 
-   typeInfo = returnTypeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo) ? leftTypeInfo : 0;
+    typeInfo = returnTypeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo) ? leftTypeInfo : nullptr;
 
-   return this;
+    return this;
 }
 
 QoreValue QoreQuestionMarkOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   ValueEvalRefHolder b(e[0], xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder b(e[0], xsink);
+    if (*xsink)
+        return QoreValue();
 
-   AbstractQoreNode* exp = b->getAsBool() ? e[1] : e[2];
+    QoreValue exp = b->getAsBool() ? e[1] : e[2];
 
-   ValueEvalRefHolder rv(exp, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder rv(exp, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   return rv.takeValue(needs_deref);
+    return rv.takeValue(needs_deref);
 }

@@ -39,37 +39,37 @@ AbstractQoreNode *QoreMultiplyEqualsOperatorNode::parseInitImpl(LocalVar *oflag,
 }
 
 QoreValue QoreMultiplyEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
-   ValueEvalRefHolder res(right, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder res(right, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return QoreValue();
+    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
+    LValueHelper v(left, xsink);
+    if (!v)
+        return QoreValue();
 
-   // is either side a number?
-   if (v.getType() == NT_NUMBER || res->getType() == NT_NUMBER) {
-      v.multiplyEqualsNumber(*res, "<*= operator>");
-      if (ref_rv && !*xsink)
-         return v.getReferencedValue();
+    // is either side a number?
+    if (v.getType() == NT_NUMBER || res->getType() == NT_NUMBER) {
+        v.multiplyEqualsNumber(*res, "<*= operator>");
+        if (ref_rv && !*xsink)
+            return v.getReferencedValue();
 
-      return QoreValue();
-   }
+        return QoreValue();
+    }
 
-   // is either side a float?
-   if (v.getType() == NT_FLOAT || res->getType() == NT_FLOAT)
-      return v.multiplyEqualsFloat(res->getAsFloat(), "<*= operator>");
+    // is either side a float?
+    if (v.getType() == NT_FLOAT || res->getType() == NT_FLOAT)
+        return v.multiplyEqualsFloat(res->getAsFloat(), "<*= operator>");
 
-   // get operand
-   int64 y = res->getAsBigInt();
+    // get operand
+    int64 y = res->getAsBigInt();
 
-   // do integer multiply equals
-   if (!v.getAsBigInt() || !y) {
-      // no need to multiply something by zero
-      v.assign(0ll);
-      return 0ll;
-   }
+    // do integer multiply equals
+    if (!v.getAsBigInt() || !y) {
+        // no need to multiply something by zero
+        v.assign(0ll);
+        return 0ll;
+    }
 
-   return v.multiplyEqualsBigInt(res->getAsBigInt(), "<*= operator>");
+    return v.multiplyEqualsBigInt(res->getAsBigInt(), "<*= operator>");
 }

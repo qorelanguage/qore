@@ -44,7 +44,7 @@ class QoreMapOperatorNode : public QoreBinaryOperatorNode<>, public FunctionalOp
     friend class QoreFunctionalMapOperator;
 
 public:
-    DLLLOCAL QoreMapOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(nullptr), iterator_func(nullptr) {
+    DLLLOCAL QoreMapOperatorNode(const QoreProgramLocation* loc, QoreValue l, QoreValue r) : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(nullptr), iterator_func(nullptr) {
     }
 
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -57,7 +57,7 @@ public:
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
         QoreMapOperatorNode* rv = copyBackgroundExplicit<QoreMapOperatorNode>(xsink);
-        rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right);
+        rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right.getInternalNode());
         return rv;
     }
 

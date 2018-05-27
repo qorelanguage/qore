@@ -579,16 +579,16 @@ private:
     const QoreTypeInfo* singleTypeInfo = nullptr;
 
 public:
-    DLLLOCAL QorePossibleListNodeParseInitHelper(AbstractQoreNode** n, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
+    DLLLOCAL QorePossibleListNodeParseInitHelper(QoreValue& n, LocalVar* n_oflag, int n_pflag, int& n_lvids) :
         oflag(n_oflag),
         pflag(n_pflag),
         lvids(n_lvids),
-        l(n && *n && (*n)->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>(*n) : nullptr),
+        l(n.getType() == NT_LIST ? n.get<QoreListNode>() : nullptr),
         finished(!l) {
         // if the expression is not a list, then initialize it now
         // and save the return type
         if (!l) {
-            *n = (*n)->parseInit(oflag, pflag, lvids, singleTypeInfo);
+            parse_init_value(n, oflag, pflag, lvids, singleTypeInfo);
             // set type info to 0 if the expression can return a list
             // FIXME: set list element type here when list elements can have types
             //printd(0, "singleTypeInfo=%s la=%d\n", QoreTypeInfo::getName(singleTypeInfo), QoreTypeInfo::parseAccepts(listTypeInfo, singleTypeInfo));

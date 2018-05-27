@@ -608,14 +608,14 @@ public:
     QoreObject* obj = nullptr;
     const qore_class_private* class_ctx;
 
-    AbstractQoreNode* fc;
+    QoreValue fc;
     QoreProgram* pgm;
     int tid;
     const QoreProgramLocation* loc;
     bool registered = false,
         started = false;
 
-    DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
+    DLLLOCAL BGThreadParams(QoreValue f, int t, ExceptionSink* xsink)
         : fc(f), pgm(getProgram()), tid(t) {
         assert(xsink);
         {
@@ -635,9 +635,9 @@ public:
 
         registered = true;
 
-        qore_type_t fctype = fc->getType();
+        qore_type_t fctype = fc.getType();
         if (fctype == NT_SELF_CALL) {
-            SelfFunctionCallNode* sfcn = reinterpret_cast<SelfFunctionCallNode*>(fc);
+            SelfFunctionCallNode* sfcn = fc.get<SelfFunctionCallNode>();
             {
                 const QoreClass* qc = sfcn->getClass();
                 if (qc)
@@ -700,7 +700,7 @@ public:
     }
 
     DLLLOCAL void cleanup(ExceptionSink* xsink) {
-        if (fc) fc->deref(xsink);
+        fc.discard(xsink);
         derefObj(xsink);
         derefCallObj();
     }
@@ -720,11 +720,11 @@ public:
         }
     }
 
-    DLLLOCAL AbstractQoreNode* exec(ExceptionSink* xsink) {
+    DLLLOCAL QoreValue exec(ExceptionSink* xsink) {
         //printd(5, "BGThreadParams::exec() this: %p fc: %p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
-        AbstractQoreNode* rv = fc->eval(xsink);
-        fc->deref(xsink);
-        fc = nullptr;
+        QoreValue rv = fc.eval(xsink);
+        fc.discard(xsink);
+        fc = QoreValue();
         return rv;
     }
 };
@@ -2075,171 +2075,169 @@ static void set_tid_thread_name(int tid) {
 
 // put functions in an unnamed namespace to make them 'static extern "C"'
 namespace {
-   extern "C" void* q_run_thread(void* arg) {
-      ThreadArg* ta = (ThreadArg*)arg;
+    extern "C" void* q_run_thread(void* arg) {
+        ThreadArg* ta = (ThreadArg*)arg;
 
-      register_thread(ta->tid, pthread_self(), 0);
-      printd(5, "q_run_thread() ta: %p TID %d started\n", ta, ta->tid);
+        register_thread(ta->tid, pthread_self(), 0);
+        printd(5, "q_run_thread() ta: %p TID %d started\n", ta, ta->tid);
 
-      set_tid_thread_name(ta->tid);
+        set_tid_thread_name(ta->tid);
 
-      pthread_cleanup_push(qore_thread_cleanup, nullptr);
+        pthread_cleanup_push(qore_thread_cleanup, nullptr);
 
-      {
-         ExceptionSink xsink;
+        {
+            ExceptionSink xsink;
 
-         {
-            ThreadLocalProgramData *tlpd = get_thread_local_program_data();
-            if (tlpd) {
-               tlpd->dbgAttach(&xsink);
-            }
-            ta->run(&xsink);
-            if (tlpd) {
-               QoreValue val((AbstractQoreNode*)nullptr);
-               tlpd->dbgExit(nullptr, val, &xsink);
-               // notify debugger that thread is terminated
-               tlpd->dbgDetach(&xsink);
-            }
-
-            // cleanup thread resources
-            purge_thread_resources(&xsink);
-
-            // delete any thread data
-            thread_data.get()->del(&xsink);
-
-            xsink.handleExceptions();
-
-            printd(4, "q_run_thread(): thread terminating");
-
-            // run any cleanup functions
-            tclist.exec();
-
-            // delete internal thread data structure and release TID entry
-            thread_list.deleteDataRelease(ta->tid);
-
-            //printd(5, "q_run_thread(): deleting thread params %p\n", ta);
-            delete ta;
-         }
-      }
-
-      pthread_cleanup_pop((int)1);
-      thread_counter.dec();
-      pthread_exit(0);
-      return 0;
-   }
-
-   extern "C" void* op_background_thread(void* x) {
-      BGThreadParams* btp = (BGThreadParams*) x;
-      // register thread
-      register_thread(btp->tid, pthread_self(), btp->pgm);
-      printd(5, "op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
-      //printf("op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
-
-      set_tid_thread_name(btp->tid);
-
-      pthread_cleanup_push(qore_thread_cleanup, nullptr);
-
-      {
-         ExceptionSink xsink;
-
-         // register thread in Program object
-         btp->startThread(xsink);
-
-         {
-            AbstractQoreNode* rv;
             {
-               CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getContextObject(), btp->class_ctx);
+                ThreadLocalProgramData *tlpd = get_thread_local_program_data();
+                if (tlpd) {
+                    tlpd->dbgAttach(&xsink);
+                }
+                ta->run(&xsink);
+                if (tlpd) {
+                    QoreValue val((AbstractQoreNode*)nullptr);
+                    tlpd->dbgExit(nullptr, val, &xsink);
+                    // notify debugger that thread is terminated
+                    tlpd->dbgDetach(&xsink);
+                }
 
-               // dereference call object if present
-               btp->derefCallObj();
+                // cleanup thread resources
+                purge_thread_resources(&xsink);
 
+                // delete any thread data
+                thread_data.get()->del(&xsink);
 
-               ThreadLocalProgramData* tlpd = get_thread_local_program_data();
-               if (tlpd) {
-                  tlpd->dbgAttach(&xsink);
-               }
-               // run thread expression
-               rv = btp->exec(&xsink);
-               if (tlpd) {
-                  QoreValue val(rv);
-                  // notify return value and notify thread detach to program
-                  tlpd->dbgExit(nullptr, val, &xsink);
-                  tlpd->dbgDetach(&xsink);
-               }
+                xsink.handleExceptions();
 
-               // if there is an object, we dereference the extra reference here
-               btp->derefObj(&xsink);
+                printd(4, "q_run_thread(): thread terminating");
+
+                // run any cleanup functions
+                tclist.exec();
+
+                // delete internal thread data structure and release TID entry
+                thread_list.deleteDataRelease(ta->tid);
+
+                //printd(5, "q_run_thread(): deleting thread params %p\n", ta);
+                delete ta;
             }
+        }
 
-            // dereference any return value from the background expression
-            if (rv)
-               rv->deref(&xsink);
+        pthread_cleanup_pop((int)1);
+        thread_counter.dec();
+        pthread_exit(0);
+        return 0;
+    }
 
-            // cleanup thread resources
-            purge_thread_resources(&xsink);
+    extern "C" void* op_background_thread(void* x) {
+        BGThreadParams* btp = (BGThreadParams*) x;
+        // register thread
+        register_thread(btp->tid, pthread_self(), btp->pgm);
+        printd(5, "op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
+        //printf("op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
 
-            int tid = btp->tid;
-            // dereference current Program object
-            btp->del();
+        set_tid_thread_name(btp->tid);
 
-            // delete any thread data
-            thread_data.get()->del(&xsink);
+        pthread_cleanup_push(qore_thread_cleanup, nullptr);
 
-            xsink.handleExceptions();
+        {
+            ExceptionSink xsink;
 
-            printd(4, "thread terminating");
+            // register thread in Program object
+            btp->startThread(xsink);
 
-            // run any cleanup functions
-            tclist.exec();
+            {
+                QoreValue rv;
+                {
+                    CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getContextObject(), btp->class_ctx);
 
-            // delete internal thread data structure and release TID entry
-            thread_list.deleteDataRelease(tid);
-         }
-      }
+                    // dereference call object if present
+                    btp->derefCallObj();
 
-      pthread_cleanup_pop(1);
-      thread_counter.dec();
-      pthread_exit(0);
-      return 0;
-   }
+
+                    ThreadLocalProgramData* tlpd = get_thread_local_program_data();
+                    if (tlpd) {
+                        tlpd->dbgAttach(&xsink);
+                    }
+                    // run thread expression
+                    rv = btp->exec(&xsink);
+                    if (tlpd) {
+                        // notify return value and notify thread detach to program
+                        tlpd->dbgExit(nullptr, rv, &xsink);
+                        tlpd->dbgDetach(&xsink);
+                    }
+
+                    // if there is an object, we dereference the extra reference here
+                    btp->derefObj(&xsink);
+                }
+
+                // dereference any return value from the background expression
+                rv.discard(&xsink);
+
+                // cleanup thread resources
+                purge_thread_resources(&xsink);
+
+                int tid = btp->tid;
+                // dereference current Program object
+                btp->del();
+
+                // delete any thread data
+                thread_data.get()->del(&xsink);
+
+                xsink.handleExceptions();
+
+                printd(4, "thread terminating");
+
+                // run any cleanup functions
+                tclist.exec();
+
+                // delete internal thread data structure and release TID entry
+                thread_list.deleteDataRelease(tid);
+            }
+        }
+
+        pthread_cleanup_pop(1);
+        thread_counter.dec();
+        pthread_exit(0);
+        return 0;
+    }
 }
 
-QoreValue do_op_background(const AbstractQoreNode* left, ExceptionSink* xsink) {
-   if (!left)
-      return QoreValue();
+QoreValue do_op_background(const QoreValue left, ExceptionSink* xsink) {
+    if (!left)
+        return QoreValue();
 
-   //printd(2, "op_background() before crlr left = %p\n", left);
-   ReferenceHolder<AbstractQoreNode> nl(copy_and_resolve_lvar_refs(left, xsink), xsink);
-   //printd(2, "op_background() after crlr nl = %p\n", nl);
-   if (*xsink || !nl)
-      return QoreValue();
+    //printd(2, "op_background() before crlr left = %p\n", left);
+    ValueHolder nl(copy_value_and_resolve_lvar_refs(left, xsink), xsink);
+    //printd(2, "op_background() after crlr nl = %p\n", nl);
+    if (*xsink || !nl)
+        return QoreValue();
 
-   // now we are ready to create the new thread
+    // now we are ready to create the new thread
 
-   // get thread entry
-   //printd(2, "calling get_thread_entry()\n");
-   int tid = get_thread_entry();
-   //printd(2, "got %d()\n", tid);
+    // get thread entry
+    //printd(2, "calling get_thread_entry()\n");
+    int tid = get_thread_entry();
+    //printd(2, "got %d()\n", tid);
 
-   // if can't start thread, then throw exception
-   if (tid == -1) {
-      xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
-      return QoreValue();
-   }
+    // if can't start thread, then throw exception
+    if (tid == -1) {
+        xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
+        return QoreValue();
+    }
 
-   BGThreadParams* tp = new BGThreadParams(nl.release(), tid, xsink);
-   //printd(5, "created BGThreadParams(%p, %d) = %p\n", *nl, tid, tp);
-   if (*xsink) {
-      deregister_thread(tid);
-      return QoreValue();
-   }
-   //printd(5, "tp = %p\n", tp);
-   // create thread
-   int rc;
-   pthread_t ptid;
+    BGThreadParams* tp = new BGThreadParams(nl.release(), tid, xsink);
+    //printd(5, "created BGThreadParams(%p, %d) = %p\n", *nl, tid, tp);
+    if (*xsink) {
+        deregister_thread(tid);
+        return QoreValue();
+    }
+    //printd(5, "tp = %p\n", tp);
+    // create thread
+    int rc;
+    pthread_t ptid;
 
-   //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
-   thread_counter.inc();
+    //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
+    thread_counter.inc();
 
 #ifdef QORE_MANAGE_STACK
     // make sure accesses to ta_default are made locked

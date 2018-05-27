@@ -33,17 +33,18 @@
 QoreString QoreModuloOperatorNode::op_str("% (modula) operator expression");
 
 QoreValue QoreModuloOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   int64 l = left->bigIntEval(xsink);
-   if (*xsink)
-      return QoreValue();
-   int64 r = right->bigIntEval(xsink);
-   if (*xsink)
-      return QoreValue();
-   if (!r) {
-      xsink->raiseException("DIVISION-BY-ZERO", "modula operand cannot be zero (" QLLD " %% " QLLD " attempted)", l, r);
-      return QoreValue();
-   }
-   return l % r;
+    ValueEvalRefHolder lh(left, xsink);
+    if (*xsink) return false;
+    ValueEvalRefHolder rh(right, xsink);
+    if (*xsink) return false;
+    int64 l = lh->getAsBigInt();
+    int64 r = rh->getAsBigInt();
+
+    if (!r) {
+        xsink->raiseException("DIVISION-BY-ZERO", "modula operand cannot be zero (" QLLD " %% " QLLD " attempted)", l, r);
+        return QoreValue();
+    }
+    return l % r;
 }
 
 AbstractQoreNode* QoreModuloOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -54,11 +55,11 @@ AbstractQoreNode* QoreModuloOperatorNode::parseInitImpl(LocalVar *oflag, int pfl
 
     const QoreTypeInfo *lti = 0, *rti = 0;
 
-    left = left->parseInit(oflag, pflag, lvids, lti);
-    right = right->parseInit(oflag, pflag, lvids, rti);
+    parse_init_value(left, oflag, pflag, lvids, lti);
+    parse_init_value(right, oflag, pflag, lvids, rti);
 
     // see if both arguments are constant values and the right side is > 0, then eval immediately and substitute this node with the result
-    if (left && left->is_value() && right && right->is_value() && right->getAsBigInt()) {
+    if (left.isValue() && right.isValue() && right.getAsBigInt()) {
         SimpleRefHolder<QoreModuloOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);

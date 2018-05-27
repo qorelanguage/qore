@@ -41,62 +41,62 @@ QoreString QoreSelectOperatorNode::select_str("select operator expression");
 
 // if del is true, then the returned QoreString * should be selectd, if false, then it must not be
 QoreString* QoreSelectOperatorNode::getAsString(bool& del, int foff, ExceptionSink *xsink) const {
-   del = false;
-   return &select_str;
+    del = false;
+    return &select_str;
 }
 
 int QoreSelectOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   str.concat(&select_str);
-   return 0;
+    str.concat(&select_str);
+    return 0;
 }
 
 AbstractQoreNode* QoreSelectOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   assert(!typeInfo);
+    assert(!typeInfo);
 
-   pflag &= ~PF_RETURN_VALUE_IGNORED;
+    pflag &= ~PF_RETURN_VALUE_IGNORED;
 
-   // check iterator expression
-   const QoreTypeInfo* iteratorTypeInfo = nullptr;
-   left = left->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
+    // check iterator expression
+    const QoreTypeInfo* iteratorTypeInfo = nullptr;
+    parse_init_value(left, oflag, pflag, lvids, iteratorTypeInfo);
 
-   // get list element type, if any
-   const QoreTypeInfo* elementTypeInfo = QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo);
+    // get list element type, if any
+    const QoreTypeInfo* elementTypeInfo = QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo);
 
-   // check filter expression
-   const QoreTypeInfo* expTypeInfo = nullptr;
-   {
-      // set implicit argv arg type
-      ParseImplicitArgTypeHelper pia(elementTypeInfo);
+    // check filter expression
+    const QoreTypeInfo* expTypeInfo = nullptr;
+    {
+        // set implicit argv arg type
+        ParseImplicitArgTypeHelper pia(elementTypeInfo);
 
-      right = right->parseInit(oflag, pflag, lvids, expTypeInfo);
-   }
+        parse_init_value(right, oflag, pflag, lvids, expTypeInfo);
+    }
 
-   // use lazy evaluation if the iterator expression supports it
-   iterator_func = dynamic_cast<FunctionalOperator*>(left);
+    // use lazy evaluation if the iterator expression supports it
+    iterator_func = dynamic_cast<FunctionalOperator*>(left.getInternalNode());
 
-   // if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression
-   if (QoreTypeInfo::hasType(iteratorTypeInfo)) {
-      if (QoreTypeInfo::isType(iteratorTypeInfo, NT_NOTHING)) {
-         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the select operator (the first expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
-         typeInfo = nothingTypeInfo;
-      }
-      else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
-         typeInfo = listTypeInfo;
-      }
-      else {
-         const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
-         if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
+    // if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression
+    if (QoreTypeInfo::hasType(iteratorTypeInfo)) {
+        if (QoreTypeInfo::isType(iteratorTypeInfo, NT_NOTHING)) {
+            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", "the iterator expression with the select operator (the first expression) has no value (NOTHING) and therefore this expression will also return no value; update the expression to return a value or use '%%disable-warning invalid-operation' in your code to avoid seeing this warning in the future");
+            typeInfo = nothingTypeInfo;
+        }
+        else if (QoreTypeInfo::isType(iteratorTypeInfo, NT_LIST)) {
             typeInfo = listTypeInfo;
-         else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
-            && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
-            typeInfo = iteratorTypeInfo;
-      }
-   }
+        }
+        else {
+            const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(iteratorTypeInfo);
+            if (qc && qore_class_private::parseCheckCompatibleClass(qc, QC_ABSTRACTITERATOR))
+                typeInfo = listTypeInfo;
+            else if ((QoreTypeInfo::parseReturns(iteratorTypeInfo, NT_LIST) == QTI_NOT_EQUAL)
+                && (QoreTypeInfo::parseReturns(iteratorTypeInfo, QC_ABSTRACTITERATOR) == QTI_NOT_EQUAL))
+                typeInfo = iteratorTypeInfo;
+        }
+    }
 
-   if (typeInfo == listTypeInfo && elementTypeInfo)
-      typeInfo = iteratorTypeInfo;
+    if (typeInfo == listTypeInfo && elementTypeInfo)
+        typeInfo = iteratorTypeInfo;
 
-   return this;
+    return this;
 }
 
 QoreValue QoreSelectOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -188,101 +188,101 @@ FunctionalOperatorInterface* QoreSelectOperatorNode::getFunctionalIteratorImpl(F
 }
 
 bool QoreFunctionalSelectListOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
-   while (true) {
-      if (!next())
-         return true;
+    while (true) {
+        if (!next())
+            return true;
 
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(index());
-      SingleArgvContextHelper argv_helper(getReferencedValue(), xsink);
+        // set offset in thread-local data for "$#"
+        ImplicitElementHelper eh(index());
+        SingleArgvContextHelper argv_helper(getReferencedValue(), xsink);
 
-      // check if value can be selected
-      ValueEvalRefHolder result(select->right, xsink);
-      if (*xsink)
-         return false;
-      if (!result->getAsBool())
-         continue;
+        // check if value can be selected
+        ValueEvalRefHolder result(select->right, xsink);
+        if (*xsink)
+            return false;
+        if (!result->getAsBool())
+            continue;
 
-      val.setValue(getReferencedValue(), true);
-      break;
-   }
-   return false;
+        val.setValue(getReferencedValue(), true);
+        break;
+    }
+    return false;
 }
 
 bool QoreFunctionalSelectSingleValueOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
-   if (done)
-      return true;
+    if (done)
+        return true;
 
-   done = true;
+    done = true;
 
-   // setup the implicit argument
-   SingleArgvContextHelper argv_helper(v.refSelf(), xsink);
+    // setup the implicit argument
+    SingleArgvContextHelper argv_helper(v.refSelf(), xsink);
 
-   // check if value can be selected
-   ValueEvalRefHolder result(select->right, xsink);
-   if (*xsink)
-      return false;
-   if (!result->getAsBool())
-      return true;
+    // check if value can be selected
+    ValueEvalRefHolder result(select->right, xsink);
+    if (*xsink)
+        return false;
+    if (!result->getAsBool())
+        return true;
 
-   val.setValue(v, true);
-   v.clear();
-   return false;
+    val.setValue(v, true);
+    v.clear();
+    return false;
 }
 
 bool QoreFunctionalSelectIteratorOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
-   while (true) {
-      bool b = h.next(xsink);
-      if (!b)
-         return true;
-      if (*xsink)
-         return false;
+    while (true) {
+        bool b = h.next(xsink);
+        if (!b)
+            return true;
+        if (*xsink)
+            return false;
 
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(index++);
+        // set offset in thread-local data for "$#"
+        ImplicitElementHelper eh(index++);
 
-      // get the current value
-      ValueHolder iv(h.getValue(xsink), xsink);
-      if (*xsink)
-         return false;
-      // setup the implicit argument
-      SingleArgvContextHelper argv_helper(iv->refSelf(), xsink);
-      // check if value can be selected
-      ValueEvalRefHolder result(select->right, xsink);
-      if (*xsink)
-         return false;
-      if (!result->getAsBool())
-         continue;
+        // get the current value
+        ValueHolder iv(h.getValue(xsink), xsink);
+        if (*xsink)
+            return false;
+        // setup the implicit argument
+        SingleArgvContextHelper argv_helper(iv->refSelf(), xsink);
+        // check if value can be selected
+        ValueEvalRefHolder result(select->right, xsink);
+        if (*xsink)
+            return false;
+        if (!result->getAsBool())
+            continue;
 
-      val.setValue(iv.release(), true);
-      break;
-   }
-   return false;
+        val.setValue(iv.release(), true);
+        break;
+    }
+    return false;
 }
 
 bool QoreFunctionalSelectOperator::getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink) {
-   while (true) {
-      ValueOptionalRefHolder iv(xsink);
-      if (f->getNext(iv, xsink))
-         return true;
-      if (*xsink)
-         return false;
+    while (true) {
+        ValueOptionalRefHolder iv(xsink);
+        if (f->getNext(iv, xsink))
+            return true;
+        if (*xsink)
+            return false;
 
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(index++);
+        // set offset in thread-local data for "$#"
+        ImplicitElementHelper eh(index++);
 
-      // setup the implicit argument
-      SingleArgvContextHelper argv_helper(iv->refSelf(), xsink);
-      // check if value can be selected
-      ValueEvalRefHolder result(select->right, xsink);
-      if (*xsink)
-         return false;
-      if (!result->getAsBool())
-         continue;
+        // setup the implicit argument
+        SingleArgvContextHelper argv_helper(iv->refSelf(), xsink);
+        // check if value can be selected
+        ValueEvalRefHolder result(select->right, xsink);
+        if (*xsink)
+            return false;
+        if (!result->getAsBool())
+            continue;
 
-      iv.ensureReferencedValue();
-      val.takeValueFrom(iv);
-      break;
-   }
-   return false;
+        iv.ensureReferencedValue();
+        val.takeValueFrom(iv);
+        break;
+    }
+    return false;
 }

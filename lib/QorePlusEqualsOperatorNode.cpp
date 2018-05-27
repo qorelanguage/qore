@@ -34,48 +34,48 @@
 QoreString QorePlusEqualsOperatorNode::op_str("+= operator expression");
 
 AbstractQoreNode* QorePlusEqualsOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   // turn off "reference ok" and "return value ignored" flags
-   pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    // turn off "reference ok" and "return value ignored" flags
+    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
-   checkLValue(left, pflag);
+    parse_init_value(left, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
+    checkLValue(left, pflag);
 
-   const QoreTypeInfo* rightTypeInfo = nullptr;
-   right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);
+    const QoreTypeInfo* rightTypeInfo = nullptr;
+    parse_init_value(right, oflag, pflag, lvids, rightTypeInfo);
 
-   if (QoreTypeInfo::isType(ti, NT_LIST)) {
-      if (!QoreTypeInfo::parseReturns(rightTypeInfo, NT_LIST)) {
-         const QoreTypeInfo* eti = QoreTypeInfo::getUniqueReturnComplexList(ti);
-         if (eti && !QoreTypeInfo::parseAccepts(eti, rightTypeInfo)) {
-            parseException(*loc, "PARSE-TYPE-ERROR", "cannot append a value with type '%s' to a list with element type '%s'",
-               QoreTypeInfo::getName(rightTypeInfo), QoreTypeInfo::getName(eti));
-         }
-      }
-   }
-   else if (!QoreTypeInfo::isType(ti, NT_LIST)
-       && !QoreTypeInfo::isType(ti, NT_HASH)
-       && !QoreTypeInfo::isType(ti, NT_OBJECT)
-       && !QoreTypeInfo::isType(ti, NT_STRING)
-       && !QoreTypeInfo::isType(ti, NT_FLOAT)
-       && !QoreTypeInfo::isType(ti, NT_NUMBER)
-       && !QoreTypeInfo::isType(ti, NT_DATE)
-       && !QoreTypeInfo::isType(ti, NT_BINARY)) {
-      // if the lhs type is not one of the above types,
-      // there are 2 possibilities: the lvalue has no value, in which
-      // case it takes the value of the right side, or if it's anything else it's
-      // converted to an integer, so we just check if it can be assigned an
-      // integer value below, this is enough
-      if (QoreTypeInfo::returnsSingle(ti)) {
-         check_lvalue_int(loc, ti, "+=");
-         ti = bigIntTypeInfo;
-         return makeSpecialization<QoreIntPlusEqualsOperatorNode>();
-      }
-      else
-         ti = nullptr;
-   }
-   typeInfo = ti;
+    if (QoreTypeInfo::isType(ti, NT_LIST)) {
+        if (!QoreTypeInfo::parseReturns(rightTypeInfo, NT_LIST)) {
+            const QoreTypeInfo* eti = QoreTypeInfo::getUniqueReturnComplexList(ti);
+            if (eti && !QoreTypeInfo::parseAccepts(eti, rightTypeInfo)) {
+                parseException(*loc, "PARSE-TYPE-ERROR", "cannot append a value with type '%s' to a list with element type '%s'",
+                QoreTypeInfo::getName(rightTypeInfo), QoreTypeInfo::getName(eti));
+            }
+        }
+    }
+    else if (!QoreTypeInfo::isType(ti, NT_LIST)
+        && !QoreTypeInfo::isType(ti, NT_HASH)
+        && !QoreTypeInfo::isType(ti, NT_OBJECT)
+        && !QoreTypeInfo::isType(ti, NT_STRING)
+        && !QoreTypeInfo::isType(ti, NT_FLOAT)
+        && !QoreTypeInfo::isType(ti, NT_NUMBER)
+        && !QoreTypeInfo::isType(ti, NT_DATE)
+        && !QoreTypeInfo::isType(ti, NT_BINARY)) {
+        // if the lhs type is not one of the above types,
+        // there are 2 possibilities: the lvalue has no value, in which
+        // case it takes the value of the right side, or if it's anything else it's
+        // converted to an integer, so we just check if it can be assigned an
+        // integer value below, this is enough
+        if (QoreTypeInfo::returnsSingle(ti)) {
+            check_lvalue_int(loc, ti, "+=");
+            ti = bigIntTypeInfo;
+            return makeSpecialization<QoreIntPlusEqualsOperatorNode>();
+        }
+        else
+            ti = nullptr;
+    }
+    typeInfo = ti;
 
-   return this;
+    return this;
 }
 
 QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

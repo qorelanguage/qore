@@ -35,7 +35,7 @@
 class QoreSquareBracketsOperatorNode : public QoreBinaryOperatorNode<>, public FunctionalOperator {
 OP_COMMON
 public:
-    DLLLOCAL QoreSquareBracketsOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_left, AbstractQoreNode* n_right) : QoreBinaryOperatorNode<>(loc, n_left, n_right) {
+    DLLLOCAL QoreSquareBracketsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBinaryOperatorNode<>(loc, left, right) {
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {

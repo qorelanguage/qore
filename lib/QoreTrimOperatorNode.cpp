@@ -105,9 +105,7 @@ QoreValue QoreTrimOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
 
 AbstractQoreNode* QoreTrimOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(!typeInfo);
-    if (!exp)
-        return this;
-    exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
+    parse_init_value(exp, oflag, pflag, lvids, typeInfo);
     if (exp)
         checkLValue(exp, pflag);
 

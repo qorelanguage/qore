@@ -34,32 +34,32 @@
 QoreString QorePopOperatorNode::pop_str("pop operator expression");
 
 QoreValue QorePopOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   //printd(5, "QorePopOperatorNode::evalValueImpl(%p, isEvent=%d)\n", exp, xsink->isEvent());
+    //printd(5, "QorePopOperatorNode::evalValueImpl(%p, isEvent=%d)\n", exp, xsink->isEvent());
 
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper val(exp, xsink);
-   if (!val)
-      return QoreValue();
+    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
+    LValueHelper val(exp, xsink);
+    if (!val)
+        return QoreValue();
 
-   // return NOTHING if the lvalue has no value for backwards compatibility
-   if (val.getType() == NT_NOTHING)
-      return QoreValue();
+    // return NOTHING if the lvalue has no value for backwards compatibility
+    if (val.getType() == NT_NOTHING)
+        return QoreValue();
 
-   // value is not a list, so throw exception
-   if (val.getType() != NT_LIST) {
-      // only throw a runtime exception if %strict-args is in effect
-      if (runtime_check_parse_option(PO_STRICT_ARGS))
-         xsink->raiseException("POP-ERROR", "the lvalue argument to pop is type \"%s\"; expecting \"list\"", val.getTypeName());
-      return QoreValue();
-   }
+    // value is not a list, so throw exception
+    if (val.getType() != NT_LIST) {
+        // only throw a runtime exception if %strict-args is in effect
+        if (runtime_check_parse_option(PO_STRICT_ARGS))
+            xsink->raiseException("POP-ERROR", "the lvalue argument to pop is type \"%s\"; expecting \"list\"", val.getTypeName());
+        return QoreValue();
+    }
 
-   // no exception can occur here
-   val.ensureUnique();
+    // no exception can occur here
+    val.ensureUnique();
 
-   QoreListNode* l = val.getValue().get<QoreListNode>();
+    QoreListNode* l = val.getValue().get<QoreListNode>();
 
-   printd(5, "QorePopOperatorNode::evalValueImpl() about to call QoreListNode::pop() on list node %p (%d)\n", l, l->size());
-   // the list reference will now be the reference for the return value
-   // therefore no need to reference again
-   return l->pop();
+    printd(5, "QorePopOperatorNode::evalValueImpl() about to call QoreListNode::pop() on list node %p (%d)\n", l, l->size());
+    // the list reference will now be the reference for the return value
+    // therefore no need to reference again
+    return l->pop();
 }

@@ -53,8 +53,8 @@ protected:
     DLLLOCAL bool getEffectiveRange(const QoreValue& seq, int64& start, int64& stop, int64& seq_size, ExceptionSink* xsink) const;
 
 public:
-    DLLLOCAL QoreSquareBracketsRangeOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2)
-        : QoreNOperatorNodeBase<3>(loc, p0, p1 ? p1 : &Nothing, p2 ? p2 : &Nothing) {
+    DLLLOCAL QoreSquareBracketsRangeOperatorNode(const QoreProgramLocation* loc, QoreValue p0, QoreValue p1, QoreValue p2)
+        : QoreNOperatorNodeBase<3>(loc, p0, QoreSimpleValue().assign(p1), QoreSimpleValue().assign(p2)) {
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -69,13 +69,13 @@ public:
     }
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
-        ReferenceHolder<> n_e0(copy_and_resolve_lvar_refs(e[0], xsink), xsink);
+        ValueHolder n_e0(copy_value_and_resolve_lvar_refs(e[0], xsink), xsink);
         if (*xsink)
             return 0;
-        ReferenceHolder<> n_e1(copy_and_resolve_lvar_refs(e[1], xsink), xsink);
+        ValueHolder n_e1(copy_value_and_resolve_lvar_refs(e[1], xsink), xsink);
         if (*xsink)
             return 0;
-        ReferenceHolder<> n_e2(copy_and_resolve_lvar_refs(e[2], xsink), xsink);
+        ValueHolder n_e2(copy_value_and_resolve_lvar_refs(e[2], xsink), xsink);
         if (*xsink)
             return 0;
         return new QoreSquareBracketsRangeOperatorNode(loc, n_e0.release(), n_e1.release(), n_e2.release());

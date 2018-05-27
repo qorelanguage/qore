@@ -34,37 +34,36 @@
 QoreString QoreRegexMatchOperatorNode::op_str("regex match (=~) operator expression");
 
 QoreValue QoreRegexMatchOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
-   ValueEvalRefHolder lh(exp, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder lh(exp, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   QoreStringNodeValueHelper str(*lh);
-   return regex->exec(*str, xsink);
+    QoreStringNodeValueHelper str(*lh);
+    return regex->exec(*str, xsink);
 }
 
-AbstractQoreNode *QoreRegexMatchOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   // turn off "reference ok" and "return value ignored" flags
-   pflag &= ~(PF_RETURN_VALUE_IGNORED);
+AbstractQoreNode* QoreRegexMatchOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+    // turn off "reference ok" and "return value ignored" flags
+    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   typeInfo = boolTypeInfo;
+    typeInfo = boolTypeInfo;
 
-   const QoreTypeInfo *lti = 0;
+    const QoreTypeInfo *lti = 0;
+    parse_init_value(exp, oflag, pflag, lvids, lti);
 
-   exp = exp->parseInit(oflag, pflag, lvids, lti);
+    if (!QoreTypeInfo::canConvertToScalar(lti)) {
+        QoreStringMaker desc("the left side of the %s is ", op_str.c_str());
+        lti->doNonStringWarning(loc, desc.c_str());
+    }
 
-   if (!QoreTypeInfo::canConvertToScalar(lti)) {
-      QoreStringMaker desc("the left side of the %s is ", op_str.c_str());
-      lti->doNonStringWarning(loc, desc.c_str());
-   }
+    // see if the left-hand arguments is a constant, then eval immediately and substitute this node with the result
+    if (exp.isValue()) {
+        SimpleRefHolder<QoreRegexMatchOperatorNode> del(this);
+        ParseExceptionSink xsink;
+        ValueEvalRefHolder v(this, *xsink);
+        assert(!**xsink);
+        return v.takeReferencedValue().takeNode();
+    }
 
-   // see if the left-hand arguments is a constant, then eval immediately and substitute this node with the result
-   if (exp && exp->is_value()) {
-      SimpleRefHolder<QoreRegexMatchOperatorNode> del(this);
-      ParseExceptionSink xsink;
-      ValueEvalRefHolder v(this, *xsink);
-      assert(!**xsink);
-      return v.takeReferencedValue().takeNode();
-   }
-
-   return this;
+    return this;
 }

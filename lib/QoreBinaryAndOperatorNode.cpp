@@ -33,13 +33,12 @@
 QoreString QoreBinaryAndOperatorNode::op_str("& (binary and) operator expression");
 
 QoreValue QoreBinaryAndOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   int64 l = left->bigIntEval(xsink);
-   if (*xsink)
-      return QoreValue();
-   int64 r = right->bigIntEval(xsink);
-   if (*xsink)
-      return QoreValue();
-   return l & r;
+    ValueEvalRefHolder lh(left, xsink);
+    if (*xsink) return QoreValue();
+    ValueEvalRefHolder rh(right, xsink);
+    if (*xsink) return QoreValue();
+
+    return lh->getAsBigInt() & rh->getAsBigInt();
 }
 
 AbstractQoreNode* QoreBinaryAndOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
@@ -50,8 +49,8 @@ AbstractQoreNode* QoreBinaryAndOperatorNode::parseInitImpl(LocalVar* oflag, int 
 
     const QoreTypeInfo *lti = 0, *rti = 0;
 
-    left = left->parseInit(oflag, pflag, lvids, lti);
-    right = right->parseInit(oflag, pflag, lvids, rti);
+    parse_init_value(left, oflag, pflag, lvids, lti);
+    parse_init_value(right, oflag, pflag, lvids, rti);
 
     // see if any of the arguments cannot be converted to an integer, if so generate a warning
     if (!QoreTypeInfo::canConvertToScalar(lti))
@@ -60,7 +59,7 @@ AbstractQoreNode* QoreBinaryAndOperatorNode::parseInitImpl(LocalVar* oflag, int 
         rti->doNonNumericWarning(loc, "the right hand expression of the 'binary and' operator (&) expression is ");
 
     // see if both arguments are constant values, then eval immediately and substitute this node with the result
-    if (left && left->is_value() && right && right->is_value()) {
+    if (left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreBinaryAndOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);

@@ -82,17 +82,17 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag,
 
     // check iterator expression
     const QoreTypeInfo* iteratorTypeInfo = nullptr;
-    right = right->parseInit(oflag, pflag, lvids, iteratorTypeInfo);
+    parse_init_value(right, oflag, pflag, lvids, iteratorTypeInfo);
 
     // check iterated expression
     {
         // set implicit argument type
         ParseImplicitArgTypeHelper pia(QoreTypeInfo::getUniqueReturnComplexList(iteratorTypeInfo));
-        left = left->parseInit(oflag, pflag, lvids, expTypeInfo);
+        parse_init_value(left, oflag, pflag, lvids, expTypeInfo);
     }
 
     // use lazy evaluation if the iterator expression supports it
-    iterator_func = dynamic_cast<FunctionalOperator*>(right);
+    iterator_func = dynamic_cast<FunctionalOperator*>(right.getInternalNode());
 
     bool is_list = false;
     // if iterator is a list or an iterator, then the return type is a list, otherwise it's the return type of the iterated expression

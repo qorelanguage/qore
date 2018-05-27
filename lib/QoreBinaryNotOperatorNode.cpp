@@ -35,13 +35,13 @@ QoreString QoreBinaryNotOperatorNode::BinaryNot_str("binary not (~) operator exp
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *QoreBinaryNotOperatorNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = false;
-   return &BinaryNot_str;
+    del = false;
+    return &BinaryNot_str;
 }
 
 int QoreBinaryNotOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   str.concat(&BinaryNot_str);
-   return 0;
+    str.concat(&BinaryNot_str);
+    return 0;
 }
 
 QoreValue QoreBinaryNotOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -60,14 +60,14 @@ AbstractQoreNode* QoreBinaryNotOperatorNode::parseInitImpl(LocalVar* oflag, int 
 
     assert(exp);
 
-    const QoreTypeInfo* lti = 0;
-    exp = exp->parseInit(oflag, pflag, lvids, lti);
+    const QoreTypeInfo* lti = nullptr;
+    parse_init_value(exp, oflag, pflag, lvids, lti);
 
     if (!QoreTypeInfo::canConvertToScalar(lti))
         lti->doNonNumericWarning(loc, "the operand of the 'binary not' operator (^) expression is ");
 
     // see if the argument is a constant value, then eval immediately and substitute this node with the result
-    if (exp && exp->is_value()) {
+    if (exp.isValue()) {
         SimpleRefHolder<QoreBinaryNotOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);

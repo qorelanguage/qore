@@ -42,8 +42,8 @@ AbstractQoreNode* QoreRangeOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
 
     const QoreTypeInfo* lti = nullptr, *rti = nullptr;
 
-    left = left->parseInit(oflag, pflag, lvids, lti);
-    right = right->parseInit(oflag, pflag, lvids, rti);
+    parse_init_value(left, oflag, pflag, lvids, lti);
+    parse_init_value(right, oflag, pflag, lvids, rti);
 
     // see if any of the arguments cannot be converted to an integer, if so raise a parse exception
     if (!QoreTypeInfo::canConvertToScalar(lti))
@@ -79,12 +79,15 @@ QoreValue QoreRangeOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink*
 }
 
 FunctionalOperatorInterface* QoreRangeOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
-    int64 start = left->bigIntEval(xsink);
+    ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return nullptr;
-    int64 stop = right->bigIntEval(xsink);
+    int64 start = lh->getAsBigInt();
+
+    ValueEvalRefHolder rh(right, xsink);
     if (*xsink)
         return nullptr;
+    int64 stop = rh->getAsBigInt();
 
     value_type = list;
     return new QoreFunctionalRangeOperator(start, stop, xsink);

@@ -166,7 +166,7 @@ LValueHelper::LValueHelper(QoreValue exp, ExceptionSink* xsink, bool for_remove)
     // exp can be 0 when called from LValueRefHelper if the attach to the Program fails, for example
     //printd(5, "LValueHelper::LValueHelper() exp: %p (%s %d)\n", exp, get_type_name(exp), get_node_type(exp));
     if (!exp.isNothing() && exp.hasNode()) {
-        doLValue(exp.getInternalNode(), for_remove);
+        doLValue(exp, for_remove);
     }
 }
 
@@ -253,15 +253,12 @@ LValueHelper::~LValueHelper() {
     }
 }
 
-void LValueHelper::saveTemp(QoreValue& n) {
-    saveTemp(n.takeIfNode());
-}
-
-void LValueHelper::saveTemp(AbstractQoreNode* n) {
-    if (!n || !n->isReferenceCounted())
+void LValueHelper::saveTemp(QoreValue val) {
+    if (!val.isReferenceCounted()) {
         return;
+    }
     // save for dereferencing later
-    tvec.push_back(n);
+    tvec.push_back(val.takeNode());
 }
 
 static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, ExceptionSink* xsink) {
@@ -441,22 +438,22 @@ int LValueHelper::doLValue(const ReferenceNode* ref, bool for_remove) {
     return doLValue(r->vexp, for_remove);
 }
 
-int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
+int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
     // if we are already locked, then save the value and unlock before processing
     if (vl) {
-        saveTemp(n->refSelf());
+        saveTemp(n.refSelf());
         vl.del();
     }
-    qore_type_t ntype = n->getType();
+    qore_type_t ntype = n.getType();
     //printd(5, "LValueHelper::doLValue(exp: %p) %s %d\n", n, get_type_name(n), get_node_type(n));
     if (ntype == NT_VARREF) {
-        const VarRefNode* v = reinterpret_cast<const VarRefNode*>(n);
+        const VarRefNode* v = n.get<const VarRefNode>();
         //printd(5, "LValueHelper::doLValue(): vref: %s (%p) type: %d\n", v->getName(), v, v->getType());
         if (v->getLValue(*this, for_remove))
             return -1;
     }
     else if (ntype == NT_SELF_VARREF) {
-        const SelfVarrefNode* v = reinterpret_cast<const SelfVarrefNode*>(n);
+        const SelfVarrefNode* v = n.get<const SelfVarrefNode>();
         // note that getStackObject() is guaranteed to return a value here (self varref is only valid in a method)
         QoreObject* obj = runtime_get_stack_object();
         assert(obj);
@@ -472,21 +469,21 @@ int LValueHelper::doLValue(const AbstractQoreNode* n, bool for_remove) {
         ocvec.push_back(ObjCountRec(obj));
     }
     else if (ntype == NT_CLASS_VARREF)
-        reinterpret_cast<const StaticClassVarRefNode*>(n)->getLValue(*this);
+        n.get<const StaticClassVarRefNode>()->getLValue(*this);
     else if (ntype == NT_REFERENCE) {
-        if (doLValue(reinterpret_cast<const ReferenceNode*>(n), for_remove))
+        if (doLValue(n.get<const ReferenceNode>(), for_remove))
             return -1;
     }
     else {
         assert(ntype == NT_OPERATOR);
-        const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(n);
+        const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(n.getInternalNode());
         if (op) {
             if (doListLValue(op, for_remove))
                 return -1;
         }
         else {
-            assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n));
-            const QoreHashObjectDereferenceOperatorNode* hop = reinterpret_cast<const QoreHashObjectDereferenceOperatorNode*>(n);
+            assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n.getInternalNode()));
+            const QoreHashObjectDereferenceOperatorNode* hop = n.get<const QoreHashObjectDereferenceOperatorNode>();
             if (doHashObjLValue(hop, for_remove))
                 return -1;
         }
@@ -1038,14 +1035,14 @@ QoreValue LValueHelper::remove(bool& static_assignment) {
     return rv;
 }
 
-LValueRemoveHelper::LValueRemoveHelper(const AbstractQoreNode* exp, ExceptionSink* n_xsink, bool fd) : xsink(n_xsink), for_del(fd) {
-    doRemove(const_cast<AbstractQoreNode*>(exp));
+LValueRemoveHelper::LValueRemoveHelper(const QoreValue exp, ExceptionSink* n_xsink, bool fd) : xsink(n_xsink), for_del(fd) {
+    doRemove(exp);
 }
 
 LValueRemoveHelper::LValueRemoveHelper(const ReferenceNode& ref, ExceptionSink* n_xsink, bool fd) : xsink(n_xsink), for_del(fd) {
     RuntimeReferenceHelper rrh(ref, xsink);
     if (rrh)
-        doRemove(const_cast<AbstractQoreNode*>(lvalue_ref::get(&ref)->vexp));
+        doRemove(lvalue_ref::get(&ref)->vexp);
 }
 
 QoreValue LValueRemoveHelper::removeValue() {
@@ -1100,26 +1097,26 @@ void LValueRemoveHelper::deleteLValue() {
     o->doDelete(xsink);
 }
 
-void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
+void LValueRemoveHelper::doRemove(QoreValue lvalue) {
     assert(lvalue);
-    qore_type_t t = lvalue->getType();
+    qore_type_t t = lvalue.getType();
     if (t == NT_VARREF) {
-        reinterpret_cast<VarRefNode*>(lvalue)->remove(*this);
+        lvalue.get<VarRefNode>()->remove(*this);
         return;
     }
 
     if (t == NT_SELF_VARREF) {
 #ifdef DEBUG
         // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-        assert(!rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, reinterpret_cast<SelfVarrefNode*>(lvalue)->str, false)));
+        assert(!rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, lvalue.get<SelfVarrefNode>()->str, false)));
 #else
-        rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, reinterpret_cast<SelfVarrefNode*>(lvalue)->str, false));
+        rv.assignInitial(qore_object_private::takeMember(*(runtime_get_stack_object()), xsink, lvalue.get<SelfVarrefNode>()->str, false));
 #endif
         return;
     }
 
     if (t == NT_CLASS_VARREF) {
-        reinterpret_cast<StaticClassVarRefNode*>(lvalue)->remove(*this);
+        lvalue.get<StaticClassVarRefNode>()->remove(*this);
         return;
     }
 
@@ -1127,9 +1124,9 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
     if (t != NT_OPERATOR) {
 #ifdef DEBUG
         // QoreLValue::assignInitial() can only return a value if it has an optimized type restriction; which "rv" does not have
-        assert(!rv.assignInitial(lvalue ? lvalue->refSelf() : 0));
+        assert(!rv.assignInitial(lvalue.refSelf()));
 #else
-        rv.assignInitial(lvalue ? lvalue->refSelf() : 0);
+        rv.assignInitial(lvalue.refSelf());
 #endif
         return;
     }
@@ -1137,7 +1134,7 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
     assert(t == NT_OPERATOR);
 
     {
-        const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(lvalue);
+        const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(lvalue.getInternalNode());
         if (op) {
             doRemove(op);
             return;
@@ -1145,15 +1142,15 @@ void LValueRemoveHelper::doRemove(AbstractQoreNode* lvalue) {
     }
 
     {
-        const QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<const QoreSquareBracketsRangeOperatorNode*>(lvalue);
+        const QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<const QoreSquareBracketsRangeOperatorNode*>(lvalue.getInternalNode());
         if (op) {
             doRemove(op);
             return;
         }
     }
 
-    assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(lvalue));
-    const QoreHashObjectDereferenceOperatorNode* op = reinterpret_cast<const QoreHashObjectDereferenceOperatorNode*>(lvalue);
+    assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(lvalue.getInternalNode()));
+    const QoreHashObjectDereferenceOperatorNode* op = lvalue.get<const QoreHashObjectDereferenceOperatorNode>();
 
     // get the member name or names
     ValueEvalRefHolder member(op->getRight(), xsink);
@@ -1273,8 +1270,8 @@ static void do_binary_value(BinaryNode& v, BinaryNode& bin, int64 ind, ind_set_t
 }
 
 void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
-    if (get_node_type(op->getRight()) == NT_PARSE_LIST) {
-        doRemove(op, static_cast<const QoreParseListNode*>(op->getRight()));
+    if (op->getRight().getType() == NT_PARSE_LIST) {
+        doRemove(op, op->getRight().get<const QoreParseListNode>());
         return;
     }
 

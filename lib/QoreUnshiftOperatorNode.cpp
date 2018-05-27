@@ -37,10 +37,10 @@ AbstractQoreNode* QoreUnshiftOperatorNode::parseInitImpl(LocalVar* oflag, int pf
     pflag &= ~PF_RETURN_VALUE_IGNORED;
 
     const QoreTypeInfo* leftTypeInfo = 0;
-    left = left->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
+    parse_init_value(left, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, leftTypeInfo);
 
     const QoreTypeInfo* rightTypeInfo = 0;
-    right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);
+    parse_init_value(right, oflag, pflag, lvids, rightTypeInfo);
 
     if (left) {
         checkLValue(left, pflag);

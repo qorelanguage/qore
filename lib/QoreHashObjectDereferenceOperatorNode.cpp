@@ -1,31 +1,31 @@
 /*
-  QoreHashObjectDereferenceOperatorNode.cpp
+    QoreHashObjectDereferenceOperatorNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -44,15 +44,15 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
 
     const QoreTypeInfo* lti = 0, *rti = 0;
 
-    left = left->parseInit(oflag, pflag, lvids, lti);
-    right = right->parseInit(oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
+    parse_init_value(left, oflag, pflag, lvids, lti);
+    parse_init_value(right, oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
 
     bool for_assignment = pflag & PF_FOR_ASSIGNMENT;
 
     printd(5, "QoreHashObjectDereferenceOperatorNode::parseInitImpl() l: %p %s (%s) r: %p %s\n", lti, QoreTypeInfo::getName(lti), QoreTypeInfo::getUniqueReturnClass(lti) ? QoreTypeInfo::getUniqueReturnClass(lti)->getName() : "n/a", rti, QoreTypeInfo::getName(rti));
 
-    if (for_assignment && left && check_lvalue(left))
-        parse_error(*loc, "expression used for assignment requires an lvalue, got '%s' instead", left->getTypeName());
+    if (for_assignment && check_lvalue(left))
+        parse_error(*loc, "expression used for assignment requires an lvalue, got '%s' instead", left.getTypeName());
 
     const QoreTypeInfo* complexKeyTypeInfo = nullptr;
 
@@ -66,13 +66,13 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
         const QoreClass *qc = QoreTypeInfo::getUniqueReturnClass(lti);
         // see if we can check for legal access
         if (qc && right) {
-            qore_type_t rt = right->getType();
+            qore_type_t rt = right.getType();
             if (rt == NT_STRING) {
-                const char* member = reinterpret_cast<const QoreStringNode*>(right)->getBuffer();
+                const char* member = right.get<const QoreStringNode>()->c_str();
                 qore_class_private::parseCheckMemberAccess(*qc, loc, member, returnTypeInfo, pflag);
             }
             else if (rt == NT_LIST) { // check object slices as well if strings are available
-                ConstListIterator li(reinterpret_cast<const QoreListNode*>(right));
+                ConstListIterator li(right.get<const QoreListNode>());
                 while (li.next()) {
                     if (li.getValue().getType() == NT_STRING) {
                         const char* member = li.getValue().get<const QoreStringNode>()->c_str();
@@ -86,13 +86,13 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
             const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(lti);
             if (hd) {
                 if (right) {
-                    qore_type_t rt = right->getType();
+                    qore_type_t rt = right.getType();
                     if (rt == NT_STRING) {
-                        const char* member = reinterpret_cast<const QoreStringNode*>(right)->c_str();
+                        const char* member = right.get<const QoreStringNode>()->c_str();
                         typed_hash_decl_private::get(*hd)->parseCheckMemberAccess(loc, member, returnTypeInfo, pflag);
                     }
                     else if (rt == NT_LIST) { // check object slices as well if strings are available
-                        ConstListIterator li(reinterpret_cast<const QoreListNode*>(right));
+                        ConstListIterator li(right.get<const QoreListNode>());
                         while (li.next()) {
                             if (li.getValue().getType() == NT_STRING) {
                                 const char* member = li.getValue().get<const QoreStringNode>()->c_str();

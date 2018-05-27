@@ -46,7 +46,7 @@ int QoreShiftOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink*
 
 AbstractQoreNode* QoreShiftOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     const QoreTypeInfo* expTypeInfo = 0;
-    exp = exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
+    parse_init_value(exp, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
 
     if (exp) {
         checkLValue(exp, pflag);

@@ -43,8 +43,8 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
 
     const QoreTypeInfo* lti = nullptr, *rti = nullptr;
 
-    left = left->parseInit(oflag, pflag, lvids, lti);
-    right = right->parseInit(oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
+    parse_init_value(left, oflag, pflag, lvids, lti);
+    parse_init_value(right, oflag, pflag & ~(PF_FOR_ASSIGNMENT), lvids, rti);
 
     bool rti_is_list = QoreTypeInfo::isType(rti, NT_LIST);
     bool rti_can_be_list = rti_is_list ? true : QoreTypeInfo::parseReturns(rti, NT_LIST);
@@ -121,12 +121,12 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
             parse_error(*loc, "a slice cannot be used on the left-hand side of an assignment expression");
 
         // check element types in list
-        switch (get_node_type(right)) {
+        switch (right.getType()) {
             case NT_PARSE_LIST:
-                parseCheckValueTypes(static_cast<const QoreParseListNode*>(right));
+                parseCheckValueTypes(right.get<const QoreParseListNode>());
                 break;
             case NT_LIST:
-                parseCheckValueTypes(static_cast<const QoreListNode*>(right));
+                parseCheckValueTypes(right.get<const QoreListNode>());
                 break;
             default:
                 break;
@@ -136,7 +136,7 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
 
     // see if both arguments are constants, and the right side cannot be a list, then eval immediately and substitute this node with the result
     // if the right side can be a list then we need to leave it unevaluated so we can support lazy evaluation with functional operators
-    if (!rti_can_be_list && right && right->is_value() && left && left->is_value()) {
+    if (!rti_can_be_list && right.isValue() && left.isValue()) {
         SimpleRefHolder<QoreSquareBracketsOperatorNode> del(this);
         ParseExceptionSink xsink;
         AbstractQoreNode* rv = QoreSquareBracketsOperatorNode::evalImpl(*xsink);
@@ -180,7 +180,7 @@ QoreValue QoreSquareBracketsOperatorNode::evalValueImpl(bool& needs_deref, Excep
 
     // do not evalute RHS if it's a list with ranges
     if (rhs_list_range)
-        return doSquareBracketsListRange(*lh, static_cast<const QoreParseListNode*>(right), xsink);
+        return doSquareBracketsListRange(*lh, right.get<const QoreParseListNode>(), xsink);
 
     ValueEvalRefHolder rh(right, xsink);
     if (*xsink)
@@ -400,7 +400,7 @@ FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIterat
     if (rhs_list_range) {
         if (lhs->getType() == NT_LIST) {
             value_type = list;
-            return new QoreFunctionalSquareBracketsComplexOperator(lhs, static_cast<const QoreParseListNode*>(right), xsink);
+            return new QoreFunctionalSquareBracketsComplexOperator(lhs, right.get<const QoreParseListNode>(), xsink);
         }
     }
     else {
@@ -421,7 +421,7 @@ FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIterat
     ValueHolder res(xsink);
 
     if (rhs_list_range)
-        res = doSquareBracketsListRange(*lhs, static_cast<const QoreParseListNode*>(right), xsink);
+        res = doSquareBracketsListRange(*lhs, right.get<const QoreParseListNode>(), xsink);
     else
         res = doSquareBrackets(*lhs, *rhs, true, xsink);
 

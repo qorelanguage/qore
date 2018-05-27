@@ -33,37 +33,37 @@
 QoreString QorePushOperatorNode::push_str("push operator expression");
 
 QoreValue QorePushOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   ValueEvalRefHolder res(right, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder res(right, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper val(left, xsink);
-   if (!val)
-      return QoreValue();
+    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
+    LValueHelper val(left, xsink);
+    if (!val)
+        return QoreValue();
 
-   // assign to a blank list if the lvalue has no value yet but is typed as a list or a softlist
-   if (val.getType() == NT_NOTHING) {
-      if (val.getTypeInfo() == listTypeInfo && val.assign(QoreTypeInfo::getDefaultQoreValue(listTypeInfo)))
-         return QoreValue();
-      if (val.getTypeInfo() == softListTypeInfo && val.assign(QoreTypeInfo::getDefaultQoreValue(softListTypeInfo)))
-         return QoreValue();
-   }
+    // assign to a blank list if the lvalue has no value yet but is typed as a list or a softlist
+    if (val.getType() == NT_NOTHING) {
+        if (val.getTypeInfo() == listTypeInfo && val.assign(QoreTypeInfo::getDefaultQoreValue(listTypeInfo)))
+            return QoreValue();
+        if (val.getTypeInfo() == softListTypeInfo && val.assign(QoreTypeInfo::getDefaultQoreValue(softListTypeInfo)))
+            return QoreValue();
+    }
 
-   // value is not a list, so throw exception
-   if (val.getType() != NT_LIST) {
-      if (runtime_check_parse_option(PO_STRICT_ARGS))
-         xsink->raiseException("PUSH-ERROR", "the lvalue argument to push is type \"%s\"; expecting \"list\"", val.getTypeName());
-      return QoreValue();
-   }
+    // value is not a list, so throw exception
+    if (val.getType() != NT_LIST) {
+        if (runtime_check_parse_option(PO_STRICT_ARGS))
+            xsink->raiseException("PUSH-ERROR", "the lvalue argument to push is type \"%s\"; expecting \"list\"", val.getTypeName());
+        return QoreValue();
+    }
 
-   // no exception can occur here
-   val.ensureUnique();
+    // no exception can occur here
+    val.ensureUnique();
 
-   QoreListNode* l = val.getValue().get<QoreListNode>();
+    QoreListNode* l = val.getValue().get<QoreListNode>();
 
-   l->push(res.getReferencedValue(), xsink);
+    l->push(res.getReferencedValue(), xsink);
 
-   // reference for return value
-   return ref_rv ? l->refSelf() : QoreValue();
+    // reference for return value
+    return ref_rv ? l->refSelf() : QoreValue();
 }

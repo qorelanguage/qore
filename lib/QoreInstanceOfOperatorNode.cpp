@@ -36,64 +36,62 @@ QoreString QoreInstanceOfOperatorNode::InstanceOf_str("instanceof operator expre
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *QoreInstanceOfOperatorNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = false;
-   return &InstanceOf_str;
+    del = false;
+    return &InstanceOf_str;
 }
 
 int QoreInstanceOfOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   str.concat(&InstanceOf_str);
-   return 0;
+    str.concat(&InstanceOf_str);
+    return 0;
 }
 
 QoreValue QoreInstanceOfOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   assert(ti);
+    assert(ti);
 
-   ValueEvalRefHolder v(exp, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder v(exp, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   // treat a weak reference as the target object
-   if (v->getType() == NT_WEAKREF)
-      return QoreTypeInfo::runtimeAcceptsValue(ti, **v->get<const WeakReferenceNode>()) ? true : false;
+    // treat a weak reference as the target object
+    if (v->getType() == NT_WEAKREF)
+        return QoreTypeInfo::runtimeAcceptsValue(ti, **v->get<const WeakReferenceNode>()) ? true : false;
 
-   return QoreTypeInfo::runtimeAcceptsValue(ti, *v) ? true : false;
+    return QoreTypeInfo::runtimeAcceptsValue(ti, *v) ? true : false;
 }
 
 AbstractQoreNode* QoreInstanceOfOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   // turn off "return value ignored" flags
-   pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    // turn off "return value ignored" flags
+    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   typeInfo = boolTypeInfo;
+    typeInfo = boolTypeInfo;
 
-   assert(exp);
+    const QoreTypeInfo* lti = nullptr;
+    parse_init_value(exp, oflag, pflag, lvids, lti);
 
-   const QoreTypeInfo* lti = nullptr;
-   exp = exp->parseInit(oflag, pflag, lvids, lti);
-
-   if (r) {
-      ti = QoreParseTypeInfo::resolveAny(r, loc);
-      delete r;
-      r = nullptr;
-   }
+    if (r) {
+        ti = QoreParseTypeInfo::resolveAny(r, loc);
+        delete r;
+        r = nullptr;
+    }
 #ifdef DEBUG
-   else
-      assert(ti);
+    else
+        assert(ti);
 #endif
 
-   //printd(5, "QoreInstanceOfOperatorNode::parseInitImpl() this: %p exp: %p lti: '%s'\n", this, exp, QoreTypeInfo::getName(lti));;
-   if (!QoreTypeInfo::parseAccepts(ti, lti)) {
-      QoreStringNode* edesc = new QoreStringNodeMaker("'%s instanceof %s' always returns False", QoreTypeInfo::getName(lti), QoreTypeInfo::getName(ti));
-      qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-   }
+    //printd(5, "QoreInstanceOfOperatorNode::parseInitImpl() this: %p exp: %p lti: '%s'\n", this, exp, QoreTypeInfo::getName(lti));;
+    if (!QoreTypeInfo::parseAccepts(ti, lti)) {
+        QoreStringNode* edesc = new QoreStringNodeMaker("'%s instanceof %s' always returns False", QoreTypeInfo::getName(lti), QoreTypeInfo::getName(ti));
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+    }
 
-   // see the argument is a constant value, then eval immediately and substitute this node with the result
-   if (exp && exp->is_value()) {
-      SimpleRefHolder<QoreInstanceOfOperatorNode> del(this);
-      ParseExceptionSink xsink;
-      ValueEvalRefHolder v(this, *xsink);
-      assert(!**xsink);
-      return v.takeReferencedValue().takeNode();
-   }
+    // see the argument is a constant value, then eval immediately and substitute this node with the result
+    if (exp.isValue()) {
+        SimpleRefHolder<QoreInstanceOfOperatorNode> del(this);
+        ParseExceptionSink xsink;
+        ValueEvalRefHolder v(this, *xsink);
+        assert(!**xsink);
+        return v.takeReferencedValue().takeNode();
+    }
 
-   return this;
+    return this;
 }

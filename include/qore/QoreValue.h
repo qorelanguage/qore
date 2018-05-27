@@ -47,9 +47,10 @@ typedef unsigned char valtype_t;
 #define QV_Ref   (valtype_t)4  //!< for references (when used with lvalues)
 //@}
 
-// forward reference
+// forward references
 class AbstractQoreNode;
 class QoreString;
+struct QoreValue;
 
 //! this is the union that stores values in QoreValue
 union qore_value_u {
@@ -130,9 +131,16 @@ public:
         v.b = b;
     }
 
+    DLLLOCAL void set(QoreValue& val);
+
     DLLLOCAL void set(AbstractQoreNode* n) {
         type = QV_Node;
         v.n = n;
+    }
+
+    DLLLOCAL QoreSimpleValue& assign(QoreValue& val) {
+        set(val);
+        return *this;
     }
 
     DLLLOCAL QoreSimpleValue& assign(int64 i) {
@@ -386,6 +394,9 @@ public:
 
     //! returns true if the value holds a referenced-counted node
     DLLEXPORT bool isReferenceCounted() const;
+
+    //! returns true if the object holds a value, false if it holds an expression
+    DLLEXPORT bool isValue() const;
 
     //! returns true if the value is not NOTHING
     DLLEXPORT operator bool() const;

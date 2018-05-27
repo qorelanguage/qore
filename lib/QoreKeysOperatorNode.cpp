@@ -51,7 +51,7 @@ AbstractQoreNode* QoreKeysOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
     pflag &= ~PF_RETURN_VALUE_IGNORED;
 
     const QoreTypeInfo *expTypeInfo = 0;
-    exp = exp->parseInit(oflag, pflag, lvids, expTypeInfo);
+    parse_init_value(exp, oflag, pflag, lvids, expTypeInfo);
 
     if (QoreTypeInfo::hasType(expTypeInfo)) {
         if (QoreTypeInfo::isType(expTypeInfo, NT_HASH) || QoreTypeInfo::isType(expTypeInfo, NT_OBJECT))
@@ -70,14 +70,13 @@ AbstractQoreNode* QoreKeysOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
     else
         returnTypeInfo = listOrNothingTypeInfo;
 
-    if (exp && exp->is_value()) {
+    if (exp.isValue()) {
         ReferenceHolder<> holder(this, 0);
-        qore_type_t t = get_node_type(exp);
+        qore_type_t t = exp.getType();
         if (t == NT_HASH || t == NT_OBJECT) {
             ValueEvalRefHolder rv(this, 0);
-            AbstractQoreNode* v = rv->isNothing() ? &Nothing : rv.takeReferencedValue().takeNode();
-            typeInfo = getTypeInfoForValue(v);
-            return v;
+            typeInfo = rv->getTypeInfo();
+            return rv.takeReferencedValue().takeNode();
         }
         else {
             typeInfo = nothingTypeInfo;

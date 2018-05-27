@@ -397,15 +397,14 @@ public:
         robj = c;
     }
 
-    DLLLOCAL void saveTemp(QoreValue& n);
-    DLLLOCAL void saveTemp(AbstractQoreNode* n);
+    DLLLOCAL void saveTemp(QoreValue n);
 
     DLLLOCAL AbstractQoreNode*& getTempRef() {
         tvec.push_back(0);
         return tvec[tvec.size() - 1];
     }
 
-    DLLLOCAL int doLValue(const AbstractQoreNode* exp, bool for_remove);
+    DLLLOCAL int doLValue(const QoreValue exp, bool for_remove);
 
     DLLLOCAL int doLValue(const ReferenceNode* ref, bool for_remove);
 
@@ -629,9 +628,9 @@ protected:
 
 public:
     DLLLOCAL LValueRemoveHelper(const ReferenceNode& ref, ExceptionSink* n_xsink, bool fd);
-    DLLLOCAL LValueRemoveHelper(const AbstractQoreNode* exp, ExceptionSink* n_xsink, bool fd);
+    DLLLOCAL LValueRemoveHelper(const QoreValue exp, ExceptionSink* n_xsink, bool fd);
 
-    DLLLOCAL void doRemove(AbstractQoreNode* exp);
+    DLLLOCAL void doRemove(QoreValue exp);
 
     DLLLOCAL operator bool() const {
         return !*xsink;

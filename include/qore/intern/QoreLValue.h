@@ -141,6 +141,24 @@ public:
         return type != QV_Node && type != QV_Ref;
     }
 
+    //! returns the value as the given type
+    /** @note that if a pointer type is given and the object does not contain a node (i.e. type != QV_Node), then
+        this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in which case type conversions are performed
+    */
+    template<typename T>
+    DLLLOCAL typename detail::QoreValueCastHelper<T>::Result get() {
+        return assigned ? detail::QoreValueCastHelper<T>::cast(this, type) : nullptr;
+    }
+
+    //! returns the value as the given type
+    /** @note that if a pointer type is given and the object does not contain a node (i.e. type != QV_Node), then
+        this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in which case type conversions are performed
+    */
+    template<typename T>
+    DLLLOCAL typename detail::QoreValueCastHelper<const T>::Result get() const {
+        return assigned ? detail::QoreValueCastHelper<const T>::cast(this, type) : nullptr;
+    }
+
     DLLLOCAL const char* getFixedTypeName() const {
         if (!fixed_type)
             return "any";
@@ -1383,7 +1401,7 @@ public:
                 return v.f;
             case QV_Node:
                 if (!is_closure)
-                check_lvalue_object_in_out(0, v.n);
+                    check_lvalue_object_in_out(0, v.n);
                 return v.n;
             default:
                 assert(false);

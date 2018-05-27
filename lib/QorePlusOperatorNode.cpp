@@ -167,52 +167,52 @@ QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
 }
 
 AbstractQoreNode* QorePlusOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
-   // turn off "reference ok" and "return value ignored" flags
-   pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    // turn off "reference ok" and "return value ignored" flags
+    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   assert(!parseTypeInfo);
+    assert(!parseTypeInfo);
 
-   const QoreTypeInfo* leftTypeInfo = nullptr, *rightTypeInfo = nullptr;
+    const QoreTypeInfo* leftTypeInfo = nullptr, *rightTypeInfo = nullptr;
 
-   left = left->parseInit(oflag, pflag, lvids, leftTypeInfo);
-   right = right->parseInit(oflag, pflag, lvids, rightTypeInfo);
+    parse_init_value(left, oflag, pflag, lvids, leftTypeInfo);
+    parse_init_value(right, oflag, pflag, lvids, rightTypeInfo);
 
-   // see if both arguments are constants, then eval immediately and substitute this node with the result
-   if (right && right->is_value() && left && left->is_value()) {
-      SimpleRefHolder<QorePlusOperatorNode> del(this);
-      ParseExceptionSink xsink;
-      AbstractQoreNode* rv = QorePlusOperatorNode::evalImpl(*xsink);
-      return rv ? rv : &Nothing;
-   }
+    // see if both arguments are constants, then eval immediately and substitute this node with the result
+    if (left.isValue() && right.isValue()) {
+        SimpleRefHolder<QorePlusOperatorNode> del(this);
+        ParseExceptionSink xsink;
+        AbstractQoreNode* rv = QorePlusOperatorNode::evalImpl(*xsink);
+        return rv ? rv : &Nothing;
+    }
 
-   // if either side is a list, then the return type is list (highest priority)
-   if (QoreTypeInfo::isType(leftTypeInfo, NT_LIST) || QoreTypeInfo::isType(rightTypeInfo, NT_LIST))
-      returnTypeInfo = listTypeInfo;
-   // otherwise only set return type if return types on both sides are known at parse time
-   else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
-      if (QoreTypeInfo::isType(leftTypeInfo, NT_STRING) || QoreTypeInfo::isType(rightTypeInfo, NT_STRING))
-         returnTypeInfo = stringTypeInfo;
-      else if (QoreTypeInfo::isType(leftTypeInfo, NT_DATE) || QoreTypeInfo::isType(rightTypeInfo, NT_DATE))
-         returnTypeInfo = dateTypeInfo;
-      else if (QoreTypeInfo::isType(leftTypeInfo, NT_NUMBER) || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER))
-         returnTypeInfo = numberTypeInfo;
-      else if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT) || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT))
-         returnTypeInfo = floatTypeInfo;
-      else if (QoreTypeInfo::isType(leftTypeInfo, NT_INT) || QoreTypeInfo::isType(rightTypeInfo, NT_INT))
-         returnTypeInfo = bigIntTypeInfo;
-      else if (QoreTypeInfo::isType(leftTypeInfo, NT_HASH) || QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT))
-         returnTypeInfo = hashTypeInfo;
-      else if (QoreTypeInfo::isType(rightTypeInfo, NT_OBJECT))
-         returnTypeInfo = objectTypeInfo;
-      else if (QoreTypeInfo::isType(leftTypeInfo, NT_BINARY) || QoreTypeInfo::isType(rightTypeInfo, NT_BINARY))
-         returnTypeInfo = binaryTypeInfo;
-      else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo))
-         // only return type nothing if both types are available and return a single type
-         returnTypeInfo = nothingTypeInfo;
-   }
+    // if either side is a list, then the return type is list (highest priority)
+    if (QoreTypeInfo::isType(leftTypeInfo, NT_LIST) || QoreTypeInfo::isType(rightTypeInfo, NT_LIST))
+        returnTypeInfo = listTypeInfo;
+    // otherwise only set return type if return types on both sides are known at parse time
+    else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
+        if (QoreTypeInfo::isType(leftTypeInfo, NT_STRING) || QoreTypeInfo::isType(rightTypeInfo, NT_STRING))
+            returnTypeInfo = stringTypeInfo;
+        else if (QoreTypeInfo::isType(leftTypeInfo, NT_DATE) || QoreTypeInfo::isType(rightTypeInfo, NT_DATE))
+            returnTypeInfo = dateTypeInfo;
+        else if (QoreTypeInfo::isType(leftTypeInfo, NT_NUMBER) || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER))
+            returnTypeInfo = numberTypeInfo;
+        else if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT) || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT))
+            returnTypeInfo = floatTypeInfo;
+        else if (QoreTypeInfo::isType(leftTypeInfo, NT_INT) || QoreTypeInfo::isType(rightTypeInfo, NT_INT))
+            returnTypeInfo = bigIntTypeInfo;
+        else if (QoreTypeInfo::isType(leftTypeInfo, NT_HASH) || QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT))
+            returnTypeInfo = hashTypeInfo;
+        else if (QoreTypeInfo::isType(rightTypeInfo, NT_OBJECT))
+            returnTypeInfo = objectTypeInfo;
+        else if (QoreTypeInfo::isType(leftTypeInfo, NT_BINARY) || QoreTypeInfo::isType(rightTypeInfo, NT_BINARY))
+            returnTypeInfo = binaryTypeInfo;
+        else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo))
+            // only return type nothing if both types are available and return a single type
+            returnTypeInfo = nothingTypeInfo;
+    }
 
-   if (returnTypeInfo)
-      parseTypeInfo = returnTypeInfo;
+    if (returnTypeInfo)
+        parseTypeInfo = returnTypeInfo;
 
-   return this;
+    return this;
 }

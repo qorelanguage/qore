@@ -38,39 +38,39 @@
 
 class QoreKeysOperatorNode : public QoreSingleExpressionOperatorNode<QoreOperatorNode>, public FunctionalOperator {
 protected:
-   const QoreTypeInfo* returnTypeInfo;
+    const QoreTypeInfo* returnTypeInfo;
 
-   DLLLOCAL static QoreString keys_str;
+    DLLLOCAL static QoreString keys_str;
 
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return returnTypeInfo;
-   }
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return returnTypeInfo;
+    }
 
-   DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
+    DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreKeysOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp), returnTypeInfo(nullptr) {
-   }
+    DLLLOCAL QoreKeysOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, exp), returnTypeInfo(nullptr) {
+    }
 
-   DLLLOCAL virtual ~QoreKeysOperatorNode() {
-   }
+    DLLLOCAL virtual ~QoreKeysOperatorNode() {
+    }
 
-   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
+    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
-   // returns the type name as a c string
-   DLLLOCAL virtual const char* getTypeName() const {
-      return keys_str.getBuffer();
-   }
+    // returns the type name as a c string
+    DLLLOCAL virtual const char* getTypeName() const {
+        return keys_str.getBuffer();
+    }
 
-   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
-      return copyBackgroundExplicit<QoreKeysOperatorNode>(xsink);
-   }
+    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+        return copyBackgroundExplicit<QoreKeysOperatorNode>(xsink);
+    }
 };
 
 class QoreFunctionalKeysOperator : public FunctionalOperatorInterface, public ConstHashIterator {

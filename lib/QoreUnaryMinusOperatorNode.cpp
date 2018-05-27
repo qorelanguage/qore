@@ -36,82 +36,80 @@ QoreString QoreUnaryMinusOperatorNode::unaryminus_str("unary minus (-) operator 
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *QoreUnaryMinusOperatorNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = false;
-   return &unaryminus_str;
+    del = false;
+    return &unaryminus_str;
 }
 
 int QoreUnaryMinusOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.concat(&unaryminus_str);
-   return 0;
+    str.concat(&unaryminus_str);
+    return 0;
 }
 
 QoreValue QoreUnaryMinusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
-   ValueEvalRefHolder v(exp, xsink);
-   if (*xsink)
-      return QoreValue();
+    ValueEvalRefHolder v(exp, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   switch (v->getType()) {
-      case NT_NUMBER: {
-         needs_deref = true;
-         return static_cast<QoreNumberNode *>(v->v.n)->negate();
-      }
+    switch (v->getType()) {
+        case NT_NUMBER: {
+            needs_deref = true;
+            return static_cast<QoreNumberNode *>(v->v.n)->negate();
+        }
 
-      case NT_FLOAT: {
-         return -(v->getAsFloat());
-      }
+        case NT_FLOAT: {
+            return -(v->getAsFloat());
+        }
 
-      case NT_DATE: {
-         return v->get<const DateTimeNode>()->unaryMinus();
-      }
+        case NT_DATE: {
+            return v->get<const DateTimeNode>()->unaryMinus();
+        }
 
-      case NT_INT: {
-         return -(v->getAsBigInt());
-      }
-   }
+        case NT_INT: {
+            return -(v->getAsBigInt());
+        }
+    }
 
-   return QoreValue(0ll);
+    return QoreValue(0ll);
 }
 
 AbstractQoreNode* QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(!typeInfo);
 
-    if (exp) {
-        const QoreTypeInfo* eti = nullptr;
-        exp = exp->parseInit(oflag, pflag, lvids, eti);
+    const QoreTypeInfo* eti = nullptr;
+    parse_init_value(exp, oflag, pflag, lvids, eti);
 
-        if (QoreTypeInfo::hasType(eti)) {
-            qore_type_t t = QoreTypeInfo::getSingleReturnType(eti);
-            switch (t) {
-                case NT_NUMBER:
-                    typeInfo = numberTypeInfo;
-                    break;
-                case NT_FLOAT:
-                    typeInfo = floatTypeInfo;
-                    break;
-                case NT_INT:
+    if (QoreTypeInfo::hasType(eti)) {
+        qore_type_t t = QoreTypeInfo::getSingleReturnType(eti);
+        switch (t) {
+            case NT_NUMBER:
+                typeInfo = numberTypeInfo;
+                break;
+            case NT_FLOAT:
+                typeInfo = floatTypeInfo;
+                break;
+            case NT_INT:
+                typeInfo = bigIntTypeInfo;
+                break;
+            case NT_DATE:
+                typeInfo = dateTypeInfo;
+                break;
+            default:
+                if (!QoreTypeInfo::parseReturns(eti, NT_NUMBER)
+                    && !QoreTypeInfo::parseReturns(eti, NT_FLOAT)
+                    && !QoreTypeInfo::parseReturns(eti, NT_INT)
+                    && !QoreTypeInfo::parseReturns(eti, NT_DATE)) {
                     typeInfo = bigIntTypeInfo;
-                    break;
-                case NT_DATE:
-                    typeInfo = dateTypeInfo;
-                    break;
-                default:
-                    if (!QoreTypeInfo::parseReturns(eti, NT_NUMBER)
-                        && !QoreTypeInfo::parseReturns(eti, NT_FLOAT)
-                        && !QoreTypeInfo::parseReturns(eti, NT_INT)
-                        && !QoreTypeInfo::parseReturns(eti, NT_DATE)) {
-                        typeInfo = bigIntTypeInfo;
-                        QoreStringNode* edesc = new QoreStringNode("the expression with the unary minus '-' operator is ");
-                        QoreTypeInfo::getThisType(eti, *edesc);
-                        edesc->concat(" and so this expression will always return 0; the unary minus '-' operator only returns a value with integers, floats, numbers, and relative date/time values");
-                        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
-                    }
-                    break;
-            }
+                    QoreStringNode* edesc = new QoreStringNode("the expression with the unary minus '-' operator is ");
+                    QoreTypeInfo::getThisType(eti, *edesc);
+                    edesc->concat(" and so this expression will always return 0; the unary minus '-' operator only returns a value with integers, floats, numbers, and relative date/time values");
+                    qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", edesc);
+                }
+                break;
         }
     }
 
     // see if the argument is a constant value, then eval immediately and substitute this node with the result
-    if (exp && exp->is_value()) {
+    if (exp.isValue()) {
         SimpleRefHolder<QoreUnaryMinusOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);

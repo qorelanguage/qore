@@ -77,7 +77,7 @@ public:
         if (keyStr) {
             QoreAutoRWWriteLocker al(rwl);
 
-            Map::mapped_type &refToMap = data[keyStr->getBuffer()];
+            Map::mapped_type &refToMap = data[keyStr->c_str()];
             refToMap.discard(xsink);
             refToMap = value.refSelf();
         }

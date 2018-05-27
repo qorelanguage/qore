@@ -180,7 +180,7 @@ protected:
 
     DLLLOCAL void pushParam(BarewordNode* b, bool needs_types, bool bare_refs);
     DLLLOCAL void pushParam(QoreOperatorNode* t, bool needs_types);
-    DLLLOCAL void pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool needs_types);
+    DLLLOCAL void pushParam(VarRefNode* v, QoreValue defArg, bool needs_types);
 
     DLLLOCAL void param_error() {
         parse_error(*loc, "parameter list contains non-variable reference expressions");
