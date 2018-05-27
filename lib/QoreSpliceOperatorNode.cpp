@@ -106,6 +106,9 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
     if (*xsink)
         return QoreValue();
 
+    // ensure that any list elements removed are removed outside the LValueHelper lock
+    ReferenceHolder<QoreListNode> holder(xsink);
+
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper val(lvalue_exp, xsink);
     if (!val)
@@ -152,15 +155,15 @@ QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
     if (vt == NT_LIST) {
         QoreListNode *vl = val.getValue().get<QoreListNode>();
         if (!length_exp && !new_exp) {
-            vl->splice(offset, xsink);
+            holder = vl->splice(offset);
         }
         else {
             qore_size_t length = (qore_size_t)elength->getAsBigInt();
             if (!new_exp) {
-                vl->splice(offset, length, xsink);
+                holder = vl->splice(offset, length);
             }
             else {
-                vl->splice(offset, length, *exp, xsink);
+                holder = vl->splice(offset, length, *exp, xsink);
             }
         }
     }

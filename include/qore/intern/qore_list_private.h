@@ -233,7 +233,30 @@ struct qore_list_private {
         n_len = len;
     }
 
-    DLLLOCAL QoreListNode* spliceIntern(size_t offset, size_t len, ExceptionSink* xsink, bool extract = false) {
+    QoreValue spliceSingle(size_t offset) {
+        assert(offset < length);
+
+        QoreValue rv = entry[offset];
+        if (needs_scan(rv)) {
+            incScanCount(-1);
+        }
+
+        size_t end = offset + 1;
+
+        if (end != length) {
+            memmove(entry + offset, entry + end, sizeof(QoreValue) * (length - end));
+            // zero out trailing entries
+            zeroEntries(length - 1, length);
+        }
+        else // set last entry to 0
+            entry[end - 1] = QoreValue();
+
+        resize(length - 1);
+
+        return rv;
+    }
+
+    DLLLOCAL QoreListNode* spliceIntern(size_t offset, size_t len, bool extract) {
         //printd(5, "spliceIntern(offset: %d, len: %d, length: %d)\n", offset, len, length);
         size_t end;
         if (len > (length - offset)) {
@@ -264,7 +287,31 @@ struct qore_list_private {
         return rv;
     }
 
-    DLLLOCAL QoreListNode* spliceIntern(size_t offset, size_t len, const QoreValue l, ExceptionSink* xsink, bool extract = false) {
+    DLLLOCAL QoreListNode* spliceIntern(size_t offset, size_t len, const QoreValue l, bool extract, ExceptionSink* xsink) {
+        // check type compatibility before modifying the list
+        ValueHolder holder(xsink);
+        if (l.getType() == NT_LIST) {
+            // create a new temporary list and check types first
+            const qore_list_private* sl = l.get<QoreListNode>()->priv;
+            QoreListNode* tmp;
+            holder = tmp = sl->getCopy();
+            tmp->priv->reserve(sl->length);
+            for (size_t i = 0; i < sl->length; ++i) {
+                ValueHolder eh(sl->entry[i].refSelf(), xsink);
+                if (checkVal(eh, xsink)) {
+                    return nullptr;
+                }
+                tmp->priv->entry[i] = eh.release();
+                ++tmp->priv->length;
+            }
+        }
+        else {
+            holder = l.refSelf();
+            if (checkVal(holder, xsink)) {
+                return nullptr;
+            }
+        }
+
         //printd(5, "spliceIntern(offset: %d, len: %d, length: %d)\n", offset, len, length);
         size_t end;
         if (len > (length - offset)) {
@@ -274,7 +321,7 @@ struct qore_list_private {
         else
             end = offset + len;
 
-        QoreListNode* rv = extract ? new QoreListNode(autoTypeInfo) : nullptr;
+        QoreListNode* rv = extract ? getCopy() : nullptr;
 
         // dereference all entries that will be removed or add to return value list
         for (size_t i = offset; i < end; i++) {
@@ -301,18 +348,20 @@ struct qore_list_private {
 
         // add in new entries
         if (l.getType() != NT_LIST) {
-            entry[offset] = l.refSelf();
+            entry[offset] = holder.release();
             if (needs_scan(l))
                 incScanCount(1);
         }
         else {
-            const QoreListNode* lst = l.get<const QoreListNode>();
+            qore_list_private* lst = holder->get<const QoreListNode>()->priv;
             for (size_t i = 0; i < n; ++i) {
-                const QoreValue v = lst->retrieveEntry(i);
+                QoreValue v = lst->entry[i];
+                lst->entry[i] = QoreValue();
                 if (needs_scan(v))
                     incScanCount(1);
-                entry[offset + i] = v.refSelf();
+                entry[offset + i] = v;
             }
+            lst->length = 0;
         }
 
         return rv;

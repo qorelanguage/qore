@@ -1972,7 +1972,7 @@ list<auto> l = splice(l2, 5);
 */
 list<auto> splice(list<auto> l, softint start) {
     ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
-    lst->splice(start, xsink);
+    ReferenceHolder<> holder(lst->splice(start), xsink);
     return *xsink ? QoreValue() : lst.release();
 }
 
@@ -1994,7 +1994,7 @@ list<auto> l = splice(l2, 5, 7);
 */
 list<auto> splice(list<auto> l, softint start, softint len) {
     ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
-    lst->splice(start, len, xsink);
+    ReferenceHolder<> holder(lst->splice(start, len), xsink);
     return *xsink ? QoreValue() : lst.release();
 }
 
@@ -2017,7 +2017,7 @@ list<auto> l = splice(l2, 5, 7, "hello");
 */
 list<auto> splice(list<auto> l, softint start, softint len, softlist<auto> nlist) {
     ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
-    lst->splice(start, len, nlist, xsink);
+    ReferenceHolder<> holder(lst->splice(start, len, nlist, xsink), xsink);
     return *xsink ? QoreValue() : lst.release();
 }
 

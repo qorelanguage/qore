@@ -1,36 +1,37 @@
 /*
-  QoreGetOpt.cpp
+    QoreGetOpt.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/QoreGetOpt.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/qore_list_private.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -242,8 +243,9 @@ void QoreGetOpt::processLongArg(const char* arg, QoreListNode* l, class QoreHash
             return;
     }
     doOption(w, h, val);
-    if (do_modify)
-        l->splice(--i, 1, nullptr);
+    if (do_modify) {
+        qore_list_private::get(*l)->spliceSingle(--i).discard(nullptr);
+    }
 }
 
 int QoreGetOpt::processShortArg(const char* arg, QoreListNode* l, class QoreHashNode* h, unsigned &i, int &j, bool modify) {
@@ -273,8 +275,9 @@ int QoreGetOpt::processShortArg(const char* arg, QoreListNode* l, class QoreHash
         }
     }
     doOption(w, h, val);
-    if (do_modify)
-        l->splice(--i, 1, nullptr);
+    if (do_modify) {
+        qore_list_private::get(*l)->spliceSingle(--i).discard(nullptr);
+    }
     //printd(5, "processShortArg(%c) val=%p %s returning %d\n", opt, val, val, !j);
     return !j;
 }
@@ -300,7 +303,7 @@ QoreHashNode* QoreGetOpt::parse(QoreListNode* l, bool modify, ExceptionSink *xsi
                 processLongArg(arg + 2, l, h, i, modify);
                 if (modify) {
                     //printd(5, "parse() opt=%s size=%d\n", arg, l->size());
-                    l->splice(i--, 1, xsink);
+                    qore_list_private::get(*l)->spliceSingle(i--).discard(xsink);
                     //printd(5, "parse() popped entry, size=%d\n", l->size());
                 }
                 continue;
@@ -309,8 +312,9 @@ QoreHashNode* QoreGetOpt::parse(QoreListNode* l, bool modify, ExceptionSink *xsi
             for (int j = 1; j < len; j++)
                 if (processShortArg(arg, l, h, i, j, modify))
                     break;
-            if (modify)
-                l->splice(i--, 1, xsink);
+            if (modify) {
+                qore_list_private::get(*l)->spliceSingle(i--).discard(xsink);
+            }
         }
     }
     //printd(5, "QoreGetOpt::parse() returning h=%p (size %d)\n", h, h->size());

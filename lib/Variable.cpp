@@ -1296,6 +1296,9 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
         }
     }
 
+    // dereference any list elements removed outside the lock
+    ReferenceHolder<QoreListNode> holder(xsink);
+
     LValueHelper lvh(op->getLeft(), xsink, true);
     if (!lvh)
         return;
@@ -1331,7 +1334,13 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
 
                 // now collapse the list by rewriting it without the elements removed
                 for (auto& i : iset) {
-                    l->splice(i, 1, xsink);
+                    QoreValue ve = qore_list_private::get(*l)->spliceSingle(i);
+                    if (ve.isReferenceCounted()) {
+                        if (!holder) {
+                            holder = new QoreListNode(autoTypeInfo);
+                        }
+                        holder->push(ve, xsink);
+                    }
                 }
             }
             if (needs_scan(*v)) {
@@ -1432,6 +1441,9 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
 }
 
 void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, const QoreParseListNode* pln) {
+    // dereference any list elements removed outside the lock
+    ReferenceHolder<QoreListNode> holder(xsink);
+
     LValueHelper lvh(op->getLeft(), xsink, true);
     if (!lvh)
         return;
@@ -1476,7 +1488,13 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
 
             // now collapse the list by rewriting it without the elements removed
             for (auto& i : iset) {
-                l->splice(i, 1, xsink);
+                QoreValue ve = qore_list_private::get(*l)->spliceSingle(i);
+                if (ve.isReferenceCounted()) {
+                    if (!holder) {
+                        holder = new QoreListNode(autoTypeInfo);
+                    }
+                    holder->push(ve, xsink);
+                }
             }
 
             if (needs_scan(*v)) {
@@ -1665,7 +1683,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op)
             lvh.ensureUnique();
             QoreListNode* l = lvh.getValue().get<QoreListNode>();
             size_t orig_size = l->size();
-            QoreListNode* nl = l->extract(start, stop - start + 1, xsink);
+            QoreListNode* nl = l->extract(start, stop - start + 1);
             // add additional elements if necessary
             //printd(5, "l->size: %d start: %d stop: %d\n", (int)orig_size, (int)start, (int)stop);
             if (stop >= (int64)orig_size) {

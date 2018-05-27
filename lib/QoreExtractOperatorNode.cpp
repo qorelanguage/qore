@@ -151,11 +151,11 @@ QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
     if (vt == NT_LIST) {
         QoreListNode *vl = val.getValue().get<QoreListNode>();
         if (!length_exp && !new_exp)
-            rv = vl->extract(offset, xsink);
+            rv = vl->extract(offset);
         else {
             qore_size_t length = (qore_size_t)elength->getAsBigInt();
             if (!new_exp)
-                rv = vl->extract(offset, length, xsink);
+                rv = vl->extract(offset, length);
             else
                 rv = vl->extract(offset, length, *exp, xsink);
         }

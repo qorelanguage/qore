@@ -465,54 +465,57 @@ QoreListNode* QoreListNode::copyListFrom(qore_size_t index) const {
     return nl;
 }
 
-void QoreListNode::splice(ptrdiff_t offset, ExceptionSink* xsink) {
+QoreListNode* QoreListNode::splice(ptrdiff_t offset) {
     assert(reference_count() == 1);
     size_t n_offset = priv->checkOffset(offset);
     if (n_offset == priv->length) {
-        return;
+        return nullptr;
     }
-    priv->spliceIntern(n_offset, priv->length - n_offset, xsink);
+
+    return priv->spliceIntern(n_offset, priv->length - n_offset, false);
 }
 
-void QoreListNode::splice(ptrdiff_t offset, ptrdiff_t len, ExceptionSink* xsink) {
-   assert(reference_count() == 1);
-   size_t n_offset, n_len;
-   priv->checkOffset(offset, len, n_offset, n_len);
-   if (n_offset == priv->length)
-      return;
-   priv->spliceIntern(n_offset, n_len, xsink);
+QoreListNode* QoreListNode::splice(ptrdiff_t offset, ptrdiff_t len) {
+    assert(reference_count() == 1);
+    size_t n_offset, n_len;
+    priv->checkOffset(offset, len, n_offset, n_len);
+    if (n_offset == priv->length) {
+        return nullptr;
+    }
+
+    return priv->spliceIntern(n_offset, n_len, false);
 }
 
-void QoreListNode::splice(ptrdiff_t offset, ptrdiff_t len, const QoreValue l, ExceptionSink* xsink) {
-   assert(reference_count() == 1);
-   size_t n_offset, n_len;
-   priv->checkOffset(offset, len, n_offset, n_len);
-   priv->spliceIntern(n_offset, n_len, l, xsink);
+QoreListNode* QoreListNode::splice(ptrdiff_t offset, ptrdiff_t len, const QoreValue l, ExceptionSink* xsink) {
+    assert(reference_count() == 1);
+    size_t n_offset, n_len;
+    priv->checkOffset(offset, len, n_offset, n_len);
+    return priv->spliceIntern(n_offset, n_len, l, false, xsink);
 }
 
-QoreListNode* QoreListNode::extract(ptrdiff_t offset, ExceptionSink* xsink) {
-   assert(reference_count() == 1);
-   size_t n_offset = priv->checkOffset(offset);
-   if (n_offset == priv->length)
-      return priv->getCopy();
+QoreListNode* QoreListNode::extract(ptrdiff_t offset) {
+    assert(reference_count() == 1);
+    size_t n_offset = priv->checkOffset(offset);
+    if (n_offset == priv->length)
+        return priv->getCopy();
 
-   return priv->spliceIntern(n_offset, priv->length - n_offset, xsink, true);
+    return priv->spliceIntern(n_offset, priv->length - n_offset, true);
 }
 
-QoreListNode* QoreListNode::extract(ptrdiff_t offset, ptrdiff_t len, ExceptionSink* xsink) {
-   assert(reference_count() == 1);
-   size_t n_offset, n_len;
-   priv->checkOffset(offset, len, n_offset, n_len);
-   if (n_offset == priv->length)
-      return priv->getCopy();
-   return priv->spliceIntern(n_offset, n_len, xsink, true);
+QoreListNode* QoreListNode::extract(ptrdiff_t offset, ptrdiff_t len) {
+    assert(reference_count() == 1);
+    size_t n_offset, n_len;
+    priv->checkOffset(offset, len, n_offset, n_len);
+    if (n_offset == priv->length)
+        return priv->getCopy();
+    return priv->spliceIntern(n_offset, n_len, true);
 }
 
 QoreListNode* QoreListNode::extract(ptrdiff_t offset, ptrdiff_t len, const QoreValue l, ExceptionSink* xsink) {
-   assert(reference_count() == 1);
-   size_t n_offset, n_len;
-   priv->checkOffset(offset, len, n_offset, n_len);
-   return priv->spliceIntern(n_offset, n_len, l, xsink, true);
+    assert(reference_count() == 1);
+    size_t n_offset, n_len;
+    priv->checkOffset(offset, len, n_offset, n_len);
+    return priv->spliceIntern(n_offset, n_len, l, true, xsink);
 }
 
 QoreListNode* QoreListNode::sort(ExceptionSink* xsink) const {
