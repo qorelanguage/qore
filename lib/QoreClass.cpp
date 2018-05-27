@@ -296,24 +296,11 @@ void AbstractMethod::checkAbstract(const char* cname, const char* mname, vmap_t&
 
 // try to find match non-abstract variants in base classes (allows concrete variants to be inherited from another parent class)
 void AbstractMethodMap::parseInit(qore_class_private& qc, BCList* scl) {
-    if (qc.name[0] == 'C' || qc.name[0] == 'B') {
-        printd(5, "AbstractMethodMap::parseInit() BEFORE this: %p qc: %p '%s' ahm size: %d\n", this, &qc, qc.name.c_str(), size());
-    }
-
     //printd(5, "AbstractMethodMap::parseInit() this: %p cname: %s scl: %p ae: %d\n", this, qc.name.c_str(), scl, empty());
     for (amap_t::iterator i = begin(), e = end(); i != e;) {
-        if (qc.name[0] == 'C' || qc.name[0] == 'B') {
-            printd(5, "AbstractMethodMap::parseInit() BEFORE this: %p '%s' size: %d\n", this, i->first.c_str(), i->second->vlist.size());
-        }
         for (vmap_t::iterator vi = i->second->vlist.begin(), ve = i->second->vlist.end(); vi != ve;) {
             // if there is a matching non-abstract variant in any parent class, then move the variant from vlist to pending_save
-            if (qc.name[0] == 'C' || qc.name[0] == 'B') {
-                printd(5, "AbstractMethodMap::parseInit() this: %p qc: '%s' v: '%s'\n", this, qc.name.c_str(), i->first.c_str());
-            }
             MethodVariantBase* v = scl->matchNonAbstractVariant(i->first, vi->second);
-            if (qc.name[0] == 'C' || qc.name[0] == 'B') {
-                printd(5, "AbstractMethodMap::parseInit() this: %p qc: '%s' v: '%s' = %p\n", this, qc.name.c_str(), i->first.c_str(), v);
-            }
             if (v) {
                 const char* sig = vi->second->getAbstractSignature();
                 i->second->pending_save.insert(vmap_t::value_type(sig, vi->second));
@@ -330,25 +317,14 @@ void AbstractMethodMap::parseInit(qore_class_private& qc, BCList* scl) {
             }
             ++vi;
         }
-        if (qc.name[0] == 'C' || qc.name[0] == 'B') {
-            printd(5, "AbstractMethodMap::parseInit() AFTER this: %p '%s' size: %d\n", this, i->first.c_str(), i->second->vlist.size());
-        }
         // issue #2741: remove the abstract method if there are no more abstract variants
         if (i->second->vlist.empty()) {
-            if (qc.name[0] == 'C' || qc.name[0] == 'B')
-                printd(5, "AbstractMethodMap::parseInit() erasing '%s::%s'\n", qc.name.c_str(), i->first.c_str());
             delete i->second;
             erase(i++);
         }
         else {
-            if (qc.name[0] == 'C' || qc.name[0] == 'B')
-                printd(5, "AbstractMethodMap::parseInit() leaving '%s::%s'\n", qc.name.c_str(), i->first.c_str());
             ++i;
         }
-    }
-
-    if (qc.name[0] == 'C' || qc.name[0] == 'B') {
-        printd(5, "AbstractMethodMap::parseInit() AFTER this: %p qc: %p '%s' ahm size: %d\n", this, &qc, qc.name.c_str(), size());
     }
 }
 
@@ -2189,9 +2165,6 @@ MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, Meth
         if (m) {
             MethodFunctionBase* f = m->getFunction();
             MethodVariantBase* ov = f->parseHasVariantWithSignature(v);
-            if (name[0] == 't') {
-                printd(5, "BCList::matchNonAbstractVariant() this: %p (source %s::%s()) %s::%s %p (%s) m: %p (%s) ov: %p (%s) abstract: %d\n", this, v->getClass()->getName(), v->method()->getName(), nqc ? nqc->getName() : "n/a", name.c_str(), v, v->getAbstractSignature(), m, m->getName(), ov, ov ? ov->getAbstractSignature() : "n/a", ov ? ov->isAbstract() : 0);
-            }
             if (ov && !ov->isAbstract())
                 return ov;
         }
