@@ -122,9 +122,8 @@ typedef std::map<std::string, AbstractMethod*> amap_t;
 
 struct AbstractMethodMap : amap_t {
     DLLLOCAL AbstractMethodMap(const AbstractMethodMap& old) {
-        for (auto& i : *this) {
-            if (i.second->vlist.empty())
-                continue;
+        for (auto& i : old) {
+            assert(!i.second->vlist.empty());
             insert(amap_t::value_type(i.first, new AbstractMethod(*(i.second))));
         }
     }
@@ -2664,7 +2663,7 @@ public:
 
     DLLLOCAL QoreValue evalPseudoMethod(const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const;
 
-    const QoreMethod* runtimeFindPseudoMethod(const QoreValue n, const char* nme, ExceptionSink* xsink) const {
+    DLLLOCAL const QoreMethod* runtimeFindPseudoMethod(const QoreValue n, const char* nme, ExceptionSink* xsink) const {
         const QoreMethod* w;
 
         const qore_class_private* class_ctx = runtime_get_class();
@@ -2718,383 +2717,383 @@ public:
         return getClassIntern(qc, n_access, true);
     }
 
-   DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
-      if (equal(qc))
-         return cls;
+    DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
+        if (equal(qc))
+            return cls;
 
 #ifdef DEBUG_1
-      if (qc.name == name) {
-         QoreString lh, rh;
-         hash.toString(lh);
-         qc.hash.toString(rh);
-         printd(0, "qore_class_private::getClassIntern() this: %p '%s' != '%s' scl: %p (hash: %s qc.hash: %s)\n", this, name.c_str(), qc.name.c_str(), scl, lh.getBuffer(), rh.getBuffer());
-      }
+        if (qc.name == name) {
+            QoreString lh, rh;
+            hash.toString(lh);
+            qc.hash.toString(rh);
+            printd(0, "qore_class_private::getClassIntern() this: %p '%s' != '%s' scl: %p (hash: %s qc.hash: %s)\n", this, name.c_str(), qc.name.c_str(), scl, lh.getBuffer(), rh.getBuffer());
+        }
 #endif
 
-      return scl ? scl->getClass(qc, n_access, toplevel) : nullptr;
-   }
-
-   DLLLOCAL const QoreClass* parseGetClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
-      // check hashes if names are the same
-      // FIXME: check fully-qualified namespace name
-      if (parseEqual(qc))
-         return cls;
-
-#ifdef DEBUG_SKIP
-      if (qc.name == name) {
-         printd(5, "qore_class_private::parseGetClassIntern() this: %p '%s' != '%s' scl: %p\n", this, name.c_str(), qc.name.c_str(), scl);
-         parseShowHashes();
-         qc.parseShowHashes();
-      }
-#endif
-
-      return scl ? scl->parseGetClass(qc, n_access, toplevel) : nullptr;
-   }
-
-#ifdef DEBUG_SKIP
-   DLLLOCAL void parseShowHash() const {
-      QoreString ch, ph;
-      hash.toString(ch);
-      printd(5, " + %p %s committed: %s\n", this, name.c_str(), ch.getBuffer());
-   }
-#endif
-
-   DLLLOCAL bool parseCheckEqualHash(const qore_class_private& qc) const {
-#ifdef DEBUG_SKIP
-      printd(5, "qore_class_private::parseCheckEqualHash() %s == %s\n", name.c_str(), qc.name.c_str());
-      parseShowHash();
-      qc.parseShowHash();
-#endif
-      return hash == qc.hash;
-   }
-
-   DLLLOCAL bool equal(const qore_class_private& qc) const {
-      if (&qc == this)
-         return true;
-
-      if (qc.classID == classID || (qc.name == name && qc.hash == hash))
-         return true;
-
-      if (injectedClass && injectedClass->equal(qc))
-         return true;
-
-      if (qc.injectedClass && equal(*qc.injectedClass))
-         return true;
-
-      return false;
-   }
-
-   DLLLOCAL bool parseEqual(const qore_class_private& qc) const {
-      if (&qc == this)
-         return true;
-
-      if (qc.classID == classID || (qc.name == name && parseCheckEqualHash(qc)))
-         return true;
-
-      if (injectedClass && injectedClass->parseEqual(qc))
-         return true;
-
-      if (qc.injectedClass && parseEqual(*qc.injectedClass))
-         return true;
-
-      return false;
-   }
-
-   DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access) const;
-
-   DLLLOCAL int addBaseClassesToSubclass(QoreClass* sc, bool is_virtual);
-
-   DLLLOCAL void setPublic();
-
-   DLLLOCAL void parseSetBaseClassList(BCList* bcl) {
-      assert(!scl);
-      if (bcl) {
-         scl = bcl;
-         if (!has_new_user_changes)
-            has_new_user_changes = true;
-         if (!has_sig_changes)
-            has_sig_changes = true;
-      }
-   }
-
-   DLLLOCAL bool parseHasPendingChanges() const {
-      return has_new_user_changes;
-   }
-
-   DLLLOCAL bool parseCheckHierarchy(const QoreClass* n_cls, ClassAccess& access) const {
-      access = Public;
-      return parseCheckHierarchyIntern(n_cls, access, true);
-   }
-
-   DLLLOCAL bool parseCheckHierarchyIntern(const QoreClass* n_cls, ClassAccess& access, bool toplevel) const {
-      if (parseEqual(*n_cls->priv))
-         return true;
-
-      return scl ? scl->parseCheckHierarchy(n_cls, access, toplevel) : false;
-   }
-
-   DLLLOCAL VRMutex* getGate() const {
-      return &gate;
-   }
-
-   // class initialization; inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseFindAnyMethod(const char* nme, const qore_class_private* class_ctx);
-
-   // class initialization; inaccessible methods are ignored
-   DLLLOCAL const QoreMethod* parseFindAnyMethodStaticFirst(const char* nme, const qore_class_private* class_ctx);
-
-   // class initialization
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation* loc, const char* nme, const qore_class_private* class_ctx);
-   DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation* loc, NamedScope* nme);
-
-   // class initialization
-   DLLLOCAL const QoreMethod* parseFindSelfMethod(const char* nme);
-
-   DLLLOCAL char* getHash() const {
-      return hash.getHash();
-   }
-
-   // static methods
-   //DLLLOCAL static
-
-   DLLLOCAL static char* getHash(const QoreClass& qc) {
-      return qc.priv->getHash();
-   }
-
-   DLLLOCAL static void parseAddConstant(QoreClass& qc, const QoreProgramLocation* loc, const std::string &cname, QoreValue val, ClassAccess access) {
-      qc.priv->parseAddConstant(loc, cname, val, access);
-   }
-
-   DLLLOCAL static const QoreMemberInfo* runtimeGetMemberInfo(const QoreClass& qc, const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) {
-      return qc.priv->runtimeGetMemberInfo(mem, access, class_ctx, internal_member);
-   }
-
-   DLLLOCAL static LocalVar* getSelfId(const QoreClass& qc) {
-      return &qc.priv->selfid;
-   }
-
-   DLLLOCAL static QoreObject* execConstructor(const QoreClass& qc, const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
-      return qc.priv->execConstructor(variant, args, xsink);
-   }
-
-   DLLLOCAL static bool injected(const QoreClass& qc) {
-      return qc.priv->inject;
-   }
-
-    DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass) {
-        qore_class_private* priv = new qore_class_private(*qc.priv, spgm, nme, inject, injectedClass);
-        //printd(5, "qore_program_private::makeImportClass() name: '%s' as '%s' inject: %d rv: %p\n", qc.getName(), priv->name.c_str(), inject, priv->cls);
-        return priv->cls;
+        return scl ? scl->getClass(qc, n_access, toplevel) : nullptr;
     }
 
-   DLLLOCAL static const QoreMethod* runtimeFindCommittedStaticMethod(const QoreClass& qc, const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
-      return qc.priv->runtimeFindCommittedStaticMethod(nme, access, class_ctx);
-   }
+    DLLLOCAL const QoreClass* parseGetClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
+        // check hashes if names are the same
+        // FIXME: check fully-qualified namespace name
+        if (parseEqual(qc))
+            return cls;
 
-   DLLLOCAL static const QoreMethod* parseFindLocalMethod(const QoreClass& qc, const char* mname) {
-      return qc.priv->parseFindLocalMethod(mname);
-   }
+#ifdef DEBUG_SKIP
+        if (qc.name == name) {
+            printd(5, "qore_class_private::parseGetClassIntern() this: %p '%s' != '%s' scl: %p\n", this, name.c_str(), qc.name.c_str(), scl);
+            parseShowHashes();
+            qc.parseShowHashes();
+        }
+#endif
 
-   DLLLOCAL static bool parseHasPendingChanges(const QoreClass& qc) {
-      return qc.priv->parseHasPendingChanges();
-   }
+        return scl ? scl->parseGetClass(qc, n_access, toplevel) : nullptr;
+    }
 
-   DLLLOCAL static int parseCheckMemberAccess(const QoreClass& qc, const QoreProgramLocation* loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) {
-      return qc.priv->parseCheckMemberAccess(loc, mem, memberTypeInfo, pflag);
-   }
+#ifdef DEBUG_SKIP
+    DLLLOCAL void parseShowHash() const {
+        QoreString ch, ph;
+        hash.toString(ch);
+        printd(5, " + %p %s committed: %s\n", this, name.c_str(), ch.getBuffer());
+    }
+#endif
 
-   DLLLOCAL static bool runtimeHasCallableMethod(const QoreClass& qc, const char* m) {
-      return qc.priv->runtimeHasCallableMethod(m, QCCM_NORMAL | QCCM_STATIC);
-   }
+    DLLLOCAL bool parseCheckEqualHash(const qore_class_private& qc) const {
+#ifdef DEBUG_SKIP
+        printd(5, "qore_class_private::parseCheckEqualHash() %s == %s\n", name.c_str(), qc.name.c_str());
+        parseShowHash();
+        qc.parseShowHash();
+#endif
+        return hash == qc.hash;
+    }
 
-   DLLLOCAL static bool runtimeHasCallableNormalMethod(const QoreClass& qc, const char* m) {
-      return qc.priv->runtimeHasCallableMethod(m, QCCM_NORMAL);
-   }
+    DLLLOCAL bool equal(const qore_class_private& qc) const {
+        if (&qc == this)
+            return true;
 
-   DLLLOCAL static bool runtimeHasCallableStaticMethod(const QoreClass& qc, const char* m) {
-      return qc.priv->runtimeHasCallableMethod(m, QCCM_STATIC);
-   }
+        if (qc.classID == classID || (qc.name == name && qc.hash == hash))
+            return true;
 
-   DLLLOCAL static const qore_class_private* runtimeGetMemberClass(const QoreClass& qc, const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) {
-      access = Public;
-      return qc.priv->runtimeGetMemberClass(mem, access, class_ctx, internal_member);
-   }
+        if (injectedClass && injectedClass->equal(qc))
+            return true;
 
-   DLLLOCAL static int runtimeCheckInstantiateClass(const QoreClass& qc, ExceptionSink* xsink) {
-      return qc.priv->runtimeCheckInstantiateClass(xsink);
-   }
+        if (qc.injectedClass && equal(*qc.injectedClass))
+            return true;
 
-   DLLLOCAL static void parseInit(QoreClass& qc) {
-      qc.priv->parseInit();
-   }
+        return false;
+    }
 
-   DLLLOCAL static void parseInitPartial(QoreClass& qc) {
-      qc.priv->parseInitPartial();
-   }
+    DLLLOCAL bool parseEqual(const qore_class_private& qc) const {
+        if (&qc == this)
+            return true;
 
-   DLLLOCAL static void parseCommit(QoreClass& qc) {
-      qc.priv->parseCommit();
-   }
+        if (qc.classID == classID || (qc.name == name && parseCheckEqualHash(qc)))
+            return true;
 
-   DLLLOCAL static void parseCommitRuntimeInit(QoreClass& qc, ExceptionSink* xsink) {
-      qc.priv->parseCommitRuntimeInit(xsink);
-   }
+        if (injectedClass && injectedClass->parseEqual(qc))
+            return true;
 
-   DLLLOCAL static void parseRollback(QoreClass& qc) {
-      qc.priv->parseRollback();
-   }
+        if (qc.injectedClass && parseEqual(*qc.injectedClass))
+            return true;
 
-   DLLLOCAL static void resolveCopy(QoreClass& qc) {
-      qc.priv->resolveCopy();
-   }
+        return false;
+    }
 
-   DLLLOCAL static int addUserMethod(QoreClass& qc, const char* mname, MethodVariantBase* f, bool n_static) {
-      return qc.priv->addUserMethod(mname, f, n_static);
-   }
+    DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access) const;
 
-   DLLLOCAL static void initialize(QoreClass& qc) {
-      qc.priv->initialize();
-   }
+    DLLLOCAL int addBaseClassesToSubclass(QoreClass* sc, bool is_virtual);
 
-   DLLLOCAL static void parseSetBaseClassList(QoreClass& qc, BCList* bcl) {
-      qc.priv->parseSetBaseClassList(bcl);
-   }
+    DLLLOCAL void setPublic();
 
-   DLLLOCAL static BCList* getBaseClassList(const QoreClass& qc) {
-      return qc.priv->scl;
-   }
+    DLLLOCAL void parseSetBaseClassList(BCList* bcl) {
+        assert(!scl);
+        if (bcl) {
+            scl = bcl;
+            if (!has_new_user_changes)
+                has_new_user_changes = true;
+            if (!has_sig_changes)
+                has_sig_changes = true;
+        }
+    }
 
-   DLLLOCAL static void parseAddStaticVar(QoreClass* qc, char* dname, ClassAccess access, QoreVarInfo* VarInfo) {
-      qc->priv->parseAddStaticVar(dname, access, VarInfo);
-   }
+    DLLLOCAL bool parseHasPendingChanges() const {
+        return has_new_user_changes;
+    }
 
-   // searches only the current class, returns 0 if private found and not accessible in the current parse context
-   DLLLOCAL static QoreValue parseFindLocalConstantValue(QoreClass* qc, const char* cname, const QoreTypeInfo*& typeInfo, bool& found) {
-      return qc->priv->parseFindLocalConstantValue(cname, typeInfo, found);
-   }
+    DLLLOCAL bool parseCheckHierarchy(const QoreClass* n_cls, ClassAccess& access) const {
+        access = Public;
+        return parseCheckHierarchyIntern(n_cls, access, true);
+    }
 
-   // searches only the current class, returns 0 if private found and not accessible in the current parse context
-   DLLLOCAL static QoreVarInfo* parseFindLocalStaticVar(const QoreClass* qc, const char* vname) {
-      return qc->priv->parseFindLocalStaticVar(vname);
-   }
+    DLLLOCAL bool parseCheckHierarchyIntern(const QoreClass* n_cls, ClassAccess& access, bool toplevel) const {
+        if (parseEqual(*n_cls->priv))
+            return true;
 
-   // searches this class and all superclasses
-   DLLLOCAL static QoreValue parseFindConstantValue(QoreClass* qc, const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx) {
-      return qc->priv->parseFindConstantValue(cname, typeInfo, found, class_ctx);
-   }
+        return scl ? scl->parseCheckHierarchy(n_cls, access, toplevel) : false;
+    }
 
-   // searches this class and all superclasses, if check = false, then assumes parsing from within the class (parse_get_class() == this class)
-   DLLLOCAL static QoreVarInfo* parseFindStaticVar(const QoreClass* qc, const char* vname, const QoreClass*& nqc, ClassAccess& access, bool check = false) {
-      return qc->priv->parseFindStaticVar(vname, nqc, access, check);
-   }
+    DLLLOCAL VRMutex* getGate() const {
+        return &gate;
+    }
 
-   DLLLOCAL static int parseCheckInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo, const QoreProgramLocation* loc) {
-      return qc->priv->parseCheckInternalMemberAccess(mem, memberTypeInfo, loc);
-   }
+    // class initialization; inaccessible methods are ignored
+    DLLLOCAL const QoreMethod* parseFindAnyMethod(const char* nme, const qore_class_private* class_ctx);
 
-   DLLLOCAL static int parseResolveInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo) {
-      return qc->priv->parseResolveInternalMemberAccess(mem, memberTypeInfo);
-   }
+    // class initialization; inaccessible methods are ignored
+    DLLLOCAL const QoreMethod* parseFindAnyMethodStaticFirst(const char* nme, const qore_class_private* class_ctx);
 
-   DLLLOCAL static const QoreMethod* parseFindSelfMethod(QoreClass* qc, const char* mname) {
-      return qc->priv->parseFindSelfMethod(mname);
-   }
+    // class initialization
+    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation* loc, const char* nme, const qore_class_private* class_ctx);
+    DLLLOCAL const QoreMethod* parseResolveSelfMethod(const QoreProgramLocation* loc, NamedScope* nme);
 
-   DLLLOCAL static void parseAddMember(QoreClass& qc, char* nme, ClassAccess access, QoreMemberInfo* mInfo) {
-      qc.priv->parseAddMember(nme, access, mInfo);
-   }
+    // class initialization
+    DLLLOCAL const QoreMethod* parseFindSelfMethod(const char* nme);
 
-   DLLLOCAL static QoreValue evalPseudoMethod(const QoreClass* qc, const QoreValue n, const char* name, const QoreListNode* args, ExceptionSink* xsink) {
-      return qc->priv->evalPseudoMethod(n, name, args, xsink);
-   }
+    DLLLOCAL char* getHash() const {
+        return hash.getHash();
+    }
 
-   DLLLOCAL static QoreValue evalPseudoMethod(const QoreClass* qc, const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) {
-      return qc->priv->evalPseudoMethod(m, variant, n, args, xsink);
-   }
+    // static methods
+    //DLLLOCAL static
 
-   DLLLOCAL static void setNamespace(QoreClass* qc, qore_ns_private* n) {
-      qc->priv->setNamespace(n);
-   }
+    DLLLOCAL static char* getHash(const QoreClass& qc) {
+        return qc.priv->getHash();
+    }
 
-   DLLLOCAL static bool parseCheckPrivateClassAccess(const QoreClass& qc, const qore_class_private* oqc = parse_get_class_priv()) {
-      return qc.priv->parseCheckPrivateClassAccess(oqc);
-   }
+    DLLLOCAL static void parseAddConstant(QoreClass& qc, const QoreProgramLocation* loc, const std::string &cname, QoreValue val, ClassAccess access) {
+        qc.priv->parseAddConstant(loc, cname, val, access);
+    }
 
-   DLLLOCAL static bool runtimeCheckPrivateClassAccess(const QoreClass& qc, const qore_class_private* oqc = runtime_get_class()) {
-      return qc.priv->runtimeCheckPrivateClassAccess(oqc);
-   }
+    DLLLOCAL static const QoreMemberInfo* runtimeGetMemberInfo(const QoreClass& qc, const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) {
+        return qc.priv->runtimeGetMemberInfo(mem, access, class_ctx, internal_member);
+    }
 
-   DLLLOCAL static qore_type_result_e parseCheckCompatibleClass(const QoreClass* qc, const QoreClass* oc) {
-      if (!oc)
-         return QTI_NOT_EQUAL;
-      return qc->priv->parseCheckCompatibleClass(*(oc->priv));
-   }
+    DLLLOCAL static LocalVar* getSelfId(const QoreClass& qc) {
+        return &qc.priv->selfid;
+    }
 
-   DLLLOCAL static qore_type_result_e runtimeCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {
-      return qc.priv->runtimeCheckCompatibleClass(*oc.priv);
-   }
+    DLLLOCAL static QoreObject* execConstructor(const QoreClass& qc, const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
+        return qc.priv->execConstructor(variant, args, xsink);
+    }
 
-   DLLLOCAL static qore_class_private* get(QoreClass& qc) {
-      return qc.priv;
-   }
+    DLLLOCAL static bool injected(const QoreClass& qc) {
+        return qc.priv->inject;
+    }
 
-   DLLLOCAL static const qore_class_private* get(const QoreClass& qc) {
-      return qc.priv;
-   }
+        DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass) {
+            qore_class_private* priv = new qore_class_private(*qc.priv, spgm, nme, inject, injectedClass);
+            //printd(5, "qore_program_private::makeImportClass() name: '%s' as '%s' inject: %d rv: %p\n", qc.getName(), priv->name.c_str(), inject, priv->cls);
+            return priv->cls;
+        }
 
-   DLLLOCAL static bool isPublic(const QoreClass& qc) {
-      return qc.priv->pub;
-   }
+    DLLLOCAL static const QoreMethod* runtimeFindCommittedStaticMethod(const QoreClass& qc, const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
+        return qc.priv->runtimeFindCommittedStaticMethod(nme, access, class_ctx);
+    }
 
-   DLLLOCAL static bool isUserPublic(const QoreClass& qc) {
-      return qc.priv->pub && !qc.priv->sys;
-   }
+    DLLLOCAL static const QoreMethod* parseFindLocalMethod(const QoreClass& qc, const char* mname) {
+        return qc.priv->parseFindLocalMethod(mname);
+    }
 
-   DLLLOCAL static bool isFinal(const QoreClass& qc) {
-      return qc.priv->final;
-   }
+    DLLLOCAL static bool parseHasPendingChanges(const QoreClass& qc) {
+        return qc.priv->parseHasPendingChanges();
+    }
 
-   DLLLOCAL static void setPublic(QoreClass& qc) {
-      qc.priv->setPublic();
-   }
+    DLLLOCAL static int parseCheckMemberAccess(const QoreClass& qc, const QoreProgramLocation* loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) {
+        return qc.priv->parseCheckMemberAccess(loc, mem, memberTypeInfo, pflag);
+    }
 
-   DLLLOCAL static void setFinal(QoreClass& qc) {
-      assert(!qc.priv->final);
-      qc.priv->final = true;
-   }
+    DLLLOCAL static bool runtimeHasCallableMethod(const QoreClass& qc, const char* m) {
+        return qc.priv->runtimeHasCallableMethod(m, QCCM_NORMAL | QCCM_STATIC);
+    }
+
+    DLLLOCAL static bool runtimeHasCallableNormalMethod(const QoreClass& qc, const char* m) {
+        return qc.priv->runtimeHasCallableMethod(m, QCCM_NORMAL);
+    }
+
+    DLLLOCAL static bool runtimeHasCallableStaticMethod(const QoreClass& qc, const char* m) {
+        return qc.priv->runtimeHasCallableMethod(m, QCCM_STATIC);
+    }
+
+    DLLLOCAL static const qore_class_private* runtimeGetMemberClass(const QoreClass& qc, const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) {
+        access = Public;
+        return qc.priv->runtimeGetMemberClass(mem, access, class_ctx, internal_member);
+    }
+
+    DLLLOCAL static int runtimeCheckInstantiateClass(const QoreClass& qc, ExceptionSink* xsink) {
+        return qc.priv->runtimeCheckInstantiateClass(xsink);
+    }
+
+    DLLLOCAL static void parseInit(QoreClass& qc) {
+        qc.priv->parseInit();
+    }
+
+    DLLLOCAL static void parseInitPartial(QoreClass& qc) {
+        qc.priv->parseInitPartial();
+    }
+
+    DLLLOCAL static void parseCommit(QoreClass& qc) {
+        qc.priv->parseCommit();
+    }
+
+    DLLLOCAL static void parseCommitRuntimeInit(QoreClass& qc, ExceptionSink* xsink) {
+        qc.priv->parseCommitRuntimeInit(xsink);
+    }
+
+    DLLLOCAL static void parseRollback(QoreClass& qc) {
+        qc.priv->parseRollback();
+    }
+
+    DLLLOCAL static void resolveCopy(QoreClass& qc) {
+        qc.priv->resolveCopy();
+    }
+
+    DLLLOCAL static int addUserMethod(QoreClass& qc, const char* mname, MethodVariantBase* f, bool n_static) {
+        return qc.priv->addUserMethod(mname, f, n_static);
+    }
+
+    DLLLOCAL static void initialize(QoreClass& qc) {
+        qc.priv->initialize();
+    }
+
+    DLLLOCAL static void parseSetBaseClassList(QoreClass& qc, BCList* bcl) {
+        qc.priv->parseSetBaseClassList(bcl);
+    }
+
+    DLLLOCAL static BCList* getBaseClassList(const QoreClass& qc) {
+        return qc.priv->scl;
+    }
+
+    DLLLOCAL static void parseAddStaticVar(QoreClass* qc, char* dname, ClassAccess access, QoreVarInfo* VarInfo) {
+        qc->priv->parseAddStaticVar(dname, access, VarInfo);
+    }
+
+    // searches only the current class, returns 0 if private found and not accessible in the current parse context
+    DLLLOCAL static QoreValue parseFindLocalConstantValue(QoreClass* qc, const char* cname, const QoreTypeInfo*& typeInfo, bool& found) {
+        return qc->priv->parseFindLocalConstantValue(cname, typeInfo, found);
+    }
+
+    // searches only the current class, returns 0 if private found and not accessible in the current parse context
+    DLLLOCAL static QoreVarInfo* parseFindLocalStaticVar(const QoreClass* qc, const char* vname) {
+        return qc->priv->parseFindLocalStaticVar(vname);
+    }
+
+    // searches this class and all superclasses
+    DLLLOCAL static QoreValue parseFindConstantValue(QoreClass* qc, const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx) {
+        return qc->priv->parseFindConstantValue(cname, typeInfo, found, class_ctx);
+    }
+
+    // searches this class and all superclasses, if check = false, then assumes parsing from within the class (parse_get_class() == this class)
+    DLLLOCAL static QoreVarInfo* parseFindStaticVar(const QoreClass* qc, const char* vname, const QoreClass*& nqc, ClassAccess& access, bool check = false) {
+        return qc->priv->parseFindStaticVar(vname, nqc, access, check);
+    }
+
+    DLLLOCAL static int parseCheckInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo, const QoreProgramLocation* loc) {
+        return qc->priv->parseCheckInternalMemberAccess(mem, memberTypeInfo, loc);
+    }
+
+    DLLLOCAL static int parseResolveInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo) {
+        return qc->priv->parseResolveInternalMemberAccess(mem, memberTypeInfo);
+    }
+
+    DLLLOCAL static const QoreMethod* parseFindSelfMethod(QoreClass* qc, const char* mname) {
+        return qc->priv->parseFindSelfMethod(mname);
+    }
+
+    DLLLOCAL static void parseAddMember(QoreClass& qc, char* nme, ClassAccess access, QoreMemberInfo* mInfo) {
+        qc.priv->parseAddMember(nme, access, mInfo);
+    }
+
+    DLLLOCAL static QoreValue evalPseudoMethod(const QoreClass* qc, const QoreValue n, const char* name, const QoreListNode* args, ExceptionSink* xsink) {
+        return qc->priv->evalPseudoMethod(n, name, args, xsink);
+    }
+
+    DLLLOCAL static QoreValue evalPseudoMethod(const QoreClass* qc, const QoreMethod* m, const AbstractQoreFunctionVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) {
+        return qc->priv->evalPseudoMethod(m, variant, n, args, xsink);
+    }
+
+    DLLLOCAL static void setNamespace(QoreClass* qc, qore_ns_private* n) {
+        qc->priv->setNamespace(n);
+    }
+
+    DLLLOCAL static bool parseCheckPrivateClassAccess(const QoreClass& qc, const qore_class_private* oqc = parse_get_class_priv()) {
+        return qc.priv->parseCheckPrivateClassAccess(oqc);
+    }
+
+    DLLLOCAL static bool runtimeCheckPrivateClassAccess(const QoreClass& qc, const qore_class_private* oqc = runtime_get_class()) {
+        return qc.priv->runtimeCheckPrivateClassAccess(oqc);
+    }
+
+    DLLLOCAL static qore_type_result_e parseCheckCompatibleClass(const QoreClass* qc, const QoreClass* oc) {
+        if (!oc)
+            return QTI_NOT_EQUAL;
+        return qc->priv->parseCheckCompatibleClass(*(oc->priv));
+    }
+
+    DLLLOCAL static qore_type_result_e runtimeCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {
+        return qc.priv->runtimeCheckCompatibleClass(*oc.priv);
+    }
+
+    DLLLOCAL static qore_class_private* get(QoreClass& qc) {
+        return qc.priv;
+    }
+
+    DLLLOCAL static const qore_class_private* get(const QoreClass& qc) {
+        return qc.priv;
+    }
+
+    DLLLOCAL static bool isPublic(const QoreClass& qc) {
+        return qc.priv->pub;
+    }
+
+    DLLLOCAL static bool isUserPublic(const QoreClass& qc) {
+        return qc.priv->pub && !qc.priv->sys;
+    }
+
+    DLLLOCAL static bool isFinal(const QoreClass& qc) {
+        return qc.priv->final;
+    }
+
+    DLLLOCAL static void setPublic(QoreClass& qc) {
+        qc.priv->setPublic();
+    }
+
+    DLLLOCAL static void setFinal(QoreClass& qc) {
+        assert(!qc.priv->final);
+        qc.priv->final = true;
+    }
 
 protected:
-    DLLLOCAL ~qore_class_private();
+        DLLLOCAL ~qore_class_private();
 };
 
 class qore_class_private_holder {
-   qore_class_private* c;
+    qore_class_private* c;
 
 public:
-   DLLLOCAL qore_class_private_holder(QoreClass* n_c) : c(qore_class_private::get(*n_c)) {
-   }
+    DLLLOCAL qore_class_private_holder(QoreClass* n_c) : c(qore_class_private::get(*n_c)) {
+    }
 
-   DLLLOCAL qore_class_private_holder(qore_class_private* n_c) : c(n_c) {
-   }
+    DLLLOCAL qore_class_private_holder(qore_class_private* n_c) : c(n_c) {
+    }
 
-   DLLLOCAL ~qore_class_private_holder() {
-      if (c) {
-         c->deref(true, true);
-      }
-   }
+    DLLLOCAL ~qore_class_private_holder() {
+        if (c) {
+            c->deref(true, true);
+        }
+    }
 
-   DLLLOCAL qore_class_private* operator*() {
-      return c;
-   }
+    DLLLOCAL qore_class_private* operator*() {
+        return c;
+    }
 
-   DLLLOCAL QoreClass* release() {
-      if (c) {
-         QoreClass* rv = c->cls;
-         c = nullptr;
-         return rv;
-      }
-      return nullptr;
-   }
+    DLLLOCAL QoreClass* release() {
+        if (c) {
+            QoreClass* rv = c->cls;
+            c = nullptr;
+            return rv;
+        }
+        return nullptr;
+    }
 };
 
 class qore_method_private {

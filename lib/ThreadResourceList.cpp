@@ -144,7 +144,7 @@ void ThreadResourceList::purge(const QoreProgram* pgm, ExceptionSink* xsink) {
             ReferenceHolder<QoreListNode> args(xsink);
             if (arg) {
                 args = new QoreListNode;
-                args->push(arg, xsink);
+                args->push(arg.refSelf(), xsink);
             }
 
             rcr->execValue(*args, xsink).discard(xsink);

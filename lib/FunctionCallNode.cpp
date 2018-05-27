@@ -476,7 +476,7 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
                 parseException(*loc, "ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment in a constant expression in the parse initialization phase when the class has uncommitted changes", oc->getName());
         }
         delete name;
-        name = 0;
+        name = nullptr;
     }
 #ifdef DEBUG
     else assert(oc);
@@ -514,7 +514,7 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
 }
 
 QoreValue ScopedObjectCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   return qore_class_private::execConstructor(*oc, variant, args, xsink);
+    return qore_class_private::execConstructor(*oc, variant, args, xsink);
 }
 
 QoreValue MethodCallNode::execPseudo(const QoreValue n, ExceptionSink* xsink) const {

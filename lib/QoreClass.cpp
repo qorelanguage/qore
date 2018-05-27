@@ -2387,10 +2387,8 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
 }
 
 void qore_class_private::parseCheckAbstractNew(const QoreProgramLocation* loc) const {
-    // if we have abstract methods, we must defer the check until all classes are completely resolved
-    if (!ahm.empty()) {
-        qore_root_ns_private::get(*getRootNS())->deferParseCheckAbstractNew(this, loc);
-    }
+    // we must defer the check until all classes are completely resolved
+    qore_root_ns_private::get(*getRootNS())->deferParseCheckAbstractNew(this, loc);
 }
 
 const QoreMethod* qore_class_private::parseFindNormalMethod(const char* nme, const qore_class_private* class_ctx) {
