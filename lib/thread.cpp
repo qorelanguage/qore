@@ -986,7 +986,7 @@ bool check_thread_resource(AbstractThreadResource* atr) {
    return td->trlist->check(atr);
 }
 
-void set_thread_resource(const ResolvedCallReferenceNode* rcr, QoreValue arg) {
+void set_thread_resource(const ResolvedCallReferenceNode* rcr, const QoreValue arg) {
    thread_data.get()->trlist->set(rcr, arg);
 }
 

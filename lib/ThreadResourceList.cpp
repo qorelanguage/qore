@@ -46,7 +46,7 @@ void ThreadResourceList::set(AbstractThreadResource* atr) {
     trset.insert(atr);
 }
 
-void ThreadResourceList::set(const ResolvedCallReferenceNode* rcr, QoreValue arg) {
+void ThreadResourceList::set(const ResolvedCallReferenceNode* rcr, const QoreValue arg) {
     //printd(5, "TRL::set() this: %p rcr: %p\n", this, rcr);
     // ignore object if already set
     crmap_t::iterator i = crmap.lower_bound(const_cast<ResolvedCallReferenceNode*>(rcr));
@@ -144,7 +144,7 @@ void ThreadResourceList::purge(const QoreProgram* pgm, ExceptionSink* xsink) {
             ReferenceHolder<QoreListNode> args(xsink);
             if (arg) {
                 args = new QoreListNode;
-                args->push(arg.refSelf(), xsink);
+                args->push(arg, xsink);
             }
 
             rcr->execValue(*args, xsink).discard(xsink);

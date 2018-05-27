@@ -44,7 +44,7 @@ struct ArgPgm {
     QoreValue arg;
     QoreProgram* pgm;
 
-    DLLLOCAL ArgPgm(QoreValue arg, QoreProgram* pgm) : arg(arg), pgm(pgm) {
+    DLLLOCAL ArgPgm(const QoreValue arg, QoreProgram* pgm) : arg(arg.refSelf()), pgm(pgm) {
     }
 };
 
@@ -64,10 +64,11 @@ public:
 
     DLLLOCAL ~ThreadResourceList() {
         assert(trset.empty());
+        assert(crmap.empty());
     }
 
     DLLLOCAL void set(AbstractThreadResource* atr);
-    DLLLOCAL void set(const ResolvedCallReferenceNode* rcr, QoreValue arg);
+    DLLLOCAL void set(const ResolvedCallReferenceNode* rcr, const QoreValue arg);
 
     DLLLOCAL bool check(AbstractThreadResource* atr) const;
 
