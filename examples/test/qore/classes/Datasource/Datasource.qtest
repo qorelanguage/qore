@@ -13,9 +13,9 @@
 
 public class DatasourceTest inherits QUnit::Test {
     public {
-        const MyOpts = Opts + (
+        const MyOpts = Opts + {
             "connstr": "c,conn=s",
-            );
+        };
 
         const OptionColumn = 22;
     }

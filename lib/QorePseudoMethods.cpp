@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -94,9 +94,9 @@ void pseudo_classes_init() {
 void pseudo_classes_del() {
    // delete pseudo-classes
    for (unsigned i = 0; i < NODE_ARRAY_LEN + 2; ++i)
-      qore_class_private::get(*po_list[i])->deref();
+      qore_class_private::get(*po_list[i])->deref(true, true);
 
-   qore_class_private::get(*QC_PSEUDOVALUE)->deref();
+   qore_class_private::get(*QC_PSEUDOVALUE)->deref(true, true);
 }
 
 // return the pseudo class for the given type

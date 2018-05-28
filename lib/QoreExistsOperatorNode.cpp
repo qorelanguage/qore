@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -53,24 +53,22 @@ QoreValue QoreExistsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
 }
 
 AbstractQoreNode* QoreExistsOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   // turn off "return value ignored" flags
-   pflag &= ~(PF_RETURN_VALUE_IGNORED);
+    // turn off "return value ignored" flags
+    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   typeInfo = boolTypeInfo;
+    typeInfo = boolTypeInfo;
 
-   assert(exp);
+    const QoreTypeInfo* lti = nullptr;
+    parse_init_value(exp, oflag, pflag, lvids, lti);
 
-   const QoreTypeInfo* lti = 0;
-   exp = exp->parseInit(oflag, pflag, lvids, lti);
+    // see the argument is a constant value, then eval immediately and substitute this node with the result
+    if (!exp.hasNode() || exp.getInternalNode()->is_value()) {
+        SimpleRefHolder<QoreExistsOperatorNode> del(this);
+        ParseExceptionSink xsink;
+        ValueEvalRefHolder v(this, *xsink);
+        assert(!**xsink);
+        return v.getReferencedValue();
+    }
 
-   // see the argument is a constant value, then eval immediately and substitute this node with the result
-   if (exp && exp->is_value()) {
-      SimpleRefHolder<QoreExistsOperatorNode> del(this);
-      ParseExceptionSink xsink;
-      ValueEvalRefHolder v(this, *xsink);
-      assert(!**xsink);
-      return v.getReferencedValue();
-   }
-
-   return this;
+    return this;
 }

@@ -54,7 +54,7 @@ protected:
     DLLLOCAL bool getEffectiveRange(const QoreValue& seq, int64& start, int64& stop, int64& seq_size, ExceptionSink* xsink) const;
 
 public:
-    DLLLOCAL QoreSquareBracketsRangeOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2)
+    DLLLOCAL QoreSquareBracketsRangeOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode* p0, AbstractQoreNode* p1, AbstractQoreNode* p2)
         : QoreNOperatorNodeBase<3>(loc, p0, p1 ? p1 : &Nothing, p2 ? p2 : &Nothing) {
     }
 

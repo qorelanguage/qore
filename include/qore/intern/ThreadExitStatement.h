@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,22 +37,22 @@
 
 class ThreadExitStatement : public AbstractStatement {
 private:
-   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink *xsink) {
-      xsink->raiseThreadExit();
-      return 0;
-   }
-   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) {
-      return 0;
-   }
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink) {
+        xsink->raiseThreadExit();
+        return 0;
+    }
+    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0) {
+        return 0;
+    }
 
 public:
-   DLLLOCAL ThreadExitStatement(int start_line, int end_line) : AbstractStatement(start_line, end_line) {
-   }
-   DLLLOCAL virtual ~ThreadExitStatement() {
-   }
-   DLLLOCAL virtual bool endsBlock() const {
-      return true;
-   }
+    DLLLOCAL ThreadExitStatement(const QoreProgramLocation* loc) : AbstractStatement(loc) {
+    }
+    DLLLOCAL virtual ~ThreadExitStatement() {
+    }
+    DLLLOCAL virtual bool endsBlock() const {
+        return true;
+    }
 };
 
 #endif
