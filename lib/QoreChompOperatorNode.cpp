@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 QoreString QoreChompOperatorNode::chomp_str("chomp operator expression");
 
@@ -45,53 +46,56 @@ int QoreChompOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink*
 }
 
 QoreValue QoreChompOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   LValueHelper val(exp, xsink);
-   if (!val)
-      return QoreValue();
+    LValueHelper val(exp, xsink);
+    if (!val)
+        return QoreValue();
 
-   qore_type_t vtype = val.getType();
-   if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
-      return QoreValue();
+    qore_type_t vtype = val.getType();
+    if (vtype != NT_LIST && vtype != NT_STRING && vtype != NT_HASH)
+        return QoreValue();
 
-   // note that no exception can happen here
-   val.ensureUnique();
-   assert(!*xsink);
+    // note that no exception can happen here
+    val.ensureUnique();
+    assert(!*xsink);
 
-   if (vtype == NT_STRING)
-      return reinterpret_cast<QoreStringNode*>(val.getValue())->chomp();
+    if (vtype == NT_STRING)
+        return reinterpret_cast<QoreStringNode*>(val.getValue())->chomp();
 
-   int64 count = 0;
+    int64 count = 0;
 
-   if (vtype == NT_LIST) {
-      QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
-      ListIterator li(l);
-      while (li.next()) {
-	 AbstractQoreNode** v = li.getValuePtr();
-	 if (*v && (*v)->getType() == NT_STRING) {
-	    // note that no exception can happen here
-	    ensure_unique(v, xsink);
-	    assert(!*xsink);
-	    QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
-	    count += vs->chomp();
-	 }
-      }
-      return count;
-   }
+    if (vtype == NT_LIST) {
+        QoreListNode* l = reinterpret_cast<QoreListNode*>(val.getValue());
+        ListIterator li(l);
+        while (li.next()) {
+            AbstractQoreNode** v = li.getValuePtr();
+            if (*v && (*v)->getType() == NT_STRING) {
+                // note that no exception can happen here
+                ensure_unique(v, xsink);
+                assert(!*xsink);
+                QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
+                count += vs->chomp();
+            }
+        }
+        return count;
+    }
 
-   // must be a hash
-   QoreHashNode* vh = reinterpret_cast<QoreHashNode*>(val.getValue());
-   HashIterator hi(vh);
-   while (hi.next()) {
-      AbstractQoreNode** v = hi.getValuePtr();
-      if (*v && (*v)->getType() == NT_STRING) {
-	 // note that no exception can happen here
-	 ensure_unique(v, xsink);
-	 assert(!*xsink);
-	 QoreStringNode* vs = reinterpret_cast<QoreStringNode*>(*v);
-	 count += vs->chomp();
-      }
-   }
-   return count;
+    // must be a hash
+    QoreHashNode* vh = reinterpret_cast<QoreHashNode*>(val.getValue());
+    HashIterator hi(vh);
+    while (hi.next()) {
+        if (hi.get().getType() == NT_STRING) {
+            QoreValue& v = (*qhi_priv::get(hi)->i)->val;
+            QoreStringNode* vs = v.get<QoreStringNode>();
+            if (!vs->is_unique()) {
+                QoreStringNode* old = vs;
+                vs = vs->copy();
+                old->deref();
+                v = vs;
+            }
+            count += vs->chomp();
+        }
+    }
+    return count;
 }
 
 AbstractQoreNode* QoreChompOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
@@ -109,7 +113,7 @@ AbstractQoreNode* QoreChompOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
       QoreStringNode* desc = new QoreStringNode("the lvalue expression with the chomp operator is ");
       QoreTypeInfo::getThisType(typeInfo, *desc);
       desc->sprintf(", therefore this operation will have no effect on the lvalue and will always return NOTHING; this operator only works on strings, lists, and hashes");
-      qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+      qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
    }
 
    returnTypeInfo = bigIntTypeInfo;

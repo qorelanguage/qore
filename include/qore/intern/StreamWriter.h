@@ -51,9 +51,21 @@ public:
       return encoding;
    }
 
+   DLLLOCAL const OutputStream* getOutputStream() const {
+	   return *out;
+   }
+
+   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) {
+	   // OutputStream uses assertion but we need rather raise exception not to coredump
+	   if (!out->check(xsink)) {
+		   return;
+	   }
+	   out->write(ptr, count, xsink);
+   }
+
    DLLLOCAL void print(const QoreStringNode* str, ExceptionSink* xsink) {
       TempEncodingHelper stmp(str, encoding, xsink);
-      out->write(stmp->getBuffer(), stmp->size(), xsink);
+      write(stmp->getBuffer(), stmp->size(), xsink);
    }
 
    DLLLOCAL void printf(const QoreValueList* args, ExceptionSink* xsink) {
@@ -81,41 +93,41 @@ public:
    }
 
    DLLLOCAL void write(const BinaryNode* b, ExceptionSink* xsink) {
-      out->write(b->getPtr(), b->size(), xsink);
+      write(b->getPtr(), b->size(), xsink);
    }
 
    DLLLOCAL void writei1(char i, ExceptionSink* xsink) {
-      out->write(&i, 1, xsink);
+      write(&i, 1, xsink);
    }
 
    DLLLOCAL void writei2(int16_t i, ExceptionSink* xsink) {
       i = htons(i);
-      out->write(&i, 2, xsink);
+      write(&i, 2, xsink);
    }
 
    DLLLOCAL void writei4(int32_t i, ExceptionSink* xsink) {
       i = htonl(i);
-      out->write(&i, 4, xsink);
+      write(&i, 4, xsink);
    }
 
    DLLLOCAL void writei8(int64 i, ExceptionSink* xsink) {
       i = i8MSB(i);
-      out->write(&i, 8, xsink);
+      write(&i, 8, xsink);
    }
 
    DLLLOCAL void writei2LSB(int16_t i, ExceptionSink* xsink) {
       i = i2LSB(i);
-      out->write(&i, 2, xsink);
+      write(&i, 2, xsink);
    }
 
    DLLLOCAL void writei4LSB(int32_t i, ExceptionSink* xsink) {
       i = i4LSB(i);
-      out->write(&i, 4, xsink);
+      write(&i, 4, xsink);
    }
 
    DLLLOCAL void writei8LSB(int64 i, ExceptionSink* xsink) {
       i = i8LSB(i);
-      out->write(&i, 8, xsink);
+      write(&i, 8, xsink);
    }
 
    DLLLOCAL virtual const char* getName() const { return "StreamWriter"; }

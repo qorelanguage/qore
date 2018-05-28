@@ -54,9 +54,9 @@ private:
    }
 
 public:
-   DLLLOCAL CallReferenceCallNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, QoreParseListNode* n_args);
+   DLLLOCAL CallReferenceCallNode(const QoreProgramLocation* loc, AbstractQoreNode* exp, QoreParseListNode* n_args);
 
-   DLLLOCAL CallReferenceCallNode(const QoreProgramLocation& loc, AbstractQoreNode* exp, QoreListNode* args);
+   DLLLOCAL CallReferenceCallNode(const QoreProgramLocation* loc, AbstractQoreNode* exp, QoreListNode* args);
 
    DLLLOCAL virtual ~CallReferenceCallNode();
 

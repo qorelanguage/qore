@@ -842,11 +842,6 @@ int read_until_close(const char* fileName, unsigned& lineNumber, std::string& st
         if (line_comment)
             continue;
 
-        if (c == '/' && last == '/') {
-            line_comment = true;
-            continue;
-        }
-
         if (c == '"' || c == '\'') {
             log(LL_DEBUG, "found %c on line %d (quote: %c %d)\n", c, lineNumber, quote ? quote : 'x', quote);
             if (quote == c)
@@ -859,6 +854,11 @@ int read_until_close(const char* fileName, unsigned& lineNumber, std::string& st
         if (quote) {
             if (c == '\\')
                 backquote = true;
+            continue;
+        }
+
+        if (c == '/' && last == '/') {
+            line_comment = true;
             continue;
         }
 
