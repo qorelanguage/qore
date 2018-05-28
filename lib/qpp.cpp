@@ -2758,7 +2758,7 @@ public:
             }
         }
 
-        printf("hashdecl '%s'\n", name.c_str());
+        //printf("hashdecl '%s'\n", name.c_str());
 
         // skip whitespace
         while (whitespace(*p1))
@@ -2959,7 +2959,8 @@ protected:
         // trim off trailing newline and spaces
         line.erase(line.size() - 1);
         trim(line);
-        if (line[line.size() - 1] != ';') {
+        // issue #2838 line could be empty by this point
+        if (line.empty() || line[line.size() - 1] != ';') {
             // re-add newline
             line += '\n';
             if (read_until_close(fileName, lineNumber, line, fp, ';')) {
