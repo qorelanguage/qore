@@ -333,7 +333,9 @@ int QoreListNode::merge(const QoreListNode* list, ExceptionSink* xsink) {
 
 int QoreListNode::setEntry(size_t index, QoreValue val, ExceptionSink* xsink) {
     assert(reference_count() == 1);
-    priv->resize(index);
+    if (index >= priv->length) {
+        priv->resize(index);
+    }
     if (needs_scan(priv->entry[index])) {
         priv->incScanCount(-1);
     }
