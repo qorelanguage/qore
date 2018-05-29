@@ -320,7 +320,7 @@ QoreValue QoreListNode::getReferencedEntry(size_t num) const {
     return priv->entry[num].refSelf();
 }
 
-int QoreListNode::getEntryAsInt(qore_size_t num) const {
+int QoreListNode::getEntryAsInt(size_t num) const {
     if (num >= priv->length) {
         return 0;
     }
@@ -331,8 +331,9 @@ int QoreListNode::merge(const QoreListNode* list, ExceptionSink* xsink) {
    return priv->merge(list, xsink);
 }
 
-int QoreListNode::setEntry(qore_size_t index, QoreValue val, ExceptionSink* xsink) {
+int QoreListNode::setEntry(size_t index, QoreValue val, ExceptionSink* xsink) {
     assert(reference_count() == 1);
+    priv->resize(index);
     if (needs_scan(priv->entry[index])) {
         priv->incScanCount(-1);
     }
@@ -456,9 +457,9 @@ QoreListNode* QoreListNode::copy() const {
     return priv->copy();
 }
 
-QoreListNode* QoreListNode::copyListFrom(qore_size_t index) const {
+QoreListNode* QoreListNode::copyListFrom(size_t index) const {
     QoreListNode* nl = priv->getCopy();
-    for (qore_size_t i = index; i < priv->length; ++i) {
+    for (size_t i = index; i < priv->length; ++i) {
         nl->priv->pushIntern(priv->entry[i].refSelf());
     }
 
@@ -554,7 +555,7 @@ QoreListNode* QoreListNode::sortDescending(const ResolvedCallReferenceNode* fr, 
 QoreListNode* qore_list_private::eval(ExceptionSink* xsink) {
     ReferenceHolder<QoreListNode> nl(getCopy(), xsink);
     //printd(5, "qore_list_private::eval() '%s' -> '%s'\n", QoreTypeInfo::getName(complexTypeInfo), get_full_type_name(*nl));
-    for (qore_size_t i = 0; i < length; ++i) {
+    for (size_t i = 0; i < length; ++i) {
         ValueEvalRefHolder v(entry[i], xsink);
         if (*xsink) {
             return nullptr;
@@ -792,7 +793,7 @@ bool QoreListNode::derefImpl(ExceptionSink* xsink) {
     return true;
 }
 
-qore_size_t QoreListNode::size() const {
+size_t QoreListNode::size() const {
     return priv->length;
 }
 
@@ -882,7 +883,7 @@ QoreValue QoreListNode::max(const ResolvedCallReferenceNode* fr, ExceptionSink* 
 QoreListNode* QoreListNode::reverse() const {
     QoreListNode* l = priv->getCopy();
     l->priv->resize(priv->length);
-    for (qore_size_t i = 0; i < priv->length; ++i) {
+    for (size_t i = 0; i < priv->length; ++i) {
         l->priv->entry[i] = priv->entry[priv->length - i - 1].refSelf();
     }
     return l;
@@ -973,11 +974,11 @@ bool QoreListNode::getAsBoolImpl() const {
     return !empty();
 }
 
-ListIterator::ListIterator(QoreListNode* lst, qore_size_t n_pos) : l(lst) {
+ListIterator::ListIterator(QoreListNode* lst, size_t n_pos) : l(lst) {
     set(n_pos);
 }
 
-ListIterator::ListIterator(QoreListNode& lst, qore_size_t n_pos) : l(&lst) {
+ListIterator::ListIterator(QoreListNode& lst, size_t n_pos) : l(&lst) {
     set(n_pos);
 }
 
@@ -1004,7 +1005,7 @@ bool ListIterator::prev() {
     return true;
 }
 
-int ListIterator::set(qore_size_t n_pos) {
+int ListIterator::set(size_t n_pos) {
     if (n_pos >= l->size()) {
         pos = -1;
         return -1;
@@ -1029,11 +1030,11 @@ bool ListIterator::first() const {
     return !pos;
 }
 
-ConstListIterator::ConstListIterator(const QoreListNode* lst, qore_size_t n_pos) : l(lst) {
+ConstListIterator::ConstListIterator(const QoreListNode* lst, size_t n_pos) : l(lst) {
     set(n_pos);
 }
 
-ConstListIterator::ConstListIterator(const QoreListNode& lst, qore_size_t n_pos) : l(&lst) {
+ConstListIterator::ConstListIterator(const QoreListNode& lst, size_t n_pos) : l(&lst) {
     set(n_pos);
 }
 
@@ -1060,7 +1061,7 @@ bool ConstListIterator::prev() {
     return true;
 }
 
-int ConstListIterator::set(qore_size_t n_pos) {
+int ConstListIterator::set(size_t n_pos) {
     if (n_pos >= l->size()) {
         pos = -1;
         return -1;
