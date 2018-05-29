@@ -352,57 +352,56 @@ public:
 
 class VarRefNewObjectNode : public VarRefDeclNode, public FunctionCallBase {
 public:
-   DLLLOCAL VarRefNewObjectNode(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo, QoreParseListNode* n_args, qore_var_t t) :
-               VarRefDeclNode(loc, n, t, n_typeInfo, n_parseTypeInfo, true), FunctionCallBase(n_args) {
-   }
+    DLLLOCAL VarRefNewObjectNode(const QoreProgramLocation* loc, char* n, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo, QoreParseListNode* n_args, qore_var_t t) :
+                VarRefDeclNode(loc, n, t, n_typeInfo, n_parseTypeInfo, true), FunctionCallBase(n_args) {
+    }
 
-   DLLLOCAL VarRefNewObjectNode(const QoreProgramLocation* loc, char* n, Var* var, QoreParseListNode* n_args, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo) :
-               VarRefDeclNode(loc, n, var, n_typeInfo, n_parseTypeInfo), FunctionCallBase(n_args) {
-   }
+    DLLLOCAL VarRefNewObjectNode(const QoreProgramLocation* loc, char* n, Var* var, QoreParseListNode* n_args, const QoreTypeInfo* n_typeInfo, QoreParseTypeInfo* n_parseTypeInfo) :
+                VarRefDeclNode(loc, n, var, n_typeInfo, n_parseTypeInfo), FunctionCallBase(n_args) {
+    }
 
-   DLLLOCAL virtual ~VarRefNewObjectNode() {
-      //printd(5, "VarRefNewObjectNode::~VarRefNewObjectNode() this: %p (%s)\n", this, getName());
-      if (new_args)
-          new_args->deref(nullptr);
-   }
+    DLLLOCAL virtual ~VarRefNewObjectNode() {
+        //printd(5, "VarRefNewObjectNode::~VarRefNewObjectNode() this: %p (%s)\n", this, getName());
+        new_args.discard(nullptr);
+    }
 
-   DLLLOCAL virtual bool stayInTree() const {
-      return true;
-   }
+    DLLLOCAL virtual bool stayInTree() const {
+        return true;
+    }
 
-   DLLLOCAL const char* parseGetTypeName() const {
-      return typeInfo ? QoreTypeInfo::getName(typeInfo) : parseTypeInfo->cscope->getIdentifier();
-   }
+    DLLLOCAL const char* parseGetTypeName() const {
+        return typeInfo ? QoreTypeInfo::getName(typeInfo) : parseTypeInfo->cscope->getIdentifier();
+    }
 
-   DLLLOCAL QoreParseListNode* takeParseArgs() {
-      QoreParseListNode* rv = parse_args;
-      parse_args = nullptr;
-      return rv;
-   }
+    DLLLOCAL QoreParseListNode* takeParseArgs() {
+        QoreParseListNode* rv = parse_args;
+        parse_args = nullptr;
+        return rv;
+    }
 
 protected:
-   enum vrn_type_e : unsigned char {
-      VRN_NONE = 0,
-      VRN_OBJECT = 1,
-      VRN_HASHDECL = 2,
-      VRN_COMPLEXHASH = 3,
-      VRN_COMPLEXLIST = 4,
-   } vrn_type = VRN_NONE;
-   AbstractQoreNode* new_args = nullptr;
-   bool runtime_check = false;
+    enum vrn_type_e : unsigned char {
+        VRN_NONE = 0,
+        VRN_OBJECT = 1,
+        VRN_HASHDECL = 2,
+        VRN_COMPLEXHASH = 3,
+        VRN_COMPLEXLIST = 4,
+    } vrn_type = VRN_NONE;
+    QoreValue new_args;
+    bool runtime_check = false;
 
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   // initializes during parsing
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo);
+    // initializes during parsing
+    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo);
 
-   DLLLOCAL void parseInitConstructorCall(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, const QoreClass* qc);
+    DLLLOCAL void parseInitConstructorCall(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, const QoreClass* qc);
 
-   DLLLOCAL void parseInitHashDeclInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, const TypedHashDecl* hd);
+    DLLLOCAL void parseInitHashDeclInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, const TypedHashDecl* hd);
 
-   DLLLOCAL void parseInitComplexHashInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo* ti);
+    DLLLOCAL void parseInitComplexHashInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo* ti);
 
-   DLLLOCAL void parseInitComplexListInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo* ti);
+    DLLLOCAL void parseInitComplexListInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo* ti);
 };
 
 #endif

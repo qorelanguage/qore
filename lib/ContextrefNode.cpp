@@ -61,7 +61,7 @@ const char *ContextrefNode::getTypeName() const {
 }
 
 QoreValue ContextrefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   return evalContextRef(str, xsink);
+   return eval_context_ref(str, xsink);
 }
 
 AbstractQoreNode *ContextrefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

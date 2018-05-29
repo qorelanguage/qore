@@ -59,7 +59,7 @@ const char* ContextRowNode::getTypeName() const {
 }
 
 QoreValue ContextRowNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    return evalContextRow(xsink);
+    return eval_context_row(xsink);
 }
 
 AbstractQoreNode *ContextRowNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {

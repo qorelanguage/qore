@@ -318,7 +318,7 @@ public:
         return AbstractMethodCallNode::exec(o, c_str, xsink);
     }
 
-    DLLLOCAL QoreValue execPseudo(const AbstractQoreNode* n, ExceptionSink* xsink) const;
+    DLLLOCAL QoreValue execPseudo(const QoreValue n, ExceptionSink* xsink) const;
 
     DLLLOCAL virtual const char* getName() const {
         return c_str ? c_str : "copy";

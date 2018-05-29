@@ -102,94 +102,97 @@ int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
 }
 
 int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
-   int rc = 0;
+    int rc = 0;
 
-   // instantiate local variables
-   LVListInstantiator lvi(lvars, xsink);
+    // instantiate local variables
+    LVListInstantiator lvi(lvars, xsink);
 
-   ParseReferenceNode* r = reinterpret_cast<ParseReferenceNode*>(list);
+    ParseReferenceNode* r = reinterpret_cast<ParseReferenceNode*>(list);
 
-   // here we get the runtime reference
-   ReferenceHolder<ReferenceNode> vr(r->evalToRef(xsink), xsink);
-   if (*xsink)
-      return 0;
+    // here we get the runtime reference
+    ReferenceHolder<ReferenceNode> vr(r->evalToRef(xsink), xsink);
+    if (*xsink)
+        return 0;
 
-   // get the current value of the lvalue expression
-   ReferenceHolder<AbstractQoreNode> tlist(vr->eval(xsink), xsink);
-   if (!code || *xsink || is_nothing(*tlist))
-      return 0;
+    // get the current value of the lvalue expression
+    ValueHolder tlist(vr->evalValue(xsink), xsink);
+    if (!code || *xsink || tlist->isNothing())
+        return 0;
 
-   QoreListNode* l_tlist = tlist->getType() == NT_LIST ? reinterpret_cast<QoreListNode*>(*tlist) : 0;
-   if (l_tlist && l_tlist->empty())
-      return 0;
+    QoreListNode* l_tlist = tlist->getType() == NT_LIST ? tlist->get<QoreListNode>() : nullptr;
+    if (l_tlist && l_tlist->empty())
+        return 0;
 
-   // execute "foreach" body
-   ReferenceHolder<AbstractQoreNode> ln(0, xsink);
-   unsigned i = 0;
+    // execute "foreach" body
+    ValueHolder ln(xsink);
+    unsigned i = 0;
 
-   if (l_tlist)
-      ln = new QoreListNode;
+    if (l_tlist)
+        ln = new QoreListNode;
 
-   while (true) {
-      {
-         LValueHelper n(var, xsink);
-         if (!n)
+    while (true) {
+        {
+            LValueHelper n(var, xsink);
+            if (!n)
+                return 0;
+
+            // assign variable to current value in list
+            if (n.assign(l_tlist ? l_tlist->getReferencedEntry(i) : tlist.release()))
+                return 0;
+        }
+
+        // set offset in thread-local data for "$#"
+        ImplicitElementHelper eh(l_tlist ? (int)i : 0);
+
+        // execute "for" body
+        rc = code->execImpl(return_value, xsink);
+        if (*xsink)
             return 0;
 
-         // assign variable to current value in list
-         if (n.assign(l_tlist ? l_tlist->get_referenced_entry(i) : tlist.release()))
+        // get value of foreach variable
+        ValueEvalRefHolder nv(var, xsink);
+        if (*xsink) {
             return 0;
-      }
+        }
 
-      // set offset in thread-local data for "$#"
-      ImplicitElementHelper eh(l_tlist ? (int)i : 0);
+        // assign new value to temporary variable for later assignment to referenced lvalue
+        if (l_tlist)
+            ln->get<QoreListNode>()->push(nv.takeReferencedValue(), nullptr);
+        else
+            ln = nv.takeReferencedValue();
 
-      // execute "for" body
-      rc = code->execImpl(return_value, xsink);
-      if (*xsink)
-         return 0;
+        if (rc == RC_BREAK) {
+            // assign remaining values to list unchanged
+            if (l_tlist) {
+                while (++i < l_tlist->size()) {
+                    ln->get<QoreListNode>()->push(l_tlist->getReferencedEntry(i), nullptr);
+                }
+            }
 
-      // get value of foreach variable
-      AbstractQoreNode* nv = var->eval(xsink);
-      if (*xsink)
-         return 0;
+            rc = 0;
+            break;
+        }
 
-      // assign new value to temporary variable for later assignment to referenced lvalue
-      if (l_tlist)
-         reinterpret_cast<QoreListNode*>(*ln)->push(nv);
-      else
-         ln = nv;
+        if (rc == RC_RETURN)
+            break;
+        else if (rc == RC_CONTINUE)
+            rc = 0;
+        i++;
 
-      if (rc == RC_BREAK) {
-         // assign remaining values to list unchanged
-         if (l_tlist)
-            while (++i < l_tlist->size())
-               reinterpret_cast<QoreListNode*>(*ln)->push(l_tlist->get_referenced_entry(i));
+        // break out of loop if appropriate
+        if (!l_tlist || i == l_tlist->size())
+            break;
+    }
 
-         rc = 0;
-         break;
-      }
+    // write the value back to the lvalue
+    LValueHelper val(**vr, xsink);
+    if (!val)
+        return 0;
 
-      if (rc == RC_RETURN)
-         break;
-      else if (rc == RC_CONTINUE)
-         rc = 0;
-      i++;
+    if (val.assign(ln.release()))
+        return 0;
 
-      // break out of loop if appropriate
-      if (!l_tlist || i == l_tlist->size())
-         break;
-   }
-
-   // write the value back to the lvalue
-   LValueHelper val(**vr, xsink);
-   if (!val)
-      return 0;
-
-   if (val.assign(ln.release()))
-      return 0;
-
-   return rc;
+    return rc;
 }
 
 int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
@@ -198,7 +201,7 @@ int ForEachStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    // turn off top-level flag for statement vars
    pflag &= (~PF_TOP_LEVEL);
 
-   const QoreTypeInfo* argTypeInfo = 0;
+   const QoreTypeInfo* argTypeInfo = nullptr;
    if (var)
       var = var->parseInit(oflag, pflag, lvids, argTypeInfo);
 

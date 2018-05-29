@@ -1,31 +1,31 @@
 /*
-  QoreHashNode.cpp
+    QoreHashNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -58,7 +58,7 @@ QoreListNode* qore_hash_private::getKeys() const {
     qore_list_private::get(*list)->reserve(member_list.size());
 
     for (auto& i : member_list) {
-        list->push(new QoreStringNode(i->key));
+        list->push(new QoreStringNode(i->key), nullptr);
     }
     return list;
 }
@@ -68,7 +68,7 @@ QoreListNode* qore_hash_private::getValues(bool with_type_info) const {
     qore_list_private::get(*list)->reserve(member_list.size());
 
     for (auto& i : member_list) {
-        list->push(i->val.getReferencedValue());
+        list->push(i->val.refSelf(), nullptr);
     }
     return list;
 }
@@ -118,24 +118,21 @@ int qore_hash_private::getLValue(const char* key, LValueHelper& lvh, bool for_re
     return 0;
 }
 
-int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, QoreParseListNode* args, const QoreTypeInfo*& argTypeInfo, const AbstractQoreNode*& arg) {
+int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, int& lvids, QoreParseListNode* args, const QoreTypeInfo*& argTypeInfo, QoreValue& arg) {
     assert(!lvids);
     assert(!argTypeInfo);
 
     if (!args || args->empty())
         return -1;
 
-    arg = nullptr;
     if (args->size() > 1) {
         parse_error(*loc, "illegal arguments to typed hash initialization; a single hash argument is expected; %d arguments supplied instead", (int)args->size());
         return -1;
     }
 
     // initialize argument
-    AbstractQoreNode** n = args->getPtr(0);
-    (*n) = (*n)->parseInit(oflag, pflag & ~(PF_RETURN_VALUE_IGNORED), lvids, argTypeInfo);
-    assert(*n);
-    arg = *n;
+    parse_init_value(args->getReference(0), oflag, pflag & ~(PF_RETURN_VALUE_IGNORED), lvids, argTypeInfo);
+    arg = args->get(0);
 
     if (!QoreTypeInfo::parseReturns(argTypeInfo, NT_HASH)) {
         parse_error(*loc, "illegal argument to typed hash initialization; a single hash argument is expected; got type '%s' instead", QoreTypeInfo::getName(argTypeInfo));
@@ -148,13 +145,13 @@ int qore_hash_private::parseInitHashInitialization(const QoreProgramLocation* lo
 int qore_hash_private::parseInitComplexHashInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, const QoreTypeInfo* vti) {
     int lvids = 0;
     const QoreTypeInfo* argTypeInfo = nullptr;
-    const AbstractQoreNode* arg;
+    QoreValue arg;
     if (!parseInitHashInitialization(loc, oflag, pflag, lvids, args, argTypeInfo, arg))
-       parseCheckComplexHashInitialization(loc, vti, argTypeInfo, arg, "initialize", true);
+        parseCheckComplexHashInitialization(loc, vti, argTypeInfo, arg, "initialize", true);
     return lvids;
 }
 
-void qore_hash_private::parseCheckComplexHashInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* valueTypeInfo, const QoreTypeInfo* argTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool strict_check) {
+void qore_hash_private::parseCheckComplexHashInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* valueTypeInfo, const QoreTypeInfo* argTypeInfo, QoreValue exp, const char* context_action, bool strict_check) {
     const TypedHashDecl* hd = QoreTypeInfo::getUniqueReturnHashDecl(argTypeInfo);
     if (hd)
         typed_hash_decl_private::get(*hd)->parseCheckComplexHashAssignment(loc, valueTypeInfo);
@@ -170,10 +167,10 @@ void qore_hash_private::parseCheckComplexHashInitialization(const QoreProgramLoc
     }
 }
 
-void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation* loc, const AbstractQoreNode* arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check) {
-    switch (get_node_type(arg)) {
+void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation* loc, QoreValue arg, const QoreTypeInfo* vti, const char* context_action, bool strict_check) {
+    switch (arg.getType()) {
         case NT_HASH: {
-            ConstHashIterator i(reinterpret_cast<const QoreHashNode*>(arg));
+            ConstHashIterator i(arg.get<const QoreHashNode>());
             while (i.next()) {
                 const QoreTypeInfo* kti = i.get().getTypeInfo();
                 bool may_not_match = false;
@@ -185,7 +182,7 @@ void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation* loc
             break;
         }
         case NT_PARSE_HASH: {
-            const QoreParseHashNode* phn = reinterpret_cast<const QoreParseHashNode*>(arg);
+            const QoreParseHashNode* phn = arg.get<const QoreParseHashNode>();
             const QoreParseHashNode::nvec_t& keys = phn->getKeys();
             const QoreParseHashNode::tvec_t& vtypes = phn->getValueTypes();
             assert(keys.size() == vtypes.size());
@@ -268,16 +265,16 @@ int qore_hash_private::checkKey(const char* key, ExceptionSink* xsink) const {
     return 0;
 }
 
-QoreValue qore_hash_private::getValueKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const {
+QoreValue qore_hash_private::getKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const {
     assert(key);
 
     if (checkKey(key, xsink))
        return QoreValue();
 
-    return getValueKeyValueExistenceIntern(key, exists);
+    return getKeyValueExistenceIntern(key, exists);
 }
 
-QoreValue qore_hash_private::getValueKeyValueExistenceIntern(const char* key, bool& exists) const {
+QoreValue qore_hash_private::getKeyValueExistenceIntern(const char* key, bool& exists) const {
     hm_hm_t::const_iterator i = hm.find(key);
 
     if (i != hm.end()) {
@@ -289,7 +286,7 @@ QoreValue qore_hash_private::getValueKeyValueExistenceIntern(const char* key, bo
     return QoreValue();
 }
 
-QoreValue qore_hash_private::getValueKeyValueIntern(const char* key) const {
+QoreValue qore_hash_private::getKeyValueIntern(const char* key) const {
     hm_hm_t::const_iterator i = hm.find(key);
     return i != hm.end() ? (*i->second)->val : QoreValue();
 }
@@ -309,7 +306,7 @@ QoreHashNode::QoreHashNode(const QoreTypeInfo* valueTypeInfo) : QoreHashNode() {
     if (QoreTypeInfo::hasType(valueTypeInfo) || valueTypeInfo == autoTypeInfo) {
         priv->complexTypeInfo = valueTypeInfo == autoTypeInfo
             ? autoHashTypeInfo
-            : qore_program_private::get(*getProgram())->getComplexHashType(valueTypeInfo);
+            : qore_get_complex_hash_type(valueTypeInfo);
     }
 }
 
@@ -321,31 +318,31 @@ AbstractQoreNode* QoreHashNode::realCopy() const {
    return copy();
 }
 
-QoreValue QoreHashNode::getValueKeyValue(const char* key) const {
-    return priv->getValueKeyValueIntern(key);
+QoreValue QoreHashNode::getKeyValue(const char* key) const {
+    return priv->getKeyValueIntern(key);
 }
 
-QoreValue QoreHashNode::getValueKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const {
-    return priv->getValueKeyValueExistence(key, exists, xsink);
+QoreValue QoreHashNode::getKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const {
+    return priv->getKeyValueExistence(key, exists, xsink);
 }
 
-QoreValue QoreHashNode::getValueKeyValueExistence(const char* key, bool& exists) const {
-    return priv->getValueKeyValueExistenceIntern(key, exists);
+QoreValue QoreHashNode::getKeyValueExistence(const char* key, bool& exists) const {
+    return priv->getKeyValueExistenceIntern(key, exists);
 }
 
-QoreValue QoreHashNode::getValueKeyValue(const char* key, ExceptionSink* xsink) const {
+QoreValue QoreHashNode::getKeyValue(const char* key, ExceptionSink* xsink) const {
     bool exists;
-    return getValueKeyValueExistence(key, exists, xsink);
+    return getKeyValueExistence(key, exists, xsink);
 }
 
-QoreValue QoreHashNode::getValueKeyValueExistence(const QoreString& key, bool& exists, ExceptionSink* xsink) const {
+QoreValue QoreHashNode::getKeyValueExistence(const QoreString& key, bool& exists, ExceptionSink* xsink) const {
     TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-    return *xsink ? QoreValue() : getValueKeyValueExistence(key.c_str(), exists, xsink);
+    return *xsink ? QoreValue() : getKeyValueExistence(key.c_str(), exists, xsink);
 }
 
-QoreValue QoreHashNode::getValueKeyValue(const QoreString& key, ExceptionSink* xsink) const {
+QoreValue QoreHashNode::getKeyValue(const QoreString& key, ExceptionSink* xsink) const {
     TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-    return *xsink ? QoreValue() : getValueKeyValue(key.c_str(), xsink);
+    return *xsink ? QoreValue() : getKeyValue(key.c_str(), xsink);
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
@@ -379,20 +376,6 @@ const char* QoreHashNode::getLastKey() const {
 }
 
 // deprecated
-AbstractQoreNode** QoreHashNode::getKeyValuePtr(const QoreString* key, ExceptionSink* xsink) {
-   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return nullptr;
-
-   return priv->getKeyValuePtr(tmp->getBuffer());
-}
-
-// deprecated
-AbstractQoreNode** QoreHashNode::getKeyValuePtr(const char* key) {
-   return priv->getKeyValuePtr(key);
-}
-
-// deprecated
 int64 QoreHashNode::getKeyAsBigInt(const char* key, bool &found) const {
    return priv->getKeyAsBigInt(key, found);
 }
@@ -411,6 +394,11 @@ void QoreHashNode::deleteKey(const QoreString* key, ExceptionSink* xsink) {
    priv->deleteKey(tmp->getBuffer(), xsink);
 }
 
+QoreValue QoreHashNode::takeKeyValue(const char* key) {
+    assert(reference_count() == 1);
+    return priv->takeKeyValueIntern(key);
+}
+
 void QoreHashNode::removeKey(const QoreString* key, ExceptionSink* xsink) {
    assert(reference_count() == 1);
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
@@ -420,125 +408,27 @@ void QoreHashNode::removeKey(const QoreString* key, ExceptionSink* xsink) {
    priv->removeKey(tmp->getBuffer(), xsink);
 }
 
-// deprecated
-AbstractQoreNode* QoreHashNode::takeKeyValue(const QoreString* key, ExceptionSink* xsink) {
-   assert(reference_count() == 1);
-   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return 0;
-
-   return priv->takeKeyValueIntern(tmp->c_str()).takeNode();
-}
-
-// deprecated
-AbstractQoreNode* QoreHashNode::getKeyValueExistence(const QoreString* key, bool &exists, ExceptionSink* xsink) {
-   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return 0;
-
-   return getKeyValueExistence(tmp->getBuffer(), exists);
-}
-
-// deprecated
-const AbstractQoreNode* QoreHashNode::getKeyValueExistence(const QoreString* key, bool &exists, ExceptionSink* xsink) const {
-   return const_cast<QoreHashNode*>(this)->getKeyValueExistence(key, exists, xsink);
-}
-
-int QoreHashNode::setValueKeyValue(const char* key, QoreValue value, ExceptionSink* xsink) {
+int QoreHashNode::setKeyValue(const char* key, QoreValue value, ExceptionSink* xsink) {
     assert(reference_count() == 1);
     hash_assignment_priv ha(*priv, key);
     ha.assign(value.takeNode(), xsink);
-    return *xsink ? -1 : 0;
+    return xsink && *xsink ? -1 : 0;
 }
 
-int QoreHashNode::setValueKeyValue(const QoreString& key, QoreValue value, ExceptionSink* xsink) {
-    assert(*xsink);
+int QoreHashNode::setKeyValue(const QoreString& key, QoreValue value, ExceptionSink* xsink) {
+    assert(xsink);
     TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
     if (*xsink) {
         value.discard(xsink);
         return -1;
     }
 
-    return setValueKeyValue(tmp->c_str(), value, xsink);
+    return setKeyValue(tmp->c_str(), value, xsink);
 }
 
-// deprecated
-void QoreHashNode::setKeyValue(const QoreString* key, AbstractQoreNode* val, ExceptionSink* xsink) {
-   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   if (xsink && *xsink) {
-      if (val)
-         val->deref(xsink);
-      return;
-   }
-
-   setKeyValue(tmp->getBuffer(), val, xsink);
-}
-
-// deprecated
-void QoreHashNode::setKeyValue(const QoreString& key, AbstractQoreNode* val, ExceptionSink* xsink) {
-    setKeyValue(&key, val, xsink);
-}
-
-// deprecated
-void QoreHashNode::setKeyValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
+QoreValue& QoreHashNode::getKeyValueReference(const char* key) {
     assert(reference_count() == 1);
-    hash_assignment_priv ha(*priv, key);
-    ha.assign(val, xsink);
-}
-
-AbstractQoreNode* QoreHashNode::swapKeyValue(const QoreString* key, AbstractQoreNode* val, ExceptionSink* xsink) {
-    assert(reference_count() == 1);
-    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-    if (*xsink) {
-        if (val)
-            val->deref(xsink);
-        return 0;
-    }
-
-    hash_assignment_priv ha(*priv, tmp->getBuffer());
-    return ha.swap(val).takeNode();
-}
-
-AbstractQoreNode* QoreHashNode::swapKeyValue(const char* key, AbstractQoreNode* val) {
-   //printd(0, "QoreHashNode::swapKeyValue() this=%p key=%s val=%p (%s) deprecated API called\n", this, key, val, get_node_type(val));
-   //assert(false);
-   hash_assignment_priv ha(*priv, key);
-   return ha.swap(val).takeNode();
-}
-
-AbstractQoreNode* QoreHashNode::swapKeyValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink) {
-   assert(reference_count() == 1);
-   hash_assignment_priv ha(*priv, key);
-   return ha.swap(val).takeNode();
-}
-
-// deprecated
-AbstractQoreNode** QoreHashNode::getExistingValuePtr(const QoreString* key, ExceptionSink* xsink) {
-   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return 0;
-
-   return getExistingValuePtr(tmp->getBuffer());
-}
-
-AbstractQoreNode* QoreHashNode::getKeyValue(const QoreString* key, ExceptionSink* xsink) {
-   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return 0;
-
-   return getKeyValue(tmp->getBuffer());
-}
-
-AbstractQoreNode* QoreHashNode::getKeyValue(const QoreString& key, ExceptionSink* xsink) {
-   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return 0;
-
-   return getKeyValue(tmp->getBuffer());
-}
-
-const AbstractQoreNode* QoreHashNode::getKeyValue(const QoreString* key, ExceptionSink* xsink) const {
-   return const_cast<QoreHashNode*>(this)->getKeyValue(key, xsink);
+    return priv->getValueRef(key);
 }
 
 // retrieve keys in order they were inserted
@@ -600,55 +490,6 @@ double QoreHashNode::floatEvalImpl(ExceptionSink* xsink) const {
    return 0.0;
 }
 
-AbstractQoreNode* QoreHashNode::evalKeyValue(const QoreString* key, ExceptionSink* xsink) const {
-   TempEncodingHelper k(key, QCS_DEFAULT, xsink);
-   if (*xsink || priv->checkKey(k->c_str(), xsink))
-      return nullptr;
-
-   hm_hm_t::const_iterator i = priv->hm.find(k->c_str());
-
-   if (i != priv->hm.end())
-      return (*i->second)->val.getReferencedValue();
-
-   return nullptr;
-}
-
-AbstractQoreNode* QoreHashNode::getKeyValue(const char* key) {
-    assert(key);
-
-    hm_hm_t::const_iterator i = priv->hm.find(key);
-
-    if (i != priv->hm.end()) {
-        priv->convertToNode((*i->second)->val);
-        return (*i->second)->val.getInternalNode();
-    }
-
-    return nullptr;
-}
-
-const AbstractQoreNode* QoreHashNode::getKeyValue(const char* key) const {
-   return const_cast<QoreHashNode*>(this)->getKeyValue(key);
-}
-
-AbstractQoreNode* QoreHashNode::getKeyValueExistence(const char* key, bool &exists) {
-    assert(key);
-
-    hm_hm_t::const_iterator i = priv->hm.find(key);
-
-    if (i != priv->hm.end()) {
-        exists = true;
-        priv->convertToNode((*i->second)->val);
-        return (*i->second)->val.getInternalNode();
-    }
-
-    exists = false;
-    return nullptr;
-}
-
-const AbstractQoreNode* QoreHashNode::getKeyValueExistence(const char* key, bool &exists) const {
-   return const_cast<QoreHashNode*>(this)->getKeyValueExistence(key, exists);
-}
-
 // does a "soft" compare (values of different types are converted if necessary and then compared)
 // 0 = equal, 1 = not equal
 bool QoreHashNode::compareSoft(const QoreHashNode* h, ExceptionSink* xsink) const {
@@ -687,18 +528,6 @@ bool QoreHashNode::compareHard(const QoreHashNode* h, ExceptionSink* xsink) cons
     return 0;
 }
 
-// deprecated
-AbstractQoreNode** QoreHashNode::getExistingValuePtr(const char* key) {
-    hm_hm_t::const_iterator i = priv->hm.find(key);
-
-    if (i != priv->hm.end()) {
-        qore_hash_private::convertToNode((*i->second)->val);
-        return &(*i->second)->val.v.n;
-    }
-
-    return nullptr;
-}
-
 bool QoreHashNode::derefImpl(ExceptionSink* xsink) {
    return priv->derefImpl(xsink);
 }
@@ -716,11 +545,6 @@ void QoreHashNode::deleteKey(const char* key, ExceptionSink* xsink) {
 void QoreHashNode::removeKey(const char* key, ExceptionSink* xsink) {
    assert(reference_count() == 1);
    return priv->removeKey(key, xsink);
-}
-
-AbstractQoreNode* QoreHashNode::takeKeyValue(const char* key) {
-   assert(reference_count() == 1);
-   return priv->takeKeyValueIntern(key).takeNode();
 }
 
 qore_size_t QoreHashNode::size() const {
@@ -829,12 +653,12 @@ QoreHashNode* QoreHashNode::getSlice(const QoreListNode* value_list, ExceptionSi
             return nullptr;
 
         bool exists;
-        QoreValue v = getValueKeyValueExistence(key->c_str(), exists, xsink);
+        QoreValue v = getKeyValueExistence(key->c_str(), exists, xsink);
         if (*xsink)
             return nullptr;
         if (!exists)
             continue;
-        rv->setValueKeyValue(key->c_str(), v.refSelf(), xsink);
+        rv->setKeyValue(key->c_str(), v.refSelf(), xsink);
         if (*xsink)
             return nullptr;
     }
@@ -879,10 +703,6 @@ QoreHashNode* HashIterator::getHash() const {
    return h;
 }
 
-AbstractQoreNode* HashIterator::getReferencedValue() const {
-    return !priv->valid() ? nullptr : (*(priv->i))->val.getReferencedValue();
-}
-
 QoreValue HashIterator::getReferenced() const {
     return !priv->valid() ? QoreValue() : (*(priv->i))->val.refSelf();
 }
@@ -906,14 +726,6 @@ const char* HashIterator::getKey() const {
    return (*(priv->i))->key.c_str();
 }
 
-AbstractQoreNode* HashIterator::getValue() const {
-    if (!priv->valid())
-        return nullptr;
-
-    qore_hash_private::convertToNode((*(priv->i))->val);
-    return (*(priv->i))->val.getInternalNode();
-}
-
 QoreValue HashIterator::get() const {
     if (!priv->valid())
         return QoreValue();
@@ -921,46 +733,54 @@ QoreValue HashIterator::get() const {
     return (*(priv->i))->val;
 }
 
-AbstractQoreNode* HashIterator::takeValueAndDelete() {
+const QoreTypeInfo* HashIterator::getTypeInfo() const {
     if (!priv->valid())
         return nullptr;
 
-    AbstractQoreNode* rv = (*(priv->i))->val.assignNothing();
+    return (*(priv->i))->val.getTypeInfo();
+}
+
+void HashIterator::deleteKey(ExceptionSink* xsink) {
+    if (!priv->valid())
+        return;
+
+    assert(h->is_unique());
+
+    if (needs_scan((*(priv->i))->val)) {
+        h->priv->incScanCount(-1);
+    }
+
+    (*(priv->i))->val.discard(xsink);
 
     qhlist_t::iterator ni = priv->i;
     priv->prev(h->priv->member_list);
 
-    // remove key from map before deleting hash member with key pointer
     hm_hm_t::iterator i = h->priv->hm.find((*ni)->key.c_str());
     assert(i != h->priv->hm.end());
     h->priv->hm.erase(i);
     h->priv->internDeleteKey(ni);
+}
+
+QoreValue HashIterator::removeKeyValue() {
+    if (!priv->valid())
+        return QoreValue();
+
+    assert(h->is_unique());
+
+    QoreValue rv = (*(priv->i))->val;
+
+    if (needs_scan(rv)) {
+        h->priv->incScanCount(-1);
+    }
+
+    qhlist_t::iterator ni = priv->i;
+    priv->prev(h->priv->member_list);
+
+    hm_hm_t::iterator i = h->priv->hm.find((*ni)->key.c_str());
+    assert(i != h->priv->hm.end());
+    h->priv->hm.erase(i);
 
     return rv;
-}
-
-void HashIterator::deleteKey(ExceptionSink* xsink) {
-   if (!priv->valid())
-      return;
-
-   (*(priv->i))->val.discard(xsink);
-
-   qhlist_t::iterator ni = priv->i;
-   priv->prev(h->priv->member_list);
-
-   hm_hm_t::iterator i = h->priv->hm.find((*ni)->key.c_str());
-   assert(i != h->priv->hm.end());
-   h->priv->hm.erase(i);
-   h->priv->internDeleteKey(ni);
-}
-
-// deprecated
-AbstractQoreNode** HashIterator::getValuePtr() const {
-    if (!priv->valid())
-        return nullptr;
-
-    qore_hash_private::convertToNode((*(priv->i))->val);
-    return &(*(priv->i))->val.v.n;
 }
 
 bool HashIterator::last() const {
@@ -1029,10 +849,6 @@ const QoreHashNode* ConstHashIterator::getHash() const {
    return h;
 }
 
-AbstractQoreNode* ConstHashIterator::getReferencedValue() const {
-    return !priv->valid() ? nullptr : (*(priv->i))->val.getReferencedValue();
-}
-
 QoreValue ConstHashIterator::getReferenced() const {
     return !priv->valid() ? QoreValue() : (*(priv->i))->val.refSelf();
 }
@@ -1055,19 +871,18 @@ const char* ConstHashIterator::getKey() const {
    return (*(priv->i))->key.c_str();
 }
 
-const AbstractQoreNode* ConstHashIterator::getValue() const {
-    if (!priv->valid())
-        return nullptr;
-
-    qore_hash_private::convertToNode((*(priv->i))->val);
-    return (*(priv->i))->val.getInternalNode();
-}
-
 const QoreValue ConstHashIterator::get() const {
     if (!priv->valid())
         return QoreValue();
 
     return (*(priv->i))->val;
+}
+
+const QoreTypeInfo* ConstHashIterator::getTypeInfo() const {
+    if (!priv->valid())
+        return nullptr;
+
+    return (*(priv->i))->val.getTypeInfo();
 }
 
 bool ConstHashIterator::last() const {
@@ -1187,7 +1002,7 @@ void hash_assignment_priv::assign(QoreValue v, ExceptionSink* xsink) {
     else if (h.complexTypeInfo) {
         QoreTypeInfo::acceptInputKey(QoreTypeInfo::getUniqueReturnComplexHash(h.complexTypeInfo), om->key.c_str(), *val, xsink);
         // allow this function to be called with xsink = nullptr, otherwise the *xsink will assert
-        // anyway if there is an exception is would dump core when the exception is raised
+        // anyway if there is an exception it would dump core when the exception is raised
         if (xsink && *xsink) {
             return;
         }
@@ -1241,20 +1056,24 @@ HashAssignmentHelper::operator bool() const {
    return priv;
 }
 
-void HashAssignmentHelper::assign(AbstractQoreNode* v, ExceptionSink* xsink) {
+void HashAssignmentHelper::assign(QoreValue v, ExceptionSink* xsink) {
    assert(priv);
    priv->assign(v, xsink);
 }
 
-AbstractQoreNode* HashAssignmentHelper::swap(AbstractQoreNode* v, ExceptionSink* xsink) {
+QoreValue HashAssignmentHelper::swap(QoreValue v, ExceptionSink* xsink) {
    assert(priv);
-   return priv->swap(v).takeNode();
+   return priv->swap(v);
 }
 
-AbstractQoreNode* HashAssignmentHelper::operator*() const {
+QoreValue HashAssignmentHelper::get() const {
     assert(priv);
-    qore_hash_private::convertToNode(priv->om->val);
-    return (**priv).getInternalNode();
+    return **priv;
+}
+
+QoreValue HashAssignmentHelper::operator*() const {
+    assert(priv);
+    return (**priv);
 }
 
 void QoreParseHashNode::doDuplicateWarning(const QoreProgramLocation* newloc, const char* key) {

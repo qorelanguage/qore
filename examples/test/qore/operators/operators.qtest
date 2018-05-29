@@ -1198,6 +1198,7 @@ class Test inherits QUnit::Test {
             list<auto> l1 = l0;
             assertEq((1, 2), remove l1[0..1]);
             l1 = l0;
+            assertEq("list<int>", l1.fullType());
             assertEq("list<int>", (remove l1[0..1]).fullType());
             assertEq((3, 4), l1);
             l1 = l0;

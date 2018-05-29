@@ -1,36 +1,47 @@
 /* indent-tabs-mode: nil -*- */
 /*
-  QoreValue.cpp
+    QoreValue.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/ParseNode.h"
+
+void QoreSimpleValue::set(QoreValue& val) {
+    type = val.type;
+    switch (type) {
+        case QV_Bool: v.b = val.v.b; break;
+        case QV_Float: v.f = val.v.f; break;
+        case QV_Int: v.i = val.v.i; break;
+        case QV_Node: v.n = val.v.n; break;
+        default: assert(false);
+    }
+}
 
 AbstractQoreNode* QoreSimpleValue::takeNode() {
     switch (type) {
@@ -108,7 +119,7 @@ QoreValue::QoreValue(const AbstractQoreNode* n) {
     v.n = const_cast<AbstractQoreNode*>(n);
 }
 
-QoreValue::QoreValue(const QoreSimpleValue n): type(n.type) {
+QoreValue::QoreValue(const QoreSimpleValue& n): type(n.type) {
     switch (type) {
         case QV_Bool: v.b = n.v.b; break;
         case QV_Int: v.i = n.v.i; break;
@@ -338,10 +349,17 @@ void QoreValue::discard(ExceptionSink* xsink) {
 }
 
 void QoreValue::clear() {
+#ifdef DEBUG
+    // this makes valgrind happier, but is functionally equivalent to the below,
+    // which is more efficient as it doesn't write to memory unnecessarily
+    type = QV_Node;
+    v.n = nullptr;
+#else
     if (type != QV_Node)
         type = QV_Node;
     if (v.n)
         v.n = nullptr;
+#endif
 }
 
 int QoreValue::getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const {
@@ -378,17 +396,47 @@ QoreString* QoreValue::getAsString(bool& del, int format_offset, ExceptionSink* 
     return nullptr;
 }
 
-AbstractQoreNode* QoreValue::getReferencedValue() const {
-   switch (type) {
-      case QV_Bool: return get_bool_node(v.b);
-      case QV_Int: return new QoreBigIntNode(v.i);
-      case QV_Float: return new QoreFloatNode(v.f);
-      case QV_Node: return v.n ? v.n->refSelf() : 0;
-      default: assert(false);
-         // no break
-   }
-   return nullptr;
+QoreValue QoreValue::eval(ExceptionSink* xsink) const {
+    if (type != QV_Node || !v.n) {
+        return *this;
+    }
+
+    if (v.n->hasValueApi()) {
+        const ParseNode* pn = get<const ParseNode>();
+        bool needs_deref = true;
+        QoreValue rv = pn->evalValue(needs_deref, xsink);
+        return needs_deref ? rv : rv.refSelf();
+    }
+    return v.n->eval(xsink);
 }
+
+QoreValue QoreValue::eval(bool& needs_deref, ExceptionSink* xsink) const {
+    assert(needs_deref == true);
+    if (type != QV_Node || !v.n) {
+        needs_deref = false;
+        return *this;
+    }
+
+    if (v.n->hasValueApi()) {
+        const ParseNode* pn = get<const ParseNode>();
+        return pn->evalValue(needs_deref, xsink);
+    }
+    return v.n->eval(needs_deref, xsink);
+}
+
+/*
+AbstractQoreNode* QoreValue::getReferencedValue() const {
+    switch (type) {
+        case QV_Bool: return get_bool_node(v.b);
+        case QV_Int: return new QoreBigIntNode(v.i);
+        case QV_Float: return new QoreFloatNode(v.f);
+        case QV_Node: return v.n ? v.n->refSelf() : nullptr;
+        default: assert(false);
+            // no break
+    }
+    return nullptr;
+}
+*/
 
 AbstractQoreNode* QoreValue::takeNode() {
     switch (type) {
@@ -466,6 +514,26 @@ bool QoreValue::isNullOrNothing() const {
     return type == QV_Node && (is_nothing(v.n) || is_null(v.n));
 }
 
+bool QoreValue::needsEval() const {
+    return type == QV_Node && v.n && v.n->needs_eval();
+}
+
+bool QoreValue::hasEffect() const {
+    return type == QV_Node && v.n && node_has_effect(v.n);
+}
+
+bool QoreValue::isReferenceCounted() const {
+    return type == QV_Node && v.n && v.n->isReferenceCounted();
+}
+
+bool QoreValue::isValue() const {
+    return type != QV_Node || (v.n && v.n->is_value());
+}
+
+QoreValue::operator bool() const {
+    return !isNothing();
+}
+
 const QoreTypeInfo* QoreValue::getTypeInfo() const {
     switch (type) {
         case QV_Bool: return boolTypeInfo;
@@ -481,8 +549,8 @@ ValueHolder::~ValueHolder() {
     discard(v.getInternalNode(), xsink);
 }
 
-AbstractQoreNode* ValueHolder::getReferencedValue() {
-    return v.takeNode();
+QoreValue ValueHolder::getReferencedValue() {
+    return v.refSelf();
 }
 
 QoreValue ValueHolder::release() {
@@ -504,13 +572,12 @@ void ValueOptionalRefHolder::ensureReferencedValue() {
     }
 }
 
-AbstractQoreNode* ValueOptionalRefHolder::getReferencedValue() {
-    if (v.type == QV_Node) {
-        if (!needs_deref && v.v.n)
-            v.v.n->ref();
-        return v.takeNodeIntern();
+QoreValue ValueOptionalRefHolder::getReferencedValue() {
+    if (needs_deref) {
+        needs_deref = false;
+        return v;
     }
-    return v.takeNode();
+    return v.refSelf();
 }
 
 QoreValue ValueOptionalRefHolder::takeReferencedValue() {
@@ -582,9 +649,12 @@ ValueEvalRefHolder::ValueEvalRefHolder(ExceptionSink* xs) : ValueOptionalRefHold
 }
 
 int ValueEvalRefHolder::evalIntern(const AbstractQoreNode* exp) {
-    if (!exp)
+    if (!exp) {
+        needs_deref = false;
         return 0;
+    }
 
+    needs_deref = true;
     if (exp->hasValueApi()) {
         const ParseNode* pn = reinterpret_cast<const ParseNode*>(exp);
         v = pn->evalValue(needs_deref, xsink);
@@ -597,27 +667,17 @@ int ValueEvalRefHolder::evalIntern(const AbstractQoreNode* exp) {
 }
 
 int ValueEvalRefHolder::evalIntern(const QoreValue exp) {
-    if (exp.isNothing())
-        return 0;
-
-    if (!exp.hasNode()) {
-        needs_deref = false;
-        v = exp;
-        return 0;
-    }
-
-    if (exp.getInternalNode()->hasValueApi()) {
-        const ParseNode* pn = exp.get<const ParseNode>();
-        v = pn->evalValue(needs_deref, xsink);
-    }
-    else {
-        v = exp.getInternalNode()->eval(needs_deref, xsink);
-    }
-
+    needs_deref = true;
+    v = exp.eval(needs_deref, xsink);
     return xsink && *xsink ? -1 : 0;
 }
 
 int ValueEvalRefHolder::eval(const AbstractQoreNode* exp) {
+    v.discard(xsink);
+    return evalIntern(exp);
+}
+
+int ValueEvalRefHolder::eval(const QoreValue exp) {
     v.discard(xsink);
     return evalIntern(exp);
 }

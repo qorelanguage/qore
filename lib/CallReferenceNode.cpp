@@ -79,16 +79,16 @@ const char* CallReferenceCallNode::getTypeName() const {
 
 // evalImpl(): return value requires a deref(xsink) if not 0
 QoreValue CallReferenceCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   ReferenceHolder<AbstractQoreNode> lv(exp->eval(xsink), xsink);
-   if (*xsink)
-      return QoreValue();
+    ReferenceHolder<AbstractQoreNode> lv(exp->eval(xsink), xsink);
+    if (*xsink)
+        return QoreValue();
 
-   ResolvedCallReferenceNode* r = dynamic_cast<ResolvedCallReferenceNode*>(*lv);
-   if (!r) {
-      xsink->raiseException(*loc, "REFERENCE-CALL-ERROR", nullptr, "expression does not evaluate to a call reference (evaluated to type '%s')", lv ? lv->getTypeName() : "NOTHING");
-      return QoreValue();
-   }
-   return r->execValue(args, xsink);
+    ResolvedCallReferenceNode* r = dynamic_cast<ResolvedCallReferenceNode*>(*lv);
+    if (!r) {
+        xsink->raiseException(*loc, "REFERENCE-CALL-ERROR", QoreValue(), "expression does not evaluate to a call reference (evaluated to type '%s')", lv ? lv->getTypeName() : "NOTHING");
+        return QoreValue();
+    }
+    return r->execValue(args, xsink);
 }
 
 AbstractQoreNode* CallReferenceCallNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
@@ -213,51 +213,51 @@ ParseObjectMethodReferenceNode::~ParseObjectMethodReferenceNode() {
 
 // returns a RunTimeObjectMethodReference or NULL if there's an exception
 QoreValue ParseObjectMethodReferenceNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   // evaluate lvalue expression
-   ReferenceHolder<AbstractQoreNode> lv(exp->eval(xsink), xsink);
-   if (*xsink)
-      return QoreValue();
+    // evaluate lvalue expression
+    ReferenceHolder<AbstractQoreNode> lv(exp->eval(xsink), xsink);
+    if (*xsink)
+        return QoreValue();
 
-   QoreObject* o = (*lv) && (*lv)->getType() == NT_OBJECT ? reinterpret_cast<QoreObject*>(*lv) : 0;
-   if (!o) {
-      xsink->raiseException(*loc, "OBJECT-METHOD-REFERENCE-ERROR", nullptr, "expression does not evaluate to an object");
-      return QoreValue();
-   }
+    QoreObject* o = (*lv) && (*lv)->getType() == NT_OBJECT ? reinterpret_cast<QoreObject*>(*lv) : 0;
+    if (!o) {
+        xsink->raiseException(*loc, "OBJECT-METHOD-REFERENCE-ERROR", QoreValue(), "expression does not evaluate to an object");
+        return QoreValue();
+    }
 
-   //printd(5, "ParseObjectMethodReferenceNode::evalImpl() this: %p o: %p %s::%s() m: %p\n", this, o, o->getClassName(), method.c_str(), m);
+    //printd(5, "ParseObjectMethodReferenceNode::evalImpl() this: %p o: %p %s::%s() m: %p\n", this, o, o->getClassName(), method.c_str(), m);
 
-   const QoreClass* oc = o->getClass();
+    const QoreClass* oc = o->getClass();
 
-   // find the method at runtime if necessary
-   if (!m) {
-      // serialize method resolution at runtime
-      AutoLocker al(lck);
-      // check m again inside the lock (this way we avoid the lock in the common case where the method has already been resolved)
-      if (!m) {
-         bool m_priv = false;
-         m = oc->findMethod(method.c_str(), m_priv);
-         if (!m) {
-            m = oc->findStaticMethod(method.c_str(), m_priv);
+    // find the method at runtime if necessary
+    if (!m) {
+        // serialize method resolution at runtime
+        AutoLocker al(lck);
+        // check m again inside the lock (this way we avoid the lock in the common case where the method has already been resolved)
+        if (!m) {
+            bool m_priv = false;
+            m = oc->findMethod(method.c_str(), m_priv);
             if (!m) {
-               xsink->raiseException(*loc, "OBJECT-METHOD-REFERENCE-ERROR", nullptr, "cannot resolve reference to %s::%s(): unknown method", o->getClassName(), method.c_str());
-               return QoreValue();
+                m = oc->findStaticMethod(method.c_str(), m_priv);
+                if (!m) {
+                    xsink->raiseException(*loc, "OBJECT-METHOD-REFERENCE-ERROR", QoreValue(), "cannot resolve reference to %s::%s(): unknown method", o->getClassName(), method.c_str());
+                    return QoreValue();
+                }
             }
-         }
 
-         if (m_priv && !qore_class_private::runtimeCheckPrivateClassAccess(*oc)) {
-            if (m->isPrivate())
-               xsink->raiseException(*loc, "ILLEGAL-CALL-REFERENCE", nullptr, "cannot create a call reference to private %s::%s() from outside the class", o->getClassName(), method.c_str());
-            else
-               xsink->raiseException(*loc, "ILLEGAL-CALL-REFERENCE", nullptr, "cannot create a call reference to %s::%s() because the parent class that implements the method (%s::%s()) is privately inherited", o->getClassName(), method.c_str(), m->getClass()->getName(), method.c_str());
+            if (m_priv && !qore_class_private::runtimeCheckPrivateClassAccess(*oc)) {
+                if (m->isPrivate())
+                    xsink->raiseException(*loc, "ILLEGAL-CALL-REFERENCE", QoreValue(), "cannot create a call reference to private %s::%s() from outside the class", o->getClassName(), method.c_str());
+                else
+                    xsink->raiseException(*loc, "ILLEGAL-CALL-REFERENCE", QoreValue(), "cannot create a call reference to %s::%s() because the parent class that implements the method (%s::%s()) is privately inherited", o->getClassName(), method.c_str(), m->getClass()->getName(), method.c_str());
 
-            return QoreValue();
-         }
-      }
-   }
+                return QoreValue();
+            }
+        }
+    }
 
-   if (oc == m->getClass() || oc == qc)
-      return new RunTimeResolvedMethodReferenceNode(loc, o, m);
-   return new RunTimeObjectMethodReferenceNode(loc, o, method.c_str());
+    if (oc == m->getClass() || oc == qc)
+        return new RunTimeResolvedMethodReferenceNode(loc, o, m);
+    return new RunTimeObjectMethodReferenceNode(loc, o, method.c_str());
 }
 
 AbstractQoreNode* ParseObjectMethodReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
@@ -310,42 +310,42 @@ QoreValue ParseSelfMethodReferenceNode::evalValueImpl(bool& needs_deref, Excepti
 }
 
 AbstractQoreNode* ParseSelfMethodReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   typeInfo = callReferenceTypeInfo;
-   if (!oflag)
-      parse_error(*loc, "reference to object member '%s' when not in an object context", method.c_str());
-   else {
-      assert(!method.empty());
-      qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())));
-      meth = class_ctx->parseResolveSelfMethod(loc, method.c_str(), class_ctx);
-      method.clear();
-   }
-   return this;
+    typeInfo = callReferenceTypeInfo;
+    if (!oflag)
+        parse_error(*loc, "reference to object member '%s' when not in an object context", method.c_str());
+    else {
+        assert(!method.empty());
+        qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())));
+        meth = class_ctx->parseResolveSelfMethod(loc, method.c_str(), class_ctx);
+        method.clear();
+    }
+    return this;
 }
 
 ParseScopedSelfMethodReferenceNode::ParseScopedSelfMethodReferenceNode(const QoreProgramLocation* loc, NamedScope* n_nscope) : AbstractParseObjectMethodReferenceNode(loc), nscope(n_nscope), method(0) {
 }
 
 ParseScopedSelfMethodReferenceNode::~ParseScopedSelfMethodReferenceNode() {
-   delete nscope;
+    delete nscope;
 }
 
 // returns a RunTimeObjectMethodReference or NULL if there's an exception
 QoreValue ParseScopedSelfMethodReferenceNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   return new RunTimeResolvedMethodReferenceNode(loc, runtime_get_stack_object(), method);
+    return new RunTimeResolvedMethodReferenceNode(loc, runtime_get_stack_object(), method);
 }
 
 AbstractQoreNode* ParseScopedSelfMethodReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   typeInfo = callReferenceTypeInfo;
-   if (!oflag)
-      parse_error(*loc, "reference to object member '%s' when not in an object context", method);
-   else {
-      qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())));
-      method = class_ctx->parseResolveSelfMethod(loc, nscope);
-      delete nscope;
-      nscope = 0;
-   }
+    typeInfo = callReferenceTypeInfo;
+    if (!oflag)
+        parse_error(*loc, "reference to object member '%s' when not in an object context", method);
+    else {
+        qore_class_private* class_ctx = qore_class_private::get(*const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(oflag->getTypeInfo())));
+        method = class_ctx->parseResolveSelfMethod(loc, nscope);
+        delete nscope;
+        nscope = 0;
+    }
 
-   return this;
+    return this;
 }
 
 RunTimeResolvedMethodReferenceNode::RunTimeResolvedMethodReferenceNode(const QoreProgramLocation* loc, QoreObject* n_obj, const QoreMethod* n_method) : ResolvedCallReferenceNodeIntern(loc), obj(n_obj), method(n_method), qc(runtime_get_class()) {

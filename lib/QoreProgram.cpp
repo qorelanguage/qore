@@ -379,7 +379,7 @@ void qore_program_private_base::newProgram() {
             continue;
         }
 
-        dmap[cli.getName()] = v.getReferencedValue();
+        dmap[cli.getName()] = v.refSelf();
     }
 
 #ifdef DEBUG
@@ -479,7 +479,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
             waitForAllThreadsToTerminateIntern();
             if (!ptid) {
                 if (!ns_const) {
-                    l = new QoreListNode;
+                    l = new QoreListNode(autoTypeInfo);
                     qore_root_ns_private::clearConstants(*RootNS, **l);
                     //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p cleared constants\n", this);
                     ns_const = true;
@@ -544,12 +544,12 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
         // merge pending parse exceptions into the passed exception sink, if any
         if (pendingParseSink) {
             xsink->assimilate(pendingParseSink);
-            pendingParseSink = 0;
+            pendingParseSink = nullptr;
         }
 
         // clear any exec-class return value
-        discard(exec_class_rv, xsink);
-        exec_class_rv = 0;
+        exec_class_rv.discard(xsink);
+        exec_class_rv = QoreValue();
 
         // delete code
         // method call can be repeated
@@ -903,7 +903,7 @@ void qore_program_private::del(ExceptionSink* xsink) {
 
     // clear constants if not already cleared
     if (!ns_const) {
-        ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+        ReferenceHolder<QoreListNode> l(new QoreListNode(autoTypeInfo), xsink);
         qore_root_ns_private::clearConstants(*RootNS, **l);
         ns_const = true;
         //printd(5, "qore_program_private::del() this: %p cleared constants\n", this);
@@ -917,24 +917,6 @@ void qore_program_private::del(ExceptionSink* xsink) {
     // delete all root code
     // method call can be repeated
     sb.del();
-
-    // delete stored type information
-    for (auto& i : ch_map)
-        delete i.second;
-    for (auto& i : chon_map)
-        delete i.second;
-    for (auto& i : cl_map)
-        delete i.second;
-    for (auto& i : clon_map)
-        delete i.second;
-    for (auto& i : cr_map)
-        delete i.second;
-    for (auto& i : cron_map)
-        delete i.second;
-    for (auto& i : csl_map)
-        delete i.second;
-    for (auto& i : cslon_map)
-        delete i.second;
 
     //printd(5, "QoreProgram::~QoreProgram() this: %p deleting root ns %p\n", this, RootNS);
 
@@ -989,108 +971,6 @@ LocalVar* qore_program_private::createLocalVar(const char* name, const QoreTypeI
    LocalVar* lv = new LocalVar(name, typeInfo);
    local_var_list.push_back(lv);
    return lv;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexHashType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(chl);
-
-    tmap_t::iterator i = ch_map.lower_bound(vti);
-    if (i != ch_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexHashTypeInfo* ti = new QoreComplexHashTypeInfo(vti);
-    ch_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexHashOrNothingType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(chonl);
-
-    tmap_t::iterator i = chon_map.lower_bound(vti);
-    if (i != chon_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexHashOrNothingTypeInfo* ti = new QoreComplexHashOrNothingTypeInfo(vti);
-    chon_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexListType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(cll);
-
-    tmap_t::iterator i = cl_map.lower_bound(vti);
-    if (i != cl_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexListTypeInfo* ti = new QoreComplexListTypeInfo(vti);
-    cl_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexListOrNothingType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(clonl);
-
-    tmap_t::iterator i = clon_map.lower_bound(vti);
-    if (i != clon_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexListOrNothingTypeInfo* ti = new QoreComplexListOrNothingTypeInfo(vti);
-    clon_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexSoftListType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(csll);
-
-    tmap_t::iterator i = csl_map.lower_bound(vti);
-    if (i != csl_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexSoftListTypeInfo* ti = new QoreComplexSoftListTypeInfo(vti);
-    csl_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexSoftListOrNothingType(const QoreTypeInfo* vti) {
-    assert(vti && vti != anyTypeInfo);
-    AutoLocker al(cslonl);
-
-    tmap_t::iterator i = cslon_map.lower_bound(vti);
-    if (i != cslon_map.end() && i->first == vti)
-        return i->second;
-
-    QoreComplexSoftListOrNothingTypeInfo* ti = new QoreComplexSoftListOrNothingTypeInfo(vti);
-    cslon_map.insert(i, tmap_t::value_type(vti, ti));
-    return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexReferenceType(const QoreTypeInfo* vti) {
-   AutoLocker al(crl);
-
-   tmap_t::iterator i = cr_map.lower_bound(vti);
-   if (i != cr_map.end() && i->first == vti)
-      return i->second;
-
-   QoreComplexReferenceTypeInfo* ti = new QoreComplexReferenceTypeInfo(vti);
-   cr_map.insert(i, tmap_t::value_type(vti, ti));
-   return ti;
-}
-
-const QoreTypeInfo* qore_program_private::getComplexReferenceOrNothingType(const QoreTypeInfo* vti) {
-   AutoLocker al(cronl);
-
-   tmap_t::iterator i = cron_map.lower_bound(vti);
-   if (i != cron_map.end() && i->first == vti)
-      return i->second;
-
-   QoreComplexReferenceOrNothingTypeInfo* ti = new QoreComplexReferenceOrNothingTypeInfo(vti);
-   cron_map.insert(i, tmap_t::value_type(vti, ti));
-   return ti;
 }
 
 void qore_program_private::addStatementToIndexIntern(name_section_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs, const char* section, int sectionOffs) {
@@ -1237,14 +1117,14 @@ void qore_program_private::onExit(const StatementBlock *statement, QoreValue& re
     }
 }
 
-const AbstractQoreFunctionVariant* qore_program_private::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) {
+const AbstractQoreFunctionVariant* qore_program_private::runtimeFindCall(const char* name, const QoreListNode* params, ExceptionSink* xsink) {
     // acquire safe access to parse structures in the source program
     ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
     return qore_root_ns_private::get(*RootNS)->runtimeFindCall(name, params, xsink);
 }
 
-QoreValueList* qore_program_private::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) {
+QoreListNode* qore_program_private::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) {
     // acquire safe access to parse structures in the source program
     ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
@@ -1539,11 +1419,11 @@ QoreHashNode* QoreProgram::getThreadData() {
    return priv->getThreadData();
 }
 
-AbstractQoreNode* QoreProgram::run(ExceptionSink* xsink) {
+QoreValue QoreProgram::run(ExceptionSink* xsink) {
    if (!priv->exec_class_name.empty()) {
       runClass(priv->exec_class_name.c_str(), xsink);
-      AbstractQoreNode* rv = priv->exec_class_rv;
-      priv->exec_class_rv = 0;
+      QoreValue rv = priv->exec_class_rv;
+      priv->exec_class_rv = QoreValue();
       return rv;
    }
    return runTopLevel(xsink);
@@ -1614,38 +1494,36 @@ void QoreProgram::parsePending(const char* code, const char* label, ExceptionSin
    priv->parsePending(code, label, xsink, wS, wm, source, offset);
 }
 
-AbstractQoreNode* QoreProgram::runTopLevel(ExceptionSink* xsink) {
+QoreValue QoreProgram::runTopLevel(ExceptionSink* xsink) {
    ProgramThreadCountContextHelper tch(xsink, this, true);
    if (*xsink)
-      return 0;
-   return priv->sb.exec(xsink).takeNode();
+      return QoreValue();
+   return priv->sb.exec(xsink);
 }
 
-AbstractQoreNode* QoreProgram::callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
+QoreValue QoreProgram::callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
     SimpleRefHolder<FunctionCallNode> fc;
 
     printd(5, "QoreProgram::callFunction() creating function call to %s()\n", name);
 
-    //const qore_ns_private* ns = nullptr;
-    //const QoreFunction* qf;
     const FunctionEntry* fe;
 
     // need to grab parse lock for safe access to the user function map and imported function map
     {
         ProgramRuntimeParseAccessHelper pah(xsink, this);
         if (*xsink)
-            return nullptr;
+            return QoreValue();
         fe = qore_root_ns_private::runtimeFindFunctionEntry(*priv->RootNS, name);
     }
 
     if (!fe) {
         xsink->raiseException("NO-FUNCTION", "function name '%s' does not exist", name);
-        return nullptr;
+        return QoreValue();
     }
 
     // we assign the args to 0 below so that they will not be deleted
     fc = new FunctionCallNode(get_runtime_location(), fe, const_cast<QoreListNode*>(args), this);
-    AbstractQoreNode* rv = !*xsink ? fc->eval(xsink) : nullptr;
+    QoreValue rv = !*xsink ? fc->eval(xsink) : QoreValue();
 
     // let caller delete function arguments if necessary
     fc->takeArgs();
@@ -1684,7 +1562,7 @@ void QoreProgram::runClass(const char* classname, ExceptionSink* xsink) {
 
    ProgramThreadCountContextHelper tch(xsink, this, true);
    if (!*xsink)
-      discard(qc->execConstructor((QoreValueList*)0, xsink), xsink);
+      discard(qc->execConstructor((QoreListNode*)0, xsink), xsink);
 }
 
 void QoreProgram::parseFileAndRunClass(const char* filename, const char* classname) {
@@ -1820,8 +1698,8 @@ QoreValue QoreProgram::getGlobalVariableVal(const char* var, bool& found) const 
    return v->eval();
 }
 
-AbstractQoreNode* QoreProgram::getGlobalVariableValue(const char* var, bool& found) const {
-   return getGlobalVariableVal(var, found).takeNode();
+QoreValue QoreProgram::getGlobalVariableValue(const char* var, bool& found) const {
+   return getGlobalVariableVal(var, found);
 }
 
 // only called when parsing, therefore in the parse thread lock
@@ -1900,7 +1778,7 @@ QoreValue qore_parse_get_define_value(const QoreProgramLocation* loc, const char
     return flt ? q_strtod(p) : strtoll(p, 0, 10);
 }
 
-void QoreProgram::parseDefine(const char* str, AbstractQoreNode* val) {
+void QoreProgram::parseDefine(const char* str, QoreValue val) {
    priv->parseDefine(&qoreCommandLineLocation, str, val);
 }
 
@@ -2060,15 +1938,15 @@ AbstractStatement* QoreProgram::findStatement(const char* fileName, int line) co
    return priv->getStatementFromIndex(fileName, line);
 }
 
-AbstractStatement* QoreProgram::findFunctionStatement(const char* functionName, const QoreValueList* params, ExceptionSink* xsink) const {
-   const AbstractQoreFunctionVariant* uv = runtimeFindCall(functionName, params, xsink);
-   if (!uv)
-      return nullptr;
-   const UserVariantBase* uvb = uv->getUserVariantBase();
-   //printd(5, "QoreProgram::findFunctionStatement() '%s' -> %p\n", functionName, uvb);
-   if (!uvb)
-      return nullptr;
-   return uvb->getStatementBlock();
+AbstractStatement* QoreProgram::findFunctionStatement(const char* functionName, const QoreListNode* params, ExceptionSink* xsink) const {
+    const AbstractQoreFunctionVariant* uv = runtimeFindCall(functionName, params, xsink);
+    if (!uv)
+        return nullptr;
+    const UserVariantBase* uvb = uv->getUserVariantBase();
+    //printd(5, "QoreProgram::findFunctionStatement() '%s' -> %p\n", functionName, uvb);
+    if (!uvb)
+        return nullptr;
+    return uvb->getStatementBlock();
 }
 
 unsigned long QoreProgram::getStatementId(const AbstractStatement* statement) const {
@@ -2119,11 +1997,11 @@ bool QoreProgram::checkAllowDebugging(ExceptionSink* xsink) {
    return priv->checkAllowDebugging(xsink);
 }
 
-const AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const {
+const AbstractQoreFunctionVariant* QoreProgram::runtimeFindCall(const char* name, const QoreListNode* params, ExceptionSink* xsink) const {
    return priv->runtimeFindCall(name, params, xsink);
 }
 
-QoreValueList* QoreProgram::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const {
+QoreListNode* QoreProgram::runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const {
    return priv->runtimeFindCallVariants(name, xsink);
 }
 
@@ -2253,7 +2131,7 @@ QoreListNode* QoreBreakpoint::getStatementIds(ExceptionSink* xsink) {
     QoreAutoRWReadLocker al(pgm ? &pgm->lck_breakpoint : nullptr);
     ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
     for (AbstractStatementList_t::iterator it = statementList.begin(); it != statementList.end(); ++it) {
-        (*l)->push(new QoreBigIntNode(pgm->getStatementId(*it)));
+        (*l)->push(pgm->getStatementId(*it), nullptr);
     }
     return l.release();
 }

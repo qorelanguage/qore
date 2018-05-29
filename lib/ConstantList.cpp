@@ -101,14 +101,16 @@ void ConstantEntry::del(QoreListNode& l) {
     //printd(5, "ConstantEntry::del(l) this: %p '%s' node: %p (%d) %s %d (saved_node: %p)\n", this, name.c_str(), node, get_node_type(node), get_type_name(node), node->reference_count(), saved_node);
     if (saved_node) {
         val.discard(nullptr);
-        l.push(saved_node);
+        l.push(saved_node, nullptr);
 #ifdef DEBUG
         val.clear();
         saved_node = nullptr;
 #endif
     }
     else {
-        l.push(val.takeIfNode());
+        if (val.hasNode()) {
+            l.push(val.takeNode(), nullptr);
+        }
 #ifdef DEBUG
         val.clear();
 #endif

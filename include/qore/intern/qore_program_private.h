@@ -360,26 +360,6 @@ public:
     // parse lock, making parsing actions atomic and thread-safe, also for runtime thread attachment
     mutable QoreThreadLock plock;
 
-    QoreThreadLock chl,      // complex hash lock
-        chonl,               // complex hash or nothing lock
-        cll,                 // complex list lock
-        clonl,               // complex list or nothing lock
-        crl,                 // complex reference lock
-        cronl,               // complex reference or nothing lock
-        csll,                // complex softlist lock
-        cslonl;              // complex softlist or nothing lock
-
-    typedef vector_map_t<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
-    //typedef std::map<const QoreTypeInfo*, QoreTypeInfo*> tmap_t;
-    tmap_t ch_map,          // complex hash map
-        chon_map,           // complex hash or nothing map
-        cl_map,             // complex list map
-        clon_map,           // complex list or nothing map
-        cr_map,             // complex reference map
-        cron_map,           // complex reference or nothing map
-        csl_map,            // complex softlist map
-        cslon_map;          // complex softlist or nothing map
-
     // set of signals being handled by code in this Program (to be deleted on exit)
     int_set_t sigset;
 
@@ -440,7 +420,7 @@ public:
     ResolvedCallReferenceNode* thr_init;
 
     // return value for use with %exec-class
-    AbstractQoreNode* exec_class_rv;
+    QoreValue exec_class_rv;
 
     // public object that owns this private implementation
     QoreProgram* pgm;
@@ -456,7 +436,7 @@ public:
             ns_vars(false),
             tclear(0),
             exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(nullptr), twaiting(0),
-            thr_init(nullptr), exec_class_rv(nullptr), pgm(n_pgm) {
+            thr_init(nullptr), pgm(n_pgm) {
         printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
 
 #ifdef DEBUG
@@ -660,8 +640,9 @@ public:
 
         // dereference finalized thread-local data outside the lock to avoid deadlocks
         if (cl) {
-            for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i)
-                (*i)->deref(xsink);
+            for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i) {
+                (*i).discard(xsink);
+            }
             delete cl;
         }
 
@@ -778,7 +759,7 @@ public:
         AutoLocker al(plock);
 
         for (auto& i : tidmap) {
-            l.push(new QoreBigIntNode(i.first));
+            l.push(i.first, nullptr);
         }
     }
 
@@ -899,13 +880,13 @@ public:
     }
 
     DLLLOCAL QoreListNode* getFeatureList() const {
-        QoreListNode* l = new QoreListNode;
+        QoreListNode* l = new QoreListNode(stringTypeInfo);
 
         for (CharPtrList::const_iterator i = featureList.begin(), e = featureList.end(); i != e; ++i)
-            l->push(new QoreStringNode(*i));
+            l->push(new QoreStringNode(*i), nullptr);
 
         for (CharPtrList::const_iterator i = userFeatureList.begin(), e = userFeatureList.end(); i != e; ++i)
-            l->push(new QoreStringNode(*i));
+            l->push(new QoreStringNode(*i), nullptr);
 
         return l;
     }
@@ -1775,17 +1756,9 @@ public:
 
    DLLLOCAL LocalVar* createLocalVar(const char* name, const QoreTypeInfo* typeInfo);
 
-   DLLLOCAL const QoreTypeInfo* getComplexHashType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexHashOrNothingType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexListType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexListOrNothingType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexReferenceType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexReferenceOrNothingType(const QoreTypeInfo* vti);
-   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink);
+   DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreListNode* params, ExceptionSink* xsink);
 
-   DLLLOCAL QoreValueList* runtimeFindCallVariants(const char* name, ExceptionSink* xsink);
-   DLLLOCAL const QoreTypeInfo* getComplexSoftListType(const QoreTypeInfo* vti);
-   DLLLOCAL const QoreTypeInfo* getComplexSoftListOrNothingType(const QoreTypeInfo* vti);
+   DLLLOCAL QoreListNode* runtimeFindCallVariants(const char* name, ExceptionSink* xsink);
 
    DLLLOCAL static const QoreClass* runtimeFindClass(const QoreProgram& pgm, const char* class_name, ExceptionSink* xsink) {
       return pgm.priv->runtimeFindClass(class_name, xsink);
@@ -1795,13 +1768,13 @@ public:
       pgm.priv->doThreadInit(xsink);
    }
 
-   DLLLOCAL static int setReturnValue(QoreProgram& pgm, AbstractQoreNode* val, ExceptionSink* xsink) {
-      ReferenceHolder<> rv(val, xsink);
+   DLLLOCAL static int setReturnValue(QoreProgram& pgm, QoreValue val, ExceptionSink* xsink) {
+      ValueHolder rv(val, xsink);
       if (!pgm.priv->exec_class) {
          xsink->raiseException("SETRETURNVALUE-ERROR", "cannot set return value when not running in %%exec-class mode; in this case simply return the value directly (or call exit(<val>))");
          return -1;
       }
-      discard(pgm.priv->exec_class_rv, xsink);
+      pgm.priv->exec_class_rv.discard(xsink);
       pgm.priv->exec_class_rv = rv.release();
       return 0;
    }
@@ -1979,7 +1952,7 @@ public:
       pgm->priv->parseDefine(loc, str, val);
    }
 
-   DLLLOCAL static void runTimeDefine(QoreProgram* pgm, const char* str, AbstractQoreNode* val, ExceptionSink* xsink) {
+   DLLLOCAL static void runTimeDefine(QoreProgram* pgm, const char* str, QoreValue val, ExceptionSink* xsink) {
       pgm->priv->runTimeDefine(str, val, xsink);
    }
 
@@ -2364,7 +2337,7 @@ public:
             printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, new second: %p\n", i->first, i->first->getProgramId(), i->second);
             i->first->ref();
          }
-         (*l)->push(i->second);
+         (*l)->push(i->second, nullptr);
          ++i;
       }
       return l.release();
@@ -2448,7 +2421,7 @@ public:
       while (i != qore_program_map.end()) {
          QoreObject* o = QoreProgram::getQoreObject(i->first);
          if (o) {
-            (*l)->push(o);
+            (*l)->push(o, nullptr);
          }
          i++;
       }

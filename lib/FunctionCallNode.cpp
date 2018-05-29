@@ -1,31 +1,31 @@
 /*
-  FunctionCallNode.cpp
+    FunctionCallNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -61,7 +61,7 @@ QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, Excepti
          : qore_method_private::eval(*method, xsink, o, args);
    }
    //printd(5, "AbstractMethodCallNode::exec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(), c_str);
-   return o->evalMethodValue(c_str, args, xsink);
+   return o->evalMethod(c_str, args, xsink);
 }
 
 static void invalid_access(const QoreProgramLocation* loc, QoreFunction* func) {
@@ -102,6 +102,8 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
         lvids += parse_args->initArgs(oflag, pflag, argTypeInfo, args);
         parse_args = nullptr;
     }
+
+    //printd(5, "FunctionCallBase::parseArgsVariant() this: %p args: %p '%s'\n", this, args, args ? get_full_type_name(args) : "n/a");
 
     // resolves pending signatures unconditionally
     if (func) {
@@ -303,10 +305,10 @@ QoreString* FunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xs
     return rv;
 }
 
-static void breakit() {}
 // eval(): return value requires a deref(xsink)
 QoreValue FunctionCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
     QoreFunction* func = fe->getFunction();
+    //printd(5, "FunctionCallNode::evalValueImpl() this: %p '%s' tmp_args: %d args: %p '%s'\n", this, func->getName(), tmp_args, args, args ? get_full_type_name(args) : "n/a");
     return tmp_args
         ? func->evalFunctionTmpArgs(variant, args, pgm, xsink)
         : func->evalFunction(variant, args, pgm, xsink);
@@ -474,7 +476,7 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
                 parseException(*loc, "ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment in a constant expression in the parse initialization phase when the class has uncommitted changes", oc->getName());
         }
         delete name;
-        name = 0;
+        name = nullptr;
     }
 #ifdef DEBUG
     else assert(oc);
@@ -512,13 +514,13 @@ AbstractQoreNode* ScopedObjectCallNode::parseInitImpl(LocalVar* oflag, int pflag
 }
 
 QoreValue ScopedObjectCallNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   return qore_class_private::execConstructor(*oc, variant, args, xsink);
+    return qore_class_private::execConstructor(*oc, variant, args, xsink);
 }
 
-QoreValue MethodCallNode::execPseudo(const AbstractQoreNode* n, ExceptionSink* xsink) const {
+QoreValue MethodCallNode::execPseudo(const QoreValue n, ExceptionSink* xsink) const {
    //printd(5, "MethodCallNode::execPseudo() %s::%s() variant: %p\n", qc->getName(), method->getName(), variant);
    // if n is nothing make sure and use the "<nothing>" class with a dynamic method lookup
-   if (is_nothing(n) && qc != QC_PSEUDONOTHING)
+   if (n.isNothing() && qc != QC_PSEUDONOTHING)
       return qore_class_private::evalPseudoMethod(QC_PSEUDONOTHING, n, method->getName(), args, xsink);
    else
       return qore_class_private::evalPseudoMethod(qc, method, variant, n, args, xsink);
@@ -581,7 +583,8 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
                 }
             }
 
-            QoreValue n;
+            /*
+            ValueHolder n(nullptr);
 
             if (abr) {
                 Var* v = qore_root_ns_private::parseFindGlobalVar(*scope);
@@ -590,14 +593,21 @@ AbstractQoreNode* StaticMethodCallNode::parseInitImpl(LocalVar* oflag, int pflag
             }
 
             bool found = false;
-            if (n.isNothing()) {
+            if (n->isNothing()) {
                 n = qore_root_ns_private::parseFindReferencedConstantValue(loc, *scope, typeInfo, found, false);
             }
+            */
+
+            bool found = false;
+            QoreValue n = qore_root_ns_private::parseFindReferencedConstantValue(loc, *scope, typeInfo, found, false);
 
             if (found) {
-                CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n.getReferencedValue(), takeParseArgs());
+                CallReferenceCallNode* crcn = new CallReferenceCallNode(loc, n.takeNode(), takeParseArgs());
                 deref();
                 return crcn->parseInit(oflag, pflag, lvids, typeInfo);
+            }
+            else {
+                assert(!n);
             }
 
             parse_error(*loc, "cannot resolve call '%s()' to any reachable and callable object", scope->ostr);

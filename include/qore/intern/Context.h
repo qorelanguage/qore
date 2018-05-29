@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2004 - 2015 David Nichols
+  Copyright (C) 2004 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -64,15 +64,15 @@ public:
    struct node_row_list_s *group_values;
    Context *next;
    int sub;
-   
+
    DLLLOCAL Context(char *nme, ExceptionSink *xsinkx, AbstractQoreNode *exp,
 		    AbstractQoreNode *cond = NULL,
 		    int sort_type = -1, AbstractQoreNode *sort = NULL,
 		    AbstractQoreNode *summary = NULL, int ignore_key = 0);
    // FIXME: change rv to QoreValue
-   DLLLOCAL AbstractQoreNode *evalValue(const char *field, ExceptionSink *xsink);
+   DLLLOCAL QoreValue evalValue(const char *field, ExceptionSink *xsink);
 
-   DLLLOCAL QoreHashNode *getRow(ExceptionSink *xsink);
+   DLLLOCAL QoreHashNode* getRow(ExceptionSink *xsink);
    DLLLOCAL int next_summary();
    DLLLOCAL int check_condition(AbstractQoreNode *cond, ExceptionSink *xsinkx);
    DLLLOCAL void deref(ExceptionSink *xsink);
@@ -94,9 +94,8 @@ public:
    }
 };
 
-// FIXME: change rv to QoreValue
-DLLLOCAL AbstractQoreNode *evalContextRef(const char *key, ExceptionSink *xsink);
-DLLLOCAL AbstractQoreNode *evalContextRow(ExceptionSink *xsink);
+DLLLOCAL QoreValue eval_context_ref(const char* key, ExceptionSink* xsink);
+DLLLOCAL AbstractQoreNode* eval_context_row(ExceptionSink* xsink);
 
 #endif
 

@@ -68,13 +68,13 @@ const char *FindNode::getTypeName() const {
     return "find expression";
 }
 
-QoreValue FindNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-    ReferenceHolder<AbstractQoreNode> rv(xsink);
+QoreValue FindNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    ValueHolder rv(xsink);
     ReferenceHolder<Context> context(new Context(0, xsink, find_exp), xsink);
     if (*xsink)
         return QoreValue();
 
-    QoreListNode *lrv = 0;
+    QoreListNode* lrv = nullptr;
     for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++) {
         printd(4, "FindNode::eval() checking %d/%d\n", context->pos, context->max_pos);
         bool b = context->check_condition(where, xsink);
@@ -84,21 +84,25 @@ QoreValue FindNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const
             continue;
 
         printd(4, "FindNode::eval() GOT IT: %d\n", context->pos);
-        AbstractQoreNode *result = exp->eval(xsink);
+        ValueHolder result(exp->evalValue(xsink), xsink);
         if (*xsink)
             return QoreValue();
-        if (rv) {
+        if (!rv->isNothing()) {
             if (!lrv) {
                 lrv = new QoreListNode;
-                lrv->push(rv.release());
-                lrv->push(result);
+                lrv->push(rv.release(), xsink);
+                assert(!*xsink);
+                lrv->push(result.release(), xsink);
+                assert(!*xsink);
                 rv = lrv;
             }
-            else
-                lrv->push(result);
+            else {
+                lrv->push(result.release(), xsink);
+                assert(!*xsink);
+            }
         }
         else
-            rv = result;
+            rv = result.release();
     }
 
     return rv.release();

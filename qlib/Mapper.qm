@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Mapper.qm data mapping module
 
-/*  Mapper.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
+/*  Mapper.qm Copyright 2014 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 # require type definitions everywhere
 %require-types

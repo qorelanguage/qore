@@ -109,13 +109,13 @@ void CallStack::pop(ExceptionSink *xsink) {
 }
 
 QoreListNode* CallStack::getCallStack() const {
-   QoreListNode* l = new QoreListNode(hashdeclCallStackInfo->getTypeInfo());
-   CallNode* c = tail;
-   while (c) {
-      l->push(c->getInfo());
-      c = c->prev;
-   }
-   return l;
+    QoreListNode* l = new QoreListNode(hashdeclCallStackInfo->getTypeInfo());
+    CallNode* c = tail;
+    while (c) {
+        l->push(c->getInfo(), nullptr);
+        c = c->prev;
+    }
+    return l;
 }
 
 /*

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@ private:
 
    DLLLOCAL virtual QoreValue evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
-   DLLLOCAL const AbstractQoreNode* get() const;
+   DLLLOCAL const QoreValue get() const;
 
    DLLLOCAL ~QoreImplicitArgumentNode();
 

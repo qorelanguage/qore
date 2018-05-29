@@ -40,7 +40,7 @@
 #include <string>
 #include <vector>
 
-#include "qore/intern/qore_value_list_private.h"
+#include "qore/intern/QoreListNodeEvalOptionalRefHolder.h"
 
 class qore_class_private;
 
@@ -80,9 +80,9 @@ public:
 
     DLLLOCAL virtual ~AbstractFunctionSignature() {
         // delete all default argument expressions
-        for (arg_vec_t::iterator i = defaultArgList.begin(), e = defaultArgList.end(); i != e; ++i)
-            if (*i)
-                (*i)->deref(nullptr);
+        for (arg_vec_t::iterator i = defaultArgList.begin(), e = defaultArgList.end(); i != e; ++i) {
+            (*i).discard(nullptr);
+        }
     }
 
     // called at parse time to include optional type resolution
@@ -102,9 +102,9 @@ public:
         return typeList;
     }
 
-    DLLLOCAL AbstractQoreNode* evalDefaultArg(unsigned i, ExceptionSink* xsink) const {
+    DLLLOCAL QoreValue evalDefaultArg(unsigned i, ExceptionSink* xsink) const {
         assert(i < defaultArgList.size());
-        return defaultArgList[i] ? defaultArgList[i]->eval(xsink) : 0;
+        return defaultArgList[i].eval(xsink);
     }
 
     DLLLOCAL const char* getSignatureText() const {
@@ -141,7 +141,7 @@ public:
     }
 
     // adds a description of the given default argument to the signature string
-    DLLLOCAL void addDefaultArgument(const AbstractQoreNode* arg);
+    DLLLOCAL void addDefaultArgument(QoreValue arg);
 
     DLLLOCAL const char* getName(unsigned i) const {
         return i < names.size() ? names[i].c_str() : 0;
@@ -180,7 +180,7 @@ protected:
 
     DLLLOCAL void pushParam(BarewordNode* b, bool needs_types, bool bare_refs);
     DLLLOCAL void pushParam(QoreOperatorNode* t, bool needs_types);
-    DLLLOCAL void pushParam(VarRefNode* v, AbstractQoreNode* defArg, bool needs_types);
+    DLLLOCAL void pushParam(VarRefNode* v, QoreValue defArg, bool needs_types);
 
     DLLLOCAL void param_error() {
         parse_error(*loc, "parameter list contains non-variable reference expressions");
@@ -262,7 +262,7 @@ protected:
     ExceptionSink* xsink;
     const qore_class_private* qc;
     const QoreProgramLocation* loc;
-    QoreValueListEvalOptionalRefHolder tmp;
+    QoreListNodeEvalOptionalRefHolder tmp;
     const QoreTypeInfo* returnTypeInfo; // saved return type info
     QoreProgram* pgm; // program used when evaluated (to find stacks for references)
     q_rt_flags_t rtflags; // runtime flags
@@ -271,10 +271,7 @@ protected:
 
 public:
     // saves current program location in case there's an exception
-    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreValueList* args = nullptr, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
-
-    // saves current program location in case there's an exception
-    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
+    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
 
     // saves current program location in case there's an exception
     // performs destructive evaluation of "args"
@@ -293,16 +290,16 @@ public:
 
     DLLLOCAL int processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy = false);
 
-    DLLLOCAL void setArgs(QoreValueList* n_args) {
+    DLLLOCAL void setArgs(QoreListNode* n_args) {
         assert(!*tmp);
         tmp.assign(true, n_args);
     }
 
-    DLLLOCAL QoreValueListEvalOptionalRefHolder& getArgHolder() {
+    DLLLOCAL QoreListNodeEvalOptionalRefHolder& getArgHolder() {
         return tmp;
     }
 
-    DLLLOCAL const QoreValueList* getArgs() const {
+    DLLLOCAL const QoreListNode* getArgs() const {
         return *tmp;
     }
 
@@ -822,7 +819,7 @@ public:
         return *(vlist.begin());
     }
 
-    DLLLOCAL QoreValueList* runtimeGetCallVariants() const;
+    DLLLOCAL QoreListNode* runtimeGetCallVariants() const;
 
     // returns 0 for OK, -1 for error
     DLLLOCAL int parseCheckDuplicateSignatureCommitted(UserSignature* sig);
@@ -946,7 +943,7 @@ public:
 
     // find variant at runtime
     // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable from the object being executed
-    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(ExceptionSink* xsink, const QoreValueList* args, bool only_user, const qore_class_private* class_ctx) const;
+    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(ExceptionSink* xsink, const QoreListNode* args, bool only_user, const qore_class_private* class_ctx) const;
 
     DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindExactVariant(ExceptionSink* xsink, const type_vec_t& args, const qore_class_private* class_ctx) const;
 

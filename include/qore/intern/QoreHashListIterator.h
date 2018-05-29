@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreHashListIterator.h
+    QoreHashListIterator.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREHASHLISTITERATOR_H
@@ -67,11 +67,11 @@ protected:
             return QoreValue();
         }
 
-        return l->get_referenced_entry(i);
+        return l->getReferencedEntry(i);
     }
 
     DLLLOCAL QoreValue getReferencedKeyValueIntern(const char* key, ExceptionSink* xsink) const {
-        return getReferencedValueIntern(h->getValueKeyValue(key), key, xsink);
+        return getReferencedValueIntern(h->getKeyValue(key), key, xsink);
     }
 
 public:
@@ -182,7 +182,7 @@ public:
         if (!is_list)
             return h->hashRefSelf();
 
-        ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
 
         ConstHashIterator hi(h);
         while (hi.next()) {
@@ -190,9 +190,9 @@ public:
             n = getReferencedValueIntern(n, hi.getKey(), xsink);
             if (*xsink)
                 return nullptr;
-            rv->setValueKeyValue(hi.getKey(), n, xsink);
+            rv->setKeyValue(hi.getKey(), n, xsink);
             // cannot have an exception here
-            assert(!*xsink);
+            //assert(!*xsink);
         }
 
         return rv.release();
@@ -202,7 +202,7 @@ public:
         if (checkPtr(xsink))
             return nullptr;
 
-        ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+        ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
 
         ConstListIterator li(args);
         while (li.next()) {
@@ -213,7 +213,7 @@ public:
             QoreValue n = getReferencedKeyValueIntern(key, xsink);
             if (*xsink)
                 return nullptr;
-            rv->setValueKeyValue(key, n, xsink);
+            rv->setKeyValue(key, n, xsink);
             // cannot have an exception here
             assert(!*xsink);
         }
@@ -223,6 +223,10 @@ public:
 
     DLLLOCAL virtual const char* getName() const {
         return "HashListIterator";
+    }
+
+    DLLLOCAL virtual const QoreTypeInfo* getElementType() const {
+        return h->getValueTypeInfo();
     }
 };
 

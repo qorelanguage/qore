@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreValue.h
+    QoreValue.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREVALUE_H
@@ -47,9 +47,10 @@ typedef unsigned char valtype_t;
 #define QV_Ref   (valtype_t)4  //!< for references (when used with lvalues)
 //@}
 
-// forward reference
+// forward references
 class AbstractQoreNode;
 class QoreString;
+struct QoreValue;
 
 //! this is the union that stores values in QoreValue
 union qore_value_u {
@@ -130,9 +131,36 @@ public:
         v.b = b;
     }
 
+    DLLLOCAL void set(QoreValue& val);
+
     DLLLOCAL void set(AbstractQoreNode* n) {
         type = QV_Node;
         v.n = n;
+    }
+
+    DLLLOCAL QoreSimpleValue& assign(QoreValue& val) {
+        set(val);
+        return *this;
+    }
+
+    DLLLOCAL QoreSimpleValue& assign(int64 i) {
+        set(i);
+        return *this;
+    }
+
+    DLLLOCAL QoreSimpleValue& assign(double f) {
+        set(f);
+        return *this;
+    }
+
+    DLLLOCAL QoreSimpleValue& assign(bool b) {
+        set(b);
+        return *this;
+    }
+
+    DLLLOCAL QoreSimpleValue& assign(AbstractQoreNode* n) {
+        set(n);
+        return *this;
     }
 
     DLLLOCAL AbstractQoreNode* takeNode();
@@ -193,8 +221,8 @@ public:
     */
     DLLEXPORT QoreValue(const AbstractQoreNode* n);
 
-    //! creates with no value (i.e. @ref QoreNothingNode)
-    DLLEXPORT QoreValue(const QoreSimpleValue v);
+    //! creates the value from the argument
+    DLLEXPORT QoreValue(const QoreSimpleValue& v);
 
     //! copies the value, in case type == QV_Node, no additional references are made in this function
     DLLEXPORT QoreValue(const QoreValue& old);
@@ -317,8 +345,14 @@ public:
         return detail::QoreValueCastHelper<const T>::cast(this, type);
     }
 
-    //! returns a referenced AbstractQoreNode pointer; leaving the "this" untouched; the caller owns the reference returned
-    DLLEXPORT AbstractQoreNode* getReferencedValue() const;
+    //! evaluates the node and returns the result
+    DLLEXPORT QoreValue eval(ExceptionSink* xsink) const;
+
+    //! evaluates the node and returns the result
+    DLLEXPORT QoreValue eval(bool& needs_deref, ExceptionSink* xsink) const;
+
+    //! returns a referenced value; leaving the "this" untouched; the caller owns the reference returned
+    //DLLEXPORT QoreValue refSelf() const;
 
     //! returns a referenced AbstractQoreNode pointer leaving "this" empty (value is taken from "this"); the caller owns the reference returned
     DLLEXPORT AbstractQoreNode* takeNode();
@@ -351,6 +385,21 @@ public:
 
     //! returns true if the object contains NOTHING or NULL
     DLLEXPORT bool isNullOrNothing() const;
+
+    //! return true if the value needs evaluation
+    DLLEXPORT bool needsEval() const;
+
+    //! return true if the value needs evaluation and has a side effect
+    DLLEXPORT bool hasEffect() const;
+
+    //! returns true if the value holds a referenced-counted node
+    DLLEXPORT bool isReferenceCounted() const;
+
+    //! returns true if the object holds a value, false if it holds an expression
+    DLLEXPORT bool isValue() const;
+
+    //! returns true if the value is not NOTHING
+    DLLEXPORT operator bool() const;
 };
 
 //! base class for holding a QoreValue object
@@ -374,7 +423,13 @@ public:
     DLLLOCAL QoreValue* operator->() { return &v; }
 
     //! returns the value being managed
+    DLLLOCAL const QoreValue* operator->() const { return &v; }
+
+    //! returns the value being managed
     DLLLOCAL QoreValue& operator*() { return v; }
+
+    //! returns the value being managed
+    DLLLOCAL const QoreValue& operator*() const { return v; }
 };
 
 //! holds an object and dereferences it in the destructor
@@ -391,8 +446,8 @@ public:
     //! dereferences any contained node
     DLLEXPORT ~ValueHolder();
 
-    //! returns a referenced AbstractQoreNode ptr; caller owns the reference; the current object is left empty
-    DLLEXPORT AbstractQoreNode* getReferencedValue();
+    //! returns a referenced value; caller owns the reference; the current object is left undisturbed
+    DLLEXPORT QoreValue getReferencedValue();
 
     //! returns a QoreValue object and leaves the current object empty; the caller owns any reference contained in the return value
     DLLEXPORT QoreValue release();
@@ -404,9 +459,9 @@ public:
         return v;
     }
 
-    //! returns true if holding an AbstractQoreNode reference
+    //! returns true if the value is not NOTHING
     DLLLOCAL operator bool() const {
-        return v.type == QV_Node && v.v.n;
+        return (bool)v;
     }
 };
 
@@ -440,9 +495,9 @@ public:
             needs_deref = false;
     }
 
-    //! returns true if holding an AbstractQoreNode reference
+    //! returns true if the value is not NOTHING
     DLLLOCAL operator bool() const {
-        return v.type == QV_Node && v.v.n;
+        return (bool)v;
     }
 
     //! assigns a new non-temporary value
@@ -480,8 +535,8 @@ public:
         return rv;
     }
 
-    //! returns a referenced AbstractQoreNode ptr; caller owns the reference; the current object is left empty
-    DLLEXPORT AbstractQoreNode* getReferencedValue();
+    //! returns a referenced value; caller owns the reference; the current object is not disturbed
+    DLLEXPORT QoreValue getReferencedValue();
 
     //! returns the stored AbstractQoreNode pointer and sets the dereference flag as an output variable
     DLLLOCAL AbstractQoreNode* takeNode(bool& nd) {
@@ -510,12 +565,12 @@ public:
         v = val.takeValue(needs_deref);
     }
 
-    //! returns a QoreValue after incrementing the reference count of any node value stored
+    //! returns a QoreValue after incrementing the reference count of any node value stored if necessary
     DLLEXPORT QoreValue takeReferencedValue();
 
     // FIXME: remove with new API/ABI
     //! converts pointers to efficient representations and manages the reference count
-    DLLEXPORT void sanitize();
+    DLLLOCAL void sanitize();
 };
 
 //! evaluates an AbstractQoreNode and dereferences the stored value in the destructor

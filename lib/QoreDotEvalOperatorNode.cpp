@@ -38,8 +38,8 @@ static const AbstractQoreNode* check_call_ref(const AbstractQoreNode *op, const 
     // FIXME: this is an ugly hack!
     const QoreHashNode *h = reinterpret_cast<const QoreHashNode *>(op);
     // see if the hash member is a call reference
-    const AbstractQoreNode *ref = h->getKeyValue(name);
-    return (ref && (ref->getType() == NT_FUNCREF || ref->getType() == NT_RUNTIME_CLOSURE)) ? ref : nullptr;
+    const QoreValue ref = h->getKeyValue(name);
+    return (ref.getType() == NT_FUNCREF || ref.getType() == NT_RUNTIME_CLOSURE) ? ref.getInternalNode() : nullptr;
 }
 
 QoreValue QoreDotEvalOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -71,11 +71,10 @@ QoreValue QoreDotEvalOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
     }
 
     // FIXME: inefficient
-    ReferenceHolder<> nop(op.getReferencedValue(), xsink);
     if (m->isPseudo())
-        return m->execPseudo(*nop, xsink);
+        return m->execPseudo(*op, xsink);
 
-    return pseudo_classes_eval(*nop, m->getName(), m->getArgs(), xsink);
+    return pseudo_classes_eval(*op, m->getName(), m->getArgs(), xsink);
 }
 
 AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& expTypeInfo) {

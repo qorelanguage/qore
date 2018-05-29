@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  qore_dbi_private.h
+    qore_dbi_private.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QORE_DBI_PRIVATE_H
@@ -128,14 +128,14 @@ public:
 
 struct OptInputHelper {
     ExceptionSink* xsink;
-    AbstractQoreNode* val;
+    QoreValue val;
     bool tmp;
 
-    DLLLOCAL OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver, const char* opt, bool set = false, const AbstractQoreNode* v = nullptr);
+    DLLLOCAL OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver, const char* opt, bool set = false, const QoreValue v = QoreValue());
 
     DLLLOCAL ~OptInputHelper() {
         if (tmp)
-            val->deref(xsink);
+            val.discard(xsink);
     }
 
     DLLLOCAL operator bool() const {
@@ -164,14 +164,7 @@ struct qore_dbi_private {
         if (!rc && f.opt.set) {
             ConstHashIterator hi(ds->getConnectOptions());
             while (hi.next()) {
-                // FIXME: convert DBI options to QoreValue
-                if (!hi.get().getInternalNode()) {
-                    ReferenceHolder<> h(hi.getReferencedValue(), xsink);
-                    f.opt.set(ds, hi.getKey(), *h, xsink);
-                }
-                else {
-                    f.opt.set(ds, hi.getKey(), hi.get().getInternalNode(), xsink);
-                }
+                f.opt.set(ds, hi.getKey(), hi.get(), xsink);
             }
         }
         return rc;
@@ -181,12 +174,12 @@ struct qore_dbi_private {
         return f.close(ds);
     }
 
-    DLLLOCAL AbstractQoreNode* select(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) const {
+    DLLLOCAL QoreValue select(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) const {
         DbiArgHelper dargs(args, (caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
         return f.select(ds, sql, *dargs, xsink);
     }
 
-    DLLLOCAL AbstractQoreNode* selectRows(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) const {
+    DLLLOCAL QoreValue selectRows(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) const {
         DbiArgHelper dargs(args, (caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
         return f.selectRows(ds, sql, *dargs, xsink);
     }
@@ -194,34 +187,37 @@ struct qore_dbi_private {
     DLLLOCAL QoreHashNode* selectRow(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) const {
         DbiArgHelper dargs(args, (caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
 
-        if (f.selectRow)
+        if (f.selectRow) {
             return f.selectRow(ds, sql, *dargs, xsink);
+        }
 
-        ReferenceHolder<AbstractQoreNode> res(f.selectRows(ds, sql, *dargs, xsink), xsink);
-        if (!res)
-            return 0;
+        ValueHolder res(f.selectRows(ds, sql, *dargs, xsink), xsink);
+        if (!res) {
+            return nullptr;
+        }
 
         if (res->getType() != NT_HASH) {
             assert(res->getType() == NT_LIST);
-            QoreListNode* l = reinterpret_cast<QoreListNode*>(*res);
+            assert(res->getInternalNode()->reference_count() == 1);
+            QoreListNode* l = res->get<QoreListNode>();
             assert(l->size() <= 1);
-            AbstractQoreNode* n = l->shift();
-            assert(!n || n->getType() == NT_HASH);
-            return reinterpret_cast<QoreHashNode*>(n);
+            QoreValue n = l->shift();
+            assert(n.isNothing() || n.getType() == NT_HASH);
+            return n.get<QoreHashNode>();
         }
 
-        return reinterpret_cast<QoreHashNode*>(res.release());
+        return reinterpret_cast<QoreHashNode*>(res.release().takeNode());
     }
 
-    DLLLOCAL AbstractQoreNode* execSQL(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) const {
+    DLLLOCAL QoreValue execSQL(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) const {
         DbiArgHelper dargs(args, (caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
         return f.execSQL(ds, sql, *dargs, xsink);
     }
 
-    DLLLOCAL AbstractQoreNode* execRawSQL(Datasource* ds, const QoreString* sql, ExceptionSink* xsink) const {
+    DLLLOCAL QoreValue execRawSQL(Datasource* ds, const QoreString* sql, ExceptionSink* xsink) const {
         if (!f.execRawSQL) {
             xsink->raiseException("DBI-EXEC-RAW-SQL-ERROR", "this driver does not implement the Datasource::execRawSQL() method");
-            return 0;
+            return QoreValue();
         }
         return f.execRawSQL(ds, sql, xsink);
     }
@@ -229,7 +225,7 @@ struct qore_dbi_private {
     DLLLOCAL QoreHashNode* describe(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) {
         if (!f.describe) {
             xsink->raiseException("DBI-DESCRIBE-ERROR", "this driver does not implement the Datasource::describe() method");
-            return 0;
+            return nullptr;
         }
         DbiArgHelper dargs(args, (caps & DBI_CAP_HAS_NUMBER_SUPPORT), xsink);
         return f.describe(ds, sql, *dargs, xsink);
@@ -258,16 +254,16 @@ struct qore_dbi_private {
         return 0; // 0 = OK
     }
 
-    DLLLOCAL AbstractQoreNode* getServerVersion(Datasource* ds, ExceptionSink* xsink) const {
+    DLLLOCAL QoreValue getServerVersion(Datasource* ds, ExceptionSink* xsink) const {
         if (f.get_server_version)
             return f.get_server_version(ds, xsink);
-        return 0;
+        return QoreValue();
     }
 
-    DLLLOCAL AbstractQoreNode* getClientVersion(const Datasource* ds, ExceptionSink* xsink) const {
+    DLLLOCAL QoreValue getClientVersion(const Datasource* ds, ExceptionSink* xsink) const {
         if (f.get_client_version)
             return f.get_client_version(ds, xsink);
-        return 0;
+        return QoreValue();
     }
 
     DLLLOCAL int getCaps() const {
@@ -346,7 +342,7 @@ struct qore_dbi_private {
     DLLLOCAL QoreHashNode* stmt_describe(SQLStatement* stmt, ExceptionSink* xsink) const {
         if (!f.stmt.describe) {
             xsink->raiseException("DBI-DESCRIBE-ERROR", "this driver does not implement the SQLStatement::describe() method");
-            return 0;
+            return nullptr;
         }
         return f.stmt.describe(stmt, xsink);
     }
@@ -363,7 +359,7 @@ struct qore_dbi_private {
         return f.stmt.free ? f.stmt.free(stmt, xsink) : 0;
     }
 
-    DLLLOCAL int opt_set(Datasource* ds, const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {
+    DLLLOCAL int opt_set(Datasource* ds, const char* opt, const QoreValue val, ExceptionSink* xsink) {
         OptInputHelper oh(xsink, *this, opt, true, val);
         if (!oh)
             return -1;
@@ -371,10 +367,10 @@ struct qore_dbi_private {
         return f.opt.set(ds, opt, oh.val, xsink);
     }
 
-    DLLLOCAL AbstractQoreNode* opt_get(const Datasource* ds, const char* opt, ExceptionSink* xsink) {
+    DLLLOCAL QoreValue opt_get(const Datasource* ds, const char* opt, ExceptionSink* xsink) {
         OptInputHelper oh(xsink, *this, opt);
         if (!oh)
-            return 0;
+            return QoreValue();
 
         return f.opt.get(ds, opt);
     }
@@ -383,7 +379,7 @@ struct qore_dbi_private {
         QoreHashNode* rv = new QoreHashNode;
 
         for (dbi_opt_map_t::const_iterator i = omap.begin(), e = omap.end(); i != e; ++i) {
-            QoreHashNode* h = new QoreHashNode;
+            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
             h->setKeyValue("desc", new QoreStringNode(i->second.desc), 0);
             h->setKeyValue("type", new QoreStringNode(QoreTypeInfo::getName(i->second.typeInfo)), 0);
             h->setKeyValue("value", f.opt.get(ds, i->first), 0);
@@ -394,10 +390,10 @@ struct qore_dbi_private {
     }
 
     DLLLOCAL QoreHashNode* getOptionHash() const {
-        QoreHashNode* rv = new QoreHashNode;
+        QoreHashNode* rv = new QoreHashNode(autoTypeInfo);
 
         for (dbi_opt_map_t::const_iterator i = omap.begin(), e = omap.end(); i != e; ++i) {
-            QoreHashNode* h = new QoreHashNode;
+            QoreHashNode* h = new QoreHashNode(autoTypeInfo);
             h->setKeyValue("desc", new QoreStringNode(i->second.desc), 0);
             h->setKeyValue("type", new QoreStringNode(QoreTypeInfo::getName(i->second.typeInfo)), 0);
 

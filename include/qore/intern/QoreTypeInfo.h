@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreTypeInfo.h
+    QoreTypeInfo.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QORETYPEINFO_H
@@ -73,159 +73,159 @@ DLLLOCAL const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeI
 
 class QoreTypeSpec {
 public:
-   DLLLOCAL QoreTypeSpec(qore_type_t t) : typespec(QTS_TYPE) {
-      u.t = t;
-   }
+    DLLLOCAL QoreTypeSpec(qore_type_t t) : typespec(QTS_TYPE) {
+        u.t = t;
+    }
 
-   DLLLOCAL QoreTypeSpec(const QoreClass* qc) : typespec(QTS_CLASS) {
-      u.qc = qc;
-   }
+    DLLLOCAL QoreTypeSpec(const QoreClass* qc) : typespec(QTS_CLASS) {
+        u.qc = qc;
+    }
 
-   DLLLOCAL QoreTypeSpec(const TypedHashDecl* hd) : typespec(QTS_HASHDECL) {
-      u.hd = hd;
-   }
+    DLLLOCAL QoreTypeSpec(const TypedHashDecl* hd) : typespec(QTS_HASHDECL) {
+        u.hd = hd;
+    }
 
-   DLLLOCAL q_typespec_t getTypeSpec() const {
-      return typespec;
-   }
+    DLLLOCAL q_typespec_t getTypeSpec() const {
+        return typespec;
+    }
 
-   DLLLOCAL qore_type_t getType() const {
-      switch (typespec) {
-         case QTS_TYPE:
-         case QTS_EMPTYLIST:
-         case QTS_EMPTYHASH:
-            return u.t;
-         case QTS_CLASS:
-            return NT_OBJECT;
-         case QTS_COMPLEXHASH:
-         case QTS_HASHDECL:
-            return NT_HASH;
-         case QTS_COMPLEXLIST:
-         case QTS_COMPLEXSOFTLIST:
-            return NT_LIST;
-         case QTS_COMPLEXREF:
-            return NT_REFERENCE;
-      }
-      assert(false);
-      return NT_NOTHING;
-   }
+    DLLLOCAL qore_type_t getType() const {
+        switch (typespec) {
+            case QTS_TYPE:
+            case QTS_EMPTYLIST:
+            case QTS_EMPTYHASH:
+                return u.t;
+            case QTS_CLASS:
+                return NT_OBJECT;
+            case QTS_COMPLEXHASH:
+            case QTS_HASHDECL:
+                return NT_HASH;
+            case QTS_COMPLEXLIST:
+            case QTS_COMPLEXSOFTLIST:
+                return NT_LIST;
+            case QTS_COMPLEXREF:
+                return NT_REFERENCE;
+        }
+        assert(false);
+        return NT_NOTHING;
+    }
 
-   DLLLOCAL const QoreClass* getClass() const {
-      return typespec == QTS_CLASS ? u.qc : nullptr;
-   }
+    DLLLOCAL const QoreClass* getClass() const {
+        return typespec == QTS_CLASS ? u.qc : nullptr;
+    }
 
-   DLLLOCAL const TypedHashDecl* getHashDecl() const {
-      return typespec == QTS_HASHDECL ? u.hd : nullptr;
-   }
+    DLLLOCAL const TypedHashDecl* getHashDecl() const {
+        return typespec == QTS_HASHDECL ? u.hd : nullptr;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getComplexHash() const {
-      return typespec == QTS_COMPLEXHASH ? u.ti : nullptr;
-   }
+    DLLLOCAL const QoreTypeInfo* getComplexHash() const {
+        return typespec == QTS_COMPLEXHASH ? u.ti : nullptr;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getComplexList() const {
-      return typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST ? u.ti : nullptr;
-   }
+    DLLLOCAL const QoreTypeInfo* getComplexList() const {
+        return typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST ? u.ti : nullptr;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getComplexSoftList() const {
-      return typespec == QTS_COMPLEXSOFTLIST ? u.ti : nullptr;
-   }
+    DLLLOCAL const QoreTypeInfo* getComplexSoftList() const {
+        return typespec == QTS_COMPLEXSOFTLIST ? u.ti : nullptr;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getComplexReference() const {
-      return typespec == QTS_COMPLEXREF ? u.ti : nullptr;
-   }
+    DLLLOCAL const QoreTypeInfo* getComplexReference() const {
+        return typespec == QTS_COMPLEXREF ? u.ti : nullptr;
+    }
 
-   DLLLOCAL bool isComplex() const {
-      return typespec == QTS_HASHDECL
-             || typespec == QTS_COMPLEXHASH
-             || typespec == QTS_COMPLEXLIST
-             || typespec == QTS_COMPLEXSOFTLIST
-             || typespec == QTS_COMPLEXREF;
-   }
+    DLLLOCAL bool isComplex() const {
+        return typespec == QTS_HASHDECL
+                || typespec == QTS_COMPLEXHASH
+                || typespec == QTS_COMPLEXLIST
+                || typespec == QTS_COMPLEXSOFTLIST
+                || typespec == QTS_COMPLEXREF;
+    }
 
-   DLLLOCAL const QoreTypeInfo* getBaseTypeInfo() const {
-      switch (typespec) {
-         case QTS_HASHDECL:
-         case QTS_COMPLEXHASH:
-            return hashTypeInfo;
-         case QTS_COMPLEXLIST:
-         case QTS_COMPLEXSOFTLIST:
-            return listTypeInfo;
-         case QTS_CLASS:
-            return objectTypeInfo;
-         case QTS_COMPLEXREF:
-            return referenceTypeInfo;
-         case QTS_TYPE:
-            return getTypeInfoForType(u.t);
-         case QTS_EMPTYLIST:
-            return emptyListTypeInfo;
-         case QTS_EMPTYHASH:
-            return emptyHashTypeInfo;
-      }
-      assert(false);
-      return nullptr;
-   }
+    DLLLOCAL const QoreTypeInfo* getBaseTypeInfo() const {
+        switch (typespec) {
+            case QTS_HASHDECL:
+            case QTS_COMPLEXHASH:
+                return hashTypeInfo;
+            case QTS_COMPLEXLIST:
+            case QTS_COMPLEXSOFTLIST:
+                return listTypeInfo;
+            case QTS_CLASS:
+                return objectTypeInfo;
+            case QTS_COMPLEXREF:
+                return referenceTypeInfo;
+            case QTS_TYPE:
+                return getTypeInfoForType(u.t);
+            case QTS_EMPTYLIST:
+                return emptyListTypeInfo;
+            case QTS_EMPTYHASH:
+                return emptyHashTypeInfo;
+        }
+        assert(false);
+        return nullptr;
+    }
 
-   DLLLOCAL qore_type_result_e matchType(qore_type_t t) const {
-      if (typespec == QTS_CLASS)
-         return t == NT_OBJECT ? QTI_IDENT : QTI_NOT_EQUAL;
-      else if (typespec == QTS_HASHDECL || typespec == QTS_COMPLEXHASH)
-         return t == NT_HASH ? QTI_IDENT : QTI_NOT_EQUAL;
-      else if (typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST)
-         return t == NT_LIST ? QTI_IDENT : QTI_NOT_EQUAL;
-      else if (typespec == QTS_COMPLEXREF)
-         return t == NT_REFERENCE ? QTI_IDENT : QTI_NOT_EQUAL;
-      if (u.t == NT_ALL)
-         return QTI_WILDCARD;
-      return u.t == t ? QTI_IDENT : QTI_NOT_EQUAL;
-   }
+    DLLLOCAL qore_type_result_e matchType(qore_type_t t) const {
+        if (typespec == QTS_CLASS)
+            return t == NT_OBJECT ? QTI_IDENT : QTI_NOT_EQUAL;
+        else if (typespec == QTS_HASHDECL || typespec == QTS_COMPLEXHASH)
+            return t == NT_HASH ? QTI_IDENT : QTI_NOT_EQUAL;
+        else if (typespec == QTS_COMPLEXLIST || typespec == QTS_COMPLEXSOFTLIST)
+            return t == NT_LIST ? QTI_IDENT : QTI_NOT_EQUAL;
+        else if (typespec == QTS_COMPLEXREF)
+            return t == NT_REFERENCE ? QTI_IDENT : QTI_NOT_EQUAL;
+        if (u.t == NT_ALL)
+            return QTI_WILDCARD;
+        return u.t == t ? QTI_IDENT : QTI_NOT_EQUAL;
+    }
 
-   // this is the "expecting" type, t is the type to match
-   // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
-   // ex: this = NT_OBJECT, t = class, result = IDENT
-   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t) const {
-      bool may_not_match = false;
-      bool may_need_filter = false;
-      return match(t, may_not_match, may_need_filter);
-   }
+    // this is the "expecting" type, t is the type to match
+    // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
+    // ex: this = NT_OBJECT, t = class, result = IDENT
+    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t) const {
+        bool may_not_match = false;
+        bool may_need_filter = false;
+        return match(t, may_not_match, may_need_filter);
+    }
 
-   // this is the "expecting" type, t is the type to match
-   // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
-   // ex: this = NT_OBJECT, t = class, result = IDENT
-   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match) const {
-      bool may_need_filter = false;
-      return match(t, may_not_match, may_need_filter);
-   }
+    // this is the "expecting" type, t is the type to match
+    // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
+    // ex: this = NT_OBJECT, t = class, result = IDENT
+    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match) const {
+        bool may_need_filter = false;
+        return match(t, may_not_match, may_need_filter);
+    }
 
-   // this is the "expecting" type, t is the type to match
-   // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
-   // ex: this = NT_OBJECT, t = class, result = IDENT
-   DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const;
+    // this is the "expecting" type, t is the type to match
+    // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
+    // ex: this = NT_OBJECT, t = class, result = IDENT
+    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const;
 
-   DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n, bool exact) const;
+    DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n, bool exact) const;
 
-   // returns true if there is a match or if an error has been raised
-   DLLLOCAL bool acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n) const;
+    // returns true if there is a match or if an error has been raised
+    DLLLOCAL bool acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n) const;
 
-   DLLLOCAL bool operator==(const QoreTypeSpec& other) const;
-   DLLLOCAL bool operator!=(const QoreTypeSpec& other) const;
+    DLLLOCAL bool operator==(const QoreTypeSpec& other) const;
+    DLLLOCAL bool operator!=(const QoreTypeSpec& other) const;
 
 protected:
-   DLLLOCAL QoreTypeSpec(const QoreTypeInfo* ti, q_typespec_t t) : typespec(t) {
-      u.ti = ti;
-   }
+    DLLLOCAL QoreTypeSpec(const QoreTypeInfo* ti, q_typespec_t t) : typespec(t) {
+        u.ti = ti;
+    }
 
-   DLLLOCAL QoreTypeSpec(qore_type_t t, q_typespec_t ts) : typespec(ts) {
-      u.t = t;
-   }
+    DLLLOCAL QoreTypeSpec(qore_type_t t, q_typespec_t ts) : typespec(ts) {
+        u.t = t;
+    }
 
 private:
-   union {
-      qore_type_t t;
-      const QoreClass* qc;
-      const TypedHashDecl* hd;
-      const QoreTypeInfo* ti;
-   } u;
-   q_typespec_t typespec;
+    union {
+        qore_type_t t;
+        const QoreClass* qc;
+        const TypedHashDecl* hd;
+        const QoreTypeInfo* ti;
+    } u;
+    q_typespec_t typespec;
 };
 
 class QoreComplexHashTypeSpec : public QoreTypeSpec {
@@ -944,6 +944,7 @@ protected:
    DLLLOCAL virtual bool canConvertToScalarImpl() const = 0;
 
    DLLLOCAL static qore_type_result_e parseAcceptsIntern(const QoreAcceptSpec& at, const QoreReturnSpec& rt, bool& may_not_match, bool& may_need_filter, bool& t_no_match, bool& ok) {
+      //printd(5, "QoreTypeInfo::parseAcceptsIntern() at: %d rt: %d rc: %d\n", (int)at.spec.getTypeSpec(), (int)rt.spec.getTypeSpec(), at.spec.match(rt.spec, may_not_match, may_need_filter));
       qore_type_result_e res = at.spec.match(rt.spec, may_not_match, may_need_filter);
       switch (res) {
          case QTI_IDENT:
@@ -2758,7 +2759,7 @@ public:
          },
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               l->push(n, nullptr);
                n.assign(l);
             }
          },
@@ -2796,7 +2797,7 @@ public:
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               l->push(n, nullptr);
                n.assign(l);
             }
          },
@@ -2829,7 +2830,7 @@ public:
          },
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               l->push(n, nullptr);
                n.assign(l);
             }
          },
@@ -2845,7 +2846,7 @@ public:
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode;
-               l->push(n.takeNode());
+               l->push(n, nullptr);
                n.assign(l);
             }
          },

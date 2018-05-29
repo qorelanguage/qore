@@ -1,36 +1,35 @@
 /*
-  QoreSquareBracketsRangeOperatorNode.cpp
+    QoreSquareBracketsRangeOperatorNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
-
 
 QoreString QoreSquareBracketsRangeOperatorNode::op_str("x[m..n] operator expression");
 
@@ -50,9 +49,9 @@ AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *o
     assert(!returnTypeInfo);
 
     const QoreTypeInfo* typeInfo0 = nullptr, *typeInfo1 = nullptr, *typeInfo2 = nullptr;
-    e[0] = e[0]->parseInit(oflag, pflag, lvids, typeInfo0);
-    e[1] = e[1]->parseInit(oflag, pflag, lvids, typeInfo1);
-    e[2] = e[2]->parseInit(oflag, pflag, lvids, typeInfo2);
+    parse_init_value(e[0], oflag, pflag, lvids, typeInfo0);
+    parse_init_value(e[1], oflag, pflag, lvids, typeInfo1);
+    parse_init_value(e[2], oflag, pflag, lvids, typeInfo2);
 
     if (pflag & PF_FOR_ASSIGNMENT)
         parse_error(*loc, "the range operator cannot be used in the left-hand side of an assignment expression");
@@ -102,12 +101,12 @@ QoreValue QoreSquareBracketsRangeOperatorNode::evalValueImpl(bool& needs_deref, 
             ReferenceHolder<QoreListNode> rv(new QoreListNode(l->getValueTypeInfo()), xsink);
             if (start < stop) {
                 for (int64 i = start; i <= stop; ++i) {
-                    rv->push(l->get_referenced_entry(i));
+                    rv->push(l->getReferencedEntry(i), xsink);
                 }
             }
             else {
                 for (int64 i = start; i >= stop; --i) {
-                    rv->push(l->get_referenced_entry(i));
+                    rv->push(l->getReferencedEntry(i), xsink);
                 }
             }
             return rv.release();
@@ -184,7 +183,7 @@ bool QoreFunctionalSquareBracketsRangeOperator::getNextImpl(ValueOptionalRefHold
 
     switch (seq->getType()) {
         case NT_LIST:
-            val.setValue(seq->get<const QoreListNode>()->get_referenced_entry(i), true);
+            val.setValue(seq->get<const QoreListNode>()->getReferencedEntry(i), true);
             break;
         case NT_STRING:
             val.setValue(seq->get<const QoreStringNode>()->substr(i, 1, xsink), true);
