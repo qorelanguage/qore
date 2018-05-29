@@ -175,14 +175,14 @@ public:
         @param index the index of the element (first element is index 0)
         @return the value of the element at "index", not referenced for the caller
     */
-    DLLEXPORT QoreValue retrieveEntry(qore_size_t index);
+    DLLEXPORT QoreValue retrieveEntry(size_t index);
 
     //! returns the element at "index" (first element is index 0)
     /** the value is not referenced for the caller
         @param index the index of the element (first element is index 0)
         @return the value of the element at "index", not referenced for the caller
     */
-    DLLEXPORT const QoreValue retrieveEntry(qore_size_t index) const;
+    DLLEXPORT const QoreValue retrieveEntry(size_t index) const;
 
     //! returns the element at "index" (first element is index 0), the caller owns the reference
     /**
@@ -195,7 +195,7 @@ public:
     /**
         @param index the index of the element (first element is index 0)
     */
-    DLLEXPORT int getEntryAsInt(qore_size_t index) const;
+    DLLEXPORT int getEntryAsInt(size_t index) const;
 
     //! sets the value of a list element
     /**
@@ -204,7 +204,7 @@ public:
         @param val the value to set, must be already referenced for the assignment
         @param xsink if an error occurs, the Qore-language exception information will be added here
     */
-    DLLEXPORT int setEntry(qore_size_t index, QoreValue val, ExceptionSink* xsink);
+    DLLEXPORT int setEntry(size_t index, QoreValue val, ExceptionSink* xsink);
 
     //! adds a value to the list
     /** @since %Qore 0.9
@@ -262,7 +262,7 @@ public:
     /** therefore element 0 of the new list is element "offset" in the source list
         @param index the index of the element (first element is index 0)
     */
-    DLLEXPORT QoreListNode* copyListFrom(qore_size_t index) const;
+    DLLEXPORT QoreListNode* copyListFrom(size_t index) const;
 
     //! returns a new list based on quicksorting the source list ("this")
     /** "soft" comparisons are made using OP_LOG_LT, meaning that the list can be made up of
@@ -409,7 +409,7 @@ public:
     //! returns the number of elements in the list
     /** return the number of elements in the list
         */
-    DLLEXPORT qore_size_t size() const;
+    DLLEXPORT size_t size() const;
 
     //! returns true if the list is empty
     /** return true if the list is empty
@@ -493,13 +493,13 @@ public:
     /** @param lst the list to iterate
         @param n_pos the starting position (-1 means just before the first element so that the initial call to next() or prev() will put the iterator on the first element)
     */
-    DLLEXPORT ListIterator(QoreListNode* lst, qore_size_t n_pos = -1);
+    DLLEXPORT ListIterator(QoreListNode* lst, size_t n_pos = -1);
 
     //! initializes the iterator to the position given or, if omitted, just before the first element
     /** @param lst the list to iterate
         @param n_pos the starting position (-1 means just before the first element so that the initial call to next() or prev() will put the iterator on the first element)
     */
-    DLLEXPORT ListIterator(QoreListNode& lst, qore_size_t n_pos = -1);
+    DLLEXPORT ListIterator(QoreListNode& lst, size_t n_pos = -1);
 
     //! moves the iterator to the next element, returns true if the iterator is pointing to an element of the list
     /** if the iterator is on the last element, it moves to an invalid position before the first element and returns false
@@ -524,7 +524,7 @@ public:
         @return 0 for OK, -1 for invalid position
         @note if this function returns -1, do not use the iterator until it points to a valid element, otherwise a crash will result
     */
-    DLLEXPORT int set(qore_size_t n_pos);
+    DLLEXPORT int set(size_t n_pos);
 
     //! returns the referenced value of the list element
     /** @since %Qore 0.9
@@ -543,10 +543,10 @@ public:
     DLLEXPORT bool last() const;
 
     //! returns the current iterator position in the list or -1 if not pointing at a valid element
-    DLLLOCAL qore_size_t index() const { return pos; }
+    DLLLOCAL size_t index() const { return pos; }
 
     //! returns the number of elements in the list
-    DLLLOCAL qore_size_t max() const { return l->size(); }
+    DLLLOCAL size_t max() const { return l->size(); }
 
     //! returns the list
     DLLLOCAL QoreListNode* getList() { return l; }
@@ -592,13 +592,13 @@ public:
     /** @param lst the list to iterate
         @param n_pos the starting position (-1 means just before the first element so that the initial call to next() or prev() will put the iterator on the first element)
     */
-    DLLEXPORT ConstListIterator(const QoreListNode* lst, qore_size_t n_pos = -1);
+    DLLEXPORT ConstListIterator(const QoreListNode* lst, size_t n_pos = -1);
 
     //! initializes the iterator to the position given or, if omitted, just before the first element
     /** @param lst the list to iterate
         @param n_pos the starting position (-1 means just before the first element so that the initial call to next() or prev() will put the iterator on the first element)
     */
-    DLLEXPORT ConstListIterator(const QoreListNode& lst, qore_size_t n_pos = -1);
+    DLLEXPORT ConstListIterator(const QoreListNode& lst, size_t n_pos = -1);
 
     //! moves the iterator to the next element, returns true if the iterator is pointing to an element of the list
     /** if the iterator is on the last element, it moves to an invalid position before the first element and returns false
@@ -623,7 +623,7 @@ public:
         @return 0 for OK, -1 for invalid position
         @note if this function returns -1, do not use the iterator until it points to a valid element, otherwise a crash will result
     */
-    DLLEXPORT int set(qore_size_t n_pos);
+    DLLEXPORT int set(size_t n_pos);
 
     //! returns the referenced value of the list element
     /** @since %Qore 0.9
@@ -642,10 +642,10 @@ public:
     DLLEXPORT bool last() const;
 
     //! returns the current iterator position in the list or -1 if not pointing at a valid element
-    DLLLOCAL qore_size_t index() const { return pos; }
+    DLLLOCAL size_t index() const { return pos; }
 
     //! returns the number of elements in the list
-    DLLLOCAL qore_size_t max() const { return l->size(); }
+    DLLLOCAL size_t max() const { return l->size(); }
 
     //! returns the list
     DLLLOCAL const QoreListNode* getList() const { return l; }
