@@ -398,7 +398,7 @@ public:
    */
    DLLEXPORT virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-   // new eval APIs - to be virtual in bew API
+   // new eval APIs - to be virtual in new API
    DLLEXPORT QoreValue evalValue(ExceptionSink* xsink) const;
    DLLEXPORT QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const;
 
