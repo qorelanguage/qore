@@ -779,6 +779,7 @@ QoreValue HashIterator::removeKeyValue() {
     hm_hm_t::iterator i = h->priv->hm.find((*ni)->key.c_str());
     assert(i != h->priv->hm.end());
     h->priv->hm.erase(i);
+    h->priv->internDeleteKey(ni);
 
     return rv;
 }
