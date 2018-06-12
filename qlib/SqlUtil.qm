@@ -5230,6 +5230,11 @@ int num = l.size();
             foreach string name in (tables.keyIterator()) {
                 if (h.hasKey(name))
                     continue;
+                if (tables{name}.typeCode() != NT_HASH) {
+                    throw "ALIGN-TABLE-ERROR",
+                            sprintf("table '%s' schema definition has to be hash, but it's %s",
+                                    name, tables{name}.type());
+                }
                 hash th = tables{name} - "rename";
                 # create table template
                 Table t(ds, th, name, opt + ("table_cache": self));
@@ -7348,6 +7353,13 @@ list l = db.getAlignSql(schema_hash);
             i = new HashIterator(schema_hash.sequences);
             while (i.next()) {
                 string name = i.getKey();
+
+                if (i.getValue().typeCode() != NT_HASH) {
+                    throw "SEQUENCE-DESCRIPTION-ERROR",
+                            sprintf("sequence '%s' schema definition has to be hash, but it's %s",
+                                    name, i.getValue().type());
+                }
+
                 hash sh = i.getValue();
                 validateOptionsIntern("SEQUENCE-DESCRIPTION-ERROR", getSequenceDescriptionOptions(), \sh);
 

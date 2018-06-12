@@ -100,6 +100,8 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("fetchColumns", \fetchColumnsTest());
         addTestCase("Delete", \deleteTest());
         addTestCase("result set placeholder", \resultSetPlaceholderTest());
+
+        addTestCase("wrong schema", \test2358SqlutilSchema());
     }
 
     globalTearDown() {
@@ -1075,4 +1077,46 @@ public class SqlTestBase inherits QUnit::Test {
         assertEq(True, res2227.firstValue().size() > 0, "bug 2227 test must return some data");
     }
 
+    test2358SqlutilSchema() {
+        if (!table)
+            testSkip("no DB connection");
+
+        Bug2358Schema s(table.getDatasource());
+
+        try {
+            s.align();
+        }
+        catch (hash ex) {
+            if (ex.err == "ALIGN-TABLE-ERROR") {
+                assertEq("ALIGN-TABLE-ERROR", ex.err, "exception must be ALIGN-TABLE-ERROR");
+                assertEq(True, ex.desc.regex("table '.*' schema definition has to be hash, but it's string"));
+            }
+            else if (ex.err == "SEQUENCE-DESCRIPTION-ERROR") {
+                assertEq("SEQUENCE-DESCRIPTION-ERROR", ex.err, "exception must be SEQUENCE-DESCRIPTION-ERROR");
+                assertEq(True, ex.desc.regex("sequence '.*' schema definition has to be hash, but it's string"));
+            }
+            else {
+                rethrow;
+            }
+        }
+    } # test2358SqlutilSchema
+
+}
+
+# a wrongly created schema (object descriptions) for test2358SqlutilSchema()
+class Bug2358Schema inherits AbstractSchema {
+    constructor(AbstractDatasource ds, *string dts, *string its) :  AbstractSchema(ds, dts, its) {
+    }
+    private string getNameImpl() {
+        return "Bug2358Schema";
+    }
+    private string getVersionImpl() {
+        return "1.0";
+    }
+    private *hash getTablesImpl() {
+        return { "foo" : "bar" };
+    }
+    private *hash getSequencesImpl() {
+        return { "s_foo" : "" };
+    }
 }
