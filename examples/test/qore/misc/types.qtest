@@ -13,6 +13,12 @@
 
 %exec-class TypeTest
 
+class Test {
+    public {
+        auto a;
+    }
+}
+
 public hashdecl MyHash {
     int x = 1;
 }
@@ -31,6 +37,8 @@ const TestList = (1, 2, 3);
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("issue 2791", \issue2791());
+        addTestCase("issue 2767", \issue2767());
         addTestCase("complex assignments", \testComplexAssignments());
         addTestCase("auto", \testComplexAutoTypes());
         addTestCase("complex type compat", \testComplexTypesCompat());
@@ -39,6 +47,143 @@ class TypeTest inherits QUnit::Test {
         addTestCase("issue 2647", \issue2647());
 
         set_return_value(main());
+    }
+
+    issue2791() {
+        {
+            Test t();
+            t.a = {"a": "two"};
+            hash h = t{"a",};
+            assertEq(Type::Hash, h.a.fullType());
+        }
+        {
+            hash<auto> h1 = {
+                "a": {"a": "a"},
+            };
+            hash h = h1{"a",};
+            assertEq(Type::Hash, h.a.fullType());
+        }
+        {
+            hash h;
+            h.a = hash<MyHash>{};
+            # ensure types are stripped on assignment with internal values of untyped hashes
+            assertEq(Type::Hash, h.a.fullType());
+        }
+        {
+            hash h = {
+                "a": {"a": 1},
+                "b": 1,
+            };
+            h.a = hash<MyHash>{};
+            # ensure types are stripped on assignment with internal values of untyped hashes
+            # also with type folding
+            assertEq(Type::Hash, h.a.fullType());
+        }
+        {
+            auto h = {
+                "a": {"a": 1},
+                "b": {"a": "1"},
+            };
+            # ensure consistent type folding
+            assertEq("hash<string, hash>", h.fullType());
+            assertEq(Type::Hash, h.a.fullType());
+            h.a.b = "1";
+        }
+        {
+            auto h = {
+                "a": {"a": 1},
+            } + {
+                "b": {"a": "1"},
+            };
+            # ensure consistent type folding
+            #assertEq("hash<string, hash>", h.fullType());
+            assertEq(Type::Hash, h.a.fullType());
+            h.a.b = "1";
+        }
+        {
+            any h;
+            h.a = hash<MyHash>{};
+            # ensure types are stripped on assignment with internal values of untyped hashes
+            assertEq(Type::Hash, h.a.fullType());
+        }
+        {
+            hash<auto> h;
+            h.a = hash<MyHash>{};
+            assertEq("hash<MyHash>", h.a.fullType());
+        }
+        {
+            auto h = {"a": {"a": 2}} + {"b": {"a": "1"}};
+            assertEq(Type::Hash, h.a.fullType());
+            assertEq(Type::Hash, h.b.fullType());
+            #assertEq(Type::Hash, h.fullType());
+        }
+        {
+            list<auto> l = ({"a": "a"}, );
+            list l1 = l[0..];
+            assertEq("list<hash<string, string>>", l.fullType());
+            assertEq("hash<string, string>", l[0].fullType());
+            assertEq(Type::Hash, l1[0].fullType());
+            l1 = extract l, 0;
+            assertEq(Type::Hash, l1[0].fullType());
+        }
+        {
+            list l;
+            l += hash<MyHash>{};
+            # ensure types are stripped on assignment with internal values of untyped lists
+            assertEq(Type::Hash, l[0].fullType());
+        }
+        {
+            list l = ({"a": 1}, 1);
+            # ensure types are stripped on assignment with internal values of untyped hashes
+            # also with type folding
+            assertEq(Type::Hash, l[0].fullType());
+        }
+        {
+            any l;
+            l[0] = hash<MyHash>{};
+            # ensure types are stripped on assignment with internal values of untyped lists
+            assertEq(Type::Hash, l[0].fullType());
+        }
+        {
+            list<auto> l;
+            l += hash<MyHash>{};
+            # ensure types are stripped on assignment with internal values of untyped lists
+            assertEq(Type::Hash, l[0].fullType());
+        }
+        {
+            auto l = (1, 2,) + ("3",);
+            assertEq(Type::List, l.fullType());
+        }
+        {
+            auto l = (1, 2,) + "3";
+            assertEq(Type::List, l.fullType());
+        }
+        {
+            auto l = ("3",) + (1, 2,);
+            assertEq(Type::List, l.fullType());
+        }
+        {
+            auto l = "3" + (1, 2,);
+            assertEq(Type::List, l.fullType());
+        }
+    }
+
+    issue2767() {
+        {
+            hash<auto> h;
+            h.a = 1;
+            assertEq("hash<auto>", h.fullType());
+            h.b.a = 1;
+            assertEq("hash<auto>", h.b.fullType());
+        }
+
+        {
+            list<auto> l;
+            l[0] = 1;
+            assertEq("list<auto>", l.fullType());
+            l[1][0] = 1;
+            assertEq("list<auto>", l[1].fullType());
+        }
     }
 
     testComplexAssignments() {
@@ -5169,7 +5314,7 @@ class TypeTest inherits QUnit::Test {
         {
             auto x = {};
             hash<string, bool> h = x;
-            assertEq("hash", x.fullType());
+            assertEq("hash<auto>", x.fullType());
             assertEq("hash<string, bool>", h.fullType());
         }
         # test parse and runtime type folding
@@ -5185,7 +5330,7 @@ class TypeTest inherits QUnit::Test {
         {
             auto x = ();
             list<bool> l = x;
-            assertEq("list", x.fullType());
+            assertEq("list<auto>", x.fullType());
             assertEq("list<bool>", l.fullType());
         }
         # test parse and runtime type folding

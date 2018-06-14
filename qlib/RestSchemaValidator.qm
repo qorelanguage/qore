@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestSchemaValidator.qm an abstract API for validating REST schemas
 
-/*  RestSchemaValidator.qm Copyright (C) 2017 Qore Technologies, s.r.o.
+/*  RestSchemaValidator.qm Copyright (C) 2017 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "1.0.1";
+    version = "1.1";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -70,13 +70,20 @@ module RestSchemaValidator {
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
 
-    @subsection restschemavalidator_1_0_1 RestSchemaValidator v1.0.1
+    @subsection restschemavalidator_1_1 RestSchemaValidator v1.1
+    - updated the default validator to try all serialization methods if multiple methods are available and one fails
+      (<a href="https://github.com/qorelanguage/qore/issues/2831">issue 2831</a>)
 
+    @subsection restschemavalidator_1_0_2 RestSchemaValidator v1.0.2
+    - fixed the null validator to handle binary message bodies; fixed issues with \c "text"
+      serialization with binary message bodies
+      (<a href="https://github.com/qorelanguage/qore/issues/2816">issue 2816</a>)
+
+    @subsection restschemavalidator_1_0_1 RestSchemaValidator v1.0.1
     - updated docs for @ref RestSchemaValidator::AbstractRestSchemaValidator::parseRequest() "AbstractRestSchemaValidator::parseRequest()" to reflect how validation exceptions should be raised for proper error reporting (<a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
     - fixed handling of messages with non-object (i.e. non-hash) bodies (<a href="https://github.com/qorelanguage/qore/issues/2366">issue 2366</a>)
 
     @subsection restschemavalidator_1_0 RestSchemaValidator v1.0
-
     - initial release of the RestSchemaValidator module
 */
 
@@ -434,7 +441,25 @@ public namespace RestSchemaValidator {
                         return mime_get_form_urlencoded_string(v);
                     throw "FORMURLENCODING-ERROR", sprintf("form URL encoding can only encode hashes; type %y requested", v.type());
                 },
-                MimeTypeText: string sub (auto s) { return sprintf("%s", s); },
+                MimeTypeText: data sub (auto s) {
+                    switch (s.typeCode()) {
+                        case NT_STRING:
+                        case NT_BINARY:
+                            return s;
+                        default:
+                            return sprintf("%s", s);
+                    }
+                },
+                MimeTypeOctetStream: binary sub (auto s) {
+                    switch (s.typeCode()) {
+                        case NT_STRING:
+                            return binary(s);
+                        case NT_BINARY:
+                            return s;
+                        default:
+                            return binary(sprintf("%s", s));
+                    }
+                },
             };
 
             const DataSerializationSupportList = keys DataSerializationSupport;
@@ -489,9 +514,15 @@ public namespace RestSchemaValidator {
 %endif
                 MimeTypeText: (
                     "code": "text",
-                    "in": string sub (string s) { return s; },
+                    "in": data sub (data s) { return s; },
                 ),
 
+                MimeTypeOctetStream: {
+                    "code": "bin",
+                    "in": binary sub (data s) {
+                        return s.typeCode() == NT_BINARY ? s : binary(s);
+                    },
+                },
             };
         }
 
@@ -581,22 +612,31 @@ public namespace RestSchemaValidator {
         */
         private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body, *hash headers, *softlist<string> content_types) {
             if (exists response_body) {
-                string ct;
-                if (!content_types)
-                    ct = DataSerializationSupport.firstKey();
-                else {
-                    foreach string rct in (content_types) {
-                        if (DataSerializationSupport{rct}) {
-                            ct = rct;
-                            break;
-                        }
+                list<string> ctl = !content_types
+                    ? keys DataSerializationSupport
+                    : map $1, content_types, DataSerializationSupport{$1};
+
+                if (!ctl) {
+                    throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", content_types, keys DataSerializationSupport, response_body), ("types": keys DataSerializationSupport);
+                }
+                bool ok;
+                hash<ExceptionInfo> ex;
+                foreach string ct in (ctl) {
+                    try {
+                        headers."Content-Type" = ct;
+                        response_body = DataSerializationSupport{ct}(response_body);
+                        ok = True;
+                        break;
+                    }
+                    catch (hash<ExceptionInfo> ex1) {
+                        # ignore serialization exceptions
+                        ex = ex1;
                     }
                 }
-
-                if (!ct)
-                    throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", content_types, keys DataSerializationSupport, response_body), ("types": keys DataSerializationSupport);
-                headers."Content-Type" = ct;
-                response_body = DataSerializationSupport{ct}(response_body);
+                # rethrow last exception if the response cannot be serialized
+                if (!ok) {
+                    throw ex.err, ex.desc, ex.arg;
+                }
             }
 
             return cast<hash<HttpResponseInfo>>((

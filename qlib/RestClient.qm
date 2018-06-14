@@ -95,6 +95,7 @@ module RestClient {
     - \c "xml": using the \c "xml" module; message bodies are encoded using XML-RPC value encoding
     - \c "yaml": using the \c "yaml" module; message bodies are encoded using YAML
     - \c "text": message bodies are not serialized, plain text value is used
+    - \c "bin": message bodies are not serialized, binary data is used instead
 
     If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to initialize.
 
@@ -128,6 +129,10 @@ printf("%N\n", ans.body);
       method to allow connections to be created dynamically, potentially in another process from a network
       call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
+    @subsection restclientv1_4_1 RestClient v1.4.1
+    - added support for REST requests with binary message bodies; added the \c "bin" serialization method
+      (<a href="https://github.com/qorelanguage/qore/issues/2816">issue 2816</a>)
+
     @subsection restclientv1_4 RestClient v1.4
     - added support for the \c text/plain Content-Type
     - added the @ref RestClient::RestConnection "RestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
@@ -152,7 +157,6 @@ printf("%N\n", ans.body);
     - when possible, REST bodies are decoded and stored in the \a info output argument when the HTTP server returns a status code < 100 or >= 300 to allow for error-handling in the client
     - fixed issues where multiple leading \c "/" chars were sometimes present in the request URI path
     - doc updates
-
     @subsection restclientv1_2 RestClient v1.2
     - allow the Content-Type header to be overriden in REST requests
     - added \a hdr args to REST methods
@@ -187,6 +191,7 @@ public namespace RestClient {
 %endif
                 "url": MimeTypeFormUrlEncoded,
                 "text": MimeTypeText,
+                "bin": MimeTypeOctetStream,
                 };
 
 %ifndef NoYaml
@@ -230,6 +235,7 @@ public namespace RestClient {
 %endif
                 MimeTypeFormUrlEncoded,
                 MimeTypeText,
+                MimeTypeOctetStream,
                 );
 
             #! Accept header value
@@ -256,6 +262,7 @@ public namespace RestClient {
                 - \c "yaml": use only YAML serialization
                 - \c "xml": use only XML-RPC serialization
                 - \c "text": use only plain text. No serialization is used.
+                - \c "bin": for binary message bodies without data serialization
              */
             const DataSerializationOptions = (
                 "auto": True,
@@ -271,7 +278,8 @@ public namespace RestClient {
 %endif
                 "url": True,
                 "text": True,
-                );
+                "bin": True,
+            );
 
             #! Send content encoding options
             /** Send content encoding options are as follows:

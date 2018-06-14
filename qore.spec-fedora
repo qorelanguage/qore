@@ -29,27 +29,9 @@ development but is also useful as a general purpose language.
 %package -n libqore
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
-Provides: qore-module(abi)%{?_isa} = 0.21
-Provides: qore-module(abi)%{?_isa} = 0.20
-Provides: qore-module(abi)%{?_isa} = 0.19
-Provides: qore-module(abi)%{?_isa} = 0.18
+Provides: qore-module(abi)%{?_isa} = 0.222
 Provides: libqore5 = %{version}
 Obsoletes: libqore5 < 0.9
-# provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
-Provides: qore-module-api-0.18
-Provides: qore-module-api-0.17
-Provides: qore-module-api-0.16
-Provides: qore-module-api-0.15
-Provides: qore-module-api-0.14
-Provides: qore-module-api-0.13
-Provides: qore-module-api-0.12
-Provides: qore-module-api-0.11
-Provides: qore-module-api-0.10
-Provides: qore-module-api-0.9
-Provides: qore-module-api-0.8
-Provides: qore-module-api-0.7
-Provides: qore-module-api-0.6
-Provides: qore-module-api-0.5
 
 %description -n libqore
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -72,7 +54,7 @@ functionality.
 Summary: Standard library modules
 Group: System Environment/Libraries
 Requires: libqore = %{version}-%{release}
-Requires: qore-module(abi)%{?_isa} = 0.21
+Requires: qore-module(abi)%{?_isa} = 0.22
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -192,8 +174,17 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Sat Dec 30 2017 David Nichols <david@qore.org> 0.9-1
+* Tue May 15 2018 David Nichols <david@qore.org> 0.9-1
 - updated version to 0.9-1
+
+* Tue May 15 2018 David Nichols <david@qore.org> 0.8.13.5-1
+- updated version to 0.8.13.5-1
+
+* Fri Apr 13 2018 David Nichols <david@qore.org> 0.8.13.4-1
+- updated version to 0.8.13.4-1
+
+* Thu Mar 22 2018 David Nichols <david@qore.org> 0.8.13.3-1
+- updated version to 0.8.13.3-1
 
 * Sat Dec 30 2017 David Nichols <david@qore.org> 0.8.13.2-1
 - updated version to 0.8.13.2-1

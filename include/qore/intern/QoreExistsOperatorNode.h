@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 
 #define _QORE_QOREEXISTSOPERATORNODE_H
 
-class QoreExistsOperatorNode : public QoreSingleExpressionOperatorNode<QoreOperatorNode> {
+class QoreExistsOperatorNode : public QoreSingleValueExpressionOperatorNode<QoreOperatorNode> {
 protected:
    DLLLOCAL static QoreString Exists_str;
 
@@ -42,7 +42,7 @@ protected:
    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& typeInfo);
 
 public:
-   DLLLOCAL QoreExistsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, n_exp) {
+   DLLLOCAL QoreExistsOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : QoreSingleValueExpressionOperatorNode<QoreOperatorNode>(loc, exp) {
    }
 
    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;

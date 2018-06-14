@@ -2361,7 +2361,8 @@ auto v = c.name;
                                             and s.table_name = o.object_name
                                         )
                                     where s.owner = %v
-                                        and s.synonym_name = %v",
+                                        and s.synonym_name = %v
+                                        and o.object_type in ('TABLE', 'VIEW', 'SYNONYM')",
                                 s_owner.upr(), s_name.upr());
 
                 # ret can be NOTHING in case:

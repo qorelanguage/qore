@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreProgram.h
+    QoreProgram.h
 
-  Program Object Definition
+    Program Object Definition
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREPROGRAM_H
@@ -148,10 +148,12 @@ public:
    //! calls a function from the function name and returns the return value
    /** if the function does not exist, an exception is added to "xsink"
        @param name the name of the function to call
-       @param args the argument to the function (can be 0)
+       @param args the argument to the function (can be nullptr)
        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+       @return the value returned by the function (if any)
    */
-   DLLEXPORT AbstractQoreNode* callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink);
+   DLLEXPORT QoreValue callFunction(const char* name, const QoreListNode* args, ExceptionSink* xsink);
 
    //! runs the program (instantiates the program class if a program class has been set) and returns the return value (if any)
    /** @note if the program is run as a class it's not possible to return a value
@@ -160,9 +162,9 @@ public:
        QoreProgram::waitForTerminationAndDeref()
        @see QoreProgram::setExecClass()
        @param xsink if an error occurs, the Qore-language exception information will be added here
-       @return the value returned by the final return statement (if any, can be 0)
+       @return the value returned by the final return statement (if any)
    */
-   DLLEXPORT AbstractQoreNode* run(ExceptionSink* xsink);
+   DLLEXPORT QoreValue run(ExceptionSink* xsink);
 
    //! tuns the top level code and returns any return value
    /**
@@ -170,9 +172,9 @@ public:
       to wait for them to terminate, call QoreProgram::waitForTermination() or
       QoreProgram::waitForTerminationAndDeref()
       @param xsink if an error occurs, the Qore-language exception information will be added here
-      @return the value returned by the final return statement (if any, can be 0)
+      @return the value returned by the final return statement (if any)
    */
-   DLLEXPORT AbstractQoreNode* runTopLevel(ExceptionSink* xsink);
+   DLLEXPORT QoreValue runTopLevel(ExceptionSink* xsink);
 
    //! parses the given filename and runs the file
    /** any errors opening the file are added as Qore-language exceptions
@@ -564,7 +566,7 @@ public:
        @param found returns true if the variable exists, false if not
        @return the value of the global variable given; if a non-zero pointer is returned, the caller owns the reference count returned
    */
-   DLLEXPORT AbstractQoreNode* getGlobalVariableValue(const char* var, bool &found) const;
+   DLLEXPORT QoreValue getGlobalVariableValue(const char* var, bool &found) const;
 
    //! returns the value of the global variable given (do not include the "$" symbol), the caller owns the reference count returned
    /** @param var the variable name to return (do not include the "$" symbol)
@@ -600,7 +602,7 @@ public:
 
        @see runtimeDefine()
    */
-   DLLEXPORT void parseDefine(const char* str, AbstractQoreNode* val);
+   DLLEXPORT void parseDefine(const char* str, QoreValue val);
 
    //! defines a parse-time variable; call only at parse time (or before parsing)
    /** @param str the name of the variable
@@ -667,20 +669,20 @@ public:
 
        @since %Qore 0.8.13
    */
-   DLLEXPORT const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreValueList* params, ExceptionSink* xsink) const;
+   DLLEXPORT const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreListNode* params, ExceptionSink* xsink) const;
 
    // finds all variants of a function or class method and returns a list of the results
    /** @param name the function or class method name; may also be namespace-justified
 
        @return a list of hashes or nullptr if the name cannot be resolved; when matched, each hash element has the following keys:
        - \c desc: a string description of the call which includes the name and the full text call signature
-       - \c params: a QoreValueList object that gives the params in a format that can be used by runtimeFindCall()
+       - \c params: a QoreListNode object that gives the params in a format that can be used by runtimeFindCall()
 
        @note the caller owns the reference count returned for non-nullptr values
 
        @since %Qore 0.8.13
    */
-   DLLEXPORT QoreValueList* runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const;
+   DLLEXPORT QoreListNode* runtimeFindCallVariants(const char* name, ExceptionSink* xsink) const;
 
    //! returns a list of threads active in this Program object
    /** @return a list of threads active in this Program object
@@ -752,7 +754,7 @@ public:
    /** find statement related to particular function
     *
     */
-   DLLEXPORT AbstractStatement* findFunctionStatement(const char* functionName, const QoreValueList* params, ExceptionSink* xsink) const;
+   DLLEXPORT AbstractStatement* findFunctionStatement(const char* functionName, const QoreListNode* params, ExceptionSink* xsink) const;
 
    //! get the statement id
    /**
@@ -768,6 +770,17 @@ public:
       @return the original statement or null if statement cannot be resolved
     */
    DLLEXPORT AbstractStatement* resolveStatementId(unsigned long statementId) const;
+
+   //! get list of files which appears in a statement
+   /**
+      @return hash where the key is file name and value is hash where the key value is label and the value is label's section offset in the file
+   */
+   DLLEXPORT QoreHashNode* getSourceFileNames(ExceptionSink* xsink) const;
+   //! get list of labels which appears in a statement
+   /**
+      @return hash where the key is label name and value is hash where the key is file and the value is label's section offset in the file
+   */
+   DLLEXPORT QoreHashNode* getSourceLabels(ExceptionSink* xsink) const;
 
    //! get the program id
    /**

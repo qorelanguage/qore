@@ -34,6 +34,7 @@ DOX_MODULES = qlib/BulkSqlUtil.qm \
 	qlib/CsvUtil.qm \
 	qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
+	qlib/DebugLinenoiseCmdLine.qm \
 	qlib/DebugHandler.qm \
 	qlib/Diff.qm \
 	qlib/FilePoller.qm \
@@ -268,6 +269,7 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/astparser/src/ast/expressions/ASTUnaryExpression.h \
 	modules/astparser/src/ast/expressions/ASTSwitchBodyExpression.h \
 	modules/astparser/src/ast/expressions/ASTHashElementExpression.h \
+	modules/astparser/src/ast/expressions/ASTHashdeclHashExpression.h \
 	modules/astparser/src/ast/statements/ASTRethrowStatement.h \
 	modules/astparser/src/ast/statements/ASTOnBlockExitStatement.h \
 	modules/astparser/src/ast/statements/ASTIfStatement.h \
@@ -331,7 +333,6 @@ include_HEADERS = \
 	include/qore/QoreIteratorBase.h \
 	include/qore/QoreType.h \
 	include/qore/QoreListNode.h \
-	include/qore/QoreValueList.h \
 	include/qore/QoreBigIntNode.h \
 	include/qore/QoreBoolNode.h \
 	include/qore/QoreFloatNode.h \
@@ -342,7 +343,6 @@ include_HEADERS = \
 	include/qore/QoreQueueHelper.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
-	include/qore/BuiltinFunctionList.h \
 	include/qore/QoreThreadLock.h \
 	include/qore/QoreThreadLocalStorage.h \
 	include/qore/QoreClass.h \
@@ -380,6 +380,8 @@ include_HEADERS = \
 	include/qore/ReferenceNode.h \
 	include/qore/CallReferenceNode.h \
 	include/qore/QoreFtpClient.h \
+	include/qore/vector_map \
+	include/qore/vector_set \
 	include/qore/safe_dslist \
 	include/qore/qlist \
 	include/qore/qore_bitopts.h \
@@ -399,7 +401,6 @@ include_HEADERS = \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
 	include/qore/Qore.h \
-	include/qore/QoreNodeEvalOptionalRefHolder.h \
 	include/qore/QoreEvents.h \
 	include/qore/StreamBase.h \
 	include/qore/InputStream.h \
@@ -420,16 +421,13 @@ noinst_HEADERS = \
 	include/qore/intern/git-revision.h \
 	include/qore/intern/glob.h \
 	include/qore/intern/RSet.h \
-	include/qore/intern/ParseList.h \
 	include/qore/intern/AbstractIteratorHelper.h \
 	include/qore/intern/ParseReferenceNode.h \
-	include/qore/intern/ReferenceHelper.h \
 	include/qore/intern/ThreadResourceList.h \
 	include/qore/intern/ssl_constants.h \
 	include/qore/intern/lvalue_ref.h \
 	include/qore/intern/qore_thread_intern.h \
 	include/qore/intern/qore_list_private.h \
-	include/qore/intern/qore_value_list_private.h \
 	include/qore/intern/inline_printf.h \
 	include/qore/intern/qore_qf_private.h \
 	include/qore/intern/qore_encoding_private.h \
@@ -659,6 +657,7 @@ noinst_HEADERS = \
 	include/qore/intern/FileLineIterator.h \
 	include/qore/intern/DataLineIterator.h \
 	include/qore/intern/EncodingConvertor.h \
+	include/qore/intern/QoreListNodeEvalOptionalRefHolder.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \

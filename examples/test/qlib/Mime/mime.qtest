@@ -60,6 +60,7 @@ aωb\r
         addTestCase("Header word b test", \wordBTest());
         addTestCase("urlencoding", \urlEncodingTest());
         addTestCase("form data", \formDataTest());
+        addTestCase("mime_parse_form_urlencoded_string", \parseFormUrlencodedTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -99,12 +100,27 @@ aωb\r
 
         hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage("multipart/form-data; boundary=---------------------------735323031399963166993862150", FormDataBody);
         assertEq(5, h.size());
-        #printf("h: %N\n", h);
+        assertEq("hash<FormDataMessageInfo>", h.firstValue().fullType());
 
         MultiPartFormDataMessage msg = MultiPartFormDataMessage::makeMessage(h);
         assertEq(5, msg.size());
         #printf("str: %s\n%s <- boundary\n", msg.serializeBody().toString(), msg.getBoundary());
         h = MultiPartFormDataMessage::parseMessage(MimeTypeMultipartFormData + ";boundary=" + msg.getBoundary(), msg.serializeBody().toString());
         assertEq(5, h.size());
+    }
+
+    parseFormUrlencodedTest() {
+        hash test_data = {
+            "foo=bar&baz=1" : { "foo" : "bar", "baz" : "1", },
+            "foo=bar&baz=" : { "foo" : "bar", "baz" : NOTHING, },
+            "0=1&1=0" : { "0" : "1", "1" : "0", },
+            "foo=bar&baz=1&foo=barber": {"foo": ("bar", "barber"), "baz": "1"},
+        };
+
+        HashIterator it(test_data);
+        while (it.next()) {
+            hash res = mime_parse_form_urlencoded_string(it.getKey());
+            assertEq(it.getValue(), res, "mime_parse_form_urlencoded_string " + it.getKey());
+        }
     }
 }

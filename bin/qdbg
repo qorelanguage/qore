@@ -7,19 +7,20 @@
 %requires linenoise
 %requires qore >= 0.8.13
 %requires DebugCmdLine
+%requires DebugLinenoiseCmdLine
 %requires DebugProgramControl
 %allow-debugger
 %no-debugging
 
 %exec-class DebugWrapper
 
-class DebugCommandLineLocal inherits DebugCommandLine {
+class DebugCommandLineLocal inherits DebugLinenoiseCommandLine {
     public {
         DebugProgramControlLocal dpc;
         Counter counter();
         any threadData;
     }
-    constructor(DebugProgramControlLocal n_dpc): DebugCommandLine() {
+    constructor(DebugProgramControlLocal n_dpc): DebugLinenoiseCommandLine() {
         dpc = n_dpc;
         dpc.dcl = self;
     }
@@ -56,6 +57,7 @@ class DebugProgramControlLocal inherits DebugProgramControl {
         unregisterConnection(CX);
     }
     public nothing sendDataImpl(hash cx, any data) {    # TODO: nothing needed. why? I cannot reproduce in simple case to report issue
+        logger.log(DUV_DEBUG, "sendDataImpl: %y: %y", cx, data);
         if (dcl.counter.getCount() > 0) {
             dcl.threadData = data;
             dcl.counter.dec();
@@ -64,6 +66,7 @@ class DebugProgramControlLocal inherits DebugProgramControl {
         }
     }
     public nothing broadcastDataImpl(any data) {
+        logger.log(DUV_DEBUG, "broadcastDataImpl: %y: %y", data);
         dcl.printData(data);
     }
 }
@@ -77,7 +80,7 @@ class DebugWrapper {
             "parse_option": "p,set-parse-option=s@",
             #"charset": "c,charset=s",
             "define": "D,define=s@",
-            "time_zone": "z,time.zone=s",
+            "time_zone": "z,time-zone=s",
             #"exec_class": "x,exec-class:s",
             "history": "y,history=s",
             "session": "s,session=s",
@@ -162,7 +165,7 @@ class DebugWrapper {
             "\n"
             ,
             get_script_name(),
-            DebugCommandLine::defaultHistoryFileName,
+            DebugLinenoiseCommandLine::defaultHistoryFileName,
             get_script_name(),
 
         );

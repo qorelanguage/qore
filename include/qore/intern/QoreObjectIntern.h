@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreObjectIntern.h
+    QoreObjectIntern.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREOBJECTINTERN_H
@@ -37,12 +37,13 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include <map>
 #include <set>
 #include <vector>
 
-//#define _QORE_CYCLE_CHECK 1
+//#define _QORE_CYCLE_CHECK 0
 #ifdef _QORE_CYCLE_CHECK
 #define QORE_DEBUG_OBJ_REFS 0
 #define QRO_LVL 0
@@ -65,8 +66,15 @@
 
 class LValueHelper;
 
+class lthash {
+public:
+    DLLLOCAL bool operator()(char* s1, char* s2) const {
+        return memcmp(s1, s2, SH_SIZE) < 0;
+    }
+};
+
 // per-class internal data
-typedef std::map<char*, QoreHashNode*, ltstr> cdmap_t;
+typedef std::map<char*, QoreHashNode*, lthash> cdmap_t;
 
 /*
   Qore internal class data is stored against the object with this data structure
@@ -94,422 +102,420 @@ typedef std::map<qore_classid_t, private_pair_t> keymap_t;
 // for objects with multiple classes, private data has to be keyed
 class KeyList {
 private:
-   keymap_t keymap;
+    keymap_t keymap;
 
 public:
-   DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key) const {
-      keymap_t::const_iterator i = keymap.find(key);
-      if (i == keymap.end())
-         return 0;
+    DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key) const {
+        keymap_t::const_iterator i = keymap.find(key);
+        if (i == keymap.end())
+            return 0;
 
-      AbstractPrivateData* apd = i->second.first;
-      apd->ref();
-      return apd;
-   }
+        AbstractPrivateData* apd = i->second.first;
+        apd->ref();
+        return apd;
+    }
 
-   DLLLOCAL void addToString(QoreString* str) const {
-      for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-         str->sprintf("%d=<%p>, ", i->first, i->second.first);
-   }
+    DLLLOCAL void addToString(QoreString* str) const {
+        for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
+            str->sprintf("%d=<%p>, ", i->first, i->second.first);
+    }
 
-   DLLLOCAL void derefAll(ExceptionSink* xsink) const {
-      for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
-         if (!i->second.second)
-            i->second.first->deref(xsink);
-   }
+    DLLLOCAL void derefAll(ExceptionSink* xsink) const {
+        for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
+            if (!i->second.second)
+                i->second.first->deref(xsink);
+    }
 
-   DLLLOCAL AbstractPrivateData* getAndClearPtr(qore_classid_t key) {
-      keymap_t::iterator i = keymap.find(key);
-      //printd(5, "KeyList::getAndClearPtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
-      if (i == keymap.end() || i->second.second) {
-         //printd(5, "KeyList::getAndClearPtr second: %d\n", i->second.second);
-         return 0;
-      }
-      //printd(5, "KeyList::getAndClearPtr first: %p\n", i->second.first);
-      return i->second.first;
-   }
+    DLLLOCAL AbstractPrivateData* getAndClearPtr(qore_classid_t key) {
+        keymap_t::iterator i = keymap.find(key);
+        //printd(5, "KeyList::getAndClearPtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
+        if (i == keymap.end() || i->second.second) {
+            //printd(5, "KeyList::getAndClearPtr second: %d\n", i->second.second);
+            return 0;
+        }
+        //printd(5, "KeyList::getAndClearPtr first: %p\n", i->second.first);
+        return i->second.first;
+    }
 
-   DLLLOCAL AbstractPrivateData* getAndRemovePtr(qore_classid_t key) {
-      keymap_t::iterator i = keymap.find(key);
-      //printd(5, "KeyList::getAndRemovePtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
-      if (i == keymap.end() || i->second.second) {
-         //printd(5, "KeyList::getAndRemovePtr second: %d\n", i->second.second);
-         return 0;
-      }
-      AbstractPrivateData* rv = i->second.first;
-      //printd(5, "KeyList::getAndRemovePtr first: %p\n", i->second.first);
-      i->second.first = 0;
-      return rv;
-   }
+    DLLLOCAL AbstractPrivateData* getAndRemovePtr(qore_classid_t key) {
+        keymap_t::iterator i = keymap.find(key);
+        //printd(5, "KeyList::getAndRemovePtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
+        if (i == keymap.end() || i->second.second) {
+            //printd(5, "KeyList::getAndRemovePtr second: %d\n", i->second.second);
+            return 0;
+        }
+        AbstractPrivateData* rv = i->second.first;
+        //printd(5, "KeyList::getAndRemovePtr first: %p\n", i->second.first);
+        i->second.first = 0;
+        return rv;
+    }
 
-   DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData* pd) {
-      assert(pd);
-      assert(keymap.find(key) == keymap.end());
-      //printd(5, "KeyList::insert this: %p, key: %d, pd: %p\n", this, key, pd);
-      keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
-   }
+    DLLLOCAL void insert(qore_classid_t key, AbstractPrivateData* pd) {
+        assert(pd);
+        assert(keymap.find(key) == keymap.end());
+        //printd(5, "KeyList::insert this: %p, key: %d, pd: %p\n", this, key, pd);
+        keymap.insert(std::make_pair(key, std::make_pair(pd, false)));
+    }
 
-   DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData* pd) {
-      assert(pd);
-      //printd(5, "KeyList::insertVirtual this: %p, key: %d, pd: %p, test: %d\n", this, key, pd, keymap.find(key) == keymap.end());
-      if (keymap.find(key) == keymap.end())
-         keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
-   }
+    DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData* pd) {
+        assert(pd);
+        //printd(5, "KeyList::insertVirtual this: %p, key: %d, pd: %p, test: %d\n", this, key, pd, keymap.find(key) == keymap.end());
+        if (keymap.find(key) == keymap.end())
+            keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
+    }
 };
 
 class VRMutex;
 
 class qore_object_private : public RObject {
 public:
-   const QoreClass* theclass;
-   int status = OS_OK;
+    const QoreClass* theclass;
+    int status = OS_OK;
 
-   KeyList* privateData = 0;
-   // member data
-   QoreHashNode* data;
-   QoreProgram* pgm;
-   cdmap_t* cdmap = 0;
+    KeyList* privateData = 0;
+    // member data
+    QoreHashNode* data;
+    QoreProgram* pgm;
+    cdmap_t* cdmap = 0;
 
-   // used for garbage collection
-   mutable unsigned obj_count = 0;
+    // used for garbage collection
+    mutable unsigned obj_count = 0;
 
-   mutable VRMutex gate;
+    mutable VRMutex gate;
 
-   bool system_object, delete_blocker_run, in_destructor;
-   bool recursive_ref_found;
+    bool system_object, delete_blocker_run, in_destructor;
+    bool recursive_ref_found;
 
-   QoreObject* obj;
+    QoreObject* obj;
 
-   DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data);
+    DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data);
 
-   DLLLOCAL ~qore_object_private();
+    DLLLOCAL ~qore_object_private();
 
-   DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
-      if (!v)
-         return;
+    DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
+        if (!v)
+            return;
 
-      // do not need ensure_unique() for objects
-      if (v->getType() == NT_OBJECT)
-         merge(*const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(v))->priv, vl, xsink);
-      else if (v->getType() == NT_HASH)
-         merge(reinterpret_cast<const QoreHashNode*>(v), vl, xsink);
-   }
+        // do not need ensure_unique() for objects
+        if (v->getType() == NT_OBJECT)
+            merge(*const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(v))->priv, vl, xsink);
+        else if (v->getType() == NT_HASH)
+            merge(reinterpret_cast<const QoreHashNode*>(v), vl, xsink);
+    }
 
-   DLLLOCAL void merge(qore_object_private& o, AutoVLock& vl, ExceptionSink* xsink);
+    DLLLOCAL void merge(qore_object_private& o, AutoVLock& vl, ExceptionSink* xsink);
 
-   DLLLOCAL void merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink);
+    DLLLOCAL void merge(const QoreHashNode* h, AutoVLock& vl, ExceptionSink* xsink);
 
-   DLLLOCAL void mergeIntern(ExceptionSink* xsink, const QoreHashNode* h, bool& check_recursive, ReferenceHolder<QoreListNode>& holder, const qore_class_private* class_ctx, const QoreHashNode* new_internal_data = 0);
+    DLLLOCAL void mergeIntern(ExceptionSink* xsink, const QoreHashNode* h, bool& check_recursive, ReferenceHolder<QoreListNode>& holder, const qore_class_private* class_ctx, const QoreHashNode* new_internal_data = 0);
 
-   DLLLOCAL QoreHashNode* copyData(ExceptionSink* xsink) const;
+    DLLLOCAL QoreHashNode* copyData(ExceptionSink* xsink) const;
 
-   DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink);
+    DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink);
 
-   DLLLOCAL AbstractQoreNode** getMemberValuePtr(const char* key, AutoVLock* vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) const;
+    DLLLOCAL QoreStringNode* firstKey(ExceptionSink* xsink) {
+        // get the current class context
+        const qore_class_private* class_ctx = runtime_get_class();
+        if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
+            class_ctx = 0;
 
-   DLLLOCAL QoreStringNode* firstKey(ExceptionSink* xsink) {
-      // get the current class context
-      const qore_class_private* class_ctx = runtime_get_class();
-      if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
-         class_ctx = 0;
+        QoreAutoVarRWReadLocker al(rml);
 
-      QoreAutoVarRWReadLocker al(rml);
-
-      if (status == OS_DELETED) {
-         makeAccessDeletedObjectException(xsink, theclass->getName());
-         return 0;
-      }
-
-      if (class_ctx) {
-         const char* str = data->getFirstKey();
-         //printd(5, "qore_object_private::firstKey() got %p (%s)\n", str, str ? str : "<null>");
-         return !str ? 0 : new QoreStringNode(str);
-      }
-
-      // get first accessible non-internal member
-      ConstHashIterator hi(data);
-      while (hi.next()) {
-         //printd(5, "qore_object_private::firstKey() checking '%s'\n", hi.getKey());
-         bool internal_member;
-         if (!checkMemberAccessIntern(hi.getKey(), false, class_ctx, internal_member))
-            return new QoreStringNode(hi.getKey());
-         //printd(5, "qore_object_private::firstKey() skipping '%s' (private)\n", hi.getKey());
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL QoreStringNode* lastKey(ExceptionSink* xsink) {
-      // get the current class context
-      const qore_class_private* class_ctx = runtime_get_class();
-      if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
-         class_ctx = 0;
-
-      QoreAutoVarRWReadLocker al(rml);
-
-      if (status == OS_DELETED) {
-         makeAccessDeletedObjectException(xsink, theclass->getName());
-         return 0;
-      }
-
-      if (class_ctx) {
-         const char* str = data->getLastKey();
-         return !str ? 0 : new QoreStringNode(str);
-      }
-
-      // get last accessible non-internal member
-      ReverseConstHashIterator hi(data);
-      while (hi.next()) {
-         bool internal_member;
-         if (!checkMemberAccessIntern(hi.getKey(), false, class_ctx, internal_member))
-            return new QoreStringNode(hi.getKey());
-      }
-
-      return 0;
-   }
-
-   DLLLOCAL QoreHashNode* getSlice(const QoreListNode* l, ExceptionSink* xsink) const {
-      assert(xsink);
-      // get the current class context
-      const qore_class_private* class_ctx = runtime_get_class();
-      if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
-         class_ctx = 0;
-      bool has_public_members = theclass->runtimeHasPublicMembersInHierarchy();
-
-      QoreSafeVarRWReadLocker sl(rml);
-
-      if (status == OS_DELETED) {
-         makeAccessDeletedObjectException(xsink, theclass->getName());
-         return 0;
-      }
-
-      ReferenceHolder<QoreListNode> nl(new QoreListNode, xsink);
-      ReferenceHolder<QoreListNode> int_nl(xsink);
-      ReferenceHolder<QoreListNode> mgl(theclass->hasMemberGate() ? new QoreListNode : 0, xsink);
-
-      ConstListIterator li(l);
-      while (li.next()) {
-         QoreStringValueHelper key(li.getValue(), QCS_DEFAULT, xsink);
-         if (*xsink)
+        if (status == OS_DELETED) {
+            makeAccessDeletedObjectException(xsink, theclass->getName());
             return 0;
+        }
 
-         bool internal_member;
-         int rc = checkMemberAccessIntern(key->getBuffer(), has_public_members, class_ctx, internal_member);
-         if (!rc) {
-            if (internal_member) {
-               if (!int_nl)
-                  int_nl = new QoreListNode;
-               int_nl->push(new QoreStringNode(*key));
-            }
-            else
-               nl->push(new QoreStringNode(*key));
-         }
-         else {
-            if (mgl)
-               mgl->push(new QoreStringNode(*key));
-            else if (rc == QOA_PUB_ERROR) {
-               doPublicException(key->getBuffer(), xsink);
-               return 0;
+        if (class_ctx) {
+            const char* str = data->getFirstKey();
+            //printd(5, "qore_object_private::firstKey() got %p (%s)\n", str, str ? str : "<null>");
+            return !str ? 0 : new QoreStringNode(str);
+        }
+
+        // get first accessible non-internal member
+        ConstHashIterator hi(data);
+        while (hi.next()) {
+            //printd(5, "qore_object_private::firstKey() checking '%s'\n", hi.getKey());
+            bool internal_member;
+            if (!checkMemberAccessIntern(hi.getKey(), false, class_ctx, internal_member))
+                return new QoreStringNode(hi.getKey());
+            //printd(5, "qore_object_private::firstKey() skipping '%s' (private)\n", hi.getKey());
+        }
+
+        return 0;
+    }
+
+    DLLLOCAL QoreStringNode* lastKey(ExceptionSink* xsink) {
+        // get the current class context
+        const qore_class_private* class_ctx = runtime_get_class();
+        if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
+            class_ctx = 0;
+
+        QoreAutoVarRWReadLocker al(rml);
+
+        if (status == OS_DELETED) {
+            makeAccessDeletedObjectException(xsink, theclass->getName());
+            return 0;
+        }
+
+        if (class_ctx) {
+            const char* str = data->getLastKey();
+            return !str ? 0 : new QoreStringNode(str);
+        }
+
+        // get last accessible non-internal member
+        ReverseConstHashIterator hi(data);
+        while (hi.next()) {
+            bool internal_member;
+            if (!checkMemberAccessIntern(hi.getKey(), false, class_ctx, internal_member))
+                return new QoreStringNode(hi.getKey());
+        }
+
+        return 0;
+    }
+
+    DLLLOCAL QoreHashNode* getSlice(const QoreListNode* l, ExceptionSink* xsink) const {
+        assert(xsink);
+        // get the current class context
+        const qore_class_private* class_ctx = runtime_get_class();
+        if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx))
+            class_ctx = nullptr;
+        bool has_public_members = theclass->runtimeHasPublicMembersInHierarchy();
+
+        QoreSafeVarRWReadLocker sl(rml);
+
+        if (status == OS_DELETED) {
+            makeAccessDeletedObjectException(xsink, theclass->getName());
+            return nullptr;
+        }
+
+        ReferenceHolder<QoreListNode> nl(new QoreListNode, xsink);
+        ReferenceHolder<QoreListNode> int_nl(xsink);
+        ReferenceHolder<QoreListNode> mgl(theclass->hasMemberGate() ? new QoreListNode : nullptr, xsink);
+
+        ConstListIterator li(l);
+        while (li.next()) {
+            QoreStringValueHelper key(li.getValue(), QCS_DEFAULT, xsink);
+            if (*xsink)
+                return nullptr;
+
+            bool internal_member;
+            int rc = checkMemberAccessIntern(key->c_str(), has_public_members, class_ctx, internal_member);
+            if (!rc) {
+                if (internal_member) {
+                    if (!int_nl)
+                        int_nl = new QoreListNode;
+                    int_nl->push(new QoreStringNode(*key), nullptr);
+                }
+                else
+                    nl->push(new QoreStringNode(*key), nullptr);
             }
             else {
-               doPrivateException(key->getBuffer(), xsink);
-               return 0;
+                if (mgl)
+                    mgl->push(new QoreStringNode(*key), nullptr);
+                else if (rc == QOA_PUB_ERROR) {
+                    doPublicException(key->c_str(), xsink);
+                    return nullptr;
+                }
+                else {
+                    doPrivateException(key->c_str(), xsink);
+                    return nullptr;
+                }
             }
-         }
-      }
+        }
 
-      ReferenceHolder<QoreHashNode> rv(data->getSlice(*nl, xsink), xsink);
-      if (*xsink)
-         return 0;
-      // get internal members
-      if (int_nl) {
-         assert(class_ctx);
-         const QoreHashNode* odata = getInternalData(class_ctx);
-         if (odata) {
-            ConstListIterator li(*int_nl);
-            while (li.next()) {
-               const char* k = reinterpret_cast<const QoreStringNode*>(li.getValue())->c_str();
-               bool exists;
-               const AbstractQoreNode* v = odata->getKeyValueExistence(k, exists);
-               if (!exists)
-                  continue;
-               rv->setKeyValue(k, v ? v->refSelf() : 0, xsink);
-               if (*xsink)
-                  return 0;
+        ReferenceHolder<QoreHashNode> rv(data->getSlice(*nl, xsink), xsink);
+        if (*xsink)
+            return nullptr;
+        // get internal members
+        if (int_nl) {
+            assert(class_ctx);
+            const QoreHashNode* odata = getInternalData(class_ctx);
+            if (odata) {
+                ConstListIterator li(*int_nl);
+                while (li.next()) {
+                    const char* k = li.getValue().get<const QoreStringNode>()->c_str();
+                    bool exists;
+                    QoreValue v = odata->getKeyValueExistence(k, exists);
+                    if (!exists)
+                        continue;
+                    rv->setKeyValue(k, v.refSelf(), xsink);
+                    if (*xsink)
+                        return nullptr;
+                }
             }
-         }
-      }
-      if (mgl && !mgl->empty()) {
-         // unlock lock and execute memberGate() method for each method in the member gate list (mgl)
-         sl.unlock();
+        }
+        if (mgl && !mgl->empty()) {
+            // unlock lock and execute memberGate() method for each method in the member gate list (mgl)
+            sl.unlock();
 
-         ConstListIterator mgli(*mgl);
-         while (mgli.next()) {
-            const QoreStringNode* k = reinterpret_cast<const QoreStringNode*>(mgli.getValue());
-            ValueHolder n(theclass->evalMemberGate(obj, k, xsink), xsink);
-            //AbstractQoreNode* n = theclass->evalMemberGate(obj, k, xsink);
-            if (*xsink)
-               return 0;
-            rv->setKeyValue(k->getBuffer(), n.getReferencedValue(), xsink);
-         }
-      }
-      return rv.release();
-   }
+            ConstListIterator mgli(*mgl);
+            while (mgli.next()) {
+                const QoreStringNode* k = mgli.getValue().get<const QoreStringNode>();
+                ValueHolder n(theclass->evalMemberGate(obj, k, xsink), xsink);
+                //AbstractQoreNode* n = theclass->evalMemberGate(obj, k, xsink);
+                if (*xsink)
+                    return nullptr;
+                rv->setKeyValue(k->c_str(), n.release(), xsink);
+            }
+        }
+        return rv.release();
+    }
 
-   DLLLOCAL int checkMemberAccessIntern(const char* mem, bool has_public_members, const qore_class_private* class_ctx, bool& internal_member) const {
-      ClassAccess access;
-      const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, access, class_ctx, internal_member);
-      if (!qc)
-         return has_public_members ? QOA_PUB_ERROR : QOA_OK;
-      // if internal_member is true, then private access has already been verified
-      if (internal_member)
-         return QOA_OK;
+    DLLLOCAL int checkMemberAccessIntern(const char* mem, bool has_public_members, const qore_class_private* class_ctx, bool& internal_member) const {
+        ClassAccess access;
+        const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, access, class_ctx, internal_member);
+        if (!qc)
+            return has_public_members ? QOA_PUB_ERROR : QOA_OK;
+        // if internal_member is true, then private access has already been verified
+        if (internal_member)
+            return QOA_OK;
 
-      return ((access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
-   }
+        return ((access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
+    }
 
-   // must be called in the object read lock
-   DLLLOCAL const QoreHashNode* getInternalData(const qore_class_private* class_ctx) const {
-      if (!cdmap)
-         return 0;
-      cdmap_t::const_iterator i = cdmap->find(class_ctx->getHash());
-      return i != cdmap->end() ? i->second : 0;
-   }
+    // must be called in the object read lock
+    DLLLOCAL const QoreHashNode* getInternalData(const qore_class_private* class_ctx) const {
+        if (!cdmap)
+            return nullptr;
+        cdmap_t::const_iterator i = cdmap->find(class_ctx->getHash());
+        return i != cdmap->end() ? i->second : nullptr;
+    }
 
-   // must be called in the object read lock
-   DLLLOCAL QoreHashNode* getInternalData(const qore_class_private* class_ctx) {
-      if (!cdmap)
-         return 0;
-      cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
-      return i != cdmap->end() ? i->second : 0;
-   }
+    // must be called in the object read lock
+    DLLLOCAL QoreHashNode* getInternalData(const qore_class_private* class_ctx) {
+        if (!cdmap)
+            return nullptr;
+        cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
+        return i != cdmap->end() ? i->second : nullptr;
+    }
 
-   // must be called in the object write lock
-   DLLLOCAL QoreHashNode* getCreateInternalData(const qore_class_private* class_ctx) {
-      if (cdmap) {
-         cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
-         if (i != cdmap->end())
-            return i->second;
-      }
-      else
-         cdmap = new cdmap_t;
+    // must be called in the object write lock
+    DLLLOCAL QoreHashNode* getCreateInternalData(const qore_class_private* class_ctx) {
+        if (cdmap) {
+            cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
+            if (i != cdmap->end())
+                return i->second;
+        }
+        else
+            cdmap = new cdmap_t;
 
-      QoreHashNode* id = new QoreHashNode;
-      cdmap->insert(cdmap_t::value_type(class_ctx->getHash(), id));
-      return id;
-   }
+        QoreHashNode* id = new QoreHashNode(autoTypeInfo);
+        cdmap->insert(cdmap_t::value_type(class_ctx->getHash(), id));
+        return id;
+    }
 
-   DLLLOCAL void setValue(const char* key, AbstractQoreNode* val, ExceptionSink* xsink);
+    DLLLOCAL void setValue(const char* key, QoreValue val, ExceptionSink* xsink);
 
-   DLLLOCAL void setValueIntern(const qore_class_private* class_ctx, const char* key, AbstractQoreNode* val, ExceptionSink* xsink);
+    DLLLOCAL void setValueIntern(const qore_class_private* class_ctx, const char* key, QoreValue val, ExceptionSink* xsink);
 
-   DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member) const {
-      ClassAccess access;
-      const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, access, class_ctx, internal_member);
-      if (!qc)
-         return theclass->runtimeHasPublicMembersInHierarchy() ? QOA_PUB_ERROR : QOA_OK;
-      // if internal_member is true, then private access has already been verified
-      if (internal_member)
-         return QOA_OK;
+    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member) const {
+        ClassAccess access;
+        const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, access, class_ctx, internal_member);
+        if (!qc)
+            return theclass->runtimeHasPublicMembersInHierarchy() ? QOA_PUB_ERROR : QOA_OK;
+        // if internal_member is true, then private access has already been verified
+        if (internal_member)
+            return QOA_OK;
 
-      return ((access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
-   }
+        return ((access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
+    }
 
-   DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member, ExceptionSink* xsink) const {
-      int rc = checkMemberAccess(mem, class_ctx, internal_member);
-      if (!rc)
-         return 0;
+    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, bool& internal_member, ExceptionSink* xsink) const {
+        int rc = checkMemberAccess(mem, class_ctx, internal_member);
+        if (!rc)
+            return 0;
 
-      if (rc == QOA_PRIV_ERROR)
-         doPrivateException(mem, xsink);
-      else
-         doPublicException(mem, xsink);
-      return -1;
-   }
-
-   DLLLOCAL int checkMemberAccessGetTypeInfo(ExceptionSink* xsink, const char* mem, const qore_class_private* class_ctx, bool& internal_member, const QoreTypeInfo*& typeInfo) const {
-      ClassAccess access;
-      const QoreMemberInfo* mi = qore_class_private::runtimeGetMemberInfo(*theclass, mem, access, class_ctx, internal_member);
-      if (mi) {
-         if (access > Public && !class_ctx) {
+        if (rc == QOA_PRIV_ERROR)
             doPrivateException(mem, xsink);
+        else
+            doPublicException(mem, xsink);
+        return -1;
+    }
+
+    DLLLOCAL int checkMemberAccessGetTypeInfo(ExceptionSink* xsink, const char* mem, const qore_class_private* class_ctx, bool& internal_member, const QoreTypeInfo*& typeInfo) const {
+        ClassAccess access;
+        const QoreMemberInfo* mi = qore_class_private::runtimeGetMemberInfo(*theclass, mem, access, class_ctx, internal_member);
+        if (mi) {
+            if (access > Public && !class_ctx) {
+                doPrivateException(mem, xsink);
+                return -1;
+            }
+
+            typeInfo = mi->getTypeInfo();
+            return 0;
+        }
+
+        // member is not declared
+        if (theclass->runtimeHasPublicMembersInHierarchy()) {
+            doPublicException(mem, xsink);
             return -1;
-         }
+        }
+        return 0;
+    }
 
-         typeInfo = mi->getTypeInfo();
-         return 0;
-      }
+    DLLLOCAL QoreValue takeMember(ExceptionSink* xsink, const char* mem, bool check_access = true);
 
-      // member is not declared
-      if (theclass->runtimeHasPublicMembersInHierarchy()) {
-         doPublicException(mem, xsink);
-         return -1;
-      }
-      return 0;
-   }
+    DLLLOCAL QoreValue takeMember(LValueHelper& lvh, const char* mem);
 
-   DLLLOCAL AbstractQoreNode* takeMember(ExceptionSink* xsink, const char* mem, bool check_access = true);
+    DLLLOCAL void takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, const QoreListNode* l);
 
-   DLLLOCAL AbstractQoreNode* takeMember(LValueHelper& lvh, const char* mem);
+    DLLLOCAL QoreValue getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const;
 
-   DLLLOCAL void takeMembers(QoreLValueGeneric& rv, LValueHelper& lvh, const QoreListNode* l);
+    // lock not held on entry
+    DLLLOCAL void doDeleteIntern(ExceptionSink* xsink) {
+        printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj: %p\n", obj);
 
-   DLLLOCAL AbstractQoreNode* getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const;
+        // increment reference count temporarily for destructor
+        {
+            AutoLocker slr(rlck);
+            ++obj->references;
+        }
 
-   // lock not held on entry
-   DLLLOCAL void doDeleteIntern(ExceptionSink* xsink) {
-      printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj: %p\n", obj);
+        theclass->execDestructor(obj, xsink);
 
-      // increment reference count temporarily for destructor
-      {
-         AutoLocker slr(rlck);
-         ++obj->references;
-      }
+        cdmap_t* cdm;
+        QoreHashNode* td;
+        {
+            QoreAutoVarRWWriteLocker al(rml);
+            assert(status != OS_DELETED);
+            assert(data);
+            status = OS_DELETED;
 
-      theclass->execDestructor(obj, xsink);
+            cdm = cdmap;
+            cdmap = 0;
 
-      cdmap_t* cdm;
-      QoreHashNode* td;
-      {
-         QoreAutoVarRWWriteLocker al(rml);
-         assert(status != OS_DELETED);
-         assert(data);
-         status = OS_DELETED;
+            td = data;
+            data = 0;
 
-         cdm = cdmap;
-         cdmap = 0;
+            removeInvalidateRSetIntern();
+        }
 
-         td = data;
-         data = 0;
+        cleanup(xsink, td, cdm);
 
-         removeInvalidateRSetIntern();
-      }
+        obj->deref(xsink);
+    }
 
-      cleanup(xsink, td, cdm);
-
-      obj->deref(xsink);
-   }
-
-   DLLLOCAL void cleanup(ExceptionSink* xsink, QoreHashNode* td, cdmap_t* cdm) {
-      if (privateData) {
-         printd(5, "qore_object_private::cleanup() this: %p privateData: %p\n", this, privateData);
-         delete privateData;
+    DLLLOCAL void cleanup(ExceptionSink* xsink, QoreHashNode* td, cdmap_t* cdm) {
+        if (privateData) {
+            printd(5, "qore_object_private::cleanup() this: %p privateData: %p\n", this, privateData);
+            delete privateData;
 #ifdef DEBUG
-         privateData = 0;
+            privateData = 0;
 #endif
-      }
+        }
 
-      td->clear(xsink, true);
-      td->deref(xsink);
+        td->clear(xsink, true);
+        td->deref(xsink);
 
-      if (cdm) {
-         for (auto& i : *cdm) {
-            i.second->clear(xsink, true);
-            i.second->deref(xsink);
-         }
-         delete cdm;
-      }
-   }
+        if (cdm) {
+            for (auto& i : *cdm) {
+                i.second->clear(xsink, true);
+                i.second->deref(xsink);
+            }
+            delete cdm;
+        }
+    }
 
    // this method is called when there is an exception in a constructor and the object should be deleted
    DLLLOCAL void obliterate(ExceptionSink* xsink) {
@@ -652,21 +658,17 @@ public:
 
    DLLLOCAL AbstractPrivateData* getAndRemovePrivateData(qore_classid_t key, ExceptionSink* xsink) {
       QoreSafeVarRWWriteLocker sl(rml);
-      return privateData ? privateData->getAndRemovePtr(key) : 0;
+      return privateData ? privateData->getAndRemovePtr(key) : nullptr;
    }
 
    DLLLOCAL AbstractPrivateData* getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
 
    DLLLOCAL AbstractPrivateData* tryGetReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
 
-   DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
+   DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
 
-   // no locking necessary; if class_ctx is non-null, an internal member is being initialized
-   AbstractQoreNode** getMemberValuePtrForInitialization(const char* member, const qore_class_private* class_ctx) {
-      QoreHashNode* odata = class_ctx ? getCreateInternalData(class_ctx) : data;
-      //printd(5, "qore_object_private::getMemberValuePtrForInitialization() this: %p mem: '%s' class_ctx: %p %s odata: %p\n", this, member, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", odata);
-      return odata->getKeyValuePtr(member);
-   }
+    // no locking necessary; if class_ctx is non-null, an internal member is being initialized
+    DLLLOCAL QoreValue& getMemberValueRefForInitialization(const char* member, const qore_class_private* class_ctx);
 
    //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
    /**
@@ -727,7 +729,7 @@ public:
       return theclass->getName();
    }
 
-   DLLLOCAL static QoreValue evalBuiltinMethodWithPrivateData(QoreObject& obj, const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+   DLLLOCAL static QoreValue evalBuiltinMethodWithPrivateData(QoreObject& obj, const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
       return obj.priv->evalBuiltinMethodWithPrivateData(method, meth, args, rtflags, xsink);
    }
 
@@ -739,11 +741,11 @@ public:
       return obj.priv;
    }
 
-   DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
+   DLLLOCAL static QoreValue takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
       return obj.priv->takeMember(xsink, mem, check_access);
    }
 
-   DLLLOCAL static AbstractQoreNode* takeMember(QoreObject& obj, LValueHelper& lvh, const char* mem) {
+   DLLLOCAL static QoreValue takeMember(QoreObject& obj, LValueHelper& lvh, const char* mem) {
       return obj.priv->takeMember(lvh, mem);
    }
 
@@ -753,10 +755,6 @@ public:
 
    DLLLOCAL static int getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink) {
       return obj.priv->getLValue(key, lvh, class_ctx, for_remove, xsink);
-   }
-
-   DLLLOCAL static AbstractQoreNode** getMemberValuePtr(const QoreObject* obj, const char* key, AutoVLock *vl, const QoreTypeInfo*& typeInfo, ExceptionSink* xsink) {
-      return obj->priv->getMemberValuePtr(key, vl, typeInfo, xsink);
    }
 
    DLLLOCAL static void plusEquals(QoreObject* obj, const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {

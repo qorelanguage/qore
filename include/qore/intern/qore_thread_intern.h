@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  qore_thread_intern.h
+    qore_thread_intern.h
 
-  POSIX thread library for Qore
+    POSIX thread library for Qore
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QORE_THREAD_INTERN_H
@@ -189,7 +189,7 @@ class QoreClosureParseNode;
 
 class QoreModuleDefContext {
 protected:
-   DLLLOCAL void initClosure(const QoreProgramLocation& loc, AbstractQoreNode*& c, const char* n);
+   DLLLOCAL void initClosure(const QoreProgramLocation* loc, AbstractQoreNode*& c, const char* n);
 
 public:
    typedef std::set<std::string> strset_t;
@@ -198,8 +198,8 @@ public:
    AbstractQoreNode* init_c = nullptr, // the initialization closure
       * del_c = nullptr;               // the destructor closure
 
-   QoreProgramLocation init_loc,
-      del_loc;
+   const QoreProgramLocation* init_loc,
+      * del_loc;
 
    DLLLOCAL QoreModuleDefContext() {
    }
@@ -217,7 +217,7 @@ public:
    // set of tag definitions
    strmap_t vmap;
 
-   DLLLOCAL void set(const QoreProgramLocation& loc, const char* key, const AbstractQoreNode* val);
+   DLLLOCAL void set(const QoreProgramLocation* loc, const char* key, const AbstractQoreNode* val);
 
    DLLLOCAL const char* get(const char* str) const {
       strmap_t::const_iterator i = vmap.find(str);
@@ -231,7 +231,7 @@ public:
    DLLLOCAL QoreClosureParseNode* takeDel();
 };
 
-DLLLOCAL QoreValue do_op_background(const AbstractQoreNode* left, ExceptionSink* xsink);
+DLLLOCAL QoreValue do_op_background(const QoreValue left, ExceptionSink* xsink);
 
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink* xsink);
@@ -243,14 +243,12 @@ DLLLOCAL void* endParsing();
 DLLLOCAL Context* get_context_stack();
 DLLLOCAL void update_context_stack(Context* cstack);
 
-DLLLOCAL QoreProgramLocation get_runtime_location();
-DLLLOCAL QoreProgramLocation update_get_runtime_location(const QoreProgramLocation& loc);
-DLLLOCAL void update_runtime_location(const QoreProgramLocation& loc);
+DLLLOCAL const QoreProgramLocation* get_runtime_location();
+DLLLOCAL const QoreProgramLocation* update_get_runtime_location(const QoreProgramLocation* loc);
+DLLLOCAL void update_runtime_location(const QoreProgramLocation* loc);
 
 DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
 DLLLOCAL const char* get_parse_code();
-DLLLOCAL QoreProgramLocation get_parse_location();
-DLLLOCAL void update_parse_location(const QoreProgramLocation& loc);
 
 DLLLOCAL const QoreTypeInfo* parse_set_implicit_arg_type_info(const QoreTypeInfo* ti);
 DLLLOCAL const QoreTypeInfo* parse_get_implicit_arg_type_info();
@@ -278,11 +276,11 @@ DLLLOCAL void end_signal_thread(ExceptionSink* xsink);
 DLLLOCAL void delete_thread_local_data();
 DLLLOCAL void parse_cond_push(bool mark = false);
 DLLLOCAL bool parse_cond_else();
-DLLLOCAL bool parse_cond_pop(const QoreProgramLocation& loc);
-DLLLOCAL bool parse_cond_test(const QoreProgramLocation& loc);
+DLLLOCAL bool parse_cond_pop(const QoreProgramLocation* loc);
+DLLLOCAL bool parse_cond_test(const QoreProgramLocation* loc);
 DLLLOCAL void push_parse_options();
 DLLLOCAL void parse_try_module_inc();
-DLLLOCAL bool parse_try_module_dec(const QoreProgramLocation& loc);
+DLLLOCAL bool parse_try_module_dec(const QoreProgramLocation* loc);
 DLLLOCAL unsigned parse_try_module_get();
 DLLLOCAL void parse_try_module_set(unsigned c);
 
@@ -399,9 +397,9 @@ public:
 
 class QoreProgramLocationHelper {
 protected:
-   const QoreProgramLocation loc;
+   const QoreProgramLocation* loc;
 public:
-   DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation& n_loc) : loc(update_get_runtime_location(n_loc)) {
+   DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation* n_loc) : loc(update_get_runtime_location(n_loc)) {
    }
 
    DLLLOCAL ~QoreProgramLocationHelper() {
@@ -411,19 +409,19 @@ public:
 
 class QoreProgramOptionalLocationHelper {
 protected:
-   QoreProgramLocation loc;
-   bool restore;
+    const QoreProgramLocation* loc;
+    bool restore;
 
 public:
-   DLLLOCAL QoreProgramOptionalLocationHelper(const QoreProgramLocation* n_loc) : restore((bool)n_loc) {
-      if (n_loc)
-         loc = update_get_runtime_location(*n_loc);
-   }
+    DLLLOCAL QoreProgramOptionalLocationHelper(const QoreProgramLocation* n_loc) : restore((bool)n_loc) {
+        if (n_loc)
+            loc = update_get_runtime_location(n_loc);
+    }
 
-   DLLLOCAL ~QoreProgramOptionalLocationHelper() {
-      if (restore)
-         update_runtime_location(loc);
-   }
+    DLLLOCAL ~QoreProgramOptionalLocationHelper() {
+        if (restore)
+            update_runtime_location(loc);
+    }
 };
 
 // allows for the parse lock for the current program to be acquired by binary modules
@@ -633,29 +631,17 @@ class ProgramThreadCountContextHelper {
 public:
    DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
    DLLLOCAL ~ProgramThreadCountContextHelper();
-
-   DLLLOCAL int getNextContext(ThreadLocalProgramData*& tlpd, ProgramThreadCountContextHelper*& ch) const {
-      if (!nextOk() || !old_ctx)
-         return -1;
-      tlpd = old_tlpd;
-      ch = old_ctx;
-      return 0;
-   }
-
-   DLLLOCAL QoreProgram* getProgram() const {
-      return old_pgm;
-   }
-
+   static ThreadLocalProgramData* getContextFrame(int& frame, ExceptionSink* xsink);
+   bool isFirstThreadLocalProgramData(const ThreadLocalProgramData* tlpd) const;
 protected:
    QoreProgram* old_pgm = nullptr;
    ThreadLocalProgramData* old_tlpd = nullptr;
    ProgramThreadCountContextHelper* old_ctx = nullptr;
+   // frame count of tlpd when context is started
+   int save_frameCount = 0;
+   int old_frameCount;
    bool restore = false;
-
-   // returns true if the next program allows debugging
-   DLLLOCAL bool nextOk() const {
-      return old_pgm;
-   }
+   bool init_tlpd = false;
 };
 
 class ProgramRuntimeParseContextHelper {
@@ -765,52 +751,45 @@ public:
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 class CallNode {
 public:
-   const char* func;
-   QoreProgramLocation loc;
-   int type;
+    const char* func;
+    const QoreProgramLocation* loc;
+    int type;
 
-   QoreObject* obj;
-   const qore_class_private* cls;
-   CallNode* next, *prev;
+    QoreObject* obj;
+    const qore_class_private* cls;
+    CallNode* next, *prev;
 
-   DLLLOCAL CallNode(const char* f, int t, QoreObject* o, const qore_class_private* c);
-   DLLLOCAL QoreHashNode* getInfo() const;
+    DLLLOCAL CallNode(const char* f, int t, QoreObject* o, const qore_class_private* c);
+    DLLLOCAL QoreHashNode* getInfo() const;
 };
 
 class CallStack {
 private:
-   CallNode* tail;
+    CallNode* tail;
 
 public:
-   DLLLOCAL CallStack();
-   DLLLOCAL ~CallStack();
-   DLLLOCAL QoreListNode* getCallStack() const;
-   DLLLOCAL void push(CallNode* cn);
-   DLLLOCAL void pop(ExceptionSink* xsink);
-   /*
-   DLLLOCAL void substituteObjectIfEqual(QoreObject* o);
-   DLLLOCAL QoreObject* getStackObject() const;
-   DLLLOCAL const qore_class_private* getStackClass() const;
-   DLLLOCAL QoreObject* substituteObject(QoreObject* o);
-   DLLLOCAL bool inMethod(const char* name, QoreObject* o) const;
-   */
+    DLLLOCAL CallStack();
+    DLLLOCAL ~CallStack();
+    DLLLOCAL QoreListNode* getCallStack() const;
+    DLLLOCAL void push(CallNode* cn);
+    DLLLOCAL void pop(ExceptionSink* xsink);
 };
 
 class CallStackHelper : public CallNode {
-   ExceptionSink* xsink;
+    ExceptionSink* xsink;
 
-   // not implemented
-   DLLLOCAL CallStackHelper(const CallStackHelper&);
-   DLLLOCAL CallStackHelper& operator=(const CallStackHelper&);
-   DLLLOCAL void* operator new(size_t);
+    // not implemented
+    DLLLOCAL CallStackHelper(const CallStackHelper&);
+    DLLLOCAL CallStackHelper& operator=(const CallStackHelper&);
+    DLLLOCAL void* operator new(size_t);
 
 public:
-   DLLLOCAL CallStackHelper(const char* f, int t, QoreObject* o, const qore_class_private* c, ExceptionSink* n_xsink) : CallNode(f, t, o, c), xsink(n_xsink) {
-      pushCall(this);
-   }
-   DLLLOCAL ~CallStackHelper() {
-      popCall(xsink);
-   }
+    DLLLOCAL CallStackHelper(const char* f, int t, QoreObject* o, const qore_class_private* c, ExceptionSink* n_xsink) : CallNode(f, t, o, c), xsink(n_xsink) {
+        pushCall(this);
+    }
+    DLLLOCAL ~CallStackHelper() {
+        popCall(xsink);
+    }
 };
 
 class CodeContextHelper : public CodeContextHelperBase, public CallStackHelper {
@@ -976,7 +955,7 @@ public:
    }
 
    DLLLOCAL void delProgram(QoreProgram* pgm);
-   DLLLOCAL void saveProgram(bool runtime, ExceptionSink* xsink);
+   DLLLOCAL bool saveProgram(bool runtime, ExceptionSink* xsink);
    DLLLOCAL void del(ExceptionSink* xsink);
 
    DLLLOCAL void deref() {
@@ -989,10 +968,12 @@ public:
 class ThreadFrameBoundaryHelper {
 public:
     DLLLOCAL ThreadFrameBoundaryHelper() {
+        //printd(5, "ThreadFrameBoundaryHelper::ThreadFrameBoundaryHelper: this:%p\n", this);
         thread_push_frame_boundary();
     }
 
     DLLLOCAL ~ThreadFrameBoundaryHelper() {
+        //printd(5, "ThreadFrameBoundaryHelper::~ThreadFrameBoundaryHelper: this:%p\n", this);
         thread_pop_frame_boundary();
     }
 };

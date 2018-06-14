@@ -16,9 +16,9 @@
 
 class SQLStatementTest inherits QUnit::Test {
     public {
-        const MyOpts = Opts + (
+        const MyOpts = Opts + {
             "connstr": "c,conn=s",
-            );
+        };
 
         const OptionColumn = 22;
     }
@@ -165,13 +165,13 @@ class SQLStatementTest inherits QUnit::Test {
         }
     }
 
-    private del(SQLStatement stmt, Queue  q) {
+    private del(SQLStatement stmt, Queue q) {
         # this will cause a crash without the fix for #2334
         try {
             stmt.exec();
             q.push("NO-ERROR");
         }
-        catch (hash ex) {
+        catch (hash<ExceptionInfo> ex) {
             q.push(ex.err);
         }
     }

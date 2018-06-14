@@ -398,7 +398,6 @@ set(LIBQORE_CPP_SRC
     lib/QoreImplicitArgumentNode.cpp
     lib/QoreImplicitElementNode.cpp
     lib/Function.cpp
-    lib/BuiltinFunctionList.cpp
     lib/GlobalVariableList.cpp
     lib/FunctionList.cpp
     lib/AbstractStatement.cpp
@@ -632,12 +631,12 @@ endif (WIN32 AND MINGW AND MSYS)
 
 set_target_properties(libqore PROPERTIES OUTPUT_NAME qore)
 if (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 5)
-    set_target_properties(libqore PROPERTIES SOVERSION 5)
+    set_target_properties(libqore PROPERTIES VERSION 6)
+    set_target_properties(libqore PROPERTIES SOVERSION 6)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 5.14.2)
-    set_target_properties(libqore PROPERTIES SOVERSION 5)
+    set_target_properties(libqore PROPERTIES VERSION 6.0.0)
+    set_target_properties(libqore PROPERTIES SOVERSION 6)
 endif (APPLE)
 
 # prepare qore target
@@ -796,6 +795,7 @@ qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUti
 
 # base 4 modules
 qore_user_module("qlib/RestSchemaValidator.qm" "HttpServerUtil")
+qore_user_module("qlib/DebugLinenoiseCmdLine.qm" "DebugUtil;DebugCmdLine")
 
 # base 5 modules
 qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator")

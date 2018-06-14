@@ -8,6 +8,19 @@
     WIP
 
     @subsection qore_09_compatibility Changes That Can Affect Backwards-Compatibility
+    - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
+    - Qore classes and functions can no longer be modified after creation; any attempt to add a new user
+      variant to an existing function or to add new declarations to an existing class will result in a
+      parse error.
+    - @ref Qore::Program "Program" objects now only support a single complete parse action
+      (@ref Qore::Program::parse() "Program::parse()" or @ref Qore::Program::parseCommit() "Program::parseCommit()");
+      subsequent attempts to parse code into the same %Program object will fail with an exception.  If parsing fails
+      due to a parse exception, the @ref Qore::Program "Program" object is generally no longer usable and must be
+      recreated to be used.
+    - @ref Qore::Program::parseRollback() "Program::parseRollback()" is now deprecated; this action removes all user
+      code and most builtin code from the @ref Qore::Program "Program" object; delete the object instead of using
+      this method
+
     WIP
 
     @subsection qore_09_new_features New Features in Qore
@@ -42,37 +55,153 @@
     - new @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
       - \c "Dn" and \c "DN": the ordinal day number in the year
       - \c "I": ISO-8601 week string
-      - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
-      - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
       - \c "Id" and \c "ID": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> day number
+      - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_date "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
+      - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
+      - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
     - module updates
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module changes:
         - the \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
           connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
       - <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
-      - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module changes:
+      - <a href="../../modules/HttpServer/html.indexhtml">HttpServer</a> module changes:
+        - added support for adding new HTTP methods to the server with the \c HttpServer::addHttpMethod() method
+          (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
+      - <a href="../../modules/MysqlSqlUtil/html.indexhtml">MysqlSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
-      - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module changes:
+      - <a href="../../modules/OracleSqlUtil/html.indexhtml">OracleSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
-      - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes:
+      - <a href="../../modules/PgsqlSqlUtil/html.indexhtml">PgsqlSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
-      - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module changes:
+      - <a href="../../modules/RestSchemaValidator/html.indexhtml">RestSchemaValidator</a> module changes:
+        - updated the default validator to try all serialization methods if multiple methods are available and one fails
+          (<a href="https://github.com/qorelanguage/qore/issues/2831">issue 2831</a>)
+      - <a href="../../modules/SqlUtil/html.indexhtml">SqlUtil</a> module changes:
         - deprecated \c AbstractTable::getRowIterator() for \c AbstractTable::getStatement() (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
         - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/Util/html/index.html">Util</a> module updates:
         - added public function \c parse_ranges() (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
         - added public function \c check_ip_address() (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
+    - @ref relative_dates "relative date" changes
+        - fraction seconds are accepted in the @ref single_reldates
+        - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
 
+    - fixed a bug where class members could be initialized multiple times in a class with multiple
+      inheritance where the same class is inherited multiple times in the hierarchy
+      (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
+    - fixed bugs handling @ref abstract "abstract" methods in complex hierarchies with multiple inheritance (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
     - fixed bugs handling object scope in @ref background "background" expressions (<a href="https://github.com/qorelanguage/qore/issues/2653">issue 2653</a>)
+
+    @section qore_08136 Qore 0.8.13.6
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08136_bug_fixes Bug Fixes in Qore
+    - fixed a memory leak in @ref Qore::TreeMap::put() "TreeMap::put()"
+      (<a href="https://github.com/qorelanguage/qore/issues/2840">issue 2840</a>)
+    - fixed a crashing bug in \c qpp (used in building Qore from source)
+      (<a href="https://github.com/qorelanguage/qore/issues/2838">issue 2838</a>)
+    - fixed a crashing bug in @ref Qore::Socket::accept() "Socket::accept()" handling
+      (<a href="https://github.com/qorelanguage/qore/issues/2835">issue 2835</a>)
+    - fixed a cosmetic bug in module load error messages to provide the context of the module where the error
+      is found in cases where it was missing
+      (<a href="https://github.com/qorelanguage/qore/issues/2834">issue 2834</a>)
+    - module fixes:
+      - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>:
+        - schenma alignment fails when user accidentally creates table
+          schema with strings instead of hashes
+          (<a href="https://github.com/qorelanguage/qore/issues/2761">issue 2358</a>)
+
+    @section qore_08135 Qore 0.8.13.5
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08135_bug_fixes Bug Fixes in Qore
+    - fixed a bug where user modules with global variables could not be loaded into @ref Qore::Program "Program"
+      containers where @ref Qore::PO_NO_GLOBAL_VARS "PO_NO_GLOBAL_VARS" was set
+      (<a href="https://github.com/qorelanguage/qore/issues/2807">issue 2807</a>)
+    - fixed a deadlock with @ref Qore::RWLock "RWLock" and @ref Qore::Condition "Condition" objects when the
+      read lock is held recursively (<a href="https://github.com/qorelanguage/qore/issues/2817">issue 2817</a>)
+    - module fixes:
+      - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>:
+        - implemented the \c number_format option to allow numbers with alternative decimal separators
+          to be parsed and generated (<a href="https://github.com/qorelanguage/qore/issues/2806">issue 2806</a>)
+      - <a href="../../modules/RestClient/html/index.html">RestClient</a>:
+        - added support for REST requests with binary message bodies; added the \c "bin" serialization method
+        (<a href="https://github.com/qorelanguage/qore/issues/2816">issue 2816</a>)
+      - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a>:
+        - fixed the null validator to handle binary message bodies; fixed issues with \c "text"
+          serialization with binary message bodies
+          (<a href="https://github.com/qorelanguage/qore/issues/2816">issue 2816</a>)
+
+      - <a href="../../modules/Mime/html/index.html">Mime</a>:
+        - fixed a bug in \c mime_parse_form_urlencoded_string() where
+          repeated elements would be overwriteen by subsequent keys with the same name
+          (<a href="https://github.com/qorelanguage/qore/issues/2761">issue 2761</a>)
+
+    @section qore_08134 Qore 0.8.13.4
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08134_bug_fixes Bug Fixes in Qore
+    - fixed a bug where hashes and lists with subtype @ref auto_type "auto" were not created correctly with
+      implicit initialization causing excess type stripping which could lead to performance issues with large
+      data structures (<a href="https://github.com/qorelanguage/qore/issues/2767">issue 2767</a>)
+    - implemented a new optional DBI statement method to allow for statement execution only for describing the
+      result set to solve performance issues when describing statements with large data sets
+      (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
+    - fixed a performance bug by eliminating overzealous and unnecessary internal type stripping
+      (<a href="https://github.com/qorelanguage/qore/issues/2791">issue 2791</a>)
+    - module fixes:
+      - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>:
+        - implemented the \c csvutil_set_global_compat_force_empty_string() function and
+          the \c compat_force_empty_string CSV parsing option to force \c "*string" fields with no
+          value to return an empty string when parsing rather than @ref nothing for backwards compatibility
+          with very early versions of CsvUtil
+          (<a href="https://github.com/qorelanguage/qore/issues/2476">issue 2476</a>)
+      - <a href="../../modules/Mime/html/index.html">Mime</a>:
+        - mime_parse_form_urlencoded_string raies a parse exception when there is no value for a key
+          (<a href="https://github.com/qorelanguage/qore/issues/2760">issue 2760</a>)
+      - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes
+        - synonym resolving can fail with duplicated object name
+          (<a href="https://github.com/qorelanguage/qore/issues/2758">issue 758</a>)
+      - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>:
+        - implemented the \c AbstractTable::getRowIteratorNoExec() method (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
+      - <a href="../../modules/TableMapper/html/index.html">TableMapper</a>:
+        - updated to use the new SQL statement DBI method for efficient execution of queries only for describing
+          result sets with outbound mappers to solve performance problems related to mappers that
+          have statements with large data sets (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
+        - fixed @ref TableMapper::RawSqlStatementOutboundMapper "RawSqlStatementOutboundMapper" to be usable without subclassing
+          (<a href="https://github.com/qorelanguage/qore/issues/2775">issue 2775</a>)
 
     @section qore_08133 Qore 0.8.13.3
 
     @par Release Summary
     Bugfix release; see details below
+
+    @subsection qore_08133_new_features New Features in Qore
+    - improved debugging support:
+      - added support for a <a href="https://code.visualstudio.com/">Visual Studio Code</a> debug adapter for %Qore
+      - the debugger can now retrieve sources when running from a remote debug server
+      - debugger options can now be set from command line (verbosity etc.)
+      - the \c onAttach() event is now executed synchronously when the program thread context starts
+      - the \c onDetach() event is executed properly when program thread contexts terminate
+      - the \c onStep() now provides the \c breakpointId value if available
+      - the \c onExit() event was added for greater control over code execution in the debugger
+      - the \c onException() event was improved
+      - server commands now support \c frameid as a parameter
+      - added the following methods to support retrieving source code in the debugger:
+        - @ref Qore::ProgramControl::getSourceFileNames() "ProgramControl::getSourceFileNames()"
+        - @ref Qore::ProgramControl::getSourceLabels() "ProgramControl::getSourceLabels()"
+    - new module:
+      - <a href="../../modules/DebugLinenoiseCmdLine/html/index.html">DebuLinenoiseCmdLine</a>
 
     @subsection qore_08133_bug_fixes Bug Fixes in Qore
     - module fixes:
@@ -93,6 +222,9 @@
     - implemented support for the more concise declaration of immediate typed hash values (<a href="https://github.com/qorelanguage/qore/issues/2675">issue 2675</a>)
     - fixed a bug where a crash would result when evaluating certain expressions in the @ref background "brackground operator" due to a memory error (<a href="https://github.com/qorelanguage/qore/issues/2679">issue 2679</a>)
     - fixed @ref date_formatting "date formatting" output with the \c Z placeholder to always output the UTC offset as documented (<a href="https://github.com/qorelanguage/qore/issues/2684">issue 2684</a>)
+    - fixed program thread context to return frames properly (<a href="https://github.com/qorelanguage/qore/issues/2674">issue 2674</a>)
+    - fixed an internal memory bug that could cause unallocated memory to be read when creating objects (<a href="https://github.com/qorelanguage/qore/issues/2712">issue 2712</a>)
+    - fixed a memory issue with typed hashes that could lead to a runtime creash (<a href="https://github.com/qorelanguage/qore/issues/2725">issue 2725</a>)
 
     @section qore_08132 Qore 0.8.13.2
 

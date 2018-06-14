@@ -15,7 +15,8 @@ const ST_STEP = 3;
 const ST_FUNC_ENTER = 4;
 const ST_FUNC_EXIT = 5;
 const ST_EXCEPTION = 6;
-const ST_DETACH = 7;
+const ST_EXIT = 7;
+const ST_DETACH = 8;
 
 const stResolve = (
   ST_ATTACH: "onAttach",
@@ -24,6 +25,7 @@ const stResolve = (
   ST_FUNC_ENTER: "onFunctionEnter",
   ST_FUNC_EXIT: "onFunctionExit",
   ST_EXCEPTION: "onException",
+  ST_EXIT: "onExit",
   ST_DETACH: "onDetach",
 );
 
@@ -117,14 +119,14 @@ class MyDebugProgram inherits DebugProgram {
     handle(ST_DETACH, pgm, \runState);
   }
 
-  onStep(ProgramControl pgm, int blockStatementId, *int statementId, reference flow, reference runState) {
+  onStep(ProgramControl pgm, int blockStatementId, *int statementId, *int breakpointId, reference flow, reference runState) {
     int st = statementId ? ST_STEP : ST_BLOCK;
     any act = getAction(st);
     if (exists act.flow) {
         #printf("loc:%y, flow: %y\n", statementId, act.flow);
         flow = act.flow;
     }
-    handle(st, pgm, \runState, statementId ?? blockStatementId);
+    handle(st, pgm, \runState, statementId ?? blockStatementId, {"bkptId": breakpointId});
   }
 
   onFunctionEnter(ProgramControl pgm, int statementId, reference runState) {
@@ -146,6 +148,14 @@ class MyDebugProgram inherits DebugProgram {
     }
     #printf("Exception: %y\n", ex);
     handle(ST_EXCEPTION, pgm, \runState, statementId, ("ex": ex));
+  }
+
+  onExit(ProgramControl pgm, int statementId, reference returnValue, reference runState) {
+    any act = getAction(ST_EXIT);
+    if (exists act.retVal) {
+        returnValue = act.retVal;
+    }
+    handle(ST_EXIT, pgm, \runState, statementId, ("retVal": returnValue));
   }
 
 }
@@ -284,6 +294,9 @@ class DebugTest inherits QUnit::Test {
             }
             if (exists el.retVal) {
                 testAssertionValue(sprintf(name+':tracelog %d retval', i), al.retVal, el.retVal);
+            }
+            if (exists el.bkptId) {
+                testAssertionValue(sprintf(name+':tracelog %d bkptid', i), al.bkptId, el.bkptId);
             }
             if (exists el.localVars) {
                 testAssertionValue(sprintf(name+':tracelog %d local vars', i), al.localVars, el.localVars);
@@ -473,20 +486,21 @@ class DebugTest inherits QUnit::Test {
     }
 
     singleThreadBreakpointTest() {
+        Breakpoint b1 = new Breakpoint();
+        Breakpoint b2 = new Breakpoint();
+
         list traceLog2 = (
-            ("func": ST_STEP, "line": line.tstFunction+1),
+            ("func": ST_STEP, "line": line.tstFunction+1, "bkptId": b2.getBreakpointId()),
             ("func": ST_FUNC_EXIT, "line": line.tstFunction+1),
-            ("func": ST_STEP, "line": line.tstProgram+5, "localVars": ("tid": gettid(), "s": "integer", "ret": "MODIFIED")),
+            ("func": ST_STEP, "line": line.tstProgram+5, "bkptId": b1.getBreakpointId(), "localVars": ("tid": gettid(), "s": "integer", "ret": "MODIFIED")),
         );
         list action2 = list(DebugRun, ("runState": DebugUntilReturn), ("func": ST_FUNC_EXIT, "retVal": "MODIFIED", "runState": DebugRun), ("localVars": ("tid", "s", "ret"), "runState": DebugDetach) );
 
-        Breakpoint b1 = new Breakpoint();
         b1.setEnabled(True);
         b1.addThreadId(gettid());
         b1.assignProgram(thisProgram);
         b1.assignStatement(thisProgram.findStatementId('', line.tstProgram+5));
 
-        Breakpoint b2 = new Breakpoint();;
         b2.setEnabled(True);
         b2.addThreadId(gettid());
         b2.assignProgram(thisProgram);
@@ -652,14 +666,20 @@ class DebugTest inherits QUnit::Test {
             return sprintf(\"%s,%d,%d,%d\", s, p, a, b);  #16
           }",
           "label-f1", NOTHING, "/usr/lib/my-source.q", 10, False);
-        p.parse(
+        p.parsePending(
          "sub doSleep(int ms) {
             sleep(ms); #2
           }", "label-sleep", NOTHING, "/usr/lib/my-source.q", 100, False);
-        p.parse("sub main() { f1(10, 'MAIN'); }", "main.q", NOTHING, NOTHING, NOTHING, False);
+        p.parsePending("sub main() { f1(10, 'MAIN'); }", "main.q", NOTHING, NOTHING, NOTHING, False);
         p.parseCommit();
 
         ProgramControl pp = p.getProgram();
+
+	    hash h = pp.getSourceLabels();
+        testAssertionValue(name+'getSourceLabels()', h, ('label-f1':('/usr/lib/my-source.q': 10), 'label-sleep': ('/usr/lib/my-source.q': 100)));
+
+	    h = pp.getSourceFileNames();
+        testAssertionValue(name+'getSourceFileNames()', h, ('/usr/lib/my-source.q': ('label-f1': 10, 'label-sleep': 100), 'main.q': hash()));
 
         assertThrows('PROGRAM-STATEMENT-ERROR', \pp.findStatementId(), ("main.q", 10), name+'findStatementId("main.q", 10) line beyond');
         assertThrows('PROGRAM-STATEMENT-ERROR', \pp.findStatementId(), ("non-exist.q", 1), name+'findStatementId("no-exist.q", 1) non exist');

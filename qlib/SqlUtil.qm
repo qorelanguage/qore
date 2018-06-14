@@ -101,9 +101,13 @@ module SqlUtil {
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
     @subsection sqlutilv1_5 SqlUtil v1.5
+    - implemented the @ref SqlUtil::AbstractTable::getStatementNoExec() "AbstractTable::getStatementNoExec()" method (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
     - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
     - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
     - deprecated @ref SqlUtil::AbstractTable::getRowIterator() "AbstractTable::getRowIterator()" for @ref SqlUtil::AbstractTable::getStatement() "AbstractTable::getStatement()" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
+
+    @subsection sqlutilv1_4_3 SqlUtil v1.4.4
+    - implemented the @ref SqlUtil::AbstractTable::getRowIteratorNoExec() "AbstractTable::getRowIteratorNoExec()" method (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
 
     @subsection sqlutilv1_4_3 SqlUtil v1.4.3
     - implemented support for an optional error-handling method in SQL callbacks to allow SqlUtil to recover from error scenarios in schema creation/alignment (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
@@ -4820,14 +4824,14 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         # serializes the object's data to a hash
         hash<SqlUtilDeserialization> serialize() {
             return new hash<SqlUtilDeserialization>({
-                "members": (map {$1: serializeValue($1, self{$1})}, keys self),
+                "members": (map {$1: serializeValue($1, self{$1})}, keys self, exists self{$1}),
                 "className": self.className(),
             });
         }
 
         # used to deserialize data from a hash
         private deserialize(hash<auto> members) {
-            map self{$1.key} = deserializeValue($1.key, $1.value), members.pairIterator(), exists $1.value;
+            map self{$1.key} = deserializeValue($1.key, $1.value), members.pairIterator();
         }
 
         # returns a serialized value or throws an exception if the value cannot be serialized
@@ -5359,6 +5363,11 @@ int num = l.size();
             foreach string name in (tables.keyIterator()) {
                 if (h.hasKey(name))
                     continue;
+                if (tables{name}.typeCode() != NT_HASH) {
+                    throw "ALIGN-TABLE-ERROR",
+                            sprintf("table '%s' schema definition has to be hash, but it's %s",
+                                    name, tables{name}.type());
+                }
                 hash th = tables{name} - "rename";
                 # create table template
                 Table t(ds, th, name, opt + ("table_cache": self));
@@ -6977,7 +6986,7 @@ AbstractDatabase db("pgsql:user/pass@db%host");
                 "mod": mod,
                 "members": {
                     "ds": sqlutil_ds(ds),
-                } + map {$1: serializeValue($1, self{$1})}, keys self, $1 != "ds" && $1 != "l",
+                } + map {$1: serializeValue($1, self{$1})}, keys self, exists self{$1} && $1 != "ds" && $1 != "l",
             });
         }
 
@@ -7589,6 +7598,13 @@ list l = db.getAlignSql(schema_hash);
             i = new HashIterator(schema_hash.sequences);
             while (i.next()) {
                 string name = i.getKey();
+
+                if (i.getValue().typeCode() != NT_HASH) {
+                    throw "SEQUENCE-DESCRIPTION-ERROR",
+                            sprintf("sequence '%s' schema definition has to be hash, but it's %s",
+                                    name, i.getValue().type());
+                }
+
                 hash sh = i.getValue();
                 validateOptionsIntern("SEQUENCE-DESCRIPTION-ERROR", getSequenceDescriptionOptions(), \sh);
 
@@ -8372,7 +8388,7 @@ string sql = t.getSqlFromList(list);
          */
         computeStatistics(*hash options) {
             validateOptionsIntern("COMPUTE-STATISTICS-ERROR", getComputeStatisticsOptions(), \options);
-            return computeStatisticsImpl(options);
+            computeStatisticsImpl(options);
         }
 
         #! Reclaim taken but unused space in the DB
@@ -8385,7 +8401,7 @@ string sql = t.getSqlFromList(list);
          */
         reclaimSpace(*hash options) {
             validateOptionsIntern("RECLAIM-SPACE-ERROR", getReclaimSpaceOptions(), \options);
-            return reclaimSpaceImpl(options);
+            reclaimSpaceImpl(options);
         }
 
         private validateOptionsIntern(string err, hash ropt, reference<hash> opt) {
@@ -12294,6 +12310,34 @@ SQLStatement i = table.getRowIterator(sh);
             return cast<SQLStatement>(getStatementIntern(sh, \sql, opt));
         }
 
+        #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments without executing the statement itself; the statement is only prepared
+        /** @par Example:
+            @code{.py}
+SQLStatement i = table.getRowIteratorNoExec(sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - no transaction thread resources / locks are acquired with this method as the SQL statement is not executed
+
+            @see getRowIterator()
+
+            @deprecated for getStatementNoExec(); if the underlying database connection object returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" instead of an
+            @ref Qore::SQL::SQLStatement "SQLStatement", then an exception will be raised; use getStatementNoExec() instead
+         */
+        Qore::SQL::SQLStatement getRowIteratorNoExec(*hash sh, *reference<string> sql, *hash opt) {
+            return getStatementIntern(sh, \sql, opt, True);
+        }
+
         #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
         /** @par Example:
             @code{.py}
@@ -12338,6 +12382,8 @@ AbstractSQLStatement i = table.getStatement(sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
 
+            @see getStatementNoExec()
+
             @since %SqlUtil 1.5
          */
         Qore::SQL::AbstractSQLStatement getStatement(*hash sh, *reference<string> sql, *hash opt) {
@@ -12362,13 +12408,68 @@ AbstractSQLStatement i = table.getStatement();
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
 
+            @see getStatementNoExec()
+
             @since %SqlUtil 1.5
          */
         Qore::SQL::AbstractSQLStatement getStatement(*hash sh, *hash opt) {
             return getStatementIntern(sh, NOTHING, opt);
         }
 
-        private Qore::SQL::AbstractSQLStatement getStatementIntern(*hash sh, *reference<string> sql, *hash opt) {
+        #! returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments without executing the statement itself; the statement is only prepared
+        /** @par Example:
+            @code{.py}
+AbstractSQLStatement i = table.getStatementNoExec(sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - no transaction thread resources / locks are acquired with this method as the SQL statement is not executed
+
+            @see getStatement()
+
+            @since %SqlUtil 1.5
+         */
+        Qore::SQL::AbstractSQLStatement getStatementNoExec(*hash sh, *reference<string> sql, *hash opt) {
+            return getStatementIntern(sh, \sql, opt, True);
+        }
+
+        #! returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments without executing the statement itself; the statement is only prepared
+        /** @par Example:
+            @code{.py}
+AbstractSQLStatement i = table.getStatement();
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - no transaction thread resources / locks are acquired with this method as the SQL statement is not executed
+
+            @see getStatement()
+
+            @since %SqlUtil 1.5
+         */
+        Qore::SQL::AbstractSQLStatement getStatementNoExec(*hash sh, *hash opt) {
+            return getStatementIntern(sh, NOTHING, opt, True);
+        }
+
+        private Qore::SQL::AbstractSQLStatement getStatementIntern(*hash sh, *reference<string> sql, *hash opt, *bool no_exec) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
             list args;
@@ -12376,7 +12477,14 @@ AbstractSQLStatement i = table.getStatement();
 
             AbstractSQLStatement stmt = ds.getSQLStatement();
             stmt.prepare(sql);
-            execData(stmt, opt, args);
+            if (no_exec) {
+                if (args) {
+                    stmt.bindArgs(args);
+                }
+            }
+            else {
+                execData(stmt, opt, args);
+            }
 
             return stmt;
         }

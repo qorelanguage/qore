@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -764,9 +764,9 @@ struct qore_qf_private {
          close_intern();
 
          QoreHashNode* h = new QoreHashNode;
-         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DELETED), 0);
-         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+         h->setKeyValue("event", QORE_EVENT_DELETED, 0);
+         h->setKeyValue("source", QORE_SOURCE_FILE, 0);
+         h->setKeyValue("id", (int64)this, 0);
          cb_queue->pushAndTakeRef(h);
 
          // deref and remove event queue
@@ -778,12 +778,12 @@ struct qore_qf_private {
    DLLLOCAL void do_open_event_unlocked(const char* fn, int flags, int mode, const QoreEncoding* enc) const {
       if (cb_queue) {
          QoreHashNode* h = new QoreHashNode;
-         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_OPEN_FILE), 0);
-         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+         h->setKeyValue("event", QORE_EVENT_OPEN_FILE, 0);
+         h->setKeyValue("source", QORE_SOURCE_FILE, 0);
+         h->setKeyValue("id", (int64)this, 0);
          h->setKeyValue("filename", new QoreStringNode(fn), 0);
-         h->setKeyValue("flags", new QoreBigIntNode(flags), 0);
-         h->setKeyValue("mode", new QoreBigIntNode(mode), 0);
+         h->setKeyValue("flags", flags, 0);
+         h->setKeyValue("mode", mode, 0);
          h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), 0);
          cb_queue->pushAndTakeRef(h);
       }
@@ -792,12 +792,12 @@ struct qore_qf_private {
    DLLLOCAL void do_opened_event_unlocked(const char* fn, int flags, int mode, const QoreEncoding* enc) const {
       if (cb_queue) {
          QoreHashNode* h = new QoreHashNode;
-         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_FILE_OPENED), 0);
-         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+         h->setKeyValue("event", QORE_EVENT_FILE_OPENED, 0);
+         h->setKeyValue("source", QORE_SOURCE_FILE, 0);
+         h->setKeyValue("id", (int64)this, 0);
          h->setKeyValue("filename", new QoreStringNode(fn), 0);
-         h->setKeyValue("flags", new QoreBigIntNode(flags), 0);
-         h->setKeyValue("mode", new QoreBigIntNode(mode), 0);
+         h->setKeyValue("flags", flags, 0);
+         h->setKeyValue("mode", mode, 0);
          h->setKeyValue("encoding", new QoreStringNode(enc->getCode()), 0);
          cb_queue->pushAndTakeRef(h);
       }
@@ -806,9 +806,9 @@ struct qore_qf_private {
    DLLLOCAL void do_close_event_unlocked() const {
       if (cb_queue) {
          QoreHashNode* h = new QoreHashNode;
-         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_CHANNEL_CLOSED), 0);
-         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
+         h->setKeyValue("event", QORE_EVENT_CHANNEL_CLOSED, 0);
+         h->setKeyValue("source", QORE_SOURCE_FILE, 0);
+         h->setKeyValue("id", (int64)this, 0);
          cb_queue->pushAndTakeRef(h);
       }
    }
@@ -817,12 +817,12 @@ struct qore_qf_private {
       // post bytes read on event queue, if any
       if (cb_queue) {
          QoreHashNode* h = new QoreHashNode;
-         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DATA_READ), 0);
-         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-         h->setKeyValue("read", new QoreBigIntNode(bytes_read), 0);
-         h->setKeyValue("total_read", new QoreBigIntNode(total_read), 0);
-         h->setKeyValue("total_to_read", new QoreBigIntNode(bufsize), 0);
+         h->setKeyValue("event", QORE_EVENT_DATA_READ, 0);
+         h->setKeyValue("source", QORE_SOURCE_FILE, 0);
+         h->setKeyValue("id", (int64)this, 0);
+         h->setKeyValue("read", bytes_read, 0);
+         h->setKeyValue("total_read", total_read, 0);
+         h->setKeyValue("total_to_read", bufsize, 0);
          cb_queue->pushAndTakeRef(h);
       }
    }
@@ -831,12 +831,12 @@ struct qore_qf_private {
       // post bytes sent on event queue, if any
       if (cb_queue) {
          QoreHashNode* h = new QoreHashNode;
-         h->setKeyValue("event", new QoreBigIntNode(QORE_EVENT_DATA_WRITTEN), 0);
-         h->setKeyValue("source", new QoreBigIntNode(QORE_SOURCE_FILE), 0);
-         h->setKeyValue("id", new QoreBigIntNode((int64)this), 0);
-         h->setKeyValue("written", new QoreBigIntNode(bytes_written), 0);
-         h->setKeyValue("total_written", new QoreBigIntNode(total_written), 0);
-         h->setKeyValue("total_to_write", new QoreBigIntNode(bufsize), 0);
+         h->setKeyValue("event", QORE_EVENT_DATA_WRITTEN, 0);
+         h->setKeyValue("source", QORE_SOURCE_FILE, 0);
+         h->setKeyValue("id", (int64)this, 0);
+         h->setKeyValue("written", bytes_written, 0);
+         h->setKeyValue("total_written", total_written, 0);
+         h->setKeyValue("total_to_write", bufsize, 0);
          cb_queue->pushAndTakeRef(h);
       }
    }
