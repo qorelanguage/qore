@@ -7,9 +7,9 @@
 %require-types
 %enable-all-warnings
 
-%exec-class JoinTest
+%exec-class JoinPathsTest
 
-public class JoinTest inherits QUnit::Test {
+public class JoinPathsTest inherits QUnit::Test {
 
     private {
         list results_generic;
@@ -71,10 +71,10 @@ public class JoinTest inherits QUnit::Test {
         );
     }
 
-    constructor() : Test ("JoinTest", "1.0") {
-        addTestCase("Join test", \test_join_paths());
-        addTestCase("Join test Posix", \test_join_paths_posix());
-        addTestCase("Join test Windows", \test_join_paths_win());
+    constructor() : Test ("JoinPathsTest", "1.0") {
+        addTestCase("Join paths test", \test_join_paths());
+        addTestCase("Join paths test Posix", \test_join_paths_posix());
+        addTestCase("Join paths test Windows", \test_join_paths_win());
         set_return_value(main());
     }
 
