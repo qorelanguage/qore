@@ -57,6 +57,7 @@ module FsUtil {
 
     Currently the module provides the following multiplatform functions:
     @ref FsUtil::basename()
+    @ref FsUtil::join_paths()
 
     Also classes for platform specific operations are available:
     @ref FsUtil::PosixPathHandler
