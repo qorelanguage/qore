@@ -344,10 +344,11 @@ hash h = hash(("a", 1, "b", "two"));
 hash hash(list l) [flags=RET_VALUE_ONLY] {
     ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
 
+    bool valid = true;
     ConstListIterator li(l);
-    while (li.next()) {
+    while (valid && ((valid = li.next()))) {
         QoreStringValueHelper str(li.getValue());
-        h->setKeyValue(str->c_str(), li.next() ? li.getReferencedValue() : QoreValue(), xsink);
+        h->setKeyValue(str->c_str(), ((valid = li.next())) ? li.getReferencedValue() : QoreValue(), xsink);
         if (*xsink)
             return QoreValue();
     }
