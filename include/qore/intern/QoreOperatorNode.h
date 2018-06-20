@@ -71,8 +71,37 @@ public:
    }
 
    DLLLOCAL virtual bool hasEffect() const = 0;
+   DLLLOCAL virtual bool hasEffectAsRoot() const = 0;
 
    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const = 0;
+};
+
+class LValueOperatorNode : public QoreOperatorNode {
+public:
+    DLLLOCAL LValueOperatorNode(const QoreProgramLocation* loc) : QoreOperatorNode(loc) {
+    }
+
+    DLLLOCAL virtual bool hasEffect() const {
+        return true;
+    }
+
+    DLLLOCAL virtual bool hasEffectAsRoot() const {
+        return true;
+    }
+
+    DLLLOCAL int checkLValue(QoreValue exp, int pflag, bool assignment = true) {
+        if (exp) {
+            if (check_lvalue(exp, assignment)) {
+                parse_error(*loc, "expecting lvalue for %s, got '%s' instead", getTypeName(), exp.getTypeName());
+                return -1;
+            }
+            else if ((pflag & PF_BACKGROUND) && exp.getType() == NT_VARREF && exp.get<const VarRefNode>()->getType() == VT_LOCAL) {
+                parse_error(*loc, "illegal local variable modification with the background operator in %s", getTypeName());
+                return -1;
+            }
+        }
+        return 0;
+    }
 };
 
 template <class T = QoreOperatorNode>
@@ -115,6 +144,10 @@ public:
 
     DLLLOCAL virtual bool hasEffect() const {
         return exp.hasEffect();
+    }
+
+    DLLLOCAL virtual bool hasEffectAsRoot() const {
+        return dynamic_cast<const LValueOperatorNode*>(this);
     }
 
     template <class O>
@@ -166,6 +199,10 @@ public:
 
     DLLLOCAL virtual bool hasEffect() const {
         return exp.hasEffect();
+    }
+
+    DLLLOCAL virtual bool hasEffectAsRoot() const {
+        return dynamic_cast<const LValueOperatorNode*>(this);
     }
 
     template <class O>
@@ -234,6 +271,10 @@ public:
         return left.hasEffect() || right.hasEffect();
     }
 
+    DLLLOCAL virtual bool hasEffectAsRoot() const {
+        return dynamic_cast<const LValueOperatorNode*>(this);
+    }
+
     template <class O>
     DLLLOCAL O* copyBackgroundExplicit(ExceptionSink* xsink) const {
         ValueHolder n_left(copy_value_and_resolve_lvar_refs(left, xsink), xsink);
@@ -273,30 +314,6 @@ public:\
     DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {str.concat(&op_str);return 0;}\
     DLLLOCAL virtual const char* getTypeName() const {return op_str.getBuffer();}
 
-class LValueOperatorNode : public QoreOperatorNode {
-public:
-    DLLLOCAL LValueOperatorNode(const QoreProgramLocation* loc) : QoreOperatorNode(loc) {
-    }
-
-    DLLLOCAL virtual bool hasEffect() const {
-        return true;
-    }
-
-    DLLLOCAL int checkLValue(QoreValue exp, int pflag, bool assignment = true) {
-        if (exp) {
-            if (check_lvalue(exp, assignment)) {
-                parse_error(*loc, "expecting lvalue for %s, got '%s' instead", getTypeName(), exp.getTypeName());
-                return -1;
-            }
-            else if ((pflag & PF_BACKGROUND) && exp.getType() == NT_VARREF && exp.get<const VarRefNode>()->getType() == VT_LOCAL) {
-                parse_error(*loc, "illegal local variable modification with the background operator in %s", getTypeName());
-                return -1;
-            }
-        }
-        return 0;
-    }
-};
-
 template <unsigned int N, class T = QoreOperatorNode>
 class QoreNOperatorNodeBase : public T {
 protected:
@@ -333,6 +350,10 @@ public:
             if (e[i].hasEffect())
                 return true;
         return false;
+    }
+
+    DLLLOCAL virtual bool hasEffectAsRoot() const {
+        return dynamic_cast<const LValueOperatorNode*>(this);
     }
 };
 

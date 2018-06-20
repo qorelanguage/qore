@@ -1265,14 +1265,29 @@ static void check_nsmod(const QoreProgramLocation* loc, int mod, qore_ns_private
 }
 
 bool node_has_effect(const AbstractQoreNode* n) {
-   if (!n || n->is_value())
-      return false;
+    if (!n || n->is_value())
+        return false;
 
-   if (n->getType() == NT_OPERATOR)
-      return reinterpret_cast<const QoreOperatorNode*>(n)->hasEffect();
+    if (n->getType() == NT_OPERATOR)
+        return reinterpret_cast<const QoreOperatorNode*>(n)->hasEffect();
 
-   const ParseNode* pn = dynamic_cast<const ParseNode*>(n);
-   return pn ? pn->has_effect() : true;
+    const ParseNode* pn = dynamic_cast<const ParseNode*>(n);
+    // if pn is a function node it's effect actually cannot be evaluated
+    // at this moment because the function flags have not yet been set
+    // and so has_effect() always returns 'true'
+    return pn ? pn->has_effect() : true;
+}
+
+bool node_has_effect_as_root(const AbstractQoreNode* n) {
+    if (!n || n->is_value())
+        return false;
+
+    if (n->getType() == NT_OPERATOR)
+        return reinterpret_cast<const QoreOperatorNode*>(n)->hasEffectAsRoot();
+
+    const ParseNode* pn = dynamic_cast<const ParseNode*>(n);
+    // the same comment as in the above function node_has_effect() applies also here
+    return pn ? pn->has_effect_as_root() : true;
 }
 
 struct MethodNode {
@@ -2116,8 +2131,14 @@ statement:
 
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @1.last_line);
 
-            if (!ok && !node_has_effect($1) && (t != NT_VARREF || !reinterpret_cast<VarRefNode*>($1)->parseIsDecl()))
-                parse_error(*loc, "statement has no effect (%s)", $1 ? $1->getTypeName() : "NOTHING");
+            if (!ok) {
+                if (!node_has_effect_as_root($1) && (t != NT_VARREF || !reinterpret_cast<VarRefNode*>($1)->parseIsDecl())) {
+                    parse_error(*loc, "expression has no effect as top-level statement (%s)", $1 ? $1->getTypeName() : "NOTHING");
+                } else if (!node_has_effect($1) && (t != NT_VARREF || !reinterpret_cast<VarRefNode*>($1)->parseIsDecl())) {
+                    parse_error(*loc, "statement has no effect (%s)", $1 ? $1->getTypeName() : "NOTHING");
+                }
+            }
+
             ignore_return_value($1);
             $$ = new ExpressionStatement(loc, $1);
         }
@@ -3674,8 +3695,9 @@ exp_c:
             // check to see if the expression is legal
             if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
                 parse_error(*loc, "illegal use of 'background' operator (conflicts with parse option PO_NO_THREAD_CONTROL)");
-            else if (!node_has_effect($2))
+            else if (!node_has_effect_as_root($2)) {
                 parse_error(*loc, "argument to background operator (%s) has no effect", get_type_name($2));
+            }
         }
         | BACKQUOTE {
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @1.last_line);

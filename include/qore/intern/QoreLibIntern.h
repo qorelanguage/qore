@@ -454,7 +454,6 @@ class QoreParseListNode;
 #include "qore/intern/QoreException.h"
 #include "qore/intern/StatementBlock.h"
 #include "qore/intern/VarRefNode.h"
-#include "qore/intern/FunctionCallNode.h"
 #include "qore/intern/QoreRegexSubst.h"
 #include "qore/intern/QoreRegex.h"
 #include "qore/intern/QoreTransliteration.h"

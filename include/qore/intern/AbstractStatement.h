@@ -48,6 +48,7 @@
 #define PF_BREAK_OK              (1 << 6)
 #define PF_CONTINUE_OK           (1 << 7)
 #define PF_NO_TOP_LEVEL_LVARS    (1 << 8)
+#define PF_BACKGROUND_CALL_RETURN_VALUE_IGNORED  (1 << 9)
 
 // all definitions in this file are private to the library and subject to change
 class QoreBreakpoint;

@@ -70,9 +70,34 @@ static void invalid_access(const QoreProgramLocation* loc, QoreFunction* func) {
    parse_error(*loc, "parse options do not allow access to builtin %s '%s%s%s()'", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
 }
 
-static void warn_retval_ignored(const QoreProgramLocation* loc, QoreFunction* func) {
-   const char* class_name = func->className();
-   qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_RETURN_VALUE_IGNORED, "RETURN-VALUE-IGNORED", "call to %s %s%s%s() does not have any side effects and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code", class_name ? "method" : "function", class_name ? class_name : "", class_name ? "::" : "", func->getName());
+static void warn_retval_ignored(const QoreProgramLocation* loc, QoreFunction* func, bool is_bg_call = false) {
+    const char* class_name = func->className();
+    qore_program_private::makeParseWarning(
+        getProgram(),
+        *loc,
+        QP_WARN_RETURN_VALUE_IGNORED,
+        "RETURN-VALUE-IGNORED",
+        "%s %s %s%s%s() does not have any side effects and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code",
+            is_bg_call ? "background call to" : "call to",
+            class_name ? "method" : "function",
+            class_name ? class_name : "",
+            class_name ? "::" : "",
+            func->getName());
+}
+
+static void warn_only_may_throw_and_retval_ignored(const QoreProgramLocation* loc, QoreFunction* func, bool is_bg_call = false) {
+    const char* class_name = func->className();
+    qore_program_private::makeParseWarning(
+        getProgram(),
+        *loc,
+        QP_WARN_RETURN_VALUE_IGNORED,
+        "RETURN-VALUE-IGNORED",
+        "%s %s %s%s%s() does not have any side effects except that it may throw an exception and the return value is ignored; to disable this warning, use '%%disable-warning return-value-ignored' in your code",
+            is_bg_call ? "background call to" : "call to",
+            class_name ? "method" : "function",
+            class_name ? class_name : "",
+            class_name ? "::" : "",
+            func->getName());
 }
 
 static void warn_deprecated(const QoreProgramLocation* loc, QoreFunction* func) {
@@ -81,10 +106,18 @@ static void warn_deprecated(const QoreProgramLocation* loc, QoreFunction* func) 
 }
 
 static void check_flags(const QoreProgramLocation* loc, QoreFunction* func, int64 flags, int64 pflag) {
-   if ((pflag & PF_RETURN_VALUE_IGNORED) && ((flags & QC_CONSTANT) == QC_CONSTANT))
-      warn_retval_ignored(loc, func);
-   if (flags & QC_DEPRECATED)
-      warn_deprecated(loc, func);
+    if (pflag & (PF_RETURN_VALUE_IGNORED | PF_BACKGROUND_CALL_RETURN_VALUE_IGNORED)) {
+        bool is_bg_call = (pflag & PF_BACKGROUND_CALL_RETURN_VALUE_IGNORED);
+        if ((flags & QC_CONSTANT) == QC_CONSTANT) {
+            warn_retval_ignored(loc, func, is_bg_call);
+        }
+        else if (flags & QC_RET_VALUE_ONLY) {
+            warn_only_may_throw_and_retval_ignored(loc, func, is_bg_call);
+        }
+    }
+    if (flags & QC_DEPRECATED) {
+        warn_deprecated(loc, func);
+    }
 }
 
 int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar* oflag, int pflag, QoreFunction* func, qore_ns_private* ns, const QoreTypeInfo*& returnTypeInfo) {

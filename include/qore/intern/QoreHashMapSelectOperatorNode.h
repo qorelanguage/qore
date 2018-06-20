@@ -64,6 +64,10 @@ public:
         return new QoreHashMapSelectOperatorNode(loc, n_e0.release(), n_e1.release(), n_e2.release(), n_e3.release());
     }
 
+    DLLLOCAL virtual bool hasEffectAsRoot() const {
+        return true;
+    }
+
 protected:
     const QoreTypeInfo* returnTypeInfo = nullptr;
 

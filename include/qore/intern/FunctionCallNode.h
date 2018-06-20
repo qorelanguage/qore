@@ -84,8 +84,13 @@ protected:
     DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
 
     DLLLOCAL void doFlags(int64 flags) {
-        if (flags & QC_RET_VALUE_ONLY)
+        if (flags & QC_RET_VALUE_ONLY) {
             set_effect(false);
+            set_effect_as_root(false);
+        }
+        if (flags & QC_CONSTANT) {
+            set_effect_as_root(false);
+        }
     }
 
 public:

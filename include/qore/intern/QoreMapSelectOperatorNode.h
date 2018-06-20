@@ -70,6 +70,10 @@ public:
         return rv;
     }
 
+    DLLLOCAL virtual bool hasEffectAsRoot() const {
+        return true;
+    }
+
     DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
 
 protected:

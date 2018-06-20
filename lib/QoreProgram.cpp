@@ -580,7 +580,7 @@ int qore_program_private::internParseCommit() {
     if (!parseSink->isEvent()) {
         // initialize new statements second (for "our" and "my" declarations)
         // also initializes namespaces, constants, etc
-        sb.parseInit(pwo.parse_options);
+        sb.parseInit();
 
         printd(5, "QoreProgram::internParseCommit() this: %p RootNS: %p\n", pgm, RootNS);
     }

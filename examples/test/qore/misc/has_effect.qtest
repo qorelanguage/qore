@@ -1,0 +1,71 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class HasEffectTest
+
+public class HasEffectTest inherits QUnit::Test {
+
+    constructor() : Test("HasEffectTest", "1.0") {
+        addTestCase("has no effect", \hasNoEffect(), NOTHING);
+        addTestCase("return value ignored", \retValIgnored(), NOTHING);
+        set_return_value(main());
+    }
+
+    private hasNoEffectImpl(string statements, bool testAlsoBackground = True) {
+        Program p(PO_NEW_STYLE);
+        assertThrows("PARSE-EXCEPTION", "has no effect", \p.parse(), (statements, ""));
+        if (testAlsoBackground) {
+            assertThrows("PARSE-EXCEPTION", "has no effect", \p.parse(), ("background " + statements, ""));
+        }
+    }
+
+    private retValIgnoredImpl(string statements, bool can_throw, bool testAlsoBackground = True) {
+        string warning = "does not have any side effects";
+        if (can_throw) {
+            warning += " except that it may throw an exception";
+        }
+        warning += " and the return value is ignored";
+
+        Program p(PO_NEW_STYLE);
+        hash parse_result = p.parse(statements, "", WARN_RETURN_VALUE_IGNORED){"err", "desc"};
+        assertEq("RETURN-VALUE-IGNORED", parse_result.err);
+        assertRegex(warning, parse_result.desc);
+
+        if (testAlsoBackground) {
+            Program p2(PO_NEW_STYLE);
+            parse_result = p2.parse("background " + statements, "", WARN_RETURN_VALUE_IGNORED){"err", "desc"};
+            assertEq("RETURN-VALUE-IGNORED", parse_result.err);
+            assertRegex(warning, parse_result.desc);
+            assertRegex("background call to", parse_result.desc);
+        }
+    }
+
+    hasNoEffect() {
+        hasNoEffectImpl("1+2;");
+        hasNoEffectImpl("1+int(2);");
+        hasNoEffectImpl("1+int('2');");
+        hasNoEffectImpl("'asdf' + trim('zxcv ');");
+        hasNoEffectImpl("round(12.3) + 45;");
+        hasNoEffectImpl("sub() {};");
+        hasNoEffectImpl("int sub() {return 12;};");
+        hasNoEffectImpl("string a = 'abcd'; a == substr(0, a.size()-1);");
+        hasNoEffectImpl("string a = 'abcd'; background a == substr(0, a.size()-1);", False);
+    }
+
+    retValIgnored() {
+        retValIgnoredImpl("int(1);", False);
+        retValIgnoredImpl("int('1');", True);
+        retValIgnoredImpl("trim('asdf ');", False);
+        retValIgnoredImpl("string s = 'asdf '; trim(s);", False, False);
+        retValIgnoredImpl("string s = 'asdf '; background trim(s);", False, False);
+        retValIgnoredImpl("substr('asdf ', 2);", True);
+    }
+}
