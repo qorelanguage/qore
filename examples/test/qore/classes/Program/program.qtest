@@ -606,7 +606,7 @@ class ProgramTest inherits QUnit::Test {
                 "argv": ("type": "local", "value": NOTHING),
                 );
 
-            assertEq(vh, p.callFunction("test", 0)-"f");
+            assertEq(vh, p.callFunction("test", 0) - "f");
             assertEq(p, p.callFunction("test", 1).p.value);
         }
 
