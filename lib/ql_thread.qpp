@@ -298,7 +298,7 @@ nothing delete_all_thread_data() [dom=THREAD_CONTROL] {
 auto data = get_thread_data("key1");
     @endcode
 */
-auto get_thread_data(string key) [flags=CONSTANT;dom=THREAD_CONTROL,THREAD_INFO] {
+auto get_thread_data(string key) [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO] {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
    if (!tmp)
       return QoreValue();
