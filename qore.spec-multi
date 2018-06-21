@@ -140,7 +140,7 @@ ldconfig %{_libdir}
 %package stdlib
 Summary: Standard library modules
 Group: System Environment/Libraries
-Requires: libqore = %{version}-%{release}
+Requires: %{libname} = %{version}-%{release}
 Requires: qore-module(abi)%{?_isa} = 0.21
 
 %description stdlib
