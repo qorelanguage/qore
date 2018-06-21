@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FsUtil.qm Qore user module providing file system related functionality
 
-/*  FsUtil.qm Copyright 2017 Qore Technologies, s.r.o.
+/*  FsUtil.qm Copyright 2017 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -56,7 +56,7 @@ module FsUtil {
     All the public symbols in the module are defined in the FsUtil namespace
 
     Currently the module provides the following multiplatform functions:
-    @ref FsUtil::basename()
+    @ref FsUtil::basename_ext()
     @ref FsUtil::join_paths()
 
     Also classes for platform specific operations are available:
@@ -95,22 +95,6 @@ public namespace FsUtil {
             list Delimiters;
         }
 
-        #! returns the segment of given path after the last delimiter
-        /** @param path the path to be processed
-
-            @return everything after the last delimiter
-
-            Delimiters for the current platform are used.
-        */
-        public string basename(string path) {
-            string tail = path;
-            foreach string delim in (self.Delimiters) {
-                int index = tail.rfind(delim) + 1;
-                tail = tail.substr(index);
-            }
-            return tail;
-        }
-
         # to be implemented by platform-specific classes
         public abstract string join_paths(string path1, string path2);
         #public string join(string path1, string path2) {
@@ -138,24 +122,6 @@ public namespace FsUtil {
             if (regex(path, '^[a-zA-Z]:'))
                 return (path.substr(0,2), path.substr(2));
             return ("", path);
-        }
-
-        #! returns the segment of given path after the last delimiter
-        /** @param path the path to be processed
-
-            @return everything after the last delimiter
-
-            Delimiter for the current platform is used.
-        */
-        public string basename(string path) {
-            # get rid of the drive first (if present)
-            string tail = self.split_drive(path)[1];
-            # find the last segment of the rest
-            foreach string delim in (self.Delimiters) {
-                int index = tail.rfind(delim) + 1;
-                tail = tail.substr(index);
-            }
-            return tail;
         }
 
         #! Returns path resulting from joining the given paths
@@ -228,14 +194,30 @@ public namespace FsUtil {
     }
 
     #! this function returns the segment of given path after the last delimiter
-    /** @param path the path to be processed
+    /** @param path      the path to be processed
+        @param extension the extension to cut from basename
 
-        @return the last part of the path - everything after the last delimiter
+        @return everything after the last delimiter except for the extension if present
+
+        @throws EXTENSION-NOT-FOUND the extension is not a part of the path
 
         Delimiters for the current platform are used.
     */
-    public string sub basename(string path) {
-        return local_handler.basename(path);
+    public string sub basename_ext(string path, *string extension) {
+        string bn = basename(path);
+
+        if (!extension) {
+            return bn;
+        }
+
+        int ext_len = extension.length();
+        int bn_len = bn.length();
+        int ext_start = bn_len - ext_len;
+        if (ext_start < 0 || extension != bn[ext_start..]) {
+            throw "EXTENSION-NOT-FOUND", sprintf("Extension '%s' not found in basename '%s'.", extension, bn);
+        }
+        return bn[..ext_start - 1];
+
     }
 
     #! Returns path resulting from joining the given paths
