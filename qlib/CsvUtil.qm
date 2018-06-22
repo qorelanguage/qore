@@ -1177,7 +1177,7 @@ while (i.next()) {
         #! Returns the list of raw string values of the current line
         /** @par Example:
             @code{.py}
-                string s = i.getRawLineValues();
+                list l = i.getRawLineValues();
             @endcode
 
             @return the list of raw string values of the current line. Parsing is done only
