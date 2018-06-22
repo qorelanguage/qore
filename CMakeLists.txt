@@ -11,9 +11,15 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
        ON)
 
 set(VERSION_MAJOR 0)
-set(VERSION_MINOR 8)
-set(VERSION_SUB 13)
-set(VERSION_PATCH 5)
+set(VERSION_MINOR 9)
+set(VERSION_SUB 0)
+
+STRING(LENGTH ${VERSION_SUB} SUB_LEN)
+if (${SUB_LEN} EQUAL 1)
+    set(VERSION_FORMATTED_SUB 0${VERSION_SUB})
+else()
+    set(VERSION_FORMATTED_SUB ${VERSION_SUB})
+endif()
 
 if(DEFINED VERSION_PATCH)
     set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH})
@@ -103,6 +109,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_InputStreamLineIterator.qpp
     lib/QC_SingleValueIterator.qpp
     lib/QC_AbstractDatasource.qpp
+    lib/QC_AbstractSQLStatement.qpp
     lib/QC_RangeIterator.qpp
     lib/QC_Datasource.qpp
     lib/QC_DatasourcePool.qpp
@@ -129,6 +136,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_SSLCertificate.qpp
     lib/QC_SSLPrivateKey.qpp
     lib/QC_ThreadPool.qpp
+    lib/QC_StreamBase.qpp
     lib/QC_InputStream.qpp
     lib/QC_BinaryInputStream.qpp
     lib/QC_StringInputStream.qpp
@@ -301,9 +309,11 @@ qore_search_libs(LIBQORE_LIBS gethostbyname nsl)
 qore_search_libs(LIBQORE_LIBS clock_gettime rt)
 
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBQORE_LIBS})
-qore_check_funcs(access alarm atoll bzero chown clock_gettime doprnt exp2 floor fork fsync getaddrinfo getegid geteuid getgid getgrgid_r getgrnam_r getgroups gethostbyaddr gethostbyname gethostname getnameinfo getppid getpwnam_r getpwuid_r getsockopt gettimeofday getuid glob gmtime_r inet_ntop inet_pton isblank kill lchown localtime_r lstat memmem memmove memset mkfifo mkfifo nanosleep poll pthread_attr_getstacksize putenv random readlink realloc realpath regcomp round select setegid setegid setenv seteuid seteuid setgid setgroups setsid setsockopt setuid setuid sleep socket strcasecmp strcasestr strchr strdup strerror strncasecmp strspn strstr strtoll strtol symlink system tbbmalloc timegm unsetenv usleep vfork vprintf)
+qore_check_funcs(access alarm atoll bzero chown clock_gettime doprnt exp2 floor fork fsync getaddrinfo getegid geteuid getgid getgrgid_r getgrnam_r getgroups gethostbyaddr gethostbyname gethostname getifaddrs getnameinfo getppid getpwnam_r getpwuid_r getsockopt gettimeofday getuid glob gmtime_r inet_ntop inet_pton isblank kill lchown localtime_r lstat memmem memmove memset mkfifo mkfifo nanosleep poll pthread_attr_getstacksize putenv random readlink realloc realpath regcomp round select setegid setegid setenv seteuid seteuid setgid setgroups setsid setsockopt setuid setuid sleep socket strcasecmp strcasestr strchr strdup strerror strncasecmp strspn strstr strtoll strtol symlink system tbbmalloc timegm unsetenv usleep vfork vprintf)
 qore_func_strerror_r()
 qore_gethost_checks()
+qore_find_pthread_setname_np()
+qore_find_pthread_getattr_np()
 unset(CMAKE_REQUIRED_LIBRARIES)
 
 qore_other_checks()
@@ -388,7 +398,6 @@ set(LIBQORE_CPP_SRC
     lib/QoreImplicitArgumentNode.cpp
     lib/QoreImplicitElementNode.cpp
     lib/Function.cpp
-    lib/BuiltinFunctionList.cpp
     lib/GlobalVariableList.cpp
     lib/FunctionList.cpp
     lib/AbstractStatement.cpp
@@ -622,12 +631,12 @@ endif (WIN32 AND MINGW AND MSYS)
 
 set_target_properties(libqore PROPERTIES OUTPUT_NAME qore)
 if (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 5)
-    set_target_properties(libqore PROPERTIES SOVERSION 5)
+    set_target_properties(libqore PROPERTIES VERSION 6)
+    set_target_properties(libqore PROPERTIES SOVERSION 6)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 5.14.2)
-    set_target_properties(libqore PROPERTIES SOVERSION 5)
+    set_target_properties(libqore PROPERTIES VERSION 6.0.0)
+    set_target_properties(libqore PROPERTIES SOVERSION 6)
 endif (APPLE)
 
 # prepare qore target
@@ -637,7 +646,7 @@ target_link_libraries(qore libqore)
 #target_link_libraries(qr libqore)
 
 #set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
-set_target_properties(qore PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+set_target_properties(qore PROPERTIES INSTALL_RPATH_USE_LINK_PATH ${CMAKE_INSTALL_FULL_LIBDIR})
 
 # configuration files
 message(STATUS "Generating unix-config.h")

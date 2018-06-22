@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -315,38 +315,38 @@ string name = getusername();
 */
 string getusername() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 #ifdef HAVE_PWD_H
-   errno = 0;
-   ReferenceHolder<QoreHashNode> h(q_getpwuid(geteuid()), xsink);
-   if (!h) {
-      if (!errno)
-         return xsink->raiseException("GET-USERNAME-ERROR", "failed to retrieve information for UID %d", geteuid());
-      return xsink->raiseErrnoException("GET-USERNAME-ERROR", errno, "failed to retrieve information for UID %d", geteuid());
-   }
-   return qore_hash_private::get(**h)->takeKeyValue("pw_name");
+    errno = 0;
+    ReferenceHolder<QoreHashNode> h(q_getpwuid(geteuid()), xsink);
+    if (!h) {
+        if (!errno)
+            return xsink->raiseException("GET-USERNAME-ERROR", "failed to retrieve information for UID %d", geteuid());
+        return xsink->raiseErrnoException("GET-USERNAME-ERROR", errno, "failed to retrieve information for UID %d", geteuid());
+    }
+    return qore_hash_private::get(**h)->takeKeyValueIntern("pw_name");
 #else
 #ifdef _Q_WINDOWS
 #define USERNAME_MAX 255
-   SimpleRefHolder<QoreStringNode> name(new QoreStringNode);
-   name->reserve(USERNAME_MAX);
-   DWORD size = USERNAME_MAX + 1;
-   if (!GetUserName((LPSTR)name->getBuffer(), &size)) {
-      DWORD ec = GetLastError();
-      char* ebuf;
-      QoreStringNode* desc = new QoreStringNode("failed to retrieve username for current Windows user: ");
-      // get windows error message
-      if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER, 0, ec, LANG_USER_DEFAULT, (LPTSTR)&ebuf, 0, 0)) {
-         assert(!ebuf);
-         desc->sprintf("Windows FormatMessage() failed on error code %d", ec);
-      }
-      else {
-         assert(ebuf);
-         desc->concat(ebuf);
-      }
+    SimpleRefHolder<QoreStringNode> name(new QoreStringNode);
+    name->reserve(USERNAME_MAX);
+    DWORD size = USERNAME_MAX + 1;
+    if (!GetUserName((LPSTR)name->getBuffer(), &size)) {
+        DWORD ec = GetLastError();
+        char* ebuf;
+        QoreStringNode* desc = new QoreStringNode("failed to retrieve username for current Windows user: ");
+        // get windows error message
+        if (!FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER, 0, ec, LANG_USER_DEFAULT, (LPTSTR)&ebuf, 0, 0)) {
+            assert(!ebuf);
+            desc->sprintf("Windows FormatMessage() failed on error code %d", ec);
+        }
+        else {
+            assert(ebuf);
+            desc->concat(ebuf);
+        }
 
-      return xsink->raiseException("GET-USERNAME-ERROR", desc);
-   }
-   name->terminate(size ? size - 1 : 0);
-   return name.release();
+        return xsink->raiseException("GET-USERNAME-ERROR", desc);
+    }
+    name->terminate(size ? size - 1 : 0);
+    return name.release();
 #else
 #error need getusername() support for this platform
 #endif

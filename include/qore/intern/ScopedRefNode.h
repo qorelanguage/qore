@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,33 +35,33 @@
 
 class ScopedRefNode : public ParseNoEvalNode {
 protected:
-   DLLLOCAL AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
-   DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-      return 0;
-   }
+    DLLLOCAL AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+        return 0;
+    }
 
 public:
-   NamedScope *scoped_ref;
+    NamedScope* scoped_ref;
 
-   // object takes over ownership of NamedScope
-   DLLLOCAL ScopedRefNode(const QoreProgramLocation& loc, char *ref);
-   DLLLOCAL virtual ~ScopedRefNode();
+    // object takes over ownership of NamedScope
+    DLLLOCAL ScopedRefNode(const QoreProgramLocation* loc, char *ref);
+    DLLLOCAL virtual ~ScopedRefNode();
 
-   // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
-   // the ExceptionSink is only needed for QoreObject where a method may be executed
-   // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
-   // returns -1 for exception raised, 0 = OK
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
-   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+    // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
+    // the ExceptionSink is only needed for QoreObject where a method may be executed
+    // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
+    // returns -1 for exception raised, 0 = OK
+    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
-   // returns the data type
-   DLLLOCAL virtual qore_type_t getType() const;
-   // returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const;
+    // returns the data type
+    DLLLOCAL virtual qore_type_t getType() const;
+    // returns the type name as a c string
+    DLLLOCAL virtual const char *getTypeName() const;
 
-   // caller owns NamedScope returned
-   DLLLOCAL NamedScope *takeName();
+    // caller owns NamedScope returned
+    DLLLOCAL NamedScope *takeName();
 };
 
 #endif

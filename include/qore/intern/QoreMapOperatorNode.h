@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreMapOperatorNode.h
+    QoreMapOperatorNode.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREMAPOPERATORNODE_H
@@ -44,7 +44,7 @@ class QoreMapOperatorNode : public QoreBinaryOperatorNode<>, public FunctionalOp
     friend class QoreFunctionalMapOperator;
 
 public:
-    DLLLOCAL QoreMapOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode* l, AbstractQoreNode* r) : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(nullptr), iterator_func(nullptr) {
+    DLLLOCAL QoreMapOperatorNode(const QoreProgramLocation* loc, QoreValue l, QoreValue r) : QoreBinaryOperatorNode<>(loc, l, r), returnTypeInfo(nullptr), iterator_func(nullptr) {
     }
 
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -57,7 +57,7 @@ public:
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
         QoreMapOperatorNode* rv = copyBackgroundExplicit<QoreMapOperatorNode>(xsink);
-        rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right);
+        rv->iterator_func = dynamic_cast<FunctionalOperator*>(rv->right.getInternalNode());
         return rv;
     }
 
@@ -111,7 +111,7 @@ protected:
 
 class QoreFunctionalMapSingleValueOperator : public FunctionalOperatorInterface {
 public:
-    DLLLOCAL QoreFunctionalMapSingleValueOperator(const QoreMapOperatorNode* m, QoreValue n, ExceptionSink* xs) : map(m), v(n), done(false), xsink(xs) {
+    DLLLOCAL QoreFunctionalMapSingleValueOperator(const QoreMapOperatorNode* m, QoreValue n, ExceptionSink* xs) : map(m), v(n), xsink(xs) {
     }
 
     DLLLOCAL virtual ~QoreFunctionalMapSingleValueOperator() {
@@ -120,16 +120,20 @@ public:
 
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 
+    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
+        return v.getTypeInfo();
+    }
+
 protected:
     const QoreMapOperatorNode* map;
     QoreValue v;
-    bool done;
+    bool done = false;
     ExceptionSink* xsink;
 };
 
 class QoreFunctionalMapIteratorOperator : public FunctionalOperatorInterface {
 public:
-    DLLLOCAL QoreFunctionalMapIteratorOperator(const QoreMapOperatorNode* m, bool t, AbstractIteratorHelper n_h, ExceptionSink* xs) : map(m), temp(t), h(n_h), index(0), xsink(xs) {
+    DLLLOCAL QoreFunctionalMapIteratorOperator(const QoreMapOperatorNode* m, bool t, AbstractIteratorHelper n_h, ExceptionSink* xs) : map(m), temp(t), h(n_h), xsink(xs) {
     }
 
     DLLLOCAL ~QoreFunctionalMapIteratorOperator() {
@@ -137,38 +141,39 @@ public:
             h.obj->deref(xsink);
     }
 
-    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
-        // issue #2651: return the iterator expression type as the functional value type
-        return map->expTypeInfo;
-    }
-
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
+
+    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
+        return autoTypeInfo;
+    }
 
 protected:
     const QoreMapOperatorNode* map;
     bool temp;
     AbstractIteratorHelper h;
-    size_t index;
+    size_t index = 0;
     ExceptionSink* xsink;
 };
 
 class QoreFunctionalMapOperator : public FunctionalOperatorInterface {
 public:
-    DLLLOCAL QoreFunctionalMapOperator(const QoreMapOperatorNode* m, FunctionalOperatorInterface* n_f) : map(m), f(n_f), index(0) {
+    DLLLOCAL QoreFunctionalMapOperator(const QoreMapOperatorNode* m, FunctionalOperatorInterface* n_f) : map(m), f(n_f) {
     }
 
     DLLLOCAL ~QoreFunctionalMapOperator() {
         delete f;
     }
 
-    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const;
+    DLLLOCAL virtual const QoreTypeInfo* getValueTypeImpl() const {
+        return f->getValueType();
+    }
 
     DLLLOCAL virtual bool getNextImpl(ValueOptionalRefHolder& val, ExceptionSink* xsink);
 
 protected:
     const QoreMapOperatorNode* map;
     FunctionalOperatorInterface* f;
-    size_t index;
+    size_t index = 0;
 };
 
 #endif
