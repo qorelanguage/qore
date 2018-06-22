@@ -393,7 +393,9 @@ public:
 
     DLLLOCAL QoreHashNode* plusEquals(const QoreHashNode* h, ExceptionSink* xsink) const {
         // issue #2791: perform type stripping at the source
-        bool strip = hashdecl || h->priv->hashdecl || !QoreTypeInfo::equal(complexTypeInfo, h->priv->complexTypeInfo);
+        bool strip = (complexTypeInfo != autoHashTypeInfo) && (
+            ((hashdecl || h->priv->hashdecl) && hashdecl != h->priv->hashdecl)
+            || !QoreTypeInfo::equal(complexTypeInfo, h->priv->complexTypeInfo));
         //printd(5, "qore_hash_private::plusEquals() this: %p '%s' h: %p '%s' strip: %d\n", this, QoreTypeInfo::getName(complexTypeInfo), h, QoreTypeInfo::getName(h->priv->complexTypeInfo), strip);
         ReferenceHolder<QoreHashNode> rv(copy(strip), xsink);
         if (strip) {

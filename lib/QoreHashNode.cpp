@@ -554,7 +554,15 @@ QoreListNode* QoreHashNode::getValues() const {
 // hash passed alone
 // order is maintained
 void QoreHashNode::merge(const class QoreHashNode* h, ExceptionSink* xsink) {
-   priv->merge(*h->priv, xsink);
+    // strip complex types at the source if necessary
+    if ((priv->complexTypeInfo != autoHashTypeInfo) &&
+        (((priv->hashdecl || h->priv->hashdecl) && priv->hashdecl != h->priv->hashdecl)
+        || !QoreTypeInfo::equal(priv->complexTypeInfo, h->priv->complexTypeInfo))) {
+        priv->mergeStrip(*h->priv, xsink);
+    }
+    else {
+        priv->merge(*h->priv, xsink);
+    }
 }
 
 // returns the same order
