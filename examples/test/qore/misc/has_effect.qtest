@@ -16,6 +16,7 @@ public class HasEffectTest inherits QUnit::Test {
     constructor() : Test("HasEffectTest", "1.0") {
         addTestCase("has no effect", \hasNoEffect(), NOTHING);
         addTestCase("return value ignored", \retValIgnored(), NOTHING);
+        addTestCase("has effect", \hasEffect(), NOTHING);
         set_return_value(main());
     }
 
@@ -35,7 +36,7 @@ public class HasEffectTest inherits QUnit::Test {
         warning += " and the return value is ignored";
 
         Program p(PO_NEW_STYLE);
-        hash parse_result = p.parse(statements, "", WARN_RETURN_VALUE_IGNORED){"err", "desc"};
+        *hash parse_result = p.parse(statements, "", WARN_RETURN_VALUE_IGNORED){"err", "desc"};
         assertEq("RETURN-VALUE-IGNORED", parse_result.err);
         assertRegex(warning, parse_result.desc);
 
@@ -48,16 +49,24 @@ public class HasEffectTest inherits QUnit::Test {
         }
     }
 
+    private hasEffectImpl(string statements) {
+        Program p(PO_NEW_STYLE);
+        *hash parse_result = p.parse(statements, "");
+        assertEq(NOTHING, parse_result);
+    }
+
     hasNoEffect() {
         hasNoEffectImpl("1+2;");
         hasNoEffectImpl("1+int(2);");
         hasNoEffectImpl("1+int('2');");
         hasNoEffectImpl("'asdf' + trim('zxcv ');");
+        hasNoEffectImpl("1 << 6;");
         hasNoEffectImpl("round(12.3) + 45;");
         hasNoEffectImpl("sub() {};");
         hasNoEffectImpl("int sub() {return 12;};");
         hasNoEffectImpl("string a = 'abcd'; a == substr(0, a.size()-1);");
         hasNoEffectImpl("string a = 'abcd'; background a == substr(0, a.size()-1);", False);
+        hasNoEffectImpl("int n = 18; n += 3; n++; ++n; n *= 2; n + 3;", False);
     }
 
     retValIgnored() {
@@ -67,5 +76,14 @@ public class HasEffectTest inherits QUnit::Test {
         retValIgnoredImpl("string s = 'asdf '; trim(s);", False, False);
         retValIgnoredImpl("string s = 'asdf '; background trim(s);", False, False);
         retValIgnoredImpl("substr('asdf ', 2);", True);
+    }
+
+    hasEffect() {
+        hasEffectImpl("string s = 'asdf '; trim(\s);");
+        hasEffectImpl("string s = 'asdf '; background trim(\s);");
+        hasEffectImpl("string s1 = 'asdf '; string s2 = ' zxcv'; 5 == 3 ? trim(\s1) : trim(\s2);");
+        hasEffectImpl("string s = 'asdf '; s += 'zxcv';");
+        hasEffectImpl("int n = 18; n += 3; n++; ++n; n *= 2; --n;");
+        hasEffectImpl("string s1 = 'asdf '; string s2 = ' zxcv'; map trim(\$1), (s1, s2);");
     }
 }
