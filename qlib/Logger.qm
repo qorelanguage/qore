@@ -216,8 +216,6 @@ public namespace Logger {
     /**
         The set of built-in levels includes \c TRACE, \c DEBUG, \c INFO, \c WARN, \c ERROR and \c FATAL. Log4q also supports
         custom log levels where the \c LoggerLevel class may be subclassed to define a larger level set.
-
-        Usage of a built-in \c LoggerLevel instantiates corresponding object which is cached for each level.
     */
     public class LoggerLevel {
         public {
@@ -1559,10 +1557,187 @@ public namespace Logger {
     #! Appender writing to a file with file rotation support
     /**
         The events will be logged to a file until rotation occurs.
+        At that moment the current file is closed, archive chain is moved,
+        new file is created and logging continues there.
+    */
+    public class LoggerAppenderFileRotate inherits public LoggerAppenderFile, private LoggerPattern {
+        public {
+            #! rotate event
+            const EVENT_ROTATE = 10;
+            #! default archive pattern
+            const DEFAULT_ARCHIVE_PATTERN = "%p%f.%i";
+        }
+
+        private:internal {
+            int m_count;
+        }
+
+        #! Creates the object
+        /**
+            @param name the name of the appender
+            @param layout the layout for the appender
+            @param filename with pattern support; see below for more information
+            @param count number of files in rotation chain, if count is <=0 then no ratation is performed
+            @param archive pattern to evaluate archive filename; see below for more information
+            @param encoding the encoding of the output file
+
+            The following table explains the characters used in @ref LoggerPattern for both filename and archive parameter
+
+            | !Conversion character | !Meaning |
+            | s | Used to output the OS directory separator, i.e. "\" or "/" |
+            | c | Used to output the appender name |
+            | C | Used to output the appender class name |
+            | E | Used to output the environment variable with name given by option, e.g. \c "%E{HOME}" |
+            | % | The literal percent sign. \c "%%" will print a \c "%" sign |
+
+            The following table explains the characters used in @ref LoggerPattern for archive parameter only
+
+            | !Conversion character | !Meaning |
+            | P | Used to output the current logging path with filename |
+            | p | Used to output the current logging path |
+            | f | Used to output the current logging filename |
+            | i | Used to output the current file index from 1 to count. option may specify @ref sprintf() format, e.g. \c "%.3d" |
+            | n | Used to output the rotation count. Option may specify @ref sprintf() format, e.g. \c "%.3d" |
+
+            For example, the archive pattern \c "%p%f.%i" rotates log file \c "/var/run/log/MyLogger.log" to:
+            \c "/var/run/log/MyLogger.log.1" \c "/var/run/log/MyLogger.log.2" \c "/var/run/log/MyLogger.log.3".
+        */
+        constructor(string name, LoggerLayout layout, string filename, int count, string archive = DEFAULT_ARCHIVE_PATTERN, *string encoding): LoggerAppenderFile(name, layout, "", encoding), LoggerPattern(filename) {
+            m_filename = format(NOTHING);  # no dynamic vars as timestamp
+            m_count = count;
+            setPattern(archive);
+        }
+
+        #! Returns a string for a format field for a pattern-based filename
+        /**
+            @param data input context reference data
+            @param key the format character
+            @param option the format option value, if any
+
+            @return the formatted string
+        */
+        private string resolveField(auto data, string key, *string option) {
+            string res = "";
+            switch (key) {
+                case "c":
+                    res = get_class_name(self);
+                    break;
+                case "C":
+                    res = getName();
+                    break;
+                case "E":
+                    res = ENV{option};
+                    break;
+                case "s":
+                    res = DirSep;
+                    break;
+            }
+            if (data) {  # archive pattern
+                switch (key) {
+                    case "i":
+                        res = sprintf(option ?? "%d", data.index);
+                        break;
+                    case "n":
+                        res = sprintf(option ?? "%d", data.count);
+                        break;
+                    case "P":
+                        res = data.filename;
+                        break;
+                    case "p": # path
+                        res = dirname(data.filename);
+                        if (res != DirSep) {
+                            res += DirSep;
+                        }
+                        break;
+                    case "f": # filename
+                        res = basename(data.filename);
+                        break;
+                }
+            }
+            return res;
+        }
+
+        #! Implements filename rotation; handles the open and rotate events directly; passes all other events to the subclass for handling
+        /**
+            @param type the event type
+            @param params event parameters
+        */
+        public processEventImpl(int type, auto params) {
+            switch (type) {
+                case EVENT_ROTATE:
+                    if (m_count > 0 && is_file(m_filename)) {
+                        list fn = ();
+                        int i = 0;
+                        while (True) {
+                            push fn, getArchiveFileName(i+1);
+                            if (!is_dir(dirname(fn[i]))) {
+                                mkdir(dirname(fn[i]), 0777, True);
+                            }
+                            if (i >= m_count-1 || !is_file(fn[i])) {
+                                # find a gap in chain or stop at the last file
+                                break;
+                            }
+                            i++;
+                        }
+                        while (i > 0) {
+                            # shift files till a gap or last file
+                            rename(fn[i-1], fn[i]);
+                            i--;
+                        }
+                        m_file.close();
+                        rename(m_filename, fn[0]);
+                        m_file.open2(m_filename, O_CREAT | O_WRONLY);
+                    }
+                    break;
+                default:
+                    LoggerAppenderFile::processEventImpl(type, params);
+            }
+        }
+
+        #! Push rotate event
+        /**
+            The current log file will be closed and opened. If the file exists, then it is ovewritten
+
+            @throw LOGGER-ERROR if rotation is disabled
+        */
+        public rotate() {
+            if (isActive()) {
+                if (m_count <= 0) {
+                    throw "LOGGER-ERROR", "Rotation is disabled";
+                }
+                pushEvent(EVENT_ROTATE, NOTHING);
+            }
+        }
+
+        #! Returns the archive filename
+        /**
+            @param idx the index of file (1..count)
+        */
+        public string getArchiveFileName(int idx) {
+            hash h;
+            h.filename = m_filename;
+            h.count = m_count;
+            h.index = idx;
+            string res = format(h);
+            return res;
+        }
+
+        #! Returns max.number of files in chain
+        /**
+        */
+        public int getCount() {
+            return m_count;
+        }
+    }
+
+
+    #! Appender writing to a file with file circular rotation support
+    /**
+        The events will be logged to a file until rotation occurs.
         At that moment the current file is closed, next file is created
         and logging continues to the new file.
     */
-    public class LoggerAppenderFileRotate inherits public LoggerAppenderFile, private LoggerPattern {
+    public class LoggerAppenderFileRing inherits public LoggerAppenderFile, private LoggerPattern {
         public {
             #! rotate event
             const EVENT_ROTATE = 10;
@@ -1579,7 +1754,7 @@ public namespace Logger {
             @param name the name of the appender
             @param layout the layout for the appender
             @param pattern to generate the file name; see information below
-            @param count number of rotated files, if count is <=0 then no ratation is performed
+            @param count number of files in ring, if count is <=0 then no ratation is performed
             @param encoding the encoding of the output file
 
             The following table explains the characters used in @ref LoggerPattern and all other characters that you can use in your custom pattern:
@@ -1687,9 +1862,9 @@ public namespace Logger {
             }
         }
 
-        #! Poss sa rotate event
+        #! Push rotate event
         /**
-            The urrent log file will be closed and opened. If the file exists, then it is ovewritten
+            The current log file will be closed and opened. If the file exists, then it is ovewritten
 
             @throw LOGGER-ERROR if rotation is disabled
         */
@@ -1700,6 +1875,20 @@ public namespace Logger {
                 }
                 pushEvent(EVENT_ROTATE, NOTHING);
             }
+        }
+
+        #! Returns number of files in ring
+        /**
+        */
+        public int getCount() {
+            return m_patternData.count;
+        }
+
+        #! Returns current ring index being used for logging
+        /**
+        */
+        public int getCurrentIndex() {
+            return m_patternData.index;
         }
     }
 

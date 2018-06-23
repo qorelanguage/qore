@@ -31,6 +31,7 @@ class Test inherits QUnit::Test {
         addTestCase("LoggerAppenderMultiThreadUnassigned", \testLoggerAppenderMultiThreadUnassigned());
         addTestCase("LoggerAppenderFile", \testLoggerAppenderFile());
         addTestCase("LoggerAppenderFileRotate", \testLoggerAppenderFileRotate());
+        addTestCase("LoggerAppenderFileRing", \testLoggerAppenderFileRing());
         addTestCase("LoggerAppenderFileArchive", \testLoggerAppenderFileArchive());
         addTestCase("Logger", \testLogger());
         set_return_value(main());
@@ -560,30 +561,100 @@ class Test inherits QUnit::Test {
     }
 
     testLoggerAppenderFileRotate() {
-        string fn = "%c-%C-%i{%02d}-%n{%02d}.log";
-        LoggerAppenderFileRotate la("TEST", new LoggerLayoutPattern("%m"), fn, 50);
-        assertEq("LoggerAppenderFileRotate-TEST-00-50.log", la.getFileName());
+        string fn = DirSep + "%c-%C.log";
+        LoggerAppenderFileRotate la("TEST", new LoggerLayoutPattern("%m"), fn, 3);
+        assertEq(DirSep + "LoggerAppenderFileRotate-TEST.log", la.getFileName());
+        assertEq(3, la.getCount());
+        for (my int i = 1; i<=la.getCount(); i++) {
+            assertEq(sprintf("%s.%d", la.getFileName(), i), la.getArchiveFileName(i));
+        }
+        la = new LoggerAppenderFileRotate("TEST", new LoggerLayoutPattern("%m"), fn, 3, "%p%i"+DirSep+"%f.%i.%n");
+        for (my int i = 1; i<=la.getCount(); i++) {
+            assertEq(sprintf("%s%d%sLoggerAppenderFileRotate-TEST.log.%d.%d", DirSep, i, DirSep, i, la.getCount()), la.getArchiveFileName(i));
+        }
+        code do_clean = sub (bool del_dir) {
+            for (int i=1; i <= la.getCount(); i++) {
+                string s = la.getArchiveFileName(i);
+                unlink(s);
+                if (del_dir && is_dir(dirname(s))) {
+                    rmdir(dirname(s));
+                }
+            }
+            unlink(la.getFileName());
+        };
+        fn = tmp_location() + DirSep + UNIQUE_NAME + ".log";
+        la = new LoggerAppenderFileRotate("TEST", new LoggerLayoutPattern("%u"), fn, 3);
+        do_clean(False);
+        la.open();
+        list prev = ();
+        for (int i=0; i < 3*la.getCount(); i++) {
+            LoggerEvent lle = new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST");
+            la.post(lle);
+            unshift prev, string(lle.getUniqueId());
+            la.rotate();
+            assertTrue(la.getFile().isOpen());
+            for (int j=1; j <= la.getCount(); j++) {
+                assertEq(j <= prev.size(), is_file(la.getArchiveFileName(j)));
+                if (j <= prev.size()) {
+                    string s2 = ReadOnlyFile::readTextFile(la.getArchiveFileName(j));
+                    assertEq(prev[j-1], s2);
+                }
+            }
+        }
+        do_clean(False);
 
-        int maxRotate = 3;
+        # test rotation in subdirectory
+        la = new LoggerAppenderFileRotate("TEST", new LoggerLayoutPattern("%u"), fn, 3, "%p{}"+UNIQUE_NAME+"-%i"+DirSep+"%f");
+        do_clean(True);
+        la.open();
+        prev = ();
+        for (int i=0; i < 3*la.getCount(); i++) {
+            LoggerEvent lle = new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST");
+            la.post(lle);
+            unshift prev, string(lle.getUniqueId());
+            la.rotate();
+            assertTrue(la.getFile().isOpen());
+            for (int j=1; j <= la.getCount(); j++) {
+                string s = la.getArchiveFileName(j);
+                assertEq(j <= prev.size(), is_dir(dirname(s)));
+                assertEq(j <= prev.size(), is_file(s));
+                if (j <= prev.size()) {
+                    string s2 = ReadOnlyFile::readTextFile(s);
+                    assertEq(prev[j-1], s2);
+                }
+            }
+        }
+        do_clean(True);
+    }
+
+    testLoggerAppenderFileRing() {
+        string fn = "%c-%C-%i{%02d}-%n{%02d}.log";
+        LoggerAppenderFileRing la("TEST", new LoggerLayoutPattern("%m"), fn, 50);
+        assertEq(50, la.getCount());
+        assertEq("LoggerAppenderFileRing-TEST-00-50.log", la.getFileName());
+
+        int ringSize = 3;
         fn = tmp_location() + DirSep + UNIQUE_NAME + ".log.%i";
         string fn2 = fn;
         fn2 =~ s/%i/%d/;
-        for (int i = 0; i < maxRotate; i++) {
+        for (int i = 0; i < ringSize; i++) {
             unlink(sprintf(fn2, i));
         }
-        la = new LoggerAppenderFileRotate("TEST", new LoggerLayoutPattern("%u"), fn, maxRotate);
+        la = new LoggerAppenderFileRing("TEST", new LoggerLayoutPattern("%u"), fn, ringSize);
         assertFalse(la.getFile().isOpen());
         assertEq(sprintf(fn2, 0), la.getFileName());
         la.open();
         assertTrue(la.getFile().isOpen());
 
-        for (int rot = 0; rot < 3 * maxRotate; rot++) {
-            assertEq(sprintf(fn2, rot % maxRotate), la.getFileName());
+        for (int rot = 0; rot < 3 * ringSize; rot++) {
+            assertEq(sprintf(fn2, rot % ringSize), la.getFileName());
             string prevFilename = la.getFileName();
             LoggerEvent lle = new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST");
             la.post(lle);
+            assertEq(rot % ringSize, la.getCurrentIndex());
             la.rotate();
-            assertEq(sprintf(fn2, (rot+1) % maxRotate), la.getFileName());
+            assertEq((rot+1)% ringSize, la.getCurrentIndex());
+            assertEq(sprintf(fn2, (rot+1) % ringSize), la.getFileName());
             assertFalse(prevFilename == la.getFileName());
             assertTrue(la.getFile().isOpen());
             string s = ReadOnlyFile::readTextFile(prevFilename);
@@ -599,7 +670,7 @@ class Test inherits QUnit::Test {
         la.open();
         assertEq(sprintf(fn2, 1), la.getFileName()); # check the latest file is found
         la.close();
-        for (int i = 0; i < maxRotate; i++) {
+        for (int i = 0; i < ringSize; i++) {
             unlink(sprintf(fn2, i));
         }
     }
