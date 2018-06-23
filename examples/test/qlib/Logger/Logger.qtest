@@ -147,9 +147,31 @@ class Test inherits QUnit::Test {
                 "parsed": (("key": "m"),),
                 "output": "ABCDEF",
             ),
+            "%mGH": (
+                "parsed": (("key": "mGH"),),
+                "output": "ABCDEFGH",
+            ),
+            "%mGH{}": (
+                "parsed": ((
+                    "key": "mGH",
+                    "option": "",
+                ),),
+                "error": "Unknown pattern token \"mGH\"",
+            ),
+            "%ZGH": (
+                "parsed": (("key": "ZGH"),),
+                "error": "Unknown pattern token \"ZGH\"",
+            ),
+            "%mmmm%m": (
+                "parsed": (
+                    ("key": "mmmm"),
+                    ("key": "m"),
+                ),
+                "output": "ABCDEFmmmABCDEF",
+            ),
             "%Z": (
                 "parsed": (("key": "Z"),),
-                "output": "N/A",
+                "error": "Unknown pattern token \"Z\"",
             ),
             "%m{%DUMMY}": (
                 "parsed": ((
@@ -291,7 +313,12 @@ class Test inherits QUnit::Test {
             llp.setPattern(patt);
             assertEq(patt, llp.getPattern());
             assertEq(patterns{patt}.parsed, llp.getParsedPattern());
-            assertEq(patterns{patt}.output, llp.format(lle));
+            if (exists patterns{patt}.output) {
+                assertEq(patterns{patt}.output, llp.format(lle));
+            }
+            if (exists patterns{patt}.error) {
+                assertThrows("LOGGER-ERROR", patterns{patt}.error, \llp.format(), (lle));
+            }
         }
 
         llp.setPattern("%x");
@@ -604,7 +631,7 @@ class Test inherits QUnit::Test {
         do_clean(False);
 
         # test rotation in subdirectory
-        la = new LoggerAppenderFileRotate("TEST", new LoggerLayoutPattern("%u"), fn, 3, "%p{}"+UNIQUE_NAME+"-%i"+DirSep+"%f");
+        la = new LoggerAppenderFileRotate("TEST", new LoggerLayoutPattern("%u"), fn, 3, "%p"+UNIQUE_NAME+"-%i"+DirSep+"%f");
         do_clean(True);
         la.open();
         prev = ();
@@ -715,7 +742,7 @@ class Test inherits QUnit::Test {
         rmdir(dirname(afn));
         rmdir(dirname(dirname(afn)));
         assertFalse(is_dir(dirname(dirname(afn))));
-        la = new LoggerAppenderFileArchive("TEST", new LoggerLayoutPattern("%m"), fn, "%p{}"+UNIQUE_NAME+"%s{}"+UNIQUE_NAME+"%s%f");
+        la = new LoggerAppenderFileArchive("TEST", new LoggerLayoutPattern("%m"), fn, "%p"+UNIQUE_NAME+"%s"+UNIQUE_NAME+"%s%f");
         afn = la.getArchiveFileName();
         assertEq(afn, la.getArchiveFileName());
         assertFalse(la.getFile().isOpen());
@@ -735,7 +762,7 @@ class Test inherits QUnit::Test {
         hash errs = (
             "": "Empty target filename",
             "%P": "Source and target path are equal",
-            "%p{}dummy"+DirSep+".."+DirSep+"%f": "Source and target path are equal",
+            "%pdummy"+DirSep+".."+DirSep+"%f": "Source and target path are equal",
             "%p": "Target is directory",
         );
         foreach string patt in (keys errs) {
