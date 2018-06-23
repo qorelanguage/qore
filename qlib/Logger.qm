@@ -1172,7 +1172,7 @@ public namespace Logger {
                     if (l.size() == 3) {
 %ifdef _DUMMY_TO_PAIR_BRACES_IN_EDITOR
 %endif
-                        f.option = (l[2] =~ x/^{([^}]*)}$/)[0];
+                        f.option = ((l[2] =~ x/^{([^}]*)}$/)[0]) ?? "";
                     }
 %ifdef _DUMMY_TO_PAIR_BRACES_IN_EDITOR
 %endif
@@ -1207,7 +1207,17 @@ public namespace Logger {
                 if (a.typeCode() == NT_STRING) {
                     res += a;
                 } else {
-                    string val = resolveField(data, a.key, a.option);
+                    bool fallback = False;
+                    *string val = resolveField(data, a.key, a.option);
+                    if (!exists val && a.key.size() > 1 && !exists a.option) {
+                        # try one char key if key is longer and has no {}, i.e. fix non intuitive case
+                        val = resolveField(data, substr(a.key, 0, 1));
+                        fallback = exists val;
+                    }
+                    if (!exists val) {
+                        throw "LOGGER-ERROR", sprintf("Unknown pattern token %y", a.key);
+                    }
+
                     if (exists a.maxWidth) {
                         val = substr(val, 0, a.maxWidth);
                     }
@@ -1219,6 +1229,9 @@ public namespace Logger {
                         }
                     }
                     res += val;
+                    if (fallback) {
+                        res += substr(a.key, 1);
+                    }
                 }
             }
             return res;
@@ -1232,7 +1245,7 @@ public namespace Logger {
 
             @return the formatted string
         */
-        abstract private string resolveField(auto data, string key, *string option);
+        abstract private *string resolveField(auto data, string key, *string option);
     }
 
     #! Abstract class that defines the interface for logger layouts
@@ -1313,11 +1326,11 @@ public namespace Logger {
             @param key the single-character formatting code
             @param option optional supporting information for \a key
         */
-        private string resolveField(auto event, string key, *string option) {
+        private *string resolveField(auto event, string key, *string option) {
             if (!(event instanceof LoggerEvent)) {
                 throw "LOGGER-ERROR", "Unsupported event type";
             }
-            string res;
+            *string res;
             switch (key) {
                 case "c":
                     res = event.getCategoryName();
@@ -1374,7 +1387,6 @@ public namespace Logger {
                     }
                     break;
                 default:
-                    res = 'N/A';
                     #throw "LOGGER-ERROR", sprintf("Unknown pattern token %y", key);
             }
             return res;
@@ -1616,8 +1628,8 @@ public namespace Logger {
 
             @return the formatted string
         */
-        private string resolveField(auto data, string key, *string option) {
-            string res = "";
+        private *string resolveField(auto data, string key, *string option) {
+            *string res;
             switch (key) {
                 case "c":
                     res = get_class_name(self);
@@ -1787,8 +1799,8 @@ public namespace Logger {
 
             @return the formatted string
         */
-        private string resolveField(auto data, string key, *string option) {
-            string res;
+        private *string resolveField(auto data, string key, *string option) {
+            *string res;
             switch (key) {
                 case "i":
                     res = sprintf(option ?? "%d", data.index);
@@ -1812,8 +1824,6 @@ public namespace Logger {
                 case "E":
                     res = ENV{option};
                     break;
-                default:
-                    res = "";
             }
             return res;
         }
@@ -1950,8 +1960,8 @@ public namespace Logger {
 
             @return the formatted string
         */
-        private string resolveField(auto data, string key, *string option) {
-            string res = "";
+        private *string resolveField(auto data, string key, *string option) {
+            *string res;
             switch (key) {
                 case "c":
                     res = get_class_name(self);
