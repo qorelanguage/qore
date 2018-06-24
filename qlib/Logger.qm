@@ -1079,7 +1079,10 @@ public namespace Logger {
         option := [^}]*
         @endcode
 
-        To delimit a word from the next character, use curly brackets, i.e. empty option, e.g. \c "%p{}archive"
+        When a word (i.e. longer than one char) key without curly brackets is not found then in the next step is resolved its first char,
+        e.g. \c "%parchive" the first step tries to resolve \c "parchive" key and if not resolved the second step \c "p" key.
+        To parse in key if single step delimit a word from the next character, use curly brackets, i.e. empty option, e.g. \c "%p{}archive".
+        If a key is not resolved then exception is raised.
 
         The following table covers various modifiers and scenarios:
 
@@ -1200,6 +1203,7 @@ public namespace Logger {
         #! Formats the event record with the current pattern
         /**
             @param data is passed to @ref resolveField()
+            @throw LOGGER-ERROR when a key is not resolved
         */
         public string format(auto data) {
             string res = "";
@@ -1243,7 +1247,7 @@ public namespace Logger {
             @param key the format character
             @param option the format option value, if any
 
-            @return the formatted string
+            @return the formatted string or nothing if the key is not resolved
         */
         abstract private *string resolveField(auto data, string key, *string option);
     }
