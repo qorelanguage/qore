@@ -82,6 +82,8 @@
       - <a href="../../modules/Util/html/index.html">Util</a> module updates:
         - added public function \c parse_ranges() (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
         - added public function \c check_ip_address() (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
+      - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
+        - added public methods \c AbstractCsvIterator::getRawLine() and \c AbstractCsvIterator::getRawLineValues() (<a href="https://github.com/qorelanguage/qore/issues/2739">issue 2739</a>)
     - @ref relative_dates "relative date" changes
         - fraction seconds are accepted in the @ref single_reldates
         - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
@@ -106,6 +108,8 @@
     Bugfix release; see details below
 
     @subsection qore_08136_bug_fixes Bug Fixes in Qore
+    - fixed an error handling complex types with the @ref plus_equals_operator "+=" operator
+      (<a href="https://github.com/qorelanguage/qore/issues/2869">issue 2869</a>)
     - fixed a memory leak in @ref Qore::TreeMap::put() "TreeMap::put()"
       (<a href="https://github.com/qorelanguage/qore/issues/2840">issue 2840</a>)
     - fixed a crashing bug in \c qpp (used in building Qore from source)
