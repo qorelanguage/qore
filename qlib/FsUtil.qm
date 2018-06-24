@@ -95,11 +95,23 @@ public namespace FsUtil {
             list Delimiters;
         }
 
+
+        public string join_paths(list paths) {
+            if (!paths) {
+                # NOTHING or an empty list
+                throw "MISSING-PARAMETER-ERROR", "No paths to join";
+            }
+
+            if (paths.size() == 1) {
+                # nothing to join, return the only path part given
+                return paths[0];
+            }
+
+            return self.join_paths(paths[0], paths[1..]);
+        }
+
         # to be implemented by platform-specific classes
-        public abstract string join_paths(string path1, string path2);
-        #public string join(string path1, string path2) {
-        #    throw "NOT-IMPLEMENTED-ERROR", "child classes should implement it";
-        #}
+        public abstract string join_paths(string path1, softlist paths);
     }
 
     #! path handler implementing Windows specific functionality
@@ -126,33 +138,45 @@ public namespace FsUtil {
 
         #! Returns path resulting from joining the given paths
         /** @param path1 the first part of the path
-            @param path2 the second part of the path
+            @param paths the other parts of the path
 
-            @return the two paths joined into one valid path (i.e. delimiters
-            are added/removed as needed) except for cases when path2 is an
-            absolute path or if each path is on different drive - in such cases
-            path2 is returned as the result. Otherwise the resulting path is not
-            normalized (i.e. "/path/to/../../file.txt" is a correct result of
-            join("/path/to", "../../file.txt");).
+            @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except for cases
+            when one of the paths (in the list) is an absolute path or if each path is on different drive - in such
+            cases that path is considered a new start of the resulting path. The resulting path is not normalized
+            (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
+            Since the second parameter is a softlist, this variant also works for joining two string paths.
         */
-        public string join_paths(string path1, string path2) {
-            if (path2 == "")
-                return path1;
+        public string join_paths(string path1, softlist paths) {
+            string result = path1;
 
-            # if the first path is empty or if the second path is absolute or
-            # if both paths contain drive and the drives differ, return path2
-            list path1_split = split_drive(path1);
-            list path2_split = split_drive(path2);
-            if (path1 == "" ||
-                absolute_path_windows(path2) ||
-                (path2_split[0] != "" &&
-                 toupper(path1_split[0]) != toupper(path2_split[0])))
-                return path2;
+            foreach string path2 in (paths) {
+                if (path2 == "") {
+                    continue;
+                }
 
-            # otherwise let's join both parts and return
-            if (path1_split[1] != "" && !inlist(path1[-1], self.Delimiters))
-                path1 += self.Delimiters[0];
-            return path1 + path2_split[1];
+                # extract drive (if present)
+                list result_split = split_drive(result);
+                list path2_split = split_drive(path2);
+
+                if (result == "" ||
+                    absolute_path_windows(path2) ||
+                    (path2_split[0] != "" && toupper(result_split[0]) != toupper(path2_split[0]))) {
+                    # if the first path is empty or
+                    # if the second path is absolute or
+                    # if both paths contain drive and the drives differ,
+                    # then use path2 only
+                    result = path2;
+                    continue;
+                }
+
+                # otherwise let's join both parts and return
+                if (result_split[1] != "" && !inlist(result[-1], self.Delimiters)) {
+                    result += self.Delimiters[0];
+                }
+                result = result + path2_split[1];
+            }
+
+            return result;
         }
     }
 
@@ -166,30 +190,35 @@ public namespace FsUtil {
 
         #! Returns path resulting from joining the given paths
         /** @param path1 the first part of the path
-            @param path2 the second part of the path
+            @param paths the other parts of the path
 
-            @return the two paths joined into one valid path (i.e. delimiters
-            are added/removed as needed) except for the case when path2 is an
-            absolute path - in such case path2 is returned as the result.
-            Otherwise the resulting path is not normalized (i.e.
-            "/path/to/../../file.txt" is a correct result of
-            join("/path/to", "../../file.txt");).
+            @return @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except
+            for cases when one of the paths (in the list) is an absolute path - in such cases that path is considered
+            a new start of the resulting path. The resulting path is not normalized (i.e. "/path/to/../../file.txt" is
+            a correct result of join("/path/to", "../../file.txt");).
+            Since the second parameter is a softlist, this variant also works for joining two string paths.
         */
-        public string join_paths(string path1, string path2) {
-            if (path2 == "") {
-                return path1;
+        public string join_paths(string path1, softlist paths) {
+            string result = path1;
+
+            foreach string path2 in (paths) {
+                if (path2 == "") {
+                    continue;
+                }
+
+                # if the second path is absolute, use path2 only
+                if (absolute_path_unix(path2)) {
+                    result = path2;
+                    continue;
+                }
+
+                if (result != "" && result[-1] != self.Delimiters[0]) {
+                    result += self.Delimiters[0];
+                }
+                result = result + path2;
             }
 
-            # if the second path is absolute or if both paths contain drive and
-            # the drives differ, return path2
-            if (absolute_path_unix(path2)) {
-                return path2;
-            }
-
-            if (path1 != "" && path1[-1] != self.Delimiters[0]) {
-                path1 += self.Delimiters[0];
-            }
-            return (path1 + path2);
+            return result;
         }
     }
 
@@ -199,7 +228,7 @@ public namespace FsUtil {
 
         @return everything after the last delimiter except for the extension if present
 
-        @throws EXTENSION-NOT-FOUND the extension is not a part of the path
+        @throws EXTENSION-NOT-FOUND if the extension is not a part of the path
 
         Delimiters for the current platform are used.
     */
@@ -216,23 +245,38 @@ public namespace FsUtil {
         if (ext_start < 0 || extension != bn[ext_start..]) {
             throw "EXTENSION-NOT-FOUND", sprintf("Extension '%s' not found in basename '%s'.", extension, bn);
         }
+
+        # return everything without the extension
         return bn[..ext_start - 1];
 
     }
 
     #! Returns path resulting from joining the given paths
     /** @param path1 the first part of the path
-        @param path2 the second part of the path
+        @param paths the other parts of the path
 
-        @return the two paths joined into one valid path (i.e. delimiters are
-        added/removed as needed) except for cases when path2 is an absolute path
-        or if each path is on different drive (Windows only) - in such cases
-        path2 is returned as the result. Otherwise the resulting path is not
-        normalized (i.e. "/path/to/../../file.txt" is a correct result of
-        join("/path/to", "../../file.txt");).
+        @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except for cases when
+        one of the paths (in the list) is an absolute path or if each path is on different drive (Windows only) - in
+        such cases that path is considered a new start of the resulting path. The resulting path is not normalized
+        (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
+        Since the second parameter is a softlist, this variant also works for joining two string paths.
     */
-    public string sub join_paths(string path1, string path2) {
-        return local_handler.join_paths(path1, path2);
+    public string sub join_paths(string path1, softlist paths) {
+        return local_handler.join_paths(path1, paths);
+    }
+
+    #! Returns path resulting from joining the given paths
+    /** @param paths the parts of the path to be joined into one
+
+        @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except for cases when
+        one of the paths is an absolute path or if each path is on different drive (Windows only) - in such cases that
+        path is considered a new start of the resulting path. The resulting path is not normalized
+        (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
+
+        @throws MISSING-PARAMETER-ERROR if the list is empty
+    */
+    public string sub join_paths(list paths) {
+        return local_handler.join_paths(paths);
     }
 
 } # FsUtil namespace

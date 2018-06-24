@@ -38,7 +38,8 @@ public class JoinPathsTest inherits QUnit::Test {
             ('/', '/dir', '/dir'),
             ('/path/to', '/dir', '/dir'),
             ('/path/to/', '/dir', '/dir'),
-            ('/dir', '/dir', '/dir')
+            ('/dir', '/dir', '/dir'),
+            ('some/path', (), 'some/path'),
         );
 
         # POSIX tests
@@ -46,6 +47,16 @@ public class JoinPathsTest inherits QUnit::Test {
             ('/path/to', 'file.txt', '/path/to/file.txt'),
             ('/path/to', '..', '/path/to/..'),
             ('/path/to', '.', '/path/to/.'),
+            ('dir', ('a', 'b'), 'dir/a/b'),
+            ('/path/to', ('dir'), '/path/to/dir'),
+            ('/path/to/', ('dir'), '/path/to/dir'),
+            ('/path/to/', ('dir/'), '/path/to/dir/'),
+            ('/path/to', ('/dir'), '/dir'),
+            ('/path/to', ('a', 'b', 'c'), '/path/to/a/b/c'),
+            ('/path/to', ('a', 'b', '/c'), '/c'),
+            ('/path/to', ('a', 'b', '/c', 'd'), '/c/d'),
+            ('path/to', ('a', 'b', '/c', 'd'), '/c/d'),
+            ('/some/path', (), '/some/path'),
         );
 
         # Windows tests
@@ -68,41 +79,128 @@ public class JoinPathsTest inherits QUnit::Test {
             ('A:\path/to', 'file.txt', 'A:\path/to\file.txt'),
             ('B:\path/to', '..', 'B:\path/to\..'),
             ('C:\path/to', '.', 'C:\path/to\.'),
+            ('dir', ('a', 'b'), 'dir\a\b'),
+            ('C:/path/to', ('dir'), 'C:/path/to\dir'),
+            ('d:/path/to/', ('dir'), 'd:/path/to/dir'),
+            ('E:/path/to/', ('dir/'), 'E:/path/to/dir/'),
+            ('e:/path/to', ('f:/dir'), 'f:/dir'),
+            ('g:/path/to', ('a', 'b', 'c'), 'g:/path/to\a\b\c'),
+            ('h:/path/to', ('a', 'b', 'k:/c'), 'k:/c'),
+            ('i:/path/to', ('a', 'b', 'd:/c', 'd'), 'd:/c\d'),
+            ('j:/some/path', (), 'j:/some/path'),
+            ('path/to', ('a', 'b', 'Z:/c', 'd'), 'Z:/c\d'),
+            ('another/path', (), 'another/path'),
+            ('C:\path\to', ('dir'), 'C:\path\to\dir'),
+            ('d:\path\to\', ('dir'), 'd:\path\to\dir'),
+            ('E:\path\to\', ('dir\'), 'E:\path\to\dir\'),
+            ('e:\path\to', ('f:\dir'), 'f:\dir'),
+            ('g:\path\to', ('a', 'b', 'c'), 'g:\path\to\a\b\c'),
+            ('h:\path\to', ('a', 'b', 'k:\c'), 'k:\c'),
+            ('i:\path\to', ('a', 'b', 'd:\c', 'd'), 'd:\c\d'),
+            ('j:\some\path', (), 'j:\some\path'),
+            ('path\to', ('a', 'b', 'Z:\c', 'd'), 'Z:\c\d'),
+            ('another\path', (), 'another\path'),
         );
+    }
+
+
+    #! Returns input parameters as a list (in a way the list variant of join_paths expects)
+    list res_to_list_input_params(list res) {
+        if (res[1].type() == "list") {
+            if (res[1].size() > 0) {
+                # insert res[0] at the beginning of the list
+                return res[0] + res[1];
+            } else {
+                # res[1] is an empty list -> return just res[0]
+                return list(res[0]);
+            }
+        } else {
+            # res[0] and res[1] are both strings
+            return (res[0], res[1]);
+        }
     }
 
     constructor() : Test ("JoinPathsTest", "1.0") {
         addTestCase("Join paths test", \test_join_paths());
         addTestCase("Join paths test Posix", \test_join_paths_posix());
         addTestCase("Join paths test Windows", \test_join_paths_win());
+        addTestCase("Join paths list test", \test_join_paths_list());
+        addTestCase("Join paths list test Posix", \test_join_paths_posix_list());
+        addTestCase("Join paths list test Windows", \test_join_paths_win_list());
+        addTestCase("Join paths exception", \test_join_paths_exception());
         set_return_value(main());
     }
 
+    #! Tests the string+softlist variant of join_paths with the local path handler
     test_join_paths() {
+        list results;
+        if (Platform.Windows) {
+            results = results_win;
+        } else {
+            results = results_posix;
+        }
+
+        foreach list res in (results) {
+            assertEq(res[2], join_paths(res[0], res[1]), sprintf("join_paths('%s', '%s')", res[0], res[1]));
+        }
+    }
+
+    #! Tests the string+softlist variant of join_paths with posix path handler
+    test_join_paths_posix() {
+        PosixPathHandler ph = new PosixPathHandler();
+        foreach list res in (results_posix) {
+            assertEq(res[2], ph.join_paths(res[0], res[1]), sprintf("POSIX join_paths('%s', '%s')", res[0], res[1]));
+        }
+    }
+
+    #! Tests the string+softlist variant of join_paths with windows path handler
+    test_join_paths_win() {
+        WinPathHandler ph = new WinPathHandler();
+        foreach list res in (results_win) {
+            assertEq(res[2], ph.join_paths(res[0], res[1]), sprintf("WIN join_paths('%s', '%s')", res[0], res[1]));
+        }
+    }
+
+    #! Tests the list variant of join_paths with the local path handler
+    test_join_paths_list() {
         list results;
         if (Platform.Windows)
             results = results_win;
         else
             results = results_posix;
 
-        foreach list res in (results)
-            assertEq(res[2], join_paths(res[0], res[1]),
-                     sprintf("join_paths('%s', '%s')", res[0], res[1]));
+        foreach list res in (results) {
+            list paths = res_to_list_input_params(res);
+            assertEq(res[2], join_paths(paths), sprintf("join_paths: %n", paths));
+        }
     }
 
-    test_join_paths_posix() {
+    #! Tests the list variant of join_paths with posix path handler
+    test_join_paths_posix_list() {
         PosixPathHandler ph = new PosixPathHandler();
         foreach list res in (results_posix) {
-            assertEq(res[2], ph.join_paths(res[0], res[1]),
-                     sprintf("POSIX join_paths('%s', '%s')", res[0], res[1]));
+            list paths = res_to_list_input_params(res);
+            assertEq(res[2], ph.join_paths(paths), sprintf("POSIX join_paths: %n", paths));
         }
     }
 
-    test_join_paths_win() {
+    #! Tests the list variant of join_paths with windows path handler
+    test_join_paths_win_list() {
         WinPathHandler ph = new WinPathHandler();
         foreach list res in (results_win) {
-            assertEq(res[2], ph.join_paths(res[0], res[1]),
-                     sprintf("WIN join_paths('%s', '%s')", res[0], res[1]));
+            list paths = res_to_list_input_params(res);
+            assertEq(res[2], ph.join_paths(paths), sprintf("WIN join_paths: %n", paths));
         }
+    }
+
+    #! Tests cases when an exception is expected
+    test_join_paths_exception() {
+        assertThrows("MISSING-PARAMETER-ERROR", \join_paths(), ((),));
+        assertThrows("RUNTIME-TYPE-ERROR", \join_paths(), (('some/path', (NOTHING,))));
+        assertThrows("RUNTIME-TYPE-ERROR", \join_paths(), (('some', ('path', NOTHING,))));
+        assertThrows("RUNTIME-TYPE-ERROR", \join_paths(), (('some', ('path', NOTHING, 'dir'))));
+        assertThrows("RUNTIME-TYPE-ERROR", \join_paths(), (('some/path', (42,))));
+        assertThrows("RUNTIME-TYPE-ERROR", \join_paths(), (('some', ('path', 3.14159,))));
+        assertThrows("RUNTIME-TYPE-ERROR", \join_paths(), (('some', ('path', {"unexpected": "hash"}, 'dir'))));
     }
 }
