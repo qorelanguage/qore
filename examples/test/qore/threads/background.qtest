@@ -71,7 +71,8 @@ class T {
 
     issue2679() {
         # causes a crash with #2279
-        background (sprintf("A"),sprintf("B"));
+        Program p(PO_NEW_STYLE);
+        p.parse("background (sprintf(\"A\"), sprintf(\"B\"));", "", WARN_RETURN_VALUE_IGNORED);
         assertTrue(True);
     }
 
