@@ -67,6 +67,8 @@ DLLEXPORT extern qore_classid_t CID_OUTPUTSTREAMBASE;
 
 DLLEXPORT extern QoreClass* QC_QUEUE;
 DLLEXPORT extern QoreClass* QC_HTTPCLIENT;
+DLLEXPORT extern QoreClass* QC_SSLCERTIFICATE;
+DLLEXPORT extern QoreClass* QC_SSLPRIVATEKEY;
 
 class BCList;
 class BCSMList;
