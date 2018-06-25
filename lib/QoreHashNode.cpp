@@ -63,14 +63,14 @@ QoreListNode* qore_hash_private::getKeys() const {
     return list;
 }
 
-QoreListNode* qore_hash_private::getValues(bool with_type_info) const {
-    QoreListNode* list = new QoreListNode(with_type_info ? complexTypeInfo : nullptr);
-    qore_list_private::get(*list)->reserve(member_list.size());
+QoreListNode* qore_hash_private::getValues() const {
+    ReferenceHolder<QoreListNode> list(new QoreListNode(getValueTypeInfo()), nullptr);
+    qore_list_private::get(**list)->reserve(member_list.size());
 
     for (auto& i : member_list) {
         list->push(i->node ? i->node->refSelf() : nullptr);
     }
-    return list;
+    return list.release();
 }
 
 void qore_hash_private::mergeStrip(const qore_hash_private& h, ExceptionSink* xsink) {
