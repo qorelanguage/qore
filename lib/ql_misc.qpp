@@ -2614,7 +2614,7 @@ catch (hash<ExceptionSink> ex) {
     @since %Qore 0.8.7
  */
 string get_ex_pos(hash<auto> ex) [flags=CONSTANT] {
-    QoreValue n = ex->getValueKeyValue("file");
+    QoreValue n = ex->getKeyValue("file");
     QoreStringNode* str = new QoreStringNode(n.getType() == NT_STRING ? n.get<const QoreStringNode>()->c_str() : "<unknown>");
     int ln = (int)ex->getKeyValue("line").getAsBigInt();
     str->sprintf(":%d", ln);
