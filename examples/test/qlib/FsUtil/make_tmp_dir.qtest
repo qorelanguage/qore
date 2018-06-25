@@ -1,0 +1,80 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class MakeTmpDirTest
+
+public class MakeTmpDirTest inherits QUnit::Test {
+
+    private {
+        list params = (
+            # (prefix, suffix)
+            (NOTHING, NOTHING),
+            ("FOO", NOTHING),
+            (NOTHING, "BAR"),
+            ("", ""),
+            ("FOO", ""),
+            ("", "BAR"),
+            ("FOO", "BAR"),
+        );
+    }
+
+    constructor() : Test ("MakeTmpDirTest", "1.0") {
+        addTestCase("make_tmp_dir test - standard temp location", \test_make_tmp_dir_std());
+        addTestCase("make_tmp_dir test - custom temp location", \test_make_tmp_dir_custom());
+        addTestCase("make_tmp_dir exception test", \test_make_tmp_dir_exception());
+        set_return_value(main());
+    }
+
+    test_make_tmp_dir_std() {
+        string tmp_path = tmp_location();
+
+        foreach list p in (params) {
+            string tmp_dir = make_tmp_dir(NOTHING, p[0], p[1]);
+            assertTrue(is_dir(tmp_dir));
+            assertTrue(is_writable(tmp_dir));
+            assertEq(0, rmdir(tmp_dir));
+
+            assertTrue(string_starts_with(tmp_dir, tmp_path));
+            assertTrue(string_starts_with(tmp_dir, join_paths(tmp_path, p[0])));
+            assertTrue(string_ends_with(tmp_dir, p[1] ?? ""));
+        }
+    }
+
+    test_make_tmp_dir_custom() {
+        string tmp_location;
+        if (Platform.Windows)
+            tmp_location = 'c:\temp';
+        else
+            tmp_location = "/tmp";
+
+        # create a custom temp location
+        string tmp_path = join_paths(tmp_location, get_random_string());
+        assertEq(0, mkdir(tmp_path));
+        on_exit {
+            rmdir(tmp_path);
+        }
+
+        foreach list p in (params) {
+            string tmp_dir = make_tmp_dir(tmp_path, p[0], p[1]);
+            assertTrue(is_dir(tmp_dir));
+            assertTrue(is_writable(tmp_dir));
+            assertEq(0, rmdir(tmp_dir));
+
+            assertTrue(string_starts_with(tmp_dir, tmp_path));
+            assertTrue(string_starts_with(tmp_dir, join_paths(tmp_path, p[0])));
+            assertTrue(string_ends_with(tmp_dir, p[1] ?? ""));
+        }
+    }
+
+    test_make_tmp_dir_exception() {
+        assertThrows("DIR-WRITE-ERROR", \make_tmp_dir(), ("/"));
+    }
+}
