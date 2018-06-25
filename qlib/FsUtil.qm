@@ -242,14 +242,12 @@ public namespace FsUtil {
             return bn;
         }
 
-        int ext_len = extension.length();
-        int bn_len = bn.length();
-        int ext_start = bn_len - ext_len;
-        if (ext_start < 0 || extension != bn[ext_start..]) {
+        if (!string_ends_with(bn, extension)) {
             throw "EXTENSION-NOT-FOUND", sprintf("Extension '%s' not found in basename '%s'.", extension, bn);
         }
 
         # return everything without the extension
+        int ext_start = bn.length() - extension.length();
         return bn[..ext_start - 1];
 
     }
