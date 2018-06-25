@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ql_misc.qpp
+    ql_misc.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -556,12 +556,13 @@ auto result = call_function("func_name", arg1, arg2);
     @note The function called could also throw other exceptions
 */
 auto call_function(string name, ...) {
-   ReferenceHolder<QoreListNode> vargs(xsink);
-   // if there are arguments to pass, create argument list by copying current list
-   if (num_args(args) > 1)
-      vargs = args->getOldList(1);
+    ReferenceHolder<QoreListNode> vargs(xsink);
+    // if there are arguments to pass, create argument list by copying current list
+    if (num_args(args) > 1) {
+        vargs = args->copyListFrom(1);
+    }
 
-   return getProgram()->callFunction(name->getBuffer(), *vargs, xsink);
+    return getProgram()->callFunction(name->c_str(), *vargs, xsink);
 }
 
 //! Calls the given @ref call_reference "call reference" or @ref closure "closure" and returns the result, passing the remaining arguments to the @ref call_reference "call reference" or @ref closure "closure"
@@ -577,12 +578,13 @@ auto result = call_function(call_ref, arg1, arg2);
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
 */
 auto call_function(code f, ...) {
-   ReferenceHolder<QoreListNode> vargs(xsink);
-   // if there are arguments to pass, create argument list by copying current list
-   if (num_args(args) > 1)
-      vargs = args->getOldList(1);
+    ReferenceHolder<QoreListNode> vargs(xsink);
+    // if there are arguments to pass, create argument list by copying current list
+    if (num_args(args) > 1) {
+        vargs = args->copyListFrom(1);
+    }
 
-   return f->execValue(*vargs, xsink).takeNode();
+    return f->execValue(*vargs, xsink).takeNode();
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
@@ -642,16 +644,17 @@ auto result = call_builtin_function("func_name", arg1, arg2);
     @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
 auto call_builtin_function(string name, ...) {
-   const QoreFunction* f = get_builtin_func(name, xsink);
-   if (!f)
-      return QoreValue();
+    const QoreFunction* f = get_builtin_func(name, xsink);
+    if (!f)
+        return QoreValue();
 
-   ReferenceHolder<QoreListNode> vargs(xsink);
-   // if there are arguments to pass, create argument list by copying current list
-   if (num_args(args) > 1)
-      vargs = args->getOldList(1);
+    ReferenceHolder<QoreListNode> vargs(xsink);
+    // if there are arguments to pass, create argument list by copying current list
+    if (num_args(args) > 1) {
+        vargs = args->copyListFrom(1);
+    }
 
-   return f->evalDynamic(*vargs, xsink).takeNode();
+    return f->evalDynamic(*vargs, xsink).takeNode();
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
@@ -1332,7 +1335,7 @@ hash<string, hash<auto>> getModuleHash() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-hash<auto> mh = get_module_hash();
+hash<string, hash<auto>> mh = get_module_hash();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1350,7 +1353,7 @@ hash<string, hash<auto>> get_module_hash() {
 
     @deprecated use get_feature_list(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list getFeatureList() [flags=DEPRECATED] {
+list<string> getFeatureList() [flags=DEPRECATED] {
    return getProgram()->getFeatureList();
 }
 
@@ -1411,12 +1414,12 @@ bool b = has_key(hash, "key");
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the given key cannot be converted to the @ref default_encoding "default character encoding"
 */
 bool has_key(hash<auto> h, string key) {
-   TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
-   if (*xsink)
-      return QoreValue();
-   bool exists;
-   h->getValueKeyValueExistence(tmp->c_str(), exists);
-   return exists;
+    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+    if (*xsink)
+        return QoreValue();
+    bool exists;
+    h->getKeyValueExistence(tmp->c_str(), exists);
+    return exists;
 }
 
 //! Returns @ref True if the given key exists in the object (does not necessarily have to have a value assigned); exceptions are only raised if string encoding errors are encountered or in case of object access errors.
@@ -1431,9 +1434,10 @@ bool b = has_key(obj, "key");
     @note object access exceptions could also be raised
 */
 bool has_key(object obj, string key) {
-   AutoVLock vl(xsink);
-   AbstractQoreNode* *ptr = obj->getExistingValuePtr(key, &vl, xsink);
-   return (bool)ptr;
+    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);
+    if (*xsink)
+        return QoreValue();
+    return obj->hasMember(tmp->c_str(), xsink);
 }
 
 //! Returns the byte value at the given byte offset (the first value is at offset 0) or @ref nothing if the offset is not legal for the given data
@@ -1883,13 +1887,13 @@ nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
     @see get_word_64()
 */
 *int get_word_64_lsb(binary b, softint offset = 0) [flags=CONSTANT] {
-   unsigned char* ptr = (unsigned char* )b->getPtr();
-   int size = b->size();
+    unsigned char* ptr = (unsigned char* )b->getPtr();
+    int size = b->size();
 
-   if (offset >= (size - 7) || offset < 0)
-      return QoreValue();
+    if (offset >= (size - 7) || offset < 0)
+        return QoreValue();
 
-   return (int64)LSBi8(*((int64 *)&ptr[offset]));
+    return (int64)LSBi8(*((int64 *)&ptr[offset]));
 }
 
 //! This function always returns an empty string \c ""
@@ -1900,7 +1904,7 @@ nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
     @return always returns an empty string \c ""
 */
 string splice(string[doc] str) [flags=NOOP] {
-   return new QoreStringNode;
+    return new QoreStringNode;
 }
 
 //! Returns a string based on the argument string but with characters removed from a certain character index
@@ -1919,9 +1923,9 @@ string str = splice(str2, 5);
     @see the @ref splice "splice operator"
 */
 string splice(string str, softint start) {
-   QoreStringNodeHolder pstr(str->copy());
-   pstr->splice(start, xsink);
-   return *xsink ? QoreValue() : pstr.release();
+    QoreStringNodeHolder pstr(str->copy());
+    pstr->splice(start, xsink);
+    return *xsink ? QoreValue() : pstr.release();
 }
 
 //! Returns a string based on the argument string but optionally with characters removed and/or added from a certain character index
@@ -1942,9 +1946,9 @@ string str = splice(str2, 5, 7, "hello");
     @see the @ref splice "splice operator"
 */
 string splice(string str, softint start, softint len, *string nstr) {
-   QoreStringNodeHolder pstr(str->copy());
-   pstr->splice(start, len, nstr, xsink);
-   return *xsink ? QoreValue() : pstr.release();
+    QoreStringNodeHolder pstr(str->copy());
+    pstr->splice(start, len, QoreValue(nstr), xsink);
+    return *xsink ? QoreValue() : pstr.release();
 }
 
 //! Returns a list based on the argument list but with elements removed from the given index to the end of the list
@@ -1961,9 +1965,9 @@ list<auto> l = splice(l2, 5);
     @see the @ref splice "splice operator"
 */
 list<auto> splice(list<auto> l, softint start) {
-   ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
-   lst->splice(start, xsink);
-   return *xsink ? QoreValue() : lst.release();
+    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
+    ReferenceHolder<> holder(lst->splice(start), xsink);
+    return *xsink ? QoreValue() : lst.release();
 }
 
 //! Returns a list based on the argument list but optionally with elements removed and/or added from a certain index
@@ -1972,7 +1976,29 @@ list<auto> splice(list<auto> l, softint start) {
     @param l the list to process
     @param start the starting element (where the first element is 0) to start removing (and/or adding) elements; if this value is negative, it gives the offset from the end of the list
     @param len the number of list elements to remove; if this argument is 0 then no elements are removed; if this value is negative, then it gives an offset from the end of the list (ie -2 means remove all elements up to but not including the two last elements)
-    @param nlist the optional list for inserting new elements
+
+    @return the processed list with elements removed and/or added according to the arguments
+
+    @par Example:
+    @code{.py}
+list<auto> l = splice(l2, 5, 7);
+    @endcode
+
+    @see the @ref splice "splice operator"
+*/
+list<auto> splice(list<auto> l, softint start, softint len) {
+    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
+    ReferenceHolder<> holder(lst->splice(start, len), xsink);
+    return *xsink ? QoreValue() : lst.release();
+}
+
+//! Returns a list based on the argument list but optionally with elements removed and/or added from a certain index
+/** Exceptions can only be thrown here if objects are removed from the list and this causes them to go out of scope and an exception is thrown in one of the destructors
+
+    @param l the list to process
+    @param start the starting element (where the first element is 0) to start removing (and/or adding) elements; if this value is negative, it gives the offset from the end of the list
+    @param len the number of list elements to remove; if this argument is 0 then no elements are removed; if this value is negative, then it gives an offset from the end of the list (ie -2 means remove all elements up to but not including the two last elements)
+    @param nlist the new  list for inserting new elements
 
     @return the processed list with elements removed and/or added according to the arguments
 
@@ -1983,10 +2009,10 @@ list<auto> l = splice(l2, 5, 7, "hello");
 
     @see the @ref splice "splice operator"
 */
-list<auto> splice(list<auto> l, softint start, softint len, *softlist<auto> nlist) {
-   ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
-   lst->splice(start, len, nlist, xsink);
-   return *xsink ? QoreValue() : lst.release();
+list<auto> splice(list<auto> l, softint start, softint len, softlist<auto> nlist) {
+    ReferenceHolder<QoreListNode> lst(l->copy(), xsink);
+    ReferenceHolder<> holder(lst->splice(start, len, nlist, xsink), xsink);
+    return *xsink ? QoreValue() : lst.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -2008,9 +2034,9 @@ nothing splice() [flags=RUNTIME_NOOP] {
     @deprecated use make_hex_string(); camel-case function names were deprecated in %Qore 0.8.12
 */
 string makeHexString(string str) [flags=CONSTANT,DEPRECATED] {
-   QoreStringNode* rv = new QoreStringNode;
-   rv->concatHex(str);
-   return rv;
+    QoreStringNode* rv = new QoreStringNode;
+    rv->concatHex(str);
+    return rv;
 }
 
 //! Returns a hex-encoded representation of a binary object
@@ -2026,9 +2052,9 @@ string makeHexString(string str) [flags=CONSTANT,DEPRECATED] {
     @deprecated use make_hex_string(); camel-case function names were deprecated in %Qore 0.8.12
 */
 string makeHexString(binary bin) [flags=CONSTANT,DEPRECATED] {
-   QoreStringNode* str = new QoreStringNode;
-   str->concatHex(bin);
-   return str;
+    QoreStringNode* str = new QoreStringNode;
+    str->concatHex(bin);
+    return str;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -2055,9 +2081,9 @@ string str = make_hex_string(str2);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case makeHexString()
 */
 string make_hex_string(string str) [flags=CONSTANT] {
-   QoreStringNode* rv = new QoreStringNode;
-   rv->concatHex(str);
-   return rv;
+    QoreStringNode* rv = new QoreStringNode;
+    rv->concatHex(str);
+    return rv;
 }
 
 //! Returns a hex-encoded representation of a binary object
@@ -2078,9 +2104,9 @@ string str = make_hex_string(bin);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case makeHexString()
 */
 string make_hex_string(binary bin) [flags=CONSTANT] {
-   QoreStringNode* str = new QoreStringNode;
-   str->concatHex(bin);
-   return str;
+    QoreStringNode* str = new QoreStringNode;
+    str->concatHex(bin);
+    return str;
 }
 
 //! Parses a hex-encoded string and returns the binary object
@@ -2450,17 +2476,18 @@ list<hash<auto>> l = get_qore_option_list();
     @see get_qore_option_hash()
 */
 list<hash<auto>> get_qore_option_list() [flags=CONSTANT] {
-   QoreListNode* l = new QoreListNode(autoHashTypeInfo);
+    QoreListNode* l = new QoreListNode(autoHashTypeInfo);
 
-   for (unsigned j = 0; j < qore_option_list_size; ++j) {
-      QoreHashNode* h = new QoreHashNode(autoTypeInfo);
-      h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
-      h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
-      h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
-      h->setKeyValue("value", get_bool_node(qore_option_list[j].value), xsink);
-      l->push(h);
-   }
-   return l;
+    for (unsigned j = 0; j < qore_option_list_size; ++j) {
+        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
+        qore_hash_private* hh = qore_hash_private::get(*h);
+        hh->setKeyValueIntern("option", new QoreStringNode(qore_option_list[j].option));
+        hh->setKeyValueIntern("constant", new QoreStringNode(qore_option_list[j].constant));
+        hh->setKeyValueIntern("type", new QoreStringNode(tlist[qore_option_list[j].type]));
+        hh->setKeyValueIntern("value", qore_option_list[j].value);
+        l->push(h, xsink);
+    }
+    return l;
 }
 
 //! Returns a hash of hashes giving information about %Qore library options for the current build
@@ -2480,18 +2507,18 @@ hash<string, hash<auto>> h = get_qore_option_hash();
     @since %Qore 0.8.4
 */
 hash<string, hash<auto>> get_qore_option_hash() [flags=CONSTANT] {
-   QoreHashNode* rv = new QoreHashNode;
+    QoreHashNode* rv = new QoreHashNode(autoHashTypeInfo);
 
-   for (unsigned j = 0; j < qore_option_list_size; ++j) {
-      QoreHashNode* h = new QoreHashNode;
-      h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
-      h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
-      h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
-      h->setKeyValue("value", get_bool_node(qore_option_list[j].value), xsink);
+    for (unsigned j = 0; j < qore_option_list_size; ++j) {
+        QoreHashNode* h = new QoreHashNode(autoTypeInfo);
+        h->setKeyValue("option", new QoreStringNode(qore_option_list[j].option), xsink);
+        h->setKeyValue("constant", new QoreStringNode(qore_option_list[j].constant), xsink);
+        h->setKeyValue("type", new QoreStringNode(tlist[qore_option_list[j].type]), xsink);
+        h->setKeyValue("value", qore_option_list[j].value, xsink);
 
-      rv->setKeyValue(qore_option_list[j].constant, h, 0);
-   }
-   return rv;
+        rv->setKeyValue(qore_option_list[j].constant, h, 0);
+    }
+    return rv;
 }
 
 //! Returns a hash of library build and version info
@@ -2520,10 +2547,10 @@ hash<auto> get_qore_library_info() [flags=CONSTANT] {
    h->setKeyValue("PlatformOS", new QoreStringNode(qore_target_os), xsink);
    h->setKeyValue("PlatformCPU", new QoreStringNode(qore_target_arch), xsink);
    h->setKeyValue("VersionString", new QoreStringNode(qore_version_string), xsink);
-   h->setKeyValue("VersionMajor", new QoreBigIntNode(qore_version_major), xsink);
-   h->setKeyValue("VersionMinor", new QoreBigIntNode(qore_version_minor), xsink);
-   h->setKeyValue("VersionSub", new QoreBigIntNode(qore_version_sub), xsink);
-   h->setKeyValue("Build", new QoreBigIntNode(qore_build_number), xsink);
+   h->setKeyValue("VersionMajor", qore_version_major, xsink);
+   h->setKeyValue("VersionMinor", qore_version_minor, xsink);
+   h->setKeyValue("VersionSub", qore_version_sub, xsink);
+   h->setKeyValue("Build", qore_build_number, xsink);
 
    h->setKeyValue("UserModuleVerDir", new QoreStringNode(qore_user_module_ver_dir), xsink);
    h->setKeyValue("UserModuleDir", new QoreStringNode(qore_user_module_dir), xsink);
@@ -2566,7 +2593,7 @@ set_return_value(1);
     @since %Qore 0.8.12
  */
 set_return_value(auto val) [dom=PROCESS] {
-   qore_program_private::setReturnValue(*getProgram(), val.getReferencedValue(), xsink);
+    qore_program_private::setReturnValue(*getProgram(), val.refSelf(), xsink);
 }
 
 //! returns a descriptive string for an exception location; the \c source and \c offset information will also be included in the string returned if present in the @ref Qore::ExceptionInfo "ExceptionInfo" hash argument
@@ -2587,20 +2614,20 @@ catch (hash<ExceptionSink> ex) {
     @since %Qore 0.8.7
  */
 string get_ex_pos(hash<auto> ex) [flags=CONSTANT] {
-   QoreValue n = ex->getValueKeyValue("file");
-   QoreStringNode* str = new QoreStringNode(n.getType() == NT_STRING ? n.get<const QoreStringNode>()->c_str() : "<unknown>");
-   int ln = (int)ex->getValueKeyValue("line").getAsBigInt();
-   str->sprintf(":%d", ln);
-   n = ex->getValueKeyValue("source");
-   if (n.getType() == NT_STRING) {
-      const QoreStringNode* sstr = n.get<const QoreStringNode>();
-      if (!sstr->empty()) {
-         int offset = (int)ex->getValueKeyValue("offset").getAsBigInt();
-         str->sprintf(" (source \"%s\":%d)", sstr->c_str(), ln + offset);
-      }
-   }
+    QoreValue n = ex->getValueKeyValue("file");
+    QoreStringNode* str = new QoreStringNode(n.getType() == NT_STRING ? n.get<const QoreStringNode>()->c_str() : "<unknown>");
+    int ln = (int)ex->getKeyValue("line").getAsBigInt();
+    str->sprintf(":%d", ln);
+    n = ex->getKeyValue("source");
+    if (n.getType() == NT_STRING) {
+        const QoreStringNode* sstr = n.get<const QoreStringNode>();
+        if (!sstr->empty()) {
+            int offset = (int)ex->getKeyValue("offset").getAsBigInt();
+            str->sprintf(" (source \"%s\":%d)", sstr->c_str(), ln + offset);
+        }
+    }
 
-   return str;
+    return str;
 }
 
 //! retrieves a hash of local variables for the given stack frame

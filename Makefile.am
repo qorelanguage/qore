@@ -123,6 +123,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_InputStreamLineIterator.qpp \
 	lib/QC_SingleValueIterator.qpp \
 	lib/QC_AbstractDatasource.qpp \
+	lib/QC_AbstractSQLStatement.qpp \
 	lib/QC_RangeIterator.qpp \
 	lib/QC_Datasource.qpp \
 	lib/QC_DatasourcePool.qpp \
@@ -331,7 +332,6 @@ include_HEADERS = \
 	include/qore/QoreIteratorBase.h \
 	include/qore/QoreType.h \
 	include/qore/QoreListNode.h \
-	include/qore/QoreValueList.h \
 	include/qore/QoreBigIntNode.h \
 	include/qore/QoreBoolNode.h \
 	include/qore/QoreFloatNode.h \
@@ -342,7 +342,6 @@ include_HEADERS = \
 	include/qore/QoreQueueHelper.h \
 	include/qore/params.h \
 	include/qore/node_types.h \
-	include/qore/BuiltinFunctionList.h \
 	include/qore/QoreThreadLock.h \
 	include/qore/QoreThreadLocalStorage.h \
 	include/qore/QoreClass.h \
@@ -380,6 +379,8 @@ include_HEADERS = \
 	include/qore/ReferenceNode.h \
 	include/qore/CallReferenceNode.h \
 	include/qore/QoreFtpClient.h \
+	include/qore/vector_map \
+	include/qore/vector_set \
 	include/qore/safe_dslist \
 	include/qore/qlist \
 	include/qore/qore_bitopts.h \
@@ -399,8 +400,8 @@ include_HEADERS = \
 	include/qore/AutoVLock.h \
 	include/qore/QoreFile.h \
 	include/qore/Qore.h \
-	include/qore/QoreNodeEvalOptionalRefHolder.h \
 	include/qore/QoreEvents.h \
+	include/qore/StreamBase.h \
 	include/qore/InputStream.h \
 	include/qore/OutputStream.h \
 	include/qore/Transform.h \
@@ -419,16 +420,13 @@ noinst_HEADERS = \
 	include/qore/intern/git-revision.h \
 	include/qore/intern/glob.h \
 	include/qore/intern/RSet.h \
-	include/qore/intern/ParseList.h \
 	include/qore/intern/AbstractIteratorHelper.h \
 	include/qore/intern/ParseReferenceNode.h \
-	include/qore/intern/ReferenceHelper.h \
 	include/qore/intern/ThreadResourceList.h \
 	include/qore/intern/ssl_constants.h \
 	include/qore/intern/lvalue_ref.h \
 	include/qore/intern/qore_thread_intern.h \
 	include/qore/intern/qore_list_private.h \
-	include/qore/intern/qore_value_list_private.h \
 	include/qore/intern/inline_printf.h \
 	include/qore/intern/qore_qf_private.h \
 	include/qore/intern/qore_encoding_private.h \
@@ -638,10 +636,8 @@ noinst_HEADERS = \
 	include/qore/intern/EncodingConversionOutputStream.h \
 	include/qore/intern/FileInputStream.h \
 	include/qore/intern/FileOutputStream.h \
-	include/qore/intern/InputStreamBase.h \
 	include/qore/intern/InputStreamLineIterator.h \
 	include/qore/intern/InputStreamWrapper.h \
-	include/qore/intern/OutputStreamBase.h \
 	include/qore/intern/OutputStreamWrapper.h \
 	include/qore/intern/StreamPipe.h \
 	include/qore/intern/StreamWriter.h \
@@ -660,6 +656,7 @@ noinst_HEADERS = \
 	include/qore/intern/FileLineIterator.h \
 	include/qore/intern/DataLineIterator.h \
 	include/qore/intern/EncodingConvertor.h \
+	include/qore/intern/QoreListNodeEvalOptionalRefHolder.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \

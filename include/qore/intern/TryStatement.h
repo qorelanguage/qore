@@ -4,7 +4,7 @@
 
  Qore Programming Language
 
- Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+ Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,26 +37,26 @@
 
 class TryStatement : public AbstractStatement {
 public:
-   class StatementBlock* try_block;
-   class StatementBlock* catch_block;
-   //class StatementBlock *finally;
-   char* param;
-   LocalVar* id;
-   const QoreTypeInfo* typeInfo;
-   QoreParseTypeInfo* parseTypeInfo;
-   const QoreProgramLocation loc;
+    class StatementBlock* try_block;
+    class StatementBlock* catch_block;
+    //class StatementBlock *finally;
+    char* param;
+    LocalVar* id;
+    const QoreTypeInfo* typeInfo;
+    QoreParseTypeInfo* parseTypeInfo;
+    const QoreProgramLocation* loc;
 
-   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
-   DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
+    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0);
 
 public:
-   DLLLOCAL TryStatement(int start_line, int end_line, class StatementBlock* t, class StatementBlock* c, char* p, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, const QoreProgramLocation& vloc);
+    DLLLOCAL TryStatement(const QoreProgramLocation* loc, class StatementBlock* t, class StatementBlock* c, char* p, const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, const QoreProgramLocation* vloc);
 
-   DLLLOCAL virtual ~TryStatement();
+    DLLLOCAL virtual ~TryStatement();
 
-   DLLLOCAL virtual bool hasFinalReturn() const;
+    DLLLOCAL virtual bool hasFinalReturn() const;
 
-   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
+    DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 };
 
 #endif

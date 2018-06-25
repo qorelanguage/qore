@@ -99,12 +99,12 @@ int AstParser::getErrorCount() {
         if (!start || !end || !range || !diag)
             return QoreValue();
 
-        start->setKeyValue("line", new QoreBigIntNode(err->loc.firstLine-1), xsink);
-        start->setKeyValue("character", new QoreBigIntNode(err->loc.firstCol-1), xsink);
+        start->setKeyValue("line", err->loc.firstLine-1, xsink);
+        start->setKeyValue("character", err->loc.firstCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
-        end->setKeyValue("line", new QoreBigIntNode(err->loc.lastLine-1), xsink);
-        end->setKeyValue("character", new QoreBigIntNode(err->loc.lastCol-1), xsink);
+        end->setKeyValue("line", err->loc.lastLine-1, xsink);
+        end->setKeyValue("character", err->loc.lastCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
         range->setKeyValue("start", start.release(), xsink);
@@ -113,10 +113,10 @@ int AstParser::getErrorCount() {
             return QoreValue();
         diag->setKeyValue("range", range.release(), xsink);
         diag->setKeyValue("message", new QoreStringNode(err->getError()), xsink);
-        diag->setKeyValue("severity", new QoreBigIntNode(1), xsink); // 1 == error, 2 == warning, 3 == info, 4 == hint
+        diag->setKeyValue("severity", 1, xsink); // 1 == error, 2 == warning, 3 == info, 4 == hint
         if (xsink && *xsink)
             return QoreValue();
-        lst->push(diag.release());
+        lst->push(diag.release(), nullptr);
     }
 
     return lst.release();

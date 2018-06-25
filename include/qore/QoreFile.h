@@ -566,6 +566,11 @@ public:
    **/
    DLLEXPORT QoreHashNode *statvfs(ExceptionSink *xsink) const;
 
+    //! redirects the current file (this) to the argument
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT int redirect(QoreFile& file, ExceptionSink* xsink);
+
 #if 0
    //! preallocates storage
    DLLEXPORT int preallocate(fstore_t &fs, ExceptionSink *xsink);
