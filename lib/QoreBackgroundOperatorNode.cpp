@@ -47,7 +47,7 @@ AbstractQoreNode* QoreBackgroundOperatorNode::parseInitImpl(LocalVar* oflag, int
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
     const QoreTypeInfo* expTypeInfo = 0;
-    parse_init_value(exp, oflag, pflag | PF_BACKGROUND | PF_BACKGROUND_CALL_RETURN_VALUE_IGNORED, lvids, expTypeInfo);
+    parse_init_value(exp, oflag, pflag | PF_BACKGROUND, lvids, expTypeInfo);
 
     return this;
 }

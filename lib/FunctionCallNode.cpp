@@ -106,8 +106,8 @@ static void warn_deprecated(const QoreProgramLocation* loc, QoreFunction* func) 
 }
 
 static void check_flags(const QoreProgramLocation* loc, QoreFunction* func, int64 flags, int64 pflag) {
-    if (pflag & (PF_RETURN_VALUE_IGNORED | PF_BACKGROUND_CALL_RETURN_VALUE_IGNORED)) {
-        bool is_bg_call = (pflag & PF_BACKGROUND_CALL_RETURN_VALUE_IGNORED);
+    if (pflag & (PF_RETURN_VALUE_IGNORED | PF_BACKGROUND)) {
+        bool is_bg_call = (pflag & PF_BACKGROUND);
         if ((flags & QC_CONSTANT) == QC_CONSTANT) {
             warn_retval_ignored(loc, func, is_bg_call);
         }
