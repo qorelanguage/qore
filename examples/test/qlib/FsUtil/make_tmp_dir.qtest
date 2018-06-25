@@ -37,7 +37,7 @@ public class MakeTmpDirTest inherits QUnit::Test {
         string tmp_path = tmp_location();
 
         foreach list p in (params) {
-            string tmp_dir = make_tmp_dir(NOTHING, p[0], p[1]);
+            string tmp_dir = make_tmp_dir(p[0], p[1]);
             assertTrue(is_dir(tmp_dir));
             assertTrue(is_writable(tmp_dir));
             assertEq(0, rmdir(tmp_dir));
@@ -63,7 +63,7 @@ public class MakeTmpDirTest inherits QUnit::Test {
         }
 
         foreach list p in (params) {
-            string tmp_dir = make_tmp_dir(tmp_path, p[0], p[1]);
+            string tmp_dir = make_tmp_dir(p[0], p[1], tmp_path);
             assertTrue(is_dir(tmp_dir));
             assertTrue(is_writable(tmp_dir));
             assertEq(0, rmdir(tmp_dir));
@@ -75,6 +75,6 @@ public class MakeTmpDirTest inherits QUnit::Test {
     }
 
     test_make_tmp_dir_exception() {
-        assertThrows("DIR-WRITE-ERROR", \make_tmp_dir(), ("/"));
+        assertThrows("DIR-WRITE-ERROR", \make_tmp_dir(), (NOTHING, NOTHING, "/"));
     }
 }

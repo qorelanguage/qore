@@ -283,10 +283,10 @@ public namespace FsUtil {
     const TMP_MAX_ATTEMPTS = 10000;
 
     #! Creates a unique temporary directory and returns its absolute path
-    /** @param path path to a dir in which the callee wants to create the new directory; if not provided, standard temp
-                    location will be used
-        @param prefix prefix to be used in the newly created directory name
+    /** @param prefix prefix to be used in the newly created directory name
         @param suffix suffix to be used in the newly created directory name
+        @param path path to a dir in which the caller wants to create the new directory; if not provided, standard temp
+                    location will be used
 
         @return absolute path to the newly created directory
 
@@ -296,7 +296,7 @@ public namespace FsUtil {
         The caller is responsible for removing the temporary directory once it's needed no more.
 
     */
-    public string sub make_tmp_dir(*string path, *string prefix, *string suffix) {
+    public string sub make_tmp_dir(*string prefix, *string suffix, *string path) {
         if (exists path) {
             if (!is_writable(path)) {
                 throw "DIR-WRITE-ERROR", sprintf("'%s' is not a writable directory.", path);
@@ -321,12 +321,66 @@ public namespace FsUtil {
                     continue;
                 } else {
                     # another (unexpected) error
-                    throw "DIR-WRITE-ERROR", sprintf("Directory '%s' couldn't be created: %s", strerror(err));
+                    throw "DIR-WRITE-ERROR", sprintf("Directory '%s' couldn't be created: %s", tmp_path, strerror(err));
                 }
             }
         }
+
+        # even after TMP_MAX_ATTEMPTS we didn't succeed in finding a unique name
+        throw "DIR-WRITE-ERROR", "Impossible to find a unique name.";
     }
 
+    #! Creates and opens a unique temporary file and returns its absolute path as well as its File object
+    /** @param prefix prefix to be used in the newly created file name
+        @param suffix suffix to be used in the newly created file name
+        @param path path to a dir in which the caller wants to create the new file; if not provided, standard temp
+                    location will be used
 
+        @return hash with absolute path to the newly created file and its File object
+                (keys "path" and "file" recpectively)
+
+        @throws FILE-WRITE-ERROR The file couldn't be created.
+
+        The file is created in a secure way and is readable and writable only by the current user.
+        The caller is responsible for removing the temporary file once it's needed no more.
+
+    */
+    public hash sub make_tmp_file(*string prefix, *string suffix, *string path) {
+        if (exists path) {
+            if (!is_writable(path)) {
+                throw "FILE-WRITE-ERROR", sprintf("'%s' is not a writable directory.", path);
+            }
+        } else {
+            # get standard tmp location (and check that it's writable)
+            path = tmp_location();
+        }
+
+        int flags = O_CREAT | O_EXCL | O_RDWR;
+        File tmp_file = new File();
+
+        for (int i = 0; i < TMP_MAX_ATTEMPTS; i++) {
+            string tmp_fn = prefix + get_random_string() + suffix;
+            string tmp_path = join_paths(path, tmp_fn);
+
+            if (tmp_file.open(tmp_path, flags, 0600) == 0) {
+                # success
+                return {"path": tmp_path,
+                        "file": tmp_file};
+            } else {
+                # unable to create the file
+                int err = errno();
+                if (err == Err::EEXIST) {
+                    # file already exists -> let's try again with another name
+                    continue;
+                } else {
+                    # another (unexpected) error
+                    throw "FILE-WRITE-ERROR", sprintf("File '%s' couldn't be created: %s", tmp_path, strerror(err));
+                }
+            }
+        }
+
+        # even after TMP_MAX_ATTEMPTS we didn't succeed in finding a unique name
+        throw "FILE-WRITE-ERROR", "Impossible to find a unique name.";
+    }
 
 } # FsUtil namespace
