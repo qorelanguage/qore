@@ -25,6 +25,8 @@
 # minimum required Qore version
 %requires qore >= 0.8.13
 
+%requires Util
+
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
 %strict-args
@@ -58,6 +60,7 @@ module FsUtil {
     Currently the module provides the following multiplatform functions:
     @ref FsUtil::basename_ext()
     @ref FsUtil::join_paths()
+    @ref FsUtil::make_tmp_dir()
 
     Also classes for platform specific operations are available:
     @ref FsUtil::PosixPathHandler
@@ -278,5 +281,54 @@ public namespace FsUtil {
     public string sub join_paths(list paths) {
         return local_handler.join_paths(paths);
     }
+
+    const TMP_MAX_ATTEMPTS = 10000;
+
+    #! Creates a unique temporary directory and returns its absolute path
+    /** @param path path to a dir in which the callee wants to create the new directory; if not provided, standard temp
+                    location will be used
+        @param prefix prefix to be used in the newly created directory name
+        @param suffix suffix to be used in the newly created directory name
+
+        @return absolute path to the newly created directory
+
+        @throws DIR-WRITE-ERROR The directory couldn't be created.
+
+        The directory is created in a secure way and is readable and writable only by the current user.
+        The caller is responsible for removing the temporary directory once it's needed no more.
+
+    */
+    public string sub make_tmp_dir(*string path, *string prefix, *string suffix) {
+        if (exists path) {
+            if (!is_writable(path)) {
+                throw "DIR-WRITE-ERROR", sprintf("'%s' is not a writable directory.", path);
+            }
+        } else {
+            # get standard tmp location (and check that it's writable)
+            path = tmp_location();
+        }
+
+        for (int i = 0; i < TMP_MAX_ATTEMPTS; i++) {
+            string tmp_dir = prefix + get_random_string() + suffix;
+            string tmp_path = join_paths(path, tmp_dir);
+
+            if (mkdir(tmp_path, 0700) == 0) {
+                # success
+                return tmp_path;
+            } else {
+                # unable to create the file
+                int err = errno();
+                if (err == Err::EEXIST) {
+                    # directory already exists -> let's try again with another name
+                    continue;
+                } else {
+                    # another (unexpected) error
+                    throw "DIR-WRITE-ERROR", sprintf("Directory '%s' couldn't be created: %s", strerror(err));
+                }
+            }
+        }
+    }
+
+
 
 } # FsUtil namespace
