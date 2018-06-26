@@ -20,15 +20,24 @@ public class HasEffectTest inherits QUnit::Test {
         set_return_value(main());
     }
 
-    private hasNoEffectImpl(string statements, bool testAlsoBackground = True) {
+    private hasNoEffectImpl(string statements, bool testBackground = True, bool testAllowOption = False) {
         Program p(PO_NEW_STYLE);
         assertThrows("PARSE-EXCEPTION", "has no effect", \p.parse(), (statements, ""));
-        if (testAlsoBackground) {
+        if (testBackground) {
             assertThrows("PARSE-EXCEPTION", "has no effect", \p.parse(), ("background " + statements, ""));
+        }
+
+        if (testAllowOption) {
+            Program p2(PO_NEW_STYLE|PO_ALLOW_STATEMENT_NO_EFFECT);
+            p2.parse(statements, "");
+            if (testBackground) {
+                Program p3(PO_NEW_STYLE|PO_ALLOW_STATEMENT_NO_EFFECT);
+                p3.parse("background " + statements, "");
+            }
         }
     }
 
-    private retValIgnoredImpl(string statements, bool can_throw, bool testAlsoBackground = True) {
+    private retValIgnoredImpl(string statements, bool can_throw, bool testBackground = True) {
         string warning = "does not have any side effects";
         if (can_throw) {
             warning += " except that it may throw an exception";
@@ -40,7 +49,7 @@ public class HasEffectTest inherits QUnit::Test {
         assertEq("RETURN-VALUE-IGNORED", parse_result.err);
         assertRegex(warning, parse_result.desc);
 
-        if (testAlsoBackground) {
+        if (testBackground) {
             Program p2(PO_NEW_STYLE);
             parse_result = p2.parse("background " + statements, "", WARN_RETURN_VALUE_IGNORED){"err", "desc"};
             assertEq("RETURN-VALUE-IGNORED", parse_result.err);
@@ -57,15 +66,15 @@ public class HasEffectTest inherits QUnit::Test {
 
     hasNoEffect() {
         hasNoEffectImpl("1+2;");
-        hasNoEffectImpl("1+int(2);");
-        hasNoEffectImpl("1+int('2');");
-        hasNoEffectImpl("'asdf' + trim('zxcv ');");
+        hasNoEffectImpl("1+int(2);", True, True);
+        hasNoEffectImpl("1+int('2');", True, True);
+        hasNoEffectImpl("'asdf' + trim('zxcv ');", True, True);
         hasNoEffectImpl("1 << 6;");
-        hasNoEffectImpl("round(12.3) + 45;");
-        hasNoEffectImpl("sub() {};");
-        hasNoEffectImpl("int sub() {return 12;};");
-        hasNoEffectImpl("string a = 'abcd'; a == substr(0, a.size()-1);");
-        hasNoEffectImpl("string a = 'abcd'; background a == substr(0, a.size()-1);", False);
+        hasNoEffectImpl("round(12.3) + 45;", True, True);
+        hasNoEffectImpl("sub() {};", True, True);
+        hasNoEffectImpl("int sub() {return 12;};", True, True);
+        hasNoEffectImpl("string a = 'abcd'; a == substr(0, a.size()-1);", False, True);
+        hasNoEffectImpl("string a = 'abcd'; background a == substr(0, a.size()-1);", False, True);
         hasNoEffectImpl("int n = 18; n += 3; n++; ++n; n *= 2; n + 3;", False);
     }
 

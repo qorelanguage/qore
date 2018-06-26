@@ -2133,7 +2133,9 @@ statement:
 
             if (!ok) {
                 if (!node_has_effect_as_root($1) && (t != NT_VARREF || !reinterpret_cast<VarRefNode*>($1)->parseIsDecl())) {
-                    parse_error(*loc, "expression has no effect as top-level statement (%s)", $1 ? $1->getTypeName() : "NOTHING");
+                    if (!parse_check_parse_option(PO_ALLOW_STATEMENT_NO_EFFECT)) {
+                        parse_error(*loc, "expression has no effect as top-level statement (%s)", $1 ? $1->getTypeName() : "NOTHING");
+                    }
                 } else if (!node_has_effect($1) && (t != NT_VARREF || !reinterpret_cast<VarRefNode*>($1)->parseIsDecl())) {
                     parse_error(*loc, "statement has no effect (%s)", $1 ? $1->getTypeName() : "NOTHING");
                 }
@@ -3696,6 +3698,10 @@ exp_c:
             if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
                 parse_error(*loc, "illegal use of 'background' operator (conflicts with parse option PO_NO_THREAD_CONTROL)");
             else if (!node_has_effect_as_root($2)) {
+                if (!parse_check_parse_option(PO_ALLOW_STATEMENT_NO_EFFECT)) {
+                    parse_error(*loc, "argument to background operator (%s) has no effect", get_type_name($2));
+                }
+            } else if (!node_has_effect($2)) {
                 parse_error(*loc, "argument to background operator (%s) has no effect", get_type_name($2));
             }
         }

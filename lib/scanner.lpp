@@ -784,6 +784,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 ^%loose-args{WS}*$                      parse_disable_parse_options(yylloc, PO_STRICT_ARGS);
 ^%broken-references{WS}*$               parse_set_parse_options(yylloc, PO_BROKEN_REFERENCES);
 ^%correct-references{WS}*$              parse_disable_parse_options(yylloc, PO_BROKEN_REFERENCES);
+^%allow-statement-no-effect{WS}*$       parse_set_parse_options(yylloc, PO_ALLOW_STATEMENT_NO_EFFECT);
 ^%push-parse-options{WS}*$              push_parse_options();
 ^%append-include-path{WS}*$             { parse_error(*get_loc(yylloc), "missing argument to %%append-include-path"); }
 ^%append-include-path{WS}+              BEGIN(append_path_state);
