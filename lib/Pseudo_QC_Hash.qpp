@@ -115,8 +115,8 @@ list l = h.values();
 
     @see <hash>::keys()
  */
-list <hash>::values() [flags=CONSTANT] {
-    return qore_hash_private::get(*h)->getValues(false);
+list<auto> <hash>::values() [flags=CONSTANT] {
+    return qore_hash_private::get(*h)->getValues();
 }
 
 //! Returns the first key name in the hash or @ref nothing if the hash has no keys
