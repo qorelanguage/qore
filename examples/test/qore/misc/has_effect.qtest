@@ -29,7 +29,8 @@ public class HasEffectTest inherits QUnit::Test {
 
         if (testAllowOption) {
             Program p2(PO_NEW_STYLE|PO_ALLOW_STATEMENT_NO_EFFECT);
-            p2.parse(statements, "");
+            *hash parse_result = p2.parse(statements, "");
+            assertEq(NOTHING, parse_result);
             if (testBackground) {
                 Program p3(PO_NEW_STYLE|PO_ALLOW_STATEMENT_NO_EFFECT);
                 *hash parse_result = p3.parse("background " + statements, "");
