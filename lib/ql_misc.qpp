@@ -888,7 +888,7 @@ parse(code, filename);
     these changes were made to align the functionality of this function with the @ref Qore::Program::parse() "Program::parse()"
     and @ref Qore::Program::parsePending() "Program::parsePending()" methods
 */
-*hash parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC,IN_MODULE] {
+*hash<auto> parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC,IN_MODULE] {
    QoreStringMaker nlabel(label->getEncoding(), format_label ? "<run-time-loaded: %s>" : "%s", label->getBuffer());
 
    if (warning_mask) {
@@ -1268,7 +1268,7 @@ string parse_base64_string_to_string(string str, *string encoding) [flags=RET_VA
 
     @deprecated use get_module_list(); camel-case function names were deprecated in %Qore 0.8.12
 */
-list<hash> getModuleList() [flags=DEPRECATED] {
+list<hash<auto>> getModuleList() [flags=DEPRECATED] {
    return MM.getModuleList();
 }
 
@@ -1286,7 +1286,7 @@ list<hash> getModuleList() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-list<hash> l = get_module_list();
+list<hash<auto>> l = get_module_list();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
@@ -1295,7 +1295,7 @@ list<hash> l = get_module_list();
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getModuleList()
 */
-list<hash> get_module_list() {
+list<hash<auto>> get_module_list() {
    return MM.getModuleList();
 }
 
@@ -1317,7 +1317,7 @@ list<hash> get_module_list() {
 
     @deprecated use get_module_hash(); camel-case function names were deprecated in %Qore 0.8.12
 */
-hash<string, hash> getModuleHash() [flags=DEPRECATED] {
+hash<string, hash<auto>> getModuleHash() [flags=DEPRECATED] {
    return MM.getModuleHash();
 }
 
@@ -1335,14 +1335,14 @@ hash<string, hash> getModuleHash() [flags=DEPRECATED] {
 
     @par Example:
     @code{.py}
-hash<string, hash> mh = get_module_hash();
+hash<string, hash<auto>> mh = get_module_hash();
     @endcode
 
     @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getModuleHash()
 */
-hash<string, hash> get_module_hash() {
+hash<string, hash<auto>> get_module_hash() {
    return MM.getModuleHash();
 }
 
@@ -1388,13 +1388,7 @@ list<auto> vl = hash_values(vl);
     @see <hash>::keys()
 */
 list<auto> hash_values(hash<auto> h) [flags=CONSTANT] {
-    QoreListNode* l = new QoreListNode(autoTypeInfo);
-
-    ConstHashIterator hi(h);
-    while (hi.next())
-        l->push(hi.getReferenced(), xsink);
-
-    return l;
+    return qore_hash_private::get(*h)->getValues();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -2476,13 +2470,13 @@ string encode_uri_request(string url) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-list<hash> l = get_qore_option_list();
+list<hash<auto>> l = get_qore_option_list();
     @endcode
 
     @see get_qore_option_hash()
 */
-list<hash> get_qore_option_list() [flags=CONSTANT] {
-    QoreListNode* l = new QoreListNode(hashTypeInfo);
+list<hash<auto>> get_qore_option_list() [flags=CONSTANT] {
+    QoreListNode* l = new QoreListNode(autoHashTypeInfo);
 
     for (unsigned j = 0; j < qore_option_list_size; ++j) {
         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
@@ -2513,7 +2507,7 @@ hash<string, hash<auto>> h = get_qore_option_hash();
     @since %Qore 0.8.4
 */
 hash<string, hash<auto>> get_qore_option_hash() [flags=CONSTANT] {
-    QoreHashNode* rv = new QoreHashNode(hashTypeInfo);
+    QoreHashNode* rv = new QoreHashNode(autoHashTypeInfo);
 
     for (unsigned j = 0; j < qore_option_list_size; ++j) {
         QoreHashNode* h = new QoreHashNode(autoTypeInfo);
@@ -2608,7 +2602,7 @@ set_return_value(auto val) [dom=PROCESS] {
 try {
     throw "oops", sprintf("arg %y is invalid", arg);
 }
-catch (hash ex) {
+catch (hash<ExceptionSink> ex) {
     log("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
 }
     @endcode
@@ -2619,27 +2613,27 @@ catch (hash ex) {
 
     @since %Qore 0.8.7
  */
-string get_ex_pos(hash ex) [flags=CONSTANT] {
-   QoreValue n = ex->getKeyValue("file");
-   QoreStringNode* str = new QoreStringNode(n.getType() == NT_STRING ? n.get<const QoreStringNode>()->c_str() : "<unknown>");
-   int ln = (int)ex->getKeyValue("line").getAsBigInt();
-   str->sprintf(":%d", ln);
-   n = ex->getKeyValue("source");
-   if (n.getType() == NT_STRING) {
-      const QoreStringNode* sstr = n.get<const QoreStringNode>();
-      if (!sstr->empty()) {
-         int offset = (int)ex->getKeyValue("offset").getAsBigInt();
-         str->sprintf(" (source \"%s\":%d)", sstr->c_str(), ln + offset);
-      }
-   }
+string get_ex_pos(hash<auto> ex) [flags=CONSTANT] {
+    QoreValue n = ex->getKeyValue("file");
+    QoreStringNode* str = new QoreStringNode(n.getType() == NT_STRING ? n.get<const QoreStringNode>()->c_str() : "<unknown>");
+    int ln = (int)ex->getKeyValue("line").getAsBigInt();
+    str->sprintf(":%d", ln);
+    n = ex->getKeyValue("source");
+    if (n.getType() == NT_STRING) {
+        const QoreStringNode* sstr = n.get<const QoreStringNode>();
+        if (!sstr->empty()) {
+            int offset = (int)ex->getKeyValue("offset").getAsBigInt();
+            str->sprintf(" (source \"%s\":%d)", sstr->c_str(), ln + offset);
+        }
+    }
 
-   return str;
+    return str;
 }
 
 //! retrieves a hash of local variables for the given stack frame
 /** @par Example:
     @code
-hash h = get_local_vars(0);
+hash<auto> h = get_local_vars(0);
     @endcode
 
     @param frame the stack frame where 0 is the current stack frame
@@ -2652,7 +2646,7 @@ hash h = get_local_vars(0);
 
     @since %Qore 0.8.13
  */
-hash get_local_vars(int frame) [dom=DEBUGGER;flags=RET_VALUE_ONLY] {
+hash<auto> get_local_vars(int frame) [dom=DEBUGGER;flags=RET_VALUE_ONLY] {
     return thread_get_local_vars(frame, xsink);
 }
 
@@ -2682,7 +2676,7 @@ nothing set_local_var_value(int frame, string var, auto value) [dom=DEBUGGER] {
 //! returns a hash of global variables
 /** @par Example:
     @code{.py}
-hash h = get_global_vars();
+hash<auto> h = get_global_vars();
     @endcode
 
     @return a hash of global variables and their values
@@ -2691,7 +2685,7 @@ hash h = get_global_vars();
 
     @since %Qore 0.8.13
  */
-hash get_global_vars() [flags=CONSTANT] {
+hash<auto> get_global_vars() [flags=CONSTANT] {
    return getProgram()->getGlobalVars();
 }
 

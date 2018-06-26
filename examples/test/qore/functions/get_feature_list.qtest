@@ -1,0 +1,25 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class GetFeatureListTest
+
+public class GetFeatureListTest inherits QUnit::Test {
+    constructor() : Test("getFeatureListTest", "1.0") {
+        addTestCase("get_feature_list() test", \getFeatureListTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    getFeatureListTest() {
+        list<auto> l = get_feature_list();
+        assertEq("list<string>", l.fullType());
+    }
+}

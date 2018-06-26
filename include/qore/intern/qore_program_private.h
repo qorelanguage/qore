@@ -2277,72 +2277,71 @@ public:
         return st;
     }
 
-   DLLLOCAL void registerQoreObject(QoreObject *o, ExceptionSink* xsink) {
-      printd(5, "qore_program_private::registerQoreObject() pgm: %p, pgmid: %d\n", pgm, getProgramId());
-      QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
-      qore_program_to_object_map_t::iterator i = qore_program_private::qore_program_to_object_map.find(pgm);
-      assert(i != qore_program_private::qore_program_to_object_map.end());
-      if (i->second && i->second != o) {
-         xsink->raiseException("PROGRAM-ERROR", "The Program has already assigned QoreObject");
-      } else {
-         i->second = o;
-      }
-   }
+    DLLLOCAL void registerQoreObject(QoreObject *o, ExceptionSink* xsink) {
+        printd(5, "qore_program_private::registerQoreObject() pgm: %p, pgmid: %d\n", pgm, getProgramId());
+        QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
+        qore_program_to_object_map_t::iterator i = qore_program_private::qore_program_to_object_map.find(pgm);
+        assert(i != qore_program_private::qore_program_to_object_map.end());
+        if (i->second && i->second != o) {
+            xsink->raiseException("PROGRAM-ERROR", "The Program has already assigned QoreObject");
+        } else {
+            i->second = o;
+        }
+    }
 
-   DLLLOCAL void unregisterQoreObject(QoreObject *o, ExceptionSink* xsink) {
-      printd(5, "qore_program_private::unregisterQoreObject() pgm: %p, pgmid: %d\n", pgm, getProgramId());
-      QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
-      qore_program_to_object_map_t::iterator i = qore_program_private::qore_program_to_object_map.find(pgm);
-      assert(i != qore_program_private::qore_program_to_object_map.end());
-      assert(i->second == o);
-      i->second = nullptr;
-   }
+    DLLLOCAL void unregisterQoreObject(QoreObject *o, ExceptionSink* xsink) {
+        printd(5, "qore_program_private::unregisterQoreObject() pgm: %p, pgmid: %d\n", pgm, getProgramId());
+        QoreAutoRWWriteLocker al(&qore_program_private::lck_programMap);
+        qore_program_to_object_map_t::iterator i = qore_program_private::qore_program_to_object_map.find(pgm);
+        assert(i != qore_program_private::qore_program_to_object_map.end());
+        assert(i->second == o);
+        i->second = nullptr;
+    }
 
-   DLLLOCAL QoreObject* findQoreObject() {
-      QoreAutoRWReadLocker al(&lck_programMap);
-      qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
-      if (i == qore_program_to_object_map.end()) {
-         return nullptr;
-      } else {
-         return i->second;
-      }
-   }
+    DLLLOCAL QoreObject* findQoreObject() {
+        QoreAutoRWReadLocker al(&lck_programMap);
+        qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
+        if (i == qore_program_to_object_map.end()) {
+            return nullptr;
+        } else {
+            return i->second;
+        }
+    }
 
-   DLLLOCAL static QoreObject* getQoreObject(QoreProgram* pgm) {
-      QoreAutoRWWriteLocker al(&lck_programMap);
-      qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
-      assert(i != qore_program_to_object_map.end());
-      if (i->second) {
-         printd(5, "qore_program_private::getQoreObject() pgm: %p, pgmid: %d, second: %p\n", i->first, i->first->getProgramId(), i->second);
-         i->second->ref();
-      } else {
-         i->second = new QoreObject(QC_PROGRAMCONTROL, getProgram(), pgm);
-         printd(5, "qore_program_private::getQoreObject() pgm: %p, pgmid: %d, new second: %p\n", pgm, pgm->getProgramId(), i->second);
-         pgm->ref();
-      }
-      return i->second;
-   }
-
-   DLLLOCAL static QoreListNode* getAllQoreObjects(ExceptionSink *xsink) {
-      QoreAutoRWWriteLocker al(&lck_programMap);
-      ReferenceHolder<QoreListNode>l(new QoreListNode(), xsink);
-
-      qore_program_to_object_map_t::iterator i = qore_program_to_object_map.begin();
-      while (i != qore_program_to_object_map.end()) {
-         if (i->second) {
-            printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, second: %p\n", i->first, i->first->getProgramId(), i->second);
+    DLLLOCAL static QoreObject* getQoreObject(QoreProgram* pgm) {
+        QoreAutoRWWriteLocker al(&lck_programMap);
+        qore_program_to_object_map_t::iterator i = qore_program_to_object_map.find(pgm);
+        assert(i != qore_program_to_object_map.end());
+        if (i->second) {
+            printd(5, "qore_program_private::getQoreObject() pgm: %p, pgmid: %d, second: %p\n", i->first, i->first->getProgramId(), i->second);
             i->second->ref();
-         } else {
-            i->second = new QoreObject(QC_PROGRAMCONTROL, getProgram(), i->first);
-            printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, new second: %p\n", i->first, i->first->getProgramId(), i->second);
-            i->first->ref();
-         }
-         (*l)->push(i->second, nullptr);
-         ++i;
-      }
-      return l.release();
-   }
+        } else {
+            i->second = new QoreObject(QC_PROGRAMCONTROL, getProgram(), pgm);
+            printd(5, "qore_program_private::getQoreObject() pgm: %p, pgmid: %d, new second: %p\n", pgm, pgm->getProgramId(), i->second);
+            pgm->ref();
+        }
+        return i->second;
+    }
 
+    DLLLOCAL static QoreListNode* getAllQoreObjects(ExceptionSink *xsink) {
+        QoreAutoRWWriteLocker al(&lck_programMap);
+        ReferenceHolder<QoreListNode>l(new QoreListNode(QC_PROGRAMCONTROL->getTypeInfo()), xsink);
+
+        qore_program_to_object_map_t::iterator i = qore_program_to_object_map.begin();
+        while (i != qore_program_to_object_map.end()) {
+            if (i->second) {
+                printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, second: %p\n", i->first, i->first->getProgramId(), i->second);
+                i->second->ref();
+            } else {
+                i->second = new QoreObject(QC_PROGRAMCONTROL, getProgram(), i->first);
+                printd(5, "qore_program_private::getAllQoreObjects() pgm: %p, pgmid: %d, new second: %p\n", i->first, i->first->getProgramId(), i->second);
+                i->first->ref();
+            }
+            (*l)->push(i->second, nullptr);
+            ++i;
+        }
+        return l.release();
+    }
 };
 
 class ParseWarnHelper : public ParseWarnOptions {

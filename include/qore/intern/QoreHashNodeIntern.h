@@ -304,8 +304,6 @@ public:
 
     DLLLOCAL QoreListNode* getKeys() const;
 
-    DLLLOCAL QoreListNode* getValues(bool with_type_info = true) const;
-
     // issue #2791: perform type stripping at the source
     DLLLOCAL void mergeStrip(const qore_hash_private& h, ExceptionSink* xsink);
 
@@ -321,6 +319,9 @@ public:
         else
             str.concat("hash");
     }
+
+    // issue #3877: returns a typed list
+    DLLLOCAL QoreListNode* getValues() const;
 
     DLLLOCAL QoreHashNode* getCopy() const {
         QoreHashNode* h = new QoreHashNode;

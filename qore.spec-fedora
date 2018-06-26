@@ -29,7 +29,7 @@ development but is also useful as a general purpose language.
 %package -n libqore
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
-Provides: qore-module(abi)%{?_isa} = 0.222
+Provides: qore-module(abi)%{?_isa} = 0.22
 Provides: libqore5 = %{version}
 Obsoletes: libqore5 < 0.9
 
@@ -174,8 +174,11 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Tue May 15 2018 David Nichols <david@qore.org> 0.9-1
+* Mon Jun 25 2018 David Nichols <david@qore.org> 0.9-1
 - updated version to 0.9-1
+
+* Fri Jun 22 2018 David Nichols <david@qore.org> 0.8.13.6-1
+- updated version to 0.8.13.6-1
 
 * Tue May 15 2018 David Nichols <david@qore.org> 0.8.13.5-1
 - updated version to 0.8.13.5-1

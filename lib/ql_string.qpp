@@ -1115,7 +1115,7 @@ nothing regex_subst() [flags=RUNTIME_NOOP] {
 
     @par Example:
     @code{.py}
-*list rv = regex_extract("ns:element", "(\\w+):(\\w+)");
+*list<string> rv = regex_extract("ns:element", "(\\w+):(\\w+)");
     @endcode
 
     @throw REGEX-COMPILATION-ERROR There was an error compiling the regular expression
@@ -1266,7 +1266,7 @@ string str = join(":", ("a", "b", "c")); # returns "a:b:c"
 
     @note equivalent to <list>::join(string)
  */
-string join(string str, list l) [flags=RET_VALUE_ONLY] {
+string join(string str, list<auto> l) [flags=RET_VALUE_ONLY] {
    return join_intern(str, l, 0, xsink);
 }
 
