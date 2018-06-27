@@ -1,0 +1,87 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class RmtreeTest
+
+public class RmtreeTest inherits QUnit::Test {
+
+    constructor() : Test ("RmtreeTest", "1.0") {
+        addTestCase("rmtree test", \test_rmtree());
+        addTestCase("rmtree exception test", \test_rmtree_exception());
+        set_return_value(main());
+    }
+
+    test_rmtree() {
+        # create a temporary directory and check it's created and writable
+        string tmp_path = make_tmp_dir();
+        assertTrue(is_dir(tmp_path));
+        assertTrue(is_writable(tmp_path));
+        # check that it's possible to remove it empty
+        rmtree(tmp_path);
+        assertFalse(is_dir(tmp_path));
+
+        # create another temporary directory and add some contents
+        tmp_path = make_tmp_dir();
+        assertTrue(is_dir(tmp_path));
+        assertTrue(is_writable(tmp_path));
+        hash f = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        f.file.close();
+        assertTrue(is_file(f.path));
+        assertTrue(is_writable(f.path));
+        string d = make_tmp_dir(NOTHING, NOTHING, tmp_path);
+        assertTrue(is_dir(d));
+        assertTrue(is_writable(d));
+        f = make_tmp_file(NOTHING, NOTHING, d);
+        f.file.close();
+        assertTrue(is_file(f.path));
+        assertTrue(is_writable(f.path));
+
+        # check that it's possible to remove it
+        rmtree(tmp_path);
+        assertFalse(is_dir(tmp_path));
+
+        # rmtree also works for files if we use the proper flag
+        f = make_tmp_file();
+        f.file.close();
+        assertTrue(is_file(f.path));
+        rmtree(f.path, False);
+        assertFalse(is_file(f.path));
+    }
+
+    test_rmtree_exception() {
+        # create a temporary directory and check it's created and writable
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_path);
+        }
+        assertTrue(is_dir(tmp_path));
+        assertTrue(is_writable(tmp_path));
+
+        # invent a path to a directory/file which should not exist (the tmp dir is empty)
+        string path = join_paths(tmp_path, "non-existent");
+
+        # this call should throw an exception
+        assertThrows("NOT-A-DIRECTORY", \rmtree(), (path));
+
+        # now let's create a file (not a directory)...
+        hash file_path = make_tmp_file();
+        file_path.file.close();
+        assertTrue(is_file(file_path.path));
+        assertTrue(is_writable(file_path.path));
+        # ...and try and remove it with rmtree (by default it only removes directories)
+        assertThrows("NOT-A-DIRECTORY", \rmtree(), (file_path.path));
+        assertTrue(is_file(file_path.path));
+
+        # it will get removed with the proper flag set though
+        rmtree(file_path.path, False);
+        assertFalse(is_file(file_path.path));
+    }
+}
