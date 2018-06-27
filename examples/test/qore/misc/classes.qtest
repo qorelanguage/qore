@@ -279,7 +279,7 @@ public class ClassesTest inherits QUnit::Test {
 
     issue2885() {
         Program p(PO_NEW_STYLE);
-        p.importClass("issue2885");
+        p.importClass("Issue2885");
         # this call will abort in debug builds
         p.parse("Issue2885 sub t() { return new Issue2885(); }", "");
         Issue2885 i = p.callFunction("t");
