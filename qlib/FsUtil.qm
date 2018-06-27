@@ -355,6 +355,7 @@ public namespace FsUtil {
             path = tmp_location();
         }
 
+        # O_CREAT and O_EXCL are important to ensure that we only open a new file
         int flags = O_CREAT | O_EXCL | O_RDWR;
         File tmp_file = new File();
 
@@ -381,6 +382,48 @@ public namespace FsUtil {
 
         # even after TMP_MAX_ATTEMPTS we didn't succeed in finding a unique name
         throw "FILE-WRITE-ERROR", "Impossible to find a unique name.";
+    }
+
+    #! Removes the filesystem tree specified by path
+    /** @param path path to a filesystem tree root which should be removed
+        @param dir_only flag specifying whether the tree should be removed only if path leads to a directory
+                        (default: True)
+
+        @throws NOT-A-DIRECTORY If path doesn't point to a directory and dir_only is True -> can't remove it
+
+        By default this function will only remove a directory (i.e. path can't point to a regular file, symlink, etc.)
+        which can be overriden by dir_only flag. This doesn't hold true for the path's contents though of course.
+        Therefore if path leads to a directory, it's contents will be removed regardless of dir_only flag.
+        This function doesn't follow symlinks.
+
+    */
+    public sub rmtree(string path, bool dir_only=True) {
+        if (!is_dir(path)) {
+            if (dir_only) {
+                throw "NOT-A-DIRECTORY", sprintf("Can't remove '%s': not a directory.", path);
+            }
+
+            # remove the file or symlink specified by path
+            unlink(path);
+            return;
+        }
+
+        # now we know path is a directory
+        Dir dir();
+        dir.chdir(path);
+
+        # remove the directory's contents
+        foreach string name in (dir.list()) {
+            string sub_path = join_paths(path, name);
+            if (is_dir(sub_path)) {
+                rmtree(sub_path);
+            } else {
+                unlink(sub_path);
+            }
+        }
+
+        # directory specified by path should be empty now
+        rmdir(path);
     }
 
 } # FsUtil namespace
