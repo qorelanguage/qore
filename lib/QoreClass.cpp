@@ -1187,8 +1187,11 @@ void qore_class_private::parseCommit() {
 }
 
 void qore_class_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
-   // add all pending static vars to real list and initialize them
-   vars.parseCommitRuntimeInit(xsink);
+    // issue #2885: ensure that static class initialization is only performed once
+    if (!initialized) {
+        // add all pending static vars to real list and initialize them
+        vars.parseCommitRuntimeInit(xsink);
+    }
 }
 
 void qore_class_private::addBuiltinMethod(const char* mname, MethodVariantBase* variant) {
