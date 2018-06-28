@@ -46,6 +46,12 @@ class Issue2741_C3 inherits Issue2741_N, Issue2741_C1, Issue2741_C2 {
     }
 }
 
+class Issue2885 {
+    public {
+        static Mutex m();
+    }
+}
+
 class Test1 inherits Socket {
     private {
         int a;
@@ -254,6 +260,7 @@ namespace Issue2744_A {
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 2885", \issue2885());
         addTestCase("issue 2744", \issue2744());
         addTestCase("issue 2741", \issue2741());
         addTestCase("Class library test", \classLibraryTest());
@@ -268,6 +275,15 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue2885() {
+        Program p(PO_NEW_STYLE);
+        p.importClass("Issue2885");
+        # this call will abort in debug builds
+        p.parse("Issue2885 sub t() { return new Issue2885(); }", "");
+        Issue2885 i = p.callFunction("t");
+        assertEq(True, i instanceof Issue2885);
     }
 
     issue2744() {
@@ -384,7 +400,7 @@ public class ClassesTest inherits QUnit::Test {
         catch (hash nex) {
             ex = nex;
         }
-        assertEq(156, ex.callstack[0].line);
+        assertEq(162, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);

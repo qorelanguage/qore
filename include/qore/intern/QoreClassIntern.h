@@ -1662,6 +1662,7 @@ public:
 
     bool sys : 1,                         // system/builtin class?
         initialized : 1,                  // is initialized? (only performed once)
+        static_init : 1,                  // has static initialization been called for the class?
         parse_init_called : 1,            // has parseInit() been called? (performed once for each parseCommit())
         parse_init_partial_called : 1,    // has parseInitPartial() been called? (performed once for each parseCommit())
         has_delete_blocker : 1,           // has a delete_blocker function somewhere in the hierarchy?

@@ -441,6 +441,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
      methodID(classID),
      sys(false),
      initialized(false),
+     static_init(false),
      parse_init_called(false),
      parse_init_partial_called(false),
      has_delete_blocker(false),
@@ -481,6 +482,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreProgra
      methodID(old.methodID),
      sys(old.sys),
      initialized(true),
+     static_init(true),
      parse_init_called(false),
      parse_init_partial_called(false),
      has_public_memdecl(old.has_public_memdecl),
@@ -1187,8 +1189,12 @@ void qore_class_private::parseCommit() {
 }
 
 void qore_class_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
-   // add all pending static vars to real list and initialize them
-   vars.parseCommitRuntimeInit(xsink);
+    // issue #2885: ensure that static class initialization is only performed once
+    if (!static_init) {
+        static_init = true;
+        // add all pending static vars to real list and initialize them
+        vars.parseCommitRuntimeInit(xsink);
+    }
 }
 
 void qore_class_private::addBuiltinMethod(const char* mname, MethodVariantBase* variant) {
