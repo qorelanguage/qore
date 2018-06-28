@@ -12,6 +12,12 @@
 
 %exec-class Test
 
+class LoggerLayoutPattern2 inherits LoggerLayoutPattern {
+    public list getParsedPattern() {
+        return m_parsedPattern ?? ();
+    }
+}
+
 class Test inherits QUnit::Test {
     private {
         Counter m_counter();
@@ -99,7 +105,7 @@ class Test inherits QUnit::Test {
     }
 
     testLoggerLayout() {
-        LoggerLayoutPattern llp("");
+        LoggerLayoutPattern2 llp("");
         hash<CallStackInfo> csi();
         csi.file = "testfile";
         csi.source = "testsource";
@@ -883,8 +889,8 @@ class Test inherits QUnit::Test {
         assertEq("", sos2.getData());
         assertEq("", sos3.getData());
 
-        l1.log(LoggerLevel::getLevelDebug(), "test");
-        assertEq("TEST/test", sos1.getData());
+        l1.log(LoggerLevel::getLevelDebug(), "test(%s)", "my");
+        assertEq("TEST/test(my)", sos1.getData());
         assertEq("", sos2.getData());
         assertEq("", sos3.getData());
 
