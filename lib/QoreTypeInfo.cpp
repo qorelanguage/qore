@@ -1332,13 +1332,19 @@ QoreComplexSoftListOrNothingTypeInfo::QoreComplexSoftListOrNothingTypeInfo(const
 }
 
 void map_get_plain_hash_lvalue(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper) {
-    lvhelper->saveTemp(n);
-    n.assign(copy_strip_complex_types(n.get<QoreHashNode>()));
+    // issue #2889 do not pass a QoreValue to LValueHelper::saveTemp() as it will remove the node from the QoreValue
+    // instead pass an AbstractQoreNode*
+    QoreHashNode* h = n.get<QoreHashNode>();
+    lvhelper->saveTemp(h);
+    n.assign(copy_strip_complex_types(h));
 }
 
 void map_get_plain_list_lvalue(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper) {
-    lvhelper->saveTemp(n);
-    n.assign(copy_strip_complex_types(n.get<QoreListNode>()));
+    // issue #2889 do not pass a QoreValue to LValueHelper::saveTemp() as it will remove the node from the QoreValue
+    // instead pass an AbstractQoreNode*
+    QoreListNode* l = n.get<QoreListNode>();
+    lvhelper->saveTemp(l);
+    n.assign(copy_strip_complex_types(l));
 }
 
 void map_get_plain_hash(QoreValue& n, ExceptionSink* xsink) {
