@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -84,8 +84,8 @@ typedef std::list<RNotifier*> n_list_t;
 class qore_rsection_priv : public qore_var_rwlock_priv {
 private:
    // not implemented, listed here to prevent implicit usage
-   DLLLOCAL qore_rsection_priv(const qore_rsection_priv&);
-   DLLLOCAL qore_rsection_priv& operator=(const qore_rsection_priv&);
+   qore_rsection_priv(const qore_rsection_priv&) = delete;
+   qore_rsection_priv& operator=(const qore_rsection_priv&) = delete;
 
 protected:
    // tid of thread holding the rsection lock
