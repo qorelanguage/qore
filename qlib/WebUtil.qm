@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file WebUtil.qm Qore user module supprting web server operations
 
-/*  WebUtil.qm Copyright (C) 2013 - 2017 Qore Technologies, s.r.o.
+/*  WebUtil.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum Qore version
+%requires qore >= 0.9
 
 # require type definitions everywhere
 %require-types
@@ -35,7 +35,7 @@
 %new-style
 
 module WebUtil {
-    version = "1.4.1";
+    version = "1.5";
     desc = "user module supporting web server operations";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -66,6 +66,9 @@ module WebUtil {
     - @ref WebUtil::FileHandler "FileHandler": a class for serving files from the file system anchored at a particular URL; also uses @ref WebUtil::TemplateFileManager "TemplateFileManager" to automatically manage any template files found; supports automatic compilation of and rendering from template files
 
     @section webutil_relnotes Release Notes
+
+    @subsection webutil_v1_5 WebUtil v1.5
+    - updated for Qore 0.9
 
     @subsection webutil_v1_4.1 WebUtil v1.4.1
     - made it possible for FileHandler subclasses to add headers to response (<a href="https://github.com/qorelanguage/qore/issues/2686">issue 2686</a>)
@@ -118,13 +121,13 @@ public namespace WebUtil {
 
         #! returns the reponse headers
         private hash getResponseHeaderMessageImpl() {
-            return (
+            return {
                 "code": 200,
-                "hdr": (
+                "hdr": {
                     "Content-Type": ct,
                     "Transfer-Encoding": "chunked",
-                ) + respHdr,
-                );
+                 } + respHdr,
+            };
         }
 
         #! returns data to send
@@ -133,28 +136,11 @@ public namespace WebUtil {
         }
     }
 
-    #! this is the base class for all template @ref Qore::Program "Program" container classes
-    public class TextTemplateBase {
-        private {
-            #! Holds the template generation function
-            Program p;
-        }
-
+    #! this is the static base class for all template @ref Qore::Program "Program" container classes
+    public class StaticTextTemplateBase {
         public {
             #! default parse options for template Programs
             const DefaultProgramOptions = PO_REQUIRE_OUR|PO_NO_TOP_LEVEL_STATEMENTS|PO_NO_INHERIT_USER_FUNC_VARIANTS|PO_NO_INHERIT_GLOBAL_VARS|PO_NO_USER_CLASSES|PO_NO_TERMINAL_IO;
-        }
-
-        #! sets up the object
-        constructor(int po = DefaultProgramOptions) {
-            # create Program
-            p = new Program(po);
-            p.setScriptPath(sprintf("Qore::WebUtil::%s", self.className()));
-            # ensure old style for embedded Programs
-            if (!(po & PO_ALLOW_BARE_REFS))
-                p.disableParseOptions(PO_ALLOW_BARE_REFS);
-            if (!(po & PO_ASSUME_LOCAL))
-                p.disableParseOptions(PO_ASSUME_LOCAL);
         }
 
         #! adds a template function to a template @ref Qore::Program "Program" object
@@ -170,7 +156,7 @@ string qhtml = "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=
           </select>
     </fieldset>
 </form>";
-TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
+StaticTextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             @endcode
 
             @param p the Program object to add the template function to
@@ -196,23 +182,24 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
                 ++i;
                 string c = src[i];
                 if (c == "{") {
-                    if (TextTemplateBase::doBlock("}}", \src, "exp", \i, \l))
+                    if (StaticTextTemplateBase::doBlock("}}", \src, "exp", \i, \l))
                         break;
                     continue;
                 }
                 if (c == "%") {
-                    if (TextTemplateBase::doBlock("%}", \src, "stmt", \i, \l))
+                    if (StaticTextTemplateBase::doBlock("%}", \src, "stmt", \i, \l))
                         break;
                     continue;
                 }
             }
 
             # add any remaining text as a text element
-            if (src)
-                l += (
+            if (src) {
+                l += {
                     "type": "text",
                     "text": src,
-                );
+                };
+            }
 
             #printf("DBG l: %N\n", l);
 
@@ -226,8 +213,8 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             foreach hash h in (\l) {
                 switch (h.type) {
                     case "text": h.text =~ s/"/\"/g; src += h.text; break;
-                    case "exp": src += TextTemplateBase::getCode(bare_refs, "\";my auto $tmp_TEMPLATE_%d=(%s);$rv_TEMPLATE_str+=(($tmp_TEMPLATE_%d.strp()||!exists $tmp_TEMPLATE_%d||$tmp_TEMPLATE_%d===NULL)?$tmp_TEMPLATE_%d.toString():sprintf(\"%%y\",$tmp_TEMPLATE_%d));$rv_TEMPLATE_str+=\"", vc, h.text, vc, vc, vc, vc, vc); ++vc; break;
-                    case "stmt": src += "\";" + h.text + TextTemplateBase::getCode(bare_refs, "$rv_TEMPLATE_str+=\""); break;
+                    case "exp": src += StaticTextTemplateBase::getCode(bare_refs, "\";my auto $tmp_TEMPLATE_%d=(%s);$rv_TEMPLATE_str+=(($tmp_TEMPLATE_%d.strp()||!exists $tmp_TEMPLATE_%d||$tmp_TEMPLATE_%d===NULL)?$tmp_TEMPLATE_%d.toString():sprintf(\"%%y\",$tmp_TEMPLATE_%d));$rv_TEMPLATE_str+=\"", vc, h.text, vc, vc, vc, vc, vc); ++vc; break;
+                    case "stmt": src += "\";" + h.text + StaticTextTemplateBase::getCode(bare_refs, "$rv_TEMPLATE_str+=\""); break;
                 }
             }
 
@@ -235,8 +222,8 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             #printf("src: %s\n", src);
 
             # build function source: keep template start on same source line for better error reporting
-            string tpl = TextTemplateBase::getCode(bare_refs, "string sub %s(*hash $ctx){", fn);
-            tpl += TextTemplateBase::getCode(bare_refs, "my string $rv_TEMPLATE_str = \"%s\";\n    return $rv_TEMPLATE_str;\n}\n", src);
+            string tpl = StaticTextTemplateBase::getCode(bare_refs, "string sub %s(*hash $ctx){", fn);
+            tpl += StaticTextTemplateBase::getCode(bare_refs, "my string $rv_TEMPLATE_str = \"%s\";\n    return $rv_TEMPLATE_str;\n}\n", src);
             p.parse(tpl, name);
 
             # return the final source string produced
@@ -256,19 +243,20 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             int j = src.find(end, i + 1);
             if (j == -1)
                 return True;
-            if (i > 1)
-                l += (
+            if (i > 1) {
+                l += {
                     "type": "text",
                     "text": extract src, 0, i - 1,
-                );
+                };
+            }
             # remove open brackets
             splice src, 0, 2;
             j -= i;
             # add source expression reference
-            l += (
+            l += {
                 "type": type,
                 "text": extract src, 0, j - 1,
-                );
+            };
             # remove close brackets
             splice src, 0, 2;
             i = 0;
@@ -282,6 +270,33 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             if (ext[0] == "q")
                 ext = ext.substr(1);
             return (ext && (ext = MimeTypes{ext.lwr()})) ? ext : MimeTypeText;
+        }
+    }
+
+    #! this is the base class for all template @ref Qore::Program "Program" container classes
+    public class TextTemplateBase inherits StaticTextTemplateBase {
+        private {
+            #! Holds the template generation function
+            Program p;
+        }
+
+        #! sets up the object
+        constructor(int po = DefaultProgramOptions) {
+            # create Program
+            p = new Program(po);
+            p.setScriptPath(sprintf("Qore::WebUtil::%s", self.className()));
+            # ensure old style for embedded Programs
+            if (!(po & PO_ALLOW_BARE_REFS)) {
+                p.disableParseOptions(PO_ALLOW_BARE_REFS);
+            }
+            if (!(po & PO_ASSUME_LOCAL)) {
+                p.disableParseOptions(PO_ASSUME_LOCAL);
+            }
+        }
+
+        #! returns the contained Program object
+        Program getProgram() {
+            return p;
         }
     }
 
@@ -322,7 +337,7 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             po = parse_opts;
             psetup = pgm_setup;
             path = resource_path;
-            ct = TextTemplateBase::getContentType(path);
+            ct = StaticTextTemplateBase::getContentType(path);
             if (pgm_setup)
                 pgm_setup(p);
         }
@@ -356,11 +371,11 @@ hash h = qft.render(ctx);
                 setupTemplateIntern(new_mtime);
             }
 
-            return (
+            return {
                 "code": code,
                 "body": p.callFunction(TemplateFunc, ctx),
                 "hdr": hdr + ("Content-Type": ct),
-                );
+            };
         }
 
         private setupTemplateIntern(date new_mtime) {
@@ -382,7 +397,7 @@ hash h = qft.render(ctx);
                     call_function(psetup, p);
             }
 
-            TextTemplateBase::add(p, TemplateFunc, path, File::readTextFile(path));
+            StaticTextTemplateBase::add(p, TemplateFunc, path, File::readTextFile(path));
             mtime = new_mtime;
         }
     }
@@ -411,7 +426,7 @@ hash h = qft.render(ctx);
             @param parse_opts the @ref parse_options "Program parse options" for the template file @ref Qore::Program "programs"
             @param pgm_setup an optional @ref closure "closure" or @ref call_reference "call reference" taking a single @ref Qore::Program "Program" argument to be called when initializing template @ref Qore::Program "programs" to set up a custom template API, etc
         */
-        constructor(int parse_opts = TextTemplateBase::DefaultProgramOptions, *code pgm_setup) {
+        constructor(int parse_opts = StaticTextTemplateBase::DefaultProgramOptions, *code pgm_setup) {
             po = parse_opts;
             psetup = pgm_setup;
         }
@@ -475,17 +490,24 @@ hash h = tm.render(resource_path, path, mtime, ctx);
         - @ref Qore::Program::importFunction()
         - @ref Qore::Program::importGlobalVariable()
      */
-    public class StaticTemplateManager inherits public WebUtil::TextTemplateBase {
+    public class StaticTemplateManager inherits public WebUtil::StaticTextTemplateBase {
         private {
+            #! Maps template names to TextTemplateBase objects
+            hash<string, TextTemplateBase> toh;
+
             #! Maps template names to function names
-            hash th;
+            hash<string, hash<auto>> th;
 
             #! Sequence for template function names
             Sequence seq();
+
+            #! parse options for template containers
+            int po;
         }
 
         #! sets up the object
-        constructor(int po = DefaultProgramOptions) : TextTemplateBase(po) {
+        constructor(int po = DefaultProgramOptions) {
+            self.po = po;
         }
 
         #! adds a template to the object
@@ -518,17 +540,23 @@ tm.add("/html/index.qhtml", qhtml);
             # generate function name
             string fn = sprintf("t%d", seq.next());
 
-            src = TextTemplateBase::add(p, fn, name, src);
+            TextTemplateBase ttb();
+            toh{name} = ttb;
+
+            # allow for the contained Program container to be customized
+            setupProgram(ttb.getProgram());
+
+            src = StaticTextTemplateBase::add(ttb.getProgram(), fn, name, src);
 
             # derive content type if necessary
             if (!ct)
-                ct = TextTemplateBase::getContentType(name);
+                ct = StaticTextTemplateBase::getContentType(name);
 
             # add entry in template hash
-            th{name} = (
+            th{name} = {
                 "func": fn,
                 "ct": ct,
-                );
+            };
 
             # return the final source string produced
             return src;
@@ -562,11 +590,11 @@ hash h = tm.render("html/index.qhtml", ctx);
             if (!vth)
                 throw "TEMPLATE-ERROR", sprintf("no template %y exists; known templates: %y", tname, th.keys());
 
-            return (
+            return {
                 "code": code,
-                "body": p.callFunction(vth.func, ctx),
-                "hdr": hdr + ("Content-Type": vth.ct),
-                );
+                "body": toh{tname}.getProgram().callFunction(vth.func, ctx),
+                "hdr": hdr + {"Content-Type": vth.ct},
+            };
         }
 
         #! explicitly renders the given template with the given argument context hash if the template exists; if not, returns @ref nothing
@@ -587,24 +615,29 @@ hash h = tm.render("html/index.qhtml", ctx);
         */
         *hash tryRender(string tname, hash ctx, int code = 200, *hash hdr) {
             *hash vth = th{tname};
-            if (!vth)
+            if (!vth) {
                 return;
+            }
 
-            return (
+            return {
                 "code": code,
-                "body": p.callFunction(vth.func, ctx),
-                "hdr": hdr + ("Content-Type": vth.ct),
-                );
+                "body": toh{tname}.getProgram().callFunction(vth.func, ctx),
+                "hdr": hdr + {"Content-Type": vth.ct},
+            };
         }
 
         #! returns a hash of template names, values are @ref Qore::True "True" or @ref nothing if no templates are currently cached
         *hash getTemplateHash() {
-            return map {$1: True}, th.keyIterator();
+            return map {$1: True}, keys th;
         }
 
         #! returns a list of template names, an empty list is returned if there are no templates
         list getTemplateList() {
             return th.keys();
+        }
+
+        #! override in subclasses to customize the setup of template Programs; this method performs no action
+        setupProgram(Program p) {
         }
     }
 

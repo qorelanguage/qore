@@ -14,6 +14,7 @@
 public class TelnetClientTest inherits QUnit::Test {
     constructor() : Test("TelnetClientTest", "1.0") {
         addTestCase("TelnetClient tests", \telnetClientTests());
+        addTestCase("connection tests", \connectionTests());
         set_return_value(main());
     }
 
@@ -30,5 +31,39 @@ public class TelnetClientTest inherits QUnit::Test {
         assertEq("/tmp/sock", tc.getTarget());
         assertThrows("INVALID-TARGET", sub () { new TelnetClient("telnets://host:23");});
         assertThrows("INVALID-TARGET", sub () { new TelnetClient("scheme://host");});
+    }
+
+    connectionTests() {
+        string url = "telnet://localhost:8099";
+        TelnetConnection conn("test", "test", url, False, NOTHING, parse_url(url));
+        TelnetClient client = conn.get(False);
+        assertEq("localhost:8099", client.getTarget());
+
+        hash<ConnectionConstructorInfo> info = conn.getConstructorInfo();
+        assertEq("TelnetClient", info.module);
+        assertEq("TelnetClient", info.class_name);
+        assertEq(url, info.args[0]);
+        checkPreAndPostProcessing(info);
+    }
+
+    private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
+        if (info.pre_processing) {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            if (info.module)
+                p.loadModule(info.module);
+            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash rtopts) { %s }", info.pre_processing);
+            # ensure that the pre processing code can be parsed
+            p.parse(pre_processing, "pre processing");
+            assertTrue(True, "pre processing: " + info.class_name);
+        }
+        if (info.post_processing) {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+            if (info.module)
+                p.loadModule(info.module);
+            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash rtopts) { %s }", info.class_name, info.post_processing);
+            # ensure that the post processing code can be parsed
+            p.parse(post_processing, "post processing");
+            assertTrue(True, "post processing: " + info.class_name);
+        }
     }
 }

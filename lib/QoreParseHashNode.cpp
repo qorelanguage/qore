@@ -1,38 +1,47 @@
 /* -*- indent-tabs-mode: nil -*- */
 /*
-  QoreParseHashNode.cpp
+    QoreParseHashNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/QoreParseHashNode.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/qore_program_private.h"
+
+void QoreParseHashNode::finalizeBlock(int sline, int eline) {
+    QoreProgramLocation tl(sline, eline);
+    if (tl.getFile() == loc->getFile()
+        && tl.getSource() == loc->getSource()
+        && (sline != loc->start_line || eline != loc->end_line)) {
+        loc = qore_program_private::get(*getProgram())->getLocation(*loc, sline, eline);
+    }
+}
 
 AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(keys.size() == values.size());
@@ -84,7 +93,7 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
 
     // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
     if (vtype && vtype != anyTypeInfo) {
-        this->typeInfo = typeInfo = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
+        this->typeInfo = typeInfo = qore_get_complex_hash_type(vtype);
     }
     else {
         this->typeInfo = hashTypeInfo;
@@ -101,7 +110,7 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
     ExceptionSink xsink;
     ValueEvalRefHolder rv(this, &xsink);
     assert(!xsink);
-    return rv.getReferencedValue();
+    return rv.takeReferencedValue().takeNode();
 }
 
 QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -142,7 +151,7 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
             QoreTypeInfo::acceptInputKey(this->vtype, key->c_str(), val, xsink);
         }
 
-        h->setValueKeyValue(key->c_str(), val, xsink);
+        h->setKeyValue(key->c_str(), val, xsink);
         if (xsink && *xsink) {
             return QoreValue();
         }
@@ -154,7 +163,7 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
     if (!vtype || vtype == anyTypeInfo) {
         vtype = autoTypeInfo;
     }
-    const QoreTypeInfo* ti = qore_program_private::get(*getProgram())->getComplexHashType(vtype);
+    const QoreTypeInfo* ti = qore_get_complex_hash_type(vtype);
     qore_hash_private::get(*rv->get<QoreHashNode>())->complexTypeInfo = ti;
 
     return rv.release();

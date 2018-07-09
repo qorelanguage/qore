@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreSQLStatement.h
+    QoreSQLStatement.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2006 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2006 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -196,128 +196,128 @@ int QoreSQLStatement::checkStatus(ExceptionSink* xsink, DBActionHelper& dba, int
 }
 
 void QoreSQLStatement::deref(ExceptionSink* xsink) {
-   if (ROdereference()) {
-      //char cmd = DAH_NOCHANGE;
-      //printd(5, "QoreSQLStatement::deref() deleting this: %p cmd: %s\n", this, DAH_TEXT(cmd));
-      closeIntern(xsink);
+    if (ROdereference()) {
+        //char cmd = DAH_NOCHANGE;
+        //printd(5, "QoreSQLStatement::deref() deleting this: %p cmd: %s\n", this, DAH_TEXT(cmd));
+        closeIntern(xsink);
 
-      if (priv->ds)
-         qore_ds_private::get(*priv->ds)->removeStatement(this);
+        if (priv->ds)
+            qore_ds_private::get(*priv->ds)->removeStatement(this);
 
-      dsh->helperDestructor(this, xsink);
+        dsh->helperDestructor(this, xsink);
 
-      if (prepare_args)
-         prepare_args->deref(xsink);
+        if (prepare_args)
+            prepare_args->deref(xsink);
 
-      delete this;
-   }
+        delete this;
+    }
 }
 
 void QoreSQLStatement::transactionDone(bool clear, bool close, ExceptionSink* xsink) {
-   //printd(5, "QoreSQLStatement::transactionDone() this: %p data: %p ds: %p clear: %d\n", this, priv->data, priv->ds, clear);
-   if (priv->data) {
-      assert(priv->ds);
-      // if "close" is set, then we delete the statement's local data
-      if (close) {
-         qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
-         assert(!priv->data);
-         status = STMT_IDLE;
-      }
-      else // otherwise, any handles are freed but the local data stays in place
-         qore_dbi_private::get(*priv->ds->getDriver())->stmt_free(this, xsink);
-   }
-   // if "clear" is set, then we clear the datasource
-   if (clear && priv->ds)
-      priv->ds = nullptr;
+    //printd(5, "QoreSQLStatement::transactionDone() this: %p data: %p ds: %p clear: %d\n", this, priv->data, priv->ds, clear);
+    if (priv->data) {
+        assert(priv->ds);
+        // if "close" is set, then we delete the statement's local data
+        if (close) {
+            qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
+            assert(!priv->data);
+            status = STMT_IDLE;
+        }
+        else // otherwise, any handles are freed but the local data stays in place
+            qore_dbi_private::get(*priv->ds->getDriver())->stmt_free(this, xsink);
+    }
+    // if "clear" is set, then we clear the datasource
+    if (clear && priv->ds)
+        priv->ds = nullptr;
 }
 
 int QoreSQLStatement::closeIntern(ExceptionSink* xsink) {
-   if (!priv->data)
-      return 0;
+    if (!priv->data)
+        return 0;
 
-   assert(priv->ds);
-   int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
-   assert(!priv->data);
-   status = STMT_IDLE;
+    assert(priv->ds);
+    int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_close(this, xsink);
+    assert(!priv->data);
+    status = STMT_IDLE;
 
-   return rc;
+    return rc;
 }
 
 int QoreSQLStatement::prepareArgs(bool n_raw, const QoreString& n_str, const QoreListNode* args, ExceptionSink* xsink) {
-   raw = n_raw;
-   str = n_str;
+    raw = n_raw;
+    str = n_str;
 
-   if (prepare_args) {
-      prepare_args->deref(xsink);
-      if (*xsink) {
-         prepare_args = nullptr;
-         return -1;
-      }
-   }
+    if (prepare_args) {
+        prepare_args->deref(xsink);
+        if (*xsink) {
+            prepare_args = nullptr;
+            return -1;
+        }
+    }
 
-   prepare_args = args ? args->listRefSelf() : nullptr;
-   return 0;
+    prepare_args = args ? args->listRefSelf() : nullptr;
+    return 0;
 }
 
 int QoreSQLStatement::prepareIntern(ExceptionSink* xsink) {
-   //assert(!stmtds);
-   int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_prepare(this, str, prepare_args, xsink);
-   if (!rc) {
-      status = STMT_PREPARED;
-   }
-   else
-      closeIntern(xsink);
-   return rc;
+    //assert(!stmtds);
+    int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_prepare(this, str, prepare_args, xsink);
+    if (!rc) {
+        status = STMT_PREPARED;
+    }
+    else
+        closeIntern(xsink);
+    return rc;
 }
 
 int QoreSQLStatement::prepare(const QoreString& n_str, const QoreListNode* args, ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink);
-   if (!dba)
-      return -1;
+    DBActionHelper dba(*this, xsink);
+    if (!dba)
+        return -1;
 
-   if (checkStatus(xsink, dba, STMT_IDLE, "prepare"))
-      return -1;
+    if (checkStatus(xsink, dba, STMT_IDLE, "prepare"))
+        return -1;
 
-   if (prepareArgs(false, n_str, args, xsink))
-      return -1;
+    if (prepareArgs(false, n_str, args, xsink))
+        return -1;
 
-   return 0;
+    return 0;
 }
 
 int QoreSQLStatement::prepareRaw(const QoreString& n_str, ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink);
-   if (!dba)
-      return -1;
+    DBActionHelper dba(*this, xsink);
+    if (!dba)
+        return -1;
 
-   if (checkStatus(xsink, dba, STMT_IDLE, "prepareRaw"))
-      return -1;
+    if (checkStatus(xsink, dba, STMT_IDLE, "prepareRaw"))
+        return -1;
 
-   if (prepareArgs(true, n_str, nullptr, xsink))
-      return -1;
+    if (prepareArgs(true, n_str, nullptr, xsink))
+        return -1;
 
-   return 0;
+    return 0;
 }
 
 int QoreSQLStatement::bind(const QoreListNode& l, ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return -1;
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba)
+        return -1;
 
-   if (checkStatus(xsink, dba, STMT_PREPARED, "bind"))
-      return -1;
+    if (checkStatus(xsink, dba, STMT_PREPARED, "bind"))
+        return -1;
 
-   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind(this, l, xsink);
+    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind(this, l, xsink);
 }
 
 int QoreSQLStatement::bindPlaceholders(const QoreListNode& l, ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return -1;
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba)
+        return -1;
 
-   if (checkStatus(xsink, dba, STMT_PREPARED, "bindPlaceholders"))
-      return -1;
+    if (checkStatus(xsink, dba, STMT_PREPARED, "bindPlaceholders"))
+        return -1;
 
-   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind_placeholders(this, l, xsink);
+    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind_placeholders(this, l, xsink);
 }
 
 int QoreSQLStatement::bindValues(const QoreListNode& l, ExceptionSink* xsink) {
