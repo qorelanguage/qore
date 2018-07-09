@@ -560,7 +560,7 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
     //printd(5, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getFullTypeName(), val, qv);
     if (check_types) {
         // check type for assignment
-        QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
+        QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink, this);
         if (*vl.xsink) {
             //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
             saveTemp(n);

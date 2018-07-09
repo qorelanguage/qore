@@ -40,6 +40,9 @@
 
 #define NO_TYPE_INFO "any"
 
+// forward references
+class LValueHelper;
+
 // adds external types to global type map
 DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo);
 DLLLOCAL bool builtinTypeHasDefaultValue(qore_type_t t);
@@ -204,7 +207,7 @@ public:
     DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n, bool exact) const;
 
     // returns true if there is a match or if an error has been raised
-    DLLLOCAL bool acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n) const;
+    DLLLOCAL bool acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper = nullptr) const;
 
     DLLLOCAL bool operator==(const QoreTypeSpec& other) const;
     DLLLOCAL bool operator!=(const QoreTypeSpec& other) const;
@@ -532,12 +535,12 @@ public:
    }
 
    // static version of method, checking for null pointer
-   DLLLOCAL static void acceptAssignment(const QoreTypeInfo* ti, const char* text, QoreValue& n, ExceptionSink* xsink) {
+   DLLLOCAL static void acceptAssignment(const QoreTypeInfo* ti, const char* text, QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper = nullptr) {
       assert(text && text[0] == '<');
       if (hasType(ti))
          ti->acceptInputIntern(xsink, false, -1, text, n);
       else if (ti != autoTypeInfo)
-         stripTypeInfo(n, xsink);
+         stripTypeInfo(n, xsink, lvhelper);
    }
 
    // static version of method, checking for null pointer
@@ -744,9 +747,9 @@ public:
       return -1;
    }
 
-   DLLLOCAL void acceptInputIntern(ExceptionSink* xsink, bool obj, int param_num, const char* param_name, QoreValue& n) const {
+   DLLLOCAL void acceptInputIntern(ExceptionSink* xsink, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper = nullptr) const {
       for (auto& t : accept_vec) {
-         if (t.spec.acceptInput(xsink, *this, t.map, obj, param_num, param_name, n))
+         if (t.spec.acceptInput(xsink, *this, t.map, obj, param_num, param_name, n, lvhelper))
             return;
       }
       doAcceptError(false, obj, param_num, param_name, n, xsink);
@@ -1009,7 +1012,7 @@ protected:
          str.concat("lvalue ");
    }
 
-   DLLLOCAL static void stripTypeInfo(QoreValue& n, ExceptionSink* xsink);
+   DLLLOCAL static void stripTypeInfo(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper = nullptr);
 };
 
 class QoreParseTypeInfo;
@@ -1716,6 +1719,7 @@ protected:
 };
 
 DLLLOCAL void map_get_plain_hash(QoreValue&, ExceptionSink*);
+DLLLOCAL void map_get_plain_hash_lvalue(QoreValue&, ExceptionSink*, LValueHelper*);
 
 class QoreHashTypeInfo : public QoreTypeInfo {
 public:
@@ -1793,6 +1797,7 @@ public:
 };
 
 DLLLOCAL void map_get_plain_list(QoreValue&, ExceptionSink*);
+DLLLOCAL void map_get_plain_list_lvalue(QoreValue&, ExceptionSink*, LValueHelper*);
 
 class QoreListTypeInfo : public QoreTypeInfo {
 public:
