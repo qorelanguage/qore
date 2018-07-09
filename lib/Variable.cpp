@@ -552,46 +552,46 @@ double LValueHelper::getAsFloat() const {
 }
 
 int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool weak_assignment) {
-   assert(!*vl.xsink);
-   if (n.type == QV_Node && n.v.n == &Nothing)
-      n.v.n = nullptr;
+    assert(!*vl.xsink);
+    if (n.type == QV_Node && n.v.n == &Nothing)
+        n.v.n = nullptr;
 
-   //printd(5, "LValueHelper::assign() '%s' ti: %p '%s' check_types: %d n: '%s'\n", desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getTypeName());
-   if (check_types) {
-      // check type for assignment
-      QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink);
-      if (*vl.xsink) {
-         //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
-         saveTemp(n);
-         return -1;
-      }
-   }
+    //printd(5, "LValueHelper::assign() '%s' ti: %p '%s' check_types: %d n: '%s'\n", desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getTypeName());
+    if (check_types) {
+        // check type for assignment
+        QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink, this);
+        if (*vl.xsink) {
+            //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
+            saveTemp(n);
+            return -1;
+        }
+    }
 
-   if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {
-      saveTemp(n);
-      return doRecursiveException();
-   }
+    if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {
+        saveTemp(n);
+        return doRecursiveException();
+    }
 
-   // process weak assignment
-   if (weak_assignment) {
-      if (n.getType() == NT_OBJECT) {
-         QoreObject* o = n.get<QoreObject>();
-         n = new WeakReferenceNode(o);
-         // cannot dereference object in lock
-         saveTemp(o);
-      }
-   }
+    // process weak assignment
+    if (weak_assignment) {
+        if (n.getType() == NT_OBJECT) {
+            QoreObject* o = n.get<QoreObject>();
+            n = new WeakReferenceNode(o);
+            // cannot dereference object in lock
+            saveTemp(o);
+        }
+    }
 
-   // perform assignment
-   if (val) {
-      saveTemp(val->assignAssume(n));
-      return 0;
-   }
+    // perform assignment
+    if (val) {
+        saveTemp(val->assignAssume(n));
+        return 0;
+    }
 
-   //printd(5, "LValueHelper::assign() this: %p saving old value: %p '%s' new: '%s' weak: %d\n", this, *v, get_type_name(*v), n.getTypeName(), weak_assignment);
-   saveTemp(*v);
-   *v = n.takeNode();
-   return 0;
+    //printd(5, "LValueHelper::assign() this: %p saving old value: %p '%s' new: '%s' weak: %d\n", this, *v, get_type_name(*v), n.getTypeName(), weak_assignment);
+    saveTemp(*v);
+    *v = n.takeNode();
+    return 0;
 }
 
 int LValueHelper::makeInt(const char* desc) {

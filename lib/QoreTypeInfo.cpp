@@ -697,159 +697,173 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
     return QTI_NOT_EQUAL;
 }
 
-bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n) const {
-   bool priv_error = false;
-   bool ok = false;
+bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper) const {
+    bool priv_error = false;
+    bool ok = false;
 
-   switch (typespec) {
-      case QTS_CLASS: {
-         if (n.getType() == NT_OBJECT) {
-            bool priv;
-            if (!n.get<const QoreObject>()->getClass()->getClass(*u.qc, priv))
-               break;
-            if (!priv) {
-               ok = true;
-               break;
+    switch (typespec) {
+        case QTS_CLASS: {
+            if (n.getType() == NT_OBJECT) {
+                bool priv;
+                if (!n.get<const QoreObject>()->getClass()->getClass(*u.qc, priv))
+                    break;
+                if (!priv) {
+                    ok = true;
+                    break;
+                }
+                // check access
+                if (qore_class_private::runtimeCheckPrivateClassAccess(*u.qc)) {
+                    ok = true;
+                    break;
+                }
+                priv_error = true;
             }
-            // check access
-            if (qore_class_private::runtimeCheckPrivateClassAccess(*u.qc)) {
-               ok = true;
-               break;
+            break;
+        }
+        case QTS_HASHDECL: {
+            if (n.getType() == NT_HASH) {
+                const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
+                if (hd && typed_hash_decl_private::get(*hd)->equal(*typed_hash_decl_private::get(*u.hd))) {
+                    ok = true;
+                    break;
+                }
             }
-            priv_error = true;
-         }
-         break;
-      }
-      case QTS_HASHDECL: {
-         if (n.getType() == NT_HASH) {
-            const TypedHashDecl* hd = n.get<const QoreHashNode>()->getHashDecl();
-            if (hd && typed_hash_decl_private::get(*hd)->equal(*typed_hash_decl_private::get(*u.hd))) {
-               ok = true;
-               break;
-            }
-         }
-         break;
-      }
-      case QTS_COMPLEXHASH: {
-         if (n.getType() == NT_HASH) {
-            QoreHashNode* h = n.get<QoreHashNode>();
-            const QoreTypeInfo* ti = h->getValueTypeInfo();
-            if (QoreTypeInfo::equal(u.ti, ti)) {
-               ok = true;
-               break;
-            }
+            break;
+        }
+        case QTS_COMPLEXHASH: {
+            if (n.getType() == NT_HASH) {
+                QoreHashNode* h = n.get<QoreHashNode>();
+                const QoreTypeInfo* ti = h->getValueTypeInfo();
+                if (QoreTypeInfo::equal(u.ti, ti)) {
+                    ok = true;
+                    break;
+                }
 
-            // try to fold values into our type; value types are not identical;
-            // we have to get a new hash
-            if (!h->is_unique()) {
-               discard(n.assign(h = qore_hash_private::get(*h)->copy(&typeInfo)), xsink);
-               if (*xsink)
-                  return true;
-            }
-            else
-               qore_hash_private::get(*h)->complexTypeInfo = &typeInfo;
+                // try to fold values into our type; value types are not identical;
+                // we have to get a new hash
+                if (!h->is_unique()) {
+                    AbstractQoreNode* p = n.assign(h = qore_hash_private::get(*h)->copy(&typeInfo));
+                    if (lvhelper) {
+                        lvhelper->saveTemp(p);
+                    }
+                    else {
+                        discard(p, xsink);
+                        if (*xsink)
+                            return true;
+                    }
+                }
+                else
+                    qore_hash_private::get(*h)->complexTypeInfo = &typeInfo;
 
-            // now we have to fold the value types into our type
-            HashIterator i(h);
-            while (i.next()) {
-               hash_assignment_priv ha(*qore_hash_private::get(*h), *qhi_priv::get(i)->i);
-               QoreValue hn(ha.swap(nullptr));
-               u.ti->acceptInputIntern(xsink, obj, param_num, param_name, hn);
-               ha.swap(hn.takeNode());
-               if (*xsink)
-                  return true;
-            }
+                // now we have to fold the value types into our type
+                HashIterator i(h);
+                while (i.next()) {
+                    hash_assignment_priv ha(*qore_hash_private::get(*h), *qhi_priv::get(i)->i);
+                    QoreValue hn(ha.swap(nullptr));
+                    u.ti->acceptInputIntern(xsink, obj, param_num, param_name, hn, lvhelper);
+                    ha.swap(hn.takeNode());
+                    if (*xsink)
+                        return true;
+                }
 
-            ok = true;
-         }
-         break;
-      }
-      case QTS_COMPLEXSOFTLIST:
-      case QTS_COMPLEXLIST: {
-         if (n.getType() == NT_LIST) {
-            QoreListNode* l = n.get<QoreListNode>();
-            const QoreTypeInfo* ti = l->getValueTypeInfo();
-            if (QoreTypeInfo::equal(u.ti, ti)) {
-               ok = true;
-               break;
+                ok = true;
             }
+            break;
+        }
+        case QTS_COMPLEXSOFTLIST:
+        case QTS_COMPLEXLIST: {
+            if (n.getType() == NT_LIST) {
+                QoreListNode* l = n.get<QoreListNode>();
+                const QoreTypeInfo* ti = l->getValueTypeInfo();
+                if (QoreTypeInfo::equal(u.ti, ti)) {
+                    ok = true;
+                    break;
+                }
 
-            // try to fold values into our type; value types are not identical;
-            // we have to get a new list
-            qore_list_private* lp;
-            if (!l->is_unique()) {
-               discard(n.assign(l = qore_list_private::get(*l)->copy(&typeInfo)), xsink);
-               if (*xsink)
-                  return true;
-               lp = qore_list_private::get(*l);
+                // try to fold values into our type; value types are not identical;
+                // we have to get a new list
+                qore_list_private* lp;
+                if (!l->is_unique()) {
+                    AbstractQoreNode* p = n.assign(l = qore_list_private::get(*l)->copy(&typeInfo));
+                    if (lvhelper) {
+                        lvhelper->saveTemp(p);
+                    }
+                    else {
+                        discard(p, xsink);
+                        if (*xsink)
+                            return true;
+                    }
+                    lp = qore_list_private::get(*l);
+                }
+                else {
+                    lp = qore_list_private::get(*l);
+                    lp->complexTypeInfo = &typeInfo;
+                }
+
+                // now we have to fold the value types into our type
+                for (size_t i = 0; i < l->size(); ++i) {
+                    QoreValue ln(lp->takeExists(i));
+                    u.ti->acceptInputIntern(xsink, obj, param_num, param_name, ln, lvhelper);
+                    lp->swap(i, ln.takeNode());
+                    if (*xsink)
+                        return true;
+                }
+
+                ok = true;
             }
-            else {
-               lp = qore_list_private::get(*l);
-               lp->complexTypeInfo = &typeInfo;
+            else if (typespec == QTS_COMPLEXSOFTLIST) {
+                QoreValue val = n;
+                n.swap(val);
+                n.assign(qore_list_private::newComplexListFromValue(&typeInfo, val, xsink));
+                ok = true;
             }
-
-            // now we have to fold the value types into our type
-            for (size_t i = 0; i < l->size(); ++i) {
-               QoreValue ln(lp->takeExists(i));
-               u.ti->acceptInputIntern(xsink, obj, param_num, param_name, ln);
-               lp->swap(i, ln.takeNode());
-               if (*xsink)
-                  return true;
+            break;
+        }
+        case QTS_COMPLEXREF: {
+            if (n.getType() == NT_REFERENCE) {
+                // issue #2889 cannot assign a reference while assigning an lvalue and holding a write lock
+                assert(!lvhelper);
+                ReferenceNode* r = n.get<ReferenceNode>();
+                const QoreTypeInfo* ti = r->getLValueTypeInfo();
+                //printd(5, "cr: %p '%s' == %p '%s': %d\n", u.ti, QoreTypeInfo::getName(u.ti), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::isOutputSubset(u.ti, ti));
+                // first check types before instantiating reference
+                if (QoreTypeInfo::outputSuperSetOf(ti, u.ti)) {
+                    // do not process if there is no type restriction
+                    LValueHelper lvh(r, xsink);
+                    if (lvh) {
+                        QoreValue val = lvh.getReferencedValue();
+                        if (!val.isNothing()) {
+                            lvh.setTypeInfo(u.ti);
+                            //printd(5, "ref assign '%s' to '%s'\n", QoreTypeInfo::getName(val.getTypeInfo()), QoreTypeInfo::getName(u.ti));
+                            lvh.assign(val, "<reference>");
+                        }
+                        // we set ok unconditionally here, because any exception thrown above is enough if there is an error
+                        ok = true;
+                    }
+                }
             }
+            break;
+        }
+        case QTS_TYPE:
+        case QTS_EMPTYLIST:
+        case QTS_EMPTYHASH:
+            if (u.t == NT_ALL || u.t == n.getType())
+                ok = true;
+            break;
+    }
 
-            ok = true;
-         }
-         else if (typespec == QTS_COMPLEXSOFTLIST) {
-            QoreValue val = n;
-            n.swap(val);
-            n.assign(qore_list_private::newComplexListFromValue(&typeInfo, val, xsink));
-            ok = true;
-         }
-         break;
-      }
-      case QTS_COMPLEXREF: {
-         if (n.getType() == NT_REFERENCE) {
-            ReferenceNode* r = n.get<ReferenceNode>();
-            const QoreTypeInfo* ti = r->getLValueTypeInfo();
-            //printd(5, "cr: %p '%s' == %p '%s': %d\n", u.ti, QoreTypeInfo::getName(u.ti), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::isOutputSubset(u.ti, ti));
-            // first check types before instantiating reference
-            if (QoreTypeInfo::outputSuperSetOf(ti, u.ti)) {
-               // do not process if there is no type restriction
-               LValueHelper lvh(r, xsink);
-               if (lvh) {
-                  QoreValue val = lvh.getReferencedValue();
-                  if (!val.isNothing()) {
-                     lvh.setTypeInfo(u.ti);
-                     //printd(5, "ref assign '%s' to '%s'\n", QoreTypeInfo::getName(val.getTypeInfo()), QoreTypeInfo::getName(u.ti));
-                     lvh.assign(val, "<reference>");
-                  }
-                  // we set ok unconditionally here, because any exception thrown above is enough if there is an error
-                  ok = true;
-               }
-            }
-         }
-         break;
-      }
-      case QTS_TYPE:
-      case QTS_EMPTYLIST:
-      case QTS_EMPTYHASH:
-         if (u.t == NT_ALL || u.t == n.getType())
-            ok = true;
-         break;
-   }
+    if (ok) {
+        assert(!priv_error);
+        if (map)
+            map(n, xsink);
+        return true;
+    }
 
-   if (ok) {
-      assert(!priv_error);
-      if (map)
-         map(n, xsink);
-      return true;
-   }
-
-   if (priv_error) {
-      typeInfo.doAcceptError(true, obj, param_num, param_name, n, xsink);
-      return true;
-   }
-   return false;
+    if (priv_error) {
+        typeInfo.doAcceptError(true, obj, param_num, param_name, n, xsink);
+        return true;
+    }
+    return false;
 }
 
 bool QoreTypeSpec::operator==(const QoreTypeSpec& other) const {
@@ -962,18 +976,28 @@ void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, const char
    qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::stripTypeInfo(QoreValue& n, ExceptionSink* xsink) {
-   // strips complex typeinfo for an assignment to an untyped lvalue
-   switch (n.getType()) {
-      case NT_HASH: {
-         map_get_plain_hash(n, xsink);
-         break;
-      }
-      case NT_LIST: {
-         map_get_plain_list(n, xsink);
-         break;
-      }
-   }
+void QoreTypeInfo::stripTypeInfo(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper) {
+    // strips complex typeinfo for an assignment to an untyped lvalue
+    switch (n.getType()) {
+        case NT_HASH: {
+            if (lvhelper) {
+                map_get_plain_hash_lvalue(n, xsink, lvhelper);
+            }
+            else {
+                map_get_plain_hash(n, xsink);
+            }
+            break;
+        }
+        case NT_LIST: {
+            if (lvhelper) {
+                map_get_plain_list_lvalue(n, xsink, lvhelper);
+            }
+            else {
+                map_get_plain_list(n, xsink);
+            }
+            break;
+        }
+    }
 }
 
 template <typename T>
@@ -1305,6 +1329,22 @@ QoreComplexSoftListOrNothingTypeInfo::QoreComplexSoftListOrNothingTypeInfo(const
       }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}}) {
    assert(vti);
    tname.sprintf("*softlist<%s>", QoreTypeInfo::getName(vti));
+}
+
+void map_get_plain_hash_lvalue(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper) {
+    // issue #2889 do not pass a QoreValue to LValueHelper::saveTemp() as it will remove the node from the QoreValue
+    // instead pass an AbstractQoreNode*
+    QoreHashNode* h = n.get<QoreHashNode>();
+    lvhelper->saveTemp(h);
+    n.assign(copy_strip_complex_types(h));
+}
+
+void map_get_plain_list_lvalue(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper) {
+    // issue #2889 do not pass a QoreValue to LValueHelper::saveTemp() as it will remove the node from the QoreValue
+    // instead pass an AbstractQoreNode*
+    QoreListNode* l = n.get<QoreListNode>();
+    lvhelper->saveTemp(l);
+    n.assign(copy_strip_complex_types(l));
 }
 
 void map_get_plain_hash(QoreValue& n, ExceptionSink* xsink) {
