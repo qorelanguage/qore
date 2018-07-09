@@ -27,21 +27,7 @@ class Test inherits QUnit::Test {
     constructor() : QUnit::Test("Logger", "1.0", \ARGV) {
         m_counter = new Counter();
         addTestCase("LoggerContainer-Logger", \testLoggerProgram());
-        /*
-            Test fails in cca 10% probability with a RSection deadlock
-#4  0x00007f6b70b8b2e1 in qore_rsection_priv::upgradeReadToRSection (this=0x2b1e320, tid=3) at ../include/qore/intern/RSection.h:136    14 (T5)   write
-#4  0x00007f6b70a45e1c in qore_rsection_priv::tryRSectionLockNotifyWaitRead (this=0x2ac3d80, rn=0x7f6b6e131428) at RSection.cpp:52
-
-rarely also assertion issue:
-int qore_rsection_priv::tryRSectionLockNotifyWaitRead(RNotifier* rn) {
-   assert(has_notify);
-
-   int tid = gettid();
-
-   AutoLocker al(l);
-   assert(write_tid != tid);
-        */
-        #addTestCase("LoggerContainer-Logger-ThreadPool", \testLoggerProgramThreadPool());
+        addTestCase("LoggerContainer-Logger-ThreadPool", \testLoggerProgramThreadPool());
         set_return_value(main());
     }
 
