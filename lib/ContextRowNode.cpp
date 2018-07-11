@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-ContextRowNode::ContextRowNode(const QoreProgramLocation& loc) : ParseNode(loc, NT_CONTEXT_ROW) {
+ContextRowNode::ContextRowNode(const QoreProgramLocation* loc) : ParseNode(loc, NT_CONTEXT_ROW) {
 }
 
 ContextRowNode::~ContextRowNode() {
@@ -40,31 +40,31 @@ ContextRowNode::~ContextRowNode() {
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
-int ContextRowNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("context row reference '%%%%' (%p)", this);
-   return 0;
+int ContextRowNode::getAsString(QoreString& qstr, int foff, ExceptionSink* xsink) const {
+    qstr.sprintf("context row reference '%%%%' (%p)", this);
+    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *ContextRowNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   QoreString *rv = new QoreString();
-   getAsString(*rv, foff, xsink);
-   return rv;
+QoreString* ContextRowNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+    del = true;
+    QoreString *rv = new QoreString();
+    getAsString(*rv, foff, xsink);
+    return rv;
 }
 
 // returns the type name as a c string
-const char *ContextRowNode::getTypeName() const {
-   return "context row reference";
+const char* ContextRowNode::getTypeName() const {
+    return "context row reference";
 }
 
-QoreValue ContextRowNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   return evalContextRow(xsink);
+QoreValue ContextRowNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    return eval_context_row(xsink);
 }
 
-AbstractQoreNode *ContextRowNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   typeInfo = hashTypeInfo;
-   if (!getCVarStack())
-      parse_error(loc, "context row reference \"%%%%\" encountered out of context");
-   return this;
+AbstractQoreNode *ContextRowNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    typeInfo = hashTypeInfo;
+    if (!getCVarStack())
+        parse_error(*loc, "context row reference \"%%%%\" encountered out of context");
+    return this;
 }

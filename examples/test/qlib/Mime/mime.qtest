@@ -100,7 +100,7 @@ aωb\r
 
         hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage("multipart/form-data; boundary=---------------------------735323031399963166993862150", FormDataBody);
         assertEq(5, h.size());
-        #printf("h: %N\n", h);
+        assertEq("hash<FormDataMessageInfo>", h.firstValue().fullType());
 
         MultiPartFormDataMessage msg = MultiPartFormDataMessage::makeMessage(h);
         assertEq(5, msg.size());

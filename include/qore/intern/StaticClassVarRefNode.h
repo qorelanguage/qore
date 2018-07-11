@@ -50,7 +50,7 @@ public:
    QoreVarInfo& vi;
    std::string str;
 
-   DLLLOCAL StaticClassVarRefNode(const QoreProgramLocation& loc, const char* c_str, const QoreClass& n_qc, QoreVarInfo& n_vi);
+   DLLLOCAL StaticClassVarRefNode(const QoreProgramLocation* loc, const char* c_str, const QoreClass& n_qc, QoreVarInfo& n_vi);
 
    DLLLOCAL virtual ~StaticClassVarRefNode();
 

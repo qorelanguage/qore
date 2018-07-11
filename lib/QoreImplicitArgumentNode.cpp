@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,9 +30,9 @@
 
 #include <qore/Qore.h>
 
-QoreImplicitArgumentNode::QoreImplicitArgumentNode(const QoreProgramLocation& loc, int n_offset) : ParseNode(loc, NT_IMPLICIT_ARG), offset(n_offset) {
+QoreImplicitArgumentNode::QoreImplicitArgumentNode(const QoreProgramLocation* loc, int n_offset) : ParseNode(loc, NT_IMPLICIT_ARG), offset(n_offset) {
    if (!offset)
-      parse_error(loc, "implicit argument offsets must be greater than 0 (first implicit argument is $1)");
+      parse_error(*loc, "implicit argument offsets must be greater than 0 (first implicit argument is $1)");
    else if (offset > 0)
       --offset;
 }
@@ -41,46 +41,47 @@ QoreImplicitArgumentNode::~QoreImplicitArgumentNode() {
 }
 
 AbstractQoreNode* QoreImplicitArgumentNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   typeInfo = parse_get_implicit_arg_type_info();
-   return this;
+    typeInfo = parse_get_implicit_arg_type_info();
+    return this;
 }
 
 const QoreTypeInfo* QoreImplicitArgumentNode::getTypeInfo() const {
-   return parse_get_implicit_arg_type_info();
+    return parse_get_implicit_arg_type_info();
 }
 
-const AbstractQoreNode* QoreImplicitArgumentNode::get() const {
-   const QoreListNode* argv = thread_get_implicit_args();
-   if (!argv)
-      return nullptr;
-   //printd(5, "QoreImplicitArgumentNode::get() offset=%d v=%p\n", offset, argv->retrieve_entry(offset));
-   return argv->retrieve_entry(offset);
+const QoreValue QoreImplicitArgumentNode::get() const {
+    const QoreListNode* argv = thread_get_implicit_args();
+    if (!argv) {
+        return QoreValue();
+    }
+    //printd(5, "QoreImplicitArgumentNode::get() offset: %d v: %s\n", offset, argv->retrieveEntry(offset).getTypeName());
+    return argv->retrieveEntry(offset);
 }
 
 QoreValue QoreImplicitArgumentNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = false;
-   if (offset == -1)
-      return const_cast<QoreListNode*>(thread_get_implicit_args());
+    needs_deref = false;
+    if (offset == -1)
+        return const_cast<QoreListNode*>(thread_get_implicit_args());
 
-   return const_cast<AbstractQoreNode*>(get());
+    return get();
 }
 
 int QoreImplicitArgumentNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.concat("get implicit argument ");
-   if (offset == -1)
-      str.concat("list");
-   else
-      str.concat("%d", offset);
-   return 0;
+    str.concat("get implicit argument ");
+    if (offset == -1)
+        str.concat("list");
+    else
+        str.concat("%d", offset);
+    return 0;
 }
 
 QoreString *QoreImplicitArgumentNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   QoreString *rv = new QoreString();
-   getAsString(*rv, foff, xsink);
-   return rv;
+    del = true;
+    QoreString *rv = new QoreString();
+    getAsString(*rv, foff, xsink);
+    return rv;
 }
 
 const char *QoreImplicitArgumentNode::getTypeName() const {
-   return getStaticTypeName();
+    return getStaticTypeName();
 }

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -51,7 +51,7 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreDotEvalOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, MethodCallNode *n_m) : QoreOperatorNode(loc), left(n_left), m(n_m), returnTypeInfo(nullptr) {
+   DLLLOCAL QoreDotEvalOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode *n_left, MethodCallNode *n_m) : QoreOperatorNode(loc), left(n_left), m(n_m), returnTypeInfo(nullptr) {
    }
 
    DLLLOCAL ~QoreDotEvalOperatorNode() {

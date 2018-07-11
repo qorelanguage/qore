@@ -133,12 +133,19 @@ class ThreadResourcesTest inherits QUnit::Test {
     }
 
     threadResourceSandboxingTests() {
-        Program p(PO_NEW_STYLE | PO_NO_THREAD_CONTROL);
-        p.importClass("TR1");
+        {
+            Program p(PO_NEW_STYLE | PO_NO_THREAD_CONTROL);
+            p.importClass("TR1");
 
-        # test sandbox violation
-        testAssertion("sandboxing-1", \p.parse(), ("sub t() {TR1 tr1(); set_thread_resource(tr1);}", "test-1"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "set_thread_resource"));
-        testAssertion("sandboxing-2", \p.parse(), ("sub t() {TR1 tr1(); remove_thread_resource(tr1);}", "test-2"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "remove_thread_resource"));
+            # test sandbox violation
+            testAssertion("sandboxing-1", \p.parse(), ("sub t() {TR1 tr1(); set_thread_resource(tr1);}", "test-1"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "set_thread_resource"));
+        }
+        {
+            Program p(PO_NEW_STYLE | PO_NO_THREAD_CONTROL);
+            p.importClass("TR1");
+
+            testAssertion("sandboxing-2", \p.parse(), ("sub t() {TR1 tr1(); remove_thread_resource(tr1);}", "test-2"), new TestResultExceptionRegexp("PARSE-EXCEPTION", "remove_thread_resource"));
+        }
     }
 
     doCleanup() {
