@@ -25,9 +25,14 @@
       (<a href="https://github.com/qorelanguage/qore/issues/2834">issue 2834</a>)
     - module fixes:
       - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>:
-        - schenma alignment fails when user accidentally creates table
+        - schema alignment fails when user accidentally creates table
           schema with strings instead of hashes
           (<a href="https://github.com/qorelanguage/qore/issues/2761">issue 2358</a>)
+      - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
+        - Swagger module does not use text/plain Content-Type for simple string responses
+          (<a href="https://github.com/qorelanguage/qore/issues/2893">issue 2893</a>)
+        - Swagger module does not check response body if response schema is missing in Swaggerfile
+          (<a href="https://github.com/qorelanguage/qore/issues/2894">issue 2894</a>)
       - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a>:
         - allowed the handling of \c PING messages to be customized
           (<a href="https://github.com/qorelanguage/qore/issues/2887">issue 2887</a>)
