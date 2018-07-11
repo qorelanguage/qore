@@ -92,6 +92,10 @@ c.waitForZero();
       method to allow connections to be created dynamically, potentially in another process from a network
       call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
+    @subsection wsc_v1_6_2 v1.6.2
+    - allowed the handling of \c PING messages to be customized
+      (<a href="https://github.com/qorelanguage/qore/issues/2887">issue 2887</a>)
+
     @subsection wsc_v1_6_1 v1.6.1
     - added @ref WebSocketClient::WebSocketClient::pong() "WebSocketClient::pong()" to allow an unsolicited \c PONG message to be sent as a unidirectional keep-alive message from the client to the server (<a href="https://github.com/qorelanguage/qore/issues/2566">issue 2566</a>)
 
@@ -452,7 +456,7 @@ ws.clearStats();
                     }
 
                     if (h.op == WSOP_Ping) {
-                        hc.send2(ws_encode_message(h.msg, WSOP_Pong, True), timeout_ms);
+                        handlePing(h);
                         continue;
                     }
 
@@ -480,6 +484,10 @@ ws.clearStats();
                 hc.close();
             }
             logDebug("disconnected websocket connection");
+        }
+
+        private handlePing(hash<auto> h) {
+            hc.send2(ws_encode_message(h.msg, WSOP_Pong, True), timeout_ms);
         }
 
         private logInfo(string fmt) {

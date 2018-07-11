@@ -1,0 +1,98 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/WebSocketUtil.qm
+%requires ../../../../qlib/WebSocketHandler.qm
+%requires ../../../../qlib/WebSocketClient.qm
+
+%exec-class WebSocketHandlerTest
+
+class MyWsConnection inherits WebSocketConnection {
+    constructor(WebSocketHandler handler) : WebSocketConnection(handler) {
+    }
+
+    gotMessage(string msg) {
+        send("RESPONSE:"+msg);
+        #printf("GOT MSG: %y\n", msg);
+    }
+}
+
+class MyWsHandler inherits WebSocketHandler {
+    constructor(*hash opts) : WebSocketHandler(NOTHING, opts) {
+    }
+
+    WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
+        return new MyWsConnection(self);
+    }
+}
+
+class MyWsClient inherits WebSocketClient {
+    private {
+        Counter cnt;
+    }
+
+    constructor(code cb, hash opts, Counter c) : WebSocketClient(cb, opts) {
+        cnt = c;
+    }
+
+    private handlePing(hash<auto> h) {
+        WebSocketClient::handlePing(h);
+        cnt.dec();
+    }
+}
+
+class WebSocketHandlerTest inherits QUnit::Test {
+    public {
+        HttpServer mServer;
+        MyWsHandler wsHandler({"heartbeat": 1s, "heartbeat_msg": "test"});
+        int port;
+    }
+
+    constructor() : Test("WebSocketHandlerTest", "1.0") {
+        addTestCase("WebSocketHandler tests", \webSocketHandlerTests());
+
+        mServer = new HttpServer(\log(), \log());
+        mServer.setHandler("ws-handler", "", NOTHING, wsHandler);
+        mServer.setDefaultHandler("ws-handler", wsHandler);
+        port = mServer.addListener(0).port;
+
+        set_return_value(main());
+
+        mServer.stop();
+    }
+
+    webSocketHandlerTests() {
+        assertThrows("WEBSOCKETHANDLER-OPTION-ERROR", sub () { new MyWsHandler({"heartbeat": {}}); });
+        assertThrows("WEBSOCKETHANDLER-OPTION-ERROR", sub () { new MyWsHandler({"heartbeat": -1}); });
+
+        {
+            MyWsHandler wsh();
+            assertEq(20, wsh.getHeartbeat());
+            assertEq("heartbeat", wsh.getHeartbeatMessage());
+        }
+
+        assertEq(1, wsHandler.getHeartbeat());
+        assertEq("test", wsHandler.getHeartbeatMessage());
+
+        Counter c(1);
+        MyWsClient wsc(sub (*data msg) {}, ("url": "ws://localhost:" + port), c);
+        wsc.connect();
+        c.waitForZero();
+        assertTrue(True);
+    }
+
+    private log(string str) {
+        if (m_options.verbose > 2)
+            vprintf(str + "\n", argv);
+    }
+}

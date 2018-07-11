@@ -52,6 +52,19 @@ class TestRestClass inherits AbstractRestClass {
     }
 }
 
+class B2893RestClass inherits AbstractRestClass {
+    string name() {
+        return "b2893";
+    }
+
+    hash get(hash cx, *hash ah) {
+        if (ah.a)
+            return RestHandler::makeResponse(200, "blabla");
+        else
+            return RestHandler::makeResponse(201, {"a": "abc123"});
+    }
+}
+
 class MyRestHandler inherits RestHandler {
     constructor() {
         addClass(new TestRestClass());
@@ -61,6 +74,7 @@ class MyRestHandler inherits RestHandler {
 class SwaggerRestHandler inherits RestHandler {
     constructor(AbstractRestSchemaValidator validator) : RestHandler(NOTHING, validator) {
         addClass(new TestRestClass());
+        addClass(new B2893RestClass());
     }
 }
 
@@ -168,6 +182,48 @@ public class RestHandlerTest inherits QUnit::Test {
                         ),
                     ),
                 ),
+                "/b2893": (
+                    "get": (
+                        "produces": ("text/plain", MimeTypeJson,),
+                        "consumes": (MimeTypeJson,),
+                        "parameters": (
+                            {
+                                "in": "body",
+                                "name": "body",
+                                "required": True,
+                                "schema": (
+                                    "type": "object",
+                                    "required": ("a",),
+                                    "properties": {
+                                        "a": {
+                                            "type": "boolean",
+                                            "description": "whether to return a simple string (or a hash value instead)"
+                                        }
+                                    }
+                                ),
+                            },
+                        ),
+                        "responses": (
+                            "200": (
+                                "description": "success",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            ),
+                            "201": (
+                                "description": "success",
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "a": {
+                                            "type": "string",
+                                        }
+                                    }
+                                }
+                            ),
+                        ),
+                    ),
+                ),
             ),
             "definitions": (
                 "Any": (
@@ -190,6 +246,7 @@ public class RestHandlerTest inherits QUnit::Test {
         addTestCase("Test swagger", \swaggerTest());
         addTestCase("issue 2398", \issue2398());
         addTestCase("issue 2543", \issue2543());
+        addTestCase("issue 2893", \issue2893());
         addTestCase("Missing subclass test", \missingSubclassTest());
 
         # Return for compatibility with test harness that checks return value.
@@ -382,6 +439,23 @@ public class RestHandlerTest inherits QUnit::Test {
         # this would throw exception before fix
         auto result = swaggerHandler.handleRequest(listener, s, cx, hdr, body_str);
         assertEq(400, result.code);
+    }
+
+    issue2893() {
+        mClient.setSerialization("json");
+        hash info;
+        {
+            on_error printf("info: %N\n", info);
+            hash h = mClient.get("/swagger/b2893", {"a": True}, \info);
+            assertEq(200, info."response-code");
+            assertEq("text/plain", info."body-content-type");
+            assertEq("blabla", h.body);
+
+            h = mClient.get("/swagger/b2893", {"a": False}, \info);
+            assertEq(201, info."response-code");
+            assertEq("application/json", info."body-content-type");
+            assertEq({"a": "abc123"}, h.body);
+        }
     }
 
     missingSubclassTest() {
