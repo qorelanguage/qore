@@ -6,6 +6,7 @@
 %new-style
 %strict-args
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/HttpServerUtil.qm
@@ -458,6 +459,7 @@ public class RestHandlerTest inherits QUnit::Test {
     }
 
     missingSubclassTest() {
+        mClient.setSerialization("auto");
         assertThrows("REST-RESPONSE-ERROR", "404.*has no subclass", \mClient.post(), ("test/bla", NOTHING, NOTHING));
     }
 

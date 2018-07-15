@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  InputStreamWrapper.h
+    InputStreamWrapper.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, sro
+    Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_INPUTSTREAMWRAPPER_H
@@ -44,14 +44,14 @@ public:
     * @brief Constructor.
     * @param self the QoreObject this private data is associated with
     */
-   InputStreamWrapper(QoreObject *self) : self(self) {
+   InputStreamWrapper(QoreObject* self) : self(self) {
    }
 
-   DLLLOCAL virtual int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override {
+   DLLLOCAL virtual int64 read(void* ptr, int64 limit, ExceptionSink* xsink) override {
       assert(limit > 0);
       ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
-      args->push(new QoreBigIntNode(limit));
-      ValueHolder bufHolder(self->evalMethodValue("read", *args, xsink), xsink);
+      args->push(limit, xsink);
+      ValueHolder bufHolder(self->evalMethod("read", *args, xsink), xsink);
       if (!bufHolder) {
          return 0;
       }
@@ -75,12 +75,20 @@ public:
 
    DLLLOCAL virtual int64 peek(ExceptionSink *xsink) override {
       ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
-      ValueHolder resHolder(self->evalMethodValue("peek", *args, xsink), xsink);
+      ValueHolder resHolder(self->evalMethod("peek", *args, xsink), xsink);
       if (!resHolder) {
          return -2;
       }
       QoreBigIntNode *res = resHolder->get<QoreBigIntNode>();
       return res->val;
+   }
+
+   /**
+     * @brief Returns the name of the class.
+     * @return the name of the class
+     */
+   DLLLOCAL virtual const char *getName() override {
+      return "InputStreamWrapper";
    }
 
 private:

@@ -49,7 +49,7 @@ private:
    op_log_func_t op_func;
 
 public:
-   DLLLOCAL CaseNodeWithOperator(const QoreProgramLocation& loc, AbstractQoreNode* v, StatementBlock* c, op_log_func_t op);
+   DLLLOCAL CaseNodeWithOperator(const QoreProgramLocation* loc, AbstractQoreNode* v, StatementBlock* c, op_log_func_t op);
 
    DLLLOCAL ~CaseNodeWithOperator() {}
 

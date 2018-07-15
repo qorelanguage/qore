@@ -40,7 +40,7 @@ protected:
    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
-   DLLLOCAL QoreDivideEqualsOperatorNode(const QoreProgramLocation& loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreMultiplyEqualsOperatorNode(loc, n_left, n_right) {
+   DLLLOCAL QoreDivideEqualsOperatorNode(const QoreProgramLocation* loc, AbstractQoreNode *n_left, AbstractQoreNode *n_right) : QoreMultiplyEqualsOperatorNode(loc, n_left, n_right) {
    }
 };
 
