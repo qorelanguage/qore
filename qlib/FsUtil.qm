@@ -430,16 +430,20 @@ public namespace FsUtil {
     /** @param path1 first path
         @param path2 second path
         @param follow_symlinks flag indicating whether symlinks should be followed (True by default)
+        @param ignore_errors flag indicating that errors should be ignored (True by default)
 
-        @return True if the two paths point to the same file, False otherwise
+        @return True if the two paths point to the same file, False otherwise.
 
-        @throws FILE-STAT-ERROR If stat call for a path fails.
+        @throws FILE-STAT-ERROR If stat call for a path fails unless errors are ignored.
 
         Stat is retrieved for each of the paths and device and inode IDs are compared. By default if one of the paths is
         a symlink pointing to the other, this function will return True but this can be changed using
         the follow_symlinks parameter.
+        If stat can't be retrieved for a path and ignore_errors is True, then the function returns False. This is
+        because the most common error here is that one of the paths doesn't exist (or both). In that case the paths
+        indeed don't point to the same file.
     */
-    public bool sub samefile(string path1, string path2, bool follow_symlinks=True) {
+    public bool sub samefile(string path1, string path2, bool follow_symlinks=True, bool ignore_errors=True) {
         hash stat1;
         hash stat2;
 
@@ -452,6 +456,10 @@ public namespace FsUtil {
                 stat2 = hlstat(path2);
             }
         } catch (hash ex) {
+            if (ignore_errors) {
+                return False;
+            }
+
             throw "FILE-STAT-ERROR", sprintf("Couldn't stat path: %s", strerror());
         }
 

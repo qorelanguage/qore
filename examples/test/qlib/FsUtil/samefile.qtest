@@ -74,11 +74,12 @@ public class SamefileTest inherits QUnit::Test {
         }
         string non_file = join_paths(tmp_path, "non_file.txt");
 
-        assertThrows("FILE-STAT-ERROR", \samefile(), (tmp_path, non_file, True));
-        assertThrows("FILE-STAT-ERROR", \samefile(), (tmp_path, non_file, False));
-        assertThrows("FILE-STAT-ERROR", \samefile(), (non_file, tmp_path, True));
-        assertThrows("FILE-STAT-ERROR", \samefile(), (non_file, tmp_path, False));
-        assertThrows("FILE-STAT-ERROR", \samefile(), (non_file, non_file, True));
-        assertThrows("FILE-STAT-ERROR", \samefile(), (non_file, non_file, False));
+        # test that we get an exception if non-existent path is passed to the function
+        assertThrows("FILE-STAT-ERROR", \samefile(), (tmp_path, non_file, True, False));
+        assertThrows("FILE-STAT-ERROR", \samefile(), (tmp_path, non_file, False, False));
+        assertThrows("FILE-STAT-ERROR", \samefile(), (non_file, tmp_path, True, False));
+        assertThrows("FILE-STAT-ERROR", \samefile(), (non_file, tmp_path, False, False));
+        assertThrows("FILE-STAT-ERROR", \samefile(), (non_file, non_file, True, False));
+        assertThrows("FILE-STAT-ERROR", \samefile(), (non_file, non_file, False, False));
     }
 }
