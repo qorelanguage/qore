@@ -426,4 +426,38 @@ public namespace FsUtil {
         rmdir(path);
     }
 
+    #! Checks whether two paths point to the same file or not
+    /** @param path1 first path
+        @param path2 second path
+        @param follow_symlinks flag indicating whether symlinks should be followed (True by default)
+
+        @return True if the two paths point to the same file, False otherwise
+
+        @throws FILE-STAT-ERROR If stat call for a path fails.
+
+        Stat is retrieved for each of the paths and device and inode IDs are compared. By default if one of the paths is
+        a symlink pointing to the other, this function will return True but this can be changed using
+        the follow_symlinks parameter.
+    */
+    public bool sub samefile(string path1, string path2, bool follow_symlinks=True) {
+        hash stat1;
+        hash stat2;
+
+        try {
+            if (follow_symlinks) {
+                stat1 = hstat(path1);
+                stat2 = hstat(path2);
+            } else {
+                stat1 = hlstat(path1);
+                stat2 = hlstat(path2);
+            }
+        } catch (hash ex) {
+            throw "FILE-STAT-ERROR", sprintf("Couldn't stat path: %s", strerror());
+        }
+
+        return (stat1.inode == stat2.inode &&
+                stat1.dev == stat2.dev);
+    }
+
+
 } # FsUtil namespace
