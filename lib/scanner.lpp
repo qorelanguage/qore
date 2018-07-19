@@ -703,7 +703,7 @@ static bool angle_balanced(const char* p) {
 %option noyy_push_state
 %option noyy_pop_state
 
-%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment block_comment1 block_comment2 exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module p_skip_to_endtry angle_state
+%x str_state regex_state incl p_def p_ifdef p_ifndef p_skip_to_endif p_skip_to_endif_or_else p_endif case_state regex_googleplex regex_negative_universe regex_subst1 regex_subst2 line_comment block_comment1 block_comment2 exec_class_state requires regex_trans1 regex_trans2 regex_extract_state disable_warning enable_warning append_path_state append_module_state module_cmd set_zone try_module p_skip_to_endtry angle_state
 
 HEX_DIGIT       [0-9A-Fa-f]
 HEX_CONST       0x{HEX_DIGIT}+
@@ -1139,15 +1139,8 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                               BEGIN(INITIAL);
                                            }
                                         }
-   ^%endif{WS}*$                        {
-                                           if (parse_cond_pop(get_loc(yylloc))) {
-                                              //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (final)\n", yytext);
-                                              BEGIN(INITIAL);
-                                           }
-#ifdef DEBUG
-                                           //else
-                                           //printd(5, "p_skip_to_endif_or_else: found %%endif (%s) (not final)\n", yytext);
-#endif
+   ^%endif                              {
+                                            BEGIN(p_endif);
                                         }
    ^.*                                  {
                                            if (!strncmp("%ifdef", yytext, 6)) {
@@ -1164,7 +1157,25 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                            QORE_FLEX_DO_EOF
                                         }
 }
-^%endif{WS}*$                           parse_cond_pop(get_loc(yylloc));
+^%endif                                 {
+                                            BEGIN(p_endif);
+                                        }
+<p_endif>{
+    ^{WS}*$                             {
+                                            if (parse_cond_pop(get_loc(yylloc))) {
+                                                BEGIN(INITIAL);
+                                            }
+                                        }
+    \n                                  {
+                                            if (parse_cond_pop(get_loc(yylloc))) {
+                                                BEGIN(INITIAL);
+                                            }
+                                        }
+    <<EOF>>                             {
+                                            parse_cond_pop(get_loc(yylloc));
+                                            QORE_FLEX_DO_EOF
+                                        }
+}
 ^%include{WS}*$                         { parse_error(*get_loc(yylloc), "missing argument to %%include"); }
 ^%include{WS}+                          BEGIN(incl);
 <exec_class_state>{
