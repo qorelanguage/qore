@@ -1,0 +1,85 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class SamefileTest
+
+public class SamefileTest inherits QUnit::Test {
+
+    constructor() : Test ("SamefileTest", "1.0") {
+        addTestCase("same_file test", \test_same_file());
+        addTestCase("same_file test - exception", \test_same_file_exception());
+        set_return_value(main());
+    }
+
+    test_same_file() {
+        # get some paths
+        string tmp_path = make_tmp_dir();
+        string file1 = make_tmp_file(NOTHING, NOTHING, tmp_path).path;
+        string file2 = make_tmp_file(NOTHING, NOTHING, tmp_path).path;
+        string file3 = make_tmp_file().path;
+        string subdir = make_tmp_dir(NOTHING, NOTHING, tmp_path);
+        on_exit {
+            rmtree(tmp_path);
+            # file1 and file2 will be removed with tmp_path but file3 won't
+            unlink(file3);
+        }
+
+        # the same paths
+        assertTrue(same_file(tmp_path, tmp_path, True));
+        assertTrue(same_file(tmp_path, tmp_path, False));
+        assertTrue(same_file(file1, file1, True));
+        assertTrue(same_file(file1, file1, False));
+        assertTrue(same_file(file2, file2, True));
+        assertTrue(same_file(file2, file2, False));
+        assertTrue(same_file(file3, file3, True));
+        assertTrue(same_file(file3, file3, False));
+        assertTrue(same_file(subdir, subdir, True));
+        assertTrue(same_file(subdir, subdir, False));
+
+        # different paths
+        assertFalse(same_file(tmp_path, file1, True));
+        assertFalse(same_file(tmp_path, file2, True));
+        assertFalse(same_file(tmp_path, file3, True));
+        assertFalse(same_file(tmp_path, subdir, True));
+        assertFalse(same_file(file1, file2, True));
+        assertFalse(same_file(file1, file3, True));
+        assertFalse(same_file(file1, subdir, True));
+        assertFalse(same_file(file2, file3, True));
+        assertFalse(same_file(file2, subdir, True));
+        assertFalse(same_file(file3, subdir, True));
+        assertFalse(same_file(tmp_path, file1, False));
+        assertFalse(same_file(tmp_path, file2, False));
+        assertFalse(same_file(tmp_path, file3, False));
+        assertFalse(same_file(tmp_path, subdir, False));
+        assertFalse(same_file(file1, file2, False));
+        assertFalse(same_file(file1, file3, False));
+        assertFalse(same_file(file1, subdir, False));
+        assertFalse(same_file(file2, file3, False));
+        assertFalse(same_file(file2, subdir, False));
+        assertFalse(same_file(file3, subdir, False));
+    }
+
+    test_same_file_exception() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_path);
+        }
+        string non_file = join_paths(tmp_path, "non_file.txt");
+
+        # test that we get an exception if non-existent path is passed to the function
+        assertThrows("FILE-STAT-ERROR", \same_file(), (tmp_path, non_file, True, False));
+        assertThrows("FILE-STAT-ERROR", \same_file(), (tmp_path, non_file, False, False));
+        assertThrows("FILE-STAT-ERROR", \same_file(), (non_file, tmp_path, True, False));
+        assertThrows("FILE-STAT-ERROR", \same_file(), (non_file, tmp_path, False, False));
+        assertThrows("FILE-STAT-ERROR", \same_file(), (non_file, non_file, True, False));
+        assertThrows("FILE-STAT-ERROR", \same_file(), (non_file, non_file, False, False));
+    }
+}
