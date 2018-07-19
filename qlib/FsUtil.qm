@@ -426,6 +426,41 @@ public namespace FsUtil {
         rmdir(path);
     }
 
+    #! Checks whether two stat hashes point to the same file or not
+    /** @param stat1 first stat hash
+        @param stat2 second stat hash
+        @param ignore_errors flag indicating that errors should be ignored (True by default)
+
+        @return True if the two stat hashes point to the same file, False otherwise.
+
+        @throws STAT-HASH-ERROR If parameters don't both contain stat hashes.
+
+        Device and inode IDs are compared.
+        If a stat hash does not exist and ignore_errors is True, then the function returns False. This is for
+        convenience of the caller who thus may just call a stat function to a path and pass the result to this function
+        without taking care of possible NOTHINGs. In that case the paths can probably be considered not pointing to
+        the same file.
+    */
+    public bool sub same_file_stat(*hash stat1, *hash stat2, bool ignore_errors=True) {
+
+        # handle special cases
+        if (ignore_errors) {
+            if (!exists stat1 || !exists stat2) {
+                return False;
+            }
+        } else {
+            if (!exists stat1 || !exists stat1.dev || !exists stat1.inode ||
+                !exists stat2 || !exists stat2.dev || !exists stat2.inode) {
+                # not a stat hash
+                throw "STAT-HASH-ERROR", "Parameters aren't stat hashes.";
+            }
+        }
+
+        # the usual case
+        return (stat1.inode == stat2.inode &&
+                stat1.dev == stat2.dev);
+    }
+
     #! Checks whether two paths point to the same file or not
     /** @param path1 first path
         @param path2 second path
@@ -443,7 +478,7 @@ public namespace FsUtil {
         because the most common error here is that one of the paths doesn't exist (or both). In that case the paths
         indeed don't point to the same file.
     */
-    public bool sub samefile(string path1, string path2, bool follow_symlinks=True, bool ignore_errors=True) {
+    public bool sub same_file(string path1, string path2, bool follow_symlinks=True, bool ignore_errors=True) {
         hash stat1;
         hash stat2;
 
@@ -468,4 +503,7 @@ public namespace FsUtil {
     }
 
 
+
+
+    }
 } # FsUtil namespace
