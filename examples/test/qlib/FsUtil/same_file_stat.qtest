@@ -9,11 +9,11 @@
 %require-types
 %enable-all-warnings
 
-%exec-class SamefileTest
+%exec-class SamefilestatTest
 
-public class SamefileTest inherits QUnit::Test {
+public class SamefilestatTest inherits QUnit::Test {
 
-    constructor() : Test ("SamefileTest", "1.0") {
+    constructor() : Test ("SamefilestatTest", "1.0") {
         addTestCase("same_file_stat test", \test_same_file_stat());
         addTestCase("same_file_stat test - exception", \test_same_file_stat_exception());
         set_return_value(main());
