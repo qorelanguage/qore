@@ -269,6 +269,12 @@ public namespace DebugProgramControl {
                             }
                             result = sourceSearchPath;
                             break;
+                        case 'verbose':
+                            if (optionSet) {
+                                logger.verbose = receiveData.value;
+                            }
+                            result = logger.verbose;
+                            break;
                         }
                     }
                     break;
@@ -396,7 +402,7 @@ public namespace DebugProgramControl {
                     case 'list':
                         foreach ProgramControl p in (ProgramControl::getAllPrograms()) {
                             string pgmId = string(p.getProgramId());
-                            if (AbstractDebugControl::evalCondition((pgmName =~ /^[0-9]+$/) ? pgmId : p.getScriptName(), pgmName)) {
+                            if (AbstractDebugControl::evalCondition((pgmName =~ /^=[0-9]+$/) ? pgmId : (p.getScriptName() ?? ""), pgmName)) {
                                 result{pgmId}.scriptName = p.getScriptName();
                                 result{pgmId}.scriptPath = p.getScriptPath();
                                 #result{pgmId}.scriptDir = p.getScriptDir();
@@ -815,14 +821,15 @@ public namespace DebugProgramControl {
             if (!exists (type=='file' ? pgmb.getSourceFileNames() : pgmb.getSourceLabels() ){rd{type}}) {
                 throw "DEBUG-HANDLER-ERROR", sprintf("Cannot get source for %y", rd{type});
             }
-            string content;
+            hash sc;
             if (type=='file') {
-                content = getSourceCodeFromFile(rd{type});
+                sc = getSourceCodeFromFile(rd{type});
             } else {
-                content = getSourceCodeForLabel(rd{type});
+                sc = getSourceCodeForLabel(rd{type});
             }
-            res.checksum.algorithm= 'sha1';
-            res.checksum.cs = content.toSHA1();
+            res.checksum.algorithm = 'sha1';
+            res.checksum.cs = sc.content.toSHA1();
+            res.origin = sc.origin;
             if (exists rd.count && rd.count <= 0) {
                 # skip source, just checksum
             } else {
@@ -831,20 +838,24 @@ public namespace DebugProgramControl {
                     rd.line = 1;
                 }
                 if (rd.line > 1 || rd.count > 0) {
-                    list l = content.split("\n");
+                    list l = sc.content.split("\n");
                     l = l[rd.line-1..rd.line+rd.count-2];
-                    content = l.join("\n");
+                    sc.content = l.join("\n");
                 }
-                res.code = content;
+                res.code = sc.content;
                 res.startline = rd.line;
             }
             return res;
         }
 
-        private string getSourceCodeForLabel(string name) {
+        private bool isSupportedSourceCodeForLabel() {
+            return False;
+        }
+
+        private hash getSourceCodeForLabel(string name) {
             throw "DEBUG-HANDLER-ERROR", "Local debug server does not support label source code";
         }
-        private string getSourceCodeFromFile(string name) {
+        private hash getSourceCodeFromFile(string name) {
             if (!absolute_path(name)) {
                 foreach string p in (sourceSearchPath.split(':')) {
                     if (p != "") {
@@ -859,7 +870,10 @@ public namespace DebugProgramControl {
                     }
                 }
             }
-            return ReadOnlyFile::readTextFile(name);
+            return (
+                'origin': name,
+                'content': ReadOnlyFile::readTextFile(name),
+            );
         }
 
         private *hash serializeLocal(string name, hash val) {
@@ -928,7 +942,10 @@ public namespace DebugProgramControl {
                 ctx.intrInfo.file = location.file;
                 ctx.intrInfo.line = location.start_line;
                 ctx.intrInfo.endline = location.end_line;
-                #ctx.intrInfo.statement = location;
+                if (location.source != "") {
+                    ctx.intrInfo.source = location.source;
+                }
+                ctx.intrInfo.offset = location.offset;
             }
             if (exists except) {
                 # we need make real copy as the worker thread might keep reference slightly longer and
@@ -1123,18 +1140,34 @@ public namespace DebugProgramControl {
                             list stack = adjustStack(get_thread_call_stack(), ctx);
                             int frame = rd.frameid ?? ctxCT.frameId;
                             if (frame < stack.size()) {
-                                hash h.name = stack[frame].file;
-                                int n = stack[frame].line - (rd.linesbefore ?? 3);
+                                string type = 'file';
+                                int offset = 0;
+                                hash h;
+                                if (exists stack[frame].source) {
+                                    # label used
+                                    if (isSupportedSourceCodeForLabel()) {
+                                        # use label
+                                        type = 'label';
+                                        h{type} = stack[frame].file;
+                                    } else {
+                                        # fallback to file
+                                        offset = stack[frame].offset;
+                                        h{type} = stack[frame].source;
+                                    }
+                                } else {
+                                    h{type} = stack[frame].file;
+                                }
+                                int n = stack[frame].line + offset - (rd.linesbefore ?? 3);
                                 if (n < 1) {
                                     n = 1;
                                 }
                                 h.line = n;
-                                n = stack[frame].line + (rd.linesafter ?? 3);
+                                n = stack[frame].line + offset + (rd.linesafter ?? 3);
                                 if (n < h.line) {
                                     h.line = n;
                                 }
                                 h.count = n - h.line + 1;
-                                result = getSourceCode(pgm, 'file', h).('code', 'startline') + ('currentline': stack[frame].line);
+                                result = getSourceCode(pgm, type, h).('code', 'startline', 'origin') + ('currentline': stack[frame].line + offset);
                             }
                             break;
                         }
