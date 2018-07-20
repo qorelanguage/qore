@@ -301,6 +301,34 @@ public namespace DebugCmdLine {
                                 'desc': 'logger verbosity commands',
                             ),
 
+                            'rverbose': (
+                                '>': {
+                                    'set': (
+                                        'desc': 'set remote logger verbosity level, args: level',
+                                        '*': (
+                                            'validate': \DebugCommandLine::validateInt(),
+                                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                                doCommand((
+                                                    'cmd': 'options/verbose/set',
+                                                    'value': int(pop path),
+                                                ), True);
+                                            },
+                                        ),
+                                    ),
+                                    'get': (
+                                        'desc': 'get current remote logger verbosity level',
+                                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            *hash vh = doCommand((
+                                                'cmd': 'options/verbose/get',
+                                            ), False);
+                                            printfImpl("Remote Logging level: %y\n", vh.result);
+                                        },
+                                    ),
+                                },
+                                'fallback': fallbackGetSetInt,
+                                'desc': 'remote logger verbosity commands',
+                            ),
+
                             'fullexceptioninfo': (
                                 '>': {
                                     'set': (
@@ -1272,7 +1300,7 @@ public namespace DebugCmdLine {
                     data.count = int(args[1]);
                 }
             }
-            hash src = doCommand(data, False).result;
+            *hash src = doCommand(data, False).result;
             if (src.checksum) {
                 printfImpl("%s: %s", src.checksum.algorithm, src.checksum.cs);
             }
