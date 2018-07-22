@@ -81,7 +81,7 @@ QoreValue QorePlusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
         QoreStringNodeValueHelper strval(*lh, r->getEncoding(), xsink);
         if (*xsink)
             return QoreValue();
-        SimpleRefHolder<QoreStringNode> str(strval->is_unique() ? strval.getReferencedValue() : new QoreStringNode(*strval));
+        SimpleRefHolder<QoreStringNode> str(strval->is_unique() && strval.is_temp() ? strval.getReferencedValue() : new QoreStringNode(**strval));
         assert(str->reference_count() == 1);
 
         QoreStringNode* rv = const_cast<QoreStringNode*>(*str);
