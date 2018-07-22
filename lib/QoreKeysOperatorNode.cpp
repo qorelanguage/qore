@@ -45,7 +45,7 @@ int QoreKeysOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink *
     return 0;
 }
 
-AbstractQoreNode* QoreKeysOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreKeysOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(!typeInfo);
 
     pflag &= ~PF_RETURN_VALUE_IGNORED;
@@ -76,17 +76,16 @@ AbstractQoreNode* QoreKeysOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
         if (t == NT_HASH || t == NT_OBJECT) {
             ValueEvalRefHolder rv(this, 0);
             typeInfo = rv->getTypeInfo();
-            return rv.takeReferencedValue().takeNode();
+            val = rv.takeReferencedValue();
         }
         else {
             typeInfo = nothingTypeInfo;
-            return &Nothing;
+            val.clear();
         }
+        return;
     }
 
     typeInfo = returnTypeInfo;
-
-    return this;
 }
 
 QoreValue QoreKeysOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

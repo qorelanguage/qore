@@ -53,7 +53,7 @@ protected:
     //! if the node has undergone "parse initialization"
     bool parse_init : 1;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const = 0;
 
@@ -120,13 +120,13 @@ public:
         return ref_rv;
     }
 
-    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
         if (parse_init) {
             typeInfo = getTypeInfo();
-            return this;
+            return;
         }
         parse_init = true;
-        return parseInitImpl(oflag, pflag, lvids, typeInfo);
+        parseInitImpl(val, oflag, pflag, lvids, typeInfo);
     }
 
     // FIXME: move to AbstractQoreNode
@@ -154,7 +154,7 @@ private:
     // not implemented
     DLLLOCAL ParseNoEvalNode& operator=(const ParseNoEvalNode&);
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const = 0;
 
 protected:

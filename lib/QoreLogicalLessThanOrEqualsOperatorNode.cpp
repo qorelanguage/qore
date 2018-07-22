@@ -46,7 +46,7 @@ QoreValue QoreLogicalLessThanOrEqualsOperatorNode::evalValueImpl(bool& needs_der
     return doLessThanOrEquals(*lh, *rh, xsink);
 }
 
-AbstractQoreNode *QoreLogicalLessThanOrEqualsOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreLogicalLessThanOrEqualsOperatorNode::parseInitIntern(const char* name, QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -61,7 +61,8 @@ AbstractQoreNode *QoreLogicalLessThanOrEqualsOperatorNode::parseInitIntern(const
     if (left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalLessThanOrEqualsOperatorNode> del(this);
         ParseExceptionSink xsink;
-        return get_bool_node(doLessThanOrEquals(left, right, *xsink));
+        val = doLessThanOrEquals(left, right, *xsink);
+        return;
     }
 
     // check for optimizations based on type; but only if types are known on both sides, although the highest priority (float)
@@ -72,13 +73,11 @@ AbstractQoreNode *QoreLogicalLessThanOrEqualsOperatorNode::parseInitIntern(const
         else if (QoreTypeInfo::hasType(lti) && QoreTypeInfo::hasType(rti)) {
             if (QoreTypeInfo::isType(lti, NT_INT)) {
                 if (QoreTypeInfo::isType(rti, NT_INT))
-                pfunc = &QoreLogicalLessThanOrEqualsOperatorNode::bigIntLessThanOrEquals;
+                    pfunc = &QoreLogicalLessThanOrEqualsOperatorNode::bigIntLessThanOrEquals;
             }
             // FIXME: check for invalid operation here
         }
     }
-
-    return this;
 }
 
 bool QoreLogicalLessThanOrEqualsOperatorNode::floatLessThanOrEquals(ExceptionSink *xsink) const {

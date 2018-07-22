@@ -71,7 +71,7 @@ const QoreTypeInfo* QoreHashMapOperatorNode::setReturnTypeInfo(const QoreTypeInf
     return typeInfo;
 }
 
-AbstractQoreNode* QoreHashMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreHashMapOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(!typeInfo);
 
     pflag &= ~PF_RETURN_VALUE_IGNORED;
@@ -93,8 +93,6 @@ AbstractQoreNode* QoreHashMapOperatorNode::parseInitImpl(LocalVar* oflag, int pf
     }
 
     typeInfo = setReturnTypeInfo(returnTypeInfo, expTypeInfo2, iteratorTypeInfo);
-
-    return this;
 }
 
 QoreHashNode* QoreHashMapOperatorNode::getNewHash() const {

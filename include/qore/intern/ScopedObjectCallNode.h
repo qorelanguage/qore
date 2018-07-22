@@ -60,7 +60,7 @@ public:
         delete name;
     }
 
-    DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
     /* get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
         the ExceptionSink is only needed for QoreObject where a method may be executed

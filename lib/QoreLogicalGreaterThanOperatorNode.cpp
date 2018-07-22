@@ -46,7 +46,7 @@ QoreValue QoreLogicalGreaterThanOperatorNode::evalValueImpl(bool& needs_deref, E
    return doGreaterThan(*lh, *rh, xsink);
 }
 
-AbstractQoreNode *QoreLogicalGreaterThanOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreLogicalGreaterThanOperatorNode::parseInitIntern(const char *name, QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -61,7 +61,8 @@ AbstractQoreNode *QoreLogicalGreaterThanOperatorNode::parseInitIntern(const char
     if (left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalGreaterThanOperatorNode> del(this);
         ParseExceptionSink xsink;
-        return get_bool_node(doGreaterThan(left, right, *xsink));
+        val = doGreaterThan(left, right, *xsink);
+        return;
     }
 
     // check for optimizations based on type; but only if types are known on both sides, although the highest priority (float)
@@ -72,13 +73,11 @@ AbstractQoreNode *QoreLogicalGreaterThanOperatorNode::parseInitIntern(const char
         else if (QoreTypeInfo::hasType(lti) && QoreTypeInfo::hasType(rti)) {
             if (QoreTypeInfo::isType(lti, NT_INT)) {
                 if (QoreTypeInfo::isType(rti, NT_INT))
-                pfunc = &QoreLogicalGreaterThanOperatorNode::bigIntGreaterThan;
+                    pfunc = &QoreLogicalGreaterThanOperatorNode::bigIntGreaterThan;
             }
             // FIXME: check for invalid operation here
         }
     }
-
-    return this;
 }
 
 bool QoreLogicalGreaterThanOperatorNode::floatGreaterThan(ExceptionSink *xsink) const {

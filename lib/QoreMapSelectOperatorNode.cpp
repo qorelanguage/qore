@@ -48,7 +48,7 @@ int QoreMapSelectOperatorNode::getAsString(QoreString &str, int foff, ExceptionS
     return 0;
 }
 
-AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreMapSelectOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     assert(!typeInfo);
 
     pflag &= ~PF_RETURN_VALUE_IGNORED;
@@ -103,8 +103,6 @@ AbstractQoreNode* QoreMapSelectOperatorNode::parseInitImpl(LocalVar *oflag, int 
     if (is_list) {
         typeInfo = QoreMapOperatorNode::setReturnTypeInfo(returnTypeInfo, expTypeInfo, iteratorTypeInfo);
     }
-
-    return this;
 }
 
 QoreValue QoreMapSelectOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {

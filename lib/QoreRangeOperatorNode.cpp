@@ -33,7 +33,7 @@
 
 QoreString QoreRangeOperatorNode::op_str(".. (range) operator expression");
 
-AbstractQoreNode* QoreRangeOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
+void QoreRangeOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -53,7 +53,6 @@ AbstractQoreNode* QoreRangeOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
 
     // do not evaluate at parse time, even if the arguments are both constant values, so we can support lazy evaluation
     // with functional operators
-    return this;
 }
 
 QoreValue QoreRangeOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

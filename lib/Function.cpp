@@ -315,7 +315,7 @@ void AbstractFunctionSignature::addDefaultArgument(QoreValue arg) {
     str.append("<exp>");
 }
 
-UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* params, RetTypeInfo* retTypeInfo, int64 po) :
+UserSignature::UserSignature(int first_line, int last_line, QoreValue params, RetTypeInfo* retTypeInfo, int64 po) :
     AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : nullptr),
     parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : nullptr),
     loc(qore_program_private::get(*getProgram())->getLocation(first_line, last_line)),
@@ -329,32 +329,33 @@ UserSignature::UserSignature(int first_line, int last_line, AbstractQoreNode* pa
         returnTypeInfo = nothingTypeInfo;
     delete retTypeInfo;
 
-    if (!params)
-        return;
-
-    ReferenceHolder<AbstractQoreNode> param_holder(params, 0);
-
-    if (params->getType() == NT_VARREF) {
-        pushParam(reinterpret_cast<VarRefNode*>(params), QoreValue(), needs_types);
+    if (!params) {
         return;
     }
 
-    if (params->getType() == NT_BAREWORD) {
-        pushParam(reinterpret_cast<BarewordNode*>(params), needs_types, bare_refs);
+    ValueHolder param_holder(params, nullptr);
+
+    if (params.getType() == NT_VARREF) {
+        pushParam(params.get<VarRefNode>(), QoreValue(), needs_types);
         return;
     }
 
-    if (params->getType() == NT_OPERATOR) {
-        pushParam(reinterpret_cast<QoreOperatorNode*>(params), needs_types);
+    if (params.getType() == NT_BAREWORD) {
+        pushParam(params.get<BarewordNode>(), needs_types, bare_refs);
         return;
     }
 
-    if (params->getType() != NT_PARSE_LIST) {
+    if (params.getType() == NT_OPERATOR) {
+        pushParam(params.get<QoreOperatorNode>(), needs_types);
+        return;
+    }
+
+    if (params.getType() != NT_PARSE_LIST) {
         param_error();
         return;
     }
 
-    QoreParseListNode* l = reinterpret_cast<QoreParseListNode*>(params);
+    QoreParseListNode* l = params.get<QoreParseListNode>();
 
     parseTypeList.reserve(l->size());
     typeList.reserve(l->size());
@@ -1455,27 +1456,27 @@ UserVariantExecHelper::~UserVariantExecHelper() {
    }
 }
 
-UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced)
-   : signature(n_sig_first_line, n_sig_last_line, params, rv, b ? b->pwo.parse_options : parse_get_parse_options()), statements(b), gate(synced ? new VRMutex : nullptr),
-     pgm(getProgram()), recheck(false), init(false) {
-   //printd(5, "UserVariantBase::UserVariantBase() this: %p params: %p rv: %p b: %p synced: %d\n", params, rv, b, synced);
+UserVariantBase::UserVariantBase(StatementBlock *b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced)
+    : signature(n_sig_first_line, n_sig_last_line, params, rv, b ? b->pwo.parse_options : parse_get_parse_options()), statements(b), gate(synced ? new VRMutex : nullptr),
+        pgm(getProgram()), recheck(false), init(false) {
+    //printd(5, "UserVariantBase::UserVariantBase() this: %p params: %p rv: %p b: %p synced: %d\n", params, rv, b, synced);
 }
 
 UserVariantBase::~UserVariantBase() {
-   delete gate;
-   delete statements;
+    delete gate;
+    delete statements;
 }
 
 int64 UserVariantBase::getParseOptions(int64 po) const {
-   return statements ? statements->pwo.parse_options : po;
+    return statements ? statements->pwo.parse_options : po;
 }
 
 void UserVariantBase::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {
-   signature.parseInitPushLocalVars(classTypeInfo);
+    signature.parseInitPushLocalVars(classTypeInfo);
 }
 
 void UserVariantBase::parseInitPopLocalVars() {
-   signature.parseInitPopLocalVars();
+    signature.parseInitPopLocalVars();
 }
 
 // instantiates arguments and sets up the argv variable

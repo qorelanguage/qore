@@ -52,9 +52,8 @@ protected:
 
     DLLLOCAL QoreValue evalValueIntern(ExceptionSink* xsink, bool& needs_deref, bool weak_assignment) const;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
         parseInitIntern(oflag, pflag, lvids, typeInfo, false);
-        return this;
     }
 
     DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -73,9 +72,8 @@ public:
     }
 
 protected:
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
         parseInitIntern(oflag, pflag, lvids, typeInfo, true);
-        return this;
     }
 
     DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

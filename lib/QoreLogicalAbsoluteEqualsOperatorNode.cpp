@@ -45,7 +45,7 @@ QoreValue QoreLogicalAbsoluteEqualsOperatorNode::evalValueImpl(bool& needs_deref
     return hardEqual(*l, *r, xsink);
 }
 
-AbstractQoreNode* QoreLogicalAbsoluteEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreLogicalAbsoluteEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     typeInfo = boolTypeInfo;
 
     const QoreTypeInfo *lti = 0, *rti = 0;
@@ -56,11 +56,9 @@ AbstractQoreNode* QoreLogicalAbsoluteEqualsOperatorNode::parseInitImpl(LocalVar 
     // see if both arguments are constants, then eval immediately and substitute this node with the result
     if (left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalAbsoluteEqualsOperatorNode> del(this);
-        ParseExceptionSink xsink;
-        return get_bool_node(hardEqual(left, right, *xsink));
+        val = hardEqual(left, right, nullptr);
+        return;
     }
-
-    return this;
 }
 
 bool QoreLogicalAbsoluteEqualsOperatorNode::hardEqual(const QoreValue left, const QoreValue right, ExceptionSink *xsink) {

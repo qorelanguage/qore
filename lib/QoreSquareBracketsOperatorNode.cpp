@@ -34,7 +34,7 @@
 
 QoreString QoreSquareBracketsOperatorNode::op_str("[] operator expression");
 
-AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
+void QoreSquareBracketsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -139,12 +139,13 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
     if (!rti_can_be_list && right.isValue() && left.isValue()) {
         SimpleRefHolder<QoreSquareBracketsOperatorNode> del(this);
         ParseExceptionSink xsink;
-        AbstractQoreNode* rv = QoreSquareBracketsOperatorNode::evalImpl(*xsink);
-        return rv ? rv : &Nothing;
+        ValueEvalRefHolder rv(this, *xsink);
+        val = rv.takeReferencedValue();
+        typeInfo = val.getTypeInfo();
+        return;
     }
 
     typeInfo = returnTypeInfo;
-    return this;
 }
 
 void QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreParseListNode* pln) {

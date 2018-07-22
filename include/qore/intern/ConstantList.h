@@ -392,11 +392,10 @@ class RuntimeConstantRefNode : public ParseNode {
 protected:
     ConstantEntry* ce;
 
-    virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        return this;
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     }
 
-    virtual const QoreTypeInfo* getTypeInfo() const {
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         assert(ce->saved_node);
         return getTypeInfoForValue(ce->saved_node);
     }

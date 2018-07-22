@@ -41,7 +41,7 @@ class typed_hash_decl_private;
 
 class HashDeclMemberInfo : public QoreMemberInfoBase {
 public:
-    DLLLOCAL HashDeclMemberInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr) : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e) {
+    DLLLOCAL HashDeclMemberInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue()) : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e) {
     }
 
     DLLLOCAL HashDeclMemberInfo(const HashDeclMemberInfo& old) : QoreMemberInfoBase(old) {

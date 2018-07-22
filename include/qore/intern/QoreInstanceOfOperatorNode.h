@@ -66,14 +66,14 @@ public:
     }
 
 protected:
-   QoreParseTypeInfo* r = nullptr;
-   const QoreTypeInfo* ti = nullptr;
+    QoreParseTypeInfo* r = nullptr;
+    const QoreTypeInfo* ti = nullptr;
 
-   DLLLOCAL static QoreString InstanceOf_str;
+    DLLLOCAL static QoreString InstanceOf_str;
 
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 };
 
 #endif

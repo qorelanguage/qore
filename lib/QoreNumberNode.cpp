@@ -479,9 +479,8 @@ const char* QoreNumberNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-AbstractQoreNode* QoreNumberNode::parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   typeInfo = numberTypeInfo;
-   return this;
+void QoreNumberNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    typeInfo = numberTypeInfo;
 }
 
 bool QoreNumberNode::zero() const {

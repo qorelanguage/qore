@@ -308,8 +308,8 @@ void AbstractQoreNode::getDateTimeRepresentation(DateTime& dt) const {
    dt.setDate(0LL);
 }
 
-AbstractQoreNode* AbstractQoreNode::parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   return this;
+void AbstractQoreNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    // no action taken by default
 }
 
 bool AbstractQoreNode::hasValueApi() const {
@@ -504,7 +504,7 @@ static AbstractQoreNode* crlr_smcall_copy(const StaticMethodCallNode* m, Excepti
 
 static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, ExceptionSink* xsink) {
     assert(xsink);
-    ReferenceHolder<AbstractQoreNode> exp(copy_and_resolve_lvar_refs(n->getExp(), xsink), xsink);
+    ValueHolder exp(copy_value_and_resolve_lvar_refs(n->getExp(), xsink), xsink);
     if (*xsink)
         return 0;
 

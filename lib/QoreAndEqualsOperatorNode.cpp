@@ -32,9 +32,8 @@
 
 QoreString QoreAndEqualsOperatorNode::op_str("&= operator expression");
 
-AbstractQoreNode *QoreAndEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreAndEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     parseInitIntLValue(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-    return this;
 }
 
 QoreValue QoreAndEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {

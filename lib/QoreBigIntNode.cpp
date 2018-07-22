@@ -122,7 +122,6 @@ const char *QoreBigIntNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-AbstractQoreNode *QoreBigIntNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreBigIntNode::parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = bigIntTypeInfo;
-   return this;
 }

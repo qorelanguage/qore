@@ -77,7 +77,7 @@ protected:
     DLLLOCAL virtual ~QoreMapOperatorNode() {
     }
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return returnTypeInfo;

@@ -32,11 +32,13 @@
 
 QoreString QorePostIncrementOperatorNode::op_str("++ (post-increment) operator expression");
 
-AbstractQoreNode* QorePostIncrementOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QorePostIncrementOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 
     // version for local var
-    return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPostIncrementOperatorNode>() : this;
+    if ((typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)) {
+        val = makeSpecialization<QoreIntPostIncrementOperatorNode>();
+    }
 }
 
 QoreValue QorePostIncrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

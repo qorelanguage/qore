@@ -42,7 +42,7 @@ QoreValue QoreRegexMatchOperatorNode::evalValueImpl(bool& needs_deref, Exception
     return regex->exec(*str, xsink);
 }
 
-AbstractQoreNode* QoreRegexMatchOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreRegexMatchOperatorNode::parseInitIntern(const char *name, QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -62,8 +62,6 @@ AbstractQoreNode* QoreRegexMatchOperatorNode::parseInitIntern(const char *name, 
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
-        return v.takeReferencedValue().takeNode();
+        val = v.takeReferencedValue();
     }
-
-    return this;
 }

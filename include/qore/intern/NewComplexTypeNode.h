@@ -37,62 +37,61 @@
 
 class ParseNewComplexTypeNode : public ParseNoEvalNode {
 public:
-   DLLLOCAL ParseNewComplexTypeNode(const QoreProgramLocation* loc, QoreParseTypeInfo* pti, QoreParseListNode* a) : ParseNoEvalNode(loc, NT_PARSE_NEW_COMPLEX_TYPE), pti(pti), args(a) {
-   }
+    DLLLOCAL ParseNewComplexTypeNode(const QoreProgramLocation* loc, QoreParseTypeInfo* pti, QoreParseListNode* a) : ParseNoEvalNode(loc, NT_PARSE_NEW_COMPLEX_TYPE), pti(pti), args(a) {
+    }
 
-   DLLLOCAL ~ParseNewComplexTypeNode() {
-      if (args)
-         args->deref(nullptr);
-      delete pti;
-   }
+    DLLLOCAL ~ParseNewComplexTypeNode() {
+        if (args)
+            args->deref(nullptr);
+        delete pti;
+    }
 
-   // do not know type until resolution
-   DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-      return anyTypeInfo;
-   }
+    // do not know type until resolution
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return anyTypeInfo;
+    }
 
-   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-      str.sprintf("new complex type operator expression ('%s')", QoreParseTypeInfo::getName(pti));
-      return 0;
-   }
+    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
+        str.sprintf("new complex type operator expression ('%s')", QoreParseTypeInfo::getName(pti));
+        return 0;
+    }
 
-   // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-      del = true;
-      QoreString* rv = new QoreString;
-      getAsString(*rv, foff, xsink);
-      return rv;
-   }
+    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+        del = true;
+        QoreString* rv = new QoreString;
+        getAsString(*rv, foff, xsink);
+        return rv;
+    }
 
-   DLLLOCAL virtual const char* getTypeName() const {
-      return "new complex type operator expression";
-   }
+    DLLLOCAL virtual const char* getTypeName() const {
+        return "new complex type operator expression";
+    }
 
 protected:
-   QoreParseTypeInfo* pti;
-   QoreParseListNode* args;
+    QoreParseTypeInfo* pti;
+    QoreParseListNode* args;
 
-   DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-      assert(false);
-      return QoreValue();
-   }
+    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+        assert(false);
+        return QoreValue();
+    }
 
-   DLLLOCAL QoreParseListNode* takeArgs() {
-      QoreParseListNode* rv = args;
-      args = nullptr;
-      return rv;
-   }
+    DLLLOCAL QoreParseListNode* takeArgs() {
+        QoreParseListNode* rv = args;
+        args = nullptr;
+        return rv;
+    }
 };
 
 class NewHashDeclNode : public ParseNode {
 protected:
     DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
         assert(false);
-        return nullptr;
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -134,8 +133,7 @@ class NewComplexHashNode : public ParseNode {
 protected:
     DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        return this;
+    DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -177,8 +175,7 @@ class NewComplexListNode : public ParseNode {
 protected:
     DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        return this;
+    DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {

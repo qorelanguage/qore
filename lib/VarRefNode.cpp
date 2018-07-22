@@ -122,10 +122,10 @@ QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) con
    return v;
 }
 
-AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {
+void VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *typeInfo, bool is_new) {
     if (pflag & PF_CONST_EXPRESSION) {
         parseException(*loc, "ILLEGAL-VARIABLE-REFERENCE", "variable reference '%s' used illegally in an expression executed at parse time to initialize a constant value", name.ostr);
-        return 0;
+        return;
     }
 
     //printd(5, "VarRefNode::parseInitIntern() this: %p '%s' type: %d %p '%s'\n", this, name.ostr, type, typeInfo, QoreTypeInfo::getName(typeInfo));
@@ -144,11 +144,9 @@ AbstractQoreNode* VarRefNode::parseInitIntern(LocalVar *oflag, int pflag, int &l
     }
 
     name.optimize();
-
-    return this;
 }
 
-AbstractQoreNode* VarRefNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
+void VarRefNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
     parseInitIntern(oflag, pflag, lvids, 0);
 
     bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
@@ -162,11 +160,9 @@ AbstractQoreNode* VarRefNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvi
     }
     else
         outTypeInfo = is_assignment && new_decl ? parseGetTypeInfoForInitialAssignment() : parseGetTypeInfo();
-
-    return this;
 }
 
-VarRefNewObjectNode* VarRefNode::globalMakeNewCall(AbstractQoreNode* args) {
+VarRefNewObjectNode* VarRefNode::globalMakeNewCall(QoreValue args) {
    assert(type == VT_GLOBAL);
    if (ref.var->hasTypeInfo()) {
       QoreParseTypeInfo* pti = ref.var->copyParseTypeInfo();
@@ -178,8 +174,8 @@ VarRefNewObjectNode* VarRefNode::globalMakeNewCall(AbstractQoreNode* args) {
    return nullptr;
 }
 
-AbstractQoreNode* VarRefNode::makeNewCall(AbstractQoreNode* args) {
-   return type == VT_GLOBAL && new_decl ? globalMakeNewCall(args) : 0;
+AbstractQoreNode* VarRefNode::makeNewCall(QoreValue args) {
+   return type == VT_GLOBAL && new_decl ? globalMakeNewCall(args) : nullptr;
 }
 
 void VarRefNode::makeGlobal() {
@@ -252,24 +248,22 @@ void VarRefDeclNode::parseInitCommon(LocalVar *oflag, int pflag, int &lvids, boo
    parseInitIntern(oflag, pflag, lvids, typeInfo, is_new);
 }
 
-AbstractQoreNode* VarRefDeclNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
-   parseInitCommon(oflag, pflag, lvids, outTypeInfo);
+void VarRefDeclNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+    parseInitCommon(oflag, pflag, lvids, outTypeInfo);
 
-   bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
+    bool is_assignment = pflag & PF_FOR_ASSIGNMENT;
 
-   // this expression returns nothing if it's a new local variable
-   // so if we're not assigning we return nothingTypeInfo as the
-   // return type
-   if (!is_assignment && new_decl)
-      outTypeInfo = nothingTypeInfo;
-   else
-      outTypeInfo = is_assignment && new_decl ? parseGetTypeInfoForInitialAssignment() : parseGetTypeInfo();
-
-   return this;
+    // this expression returns nothing if it's a new local variable
+    // so if we're not assigning we return nothingTypeInfo as the
+    // return type
+    if (!is_assignment && new_decl)
+        outTypeInfo = nothingTypeInfo;
+    else
+        outTypeInfo = is_assignment && new_decl ? parseGetTypeInfoForInitialAssignment() : parseGetTypeInfo();
 }
 
 // for checking for new object calls
-AbstractQoreNode* VarRefDeclNode::makeNewCall(AbstractQoreNode* args) {
+AbstractQoreNode* VarRefDeclNode::makeNewCall(QoreValue args) {
    VarRefNewObjectNode* rv = new VarRefNewObjectNode(loc, takeName(), typeInfo, takeParseTypeInfo(), make_args(loc, args), type);
    deref();
    return rv;
@@ -327,7 +321,7 @@ void VarRefNewObjectNode::parseInitComplexListInitialization(const QoreProgramLo
     lvids += qore_list_private::parseInitComplexListInitialization(loc, oflag, pflag, takeParseArgs(), new_args, ti);
 }
 
-AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
+void VarRefNewObjectNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
     parseInitCommon(oflag, pflag, lvids, true);
 
     const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
@@ -364,7 +358,6 @@ AbstractQoreNode* VarRefNewObjectNode::parseInitImpl(LocalVar* oflag, int pflag,
         parse_error(*loc, "variable instantiation with the implied contructor syntax implies an assignment; it is an error to make an additional assignment");
 
     outTypeInfo = typeInfo;
-    return this;
 }
 
 QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

@@ -100,7 +100,7 @@ QoreValue QoreChompOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink*
     return count;
 }
 
-AbstractQoreNode* QoreChompOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreChompOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(!typeInfo);
     parse_init_value(exp, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, typeInfo);
     if (exp)
@@ -117,5 +117,4 @@ AbstractQoreNode* QoreChompOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
     }
 
     returnTypeInfo = bigIntTypeInfo;
-    return this;
 }

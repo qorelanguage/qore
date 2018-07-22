@@ -88,7 +88,7 @@ QoreValue QoreMinusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink*
     return QoreValue();
 }
 
-AbstractQoreNode* QoreMinusOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
+void QoreMinusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -103,8 +103,10 @@ AbstractQoreNode* QoreMinusOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
     if (right.isValue() && left.isValue()) {
         SimpleRefHolder<QoreMinusOperatorNode> del(this);
         ParseExceptionSink xsink;
-        AbstractQoreNode* rv = QoreMinusOperatorNode::evalImpl(*xsink);
-        return rv ? rv : &Nothing;
+        ValueEvalRefHolder rv(this, *xsink);
+        val = rv.takeReferencedValue();
+        parseTypeInfo = val.getTypeInfo();
+        return;
     }
 
     // if either side is a date, then the return type is date (highest priority)
@@ -132,8 +134,7 @@ AbstractQoreNode* QoreMinusOperatorNode::parseInitImpl(LocalVar* oflag, int pfla
             returnTypeInfo = nothingTypeInfo;
     }
 
-    if (returnTypeInfo)
+    if (returnTypeInfo) {
         parseTypeInfo = returnTypeInfo;
-
-    return this;
+    }
 }

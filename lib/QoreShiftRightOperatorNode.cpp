@@ -42,7 +42,7 @@ QoreValue QoreShiftRightOperatorNode::evalValueImpl(bool& needs_deref, Exception
     return lh->getAsBigInt() >> rh->getAsBigInt();
 }
 
-AbstractQoreNode* QoreShiftRightOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreShiftRightOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -69,8 +69,6 @@ AbstractQoreNode* QoreShiftRightOperatorNode::parseInitImpl(LocalVar* oflag, int
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
-        return v.takeReferencedValue().takeNode();
+        val = v.takeReferencedValue();
     }
-
-    return this;
 }

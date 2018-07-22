@@ -44,12 +44,12 @@ protected:
         return !rv.v.b;
     }
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-        AbstractQoreNode *rv = QoreLogicalAbsoluteEqualsOperatorNode::parseInitImpl(oflag, pflag, lvids, typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+        QoreLogicalAbsoluteEqualsOperatorNode::parseInitImpl(val, oflag, pflag, lvids, typeInfo);
         // make sure to reverse sense of comparison if this expression was resolved to a constant boolean value
-        if (rv != this)
-            return rv->getAsBool() ? (AbstractQoreNode*)&False : (AbstractQoreNode*)&True;
-        return rv;
+        if (val.type == QV_Bool) {
+            val.v.b = !val.v.b;
+        }
     }
 
 public:

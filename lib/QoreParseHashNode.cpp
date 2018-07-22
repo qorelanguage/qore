@@ -43,7 +43,7 @@ void QoreParseHashNode::finalizeBlock(int sline, int eline) {
     }
 }
 
-AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(keys.size() == values.size());
     bool needs_eval = false;
 
@@ -58,23 +58,23 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
 
     for (size_t i = 0; i < keys.size(); ++i) {
         const QoreTypeInfo* argTypeInfo = 0;
-        AbstractQoreNode* p = keys[i];
-        keys[i] = keys[i]->parseInit(oflag, pflag, lvids, argTypeInfo);
+        QoreValue p = keys[i];
+        parse_init_value(keys[i], oflag, pflag, lvids, argTypeInfo);
 
-        if (p != keys[i] && (!keys[i] || keys[i]->is_value())) {
+        if (!p.isEqualValue(keys[i]) && (!keys[i] || keys[i].isValue())) {
             QoreStringValueHelper key(keys[i]);
-            checkDup(lvec[i], key->getBuffer());
+            checkDup(lvec[i], key->c_str());
         }
-        else if (!needs_eval && keys[i] && keys[i]->needs_eval())
+        else if (!needs_eval && keys[i] && keys[i].needsEval())
             needs_eval = true;
 
         if (!QoreTypeInfo::canConvertToScalar(argTypeInfo)) {
             QoreStringMaker str("key number %ld (starting from 0) in the hash is ", i);
-            argTypeInfo->doNonStringWarning(lvec[i], str.getBuffer());
+            argTypeInfo->doNonStringWarning(lvec[i], str.c_str());
         }
 
         argTypeInfo = nullptr;
-        values[i] = values[i]->parseInit(oflag, pflag, lvids, vtypes[i]);
+        parse_init_value(values[i], oflag, pflag, lvids, vtypes[i]);
 
         if (!i) {
             if (vtypes[0] && vtypes[0] != anyTypeInfo) {
@@ -85,7 +85,7 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
         else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, vtypes[i]))
             vcommon = false;
 
-        if (!needs_eval && values[i] && values[i]->needs_eval())
+        if (!needs_eval && values[i].needsEval())
             needs_eval = true;
     }
 
@@ -103,18 +103,19 @@ AbstractQoreNode* QoreParseHashNode::parseInitImpl(LocalVar* oflag, int pflag, i
     }
 
     if (needs_eval)
-        return this;
+        return;
 
     // evaluate immediately
     SimpleRefHolder<QoreParseHashNode> holder(this);
     ExceptionSink xsink;
     ValueEvalRefHolder rv(this, &xsink);
     assert(!xsink);
-    return rv.takeReferencedValue().takeNode();
+    val = rv.takeReferencedValue();
 }
 
 QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(keys.size() == values.size());
+    // complex type will be added before returning if applicable
     ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
 
     // issue #2106 we must calculate the runtime type again because lvalues can return NOTHING despite their declared type

@@ -32,7 +32,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/ParseNode.h"
 
-void QoreSimpleValue::set(QoreValue& val) {
+void QoreSimpleValue::set(QoreSimpleValue val) {
     type = val.type;
     switch (type) {
         case QV_Bool: v.b = val.v.b; break;
@@ -41,6 +41,11 @@ void QoreSimpleValue::set(QoreValue& val) {
         case QV_Node: v.n = val.v.n; break;
         default: assert(false);
     }
+}
+
+void QoreSimpleValue::set(AbstractQoreNode* n) {
+    type = QV_Node;
+    v.n = (n == &Nothing ? nullptr : n);
 }
 
 AbstractQoreNode* QoreSimpleValue::takeNode() {
@@ -53,54 +58,179 @@ AbstractQoreNode* QoreSimpleValue::takeNode() {
         default:
             assert(false);
     }
-    return v.n;
+    return takeNodeIntern();
 }
 
-QoreValue::QoreValue() : type(QV_Node) {
+AbstractQoreNode* QoreSimpleValue::takeNodeIntern() {
+    assert(type == QV_Node);
+    AbstractQoreNode* rv = v.n;
     v.n = nullptr;
+    return rv;
 }
 
-QoreValue::QoreValue(bool b) : type(QV_Bool) {
-    v.b = b;
+void QoreSimpleValue::clear() {
+#ifdef DEBUG
+    // this makes valgrind happier, but is functionally equivalent to the below,
+    // which is more efficient as it doesn't write to memory unnecessarily
+    type = QV_Node;
+    v.n = nullptr;
+#else
+    if (type != QV_Node)
+        type = QV_Node;
+    if (v.n)
+        v.n = nullptr;
+#endif
 }
 
-QoreValue::QoreValue(int64 i) : type(QV_Int) {
-    v.i = i;
+void QoreSimpleValue::discard(ExceptionSink* xsink) {
+    if (type == QV_Node && v.n) {
+        v.n->deref(xsink);
+        v.n = nullptr;
+    }
 }
 
-QoreValue::QoreValue(unsigned long long i) : type(QV_Int) {
-    v.i = (long long)i;
+bool QoreSimpleValue::getAsBool() const {
+    switch (type) {
+        case QV_Bool: return v.b;
+        case QV_Int: return (bool)v.i;
+        case QV_Float: return (bool)v.f;
+        case QV_Node: return v.n ? v.n->getAsBool() : false;
+        default: assert(false);
+            // no break
+    }
+    return false;
 }
 
-QoreValue::QoreValue(int i) : type(QV_Int) {
-    v.i = i;
+int64 QoreSimpleValue::getAsBigInt() const {
+    switch (type) {
+        case QV_Bool: return (int64)v.b;
+        case QV_Int: return v.i;
+        case QV_Float: return (int64)v.f;
+        case QV_Node: return v.n ? v.n->getAsBigInt() : 0;
+        default: assert(false);
+            // no break
+    }
+    return 0;
 }
 
-QoreValue::QoreValue(unsigned int i) : type(QV_Int) {
-    v.i = i;
+double QoreSimpleValue::getAsFloat() const {
+    switch (type) {
+        case QV_Bool: return (double)v.b;
+        case QV_Int: return (double)v.i;
+        case QV_Float: return v.f;
+        case QV_Node: return v.n ? v.n->getAsFloat() : 0.0;
+        default: assert(false);
+            // no break
+    }
+    return 0.0;
 }
 
-QoreValue::QoreValue(long i) : type(QV_Int) {
-    v.i = i;
+qore_type_t QoreSimpleValue::getType() const {
+    switch (type) {
+        case QV_Bool: return NT_BOOLEAN;
+        case QV_Int: return NT_INT;
+        case QV_Float: return NT_FLOAT;
+        case QV_Node: return v.n ? v.n->getType() : NT_NOTHING;
+        default: assert(false);
+            // no break
+    }
+    // to avoid a warning
+    return NT_NOTHING;
 }
 
-QoreValue::QoreValue(unsigned long i) : type(QV_Int) {
-    v.i = i;
+const char* QoreSimpleValue::getTypeName() const {
+    switch (type) {
+        case QV_Bool: return QoreBoolNode::getStaticTypeName();
+        case QV_Int: return QoreBigIntNode::getStaticTypeName();
+        case QV_Float: return QoreFloatNode::getStaticTypeName();
+        case QV_Node: return get_type_name(v.n);
+        default: assert(false);
+            // no break
+    }
+    return nullptr;
 }
 
-QoreValue::QoreValue(double f) : type(QV_Float) {
-    v.f = f;
+AbstractQoreNode* QoreSimpleValue::getInternalNode() {
+    return type == QV_Node ? v.n : nullptr;
 }
 
-QoreValue::QoreValue(AbstractQoreNode* n) : type(QV_Node) {
-    v.n = n && n->getType() == NT_NOTHING ? nullptr : n;
+const AbstractQoreNode* QoreSimpleValue::getInternalNode() const {
+    return type == QV_Node ? v.n : nullptr;
+}
+
+bool QoreSimpleValue::hasEffect() const {
+    return type == QV_Node && v.n && node_has_effect(v.n);
+}
+
+bool QoreSimpleValue::isNothing() const {
+    return type == QV_Node && is_nothing(v.n);
+}
+
+bool QoreSimpleValue::isNull() const {
+    return type == QV_Node && is_null(v.n);
+}
+
+bool QoreSimpleValue::isNullOrNothing() const {
+    return type == QV_Node && (is_nothing(v.n) || is_null(v.n));
+}
+
+bool QoreSimpleValue::isValue() const {
+    return type != QV_Node || (v.n && v.n->is_value());
+}
+
+bool QoreSimpleValue::needsEval() const {
+    return type == QV_Node && v.n && v.n->needs_eval();
+}
+
+QoreSimpleValue::operator bool() const {
+    return !isNothing();
+}
+
+QoreValue::QoreValue() {
+    set(nullptr);
+}
+
+QoreValue::QoreValue(bool b) {
+    set(b);
+}
+
+QoreValue::QoreValue(int64 i) {
+    set(i);
+}
+
+QoreValue::QoreValue(unsigned long long i) {
+    set((int64)i);
+}
+
+QoreValue::QoreValue(int i) {
+    set((int64)i);
+}
+
+QoreValue::QoreValue(unsigned int i) {
+    set((int64)i);
+}
+
+QoreValue::QoreValue(long i) {
+    set((int64)i);
+}
+
+QoreValue::QoreValue(unsigned long i) {
+    set((int64)i);
+}
+
+QoreValue::QoreValue(double f) {
+    set(f);
+}
+
+QoreValue::QoreValue(AbstractQoreNode* n) {
+    set(n);
 }
 
 QoreValue::QoreValue(const AbstractQoreNode* n) {
     switch (get_node_type(n)) {
         case NT_NOTHING:
             type = QV_Node;
-            v.n = 0;
+            v.n = nullptr;
             return;
         case NT_INT:
             type = QV_Int;
@@ -119,7 +249,8 @@ QoreValue::QoreValue(const AbstractQoreNode* n) {
     v.n = const_cast<AbstractQoreNode*>(n);
 }
 
-QoreValue::QoreValue(const QoreSimpleValue& n): type(n.type) {
+QoreValue::QoreValue(const QoreSimpleValue& n) {
+    type = n.type;
     switch (type) {
         case QV_Bool: v.b = n.v.b; break;
         case QV_Int: v.i = n.v.i; break;
@@ -131,7 +262,8 @@ QoreValue::QoreValue(const QoreSimpleValue& n): type(n.type) {
     }
 }
 
-QoreValue::QoreValue(const QoreValue& old): type(old.type) {
+QoreValue::QoreValue(const QoreValue& old) {
+    type = old.type;
     switch (type) {
         case QV_Bool: v.b = old.v.b; break;
         case QV_Int: v.i = old.v.i; break;
@@ -175,46 +307,6 @@ QoreValue& QoreValue::operator=(const QoreSimpleValue& n) {
     return *this;
 }
 
-bool QoreValue::getAsBool() const {
-    switch (type) {
-        case QV_Bool: return v.b;
-        case QV_Int: return (bool)v.i;
-        case QV_Float: return (bool)v.f;
-        case QV_Node: return v.n ? v.n->getAsBool() : false;
-        default: assert(false);
-            // no break
-    }
-    return false;
-}
-
-int64 QoreValue::getAsBigInt() const {
-    switch (type) {
-        case QV_Bool: return (int64)v.b;
-        case QV_Int: return v.i;
-        case QV_Float: return (int64)v.f;
-        case QV_Node: return v.n ? v.n->getAsBigInt() : 0;
-        default: assert(false);
-            // no break
-    }
-    return 0;
-}
-
-double QoreValue::getAsFloat() const {
-    switch (type) {
-        case QV_Bool: return (double)v.b;
-        case QV_Int: return (double)v.i;
-        case QV_Float: return v.f;
-        case QV_Node: return v.n ? v.n->getAsFloat() : 0.0;
-        default: assert(false);
-            // no break
-    }
-    return 0.0;
-}
-
-AbstractQoreNode* QoreValue::getInternalNode() {
-    return type == QV_Node ? v.n : nullptr;
-}
-
 void QoreValue::ref() const {
     if (type == QV_Node && v.n)
         v.n->ref();
@@ -223,10 +315,6 @@ void QoreValue::ref() const {
 QoreValue QoreValue::refSelf() const {
     ref();
     return const_cast<QoreValue&>(*this);
-}
-
-const AbstractQoreNode* QoreValue::getInternalNode() const {
-    return type == QV_Node ? v.n : nullptr;
 }
 
 AbstractQoreNode* QoreValue::assign(AbstractQoreNode* n) {
@@ -313,6 +401,21 @@ bool QoreValue::isEqualHard(const QoreValue n) const {
     return rv;
 }
 
+bool QoreValue::isEqualValue(const QoreValue n) {
+    if (type != n.type) {
+        return false;
+    }
+    switch (type) {
+        case QV_Bool: return n.v.b == v.b;
+        case QV_Float: return n.v.f == v.f;
+        case QV_Int: return n.v.i == v.i;
+        case QV_Node: return n.v.n == v.n;
+        default:
+            assert(false);
+    }
+    return false;
+}
+
 void QoreValue::sanitize() {
     if (type != QV_Node || !v.n)
         return;
@@ -346,20 +449,6 @@ void QoreValue::discard(ExceptionSink* xsink) {
         v.n->deref(xsink);
         v.n = nullptr;
     }
-}
-
-void QoreValue::clear() {
-#ifdef DEBUG
-    // this makes valgrind happier, but is functionally equivalent to the below,
-    // which is more efficient as it doesn't write to memory unnecessarily
-    type = QV_Node;
-    v.n = nullptr;
-#else
-    if (type != QV_Node)
-        type = QV_Node;
-    if (v.n)
-        v.n = nullptr;
-#endif
 }
 
 int QoreValue::getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const {
@@ -438,18 +527,6 @@ AbstractQoreNode* QoreValue::getReferencedValue() const {
 }
 */
 
-AbstractQoreNode* QoreValue::takeNode() {
-    switch (type) {
-        case QV_Bool: return get_bool_node(v.b);
-        case QV_Int: return new QoreBigIntNode(v.i);
-        case QV_Float: return new QoreFloatNode(v.f);
-        case QV_Node: return takeNodeIntern();
-        default: assert(false);
-            // no break
-    }
-    return nullptr;
-}
-
 AbstractQoreNode* QoreValue::takeIfNode() {
     return type == QV_Node ? takeNodeIntern() : nullptr;
 }
@@ -491,47 +568,12 @@ const char* QoreValue::getFullTypeName() const {
     return nullptr;
 }
 
-AbstractQoreNode* QoreValue::takeNodeIntern() {
-    assert(type == QV_Node);
-    AbstractQoreNode* rv = v.n;
-    v.n = nullptr;
-    return rv;
-}
-
 bool QoreValue::hasNode() const {
     return type == QV_Node && v.n;
 }
 
-bool QoreValue::isNothing() const {
-    return type == QV_Node && is_nothing(v.n);
-}
-
-bool QoreValue::isNull() const {
-    return type == QV_Node && is_null(v.n);
-}
-
-bool QoreValue::isNullOrNothing() const {
-    return type == QV_Node && (is_nothing(v.n) || is_null(v.n));
-}
-
-bool QoreValue::needsEval() const {
-    return type == QV_Node && v.n && v.n->needs_eval();
-}
-
-bool QoreValue::hasEffect() const {
-    return type == QV_Node && v.n && node_has_effect(v.n);
-}
-
 bool QoreValue::isReferenceCounted() const {
     return type == QV_Node && v.n && v.n->isReferenceCounted();
-}
-
-bool QoreValue::isValue() const {
-    return type != QV_Node || (v.n && v.n->is_value());
-}
-
-QoreValue::operator bool() const {
-    return !isNothing();
 }
 
 const QoreTypeInfo* QoreValue::getTypeInfo() const {

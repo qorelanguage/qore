@@ -72,11 +72,23 @@ QoreValue QoreUnaryMinusOperatorNode::evalValueImpl(bool& needs_deref, Exception
     return QoreValue(0ll);
 }
 
-AbstractQoreNode* QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreUnaryMinusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(!typeInfo);
 
     const QoreTypeInfo* eti = nullptr;
     parse_init_value(exp, oflag, pflag, lvids, eti);
+
+    // see if the argument is a constant value, then eval immediately and substitute this node with the result
+    if (exp.isValue()) {
+        SimpleRefHolder<QoreUnaryMinusOperatorNode> del(this);
+        ParseExceptionSink xsink;
+        ValueEvalRefHolder v(this, *xsink);
+        assert(!**xsink);
+        //printd(5, "QoreUnaryMinusOperatorNode::parseInitImpl() parse type: '%s' runtype: '%s'\n", QoreTypeInfo::getName(typeInfo), v->getTypeName());
+        val = v.takeReferencedValue();
+        typeInfo = val.getTypeInfo();
+        return;
+    }
 
     if (QoreTypeInfo::hasType(eti)) {
         qore_type_t t = QoreTypeInfo::getSingleReturnType(eti);
@@ -108,16 +120,5 @@ AbstractQoreNode* QoreUnaryMinusOperatorNode::parseInitImpl(LocalVar* oflag, int
         }
     }
 
-    // see if the argument is a constant value, then eval immediately and substitute this node with the result
-    if (exp.isValue()) {
-        SimpleRefHolder<QoreUnaryMinusOperatorNode> del(this);
-        ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
-        assert(!**xsink);
-        //printd(5, "QoreUnaryMinusOperatorNode::parseInitImpl() parse type: '%s' runtype: '%s'\n", QoreTypeInfo::getName(typeInfo), v->getTypeName());
-        return v.takeReferencedValue().takeNode();
-    }
-
     returnTypeInfo = typeInfo;
-    return this;
 }

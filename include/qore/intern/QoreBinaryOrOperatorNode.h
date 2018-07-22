@@ -36,9 +36,9 @@
 class QoreBinaryOrOperatorNode : public QoreIntBinaryOperatorNode {
 OP_COMMON
 protected:
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
     DLLLOCAL QoreBinaryOrOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreIntBinaryOperatorNode(loc, left, right) {

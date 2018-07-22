@@ -37,7 +37,7 @@ QoreValue QoreBackgroundOperatorNode::evalValueImpl(bool& needs_deref, Exception
     return do_op_background(exp, xsink);
 }
 
-AbstractQoreNode* QoreBackgroundOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreBackgroundOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     typeInfo = bigIntTypeInfo;
 
     if (pflag & PF_CONST_EXPRESSION)
@@ -46,8 +46,6 @@ AbstractQoreNode* QoreBackgroundOperatorNode::parseInitImpl(LocalVar* oflag, int
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-    const QoreTypeInfo* expTypeInfo = 0;
+    const QoreTypeInfo* expTypeInfo = nullptr;
     parse_init_value(exp, oflag, pflag | PF_BACKGROUND, lvids, expTypeInfo);
-
-    return this;
 }

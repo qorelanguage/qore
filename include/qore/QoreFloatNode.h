@@ -147,7 +147,7 @@ public:
    DLLEXPORT virtual const char *getTypeName() const;
 
    //! returns the type information
-   DLLLOCAL virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+    DLLLOCAL void parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
    //! returns the type name (useful in templates)
    /**

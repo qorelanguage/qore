@@ -44,15 +44,13 @@ int QoreExtractOperatorNode::getAsString(QoreString &str, int foff, ExceptionSin
     return 0;
 }
 
-AbstractQoreNode* QoreExtractOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-    const QoreTypeInfo *expTypeInfo = 0;
+void QoreExtractOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    const QoreTypeInfo *expTypeInfo = nullptr;
 
     pflag &= ~PF_RETURN_VALUE_IGNORED;
 
     // check lvalue expression
-    lvalue_exp = lvalue_exp->parseInit(oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
-    //if (lvalue_exp && check_lvalue(lvalue_exp))
-    //   parse_error(*loc, "the extract operator expects an lvalue as the first expression, got '%s' instead", lvalue_exp->getTypeName());
+    parse_init_value(lvalue_exp, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, expTypeInfo);
     checkLValue(lvalue_exp, pflag);
 
     if (QoreTypeInfo::hasType(expTypeInfo)) {
@@ -69,30 +67,28 @@ AbstractQoreNode* QoreExtractOperatorNode::parseInitImpl(LocalVar* oflag, int pf
     }
 
     // check offset expression
-    expTypeInfo = 0;
-    offset_exp = offset_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
+    expTypeInfo = nullptr;
+    parse_init_value(offset_exp, oflag, pflag, lvids, expTypeInfo);
     if (!QoreTypeInfo::canConvertToScalar(expTypeInfo))
         expTypeInfo->doNonNumericWarning(loc, "the offset expression (2nd position) with the 'extract' operator is ");
 
     // check length expression, if any
     if (length_exp) {
-        expTypeInfo = 0;
-        length_exp = length_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
+        expTypeInfo = nullptr;
+        parse_init_value(length_exp, oflag, pflag, lvids, expTypeInfo);
         if (!QoreTypeInfo::canConvertToScalar(expTypeInfo))
             expTypeInfo->doNonNumericWarning(loc, "the length expression (3nd position) with the 'extract' operator is ");
     }
 
     // check new value expression, if any
     if (new_exp) {
-        expTypeInfo = 0;
-        new_exp = new_exp->parseInit(oflag, pflag, lvids, expTypeInfo);
+        expTypeInfo = nullptr;
+        parse_init_value(new_exp, oflag, pflag, lvids, expTypeInfo);
     }
-
-    return this;
 }
 
 QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    printd(5, "QoreExtractOperatorNode::extract() lvalue_exp: %p, offset_exp: %p, length_exp: %p, new_exp: %p, isEvent: %d\n", lvalue_exp, offset_exp, length_exp, new_exp, xsink->isEvent());
+    printd(5, "QoreExtractOperatorNode::splice() lvalue_exp: %s, offset_exp: %s, length_exp: %s, new_exp: %s, isEvent: %d\n", lvalue_exp.getTypeName(), offset_exp.getTypeName(), length_exp.getTypeName(), new_exp.getTypeName(), xsink->isEvent());
 
     // evaluate arguments
     ValueEvalRefHolder eoffset(offset_exp, xsink);

@@ -46,7 +46,7 @@ QoreValue QoreLogicalComparisonOperatorNode::evalValueImpl(bool& needs_deref, Ex
     return doComparison(*l, *r, xsink);
 }
 
-AbstractQoreNode *QoreLogicalComparisonOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreLogicalComparisonOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     pflag &= ~PF_RETURN_VALUE_IGNORED;
     typeInfo = bigIntTypeInfo;
 
@@ -60,10 +60,8 @@ AbstractQoreNode *QoreLogicalComparisonOperatorNode::parseInitImpl(LocalVar *ofl
         SimpleRefHolder<QoreLogicalComparisonOperatorNode> del(this);
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
-        return v.takeReferencedValue().takeNode();
+        val = v.takeReferencedValue();
     }
-
-    return this;
 }
 
 int QoreLogicalComparisonOperatorNode::doComparison(const QoreValue left, const QoreValue right, ExceptionSink* xsink) {

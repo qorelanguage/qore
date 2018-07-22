@@ -449,7 +449,7 @@ public:
     DLLLOCAL void setVariableList();
 
     //! for initialization of lists in the parse tree at parse time (always returns "this")
-    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #include <qore/ReferenceHolder.h>

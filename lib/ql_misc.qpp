@@ -584,7 +584,7 @@ auto call_function(code f, ...) {
         vargs = args->copyListFrom(1);
     }
 
-    return f->execValue(*vargs, xsink).takeNode();
+    return f->execValue(*vargs, xsink);
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
@@ -621,7 +621,7 @@ auto result = call_function_args(call_ref, (arg1, arg2));
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
 */
 auto call_function_args(code f, *softlist<auto> vargs) {
-   return f->execValue(vargs, xsink).takeNode();
+   return f->execValue(vargs, xsink);
 }
 
 //! Calls a function and returns the return value, passing the remaining arguments after the function name to the builtin function
@@ -654,7 +654,7 @@ auto call_builtin_function(string name, ...) {
         vargs = args->copyListFrom(1);
     }
 
-    return f->evalDynamic(*vargs, xsink).takeNode();
+    return f->evalDynamic(*vargs, xsink);
 }
 
 //! Calls a function and returns the return value, using the optional second argument as a list of arguments for the function
@@ -681,7 +681,7 @@ auto call_builtin_function_args(string name, *softlist<auto> vargs) {
    if (!f)
       return QoreValue();
 
-   return f->evalDynamic(vargs, xsink).takeNode();
+   return f->evalDynamic(vargs, xsink);
 }
 
 //! A function performing the same role as the @ref exists "exists operator"

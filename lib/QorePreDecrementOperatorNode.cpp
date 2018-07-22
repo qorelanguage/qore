@@ -32,11 +32,13 @@
 
 QoreString QorePreDecrementOperatorNode::op_str("-- (pre-decrement) operator expression");
 
-AbstractQoreNode *QorePreDecrementOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
+void QorePreDecrementOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&outTypeInfo) {
     parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, outTypeInfo);
 
     // version for local var
-    return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPreDecrementOperatorNode>() : this;
+    if ((typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)) {
+        val = makeSpecialization<QoreIntPreDecrementOperatorNode>();
+    }
 }
 
 QoreValue QorePreDecrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreBigIntNode.h
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -92,7 +92,7 @@ public:
    DLLEXPORT virtual DateTime *getDateTimeRepresentation(bool &del) const;
 
    //! assigns the date representation of this integer (interpreted as an offset in seconds from January 1, 1970) to the DateTime reference passed
-   /** 
+   /**
        @param dt the DateTime reference to be assigned
    */
    DLLEXPORT virtual void getDateTimeRepresentation(DateTime &dt) const;
@@ -136,7 +136,7 @@ public:
    DLLEXPORT virtual const char *getTypeName() const;
 
    //! returns the type information
-   DLLEXPORT virtual AbstractQoreNode *parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+    DLLLOCAL void parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
    //! returns the type code (useful in templates)
    DLLLOCAL static const char *getStaticTypeName() {

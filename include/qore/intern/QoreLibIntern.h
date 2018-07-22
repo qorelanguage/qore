@@ -504,7 +504,7 @@ DLLLOCAL BinaryNode* parseHex(const QoreProgramLocation* loc, const char* buf, i
 DLLLOCAL void print_node(FILE* fp, const QoreValue qv);
 DLLLOCAL void delete_global_variables();
 DLLLOCAL void init_lib_intern(char* env[]);
-DLLLOCAL QoreParseListNode* make_args(const QoreProgramLocation* loc, AbstractQoreNode* arg);
+DLLLOCAL QoreParseListNode* make_args(const QoreProgramLocation* loc, QoreValue arg);
 
 DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
 DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink);
@@ -866,7 +866,7 @@ DLLLOCAL AbstractQoreNode* missing_method_error(const char* meth, const char* op
 // checks for illegal $self assignments in an object context
 DLLLOCAL void check_self_assignment(const QoreProgramLocation* loc, QoreValue n, LocalVar* selfid);
 
-DLLLOCAL void ignore_return_value(AbstractQoreNode* n);
+DLLLOCAL void ignore_return_value(QoreSimpleValue& n);
 
 DLLLOCAL void qore_string_init();
 

@@ -46,13 +46,13 @@ QoreValue QoreDivisionOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSi
    return doDivision(*lh, *rh, xsink);
 }
 
-AbstractQoreNode* QoreDivisionOperatorNode::parseInitIntern(const char* name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
+void QoreDivisionOperatorNode::parseInitIntern(const char* name, QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
     assert(!parseTypeInfo);
 
-    const QoreTypeInfo* lti = 0, *rti = 0;
+    const QoreTypeInfo* lti = nullptr, *rti = nullptr;
 
     parse_init_value(left, oflag, pflag, lvids, lti);
     parse_init_value(right, oflag, pflag, lvids, rti);
@@ -62,13 +62,13 @@ AbstractQoreNode* QoreDivisionOperatorNode::parseInitIntern(const char* name, Lo
         if (left.isValue()) {
             SimpleRefHolder<QoreDivisionOperatorNode> del(this);
             ParseExceptionSink xsink;
-            AbstractQoreNode* rv = QoreDivisionOperatorNode::evalImpl(*xsink);
-            return rv ? rv : &Nothing;
+            val = doDivision(left, right, *xsink);
+            return;
         }
         // check for division by zero here
         if (!right.getAsFloat()) {
             parse_error(*loc, "division by zero found in parse expression");
-            return this;
+            return;
         }
     }
 
@@ -92,8 +92,6 @@ AbstractQoreNode* QoreDivisionOperatorNode::parseInitIntern(const char* name, Lo
 
     if (typeInfo)
         parseTypeInfo = typeInfo;
-
-    return this;
 }
 
 QoreValue QoreDivisionOperatorNode::floatDivision(ExceptionSink* xsink) const {

@@ -47,7 +47,7 @@ QoreValue QoreLogicalAndOperatorNode::evalValueImpl(bool& needs_deref, Exception
     return rh->getAsBool();
 }
 
-AbstractQoreNode *QoreLogicalAndOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreLogicalAndOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     pflag &= ~PF_RETURN_VALUE_IGNORED;
 
     typeInfo = boolTypeInfo;
@@ -63,8 +63,6 @@ AbstractQoreNode *QoreLogicalAndOperatorNode::parseInitImpl(LocalVar *oflag, int
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
-        return v.takeReferencedValue().takeNode();
+        val = v.takeReferencedValue();
     }
-
-    return this;
 }

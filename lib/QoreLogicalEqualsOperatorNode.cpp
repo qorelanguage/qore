@@ -48,10 +48,10 @@ QoreValue QoreLogicalEqualsOperatorNode::evalValueImpl(bool& needs_deref, Except
     return softEqual(*l, *r, xsink);
 }
 
-AbstractQoreNode *QoreLogicalEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreLogicalEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     typeInfo = boolTypeInfo;
 
-    const QoreTypeInfo *lti = 0, *rti = 0;
+    const QoreTypeInfo *lti = nullptr, *rti = nullptr;
 
     parse_init_value(left, oflag, pflag, lvids, lti);
     parse_init_value(right, oflag, pflag, lvids, rti);
@@ -60,7 +60,8 @@ AbstractQoreNode *QoreLogicalEqualsOperatorNode::parseInitImpl(LocalVar *oflag, 
     if (left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalEqualsOperatorNode> del(this);
         ParseExceptionSink xsink;
-        return get_bool_node(softEqual(left, right, *xsink));
+        val = softEqual(left, right, *xsink);
+        return;
     }
 
     // check for optimizations based on type, but only assign if neither side is a string or number (highest priority)
@@ -74,8 +75,6 @@ AbstractQoreNode *QoreLogicalEqualsOperatorNode::parseInitImpl(LocalVar *oflag, 
         else if (QoreTypeInfo::isType(lti, NT_BOOLEAN) || QoreTypeInfo::isType(rti, NT_BOOLEAN))
             pfunc = &QoreLogicalEqualsOperatorNode::boolSoftEqual;
     }
-
-    return this;
 }
 
 bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue left, const QoreValue right, ExceptionSink *xsink) {

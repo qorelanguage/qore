@@ -131,14 +131,11 @@ public:
         v.b = b;
     }
 
-    DLLLOCAL void set(QoreValue& val);
+    DLLEXPORT void set(QoreSimpleValue val);
 
-    DLLLOCAL void set(AbstractQoreNode* n) {
-        type = QV_Node;
-        v.n = n;
-    }
+    DLLEXPORT void set(AbstractQoreNode* n);
 
-    DLLLOCAL QoreSimpleValue& assign(QoreValue& val) {
+    DLLLOCAL QoreSimpleValue& assign(QoreSimpleValue& val) {
         set(val);
         return *this;
     }
@@ -163,25 +160,99 @@ public:
         return *this;
     }
 
-    DLLLOCAL AbstractQoreNode* takeNode();
-};
+    //! returns a referenced AbstractQoreNode pointer leaving "this" empty (value is taken from "this"); the caller owns the reference returned
+    DLLEXPORT AbstractQoreNode* takeNode();
 
-//! The main value class in Qore, designed to be passed by value
-struct QoreValue {
-    friend class ValueHolder;
-    friend class ValueOptionalRefHolder;
-    template<typename> friend struct detail::QoreValueCastHelper;
+    //! returns any AbstractQoreNode value held; if type != QV_Node, returns NULL
+    DLLEXPORT AbstractQoreNode* getInternalNode();
+
+    //! returns any AbstractQoreNode value held; if type != QV_Node, returns NULL
+    DLLEXPORT const AbstractQoreNode* getInternalNode() const;
+
+    //! unconditionally set the QoreValue to @ref QoreNothingNode (does not dereference any possible contained AbstractQoreNode ptr)
+    DLLEXPORT void clear();
+
+    //! dereferences any contained AbstractQoreNode pointer and sets to 0; does not modify other values
+    DLLEXPORT void discard(ExceptionSink* xsink);
+
+    //! returns the type of value contained
+    DLLEXPORT qore_type_t getType() const;
+
+    //! returns a string type description of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
+    DLLEXPORT const char* getTypeName() const;
+
+    //! returns a pointer to an object of the given class; takes the pointer from the object; the caller owns the reference returned
+    /** will assert() in debug mode if the object does not contain a value of the requested type or if type != QV_Node
+    */
+    template<typename T>
+    DLLLOCAL T* take() {
+        assert(type == QV_Node);
+        assert(dynamic_cast<T*>(v.n));
+        T* rv = reinterpret_cast<T*>(v.n);
+        v.n = 0;
+        return rv;
+    }
+
+    //! returns the value as the given type
+    /** @note that if a pointer type is given and the object does not contain a node (i.e. type != QV_Node), then
+        this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in which case type conversions are performed
+    */
+    template<typename T>
+    DLLLOCAL typename detail::QoreValueCastHelper<T>::Result get() {
+        return detail::QoreValueCastHelper<T>::cast(this, type);
+    }
+
+    //! returns the value as the given type
+    /** @note that if a pointer type is given and the object does not contain a node (i.e. type != QV_Node), then
+        this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in which case type conversions are performed
+    */
+    template<typename T>
+    DLLLOCAL typename detail::QoreValueCastHelper<const T>::Result get() const {
+        return detail::QoreValueCastHelper<const T>::cast(this, type);
+    }
+
+    //! returns the value as a bool
+    DLLEXPORT bool getAsBool() const;
+
+    //! returns the value as an int
+    DLLEXPORT int64 getAsBigInt() const;
+
+    //! returns the value as a float
+    DLLEXPORT double getAsFloat() const;
+
+    //! return true if the value needs evaluation and has a side effect
+    DLLEXPORT bool hasEffect() const;
+
+    //! returns true if the object contains NOTHING
+    DLLEXPORT bool isNothing() const;
+
+    //! returns true if the object contains NULL
+    DLLEXPORT bool isNull() const;
+
+    //! returns true if the object contains NOTHING or NULL
+    DLLEXPORT bool isNullOrNothing() const;
+
+    //! returns true if the object holds a value, false if it holds an expression
+    DLLEXPORT bool isValue() const;
+
+    //! return true if the value needs evaluation
+    DLLEXPORT bool needsEval() const;
+
+    //! returns true if the value is not NOTHING
+    DLLEXPORT operator bool() const;
 
 protected:
     //! returns the internal AbstractQoreNode pointer, does not check that type == QV_Node, leaves the object empty
     DLLEXPORT AbstractQoreNode* takeNodeIntern();
+};
+
+//! The main value class in Qore, designed to be passed by value
+struct QoreValue : public QoreSimpleValue {
+    friend class ValueHolder;
+    friend class ValueOptionalRefHolder;
+    template<typename> friend struct detail::QoreValueCastHelper;
 
 public:
-    //! the actual value is stored here
-    qore_value_u v;
-    //! indicates the value that the union is holding
-    valtype_t type;
-
     //! creates with no value (i.e. @ref QoreNothingNode)
     DLLEXPORT QoreValue();
 
@@ -230,26 +301,11 @@ public:
     //! exchanges the values
     DLLEXPORT void swap(QoreValue& val);
 
-    //! returns the value as a bool
-    DLLEXPORT bool getAsBool() const;
-
-    //! returns the value as an int
-    DLLEXPORT int64 getAsBigInt() const;
-
-    //! returns the value as a float
-    DLLEXPORT double getAsFloat() const;
-
     //! references the contained value if type == QV_Node
     DLLEXPORT void ref() const;
 
     //! references the contained value if type == QV_Node, returns itself
     DLLEXPORT QoreValue refSelf() const;
-
-    //! returns any AbstractQoreNode value held; if type != QV_Node, returns NULL
-    DLLEXPORT AbstractQoreNode* getInternalNode();
-
-    //! returns any AbstractQoreNode value held; if type != QV_Node, returns NULL
-    DLLEXPORT const AbstractQoreNode* getInternalNode() const;
 
     //! the QoreValue object takes the reference of the argument
     /** @param n the new node value of the object, sets type to QV_Node
@@ -294,56 +350,26 @@ public:
     //! returns trus if the argument value is equal to the current value without any type conversions
     DLLEXPORT bool isEqualHard(const QoreValue v) const;
 
+    //! returns true of the argument is exactly the same value as the current value, meaning also that if both contain pointers, that the pointers contained are the same pointer
+    DLLEXPORT bool isEqualValue(const QoreValue v);
+
     //! converts any node pointers to efficient representations if possible and dereferences the node value contained
     DLLEXPORT void sanitize();
 
     //! assigns a new value
-    DLLEXPORT QoreValue& operator=(const QoreSimpleValue& n);
+    DLLEXPORT QoreValue& operator=(const QoreValue& n);
 
     //! assigns a new value
-    DLLEXPORT QoreValue& operator=(const QoreValue& n);
+    DLLEXPORT QoreValue& operator=(const QoreSimpleValue& n);
 
     //! dereferences any contained AbstractQoreNode pointer and sets to 0; does not modify other values
     DLLEXPORT void discard(ExceptionSink* xsink);
-
-    //! unconditionally set the QoreValue to @ref QoreNothingNode (does not dereference any possible contained AbstractQoreNode ptr)
-    DLLEXPORT void clear();
 
     //! appends the string value of the contained node to the string argument with optional formatting
     DLLEXPORT int getAsString(QoreString& str, int format_offset, ExceptionSink *xsink) const;
 
     //! returns the string value with optional formatting of the contained node
     DLLEXPORT QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
-
-    //! returns a pointer to an object of the given class; takes the pointer from the object; the caller owns the reference returned
-    /** will assert() in debug mode if the object does not contain a value of the requested type or if type != QV_Node
-    */
-    template<typename T>
-    DLLLOCAL T* take() {
-        assert(type == QV_Node);
-        assert(dynamic_cast<T*>(v.n));
-        T* rv = reinterpret_cast<T*>(v.n);
-        v.n = 0;
-        return rv;
-    }
-
-    //! returns the value as the given type
-    /** @note that if a pointer type is given and the object does not contain a node (i.e. type != QV_Node), then
-        this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in which case type conversions are performed
-    */
-    template<typename T>
-    DLLLOCAL typename detail::QoreValueCastHelper<T>::Result get() {
-        return detail::QoreValueCastHelper<T>::cast(this, type);
-    }
-
-    //! returns the value as the given type
-    /** @note that if a pointer type is given and the object does not contain a node (i.e. type != QV_Node), then
-        this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in which case type conversions are performed
-    */
-    template<typename T>
-    DLLLOCAL typename detail::QoreValueCastHelper<const T>::Result get() const {
-        return detail::QoreValueCastHelper<const T>::cast(this, type);
-    }
 
     //! evaluates the node and returns the result
     DLLEXPORT QoreValue eval(ExceptionSink* xsink) const;
@@ -353,9 +379,6 @@ public:
 
     //! returns a referenced value; leaving the "this" untouched; the caller owns the reference returned
     //DLLEXPORT QoreValue refSelf() const;
-
-    //! returns a referenced AbstractQoreNode pointer leaving "this" empty (value is taken from "this"); the caller owns the reference returned
-    DLLEXPORT AbstractQoreNode* takeNode();
 
     //! returns a referenced AbstractQoreNode pointer only if the contained value is an AbstractQoreNode pointer, in which case "this" is left empty (the value is taken from "this"); returns 0 if the object does not contain an AbstractQoreNode pointer (type != QV_Node)
     DLLEXPORT AbstractQoreNode* takeIfNode();
@@ -377,29 +400,8 @@ public:
     //! returns true if the object contains a non-null AbstractQoreNode pointer (ie type == QV_Node && v.n is not 0)
     DLLEXPORT bool hasNode() const;
 
-    //! returns true if the object contains NOTHING
-    DLLEXPORT bool isNothing() const;
-
-    //! returns true if the object contains NULL
-    DLLEXPORT bool isNull() const;
-
-    //! returns true if the object contains NOTHING or NULL
-    DLLEXPORT bool isNullOrNothing() const;
-
-    //! return true if the value needs evaluation
-    DLLEXPORT bool needsEval() const;
-
-    //! return true if the value needs evaluation and has a side effect
-    DLLEXPORT bool hasEffect() const;
-
     //! returns true if the value holds a referenced-counted node
     DLLEXPORT bool isReferenceCounted() const;
-
-    //! returns true if the object holds a value, false if it holds an expression
-    DLLEXPORT bool isValue() const;
-
-    //! returns true if the value is not NOTHING
-    DLLEXPORT operator bool() const;
 };
 
 //! base class for holding a QoreValue object

@@ -49,16 +49,14 @@ QoreValue QoreLogicalNotOperatorNode::evalValueImpl(bool& needs_deref, Exception
     return !v->getAsBool();
 }
 
-AbstractQoreNode* QoreLogicalNotOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreLogicalNotOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     parse_init_value(exp, oflag, pflag, lvids, typeInfo);
+
+    typeInfo = boolTypeInfo;
 
     // evaluate immediately if possible
     if (exp.isValue()) {
         SimpleRefHolder<QoreLogicalNotOperatorNode> th(this);
-
-        return get_bool_node(!exp.getAsBool());
+        val = !exp.getAsBool();
     }
-    typeInfo = boolTypeInfo;
-
-    return this;
 }

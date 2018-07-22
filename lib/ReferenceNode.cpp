@@ -120,19 +120,21 @@ IntermediateParseReferenceNode* ParseReferenceNode::evalToIntermediate(Exception
     return nv ? new IntermediateParseReferenceNode(loc, nv, QoreTypeInfo::getUniqueReturnComplexReference(typeInfo), self, lvalue_id, qc) : nullptr;
 }
 
-AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
+void ParseReferenceNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
     returnTypeInfo = typeInfo;
-    if (!lvexp)
-        return this;
+    if (!lvexp) {
+        return;
+    }
 
     const QoreTypeInfo* argTypeInfo = nullptr;
     parse_init_value(lvexp, oflag, pflag, lvids, argTypeInfo);
-    if (!lvexp)
-        return this;
+    if (!lvexp) {
+        return;
+    }
 
     if (check_lvalue(lvexp)) {
         parse_error(*loc, "the reference operator was expecting an lvalue, got '%s' instead", lvexp.getTypeName());
-        return this;
+        return;
     }
     //printd(5, "ParseReferenceNode::parseInitImpl() lv: '%s'\n", QoreTypeInfo::getName(argTypeInfo));
     // check lvalue, and convert "normal" local vars to thread-safe local vars
@@ -163,7 +165,6 @@ AbstractQoreNode* ParseReferenceNode::parseInitImpl(LocalVar* oflag, int pflag, 
         returnTypeInfo = typeInfo = qore_get_complex_reference_type(argTypeInfo);
     }
     //printd(5, "ParseReferenceNode::parseInitImpl() thid: %p '%s' -> '%s'\n", this, QoreTypeInfo::getName(argTypeInfo), QoreTypeInfo::getName(typeInfo));
-    return this;
 }
 
 ReferenceNode::ReferenceNode(QoreValue exp, const QoreTypeInfo* typeInfo, QoreObject* self, const void* lvalue_id, const qore_class_private* cls) : AbstractQoreNode(NT_REFERENCE, false, true), priv(new lvalue_ref(exp, typeInfo, self, lvalue_id, cls)) {

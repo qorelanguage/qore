@@ -41,7 +41,7 @@ protected:
 
     DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
     DLLLOCAL QoreTransliterationOperatorNode(const QoreProgramLocation* loc, QoreValue exp, QoreTransliteration* r) : QoreSingleExpressionOperatorNode<LValueOperatorNode>(loc, exp), typeInfo(0), regex(r) {

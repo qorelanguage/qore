@@ -41,10 +41,9 @@ protected:
         return bigIntTypeInfo;
     }
 
-    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
         // should never be called
         assert(false);
-        return this;
     }
 
 public:

@@ -119,7 +119,8 @@ int qore_list_private::parseInitListInitialization(const QoreProgramLocation* lo
     }
 
     // initialize argument(s)
-    new_args = args->parseInit(oflag, pflag, lvids, argTypeInfo);
+    new_args = args;
+    parse_init_value(new_args, oflag, pflag, lvids, argTypeInfo);
 
     return 0;
 }
@@ -1113,9 +1114,8 @@ QoreListNode* QoreListNode::listRefSelf() const {
     return const_cast<QoreListNode*>(this);
 }
 
-AbstractQoreNode* QoreListNode::parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreListNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(value);
-    return this;
 }
 
 const QoreTypeInfo* QoreListNode::getValueTypeInfo() const {

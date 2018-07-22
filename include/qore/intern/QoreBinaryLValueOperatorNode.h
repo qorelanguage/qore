@@ -67,7 +67,7 @@ public:
 
         typeInfo = bigIntTypeInfo;
 
-        const QoreTypeInfo *mti = nullptr;
+        const QoreTypeInfo* mti = nullptr;
         parse_init_value(left, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, mti);
         checkLValue(left, pflag);
 

@@ -48,7 +48,7 @@ int QoreParseCastOperatorNode::getAsString(QoreString& str, int foff, ExceptionS
     return 0;
 }
 
-AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(!typeInfo);
 
     const QoreTypeInfo* expTypeInfo = nullptr;
@@ -64,10 +64,10 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
             typeInfo = objectTypeInfo;
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                return new QoreClassCastOperatorNode(loc, nullptr, takeExp());
+                val = new QoreClassCastOperatorNode(loc, nullptr, takeExp());
             }
             // parse exception already raised; current expression invalid
-            return this;
+            return;
         }
         // check special case of cast<hash>(...)
         if (!strcmp(pti->cscope->ostr, "hash")) {
@@ -76,10 +76,10 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
             typeInfo = hashTypeInfo;
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                return new QoreHashDeclCastOperatorNode(loc, nullptr, takeExp());
+                val = new QoreHashDeclCastOperatorNode(loc, nullptr, takeExp());
             }
             // parse exception already raised; current expression invalid
-            return this;
+            return;
         }
         // check special case of cast<list>(...)
         if (!strcmp(pti->cscope->ostr, "list")) {
@@ -89,10 +89,10 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
             typeInfo = listTypeInfo;
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                return new QoreComplexListCastOperatorNode(loc, nullptr, takeExp());
+                val = new QoreComplexListCastOperatorNode(loc, nullptr, takeExp());
             }
             // parse exception already raised; current expression invalid
-            return this;
+            return;
         }
     }
 
@@ -101,7 +101,7 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
 
     // parse exception already raised; current expression invalid
     if (!exp)
-        return this;
+        return;
 
     {
         const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
@@ -111,9 +111,9 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
             else {
                 assert(exp);
                 ReferenceHolder<> holder(this, nullptr);
-                return new QoreClassCastOperatorNode(loc, nullptr, takeExp());
+                val = new QoreClassCastOperatorNode(loc, nullptr, takeExp());
             }
-            return this;
+            return;
         }
     }
 
@@ -130,7 +130,8 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
             typeInfo = hd->getTypeInfo();
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                return new QoreHashDeclCastOperatorNode(loc, hd, takeExp());
+                val = new QoreHashDeclCastOperatorNode(loc, hd, takeExp());
+                return;
             }
         }
     }
@@ -147,7 +148,8 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
 
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                return new QoreComplexHashCastOperatorNode(loc, typeInfo, takeExp());
+                val = new QoreComplexHashCastOperatorNode(loc, typeInfo, takeExp());
+                return;
             }
         }
     }
@@ -160,13 +162,13 @@ AbstractQoreNode* QoreParseCastOperatorNode::parseInitImpl(LocalVar* oflag, int 
 
             if (exp) {
                 ReferenceHolder<> holder(this, nullptr);
-                return new QoreComplexListCastOperatorNode(loc, typeInfo, takeExp());
+                val = new QoreComplexListCastOperatorNode(loc, typeInfo, takeExp());
+                return;
             }
         }
     }
 
     parse_error(*loc, "cannot cast<> to type '%s'", QoreTypeInfo::getName(typeInfo));;
-    return this;
 }
 
 QoreValue QoreClassCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

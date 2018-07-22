@@ -52,7 +52,7 @@ QoreValue QoreExistsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink
    return v->isNothing() ? false : true;
 }
 
-AbstractQoreNode* QoreExistsOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreExistsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -67,8 +67,6 @@ AbstractQoreNode* QoreExistsOperatorNode::parseInitImpl(LocalVar* oflag, int pfl
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
-        return v.takeReferencedValue().takeNode();
+        val = v.takeReferencedValue();
     }
-
-    return this;
 }

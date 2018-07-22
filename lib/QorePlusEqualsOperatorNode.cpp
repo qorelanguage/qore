@@ -33,7 +33,7 @@
 
 QoreString QorePlusEqualsOperatorNode::op_str("+= operator expression");
 
-AbstractQoreNode* QorePlusEqualsOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QorePlusEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -68,14 +68,13 @@ AbstractQoreNode* QorePlusEqualsOperatorNode::parseInitImpl(LocalVar* oflag, int
         if (QoreTypeInfo::returnsSingle(ti)) {
             check_lvalue_int(loc, ti, "+=");
             ti = bigIntTypeInfo;
-            return makeSpecialization<QoreIntPlusEqualsOperatorNode>();
+            val = makeSpecialization<QoreIntPlusEqualsOperatorNode>();
+            return;
         }
         else
             ti = nullptr;
     }
     typeInfo = ti;
-
-    return this;
 }
 
 QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

@@ -48,7 +48,7 @@ int QoreFoldlOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink 
     return 0;
 }
 
-AbstractQoreNode* QoreFoldlOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreFoldlOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     assert(!typeInfo);
 
     pflag &= ~PF_RETURN_VALUE_IGNORED;
@@ -88,8 +88,6 @@ AbstractQoreNode* QoreFoldlOperatorNode::parseInitImpl(LocalVar *oflag, int pfla
                 typeInfo = iteratorTypeInfo;
         }
     }
-
-    return this;
 }
 
 QoreValue QoreFoldlOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

@@ -92,14 +92,14 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
     return needs_eval;
 }
 
-AbstractQoreNode* QoreParseListNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreParseListNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     if (parseInitIntern(oflag, pflag, lvids, typeInfo))
-        return this;
+        return;
 
     // evaluate immediately
     SimpleRefHolder<QoreParseListNode> holder(this);
     ValueEvalRefHolder rv(this, nullptr);
-    return rv.takeReferencedValue().takeNode();
+    val = rv.takeReferencedValue();
 }
 
 QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {

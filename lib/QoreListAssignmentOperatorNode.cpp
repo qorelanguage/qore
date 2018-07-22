@@ -34,7 +34,7 @@
 
 QoreString QoreListAssignmentOperatorNode::op_str("list assignment operator expression");
 
-AbstractQoreNode* QoreListAssignmentOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreListAssignmentOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -80,8 +80,6 @@ AbstractQoreNode* QoreListAssignmentOperatorNode::parseInitImpl(LocalVar* oflag,
     while (ri.next()) {
         ri.parseInit(argInfo);
     }
-
-    return this;
 }
 
 QoreValue QoreListAssignmentOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
