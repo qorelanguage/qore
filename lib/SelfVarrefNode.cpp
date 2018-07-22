@@ -52,7 +52,7 @@ const char *SelfVarrefNode::getTypeName() const {
    return "in-object variable reference";
 }
 
-QoreValue SelfVarrefNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue SelfVarrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
     assert(runtime_get_stack_object());
     return runtime_get_stack_object()->getReferencedMemberNoMethod(str, xsink);
 }

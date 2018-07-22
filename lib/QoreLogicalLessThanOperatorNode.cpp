@@ -32,7 +32,7 @@
 
 QoreString QoreLogicalLessThanOperatorNode::op_str("< operator expression");
 
-QoreValue QoreLogicalLessThanOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreLogicalLessThanOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    if (pfunc)
       return (this->*pfunc)(xsink);
 

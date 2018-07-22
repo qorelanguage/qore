@@ -77,7 +77,7 @@ void QorePlusEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, 
     typeInfo = ti;
 }
 
-QoreValue QorePlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder new_right(right, xsink);
     if (*xsink)
         return QoreValue();

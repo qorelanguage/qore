@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-QoreValue QoreIntPlusEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreIntPlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder rh(right, xsink);
     if (*xsink)
         return QoreValue();

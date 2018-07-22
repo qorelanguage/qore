@@ -228,10 +228,10 @@ int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
         if (xsink)
             return -1;
 
-        ReferenceHolder<> cn(init_c.get<AbstractQoreNode>()->eval(&xsink), &xsink);
+        ValueHolder cn(init_c.eval(&xsink), &xsink);
         assert(!xsink);
         assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
-        reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->execValue(0, &xsink).discard(&xsink);
+        cn->get<ResolvedCallReferenceNode>()->execValue(0, &xsink).discard(&xsink);
     }
 
     return xsink ? -1 : 0;
@@ -346,19 +346,19 @@ QoreHashNode* QoreBuiltinModule::getHash(bool with_filename) const {
 }
 
 QoreUserModule::~QoreUserModule() {
-   assert(pgm);
-   ExceptionSink xsink;
-   if (del) {
-      ProgramThreadCountContextHelper tch(&xsink, pgm, true);
-      if (!xsink) {
-         ReferenceHolder<> cn(del->eval(&xsink), &xsink);
-         assert(!xsink);
-         assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
-         reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->execValue(0, &xsink).discard(&xsink);
-         del->deref(&xsink);
-      }
-   }
-   pgm->waitForTerminationAndDeref(&xsink);
+    assert(pgm);
+    ExceptionSink xsink;
+    if (del) {
+        ProgramThreadCountContextHelper tch(&xsink, pgm, true);
+        if (!xsink) {
+            ValueHolder cn(del->eval(&xsink), &xsink);
+            assert(!xsink);
+            assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
+            cn->get<ResolvedCallReferenceNode>()->execValue(0, &xsink).discard(&xsink);
+            del->deref(&xsink);
+        }
+    }
+    pgm->waitForTerminationAndDeref(&xsink);
 }
 
 void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) const {

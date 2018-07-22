@@ -32,7 +32,7 @@
 
 QoreString QoreDivisionOperatorNode::op_str("/ operator expression");
 
-QoreValue QoreDivisionOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreDivisionOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    if (pfunc)
       return (this->*pfunc)(xsink);
 

@@ -62,8 +62,8 @@ void QoreShiftOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int p
     }
 }
 
-QoreValue QoreShiftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    //printd(5, "QoreShiftOperatorNode::evalValueImpl(%p, isEvent=%d)\n", exp, xsink->isEvent());
+QoreValue QoreShiftOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    //printd(5, "QoreShiftOperatorNode::evalImpl(%p, isEvent=%d)\n", exp, xsink->isEvent());
 
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper val(exp, xsink);
@@ -87,7 +87,7 @@ QoreValue QoreShiftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink*
 
     QoreListNode* l = val.getValue().get<QoreListNode>();
 
-    printd(5, "QoreShiftOperatorNode::evalValueImpl() about to call QoreListNode::shift() on list node %p (%d)\n", l, l->size());
+    printd(5, "QoreShiftOperatorNode::evalImpl() about to call QoreListNode::shift() on list node %p (%d)\n", l, l->size());
     // the list reference will now be the reference for the return value
     // therefore no need to reference again
     return l->shift();

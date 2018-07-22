@@ -59,7 +59,7 @@ void QoreQuestionMarkOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag
     typeInfo = returnTypeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo) ? leftTypeInfo : nullptr;
 }
 
-QoreValue QoreQuestionMarkOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreQuestionMarkOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder b(e[0], xsink);
     if (*xsink)
         return QoreValue();

@@ -36,7 +36,7 @@ void QoreShiftRightEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *o
     parseInitIntLValue(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 }
 
-QoreValue QoreShiftRightEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreShiftRightEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder new_right(right, xsink);
     if (*xsink)
         return QoreValue();

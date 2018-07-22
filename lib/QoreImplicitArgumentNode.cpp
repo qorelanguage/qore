@@ -57,7 +57,7 @@ const QoreValue QoreImplicitArgumentNode::get() const {
     return argv->retrieveEntry(offset);
 }
 
-QoreValue QoreImplicitArgumentNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreImplicitArgumentNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
     needs_deref = false;
     if (offset == -1)
         return const_cast<QoreListNode*>(thread_get_implicit_args());

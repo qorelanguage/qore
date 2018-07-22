@@ -42,7 +42,7 @@ protected:
 
     DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
     DLLLOCAL void parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo*& outTypeInfo) {
         assert(!outTypeInfo);

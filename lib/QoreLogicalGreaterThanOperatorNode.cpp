@@ -32,7 +32,7 @@
 
 QoreString QoreLogicalGreaterThanOperatorNode::op_str("> operator expression");
 
-QoreValue QoreLogicalGreaterThanOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreLogicalGreaterThanOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsink) const {
    if (pfunc)
       return (this->*pfunc)(xsink);
 

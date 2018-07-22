@@ -33,7 +33,7 @@
 QoreString QoreLogicalAbsoluteEqualsOperatorNode::logical_absolute_equals_str("logical absolute equals (===) operator expression");
 QoreString QoreLogicalAbsoluteNotEqualsOperatorNode::logical_absolute_not_equals_str("logical absolute not equals (!==) operator expression");
 
-QoreValue QoreLogicalAbsoluteEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreLogicalAbsoluteEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder l(left, xsink);
     if (*xsink)
         return QoreValue();

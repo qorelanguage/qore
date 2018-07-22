@@ -490,12 +490,6 @@ QoreValue QoreValue::eval(ExceptionSink* xsink) const {
         return *this;
     }
 
-    if (v.n->hasValueApi()) {
-        const ParseNode* pn = get<const ParseNode>();
-        bool needs_deref = true;
-        QoreValue rv = pn->evalValue(needs_deref, xsink);
-        return needs_deref ? rv : rv.refSelf();
-    }
     return v.n->eval(xsink);
 }
 
@@ -506,10 +500,6 @@ QoreValue QoreValue::eval(bool& needs_deref, ExceptionSink* xsink) const {
         return *this;
     }
 
-    if (v.n->hasValueApi()) {
-        const ParseNode* pn = get<const ParseNode>();
-        return pn->evalValue(needs_deref, xsink);
-    }
     return v.n->eval(needs_deref, xsink);
 }
 
@@ -697,13 +687,7 @@ int ValueEvalRefHolder::evalIntern(const AbstractQoreNode* exp) {
     }
 
     needs_deref = true;
-    if (exp->hasValueApi()) {
-        const ParseNode* pn = reinterpret_cast<const ParseNode*>(exp);
-        v = pn->evalValue(needs_deref, xsink);
-    }
-    else {
-        v = exp->eval(needs_deref, xsink);
-    }
+    v = exp->eval(needs_deref, xsink);
 
     return xsink && *xsink ? -1 : 0;
 }

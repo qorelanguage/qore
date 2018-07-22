@@ -79,7 +79,7 @@ protected:
 
     DLLLOCAL static QoreString map_str;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
     DLLLOCAL virtual ~QoreMapSelectOperatorNode() {
     }

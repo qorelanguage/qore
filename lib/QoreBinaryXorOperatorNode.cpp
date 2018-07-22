@@ -33,7 +33,7 @@
 
 QoreString QoreBinaryXorOperatorNode::op_str("^ (binary xor) operator expression");
 
-QoreValue QoreBinaryXorOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreBinaryXorOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return QoreValue();
     ValueEvalRefHolder rh(right, xsink);

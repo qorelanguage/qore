@@ -57,42 +57,12 @@ protected:
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const = 0;
 
-    DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const {
-        ValueEvalRefHolder v(this, xsink);
-        return v->getAsBigInt();
-    }
-    DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const {
-        ValueEvalRefHolder v(this, xsink);
-        return v->getAsBigInt();
-    }
-    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const {
-        ValueEvalRefHolder v(this, xsink);
-        return v->getAsBool();
-    }
-    DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const {
-        ValueEvalRefHolder v(this, xsink);
-        return v->getAsFloat();
-    }
-    DLLLOCAL virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const {
-        ValueEvalRefHolder v(this, xsink);
-        return v.takeReferencedValue().takeNode();
-    }
-    DLLLOCAL virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-        ValueEvalRefHolder v(this, xsink);
-        return v.takeNode(needs_deref);
-    }
-
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
-
 public:
     DLLLOCAL ParseNode(const QoreProgramLocation* loc, qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval), loc(loc), effect(n_needs_eval), ref_rv(true), parse_init(false) {
-        has_value_api = true;
     }
     DLLLOCAL ParseNode(const QoreProgramLocation* loc, qore_type_t t, bool n_needs_eval, bool n_effect) : SimpleQoreNode(t, false, n_needs_eval), loc(loc), effect(n_effect), ref_rv(true), parse_init(false) {
-        has_value_api = true;
     }
     DLLLOCAL ParseNode(const ParseNode& old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), loc(old.loc), effect(old.effect), ref_rv(old.ref_rv), parse_init(false) {
-        has_value_api = true;
     }
     // parse types should never be copied
     DLLLOCAL virtual AbstractQoreNode* realCopy() const {
@@ -128,23 +98,6 @@ public:
         parse_init = true;
         parseInitImpl(val, oflag, pflag, lvids, typeInfo);
     }
-
-    // FIXME: move to AbstractQoreNode
-    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
-        needs_deref = true;
-        //return evalValueImpl(needs_deref, xsink);
-        QoreValue rv = evalValueImpl(needs_deref, xsink);
-        if (rv.getType() == NT_WEAKREF) {
-            QoreObject* o = rv.get<WeakReferenceNode>()->get();
-            if (needs_deref) {
-                o->ref();
-                rv.discard(xsink);
-            }
-            rv = o;
-        }
-
-        return rv;
-    }
 };
 
 // these objects will never be copied or referenced therefore they can have
@@ -158,7 +111,7 @@ private:
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const = 0;
 
 protected:
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
         assert(false);
         return QoreValue();
     }

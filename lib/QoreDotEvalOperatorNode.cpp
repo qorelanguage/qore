@@ -42,7 +42,7 @@ static const AbstractQoreNode* check_call_ref(const AbstractQoreNode *op, const 
     return (ref.getType() == NT_FUNCREF || ref.getType() == NT_RUNTIME_CLOSURE) ? ref.getInternalNode() : nullptr;
 }
 
-QoreValue QoreDotEvalOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreDotEvalOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder op(left, xsink);
     if (*xsink)
         return QoreValue();
@@ -203,5 +203,11 @@ AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
 }
 
 QoreOperatorNode* QoreDotEvalOperatorNode::copyBackground(ExceptionSink* xsink) const {
-    return new QoreDotEvalOperatorNode(loc, copy_value_and_resolve_lvar_refs(left, xsink), reinterpret_cast<MethodCallNode*>(copy_and_resolve_lvar_refs(m, xsink)));
+    QoreValue mv = m;
+    ValueHolder holder(copy_value_and_resolve_lvar_refs(mv, xsink), xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    return new QoreDotEvalOperatorNode(loc, copy_value_and_resolve_lvar_refs(left, xsink), holder.release().get<MethodCallNode>());
 }

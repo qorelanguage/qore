@@ -399,7 +399,7 @@ public:
         return *xsink ? nullptr : rv.release();
     }
 
-    DLLLOCAL AbstractQoreNode* evalImpl(ExceptionSink* xsink) const {
+    DLLLOCAL QoreHashNode* evalImpl(ExceptionSink* xsink) const {
         QoreHashNodeHolder h(getCopy(), xsink);
 
         for (qhlist_t::const_iterator i = member_list.begin(), e = member_list.end(); i != e; ++i) {

@@ -32,7 +32,7 @@
 
 QoreString QoreMultiplicationOperatorNode::multiplication_str("* operator expression");
 
-QoreValue QoreMultiplicationOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreMultiplicationOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();

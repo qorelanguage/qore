@@ -62,7 +62,7 @@ public:
         QoreValue cond = QoreValue(),
         int sort_type = -1, QoreValue sort = QoreValue(),
         QoreValue summary = QoreValue(), int ignore_key = 0);
-    DLLLOCAL QoreValue evalValue(const char *field, ExceptionSink *xsink);
+    DLLLOCAL QoreValue eval(const char *field, ExceptionSink *xsink);
 
     DLLLOCAL QoreHashNode* getRow(ExceptionSink *xsink);
     DLLLOCAL int next_summary();

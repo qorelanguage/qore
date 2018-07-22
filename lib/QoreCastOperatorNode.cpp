@@ -171,7 +171,7 @@ void QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, i
     parse_error(*loc, "cannot cast<> to type '%s'", QoreTypeInfo::getName(typeInfo));;
 }
 
-QoreValue QoreClassCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreClassCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder rv(exp, xsink);
     if (*xsink)
         return QoreValue();
@@ -190,7 +190,7 @@ QoreValue QoreClassCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionS
             xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to class '%s'", obj->getClassName(), qc->getName());
             return QoreValue();
         }
-        //printd(5, "QoreCastOperatorNode::evalValueImpl() %s -> %s priv: %d\n", oc->getName(), tc->getName(), priv);
+        //printd(5, "QoreCastOperatorNode::evalImpl() %s -> %s priv: %d\n", oc->getName(), tc->getName(), priv);
         if (priv && !qore_class_private::runtimeCheckPrivateClassAccess(*tc)) {
             xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to privately-accessible class '%s' in this context", obj->getClassName(), qc->getName());
             return QoreValue();
@@ -200,7 +200,7 @@ QoreValue QoreClassCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionS
     return rv.takeValue(needs_deref);
 }
 
-QoreValue QoreHashDeclCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreHashDeclCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder rv(exp, xsink);
     if (*xsink)
         return QoreValue();
@@ -232,7 +232,7 @@ QoreValue QoreHashDeclCastOperatorNode::evalValueImpl(bool& needs_deref, Excepti
     return typed_hash_decl_private::get(*hd)->newHash(h, true, xsink);
 }
 
-QoreValue QoreComplexHashCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreComplexHashCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(needs_deref);
     ValueEvalRefHolder rv(exp, xsink);
     if (*xsink)
@@ -247,7 +247,7 @@ QoreValue QoreComplexHashCastOperatorNode::evalValueImpl(bool& needs_deref, Exce
     return qore_hash_private::newComplexHashFromHash(typeInfo, rv.takeReferencedNode<QoreHashNode>(), xsink);
 }
 
-QoreValue QoreComplexListCastOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreComplexListCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(needs_deref);
     ValueEvalRefHolder rv(exp, xsink);
     if (*xsink)

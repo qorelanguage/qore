@@ -35,7 +35,7 @@
 
 QoreString QorePlusOperatorNode::plus_str("+ operator expression");
 
-QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QorePlusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();

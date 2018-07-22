@@ -49,9 +49,9 @@ protected:
 
     DLLLOCAL static QoreString select_str;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL QoreValue evalValueFunc(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL QoreValue evalFunc(bool& needs_deref, ExceptionSink* xsink) const;
 
     DLLLOCAL virtual ~QoreSelectOperatorNode() {
     }

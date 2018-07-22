@@ -113,7 +113,7 @@ void QoreParseHashNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag
     val = rv.takeReferencedValue();
 }
 
-QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreParseHashNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(keys.size() == values.size());
     // complex type will be added before returning if applicable
     ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
@@ -146,7 +146,7 @@ QoreValue QoreParseHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
 
         // issue #2791: ensure that type folding is performed at the source if necessary
         QoreValue val = v.takeReferencedValue();
-        //printd(5, "QoreParseHashNode::evalValueImpl() '%s' this->vtype: '%s' (c: %d) vt: '%s' (c: %d)\n", key->c_str(), QoreTypeInfo::getName(this->vtype), QoreTypeInfo::hasComplexType(this->vtype), QoreTypeInfo::getName(vt), QoreTypeInfo::hasComplexType(vt));
+        //printd(5, "QoreParseHashNode::evalImpl() '%s' this->vtype: '%s' (c: %d) vt: '%s' (c: %d)\n", key->c_str(), QoreTypeInfo::getName(this->vtype), QoreTypeInfo::hasComplexType(this->vtype), QoreTypeInfo::getName(vt), QoreTypeInfo::hasComplexType(vt));
         if (this->vtype != vt && !QoreTypeInfo::hasComplexType(this->vtype) && QoreTypeInfo::hasComplexType(vt)) {
             // this can never throw an exception; it's only used for type folding/stripping
             QoreTypeInfo::acceptInputKey(this->vtype, key->c_str(), val, xsink);

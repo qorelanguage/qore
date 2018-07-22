@@ -78,7 +78,7 @@ QoreHashNode* QoreHashMapSelectOperatorNode::getNewHash() const {
     return new QoreHashNode(QoreTypeInfo::getUniqueReturnComplexHash(returnTypeInfo));
 }
 
-QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreHashMapSelectOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder arg_lst(e[2], xsink);
     if (*xsink || arg_lst->isNothing())
         return QoreValue();

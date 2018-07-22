@@ -40,7 +40,7 @@ protected:
 
     DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
     DLLLOCAL QoreQuestionMarkOperatorNode(const QoreProgramLocation* loc, QoreValue e0, QoreValue e1, QoreValue e2) : QoreNOperatorNodeBase<3>(loc, e0, QoreSimpleValue().assign(e1), QoreSimpleValue().assign(e2)) {

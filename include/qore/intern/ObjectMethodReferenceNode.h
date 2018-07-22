@@ -41,7 +41,7 @@ protected:
    /** return value requires a deref(xsink) if needs_deref is true
        @see AbstractQoreNode::eval()
    */
-   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
+   DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
 
 public:
    DLLLOCAL AbstractParseObjectMethodReferenceNode(const QoreProgramLocation* loc) : ParseNode(loc, NT_OBJMETHREF) {
@@ -88,7 +88,7 @@ protected:
     /** return value requires a deref(xsink) if needs_deref is true
         @see AbstractQoreNode::eval()
     */
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
     DLLLOCAL ParseObjectMethodReferenceNode(const QoreProgramLocation* loc, QoreValue n_exp, char* n_method);
@@ -111,7 +111,7 @@ private:
 
 protected:
     // returns a RunTimeObjectMethodReference or NULL if there's an exception
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
     DLLLOCAL ParseSelfMethodReferenceNode(const QoreProgramLocation* loc, char* n_method) : AbstractParseObjectMethodReferenceNode(loc), method(n_method), meth(0) {
@@ -131,7 +131,7 @@ private:
 
 protected:
     // returns a RunTimeObjectMethodReference or NULL if there's an exception
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
     DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {

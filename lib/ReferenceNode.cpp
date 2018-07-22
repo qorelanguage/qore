@@ -200,7 +200,7 @@ QoreString* ReferenceNode::getAsString(bool& del, int foff, ExceptionSink* xsink
 }
 
 /*
-QoreValue ReferenceNode::evalValue(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue ReferenceNode::eval(bool& needs_deref, ExceptionSink* xsink) const {
    needs_deref = true;
    LValueHelper lvh(this, xsink);
    return lvh ? lvh.getReferencedValue() : QoreValue();
@@ -213,21 +213,21 @@ AbstractQoreNode* ReferenceNode::realCopy() const {
 
 // the type passed must always be equal to the current type
 bool ReferenceNode::is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
-    ReferenceHolder<> val(ReferenceNode::evalImpl(xsink), xsink);
+    ValueHolder val(ReferenceNode::doEval(xsink), xsink);
     if (*xsink)
         return false;
     if (!val)
         return is_nothing(v) ? true : false;
-    return val->is_equal_soft(v, xsink);
+    return val->isEqualSoft(v, xsink);
 }
 
 bool ReferenceNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
-    ReferenceHolder<> val(ReferenceNode::evalImpl(xsink), xsink);
+    ValueHolder val(ReferenceNode::doEval(xsink), xsink);
     if (*xsink)
         return false;
     if (!val)
         return is_nothing(v) ? true : false;
-    return val->is_equal_hard(v, xsink);
+    return val->isEqualHard(v);
 }
 
 // returns the type name as a c string
@@ -240,34 +240,14 @@ bool ReferenceNode::derefImpl(ExceptionSink* xsink) {
     return true;
 }
 
-AbstractQoreNode* ReferenceNode::evalImpl(ExceptionSink* xsink) const {
+QoreValue ReferenceNode::doEval(ExceptionSink* xsink) const {
     LValueHelper lvh(this, xsink);
-    return lvh ? lvh.getReferencedValue().takeNode() : nullptr;
+    return lvh ? lvh.getReferencedValue().takeNode() : QoreValue();
 }
 
-AbstractQoreNode* ReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    needs_deref = true;
-    return ReferenceNode::evalImpl(xsink);
-}
-
-int64 ReferenceNode::bigIntEvalImpl(ExceptionSink* xsink) const {
-    LValueHelper lvh(this, xsink);
-    return lvh ? lvh.getAsBigInt() : 0;
-}
-
-int ReferenceNode::integerEvalImpl(ExceptionSink* xsink) const {
-    LValueHelper lvh(this, xsink);
-    return lvh ? (int)lvh.getAsBigInt() : 0;
-}
-
-bool ReferenceNode::boolEvalImpl(ExceptionSink *xsink) const {
-    LValueHelper lvh(this, xsink);
-    return lvh ? lvh.getAsBool() : false;
-}
-
-double ReferenceNode::floatEvalImpl(ExceptionSink *xsink) const {
-    LValueHelper lvh(this, xsink);
-    return lvh ? lvh.getAsFloat() : 0.0;
+QoreValue ReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    assert(needs_deref == true);
+    return doEval(xsink);
 }
 
 const QoreTypeInfo* ReferenceNode::getTypeInfo() const {

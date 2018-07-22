@@ -83,7 +83,7 @@ void QoreSquareBracketsRangeOperatorNode::parseInitImpl(QoreValue& val, LocalVar
     typeInfo = returnTypeInfo;
 }
 
-QoreValue QoreSquareBracketsRangeOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreSquareBracketsRangeOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder seq(e[0], xsink);
     if (*xsink)
         return QoreValue();
@@ -156,7 +156,7 @@ FunctionalOperatorInterface* QoreSquareBracketsRangeOperatorNode::getFunctionalI
     }
 
     bool needs_deref;
-    ValueHolder res(evalValueImpl(needs_deref, xsink), xsink);
+    ValueHolder res(evalImpl(needs_deref, xsink), xsink);
 
     if (*xsink)
         return nullptr;

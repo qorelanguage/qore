@@ -82,7 +82,7 @@ void QoreListAssignmentOperatorNode::parseInitImpl(QoreValue& val, LocalVar* ofl
     }
 }
 
-QoreValue QoreListAssignmentOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreListAssignmentOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(left.getType() == NT_PARSE_LIST);
     const QoreParseListNode* llv = left.get<const QoreParseListNode>();
 

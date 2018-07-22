@@ -39,7 +39,7 @@
 #include <map>
 #include <string>
 
-DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
+DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink);
 
 class QoreParseHashNode : public ParseNode {
 public:
@@ -175,7 +175,7 @@ protected:
         }
     }
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };
 
 #endif

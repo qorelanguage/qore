@@ -99,7 +99,7 @@ QoreHashNode* QoreHashMapOperatorNode::getNewHash() const {
     return new QoreHashNode(QoreTypeInfo::getUniqueReturnComplexHash(returnTypeInfo));
 }
 
-QoreValue QoreHashMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder arg_lst(e[2], xsink);
     if (*xsink || arg_lst->isNothing())
         return QoreValue();

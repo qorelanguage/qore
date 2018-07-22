@@ -174,7 +174,7 @@ void QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreListNode* ln
     }
 }
 
-QoreValue QoreSquareBracketsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreSquareBracketsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();

@@ -81,14 +81,14 @@ void ParseNewComplexTypeNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int
     parse_error(*loc, "type '%s' does not support instantiation with the new operator", QoreTypeInfo::getName(typeInfo));
 }
 
-QoreValue NewHashDeclNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue NewHashDeclNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     return typed_hash_decl_private::get(*hd)->newHash(args, runtime_check, xsink);
 }
 
-QoreValue NewComplexHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue NewComplexHashNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     return qore_hash_private::newComplexHash(typeInfo, args, xsink);
 }
 
-QoreValue NewComplexListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue NewComplexListNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     return qore_list_private::newComplexList(typeInfo, args, xsink);
 }

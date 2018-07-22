@@ -44,7 +44,7 @@ int QoreBinaryNotOperatorNode::getAsString(QoreString& str, int foff, ExceptionS
     return 0;
 }
 
-QoreValue QoreBinaryNotOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreBinaryNotOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder v(exp, xsink);
     if (*xsink)
         return QoreValue();

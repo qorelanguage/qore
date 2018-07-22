@@ -56,7 +56,7 @@ void QoreNullCoalescingOperatorNode::parseInitImpl(QoreValue& val, LocalVar *ofl
     parse_init_value(right, oflag, pflag, lvids, lti);
 }
 
-QoreValue QoreNullCoalescingOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreNullCoalescingOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     {
         ValueEvalRefHolder arg(left, xsink);
         if (*xsink)

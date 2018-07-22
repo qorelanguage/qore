@@ -37,8 +37,8 @@ class QoreLogicalAbsoluteNotEqualsOperatorNode : public QoreLogicalAbsoluteEqual
 protected:
     DLLLOCAL static QoreString logical_absolute_not_equals_str;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
-        QoreValue rv = QoreLogicalAbsoluteEqualsOperatorNode::evalValueImpl(needs_deref, xsink);
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink *xsink) const {
+        QoreValue rv = QoreLogicalAbsoluteEqualsOperatorNode::evalImpl(needs_deref, xsink);
         if (*xsink)
             return QoreValue();
         return !rv.v.b;

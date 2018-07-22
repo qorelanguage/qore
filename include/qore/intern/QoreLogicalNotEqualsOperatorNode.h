@@ -37,8 +37,8 @@ class QoreLogicalNotEqualsOperatorNode : public QoreLogicalEqualsOperatorNode {
 protected:
     DLLLOCAL static QoreString logical_not_equals_str;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-        QoreValue rv = QoreLogicalEqualsOperatorNode::evalValueImpl(needs_deref, xsink);
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+        QoreValue rv = QoreLogicalEqualsOperatorNode::evalImpl(needs_deref, xsink);
         if (*xsink)
             return QoreValue();
         return !rv.v.b;

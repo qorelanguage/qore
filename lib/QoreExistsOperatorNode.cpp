@@ -44,7 +44,7 @@ int QoreExistsOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink
    return 0;
 }
 
-QoreValue QoreExistsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreExistsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    ValueEvalRefHolder v(exp, xsink);
    if (*xsink)
       return QoreValue();

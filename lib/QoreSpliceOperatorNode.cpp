@@ -88,7 +88,7 @@ void QoreSpliceOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int 
     }
 }
 
-QoreValue QoreSpliceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreSpliceOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     printd(5, "QoreSpliceOperatorNode::splice() lvalue_exp: %s, offset_exp: %s, length_exp: %s, new_exp: %s, isEvent: %d\n", lvalue_exp.getTypeName(), offset_exp.getTypeName(), length_exp.getTypeName(), new_exp.getTypeName(), xsink->isEvent());
 
     // evaluate arguments

@@ -88,7 +88,7 @@ void QoreKeysOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
     typeInfo = returnTypeInfo;
 }
 
-QoreValue QoreKeysOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreKeysOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     FunctionalValueType value_type;
     std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, xsink));
     if ((xsink && *xsink) || value_type != list || !ref_rv)

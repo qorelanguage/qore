@@ -45,7 +45,7 @@ int QoreInstanceOfOperatorNode::getAsString(QoreString& str, int foff, Exception
     return 0;
 }
 
-QoreValue QoreInstanceOfOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreInstanceOfOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(ti);
 
     ValueEvalRefHolder v(exp, xsink);

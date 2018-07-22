@@ -36,7 +36,7 @@ void QoreXorEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, i
     parseInitIntLValue(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 }
 
-QoreValue QoreXorEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreXorEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder new_right(right, xsink);
     if (*xsink)
         return QoreValue();

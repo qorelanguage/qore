@@ -56,7 +56,7 @@ const char *StaticClassVarRefNode::getTypeName() const {
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-QoreValue StaticClassVarRefNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue StaticClassVarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
     return vi.getReferencedValue();
 }
 

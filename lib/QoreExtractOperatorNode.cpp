@@ -87,7 +87,7 @@ void QoreExtractOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int
     }
 }
 
-QoreValue QoreExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreExtractOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     printd(5, "QoreExtractOperatorNode::splice() lvalue_exp: %s, offset_exp: %s, length_exp: %s, new_exp: %s, isEvent: %d\n", lvalue_exp.getTypeName(), offset_exp.getTypeName(), length_exp.getTypeName(), new_exp.getTypeName(), xsink->isEvent());
 
     // evaluate arguments

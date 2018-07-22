@@ -32,7 +32,7 @@
 
 QoreString QoreBinaryAndOperatorNode::op_str("& (binary and) operator expression");
 
-QoreValue QoreBinaryAndOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreBinaryAndOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return QoreValue();
     ValueEvalRefHolder rh(right, xsink);

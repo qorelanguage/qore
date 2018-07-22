@@ -46,7 +46,7 @@ int QoreChompOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink*
    return 0;
 }
 
-QoreValue QoreChompOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreChompOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     LValueHelper val(exp, xsink);
     if (!val)
         return QoreValue();

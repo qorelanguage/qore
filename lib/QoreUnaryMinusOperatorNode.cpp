@@ -45,7 +45,7 @@ int QoreUnaryMinusOperatorNode::getAsString(QoreString &str, int foff, Exception
     return 0;
 }
 
-QoreValue QoreUnaryMinusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreUnaryMinusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsink) const {
     ValueEvalRefHolder v(exp, xsink);
     if (*xsink)
         return QoreValue();

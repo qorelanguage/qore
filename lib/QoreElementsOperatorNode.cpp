@@ -45,7 +45,7 @@ int QoreElementsOperatorNode::getAsString(QoreString& str, int foff, ExceptionSi
     return 0;
 }
 
-QoreValue QoreElementsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreElementsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder v(exp, xsink);
     if (*xsink)
         return QoreValue();

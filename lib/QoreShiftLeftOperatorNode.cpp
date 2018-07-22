@@ -33,7 +33,7 @@
 
 QoreString QoreShiftLeftOperatorNode::op_str("<< (shift left) operator expression");
 
-QoreValue QoreShiftLeftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreShiftLeftOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return QoreValue();
     ValueEvalRefHolder rh(right, xsink);

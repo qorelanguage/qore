@@ -43,7 +43,7 @@ protected:
     // pointer to optimized versions depending on arguments found at parse-time
     eval_t pfunc = nullptr;
 
-    DLLLOCAL QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
     DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
         return parseInitIntern(op_str.getBuffer(), val, oflag, pflag, lvids, typeInfo);

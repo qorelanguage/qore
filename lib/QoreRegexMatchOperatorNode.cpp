@@ -33,7 +33,7 @@
 
 QoreString QoreRegexMatchOperatorNode::op_str("regex match (=~) operator expression");
 
-QoreValue QoreRegexMatchOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreRegexMatchOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsink) const {
     ValueEvalRefHolder lh(exp, xsink);
     if (*xsink)
         return QoreValue();

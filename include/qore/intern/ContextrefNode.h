@@ -39,7 +39,7 @@ protected:
     /** return value requires a deref(xsink) if needs_deref is true
         @see AbstractQoreNode::eval()
     */
-    DLLLOCAL virtual QoreValue evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
 
     DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 

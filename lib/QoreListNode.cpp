@@ -406,17 +406,9 @@ QoreValue QoreListNode::pop() {
     return rv;
 }
 
-AbstractQoreNode* QoreListNode::evalImpl(ExceptionSink* xsink) const {
+QoreValue QoreListNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
+    assert(needs_deref);
     if (!value) {
-        return priv->eval(xsink);
-    }
-    ref();
-    return const_cast<QoreListNode*>(this);
-}
-
-AbstractQoreNode* QoreListNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
-    if (!value) {
-        needs_deref = true;
         return priv->eval(xsink);
     }
     needs_deref = false;
@@ -438,22 +430,6 @@ QoreListNode* QoreListNode::evalList(bool &needs_deref, ExceptionSink* xsink) co
     }
     needs_deref = false;
     return const_cast<QoreListNode*>(this);
-}
-
-int64 QoreListNode::bigIntEvalImpl(ExceptionSink* xsink) const {
-    return 0;
-}
-
-int QoreListNode::integerEvalImpl(ExceptionSink* xsink) const {
-    return 0;
-}
-
-bool QoreListNode::boolEvalImpl(ExceptionSink* xsink) const {
-    return false;
-}
-
-double QoreListNode::floatEvalImpl(ExceptionSink* xsink) const {
-    return 0.0;
 }
 
 QoreListNode* QoreListNode::copy() const {

@@ -32,7 +32,7 @@
 
 QoreString QoreMinusOperatorNode::minus_str("- operator expression");
 
-QoreValue QoreMinusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreMinusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();

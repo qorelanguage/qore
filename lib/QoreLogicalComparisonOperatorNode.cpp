@@ -34,7 +34,7 @@
 
 QoreString QoreLogicalComparisonOperatorNode::logical_comparison_str("logical comparison (<=>) operator expression");
 
-QoreValue QoreLogicalComparisonOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreLogicalComparisonOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder l(left, xsink);
     if (*xsink)
         return QoreValue();

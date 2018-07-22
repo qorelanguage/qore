@@ -125,7 +125,7 @@ void QoreMapOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pfl
     }
 }
 
-QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     FunctionalValueType value_type;
     std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, xsink));
     if (*xsink || value_type == nothing) {

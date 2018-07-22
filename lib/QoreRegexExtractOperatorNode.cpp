@@ -32,7 +32,7 @@
 
 QoreString QoreRegexExtractOperatorNode::op_str("regex extract (=~ x//) operator expression");
 
-QoreValue QoreRegexExtractOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreRegexExtractOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(exp, xsink);
     if (*xsink)
         return QoreValue();

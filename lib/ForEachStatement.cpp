@@ -113,7 +113,7 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
         return 0;
 
     // get the current value of the lvalue expression
-    ValueHolder tlist(vr->evalValue(xsink), xsink);
+    ValueHolder tlist(vr->eval(xsink), xsink);
     if (!code || *xsink || tlist->isNothing())
         return 0;
 

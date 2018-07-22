@@ -33,7 +33,7 @@
 
 QoreString QoreShiftRightOperatorNode::op_str(">> (shift right) operator expression");
 
-QoreValue QoreShiftRightOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreShiftRightOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return QoreValue();
     ValueEvalRefHolder rh(right, xsink);

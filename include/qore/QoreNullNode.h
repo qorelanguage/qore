@@ -64,9 +64,9 @@ private:
 protected:
     //! this function is never called for this type
     /** @see AbstractQoreNode::evalImpl()
-        */
+    */
     using SimpleValueQoreNode::evalImpl;
-    DLLLOCAL AbstractQoreNode *evalImpl(class ExceptionSink *xsink) const;
+    DLLLOCAL QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
     DLLEXPORT QoreNullNode();

@@ -32,7 +32,7 @@
 
 QoreString QoreModuloOperatorNode::op_str("% (modula) operator expression");
 
-QoreValue QoreModuloOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreModuloOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return false;
     ValueEvalRefHolder rh(right, xsink);

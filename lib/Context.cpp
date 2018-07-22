@@ -320,14 +320,14 @@ void Context::deref(ExceptionSink *xsink) {
 
 QoreValue eval_context_ref(const char* key, ExceptionSink* xsink) {
     Context* c = get_context_stack();
-    return c->evalValue(key, xsink);
+    return c->eval(key, xsink);
 }
 
 QoreHashNode* eval_context_row(ExceptionSink *xsink) {
     return get_context_stack()->getRow(xsink);
 }
 
-QoreValue Context::evalValue(const char* field, ExceptionSink* xsink) {
+QoreValue Context::eval(const char* field, ExceptionSink* xsink) {
     if (!value) {
         return QoreValue();
     }
@@ -344,8 +344,8 @@ QoreValue Context::evalValue(const char* field, ExceptionSink* xsink) {
     }
 
     QoreValue rv = val->get<QoreListNode>()->retrieveEntry(row_list[pos]);
-    //printd(5, "Context::evalValue(%s) this: %p pos: %d rv: %p %s %lld\n", field, this, pos, rv, rv.getTypeName(), rv.getType() == NT_INT ? rv.getAsBigInt() : -1);
-    //printd(5, "Context::evalValue(%s) pos: %d, val: %s\n", field, pos, rv.getType() == NT_STRING ? rv.get<const QoreStringNode>()->c_str() : "?");
+    //printd(5, "Context::eval(%s) this: %p pos: %d rv: %p %s %lld\n", field, this, pos, rv, rv.getTypeName(), rv.getType() == NT_INT ? rv.getAsBigInt() : -1);
+    //printd(5, "Context::eval(%s) pos: %d, val: %s\n", field, pos, rv.getType() == NT_STRING ? rv.get<const QoreStringNode>()->c_str() : "?");
     return rv.refSelf();
 }
 

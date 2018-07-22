@@ -60,7 +60,7 @@ void QoreUnshiftOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int
     }
 }
 
-QoreValue QoreUnshiftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreUnshiftOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder res(right, xsink);
     if (*xsink)
         return QoreValue();

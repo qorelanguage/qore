@@ -84,24 +84,24 @@ void VarRefNode::resolve(const QoreTypeInfo* typeInfo) {
    }
 }
 
-QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue VarRefNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    QoreValue v;
    if (type == VT_LOCAL) {
-      v = ref.id->evalValue(needs_deref, xsink);
+      v = ref.id->eval(needs_deref, xsink);
       printd(5, "VarRefNode::evalImpl() this: %p lvar %p (%s) v: '%s'\n", this, ref.id, ref.id->getName(), v.getTypeName());
    }
    else if (type == VT_CLOSURE) {
       printd(5, "VarRefNode::evalImpl() this: %p closure var %p (%s)\n", this, ref.id, ref.id->getName());
       ClosureVarValue *val = thread_get_runtime_closure_var(ref.id);
-      v = val->evalValue(needs_deref, xsink);
+      v = val->eval(needs_deref, xsink);
    }
    else if (type == VT_LOCAL_TS) {
       printd(5, "VarRefNode::evalImpl() this: %p local thread-safe var %p (%s)\n", this, ref.id, ref.id->getName());
       ClosureVarValue *val = thread_find_closure_var(ref.id->getName());
-      v = val->evalValue(needs_deref, xsink);
+      v = val->eval(needs_deref, xsink);
    }
    else if (type == VT_IMMEDIATE)
-      v = ref.cvv->evalValue(needs_deref, xsink);
+      v = ref.cvv->eval(needs_deref, xsink);
    else {
       assert(needs_deref);
       printd(5, "VarRefNode::evalImpl() this: %p global var: %p (%s)\n", this, ref.var, ref.var->getName());
@@ -112,7 +112,7 @@ QoreValue VarRefNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) con
    if (n && n->getType() == NT_REFERENCE) {
       ReferenceNode* r = reinterpret_cast<ReferenceNode*>(n);
       bool nd;
-      QoreValue nv = r->evalValue(nd, xsink);
+      QoreValue nv = r->eval(nd, xsink);
       if (needs_deref)
          discard(v.getInternalNode(), xsink);
       needs_deref = nd;
@@ -360,7 +360,7 @@ void VarRefNewObjectNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pfl
     outTypeInfo = typeInfo;
 }
 
-QoreValue VarRefNewObjectNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue VarRefNewObjectNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ReferenceHolder<> value(xsink);
 
     switch (vrn_type) {

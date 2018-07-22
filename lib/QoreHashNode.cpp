@@ -467,35 +467,14 @@ QoreHashNode* QoreHashNode::hashRefSelf() const {
 }
 
 // returns a hash with the same order
-AbstractQoreNode* QoreHashNode::evalImpl(ExceptionSink* xsink) const {
-   return priv->evalImpl(xsink);
-}
+QoreValue QoreHashNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
+    assert(needs_deref);
+    if (value) {
+        needs_deref = false;
+        return const_cast<QoreHashNode*>(this);
+    }
 
-// returns a hash with the same order
-AbstractQoreNode* QoreHashNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
-   if (value) {
-      needs_deref = false;
-      return const_cast<QoreHashNode*>(this);
-   }
-
-   needs_deref = true;
-   return QoreHashNode::evalImpl(xsink);
-}
-
-int64 QoreHashNode::bigIntEvalImpl(ExceptionSink* xsink) const {
-   return 0;
-}
-
-int QoreHashNode::integerEvalImpl(ExceptionSink* xsink) const {
-   return 0;
-}
-
-bool QoreHashNode::boolEvalImpl(ExceptionSink* xsink) const {
-   return false;
-}
-
-double QoreHashNode::floatEvalImpl(ExceptionSink* xsink) const {
-   return 0.0;
+    return priv->evalImpl(xsink);
 }
 
 // does a "soft" compare (values of different types are converted if necessary and then compared)

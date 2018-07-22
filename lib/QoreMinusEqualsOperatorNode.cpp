@@ -65,7 +65,7 @@ void QoreMinusEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag,
     typeInfo = ti;
 }
 
-QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreMinusEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
     ValueEvalRefHolder new_right(right, xsink);
     if (*xsink)
         return QoreValue();
@@ -81,7 +81,7 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
     // do float minus-equals if left side is a float
     qore_type_t vtype = v.getType();
 
-    //printd(5, "QoreMinusEqualsOperatorNode::evalValueImpl() vtype: %d rtype: %d\n", vtype, new_right->getType());
+    //printd(5, "QoreMinusEqualsOperatorNode::evalImpl() vtype: %d rtype: %d\n", vtype, new_right->getType());
 
     if (vtype == NT_NOTHING) {
         // see if the lvalue has a default type

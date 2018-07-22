@@ -37,7 +37,7 @@ class QoreElementsOperatorNode : public QoreSingleExpressionOperatorNode<QoreOpe
 protected:
     DLLLOCAL static QoreString Elements_str;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
     DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 

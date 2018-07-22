@@ -37,7 +37,7 @@ OP_COMMON
 protected:
     DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
     DLLLOCAL QoreOrEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBinaryIntLValueOperatorNode(loc, left, right) {

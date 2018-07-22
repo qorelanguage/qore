@@ -90,7 +90,7 @@ void QoreFoldlOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int p
     }
 }
 
-QoreValue QoreFoldlOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreFoldlOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    return doFold(true, needs_deref, xsink);
 }
 
@@ -149,6 +149,6 @@ int QoreFoldrOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink*
     return 0;
 }
 
-QoreValue QoreFoldrOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreFoldrOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     return doFold(false, needs_deref, xsink);
 }

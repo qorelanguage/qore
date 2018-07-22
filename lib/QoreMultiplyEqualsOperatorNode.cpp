@@ -36,7 +36,7 @@ void QoreMultiplyEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *ofl
    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 }
 
-QoreValue QoreMultiplyEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreMultiplyEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsink) const {
     ValueEvalRefHolder res(right, xsink);
     if (*xsink)
         return QoreValue();

@@ -33,7 +33,7 @@
 QoreString QoreLogicalEqualsOperatorNode::logical_equals_str("logical equals operator expression");
 QoreString QoreLogicalNotEqualsOperatorNode::logical_not_equals_str("logical not equals operator expression");
 
-QoreValue QoreLogicalEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreLogicalEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     if (pfunc)
         return (this->*pfunc)(xsink);
 

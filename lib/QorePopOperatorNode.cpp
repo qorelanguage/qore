@@ -33,8 +33,8 @@
 
 QoreString QorePopOperatorNode::pop_str("pop operator expression");
 
-QoreValue QorePopOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    //printd(5, "QorePopOperatorNode::evalValueImpl(%p, isEvent=%d)\n", exp, xsink->isEvent());
+QoreValue QorePopOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    //printd(5, "QorePopOperatorNode::evalImpl(%p, isEvent=%d)\n", exp, xsink->isEvent());
 
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper val(exp, xsink);
@@ -58,7 +58,7 @@ QoreValue QorePopOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* x
 
     QoreListNode* l = val.getValue().get<QoreListNode>();
 
-    printd(5, "QorePopOperatorNode::evalValueImpl() about to call QoreListNode::pop() on list node %p (%d)\n", l, l->size());
+    printd(5, "QorePopOperatorNode::evalImpl() about to call QoreListNode::pop() on list node %p (%d)\n", l, l->size());
     // the list reference will now be the reference for the return value
     // therefore no need to reference again
     return l->pop();

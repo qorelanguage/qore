@@ -34,7 +34,7 @@
 
 QoreString QoreTransliterationOperatorNode::op_str("transliteration (=~ tr///) operator expression");
 
-QoreValue QoreTransliterationOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreTransliterationOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsink) const {
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper v(exp, xsink);
     if (!v)

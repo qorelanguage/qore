@@ -506,7 +506,6 @@ DLLLOCAL void delete_global_variables();
 DLLLOCAL void init_lib_intern(char* env[]);
 DLLLOCAL QoreParseListNode* make_args(const QoreProgramLocation* loc, QoreValue arg);
 
-DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
 DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink);
 
 DLLLOCAL void init_qore_types();

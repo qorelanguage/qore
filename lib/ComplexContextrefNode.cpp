@@ -90,7 +90,7 @@ const char *ComplexContextrefNode::getTypeName() const {
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
-QoreValue ComplexContextrefNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue ComplexContextrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
     int count = 0;
 
     Context *cs = get_context_stack();
@@ -98,7 +98,7 @@ QoreValue ComplexContextrefNode::evalValueImpl(bool &needs_deref, ExceptionSink 
         count++;
         cs = cs->next;
     }
-    return cs->evalValue(member, xsink);
+    return cs->eval(member, xsink);
 }
 
 void ComplexContextrefNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

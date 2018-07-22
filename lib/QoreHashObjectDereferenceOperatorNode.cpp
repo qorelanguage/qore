@@ -151,7 +151,7 @@ void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalV
     typeInfo = returnTypeInfo;
 }
 
-QoreValue QoreHashObjectDereferenceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreHashObjectDereferenceOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();

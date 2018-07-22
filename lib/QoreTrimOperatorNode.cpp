@@ -46,7 +46,7 @@ int QoreTrimOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* 
    return 0;
 }
 
-QoreValue QoreTrimOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreTrimOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper val(exp, xsink);
     if (!val)

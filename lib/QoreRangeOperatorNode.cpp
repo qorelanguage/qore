@@ -55,7 +55,7 @@ void QoreRangeOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int p
     // with functional operators
 }
 
-QoreValue QoreRangeOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreRangeOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     FunctionalValueType value_type;
     std::unique_ptr<FunctionalOperatorInterface> fit(getFunctionalIterator(value_type, xsink));
     if (*xsink || value_type != list)
