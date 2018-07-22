@@ -395,10 +395,8 @@ bool QoreValue::isEqualValue(const QoreValue n) {
 }
 
 void QoreValue::sanitize() {
-    if (type != QV_Node || !v.n)
-        return;
-    switch (v.n->getType()) {
-        case NT_NOTHING: v.n = nullptr; break;
+    if (type == QV_Node && v.n && v.n->getType() == NT_NOTHING) {
+        v.n = nullptr;
     }
 }
 

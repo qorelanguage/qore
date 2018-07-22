@@ -116,45 +116,55 @@ public:
     //! indicates the value that the union is holding
     valtype_t type;
 
+    //! assigns an integer value to the object; any current value is overwritten
     DLLLOCAL void set(int64 i) {
         type = QV_Int;
         v.i = i;
     }
 
+    //! assigns a floating-point value to the object; any current value is overwritten
     DLLLOCAL void set(double f) {
         type = QV_Float;
         v.f = f;
     }
 
+    //! assigns a boolean value to the object; any current value is overwritten
     DLLLOCAL void set(bool b) {
         type = QV_Bool;
         v.b = b;
     }
 
+    //! assigns a new value to the object; any current value is overwritten
     DLLEXPORT void set(QoreSimpleValue val);
 
+    //! assigns a new value to the object; any current value is overwritten
     DLLEXPORT void set(AbstractQoreNode* n);
 
+    //! assigns a new value to the object and returns a reference to the object; any current value is overwritten
     DLLLOCAL QoreSimpleValue& assign(QoreSimpleValue& val) {
         set(val);
         return *this;
     }
 
+    //! assigns a new value to the object and returns a reference to the object; any current value is overwritten
     DLLLOCAL QoreSimpleValue& assign(int64 i) {
         set(i);
         return *this;
     }
 
+    //! assigns a new value to the object and returns a reference to the object; any current value is overwritten
     DLLLOCAL QoreSimpleValue& assign(double f) {
         set(f);
         return *this;
     }
 
+    //! assigns a new value to the object and returns a reference to the object; any current value is overwritten
     DLLLOCAL QoreSimpleValue& assign(bool b) {
         set(b);
         return *this;
     }
 
+    //! assigns a new value to the object and returns a reference to the object; any current value is overwritten
     DLLLOCAL QoreSimpleValue& assign(AbstractQoreNode* n) {
         set(n);
         return *this;
