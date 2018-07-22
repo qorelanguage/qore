@@ -1178,7 +1178,7 @@ int64 QoreObject::getMemberAsBigInt(const char* mem, bool& found, ExceptionSink*
 }
 
 QoreValue QoreObject::getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const {
-   return priv->getReferencedMemberNoMethod(mem, xsink).takeNode();
+   return priv->getReferencedMemberNoMethod(mem, xsink);
 }
 
 QoreHashNode* QoreObject::copyData(ExceptionSink* xsink) const {

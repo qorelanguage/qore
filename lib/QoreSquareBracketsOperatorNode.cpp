@@ -313,7 +313,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
                 const QoreTypeInfo* vtype = nullptr;
                 // try to find a common value type, if any
                 bool vcommon = false;
-                ReferenceHolder<QoreListNode> ret(new QoreListNode, xsink);
+                ReferenceHolder<QoreListNode> ret(new QoreListNode(autoTypeInfo), xsink);
                 while (it.next()) {
                     ValueHolder entry(doSquareBrackets(l, it.getValue(), false, xsink), xsink);
                     if (*xsink)
@@ -328,7 +328,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
                     else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, entry->getTypeInfo()))
                         vcommon = false;
 
-                    ret->push(entry->takeNode(), xsink);
+                    ret->push(entry.release(), xsink);
 
                     //printd(5, "QoreSquareBracketsOperatorNode::doSquareBrackets() i: %d: vc: %d vtype: '%s' et: '%s'\n", it.index(), (int)vcommon, QoreTypeInfo::getName(vtype), QoreTypeInfo::getName(entry->getTypeInfo()));
                 }

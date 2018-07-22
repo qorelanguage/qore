@@ -68,25 +68,25 @@ public:
 
     //! returns the boolean value of the object
     /**
-        calls getAsBoolImpl() if necessary (there is an optimization for the QoreBoolNode class) to return the boolean value of the object
+        calls getAsBoolImpl() if necessary to return the boolean value of the object
     */
     DLLEXPORT bool getAsBool() const;
 
     //! returns the integer value of the object
     /**
-        calls getAsIntImpl() if necessary (there is an optimization for the QoreBigIntNode class) to return the integer value of the object
+        calls getAsIntImpl() if necessary to return the integer value of the object
     */
     DLLEXPORT int getAsInt() const;
 
     //! returns the 64-bit integer value of the object
     /**
-        calls getAsBitIntImpl() if necessary (there is an optimization for the QoreBigIntNode class) to return the integer value of the object
+        calls getAsBitIntImpl() if necessary to return the integer value of the object
     */
     DLLEXPORT int64 getAsBigInt() const;
 
     //! returns the float value of the object
     /**
-        calls getAsFloatImpl() if necessary (there is an optimization for the QoreFloatNode class) to return the floating-point value of the object
+        calls getAsFloatImpl() if necessary to return the floating-point value of the object
     */
     DLLEXPORT double getAsFloat() const;
 
@@ -96,7 +96,7 @@ public:
         @return a QoreString pointer, use the del output parameter to determine ownership of the pointer
         @see QoreStringValueHelper
     */
-    DLLEXPORT virtual QoreString *getStringRepresentation(bool& del) const;
+    DLLEXPORT virtual QoreString* getStringRepresentation(bool& del) const;
 
     //! concatentates the value of the type to an existing QoreString reference, default implementation does nothing
     /**
@@ -109,7 +109,7 @@ public:
         @param del output parameter: if del is true, then the returned DateTime pointer belongs to the caller (and must be deleted manually), if false, then it must not be
         @see DateTimeValueHelper
     */
-    DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool& del) const;
+    DLLEXPORT virtual class DateTime* getDateTimeRepresentation(bool& del) const;
 
     //! assigns the date representation of a value to the DateTime reference passed, default implementation does nothing
     /**

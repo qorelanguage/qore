@@ -185,26 +185,18 @@ QoreValue AbstractQoreNode::eval(bool& needs_deref, ExceptionSink* xsink) const 
 }
 
 bool AbstractQoreNode::getAsBool() const {
-    if (type == NT_BOOLEAN)
-        return reinterpret_cast<const QoreBoolNode*>(this)->getValue();
     return getAsBoolImpl();
 }
 
 int AbstractQoreNode::getAsInt() const {
-    if (type == NT_INT)
-        return (int)(reinterpret_cast<const QoreBigIntNode*>(this)->val);
     return getAsIntImpl();
 }
 
 int64 AbstractQoreNode::getAsBigInt() const {
-    if (type == NT_INT)
-        return reinterpret_cast<const QoreBigIntNode*>(this)->val;
     return getAsBigIntImpl();
 }
 
 double AbstractQoreNode::getAsFloat() const {
-    if (type == NT_FLOAT)
-        return reinterpret_cast<const QoreFloatNode*>(this)->f;
     return getAsFloatImpl();
 }
 

@@ -1364,7 +1364,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             }
 
             if (info)
-                info->setKeyValue("chunked", &True, xsink);
+                info->setKeyValue("chunked", true, xsink);
 
             if (*xsink)
                 return nullptr;
@@ -1498,7 +1498,7 @@ AbstractQoreNode* QoreHttpClientObject::get(const char* new_path, const QoreHash
     if (!ans)
         return nullptr;
 
-    return ans->takeKeyValue("body").takeNode();
+    return ans->takeKeyValue("body").getInternalNode();
 }
 
 QoreHashNode* QoreHttpClientObject::head(const char* new_path, const QoreHashNode* headers, QoreHashNode* info, ExceptionSink* xsink) {
@@ -1512,7 +1512,7 @@ AbstractQoreNode* QoreHttpClientObject::post(const char* new_path, const QoreHas
     if (!ans)
         return nullptr;
 
-    return ans->takeKeyValue("body").takeNode();
+    return ans->takeKeyValue("body").getInternalNode();
 }
 
 void QoreHttpClientObject::addProtocol(const char* prot, int new_port, bool new_ssl) {

@@ -461,8 +461,6 @@ AbstractQoreNode* QoreNumberNode::realCopy() const {
 bool QoreNumberNode::is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
    if (v->getType() == NT_NUMBER)
       return equals(*reinterpret_cast<const QoreNumberNode*>(v));
-   if (v->getType() == NT_INT || dynamic_cast<const QoreBigIntNode*>(v))
-      return equals(reinterpret_cast<const QoreBigIntNode*>(v)->val);
 
    return equals(v->getAsFloat());
 }

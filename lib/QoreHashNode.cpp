@@ -411,7 +411,7 @@ void QoreHashNode::removeKey(const QoreString* key, ExceptionSink* xsink) {
 int QoreHashNode::setKeyValue(const char* key, QoreValue value, ExceptionSink* xsink) {
     assert(reference_count() == 1);
     hash_assignment_priv ha(*priv, key);
-    ha.assign(value.takeNode(), xsink);
+    ha.assign(value, xsink);
     return xsink && *xsink ? -1 : 0;
 }
 

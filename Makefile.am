@@ -332,9 +332,6 @@ include_HEADERS = \
 	include/qore/QoreIteratorBase.h \
 	include/qore/QoreType.h \
 	include/qore/QoreListNode.h \
-	include/qore/QoreBigIntNode.h \
-	include/qore/QoreBoolNode.h \
-	include/qore/QoreFloatNode.h \
 	include/qore/QoreNumberNode.h \
 	include/qore/QoreNothingNode.h \
 	include/qore/QoreNullNode.h \

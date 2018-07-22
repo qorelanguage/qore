@@ -77,7 +77,7 @@ QoreValue ParseReferenceNode::doPartialEval(QoreValue n, QoreObject*& self, cons
                     assert(!nl);
                     return QoreValue();
                 }
-                return new QoreSquareBracketsOperatorNode(loc, nl, rh.takeReferencedValue().takeNode());
+                return new QoreSquareBracketsOperatorNode(loc, nl, rh.takeReferencedValue());
             }
         }
         {
@@ -92,7 +92,7 @@ QoreValue ParseReferenceNode::doPartialEval(QoreValue n, QoreObject*& self, cons
                     assert(!nl);
                     return QoreValue();
                 }
-                return new QoreHashObjectDereferenceOperatorNode(loc, nl, rh.takeReferencedValue().takeNode());
+                return new QoreHashObjectDereferenceOperatorNode(loc, nl, rh.takeReferencedValue());
             }
         }
     }
@@ -242,7 +242,7 @@ bool ReferenceNode::derefImpl(ExceptionSink* xsink) {
 
 QoreValue ReferenceNode::doEval(ExceptionSink* xsink) const {
     LValueHelper lvh(this, xsink);
-    return lvh ? lvh.getReferencedValue().takeNode() : QoreValue();
+    return lvh ? lvh.getReferencedValue() : QoreValue();
 }
 
 QoreValue ReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

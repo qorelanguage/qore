@@ -160,13 +160,21 @@ public:
         return *this;
     }
 
-    //! returns a referenced AbstractQoreNode pointer leaving "this" empty (value is taken from "this"); the caller owns the reference returned
+    //! returns the type of value contained
+    DLLEXPORT qore_type_t getType() const;
+
+    //! returns a string type description of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
+    DLLEXPORT const char* getTypeName() const;
+
+    //! returns a referenced AbstractQoreNode pointer leaving "this" empty (value is taken from "this"); the caller owns the reference returned; do not call with a simple value (int, float or bool)
+    /** @note this call will assert() in debug mode if the value is an int, float or bool
+    */
     DLLEXPORT AbstractQoreNode* takeNode();
 
-    //! returns any AbstractQoreNode value held; if type != QV_Node, returns NULL
+    //! returns any AbstractQoreNode value held; if type != QV_Node, returns nullptr
     DLLEXPORT AbstractQoreNode* getInternalNode();
 
-    //! returns any AbstractQoreNode value held; if type != QV_Node, returns NULL
+    //! returns any AbstractQoreNode value held; if type != QV_Node, returns nullptr
     DLLEXPORT const AbstractQoreNode* getInternalNode() const;
 
     //! unconditionally set the QoreValue to @ref QoreNothingNode (does not dereference any possible contained AbstractQoreNode ptr)
@@ -174,12 +182,6 @@ public:
 
     //! dereferences any contained AbstractQoreNode pointer and sets to 0; does not modify other values
     DLLEXPORT void discard(ExceptionSink* xsink);
-
-    //! returns the type of value contained
-    DLLEXPORT qore_type_t getType() const;
-
-    //! returns a string type description of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
-    DLLEXPORT const char* getTypeName() const;
 
     //! returns a pointer to an object of the given class; takes the pointer from the object; the caller owns the reference returned
     /** will assert() in debug mode if the object does not contain a value of the requested type or if type != QV_Node
@@ -387,12 +389,6 @@ public:
     /** @since %Qore 0.8.13
     */
     DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
-
-    //! returns the type of value contained
-    DLLEXPORT qore_type_t getType() const;
-
-    //! returns a string type description of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
-    DLLEXPORT const char* getTypeName() const;
 
     //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer); differs from the return value of getTypeName() for complex types (ex: \c "hash<string, int>")
     DLLEXPORT const char* getFullTypeName() const;
@@ -612,5 +608,12 @@ protected:
      */
     DLLLOCAL int evalIntern(const QoreValue exp);
 };
+
+//! "bool"
+DLLEXPORT extern const char* qoreBoolTypeName;
+//! "int"
+DLLEXPORT extern const char* qoreIntTypeName;
+//! "float"
+DLLEXPORT extern const char* qoreFloatTypeName;
 
 #endif

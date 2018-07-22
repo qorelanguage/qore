@@ -414,9 +414,9 @@ public:
     DLLLOCAL void setKeyValueIntern(const char* key, QoreValue v) {
         hash_assignment_priv ha(*this, key);
 #ifdef DEBUG
-        assert(ha.swap(v.takeNode()).isNothing());
+        assert(ha.swap(v).isNothing());
 #else
-        ha.swap(v.takeNode());
+        ha.swap(v);
 #endif
     }
 

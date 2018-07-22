@@ -45,9 +45,6 @@ class LValueHelper;
 
 // adds external types to global type map
 DLLLOCAL void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo);
-DLLLOCAL bool builtinTypeHasDefaultValue(qore_type_t t);
-// returns the default value for any type >= 0 and < NT_OBJECT
-DLLLOCAL AbstractQoreNode* getDefaultValueForBuiltinValueType(qore_type_t t);
 
 enum q_typespec_t : unsigned char {
    QTS_TYPE = 0,
