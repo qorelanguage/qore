@@ -83,5 +83,6 @@ void ScopedRefNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, in
     if (found) {
         parse_init_value(rv, oflag, pflag, lvids, typeInfo);
         val = rv;
+        delete this;
     }
 }

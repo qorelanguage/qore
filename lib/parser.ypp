@@ -3772,7 +3772,7 @@ exp_c:
         ;
 
 exp:
-    exp_c
+    exp_c                               { $$.set($1); }
     | list                              { $$.set($1); }
     | alt_hash                          { $$.set($1); }
     | immediate_typed_hash              { $$.set($1); }
@@ -3878,7 +3878,7 @@ exp:
     ;
 
 exp_n:
-    exp_c
+    exp_c                                 { $$.set($1); }
     | list_n                              { $$.set($1); }
     | exp_n PLUS_EQUALS exp               { $$.set(new QorePlusEqualsOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3)); }
     | exp_n MINUS_EQUALS exp              { $$.set(new QoreMinusEqualsOperatorNode(qore_program_private::get(*getProgram())->getLocation(@1.first_line, @3.last_line), $1, $3)); }
