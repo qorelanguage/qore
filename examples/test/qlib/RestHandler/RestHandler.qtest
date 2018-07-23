@@ -442,6 +442,10 @@ public class RestHandlerTest inherits QUnit::Test {
     }
 
     issue2893() {
+%ifdef NoJson
+        testSkip("no json module present");
+%endif
+
         mClient.setSerialization("json");
         hash info;
         {
