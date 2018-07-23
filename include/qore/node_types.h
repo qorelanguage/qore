@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  node_types.h
+    node_types.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_NODE_TYPES_H
@@ -63,35 +63,31 @@ const qore_type_t NT_CONSTANT               = 20; //!< type value for ScopedRefN
 const qore_type_t NT_BAREWORD               = 21; //!< type value for BarewordNode
 const qore_type_t NT_REFERENCE              = 22; //!< type value for ReferenceNode
 const qore_type_t NT_CONTEXT_ROW            = 23; //!< type value for ContextRowNode
-//const qore_type_t NT_XXX                    = 24; //!< unused
-//const qore_type_t NT_XXX                    = 25; //!< unused
-//const qore_type_t NT_XXX                    = 26; //!< unused
-const qore_type_t NT_CLASSREF               = 27; //!< type value for ClassRefNode
-const qore_type_t NT_OBJMETHREF             = 28; //!< type value for AbstractParseObjectMethodReferenceNode
-const qore_type_t NT_FUNCREF                = 29; //!< type value for AbstractCallReferenceNode
-const qore_type_t NT_FUNCREFCALL            = 30; //!< type value for CallReferenceCallNode
-const qore_type_t NT_CLOSURE                = 31; //!< type value for QoreClosureParseNode (private class)
-const qore_type_t NT_RUNTIME_CLOSURE        = 32; //!< type value for ResolvedCallReferenceNode (QoreClosureNode, QoreObjectClosureNode)
-const qore_type_t NT_IMPLICIT_ARG           = 33; //!< type value for QoreImplicitArgumentNode (private class)
-const qore_type_t NT_METHOD_CALL            = 34; //!< type value for MethodCallNode (private class)
-const qore_type_t NT_STATIC_METHOD_CALL     = 35; //!< type value for StaticMethodCallNode (private class)
-const qore_type_t NT_SELF_CALL              = 36; //!< type value for SelfFunctionCallNode (private class)
-const qore_type_t NT_OPERATOR               = 37; //!< type value for QoreOperatorNode (private class)
-const qore_type_t NT_IMPLICIT_ELEMENT       = 38; //!< type value for QoreImplicitElementNode (private clas)
-const qore_type_t NT_CLASS_VARREF           = 39; //!< type value for StaticClassVarRefNode (private class)
-const qore_type_t NT_PROGRAM_FUNC_CALL      = 40; //!< type value for ProgramFunctionCallNode (private class)
-const qore_type_t NT_PARSEREFERENCE         = 41; //!< type value for ParseReferenceNode (private class)
-const qore_type_t NT_BACKQUOTE              = 42; //!< type value for BackquoteNode
-const qore_type_t NT_RTCONSTREF             = 43; //!< type value for RuntimeConstantRefNode
-const qore_type_t NT_PARSE_HASH             = 44; //!< type value for QoreParseHashNode
-const qore_type_t NT_PARSE_LIST             = 45; //!< type value for QoreParseListNode
-const qore_type_t NT_VALUE_LIST             = 46; //!< type value for QoreValueList (will replace QoreListNode)
-const qore_type_t NT_PARSE_NEW_COMPLEX_TYPE = 47; //!< type value for ParseNewComplexTypeNode
-const qore_type_t NT_NEW_HASHDECL           = 48; //!< type value for NewHashDeclNode
-const qore_type_t NT_WEAKREF                = 49; //!< type value for WeakReferenceNode
+const qore_type_t NT_CLASSREF               = 24; //!< type value for ClassRefNode
+const qore_type_t NT_OBJMETHREF             = 25; //!< type value for AbstractParseObjectMethodReferenceNode
+const qore_type_t NT_FUNCREF                = 26; //!< type value for AbstractCallReferenceNode
+const qore_type_t NT_FUNCREFCALL            = 27; //!< type value for CallReferenceCallNode
+const qore_type_t NT_CLOSURE                = 28; //!< type value for QoreClosureParseNode (private class)
+const qore_type_t NT_RUNTIME_CLOSURE        = 29; //!< type value for ResolvedCallReferenceNode (QoreClosureNode, QoreObjectClosureNode)
+const qore_type_t NT_IMPLICIT_ARG           = 30; //!< type value for QoreImplicitArgumentNode (private class)
+const qore_type_t NT_METHOD_CALL            = 31; //!< type value for MethodCallNode (private class)
+const qore_type_t NT_STATIC_METHOD_CALL     = 32; //!< type value for StaticMethodCallNode (private class)
+const qore_type_t NT_SELF_CALL              = 33; //!< type value for SelfFunctionCallNode (private class)
+const qore_type_t NT_OPERATOR               = 34; //!< type value for QoreOperatorNode (private class)
+const qore_type_t NT_IMPLICIT_ELEMENT       = 35; //!< type value for QoreImplicitElementNode (private clas)
+const qore_type_t NT_CLASS_VARREF           = 36; //!< type value for StaticClassVarRefNode (private class)
+const qore_type_t NT_PROGRAM_FUNC_CALL      = 37; //!< type value for ProgramFunctionCallNode (private class)
+const qore_type_t NT_PARSEREFERENCE         = 38; //!< type value for ParseReferenceNode (private class)
+const qore_type_t NT_BACKQUOTE              = 39; //!< type value for BackquoteNode
+const qore_type_t NT_RTCONSTREF             = 40; //!< type value for RuntimeConstantRefNode
+const qore_type_t NT_PARSE_HASH             = 41; //!< type value for QoreParseHashNode
+const qore_type_t NT_PARSE_LIST             = 42; //!< type value for QoreParseListNode
+const qore_type_t NT_PARSE_NEW_COMPLEX_TYPE = 43; //!< type value for ParseNewComplexTypeNode
+const qore_type_t NT_NEW_HASHDECL           = 44; //!< type value for NewHashDeclNode
+const qore_type_t NT_WEAKREF                = 45; //!< type value for WeakReferenceNode
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 49
+#define QORE_NUM_TYPES 45
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 8

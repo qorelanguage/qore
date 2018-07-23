@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,10 +34,20 @@
 
 #include <typeinfo>
 
-AbstractStatement::AbstractStatement(int sline, int eline) : breakpointFlag(false), breakpoints(0), loc(sline, eline)  {
-   QoreProgram *pgm = getProgram();
-   if (pgm)
-      pwo = qore_program_private::getParseWarnOptions(pgm);
+AbstractStatement::AbstractStatement(qore_program_private_base* p) : breakpointFlag(false), breakpoints(0), loc(p->getLocation(-1, -1)) {
+    pwo = p->pwo;
+}
+
+AbstractStatement::AbstractStatement(int sline, int eline) : breakpointFlag(false), breakpoints(0), loc(qore_program_private::get(*getProgram())->getLocation(sline, eline)) {
+    QoreProgram* pgm = getProgram();
+    assert(pgm);
+    pwo = qore_program_private::getParseWarnOptions(pgm);
+}
+
+AbstractStatement::AbstractStatement(const QoreProgramLocation* loc) : breakpointFlag(false), breakpoints(0), loc(loc) {
+    QoreProgram* pgm = getProgram();
+    assert(pgm);
+    pwo = qore_program_private::getParseWarnOptions(pgm);
 }
 
 AbstractStatement::~AbstractStatement() {
@@ -53,27 +63,34 @@ AbstractStatement::~AbstractStatement() {
    }
 }
 
+void AbstractStatement::finalizeBlock(int sline, int eline) {
+    QoreProgramLocation tl(sline, eline);
+    if (tl.getFile() == loc->getFile()
+        && tl.getSource() == loc->getSource()
+        && (sline != loc->start_line || eline != loc->end_line)) {
+        loc = qore_program_private::get(*getProgram())->getLocation(*loc, sline, eline);
+    }
+}
+
 int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
-   printd(1, "AbstractStatement::exec() this: %p file: %s line: %d\n", this, loc.file, loc.start_line);
-   QoreProgramLocationHelper l(loc);
+    printd(1, "AbstractStatement::exec() this: %p file: %s line: %d\n", this, loc->getFile(), loc->start_line);
+    QoreProgramLocationHelper l(loc);
 
 #ifdef QORE_MANAGE_STACK
-   if (check_stack(xsink))
-      return 0;
+    if (check_stack(xsink))
+        return 0;
 #endif
-   pthread_testcancel();
+    pthread_testcancel();
 
-   QoreProgramBlockParseOptionHelper bh(pwo.parse_options);
-   return execImpl(return_value, xsink);
+    QoreProgramBlockParseOptionHelper bh(pwo.parse_options);
+    return execImpl(return_value, xsink);
 }
 
 int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
-   printd(2, "AbstractStatement::parseInit() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(), loc.file, loc.start_line);
+   printd(2, "AbstractStatement::parseInit() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(), loc->getFile(), loc->start_line);
    // set parse options and warning mask for this statement
    ParseWarnHelper pwh(pwo);
 
-   // set pgm position in case of errors
-   update_parse_location(loc);
    return parseInitImpl(oflag, pflag);
 }
 

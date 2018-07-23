@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -53,24 +53,24 @@ const char *SelfVarrefNode::getTypeName() const {
 }
 
 QoreValue SelfVarrefNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   assert(runtime_get_stack_object());
-   return runtime_get_stack_object()->getReferencedMemberNoMethod(str, xsink);
+    assert(runtime_get_stack_object());
+    return runtime_get_stack_object()->getReferencedMemberNoMethod(str, xsink);
 }
 
-char *SelfVarrefNode::takeString() {
-   assert(str);
-   char *p = str;
-   str = 0;
-   return p;
+char* SelfVarrefNode::takeString() {
+    assert(str);
+    char *p = str;
+    str = nullptr;
+    return p;
 }
 
 AbstractQoreNode *SelfVarrefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%p\n", str, oflag);
    if (pflag & PF_CONST_EXPRESSION)
-      parseException(loc, "ILLEGAL-MEMBER-REFERENCE", "member '%s' referenced illegally in an expression executed at parse time to initialize a constant value", str);
+      parseException(*loc, "ILLEGAL-MEMBER-REFERENCE", "member '%s' referenced illegally in an expression executed at parse time to initialize a constant value", str);
 
    if (!oflag)
-      parse_error(loc, "cannot reference member \"%s\" when not in an object context", str);
+      parse_error(*loc, "cannot reference member \"%s\" when not in an object context", str);
    else {
       qore_class_private::parseCheckInternalMemberAccess(parse_get_class(), str, typeInfo, loc);
       returnTypeInfo = typeInfo;

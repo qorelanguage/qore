@@ -48,7 +48,7 @@ protected:
    }
 
 public:
-   DLLLOCAL ContextRowNode(const QoreProgramLocation& loc);
+   DLLLOCAL ContextRowNode(const QoreProgramLocation* loc);
 
    DLLLOCAL virtual ~ContextRowNode();
 
