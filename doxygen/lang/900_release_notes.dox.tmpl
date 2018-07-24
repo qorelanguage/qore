@@ -7,9 +7,12 @@
     @par Release Summary
     Bugfix release; see details below
 
-    @subsection qore_08137_new_features New Features in Qore
-    - @ref Qore::Program::parse() "Program::parse()", @ref Qore::Program::parsePending() "Program::parsePending()" \a format_label parameter is obsolete
-      (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)
+    @subsection qore_08137_bug_fixes Bug Fixes in Qore
+    - the \a format_label parameter is obsolete in @ref Qore::Program::parse() "Program::parse()", @ref Qore::Program::parsePending() "Program::parsePending()" (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)
+    - module fixes:
+      - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>:
+        - removed unnecessary serialization from AbstractConnection::get()
+          (<a href="https://github.com/qorelanguage/qore/issues/2880">issue 2880</a>)
 
     @section qore_08136 Qore 0.8.13.6
 

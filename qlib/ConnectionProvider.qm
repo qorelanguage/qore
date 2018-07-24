@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file ConnectionProvider.qm Qore user module providing an API for providing connections to %Qore
 
-/*  ConnectionProvider.qm Copyright 2016 - 2017 Qore Technologies, s.r.o.
+/*  ConnectionProvider.qm Copyright 2016 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 %requires Util
 
 module ConnectionProvider {
-    version = "1.0";
+    version = "1.0.1";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -99,6 +99,10 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section connectionproviderrelnotes Release Notes
+
+    @subsection connectionprovider_1_0_1 ConnectionProvider 1.0.1
+    - removed unnecessary serialization from AbstractConnection::get()
+      (<a href="https://github.com/qorelanguage/qore/issues/2880">issue 2880</a>)
 
     @subsection connectionprovider_1_0 ConnectionProvider 1.0
     - the initial version of the ConnectionProvider module
@@ -302,10 +306,6 @@ string connstr = get_connection(str);
             static *code post_processing;
         }
 
-        private {
-            Mutex m();
-        }
-
         #! creates the AbstractConnection object
         /** @param n_name the name of the connection
             @param n_desc connection description
@@ -430,9 +430,6 @@ string connstr = get_connection(str);
         /** calls @ref getImpl() to actually acquire the connection object
          */
         object get(bool connect = True, *hash rtopts) {
-            m.lock();
-            on_exit m.unlock();
-
             if (!connect) {
                 object o = getImpl(False, rtopts);
                 if (post_processing)
