@@ -825,7 +825,6 @@ public:
             rv = 0;
         }
 
-        qore_type_t nt = get_node_type(n);
         v.n = n;
         if (!is_closure)
             check_lvalue_object_in_out(v.n, 0);
