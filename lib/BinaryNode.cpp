@@ -39,22 +39,19 @@ BinaryNode::BinaryNode(void* p, qore_size_t size) : SimpleValueQoreNode(NT_BINAR
 }
 
 BinaryNode::~BinaryNode() {
-    if (ptr)
+    if (ptr) {
         free(ptr);
+    }
 }
 
 void BinaryNode::clear() {
-    if (len) {
-        assert(ptr);
+    if (ptr) {
         free(ptr);
-        len = 0;
+        if (len) {
+            len = 0;
+        }
         ptr = nullptr;
     }
-#ifdef DEBUG
-    else {
-        assert(!ptr);
-    }
-#endif
 }
 
 // returns 0 = equal, 1 = not equal
