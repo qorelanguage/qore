@@ -37,7 +37,7 @@ class QoreLogicalOrOperatorNode : public QoreLogicalAndOperatorNode {
 protected:
     DLLLOCAL static QoreString logical_or_str;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
     DLLLOCAL QoreLogicalOrOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreLogicalAndOperatorNode(loc, left, right) {

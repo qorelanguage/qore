@@ -32,7 +32,7 @@
 
 QoreString QoreLogicalLessThanOperatorNode::op_str("< operator expression");
 
-QoreValue QoreLogicalLessThanOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreLogicalLessThanOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    if (pfunc)
       return (this->*pfunc)(xsink);
 
@@ -46,7 +46,7 @@ QoreValue QoreLogicalLessThanOperatorNode::evalValueImpl(bool& needs_deref, Exce
    return doLessThan(*lh, *rh, xsink);
 }
 
-AbstractQoreNode *QoreLogicalLessThanOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreLogicalLessThanOperatorNode::parseInitIntern(const char *name, QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -61,7 +61,8 @@ AbstractQoreNode *QoreLogicalLessThanOperatorNode::parseInitIntern(const char *n
     if (left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalLessThanOperatorNode> del(this);
         ParseExceptionSink xsink;
-        return get_bool_node(doLessThan(left, right, *xsink));
+        val = doLessThan(left, right, *xsink);
+        return;
     }
 
     // check for optimizations based on type; but only if types are known on both sides, although the highest priority (float)
@@ -72,13 +73,11 @@ AbstractQoreNode *QoreLogicalLessThanOperatorNode::parseInitIntern(const char *n
         else if (QoreTypeInfo::hasType(lti) && QoreTypeInfo::hasType(rti)) {
             if (QoreTypeInfo::isType(lti, NT_INT)) {
                 if (QoreTypeInfo::isType(rti, NT_INT))
-                pfunc = &QoreLogicalLessThanOperatorNode::bigIntLessThan;
+                    pfunc = &QoreLogicalLessThanOperatorNode::bigIntLessThan;
             }
             // FIXME: check for invalid operation here
         }
     }
-
-    return this;
 }
 
 bool QoreLogicalLessThanOperatorNode::floatLessThan(ExceptionSink *xsink) const {

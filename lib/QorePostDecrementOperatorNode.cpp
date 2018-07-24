@@ -32,14 +32,16 @@
 
 QoreString QorePostDecrementOperatorNode::op_str("-- (post-decrement) operator expression");
 
-AbstractQoreNode *QorePostDecrementOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QorePostDecrementOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 
     // version for local var
-    return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPostDecrementOperatorNode>() : this;
+    if ((typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)) {
+        val = makeSpecialization<QoreIntPostDecrementOperatorNode>();
+    }
 }
 
-QoreValue QorePostDecrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QorePostDecrementOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper n(exp, xsink);
     if (!n)

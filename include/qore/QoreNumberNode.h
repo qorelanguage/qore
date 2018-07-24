@@ -282,7 +282,7 @@ public:
     DLLEXPORT bool ordinary() const;
 
     //! returns the type information
-    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo);
 
     //! returns the representation of the value as a number if possible (otherwise returns 0), caller owns the reference returned
     DLLEXPORT static QoreNumberNode* toNumber(const AbstractQoreNode* v);

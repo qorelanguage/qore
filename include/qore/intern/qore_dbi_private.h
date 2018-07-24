@@ -206,7 +206,7 @@ struct qore_dbi_private {
             return n.get<QoreHashNode>();
         }
 
-        return reinterpret_cast<QoreHashNode*>(res.release().takeNode());
+        return res.release().get<QoreHashNode>();
     }
 
     DLLLOCAL QoreValue execSQL(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) const {

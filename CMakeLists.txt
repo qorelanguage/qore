@@ -323,7 +323,17 @@ qore_stl_slist(include/qore/slist_include.h)
 qore_cpu_checks()
 qore_assembler_files()
 
+# issue #2897 make build reproducible by omitting the hostname if possible
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+execute_process(COMMAND uname -smpo OUTPUT_VARIABLE QORE_BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "SunOS")
+execute_process(COMMAND uname -spirv OUTPUT_VARIABLE QORE_BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+execute_process(COMMAND uname -smr OUTPUT_VARIABLE QORE_BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
+else()
 execute_process(COMMAND uname -a OUTPUT_VARIABLE QORE_BUILD_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+
 if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
    set(TARGET_BITS 64)
 else()
@@ -383,9 +393,6 @@ set(LIBQORE_CPP_SRC
     lib/qore_date_private.cpp
     lib/QoreHashNode.cpp
     lib/BinaryNode.cpp
-    lib/QoreBigIntNode.cpp
-    lib/QoreBoolNode.cpp
-    lib/QoreFloatNode.cpp
     lib/QoreNumberNode.cpp
     lib/QoreNullNode.cpp
     lib/QoreNothingNode.cpp

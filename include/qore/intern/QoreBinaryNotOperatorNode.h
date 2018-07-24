@@ -37,9 +37,9 @@ class QoreBinaryNotOperatorNode : public QoreSingleExpressionOperatorNode<QoreOp
 protected:
     DLLLOCAL static QoreString BinaryNot_str;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
     DLLLOCAL QoreBinaryNotOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, exp) {

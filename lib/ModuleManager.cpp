@@ -162,90 +162,89 @@ void QoreModuleContext::commit() {
    mcnl.mcnl_t::clear();
 }
 
-void QoreModuleDefContext::set(const QoreProgramLocation* loc, const char* key, const AbstractQoreNode* val) {
-   qore_type_t t = get_node_type(val);
-
-   // special handling for "init" and "del"
-   if (!strcmp(key, "init")) {
-      if (init_c)
-         parse_error(*loc, "module key 'init' was given multiple times");
-      else {
-         // check type when code is committed
-         init_c = val->refSelf();
-         init_loc = loc;
-      }
-   }
-   else if (!strcmp(key, "del")) {
-      if (del_c)
-         parse_error(*loc, "module key 'del' was given multiple times");
-      else {
-         // check type when code is committed
-         del_c = val->refSelf();
-         del_loc = loc;
-      }
-   }
-   else if (vset.find(key) == vset.end())
-      parse_error(*loc, "module key '%s' is invalid", key);
-   else if (vmap.find(key) != vmap.end())
-      parse_error(*loc, "module key '%s' was given multiple times", key);
-   else if (t != NT_STRING)
-      parse_error(*loc, "module key '%s' assigned type '%s' (expecting 'string')", key, get_type_name(val));
-   else
-      vmap[key] = reinterpret_cast<const QoreStringNode*>(val)->getBuffer();
+void QoreModuleDefContext::set(const QoreProgramLocation* loc, const char* key, QoreValue val) {
+    // special handling for "init" and "del"
+    if (!strcmp(key, "init")) {
+        if (init_c)
+            parse_error(*loc, "module key 'init' was given multiple times");
+        else {
+            // check type when code is committed
+            init_c = val.refSelf();
+            init_loc = loc;
+        }
+    }
+    else if (!strcmp(key, "del")) {
+        if (del_c)
+            parse_error(*loc, "module key 'del' was given multiple times");
+        else {
+            // check type when code is committed
+            del_c = val.refSelf();
+            del_loc = loc;
+        }
+    }
+    else if (vset.find(key) == vset.end())
+        parse_error(*loc, "module key '%s' is invalid", key);
+    else if (vmap.find(key) != vmap.end())
+        parse_error(*loc, "module key '%s' was given multiple times", key);
+    else if (val.getType() != NT_STRING)
+        parse_error(*loc, "module key '%s' assigned type '%s' (expecting 'string')", key, val.getTypeName());
+    else
+        vmap[key] = val.get<const QoreStringNode>()->c_str();
 }
 
 // called only during parsing
 void QoreModuleDefContext::parseInit() {
-   if (init_c)
-      initClosure(init_loc, init_c, "init");
-   if (del_c)
-      initClosure(del_loc, del_c, "del");
+    if (init_c)
+        initClosure(init_loc, init_c, "init");
+    if (del_c)
+        initClosure(del_loc, del_c, "del");
 }
 
-void QoreModuleDefContext::initClosure(const QoreProgramLocation* loc, AbstractQoreNode*& c, const char* n) {
-   // initialize closure
-   int lvids = 0;
-   const QoreTypeInfo* typeInfo = 0;
-   // check for local variables at the top level - this can only happen if the expresion is not a closure
-   c = c->parseInit(0, 0, lvids, typeInfo);
-   if (lvids) {
-      parseException(*loc, "ILLEGAL-LOCAL-VAR", "local variables may not be declared in module '%s' code", n);
-      // discard variables immediately
-      for (int i = 0; i < lvids; ++i)
-         pop_local_var();
-   }
+void QoreModuleDefContext::initClosure(const QoreProgramLocation* loc, QoreValue& c, const char* n) {
+    // initialize closure
+    int lvids = 0;
+    const QoreTypeInfo* typeInfo = nullptr;
+    // check for local variables at the top level - this can only happen if the expresion is not a closure
+    parse_init_value(c, nullptr, 0, lvids, typeInfo);
+    if (lvids) {
+        parseException(*loc, "ILLEGAL-LOCAL-VAR", "local variables may not be declared in module '%s' code", n);
+        // discard variables immediately
+        for (int i = 0; i < lvids; ++i) {
+            pop_local_var();
+        }
+    }
 
-   qore_type_t t = get_node_type(c);
-   if (t != NT_CLOSURE && t != NT_FUNCREF)
-      parse_error(*loc, "the module '%s' key must be assigned to a closure or call reference (got type '%s')", n, get_type_name(c));
+    qore_type_t t = c.getType();
+    if (t != NT_CLOSURE && t != NT_FUNCREF)
+        parse_error(*loc, "the module '%s' key must be assigned to a closure or call reference (got type '%s')", n, c.getTypeName());
 }
 
 int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
-   if (!init_c)
-      return 0;
+    if (!init_c)
+        return 0;
 
-   {
-      ProgramThreadCountContextHelper tch(&xsink, &pgm, true);
-      if (xsink)
-         return -1;
+    {
+        ProgramThreadCountContextHelper tch(&xsink, &pgm, true);
+        if (xsink)
+            return -1;
 
-      ReferenceHolder<> cn(reinterpret_cast<QoreClosureParseNode*>(init_c)->eval(&xsink), &xsink);
-      assert(!xsink);
-      assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
-      reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->execValue(0, &xsink).discard(&xsink);
-   }
+        ValueHolder cn(init_c.eval(&xsink), &xsink);
+        assert(!xsink);
+        assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
+        cn->get<ResolvedCallReferenceNode>()->execValue(0, &xsink).discard(&xsink);
+    }
 
-   return xsink ? -1 : 0;
+    return xsink ? -1 : 0;
 }
 
-QoreClosureParseNode* QoreModuleDefContext::takeDel() {
-   if (!del_c)
-      return 0;
+AbstractQoreNode* QoreModuleDefContext::takeDel() {
+    if (!del_c) {
+        return nullptr;
+    }
 
-   assert(dynamic_cast<QoreClosureParseNode*>(del_c));
-   QoreClosureParseNode* rv = reinterpret_cast<QoreClosureParseNode*>(del_c);
-   del_c = 0;
-   return rv;
+    AbstractQoreNode* rv = del_c.get<AbstractQoreNode>();
+    del_c.clear();
+    return rv;
 }
 
 QoreModuleContextHelper::QoreModuleContextHelper(const char* name, QoreProgram* pgm, ExceptionSink& xsink)
@@ -347,19 +346,19 @@ QoreHashNode* QoreBuiltinModule::getHash(bool with_filename) const {
 }
 
 QoreUserModule::~QoreUserModule() {
-   assert(pgm);
-   ExceptionSink xsink;
-   if (del) {
-      ProgramThreadCountContextHelper tch(&xsink, pgm, true);
-      if (!xsink) {
-         ReferenceHolder<> cn(del->eval(&xsink), &xsink);
-         assert(!xsink);
-         assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
-         reinterpret_cast<ResolvedCallReferenceNode*>(*cn)->execValue(0, &xsink).discard(&xsink);
-         del->deref(&xsink);
-      }
-   }
-   pgm->waitForTerminationAndDeref(&xsink);
+    assert(pgm);
+    ExceptionSink xsink;
+    if (del) {
+        ProgramThreadCountContextHelper tch(&xsink, pgm, true);
+        if (!xsink) {
+            ValueHolder cn(del->eval(&xsink), &xsink);
+            assert(!xsink);
+            assert(cn->getType() == NT_RUNTIME_CLOSURE || cn->getType() == NT_FUNCREF);
+            cn->get<ResolvedCallReferenceNode>()->execValue(0, &xsink).discard(&xsink);
+            del->deref(&xsink);
+        }
+    }
+    pgm->waitForTerminationAndDeref(&xsink);
 }
 
 void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) const {

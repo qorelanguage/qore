@@ -574,6 +574,15 @@ public class SwaggerTest inherits QUnit::Test {
                             "responses": (
                                 "200": (
                                     "description": "test",
+                                    "schema": {
+                                        "type": "string"
+                                    }
+                                ),
+                                "400": (
+                                    "description": "test",
+                                    "schema": {
+                                        "type": "string"
+                                    }
                                 ),
                             ),
                             "parameters": ((
@@ -679,6 +688,57 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq(MimeTypeJson, cres.hdr."Content-Type");
                 assertEq("ERR", cres.body);
                 #printf("cres: %N\n", cres);
+            }
+        }
+
+        { # bug #2894 test that if schema is missing from response, then no body should be present for the response
+          # also test that if schema is present and there is no response body, exception should be thrown
+            hash soh = ValidSwaggerSchema + (
+                "paths": (
+                    "/test": (
+                        "get": (
+                            "operationId": "test",
+                            "responses": (
+                                "200": (
+                                    "description": "test",
+                                    "schema": {
+                                        "type": "string"
+                                    }
+                                ),
+                                "400": (
+                                    "description": "test",
+                                ),
+                            ),
+                            "consumes": (
+                                MimeTypeJson,
+                                MimeTypeYaml,
+                            ),
+                            "produces": (
+                                MimeTypeJson,
+                                MimeTypeYaml,
+                            ),
+                        ),
+                    ),
+                ),
+            );
+
+            {
+                SwaggerSchema so(soh);
+                hash<HttpResponseInfo> res;
+                hash<RestResponseClientInfo> cres;
+                hash hdr = {"Content-Type" : "application/json"};
+
+                code c = sub () { res = so.processResponse("get", "/test", 200, NOTHING, NOTHING, MimeTypeJson); };
+                assertThrows("SCHEMA-VALIDATION-ERROR", "Param.*response body.*is null, but.*expected", c);
+
+                c = sub () { cres = so.parseResponse("get", "/test", 200, NOTHING, hdr); };
+                assertThrows("SCHEMA-VALIDATION-ERROR", "Param.*response body.*is null, but.*expected", c);
+
+                c = sub () { res = so.processResponse("get", "/test", 400, "ERR", NOTHING, MimeTypeJson); };
+                assertThrows("SCHEMA-VALIDATION-ERROR", "should not have any body", c);
+
+                c = sub () { cres = so.parseResponse("get", "/test", 400, "\"ERR\"", hdr); };
+                assertThrows("SCHEMA-VALIDATION-ERROR", "should not have any body", c);
             }
         }
     }

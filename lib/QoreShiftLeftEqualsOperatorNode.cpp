@@ -32,12 +32,11 @@
 
 QoreString QoreShiftLeftEqualsOperatorNode::op_str("<<= operator expression");
 
-AbstractQoreNode *QoreShiftLeftEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreShiftLeftEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     parseInitIntLValue(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-    return this;
 }
 
-QoreValue QoreShiftLeftEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreShiftLeftEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder new_right(right, xsink);
     if (*xsink)
         return QoreValue();

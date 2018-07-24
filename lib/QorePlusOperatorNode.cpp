@@ -35,7 +35,7 @@
 
 QoreString QorePlusOperatorNode::plus_str("+ operator expression");
 
-QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QorePlusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();
@@ -81,7 +81,7 @@ QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
         QoreStringNodeValueHelper strval(*lh, r->getEncoding(), xsink);
         if (*xsink)
             return QoreValue();
-        SimpleRefHolder<QoreStringNode> str(strval->is_unique() ? strval.getReferencedValue() : new QoreStringNode(*strval));
+        SimpleRefHolder<QoreStringNode> str(strval->is_unique() && strval.is_temp() ? strval.getReferencedValue() : new QoreStringNode(**strval));
         assert(str->reference_count() == 1);
 
         QoreStringNode* rv = const_cast<QoreStringNode*>(*str);
@@ -166,7 +166,7 @@ QoreValue QorePlusOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
     return QoreValue();
 }
 
-AbstractQoreNode* QorePlusOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
+void QorePlusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -181,8 +181,10 @@ AbstractQoreNode* QorePlusOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
     if (left.isValue() && right.isValue()) {
         SimpleRefHolder<QorePlusOperatorNode> del(this);
         ParseExceptionSink xsink;
-        AbstractQoreNode* rv = QorePlusOperatorNode::evalImpl(*xsink);
-        return rv ? rv : &Nothing;
+        ValueEvalRefHolder rv(this, *xsink);
+        val = rv.takeReferencedValue();
+        parseTypeInfo = val.getTypeInfo();
+        return;
     }
 
     // if either side is a list, then the return type is list (highest priority)
@@ -211,8 +213,7 @@ AbstractQoreNode* QorePlusOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
             returnTypeInfo = nothingTypeInfo;
     }
 
-    if (returnTypeInfo)
+    if (returnTypeInfo) {
         parseTypeInfo = returnTypeInfo;
-
-    return this;
+    }
 }

@@ -35,7 +35,7 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/qore_list_private.h"
 
-AbstractQoreNode* ParseNewComplexTypeNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void ParseNewComplexTypeNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     typeInfo = QoreParseTypeInfo::resolveAndDelete(pti, loc);
     pti = nullptr;
 
@@ -43,7 +43,9 @@ AbstractQoreNode* ParseNewComplexTypeNode::parseInitImpl(LocalVar* oflag, int pf
         const QoreClass* qc = QoreTypeInfo::getUniqueReturnClass(typeInfo);
         if (qc) {
             ReferenceHolder<> holder(this, nullptr);
-            return (new ScopedObjectCallNode(loc, qc, takeArgs()))->parseInitImpl(oflag, pflag, lvids, typeInfo);
+            val = new ScopedObjectCallNode(loc, qc, takeArgs());
+            parse_init_value(val, oflag, pflag, lvids, typeInfo);
+            return;
         }
     }
     {
@@ -52,7 +54,8 @@ AbstractQoreNode* ParseNewComplexTypeNode::parseInitImpl(LocalVar* oflag, int pf
             ReferenceHolder<> holder(this, nullptr);
             bool runtime_check;
             lvids += typed_hash_decl_private::get(*hd)->parseInitHashDeclInitialization(loc, oflag, pflag, args, runtime_check);
-            return new NewHashDeclNode(loc, hd, takeArgs(), runtime_check);
+            val = new NewHashDeclNode(loc, hd, takeArgs(), runtime_check);
+            return;
         }
     }
     {
@@ -60,7 +63,8 @@ AbstractQoreNode* ParseNewComplexTypeNode::parseInitImpl(LocalVar* oflag, int pf
         if (ti) {
             ReferenceHolder<> holder(this, nullptr);
             lvids += qore_hash_private::parseInitComplexHashInitialization(loc, oflag, pflag, args, ti);
-            return new NewComplexHashNode(loc, typeInfo, takeArgs());
+            val = new NewComplexHashNode(loc, typeInfo, takeArgs());
+            return;
         }
     }
     {
@@ -69,23 +73,22 @@ AbstractQoreNode* ParseNewComplexTypeNode::parseInitImpl(LocalVar* oflag, int pf
             ReferenceHolder<> holder(this, nullptr);
             QoreValue new_args;
             lvids += qore_list_private::parseInitComplexListInitialization(loc, oflag, pflag, takeArgs(), new_args, ti);
-            return new NewComplexListNode(loc, typeInfo, new_args);
+            val = new NewComplexListNode(loc, typeInfo, new_args);
+            return;
         }
     }
 
     parse_error(*loc, "type '%s' does not support instantiation with the new operator", QoreTypeInfo::getName(typeInfo));
-
-    return this;
 }
 
-QoreValue NewHashDeclNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue NewHashDeclNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     return typed_hash_decl_private::get(*hd)->newHash(args, runtime_check, xsink);
 }
 
-QoreValue NewComplexHashNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue NewComplexHashNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     return qore_hash_private::newComplexHash(typeInfo, args, xsink);
 }
 
-QoreValue NewComplexListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue NewComplexListNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     return qore_list_private::newComplexList(typeInfo, args, xsink);
 }

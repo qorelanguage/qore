@@ -75,7 +75,7 @@ const QoreTypeInfo* QoreMapOperatorNode::setReturnTypeInfo(const QoreTypeInfo*& 
     return typeInfo;
 }
 
-AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreMapOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(!typeInfo);
 
     pflag &= ~PF_RETURN_VALUE_IGNORED;
@@ -123,11 +123,9 @@ AbstractQoreNode* QoreMapOperatorNode::parseInitImpl(LocalVar* oflag, int pflag,
     if (is_list) {
         typeInfo = QoreMapOperatorNode::setReturnTypeInfo(returnTypeInfo, expTypeInfo, iteratorTypeInfo);
     }
-
-    return this;
 }
 
-QoreValue QoreMapOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     FunctionalValueType value_type;
     std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, xsink));
     if (*xsink || value_type == nothing) {

@@ -105,6 +105,10 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
       method (and supporting declarations) was added to allow connections to be created dynamically,
       potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
+    @subsection connectionprovider_1_0_1 ConnectionProvider 1.0.1
+    - removed unnecessary serialization from AbstractConnection::get()
+      (<a href="https://github.com/qorelanguage/qore/issues/2880">issue 2880</a>)
+
     @subsection connectionprovider_1_0 ConnectionProvider 1.0
     - the initial version of the ConnectionProvider module
 */
@@ -349,10 +353,6 @@ string connstr = get_connection(str);
             static *code post_processing;
         }
 
-        private {
-            Mutex m();
-        }
-
         #! creates the AbstractConnection object
         /** @param n_name the name of the connection
             @param n_desc connection description
@@ -477,9 +477,6 @@ string connstr = get_connection(str);
         /** calls @ref getImpl() to actually acquire the connection object
          */
         object get(bool connect = True, *hash rtopts) {
-            m.lock();
-            on_exit m.unlock();
-
             if (!connect) {
                 object o = getImpl(False, rtopts);
                 if (post_processing)

@@ -45,7 +45,7 @@ int QoreElementsOperatorNode::getAsString(QoreString& str, int foff, ExceptionSi
     return 0;
 }
 
-QoreValue QoreElementsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreElementsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder v(exp, xsink);
     if (*xsink)
         return QoreValue();
@@ -62,13 +62,13 @@ QoreValue QoreElementsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSi
     return 0;
 }
 
-AbstractQoreNode* QoreElementsOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreElementsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
     typeInfo = bigIntTypeInfo;
 
-    const QoreTypeInfo* lti = 0;
+    const QoreTypeInfo* lti = nullptr;
     parse_init_value(exp, oflag, pflag, lvids, lti);
 
     if (QoreTypeInfo::hasType(lti)
@@ -89,8 +89,6 @@ AbstractQoreNode* QoreElementsOperatorNode::parseInitImpl(LocalVar* oflag, int p
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
-        return v.takeReferencedValue().takeNode();
+        val = v.takeReferencedValue();
     }
-
-    return this;
 }

@@ -153,14 +153,14 @@ class QoreModuleContext {
 protected:
    const char* name;
    qore_root_ns_private* rns;
-   QoreStringNode* err;
+   QoreStringNode* err = nullptr;
    ExceptionSink& xsink;
 
 public:
    ModuleContextNamespaceList mcnl;
    ModuleContextFunctionList mcfl;
 
-   DLLLOCAL QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs) : name(n), rns(n_rns), err(0), xsink(xs) {
+   DLLLOCAL QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs) : name(n), rns(n_rns), xsink(xs) {
    }
 
    DLLLOCAL ~QoreModuleContext() {
@@ -185,50 +185,46 @@ public:
    }
 };
 
-class QoreClosureParseNode;
-
 class QoreModuleDefContext {
-protected:
-   DLLLOCAL void initClosure(const QoreProgramLocation* loc, AbstractQoreNode*& c, const char* n);
-
 public:
-   typedef std::set<std::string> strset_t;
-   typedef std::map<std::string, std::string> strmap_t;
+    typedef std::set<std::string> strset_t;
+    typedef std::map<std::string, std::string> strmap_t;
 
-   AbstractQoreNode* init_c = nullptr, // the initialization closure
-      * del_c = nullptr;               // the destructor closure
+    QoreValue init_c, // the initialization closure
+        del_c;         // the destructor closure
 
-   const QoreProgramLocation* init_loc,
-      * del_loc;
+    const QoreProgramLocation* init_loc,
+        * del_loc;
 
-   DLLLOCAL QoreModuleDefContext() {
-   }
+    DLLLOCAL QoreModuleDefContext() {
+    }
 
-   DLLLOCAL ~QoreModuleDefContext() {
-      if (init_c)
-         init_c->deref(0);
-      if (del_c)
-         del_c->deref(0);
-   }
+    DLLLOCAL ~QoreModuleDefContext() {
+        init_c.discard(nullptr);
+        del_c.discard(nullptr);
+    }
 
-   // set of valid tags
-   static strset_t vset;
+    // set of valid tags
+    static strset_t vset;
 
-   // set of tag definitions
-   strmap_t vmap;
+    // set of tag definitions
+    strmap_t vmap;
 
-   DLLLOCAL void set(const QoreProgramLocation* loc, const char* key, const AbstractQoreNode* val);
+    DLLLOCAL void set(const QoreProgramLocation* loc, const char* key, QoreValue val);
 
-   DLLLOCAL const char* get(const char* str) const {
-      strmap_t::const_iterator i = vmap.find(str);
-      return i == vmap.end() || i->second.empty() ? 0 : i->second.c_str();
-   }
+    DLLLOCAL const char* get(const char* str) const {
+        strmap_t::const_iterator i = vmap.find(str);
+        return i == vmap.end() || i->second.empty() ? nullptr : i->second.c_str();
+    }
 
-   DLLLOCAL void parseInit();
+    DLLLOCAL void parseInit();
 
-   DLLLOCAL int init(QoreProgram& pgm, ExceptionSink& xsink);
+    DLLLOCAL int init(QoreProgram& pgm, ExceptionSink& xsink);
 
-   DLLLOCAL QoreClosureParseNode* takeDel();
+    DLLLOCAL AbstractQoreNode* takeDel();
+
+protected:
+    DLLLOCAL void initClosure(const QoreProgramLocation* loc, QoreValue& c, const char* n);
 };
 
 DLLLOCAL QoreValue do_op_background(const QoreValue left, ExceptionSink* xsink);
@@ -238,7 +234,7 @@ DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink* xsink);
 DLLLOCAL void purge_thread_resources(ExceptionSink* xsink);
 DLLLOCAL void purge_pgm_thread_resources(const QoreProgram* pgm, ExceptionSink* xsink);
 DLLLOCAL void mark_thread_resources();
-DLLLOCAL void beginParsing(const char* file, void* ps = NULL, const char* src = 0, int offset = 0);
+DLLLOCAL void beginParsing(const char* file, void* ps = NULL, const char* src = nullptr, int offset = 0);
 DLLLOCAL void* endParsing();
 DLLLOCAL Context* get_context_stack();
 DLLLOCAL void update_context_stack(Context* cstack);
@@ -506,35 +502,35 @@ DLLLOCAL void save_global_vnode(VNode* vn);
 DLLLOCAL VNode* get_global_vnode();
 
 class QoreContainerHelper {
-   const AbstractQoreNode* n;
-   bool err;
+    const AbstractQoreNode* n;
+    bool err;
 
 public:
-   DLLLOCAL QoreContainerHelper(const AbstractQoreNode* n_n) {
-      // FIXME! need to have an AbstactQoreNode::isContainer() function!
-      qore_type_t t = n_n ? n_n->getType() : NT_NOTHING;
-      if ((t == NT_LIST || t == NT_HASH || t == NT_OBJECT || t >= QORE_NUM_TYPES)) {
-	 if (!thread_push_container(n_n)) {
-	    n = n_n;
-	    err = false;
-	 }
-	 else {
-	    n = 0;
-	    err = true;
-	 }
-      }
-      else {
-	 n = 0;
-	 err = false;
-      }
-   }
-   DLLLOCAL ~QoreContainerHelper() {
-      if (n)
-	 thread_pop_container(n);
-   }
-   DLLLOCAL operator bool () const {
-      return !err;
-   }
+    DLLLOCAL QoreContainerHelper(const AbstractQoreNode* n_n) {
+        // FIXME! need to have an AbstactQoreNode::isContainer() function!
+        qore_type_t t = n_n ? n_n->getType() : NT_NOTHING;
+        if ((t == NT_LIST || t == NT_HASH || t == NT_OBJECT || t >= QORE_NUM_TYPES)) {
+            if (!thread_push_container(n_n)) {
+                n = n_n;
+                err = false;
+            }
+            else {
+                n = nullptr;
+                err = true;
+            }
+        }
+        else {
+            n = nullptr;
+            err = false;
+        }
+    }
+    DLLLOCAL ~QoreContainerHelper() {
+        if (n)
+            thread_pop_container(n);
+    }
+    DLLLOCAL operator bool () const {
+        return !err;
+    }
 };
 
 DLLLOCAL const QoreListNode* thread_get_implicit_args();

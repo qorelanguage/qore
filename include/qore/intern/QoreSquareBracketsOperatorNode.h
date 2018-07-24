@@ -58,11 +58,9 @@ protected:
     DLLLOCAL void parseCheckValueTypes(const QoreParseListNode* pln);
     DLLLOCAL void parseCheckValueTypes(const QoreListNode* ln);
 
-    DLLLOCAL QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL AbstractQoreNode* parseInitIntern(const char *name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
     DLLLOCAL virtual FunctionalOperatorInterface* getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const;
 

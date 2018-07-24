@@ -192,7 +192,7 @@ public:
     LocalVar* selfid;
     bool resolved;
 
-    DLLLOCAL UserSignature(int n_first_line, int n_last_line, AbstractQoreNode* params, RetTypeInfo* retTypeInfo, int64 po);
+    DLLLOCAL UserSignature(int n_first_line, int n_last_line, QoreValue params, RetTypeInfo* retTypeInfo, int64 po);
 
     DLLLOCAL virtual ~UserSignature() {
         for (ptype_vec_t::iterator i = parseTypeList.begin(), e = parseTypeList.end(); i != e; ++i)
@@ -373,7 +373,7 @@ public:
     DLLLOCAL void parseResolveUserSignature();
 
     DLLLOCAL virtual UserVariantBase* getUserVariantBase() {
-        return 0;
+        return nullptr;
     }
 
     DLLLOCAL const UserVariantBase* getUserVariantBase() const {
@@ -453,11 +453,11 @@ protected:
     bool init;
 
     DLLLOCAL QoreValue evalIntern(ReferenceHolder<QoreListNode>& argv, QoreObject* self, ExceptionSink* xsink) const;
-    DLLLOCAL QoreValue eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const qore_class_private* qc = 0) const;
+    DLLLOCAL QoreValue eval(const char* name, CodeEvaluationHelper* ceh, QoreObject* self, ExceptionSink* xsink, const qore_class_private* qc = nullptr) const;
     DLLLOCAL int setupCall(CodeEvaluationHelper* ceh, ReferenceHolder<QoreListNode>& argv, ExceptionSink* xsink) const;
 
 public:
-    DLLLOCAL UserVariantBase(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced);
+    DLLLOCAL UserVariantBase(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced);
     DLLLOCAL virtual ~UserVariantBase();
     DLLLOCAL UserSignature* getUserSignature() const {
         return const_cast<UserSignature*>(&signature);
@@ -529,7 +529,7 @@ protected:
     }
 
 public:
-    DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags = QC_NO_FLAGS) :
+    DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags = QC_NO_FLAGS) :
         AbstractQoreFunctionVariant(n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced), mod_pub(false) {
     }
 
@@ -1118,7 +1118,7 @@ public:
 class UserClosureVariant : public UserFunctionVariant {
 protected:
 public:
-    DLLLOCAL UserClosureVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
+    DLLLOCAL UserClosureVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
     }
 
     DLLLOCAL virtual void parseInit(QoreFunction* f);
@@ -1137,7 +1137,7 @@ protected:
     const QoreTypeInfo* classTypeInfo;
 
 public:
-    DLLLOCAL UserClosureFunction(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : QoreFunction("<anonymous closure>"), classTypeInfo(0) {
+    DLLLOCAL UserClosureFunction(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : QoreFunction("<anonymous closure>"), classTypeInfo(0) {
         addPendingVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags));
     }
 

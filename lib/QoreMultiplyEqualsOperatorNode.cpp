@@ -32,13 +32,11 @@
 
 QoreString QoreMultiplyEqualsOperatorNode::op_str("*= operator expression");
 
-AbstractQoreNode *QoreMultiplyEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreMultiplyEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-
-   return this;
 }
 
-QoreValue QoreMultiplyEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreMultiplyEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsink) const {
     ValueEvalRefHolder res(right, xsink);
     if (*xsink)
         return QoreValue();

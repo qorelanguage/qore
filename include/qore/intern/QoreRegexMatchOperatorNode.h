@@ -38,13 +38,13 @@ OP_COMMON
 protected:
     SimpleRefHolder<QoreRegex> regex;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        return parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+        parseInitIntern(op_str.getBuffer(), val, oflag, pflag, lvids, typeInfo);
     }
 
-    DLLLOCAL AbstractQoreNode* parseInitIntern(const char* name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL void parseInitIntern(const char* name, QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
     DLLLOCAL QoreRegexMatchOperatorNode(const QoreProgramLocation* loc, QoreValue exp, QoreRegex* r) : QoreSingleExpressionOperatorNode<>(loc, exp), regex(r) {

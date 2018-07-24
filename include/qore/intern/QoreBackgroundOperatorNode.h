@@ -37,9 +37,9 @@ class QoreBackgroundOperatorNode : public QoreSingleExpressionOperatorNode<> {
 protected:
     static QoreString name;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+    DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return bigIntTypeInfo;

@@ -43,7 +43,7 @@ int QoreSquareBracketsRangeOperatorNode::getAsString(QoreString &str, int foff, 
     return 0;
 }
 
-AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+void QoreSquareBracketsRangeOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
     pflag &= ~PF_RETURN_VALUE_IGNORED;
     assert(!typeInfo);
     assert(!returnTypeInfo);
@@ -81,10 +81,9 @@ AbstractQoreNode* QoreSquareBracketsRangeOperatorNode::parseInitImpl(LocalVar *o
         parseException(*loc, "PARSE-TYPE-ERROR", "the end expression of the 'range' operator (..) expression is type '%s', which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime", QoreTypeInfo::getName(typeInfo2));
 
     typeInfo = returnTypeInfo;
-    return this;
 }
 
-QoreValue QoreSquareBracketsRangeOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreSquareBracketsRangeOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder seq(e[0], xsink);
     if (*xsink)
         return QoreValue();
@@ -157,7 +156,7 @@ FunctionalOperatorInterface* QoreSquareBracketsRangeOperatorNode::getFunctionalI
     }
 
     bool needs_deref;
-    ValueHolder res(evalValueImpl(needs_deref, xsink), xsink);
+    ValueHolder res(evalImpl(needs_deref, xsink), xsink);
 
     if (*xsink)
         return nullptr;

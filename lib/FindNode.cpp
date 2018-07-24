@@ -1,49 +1,46 @@
 /*
-  FindNode.cpp
+    FindNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/FindNode.h"
 
-FindNode::FindNode(const QoreProgramLocation* loc, AbstractQoreNode *expr, AbstractQoreNode *find_expr, AbstractQoreNode *w) : ParseNode(loc, NT_FIND) {
+FindNode::FindNode(const QoreProgramLocation* loc, QoreValue expr, QoreValue find_expr, QoreValue w) : ParseNode(loc, NT_FIND) {
     exp = expr;
     find_exp = find_expr;
     where = w;
 }
 
 FindNode::~FindNode() {
-    if (find_exp)
-        find_exp->deref(nullptr);
-    if (exp)
-        exp->deref(nullptr);
-    if (where)
-        where->deref(nullptr);
+    find_exp.discard(nullptr);
+    exp.discard(nullptr);
+    where.discard(nullptr);
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -56,7 +53,7 @@ int FindNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) cons
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *FindNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+QoreString* FindNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
     del = true;
     QoreString *rv = new QoreString();
     getAsString(*rv, foff, xsink);
@@ -64,18 +61,18 @@ QoreString *FindNode::getAsString(bool &del, int foff, ExceptionSink *xsink) con
 }
 
 // returns the type name as a c string
-const char *FindNode::getTypeName() const {
+const char* FindNode::getTypeName() const {
     return "find expression";
 }
 
-QoreValue FindNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue FindNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueHolder rv(xsink);
-    ReferenceHolder<Context> context(new Context(0, xsink, find_exp), xsink);
+    ReferenceHolder<Context> context(new Context(nullptr, xsink, find_exp), xsink);
     if (*xsink)
         return QoreValue();
 
     QoreListNode* lrv = nullptr;
-    for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); context->pos++) {
+    for (context->pos = 0; context->pos < context->max_pos && !xsink->isEvent(); ++context->pos) {
         printd(4, "FindNode::eval() checking %d/%d\n", context->pos, context->max_pos);
         bool b = context->check_condition(where, xsink);
         if (*xsink)
@@ -84,45 +81,43 @@ QoreValue FindNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const
             continue;
 
         printd(4, "FindNode::eval() GOT IT: %d\n", context->pos);
-        ValueHolder result(exp->evalValue(xsink), xsink);
-        if (*xsink)
+        ValueEvalRefHolder result(exp, xsink);
+        //ValueHolder result(exp->eval(xsink), xsink);
+        if (*xsink) {
             return QoreValue();
+        }
         if (!rv->isNothing()) {
             if (!lrv) {
-                lrv = new QoreListNode;
+                lrv = new QoreListNode(autoTypeInfo);
                 lrv->push(rv.release(), xsink);
-                assert(!*xsink);
-                lrv->push(result.release(), xsink);
-                assert(!*xsink);
+                lrv->push(result.takeReferencedValue(), xsink);
                 rv = lrv;
             }
             else {
-                lrv->push(result.release(), xsink);
+                lrv->push(result.takeReferencedValue(), xsink);
                 assert(!*xsink);
             }
         }
         else
-            rv = result.release();
+            rv = result.takeReferencedValue();
     }
 
     return rv.release();
 }
 
-AbstractQoreNode *FindNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   typeInfo = 0;
+void FindNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    typeInfo = nullptr;
 
-   push_cvar(0);
-   const QoreTypeInfo *argTypeInfo = nullptr;
-   if (find_exp)
-      find_exp = find_exp->parseInit(oflag, pflag, lvids, argTypeInfo);
-   if (where) {
-      argTypeInfo = nullptr;
-      where = where->parseInit(oflag, pflag, lvids, argTypeInfo);
-   }
-   if (exp) {
-      argTypeInfo = nullptr;
-      exp = exp->parseInit(oflag, pflag, lvids, argTypeInfo);
-   }
-   pop_cvar();
-   return this;
+    push_cvar(nullptr);
+    const QoreTypeInfo* argTypeInfo = nullptr;
+    parse_init_value(find_exp, oflag, pflag, lvids, argTypeInfo);
+    if (where) {
+        argTypeInfo = nullptr;
+        parse_init_value(where, oflag, pflag, lvids, argTypeInfo);
+    }
+    if (exp) {
+        argTypeInfo = nullptr;
+        parse_init_value(exp, oflag, pflag, lvids, argTypeInfo);
+    }
+    pop_cvar();
 }

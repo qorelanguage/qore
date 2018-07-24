@@ -34,7 +34,7 @@
 
 QoreString QoreRegexSubstOperatorNode::op_str("regex subst (=~ s///) operator expression");
 
-QoreValue QoreRegexSubstOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreRegexSubstOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsink) const {
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper v(exp, xsink);
     if (!v)
@@ -63,7 +63,7 @@ QoreValue QoreRegexSubstOperatorNode::evalValueImpl(bool& needs_deref, Exception
     return ref_rv ? nv->refSelf() : QoreValue();
 }
 
-AbstractQoreNode *QoreRegexSubstOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+void QoreRegexSubstOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -85,6 +85,4 @@ AbstractQoreNode *QoreRegexSubstOperatorNode::parseInitImpl(LocalVar *oflag, int
         checkLValue(exp, pflag);
 
     typeInfo = returnTypeInfo;
-
-    return this;
 }

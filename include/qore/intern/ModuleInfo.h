@@ -617,15 +617,15 @@ public:
 class QoreUserModule : public QoreAbstractModule {
 protected:
     QoreProgram* pgm;
-    QoreClosureParseNode* del; // deletion closure
+    AbstractQoreNode* del = nullptr; // deletion closure / call reference
 
     DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const;
 
 public:
-    DLLLOCAL QoreUserModule(const char* cwd, const char* fn, const char* n, QoreProgram* p, unsigned load_opt) : QoreAbstractModule(cwd, fn, n, load_opt), pgm(p), del(0) {
+    DLLLOCAL QoreUserModule(const char* cwd, const char* fn, const char* n, QoreProgram* p, unsigned load_opt) : QoreAbstractModule(cwd, fn, n, load_opt), pgm(p) {
     }
 
-    DLLLOCAL void set(const char* d, const char* v, const char* a, const char* u, const QoreString& l, QoreClosureParseNode* dl) {
+    DLLLOCAL void set(const char* d, const char* v, const char* a, const char* u, const QoreString& l, AbstractQoreNode* dl) {
         QoreAbstractModule::set(d, v, a, u, l);
         del = dl;
     }
