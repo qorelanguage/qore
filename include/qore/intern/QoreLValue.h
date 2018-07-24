@@ -184,13 +184,6 @@ public:
         }
         if (type == QV_Int)
             return true;
-        if (type == QV_Node && v.n && v.n->getType() == NT_INT) {
-            int64 i = reinterpret_cast<QoreBigIntNode*>(v.n)->val;
-            v.n->deref(0);
-            v.i = i;
-            type = QV_Int;
-            return true;
-        }
         return false;
     }
 
@@ -207,13 +200,6 @@ public:
         }
         if (type == QV_Float)
             return true;
-        if (type == QV_Node && v.n && v.n->getType() == NT_FLOAT) {
-            double f = reinterpret_cast<QoreFloatNode*>(v.n)->f;
-            v.n->deref(0);
-            v.f = f;
-            type = QV_Float;
-            return true;
-        }
         return false;
     }
 
@@ -607,8 +593,8 @@ public:
             case QV_Float: v.f = n.v.f; n.v.f = val.v.f; break;
             case QV_Node:
                 if (n.is_closure) {
-                assert(!is_closure);
-                is_closure = true;
+                    assert(!is_closure);
+                    is_closure = true;
                 }
                 v.n = n.v.n;
                 n.v.n = val.takeNode();
@@ -839,20 +825,11 @@ public:
             rv = 0;
         }
 
-        qore_type_t nt = get_node_type(n);
-        switch (nt) {
-            case NT_BOOLEAN: v.b = reinterpret_cast<QoreBoolNode*>(n)->getValue(); if (type != QV_Bool) type = QV_Bool; n->deref(0); break;
-            case NT_INT: v.b = reinterpret_cast<QoreBigIntNode*>(n)->val; if (type != QV_Int) type = QV_Int; n->deref(0); break;
-            case NT_FLOAT: v.b = reinterpret_cast<QoreFloatNode*>(n)->f; if (type != QV_Float) type = QV_Float; n->deref(0); break;
-            default: {
-                v.n = n;
-                if (!is_closure)
-                    check_lvalue_object_in_out(v.n, 0);
-                if (type != QV_Node)
-                    type = QV_Node;
-                break;
-            }
-        }
+        v.n = n;
+        if (!is_closure)
+            check_lvalue_object_in_out(v.n, 0);
+        if (type != QV_Node)
+            type = QV_Node;
 
         return rv;
     }
@@ -923,9 +900,9 @@ public:
     DLLLOCAL const char* getTypeName() const {
         if (assigned)
             switch (type) {
-                case QV_Bool: return QoreBoolNode::getStaticTypeName();
-                case QV_Int: return QoreBigIntNode::getStaticTypeName();
-                case QV_Float: return QoreFloatNode::getStaticTypeName();
+                case QV_Bool: return qoreBoolTypeName;
+                case QV_Int: return qoreIntTypeName;
+                case QV_Float: return qoreFloatTypeName;
                 case QV_Node: return get_type_name(v.n);
                 default: assert(false);
                 // no break

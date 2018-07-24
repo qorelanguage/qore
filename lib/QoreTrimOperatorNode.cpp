@@ -46,7 +46,7 @@ int QoreTrimOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink* 
    return 0;
 }
 
-QoreValue QoreTrimOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreTrimOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper val(exp, xsink);
     if (!val)
@@ -103,7 +103,7 @@ QoreValue QoreTrimOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* 
     return val.getReferencedValue();
 }
 
-AbstractQoreNode* QoreTrimOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreTrimOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(!typeInfo);
     parse_init_value(exp, oflag, pflag, lvids, typeInfo);
     if (exp)
@@ -119,5 +119,4 @@ AbstractQoreNode* QoreTrimOperatorNode::parseInitImpl(LocalVar* oflag, int pflag
         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
     }
     returnTypeInfo = typeInfo;
-    return this;
 }

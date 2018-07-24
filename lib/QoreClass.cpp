@@ -3956,11 +3956,11 @@ void QoreClass::unsetPublicMemberFlag() {
 }
 
 void QoreClass::addBuiltinConstant(const char* name, QoreValue value, ClassAccess access, const QoreTypeInfo* typeInfo) {
-    priv->addBuiltinConstant(name, value.takeNode(), access, typeInfo);
+    priv->addBuiltinConstant(name, value, access, typeInfo);
 }
 
 void QoreClass::addBuiltinStaticVar(const char* name, QoreValue value, ClassAccess access, const QoreTypeInfo* typeInfo) {
-    priv->addBuiltinStaticVar(name, value.takeNode(), access, typeInfo);
+    priv->addBuiltinStaticVar(name, value, access, typeInfo);
 }
 
 void QoreClass::rescanParents() {

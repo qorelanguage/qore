@@ -32,7 +32,7 @@
 
 QoreString QoreBinaryAndOperatorNode::op_str("& (binary and) operator expression");
 
-QoreValue QoreBinaryAndOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreBinaryAndOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return QoreValue();
     ValueEvalRefHolder rh(right, xsink);
@@ -41,7 +41,7 @@ QoreValue QoreBinaryAndOperatorNode::evalValueImpl(bool& needs_deref, ExceptionS
     return lh->getAsBigInt() & rh->getAsBigInt();
 }
 
-AbstractQoreNode* QoreBinaryAndOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreBinaryAndOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -64,8 +64,6 @@ AbstractQoreNode* QoreBinaryAndOperatorNode::parseInitImpl(LocalVar* oflag, int 
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
-        return v.takeReferencedValue().takeNode();
+        val = v.takeReferencedValue();
     }
-
-    return this;
 }

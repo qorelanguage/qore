@@ -393,9 +393,6 @@ set(LIBQORE_CPP_SRC
     lib/qore_date_private.cpp
     lib/QoreHashNode.cpp
     lib/BinaryNode.cpp
-    lib/QoreBigIntNode.cpp
-    lib/QoreBoolNode.cpp
-    lib/QoreFloatNode.cpp
     lib/QoreNumberNode.cpp
     lib/QoreNullNode.cpp
     lib/QoreNothingNode.cpp

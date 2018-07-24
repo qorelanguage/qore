@@ -81,7 +81,7 @@ protected:
     // such as when the node was created during background operation execution
     bool tmp_args = false;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
 
     DLLLOCAL void doFlags(int64 flags) {
         if (flags & QC_RET_VALUE_ONLY)
@@ -90,19 +90,15 @@ protected:
 
 public:
     DLLLOCAL AbstractFunctionCallNode(const QoreProgramLocation* loc, qore_type_t t, QoreParseListNode* n_args, bool needs_eval = true) : ParseNode(loc, t, needs_eval), FunctionCallBase(n_args) {
-        has_value_api = true;
     }
 
     DLLLOCAL AbstractFunctionCallNode(const QoreProgramLocation* loc, qore_type_t t, QoreParseListNode* parse_args, QoreListNode* args, bool needs_eval = true) : ParseNode(loc, t, needs_eval), FunctionCallBase(parse_args, args) {
-        has_value_api = true;
     }
 
     DLLLOCAL AbstractFunctionCallNode(const AbstractFunctionCallNode& old) : ParseNode(old), FunctionCallBase(old) {
-        has_value_api = true;
     }
 
     DLLLOCAL AbstractFunctionCallNode(const AbstractFunctionCallNode& old, QoreListNode* n_args) : ParseNode(old), FunctionCallBase(old, n_args), tmp_args(true) {
-        has_value_api = true;
     }
 
     DLLLOCAL virtual ~AbstractFunctionCallNode() {
@@ -129,25 +125,6 @@ public:
 };
 
 class FunctionCallNode : public AbstractFunctionCallNode {
-protected:
-    const FunctionEntry* fe = nullptr;
-    QoreProgram* pgm = nullptr;
-    char* c_str = nullptr;
-    // was this call enclosed in parentheses (in which case it will not be converted to a method call)
-    bool finalized = false;
-
-    using AbstractFunctionCallNode::evalImpl;
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    DLLLOCAL FunctionCallNode(const QoreProgramLocation* loc, char* name, QoreParseListNode* a, qore_type_t n_type) : AbstractFunctionCallNode(loc, n_type, a), c_str(name), finalized(false) {
-    }
-
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
-
-    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-        return variant ? variant->parseGetReturnTypeInfo() : (fe ? fe->getFunction()->parseGetUniqueReturnTypeInfo() : nullptr);
-    }
-
 public:
     DLLLOCAL FunctionCallNode(const FunctionCallNode& old, QoreListNode* args) : AbstractFunctionCallNode(old, args), fe(old.fe), pgm(old.pgm), finalized(old.finalized) {
     }
@@ -180,9 +157,9 @@ public:
         return const_cast<QoreProgram*>(pgm);
     }
 
-    DLLLOCAL AbstractQoreNode* parseInitCall(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL void parseInitCall(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
-    DLLLOCAL void parseInitFinalizedCall(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL void parseInitFinalizedCall(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
     DLLLOCAL virtual const char* getName() const {
         return fe ? fe->getName() : c_str;
@@ -233,6 +210,25 @@ public:
     DLLLOCAL void setFinalized() {
         finalized = true;
     }
+
+protected:
+    const FunctionEntry* fe = nullptr;
+    QoreProgram* pgm = nullptr;
+    char* c_str = nullptr;
+    // was this call enclosed in parentheses (in which case it will not be converted to a method call)
+    bool finalized = false;
+
+    using AbstractFunctionCallNode::evalImpl;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL FunctionCallNode(const QoreProgramLocation* loc, char* name, QoreParseListNode* a, qore_type_t n_type) : AbstractFunctionCallNode(loc, n_type, a), c_str(name), finalized(false) {
+    }
+
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return variant ? variant->parseGetReturnTypeInfo() : (fe ? fe->getFunction()->parseGetUniqueReturnTypeInfo() : nullptr);
+    }
 };
 
 class ProgramFunctionCallNode : public FunctionCallNode {
@@ -240,8 +236,8 @@ public:
     DLLLOCAL ProgramFunctionCallNode(const QoreProgramLocation* loc, char* name, QoreParseListNode* a) : FunctionCallNode(loc, name, a, NT_PROGRAM_FUNC_CALL) {
     }
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        return parseInitCall(oflag, pflag, lvids, typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+        parseInitCall(val, oflag, pflag, lvids, typeInfo);
     }
 
     DLLLOCAL virtual AbstractQoreNode* makeReferenceNodeAndDerefImpl();
@@ -255,7 +251,8 @@ protected:
     const QoreClass* qc;
     const QoreMethod* method;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) = 0;
+
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return variant ? variant->parseGetReturnTypeInfo() : (method ? method->getFunction()->parseGetUniqueReturnTypeInfo() : 0);
     }
@@ -288,16 +285,15 @@ protected:
     bool pseudo = false;
 
     using AbstractFunctionCallNode::evalImpl;
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
         assert(false);
         return QoreValue();
     }
 
     // note that the class and method are set in QoreDotEvalOperatorNode::parseInitImpl()
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        typeInfo = 0;
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+        typeInfo = nullptr;
         lvids += parseArgs(oflag, pflag, nullptr, nullptr, typeInfo);
-        return this;
     }
 
 public:
@@ -384,7 +380,7 @@ protected:
     NamedScope ns;
     bool is_copy;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
     DLLLOCAL SelfFunctionCallNode(const QoreProgramLocation* loc, char* n, QoreParseListNode* n_args) : AbstractMethodCallNode(loc, NT_SELF_CALL, n_args, parse_get_class()), ns(n), is_copy(false) {
@@ -402,7 +398,7 @@ public:
     DLLLOCAL SelfFunctionCallNode(const SelfFunctionCallNode& old, QoreListNode* n_args) : AbstractMethodCallNode(old, n_args), ns(old.ns), is_copy(old.is_copy) {
     }
 
-    DLLLOCAL void parseInitCall(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo);
+    DLLLOCAL void parseInitCall(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo);
 
     DLLLOCAL virtual ~SelfFunctionCallNode() {
     }
@@ -416,7 +412,7 @@ public:
     }
 
     using AbstractFunctionCallNode::evalImpl;
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
     DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink* xsink) const;
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
@@ -430,9 +426,10 @@ protected:
     const QoreMethod* method = nullptr;
 
     using AbstractFunctionCallNode::evalImpl;
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return variant ? variant->parseGetReturnTypeInfo() : (method ? method->getFunction()->parseGetUniqueReturnTypeInfo() : 0);
     }

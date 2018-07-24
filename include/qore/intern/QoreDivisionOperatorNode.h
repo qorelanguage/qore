@@ -43,13 +43,13 @@ protected:
     // pointer to optimized versions depending on arguments found at parse-time
     eval_t pfunc = nullptr;
 
-    DLLLOCAL QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        return parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+        return parseInitIntern(op_str.getBuffer(), val, oflag, pflag, lvids, typeInfo);
     }
 
-    DLLLOCAL AbstractQoreNode* parseInitIntern(const char *name, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL void parseInitIntern(const char *name, QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
     DLLLOCAL QoreValue floatDivision(ExceptionSink* xsink) const;
     DLLLOCAL QoreValue bigIntDivision(ExceptionSink* xsink) const;

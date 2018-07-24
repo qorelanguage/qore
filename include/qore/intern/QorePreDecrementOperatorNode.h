@@ -37,9 +37,9 @@ class QorePreDecrementOperatorNode : public QorePreIncrementOperatorNode {
 OP_COMMON
 
 protected:
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
-    virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
     DLLLOCAL QorePreDecrementOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : QorePreIncrementOperatorNode(loc, exp) {

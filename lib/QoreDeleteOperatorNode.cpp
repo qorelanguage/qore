@@ -43,18 +43,17 @@ int QoreDeleteOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink
     return 0;
 }
 
-QoreValue QoreDeleteOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreDeleteOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     LValueRemoveHelper lvrh(exp, xsink, true);
     if (lvrh)
         lvrh.deleteLValue();
     return QoreValue();
 }
 
-AbstractQoreNode *QoreDeleteOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreDeleteOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     assert(!typeInfo);
     parse_init_value(exp, oflag, pflag, lvids, typeInfo);
     if (exp)
         checkLValue(exp, pflag);
     typeInfo = nothingTypeInfo;
-    return this;
 }

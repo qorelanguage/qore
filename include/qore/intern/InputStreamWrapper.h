@@ -40,59 +40,57 @@
 class InputStreamWrapper : public InputStream {
 
 public:
-   /**
-    * @brief Constructor.
-    * @param self the QoreObject this private data is associated with
+    /**
+     * @brief Constructor.
+     * @param self the QoreObject this private data is associated with
     */
-   InputStreamWrapper(QoreObject* self) : self(self) {
-   }
+    InputStreamWrapper(QoreObject* self) : self(self) {
+    }
 
-   DLLLOCAL virtual int64 read(void* ptr, int64 limit, ExceptionSink* xsink) override {
-      assert(limit > 0);
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
-      args->push(limit, xsink);
-      ValueHolder bufHolder(self->evalMethod("read", *args, xsink), xsink);
-      if (!bufHolder) {
-         return 0;
-      }
-      BinaryNode *buf = bufHolder->get<BinaryNode>();
-      qore_size_t count = buf->size();
-      if (count == 0) {
-         xsink->raiseException("INPUT-STREAM-ERROR",
-               "%s::read() returned an empty binary; NOTHING should be used to indicate the end of the stream",
-               self->getClassName());
-         return 0;
-      }
-      if (count > static_cast<qore_size_t>(limit)) {
-         xsink->raiseException("INPUT-STREAM-ERROR",
-               "%s::rRead() returned %lu bytes which is more than the specified limit of %lu",
-               self->getClassName(), count, static_cast<qore_size_t>(limit));
-         return 0;
-      }
-      memcpy(ptr, buf->getPtr(), count);
-      return count;
-   }
+    DLLLOCAL virtual int64 read(void* ptr, int64 limit, ExceptionSink* xsink) override {
+        assert(limit > 0);
+        ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
+        args->push(limit, xsink);
+        ValueHolder bufHolder(self->evalMethod("read", *args, xsink), xsink);
+        if (!bufHolder) {
+            return 0;
+        }
+        BinaryNode *buf = bufHolder->get<BinaryNode>();
+        qore_size_t count = buf->size();
+        if (count == 0) {
+            xsink->raiseException("INPUT-STREAM-ERROR",
+                "%s::read() returned an empty binary; NOTHING should be used to indicate the end of the stream",
+                self->getClassName());
+            return 0;
+        }
+        if (count > static_cast<qore_size_t>(limit)) {
+            xsink->raiseException("INPUT-STREAM-ERROR",
+                "%s::rRead() returned %lu bytes which is more than the specified limit of %lu",
+                self->getClassName(), count, static_cast<qore_size_t>(limit));
+            return 0;
+        }
+        memcpy(ptr, buf->getPtr(), count);
+        return count;
+    }
 
-   DLLLOCAL virtual int64 peek(ExceptionSink *xsink) override {
-      ReferenceHolder<QoreListNode> args(new QoreListNode(), xsink);
-      ValueHolder resHolder(self->evalMethod("peek", *args, xsink), xsink);
-      if (!resHolder) {
-         return -2;
-      }
-      QoreBigIntNode *res = resHolder->get<QoreBigIntNode>();
-      return res->val;
-   }
+    DLLLOCAL virtual int64 peek(ExceptionSink *xsink) override {
+        ValueHolder resHolder(self->evalMethod("peek", nullptr, xsink), xsink);
+        if (!resHolder) {
+            return -2;
+        }
+        return resHolder->getAsBigInt();
+    }
 
-   /**
-     * @brief Returns the name of the class.
-     * @return the name of the class
-     */
-   DLLLOCAL virtual const char *getName() override {
-      return "InputStreamWrapper";
-   }
+    /**
+        * @brief Returns the name of the class.
+        * @return the name of the class
+        */
+    DLLLOCAL virtual const char* getName() override {
+        return "InputStreamWrapper";
+    }
 
 private:
-   QoreObject *self;                    //!< The QoreObject this private data is associated with
+    QoreObject *self;                    //!< The QoreObject this private data is associated with
 };
 
 #endif // _QORE_INPUTSTREAMWRAPPER_H

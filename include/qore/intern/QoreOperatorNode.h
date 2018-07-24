@@ -34,7 +34,6 @@
 
 #include <stdarg.h>
 
-DLLLOCAL AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink);
 DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink);
 
 // type of logical operator function
@@ -283,15 +282,13 @@ public:
     }
 
     DLLLOCAL int checkLValue(QoreValue exp, int pflag, bool assignment = true) {
-        if (exp) {
-            if (check_lvalue(exp, assignment)) {
-                parse_error(*loc, "expecting lvalue for %s, got '%s' instead", getTypeName(), exp.getTypeName());
-                return -1;
-            }
-            else if ((pflag & PF_BACKGROUND) && exp.getType() == NT_VARREF && exp.get<const VarRefNode>()->getType() == VT_LOCAL) {
-                parse_error(*loc, "illegal local variable modification with the background operator in %s", getTypeName());
-                return -1;
-            }
+        if (check_lvalue(exp, assignment)) {
+            parse_error(*loc, "expecting lvalue for %s, got '%s' instead", getTypeName(), exp.getTypeName());
+            return -1;
+        }
+        else if ((pflag & PF_BACKGROUND) && exp.getType() == NT_VARREF && exp.get<const VarRefNode>()->getType() == VT_LOCAL) {
+            parse_error(*loc, "illegal local variable modification with the background operator in %s", getTypeName());
+            return -1;
         }
         return 0;
     }

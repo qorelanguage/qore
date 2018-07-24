@@ -200,13 +200,7 @@ QoreListNode* emptyList;
 QoreHashNode* emptyHash;
 QoreStringNode* NullString;
 DateTimeNode* ZeroDate, * OneDate;
-QoreBigIntNode* Zero;
-QoreFloatNode* ZeroFloat;
 QoreNumberNode* ZeroNumber, * NaNumber, * InfinityNumber, * piNumber;
-
-// map from types to default values
-typedef std::map<qore_type_t, AbstractQoreNode* > def_val_map_t;
-static def_val_map_t def_val_map;
 
 // map from names used when parsing to types
 typedef std::map<const char* , const QoreTypeInfo* , ltstr> str_typeinfo_map_t;
@@ -259,8 +253,6 @@ void init_qore_types() {
    NullString     = new QoreStringNode;
    ZeroDate       = DateTimeNode::makeAbsolute(0, 0, 0);
    OneDate        = DateTimeNode::makeAbsolute(0, 0, 0, 0, 0, 1);
-   Zero           = new QoreBigIntNode;
-   ZeroFloat      = new QoreFloatNode;
    ZeroNumber     = new QoreNumberNode;
    NaNumber       = qore_number_private::getNaNumber();
    InfinityNumber = qore_number_private::getInfinity();
@@ -268,18 +260,6 @@ void init_qore_types() {
 
    emptyList      = new QoreListNode;
    emptyHash      = new QoreHashNode;
-
-   def_val_map[NT_INT]     = Zero->refSelf();
-   def_val_map[NT_STRING]  = NullString->refSelf();
-   def_val_map[NT_BOOLEAN] = &False;
-   def_val_map[NT_DATE]    = ZeroDate->refSelf();
-   def_val_map[NT_FLOAT]   = ZeroFloat->refSelf();
-   def_val_map[NT_NUMBER]  = ZeroNumber->refSelf();
-   def_val_map[NT_LIST]    = emptyList->refSelf();
-   def_val_map[NT_HASH]    = emptyHash->refSelf();
-   def_val_map[NT_BINARY]  = new BinaryNode;
-   def_val_map[NT_NULL]    = &Null;
-   def_val_map[NT_NOTHING] = &Nothing;
 
    do_maps(NT_INT,         "int", bigIntTypeInfo, bigIntOrNothingTypeInfo);
    do_maps(NT_STRING,      "string", stringTypeInfo, stringOrNothingTypeInfo);
@@ -316,40 +296,34 @@ void init_qore_types() {
 }
 
 void delete_qore_types() {
-   // dereference all values from default value map
-   for (def_val_map_t::iterator i = def_val_map.begin(), e = def_val_map.end(); i != e; ++i)
-      i->second->deref(nullptr);
+    // dereference global default values
+    NullString->deref();
+    piNumber->deref();
+    InfinityNumber->deref();
+    NaNumber->deref();
+    ZeroNumber->deref();
+    OneDate->deref();
+    ZeroDate->deref();
+    emptyList->deref(nullptr);
+    emptyHash->deref(nullptr);
 
-   // dereference global default values
-   NullString->deref();
-   piNumber->deref();
-   InfinityNumber->deref();
-   NaNumber->deref();
-   ZeroNumber->deref();
-   ZeroFloat->deref();
-   Zero->deref();
-   OneDate->deref();
-   ZeroDate->deref();
-   emptyList->deref(nullptr);
-   emptyHash->deref(nullptr);
-
-   // delete stored type information
-   for (auto& i : ch_map)
-      delete i.second;
-   for (auto& i : chon_map)
-      delete i.second;
-   for (auto& i : cl_map)
-      delete i.second;
-   for (auto& i : clon_map)
-      delete i.second;
-   for (auto& i : cr_map)
-      delete i.second;
-   for (auto& i : cron_map)
-      delete i.second;
-   for (auto& i : csl_map)
-      delete i.second;
-   for (auto& i : cslon_map)
-      delete i.second;
+    // delete stored type information
+    for (auto& i : ch_map)
+        delete i.second;
+    for (auto& i : chon_map)
+        delete i.second;
+    for (auto& i : cl_map)
+        delete i.second;
+    for (auto& i : clon_map)
+        delete i.second;
+    for (auto& i : cr_map)
+        delete i.second;
+    for (auto& i : cron_map)
+        delete i.second;
+    for (auto& i : csl_map)
+        delete i.second;
+    for (auto& i : cslon_map)
+        delete i.second;
 }
 
 void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo) {
@@ -531,16 +505,6 @@ const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n) {
          break;
    }
    return getTypeInfoForType(t);
-}
-
-AbstractQoreNode* getDefaultValueForBuiltinValueType(qore_type_t t) {
-   def_val_map_t::iterator i = def_val_map.find(t);
-   assert(i != def_val_map.end());
-   return i->second->refSelf();
-}
-
-bool builtinTypeHasDefaultValue(qore_type_t t) {
-   return def_val_map.find(t) != def_val_map.end();
 }
 
 const QoreTypeInfo* getBuiltinUserTypeInfo(const char* str) {

@@ -43,89 +43,77 @@
     @see ReferenceArgumentHelper
  */
 class ReferenceNode : public AbstractQoreNode {
-   friend class RuntimeReferenceHelper;
-   friend class lvalue_ref;
+    friend class RuntimeReferenceHelper;
+    friend class lvalue_ref;
 
 private:
-   //! private implementation
-   class lvalue_ref* priv;
+    //! private implementation
+    class lvalue_ref* priv;
 
 protected:
-   //! returns the value of the reference; caller owns any reference count returned for non-NULL return values
-   DLLEXPORT virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
+    //! returns the value of the reference
+    DLLEXPORT virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   //! returns the value of the reference
-   DLLEXPORT virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    //! returns the value of the reference
+    DLLEXPORT QoreValue doEval(ExceptionSink* xsink) const;
 
-   //! returns the value of the reference as an int64
-   DLLEXPORT virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const;
-
-   //! returns the value of the reference as an int
-   DLLEXPORT virtual int integerEvalImpl(ExceptionSink* xsink) const;
-
-   //! returns the value of the reference as a bool
-   DLLEXPORT virtual bool boolEvalImpl(ExceptionSink* xsink) const;
-
-   //! returns the value of the reference as a double
-   DLLEXPORT virtual double floatEvalImpl(ExceptionSink* xsink) const;
-
-   //! frees all memory and destroys the object
-   DLLEXPORT virtual ~ReferenceNode();
+    //! frees all memory and destroys the object
+    DLLEXPORT virtual ~ReferenceNode();
 
 public:
-   //! creates the ReferenceNode object - internal function, not exported, not part of the Qore API
-   DLLLOCAL ReferenceNode(QoreValue exp, const QoreTypeInfo* typeInfo, QoreObject* self, const void* lvalue_id, const qore_class_private* cls);
+    //! creates the ReferenceNode object - internal function, not exported, not part of the Qore API
+    DLLLOCAL ReferenceNode(QoreValue exp, const QoreTypeInfo* typeInfo, QoreObject* self, const void* lvalue_id, const qore_class_private* cls);
 
-   //! creates a copy of the object
-   /** @since %Qore 0.8.12.9
+    //! creates a copy of the object
+    /** @since %Qore 0.8.12.9
+        */
+    DLLLOCAL ReferenceNode(const ReferenceNode& old);
+
+    //! returns a reference to itself
+    DLLEXPORT ReferenceNode* refRefSelf() const;
+
+    //! returns the type information for this object
+    /** @since %Qore 0.8.13
     */
-   DLLLOCAL ReferenceNode(const ReferenceNode& old);
+    DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
 
-   //! returns a reference to itself
-   DLLEXPORT ReferenceNode* refRefSelf() const;
+    //! returns the type information for the lvalue referenced
+    /** @since %Qore 0.8.13
+    */
+    DLLEXPORT const QoreTypeInfo* getLValueTypeInfo() const;
 
-   //! returns the type information for this object
-   /** @since %Qore 0.8.13
-   */
-   DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
+    //! concatenate the verbose string representation of the value to an existing QoreString
+    /** used for %n and %N printf formatting
+        @param str the string representation of the type will be concatenated to this QoreString reference
+        @param foff for multi-line formatting offset, -1 = no line breaks (ignored in this version of the function)
+        @param xsink ignored in this version of the function
+        @return this implementation of the function always returns 0 for no error raised
+    */
+    DLLEXPORT virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
-      //! returns the type information for the lvalue referenced
-   /** @since %Qore 0.8.13
-   */
-   DLLEXPORT const QoreTypeInfo* getLValueTypeInfo() const;
+    //! returns a QoreString giving the verbose string representation of the value
+    /** Used for %n and %N printf formatting.  Do not call this function directly; use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead
+        @param del if this is true when the function returns, then the returned QoreString pointer should be deleted, if false, then it must not be
+        @param foff for multi-line formatting offset, -1 = no line breaks (ignored in this version of the function)
+        @param xsink ignored in this version of the function
+        @see QoreNodeAsStringHelper
+    */
+    DLLEXPORT virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
-   //! concatenate the verbose string representation of the value to an existing QoreString
-   /** used for %n and %N printf formatting
-       @param str the string representation of the type will be concatenated to this QoreString reference
-       @param foff for multi-line formatting offset, -1 = no line breaks (ignored in this version of the function)
-       @param xsink ignored in this version of the function
-       @return this implementation of the function always returns 0 for no error raised
-   */
-   DLLEXPORT virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
+    //! returns a copy of the object
+    DLLEXPORT virtual AbstractQoreNode* realCopy() const;
 
-   //! returns a QoreString giving the verbose string representation of the value
-   /** Used for %n and %N printf formatting.  Do not call this function directly; use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead
-       @param del if this is true when the function returns, then the returned QoreString pointer should be deleted, if false, then it must not be
-       @param foff for multi-line formatting offset, -1 = no line breaks (ignored in this version of the function)
-       @param xsink ignored in this version of the function
-       @see QoreNodeAsStringHelper
-   */
-   DLLEXPORT virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+    //! compares the values
+    DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const;
 
-   //! returns a copy of the object
-   DLLEXPORT virtual AbstractQoreNode* realCopy() const;
+    //! compares the values
+    DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
 
-   //! compares the values
-   DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const;
+    //! returns the type name as a c string
+    DLLEXPORT virtual const char* getTypeName() const;
 
-   //! compares the values
-   DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
-
-   //! returns the type name as a c string
-   DLLEXPORT virtual const char* getTypeName() const;
-
-   //! called when the object is deleted
-   DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
+    //! called when the object is deleted
+    DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
 };
 
 #endif

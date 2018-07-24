@@ -32,40 +32,40 @@
 
 QoreString QoreMinusEqualsOperatorNode::op_str("-= operator expression");
 
-AbstractQoreNode* QoreMinusEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   // turn off "reference ok" and "return value ignored" flags
-   pflag &= ~(PF_RETURN_VALUE_IGNORED);
+void QoreMinusEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+    // turn off "reference ok" and "return value ignored" flags
+    pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
-   parse_init_value(left, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
-   checkLValue(left, pflag);
+    parse_init_value(left, oflag, pflag | PF_FOR_ASSIGNMENT, lvids, ti);
+    checkLValue(left, pflag);
 
-   const QoreTypeInfo *rightTypeInfo = 0;
-   parse_init_value(right, oflag, pflag, lvids, rightTypeInfo);
+    const QoreTypeInfo *rightTypeInfo = 0;
+    parse_init_value(right, oflag, pflag, lvids, rightTypeInfo);
 
-   if (!QoreTypeInfo::isType(ti, NT_HASH)
-       && !QoreTypeInfo::isType(ti, NT_OBJECT)
-       && !QoreTypeInfo::isType(ti, NT_FLOAT)
-       && !QoreTypeInfo::isType(ti, NT_NUMBER)
-       && !QoreTypeInfo::isType(ti, NT_DATE)) {
-      // if the lhs type is not one of the above types,
-      // there are 2 possibilities: the lvalue has no value, in which
-      // case it takes the value of the right side, or if it's anything else it's
-      // converted to an integer, so we just check if it can be assigned an
-      // integer value below, this is enough
-      if (QoreTypeInfo::returnsSingle(ti)) {
-         check_lvalue_int(loc, ti, "-=");
-         ti = bigIntTypeInfo;
-         return makeSpecialization<QoreIntMinusEqualsOperatorNode>();
-      }
-      else
-         ti = 0;
-   }
-   typeInfo = ti;
-
-   return this;
+    if (!QoreTypeInfo::isType(ti, NT_HASH)
+        && !QoreTypeInfo::isType(ti, NT_OBJECT)
+        && !QoreTypeInfo::isType(ti, NT_FLOAT)
+        && !QoreTypeInfo::isType(ti, NT_NUMBER)
+        && !QoreTypeInfo::isType(ti, NT_DATE)) {
+        // if the lhs type is not one of the above types,
+        // there are 2 possibilities: the lvalue has no value, in which
+        // case it takes the value of the right side, or if it's anything else it's
+        // converted to an integer, so we just check if it can be assigned an
+        // integer value below, this is enough
+        if (QoreTypeInfo::returnsSingle(ti)) {
+            check_lvalue_int(loc, ti, "-=");
+            ti = bigIntTypeInfo;
+            val = makeSpecialization<QoreIntMinusEqualsOperatorNode>();
+            return;
+        }
+        else {
+            ti = nullptr;
+        }
+    }
+    typeInfo = ti;
 }
 
-QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreMinusEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
     ValueEvalRefHolder new_right(right, xsink);
     if (*xsink)
         return QoreValue();
@@ -81,7 +81,7 @@ QoreValue QoreMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, Exceptio
     // do float minus-equals if left side is a float
     qore_type_t vtype = v.getType();
 
-    //printd(5, "QoreMinusEqualsOperatorNode::evalValueImpl() vtype: %d rtype: %d\n", vtype, new_right->getType());
+    //printd(5, "QoreMinusEqualsOperatorNode::evalImpl() vtype: %d rtype: %d\n", vtype, new_right->getType());
 
     if (vtype == NT_NOTHING) {
         // see if the lvalue has a default type

@@ -517,11 +517,7 @@ void parse_init_value(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, co
     if (val.hasNode()) {
         AbstractQoreNode* n = val.getInternalNode();
         //printd(5, "parse_init_value() n: %p '%s'\n", n, get_type_name(n));
-        AbstractQoreNode* nn = n->parseInit(oflag, pflag, lvids, typeInfo);
-        //printd(5, "parse_init_value() n: %p nn: %p '%s'\n", n, nn, get_type_name(nn));
-        if (nn != n) {
-            val = nn;
-        }
+        n->parseInit(val, oflag, pflag, lvids, typeInfo);
         return;
     }
 
@@ -1396,20 +1392,21 @@ int64 q_epoch_ns(int &ns) {
    return ts.tv_sec;
 }
 
-QoreParseListNode* make_args(const QoreProgramLocation* loc, AbstractQoreNode* arg) {
-   if (!arg)
-      return nullptr;
+QoreParseListNode* make_args(const QoreProgramLocation* loc, QoreValue arg) {
+    if (!arg) {
+        return nullptr;
+    }
 
-   QoreParseListNode* l;
-   if (arg->getType() == NT_PARSE_LIST) {
-      l = reinterpret_cast<QoreParseListNode*>(arg);
-      if (!l->isFinalized())
-         return l;
-   }
+    QoreParseListNode* l;
+    if (arg.getType() == NT_PARSE_LIST) {
+        l = arg.get<QoreParseListNode>();
+        if (!l->isFinalized())
+            return l;
+    }
 
-   l = new QoreParseListNode(loc);
-   l->add(arg, loc);
-   return l;
+    l = new QoreParseListNode(loc);
+    l->add(arg, loc);
+    return l;
 }
 
 const char* check_hash_key(const QoreHashNode* h, const char* key, const char* err, ExceptionSink* xsink) {
@@ -1495,8 +1492,12 @@ int qore_release_signals(const sig_vec_t& sig_vec, const char* name) {
 
 // returns 0 for OK, -1 for error
 int check_lvalue(QoreValue n, bool assignment) {
-    if (n.isNothing() || !n.hasNode()) {
+    if (n.isNothing()) {
         return 0;
+    }
+
+    if (!n.hasNode()) {
+        return -1;
     }
 
     return check_lvalue(n.getInternalNode(), assignment);

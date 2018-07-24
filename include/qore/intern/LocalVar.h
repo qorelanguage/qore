@@ -188,8 +188,8 @@ public:
     DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo, const QoreTypeInfo* refTypeInfo) const;
     DLLLOCAL void remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo);
 
-    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
-        //printd(5, "LocalVarValue::evalValue() this: %p '%s' type: %d '%s'\n", this, id, val.getType(), val.getTypeName());
+    DLLLOCAL QoreValue eval(bool& needs_deref, ExceptionSink* xsink) const {
+        //printd(5, "LocalVarValue::eval() this: %p '%s' type: %d '%s'\n", this, id, val.getType(), val.getTypeName());
         if (val.getType() == NT_REFERENCE) {
             ReferenceNode* ref = const_cast<ReferenceNode*>(val.get<ReferenceNode>());
             LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
@@ -208,7 +208,7 @@ public:
         return val.getReferencedValue(needs_deref);
     }
 
-    DLLLOCAL QoreValue evalValue(ExceptionSink* xsink) const {
+    DLLLOCAL QoreValue eval(ExceptionSink* xsink) const {
         if (val.getType() == NT_REFERENCE) {
             ReferenceNode* ref = const_cast<ReferenceNode*>(val.get<ReferenceNode>());
             LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);
@@ -282,7 +282,7 @@ public:
         return VarValueBase::finalize();
     }
 
-    DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
+    DLLLOCAL QoreValue eval(bool& needs_deref, ExceptionSink* xsink) const {
         QoreSafeVarRWReadLocker sl(rml);
         if (val.getType() == NT_REFERENCE) {
             ReferenceHolder<ReferenceNode> ref(val.get<ReferenceNode>()->refRefSelf(), xsink);
@@ -299,7 +299,7 @@ public:
         return val.getReferencedValue();
     }
 
-    DLLLOCAL QoreValue evalValue(ExceptionSink* xsink) const {
+    DLLLOCAL QoreValue eval(ExceptionSink* xsink) const {
         QoreSafeVarRWReadLocker sl(rml);
         if (val.getType() == NT_REFERENCE) {
             ReferenceHolder<ReferenceNode> ref(val.get<ReferenceNode>()->refRefSelf(), xsink);
@@ -412,15 +412,15 @@ public:
          thread_uninstantiate_closure_var(0);
    }
 
-   DLLLOCAL QoreValue evalValue(bool& needs_deref, ExceptionSink* xsink) const {
+   DLLLOCAL QoreValue eval(bool& needs_deref, ExceptionSink* xsink) const {
       if (!closure_use) {
          LocalVarValue* val = get_var();
-         //printd(5, "LocalVar::evalValue '%s' typeInfo: %p '%s'\n", name.c_str(), typeInfo, QoreTypeInfo::getName(typeInfo));
-         return val->evalValue(needs_deref, xsink);
+         //printd(5, "LocalVar::eval '%s' typeInfo: %p '%s'\n", name.c_str(), typeInfo, QoreTypeInfo::getName(typeInfo));
+         return val->eval(needs_deref, xsink);
       }
 
       ClosureVarValue* val = thread_find_closure_var(name.c_str());
-      return val->evalValue(needs_deref, xsink);
+      return val->eval(needs_deref, xsink);
    }
 
    // returns true if the value could contain an object or a closure

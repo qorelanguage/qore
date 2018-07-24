@@ -35,7 +35,7 @@
 class QoreIntPreDecrementOperatorNode : public QorePreDecrementOperatorNode {
 OP_COMMON
 protected:
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
     DLLLOCAL QoreIntPreDecrementOperatorNode(const QoreProgramLocation* loc, QoreValue exp) : QorePreDecrementOperatorNode(loc, exp) {

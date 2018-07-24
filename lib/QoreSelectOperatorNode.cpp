@@ -50,7 +50,7 @@ int QoreSelectOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink
     return 0;
 }
 
-AbstractQoreNode* QoreSelectOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreSelectOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(!typeInfo);
 
     pflag &= ~PF_RETURN_VALUE_IGNORED;
@@ -95,11 +95,9 @@ AbstractQoreNode* QoreSelectOperatorNode::parseInitImpl(LocalVar* oflag, int pfl
 
     if (typeInfo == listTypeInfo && elementTypeInfo)
         typeInfo = iteratorTypeInfo;
-
-    return this;
 }
 
-QoreValue QoreSelectOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreSelectOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     FunctionalValueType value_type;
     std::unique_ptr<FunctionalOperatorInterface> f(getFunctionalIterator(value_type, xsink));
     if (*xsink || value_type == nothing)

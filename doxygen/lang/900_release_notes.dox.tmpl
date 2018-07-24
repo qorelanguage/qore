@@ -8,7 +8,6 @@
     WIP
 
     @subsection qore_09_compatibility Changes That Can Affect Backwards-Compatibility
-    - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
     - Qore classes and functions can no longer be modified after creation; any attempt to add a new user
       variant to an existing function or to add new declarations to an existing class will result in a
       parse error.
@@ -24,6 +23,9 @@
     WIP
 
     @subsection qore_09_new_features New Features in Qore
+    - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
+    - the elimination of heap-allocated, atomic-reference-counted integers and floating-point values results
+      in reduced memory usage as well as faster program execution
     - the default thread stack size was changed from 8MB to 512KB resulting in a large reduction in the total
       memory used in programs with many threads (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
     - new classes:
@@ -46,10 +48,10 @@
     - new hashdecls:
       - @ref Qore::NetIfInfo "NetIfInfo"
     - new constants:
-      - @ref Qore::HAVE_GET_NETIF_LIST "HAVE_GET_NETIF_LIST"
-      - @ref Qore::HAVE_GET_STACK_SIZE "HAVE_GET_STACK_SIZE"
-      - @ref Qore::HAVE_MANAGE_STACK "HAVE_MANAGE_STACK"
-      - @ref Qore::HAVE_THREAD_NAME "HAVE_THREAD_NAME"
+      - @ref Qore::Option::HAVE_GET_NETIF_LIST "HAVE_GET_NETIF_LIST"
+      - @ref Qore::Option::HAVE_GET_STACK_SIZE "HAVE_GET_STACK_SIZE"
+      - @ref Qore::Option::HAVE_MANAGE_STACK "HAVE_MANAGE_STACK"
+      - @ref Qore::Option::HAVE_THREAD_NAME "HAVE_THREAD_NAME"
     - new @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
       - \c "Dn" and \c "DN": the ordinal day number in the year
       - \c "I": ISO-8601 week string
@@ -89,7 +91,6 @@
         - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
-
     - fixed a bug where class members could be initialized multiple times in a class with multiple
       inheritance where the same class is inherited multiple times in the hierarchy
       (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
