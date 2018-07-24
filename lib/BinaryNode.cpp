@@ -45,6 +45,7 @@ BinaryNode::~BinaryNode() {
 }
 
 void BinaryNode::clear() {
+    // NOTE: must check 'ptr', len may be 0 with memory allocated
     if (ptr) {
         free(ptr);
         if (len) {
