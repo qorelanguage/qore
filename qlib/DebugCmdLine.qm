@@ -509,6 +509,7 @@ public namespace DebugCmdLine {
                                         'desc': 'verbose program listing',
                                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                             hash data.cmd = 'program//list';
+                                            data.listFiles = True;
                                             dcl.doCommand(data, True);
                                         },
                                     ),
@@ -1358,19 +1359,25 @@ public namespace DebugCmdLine {
             throw "DEBUG-PROGRAM-HELPER", sprintf("Wrong statement identification");
         }
 
-        private list splitCmd(string line) {
-            list ret = ();
+        private hash splitCmd(string line) {
+            hash ret = ('args': (), 'pos': ());
             int i = 0;
             int q = 0;
             string s = '';
+            int start = -1;
             while (i < line.size()) {
+                if (start < 0 && s == '' && line[i] != ' ') {
+                    start = i;
+                }
                 switch (line[i]) {
                 case ' ':
                     if (q == 0) {
                         if (s != '') {
-                            push ret, s;
+                            push ret.args, s;
+                            push ret.pos, ('start': start, 'end': i);
                             s = '';
                         }
+                        start = -1;
                     } else {
                         s += line[i];
                     }
@@ -1420,9 +1427,44 @@ public namespace DebugCmdLine {
             if (q != 0)
                 throw "DEBUG-PROGRAM-HELPER", sprintf("Unmatched quotes in %y", line);
             if (s != '') {
-                push ret, s;
+                push ret.args, s;
+                push ret.pos, ('start': start, 'end': i);
             }
             return ret;
+        }
+
+        private string escapeArg(string s) {
+            int i = 0;
+            while (i < s.size()) {
+                bool addEsc = True;
+                switch (s[i]) {
+                    case "\n":
+                        splice s, i, 1, 'n';
+                        break;
+                    case "\r":
+                        splice s, i, 1, 'r';
+                        break;
+                    case "\t":
+                        splice s, i, 1, 't';
+                        break;
+                    case "\0":
+                        splice s, i, 1, '0';
+                        break;
+                    case '\':
+                    case " ":
+                    case '"':
+                    case "'":
+                        break;
+                    default:
+                        addEsc = False;
+                }
+                if (addEsc) {
+                    splice s, i, 0, '\';
+                    i++;
+                }
+                i++;
+            }
+            return s;
         }
 
         public string listVariantCmds(hash v) {
@@ -1570,16 +1612,16 @@ public namespace DebugCmdLine {
         }
 
         public list getLineCompletions(string line) {
-            list args = splitCmd(line);
-            if (line =~ / $/ || line == '') {
-                args += '';
+            hash h = splitCmd(line);
+            if (line == '' || (h.pos && h.pos.last().end < line.size() /* former line =~ / $/ */)) {
+                h.args += '';
             } else {
-                # strip last args
-                while (line != '' && line[line.size()-1] != ' ') {
-                    line = splice(line, -1);
+                if (h.pos) {
+                    # strip last args
+                    splice line, h.pos.last().start;
                 }
             }
-            *hash cmd = findCmd(args, fcExpandUniqueCmd);
+            *hash cmd = findCmd(h.args, fcExpandUniqueCmd);
             if (cmd.variants) {
                 *list v;
                 switch (cmd.variants.typeCode()) {
@@ -1594,7 +1636,7 @@ public namespace DebugCmdLine {
                     v = keys cmd.variants;
                 }
                 list res = ();
-                map (push res, line+$1), sort(v);
+                map (push res, line+escapeArg($1)), sort(v);
                 return res;
             } else {
                 return ();
@@ -1603,7 +1645,7 @@ public namespace DebugCmdLine {
 
         public bool processCmdLine(string line) {
             int last_param;
-            list args = splitCmd(line);
+            list args = splitCmd(line).args;
             *hash cmd = findCmd(args, fcExpandUniqueCmd | fcValidate | fcFallback, \last_param);
             if (cmd.cmd) {
 #                    printfImpl("line:%y\n", line);
