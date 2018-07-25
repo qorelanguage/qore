@@ -45,15 +45,15 @@ static inline int process_type(const char* key, int& attributes, char* opt, qore
          break;
       case 'i':
          at = NT_INT;
-         type_name = QoreBigIntNode::getStaticTypeName();
+         type_name = qoreIntTypeName;
          break;
       case 'f':
          at = NT_FLOAT;
-         type_name = QoreFloatNode::getStaticTypeName();
+         type_name = qoreFloatTypeName;
          break;
       case 'b':
          at = NT_BOOLEAN;
-         type_name = QoreBoolNode::getStaticTypeName();
+         type_name = qoreBoolTypeName;
          break;
       case 'd':
          at = NT_DATE;
@@ -71,7 +71,7 @@ static inline int process_type(const char* key, int& attributes, char* opt, qore
       case '+':
          at = NT_INT;
          attributes |= QGO_OPT_ADDITIVE;
-         type_name = QoreBigIntNode::getStaticTypeName();
+         type_name = qoreIntTypeName;
          break;
    }
    if (at == -1) {

@@ -755,7 +755,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
                 qore_size_t len = 0;
                 // if there is only an option left with no more options and no value
                 if (!eq && !oend) {
-                    opt->setKeyValue(p, &True, nullptr);
+                    opt->setKeyValue(p, true, nullptr);
                     p += strlen(p);
                 }
                 else {
@@ -763,7 +763,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
                     if (oend && (!eq || oend < eq)) {
                         len = oend - p;
                         QoreString tmp(p, len);
-                        opt->setKeyValue(tmp.getBuffer(), &True, nullptr);
+                        opt->setKeyValue(tmp.getBuffer(), true, nullptr);
                         p += len;
                     }
                     else {

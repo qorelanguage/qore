@@ -34,7 +34,7 @@
 
 QoreString QoreTransliterationOperatorNode::op_str("transliteration (=~ tr///) operator expression");
 
-QoreValue QoreTransliterationOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreTransliterationOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsink) const {
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper v(exp, xsink);
     if (!v)
@@ -63,7 +63,7 @@ QoreValue QoreTransliterationOperatorNode::evalValueImpl(bool& needs_deref, Exce
     return ref_rv ? nv->refSelf() : QoreValue();
 }
 
-AbstractQoreNode *QoreTransliterationOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
+void QoreTransliterationOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -85,6 +85,4 @@ AbstractQoreNode *QoreTransliterationOperatorNode::parseInitImpl(LocalVar *oflag
         checkLValue(exp, pflag);
 
     typeInfo = returnTypeInfo;
-
-    return this;
 }

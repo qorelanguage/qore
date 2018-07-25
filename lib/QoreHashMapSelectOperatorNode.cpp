@@ -46,7 +46,7 @@ int QoreHashMapSelectOperatorNode::getAsString(QoreString& str, int foff, Except
     return 0;
 }
 
-AbstractQoreNode* QoreHashMapSelectOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreHashMapSelectOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     assert(!typeInfo);
 
     pflag &= ~PF_RETURN_VALUE_IGNORED;
@@ -72,15 +72,13 @@ AbstractQoreNode* QoreHashMapSelectOperatorNode::parseInitImpl(LocalVar* oflag, 
     }
 
     typeInfo = QoreHashMapOperatorNode::setReturnTypeInfo(returnTypeInfo, expTypeInfo2, iteratorTypeInfo);
-
-    return this;
 }
 
 QoreHashNode* QoreHashMapSelectOperatorNode::getNewHash() const {
     return new QoreHashNode(QoreTypeInfo::getUniqueReturnComplexHash(returnTypeInfo));
 }
 
-QoreValue QoreHashMapSelectOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreHashMapSelectOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder arg_lst(e[2], xsink);
     if (*xsink || arg_lst->isNothing())
         return QoreValue();

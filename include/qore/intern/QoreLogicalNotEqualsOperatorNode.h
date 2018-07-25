@@ -37,19 +37,19 @@ class QoreLogicalNotEqualsOperatorNode : public QoreLogicalEqualsOperatorNode {
 protected:
     DLLLOCAL static QoreString logical_not_equals_str;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-        QoreValue rv = QoreLogicalEqualsOperatorNode::evalValueImpl(needs_deref, xsink);
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+        QoreValue rv = QoreLogicalEqualsOperatorNode::evalImpl(needs_deref, xsink);
         if (*xsink)
             return QoreValue();
         return !rv.v.b;
     }
 
-    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        AbstractQoreNode *rv = QoreLogicalEqualsOperatorNode::parseInitImpl(oflag, pflag, lvids, typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+        QoreLogicalEqualsOperatorNode::parseInitImpl(val, oflag, pflag, lvids, typeInfo);
         // make sure to reverse sense of comparison if this expression was resolved to a constant boolean value
-        if (rv != this)
-            return rv->getAsBool() ? (AbstractQoreNode*)&False : (AbstractQoreNode*)&True;
-        return rv;
+        if (val.type == QV_Bool) {
+            val.v.b = !val.v.b;
+        }
     }
 
 public:

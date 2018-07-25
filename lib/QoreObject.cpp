@@ -1178,7 +1178,7 @@ int64 QoreObject::getMemberAsBigInt(const char* mem, bool& found, ExceptionSink*
 }
 
 QoreValue QoreObject::getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const {
-   return priv->getReferencedMemberNoMethod(mem, xsink).takeNode();
+   return priv->getReferencedMemberNoMethod(mem, xsink);
 }
 
 QoreHashNode* QoreObject::copyData(ExceptionSink* xsink) const {
@@ -1353,57 +1353,34 @@ int QoreObject::getAsString(QoreString& str, int foff, ExceptionSink* xsink) con
 }
 
 AbstractQoreNode* QoreObject::realCopy() const {
-   return refSelf();
+    return refSelf();
 }
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than the argument
 bool QoreObject::is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
-   const QoreObject* o = dynamic_cast<const QoreObject*>(v);
-   if (!o)
-      return false;
-   return !compareSoft(o, xsink);
+    const QoreObject* o = get_node_type(v) == NT_OBJECT ? reinterpret_cast<const QoreObject*>(v) : nullptr;
+    if (!o) {
+        return false;
+    }
+    return !compareSoft(o, xsink);
 }
 
 bool QoreObject::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
-   const QoreObject* o = dynamic_cast<const QoreObject*>(v);
-   if (!o)
-      return false;
-   return !compareHard(o, xsink);
+    const QoreObject* o = get_node_type(v) == NT_OBJECT ? reinterpret_cast<const QoreObject*>(v) : nullptr;
+    if (!o) {
+        return false;
+    }
+    return !compareHard(o, xsink);
 }
 
 // returns the type name as a c string
 const char* QoreObject::getTypeName() const {
-   return getStaticTypeName();
+    return getStaticTypeName();
 }
 
-AbstractQoreNode* QoreObject::evalImpl(ExceptionSink* xsink) const {
-   assert(false);
-   return 0;
-}
-
-AbstractQoreNode* QoreObject::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   assert(false);
-   return 0;
-}
-
-int64 QoreObject::bigIntEvalImpl(ExceptionSink* xsink) const {
-   assert(false);
-   return 0;
-}
-
-int QoreObject::integerEvalImpl(ExceptionSink* xsink) const {
-   assert(false);
-   return 0;
-}
-
-bool QoreObject::boolEvalImpl(ExceptionSink* xsink) const {
-   assert(false);
-   return false;
-}
-
-double QoreObject::floatEvalImpl(ExceptionSink* xsink) const {
-   assert(false);
-   return 0.0;
+QoreValue QoreObject::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    assert(false);
+    return QoreValue();
 }
 
 bool QoreObject::hasMemberNotification() const {

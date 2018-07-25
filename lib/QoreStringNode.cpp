@@ -288,9 +288,8 @@ const char *QoreStringNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-AbstractQoreNode *QoreStringNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreStringNode::parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = stringTypeInfo;
-   return this;
 }
 
 QoreStringNode *QoreStringNode::extract(qore_offset_t offset, ExceptionSink *xsink) {

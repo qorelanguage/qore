@@ -32,50 +32,48 @@
 
 QoreString QoreDivideEqualsOperatorNode::op_str("/= operator expression");
 
-AbstractQoreNode *QoreDivideEqualsOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
-
-   return this;
+void QoreDivideEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+    parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
 }
 
-QoreValue QoreDivideEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
-   ValueEvalRefHolder res(right, xsink);
-   if (*xsink)
-      return QoreValue();
+QoreValue QoreDivideEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    ValueEvalRefHolder res(right, xsink);
+    if (*xsink)
+        return QoreValue();
 
-   // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
-   LValueHelper v(left, xsink);
-   if (!v)
-      return QoreValue();
+    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
+    LValueHelper v(left, xsink);
+    if (!v)
+        return QoreValue();
 
-   // is either side a number?
-   if (res->getType() == NT_NUMBER || v.getType() == NT_NUMBER) {
-      // check for divide by zero
-      if (res->getAsFloat() == 0.0) {
-         xsink->raiseException("DIVISION-BY-ZERO", "division by zero in arbitrary-precision numeric expression");
-         return QoreValue();
-      }
-      v.divideEqualsNumber(*res, "</= operator>");
-   }
-   // is either side a float?
-   else if (res->getType() == NT_FLOAT || v.getType() == NT_FLOAT) {
-      double val = res->getAsFloat();
-      if (val == 0.0) {
-         xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression");
-         return QoreValue();
-      }
-      return v.divideEqualsFloat(val, "</= operator>");
-   }
-   else { // do integer divide equals
-      int64 val = res->getAsBigInt();
-      if (!val) {
-         xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression");
-         return QoreValue();
-      }
-      // get new value if necessary
-      return v.divideEqualsBigInt(val, "</= operator>");
-   }
+    // is either side a number?
+    if (res->getType() == NT_NUMBER || v.getType() == NT_NUMBER) {
+        // check for divide by zero
+        if (res->getAsFloat() == 0.0) {
+            xsink->raiseException("DIVISION-BY-ZERO", "division by zero in arbitrary-precision numeric expression");
+            return QoreValue();
+        }
+        v.divideEqualsNumber(*res, "</= operator>");
+    }
+    // is either side a float?
+    else if (res->getType() == NT_FLOAT || v.getType() == NT_FLOAT) {
+        double val = res->getAsFloat();
+        if (val == 0.0) {
+            xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression");
+            return QoreValue();
+        }
+        return v.divideEqualsFloat(val, "</= operator>");
+    }
+    else { // do integer divide equals
+        int64 val = res->getAsBigInt();
+        if (!val) {
+            xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression");
+            return QoreValue();
+        }
+        // get new value if necessary
+        return v.divideEqualsBigInt(val, "</= operator>");
+    }
 
-   // reference return value and return
-   return ref_rv ? v.getReferencedValue() : QoreValue();
+    // reference return value and return
+    return ref_rv ? v.getReferencedValue() : QoreValue();
 }

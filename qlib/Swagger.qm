@@ -53,7 +53,7 @@
 %requires(reexport) RestSchemaValidator >= 1.0
 
 module Swagger {
-    version = "1.0.1";
+    version = "1.0.2";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -151,6 +151,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_1_0_2 Swagger v1.0.2
+    - fixed sending of simple string responses to use text/plain Content-Type if possible (<a href="https://github.com/qorelanguage/qore/issues/2893">issue 2893</a>)
+    - fixed checking of response body in case response schema is not present (<a href="https://github.com/qorelanguage/qore/issues/2894">issue 2894</a>)
 
     @subsection swagger_1_0_1 Swagger v1.0.1
     - fixed handling of string type date and date-time formats (<a href="https://github.com/qorelanguage/qore/issues/2341">issue 2341</a>)
@@ -1541,9 +1545,15 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 if (checkResponseContentTypeHeader(\rv, response_body, headers))
                     return rv;
 
+                if (checkResponseTextPlain(\rv, response_body, mime_types, NOTHING))
+                    return rv;
+
                 # otherwise we continue with the default content types
                 content_types = MimeContentTypes;
             }
+
+            if (checkResponseTextPlain(\rv, response_body, mime_types, content_types))
+                return rv;
 
             # there are content_types -> test them one by one
             list mimeTypeKeys = keys mime_types;
@@ -1668,6 +1678,39 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             return True;
         }
         return False;
+    }
+
+    #! Check if the response body can be sent as text/plain and if so, modify the response hash.
+    /** @param resp response hash
+        @param body response body data (if any)
+        @param mime_types MIME types produced by the operation
+        @param content_types content types accepted by the client
+
+        @return whether the response body can be sent as text/plain and the \c resp was modified
+    */
+    private:internal bool checkResponseTextPlain(reference<hash<HttpResponseInfo>> resp, auto body, hash<string, bool> mime_types, *list content_types) {
+        # quickly return if body is not string
+        if (body.typeCode() != NT_STRING)
+            return False;
+
+        # return if text/plain is not allowed for this operation
+        if (!mime_types."text/plain")
+            return False;
+        
+        if (content_types) {
+            # check that text/plain is accepted as a response
+            *hash<string, bool> ctypesHash = map {$1 : True}, content_types;
+            if (ctypesHash."text/plain" || ctypesHash."*/*" || ctypesHash."text/*") {
+                resp.body = body;
+                resp.hdr."Content-Type" = "text/plain";
+                return True;
+            }
+            return False;
+        }
+
+        resp.body = body;
+        resp.hdr."Content-Type" = "text/plain";
+        return True;
     }
 }
 
@@ -2317,6 +2360,8 @@ public class OperationObject inherits ObjectBase {
         *ResponseObject res = getResponse(code);
         if (res.schema)
             res.schema.check(True, False, path, method, "response body", \response_body);
+        else if (response_body != NOTHING)
+            error("SCHEMA-VALIDATION-ERROR", "Response to this path and method should not have any body");
 
         if (produces)
             mime_types = produces;

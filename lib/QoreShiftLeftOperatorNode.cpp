@@ -33,7 +33,7 @@
 
 QoreString QoreShiftLeftOperatorNode::op_str("<< (shift left) operator expression");
 
-QoreValue QoreShiftLeftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreShiftLeftOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink) return QoreValue();
     ValueEvalRefHolder rh(right, xsink);
@@ -42,7 +42,7 @@ QoreValue QoreShiftLeftOperatorNode::evalValueImpl(bool& needs_deref, ExceptionS
     return lh->getAsBigInt() << rh->getAsBigInt();
 }
 
-AbstractQoreNode* QoreShiftLeftOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreShiftLeftOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -69,8 +69,6 @@ AbstractQoreNode* QoreShiftLeftOperatorNode::parseInitImpl(LocalVar* oflag, int 
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
-        return v.takeReferencedValue().takeNode();
+        val = v.takeReferencedValue();
     }
-
-    return this;
 }

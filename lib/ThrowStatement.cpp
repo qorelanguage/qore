@@ -50,15 +50,15 @@ int ThrowStatement::parseInitImpl(LocalVar *oflag, int pflag) {
         pflag &= (~PF_TOP_LEVEL);
 
         const QoreTypeInfo* argTypeInfo = nullptr;
-        args = args->parseInit(oflag, pflag, lvids, argTypeInfo);
+        parse_init_value(args, oflag, pflag, lvids, argTypeInfo);
 
-        switch (get_node_type(args)) {
+        switch (args.getType()) {
             case NT_LIST:
             case NT_PARSE_LIST:
                 break;
             default: {
                 //printd(5, "ThrowStatement::parseInitImpl() v: %p '%s' e: %d\n", args, get_type_name(args), args->needs_eval());
-                QoreListNode* l = new QoreListNode(args->needs_eval());
+                QoreListNode* l = new QoreListNode(args.needsEval());
                 l->push(args, nullptr);
                 args = l;
                 break;

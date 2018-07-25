@@ -46,7 +46,7 @@ int QoreNullCoalescingOperatorNode::getAsString(QoreString &str, int foff, Excep
     return 0;
 }
 
-AbstractQoreNode* QoreNullCoalescingOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreNullCoalescingOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     assert(!typeInfo);
 
     const QoreTypeInfo* lti = nullptr;
@@ -54,11 +54,9 @@ AbstractQoreNode* QoreNullCoalescingOperatorNode::parseInitImpl(LocalVar *oflag,
 
     lti = nullptr;
     parse_init_value(right, oflag, pflag, lvids, lti);
-
-    return this;
 }
 
-QoreValue QoreNullCoalescingOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreNullCoalescingOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     {
         ValueEvalRefHolder arg(left, xsink);
         if (*xsink)

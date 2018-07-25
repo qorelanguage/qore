@@ -46,12 +46,12 @@ protected:
 
     DLLLOCAL QoreValue doFold(bool fwd, bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
     DLLLOCAL virtual ~QoreFoldlOperatorNode() {
     }
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
         return returnTypeInfo;
@@ -85,7 +85,7 @@ class QoreFoldrOperatorNode : public QoreFoldlOperatorNode {
 protected:
     DLLLOCAL static QoreString foldr_str;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
     DLLLOCAL QoreFoldrOperatorNode(const QoreProgramLocation* loc, QoreValue l, QoreValue r) : QoreFoldlOperatorNode(loc, l, r) {

@@ -44,7 +44,7 @@ int QoreBinaryNotOperatorNode::getAsString(QoreString& str, int foff, ExceptionS
     return 0;
 }
 
-QoreValue QoreBinaryNotOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreBinaryNotOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder v(exp, xsink);
     if (*xsink)
         return QoreValue();
@@ -52,7 +52,7 @@ QoreValue QoreBinaryNotOperatorNode::evalValueImpl(bool& needs_deref, ExceptionS
     return ~v->getAsBigInt();
 }
 
-AbstractQoreNode* QoreBinaryNotOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreBinaryNotOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -72,8 +72,6 @@ AbstractQoreNode* QoreBinaryNotOperatorNode::parseInitImpl(LocalVar* oflag, int 
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
-        return v.takeReferencedValue().takeNode();
+        val = v.takeReferencedValue();
     }
-
-    return this;
 }

@@ -32,7 +32,7 @@
 
 QoreString QoreQuestionMarkOperatorNode::question_mark_str("question mark (?:) operator expression");
 
-AbstractQoreNode* QoreQuestionMarkOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
+void QoreQuestionMarkOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
     const QoreTypeInfo* leftTypeInfo = 0;
     parse_init_value(e[0], oflag, pflag, lvids, leftTypeInfo);
 
@@ -51,15 +51,15 @@ AbstractQoreNode* QoreQuestionMarkOperatorNode::parseInitImpl(LocalVar* oflag, i
         ParseExceptionSink xsink;
         ValueEvalRefHolder v(this, *xsink);
         assert(!**xsink);
-        return v.takeReferencedValue().takeNode();
+        val = v.takeReferencedValue();
+        typeInfo = val.getTypeInfo();
+        return;
     }
 
     typeInfo = returnTypeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo) ? leftTypeInfo : nullptr;
-
-    return this;
 }
 
-QoreValue QoreQuestionMarkOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreQuestionMarkOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder b(e[0], xsink);
     if (*xsink)
         return QoreValue();

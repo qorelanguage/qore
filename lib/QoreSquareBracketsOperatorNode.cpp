@@ -34,7 +34,7 @@
 
 QoreString QoreSquareBracketsOperatorNode::op_str("[] operator expression");
 
-AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
+void QoreSquareBracketsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -139,12 +139,13 @@ AbstractQoreNode* QoreSquareBracketsOperatorNode::parseInitImpl(LocalVar* oflag,
     if (!rti_can_be_list && right.isValue() && left.isValue()) {
         SimpleRefHolder<QoreSquareBracketsOperatorNode> del(this);
         ParseExceptionSink xsink;
-        AbstractQoreNode* rv = QoreSquareBracketsOperatorNode::evalImpl(*xsink);
-        return rv ? rv : &Nothing;
+        ValueEvalRefHolder rv(this, *xsink);
+        val = rv.takeReferencedValue();
+        typeInfo = val.getTypeInfo();
+        return;
     }
 
     typeInfo = returnTypeInfo;
-    return this;
 }
 
 void QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreParseListNode* pln) {
@@ -173,7 +174,7 @@ void QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreListNode* ln
     }
 }
 
-QoreValue QoreSquareBracketsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreSquareBracketsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();
@@ -312,7 +313,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
                 const QoreTypeInfo* vtype = nullptr;
                 // try to find a common value type, if any
                 bool vcommon = false;
-                ReferenceHolder<QoreListNode> ret(new QoreListNode, xsink);
+                ReferenceHolder<QoreListNode> ret(new QoreListNode(autoTypeInfo), xsink);
                 while (it.next()) {
                     ValueHolder entry(doSquareBrackets(l, it.getValue(), false, xsink), xsink);
                     if (*xsink)
@@ -327,7 +328,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
                     else if (vcommon && !QoreTypeInfo::matchCommonType(vtype, entry->getTypeInfo()))
                         vcommon = false;
 
-                    ret->push(entry->takeNode(), xsink);
+                    ret->push(entry.release(), xsink);
 
                     //printd(5, "QoreSquareBracketsOperatorNode::doSquareBrackets() i: %d: vc: %d vtype: '%s' et: '%s'\n", it.index(), (int)vcommon, QoreTypeInfo::getName(vtype), QoreTypeInfo::getName(entry->getTypeInfo()));
                 }

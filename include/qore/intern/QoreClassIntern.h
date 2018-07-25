@@ -321,7 +321,7 @@ protected:
    bool synchronized;
 
 public:
-   DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_access, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, false), synchronized(synced) {
+   DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_access, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, false), synchronized(synced) {
    }
 
    DLLLOCAL ~UserMethodVariant() {
@@ -364,7 +364,7 @@ protected:
    DLLLOCAL virtual ~UserConstructorVariant();
 
 public:
-   DLLLOCAL UserConstructorVariant(ClassAccess n_access, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, BCAList* n_bcal, int64 n_flags = QC_NO_FLAGS) : ConstructorMethodVariant(n_access, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, 0, false), bcal(n_bcal) {
+   DLLLOCAL UserConstructorVariant(ClassAccess n_access, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, BCAList* n_bcal, int64 n_flags = QC_NO_FLAGS) : ConstructorMethodVariant(n_access, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, nullptr, false), bcal(n_bcal) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -385,7 +385,7 @@ public:
 class UserDestructorVariant : public DestructorMethodVariant, public UserVariantBase {
 protected:
 public:
-   DLLLOCAL UserDestructorVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line) : DestructorMethodVariant(true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, 0, 0, false) {
+   DLLLOCAL UserDestructorVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line) : DestructorMethodVariant(true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, QoreValue(), nullptr, false) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -420,7 +420,7 @@ public:
 class UserCopyVariant : public CopyMethodVariant, public UserVariantBase {
 protected:
 public:
-   DLLLOCAL UserCopyVariant(ClassAccess n_access, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, AbstractQoreNode* params, RetTypeInfo* rv, bool synced) : CopyMethodVariant(n_access, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
+   DLLLOCAL UserCopyVariant(ClassAccess n_access, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced) : CopyMethodVariant(n_access, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants

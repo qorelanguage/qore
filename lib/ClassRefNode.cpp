@@ -36,27 +36,26 @@
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int ClassRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   if (cscope)
-      str.sprintf("reference to Qore class '%s' (unresolved, %p)", cscope->ostr, this);
-   else
-      str.sprintf("reference to Qore class '%s' (resolved, %p)", qc->getName(), this);
-   return 0;
+    if (cscope)
+        str.sprintf("reference to Qore class '%s' (unresolved, %p)", cscope->ostr, this);
+    else
+        str.sprintf("reference to Qore class '%s' (resolved, %p)", qc->getName(), this);
+    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *ClassRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   QoreString *rv = new QoreString();
-   return rv;
+QoreString* ClassRefNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+    del = true;
+    QoreString *rv = new QoreString;
+    return rv;
 }
 
-AbstractQoreNode *ClassRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   // FIXME: implement a type for this
-   typeInfo = 0;
-   if (cscope) {
-      qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
-      delete cscope;
-      cscope = 0;
-   }
-   return this;
+void ClassRefNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+    // FIXME: implement a type for this
+    typeInfo = nullptr;
+    if (cscope) {
+        qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
+        delete cscope;
+        cscope = nullptr;
+    }
 }
