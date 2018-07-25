@@ -159,7 +159,6 @@ public namespace DebugProgramControl {
                 'event': change,
                 'info': getBreakpointInfo(b),
                 'stamp': now_us(),
-                'cx': cx,
             );
             broadcastDataImpl(sd);
         }
@@ -403,11 +402,7 @@ public namespace DebugProgramControl {
                         foreach ProgramControl p in (ProgramControl::getAllPrograms()) {
                             string pgmId = string(p.getProgramId());
                             if (AbstractDebugControl::evalCondition((pgmName =~ /^=[0-9]+$/) ? pgmId : (p.getScriptName() ?? ""), pgmName)) {
-                                result{pgmId}.scriptName = p.getScriptName();
-                                result{pgmId}.scriptPath = p.getScriptPath();
-                                #result{pgmId}.scriptDir = p.getScriptDir();
-                                result{pgmId}.threads = p.getThreadList();
-                                result{pgmId}.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
+                                result{pgmId} = getProgramInfo(p, receiveData.listFiles);
                             }
                         }
                         map result{$1.getProgramId()}.debugged = True, getAllPrograms(), exists result{$1.getProgramId()};
@@ -424,12 +419,7 @@ public namespace DebugProgramControl {
                     case 'create':
                         Program pgm = createProgram(receiveData.filename, NOTHING, receiveData.args);
                         ProgramControl p = pgm.getProgram();
-                        string pgmId = string(p.getProgramId());
-                        result{pgmId}.scriptName = p.getScriptName();
-                        result{pgmId}.scriptPath = p.getScriptPath();
-                        #result{pgmId}.scriptDir = p.getScriptDir();
-                        result{pgmId}.threads = ((background runAndDetach(pgm)), );
-                        result{pgmId}.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
+                        result{string(p.getProgramId())} = getProgramInfo(p, True, ((background runAndDetach(pgm)), ));
                         break;
                     case 'add':
                         {
@@ -799,6 +789,27 @@ public namespace DebugProgramControl {
             throw "DEBUG-HANDLER-ERROR", sprintf("Cannot resolve statement from %y", value);
         }
 
+        private hash getProgramInfo(ProgramControl p, bool listFiles = False, *list threads) {
+            hash result;
+            result.scriptName = p.getScriptName();
+            result.scriptPath = p.getScriptPath();
+            #resul.scriptDir = p.getScriptDir();
+            result.threads = threads ?? p.getThreadList();
+            result.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
+            if (result.debugging && listFiles) {
+                hash h;
+                h = p.getSourceFileNames();
+                if (h) {
+                    result.files = h;
+                }
+                h = p.getSourceLabels();
+                if (h) {
+                    result.labels = h;
+                }
+            }
+            return result;
+        }
+
         private hash getBreakpointInfo(Breakpoint b) {
             hash binfo.id = b.getBreakpointId();
             binfo.programId = b.getProgram().getProgramId();
@@ -821,7 +832,7 @@ public namespace DebugProgramControl {
             if (!exists (type=='file' ? pgmb.getSourceFileNames() : pgmb.getSourceLabels() ){rd{type}}) {
                 throw "DEBUG-HANDLER-ERROR", sprintf("Cannot get source for %y", rd{type});
             }
-            hash sc;
+            hash<auto> sc;
             if (type=='file') {
                 sc = getSourceCodeFromFile(rd{type});
             } else {
@@ -852,10 +863,10 @@ public namespace DebugProgramControl {
             return False;
         }
 
-        private hash getSourceCodeForLabel(string name) {
+        private hash<auto> getSourceCodeForLabel(string name) {
             throw "DEBUG-HANDLER-ERROR", "Local debug server does not support label source code";
         }
-        private hash getSourceCodeFromFile(string name) {
+        private hash<auto> getSourceCodeFromFile(string name) {
             if (!absolute_path(name)) {
                 foreach string p in (sourceSearchPath.split(':')) {
                     if (p != "") {
