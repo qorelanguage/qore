@@ -740,7 +740,7 @@ Program::destructor() {
     @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this argument is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
     @param source An optional source file name for the code being parsed; this is useful if sections of a file are parsed
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
-    @param format_label obsolete since %Qore 0.8.13
+    @param format_label obsolete / ignored since %Qore 0.8.13.7
 
     @return If warning included in the warning mask are raised during parsing, this method will return an @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
 
@@ -762,7 +762,7 @@ while (wh) {
 
     @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
 
-    @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added. %Qore 0.8.13 the \a format_label is obsolete
+    @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added. %Qore 0.8.13.7 the \a format_label is obsolete / ignored
  */
 *hash Program::parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
 
@@ -791,7 +791,7 @@ while (wh) {
     @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this argument is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
     @param source An optional source file name for the code being parsed; this is useful if sections of a file are parsed
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
-    @param format_label obsolete since %Qore 0.8.13
+    @param format_label obsolete / ignored since %Qore 0.8.13.7
 
     @return If warning included in the warning mask are raised during parsing, this method will return an @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
 
@@ -815,7 +815,7 @@ pgm.parseCommit();
 
     @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
 
-    @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added. %Qore 0.8.13 the \a format_label is obsolete
+    @since %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added. %Qore 0.8.13.7 the \a format_label is obsolete / ignored
  */
 *hash Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
 

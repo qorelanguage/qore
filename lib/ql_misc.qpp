@@ -868,7 +868,7 @@ string get_default_encoding() {
     @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this arguments is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
     @param source An optional source file name for the code being parsed; this is useful if sections of a file are parsed
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
-    @param format_label %Qore 0.8.13 is obsolete
+    @param format_label %Qore 0.8.13.7 is obsolete / ignored
 
     @par Example:
     @code{.py}
@@ -881,7 +881,7 @@ parse(code, filename);
     - Qore::Program::parse()
     - Qore::Program::parsePending()
 
-    @since %Qore 0.8.7 the optional \a warning_mask, \a source, \a offset, and \a format_label arguments were added; %Qore 0.8.13 the \a format_label is obsolete;
+    @since %Qore 0.8.7 the optional \a warning_mask, \a source, \a offset, and \a format_label arguments were added; %Qore 0.8.13.7 the \a format_label is obsolete / ignored;
     these changes were made to align the functionality of this function with the @ref Qore::Program::parse() "Program::parse()"
     and @ref Qore::Program::parsePending() "Program::parsePending()" methods
 */
