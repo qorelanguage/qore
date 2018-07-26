@@ -101,93 +101,94 @@ ThreadPool::ThreadPool(ExceptionSink* xsink, int n_max, int n_minidle, int n_max
 }
 
 void ThreadPool::worker(ExceptionSink* xsink) {
-   SafeLocker sl(m);
+    SafeLocker sl(m);
 
-   for (int i = 0; i < minidle; ++i) {
-      if (addIdleWorker(xsink)) {
-         xsink->handleExceptions();
-         break;
-      }
-   }
+    for (int i = 0; i < minidle; ++i) {
+        if (addIdleWorker(xsink)) {
+            xsink->handleExceptions();
+            break;
+        }
+    }
 
-   while (!stopflag) {
-      if (q.empty()) {
-         if (release_ms && (int)fh.size() > minidle) {
-            if (cond.wait(m, release_ms) && q.empty()) {
-               // timeout occurred: terminate an idle thread
-               ThreadPoolThread* tpt = fh.front();
-               //printd(5, "ThreadPool::worker() this: %p release_ms: %d timeout - stopping idle thread %p (minidle: %d maxidle: %d fh.size(): %ld)\n", this, release_ms, tpt, minidle, maxidle, fh.size());
-               fh.pop_front();
-               tpt->stop();
-               continue;
+    while (!stopflag) {
+        if (q.empty()) {
+            if (release_ms && (int)fh.size() > minidle) {
+                if (cond.wait(m, release_ms) && q.empty()) {
+                // timeout occurred: terminate an idle thread
+                ThreadPoolThread* tpt = fh.front();
+                //printd(5, "ThreadPool::worker() this: %p release_ms: %d timeout - stopping idle thread %p (minidle: %d maxidle: %d fh.size(): %ld)\n", this, release_ms, tpt, minidle, maxidle, fh.size());
+                fh.pop_front();
+                tpt->stop();
+                continue;
+                }
             }
-         }
-         else
-            cond.wait(m);
-      }
+            else
+                cond.wait(m);
+        }
 
-      if (stopflag)
-         break;
-
-      while (!q.empty()) {
-         ThreadPoolThread* tpt = getThreadUnlocked(xsink);
-         if (!tpt) {
-            xsink->handleExceptions();
+        if (stopflag)
             break;
-         }
-         tpt->submit(q.front());
-         q.pop_front();
-      }
 
-      while ((int)fh.size() < minidle && (!max || ((int)fh.size() + (int)ah.size() < max))) {
-         if (addIdleWorker(xsink)) {
-            xsink->handleExceptions();
-            break;
-         }
-      }
-   }
+        while (!q.empty()) {
+            ThreadPoolThread* tpt = getThreadUnlocked(xsink);
+            if (!tpt) {
+                xsink->handleExceptions();
+                break;
+            }
+            tpt->submit(q.front());
+            q.pop_front();
+        }
 
-   // idle threads can be terminated with stop() in all cases
-   for (tplist_t::iterator i = fh.begin(), e = fh.end(); i != e; ++i)
-      (*i)->stop();
+        while ((int)fh.size() < minidle && (!max || ((int)fh.size() + (int)ah.size() < max))) {
+            if (addIdleWorker(xsink)) {
+                xsink->handleExceptions();
+                break;
+            }
+        }
+    }
 
-   sl.unlock();
+    // idle threads can be terminated with stop() in all cases
+    for (tplist_t::iterator i = fh.begin(), e = fh.end(); i != e; ++i)
+        (*i)->stop();
 
-   // terminate all worker threads
-   if (confirm) {
-      for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
-         (*i)->stopWait();
+    sl.unlock();
 
-      for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
-         (*i)->stopConfirm(xsink);
+    // terminate all worker threads
+    if (confirm) {
+        for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
+            (*i)->stopWait();
 
-   }
-   else {
-      for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
-         (*i)->stop();
-   }
+        for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
+            (*i)->stopConfirm(xsink);
 
-   sl.lock();
+    }
+    else {
+        for (tplist_t::iterator i = ah.begin(), e = ah.end(); i != e; ++i)
+            (*i)->stop();
+    }
+
+    sl.lock();
 
 #ifdef DEBUG
-   ah.clear();
-   fh.clear();
+    ah.clear();
+    fh.clear();
 #endif
 
-   stopped = true;
-   stopCond.broadcast();
+    stopped = true;
+    stopCond.broadcast();
 
-   sl.unlock();
+    // issue #2906: we have to copy the task queue here to cancel them outside the lock because
+    // the thread pool can be destroyed after we release the lock
+    taskq_t q_copy = q;
+    q.clear();
 
-   // cancel tasks if any
-   for (taskq_t::iterator i = q.begin(), e = q.end(); i != e; ++i) {
-      (*i)->cancel(xsink);
-      (*i)->del(xsink);
-   }
+    sl.unlock();
 
-#ifdef DEBUG
-   q.clear();
-#endif
+    // cancel tasks if any
+    for (auto& i : q_copy) {
+        i->cancel(xsink);
+        i->del(xsink);
+    }
 }
 
 //! This class defines a thread pool that grows and shrinks dynamically within user-defined limits according to the task load placed on it
