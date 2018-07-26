@@ -811,12 +811,13 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                 assert(!lvhelper);
                 ReferenceNode* r = n.get<ReferenceNode>();
                 const QoreTypeInfo* ti = r->getLValueTypeInfo();
-                //printd(5, "cr: %p '%s' == %p '%s': %d\n", u.ti, QoreTypeInfo::getName(u.ti), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::isOutputSubset(u.ti, ti));
+                //printd(5, "cr: %p '%s' == %p '%s': %d\n", u.ti, QoreTypeInfo::getName(u.ti), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::outputSuperSetOf(ti, u.ti));
                 // first check types before instantiating reference
                 if (QoreTypeInfo::outputSuperSetOf(ti, u.ti)) {
                     // issue #2891: do not create a value in the source reference if none already exists
                     // do not process if there is no type restriction
                     LValueHelper lvh(r, xsink, true);
+                    //printd(5, "lvh: %d *xsink: %d\n", (bool)lvh, (bool)*xsink);
                     if (lvh) {
                         QoreValue val = lvh.getReferencedValue();
                         if (!val.isNothing()) {
@@ -825,6 +826,10 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                             lvh.assign(val, "<reference>");
                         }
                         // we set ok unconditionally here, because any exception thrown above is enough if there is an error
+                        ok = true;
+                    }
+                    else if (!*xsink) {
+                        // issue #2891 the lvalue may not exist, but we can still perform the assignment
                         ok = true;
                     }
                 }

@@ -187,7 +187,7 @@ LValueHelper::~LValueHelper() {
     bool obj_chg = before;
     bool obj_ref = false;
 
-    if (!(*vl.xsink)) {
+    if (!(*vl.xsink) && (val || qv)) {
         // see if we have any object count changes
         if (!ocvec.empty()) {
             // v && qv could be nullptr if the constructor taking QoreObject& was used (to scan objects after initialization)
@@ -449,8 +449,11 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
     if (ntype == NT_VARREF) {
         const VarRefNode* v = n.get<const VarRefNode>();
         //printd(5, "LValueHelper::doLValue(): vref: %s (%p) type: %d\n", v->getName(), v, v->getType());
-        if (v->getLValue(*this, for_remove))
+        if (v->getLValue(*this, for_remove)) {
+            // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object
+            clearPtr();
             return -1;
+        }
     }
     else if (ntype == NT_SELF_VARREF) {
         const SelfVarrefNode* v = n.get<const SelfVarrefNode>();
@@ -462,8 +465,10 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
         ocvec.clear();
         clearPtr();
 
-        if (qore_object_private::getLValue(*obj, v->str, *this, runtime_get_class(), for_remove, vl.xsink))
+        if (qore_object_private::getLValue(*obj, v->str, *this, runtime_get_class(), for_remove, vl.xsink)) {
+            // here the object has already been cleared above
             return -1;
+        }
 
         robj = qore_object_private::get(*obj);
         ocvec.push_back(ObjCountRec(obj));
@@ -471,21 +476,30 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
     else if (ntype == NT_CLASS_VARREF)
         n.get<const StaticClassVarRefNode>()->getLValue(*this);
     else if (ntype == NT_REFERENCE) {
-        if (doLValue(n.get<const ReferenceNode>(), for_remove))
+        if (doLValue(n.get<const ReferenceNode>(), for_remove)) {
+            // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object
+            clearPtr();
             return -1;
+        }
     }
     else {
         assert(ntype == NT_OPERATOR);
         const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(n.getInternalNode());
         if (op) {
-            if (doListLValue(op, for_remove))
+            if (doListLValue(op, for_remove)) {
+                // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object
+                clearPtr();
                 return -1;
+            }
         }
         else {
             assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n.getInternalNode()));
             const QoreHashObjectDereferenceOperatorNode* hop = n.get<const QoreHashObjectDereferenceOperatorNode>();
-            if (doHashObjLValue(hop, for_remove))
+            if (doHashObjLValue(hop, for_remove)) {
+                // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object
+                clearPtr();
                 return -1;
+            }
         }
     }
 

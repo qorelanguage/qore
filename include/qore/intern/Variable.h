@@ -431,7 +431,7 @@ public:
         typeInfo = ti;
     }
 
-   DLLLOCAL void setValue(QoreValue& nqv, const QoreTypeInfo* ti = nullptr) {
+    DLLLOCAL void setValue(QoreValue& nqv, const QoreTypeInfo* ti = nullptr) {
         //printd(5, "LValueHelper::setValue() this: %p new qv: %p\n", this, &nqv);
         assert(!val);
         assert(!qv);
@@ -440,7 +440,7 @@ public:
         before = needs_scan(nqv);
 
         typeInfo = ti;
-   }
+    }
 
     DLLLOCAL void resetValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
         //printd(5, "LValueHelper::resetValue() this: %p new val: %p\n", this, &nv);
