@@ -612,9 +612,9 @@ public:
 class LValueRemoveHelper {
 private:
     // not implemented
-    DLLLOCAL LValueRemoveHelper(const LValueRemoveHelper&);
-    DLLLOCAL LValueRemoveHelper& operator=(const LValueRemoveHelper&);
-    DLLLOCAL void* operator new(size_t);
+    LValueRemoveHelper(const LValueRemoveHelper&) = delete;
+    LValueRemoveHelper& operator=(const LValueRemoveHelper&) = delete;
+    void* operator new(size_t) = delete;
 
     DLLLOCAL void doRemove(const QoreSquareBracketsOperatorNode* op);
     DLLLOCAL void doRemove(const QoreSquareBracketsOperatorNode* op, const QoreParseListNode* l);

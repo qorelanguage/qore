@@ -91,6 +91,8 @@
         - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
+    - fixed a bug where rvalue references with complex subtypes could get modified during an assignment
+      (<a href="https://github.com/qorelanguage/qore/issues/2891">issue 2891</a>)
     - fixed a bug where class members could be initialized multiple times in a class with multiple
       inheritance where the same class is inherited multiple times in the hierarchy
       (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)

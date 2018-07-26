@@ -13,12 +13,20 @@
 
 class ReferenceTest inherits QUnit::Test {
     constructor() : Test("Reference Test", "1.0") {
+        addTestCase("issue 2891", \issue2891());
         addTestCase("Complex reference test", \testComplexReferences());
         addTestCase("Reference test", \testReference());
         addTestCase("Assignment test", \testReferenceAssignments());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue2891() {
+        hash h;
+        reference<hash> r = \h.b;
+        assertEq(NOTHING, keys h);
+        delete r;
     }
 
     testComplexReferences() {

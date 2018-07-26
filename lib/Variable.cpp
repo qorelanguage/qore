@@ -445,7 +445,7 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
         vl.del();
     }
     qore_type_t ntype = n.getType();
-    //printd(5, "LValueHelper::doLValue(exp: %p) %s %d\n", n, get_type_name(n), get_node_type(n));
+    //printd(5, "LValueHelper::doLValue() n: %s (%d)\n", n.getTypeName(), n.getType());
     if (ntype == NT_VARREF) {
         const VarRefNode* v = n.get<const VarRefNode>();
         //printd(5, "LValueHelper::doLValue(): vref: %s (%p) type: %d\n", v->getName(), v, v->getType());
@@ -557,7 +557,7 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
     if (n.type == QV_Node && n.v.n == &Nothing)
         n.v.n = nullptr;
 
-    //printd(5, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getFullTypeName(), val, qv);
+    //printd(5, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' (%d) val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getFullTypeName(), n.getType(), val, qv);
     if (check_types) {
         // check type for assignment
         QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink, this);
@@ -1740,7 +1740,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op)
 }
 
 int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo, const QoreTypeInfo* refTypeInfo) const {
-    //printd(5, "LocalVarValue::getLValue() this: %p type: '%s' %d assigned: %d ti: '%s' rti: '%s'\n", this, val.getTypeName(), val.getType(), val.assigned, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo));
+    //printd(5, "LocalVarValue::getLValue() this: %p type: '%s' %d assigned: %d ti: '%s' rti: '%s' (%p)\n", this, val.getTypeName(), val.getType(), val.assigned, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo), refTypeInfo);
     if (val.getType() == NT_REFERENCE) {
         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
         LocalRefHelper<LocalVarValue> helper(this, *ref, lvh.vl.xsink);

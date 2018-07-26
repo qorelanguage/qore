@@ -814,8 +814,9 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                 //printd(5, "cr: %p '%s' == %p '%s': %d\n", u.ti, QoreTypeInfo::getName(u.ti), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::isOutputSubset(u.ti, ti));
                 // first check types before instantiating reference
                 if (QoreTypeInfo::outputSuperSetOf(ti, u.ti)) {
+                    // issue #2891: do not create a value in the source reference if none already exists
                     // do not process if there is no type restriction
-                    LValueHelper lvh(r, xsink);
+                    LValueHelper lvh(r, xsink, true);
                     if (lvh) {
                         QoreValue val = lvh.getReferencedValue();
                         if (!val.isNothing()) {
