@@ -110,6 +110,9 @@
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>:
         - removed unnecessary serialization from AbstractConnection::get()
           (<a href="https://github.com/qorelanguage/qore/issues/2880">issue 2880</a>)
+    - fixed a race condition in @ref Qore::Thread::ThreadPool "ThreadPool" destruction that could
+      cause a crash
+      (<a href="https://github.com/qorelanguage/qore/issues/2906">issue 2906</a>)
 
     @section qore_08136 Qore 0.8.13.6
 

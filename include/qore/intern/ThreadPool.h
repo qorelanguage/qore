@@ -42,38 +42,38 @@ typedef std::deque<ThreadTask*> taskq_t;
 typedef qlist<ThreadPoolThread*> tplist_t;
 
 class ThreadTask {
-protected:
-   ResolvedCallReferenceNode* code;
-   ResolvedCallReferenceNode* cancelCode;
-
 public:
-   DLLLOCAL ThreadTask(ResolvedCallReferenceNode* c, ResolvedCallReferenceNode* cc) : code(c), cancelCode(cc) {
-   }
+    DLLLOCAL ThreadTask(ResolvedCallReferenceNode* c, ResolvedCallReferenceNode* cc) : code(c), cancelCode(cc) {
+    }
 
-   DLLLOCAL ~ThreadTask() {
-      assert(!code);
-      assert(!cancelCode);
-   }
+    DLLLOCAL ~ThreadTask() {
+        assert(!code);
+        assert(!cancelCode);
+    }
 
-   DLLLOCAL void del(ExceptionSink* xsink) {
-      code->deref(xsink);
-      if (cancelCode)
-         cancelCode->deref(xsink);
+    DLLLOCAL void del(ExceptionSink* xsink) {
+        code->deref(xsink);
+        if (cancelCode)
+            cancelCode->deref(xsink);
 #ifdef DEBUG
-      code = 0;
-      cancelCode = 0;
+        code = nullptr;
+        cancelCode = nullptr;
 #endif
-      delete this;
-   }
+        delete this;
+    }
 
-   DLLLOCAL QoreValue run(ExceptionSink* xsink) {
-      return code->execValue(0, xsink);
-   }
+    DLLLOCAL QoreValue run(ExceptionSink* xsink) {
+        return code->execValue(0, xsink);
+    }
 
-   DLLLOCAL void cancel(ExceptionSink* xsink) {
-      if (cancelCode)
-         cancelCode->execValue(0, xsink).discard(xsink);
-   }
+    DLLLOCAL void cancel(ExceptionSink* xsink) {
+        if (cancelCode)
+            cancelCode->execValue(0, xsink).discard(xsink);
+    }
+
+protected:
+    ResolvedCallReferenceNode* code;
+    ResolvedCallReferenceNode* cancelCode;
 };
 
 class ThreadTaskHolder {
