@@ -1272,10 +1272,6 @@ bool node_has_effect(const AbstractQoreNode* n) {
     return pn ? pn->has_effect() : true;
 }
 
-bool node_has_effect_as_root(const QoreValue& n) {
-    return node_has_effect_as_root(n.getInternalNode());
-}
-
 bool node_has_effect_as_root(const AbstractQoreNode* n) {
     if (!n || n->is_value())
         return false;
@@ -1286,6 +1282,10 @@ bool node_has_effect_as_root(const AbstractQoreNode* n) {
     const ParseNode* pn = dynamic_cast<const ParseNode*>(n);
     // the same comment as in the above function node_has_effect() applies also here
     return pn ? pn->has_effect_as_root() : true;
+}
+
+bool value_has_effect_as_root(const QoreValue& n) {
+    return node_has_effect_as_root(n.getInternalNode());
 }
 
 struct MethodNode {
@@ -2133,7 +2133,7 @@ statement:
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @1.last_line);
 
             if (!ok) {
-                if (!node_has_effect_as_root($1) && (t != NT_VARREF || !$1.get<VarRefNode>()->parseIsDecl())) {
+                if (!value_has_effect_as_root($1) && (t != NT_VARREF || !$1.get<VarRefNode>()->parseIsDecl())) {
                     if (!parse_check_parse_option(PO_ALLOW_STATEMENT_NO_EFFECT)) {
                         parse_error(*loc, "expression has no effect as top-level statement (%s)", $1.getTypeName());
                     }
@@ -3709,7 +3709,7 @@ exp_c:
             // check to see if the expression is legal
             if (parse_check_parse_option(PO_NO_THREAD_CONTROL))
                 parse_error(*loc, "illegal use of 'background' operator (conflicts with parse option PO_NO_THREAD_CONTROL)");
-            else if (!node_has_effect_as_root($2)) {
+            else if (!value_has_effect_as_root($2)) {
                 if (!parse_check_parse_option(PO_ALLOW_STATEMENT_NO_EFFECT)) {
                     parse_error(*loc, "argument to background operator (%s) has no effect", $2.getTypeName());
                 }
