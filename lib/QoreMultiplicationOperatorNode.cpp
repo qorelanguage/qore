@@ -32,7 +32,7 @@
 
 QoreString QoreMultiplicationOperatorNode::multiplication_str("* operator expression");
 
-QoreValue QoreMultiplicationOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreMultiplicationOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();
@@ -60,7 +60,7 @@ QoreValue QoreMultiplicationOperatorNode::evalValueImpl(bool& needs_deref, Excep
     return QoreValue();
 }
 
-AbstractQoreNode* QoreMultiplicationOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
+void QoreMultiplicationOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& parseTypeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -75,8 +75,9 @@ AbstractQoreNode* QoreMultiplicationOperatorNode::parseInitImpl(LocalVar* oflag,
     if (right.isValue() && left.isValue()) {
         SimpleRefHolder<QoreMultiplicationOperatorNode> del(this);
         ParseExceptionSink xsink;
-        AbstractQoreNode* rv = QoreMultiplicationOperatorNode::evalImpl(*xsink);
-        return rv ? rv : &Nothing;
+        ValueEvalRefHolder rv(this, *xsink);
+        val = rv.takeReferencedValue();
+        return;
     }
 
     // if either side is a float, then the return type is float (highest priority)
@@ -88,6 +89,4 @@ AbstractQoreNode* QoreMultiplicationOperatorNode::parseInitImpl(LocalVar* oflag,
         if (QoreTypeInfo::isType(leftTypeInfo, NT_INT) && QoreTypeInfo::isType(rightTypeInfo, NT_INT))
             returnTypeInfo = bigIntTypeInfo;
     }
-
-    return this;
 }

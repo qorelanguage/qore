@@ -35,7 +35,7 @@
 
 QoreString QoreHashObjectDereferenceOperatorNode::op_str(". or {} operator expression");
 
-AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
+void QoreHashObjectDereferenceOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
     // turn off "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -149,10 +149,9 @@ AbstractQoreNode* QoreHashObjectDereferenceOperatorNode::parseInitImpl(LocalVar*
         rti->doNonStringWarning(loc, "the right side of the expression with the '.' or '{}' operator is ");
 
     typeInfo = returnTypeInfo;
-    return this;
 }
 
-QoreValue QoreHashObjectDereferenceOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreHashObjectDereferenceOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();

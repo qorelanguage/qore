@@ -168,12 +168,12 @@ AstTreeSearcher::constructor() {
     if (!start || !end || !range || !hoverInfo)
         return QoreValue();
 
-    start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
-    start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
+    start->setKeyValue("line", si.loc.firstLine-1, xsink);
+    start->setKeyValue("character", si.loc.firstCol-1, xsink);
     if (xsink && *xsink)
         return QoreValue();
-    end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
-    end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
+    end->setKeyValue("line", si.loc.lastLine-1, xsink);
+    end->setKeyValue("character", si.loc.lastCol-1, xsink);
     if (xsink && *xsink)
         return QoreValue();
     range->setKeyValue("start", start.release(), xsink);
@@ -181,8 +181,8 @@ AstTreeSearcher::constructor() {
     if (xsink && *xsink)
         return QoreValue();
 
-    hoverInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
-    hoverInfo->setKeyValue("usage", new QoreBigIntNode(static_cast<int64_t>(si.usage)), xsink);
+    hoverInfo->setKeyValue("kind", static_cast<int64_t>(si.kind), xsink);
+    hoverInfo->setKeyValue("usage", static_cast<int64_t>(si.usage), xsink);
     hoverInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
     hoverInfo->setKeyValue("range", range.release(), xsink);
     if (xsink && *xsink)
@@ -217,12 +217,12 @@ AstTreeSearcher::constructor() {
         if (!start || !end || !range || !location)
             return QoreValue();
 
-        start->setKeyValue("line", new QoreBigIntNode(node->loc.firstLine-1), xsink);
-        start->setKeyValue("character", new QoreBigIntNode(node->loc.firstCol-1), xsink);
+        start->setKeyValue("line", node->loc.firstLine-1, xsink);
+        start->setKeyValue("character", node->loc.firstCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
-        end->setKeyValue("line", new QoreBigIntNode(node->loc.lastLine-1), xsink);
-        end->setKeyValue("character", new QoreBigIntNode(node->loc.lastCol-1), xsink);
+        end->setKeyValue("line", node->loc.lastLine-1, xsink);
+        end->setKeyValue("character", node->loc.lastCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
         range->setKeyValue("start", start.release(), xsink);
@@ -265,12 +265,12 @@ AstTreeSearcher::constructor() {
         if (!start || !end || !range || !location || !symbolInfo)
             return QoreValue();
 
-        start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
-        start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
+        start->setKeyValue("line", si.loc.firstLine-1, xsink);
+        start->setKeyValue("character", si.loc.firstCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
-        end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
-        end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
+        end->setKeyValue("line", si.loc.lastLine-1, xsink);
+        end->setKeyValue("character", si.loc.lastCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
         range->setKeyValue("start", start.release(), xsink);
@@ -282,7 +282,7 @@ AstTreeSearcher::constructor() {
         if (xsink && *xsink)
             return QoreValue();
         symbolInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
-        symbolInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
+        symbolInfo->setKeyValue("kind", static_cast<int64_t>(si.kind), xsink);
         symbolInfo->setKeyValue("location", location.release(), xsink);
         if (xsink && *xsink)
             return QoreValue();
@@ -321,12 +321,12 @@ AstTreeSearcher::constructor() {
         if (!start || !end || !range || !location || !symbolInfo)
             return QoreValue();
 
-        start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
-        start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
+        start->setKeyValue("line", si.loc.firstLine-1, xsink);
+        start->setKeyValue("character", si.loc.firstCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
-        end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
-        end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
+        end->setKeyValue("line", si.loc.lastLine-1, xsink);
+        end->setKeyValue("character", si.loc.lastCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
         range->setKeyValue("start", start.release(), xsink);
@@ -338,7 +338,7 @@ AstTreeSearcher::constructor() {
         if (xsink && *xsink)
             return QoreValue();
         symbolInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
-        symbolInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
+        symbolInfo->setKeyValue("kind", static_cast<int64_t>(si.kind), xsink);
         symbolInfo->setKeyValue("location", location.release(), xsink);
         if (xsink && *xsink)
             return QoreValue();

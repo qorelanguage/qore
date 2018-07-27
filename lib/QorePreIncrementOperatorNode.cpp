@@ -32,14 +32,16 @@
 
 QoreString QorePreIncrementOperatorNode::op_str("++ (pre-increment) operator expression");
 
-AbstractQoreNode *QorePreIncrementOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
+void QorePreIncrementOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& outTypeInfo) {
     parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, outTypeInfo);
 
     // version for local var
-    return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPreIncrementOperatorNode>() : this;
+    if ((typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo)) {
+        val = makeSpecialization<QoreIntPreIncrementOperatorNode>();
+    }
 }
 
-QoreValue QorePreIncrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QorePreIncrementOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper n(exp, xsink);
     if (!n)

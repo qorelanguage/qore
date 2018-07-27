@@ -37,9 +37,9 @@ class QoreRegexExtractOperatorNode : public QoreRegexMatchOperatorNode {
 protected:
     DLLLOCAL static QoreString op_str;
 
-    DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-    DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
 public:
     DLLLOCAL QoreRegexExtractOperatorNode(const QoreProgramLocation* loc, QoreValue exp, QoreRegex* r) : QoreRegexMatchOperatorNode(loc, exp, r) {

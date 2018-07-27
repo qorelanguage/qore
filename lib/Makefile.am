@@ -135,9 +135,6 @@ libqore_la_SOURCES = \
 	qore_date_private.cpp \
 	QoreHashNode.cpp \
 	BinaryNode.cpp \
-	QoreBigIntNode.cpp \
-	QoreBoolNode.cpp \
-	QoreFloatNode.cpp \
 	QoreNumberNode.cpp \
 	QoreNullNode.cpp \
 	QoreNothingNode.cpp \

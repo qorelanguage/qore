@@ -158,21 +158,6 @@ void qore_absolute_time::set(const AbstractQoreZoneInfo* n_zone, const QoreValue
       }
       case QV_Node:
          switch (get_node_type(v.v.n)) {
-            case NT_BOOLEAN: {
-               zone = n_zone;
-               epoch = reinterpret_cast<const QoreBoolNode*>(v.v.n)->getValue();
-               us = 0;
-               break;
-            }
-            case NT_INT: {
-               set(n_zone, reinterpret_cast<const QoreBigIntNode*>(v.v.n)->val, 0);
-               break;
-            }
-            case NT_FLOAT: {
-               double f = reinterpret_cast<const QoreFloatNode*>(v.v.n)->f;
-               set(f, n_zone);
-               break;
-            }
             case NT_STRING: {
                const char* str = reinterpret_cast<const QoreStringNode*>(v.v.n)->getBuffer();
                set(str, n_zone);
@@ -615,22 +600,6 @@ void qore_relative_time::set(const QoreValue v) {
         }
         case QV_Node:
             switch (get_node_type(v.v.n)) {
-                case NT_BOOLEAN: {
-                    set(0, 0, 0, 0, 0, (int)reinterpret_cast<const QoreBoolNode*>(v.v.n)->getValue(), 0);
-                    break;
-                }
-                case NT_INT: {
-                    // issue #2591: zero the value before adding
-                    zero();
-                    addSecondsTo(reinterpret_cast<const QoreBigIntNode*>(v.v.n)->val, 0);
-                    break;
-                }
-                case NT_FLOAT: {
-                    double f = reinterpret_cast<const QoreFloatNode*>(v.v.n)->f;
-                    zero();
-                    addSecondsTo(f);
-                    break;
-                }
                 case NT_STRING: {
                     const char* str = reinterpret_cast<const QoreStringNode*>(v.v.n)->getBuffer();
                     set(str);

@@ -32,7 +32,7 @@
 
 QoreString QoreLogicalGreaterThanOrEqualsOperatorNode::op_str(">= operator expression");
 
-QoreValue QoreLogicalGreaterThanOrEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink *xsink) const {
+QoreValue QoreLogicalGreaterThanOrEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsink) const {
    if (pfunc)
       return (this->*pfunc)(xsink);
 
@@ -46,7 +46,7 @@ QoreValue QoreLogicalGreaterThanOrEqualsOperatorNode::evalValueImpl(bool& needs_
    return doGreaterThanOrEquals(*lh, *rh, xsink);
 }
 
-AbstractQoreNode *QoreLogicalGreaterThanOrEqualsOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreLogicalGreaterThanOrEqualsOperatorNode::parseInitIntern(const char *name, QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     // turn off "reference ok" and "return value ignored" flags
     pflag &= ~(PF_RETURN_VALUE_IGNORED);
 
@@ -61,7 +61,8 @@ AbstractQoreNode *QoreLogicalGreaterThanOrEqualsOperatorNode::parseInitIntern(co
     if (left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalGreaterThanOrEqualsOperatorNode> del(this);
         ParseExceptionSink xsink;
-        return get_bool_node(doGreaterThanOrEquals(left, right, *xsink));
+        val = doGreaterThanOrEquals(left, right, *xsink);
+        return;
     }
 
     // check for optimizations based on type; but only if types are known on both sides, although the highest priority (float)
@@ -72,13 +73,11 @@ AbstractQoreNode *QoreLogicalGreaterThanOrEqualsOperatorNode::parseInitIntern(co
         else if (QoreTypeInfo::hasType(lti) && QoreTypeInfo::hasType(rti)) {
             if (QoreTypeInfo::isType(lti, NT_INT)) {
                 if (QoreTypeInfo::isType(rti, NT_INT))
-                pfunc = &QoreLogicalGreaterThanOrEqualsOperatorNode::bigIntGreaterThanOrEquals;
+                    pfunc = &QoreLogicalGreaterThanOrEqualsOperatorNode::bigIntGreaterThanOrEquals;
             }
             // FIXME: check for invalid operation here
         }
     }
-
-    return this;
 }
 
 bool QoreLogicalGreaterThanOrEqualsOperatorNode::floatGreaterThanOrEquals(ExceptionSink *xsink) const {

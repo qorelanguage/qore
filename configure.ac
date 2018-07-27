@@ -82,6 +82,7 @@ SHLIB_SUFFIX=so
 case "${host_os}" in
      *linux*)   AC_DEFINE(NEED_ICONV_TRANSLIT, 1, Define to 1 if //TRANSLIT should be added to the destination character set code)
 		SHLIB_SUFFIX=so
+                QORE_BUILD_HOST=`uname -smpo`
 		;;
      *solaris*) # set compile flags for Solaris
      		CPPFLAGS="${CPPFLAGS} -D_XPG6 -D_XOPEN_SOURCE=600"
@@ -101,6 +102,7 @@ case "${host_os}" in
 		   QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -ldl -lthread -lpthread"
 		fi
 		solaris=yes
+                QORE_BUILD_HOST=`uname -spirv`
 	        ;;
      *darwin*)  # set compile flags for Darwin/OSX
 		CPPFLAGS="${CPPFLAGS} -D_APPLE_C_SOURCE -D_DARWIN_C_SOURCE"
@@ -111,6 +113,7 @@ case "${host_os}" in
 		# use gnutar on darwin to avoid getting those pesky resource files
 		AMTAR=gnutar
 		darwin=yes
+                QORE_BUILD_HOST=`uname -smr`
 		;;
      *hpux*)    if test "$host_cpu" = "ia64"; then
      		   SHLIB_SUFFIX=so
@@ -127,12 +130,14 @@ case "${host_os}" in
 		AC_DEFINE(HPUX, 1, if compiling on HP-UX)
 		AC_DEFINE(NEED_ENVIRON_LOCK, 1, [if the environment operations need explicit locking])
 		hpux=yes
+                QORE_BUILD_HOST=`uname -a`
 		;;
      *cygwin*)  SHLIB_SUFFIX=dll
      		CPPFLAGS=-mwin32
 		windows=yes
 		# turn off signal handling for cygwin; cygwin supports it, but it's emulated/slow/non-native
 		no_sig_handling=yes
+                QORE_BUILD_HOST=`uname -a`
      		;;
      *mingw32*) SHLIB_SUFFIX=dll
      		windows=yes
@@ -180,6 +185,7 @@ case "${host_os}" in
 		if test -z "$NATIVE_CXX"; then
 		   NATIVE_CXX=$CXX
 		fi
+                QORE_BUILD_HOST=`uname -a`
 		AC_SUBST(NATIVE_CXX)
 		AC_SUBST(NATIVE_CPPFLAGS)
 		AC_SUBST(NATIVE_LDDFLAGS)
@@ -197,8 +203,10 @@ case "${host_os}" in
 		   LEX=/usr/local/bin/flex
                 fi
 		AC_WARN([LDFLAGS=$LDFLAGS LEX=$LEX])
+                QORE_BUILD_HOST=`uname -a`
                 ;;
      *)         AC_WARN(Unknown platform ${host_os})
+                QORE_BUILD_HOST=`uname -a`
      		;;
 esac
 AC_SUBST(SHLIB_SUFFIX)
@@ -1998,7 +2006,7 @@ AC_DEFINE_UNQUOTED([QORE_LIB_CPPFLAGS], "$QORE_LIB_CPPFLAGS", [preprocessor flag
 AC_DEFINE_UNQUOTED([QORE_LIB_CXXFLAGS], "$QORE_LIB_CXXFLAGS", [c++ compiler flags])
 AC_DEFINE_UNQUOTED([QORE_LIB_CFLAGS],   "$QORE_LIB_CFLAGS", [c++ compiler flags])
 AC_DEFINE_UNQUOTED([QORE_LIB_LDFLAGS],  "$QORE_LIB_LDFLAGS", [linker flags])
-AC_DEFINE_UNQUOTED([QORE_BUILD_HOST],   "`uname -a`", [Qore build host info])
+AC_DEFINE_UNQUOTED([QORE_BUILD_HOST],   "$QORE_BUILD_HOST", [Qore build host info])
 
 AC_CONFIG_FILES([Makefile lib/Makefile])
 AC_CONFIG_FILES([modules/astparser/Makefile modules/astparser/src/Makefile])

@@ -8,7 +8,6 @@
     WIP
 
     @subsection qore_09_compatibility Changes That Can Affect Backwards-Compatibility
-    - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
     - Qore classes and functions can no longer be modified after creation; any attempt to add a new user
       variant to an existing function or to add new declarations to an existing class will result in a
       parse error.
@@ -24,6 +23,9 @@
     WIP
 
     @subsection qore_09_new_features New Features in Qore
+    - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
+    - the elimination of heap-allocated, atomic-reference-counted integers and floating-point values results
+      in reduced memory usage as well as faster program execution
     - the default thread stack size was changed from 8MB to 512KB resulting in a large reduction in the total
       memory used in programs with many threads (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
     - new classes:
@@ -46,10 +48,10 @@
     - new hashdecls:
       - @ref Qore::NetIfInfo "NetIfInfo"
     - new constants:
-      - @ref Qore::HAVE_GET_NETIF_LIST "HAVE_GET_NETIF_LIST"
-      - @ref Qore::HAVE_GET_STACK_SIZE "HAVE_GET_STACK_SIZE"
-      - @ref Qore::HAVE_MANAGE_STACK "HAVE_MANAGE_STACK"
-      - @ref Qore::HAVE_THREAD_NAME "HAVE_THREAD_NAME"
+      - @ref Qore::Option::HAVE_GET_NETIF_LIST "HAVE_GET_NETIF_LIST"
+      - @ref Qore::Option::HAVE_GET_STACK_SIZE "HAVE_GET_STACK_SIZE"
+      - @ref Qore::Option::HAVE_MANAGE_STACK "HAVE_MANAGE_STACK"
+      - @ref Qore::Option::HAVE_THREAD_NAME "HAVE_THREAD_NAME"
     - new @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
       - \c "Dn" and \c "DN": the ordinal day number in the year
       - \c "I": ISO-8601 week string
@@ -89,7 +91,6 @@
         - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
-
     - fixed a bug where class members could be initialized multiple times in a class with multiple
       inheritance where the same class is inherited multiple times in the hierarchy
       (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
@@ -102,12 +103,25 @@
       (<a href="https://github.com/qorelanguage/qore/issues/2863">issue 2863</a>),
 
 
+    @section qore_08137 Qore 0.8.13.7
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08137_bug_fixes Bug Fixes in Qore
+    - module fixes:
+      - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>:
+        - removed unnecessary serialization from AbstractConnection::get()
+          (<a href="https://github.com/qorelanguage/qore/issues/2880">issue 2880</a>)
+
     @section qore_08136 Qore 0.8.13.6
 
     @par Release Summary
     Bugfix release; see details below
 
     @subsection qore_08136_bug_fixes Bug Fixes in Qore
+    - fixed a deadlock in lvalue handling with complex object operations in multithreaded contexts
+      (<a href="https://github.com/qorelanguage/qore/issues/2889">issue 2889</a>)
     - fixed type errors with complex hashes in <hash>::values() and @ref Qore::hash_values() "hash_values()"
       (<a href="https://github.com/qorelanguage/qore/issues/2877">issue 2877</a>)
     - fixed an error handling complex types with the @ref plus_equals_operator "+=" operator
@@ -126,6 +140,17 @@
         - schema alignment fails when user accidentally creates table
           schema with strings instead of hashes
           (<a href="https://github.com/qorelanguage/qore/issues/2761">issue 2358</a>)
+      - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
+        - Swagger module does not use text/plain Content-Type for simple string responses
+          (<a href="https://github.com/qorelanguage/qore/issues/2893">issue 2893</a>)
+        - Swagger module does not check response body if response schema is missing in Swaggerfile
+          (<a href="https://github.com/qorelanguage/qore/issues/2894">issue 2894</a>)
+      - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a>:
+        - allowed the handling of \c PING messages to be customized
+          (<a href="https://github.com/qorelanguage/qore/issues/2887">issue 2887</a>)
+      - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a>:
+        - added support for heartbeat messages
+          (<a href="https://github.com/qorelanguage/qore/issues/2887">issue 2887</a>)
 
 
     @section qore_08135 Qore 0.8.13.5

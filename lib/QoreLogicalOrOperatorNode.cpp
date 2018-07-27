@@ -32,7 +32,7 @@
 
 QoreString QoreLogicalOrOperatorNode::logical_or_str("logical or (&&) operator expression");
 
-QoreValue QoreLogicalOrOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreLogicalOrOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
     if (*xsink)
         return false;

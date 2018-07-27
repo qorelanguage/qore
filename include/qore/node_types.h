@@ -40,11 +40,11 @@
 // qore global system type constants
 // value types must come first to support the operator matrix optimization
 const qore_type_t NT_NOTHING                = 0;  //!< type value for QoreNothingNode
-const qore_type_t NT_INT                    = 1;  //!< type value for QoreBigIntNode
-const qore_type_t NT_FLOAT                  = 2;  //!< type value for QoreFloatNode
+const qore_type_t NT_INT                    = 1;  //!< type value for integers (QoreValue only)
+const qore_type_t NT_FLOAT                  = 2;  //!< type value for floating-point values (QoreValue only)
 const qore_type_t NT_STRING                 = 3;  //!< type value for QoreStringNode
 const qore_type_t NT_DATE                   = 4;  //!< type value for DateTimeNode
-const qore_type_t NT_BOOLEAN                = 5;  //!< type value for QoreBoolNode
+const qore_type_t NT_BOOLEAN                = 5;  //!< type value for bools (QoreValue only)
 const qore_type_t NT_NULL                   = 6;  //!< type value for QoreNullNode
 const qore_type_t NT_BINARY                 = 7;  //!< type value for BinaryNode
 const qore_type_t NT_LIST                   = 8;  //!< type value for QoreListNode

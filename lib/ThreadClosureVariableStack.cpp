@@ -80,7 +80,7 @@ void ThreadClosureVariableStack::getLocalVars(QoreHashNode& h, int frame, Except
          if (!var->skip) {
             ReferenceHolder<QoreHashNode> v(new QoreHashNode, xsink);
             v->setKeyValue("type", new QoreStringNode("closure"), xsink);
-            v->setKeyValue("value", var->evalValue(xsink), xsink);
+            v->setKeyValue("value", var->eval(xsink), xsink);
             h.setKeyValue(var->id, v.release(), xsink);
          }
       }

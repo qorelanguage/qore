@@ -92,17 +92,17 @@ bool QoreParseListNode::parseInitIntern(LocalVar* oflag, int pflag, int& lvids, 
     return needs_eval;
 }
 
-AbstractQoreNode* QoreParseListNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreParseListNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     if (parseInitIntern(oflag, pflag, lvids, typeInfo))
-        return this;
+        return;
 
     // evaluate immediately
     SimpleRefHolder<QoreParseListNode> holder(this);
     ValueEvalRefHolder rv(this, nullptr);
-    return rv.takeReferencedValue().takeNode();
+    val = rv.takeReferencedValue();
 }
 
-QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreParseListNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(needs_deref);
     ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
     qore_list_private* ll = qore_list_private::get(**l);
@@ -148,7 +148,7 @@ QoreValue QoreParseListNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsi
     const QoreTypeInfo* ti = qore_get_complex_list_type(vtype);
     ll->complexTypeInfo = ti;
 
-    //printd(5, "QoreParseListNode::evalValueImpl() this: %p size: %d typeInfo: %p '%s' (vtype: '%s')\n", this, size(), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::getName(vtype));
+    //printd(5, "QoreParseListNode::evalImpl() this: %p size: %d typeInfo: %p '%s' (vtype: '%s')\n", this, size(), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::getName(vtype));
 
     return rv.release();
 }

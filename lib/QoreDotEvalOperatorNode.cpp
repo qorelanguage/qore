@@ -42,7 +42,7 @@ static const AbstractQoreNode* check_call_ref(const AbstractQoreNode *op, const 
     return (ref.getType() == NT_FUNCREF || ref.getType() == NT_RUNTIME_CLOSURE) ? ref.getInternalNode() : nullptr;
 }
 
-QoreValue QoreDotEvalOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreDotEvalOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder op(left, xsink);
     if (*xsink)
         return QoreValue();
@@ -77,10 +77,10 @@ QoreValue QoreDotEvalOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSin
     return pseudo_classes_eval(*op, m->getName(), m->getArgs(), xsink);
 }
 
-AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& expTypeInfo) {
+void QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& expTypeInfo) {
     assert(!expTypeInfo);
     const QoreTypeInfo* typeInfo = nullptr;
-    left = left->parseInit(oflag, pflag & ~PF_RETURN_VALUE_IGNORED, lvids, typeInfo);
+    parse_init_value(left, oflag, pflag & ~PF_RETURN_VALUE_IGNORED, lvids, typeInfo);
 
     QoreClass* qc = const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(typeInfo));
 
@@ -105,7 +105,7 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
                 lvids += m->parseArgs(oflag, pflag, meth->getFunction(), nullptr, returnTypeInfo);
                 expTypeInfo = returnTypeInfo;
 
-                return this;
+                return;
             }
             else if (!possible_match && !QoreTypeInfo::parseAccepts(hashTypeInfo, typeInfo)) {
                 // issue an error if there was no match and it's not a hash
@@ -115,21 +115,18 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
             }
         }
 
-#ifdef DEBUG
-        typeInfo = nullptr;
-        AbstractQoreNode* n = m->parseInit(oflag, pflag, lvids, typeInfo);
-        assert(n == m);
-#else
-        m->parseInit(oflag, pflag, lvids, typeInfo);
-#endif
-        return this;
+        QoreValue tmp = m;
+        m->parseInit(tmp, oflag, pflag, lvids, typeInfo);
+        assert(tmp.getInternalNode() == m);
+
+        return;
     }
 
     // make sure method arguments and return types are resolved
     qore_class_private::parseInitPartial(*qc);
 
     if (!m)
-        return this;
+        return;
 
     qore_class_private* class_ctx = parse_get_class_priv();
     if (class_ctx && !qore_class_private::parseCheckPrivateClassAccess(*qc, class_ctx))
@@ -146,14 +143,10 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
 
         // do not save method pointer for copy methods
         expTypeInfo = returnTypeInfo = qc->getTypeInfo();
-#ifdef DEBUG
-        typeInfo = nullptr;
-        AbstractQoreNode *n = m->parseInit(oflag, pflag, lvids, typeInfo);
-        assert(n == m);
-#else
-        m->parseInit(oflag, pflag, lvids, typeInfo);
-#endif
-        return this;
+        QoreValue tmp = m;
+        m->parseInit(tmp, oflag, pflag, lvids, typeInfo);
+        assert(tmp.getInternalNode() == m);
+        return;
     }
 
     if (!meth) {
@@ -167,14 +160,10 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
         }
 
         if (!meth) {
-#ifdef DEBUG
-            typeInfo = nullptr;
-            AbstractQoreNode *n = m->parseInit(oflag, pflag, lvids, typeInfo);
-            assert(n == m);
-#else
-            m->parseInit(oflag, pflag, lvids, typeInfo);
-#endif
-            return this;
+            QoreValue tmp = m;
+            m->parseInit(tmp, oflag, pflag, lvids, typeInfo);
+            assert(tmp.getInternalNode() == m);
+            return;
         }
     }
 
@@ -186,35 +175,39 @@ AbstractQoreNode* QoreDotEvalOperatorNode::parseInitImpl(LocalVar* oflag, int pf
     expTypeInfo = returnTypeInfo;
 
     printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", mname, meth && (qore_method_private::getAccess(*meth) > Public) ? "true" : "false", meth->isStatic() ? "true" : "false", QoreTypeInfo::getName(returnTypeInfo));
-
-    return this;
 }
 
 AbstractQoreNode *QoreDotEvalOperatorNode::makeCallReference() {
-   if (m->getArgs()) {
-      parse_error(*loc, "argument given to call reference");
-      return this;
-   }
+    if (m->getArgs()) {
+        parse_error(*loc, "argument given to call reference");
+        return this;
+    }
 
-   if (!strcmp(m->getName(), "copy")) {
-      parse_error(*loc, "cannot make a call reference to a copy() method");
-      return this;
-   }
+    if (!strcmp(m->getName(), "copy")) {
+        parse_error(*loc, "cannot make a call reference to a copy() method");
+        return this;
+    }
 
-   assert(is_unique());
+    assert(is_unique());
 
-   // rewrite as a call reference
-   AbstractQoreNode *exp = left;
-   left = 0;
-   char *meth = m->takeName();
-   const QoreProgramLocation* nloc = loc;
-   this->deref();
+    // rewrite as a call reference
+    QoreValue exp = left;
+    left.clear();
+    char *meth = m->takeName();
+    const QoreProgramLocation* nloc = loc;
+    this->deref();
 
-   //printd(5, "made parse object method reference: exp=%p meth=%s\n", exp, meth);
+    //printd(5, "made parse object method reference: exp=%p meth=%s\n", exp, meth);
 
-   return new ParseObjectMethodReferenceNode(nloc, exp, meth);
+    return new ParseObjectMethodReferenceNode(nloc, exp, meth);
 }
 
 QoreOperatorNode* QoreDotEvalOperatorNode::copyBackground(ExceptionSink* xsink) const {
-    return new QoreDotEvalOperatorNode(loc, copy_and_resolve_lvar_refs(left, xsink), reinterpret_cast<MethodCallNode*>(copy_and_resolve_lvar_refs(m, xsink)));
+    QoreValue mv = m;
+    ValueHolder holder(copy_value_and_resolve_lvar_refs(mv, xsink), xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    return new QoreDotEvalOperatorNode(loc, copy_value_and_resolve_lvar_refs(left, xsink), holder.release().get<MethodCallNode>());
 }

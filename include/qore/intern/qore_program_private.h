@@ -113,7 +113,6 @@ private:
 
     // thread debug types, field is read/write only in thread being debugged, no locking is needed
     DebugRunStateEnum runState;
-    DebugRunStateEnum saveRunState;
     // when stepover or until return we need calls function calls
     int functionCallLevel = 0;
 

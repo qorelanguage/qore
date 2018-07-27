@@ -82,30 +82,11 @@ protected:
     */
     DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
 
-    //! evaluates the list and returns a value (or 0)
-    /** return value requires a deref(xsink)
-        NOTE: if there is an exception, 0 will be returned
-        @param xsink if an error occurs, the Qore-language exception information will be added here
-    */
-    DLLEXPORT virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
-
     //! optionally evaluates the argument
     /** return value requires a deref(xsink) if needs_deref is true
         @see AbstractQoreNode::eval()
     */
-    DLLLOCAL virtual AbstractQoreNode* evalImpl(bool &needs_deref, ExceptionSink* xsink) const;
-
-    //! always returns 0
-    DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const;
-
-    //! always returns 0
-    DLLLOCAL virtual int integerEvalImpl(ExceptionSink* xsink) const;
-
-    //! always returns false
-    DLLLOCAL virtual bool boolEvalImpl(ExceptionSink* xsink) const;
-
-    //! always returns 0.0
-    DLLLOCAL virtual double floatEvalImpl(ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
 public:
     //! create an empty list
@@ -449,7 +430,7 @@ public:
     DLLLOCAL void setVariableList();
 
     //! for initialization of lists in the parse tree at parse time (always returns "this")
-    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+    DLLLOCAL virtual void parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 };
 
 #include <qore/ReferenceHolder.h>

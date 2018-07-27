@@ -91,7 +91,7 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
     }
 }
 
-QoreValue QoreAssignmentOperatorNode::evalValueIntern(ExceptionSink* xsink, bool& needs_deref, bool weak_assignment) const {
+QoreValue QoreAssignmentOperatorNode::evalIntern(ExceptionSink* xsink, bool& needs_deref, bool weak_assignment) const {
     /* assign new value, this value gets referenced with the
         eval(xsink) call, so there's no need to reference it again
         for the variable assignment - however it does need to be

@@ -32,7 +32,7 @@
 
 QoreString QoreIntPostIncrementOperatorNode::op_str("++ (post-increment) operator expression");
 
-QoreValue QoreIntPostIncrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreIntPostIncrementOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     LValueHelper n(exp, xsink);
     if (!n)
         return QoreValue();

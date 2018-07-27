@@ -43,22 +43,20 @@ int QoreLogicalNotOperatorNode::getAsString(QoreString& str, int foff, Exception
     return 0;
 }
 
-QoreValue QoreLogicalNotOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+QoreValue QoreLogicalNotOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(exp);
     ValueEvalRefHolder v(exp, xsink);
     return !v->getAsBool();
 }
 
-AbstractQoreNode* QoreLogicalNotOperatorNode::parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+void QoreLogicalNotOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
     parse_init_value(exp, oflag, pflag, lvids, typeInfo);
+
+    typeInfo = boolTypeInfo;
 
     // evaluate immediately if possible
     if (exp.isValue()) {
         SimpleRefHolder<QoreLogicalNotOperatorNode> th(this);
-
-        return get_bool_node(!exp.getAsBool());
+        val = !exp.getAsBool();
     }
-    typeInfo = boolTypeInfo;
-
-    return this;
 }

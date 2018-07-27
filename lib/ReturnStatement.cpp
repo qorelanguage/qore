@@ -33,18 +33,14 @@
 #include "qore/intern/qore_program_private.h"
 
 int ReturnStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
-    if (exp) {
-        return_value = exp->eval(xsink);
-        return_value.sanitize();
-    }
-
+    ValueEvalRefHolder val(exp, xsink);
     if (!*xsink) {
+        return_value = val.takeReferencedValue();
+
         const QoreTypeInfo* returnTypeInfo = getReturnTypeInfo();
         QoreTypeInfo::acceptAssignment(returnTypeInfo, "<return statement>", return_value, xsink);
     }
-
-    if (*xsink) {
-        return_value.discard(xsink);
+    else {
         return_value.clear();
     }
 
@@ -55,10 +51,7 @@ int ReturnStatement::parseInitImpl(LocalVar* oflag, int pflag) {
     int lvids = 0;
     const QoreTypeInfo* argTypeInfo = nullptr;
 
-    if (exp)
-        exp = exp->parseInit(oflag, pflag & ~PF_TOP_LEVEL, lvids, argTypeInfo);
-    else
-        argTypeInfo = nothingTypeInfo;
+    parse_init_value(exp, oflag, pflag & ~PF_TOP_LEVEL, lvids, argTypeInfo);
 
     const QoreTypeInfo* returnTypeInfo = parse_get_return_type_info();
 

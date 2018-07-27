@@ -193,8 +193,8 @@ void qore_hash_private::parseCheckTypedAssignment(const QoreProgramLocation* loc
                 qore_type_result_e res = QoreTypeInfo::parseAccepts(vti, vti2, may_not_match);
                 if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
                     continue;
-                const AbstractQoreNode* kn = keys[i];
-                const QoreStringNode* key = get_node_type(kn) == NT_STRING ? reinterpret_cast<const QoreStringNode*>(kn) : nullptr;
+                QoreValue kn = keys[i];
+                const QoreStringNode* key = kn.getType() == NT_STRING ? kn.get<const QoreStringNode>() : nullptr;
                 if (key)
                     parse_error(*loc, "cannot %s 'hash<string, %s>' from key '%s' of a hash with incompatible value type '%s'", context_action, QoreTypeInfo::getName(vti), key->c_str(), QoreTypeInfo::getName(vti2));
                 else
@@ -411,7 +411,7 @@ void QoreHashNode::removeKey(const QoreString* key, ExceptionSink* xsink) {
 int QoreHashNode::setKeyValue(const char* key, QoreValue value, ExceptionSink* xsink) {
     assert(reference_count() == 1);
     hash_assignment_priv ha(*priv, key);
-    ha.assign(value.takeNode(), xsink);
+    ha.assign(value, xsink);
     return xsink && *xsink ? -1 : 0;
 }
 
@@ -467,35 +467,14 @@ QoreHashNode* QoreHashNode::hashRefSelf() const {
 }
 
 // returns a hash with the same order
-AbstractQoreNode* QoreHashNode::evalImpl(ExceptionSink* xsink) const {
-   return priv->evalImpl(xsink);
-}
+QoreValue QoreHashNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
+    assert(needs_deref);
+    if (value) {
+        needs_deref = false;
+        return const_cast<QoreHashNode*>(this);
+    }
 
-// returns a hash with the same order
-AbstractQoreNode* QoreHashNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
-   if (value) {
-      needs_deref = false;
-      return const_cast<QoreHashNode*>(this);
-   }
-
-   needs_deref = true;
-   return QoreHashNode::evalImpl(xsink);
-}
-
-int64 QoreHashNode::bigIntEvalImpl(ExceptionSink* xsink) const {
-   return 0;
-}
-
-int QoreHashNode::integerEvalImpl(ExceptionSink* xsink) const {
-   return 0;
-}
-
-bool QoreHashNode::boolEvalImpl(ExceptionSink* xsink) const {
-   return false;
-}
-
-double QoreHashNode::floatEvalImpl(ExceptionSink* xsink) const {
-   return 0.0;
+    return priv->evalImpl(xsink);
 }
 
 // does a "soft" compare (values of different types are converted if necessary and then compared)
@@ -673,9 +652,8 @@ QoreHashNode* QoreHashNode::getSlice(const QoreListNode* value_list, ExceptionSi
     return rv.release();
 }
 
-AbstractQoreNode* QoreHashNode::parseInit(LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreHashNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
     typeInfo = priv->getTypeInfo();
-    return this;
 }
 
 bool QoreHashNode::getAsBoolImpl() const {
