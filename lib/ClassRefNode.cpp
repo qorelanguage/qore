@@ -1,31 +1,31 @@
 /*
-  ClassRefNode.cpp
- 
-  Qore Programming Language
- 
-  Copyright (C) 2003 - 2015 David Nichols
- 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    ClassRefNode.cpp
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    Qore Programming Language
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -36,27 +36,26 @@
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int ClassRefNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   if (cscope)
-      str.sprintf("reference to Qore class '%s' (unresolved, %p)", cscope->ostr, this);
-   else
-      str.sprintf("reference to Qore class '%s' (resolved, %p)", qc->getName(), this);
-   return 0;
+    if (cscope)
+        str.sprintf("reference to Qore class '%s' (unresolved, %p)", cscope->ostr, this);
+    else
+        str.sprintf("reference to Qore class '%s' (resolved, %p)", qc->getName(), this);
+    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-QoreString *ClassRefNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-   del = true;
-   QoreString *rv = new QoreString();
-   return rv;
+QoreString* ClassRefNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+    del = true;
+    QoreString *rv = new QoreString;
+    return rv;
 }
 
-AbstractQoreNode *ClassRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   // FIXME: implement a type for this
-   typeInfo = 0;
-   if (cscope) {
-      qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
-      delete cscope;
-      cscope = 0;
-   }
-   return this;
+void ClassRefNode::parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+    // FIXME: implement a type for this
+    typeInfo = nullptr;
+    if (cscope) {
+        qc = qore_root_ns_private::parseFindScopedClass(loc, *cscope);
+        delete cscope;
+        cscope = nullptr;
+    }
 }
