@@ -280,6 +280,11 @@ public namespace FsUtil {
         return local_handler.join_paths(paths);
     }
 
+    public bool sub path_exists(string path) {
+        *hash s = hstat(path);
+        return (exists s || errno() != Err::ENOENT);
+    }
+
     const TMP_MAX_ATTEMPTS = 10000;
 
     #! Creates a unique temporary directory and returns its absolute path
@@ -502,7 +507,83 @@ public namespace FsUtil {
                 stat1.dev == stat2.dev);
     }
 
+    #! Copies a file object data from source to destination.
+    /** @param source file object to be copied from
+        @param destination file object to be copied to
+        @param close flag indicating whether the file objects should be closed afterwards
+        @param buf_size size of the buffer used to copy the file
 
+        By default this function does not close the file objects after the copy is made. This can be changed using
+        the close parameter.
+    */
+    public sub copy_file_obj(File source, File destination, bool close=False, int buf_size=4*1024) {
+        *binary buf;
+        while (True) {
+            buf = source.readBinary(buf_size);
+            if (!exists buf) {
+                break;
+            }
+            destination.write(buf);
+        }
+
+        if (close) {
+            source.close();
+            destination.close();
+        }
+    }
+
+    #! Copies a file (regular or symlink) from source to destination.
+    /** @param source path to the file to be copied
+        @param destination path where the copy should be created
+        @param follow_symlinks flag indicating whether symlinks should be followed in source (False by default)     # TODO - should this also affect destination?
+        @param overwrite flag indicating whether destination should be overwritten if exists (True by default)
+
+        @throws SAME-FILE-ERROR If both paths point to the same file.
+        @throws FILE-STAT-ERROR If stat call for the source path fails.
+        @throws FILE-EXISTS-ERROR If destination path exists and overwrite flag is False
+        @throws UNSUPPORTED-TYPE-ERROR If a given file is not a regular path or a symbolic link.
+
+        Destination can be a directory. If that's the case, this function will attempt to create a copy of source using
+        the same filename in the destination directory.
+    */
+    public sub copy_file(string source, string destination, bool follow_symlinks=False, bool overwrite=True) {
+        # prepare the source
+        *hash src_stat = follow_symlinks ? hstat(source) : hlstat(source);
+        if (!exists src_stat) {
+            throw "FILE-STAT-ERROR", sprintf("Couldn't stat source path '%s': %s", source, strerror());
+        }
+
+        # prepare the destination
+        if (is_dir(destination)) {
+            destination = join_paths(destination, basename(source));
+        }
+        *hash dst_stat = follow_symlinks ? hstat(destination) : hlstat(destination);
+        if (!overwrite && exists dst_stat) {
+            throw "FILE-EXISTS-ERROR", sprintf("Destination path '%s' already exists and overwriting is forbidden.",
+                                               destination);
+        }
+
+        if (same_file(source, destination, follow_symlinks, True)) {
+            throw "SAME-FILE-ERROR", sprintf("'%s' and '%s' point to the same file.", source, destination);
+        }
+
+        foreach *hash stat in (src_stat, dst_stat) {
+            if (exists stat && stat.type != "REGULAR" && stat.type != "SYMBOLIC-LINK") {
+                throw "UNSUPPORTED-TYPE-ERROR", sprintf("Unsupported file type: '%s'.", stat.type);
+            }
+        }
+
+        if (src_stat.type == "SYMBOLIC-LINK" && !follow_symlinks) {
+            symlink(readlink(source), destination);
+        } else {
+            File src_obj();
+            File dst_obj();
+            src_obj.open2(source, O_RDONLY);
+            dst_obj.open2(destination, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+            copy_file_obj(src_obj, dst_obj);
+            src_obj.close();
+            dst_obj.close();
+        }
     }
 
 } # FsUtil namespace

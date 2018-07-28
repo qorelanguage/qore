@@ -1,0 +1,94 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class CopyFileObjTest
+
+public class CopyFileObjTest inherits QUnit::Test {
+
+    constructor() : Test ("CopyFileObjTest", "1.0") {
+        addTestCase("copy_file_obj test", \test_copy_file_obj());
+        addTestCase("copy_file_obj test - close", \test_copy_file_obj_close());
+        addTestCase("copy_file_obj test - exception", \test_copy_file_obj_exception());
+        set_return_value(main());
+    }
+
+    add_content_to_file(File f, string content="Hello World!") {
+        f.write(content);
+        f.setPos(0);
+    }
+
+    test_copy_file_obj() {
+        # get files
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_path);
+        }
+        hash file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        add_content_to_file(file1.file);
+        hash file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+
+        assertTrue(file1.file.isOpen());
+        assertTrue(file2.file.isOpen());
+
+        copy_file_obj(file1.file, file2.file);
+
+        assertTrue(file1.file.isOpen());
+        assertTrue(file2.file.isOpen());
+
+        file2.file.setPos(0);
+        string f2_text = file2.file.read(-1);
+        assertEq("Hello World!", f2_text);
+    }
+
+    test_copy_file_obj_close() {
+        # get files
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_path);
+        }
+        hash file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        add_content_to_file(file1.file);
+        hash file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+
+        assertTrue(file1.file.isOpen());
+        assertTrue(file2.file.isOpen());
+
+        copy_file_obj(file1.file, file2.file, True);
+
+        assertFalse(file1.file.isOpen());
+        assertFalse(file2.file.isOpen());
+
+        file2.file.open(file2.path);
+        string f2_text = file2.file.read(-1);
+        assertEq("Hello World!", f2_text);
+    }
+
+    test_copy_file_obj_exception() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_path);
+        }
+        hash file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        add_content_to_file(file1.file);
+        hash file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+
+        assertTrue(file1.file.isOpen());
+        assertTrue(file2.file.isOpen());
+
+        # destination is closed
+        file2.file.close();
+        assertThrows("FILE-WRITE-ERROR", \copy_file_obj(), (file1.file, file2.file));
+
+        # now even source is closed
+        file1.file.close();
+        assertThrows("FILE-READ-ERROR", \copy_file_obj(), (file1.file, file2.file));
+    }
+}
