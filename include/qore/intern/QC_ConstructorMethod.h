@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.h Class class definition */
+/** @file QC_ConstructorMethod.h Method class definition */
 /*
     Qore Programming Language
 
@@ -28,25 +28,17 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_CLASS_H
+#ifndef _QORE_INTERN_QC_CONSTRUCTORMETHOD_H
 
-#define _QORE_INTERN_QC_CLASS_H
+#define _QORE_INTERN_QC_CONSTRUCTORMETHOD_H
 
 #include "qore/intern/AbstractReflectionObject.h"
+#include "qore/intern/QC_AbstractMethod.h"
 
-class QoreReflectionClass : public AbstractReflectionObject {
-public:
-    const QoreClass* cls;
+DLLEXPORT extern qore_classid_t CID_CONSTRUCTORMETHOD;
+DLLLOCAL extern QoreClass* QC_CONSTRUCTORMETHOD;
 
-    DLLLOCAL QoreReflectionClass(const char* name, ExceptionSink* xsink);
-
-    DLLLOCAL QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls);
-};
-
-DLLEXPORT extern qore_classid_t CID_CLASS;
-DLLLOCAL extern QoreClass* QC_CLASS;
-
-DLLLOCAL void preinitClassClass();
-DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
+DLLLOCAL void preinitConstructorMethodClass();
+DLLLOCAL QoreClass* initConstructorMethodClass(QoreNamespace& ns);
 
 #endif

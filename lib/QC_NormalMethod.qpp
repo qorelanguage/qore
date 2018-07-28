@@ -1,0 +1,191 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_NormalMethod.qpp NormalMethod class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QoreClassIntern.h>
+#include "qore/intern/QC_NormalMethod.h"
+
+static int check_call(QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
+    if (!obj->validInstanceOf(*m.getClass())) {
+        xsink->raiseException("METHOD-ERROR", "object is of class '%s' which is not compatible with method '%s()' of class '%s'", obj->getClassName(), m.getName(), m.getClassName());
+        return -1;
+    }
+    return 0;
+}
+
+//! This class provides information about %Qore class methods
+/** @since %Qore 0.9.0
+ */
+qclass NormalMethod [arg=QoreReflectionMethod* m; ns=Qore; vparent=AbstractMethod];
+
+//! Creates the object from the class and normal (non-static) method name
+/** @par Example:
+    @code{.py}
+NormalMethod m(cls, "lock");
+    @endcode
+
+    @param cls the class for the method
+    @param method the method name
+
+    @throw METHOD-ERROR cannot find a normal (non-static) method with the given name
+ */
+NormalMethod::constructor(Class[QoreReflectionClass] cls, string method) {
+    ReferenceHolder<QoreReflectionClass> holder(cls, xsink);
+
+    TempEncodingHelper nmethod(method, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, cls->pgm);
+    if (*xsink) {
+        return;
+    }
+
+    // the class pointer must be valid here
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(cls->cls, nmethod->c_str(), xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+
+    if (m->mtype != MT_Normal) {
+        xsink->raiseException("METHOD-ERROR", "method '%s()' in class '%s' has type '%s'; expecting 'normal'", nmethod->c_str(), cls->cls->getName(), m->getType());
+        return;
+    }
+
+    self->setPrivate(CID_NORMALMETHOD, m.release());
+}
+
+//! Creates the object from the class name or namespace path and normal (non-static) method name
+/** @par Example:
+    @code{.py}
+NormalMethod m("Thread::Mutex", "lock");
+    @endcode
+
+    @param class_name the class name or namespace path for the method
+    @param method the normal (non-static) method name
+
+    @throw CLASS-ERROR cannot find a class with the given name or path
+    @throw METHOD-ERROR cannot find a normal (non-static, non-special) method with the given name
+ */
+NormalMethod::constructor(string class_name, string method) {
+    TempEncodingHelper npath(class_name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    TempEncodingHelper nmethod(method, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(npath->c_str(), nmethod->c_str(), xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+
+    if (m->mtype != MT_Normal) {
+        xsink->raiseException("METHOD-ERROR", "method '%s()' in class '%s' has type '%s'; expecting 'normal'", nmethod->c_str(), npath->c_str(), m->getType());
+        return;
+    }
+
+    self->setPrivate(CID_NORMALMETHOD, m.release());
+}
+
+//! calls the given method with the given object; the object must be a member of a compatible class
+/** par Example:
+    @code{.py}
+auto v = m.call(obj, arg1, arg2);
+    @endcode
+
+    @params ... optional arguments to the method
+
+    @return the return value of the method call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+
+    @see callArgs()
+*/
+auto NormalMethod::call(object obj, ...) {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // we have to explictly test object compatibility here, otherwise QoreObject::evalMethod() will throw
+    // a confusing exception
+    if (check_call(obj, *m->m, xsink)) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> call_args(xsink);
+
+    // if there are arguments to pass
+    if (num_args(args) > 1) {
+        // create argument list by copying current list
+        call_args = args->copyListFrom(1);
+    }
+
+    // the method ptr must be valid
+    return obj->evalMethod(*m->m, *call_args, xsink);
+}
+
+//! calls the given method with the given object; the object must be a member of a compatible class
+/** par Example:
+    @code{.py}
+auto v = m.callArgs(obj, (arg1, arg2));
+    @endcode
+
+    @params argv optional arguments to the method
+
+    @return the return value of the method call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+
+    @see call()
+*/
+auto NormalMethod::callArgs(object obj, *softlist argv) {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // we have to explictly test object compatibility here, otherwise QoreObject::evalMethod() will throw
+    // a confusing exception
+    if (check_call(obj, *m->m, xsink)) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    return obj->evalMethod(*m->m, argv, xsink);
+}

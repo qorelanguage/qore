@@ -33,15 +33,51 @@ class Test inherits QUnit::Test {
         {
             auto v = c.newObject();
             assertTrue(v instanceof Mutex);
-            assertEq(v.getClass().getId(), c.getId());
-            assertEq(v.getClass().getHash(), c.getHash());
+            Class c1 = v.getClass();
+            assertEq(c1.getId(), c.getId());
+            assertEq(c1.getHash(), c.getHash());
         }
 
         {
             auto v = c.newObjectArgs();
             assertTrue(v instanceof Mutex);
-            assertEq(v.getClass().getId(), c.getId());
-            assertEq(v.getClass().getHash(), c.getHash());
+            Class c1 = v.getClass();
+            assertEq(c1.getId(), c.getId());
+            assertEq(c1.getHash(), c.getHash());
+        }
+
+        NormalMethod m = c.getMethod("lock");
+        assertTrue(m.isBuiltin());
+        assertFalse(m.isUser());
+        assertEq("lock", m.getName());
+
+        m = c.getNormalMethod("lock");
+        assertEq("normal", m.getMethodTypeName());
+        assertTrue(m.isBuiltin());
+        assertFalse(m.isUser());
+        assertEq("lock", m.getName());
+
+        assertThrows("METHOD-ERROR", \c.getStaticMethod(), "lock");
+
+        Mutex mtx = c.newObject();
+        m.call(mtx);
+        assertTrue(mtx.lockOwner());
+        mtx.unlock();
+
+        m.callArgs(mtx);
+        assertTrue(mtx.lockOwner());
+        mtx.unlock();
+
+        assertThrows("METHOD-ERROR", \m.call(), new Condition());
+
+        ConstructorMethod con = c.getMethod("constructor");
+        assertEq("constructor", con.getMethodTypeName());
+        assertTrue(con.isBuiltin());
+        assertFalse(con.isUser());
+        assertEq("constructor", con.getName());
+        {
+            object o = con.call();
+            assertTrue(o instanceof Mutex);
         }
     }
 }

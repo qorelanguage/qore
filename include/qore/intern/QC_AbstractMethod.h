@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.h Class class definition */
+/** @file QC_AbstractMethod.h QC_AbstractMethod class definition */
 /*
     Qore Programming Language
 
@@ -28,25 +28,53 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_CLASS_H
+#ifndef _QORE_INTERN_QC_ABSTRACTMETHOD_H
 
-#define _QORE_INTERN_QC_CLASS_H
+#define _QORE_INTERN_QC_ABSTRACTMETHOD_H
 
 #include "qore/intern/AbstractReflectionObject.h"
 
-class QoreReflectionClass : public AbstractReflectionObject {
-public:
-    const QoreClass* cls;
-
-    DLLLOCAL QoreReflectionClass(const char* name, ExceptionSink* xsink);
-
-    DLLLOCAL QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls);
+//! method type enum
+enum method_type_e {
+    MT_None = 0,
+    MT_Normal = 1,
+    MT_Static = 2,
+    MT_Constructor = 3,
+    MT_Destructor = 4,
+    MT_Copy = 5,
 };
 
-DLLEXPORT extern qore_classid_t CID_CLASS;
-DLLLOCAL extern QoreClass* QC_CLASS;
+class QoreReflectionMethod : public AbstractReflectionObject {
+public:
+    const QoreMethod* m = nullptr;
+    method_type_e mtype = MT_None;
 
-DLLLOCAL void preinitClassClass();
-DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
+    DLLLOCAL QoreReflectionMethod(const char* cls_path, const char* name, ExceptionSink* xsink);
+
+    DLLLOCAL QoreReflectionMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink);
+
+    DLLLOCAL QoreReflectionMethod(QoreProgram* pgm, const QoreMethod* m);
+
+    DLLLOCAL const char* getType() const {
+        switch (mtype) {
+            case MT_Normal: return "normal";
+            case MT_Static: return "static";
+            case MT_Constructor: return "constructor";
+            case MT_Destructor: return "destructor";
+            case MT_Copy: return "copy";
+            default: assert(false);
+        }
+    }
+
+protected:
+    //! also sets the method type if set successfully
+    DLLLOCAL void setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink);
+};
+
+DLLEXPORT extern qore_classid_t CID_ABSTRACTMETHOD;
+DLLLOCAL extern QoreClass* QC_ABSTRACTMETHOD;
+
+DLLLOCAL void preinitAbstractMethodClass();
+DLLLOCAL QoreClass* initAbstractMethodClass(QoreNamespace& ns);
 
 #endif

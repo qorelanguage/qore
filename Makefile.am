@@ -702,6 +702,10 @@ noinst_HEADERS = \
 	include/qore/intern/QC_TimeZone.h \
 	include/qore/intern/QC_TreeMap.h \
 	include/qore/intern/QC_AbstractThreadResource.h \
+	include/qore/intern/QC_Abstractethod.h \
+	include/qore/intern/QC_NormalMethod.h \
+	include/qore/intern/QC_StaticMethod.h \
+	include/qore/intern/QC_ConstructorMethod.h \
 	include/qore/intern/QC_Class.h \
 	lib/getopt_long.h \
 	command-line.h

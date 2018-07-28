@@ -30,6 +30,11 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
+#include <qore/intern/QC_Class.h>
+#include <qore/intern/QC_AbstractMethod.h>
+#include <qore/intern/QC_NormalMethod.h>
+#include <qore/intern/QC_StaticMethod.h>
+#include <qore/intern/QC_ConstructorMethod.h>
 
 QoreReflectionClass::QoreReflectionClass(const char* name, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
     cls = qore_program_private::runtimeFindClass(*pgm, name, xsink);
@@ -55,7 +60,7 @@ qclass Class [arg=QoreReflectionClass* c; ns=Qore];
 Class cls("Thread::Mutex");
     @endcode
 
-    @path the class name or namespace-justified path as a string
+    @param path the class name or namespace-justified path as a string
 
     @throw CLASS-ERROR cannot find a class with the given name or path
  */
@@ -83,8 +88,8 @@ string name = cls.getName();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
  */
 string Class::getName() [flags=RET_VALUE_ONLY] {
-    // get exclusive access to program object
-    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
@@ -103,8 +108,8 @@ string name = cls.getPathName();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
  */
 string Class::getPathName() [flags=RET_VALUE_ONLY] {
-    // get exclusive access to program object
-    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
@@ -135,8 +140,8 @@ bool b = cls.isBuiltin();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 bool Class::isBuiltin() [flags=RET_VALUE_ONLY] {
-    // get exclusive access to program object
-    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
@@ -154,8 +159,8 @@ bool b = cls.isUser();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 bool Class::isUser() [flags=RET_VALUE_ONLY] {
-    // get exclusive access to program object
-    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
@@ -173,8 +178,8 @@ bool b = cls.isAbstract();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 bool Class::isAbstract() [flags=RET_VALUE_ONLY] {
-    // get exclusive access to program object
-    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
@@ -196,8 +201,8 @@ if (cls1.getId() == cls2.getId()) {
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 int Class::getId() [flags=RET_VALUE_ONLY] {
-    // get exclusive access to program object
-    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
@@ -217,8 +222,8 @@ binary b = cls.getHash();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 binary Class::getHash() [flags=RET_VALUE_ONLY] {
-    // get exclusive access to program object
-    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
@@ -243,8 +248,8 @@ bool b = cls.hasMemberGate();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 bool Class::hasMemberGate() [flags=RET_VALUE_ONLY] {
-    // get exclusive access to program object
-    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
@@ -264,8 +269,8 @@ bool b = cls.hasMethodGate();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 bool Class::hasMethodGate() [flags=RET_VALUE_ONLY] {
-    // get exclusive access to program object
-    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
@@ -285,8 +290,8 @@ bool b = cls.hasMemberNotification();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 bool Class::hasMemberNotification() [flags=RET_VALUE_ONLY] {
-    // get exclusive access to program object
-    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
@@ -304,8 +309,8 @@ int i = cls.getDomain();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 int Class::getDomain() [flags=RET_VALUE_ONLY] {
-    // get exclusive access to program object
-    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
@@ -336,7 +341,7 @@ object o = cls.newObject();
     - create_object_args()
 */
 object Class::newObject(...) {
-    // get exclusive runtime access to program object
+    // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
@@ -377,7 +382,7 @@ object o = cls.newObjectArgs(args);
     - create_object_args()
 */
 object Class::newObjectArgs(*softlist argv) {
-    // get exclusive runtime access to program object
+    // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
@@ -395,3 +400,139 @@ object Class::newObjectArgs(*softlist argv) {
 
     return c->cls->execConstructor(argv, xsink);
 }
+
+//! returns the given method or throws an exception if the method does not exist
+/** @par Example:
+    @code{.py}
+AbstractMethod m = cls.getMethod(name);
+    @endcode
+
+    Searches normal methods (including special methods) and then static methods for the given method name
+
+    @param name the name of the method
+
+    @return the given method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR unknown method
+
+    @see
+    - getNormalMethod()
+    - getStaticMethod()
+*/
+AbstractMethod Class::getMethod(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, nname->c_str(), xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    switch (m->mtype) {
+        case MT_Normal: return new QoreObject(QC_NORMALMETHOD, m->pgm, m.release());
+        case MT_Static: return new QoreObject(QC_STATICMETHOD, m->pgm, m.release());
+        case MT_Constructor: return new QoreObject(QC_CONSTRUCTORMETHOD, m->pgm, m.release());
+        default:
+            break;
+    }
+
+    xsink->raiseException("METHOD-ERROR", "unsupported type '%s'", m->getType());
+    return QoreValue();
+}
+
+//! returns the given normal (non-static) method or throws an exception if the method does not exist
+/** @par Example:
+    @code{.py}
+Method m = cls.getNormalMethod(name);
+    @endcode
+
+    @param name the name of the normal method
+
+    @return the given normal method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR unknown method or method is not normal
+
+    @see
+    - getMethod()
+    - getStaticMethod()
+*/
+NormalMethod Class::getNormalMethod(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, nname->c_str(), xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    if (m->mtype != MT_Normal) {
+        xsink->raiseException("METHOD-ERROR", "method '%s()' in class '%s' has type '%s'; expecting 'normal'", nname->c_str(), c->cls->getName(), m->getType());
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_NORMALMETHOD, m->pgm, m.release());
+}
+
+//! returns the given static method or throws an exception if the method does not exist
+/** @par Example:
+    @code{.py}
+Method m = cls.getStaticMethod(name);
+    @endcode
+
+    @param name the name of the static method
+
+    @return the given static method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR unknown method or method is not static
+
+    @see
+    - getMethod()
+    - getNormalMethod()
+*/
+StaticMethod Class::getStaticMethod(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, nname->c_str(), xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    if (m->mtype != MT_Static) {
+        xsink->raiseException("METHOD-ERROR", "method '%s()' in class '%s' has type '%s'; expecting 'static'", nname->c_str(), c->cls->getName(), m->getType());
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_STATICMETHOD, m->pgm, m.release());
+}
+
+/////! returns a list of all methods
+//list<Method> Class::getMethods() [flags=RET_VALUE_ONLY] {
+//}

@@ -63,6 +63,10 @@
 #include "qore/intern/QC_DatasourcePool.h"
 #include "qore/intern/QC_SQLStatement.h"
 
+#include "qore/intern/QC_AbstractMethod.h"
+#include "qore/intern/QC_NormalMethod.h"
+#include "qore/intern/QC_StaticMethod.h"
+#include "qore/intern/QC_ConstructorMethod.h"
 #include "qore/intern/QC_Class.h"
 
 // functions
@@ -958,6 +962,18 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initSingleValueIteratorClass(qns));
    qns.addSystemClass(initRangeIteratorClass(qns));
    qns.addSystemClass(initTreeMapClass(qns));
+
+   // reflection
+   preinitAbstractMethodClass();
+   preinitNormalMethodClass();
+   preinitStaticMethodClass();
+   preinitConstructorMethodClass();
+   preinitClassClass();
+
+   qns.addSystemClass(initAbstractMethodClass(qns));
+   qns.addSystemClass(initNormalMethodClass(qns));
+   qns.addSystemClass(initStaticMethodClass(qns));
+   qns.addSystemClass(initConstructorMethodClass(qns));
    qns.addSystemClass(initClassClass(qns));
 
 #ifdef DEBUG_TESTS

@@ -3231,6 +3231,14 @@ public:
     DLLLOCAL static QoreValue evalTmpArgs(const QoreMethod& m, ExceptionSink* xsink, QoreObject* self, QoreListNode* args, const qore_class_private* cctx = nullptr) {
         return m.priv->evalTmpArgs(xsink, self, args, cctx);
     }
+
+    DLLLOCAL static qore_method_private* get(QoreMethod& m) {
+        return m.priv;
+    }
+
+    DLLLOCAL static const qore_method_private* get(const QoreMethod& m) {
+        return m.priv;
+    }
 };
 
 #endif
