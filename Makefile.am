@@ -655,6 +655,7 @@ noinst_HEADERS = \
 	include/qore/intern/DataLineIterator.h \
 	include/qore/intern/EncodingConvertor.h \
 	include/qore/intern/QoreListNodeEvalOptionalRefHolder.h \
+    include/qore/intern/AbstractReflectionObject.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \

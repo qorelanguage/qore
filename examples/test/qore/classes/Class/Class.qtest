@@ -1,0 +1,47 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("Class", "1.0") {
+        addTestCase("simple tests", \simpleTests());
+        set_return_value(main());
+    }
+
+    simpleTests() {
+        Class c("Mutex");
+
+        assertTrue(c.isBuiltin());
+        assertFalse(c.isUser());
+        assertFalse(c.isAbstract());
+        assertEq("Mutex", c.getName());
+        assertEq("Qore::Thread::Mutex", c.getPathName());
+        assertGt(0, c.getId());
+        assertEq(20, c.getHash().size());
+        assertFalse(c.hasMemberGate());
+        assertFalse(c.hasMethodGate());
+        assertFalse(c.hasMemberNotification());
+
+        {
+            auto v = c.newObject();
+            assertTrue(v instanceof Mutex);
+            assertEq(v.getClass().getId(), c.getId());
+            assertEq(v.getClass().getHash(), c.getHash());
+        }
+
+        {
+            auto v = c.newObjectArgs();
+            assertTrue(v instanceof Mutex);
+            assertEq(v.getClass().getId(), c.getId());
+            assertEq(v.getClass().getHash(), c.getHash());
+        }
+    }
+}

@@ -240,6 +240,7 @@
 #include "QoreRangeOperatorNode.cpp"
 #include "QoreSquareBracketsRangeOperatorNode.cpp"
 #include "QoreValue.cpp"
+#include "AbstractReflectionObject.cpp"
 #include "FunctionalOperatorInterface.cpp"
 #include "FunctionalOperator.cpp"
 #include "StreamPipe.cpp"

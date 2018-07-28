@@ -1,0 +1,397 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_Class.qpp Class class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include <qore/Qore.h>
+#include <qore/intern/QoreClassIntern.h>
+
+QoreReflectionClass::QoreReflectionClass(const char* name, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
+    cls = qore_program_private::runtimeFindClass(*pgm, name, xsink);
+    if (!cls) {
+        if (!*xsink) {
+            xsink->raiseException("CLASS-ERROR", "cannot resolve class '%s'", name);
+        }
+        return;
+    }
+}
+
+QoreReflectionClass::QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls) : AbstractReflectionObject(pgm), cls(cls) {
+}
+
+//! This class provides information about %Qore classes
+/** @since %Qore 0.9.0
+ */
+qclass Class [arg=QoreReflectionClass* c; ns=Qore];
+
+//! Creates the object from the class name or namespace-justified path as a string
+/** @par Example:
+    @code{.py}
+Class cls("Thread::Mutex");
+    @endcode
+
+    @path the class name or namespace-justified path as a string
+
+    @throw CLASS-ERROR cannot find a class with the given name or path
+ */
+Class::constructor(string path) {
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(npath->c_str(), xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+    self->setPrivate(CID_CLASS, cls.release());
+}
+
+//! returns the class's name
+/** par Example:
+    @code{.py}
+string name = cls.getName();
+    @endcode
+
+    @return the class's name
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+ */
+string Class::getName() [flags=RET_VALUE_ONLY] {
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+    // the class ptr must be valid
+    return new QoreStringNode(c->cls->getName());
+}
+
+//! returns the class's full namespace-justified path name
+/** par Example:
+    @code{.py}
+string name = cls.getPathName();
+    @endcode
+
+    @return the class's full namespace-justified path name
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+ */
+string Class::getPathName() [flags=RET_VALUE_ONLY] {
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+
+    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
+    const qore_class_private* qc = qore_class_private::get(*c->cls);
+    if (qc->ns) {
+        std::string path;
+        qc->ns->getPath(path);
+        if (!path.empty()) {
+            rv->concat(path);
+            rv->concat("::");
+        }
+    }
+
+    rv->concat(c->cls->getName());
+    return rv.release();
+}
+
+//! returns @ref True if the class is a builtin class
+/** par Example:
+    @code{.py}
+bool b = cls.isBuiltin();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::isBuiltin() [flags=RET_VALUE_ONLY] {
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->isSystem();
+}
+
+//! returns @ref True if the class is a user class
+/** par Example:
+    @code{.py}
+bool b = cls.isUser();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::isUser() [flags=RET_VALUE_ONLY] {
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return !c->cls->isSystem();
+}
+
+//! returns @ref True if the class has at least one abstract method
+/** par Example:
+    @code{.py}
+bool b = cls.isAbstract();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::isAbstract() [flags=RET_VALUE_ONLY] {
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->hasAbstract();
+}
+
+//! returns the internal ID of the class which is only valid for the current execution session
+/** @par Example:
+    @code{.py}
+if (cls1.getId() == cls2.getId()) {
+    printf("classes are the same\n");
+}
+    @endcode
+
+    @return the internal ID of the class which is only valid for the current execution session
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+int Class::getId() [flags=RET_VALUE_ONLY] {
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return (int64)c->cls->getID();
+}
+
+//! returns a unique binary hash for the class
+/** @par Example:
+    @code{.py}
+binary b = cls.getHash();
+    @endcode
+
+    @return a unique binary hash for the class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+binary Class::getHash() [flags=RET_VALUE_ONLY] {
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    SimpleRefHolder<BinaryNode> b(new BinaryNode);
+    char* hash = qore_class_private::get(*c->cls)->getHash();
+    assert(hash);
+    b->append(hash, SH_SIZE);
+
+    return b.release();
+}
+
+//! returns @ref True if the class implements a "memberGate" method
+/** @par Example:
+    @code{.py}
+bool b = cls.hasMemberGate();
+    @endcode
+
+    @return @ref True if the class implements a "memberGate" method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::hasMemberGate() [flags=RET_VALUE_ONLY] {
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->hasMemberGate();
+}
+
+//! returns @ref True if the class implements a "methodGate" method
+/** @par Example:
+    @code{.py}
+bool b = cls.hasMethodGate();
+    @endcode
+
+    @return @ref True if the class implements a "methodGate" method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::hasMethodGate() [flags=RET_VALUE_ONLY] {
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->hasMethodGate();
+}
+
+//! returns @ref True if the class implements a "memberNotification" method
+/** @par Example:
+    @code{.py}
+bool b = cls.hasMemberNotification();
+    @endcode
+
+    @return @ref True if the class implements a "memberNotification" method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::hasMemberNotification() [flags=RET_VALUE_ONLY] {
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->hasMemberNotification();
+}
+
+//! returns the functional domain of the class
+/** @par Example:
+    @code{.py}
+int i = cls.getDomain();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+int Class::getDomain() [flags=RET_VALUE_ONLY] {
+    // get exclusive access to program object
+    ProgramRuntimeParseContextHelper pch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->getDomain64();
+}
+
+//! creates an object if the current class with the given arguments
+/** @par Example:
+    @code{.py}
+object o = cls.newObject();
+    @endcode
+
+    @param ... the arguments for the cosntructor, if any
+
+    @return an object if the current class based on the constructor arguments passed
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
+    @throw CONSTRUCTOR-IS-PRIVATE attempt to instantiate an object with a private constructor from outside the class
+
+    @note see the class documentation for the class to be instantiated for a list of additional exceptions that can be thrown
+
+    @see
+    - newObjectArgs()
+    - create_object()
+    - create_object_args()
+*/
+object Class::newObject(...) {
+    // get exclusive runtime access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    if (getProgram()->getParseOptions64() & c->cls->getDomain64()) {
+        xsink->raiseException("CREATE-OBJECT-ERROR", "Program sandboxing restrictions do not allow access to the '%s' class", c->cls->getName());
+        return QoreValue();
+    }
+
+    if (qore_class_private::runtimeCheckInstantiateClass(*c->cls, xsink)) {
+        return QoreValue();
+    }
+
+    return c->cls->execConstructor(args, xsink);
+}
+
+//! creates an object if the current class with the arguments for the constructor given as a list
+/** @par Example:
+    @code{.py}
+object o = cls.newObjectArgs(args);
+    @endcode
+
+    @param args the arguments for the constructor
+
+    @return an object if the current class based on the constructor arguments passed
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
+    @throw CONSTRUCTOR-IS-PRIVATE attempt to instantiate an object with a private constructor from outside the class
+
+    @note see the class documentation for the class to be instantiated for a list of additional exceptions that can be thrown
+
+    @see
+    - newObject()
+    - create_object()
+    - create_object_args()
+*/
+object Class::newObjectArgs(*softlist argv) {
+    // get exclusive runtime access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    if (getProgram()->getParseOptions64() & c->cls->getDomain64()) {
+        xsink->raiseException("CREATE-OBJECT-ERROR", "Program sandboxing restrictions do not allow access to the '%s' class", c->cls->getName());
+        return QoreValue();
+    }
+
+    if (qore_class_private::runtimeCheckInstantiateClass(*c->cls, xsink)) {
+        return QoreValue();
+    }
+
+    return c->cls->execConstructor(argv, xsink);
+}

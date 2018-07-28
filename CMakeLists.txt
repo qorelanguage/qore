@@ -503,6 +503,7 @@ set(LIBQORE_CPP_SRC
     lib/ReferenceArgumentHelper.cpp
     lib/ReferenceHelper.cpp
     lib/QoreTypeInfo.cpp
+    lib/AbstractReflectionObject.cpp
     lib/QoreDeleteOperatorNode.cpp
     lib/QoreRemoveOperatorNode.cpp
     lib/QoreSpliceOperatorNode.cpp

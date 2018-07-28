@@ -329,7 +329,9 @@ libqore_la_SOURCES = \
 	xxhash.cpp \
 	minitest.cpp \
 	FunctionalOperatorInterface.cpp \
-	FunctionalOperator.cpp
+	FunctionalOperator.cpp \
+    AbstractReflectionObject.cpp
+
 
 if COND_SIGNAL_HANDLING
 libqore_la_SOURCES += QoreSignal.cpp
