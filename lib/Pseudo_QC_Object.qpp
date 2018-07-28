@@ -33,6 +33,7 @@
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/QoreObjectIterator.h"
 #include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/QC_Class.h"
 
 extern QoreClass* QC_OBJECTITERATOR;
 extern QoreClass* QC_OBJECTKEYITERATOR;
@@ -164,6 +165,22 @@ string cn = o.className();
  */
 string <object>::className() [flags=CONSTANT] {
    return new QoreStringNode(obj->getClassName());
+}
+
+//! Returns the class for the object
+/**
+    @return the class for the object
+
+    @par Example:
+    @code{.py}
+Class cls = o.getClass();
+    @endcode
+
+    @since %Qore 0.9
+ */
+Class <object>::getClass() [flags=CONSTANT] {
+    QoreProgram* pgm = obj->getProgram();
+    return new QoreObject(QC_CLASS, pgm, new QoreReflectionClass(pgm, obj->getClass()));
 }
 
 //! Returns @ref True if the object is a system object (ie a constant object like @ref stdin, etc), @ref False if not

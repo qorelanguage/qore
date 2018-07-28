@@ -158,6 +158,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_TransformOutputStream.qpp
     lib/QC_StdoutOutputStream.qpp
     lib/QC_StderrOutputStream.qpp
+    lib/QC_Class.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp
     lib/ql_thread.qpp

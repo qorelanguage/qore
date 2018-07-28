@@ -350,6 +350,7 @@
 #include "QC_TransformOutputStream.cpp"
 #include "QC_StdoutOutputStream.cpp"
 #include "QC_StderrOutputStream.cpp"
+#include "QC_Class.cpp"
 
 #include "QorePseudoMethods.cpp"
 
