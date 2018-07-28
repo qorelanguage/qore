@@ -702,7 +702,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_TimeZone.h \
 	include/qore/intern/QC_TreeMap.h \
 	include/qore/intern/QC_AbstractThreadResource.h \
-	include/qore/intern/QC_Abstractethod.h \
+	include/qore/intern/QC_AbstractMethod.h \
 	include/qore/intern/QC_NormalMethod.h \
 	include/qore/intern/QC_StaticMethod.h \
 	include/qore/intern/QC_ConstructorMethod.h \
