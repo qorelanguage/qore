@@ -1,0 +1,24 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class CopyFileObjTest
+
+public class CopyFileObjTest inherits QUnit::Test {
+
+    constructor() : Test ("CopyFileObjTest", "1.0") {
+        addTestCase("path_exists test", \test_path_exists());
+        set_return_value(main());
+    }
+
+    test_path_exists() {
+        # TODO
+    }
+}
