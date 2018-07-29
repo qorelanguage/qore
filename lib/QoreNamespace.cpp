@@ -67,6 +67,8 @@
 #include "qore/intern/QC_NormalMethod.h"
 #include "qore/intern/QC_StaticMethod.h"
 #include "qore/intern/QC_ConstructorMethod.h"
+#include "qore/intern/QC_DestructorMethod.h"
+#include "qore/intern/QC_CopyMethod.h"
 #include "qore/intern/QC_Class.h"
 
 // functions
@@ -968,12 +970,16 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    preinitNormalMethodClass();
    preinitStaticMethodClass();
    preinitConstructorMethodClass();
+   preinitDestructorMethodClass();
+   preinitCopyMethodClass();
    preinitClassClass();
 
    qns.addSystemClass(initAbstractMethodClass(qns));
    qns.addSystemClass(initNormalMethodClass(qns));
    qns.addSystemClass(initStaticMethodClass(qns));
    qns.addSystemClass(initConstructorMethodClass(qns));
+   qns.addSystemClass(initDestructorMethodClass(qns));
+   qns.addSystemClass(initCopyMethodClass(qns));
    qns.addSystemClass(initClassClass(qns));
 
 #ifdef DEBUG_TESTS

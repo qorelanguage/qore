@@ -79,5 +79,40 @@ class Test inherits QUnit::Test {
             object o = con.call();
             assertTrue(o instanceof Mutex);
         }
+
+        DestructorMethod des = c.getMethod("destructor");
+        assertEq("destructor", des.getMethodTypeName());
+        assertTrue(des.isBuiltin());
+        assertFalse(des.isUser());
+        assertEq("destructor", des.getName());
+        {
+            object o = con.call();
+            assertTrue(o instanceof Mutex);
+            assertEq("Mutex", o.className());
+            des.call(o);
+            assertThrows("OBJECT-ALREADY-DELETED", \o.lock());
+        }
+
+        {
+            Class c1 = Class::forName("Mutex");
+            assertEq("Mutex", c1.getName());
+            assertEq(c1.getId(), c.getId());
+            assertEq(c1.getHash(), c.getHash());
+        }
+
+        CopyMethod copy = c.getMethod("copy");
+        assertEq("copy", copy.getMethodTypeName());
+        assertTrue(copy.isBuiltin());
+        assertFalse(copy.isUser());
+        assertEq("copy", copy.getName());
+        {
+            object o = con.call();
+            assertTrue(o instanceof Mutex);
+            assertEq("Mutex", o.className());
+            Mutex o2 = copy.call(o);
+            assertTrue(o2 instanceof Mutex);
+            assertEq("Mutex", o2.className());
+            assertThrows("METHOD-ERROR", \copy.call(), new Condition());
+        }
     }
 }

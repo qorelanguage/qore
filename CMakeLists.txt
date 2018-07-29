@@ -162,6 +162,8 @@ set(LIBQORE_QPP_SRC
     lib/QC_NormalMethod.qpp
     lib/QC_StaticMethod.qpp
     lib/QC_ConstructorMethod.qpp
+    lib/QC_DestructorMethod.qpp
+    lib/QC_CopyMethod.qpp
     lib/QC_Class.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp

@@ -35,6 +35,8 @@
 #include <qore/intern/QC_NormalMethod.h>
 #include <qore/intern/QC_StaticMethod.h>
 #include <qore/intern/QC_ConstructorMethod.h>
+#include <qore/intern/QC_DestructorMethod.h>
+#include <qore/intern/QC_CopyMethod.h>
 
 QoreReflectionClass::QoreReflectionClass(const char* name, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
     cls = qore_program_private::runtimeFindClass(*pgm, name, xsink);
@@ -419,6 +421,9 @@ AbstractMethod m = cls.getMethod(name);
     @see
     - getNormalMethod()
     - getStaticMethod()
+    - getConstructorMethod()
+    - getDestructorMethod()
+    - getCopyMethd()
 */
 AbstractMethod Class::getMethod(string name) [flags=RET_VALUE_ONLY] {
     TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
@@ -441,23 +446,25 @@ AbstractMethod Class::getMethod(string name) [flags=RET_VALUE_ONLY] {
         case MT_Normal: return new QoreObject(QC_NORMALMETHOD, m->pgm, m.release());
         case MT_Static: return new QoreObject(QC_STATICMETHOD, m->pgm, m.release());
         case MT_Constructor: return new QoreObject(QC_CONSTRUCTORMETHOD, m->pgm, m.release());
+        case MT_Destructor: return new QoreObject(QC_DESTRUCTORMETHOD, m->pgm, m.release());
+        case MT_Copy: return new QoreObject(QC_COPYMETHOD, m->pgm, m.release());
         default:
             break;
     }
 
-    xsink->raiseException("METHOD-ERROR", "unsupported type '%s'", m->getType());
+    assert(false);
     return QoreValue();
 }
 
-//! returns the given normal (non-static) method or throws an exception if the method does not exist
+//! returns the given normal (non-special, non-static) method or throws an exception if the method does not exist
 /** @par Example:
     @code{.py}
-Method m = cls.getNormalMethod(name);
+NormalMethod m = cls.getNormalMethod(name);
     @endcode
 
-    @param name the name of the normal method
+    @param name the name of the normal (non-special, non-static) method
 
-    @return the given normal method
+    @return the given normal (non-special, non-static) method
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw METHOD-ERROR unknown method or method is not normal
@@ -465,6 +472,9 @@ Method m = cls.getNormalMethod(name);
     @see
     - getMethod()
     - getStaticMethod()
+    - getConstructorMethod()
+    - getDestructorMethod()
+    - getCopyMethd()
 */
 NormalMethod Class::getNormalMethod(string name) [flags=RET_VALUE_ONLY] {
     TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
@@ -494,7 +504,7 @@ NormalMethod Class::getNormalMethod(string name) [flags=RET_VALUE_ONLY] {
 //! returns the given static method or throws an exception if the method does not exist
 /** @par Example:
     @code{.py}
-Method m = cls.getStaticMethod(name);
+StaticMethod m = cls.getStaticMethod(name);
     @endcode
 
     @param name the name of the static method
@@ -507,6 +517,9 @@ Method m = cls.getStaticMethod(name);
     @see
     - getMethod()
     - getNormalMethod()
+    - getConstructorMethod()
+    - getDestructorMethod()
+    - getCopyMethd()
 */
 StaticMethod Class::getStaticMethod(string name) [flags=RET_VALUE_ONLY] {
     TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
@@ -533,6 +546,137 @@ StaticMethod Class::getStaticMethod(string name) [flags=RET_VALUE_ONLY] {
     return new QoreObject(QC_STATICMETHOD, m->pgm, m.release());
 }
 
+//! returns the given constructor method or throws an exception if the class does not implement a constructor method
+/** @par Example:
+    @code{.py}
+ConstructorMethod m = cls.getConstructorMethod();
+    @endcode
+
+    @return the given constructor method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR the class does not implement a constructor method
+
+    @see
+    - getMethod()
+    - getNormalMethod()
+    - getStaticMethod()
+    - getDestructorMethod()
+    - getCopyMethd()
+*/
+ConstructorMethod Class::getConstructorMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, "constructor", xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    assert(m->mtype == MT_Constructor);
+
+    return new QoreObject(QC_CONSTRUCTORMETHOD, m->pgm, m.release());
+}
+
+//! returns the given destructor method or throws an exception if the class does not implement a destructor method
+/** @par Example:
+    @code{.py}
+DestructorMethod m = cls.getDestructorMethod();
+    @endcode
+
+    @return the given destructor method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR the class does not implement a destructor method
+
+    @see
+    - getMethod()
+    - getNormalMethod()
+    - getStaticMethod()
+    - getConstructorMethod()
+    - getCopyMethd()
+*/
+DestructorMethod Class::getDestructorMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, "destructor", xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    assert(m->mtype == MT_Destructor);
+
+    return new QoreObject(QC_DESTRUCTORMETHOD, m->pgm, m.release());
+}
+
+//! returns the given copy method or throws an exception if the class does not implement a copy method
+/** @par Example:
+    @code{.py}
+CopyMethod m = cls.getCopyMethod();
+    @endcode
+
+    @return the given copy method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR the class does not implement a copy method
+
+    @see
+    - getMethod()
+    - getNormalMethod()
+    - getStaticMethod()
+    - getConstructorMethod()
+    - getDestructorMethod()
+*/
+CopyMethod Class::getCopyMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, "copy", xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    assert(m->mtype == MT_Copy);
+
+    return new QoreObject(QC_COPYMETHOD, m->pgm, m.release());
+}
+
 /////! returns a list of all methods
 //list<Method> Class::getMethods() [flags=RET_VALUE_ONLY] {
 //}
+
+//! Creates the object from the class name or namespace-justified path as a string
+/** @par Example:
+    @code{.py}
+Class cls = Class::forName("Thread::Mutex");
+    @endcode
+
+    @param path the class name or namespace-justified path as a string
+
+    @return a class object corresponding to the name or namespace-justified path provided as an argument
+
+    @throw CLASS-ERROR cannot find a class with the given name or path
+ */
+static Class Class::forName(string path) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(npath->c_str(), xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_CLASS, getProgram(), cls.release());
+}

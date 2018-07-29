@@ -355,6 +355,8 @@
 #include "QC_NormalMethod.cpp"
 #include "QC_StaticMethod.cpp"
 #include "QC_ConstructorMethod.cpp"
+#include "QC_DestructorMethod.cpp"
+#include "QC_CopyMethod.cpp"
 #include "QC_Class.cpp"
 
 #include "QorePseudoMethods.cpp"

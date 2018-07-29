@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_NormalMethod.h NormalMethod class definition */
+/** @file QC_CopyMethod.h CopyMethod class definition */
 /*
     Qore Programming Language
 
@@ -28,17 +28,17 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_NORMALMETHOD_H
+#ifndef _QORE_INTERN_QC_COPYMETHOD_H
 
-#define _QORE_INTERN_QC_NORMALMETHOD_H
+#define _QORE_INTERN_QC_COPYMETHOD_H
 
 #include "qore/intern/AbstractReflectionObject.h"
 #include "qore/intern/QC_AbstractMethod.h"
 
-DLLEXPORT extern qore_classid_t CID_NORMALMETHOD;
-DLLLOCAL extern QoreClass* QC_NORMALMETHOD;
+DLLEXPORT extern qore_classid_t CID_COPYMETHOD;
+DLLLOCAL extern QoreClass* QC_COPYMETHOD;
 
-DLLLOCAL void preinitNormalMethodClass();
-DLLLOCAL QoreClass* initNormalMethodClass(QoreNamespace& ns);
+DLLLOCAL void preinitCopyMethodClass();
+DLLLOCAL QoreClass* initCopyMethodClass(QoreNamespace& ns);
 
 #endif
