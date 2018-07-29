@@ -41,4 +41,7 @@ public:
     DLLLOCAL ~AbstractReflectionObject();
 };
 
+DLLLOCAL int get_access(ClassAccess access);
+DLLLOCAL const char* get_access_string(ClassAccess access);
+
 #endif

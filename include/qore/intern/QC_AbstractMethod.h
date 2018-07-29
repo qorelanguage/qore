@@ -69,6 +69,9 @@ public:
 protected:
     //! also sets the method type if set successfully
     DLLLOCAL void setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink);
+
+    //! set the method type
+    DLLLOCAL void setType();
 };
 
 DLLEXPORT extern qore_classid_t CID_ABSTRACTMETHOD;

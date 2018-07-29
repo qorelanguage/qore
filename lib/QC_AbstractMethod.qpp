@@ -57,6 +57,7 @@ QoreReflectionMethod::QoreReflectionMethod(const char* cls_path, const char* nam
 }
 
 QoreReflectionMethod::QoreReflectionMethod(QoreProgram* pgm, const QoreMethod* m) : AbstractReflectionObject(pgm), m(m) {
+    setType();
 }
 
 void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink) {
@@ -68,24 +69,28 @@ void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, Exc
         xsink->raiseException("METHOD-ERROR", "cannot resolve method '%s' in class '%s'", name, cls->getName());
     }
     else {
-        // set type
-        if (m->isStatic()) {
-            mtype = MT_Static;
+        setType();
+    }
+}
+
+void QoreReflectionMethod::setType() {
+    // set type
+    if (m->isStatic()) {
+        mtype = MT_Static;
+    }
+    else {
+        const qore_method_private* pm = qore_method_private::get(*m);
+        if (dynamic_cast<const ConstructorMethodFunction*>(pm->func)) {
+            mtype = MT_Constructor;
+        }
+        else if (dynamic_cast<const DestructorMethodFunction*>(pm->func)) {
+            mtype = MT_Destructor;
+        }
+        else if (dynamic_cast<const CopyMethodFunction*>(pm->func)) {
+            mtype = MT_Copy;
         }
         else {
-            const qore_method_private* pm = qore_method_private::get(*m);
-            if (dynamic_cast<const ConstructorMethodFunction*>(pm->func)) {
-                mtype = MT_Constructor;
-            }
-            else if (dynamic_cast<const DestructorMethodFunction*>(pm->func)) {
-                mtype = MT_Destructor;
-            }
-            else if (dynamic_cast<const CopyMethodFunction*>(pm->func)) {
-                mtype = MT_Copy;
-            }
-            else {
-                mtype = MT_Normal;
-            }
+            mtype = MT_Normal;
         }
     }
 }

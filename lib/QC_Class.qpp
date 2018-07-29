@@ -51,6 +51,50 @@ QoreReflectionClass::QoreReflectionClass(const char* name, ExceptionSink* xsink)
 QoreReflectionClass::QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls) : AbstractReflectionObject(pgm), cls(cls) {
 }
 
+QoreObject* get_method(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink) {
+    switch (m->mtype) {
+        case MT_Normal: return new QoreObject(QC_NORMALMETHOD, m->pgm, m.release());
+        case MT_Static: return new QoreObject(QC_STATICMETHOD, m->pgm, m.release());
+        case MT_Constructor: return new QoreObject(QC_CONSTRUCTORMETHOD, m->pgm, m.release());
+        case MT_Destructor: return new QoreObject(QC_DESTRUCTORMETHOD, m->pgm, m.release());
+        case MT_Copy: return new QoreObject(QC_COPYMETHOD, m->pgm, m.release());
+        default:
+            break;
+    }
+
+    assert(false);
+    return nullptr;
+}
+
+/** @defgroup access_constants Access Constants
+    Access constants giving access information
+*/
+//@{
+//! describes public access
+const AC_Public = 0;
+
+//! describes private access; accessible from anywhere in a class hierarchy (similar to \c protected in C++ and Java)
+const AC_Private = 1;
+
+//! describes internal private access; only accessible from the same class where the definition is made (similar to \c private in C++ and Java)
+const AC_PrivateInternal = 2;
+//@}
+
+//! class and inheritance access information
+/**
+    @since %Qore 0.9.0
+*/
+hashdecl ClassAccessInfo {
+    //! the inherited class
+    Class cls;
+
+    //! access code; see @ref access_constants for valid values
+    int access;
+
+    //! access string; one of \c "public", \c "private", or \c "private:internal"
+    string access_string;
+}
+
 //! This class provides information about %Qore classes
 /** @since %Qore 0.9.0
  */
@@ -442,18 +486,7 @@ AbstractMethod Class::getMethod(string name) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    switch (m->mtype) {
-        case MT_Normal: return new QoreObject(QC_NORMALMETHOD, m->pgm, m.release());
-        case MT_Static: return new QoreObject(QC_STATICMETHOD, m->pgm, m.release());
-        case MT_Constructor: return new QoreObject(QC_CONSTRUCTORMETHOD, m->pgm, m.release());
-        case MT_Destructor: return new QoreObject(QC_DESTRUCTORMETHOD, m->pgm, m.release());
-        case MT_Copy: return new QoreObject(QC_COPYMETHOD, m->pgm, m.release());
-        default:
-            break;
-    }
-
-    assert(false);
-    return QoreValue();
+    return get_method(m, xsink);
 }
 
 //! returns the given normal (non-special, non-static) method or throws an exception if the method does not exist
@@ -651,11 +684,75 @@ CopyMethod Class::getCopyMethod() [flags=RET_VALUE_ONLY] {
     return new QoreObject(QC_COPYMETHOD, m->pgm, m.release());
 }
 
-/////! returns a list of all methods
-//list<Method> Class::getMethods() [flags=RET_VALUE_ONLY] {
-//}
+//! returns a list of all class methods including special and static methods
+/** @par Example:
+    @code{.py}
+list<AbstractMethod> l = cls.getMethods();
+    @endcode
 
-//! Creates the object from the class name or namespace-justified path as a string
+    @return a list of all class methods including special and static methods
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<AbstractMethod> Class::getMethods() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTMETHOD->getTypeInfo()), xsink);
+
+    QoreMethodIterator i(c->cls);
+    while (i.next()) {
+        ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->pgm, i.getMethod()), xsink);
+        l->push(get_method(m, xsink), xsink);
+        if (*xsink) {
+            return QoreValue();
+        }
+    }
+
+    return l.release();
+}
+
+//! Returns a list of immediate parent classes and access information; if the %Class has no parent classes, then an empty list is returned
+/** @par Example:
+    @code{.py}
+list<hash<ClassAccessInfo>> l = cls.getParentClasses();
+    @endcode
+
+    @return a list of immediate parent classes and access information; if the %Class has no parent classes, then an empty list is returned
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<hash<ClassAccessInfo>> Class::getParentClasses() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(hashdeclClassAccessInfo->getTypeInfo()), xsink);
+
+    const qore_class_private* qc = qore_class_private::get(*c->cls);
+
+    if (qc->scl) {
+        for (auto& i : *qc->scl) {
+            ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclClassAccessInfo, nullptr), xsink);
+            ReferenceHolder<QoreReflectionClass> pc(new QoreReflectionClass(c->pgm, i->sclass), xsink);
+
+            h->setKeyValue("cls", new QoreObject(QC_CLASS, c->pgm, pc.release()), xsink);
+            h->setKeyValue("access", get_access(i->access), xsink);
+            h->setKeyValue("access_string", new QoreStringNode(get_access_string(i->access)), xsink);
+
+            l->push(h.release(), xsink);
+        }
+    }
+
+    return l.release();
+}
+
+//! Returns a %Class object from the class name or namespace-justified path as a string
 /** @par Example:
     @code{.py}
 Class cls = Class::forName("Thread::Mutex");

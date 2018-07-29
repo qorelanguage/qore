@@ -48,5 +48,6 @@ DLLLOCAL extern QoreClass* QC_CLASS;
 
 DLLLOCAL void preinitClassClass();
 DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_ClassAccessInfo(QoreNamespace& ns);
 
 #endif

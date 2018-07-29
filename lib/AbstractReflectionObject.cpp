@@ -31,6 +31,28 @@
 #include <qore/Qore.h>
 #include "qore/intern/AbstractReflectionObject.h"
 
+int get_access(ClassAccess access) {
+    switch (access) {
+        case Public: return 0;
+        case Private: return 1;
+        case Internal: return 2;
+        default: break;
+    }
+    assert(false);
+    return 0;
+}
+
+const char* get_access_string(ClassAccess access) {
+    switch (access) {
+        case Public: return "public";
+        case Private: return "private";
+        case Internal: return "private:internal";
+        default: break;
+    }
+    assert(false);
+    return nullptr;
+}
+
 AbstractReflectionObject::AbstractReflectionObject(QoreProgram* pgm) : pgm(pgm) {
     pgm->depRef();
 }

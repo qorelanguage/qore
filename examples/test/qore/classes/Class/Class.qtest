@@ -114,5 +114,44 @@ class Test inherits QUnit::Test {
             assertEq("Mutex", o2.className());
             assertThrows("METHOD-ERROR", \copy.call(), new Condition());
         }
+
+        {
+            list<AbstractMethod> l = c.getMethods();
+            assertEq(6, l.size());
+        }
+
+        {
+            list<hash<ClassAccessInfo>> l = c.getParentClasses();
+            assertEq(1, l.size());
+            hash<ClassAccessInfo> h = l[0];
+            assertEq("AbstractSmartLock", h.cls.getName());
+            assertEq(AC_Public, h.access);
+            assertEq("public", h.access_string);
+        }
+
+        {
+            Class c1 = Class::forName("HashIterator");
+            list<hash<ClassAccessInfo>> l = c1.getParentClasses();
+            assertEq(1, l.size());
+            hash<ClassAccessInfo> h = l[0];
+            assertEq("AbstractQuantifiedBidirectionalIterator", h.cls.getName());
+            assertEq(AC_Public, h.access);
+            assertEq("public", h.access_string);
+        }
+
+        {
+            Class c1 = Class::forName("AbstractQuantifiedBidirectionalIterator");
+            list<hash<ClassAccessInfo>> l = c1.getParentClasses();
+            #map printf("%y (%s)\n", $1.cls.getName(), $1.access_name), l;
+            assertEq(2, l.size());
+            hash<ClassAccessInfo> h = l[0];
+            assertEq("AbstractBidirectionalIterator", h.cls.getName());
+            assertEq(AC_Public, h.access);
+            assertEq("public", h.access_string);
+            h = l[1];
+            assertEq("AbstractQuantifiedIterator", h.cls.getName());
+            assertEq(AC_Public, h.access);
+            assertEq("public", h.access_string);
+        }
     }
 }

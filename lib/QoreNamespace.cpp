@@ -185,7 +185,8 @@ const TypedHashDecl* hashdeclStatInfo,
       * hashdeclCallStackInfo,
       * hashdeclExceptionInfo,
       * hashdeclStatementInfo,
-      * hashdeclNetIfInfo;
+      * hashdeclNetIfInfo,
+      * hashdeclClassAccessInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -876,7 +877,16 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    rpriv->qoreNS = new QoreNamespace("Qore");
    QoreNamespace& qns = *rpriv->qoreNS;
 
-   // first add hashdecls
+   // pre-initialize reflection classes
+   preinitAbstractMethodClass();
+   preinitNormalMethodClass();
+   preinitStaticMethodClass();
+   preinitConstructorMethodClass();
+   preinitDestructorMethodClass();
+   preinitCopyMethodClass();
+   preinitClassClass();
+
+   // now add hashdecls
    hashdeclStatInfo = init_hashdecl_StatInfo(qns);
    hashdeclDirStatInfo = init_hashdecl_DirStatInfo(qns);
    hashdeclFilesystemInfo = init_hashdecl_FilesystemInfo(qns);
@@ -887,6 +897,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    hashdeclExceptionInfo = init_hashdecl_ExceptionInfo(qns);
    hashdeclStatementInfo = init_hashdecl_StatementInfo(qns);
    hashdeclNetIfInfo = init_hashdecl_NetIfInfo(qns);
+   hashdeclClassAccessInfo = init_hashdecl_ClassAccessInfo(qns);
 
    qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
@@ -966,14 +977,6 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initTreeMapClass(qns));
 
    // reflection
-   preinitAbstractMethodClass();
-   preinitNormalMethodClass();
-   preinitStaticMethodClass();
-   preinitConstructorMethodClass();
-   preinitDestructorMethodClass();
-   preinitCopyMethodClass();
-   preinitClassClass();
-
    qns.addSystemClass(initAbstractMethodClass(qns));
    qns.addSystemClass(initNormalMethodClass(qns));
    qns.addSystemClass(initStaticMethodClass(qns));
