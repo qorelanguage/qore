@@ -37,6 +37,7 @@
 #include <qore/intern/QC_ConstructorMethod.h>
 #include <qore/intern/QC_DestructorMethod.h>
 #include <qore/intern/QC_CopyMethod.h>
+#include "qore/intern/qore_program_private.h"
 
 QoreReflectionClass::QoreReflectionClass(const char* name, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
     cls = qore_program_private::runtimeFindClass(*pgm, name, xsink);
