@@ -31,6 +31,7 @@
 #include "qore/Qore.h"
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/QC_AbstractMethod.h"
+#include "qore/intern/qore_program_private.h"
 
 int check_call(QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
     if (!obj->validInstanceOf(*m.getClass())) {
