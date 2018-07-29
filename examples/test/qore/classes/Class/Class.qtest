@@ -152,6 +152,8 @@ class Test inherits QUnit::Test {
             assertEq("AbstractQuantifiedIterator", h.cls.getName());
             assertEq(AC_Public, h.access);
             assertEq("public", h.access_string);
+
+            assertThrows("ABSTRACT-CLASS-ERROR", \c1.newObject());
         }
     }
 }

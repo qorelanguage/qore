@@ -378,6 +378,7 @@ object o = cls.newObject();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
     @throw CONSTRUCTOR-IS-PRIVATE attempt to instantiate an object with a private constructor from outside the class
+    @throw ABSTRACT-CLASS-ERROR thrown if the class has abstract methods
 
     @note see the class documentation for the class to be instantiated for a list of additional exceptions that can be thrown
 
@@ -419,6 +420,7 @@ object o = cls.newObjectArgs(args);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
     @throw CONSTRUCTOR-IS-PRIVATE attempt to instantiate an object with a private constructor from outside the class
+    @throw ABSTRACT-CLASS-ERROR thrown if the class has abstract methods
 
     @note see the class documentation for the class to be instantiated for a list of additional exceptions that can be thrown
 
