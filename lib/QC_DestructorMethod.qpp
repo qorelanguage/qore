@@ -31,6 +31,7 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreClassIntern.h>
 #include "qore/intern/QC_DestructorMethod.h"
+#include "qore/intern/QC_Class.h"
 
 //! This class provides information about %Qore destructor methods
 /** @since %Qore 0.9.0
