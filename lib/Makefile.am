@@ -77,10 +77,10 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_StreamWriter.cpp QC_StreamReader.cpp QC_BufferedStreamReader.cpp \
 	QC_Transform.cpp QC_TransformInputStream.cpp QC_TransformOutputStream.cpp \
 	QC_StdoutOutputStream.cpp QC_StderrOutputStream.cpp \
-	QC_AbstractMethod.qpp \
-	QC_NormalMethod.qpp \
-	QC_StaticMethod.qpp \
-	QC_ConstructorMethod.qpp \
+	QC_AbstractMethod.cpp \
+	QC_NormalMethod.cpp \
+	QC_StaticMethod.cpp \
+	QC_ConstructorMethod.cpp \
 	QC_Class.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_pwd.cpp ql_object.cpp \
