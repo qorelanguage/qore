@@ -155,5 +155,10 @@ class Test inherits QUnit::Test {
 
             assertThrows("ABSTRACT-CLASS-ERROR", \c1.newObject());
         }
+
+        AbstractVariant v = m.getVariants()[0];
+        assertEq("", v.getParameterString());
+        assertEq("nothing", v.getReturnTypeString());
+        #printf("%y\n", v.getSignatureString());
     }
 }

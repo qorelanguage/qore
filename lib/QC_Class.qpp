@@ -126,7 +126,7 @@ Class::constructor(string path) {
 }
 
 //! returns the class's name
-/** par Example:
+/** @par Example:
     @code{.py}
 string name = cls.getName();
     @endcode
@@ -146,7 +146,7 @@ string Class::getName() [flags=RET_VALUE_ONLY] {
 }
 
 //! returns the class's full namespace-justified path name
-/** par Example:
+/** @par Example:
     @code{.py}
 string name = cls.getPathName();
     @endcode
@@ -180,7 +180,7 @@ string Class::getPathName() [flags=RET_VALUE_ONLY] {
 }
 
 //! returns @ref True if the class is a builtin class
-/** par Example:
+/** @par Example:
     @code{.py}
 bool b = cls.isBuiltin();
     @endcode
@@ -199,7 +199,7 @@ bool Class::isBuiltin() [flags=RET_VALUE_ONLY] {
 }
 
 //! returns @ref True if the class is a user class
-/** par Example:
+/** @par Example:
     @code{.py}
 bool b = cls.isUser();
     @endcode
@@ -218,7 +218,7 @@ bool Class::isUser() [flags=RET_VALUE_ONLY] {
 }
 
 //! returns @ref True if the class has at least one abstract method
-/** par Example:
+/** @par Example:
     @code{.py}
 bool b = cls.isAbstract();
     @endcode
@@ -365,6 +365,69 @@ int Class::getDomain() [flags=RET_VALUE_ONLY] {
 
     // the class ptr must be valid
     return c->cls->getDomain64();
+}
+
+//! returns @ref True if the class has at least one constructor method variant
+/** @par Example:
+    @code{.py}
+bool b = cls.hasConstructorMethod();
+    @endcode
+
+    @return @ref True if the class has at least one constructor method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::hasConstructorMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return (bool)c->cls->getConstructor();
+}
+
+//! returns @ref True if the class has a destructor method
+/** @par Example:
+    @code{.py}
+bool b = cls.hasDestructorMethod();
+    @endcode
+
+    @return @ref True if the class has a destructor method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::hasDestructorMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return (bool)c->cls->getDestructor();
+}
+
+//! returns @ref True if the class has a copy method
+/** @par Example:
+    @code{.py}
+bool b = cls.hasCopyMethod();
+    @endcode
+
+    @return @ref True if the class has a copy method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::hasCopyMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return (bool)c->cls->getCopyMethod();
 }
 
 //! creates an object if the current class with the given arguments

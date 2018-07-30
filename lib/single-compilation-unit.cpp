@@ -351,6 +351,7 @@
 #include "QC_TransformOutputStream.cpp"
 #include "QC_StdoutOutputStream.cpp"
 #include "QC_StderrOutputStream.cpp"
+#include "QC_AbstractVariant.cpp"
 #include "QC_AbstractMethod.cpp"
 #include "QC_NormalMethod.cpp"
 #include "QC_StaticMethod.cpp"

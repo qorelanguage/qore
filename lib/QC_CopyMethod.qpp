@@ -96,7 +96,7 @@ CopyMethod::constructor(string class_name, string method) {
 }
 
 //! calls the copy method on given object and returns the new object
-/** par Example:
+/** @par Example:
     @code{.py}
 object obj2 = m.call(obj1);
     @endcode

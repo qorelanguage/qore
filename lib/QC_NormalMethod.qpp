@@ -114,7 +114,7 @@ NormalMethod::constructor(string class_name, string method) {
 }
 
 //! calls the given method with the given object; the object must be a member of a compatible class
-/** par Example:
+/** @par Example:
     @code{.py}
 auto v = m.call(obj, arg1, arg2);
     @endcode
@@ -155,7 +155,7 @@ auto NormalMethod::call(object obj, ...) {
 }
 
 //! calls the given method with the given object; the object must be a member of a compatible class
-/** par Example:
+/** @par Example:
     @code{.py}
 auto v = m.callArgs(obj, (arg1, arg2));
     @endcode

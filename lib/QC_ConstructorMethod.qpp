@@ -96,7 +96,7 @@ ConstructorMethod::constructor(string class_name) {
 }
 
 //! calls the constructor with the given arguments
-/** par Example:
+/** @par Example:
     @code{.py}
 auto v = m.call(arg1, arg2);
     @endcode
@@ -121,7 +121,7 @@ auto ConstructorMethod::call(...) {
 }
 
 //! calls the construcrtor with the given arguments as a list
-/** par Example:
+/** @par Example:
     @code{.py}
 auto v = m.callArgs(argv);
     @endcode

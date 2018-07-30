@@ -114,7 +114,7 @@ StaticMethod::constructor(string class_name, string method) {
 }
 
 //! calls the given method with the given arguments
-/** par Example:
+/** @par Example:
     @code{.py}
 auto v = m.call(arg1, arg2);
     @endcode
@@ -139,7 +139,7 @@ auto StaticMethod::call(...) {
 }
 
 //! calls the given method with the given arguments as a list
-/** par Example:
+/** @par Example:
     @code{.py}
 auto v = m.callArgs(argv);
     @endcode

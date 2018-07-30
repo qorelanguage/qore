@@ -463,6 +463,10 @@ public:
         return const_cast<UserSignature*>(&signature);
     }
 
+    DLLLOCAL bool isSynchronized() const {
+        return (bool)gate;
+    }
+
     DLLLOCAL void setInit() {
         init = true;
     }
@@ -589,6 +593,7 @@ struct IList : public ilist_t {
 };
 
 class QoreFunction : protected QoreReferenceCounter {
+friend class QoreFunctionIterator;
 protected:
     std::string name;
 
@@ -819,6 +824,10 @@ public:
         return *(vlist.begin());
     }
 
+    DLLLOCAL unsigned numVariants() const {
+        return vlist.size();
+    }
+
     DLLLOCAL QoreListNode* runtimeGetCallVariants() const;
 
     // returns 0 for OK, -1 for error
@@ -985,6 +994,32 @@ public:
     DLLLOCAL const std::string& getNameStr() const {
         return name;
     }
+};
+
+class QoreFunctionIterator {
+public:
+    DLLLOCAL QoreFunctionIterator(const QoreFunction& f) : f(f) {
+        i = f.vlist.end();
+    }
+
+    DLLLOCAL bool next() {
+        if (i == f.vlist.end()) {
+            i = f.vlist.begin();
+        }
+        else {
+            ++i;
+        }
+
+        return i != f.vlist.end();
+    }
+
+    DLLLOCAL const AbstractQoreFunctionVariant* getVariant() const {
+        return *i;
+    }
+
+private:
+    const QoreFunction& f;
+    VList::const_iterator i;
 };
 
 class MethodVariantBase;

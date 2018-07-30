@@ -63,6 +63,7 @@
 #include "qore/intern/QC_DatasourcePool.h"
 #include "qore/intern/QC_SQLStatement.h"
 
+#include "qore/intern/QC_AbstractVariant.h"
 #include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/QC_NormalMethod.h"
 #include "qore/intern/QC_StaticMethod.h"
@@ -878,6 +879,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    QoreNamespace& qns = *rpriv->qoreNS;
 
    // pre-initialize reflection classes
+   preinitAbstractVariantClass();
    preinitAbstractMethodClass();
    preinitNormalMethodClass();
    preinitStaticMethodClass();
@@ -977,6 +979,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initTreeMapClass(qns));
 
    // reflection
+   qns.addSystemClass(initAbstractVariantClass(qns));
    qns.addSystemClass(initAbstractMethodClass(qns));
    qns.addSystemClass(initNormalMethodClass(qns));
    qns.addSystemClass(initStaticMethodClass(qns));

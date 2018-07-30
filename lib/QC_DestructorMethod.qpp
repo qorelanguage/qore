@@ -96,7 +96,7 @@ DestructorMethod::constructor(string class_name, string method) {
 }
 
 //! calls the destructor on given object; destroys the object
-/** par Example:
+/** @par Example:
     @code{.py}
 m.call(obj);
     @endcode

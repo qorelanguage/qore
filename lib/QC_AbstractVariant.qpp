@@ -1,0 +1,297 @@
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore/Qore.h"
+#include "qore/intern/QC_AbstractVariant.h"
+#include "qore/intern/Function.h"
+
+//! The abstract base class for %Qore class variants
+/**
+    This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
+
+    @since %Qore 0.9.0
+ */
+qclass AbstractVariant [arg=QoreReflectionVariant* v; ns=Qore];
+
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** @throw ABSTRACVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+AbstractVariant::constructor() {
+   xsink->raiseException("ABSTRACVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! returns @ref True if the variant is a builtin variant
+/** @par Example:
+    @code{.py}
+bool b = v.isBuiltin();
+    @endcode
+
+    @return @ref True if the variant is a builtin variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+
+    @note complementary to @ref isUser()
+*/
+bool AbstractVariant::isBuiltin() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return !v->variant->isUser();
+}
+
+//! returns @ref True if the variant is a user variant
+/** @par Example:
+    @code{.py}
+bool b = v.isUser();
+    @endcode
+
+    @return @ref True if the variant is a user variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+
+    @note complementary to @ref isBuiltin()
+*/
+bool AbstractVariant::isUser() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return v->variant->isUser();
+}
+
+//! returns @ref True if the variant has a code implementation; @ref False if not (i.e. it is empty)
+/** @par Example:
+    @code{.py}
+bool b = v.hasBody();
+    @endcode
+
+    @return @ref True if the variant has a code implementation; @ref False if not (i.e. it is empty)
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+
+    @note complementary to @ref empty()
+*/
+bool AbstractVariant::hasBody() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return v->variant->hasBody();
+}
+
+//! returns @ref True if the variant has no code implementation; @ref False if it does
+/** @par Example:
+    @code{.py}
+bool b = v.isEmpty();
+    @endcode
+
+    @return @ref True if the variant has no code implementation; @ref False if it does
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+
+    @note complementary to @ref hasBody()
+*/
+bool AbstractVariant::empty() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return !v->variant->hasBody();
+}
+
+//! returns @ref True if the variant is a method variant, @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = v.isMethodVariant();
+    @endcode
+
+    @return @ref True if the variant is a method variant, @ref False if not
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+*/
+bool AbstractVariant::isMethodVariant() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return (bool)v->variant->getClass();
+}
+
+//! returns the number of parameters in the signature
+/** @par Example:
+    @code{.py}
+int n = v.numParams();
+    @endcode
+
+    @return the number of parameters in the signature
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+*/
+int AbstractVariant::numParams() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return v->variant->numParams();
+}
+
+//! returns a string giving a list of the parameters of the variant, including types and variable names
+/** @par Example:
+    @code{.py}
+string str = v.getParameterString();
+# ex: "int num, *string label"
+    @endcode
+
+    @return a string giving a list of the parameters of the variant, including types and variable names; an empty string is returned if the variant does not have any parameters
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+*/
+string AbstractVariant::getParameterString() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return new QoreStringNode(v->variant->getSignature()->getSignatureText());
+}
+
+//! returns a string for the return type
+/** @par Example:
+    @code{.py}
+string str = v.getReturnTypeString();
+# ex: "int"
+    @endcode
+
+    @return a string for the return type
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+*/
+string AbstractVariant::getReturnTypeString() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return new QoreStringNode(QoreTypeInfo::getName(v->variant->getReturnTypeInfo()));
+}
+
+//! returns a string for the variant's signature including any attributes (\c "synchronized", \c "private", etc), the return type, the class name (if any, without a namespace prefix and followed by \c "::"), and the function or method name followed by parameter types in parentheses
+/** @par Example:
+    @code{.py}
+string str = v.getSignatureString();
+    @endcode
+
+    @return a string for the variant's signature including the return type, the class name (if any, without a namespace prefix and followed by \c "::"), and the function or method name followed by parameter types in parentheses
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+*/
+string AbstractVariant::getSignatureString() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
+
+    const QoreClass* cls = v->variant->getClass();
+    if (cls) {
+        assert(dynamic_cast<const MethodVariantBase*>(v->variant));
+        const MethodVariantBase* mv = static_cast<const MethodVariantBase*>(v->variant);
+        if (mv->isFinal()) {
+            rv->concat("final ");
+        }
+
+        if (mv->method()->isStatic()) {
+            rv->concat("static ");
+        }
+
+        if (mv->isAbstract()) {
+            rv->concat("abstract ");
+        }
+
+        rv->concat(get_access_string(mv->getAccess()));
+        rv->concat(' ');
+    }
+    else {
+        // it is a function variant
+        if (v->variant->isModulePublic()) {
+            rv->concat("public ");
+        }
+    }
+
+    // check for synchronized variants
+    {
+        const UserVariantBase* uv = v->variant->getUserVariantBase();
+        if (uv && uv->isSynchronized()) {
+            rv->concat("synchronized ");
+        }
+    }
+
+    // add return type
+    rv->concat(QoreTypeInfo::getName(v->variant->getReturnTypeInfo()));
+
+    rv->concat(' ');
+
+    if (cls) {
+        rv->concat(cls->getName());
+        rv->concat("::");
+    }
+
+    rv->concat(v->func->getName());
+    // add parameters
+    rv->concat('(');
+    rv->concat(v->variant->getSignature()->getSignatureText());
+    rv->concat(')');
+
+    return rv.release();
+}

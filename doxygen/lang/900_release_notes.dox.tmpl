@@ -5,6 +5,10 @@
     @section qore_09 Qore 0.9
 
     @par Release Summary
+    This is a major release of %Qore with large portions of code subject to extensive optimizations leading
+    to large memory and performance improvements along with more control of @ref Qore::Program "Program"
+    logic containers, multithreading, and a reflection API.  This release breaks binary compatibility with
+    older versions of %Qore as well, requiring binary modules to support the new API and ABI.
     WIP
 
     @subsection qore_09_compatibility Changes That Can Affect Backwards-Compatibility
@@ -31,13 +35,14 @@
     - reflection API:
       - @ref Qore::Class "Class"
       - @ref Qore::AbstractMethod "AbstractMethod"
+      - @ref Qore::AbstractVariant "AbstractVariant"
       - @ref Qore::ConstructorMethod "ConstructorMethod"
       - @ref Qore::CopyMethod "CopyMethod"
       - @ref Qore::DestructorMethod "DestructorMethod"
       - @ref Qore::NormalMethod "NormalMethod"
       - @ref Qore::StaticMethod "StaticMethod"
       - <object>::getClass()
-    - new classes:
+    - new classes (in addition to the reflection API):
       - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
       - @ref Qore::StreamBase "StreamBase": a base class for stream classes allowing for a controlled handoff of the stream to another thread
     - new and updated methods in existing classes:

@@ -31,6 +31,7 @@
 #include "qore/Qore.h"
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/QC_AbstractMethod.h"
+#include "qore/intern/QC_AbstractVariant.h"
 #include "qore/intern/qore_program_private.h"
 
 int check_call(QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
@@ -112,7 +113,7 @@ AbstractMethod::constructor() {
 }
 
 //! returns the method's name
-/** par Example:
+/** @par Example:
     @code{.py}
 string name = m.getName();
     @endcode
@@ -133,10 +134,12 @@ string AbstractMethod::getName() [flags=RET_VALUE_ONLY] {
 }
 
 //! returns @ref True if the method is a static method
-/** par Example:
+/** @par Example:
     @code{.py}
 bool b = m.isStatic();
     @endcode
+
+    @return @ref True if the method is a static method
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
 */
@@ -152,12 +155,16 @@ bool AbstractMethod::isStatic() [flags=RET_VALUE_ONLY] {
 }
 
 //! returns @ref True if the method is a builtin method
-/** par Example:
+/** @par Example:
     @code{.py}
 bool b = m.isBuiltin();
     @endcode
 
+    @return @ref True if the method is a builtin method
+
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+
+    @note complementary to @ref isUser()
 */
 bool AbstractMethod::isBuiltin() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -171,12 +178,16 @@ bool AbstractMethod::isBuiltin() [flags=RET_VALUE_ONLY] {
 }
 
 //! returns @ref True if the method is a user method
-/** par Example:
+/** @par Example:
     @code{.py}
 bool b = m.isUser();
     @endcode
 
+    @return @ref True if the method is a user method
+
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+
+    @note complementary to @ref isBuiltin()
 */
 bool AbstractMethod::isUser() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -190,7 +201,7 @@ bool AbstractMethod::isUser() [flags=RET_VALUE_ONLY] {
 }
 
 //! returns the type of method as a string; one of \c "normal", \c "static", \c "constructor", \c "destructor", \c "copy"
-/** par Example:
+/** @par Example:
     @code{.py}
 string type = m.getMethodTypeName();
     @endcode
@@ -208,4 +219,55 @@ string AbstractMethod::getMethodTypeName() [flags=RET_VALUE_ONLY] {
 
     // the method ptr must be valid
     return new QoreStringNode(m->getType());
+}
+
+//! returns the number of variants implemented by the method
+/** @par Example:
+    @code{.py}
+int n = v.numVariants();
+    @endcode
+
+    @return the number of parameters in the signature
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+*/
+int AbstractMethod::numVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    return qore_method_private::get(*m->m)->func->numVariants();
+}
+
+//! returns the variants implemented by the method
+/** @par Example:
+    @code{.py}
+list<AbstractVariant> l = v.getVariants();
+    @endcode
+
+    @return the variants implemented by the method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+*/
+list<AbstractVariant> AbstractMethod::getVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_ABSTRACTVARIANT->getTypeInfo()), xsink);
+    const QoreFunction* func = qore_method_private::get(*m->m)->func;
+    QoreFunctionIterator i(*func);
+    while (i.next()) {
+        const AbstractQoreFunctionVariant* v = i.getVariant();
+
+        rv->push(new QoreObject(QC_ABSTRACTVARIANT, m->pgm, new QoreReflectionVariant(m->pgm, func, v)), xsink);
+    }
+
+    return rv.release();
 }
