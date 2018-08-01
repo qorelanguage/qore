@@ -33,17 +33,17 @@
 #define _QORE_INTERN_QC_ABSTRACTVARIANT_H
 
 #include "qore/intern/AbstractReflectionObject.h"
+#include "qore/intern/QC_AbstractFunction.h"
 
 // forward references
 class AbstractQoreFunctionVariant;
 
-class QoreReflectionVariant : public AbstractReflectionObject {
+class QoreReflectionVariant : public QoreReflectionFunction {
 public:
-    const QoreFunction* func;
     const AbstractQoreFunctionVariant* variant;
 
     DLLLOCAL QoreReflectionVariant(QoreProgram* pgm, const QoreFunction* func, const AbstractQoreFunctionVariant* variant) :
-        AbstractReflectionObject(pgm), func(func), variant(variant) {
+        QoreReflectionFunction(pgm, func), variant(variant) {
     }
 };
 

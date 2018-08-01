@@ -1,0 +1,221 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractFunction.qpp Function class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore/Qore.h"
+#include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/QC_AbstractFunction.h"
+#include "qore/intern/QC_AbstractMethod.h"
+#include "qore/intern/QC_AbstractVariant.h"
+#include "qore/intern/QC_NormalMethodVariant.h"
+#include "qore/intern/QC_StaticMethodVariant.h"
+//#include "qore/intern/QC_FunctionVariant.h"
+#include "qore/intern/QC_Class.h"
+#include "qore/intern/qore_program_private.h"
+
+QoreObject* QoreReflectionFunction::getFunctionObject(ExceptionSink* xsink) const {
+    const QoreClass* c = f->getClass();
+    if (c) {
+        // must find the QoreMethod corresponding to this function by searching the class by name by method type
+        const MethodFunctionBase* mfb = static_cast<const MethodFunctionBase*>(f);
+        const qore_class_private* qc = qore_class_private::get(*c);
+        const QoreMethod* m = mfb->isStatic()
+            ? qc->findLocalCommittedStaticMethod(f->getName())
+            : qc->findLocalCommittedMethod(f->getName());
+        ReferenceHolder<QoreReflectionMethod> meth(new QoreReflectionMethod(pgm, m), xsink);
+        return get_method(meth, xsink);
+    }
+
+    xsink->raiseException("UNSUPPORTED", "implement me");
+    return nullptr;
+}
+
+QoreObject* QoreReflectionFunction::getVariantObject(const AbstractQoreFunctionVariant* v, ExceptionSink* xsink) const {
+    if (v->getClass()) {
+        const MethodVariantBase* mvb = static_cast<const MethodVariantBase*>(v);
+        return mvb->method()->isStatic()
+            ? new QoreObject(QC_STATICMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v))
+            : new QoreObject(QC_NORMALMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
+    }
+
+    //return new QoreObject(QC_FUNCTIONVARIANT, f->pgm, new QoreReflectionVariant(pgm, f, v));
+    xsink->raiseException("UNSUPPORTED", "implement me");
+    return nullptr;
+}
+
+//! The abstract base class for %Qore functions and class methods
+/**
+    This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
+
+    @since %Qore 0.9.0
+ */
+qclass AbstractFunction [arg=QoreReflectionFunction* f; ns=Qore];
+
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** @throw ABSTRACTFUNCTION-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+AbstractFunction::constructor() {
+   xsink->raiseException("ABSTRACTFUNCTION-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! returns the function or method name
+/** @par Example:
+    @code{.py}
+string name = f.getName();
+    @endcode
+
+    @return the function or method name
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+ */
+string AbstractFunction::getName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return new QoreStringNode(f->f->getName());
+}
+
+//! returns @ref True if the function or method is a builtin function or method
+/** @par Example:
+    @code{.py}
+bool b = f.isBuiltin();
+    @endcode
+
+    @return @ref True if the function or method is a builtin function or method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note complementary to @ref isUser()
+*/
+bool AbstractFunction::isBuiltin() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return f->f->hasBuiltin();
+}
+
+//! returns @ref True if the function or method is a user function or method
+/** @par Example:
+    @code{.py}
+bool b = f.isUser();
+    @endcode
+
+    @return @ref True if the function or method is a user function or method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note complementary to @ref isBuiltin()
+*/
+bool AbstractFunction::isUser() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return f->f->hasUser();
+}
+
+//! returns @ref True if the function or method has been injected as a dependency injection
+/** @par Example:
+    @code{.py}
+bool b = f.isInjected();
+    @endcode
+
+    @return @ref True if the function or method has been injected as a dependency injection
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+bool AbstractFunction::isInjected() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return f->f->injected();
+}
+
+//! returns the number of variants implemented by the function or method
+/** @par Example:
+    @code{.py}
+int n = f.numVariants();
+    @endcode
+
+    @return the number of variants implemented by the function or method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+int AbstractFunction::numVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return f->f->numVariants();
+}
+
+//! returns the variants implemented by the function or method
+/** @par Example:
+    @code{.py}
+list<AbstractVariant> l = f.getVariants();
+    @endcode
+
+    @return the variants implemented by the function or method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+list<AbstractVariant> AbstractFunction::getVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_ABSTRACTVARIANT->getTypeInfo()), xsink);
+    QoreFunctionIterator i(*f->f);
+    while (i.next()) {
+        rv->push(f->getVariantObject(i.getVariant(), xsink), xsink);
+    }
+
+    return rv.release();
+}

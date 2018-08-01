@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.h Class class definition */
+/** @file QC_NormalMethodVariant.h QC_NormalMethodVariant class definition */
 /*
     Qore Programming Language
 
@@ -28,28 +28,16 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_CLASS_H
+#ifndef _QORE_INTERN_QC_NORMALMETHODVARIANT_H
 
-#define _QORE_INTERN_QC_CLASS_H
+#define _QORE_INTERN_QC_NORMALMETHODVARIANT_H
 
-#include "qore/intern/AbstractReflectionObject.h"
+#include "qore/intern/QC_AbstractMethodVariant.h"
 
-class QoreReflectionClass : public AbstractReflectionObject {
-public:
-    const QoreClass* cls;
+DLLEXPORT extern qore_classid_t CID_ABSTRACTMETHODVARIANT;
+DLLLOCAL extern QoreClass* QC_ABSTRACTMETHODVARIANT;
 
-    DLLLOCAL QoreReflectionClass(const char* name, ExceptionSink* xsink);
-
-    DLLLOCAL QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls);
-};
-
-DLLLOCAL QoreObject* get_method(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink);
-
-DLLEXPORT extern qore_classid_t CID_CLASS;
-DLLLOCAL extern QoreClass* QC_CLASS;
-
-DLLLOCAL void preinitClassClass();
-DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
-DLLLOCAL TypedHashDecl* init_hashdecl_ClassAccessInfo(QoreNamespace& ns);
+DLLLOCAL void preinitNormalMethodVariantClass();
+DLLLOCAL QoreClass* initNormalMethodVariantClass(QoreNamespace& ns);
 
 #endif

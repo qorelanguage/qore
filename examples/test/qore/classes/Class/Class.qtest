@@ -50,6 +50,7 @@ class Test inherits QUnit::Test {
         assertTrue(m.isBuiltin());
         assertFalse(m.isUser());
         assertEq("lock", m.getName());
+        assertFalse(m.isInjected());
 
         m = c.getNormalMethod("lock");
         assertEq("normal", m.getMethodTypeName());
@@ -160,5 +161,10 @@ class Test inherits QUnit::Test {
         assertEq("", v.getParameterString());
         assertEq("nothing", v.getReturnTypeString());
         #printf("%y\n", v.getSignatureString());
+
+        {
+            AbstractFunction f = v.getFunction();
+            assertEq(m.getName(), f.getName());
+        }
     }
 }

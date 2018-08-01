@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.h Class class definition */
+/** @file QC_AbstractFunction.h QC_AbstractFunction class definition */
 /*
     Qore Programming Language
 
@@ -28,28 +28,32 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_CLASS_H
+#ifndef _QORE_INTERN_QC_ABSTRACTFUNCTION_H
 
-#define _QORE_INTERN_QC_CLASS_H
+#define _QORE_INTERN_QC_ABSTRACTFUNCTION_H
 
 #include "qore/intern/AbstractReflectionObject.h"
 
-class QoreReflectionClass : public AbstractReflectionObject {
+class QoreReflectionFunction : public AbstractReflectionObject {
 public:
-    const QoreClass* cls;
+    const QoreFunction* f = nullptr;
 
-    DLLLOCAL QoreReflectionClass(const char* name, ExceptionSink* xsink);
+    DLLLOCAL QoreReflectionFunction(QoreProgram* pgm) : AbstractReflectionObject(pgm) {
+    }
 
-    DLLLOCAL QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls);
+    DLLLOCAL QoreReflectionFunction(QoreProgram* pgm, const QoreFunction* f) : AbstractReflectionObject(pgm), f(f) {
+    }
+
+    DLLLOCAL QoreObject* getFunctionObject(ExceptionSink* xsink) const;
+
+    DLLLOCAL QoreObject* getVariantObject(const AbstractQoreFunctionVariant* v, ExceptionSink* xsink) const;
 };
 
-DLLLOCAL QoreObject* get_method(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink);
 
-DLLEXPORT extern qore_classid_t CID_CLASS;
-DLLLOCAL extern QoreClass* QC_CLASS;
+DLLEXPORT extern qore_classid_t CID_ABSTRACTFUNCTION;
+DLLLOCAL extern QoreClass* QC_ABSTRACTFUNCTION;
 
-DLLLOCAL void preinitClassClass();
-DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
-DLLLOCAL TypedHashDecl* init_hashdecl_ClassAccessInfo(QoreNamespace& ns);
+DLLLOCAL void preinitAbstractFunctionClass();
+DLLLOCAL QoreClass* initAbstractFunctionClass(QoreNamespace& ns);
 
 #endif

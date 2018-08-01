@@ -703,6 +703,10 @@ noinst_HEADERS = \
 	include/qore/intern/QC_TreeMap.h \
 	include/qore/intern/QC_AbstractThreadResource.h \
 	include/qore/intern/QC_AbstractVariant.h \
+	include/qore/intern/QC_AbstractMethodVariant.h \
+	include/qore/intern/QC_NormalethodVariant.h \
+	include/qore/intern/QC_StaticMethodVariant.h \
+	include/qore/intern/QC_AbstractFunction.h \
 	include/qore/intern/QC_AbstractMethod.h \
 	include/qore/intern/QC_NormalMethod.h \
 	include/qore/intern/QC_StaticMethod.h \

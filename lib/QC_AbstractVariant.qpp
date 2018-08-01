@@ -28,6 +28,7 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QC_AbstractVariant.h"
+#include "qore/intern/QC_AbstractFunction.h"
 #include "qore/intern/Function.h"
 
 //! The abstract base class for %Qore class variants
@@ -45,6 +46,26 @@ AbstractVariant::constructor() {
    xsink->raiseException("ABSTRACVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
+//! Returns the abstract function object that contains the variant
+/** @par Example:
+    @code{.py}
+AbstractFunction f = v.getFunction();
+    @endcode
+
+    @return the abstract function object that contains the variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+AbstractFunction AbstractVariant::getFunction() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return v->getFunctionObject(xsink);
+}
+
 //! returns @ref True if the variant is a builtin variant
 /** @par Example:
     @code{.py}
@@ -53,7 +74,7 @@ bool b = v.isBuiltin();
 
     @return @ref True if the variant is a builtin variant
 
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 
     @note complementary to @ref isUser()
 */
@@ -76,7 +97,7 @@ bool b = v.isUser();
 
     @return @ref True if the variant is a user variant
 
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 
     @note complementary to @ref isBuiltin()
 */
@@ -91,6 +112,27 @@ bool AbstractVariant::isUser() [flags=RET_VALUE_ONLY] {
     return v->variant->isUser();
 }
 
+//! returns @ref True if the function or method that the variant belongs to (and therefore the variant itself) has been injected as a dependency injection
+/** @par Example:
+    @code{.py}
+bool b = v.isInjected();
+    @endcode
+
+    @return @ref True if the function or method that the variant belongs to (and therefore the variant itself) has been injected as a dependency injection
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+bool AbstractVariant::isInjected() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return v->f->injected();
+}
+
 //! returns @ref True if the variant has a code implementation; @ref False if not (i.e. it is empty)
 /** @par Example:
     @code{.py}
@@ -99,7 +141,7 @@ bool b = v.hasBody();
 
     @return @ref True if the variant has a code implementation; @ref False if not (i.e. it is empty)
 
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 
     @note complementary to @ref empty()
 */
@@ -122,7 +164,7 @@ bool b = v.isEmpty();
 
     @return @ref True if the variant has no code implementation; @ref False if it does
 
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 
     @note complementary to @ref hasBody()
 */
@@ -145,7 +187,7 @@ bool b = v.isMethodVariant();
 
     @return @ref True if the variant is a method variant, @ref False if not
 
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
 bool AbstractVariant::isMethodVariant() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -166,7 +208,7 @@ int n = v.numParams();
 
     @return the number of parameters in the signature
 
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
 int AbstractVariant::numParams() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -188,7 +230,7 @@ string str = v.getParameterString();
 
     @return a string giving a list of the parameters of the variant, including types and variable names; an empty string is returned if the variant does not have any parameters
 
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
 string AbstractVariant::getParameterString() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -210,7 +252,7 @@ string str = v.getReturnTypeString();
 
     @return a string for the return type
 
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
 string AbstractVariant::getReturnTypeString() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -231,7 +273,7 @@ string str = v.getSignatureString();
 
     @return a string for the variant's signature including the return type, the class name (if any, without a namespace prefix and followed by \c "::"), and the function or method name followed by parameter types in parentheses
 
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and variant has been destroyed
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
 string AbstractVariant::getSignatureString() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -287,7 +329,7 @@ string AbstractVariant::getSignatureString() [flags=RET_VALUE_ONLY] {
         rv->concat("::");
     }
 
-    rv->concat(v->func->getName());
+    rv->concat(v->f->getName());
     // add parameters
     rv->concat('(');
     rv->concat(v->variant->getSignature()->getSignatureText());

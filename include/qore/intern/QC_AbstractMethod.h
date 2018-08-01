@@ -33,6 +33,7 @@
 #define _QORE_INTERN_QC_ABSTRACTMETHOD_H
 
 #include "qore/intern/AbstractReflectionObject.h"
+#include "qore/intern/QC_AbstractFunction.h"
 
 //! method type enum
 enum method_type_e {
@@ -44,7 +45,7 @@ enum method_type_e {
     MT_Copy = 5,
 };
 
-class QoreReflectionMethod : public AbstractReflectionObject {
+class QoreReflectionMethod : public QoreReflectionFunction {
 public:
     const QoreMethod* m = nullptr;
     method_type_e mtype = MT_None;

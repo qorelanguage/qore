@@ -1,5 +1,3 @@
-/* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.h Class class definition */
 /*
     Qore Programming Language
 
@@ -28,28 +26,21 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_CLASS_H
+#include "qore/Qore.h"
+#include "qore/intern/QC_NormalMethodVariant.h"
+#include "qore/intern/Function.h"
 
-#define _QORE_INTERN_QC_CLASS_H
+//! The class for %Qore class normal method variants
+/**
+    This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
 
-#include "qore/intern/AbstractReflectionObject.h"
+    @since %Qore 0.9.0
+ */
+qclass NormalMethodVariant [arg=QoreReflectionVariant* v; ns=Qore; vparent=AbstractMethodVariant];
 
-class QoreReflectionClass : public AbstractReflectionObject {
-public:
-    const QoreClass* cls;
-
-    DLLLOCAL QoreReflectionClass(const char* name, ExceptionSink* xsink);
-
-    DLLLOCAL QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls);
-};
-
-DLLLOCAL QoreObject* get_method(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink);
-
-DLLEXPORT extern qore_classid_t CID_CLASS;
-DLLLOCAL extern QoreClass* QC_CLASS;
-
-DLLLOCAL void preinitClassClass();
-DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
-DLLLOCAL TypedHashDecl* init_hashdecl_ClassAccessInfo(QoreNamespace& ns);
-
-#endif
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** @throw NORMALMETHODVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+NormalMethodVariant::constructor() {
+   xsink->raiseException("NORMALMETHODVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}

@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Method.qpp Method class definition */
+/** @file QC_AbstractMethod.qpp Method class definition */
 /*
     Qore Programming Language
 
@@ -42,11 +42,11 @@ int check_call(QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
     return 0;
 }
 
-QoreReflectionMethod::QoreReflectionMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
+QoreReflectionMethod::QoreReflectionMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink) : QoreReflectionFunction(getProgram()) {
     setMethod(cls, name, xsink);
 }
 
-QoreReflectionMethod::QoreReflectionMethod(const char* cls_path, const char* name, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
+QoreReflectionMethod::QoreReflectionMethod(const char* cls_path, const char* name, ExceptionSink* xsink) : QoreReflectionFunction(getProgram()) {
     const QoreClass* cls = qore_program_private::runtimeFindClass(*pgm, cls_path, xsink);
     if (!cls) {
         if (!*xsink) {
@@ -58,7 +58,7 @@ QoreReflectionMethod::QoreReflectionMethod(const char* cls_path, const char* nam
     setMethod(cls, name, xsink);
 }
 
-QoreReflectionMethod::QoreReflectionMethod(QoreProgram* pgm, const QoreMethod* m) : AbstractReflectionObject(pgm), m(m) {
+QoreReflectionMethod::QoreReflectionMethod(QoreProgram* pgm, const QoreMethod* m) : QoreReflectionFunction(pgm, qore_method_private::get(*m)->func), m(m) {
     setType();
 }
 
@@ -71,6 +71,7 @@ void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, Exc
         xsink->raiseException("METHOD-ERROR", "cannot resolve method '%s' in class '%s'", name, cls->getName());
     }
     else {
+        f = qore_method_private::get(*m)->func;
         setType();
     }
 }
@@ -103,34 +104,13 @@ void QoreReflectionMethod::setType() {
 
     @since %Qore 0.9.0
  */
-qclass AbstractMethod [arg=QoreReflectionMethod* m; ns=Qore];
+qclass AbstractMethod [arg=QoreReflectionMethod* m; ns=Qore; vparent=AbstractFunction];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
 /** @throw ABSTRACTMETHOD-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
  */
 AbstractMethod::constructor() {
    xsink->raiseException("ABSTRACTMETHOD-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
-}
-
-//! returns the method's name
-/** @par Example:
-    @code{.py}
-string name = m.getName();
-    @endcode
-
-    @return the method's name
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
- */
-string AbstractMethod::getName() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the method ptr must be valid
-    return new QoreStringNode(m->m->getName());
 }
 
 //! returns @ref True if the method is a static method
@@ -154,52 +134,6 @@ bool AbstractMethod::isStatic() [flags=RET_VALUE_ONLY] {
     return m->m->isStatic();
 }
 
-//! returns @ref True if the method is a builtin method
-/** @par Example:
-    @code{.py}
-bool b = m.isBuiltin();
-    @endcode
-
-    @return @ref True if the method is a builtin method
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
-
-    @note complementary to @ref isUser()
-*/
-bool AbstractMethod::isBuiltin() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the method ptr must be valid
-    return m->m->isBuiltin();
-}
-
-//! returns @ref True if the method is a user method
-/** @par Example:
-    @code{.py}
-bool b = m.isUser();
-    @endcode
-
-    @return @ref True if the method is a user method
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
-
-    @note complementary to @ref isBuiltin()
-*/
-bool AbstractMethod::isUser() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the method ptr must be valid
-    return m->m->isUser();
-}
-
 //! returns the type of method as a string; one of \c "normal", \c "static", \c "constructor", \c "destructor", \c "copy"
 /** @par Example:
     @code{.py}
@@ -219,55 +153,4 @@ string AbstractMethod::getMethodTypeName() [flags=RET_VALUE_ONLY] {
 
     // the method ptr must be valid
     return new QoreStringNode(m->getType());
-}
-
-//! returns the number of variants implemented by the method
-/** @par Example:
-    @code{.py}
-int n = v.numVariants();
-    @endcode
-
-    @return the number of parameters in the signature
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
-*/
-int AbstractMethod::numVariants() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the method ptr must be valid
-    return qore_method_private::get(*m->m)->func->numVariants();
-}
-
-//! returns the variants implemented by the method
-/** @par Example:
-    @code{.py}
-list<AbstractVariant> l = v.getVariants();
-    @endcode
-
-    @return the variants implemented by the method
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
-*/
-list<AbstractVariant> AbstractMethod::getVariants() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the method ptr must be valid
-    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_ABSTRACTVARIANT->getTypeInfo()), xsink);
-    const QoreFunction* func = qore_method_private::get(*m->m)->func;
-    QoreFunctionIterator i(*func);
-    while (i.next()) {
-        const AbstractQoreFunctionVariant* v = i.getVariant();
-
-        rv->push(new QoreObject(QC_ABSTRACTVARIANT, m->pgm, new QoreReflectionVariant(m->pgm, func, v)), xsink);
-    }
-
-    return rv.release();
 }

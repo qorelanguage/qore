@@ -64,6 +64,10 @@
 #include "qore/intern/QC_SQLStatement.h"
 
 #include "qore/intern/QC_AbstractVariant.h"
+#include "qore/intern/QC_AbstractMethodVariant.h"
+#include "qore/intern/QC_StaticMethodVariant.h"
+#include "qore/intern/QC_NormalMethodVariant.h"
+#include "qore/intern/QC_AbstractFunction.h"
 #include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/QC_NormalMethod.h"
 #include "qore/intern/QC_StaticMethod.h"
@@ -880,6 +884,10 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
 
    // pre-initialize reflection classes
    preinitAbstractVariantClass();
+   preinitAbstractMethodVariantClass();
+   preinitNormalMethodVariantClass();
+   preinitStaticMethodVariantClass();
+   preinitAbstractFunctionClass();
    preinitAbstractMethodClass();
    preinitNormalMethodClass();
    preinitStaticMethodClass();
@@ -980,6 +988,10 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
 
    // reflection
    qns.addSystemClass(initAbstractVariantClass(qns));
+   qns.addSystemClass(initAbstractMethodVariantClass(qns));
+   qns.addSystemClass(initNormalMethodVariantClass(qns));
+   qns.addSystemClass(initStaticMethodVariantClass(qns));
+   qns.addSystemClass(initAbstractFunctionClass(qns));
    qns.addSystemClass(initAbstractMethodClass(qns));
    qns.addSystemClass(initNormalMethodClass(qns));
    qns.addSystemClass(initStaticMethodClass(qns));
