@@ -441,7 +441,8 @@ class SchemaBase {
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, hash v, reference<hash> value) {
-	#TODO: implement check
+        if (type != "file")
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is %y, but the expected type is file", name, path, method, type);
     }
 
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, int v, reference<int> value) {
