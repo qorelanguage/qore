@@ -954,6 +954,20 @@ public class SwaggerTest inherits QUnit::Test {
         assertThrows("INVALID-FIELD-TYPE", "value type", loadyaml, my_make_yaml(base + {"paths": {"/a": p}}));
         p = {"get": {"responses": r, "security": ({"a":(5,)},)}};
         assertThrows("INVALID-FIELD-TYPE", "value type", loadyaml, my_make_yaml(base + {"paths": {"/a": p}}));
+
+        # check validation method
+        hash<string, bool> mime_types();
+        hash<UriQueryInfo> h({"method": "/create"});
+        string filePath = get_script_dir() + DirSep + "Multipart.swagger.yaml";
+        SwaggerSchema swagger = Swagger::SwaggerLoader::fromFile(filePath);
+        hash oh = SwaggerLoader::parseSchemaContent(filePath, ReadOnlyFile::readTextFile(filePath));
+        OperationObject op = new OperationObject("/create", "post", oh.paths."/create".post, swagger);
+        string body = "body";
+        hash headers = { "header" : "header" };
+
+        assertThrows("SCHEMA-VALIDATION-ERROR",
+           'Parameter \"formData\" has invalid type \"string\" \(should be \"file\"\)',
+           sub() {op.validateRequest(False, new PathItemObject("/create", {}, swagger), \h, \body, \headers, \mime_types); });
     }
 
     testExternalDocumentationObject() {
