@@ -46,6 +46,73 @@ AbstractVariant::constructor() {
    xsink->raiseException("ABSTRACVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
+//! returns a bitfield of modifiers describing the variant
+/** @par Example:
+    @code{.py}
+int i = v.getModifiers();
+    @endcode
+
+    @return a bitfield of modifiers describing the variant; possible values are:
+    - @ref Qore::MC_Abstract "MC_Abstract": the variant is @ref abstract
+    - @ref Qore::MC_Builtin "MC_Builtin": the variant is builtin
+    - @ref Qore::MC_Final "MC_Final": the variant has the @ref final_classes "final flag" set
+    - @ref Qore::MC_Injected "MC_Injected": the class has been @ref allow-injection "injected" into the current @ref Qore::Program "Program" container
+    - @ref Qore::MC_Private "MC_Private": (only returned for method variants) gives the accessibility of the variant
+    - @ref Qore::MC_PrivateInternal "MC_PrivateInternal": (only returned for method variants) gives the accessibility of the variant
+    - @ref Qore::MC_Public "MC_Public": for functions, the variant has the @ref mod_public "module public" flag set on the class or the function (not related to any inheritance properties in a class hierarchy), for method variants, this gives the accessibility of the variant
+    - @ref Qore::MC_Static "MC_Static": the variant is a static method variant
+    - @ref Qore::MC_Synchronized "MC_Synchronized": the variant is synchronized
+    - @ref Qore::MC_User "MC_User": the variant is a user variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+int AbstractVariant::getModifiers() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    int64 rc = 0;
+    if (v->variant->getClass()) {
+        const MethodVariantBase* mvb = static_cast<const MethodVariantBase*>(v->variant);
+        if (mvb->isAbstract()) {
+            rc |= MC_Abstract;
+        }
+        if (mvb->isFinal()) {
+            rc |= MC_Final;
+        }
+        rc |= get_access(mvb->getAccess());
+        const QoreMethod* m = mvb->method();
+        if (m->isStatic()) {
+            rc |= MC_Static;
+        }
+    }
+    else {
+        if (v->variant->isModulePublic()) {
+            rc |= MC_Public;
+        }
+    }
+
+    const UserVariantBase* uvb = v->variant->getUserVariantBase();
+    if (uvb && uvb->isSynchronized()) {
+        rc |= MC_Synchronized;
+    }
+
+    if (v->f->injected()) {
+        rc |= MC_Injected;
+    }
+    if (v->variant->isUser()) {
+        rc |= MC_User;
+    }
+    else {
+        rc |= MC_Builtin;
+    }
+
+    return rc;
+}
+
 //! Returns the abstract function object that contains the variant
 /** @par Example:
     @code{.py}

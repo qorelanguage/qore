@@ -33,9 +33,9 @@
 
 int get_access(ClassAccess access) {
     switch (access) {
-        case Public: return 0;
-        case Private: return 1;
-        case Internal: return 2;
+        case Public: return MC_Public;
+        case Private: return MC_Private;
+        case Internal: return MC_PrivateInternal;
         default: break;
     }
     assert(false);

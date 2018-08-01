@@ -34,6 +34,20 @@
 
 #include "qore/intern/AbstractReflectionObject.h"
 
+enum qore_modifier_t {
+    MC_Public = (1 << 0),
+    MC_Private = (1 << 1),
+    MC_PrivateInternal = (1 << 2),
+    MC_Abstract = (1 << 3),
+    MC_Static = (1 << 4),
+    MC_Synchronized = (1 << 5),
+    MC_Deprecated = (1 << 6),
+    MC_Injected = (1 << 7),
+    MC_Builtin = (1 << 8),
+    MC_User = (1 << 9),
+    MC_Final = (1 << 10),
+};
+
 class QoreReflectionClass : public AbstractReflectionObject {
 public:
     const QoreClass* cls;

@@ -69,17 +69,72 @@ QoreObject* get_method(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* 
 }
 
 /** @defgroup access_constants Access Constants
-    Access constants giving access information
+    Constants giving access information
+
+    @since %Qore 0.9.0
 */
 //@{
 //! describes public access
-const AC_Public = 0;
+/** Equivalent to @ref Qore::MC_Public
+*/
+const AC_Public = MC_Public;
 
 //! describes private access; accessible from anywhere in a class hierarchy (similar to \c protected in C++ and Java)
-const AC_Private = 1;
+/** Equivalent to @ref Qore::MC_Private
+*/
+const AC_Private = MC_Private;
 
 //! describes internal private access; only accessible from the same class where the definition is made (similar to \c private in C++ and Java)
-const AC_PrivateInternal = 2;
+/** Equivalent to @ref Qore::MC_PrivateInternal
+*/
+const AC_PrivateInternal = MC_PrivateInternal;
+//@}
+
+/** @defgroup modifier_constants Modifier Constants
+    Constants giving modifier information; each constant is a unique element of a bitfield
+
+    @since %Qore 0.9.0
+*/
+//@{
+//! describes public access
+/** Equivalent to @ref Qore::AC_Public
+*/
+const MC_Public = MC_Public;
+
+//! describes private access; accessible from anywhere in a class hierarchy (similar to \c protected in C++ and Java)
+/** Equivalent to @ref Qore::AC_Private
+*/
+const MC_Private = MC_Private;
+
+//! describes internal private access; only accessible from the same class where the definition is made (similar to \c private in C++ and Java)
+/** Equivalent to @ref Qore::AC_PrivateInternal
+*/
+const MC_PrivateInternal = MC_PrivateInternal;
+
+//! describes abstract classes and method variants
+const MC_Abstract = MC_Abstract;
+
+//! describes static methods and method variants
+const MC_Static = MC_Static;
+
+//! describes synchronized variants
+const MC_Synchronized = MC_Synchronized;
+
+//! describes deprecated functionality
+const MC_Deprecated = MC_Deprecated;
+
+//! describes injected functionality or declarations
+const MC_Injected = MC_Injected;
+
+//! describes builtin code
+/** @ref Qore::MC_Builtin "MC_Builtin" and @ref Qore::MC_User "MC_User" are mutually exclusive
+*/
+const MC_Builtin = MC_Builtin;
+
+//! describes user code
+/** @ref Qore::MC_Builtin "MC_Builtin" and @ref Qore::MC_User "MC_User" are mutually exclusive
+*/
+const MC_User = MC_User;
 //@}
 
 //! class and inheritance access information
@@ -177,6 +232,54 @@ string Class::getPathName() [flags=RET_VALUE_ONLY] {
 
     rv->concat(c->cls->getName());
     return rv.release();
+}
+
+//! returns a bitfield of modifiers describing the class
+/** @par Example:
+    @code{.py}
+int i = cls.getModifiers();
+    @endcode
+
+    @return a bitfield of modifiers describing the class; possible values are:
+    - @ref Qore::MC_Abstract "MC_Abstract": the class is @ref abstract
+    - @ref Qore::MC_Builtin "MC_Builtin": the class is builtin
+    - @ref Qore::MC_Final "MC_Final": the class has the @ref final_classes "final flag" set
+    - @ref Qore::MC_Injected "MC_Injected": the class has been @ref allow-injection "injected" into the current @ref Qore::Program "Program" container
+    - @ref Qore::MC_Public "MC_Public": the class has the @ref mod_public "module public" flag set (not related to any inheritance properties in a class hierarchy)
+    - @ref Qore::MC_User "MC_User": the class is a user class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+int Class::getModifiers() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    int64 rc = 0;
+    const qore_class_private* qc = qore_class_private::get(*c->cls);
+    if (qc->hasAbstract()) {
+        rc |= MC_Abstract;
+    }
+    if (qc->pub) {
+        rc |= MC_Public;
+    }
+    if (qc->final) {
+        rc |= MC_Final;
+    }
+    if (qc->inject) {
+        rc |= MC_Injected;
+    }
+    if (c->cls->isSystem()) {
+        rc |= MC_Builtin;
+    }
+    else {
+        rc |= MC_User;
+    }
+
+    return rc;
 }
 
 //! returns @ref True if the class is a builtin class

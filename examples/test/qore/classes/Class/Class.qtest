@@ -29,6 +29,7 @@ class Test inherits QUnit::Test {
         assertFalse(c.hasMemberGate());
         assertFalse(c.hasMethodGate());
         assertFalse(c.hasMemberNotification());
+        assertEq(MC_Builtin, c.getModifiers());
 
         {
             auto v = c.newObject();
@@ -157,9 +158,28 @@ class Test inherits QUnit::Test {
             assertThrows("ABSTRACT-CLASS-ERROR", \c1.newObject());
         }
 
-        AbstractVariant v = m.getVariants()[0];
+        NormalMethodVariant v = m.getVariants()[0];
+        assertEq(MC_Public | MC_Builtin, v.getModifiers());
         assertEq("", v.getParameterString());
         assertEq("nothing", v.getReturnTypeString());
+        {
+            mtx = new Mutex();
+            assertNothing(v.call(mtx));
+            assertTrue(mtx.lockOwner());
+            mtx.unlock();
+            assertThrows("CALL-WITH-TYPE-ERRORS", \v.call(), (mtx, 1));
+
+            Condition cond();
+            NormalMethodVariant v1 = cond.getClass().getMethod("wait").getVariants()[0];
+            assertThrows("RUNTIME-TYPE-ERROR", \v1.call(), (cond, 1));
+        }
+
+        {
+            Class c1 = Class::forName("Qore::TimeZone");
+            StaticMethodVariant v1 = c1.getStaticMethod("set").getVariants()[0];
+            assertThrows("RUNTIME-TYPE-ERROR", \v1.call(), (1));
+        }
+
         #printf("%y\n", v.getSignatureString());
 
         {

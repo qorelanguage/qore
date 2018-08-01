@@ -44,3 +44,61 @@ qclass StaticMethodVariant [arg=QoreReflectionVariant* v; ns=Qore; vparent=Abstr
 StaticMethodVariant::constructor() {
    xsink->raiseException("STATICMETHODVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
+
+//! calls the given method variant with the given object
+/** @par Example:
+    @code{.py}
+auto v = m.call(arg1, arg2);
+    @endcode
+
+    @params ... optional arguments to the method
+
+    @return the return value of the method call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+    @throw METHOD-ERROR the object was not instantiated from the class implementing this method
+
+    @see callArgs()
+*/
+auto StaticMethodVariant::call(...) {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // we have to explictly test object compatibility here, otherwise QoreObject::evalMethod() will throw
+    // a confusing exception
+    const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
+    // the method ptr must be valid
+    return qore_method_private::evalNormalVariant(*m, xsink, nullptr, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), args);
+}
+
+//! calls the given method with the given object
+/** @par Example:
+    @code{.py}
+auto v = m.callArgs((arg1, arg2));
+    @endcode
+
+    @params argv optional arguments to the method
+
+    @return the return value of the method call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+    @throw METHOD-ERROR the object was not instantiated from the class implementing this method
+
+    @see call()
+*/
+auto StaticMethodVariant::callArgs(*softlist argv) {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // we have to explictly test object compatibility here, otherwise QoreObject::evalMethod() will throw
+    // a confusing exception
+    const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
+    // the method ptr must be valid
+    return qore_method_private::evalNormalVariant(*m, xsink, nullptr, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), argv);
+}

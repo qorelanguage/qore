@@ -935,12 +935,14 @@ void qore_program_private::del(ExceptionSink* xsink) {
 }
 
 const QoreClass* qore_program_private::runtimeFindClass(const char* class_name, ExceptionSink* xsink) const {
-   // acquire safe access to parse structures in the source program
-   ProgramRuntimeParseAccessHelper rah(xsink, pgm);
-   if (*xsink)
-      return 0;
+    // acquire safe access to parse structures in the source program
+    ProgramRuntimeParseAccessHelper rah(xsink, pgm);
+    if (*xsink)
+        return nullptr;
 
-   return qore_root_ns_private::runtimeFindClass(*RootNS, class_name);
+    // include the ns arg to ensure that namespace-jiustified classes are resolved properly
+    const qore_ns_private* ns;
+    return qore_root_ns_private::runtimeFindClass(*RootNS, class_name, ns);
 }
 
 int qore_program_private::setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink) {
