@@ -186,5 +186,13 @@ class Test inherits QUnit::Test {
             AbstractFunction f = v.getFunction();
             assertEq(m.getName(), f.getName());
         }
+
+        {
+            NormalMethodVariant v1 = Class::forName("AbstractIterator").getMethod("getValue").getVariants()[0];
+            assertTrue(v1.isAbstract());
+            assertTrue(v1.empty());
+            assertFalse(v1.hasBody());
+            assertThrows("ABSTRACT-VARIANT-ERROR", \v1.call(), (new ListIterator()));
+        }
     }
 }

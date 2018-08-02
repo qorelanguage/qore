@@ -30,6 +30,21 @@
 #include "qore/intern/QC_NormalMethodVariant.h"
 #include "qore/intern/Function.h"
 
+static int check_variant_call(const MethodVariantBase* mvb, QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
+    if (check_call(obj, m, xsink)) {
+        return -1;
+    }
+
+    // we have to explicitly check for abstract methods here and throw an exception
+    if (mvb->isAbstract()) {
+        xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly",
+            mvb->getClass()->getName(), m.getName(), mvb->getSignature()->getSignatureText());
+        return -1;
+    }
+
+    return 0;
+}
+
 //! The class for %Qore class normal method variants
 /**
     This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
@@ -71,7 +86,7 @@ auto NormalMethodVariant::call(object obj, ...) {
     // we have to explictly test object compatibility here, otherwise QoreObject::evalMethod() will throw
     // a confusing exception
     const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
-    if (check_call(obj, *m, xsink)) {
+    if (check_variant_call(static_cast<const MethodVariantBase*>(v->variant), obj, *m, xsink)) {
         return QoreValue();
     }
 
@@ -113,7 +128,7 @@ auto NormalMethodVariant::callArgs(object obj, *softlist argv) {
     // we have to explictly test object compatibility here, otherwise QoreObject::evalMethod() will throw
     // a confusing exception
     const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
-    if (check_call(obj, *m, xsink)) {
+    if (check_variant_call(static_cast<const MethodVariantBase*>(v->variant), obj, *m, xsink)) {
         return QoreValue();
     }
 

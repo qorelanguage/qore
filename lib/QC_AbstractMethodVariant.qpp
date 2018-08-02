@@ -63,7 +63,7 @@ bool AbstractMethodVariant::isAbstract() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return !static_cast<const MethodVariantBase*>(v->variant)->isAbstract();
+    return static_cast<const MethodVariantBase*>(v->variant)->isAbstract();
 }
 
 //! returns @ref True if the variant is final

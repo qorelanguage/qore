@@ -210,13 +210,21 @@ bool b = v.hasBody();
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 
-    @note complementary to @ref empty()
+    @note
+    - complementary to @ref empty()
+    - abstract method variants will return @ref False here
 */
 bool AbstractVariant::hasBody() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
     if (*xsink) {
         return QoreValue();
+    }
+
+    // we have to check for abstract methods here and return False, because AbstractQoreFunctionVariant::hasBody()
+    // returns True for builtin abstract variants
+    if (v->variant->getClass() && static_cast<const MethodVariantBase*>(v->variant)->isAbstract()) {
+        return false;
     }
 
     // the variant ptr must be valid
@@ -233,13 +241,21 @@ bool b = v.isEmpty();
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 
-    @note complementary to @ref hasBody()
+    @note
+    - complementary to @ref hasBody()
+    - abstract method variants will return @ref True here
 */
 bool AbstractVariant::empty() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
     if (*xsink) {
         return QoreValue();
+    }
+
+    // we have to check for abstract methods here and return True, because AbstractQoreFunctionVariant::hasBody()
+    // returns True for builtin abstract variants
+    if (v->variant->getClass() && static_cast<const MethodVariantBase*>(v->variant)->isAbstract()) {
+        return true;
     }
 
     // the variant ptr must be valid
