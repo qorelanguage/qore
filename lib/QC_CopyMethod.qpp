@@ -79,7 +79,7 @@ CopyMethod m("Thread::Mutex");
     @throw CLASS-ERROR cannot find a class with the given name or path
     @throw METHOD-ERROR cannot find a copy method for the class
  */
-CopyMethod::constructor(string class_name, string method) {
+CopyMethod::constructor(string class_name) {
     TempEncodingHelper npath(class_name, QCS_DEFAULT, xsink);
     if (*xsink) {
         return;
