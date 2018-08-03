@@ -28,6 +28,7 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QC_NormalMethodVariant.h"
+#include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/Function.h"
 
 static int check_variant_call(const MethodVariantBase* mvb, QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
