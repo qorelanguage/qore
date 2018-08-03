@@ -704,7 +704,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_AbstractThreadResource.h \
 	include/qore/intern/QC_AbstractVariant.h \
 	include/qore/intern/QC_AbstractMethodVariant.h \
-	include/qore/intern/QC_NormalethodVariant.h \
+	include/qore/intern/QC_NormalMethodVariant.h \
 	include/qore/intern/QC_StaticMethodVariant.h \
 	include/qore/intern/QC_AbstractReflectionFunction.h \
 	include/qore/intern/QC_AbstractMethod.h \
