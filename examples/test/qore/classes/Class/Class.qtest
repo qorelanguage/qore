@@ -12,11 +12,11 @@
 
 class Test inherits QUnit::Test {
     constructor() : QUnit::Test("Class", "1.0") {
-        addTestCase("simple tests", \simpleTests());
+        addTestCase("class tests", \classTests());
         set_return_value(main());
     }
 
-    simpleTests() {
+    classTests() {
         Class c("Mutex");
 
         assertTrue(c.isBuiltin());
@@ -29,7 +29,9 @@ class Test inherits QUnit::Test {
         assertFalse(c.hasMemberGate());
         assertFalse(c.hasMethodGate());
         assertFalse(c.hasMemberNotification());
-        assertEq(MC_Builtin, c.getModifiers());
+        assertEq(MC_BUILTIN, c.getModifiers());
+        assertEq(DOM_THREAD_CLASS, c.getDomain());
+        assertEq(("THREAD_CLASS",), c.getDomainStringList());
 
         {
             auto v = c.newObject();
@@ -127,7 +129,7 @@ class Test inherits QUnit::Test {
             assertEq(1, l.size());
             hash<ClassAccessInfo> h = l[0];
             assertEq("AbstractSmartLock", h.cls.getName());
-            assertEq(AC_Public, h.access);
+            assertEq(AC_PUBLIC, h.access);
             assertEq("public", h.access_string);
         }
 
@@ -137,31 +139,33 @@ class Test inherits QUnit::Test {
             assertEq(1, l.size());
             hash<ClassAccessInfo> h = l[0];
             assertEq("AbstractQuantifiedBidirectionalIterator", h.cls.getName());
-            assertEq(AC_Public, h.access);
+            assertEq(AC_PUBLIC, h.access);
             assertEq("public", h.access_string);
         }
 
         {
             Class c1 = Class::forName("AbstractQuantifiedBidirectionalIterator");
             list<hash<ClassAccessInfo>> l = c1.getParentClasses();
-            #map printf("%y (%s)\n", $1.cls.getName(), $1.access_name), l;
             assertEq(2, l.size());
             hash<ClassAccessInfo> h = l[0];
             assertEq("AbstractBidirectionalIterator", h.cls.getName());
-            assertEq(AC_Public, h.access);
+            assertEq(AC_PUBLIC, h.access);
             assertEq("public", h.access_string);
             h = l[1];
             assertEq("AbstractQuantifiedIterator", h.cls.getName());
-            assertEq(AC_Public, h.access);
+            assertEq(AC_PUBLIC, h.access);
             assertEq("public", h.access_string);
 
             assertThrows("ABSTRACT-CLASS-ERROR", \c1.newObject());
         }
 
         NormalMethodVariant v = m.getVariants()[0];
-        assertEq(MC_Public | MC_Builtin, v.getModifiers());
+        assertEq(MC_PUBLIC | MC_BUILTIN, v.getModifiers());
         assertEq("", v.getParameterString());
         assertEq("nothing", v.getReturnTypeString());
+        assertEq(DOM_THREAD_CLASS, v.getDomain());
+        assertEq(("THREAD_CLASS",), v.getDomainStringList());
+
         {
             mtx = new Mutex();
             assertNothing(v.call(mtx));
@@ -180,15 +184,15 @@ class Test inherits QUnit::Test {
             assertThrows("RUNTIME-TYPE-ERROR", \v1.call(), (1));
         }
 
-        #printf("%y\n", v.getSignatureString());
-
         {
             AbstractFunction f = v.getFunction();
             assertEq(m.getName(), f.getName());
         }
 
         {
-            NormalMethodVariant v1 = Class::forName("AbstractIterator").getMethod("getValue").getVariants()[0];
+            Class c1 = Class::forName("AbstractIterator");
+            assertEq(MC_ABSTRACT, c1.getModifiers() & MC_ABSTRACT);
+            NormalMethodVariant v1 = c1.getMethod("getValue").getVariants()[0];
             assertTrue(v1.isAbstract());
             assertTrue(v1.empty());
             assertFalse(v1.hasBody());

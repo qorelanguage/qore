@@ -35,17 +35,17 @@
 #include "qore/intern/AbstractReflectionObject.h"
 
 enum qore_modifier_t {
-    MC_Public = (1 << 0),
-    MC_Private = (1 << 1),
-    MC_PrivateInternal = (1 << 2),
-    MC_Abstract = (1 << 3),
-    MC_Static = (1 << 4),
-    MC_Synchronized = (1 << 5),
-    MC_Deprecated = (1 << 6),
-    MC_Injected = (1 << 7),
-    MC_Builtin = (1 << 8),
-    MC_User = (1 << 9),
-    MC_Final = (1 << 10),
+    MC_PUBLIC = (1 << 0),
+    MC_PRIVATE = (1 << 1),
+    MC_PRIVATEINTERNAL = (1 << 2),
+    MC_ABSTRACT = (1 << 3),
+    MC_STATIC = (1 << 4),
+    MC_SYNCHRONIZED = (1 << 5),
+    MC_DEPRECATED = (1 << 6),
+    MC_INJECTED = (1 << 7),
+    MC_BUILTIN = (1 << 8),
+    MC_USER = (1 << 9),
+    MC_FINAL = (1 << 10),
 };
 
 class QoreReflectionClass : public AbstractReflectionObject {

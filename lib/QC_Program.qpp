@@ -53,12 +53,26 @@ extern QoreModuleManager QMM;
  */
 const ParseOptionCodeMap = qore(pomaps.getCodeToStringMap());
 
-//! Maps from parse option strings to parse option integer codes
+//! Maps from parse option strings to parse option bitfield integer codes
 /** @see ParseOptionCodeMap for the reverse mapping
 
     @since %Qore 0.8.12
  */
 const ParseOptionStringMap = qore(pomaps.getStringToCodeMap());
+
+//! Maps from functional domain bitfield code values (as string keys) to functional domain names
+/** @see DomainStringMap for the reverse mapping
+
+    @since %Qore 0.9.0
+ */
+const DomainCodeMap = qore(pomaps.getDomainToStringMap());
+
+//! Maps from functional domain strings to functional domain bitfield integer codes
+/** @see DomainCodeMap for the reverse mapping
+
+    @since %Qore 0.9.0
+ */
+const DomainStringMap = qore(pomaps.getStringToDomainMap());
 
 //! Maps from parse option code values (as string keys) to parse option names. Names are in form used in script or on command line, e.g. new-style
 /** @see ParseOptionCmdStringMap for the reverse mapping
@@ -1181,7 +1195,7 @@ nothing Program::importHashDecl(string name, *string new_name) {
 list l = pgm.getUserFunctionList();
     @endcode
  */
-softlist Program::getUserFunctionList() {
+softlist Program::getUserFunctionList() [flags=CONSTANT] {
    return p->getUserFunctionList();
 }
 
@@ -1193,8 +1207,22 @@ softlist Program::getUserFunctionList() {
 int mask = pgm.getParseOptions();
     @endcode
  */
-int Program::getParseOptions() {
+int Program::getParseOptions() [flags=CONSTANT] {
    return p->getParseOptions64();
+}
+
+//! returns a list of parse option strings for the program object
+/** @par Example:
+    @code{.py}
+list<string> l = pgm.getParseOptionStringList();
+    @endcode
+
+    @return a list of parse option strings for the program object
+
+    @since %Qore 0.9.0
+*/
+list<string> Program::getParseOptionStringList() [flags=CONSTANT] {
+    return parse_option_bitfield_to_string_list(p->getParseOptions64(), xsink);
 }
 
 //! Sets parse options in the parse option mask for the Program object
@@ -1284,7 +1312,7 @@ nothing Program::setScriptPath(*string path) {
 *string dir = pgm.getScriptDir();
     @endcode
  */
-*string Program::getScriptDir() {
+*string Program::getScriptDir() [flags=CONSTANT] {
    return p->getScriptDir();
 }
 
@@ -1298,7 +1326,7 @@ nothing Program::setScriptPath(*string path) {
 *string name = pgm.getScriptName();
     @endcode
  */
-*string Program::getScriptName() {
+*string Program::getScriptName() [flags=CONSTANT] {
    return p->getScriptName();
 }
 
@@ -1312,7 +1340,7 @@ nothing Program::setScriptPath(*string path) {
 *string path = pgm.getScriptPath();
     @endcode
  */
-*string Program::getScriptPath() {
+*string Program::getScriptPath() [flags=CONSTANT] {
    return p->getScriptPath();
 }
 
@@ -1424,7 +1452,7 @@ nothing Program::setTimeZone(TimeZone[TimeZoneData] zone) {
 TimeZone tz = pgm.getTimeZone();
     @endcode
  */
-TimeZone Program::getTimeZone() {
+TimeZone Program::getTimeZone() [flags=CONSTANT] {
    return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
 }
 
@@ -1467,7 +1495,7 @@ nothing Program::undefine(string def) {
 bool b = pgm.isDefined("PRODUCTION");
     @endcode
  */
-bool Program::isDefined(string def) {
+bool Program::isDefined(string def) [flags=CONSTANT] {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    return t ? qore_program_private::runTimeIsDefined(p, t->getBuffer()) : false;
 }
@@ -1482,7 +1510,7 @@ auto val = pgm.getDefine("PRODUCTION");
 
     @note A parse define may be defined with no value; use Program::isDefined() to check if a parse define is actually defined or not
  */
-auto Program::getDefine(string def) {
+auto Program::getDefine(string def) [flags=CONSTANT] {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    return t ? qore_program_private::runTimeGetDefine(p, t->c_str()) : QoreValue();
 }
@@ -1499,7 +1527,7 @@ auto Program::getDefine(string def) {
 
     @since %Qore 0.8.13
  */
-*hash Program::getAllDefines() {
+*hash Program::getAllDefines() [flags=CONSTANT] {
    return qore_program_private::runTimeGetAllDefines(p);
 }
 
@@ -1510,7 +1538,7 @@ auto Program::getDefine(string def) {
 
    @since %Qore 0.8.13
  */
-int Program::getProgramId() [flags=RET_VALUE_ONLY;] {
+int Program::getProgramId() [flags=CONSTANT] {
    return p->getProgramId();
 }
 

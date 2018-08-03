@@ -45,6 +45,16 @@ public:
     DLLLOCAL QoreReflectionVariant(QoreProgram* pgm, const QoreFunction* func, const AbstractQoreFunctionVariant* variant) :
         QoreReflectionFunction(pgm, func), variant(variant) {
     }
+
+    DLLLOCAL int64 getDomain() const {
+        int64 rc = variant->getFunctionality();
+        const QoreClass* cls = variant->getClass();
+        if (cls) {
+            rc |= cls->getDomain64();
+        }
+
+        return rc;
+    }
 };
 
 DLLEXPORT extern qore_classid_t CID_ABSTRACTVARIANT;

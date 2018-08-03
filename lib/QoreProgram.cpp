@@ -75,18 +75,25 @@ static const char* qore_warnings_l[] = {
 };
 #define NUM_WARNINGS (sizeof(qore_warnings_l)/sizeof(const char* ))
 
-void ParseOptionMaps::doMap(int64 code, const char* desc) {
+void ParseOptionMaps::doMap(int64 code, const char* desc, const char* dom) {
     assert(pomap.find(code) == pomap.end());
     assert(pormap.find(desc) == pormap.end());
     pomap[code] = desc;
     pormap[desc] = code;
+
+    if (dom) {
+        assert(dommap.find(code) == dommap.end());
+        assert(domrmap.find(desc) == domrmap.end());
+        dommap[code] = dom;
+        domrmap[dom] = code;
+    }
 }
 
 ParseOptionMaps::ParseOptionMaps() {
     doMap(PO_NO_GLOBAL_VARS, "PO_NO_GLOBAL_VARS");
     doMap(PO_NO_SUBROUTINE_DEFS, "PO_NO_SUBROUTINE_DEFS");
-    doMap(PO_NO_THREAD_CONTROL, "PO_NO_THREAD_CONTROL");
-    doMap(PO_NO_THREAD_CLASSES, "PO_NO_THREAD_CLASSES");
+    doMap(PO_NO_THREAD_CONTROL, "PO_NO_THREAD_CONTROL", "THREAD_CONTROL");
+    doMap(PO_NO_THREAD_CLASSES, "PO_NO_THREAD_CLASSES", "THREAD_CLASS");
     doMap(PO_NO_TOP_LEVEL_STATEMENTS, "PO_NO_TOP_LEVEL_STATEMENTS");
     doMap(PO_NO_CLASS_DEFS, "PO_NO_CLASS_DEFS");
     doMap(PO_NO_NAMESPACE_DEFS, "PO_NO_NAMESPACE_DEFS");
@@ -95,29 +102,29 @@ ParseOptionMaps::ParseOptionMaps() {
     doMap(PO_NO_INHERIT_SYSTEM_CLASSES, "PO_NO_INHERIT_SYSTEM_CLASSES");
     doMap(PO_NO_INHERIT_USER_CLASSES, "PO_NO_INHERIT_USER_CLASSES");
     doMap(PO_NO_CHILD_PO_RESTRICTIONS, "PO_NO_CHILD_PO_RESTRICTIONS");
-    doMap(PO_NO_EXTERNAL_PROCESS, "PO_NO_EXTERNAL_PROCESS");
+    doMap(PO_NO_EXTERNAL_PROCESS, "PO_NO_EXTERNAL_PROCESS", "EXTERNAL_PROCESS");
     doMap(PO_REQUIRE_OUR, "PO_REQUIRE_OUR");
-    doMap(PO_NO_PROCESS_CONTROL, "PO_NO_PROCESS_CONTROL");
-    doMap(PO_NO_NETWORK, "PO_NO_NETWORK");
-    doMap(PO_NO_FILESYSTEM, "PO_NO_FILESYSTEM");
+    doMap(PO_NO_PROCESS_CONTROL, "PO_NO_PROCESS_CONTROL", "PROCESS_CONTROL");
+    doMap(PO_NO_NETWORK, "PO_NO_NETWORK", "NETWORK");
+    doMap(PO_NO_FILESYSTEM, "PO_NO_FILESYSTEM", "FILESYSTEM");
     doMap(PO_LOCK_WARNINGS, "PO_LOCK_WARNINGS");
-    doMap(PO_NO_DATABASE, "PO_NO_DATABASE");
-    doMap(PO_NO_GUI, "PO_NO_GUI");
-    doMap(PO_NO_TERMINAL_IO, "PO_NO_TERMINAL_IO");
+    doMap(PO_NO_DATABASE, "PO_NO_DATABASE", "DATABASE");
+    doMap(PO_NO_GUI, "PO_NO_GUI", "GUI");
+    doMap(PO_NO_TERMINAL_IO, "PO_NO_TERMINAL_IO", "TERMINAL_IO");
     doMap(PO_REQUIRE_TYPES, "PO_REQUIRE_TYPES");
-    doMap(PO_NO_EXTERNAL_INFO, "PO_NO_EXTERNAL_INFO");
-    doMap(PO_NO_THREAD_INFO, "PO_NO_THREAD_INFO");
-    doMap(PO_NO_LOCALE_CONTROL, "PO_NO_LOCALE_CONTROL");
+    doMap(PO_NO_EXTERNAL_INFO, "PO_NO_EXTERNAL_INFO", "EXTERNAL_INFO");
+    doMap(PO_NO_THREAD_INFO, "PO_NO_THREAD_INFO", "THREAD_INFO");
+    doMap(PO_NO_LOCALE_CONTROL, "PO_NO_LOCALE_CONTROL", "LOCALE_CONTROL");
     doMap(PO_REQUIRE_PROTOTYPES, "PO_REQUIRE_PROTOTYPES");
     doMap(PO_STRICT_ARGS, "PO_STRICT_ARGS");
     //doMap(PO_REQUIRE_BARE_REFS, "PO_REQUIRE_BARE_REFS");
     doMap(PO_ASSUME_LOCAL, "PO_ASSUME_LOCAL");
-    doMap(PO_NO_MODULES, "PO_NO_MODULES");
+    doMap(PO_NO_MODULES, "PO_NO_MODULES", "MODULE");
     doMap(PO_NO_INHERIT_USER_FUNC_VARIANTS, "PO_NO_INHERIT_USER_FUNC_VARIANTS");
     doMap(PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS, "PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS");
     doMap(PO_NO_INHERIT_GLOBAL_VARS, "PO_NO_INHERIT_GLOBAL_VARS");
     doMap(PO_IN_MODULE, "PO_IN_MODULE");
-    doMap(PO_NO_EMBEDDED_LOGIC, "PO_NO_EMBEDDED_LOGIC");
+    doMap(PO_NO_EMBEDDED_LOGIC, "PO_NO_EMBEDDED_LOGIC", "EMBEDDED_LOGIC");
     doMap(PO_STRICT_BOOLEAN_EVAL, "PO_STRICT_BOOLEAN_EVAL");
     doMap(PO_DEFAULT, "PO_DEFAULT");
     //doMap(PO_SYSTEM_OPS, "PO_SYSTEM_OPS");
@@ -127,39 +134,102 @@ ParseOptionMaps::ParseOptionMaps() {
     doMap(PO_NO_IO, "PO_NO_IO");
     doMap(PO_LOCKDOWN, "PO_LOCKDOWN");
     doMap(PO_NEW_STYLE, "PO_NEW_STYLE");
-    doMap(PO_ALLOW_INJECTION, "PO_ALLOW_INJECTION");
+    doMap(PO_ALLOW_INJECTION, "PO_ALLOW_INJECTION", "INJECTION");
     doMap(PO_NO_INHERIT_SYSTEM_CONSTANTS, "PO_NO_INHERIT_SYSTEM_CONSTANTS");
     doMap(PO_NO_INHERIT_USER_CONSTANTS, "PO_NO_INHERIT_USER_CONSTANTS");
     doMap(PO_BROKEN_LIST_PARSING, "PO_BROKEN_LIST_PARSING");
     doMap(PO_BROKEN_LOGIC_PRECEDENCE, "PO_BROKEN_LOGIC_PRECEDENCE");
     doMap(PO_BROKEN_LOOP_STATEMENT, "PO_BROKEN_LOOP_STATEMENT");
     doMap(PO_BROKEN_REFERENCES, "PO_BROKEN_REFERENCES");
+    doMap(PO_NO_UNCONTROLLED_APIS, "PO_NO_UNCONTROLLED_APIS", "UNCONTROLLED_API");
     doMap(PO_NO_DEBUGGING, "PO_NO_DEBUGGING");
-    doMap(PO_ALLOW_DEBUGGER, "PO_ALLOW_DEBUGGER");
+    doMap(PO_ALLOW_DEBUGGER, "PO_ALLOW_DEBUGGER", "DEBUGGER");
 }
 
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
-    QoreHashNode* h = new QoreHashNode;
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(stringTypeInfo), nullptr);
 
     QoreString key;
-    for (pomap_t::const_iterator i = pomap.begin(), e = pomap.end(); i != e; ++i) {
+    for (auto& i : pomap) {
         key.clear();
-        key.sprintf(QLLD, i->first);
-        h->setKeyValue(key.c_str(), new QoreStringNode(i->second), 0);
+        key.sprintf(QLLD, i.first);
+        h->setKeyValue(key.c_str(), new QoreStringNode(i.second), nullptr);
     }
 
-    return h;
+    return h.release();
 }
 
 QoreHashNode* ParseOptionMaps::getStringToCodeMap() const {
-    QoreHashNode* h = new QoreHashNode;
-    qore_hash_private* ph = qore_hash_private::get(*h);
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(bigIntTypeInfo), nullptr);
+    qore_hash_private* ph = qore_hash_private::get(**h);
 
     for (auto& i : pormap) {
         ph->setKeyValueIntern(i.first, i.second);
     }
 
-    return h;
+    return h.release();
+}
+
+QoreHashNode* ParseOptionMaps::getDomainToStringMap() const {
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(stringTypeInfo), nullptr);
+
+    QoreString key;
+    for (auto& i : dommap) {
+        key.clear();
+        key.sprintf(QLLD, i.first);
+        h->setKeyValue(key.c_str(), new QoreStringNode(i.second), nullptr);
+    }
+
+    return h.release();
+}
+
+QoreHashNode* ParseOptionMaps::getStringToDomainMap() const {
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(bigIntTypeInfo), nullptr);
+    qore_hash_private* ph = qore_hash_private::get(**h);
+
+    for (auto& i : domrmap) {
+        ph->setKeyValueIntern(i.first, i.second);
+    }
+
+    return h.release();
+}
+
+QoreListNode* parse_option_bitfield_to_string_list(int64 i, ExceptionSink* xsink) {
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+
+    for (int p = 0; p < 64; ++p) {
+        int64 v = (i & (1ll << p));
+        if (v) {
+            ParseOptionMaps::pomap_t::const_iterator pi = pomaps.pomap.find(v);
+            if (pi == pomaps.pomap.end()) {
+                xsink->raiseException("PARSE-OPTION-ERROR", "bit position %d (value: " QLLD ") is set in the value but is not a valid parse option bit", p, v);
+                return nullptr;
+            }
+
+            rv->push(new QoreStringNode(pi->second), xsink);
+        }
+    }
+
+    return rv.release();
+}
+
+QoreListNode* domain_bitfield_to_string_list(int64 i, ExceptionSink* xsink) {
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+
+    for (int p = 0; p < 64; ++p) {
+        int64 v = (i & (1ll << p));
+        if (v) {
+            ParseOptionMaps::pomap_t::const_iterator pi = pomaps.dommap.find(v);
+            if (pi == pomaps.dommap.end()) {
+                xsink->raiseException("DOMAIN-ERROR", "bit position %d (value: " QLLD ") is set in the value but is not a valid domain bit", p, v);
+                return nullptr;
+            }
+
+            rv->push(new QoreStringNode(pi->second), xsink);
+        }
+    }
+
+    return rv.release();
 }
 
 //public symbols

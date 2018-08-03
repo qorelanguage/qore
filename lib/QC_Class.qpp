@@ -75,19 +75,19 @@ QoreObject* get_method(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* 
 */
 //@{
 //! describes public access
-/** Equivalent to @ref Qore::MC_Public
+/** Equivalent to @ref Qore::MC_PUBLIC
 */
-const AC_Public = MC_Public;
+const AC_PUBLIC = MC_PUBLIC;
 
 //! describes private access; accessible from anywhere in a class hierarchy (similar to \c protected in C++ and Java)
-/** Equivalent to @ref Qore::MC_Private
+/** Equivalent to @ref Qore::MC_PRIVATE
 */
-const AC_Private = MC_Private;
+const AC_PRIVATE = MC_PRIVATE;
 
 //! describes internal private access; only accessible from the same class where the definition is made (similar to \c private in C++ and Java)
-/** Equivalent to @ref Qore::MC_PrivateInternal
+/** Equivalent to @ref Qore::MC_PRIVATEINTERNAL
 */
-const AC_PrivateInternal = MC_PrivateInternal;
+const AC_PRIVATEINTERNAL = MC_PRIVATEINTERNAL;
 //@}
 
 /** @defgroup modifier_constants Modifier Constants
@@ -97,44 +97,164 @@ const AC_PrivateInternal = MC_PrivateInternal;
 */
 //@{
 //! describes public access
-/** Equivalent to @ref Qore::AC_Public
+/** Equivalent to @ref Qore::AC_PUBLIC
 */
-const MC_Public = MC_Public;
+const MC_PUBLIC = MC_PUBLIC;
 
 //! describes private access; accessible from anywhere in a class hierarchy (similar to \c protected in C++ and Java)
-/** Equivalent to @ref Qore::AC_Private
+/** Equivalent to @ref Qore::AC_PRIVATE
 */
-const MC_Private = MC_Private;
+const MC_PRIVATE = MC_PRIVATE;
 
 //! describes internal private access; only accessible from the same class where the definition is made (similar to \c private in C++ and Java)
-/** Equivalent to @ref Qore::AC_PrivateInternal
+/** Equivalent to @ref Qore::AC_PRIVATEINTERNAL
 */
-const MC_PrivateInternal = MC_PrivateInternal;
+const MC_PRIVATEINTERNAL = MC_PRIVATEINTERNAL;
 
 //! describes abstract classes and method variants
-const MC_Abstract = MC_Abstract;
+const MC_ABSTRACT = MC_ABSTRACT;
 
 //! describes static methods and method variants
-const MC_Static = MC_Static;
+const MC_STATIC = MC_STATIC;
 
 //! describes synchronized variants
-const MC_Synchronized = MC_Synchronized;
+const MC_SYNCHRONIZED = MC_SYNCHRONIZED;
 
 //! describes deprecated functionality
-const MC_Deprecated = MC_Deprecated;
+const MC_DEPRECATED = MC_DEPRECATED;
 
 //! describes injected functionality or declarations
-const MC_Injected = MC_Injected;
+const MC_INJECTED = MC_INJECTED;
 
 //! describes builtin code
-/** @ref Qore::MC_Builtin "MC_Builtin" and @ref Qore::MC_User "MC_User" are mutually exclusive
+/** @ref Qore::MC_BUILTIN "MC_BUILTIN" and @ref Qore::MC_USER "MC_USER" are mutually exclusive
 */
-const MC_Builtin = MC_Builtin;
+const MC_BUILTIN = MC_BUILTIN;
 
 //! describes user code
-/** @ref Qore::MC_Builtin "MC_Builtin" and @ref Qore::MC_User "MC_User" are mutually exclusive
+/** @ref Qore::MC_BUILTIN "MC_BUILTIN" and @ref Qore::MC_USER "MC_USER" are mutually exclusive
 */
-const MC_User = MC_User;
+const MC_USER = MC_USER;
+//@}
+
+/** @defgroup functional_domain_constants Functional Domain Constants
+    Constants providing values for functional domains; each constant is a unique element of a bitfield
+
+    @since %Qore 0.9.0
+*/
+//@{
+//!< provides process control functionality (can affect or stop the current process)
+/** @see
+    - @ref Qore::PO_NO_PROCESS_CONTROL "PO_NO_PROCESS_CONTROL"
+    - @ref no-process-control
+*/
+const DOM_PROCESS_CONTROL = QDOM_PROCESS;
+
+//! provides network functionality
+/** @see
+    - @ref Qore::PO_NO_NETWORK "PO_NO_NETWORK"
+    - @ref no-network
+*/
+const DOM_NETWORK = QDOM_NETWORK;
+
+//! provides external process control functionality (can affect) start) or stop external processes)
+/** @see
+    - @ref Qore::PO_NO_EXTERNAL_PROCESS "PO_NO_EXTERNAL_PROCESS"
+    - @ref no-external-process
+*/
+const DOM_EXTERNAL_PROCESS = QDOM_EXTERNAL_PROCESS;
+
+//! provides access to the filesystem
+/** @see
+    - @ref Qore::PO_NO_FILESYSTEM "PO_NO_FILESYSTEM"
+    - @ref no-filesystem
+*/
+const DOM_FILESYSTEM = QDOM_FILESYSTEM;
+
+//! provides thread control functionality
+/** @see
+    - @ref Qore::PO_NO_THREAD_CLASSES "PO_NO_THREAD_CLASSES"
+    - @ref no-thread-classes
+*/
+const DOM_THREAD_CLASS = QDOM_THREAD_CLASS;
+
+//! provides the ability to check or manipulate threads (including starting new threads)
+/** @see
+    - @ref Qore::PO_NO_THREAD_CONTROL "PO_NO_THREAD_CONTROL"
+    - @ref no-thread-control
+*/
+const DOM_THREAD_CONTROL = QDOM_THREAD_CONTROL;
+
+//! provides access to databases
+/** @see
+    - @ref Qore::PO_NO_DATABASE "PO_NO_DATABASE"
+    - @ref no-database
+*/
+const DOM_DATABASE = QDOM_DATABASE;
+
+//! provides GUI functionality
+/** @see
+    - @ref Qore::PO_NO_GUI "PO_NO_GUI"
+    - @ref no-gui
+*/
+const DOM_GUI = QDOM_GUI;
+
+//! provides terminal I/O functionality
+/** @see
+    - @ref Qore::PO_NO_TERMINAL_IO "PO_NO_TERMINAL_IO"
+    - @ref no-terminal-io
+*/
+const DOM_TERMINAL_IO = QDOM_TERMINAL_IO;
+
+//! provides access to external information (ex: hostname, pid, process uid, etc)
+/** @see
+    - @ref Qore::PO_NO_EXTERNAL_INFO "PO_NO_EXTERNAL_INFO"
+    - @ref no-external-info
+*/
+const DOM_EXTERNAL_INFO = QDOM_EXTERNAL_INFO;
+
+//! provides access to information regarding threading (tid, active threads, etc)
+/** @see
+    - @ref Qore::PO_NO_THREAD_INFO "PO_NO_THREAD_INFO"
+    - @ref no-thread-info
+*/
+const DOM_THREAD_INFO = QDOM_THREAD_INFO;
+
+//! provides access to functionality that changes locale information
+/** @see
+    - @ref Qore::PO_NO_LOCALE_CONTROL "PO_NO_LOCALE_CONTROL"
+    - @ref no-locale-control
+*/
+const DOM_LOCALE_CONTROL = QDOM_LOCALE_CONTROL;
+
+//! provides access to external modules
+/** @see
+    - @ref Qore::PO_NO_MODULES "PO_NO_MODULES"
+    - @ref no-modules
+*/
+const DOM_MODULE = QDOM_MODULES;
+
+//! provides dynamic parsing functionality
+/** @see @ref Qore::PO_NO_EMBEDDED_LOGIC "PO_NO_EMBEDDED_LOGIC"
+*/
+const DOM_EMBEDDED_LOGIC = QDOM_EMBEDDED_LOGIC;
+
+//! provides functionality related to code / dependency injection
+/** @see @ref Qore::PO_ALLOW_INJECTION "PO_ALLOW_INJECTION"
+*/
+const DOM_INJECTION = QDOM_INJECTION;
+
+//! provides unchecked access to system functionality that could bypass Qore's sandboxing controls
+/** @see
+    - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS"
+    - @ref no-uncontrolled-apis
+*/
+const DOM_UNCONTROLLED_API = QDOM_UNCONTROLLED_API;
+
+//! provides debugging functionality
+/** @see @ref Qore::PO_ALLOW_DEBUGGER "PO_ALLOW_DEBUGGER"
+*/
+const DOM_DEBUGGER = QDOM_DEBUGGER;
 //@}
 
 //! class and inheritance access information
@@ -234,19 +354,19 @@ string Class::getPathName() [flags=RET_VALUE_ONLY] {
     return rv.release();
 }
 
-//! returns a bitfield of modifiers describing the class
+//! returns a bitfield of @ref modifier_constants "modifiers" describing the class
 /** @par Example:
     @code{.py}
 int i = cls.getModifiers();
     @endcode
 
-    @return a bitfield of modifiers describing the class; possible values are:
-    - @ref Qore::MC_Abstract "MC_Abstract": the class is @ref abstract
-    - @ref Qore::MC_Builtin "MC_Builtin": the class is builtin
-    - @ref Qore::MC_Final "MC_Final": the class has the @ref final_classes "final flag" set
-    - @ref Qore::MC_Injected "MC_Injected": the class has been @ref allow-injection "injected" into the current @ref Qore::Program "Program" container
-    - @ref Qore::MC_Public "MC_Public": the class has the @ref mod_public "module public" flag set (not related to any inheritance properties in a class hierarchy)
-    - @ref Qore::MC_User "MC_User": the class is a user class
+    @return a bitfield of @ref modifier_constants "modifiers" describing the class; possible values are:
+    - @ref Qore::MC_ABSTRACT "MC_ABSTRACT": the class is @ref abstract
+    - @ref Qore::MC_BUILTIN "MC_BUILTIN": the class is builtin
+    - @ref Qore::MC_FINAL "MC_FINAL": the class has the @ref final_classes "final flag" set
+    - @ref Qore::MC_INJECTED "MC_INJECTED": the class has been @ref allow-injection "injected" into the current @ref Qore::Program "Program" container
+    - @ref Qore::MC_PUBLIC "MC_PUBLIC": the class has the @ref mod_public "module public" flag set (not related to any inheritance properties in a class hierarchy)
+    - @ref Qore::MC_USER "MC_USER": the class is a user class
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
@@ -261,22 +381,22 @@ int Class::getModifiers() [flags=RET_VALUE_ONLY] {
     int64 rc = 0;
     const qore_class_private* qc = qore_class_private::get(*c->cls);
     if (qc->hasAbstract()) {
-        rc |= MC_Abstract;
+        rc |= MC_ABSTRACT;
     }
     if (qc->pub) {
-        rc |= MC_Public;
+        rc |= MC_PUBLIC;
     }
     if (qc->final) {
-        rc |= MC_Final;
+        rc |= MC_FINAL;
     }
     if (qc->inject) {
-        rc |= MC_Injected;
+        rc |= MC_INJECTED;
     }
     if (c->cls->isSystem()) {
-        rc |= MC_Builtin;
+        rc |= MC_BUILTIN;
     }
     else {
-        rc |= MC_User;
+        rc |= MC_USER;
     }
 
     return rc;
@@ -337,6 +457,44 @@ bool Class::isAbstract() [flags=RET_VALUE_ONLY] {
 
     // the class ptr must be valid
     return c->cls->hasAbstract();
+}
+
+//! returns @ref True if the class was injected as a dependency injection
+/** @par Example:
+    @code{.py}
+bool b = cls.isInjected();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::isInjected() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return qore_class_private::get(*c->cls)->inject;
+}
+
+//! returns @ref True if the class has the @ref mod_public "module public" flag set
+/** @par Example:
+    @code{.py}
+bool b = cls.isModulePublic();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::isModulePublic() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return qore_class_private::get(*c->cls)->pub;
 }
 
 //! returns the internal ID of the class which is only valid for the current execution session
@@ -451,13 +609,17 @@ bool Class::hasMemberNotification() [flags=RET_VALUE_ONLY] {
     return c->cls->hasMemberNotification();
 }
 
-//! returns the functional domain of the class
+//! returns the functional domain of the class (for builtin classes only) as a bitfield of @ref functional_domain_constants
 /** @par Example:
     @code{.py}
 int i = cls.getDomain();
     @endcode
 
+    @return the functional domain of the class (for builtin classes only) as a bitfield of @ref functional_domain_constants
+
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @note user classes always return 0 here; a value is only returned by builtin classes
 */
 int Class::getDomain() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -468,6 +630,29 @@ int Class::getDomain() [flags=RET_VALUE_ONLY] {
 
     // the class ptr must be valid
     return c->cls->getDomain64();
+}
+
+//! returns a list of functional domain strings for the class (for builtin classes only); an empty list is returned for user classes
+/** @par Example:
+    @code{.py}
+list<string> l = cls.getDomainStringList();
+    @endcode
+
+    @return a list of functional domain strings for the class (for builtin classes only)
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @note user classes always return an empty list here
+*/
+list<string> Class::getDomainStringList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return domain_bitfield_to_string_list(c->cls->getDomain64(), xsink);
 }
 
 //! returns @ref True if the class has at least one constructor method variant

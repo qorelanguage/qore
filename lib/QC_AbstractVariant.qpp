@@ -46,23 +46,23 @@ AbstractVariant::constructor() {
    xsink->raiseException("ABSTRACVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
-//! returns a bitfield of modifiers describing the variant
+//! returns a bitfield of @ref modifier_constants "modifiers" describing the variant
 /** @par Example:
     @code{.py}
 int i = v.getModifiers();
     @endcode
 
-    @return a bitfield of modifiers describing the variant; possible values are:
-    - @ref Qore::MC_Abstract "MC_Abstract": the variant is @ref abstract
-    - @ref Qore::MC_Builtin "MC_Builtin": the variant is builtin
-    - @ref Qore::MC_Final "MC_Final": the variant has the @ref final_classes "final flag" set
-    - @ref Qore::MC_Injected "MC_Injected": the class has been @ref allow-injection "injected" into the current @ref Qore::Program "Program" container
-    - @ref Qore::MC_Private "MC_Private": (only returned for method variants) gives the accessibility of the variant
-    - @ref Qore::MC_PrivateInternal "MC_PrivateInternal": (only returned for method variants) gives the accessibility of the variant
-    - @ref Qore::MC_Public "MC_Public": for functions, the variant has the @ref mod_public "module public" flag set on the class or the function (not related to any inheritance properties in a class hierarchy), for method variants, this gives the accessibility of the variant
-    - @ref Qore::MC_Static "MC_Static": the variant is a static method variant
-    - @ref Qore::MC_Synchronized "MC_Synchronized": the variant is synchronized
-    - @ref Qore::MC_User "MC_User": the variant is a user variant
+    @return a bitfield of @ref modifier_constants "modifiers" describing the variant; possible values are:
+    - @ref Qore::MC_ABSTRACT "MC_ABSTRACT": the variant is @ref abstract
+    - @ref Qore::MC_BUILTIN "MC_BUILTIN": the variant is builtin
+    - @ref Qore::MC_FINAL "MC_FINAL": the variant has the @ref final_classes "final flag" set
+    - @ref Qore::MC_INJECTED "MC_INJECTED": the class has been @ref allow-injection "injected" into the current @ref Qore::Program "Program" container
+    - @ref Qore::MC_PRIVATE "MC_PRIVATE": (only returned for method variants) gives the accessibility of the variant
+    - @ref Qore::MC_PRIVATEINTERNAL "MC_PRIVATEINTERNAL": (only returned for method variants) gives the accessibility of the variant
+    - @ref Qore::MC_PUBLIC "MC_PUBLIC": for functions, the variant has the @ref mod_public "module public" flag set on the class or the function (not related to any inheritance properties in a class hierarchy), for method variants, this gives the accessibility of the variant
+    - @ref Qore::MC_STATIC "MC_STATIC": the variant is a static method variant
+    - @ref Qore::MC_SYNCHRONIZED "MC_SYNCHRONIZED": the variant is synchronized
+    - @ref Qore::MC_USER "MC_USER": the variant is a user variant
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
@@ -78,36 +78,36 @@ int AbstractVariant::getModifiers() [flags=RET_VALUE_ONLY] {
     if (v->variant->getClass()) {
         const MethodVariantBase* mvb = static_cast<const MethodVariantBase*>(v->variant);
         if (mvb->isAbstract()) {
-            rc |= MC_Abstract;
+            rc |= MC_ABSTRACT;
         }
         if (mvb->isFinal()) {
-            rc |= MC_Final;
+            rc |= MC_FINAL;
         }
         rc |= get_access(mvb->getAccess());
         const QoreMethod* m = mvb->method();
         if (m->isStatic()) {
-            rc |= MC_Static;
+            rc |= MC_STATIC;
         }
     }
     else {
         if (v->variant->isModulePublic()) {
-            rc |= MC_Public;
+            rc |= MC_PUBLIC;
         }
     }
 
     const UserVariantBase* uvb = v->variant->getUserVariantBase();
     if (uvb && uvb->isSynchronized()) {
-        rc |= MC_Synchronized;
+        rc |= MC_SYNCHRONIZED;
     }
 
     if (v->f->injected()) {
-        rc |= MC_Injected;
+        rc |= MC_INJECTED;
     }
     if (v->variant->isUser()) {
-        rc |= MC_User;
+        rc |= MC_USER;
     }
     else {
-        rc |= MC_Builtin;
+        rc |= MC_BUILTIN;
     }
 
     return rc;
@@ -130,7 +130,54 @@ AbstractFunction AbstractVariant::getFunction() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
+    // the variant ptr must be valid
     return v->getFunctionObject(xsink);
+}
+
+//! returns the functional domain of the variant (for builtin variants only) as a bitfield of @ref functional_domain_constants
+/** @par Example:
+    @code{.py}
+int i = v.getDomain();
+    @endcode
+
+    @return the functional domain of the variant (for builtin variants only) as a bitfield of @ref functional_domain_constants
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note user variants always return 0 here; a value is only returned by builtin variants
+*/
+int AbstractVariant::getDomain() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return v->getDomain();
+}
+
+//! returns a list of functional domain strings for the variant (for builtin variants only); an empty list is returned for user variants
+/** @par Example:
+    @code{.py}
+list<string> l = v.getDomainStringList();
+    @endcode
+
+    @return a list of functional domain strings for the variant (for builtin variants only)
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note user variants always return an empty list here
+*/
+list<string> AbstractVariant::getDomainStringList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return domain_bitfield_to_string_list(v->getDomain(), xsink);
 }
 
 //! returns @ref True if the variant is a builtin variant
