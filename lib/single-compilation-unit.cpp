@@ -355,7 +355,7 @@
 #include "QC_AbstractMethodVariant.cpp"
 #include "QC_NormalMethodVariant.cpp"
 #include "QC_StaticMethodVariant.cpp"
-#include "QC_AbstractFunction.cpp"
+#include "QC_AbstractReflectionFunction.cpp"
 #include "QC_AbstractMethod.cpp"
 #include "QC_NormalMethod.cpp"
 #include "QC_StaticMethod.cpp"

@@ -36,7 +36,7 @@
 
     @since %Qore 0.9.0
  */
-qclass AbstractMethodVariant [arg=QoreReflectionVariant* v; ns=Qore; vparent=AbstractVariant];
+qclass AbstractMethodVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; vparent=AbstractVariant];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
 /** @throw ABSTRACTMETHODVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)

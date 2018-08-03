@@ -33,15 +33,18 @@
     - the default thread stack size was changed from 8MB to 512KB resulting in a large reduction in the total
       memory used in programs with many threads (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
     - reflection API:
-      - @ref Qore::Class "Class"
-      - @ref Qore::AbstractFunction "AbstractFunction"
-      - @ref Qore::AbstractMethod "AbstractMethod"
-      - @ref Qore::AbstractVariant "AbstractVariant"
-      - @ref Qore::ConstructorMethod "ConstructorMethod"
-      - @ref Qore::CopyMethod "CopyMethod"
-      - @ref Qore::DestructorMethod "DestructorMethod"
-      - @ref Qore::NormalMethod "NormalMethod"
-      - @ref Qore::StaticMethod "StaticMethod"
+      - @ref Qore::Reflection::Class "Class"
+      - @ref Qore::Reflection::AbstractReflectionFunction "AbstractReflectionFunction"
+      - @ref Qore::Reflection::AbstractMethod "AbstractMethod"
+      - @ref Qore::Reflection::AbstractMethodVariant "AbstractMethodVariant"
+      - @ref Qore::Reflection::AbstractVariant "AbstractVariant"
+      - @ref Qore::Reflection::ConstructorMethod "ConstructorMethod"
+      - @ref Qore::Reflection::CopyMethod "CopyMethod"
+      - @ref Qore::Reflection::DestructorMethod "DestructorMethod"
+      - @ref Qore::Reflection::NormalMethod "NormalMethod"
+      - @ref Qore::Reflection::NormalMethodVariant "NormalMethodVariant"
+      - @ref Qore::Reflection::StaticMethod "StaticMethod"
+      - @ref Qore::Reflection::StaticMethodVariant "StaticMethodVariant"
       - <object>::getClass()
     - new classes (in addition to the reflection API):
       - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"

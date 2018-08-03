@@ -162,7 +162,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_AbstractMethodVariant.qpp
     lib/QC_NormalMethodVariant.qpp
     lib/QC_StaticMethodVariant.qpp
-    lib/QC_AbstractFunction.qpp
+    lib/QC_AbstractReflectionFunction.qpp
     lib/QC_AbstractMethod.qpp
     lib/QC_NormalMethod.qpp
     lib/QC_StaticMethod.qpp

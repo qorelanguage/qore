@@ -33,7 +33,7 @@
 #define _QORE_INTERN_QC_ABSTRACTVARIANT_H
 
 #include "qore/intern/AbstractReflectionObject.h"
-#include "qore/intern/QC_AbstractFunction.h"
+#include "qore/intern/QC_AbstractReflectionFunction.h"
 
 // forward references
 class AbstractQoreFunctionVariant;

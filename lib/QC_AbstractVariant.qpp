@@ -28,7 +28,7 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QC_AbstractVariant.h"
-#include "qore/intern/QC_AbstractFunction.h"
+#include "qore/intern/QC_AbstractReflectionFunction.h"
 #include "qore/intern/Function.h"
 
 //! The abstract base class for %Qore class variants
@@ -37,7 +37,7 @@
 
     @since %Qore 0.9.0
  */
-qclass AbstractVariant [arg=QoreReflectionVariant* v; ns=Qore];
+qclass AbstractVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
 /** @throw ABSTRACVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
@@ -116,14 +116,14 @@ int AbstractVariant::getModifiers() [flags=RET_VALUE_ONLY] {
 //! Returns the abstract function object that contains the variant
 /** @par Example:
     @code{.py}
-AbstractFunction f = v.getFunction();
+AbstractReflectionFunction f = v.getFunction();
     @endcode
 
     @return the abstract function object that contains the variant
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
-AbstractFunction AbstractVariant::getFunction() [flags=RET_VALUE_ONLY] {
+AbstractReflectionFunction AbstractVariant::getFunction() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
     if (*xsink) {

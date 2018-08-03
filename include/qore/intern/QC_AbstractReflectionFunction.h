@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractFunction.h QC_AbstractFunction class definition */
+/** @file QC_AbstractReflectionFunction.h QC_AbstractReflectionFunction class definition */
 /*
     Qore Programming Language
 
@@ -28,9 +28,9 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_ABSTRACTFUNCTION_H
+#ifndef _QORE_INTERN_QC_ABSTRACTREFLECTIONFUNCTION_H
 
-#define _QORE_INTERN_QC_ABSTRACTFUNCTION_H
+#define _QORE_INTERN_QC_ABSTRACTREFLECTIONFUNCTION_H
 
 #include "qore/intern/AbstractReflectionObject.h"
 
@@ -50,10 +50,10 @@ public:
 };
 
 
-DLLEXPORT extern qore_classid_t CID_ABSTRACTFUNCTION;
-DLLLOCAL extern QoreClass* QC_ABSTRACTFUNCTION;
+DLLEXPORT extern qore_classid_t CID_ABSTRACTREFLECTIONFUNCTION;
+DLLLOCAL extern QoreClass* QC_ABSTRACTREFLECTIONFUNCTION;
 
-DLLLOCAL void preinitAbstractFunctionClass();
-DLLLOCAL QoreClass* initAbstractFunctionClass(QoreNamespace& ns);
+DLLLOCAL void preinitAbstractReflectionFunctionClass();
+DLLLOCAL QoreClass* initAbstractReflectionFunctionClass(QoreNamespace& ns);
 
 #endif

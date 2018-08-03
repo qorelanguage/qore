@@ -81,7 +81,7 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_AbstractMethodVariant.cpp \
 	QC_NormalMethodVariant.cpp \
 	QC_StaticMethodVariant.cpp \
-	QC_AbstractFunction.cpp \
+	QC_AbstractReflectionFunction.cpp \
 	QC_AbstractMethod.cpp \
 	QC_NormalMethod.cpp \
 	QC_StaticMethod.cpp \

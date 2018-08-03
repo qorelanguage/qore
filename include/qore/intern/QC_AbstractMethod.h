@@ -33,7 +33,7 @@
 #define _QORE_INTERN_QC_ABSTRACTMETHOD_H
 
 #include "qore/intern/AbstractReflectionObject.h"
-#include "qore/intern/QC_AbstractFunction.h"
+#include "qore/intern/QC_AbstractReflectionFunction.h"
 
 //! method type enum
 enum method_type_e {

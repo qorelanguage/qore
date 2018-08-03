@@ -36,7 +36,7 @@
 //! This class provides information about %Qore normal (non-static, non-special) class methods
 /** @since %Qore 0.9.0
  */
-qclass NormalMethod [arg=QoreReflectionMethod* m; ns=Qore; vparent=AbstractMethod];
+qclass NormalMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod];
 
 //! Creates the object from the class and normal (non-static, non-special) method name
 /** @par Example:

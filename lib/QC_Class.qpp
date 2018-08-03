@@ -275,7 +275,7 @@ hashdecl ClassAccessInfo {
 //! This class provides information about %Qore classes
 /** @since %Qore 0.9.0
  */
-qclass Class [arg=QoreReflectionClass* c; ns=Qore];
+qclass Class [ns=Qore::Reflection; arg=QoreReflectionClass* c];
 
 //! Creates the object from the class name or namespace-justified path as a string
 /** @par Example:

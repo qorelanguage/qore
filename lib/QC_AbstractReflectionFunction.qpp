@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractFunction.qpp Function class definition */
+/** @file QC_AbstractReflectionFunction.qpp Function class definition */
 /*
     Qore Programming Language
 
@@ -30,7 +30,7 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QoreClassIntern.h"
-#include "qore/intern/QC_AbstractFunction.h"
+#include "qore/intern/QC_AbstractReflectionFunction.h"
 #include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/QC_AbstractVariant.h"
 #include "qore/intern/QC_NormalMethodVariant.h"
@@ -75,13 +75,13 @@ QoreObject* QoreReflectionFunction::getVariantObject(const AbstractQoreFunctionV
 
     @since %Qore 0.9.0
  */
-qclass AbstractFunction [arg=QoreReflectionFunction* f; ns=Qore];
+qclass AbstractReflectionFunction [ns=Qore::Reflection; arg=QoreReflectionFunction* f];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
-/** @throw ABSTRACTFUNCTION-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+/** @throw ABSTRACTREFLECTIONFUNCTION-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
  */
-AbstractFunction::constructor() {
-   xsink->raiseException("ABSTRACTFUNCTION-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+AbstractReflectionFunction::constructor() {
+   xsink->raiseException("ABSTRACTREFLECTIONFUNCTION-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
 //! returns the function or method name
@@ -94,7 +94,7 @@ string name = f.getName();
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
  */
-string AbstractFunction::getName() [flags=RET_VALUE_ONLY] {
+string AbstractReflectionFunction::getName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
     if (*xsink) {
@@ -117,7 +117,7 @@ bool b = f.isBuiltin();
 
     @note complementary to @ref isUser()
 */
-bool AbstractFunction::isBuiltin() [flags=RET_VALUE_ONLY] {
+bool AbstractReflectionFunction::isBuiltin() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
     if (*xsink) {
@@ -140,7 +140,7 @@ bool b = f.isUser();
 
     @note complementary to @ref isBuiltin()
 */
-bool AbstractFunction::isUser() [flags=RET_VALUE_ONLY] {
+bool AbstractReflectionFunction::isUser() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
     if (*xsink) {
@@ -161,7 +161,7 @@ bool b = f.isInjected();
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
-bool AbstractFunction::isInjected() [flags=RET_VALUE_ONLY] {
+bool AbstractReflectionFunction::isInjected() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
     if (*xsink) {
@@ -182,7 +182,7 @@ int n = f.numVariants();
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
-int AbstractFunction::numVariants() [flags=RET_VALUE_ONLY] {
+int AbstractReflectionFunction::numVariants() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
     if (*xsink) {
@@ -203,7 +203,7 @@ list<AbstractVariant> l = f.getVariants();
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
-list<AbstractVariant> AbstractFunction::getVariants() [flags=RET_VALUE_ONLY] {
+list<AbstractVariant> AbstractReflectionFunction::getVariants() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
     if (*xsink) {

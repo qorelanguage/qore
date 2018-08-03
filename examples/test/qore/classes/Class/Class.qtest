@@ -185,7 +185,7 @@ class Test inherits QUnit::Test {
         }
 
         {
-            AbstractFunction f = v.getFunction();
+            AbstractReflectionFunction f = v.getFunction();
             assertEq(m.getName(), f.getName());
         }
 

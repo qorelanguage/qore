@@ -36,7 +36,7 @@
 //! This class provides information about %Qore destructor methods
 /** @since %Qore 0.9.0
  */
-qclass DestructorMethod [arg=QoreReflectionMethod* m; ns=Qore; vparent=AbstractMethod];
+qclass DestructorMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod];
 
 //! Creates the object from the class if the class implements a destructor method
 /** @par Example:

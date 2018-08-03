@@ -67,7 +67,7 @@
 #include "qore/intern/QC_AbstractMethodVariant.h"
 #include "qore/intern/QC_StaticMethodVariant.h"
 #include "qore/intern/QC_NormalMethodVariant.h"
-#include "qore/intern/QC_AbstractFunction.h"
+#include "qore/intern/QC_AbstractReflectionFunction.h"
 #include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/QC_NormalMethod.h"
 #include "qore/intern/QC_StaticMethod.h"
@@ -887,7 +887,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    preinitAbstractMethodVariantClass();
    preinitNormalMethodVariantClass();
    preinitStaticMethodVariantClass();
-   preinitAbstractFunctionClass();
+   preinitAbstractReflectionFunctionClass();
    preinitAbstractMethodClass();
    preinitNormalMethodClass();
    preinitStaticMethodClass();
@@ -987,18 +987,22 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    qns.addSystemClass(initTreeMapClass(qns));
 
    // reflection
-   qns.addSystemClass(initAbstractVariantClass(qns));
-   qns.addSystemClass(initAbstractMethodVariantClass(qns));
-   qns.addSystemClass(initNormalMethodVariantClass(qns));
-   qns.addSystemClass(initStaticMethodVariantClass(qns));
-   qns.addSystemClass(initAbstractFunctionClass(qns));
-   qns.addSystemClass(initAbstractMethodClass(qns));
-   qns.addSystemClass(initNormalMethodClass(qns));
-   qns.addSystemClass(initStaticMethodClass(qns));
-   qns.addSystemClass(initConstructorMethodClass(qns));
-   qns.addSystemClass(initDestructorMethodClass(qns));
-   qns.addSystemClass(initCopyMethodClass(qns));
-   qns.addSystemClass(initClassClass(qns));
+   // set up Reflection namespace
+   QoreNamespace* reflection = new QoreNamespace("Reflection");
+   qns.addSystemClass(initAbstractVariantClass(*reflection));
+   qns.addSystemClass(initAbstractMethodVariantClass(*reflection));
+   qns.addSystemClass(initNormalMethodVariantClass(*reflection));
+   qns.addSystemClass(initStaticMethodVariantClass(*reflection));
+   qns.addSystemClass(initAbstractReflectionFunctionClass(*reflection));
+   qns.addSystemClass(initAbstractMethodClass(*reflection));
+   qns.addSystemClass(initNormalMethodClass(*reflection));
+   qns.addSystemClass(initStaticMethodClass(*reflection));
+   qns.addSystemClass(initConstructorMethodClass(*reflection));
+   qns.addSystemClass(initDestructorMethodClass(*reflection));
+   qns.addSystemClass(initCopyMethodClass(*reflection));
+   qns.addSystemClass(initClassClass(*reflection));
+
+   qore_ns_private::addNamespace(qns, reflection);
 
 #ifdef DEBUG_TESTS
    { // tests
