@@ -170,6 +170,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_DestructorMethod.qpp
     lib/QC_CopyMethod.qpp
     lib/QC_Class.qpp
+    lib/QC_Type.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp
     lib/ql_thread.qpp

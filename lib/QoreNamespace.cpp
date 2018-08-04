@@ -75,6 +75,7 @@
 #include "qore/intern/QC_DestructorMethod.h"
 #include "qore/intern/QC_CopyMethod.h"
 #include "qore/intern/QC_Class.h"
+#include "qore/intern/QC_Type.h"
 
 // functions
 #include "qore/intern/ql_time.h"
@@ -895,6 +896,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    preinitDestructorMethodClass();
    preinitCopyMethodClass();
    preinitClassClass();
+   preinitTypeClass();
 
    // now add hashdecls
    hashdeclStatInfo = init_hashdecl_StatInfo(qns);
@@ -989,18 +991,19 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    // reflection
    // set up Reflection namespace
    QoreNamespace* reflection = new QoreNamespace("Reflection");
-   qns.addSystemClass(initAbstractVariantClass(*reflection));
-   qns.addSystemClass(initAbstractMethodVariantClass(*reflection));
-   qns.addSystemClass(initNormalMethodVariantClass(*reflection));
-   qns.addSystemClass(initStaticMethodVariantClass(*reflection));
-   qns.addSystemClass(initAbstractReflectionFunctionClass(*reflection));
-   qns.addSystemClass(initAbstractMethodClass(*reflection));
-   qns.addSystemClass(initNormalMethodClass(*reflection));
-   qns.addSystemClass(initStaticMethodClass(*reflection));
-   qns.addSystemClass(initConstructorMethodClass(*reflection));
-   qns.addSystemClass(initDestructorMethodClass(*reflection));
-   qns.addSystemClass(initCopyMethodClass(*reflection));
-   qns.addSystemClass(initClassClass(*reflection));
+   reflection->addSystemClass(initAbstractVariantClass(*reflection));
+   reflection->addSystemClass(initAbstractMethodVariantClass(*reflection));
+   reflection->addSystemClass(initNormalMethodVariantClass(*reflection));
+   reflection->addSystemClass(initStaticMethodVariantClass(*reflection));
+   reflection->addSystemClass(initAbstractReflectionFunctionClass(*reflection));
+   reflection->addSystemClass(initAbstractMethodClass(*reflection));
+   reflection->addSystemClass(initNormalMethodClass(*reflection));
+   reflection->addSystemClass(initStaticMethodClass(*reflection));
+   reflection->addSystemClass(initConstructorMethodClass(*reflection));
+   reflection->addSystemClass(initDestructorMethodClass(*reflection));
+   reflection->addSystemClass(initCopyMethodClass(*reflection));
+   reflection->addSystemClass(initClassClass(*reflection));
+   reflection->addSystemClass(initTypeClass(*reflection));
 
    qore_ns_private::addNamespace(qns, reflection);
 

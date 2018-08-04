@@ -320,6 +320,36 @@ string Class::getName() [flags=RET_VALUE_ONLY] {
     return new QoreStringNode(c->cls->getName());
 }
 
+//! Returns @ref True if the Class object passed as an argument is equal to the current object; @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = c1.isEqual(c2);
+    @endcode
+
+    @param cls the class to check with the current object for equality
+
+    @return @ref True if the Class object passed as an argument is equal to the current object; @ref False if not
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool Class::isEqual(Type[QoreReflectionClass] cls) [flags=CONSTANT] {
+    ReferenceHolder<QoreReflectionClass> holder(cls, xsink);
+
+    // get read access to program object
+    ProgramThreadCountContextHelper tch1(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    ProgramThreadCountContextHelper tch2(xsink, cls->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return qore_class_private::get(*c->cls)->equal(*qore_class_private::get(*cls->cls));
+}
+
 //! returns the class's full namespace-justified path name
 /** @par Example:
     @code{.py}
@@ -369,6 +399,8 @@ int i = cls.getModifiers();
     - @ref Qore::MC_USER "MC_USER": the class is a user class
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see @ref getModifierList()
 */
 int Class::getModifiers() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -400,6 +432,56 @@ int Class::getModifiers() [flags=RET_VALUE_ONLY] {
     }
 
     return rc;
+}
+
+//! returns a bitfield of @ref modifier_constants "modifiers" describing the class
+/** @par Example:
+    @code{.py}
+list<stringL l = cls.getModifierList();
+    @endcode
+
+    @return list of strings of modifiers describing the class; possible values are:
+    - \c "abstract": the class is @ref abstract
+    - \c "builtin": the class is builtin
+    - \c "final": the class has the @ref final_classes "final flag" set
+    - \c "injected": the class has been @ref allow-injection "injected" into the current @ref Qore::Program "Program" container
+    - \c "public": the class has the @ref mod_public "module public" flag set (not related to any inheritance properties in a class hierarchy)
+    - \c "user": the class is a user class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see @ref getModifiers()
+*/
+list<string> Class::getModifierList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+    const qore_class_private* qc = qore_class_private::get(*c->cls);
+    if (qc->hasAbstract()) {
+        rv->push(new QoreStringNode("abstract"), xsink);
+    }
+    if (qc->pub) {
+        rv->push(new QoreStringNode("public"), xsink);
+    }
+    if (qc->final) {
+        rv->push(new QoreStringNode("final"), xsink);
+    }
+    if (qc->inject) {
+        rv->push(new QoreStringNode("injected"), xsink);
+    }
+    if (c->cls->isSystem()) {
+        rv->push(new QoreStringNode("builtin"), xsink);
+    }
+    else {
+        rv->push(new QoreStringNode("user"), xsink);
+    }
+
+    return rv.release();
 }
 
 //! returns @ref True if the class is a builtin class

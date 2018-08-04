@@ -84,6 +84,25 @@ AbstractReflectionFunction::constructor() {
    xsink->raiseException("ABSTRACTREFLECTIONFUNCTION-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
+//! Returns @ref True if the function or method objet passed as an argument is equal to the current object; @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = f1.isEqual(f2);
+    @endcode
+
+    @param func the function or method object to check with the current object for equality
+
+    @return @ref True if the object passed as an argument is equal to the current object; @ref False if not
+
+    @note if this method is called on user functions or methods created from the same source code but in different
+    @ref Qore::Program "Program" containers, it will return @ref False
+*/
+bool AbstractReflectionFunction::isEqual(AbstractReflectionFunction[QoreReflectionFunction] func) [flags=CONSTANT] {
+    ReferenceHolder<QoreReflectionFunction> holder(func, xsink);
+
+    return f->f == func->f;
+}
+
 //! returns the function or method name
 /** @par Example:
     @code{.py}

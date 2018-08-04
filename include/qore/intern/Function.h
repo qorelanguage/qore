@@ -102,6 +102,10 @@ public:
         return typeList;
     }
 
+    DLLLOCAL const name_vec_t& getParamNames() const {
+        return names;
+    }
+
     DLLLOCAL QoreValue evalDefaultArg(unsigned i, ExceptionSink* xsink) const {
         assert(i < defaultArgList.size());
         return defaultArgList[i].eval(xsink);

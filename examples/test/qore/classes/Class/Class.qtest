@@ -30,6 +30,7 @@ class Test inherits QUnit::Test {
         assertFalse(c.hasMethodGate());
         assertFalse(c.hasMemberNotification());
         assertEq(MC_BUILTIN, c.getModifiers());
+        assertEq(("builtin",), c.getModifierList());
         assertEq(DOM_THREAD_CLASS, c.getDomain());
         assertEq(("THREAD_CLASS",), c.getDomainStringList());
 
@@ -161,6 +162,7 @@ class Test inherits QUnit::Test {
 
         NormalMethodVariant v = m.getVariants()[0];
         assertEq(MC_PUBLIC | MC_BUILTIN, v.getModifiers());
+        assertEq(("public", "builtin",), v.getModifierList());
         assertEq("", v.getParameterString());
         assertEq("nothing", v.getReturnTypeString());
         assertEq(DOM_THREAD_CLASS, v.getDomain());
@@ -198,5 +200,10 @@ class Test inherits QUnit::Test {
             assertFalse(v1.hasBody());
             assertThrows("ABSTRACT-VARIANT-ERROR", \v1.call(), (new ListIterator()));
         }
+
+        v = Class::forName("Condition").getMethod("wait").getVariants()[0];
+        assertEq("int", v.getReturnType().getName());
+        assertEq((NOTHING, 0), v.getDefaultArgs());
+        assertEq(("lock", "timeout_ms"), v.getParamNames());
     }
 }

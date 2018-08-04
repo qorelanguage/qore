@@ -363,6 +363,7 @@
 #include "QC_DestructorMethod.cpp"
 #include "QC_CopyMethod.cpp"
 #include "QC_Class.cpp"
+#include "QC_Type.cpp"
 
 #include "QorePseudoMethods.cpp"
 

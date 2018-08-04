@@ -714,6 +714,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_DestructorMethod.h \
 	include/qore/intern/QC_CopyMethod.h \
 	include/qore/intern/QC_Class.h \
+	include/qore/intern/QC_Type.h \
 	lib/getopt_long.h \
 	command-line.h
 

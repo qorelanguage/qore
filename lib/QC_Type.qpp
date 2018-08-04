@@ -1,0 +1,125 @@
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore/Qore.h"
+#include "qore/intern/QC_Type.h"
+#include "qore/intern/QC_AbstractReflectionFunction.h"
+#include "qore/intern/Function.h"
+
+//! The abstract base class for %Qore data types
+/**
+    This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
+
+    @since %Qore 0.9.0
+ */
+qclass Type [ns=Qore::Reflection; arg=QoreType* t];
+
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** @throw TYPE-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+Type::constructor() {
+   xsink->raiseException("TYPE-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! returns the type's name
+/** @par Example:
+    @code{.py}
+string name = t.getName();
+    @endcode
+
+    @return the type's name
+ */
+string Type::getName() [flags=RET_VALUE_ONLY] {
+    return new QoreStringNode(QoreTypeInfo::getName(t->typeInfo));
+}
+
+//! Returns @ref True if the Type object passed as an argument is equal to the current object; @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = t1.isEqual(t2);
+    @endcode
+
+    @param type the type to check with the current type for equality
+
+    @return @ref True if the Type object passed as an argument is equal to the current object; @ref False if not
+*/
+bool Type::isEqual(Type[QoreType] type) [flags=CONSTANT] {
+    ReferenceHolder<QoreType> holder(type, xsink);
+    return QoreTypeInfo::equal(t->typeInfo, type->typeInfo);
+}
+
+//! Returns @ref True if the output of the Type object passed as an argument is compatible with the return type if the current Type
+/** @par Example:
+    @code{.py}
+bool b = t1.isOutputCompatible(t2);
+    @endcode
+
+    @param type the type to check output value compatibility with the current type
+
+    @return @ref True if the output of the Type object passed as an argument is compatible with the return type if the current Type
+*/
+bool Type::isOutputCompatible(Type[QoreType] type) [flags=CONSTANT] {
+    ReferenceHolder<QoreType> holder(type, xsink);
+    return QoreTypeInfo::isOutputCompatible(t->typeInfo, type->typeInfo);
+}
+
+//! Returns @ref True if values of this type can be converted to a scalar value
+/** @par Example:
+    @code{.py}
+bool b = t.canConvertToScalar();
+    @endcode
+
+    @return @ref True if the output of the Type object passed as an argument is compatible with the return type if the current Type
+*/
+bool Type::canConvertToScalar() [flags=CONSTANT] {
+    return QoreTypeInfo::canConvertToScalar(t->typeInfo);
+}
+
+//! Returns @ref True if this type has a default value
+/** @par Example:
+    @code{.py}
+bool b = t.canConvertToScalar();
+    @endcode
+
+    @return @ref True if this type has a default value
+*/
+bool Type::hasDefaultValue() [flags=CONSTANT] {
+    return QoreTypeInfo::hasDefaultValue(t->typeInfo);
+}
+
+//! Returns the default value for the type or @ref nothing if the type has no default value
+/** @par Example:
+    @code{.py}
+auto v = t.getDefaultValue();
+    @endcode
+
+    @return the default value for the type or @ref nothing if the type has no default value
+*/
+auto Type::getDefaultValue() [flags=CONSTANT] {
+    return QoreTypeInfo::getDefaultQoreValue(t->typeInfo);
+}
