@@ -152,7 +152,7 @@ auto v = m.callArgs(argv);
 
     @see call()
 */
-auto StaticMethod::callArgs(*softlist argv) {
+auto StaticMethod::callArgs(*softlist<auto> argv) {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
     if (*xsink) {

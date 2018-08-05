@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractReflectionFunction.h QC_AbstractReflectionFunction class definition */
+/** @file QC_AbstractReflectionFunction.h AbstractReflectionFunction class definition */
 /*
     Qore Programming Language
 
@@ -34,6 +34,16 @@
 
 #include "qore/intern/AbstractReflectionObject.h"
 
+//! method type enum
+enum method_type_e {
+    MT_None = 0, // not a method function/variant
+    MT_Normal = 1,
+    MT_Static = 2,
+    MT_Constructor = 3,
+    MT_Destructor = 4,
+    MT_Copy = 5,
+};
+
 class QoreReflectionFunction : public AbstractReflectionObject {
 public:
     const QoreFunction* f = nullptr;
@@ -45,10 +55,11 @@ public:
     }
 
     DLLLOCAL QoreObject* getFunctionObject(ExceptionSink* xsink) const;
-
-    DLLLOCAL QoreObject* getVariantObject(const AbstractQoreFunctionVariant* v, ExceptionSink* xsink) const;
 };
 
+DLLLOCAL QoreObject* get_variant_object(QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, const AbstractQoreFunctionVariant* v, ExceptionSink* xsink);
+
+DLLLOCAL void append_variant_objects(QoreListNode& l, QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, ExceptionSink* xsink);
 
 DLLEXPORT extern qore_classid_t CID_ABSTRACTREFLECTIONFUNCTION;
 DLLLOCAL extern QoreClass* QC_ABSTRACTREFLECTIONFUNCTION;

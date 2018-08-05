@@ -6,17 +6,17 @@
 %require-types
 %strict-args
 
-%requires ../../../../../qlib/QUnit.qm
+%requires ../../../../qlib/QUnit.qm
 
-%exec-class Test
+%exec-class ReflectionTest
 
-class Test inherits QUnit::Test {
-    constructor() : QUnit::Test("Class", "1.0") {
-        addTestCase("class tests", \classTests());
+class ReflectionTest inherits QUnit::Test {
+    constructor() : QUnit::Test("ReflectionTest", "1.0") {
+        addTestCase("reflection tests", \reflectionTests());
         set_return_value(main());
     }
 
-    classTests() {
+    reflectionTests() {
         Class c("Mutex");
 
         assertTrue(c.isBuiltin());
@@ -163,7 +163,7 @@ class Test inherits QUnit::Test {
         NormalMethodVariant v = m.getVariants()[0];
         assertEq(MC_PUBLIC | MC_BUILTIN, v.getModifiers());
         assertEq(("public", "builtin",), v.getModifierList());
-        assertEq("", v.getParameterString());
+        assertEq("", v.getParamString());
         assertEq("nothing", v.getReturnTypeString());
         assertEq(DOM_THREAD_CLASS, v.getDomain());
         assertEq(("THREAD_CLASS",), v.getDomainStringList());
@@ -201,9 +201,47 @@ class Test inherits QUnit::Test {
             assertThrows("ABSTRACT-VARIANT-ERROR", \v1.call(), (new ListIterator()));
         }
 
-        v = Class::forName("Condition").getMethod("wait").getVariants()[0];
+        c = Class::forName("Condition");
+
+        v = c.getVariant("wait", Class::forName("AbstractSmartLock").getType(), TimeoutType);
         assertEq("int", v.getReturnType().getName());
         assertEq((NOTHING, 0), v.getDefaultArgs());
         assertEq(("lock", "timeout_ms"), v.getParamNames());
+        assertEq("object<AbstractSmartLock> lock, timeout timeout_ms = 0", v.getParamString());
+        assertEq("public int Condition::wait(object<AbstractSmartLock> lock, timeout timeout_ms = 0)", v.toString());
+        assertEq(0, v.getCodeFlags());
+        assertEq((), v.getCodeFlagList());
+
+        v = Class::forName("File").getMethod("printf").getVariants()[0];
+        assertEq(CF_USES_EXTRA_ARGS, v.getCodeFlags());
+        assertEq(("USES_EXTRA_ARGS",), v.getCodeFlagList());
+
+        {
+            ConstructorMethodVariant conv = c.getConstructorVariant();
+            Condition cond = conv.call();
+            assertEq("Condition", cond.className());
+
+            assertThrows("CALL-WITH-TYPE-ERRORS", \conv.call(), 1);
+
+            assertThrows("METHOD-ERROR", \c.getDestructorVariant());
+            assertNothing(c.getIfDestructorVariant());
+
+            Class c1 = Class::forName("Queue");
+            conv = c1.getConstructorVariant();
+            Queue q = conv.call();
+            assertEq("Queue", q.className());
+
+            CopyMethodVariant copyv = c1.getCopyVariant();
+            assertThrows("METHOD-ERROR", \copyv.call(), cond);
+            Queue q2 = copyv.call(q);
+            assertEq("Queue", q2.className());
+
+            DestructorMethodVariant destrv = c1.getDestructorVariant();
+            assertThrows("METHOD-ERROR", \destrv.call(), cond);
+            destrv.call(q);
+            assertFalse(q.val());
+
+            #list<ConstructorMethodVariant>
+        }
     }
 }

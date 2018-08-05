@@ -134,7 +134,7 @@ auto v = m.callArgs(argv);
 
     @see call()
 */
-auto ConstructorMethod::callArgs(*softlist argv) {
+auto ConstructorMethod::callArgs(*softlist<auto> argv) {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
     if (*xsink) {

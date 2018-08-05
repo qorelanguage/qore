@@ -31,6 +31,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/SingleValueIterator.h"
+#include <qore/intern/QC_Type.h>
 
 extern QoreClass* QC_SINGLEVALUEITERATOR;
 
@@ -366,3 +367,38 @@ AbstractIterator <value>::iterator() [flags=CONSTANT] {
 bool <value>::sizep() [flags=CONSTANT] {
    return false;
 }
+
+//! Returns the type object for this value
+/** @par Example:
+    @code{.py}
+Type t = v.getType();
+    @endcode
+
+    @return the type object for this value
+
+    @see <value>::getOrNothingType()
+
+    @since %Qore 0.9.0
+*/
+Type <value>::getType() [flags=CONSTANT] {
+    return new QoreObject(QC_TYPE, getProgram(), new QoreType(v.getTypeInfo()));
+}
+
+//! Returns the "or nothing" type object for this value
+/** @par Example:
+    @code{.py}
+Type t = v.getOrNothingType();
+    @endcode
+
+    @return the "or nothing" type object for this value
+
+    @see <value>::getType()
+
+    @since %Qore 0.9.0
+*/
+Type <value>::getOrNothingType() [flags=CONSTANT] {
+    // the class ptr must be valid
+    return new QoreObject(QC_TYPE, getProgram(), new QoreType(get_or_nothing_type_check(v.getTypeInfo())));
+}
+
+

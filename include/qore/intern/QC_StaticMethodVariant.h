@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_StaticMethodVariant.h QC_StaticMethodVariant class definition */
+/** @file QC_StaticMethodVariant.h StaticMethodVariant class definition */
 /*
     Qore Programming Language
 

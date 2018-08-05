@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_NormalMethodVariant.h QC_NormalMethodVariant class definition */
+/** @file QC_NormalMethodVariant.h NormalMethodVariant class definition */
 /*
     Qore Programming Language
 
@@ -34,8 +34,8 @@
 
 #include "qore/intern/QC_AbstractMethodVariant.h"
 
-DLLEXPORT extern qore_classid_t CID_ABSTRACTMETHODVARIANT;
-DLLLOCAL extern QoreClass* QC_ABSTRACTMETHODVARIANT;
+DLLEXPORT extern qore_classid_t CID_NORMALMETHODVARIANT;
+DLLLOCAL extern QoreClass* QC_NORMALMETHODVARIANT;
 
 DLLLOCAL void preinitNormalMethodVariantClass();
 DLLLOCAL QoreClass* initNormalMethodVariantClass(QoreNamespace& ns);

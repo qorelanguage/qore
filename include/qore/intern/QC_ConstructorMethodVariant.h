@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractMethodVariant.h AbstractMethodVariant class definition */
+/** @file QC_ConstructorMethodVariant.h ConstructorMethodVariant class definition */
 /*
     Qore Programming Language
 
@@ -28,16 +28,16 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_ABSTRACTMETHODVARIANT_H
+#ifndef _QORE_INTERN_QC_CONSTRUCTORMETHODVARIANT_H
 
-#define _QORE_INTERN_QC_ABSTRACTMETHODVARIANT_H
+#define _QORE_INTERN_QC_CONSTRUCTORMETHODVARIANT_H
 
-#include "qore/intern/QC_AbstractVariant.h"
+#include "qore/intern/QC_AbstractMethodVariant.h"
 
 DLLEXPORT extern qore_classid_t CID_ABSTRACTMETHODVARIANT;
 DLLLOCAL extern QoreClass* QC_ABSTRACTMETHODVARIANT;
 
-DLLLOCAL void preinitAbstractMethodVariantClass();
-DLLLOCAL QoreClass* initAbstractMethodVariantClass(QoreNamespace& ns);
+DLLLOCAL void preinitConstructorMethodVariantClass();
+DLLLOCAL QoreClass* initConstructorMethodVariantClass(QoreNamespace& ns);
 
 #endif

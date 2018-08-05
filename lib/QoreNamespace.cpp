@@ -67,6 +67,9 @@
 #include "qore/intern/QC_AbstractMethodVariant.h"
 #include "qore/intern/QC_StaticMethodVariant.h"
 #include "qore/intern/QC_NormalMethodVariant.h"
+#include "qore/intern/QC_ConstructorMethodVariant.h"
+#include "qore/intern/QC_DestructorMethodVariant.h"
+#include "qore/intern/QC_CopyMethodVariant.h"
 #include "qore/intern/QC_AbstractReflectionFunction.h"
 #include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/QC_NormalMethod.h"
@@ -888,6 +891,9 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    preinitAbstractMethodVariantClass();
    preinitNormalMethodVariantClass();
    preinitStaticMethodVariantClass();
+   preinitConstructorMethodVariantClass();
+   preinitDestructorMethodVariantClass();
+   preinitCopyMethodVariantClass();
    preinitAbstractReflectionFunctionClass();
    preinitAbstractMethodClass();
    preinitNormalMethodClass();
@@ -995,6 +1001,9 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    reflection->addSystemClass(initAbstractMethodVariantClass(*reflection));
    reflection->addSystemClass(initNormalMethodVariantClass(*reflection));
    reflection->addSystemClass(initStaticMethodVariantClass(*reflection));
+   reflection->addSystemClass(initConstructorMethodVariantClass(*reflection));
+   reflection->addSystemClass(initDestructorMethodVariantClass(*reflection));
+   reflection->addSystemClass(initCopyMethodVariantClass(*reflection));
    reflection->addSystemClass(initAbstractReflectionFunctionClass(*reflection));
    reflection->addSystemClass(initAbstractMethodClass(*reflection));
    reflection->addSystemClass(initNormalMethodClass(*reflection));

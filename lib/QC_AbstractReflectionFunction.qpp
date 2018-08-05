@@ -49,24 +49,39 @@ QoreObject* QoreReflectionFunction::getFunctionObject(ExceptionSink* xsink) cons
             ? qc->findLocalCommittedStaticMethod(f->getName())
             : qc->findLocalCommittedMethod(f->getName());
         ReferenceHolder<QoreReflectionMethod> meth(new QoreReflectionMethod(pgm, m), xsink);
-        return get_method(meth, xsink);
+        return get_method_object(meth, xsink);
     }
 
     xsink->raiseException("UNSUPPORTED", "implement me");
     return nullptr;
 }
 
-QoreObject* QoreReflectionFunction::getVariantObject(const AbstractQoreFunctionVariant* v, ExceptionSink* xsink) const {
-    if (v->getClass()) {
-        const MethodVariantBase* mvb = static_cast<const MethodVariantBase*>(v);
-        return mvb->method()->isStatic()
-            ? new QoreObject(QC_STATICMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v))
-            : new QoreObject(QC_NORMALMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
+QoreObject* get_variant_object(QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, const AbstractQoreFunctionVariant* v, ExceptionSink* xsink) {
+    switch (mtype) {
+        case MT_Static:
+            return new QoreObject(QC_STATICMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
+        case MT_Normal:
+            return new QoreObject(QC_NORMALMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
+        case MT_Constructor:
+            return new QoreObject(QC_CONSTRUCTORMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
+        case MT_Destructor:
+            return new QoreObject(QC_DESTRUCTORMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
+        case MT_Copy:
+            return new QoreObject(QC_COPYMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
+        default:
+            break;
     }
 
     //return new QoreObject(QC_FUNCTIONVARIANT, f->pgm, new QoreReflectionVariant(pgm, f, v));
     xsink->raiseException("UNSUPPORTED", "implement me");
     return nullptr;
+}
+
+void append_variant_objects(QoreListNode& l, QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, ExceptionSink* xsink) {
+    QoreFunctionIterator i(*f);
+    while (i.next()) {
+        l.push(get_variant_object(pgm, f, mtype, i.getVariant(), xsink), xsink);
+    }
 }
 
 //! The abstract base class for %Qore functions and class methods
@@ -210,31 +225,4 @@ int AbstractReflectionFunction::numVariants() [flags=RET_VALUE_ONLY] {
 
     // the function ptr must be valid
     return f->f->numVariants();
-}
-
-//! returns the variants implemented by the function or method
-/** @par Example:
-    @code{.py}
-list<AbstractVariant> l = f.getVariants();
-    @endcode
-
-    @return the variants implemented by the function or method
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
-*/
-list<AbstractVariant> AbstractReflectionFunction::getVariants() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the method ptr must be valid
-    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_ABSTRACTVARIANT->getTypeInfo()), xsink);
-    QoreFunctionIterator i(*f->f);
-    while (i.next()) {
-        rv->push(f->getVariantObject(i.getVariant(), xsink), xsink);
-    }
-
-    return rv.release();
 }

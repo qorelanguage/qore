@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractMethod.h QC_AbstractMethod class definition */
+/** @file QC_AbstractMethod.h AbstractMethod class definition */
 /*
     Qore Programming Language
 
@@ -35,16 +35,6 @@
 #include "qore/intern/AbstractReflectionObject.h"
 #include "qore/intern/QC_AbstractReflectionFunction.h"
 
-//! method type enum
-enum method_type_e {
-    MT_None = 0,
-    MT_Normal = 1,
-    MT_Static = 2,
-    MT_Constructor = 3,
-    MT_Destructor = 4,
-    MT_Copy = 5,
-};
-
 class QoreReflectionMethod : public QoreReflectionFunction {
 public:
     const QoreMethod* m = nullptr;
@@ -66,6 +56,8 @@ public:
             default: assert(false);
         }
     }
+
+    DLLLOCAL static method_type_e getMethodType(const QoreMethod* m);
 
 protected:
     //! also sets the method type if set successfully

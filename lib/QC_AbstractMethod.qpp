@@ -78,24 +78,25 @@ void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, Exc
 
 void QoreReflectionMethod::setType() {
     // set type
+    mtype = getMethodType(m);
+}
+
+method_type_e QoreReflectionMethod::getMethodType(const QoreMethod* m) {
+    // set type
     if (m->isStatic()) {
-        mtype = MT_Static;
+        return MT_Static;
     }
-    else {
-        const qore_method_private* pm = qore_method_private::get(*m);
-        if (dynamic_cast<const ConstructorMethodFunction*>(pm->func)) {
-            mtype = MT_Constructor;
-        }
-        else if (dynamic_cast<const DestructorMethodFunction*>(pm->func)) {
-            mtype = MT_Destructor;
-        }
-        else if (dynamic_cast<const CopyMethodFunction*>(pm->func)) {
-            mtype = MT_Copy;
-        }
-        else {
-            mtype = MT_Normal;
-        }
+    const qore_method_private* pm = qore_method_private::get(*m);
+    if (dynamic_cast<const ConstructorMethodFunction*>(pm->func)) {
+        return MT_Constructor;
     }
+    if (dynamic_cast<const DestructorMethodFunction*>(pm->func)) {
+        return MT_Destructor;
+    }
+    if (dynamic_cast<const CopyMethodFunction*>(pm->func)) {
+        return MT_Copy;
+    }
+    return MT_Normal;
 }
 
 //! The abstract base class for %Qore class methods
@@ -153,4 +154,27 @@ string AbstractMethod::getMethodTypeName() [flags=RET_VALUE_ONLY] {
 
     // the method ptr must be valid
     return new QoreStringNode(m->getType());
+}
+
+//! returns the variants implemented by the function or method
+/** @par Example:
+    @code{.py}
+list<AbstractMethodVariant> l = f.getVariants();
+    @endcode
+
+    @return the variants implemented by the method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+list<AbstractMethodVariant> AbstractMethod::getVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_ABSTRACTMETHODVARIANT->getTypeInfo()), xsink);
+    append_variant_objects(**rv, m->pgm, m->f, m->mtype, xsink);
+    return rv.release();
 }

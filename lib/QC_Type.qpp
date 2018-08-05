@@ -31,6 +31,276 @@
 #include "qore/intern/QC_AbstractReflectionFunction.h"
 #include "qore/intern/Function.h"
 
+QoreObject* get_type_object(const QoreTypeInfo* t) {
+    return new QoreObject(QC_TYPE, getProgram(), new QoreType(t));
+}
+
+/** @defgroup type_constants Type Constants
+
+    @since %Qore 0.9.0
+*/
+//@{
+//! @ref auto_type "auto type"
+/**
+*/
+const AutoType = qore(get_type_object(autoTypeInfo));
+
+//! @ref hash_complex_type "hash<auto> type"
+/**
+*/
+const AutoHashType = qore(get_type_object(autoHashTypeInfo));
+
+//! @ref hash_complex_or_nothing_type "*hash<auto> type"
+/**
+*/
+const AutoHashOrNothingType = qore(get_type_object(autoHashOrNothingTypeInfo));
+
+//! @ref list_complex_type "list<auto> type"
+/**
+*/
+const AutoListType = qore(get_type_object(autoListTypeInfo));
+
+//! @ref list_complex_or_nothing_type "*list<auto> type"
+/**
+*/
+const AutoListOrNothingType = qore(get_type_object(autoListOrNothingTypeInfo));
+
+//! @ref int_type "int type"
+/**
+*/
+const BigIntType = qore(get_type_object(bigIntTypeInfo));
+
+//! @ref int_or_nothing_type "*int type"
+/**
+*/
+const BigIntOrNothingType = qore(get_type_object(bigIntOrNothingTypeInfo));
+
+//! @ref binary_type "binary type"
+/**
+*/
+const BinaryType = qore(get_type_object(binaryTypeInfo));
+
+//! @ref binary_or_nothing_type "*binary type"
+/**
+*/
+const BinaryOrNothingType = qore(get_type_object(binaryOrNothingTypeInfo));
+
+//! @ref bool_type "bool type"
+/**
+*/
+const BoolType = qore(get_type_object(boolTypeInfo));
+
+//! @ref bool_or_nothing_type "*bool type"
+/**
+*/
+const BoolOrNothingType = qore(get_type_object(boolOrNothingTypeInfo));
+
+//! @ref code_type "code type"
+/**
+*/
+const CodeType = qore(get_type_object(codeTypeInfo));
+
+//! @ref code_or_nothing_type "*code type"
+/**
+*/
+const CodeOrNothingType = qore(get_type_object(codeOrNothingTypeInfo));
+
+//! @ref data_type "data type"
+/**
+*/
+const DataType = qore(get_type_object(dataTypeInfo));
+
+//! @ref data_or_nothing_type "*data type"
+/**
+*/
+const DataOrNothingType = qore(get_type_object(dataOrNothingTypeInfo));
+
+//! @ref date_type "date type"
+/**
+*/
+const DateType = qore(get_type_object(dateTypeInfo));
+
+//! @ref date_or_nothing_type "*date type"
+/**
+*/
+const DateOrNothingType = qore(get_type_object(dateOrNothingTypeInfo));
+
+//! @ref float_type "float type"
+/**
+*/
+const FloatType = qore(get_type_object(floatTypeInfo));
+
+//! @ref float_or_nothing_type "*float type"
+/**
+*/
+const FloatOrNothingType = qore(get_type_object(floatOrNothingTypeInfo));
+
+//! @ref hash_type "hash type"
+/**
+*/
+const HashType = qore(get_type_object(hashTypeInfo));
+
+//! @ref hash_or_nothing_type "*hash type"
+/**
+*/
+const HashOrNothingType = qore(get_type_object(hashOrNothingTypeInfo));
+
+//! @ref list_type "list type"
+/**
+*/
+const ListType = qore(get_type_object(listTypeInfo));
+
+//! @ref list_or_nothing_type "*list type"
+/**
+*/
+const ListOrNothingType = qore(get_type_object(listOrNothingTypeInfo));
+
+//! @ref nothing_type "nothing type"
+/**
+*/
+const NothingType = qore(get_type_object(nothingTypeInfo));
+
+//! @ref null_type "null type"
+/**
+*/
+const NullType = qore(get_type_object(nullTypeInfo));
+
+//! @ref null_or_nothing_type "*null type"
+/**
+*/
+const NullOrNothingType = qore(get_type_object(nullOrNothingTypeInfo));
+
+//! @ref number_type "number type"
+/**
+*/
+const NumberType = qore(get_type_object(numberTypeInfo));
+
+//! @ref number_or_nothing_type "*number type"
+/**
+*/
+const NumberOrNothingType = qore(get_type_object(numberOrNothingTypeInfo));
+
+//! @ref object_type "object type"
+/**
+*/
+const ObjectType = qore(get_type_object(objectTypeInfo));
+
+//! @ref object_or_nothing_type "*object type"
+/**
+*/
+const ObjectOrNothingType = qore(get_type_object(objectOrNothingTypeInfo));
+
+//! @ref reference_type "reference type"
+/**
+*/
+const ReferenceType = qore(get_type_object(referenceTypeInfo));
+
+//! @ref reference_or_nothing_type "*reference type"
+/**
+*/
+const ReferenceOrNothingType = qore(get_type_object(referenceOrNothingTypeInfo));
+
+//! @ref softlist_complex_type "softlist<auto> type"
+/**
+*/
+const SoftAutoListType = qore(get_type_object(softAutoListTypeInfo));
+
+//! @ref softlist_complex_or_nothing_type "*softlist<auto> type"
+/**
+*/
+const SoftAutoListOrNothingType = qore(get_type_object(softAutoListOrNothingTypeInfo));
+
+//! @ref softint_type "softint type"
+/**
+*/
+const SoftBigIntType = qore(get_type_object(softBigIntTypeInfo));
+
+//! @ref softint_or_nothing_type "*softint type"
+/**
+*/
+const SoftBigIntOrNothingType = qore(get_type_object(softBigIntOrNothingTypeInfo));
+
+//! @ref softbool_type "softbool type"
+/**
+*/
+const SoftBoolType = qore(get_type_object(softBoolTypeInfo));
+
+//! @ref softbool_or_nothing_type "*softbool type"
+/**
+*/
+const SoftBoolOrNothingType = qore(get_type_object(softBoolOrNothingTypeInfo));
+
+//! @ref softdate_type "softdate type"
+/**
+*/
+const SoftDateType = qore(get_type_object(softDateTypeInfo));
+
+//! @ref softdate_or_nothing_type "*softdate type"
+/**
+*/
+const SoftDateOrNothingType = qore(get_type_object(softDateOrNothingTypeInfo));
+
+//! @ref softfloat_type "softfloat type"
+/**
+*/
+const SoftFloatType = qore(get_type_object(softFloatTypeInfo));
+
+//! @ref softfloat_or_nothing_type "*softfloat type"
+/**
+*/
+const SoftFloatOrNothingType = qore(get_type_object(softFloatOrNothingTypeInfo));
+
+//! @ref softlist_type "softlist type"
+/**
+*/
+const SoftListType = qore(get_type_object(softListTypeInfo));
+
+//! @ref softlist_or_nothing_type "*softlist type"
+/**
+*/
+const SoftListOrNothingType = qore(get_type_object(softListOrNothingTypeInfo));
+
+//! @ref softnumber_type "softnumber type"
+/**
+*/
+const SoftNumberType = qore(get_type_object(softNumberTypeInfo));
+
+//! @ref softnumber_or_nothing_type "*softnumber type"
+/**
+*/
+const SoftNumberOrNothingType = qore(get_type_object(softNumberOrNothingTypeInfo));
+
+//! @ref softstring_type "softstring type"
+/**
+*/
+const SoftStringType = qore(get_type_object(softStringTypeInfo));
+
+//! @ref softstring_or_nothing_type "*softstring type"
+/**
+*/
+const SoftStringOrNothingType = qore(get_type_object(softStringOrNothingTypeInfo));
+
+//! @ref string_type "string type"
+/**
+*/
+const StringType = qore(get_type_object(stringTypeInfo));
+
+//! @ref string_or_nothing_type "*string type"
+/**
+*/
+const StringOrNothingType = qore(get_type_object(stringOrNothingTypeInfo));
+
+//! @ref timeout_type "timeout type"
+/**
+*/
+const TimeoutType = qore(get_type_object(timeoutTypeInfo));
+
+//! @ref timeout_or_nothing_type "timeout or nothing type"
+/**
+*/
+const TimeoutOrNothingType = qore(get_type_object(timeoutOrNothingTypeInfo));
+//@}
+
 //! The abstract base class for %Qore data types
 /**
     This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.

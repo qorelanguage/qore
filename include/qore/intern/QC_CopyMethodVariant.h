@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractMethodVariant.h AbstractMethodVariant class definition */
+/** @file QC_CopyMethodVariant.h CopyMethodVariant class definition */
 /*
     Qore Programming Language
 
@@ -28,16 +28,16 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_ABSTRACTMETHODVARIANT_H
+#ifndef _QORE_INTERN_QC_COPYMETHODVARIANT_H
 
-#define _QORE_INTERN_QC_ABSTRACTMETHODVARIANT_H
+#define _QORE_INTERN_QC_COPYMETHODVARIANT_H
 
-#include "qore/intern/QC_AbstractVariant.h"
+#include "qore/intern/QC_AbstractMethodVariant.h"
 
-DLLEXPORT extern qore_classid_t CID_ABSTRACTMETHODVARIANT;
-DLLLOCAL extern QoreClass* QC_ABSTRACTMETHODVARIANT;
+DLLEXPORT extern qore_classid_t CID_COPYMETHODVARIANT;
+DLLLOCAL extern QoreClass* QC_COPYMETHODVARIANT;
 
-DLLLOCAL void preinitAbstractMethodVariantClass();
-DLLLOCAL QoreClass* initAbstractMethodVariantClass(QoreNamespace& ns);
+DLLLOCAL void preinitCopyMethodVariantClass();
+DLLLOCAL QoreClass* initCopyMethodVariantClass(QoreNamespace& ns);
 
 #endif

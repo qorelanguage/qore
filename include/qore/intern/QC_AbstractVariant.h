@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractVariant.h QC_AbstractVariant class definition */
+/** @file QC_AbstractVariant.h AbstractVariant class definition */
 /*
     Qore Programming Language
 

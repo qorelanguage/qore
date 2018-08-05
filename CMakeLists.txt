@@ -162,6 +162,9 @@ set(LIBQORE_QPP_SRC
     lib/QC_AbstractMethodVariant.qpp
     lib/QC_NormalMethodVariant.qpp
     lib/QC_StaticMethodVariant.qpp
+    lib/QC_ConstructorMethodVariant.qpp
+    lib/QC_DestructorMethodVariant.qpp
+    lib/QC_CopyMethodVariant.qpp
     lib/QC_AbstractReflectionFunction.qpp
     lib/QC_AbstractMethod.qpp
     lib/QC_NormalMethod.qpp

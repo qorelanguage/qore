@@ -170,7 +170,7 @@ auto v = m.callArgs(obj, (arg1, arg2));
 
     @see call()
 */
-auto NormalMethod::callArgs(object obj, *softlist argv) {
+auto NormalMethod::callArgs(object obj, *softlist<auto> argv) {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
     if (*xsink) {

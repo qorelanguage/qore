@@ -27,40 +27,39 @@
 */
 
 #include "qore/Qore.h"
-#include "qore/intern/QC_StaticMethodVariant.h"
+#include "qore/intern/QC_CopyMethodVariant.h"
+#include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/Function.h"
 
-//! The class for %Qore class normal method variants
+//! The class for %Qore class copy method variants
 /**
     This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
 
     @since %Qore 0.9.0
  */
-qclass StaticMethodVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; vparent=AbstractMethodVariant];
+qclass CopyMethodVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; vparent=AbstractMethodVariant];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
-/** @throw STATICMETHODVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+/** @throw COPYMETHODVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
  */
-StaticMethodVariant::constructor() {
-   xsink->raiseException("STATICMETHODVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+CopyMethodVariant::constructor() {
+   xsink->raiseException("COPYMETHODVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
-//! calls the given method variant and returns the vlaue returned by the method
+//! calls the given copy method variant with the given object; the object must be a member of a compatible class
 /** @par Example:
     @code{.py}
-auto v = m.call(arg1, arg2);
+auto v = m.call(obj);
     @endcode
 
-    @params ... optional arguments to the method
+    @param obj the object to make the call on; must be an object of the class implementing the method or a \c METHOD-ERROR exception is thrown
 
-    @return the return value of the method call
+    @return the new object created by the call
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
     @throw METHOD-ERROR the object was not instantiated from the class implementing this method
-
-    @see callArgs()
 */
-auto StaticMethodVariant::call(...) {
+auto CopyMethodVariant::call(object obj) {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
     if (*xsink) {
@@ -70,35 +69,9 @@ auto StaticMethodVariant::call(...) {
     // we have to explictly test object compatibility here, otherwise QoreObject::evalMethod() will throw
     // a confusing exception
     const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
-    // the method ptr must be valid
-    return qore_method_private::evalNormalVariant(*m, xsink, nullptr, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), args);
-}
-
-//! calls the given method variant and returns the vlaue returned by the method
-/** @par Example:
-    @code{.py}
-auto v = m.callArgs((arg1, arg2));
-    @endcode
-
-    @params argv optional arguments to the method
-
-    @return the return value of the method call
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
-    @throw METHOD-ERROR the object was not instantiated from the class implementing this method
-
-    @see call()
-*/
-auto StaticMethodVariant::callArgs(*softlist<auto> argv) {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
-    if (*xsink) {
+    if (check_variant_call(static_cast<const MethodVariantBase*>(v->variant), obj, *m, xsink)) {
         return QoreValue();
     }
 
-    // we have to explictly test object compatibility here, otherwise QoreObject::evalMethod() will throw
-    // a confusing exception
-    const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
-    // the method ptr must be valid
-    return qore_method_private::evalNormalVariant(*m, xsink, nullptr, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), argv);
+    return qore_class_private::get(*m->getClass())->execCopy(obj, xsink);
 }

@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_ConstructorMethod.h Method class definition */
+/** @file QC_ConstructorMethod.h ConstructorMethod class definition */
 /*
     Qore Programming Language
 

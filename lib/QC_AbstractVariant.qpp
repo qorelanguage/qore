@@ -30,6 +30,7 @@
 #include "qore/intern/QC_AbstractVariant.h"
 #include "qore/intern/QC_AbstractReflectionFunction.h"
 #include "qore/intern/QC_Type.h"
+#include "qore/intern/QC_Class.h"
 #include "qore/intern/Function.h"
 
 //! The abstract base class for %Qore class variants
@@ -64,6 +65,85 @@ bool AbstractVariant::isEqual(AbstractVariant[QoreReflectionVariant] variant) [f
     ReferenceHolder<QoreReflectionVariant> holder(variant, xsink);
 
     return variant->variant == v->variant;
+}
+
+//! returns a bitfield of @ref code_flag_constants "code flags" describing the variant
+/** @par Example:
+    @code{.py}
+int i = v.getCodeFlags();
+    @endcode
+
+    @return a bitfield of @ref code_flag_constants "code flags" describing the variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @see getCodeFlagList()
+*/
+int AbstractVariant::getCodeFlags() [flags=CONSTANT] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return v->variant->getFlags();
+}
+
+//! returns a list of strings of code flags describing the variant
+/** @par Example:
+    @code{.py}
+list<string> l = v.getCodeFlagList();
+    @endcode
+
+    @return list of strings of code flags describing the variant; possible values are:
+    - \c "NOOP": the variant has the @ref Qore::CF_NOOP "CF_NOOP" flag set
+    - \c "USES_EXTRA_ARGS": the variant has the @ref Qore::CF_USES_EXTRA_ARGS "CF_USES_EXTRA_ARGS" flag set
+    - \c "CONSTANT": the variant has the @ref Qore::CF_CONSTANT "CF_CONSTANT" flag set
+    - \c "DEPRECATED": the variant has the @ref Qore::CF_DEPRECATED "CF_DEPRECATED" flag set
+    - \c "RET_VALUE_ONLY": the variant has the @ref Qore::CF_RET_VALUE_ONLY "CF_RET_VALUE_ONLY" flag set
+    - \c "RUNTIME_NOOP": the variant has the @ref Qore::CF_RUNTIME_NOOP "CF_RUNTIME_NOOP" flag set
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @see getCodeFlags()
+*/
+list<string> AbstractVariant::getCodeFlagList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    int64 c = v->variant->getFlags();
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+
+    if (c & QC_NOOP) {
+        rv->push(new QoreStringNode("NOOP"), xsink);
+    }
+
+    if (c & QC_USES_EXTRA_ARGS) {
+        rv->push(new QoreStringNode("USES_EXTRA_ARGS"), xsink);
+    }
+
+    if (c & QC_CONSTANT_INTERN) {
+        rv->push(new QoreStringNode("CONSTANT"), xsink);
+    }
+
+    if (c & QC_DEPRECATED) {
+        rv->push(new QoreStringNode("DEPRECATED"), xsink);
+    }
+
+    if (c & QC_RET_VALUE_ONLY) {
+        rv->push(new QoreStringNode("RET_VALUE_ONLY"), xsink);
+    }
+
+    if (c & QC_RUNTIME_NOOP) {
+        rv->push(new QoreStringNode("RUNTIME_NOOP"), xsink);
+    }
+
+    return rv.release();
 }
 
 //! returns a bitfield of @ref modifier_constants "modifiers" describing the variant
@@ -444,18 +524,18 @@ int AbstractVariant::numParams() [flags=RET_VALUE_ONLY] {
     return v->variant->numParams();
 }
 
-//! returns a string giving a list of the parameters of the variant, including types and variable names
+//! returns a string giving a list of the parameters of the variant, including types, variable names, and default values
 /** @par Example:
     @code{.py}
-string str = v.getParameterString();
-# ex: "int num, *string label"
+string str = v.getParamString();
+# ex: "int num = 0, *string label"
     @endcode
 
-    @return a string giving a list of the parameters of the variant, including types and variable names; an empty string is returned if the variant does not have any parameters
+    @return a string giving a list of the parameters of the variant, including types, variable names, and default values; an empty string is returned if the variant does not have any parameters
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
-string AbstractVariant::getParameterString() [flags=RET_VALUE_ONLY] {
+string AbstractVariant::getParamString() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
     if (*xsink) {
@@ -488,17 +568,17 @@ string AbstractVariant::getReturnTypeString() [flags=RET_VALUE_ONLY] {
     return new QoreStringNode(QoreTypeInfo::getName(v->variant->getReturnTypeInfo()));
 }
 
-//! returns a string for the variant's signature including any attributes (\c "synchronized", \c "private", etc), the return type, the class name (if any, without a namespace prefix and followed by \c "::"), and the function or method name followed by parameter types in parentheses
+//! returns a string for the variant's signature including any modifiers (\c "synchronized", \c "private", etc), the return type, the class name (if any, without a namespace prefix and followed by \c "::"), and the function or method name followed by parameter types in parentheses
 /** @par Example:
     @code{.py}
-string str = v.getSignatureString();
+string str = v.toString();
     @endcode
 
-    @return a string for the variant's signature including the return type, the class name (if any, without a namespace prefix and followed by \c "::"), and the function or method name followed by parameter types in parentheses
+    @return a string for the variant's signature including any modifiers, the return type, the class name (if any, without a namespace prefix and followed by \c "::"), and the function or method name followed by parameter types in parentheses
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
 */
-string AbstractVariant::getSignatureString() [flags=RET_VALUE_ONLY] {
+string AbstractVariant::toString() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
     if (*xsink) {

@@ -57,7 +57,7 @@ public:
     DLLLOCAL QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls);
 };
 
-DLLLOCAL QoreObject* get_method(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink);
+DLLLOCAL QoreObject* get_method_object(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink);
 
 DLLEXPORT extern qore_classid_t CID_CLASS;
 DLLLOCAL extern QoreClass* QC_CLASS;

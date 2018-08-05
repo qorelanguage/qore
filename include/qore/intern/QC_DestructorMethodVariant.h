@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractMethodVariant.h AbstractMethodVariant class definition */
+/** @file QC_DestructorMethodVariant.h DestructorMethodVariant class definition */
 /*
     Qore Programming Language
 
@@ -28,16 +28,16 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_ABSTRACTMETHODVARIANT_H
+#ifndef _QORE_INTERN_QC_DESTRUCTORMETHODVARIANT_H
 
-#define _QORE_INTERN_QC_ABSTRACTMETHODVARIANT_H
+#define _QORE_INTERN_QC_DESTRUCTORMETHODVARIANT_H
 
-#include "qore/intern/QC_AbstractVariant.h"
+#include "qore/intern/QC_AbstractMethodVariant.h"
 
-DLLEXPORT extern qore_classid_t CID_ABSTRACTMETHODVARIANT;
-DLLLOCAL extern QoreClass* QC_ABSTRACTMETHODVARIANT;
+DLLEXPORT extern qore_classid_t CID_DESTRUCTORMETHODVARIANT;
+DLLLOCAL extern QoreClass* QC_DESTRUCTORMETHODVARIANT;
 
-DLLLOCAL void preinitAbstractMethodVariantClass();
-DLLLOCAL QoreClass* initAbstractMethodVariantClass(QoreNamespace& ns);
+DLLLOCAL void preinitDestructorMethodVariantClass();
+DLLLOCAL QoreClass* initDestructorMethodVariantClass(QoreNamespace& ns);
 
 #endif

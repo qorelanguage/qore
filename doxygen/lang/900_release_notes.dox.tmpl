@@ -33,20 +33,35 @@
     - the default thread stack size was changed from 8MB to 512KB resulting in a large reduction in the total
       memory used in programs with many threads (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
     - reflection API:
-      - @ref Qore::Reflection::Class "Class"
-      - @ref Qore::Reflection::AbstractReflectionFunction "AbstractReflectionFunction"
-      - @ref Qore::Reflection::AbstractMethod "AbstractMethod"
-      - @ref Qore::Reflection::AbstractMethodVariant "AbstractMethodVariant"
-      - @ref Qore::Reflection::AbstractVariant "AbstractVariant"
-      - @ref Qore::Reflection::ConstructorMethod "ConstructorMethod"
-      - @ref Qore::Reflection::CopyMethod "CopyMethod"
-      - @ref Qore::Reflection::DestructorMethod "DestructorMethod"
-      - @ref Qore::Reflection::NormalMethod "NormalMethod"
-      - @ref Qore::Reflection::NormalMethodVariant "NormalMethodVariant"
-      - @ref Qore::Reflection::StaticMethod "StaticMethod"
-      - @ref Qore::Reflection::StaticMethodVariant "StaticMethodVariant"
-      - @ref Qore::Reflection::Type "Type"
-      - <object>::getClass()
+      - new classes:
+        - @ref Qore::Reflection::Class "Class"
+        - @ref Qore::Reflection::AbstractReflectionFunction "AbstractReflectionFunction"
+        - @ref Qore::Reflection::AbstractMethod "AbstractMethod"
+        - @ref Qore::Reflection::AbstractMethodVariant "AbstractMethodVariant"
+        - @ref Qore::Reflection::AbstractVariant "AbstractVariant"
+        - @ref Qore::Reflection::ConstructorMethod "ConstructorMethod"
+        - @ref Qore::Reflection::ConstructorMethodVariant "ConstructorMethodVariant"
+        - @ref Qore::Reflection::CopyMethod "CopyMethod"
+        - @ref Qore::Reflection::CopyMethodVariant "CopyMethodVariant"
+        - @ref Qore::Reflection::DestructorMethod "DestructorMethod"
+        - @ref Qore::Reflection::DestructorMethodVariant "DestructorMethodVariant"
+        - @ref Qore::Reflection::NormalMethod "NormalMethod"
+        - @ref Qore::Reflection::NormalMethodVariant "NormalMethodVariant"
+        - @ref Qore::Reflection::StaticMethod "StaticMethod"
+        - @ref Qore::Reflection::StaticMethodVariant "StaticMethodVariant"
+        - @ref Qore::Reflection::Type "Type"
+      - new pseudo-method:
+        - <object>::getClass()
+        - <value>::getType()
+        - <value>::getOrNothingType()
+      - new constants:
+        - @ref access_constants
+        - @ref code_flag_constants
+        - @ref functional_domain_constants
+        - @ref modifier_constants
+        - @ref type_constants
+      - new typed hashes:
+        - @ref Qore::ClassAccessInfo "ClassAccessInfo"
     - new classes (in addition to the reflection API):
       - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
       - @ref Qore::StreamBase "StreamBase": a base class for stream classes allowing for a controlled handoff of the stream to another thread
