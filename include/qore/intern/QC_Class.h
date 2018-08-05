@@ -33,6 +33,7 @@
 #define _QORE_INTERN_QC_CLASS_H
 
 #include "qore/intern/AbstractReflectionObject.h"
+#include "qore/intern/QC_AbstractMethod.h"
 
 enum qore_modifier_t {
     MC_PUBLIC = (1 << 0),
