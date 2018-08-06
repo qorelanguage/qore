@@ -138,11 +138,11 @@ static const char* memstr(const char* str, const char* pattern, qore_size_t pl, 
 
 static void split_add_element(QoreListNode* l, const char* str, unsigned len, const QoreEncoding *enc) {
    if (enc)
-      l->push(new QoreStringNode(str, len, enc));
+      l->push(new QoreStringNode(str, len, enc), nullptr);
    else {
       BinaryNode* b = new BinaryNode;
       b->append(str, len);
-      l->push(b);
+      l->push(b, nullptr);
    }
 }
 
@@ -210,7 +210,7 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
             tstr = p + 1;
          }
          // optimistically add the field to the list
-         l->push(new QoreStringNode(ststr, p - ststr, str->getEncoding()));
+         l->push(new QoreStringNode(ststr, p - ststr, str->getEncoding()), nullptr);
 
          ststr = p + tquote->strlen();
          // see if we are at the end of the string
@@ -234,14 +234,14 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
          QoreStringNode* se = new QoreStringNode(ststr, sl - (ststr - ostr), str->getEncoding());
          if (trim_unquoted && se->trim(xsink))
             return nullptr;
-         l->push(se);
+         l->push(se, nullptr);
          break;
       }
 
       QoreStringNode* se = new QoreStringNode(ststr, p - ststr, str->getEncoding());
       if (trim_unquoted && se->trim(xsink))
          return nullptr;
-      l->push(se);
+      l->push(se, nullptr);
       len -= (p - ststr);
       ststr = p + pl;
    }
@@ -249,44 +249,26 @@ QoreListNode* split_with_quote(const QoreString* sep, const QoreString* str, con
    return l.release();
 }
 
-QoreStringNode* join_intern(const QoreStringNode* p0, const QoreValueList* l, int offset, ExceptionSink* xsink) {
-   assert(xsink);
-   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
-
-   for (unsigned i = offset; i < l->size(); i++) {
-      QoreValue p = l->retrieveEntry(i);
-      if (!p.isNothing()) {
-         QoreStringValueHelper t(p, p0->getEncoding(), xsink);
-         if (*xsink)
-            return nullptr;
-
-         str->concat(*t);
-      }
-      if (i < (l->size() - 1))
-         str->concat(p0);
-   }
-
-   return str.release();
-}
-
 QoreStringNode* join_intern(const QoreStringNode* p0, const QoreListNode* l, int offset, ExceptionSink* xsink) {
-   assert(xsink);
-   SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
+    assert(xsink);
+    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(p0->getEncoding()));
 
-   for (unsigned i = offset; i < l->size(); i++) {
-      const AbstractQoreNode* p = l->retrieve_entry(i);
-      if (p) {
-         QoreStringValueHelper t(p, p0->getEncoding(), xsink);
-         if (*xsink)
-            return 0;
+    for (unsigned i = offset; i < l->size(); i++) {
+        QoreValue p = l->retrieveEntry(i);
+        if (!p.isNothing()) {
+            QoreStringValueHelper t(p, p0->getEncoding(), xsink);
+            if (*xsink) {
+                return nullptr;
+            }
 
-         str->concat(*t);
-      }
-      if (i < (l->size() - 1))
-         str->concat(p0);
-   }
+            str->concat(*t);
+        }
+        if (i < (l->size() - 1)) {
+            str->concat(p0);
+        }
+    }
 
-   return str.release();
+    return str.release();
 }
 
 QoreStringNode* format_float_intern(const QoreString& fmt, double num, ExceptionSink* xsink) {

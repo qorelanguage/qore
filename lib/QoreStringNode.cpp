@@ -1,33 +1,33 @@
 /*
-  QoreStringNode.cpp
+    QoreStringNode.cpp
 
-  QoreStringNode Class Definition
+    QoreStringNode Class Definition
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -288,9 +288,8 @@ const char *QoreStringNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-AbstractQoreNode *QoreStringNode::parseInit(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+void QoreStringNode::parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    typeInfo = stringTypeInfo;
-   return this;
 }
 
 QoreStringNode *QoreStringNode::extract(qore_offset_t offset, ExceptionSink *xsink) {
@@ -318,29 +317,29 @@ QoreStringNode *QoreStringNode::extract(qore_offset_t offset, qore_offset_t num,
    return str;
 }
 
-QoreStringNode *QoreStringNode::extract(qore_offset_t offset, qore_offset_t num, const AbstractQoreNode *strn, ExceptionSink *xsink) {
-   if (!strn || strn->getType() != NT_STRING)
-      return extract(offset, num, xsink);
+QoreStringNode *QoreStringNode::extract(qore_offset_t offset, qore_offset_t num, QoreValue strn, ExceptionSink *xsink) {
+    QoreStringNodeValueHelper tmp(strn, priv->charset, xsink);
+    if (*xsink) {
+        return nullptr;
+    }
 
-   const QoreStringNode *str = reinterpret_cast<const QoreStringNode *>(strn);
-   TempEncodingHelper tmp(str, priv->charset, xsink);
-   if (!tmp)
-       return 0;
+    if (!tmp->strlen())
+        return extract(offset, num, xsink);
 
-   QoreStringNode *rv = new QoreStringNode(priv->charset);
-   if (!priv->charset->isMultiByte()) {
-      qore_size_t n_offset, n_num;
-      priv->check_offset(offset, num, n_offset, n_num);
-      if (n_offset == priv->len) {
-         if (!tmp->strlen())
-            return rv;
-         n_num = 0;
-      }
-      splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen(), rv);
-   }
-   else
-      splice_complex(offset, num, *tmp, xsink, rv);
-   return rv;
+    QoreStringNode *rv = new QoreStringNode(priv->charset);
+    if (!priv->charset->isMultiByte()) {
+        qore_size_t n_offset, n_num;
+        priv->check_offset(offset, num, n_offset, n_num);
+        if (n_offset == priv->len) {
+            if (!tmp->strlen())
+                return rv;
+            n_num = 0;
+        }
+        splice_simple(n_offset, n_num, tmp->c_str(), tmp->strlen(), rv);
+    }
+    else
+        splice_complex(offset, num, *tmp, xsink, rv);
+    return rv;
 }
 
 QoreNodeAsStringHelper::QoreNodeAsStringHelper(const AbstractQoreNode *n, int format_offset, ExceptionSink *xsink) {
@@ -417,20 +416,12 @@ void QoreStringValueHelper::setup(ExceptionSink* xsink, const QoreValue n, const
    }
 }
 
-QoreStringValueHelper::QoreStringValueHelper(const QoreValue& n) {
-   setup(nullptr, n);
+QoreStringValueHelper::QoreStringValueHelper(const QoreValue n) {
+    setup(nullptr, n);
 }
 
-QoreStringValueHelper::QoreStringValueHelper(const QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink) {
+QoreStringValueHelper::QoreStringValueHelper(const QoreValue n, const QoreEncoding* enc, ExceptionSink* xsink) {
    setup(xsink, n, enc);
-}
-
-QoreStringValueHelper::QoreStringValueHelper(const AbstractQoreNode* n) {
-   setup(nullptr, const_cast<AbstractQoreNode*>(n));
-}
-
-QoreStringValueHelper::QoreStringValueHelper(const AbstractQoreNode* n, const QoreEncoding* enc, ExceptionSink* xsink) {
-   setup(xsink, const_cast<AbstractQoreNode*>(n), enc);
 }
 
 void QoreStringNodeValueHelper::setup(ExceptionSink* xsink, const QoreValue n, const QoreEncoding* enc) {
@@ -480,20 +471,12 @@ void QoreStringNodeValueHelper::setup(ExceptionSink* xsink, const QoreValue n, c
    }
 }
 
-QoreStringNodeValueHelper::QoreStringNodeValueHelper(const QoreValue& n) {
+QoreStringNodeValueHelper::QoreStringNodeValueHelper(const QoreValue n) {
    setup(nullptr, n);
 }
 
-QoreStringNodeValueHelper::QoreStringNodeValueHelper(const QoreValue& n, const QoreEncoding* enc, ExceptionSink* xsink) {
+QoreStringNodeValueHelper::QoreStringNodeValueHelper(const QoreValue n, const QoreEncoding* enc, ExceptionSink* xsink) {
    setup(xsink, n, enc);
-}
-
-QoreStringNodeValueHelper::QoreStringNodeValueHelper(const AbstractQoreNode* n) {
-   setup(nullptr, const_cast<AbstractQoreNode*>(n));
-}
-
-QoreStringNodeValueHelper::QoreStringNodeValueHelper(const AbstractQoreNode* n, const QoreEncoding* enc, ExceptionSink* xsink) {
-   setup(xsink, const_cast<AbstractQoreNode*>(n), enc);
 }
 
 QoreStringNodeValueHelper::~QoreStringNodeValueHelper() {

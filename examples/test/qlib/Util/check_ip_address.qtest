@@ -1,0 +1,63 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class CheckIpAddressTest
+
+public class CheckIpAddressTest inherits QUnit::Test {
+    public {
+        const ValidList = (
+            "122.0.0.5",
+            "255.255.255.255",
+            "0.0.0.0",
+            "1.1.1.1",
+            "::",
+            "fe80::f773:11ad:4d28:f44b",
+            "fe80::11ad:4d28:f44b",
+            "fe80::4d28:f44b",
+            "fe80::f44b",
+            "fe80::",
+            "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+            "2001:db8:85a3:0:0:8a2e:370:7334",
+            "2001:db8:85a3::8a2e:370:7334",
+            "0:0:0:0:0:0:0:1",
+            "0:0:0:0:0:0:0:0",
+            "2001:0db8::0001",
+            "2001:db8::1",
+            "2001:db8:1234:0000:0000:0000:0000:0000",
+            "2001:db8:1234:ffff:ffff:ffff:ffff:ffff",
+            "2001:db8:85a3:8d3:1319:8a2e:370:7348",
+        );
+
+        const InvalidList = (
+            "122.0.05",
+            "255.255.255.256",
+            "255.255.256.255",
+            "255.256.255.255",
+            "256.255.255.255",
+            "0.0.0.a",
+            "122.00.0.1",
+            "122.0.00.1",
+            "122.0.00.01",
+            "fe80::x",
+            "::x",
+            "x::",
+        );
+    }
+    constructor() : Test ("CheckIpAddressTest", "1.0") {
+        addTestCase ("Tests for check_ip_address", \testCheckIpAddress());
+        set_return_value(main());
+    }
+
+    testCheckIpAddress() {
+        map assertEq(True, check_ip_address($1)), ValidList;
+        map assertEq(True, check_ip_address($1, True)), ValidList;
+        map assertEq(False, check_ip_address($1)), InvalidList;
+        map assertThrows("INVALID-IP-ADDRESS", \check_ip_address(), ($1, True)), InvalidList;
+    }
+}
