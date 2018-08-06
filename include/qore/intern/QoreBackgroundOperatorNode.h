@@ -72,6 +72,10 @@ public:
         return true;
     }
 
+    DLLLOCAL virtual bool hasEffectAsRoot() const {
+        return true;
+    }
+
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
         return copyBackgroundExplicit<QoreBackgroundOperatorNode>(xsink);
     }
