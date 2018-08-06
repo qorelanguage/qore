@@ -34,7 +34,10 @@
 #include "qore/intern/QC_Class.h"
 
 //! This class provides information about %Qore copy methods
-/** @since %Qore 0.9.0
+/**
+    @see @ref Qore::Reflection::CopyMethodVariant "CopyMethodVariant"
+
+    @since %Qore 0.9.0
  */
 qclass CopyMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod];
 
@@ -101,7 +104,7 @@ CopyMethod::constructor(string class_name) {
 object obj2 = m.call(obj1);
     @endcode
 
-    @params obj the object to copy
+    @param obj the object to copy
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
     @throw METHOD-ERROR the object was not instantiated from the class implementing this method

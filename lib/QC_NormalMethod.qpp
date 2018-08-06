@@ -34,7 +34,10 @@
 #include "qore/intern/QC_Class.h"
 
 //! This class provides information about %Qore normal (non-static, non-special) class methods
-/** @since %Qore 0.9.0
+/**
+    @see @ref Qore::Reflection::NormalMethodVariant "NormalMethodVariant"
+
+    @since %Qore 0.9.0
  */
 qclass NormalMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod];
 
@@ -120,7 +123,7 @@ auto v = m.call(obj, arg1, arg2);
     @endcode
 
     @param obj the object to make the call on; must be an object of the class implementing the method or a \c METHOD-ERROR exception is thrown
-    @params ... optional arguments to the method
+    @param ... optional arguments to the method
 
     @return the return value of the method call
 
@@ -161,7 +164,7 @@ auto v = m.callArgs(obj, (arg1, arg2));
     @endcode
 
     @param obj the object to make the call on; must be an object of the class implementing the method or a \c METHOD-ERROR exception is thrown
-    @params argv optional arguments to the method
+    @param argv optional arguments to the method
 
     @return the return value of the method call
 

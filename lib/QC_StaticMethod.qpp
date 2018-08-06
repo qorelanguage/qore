@@ -34,7 +34,10 @@
 #include "qore/intern/QC_Class.h"
 
 //! This class provides information about %Qore static class methods
-/** @since %Qore 0.9.0
+/**
+    @see @ref Qore::Reflection::StaticMethodVariant "StaticMethodVariant"
+
+    @since %Qore 0.9.0
  */
 qclass StaticMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod];
 
@@ -119,7 +122,7 @@ StaticMethod::constructor(string class_name, string method) {
 auto v = m.call(arg1, arg2);
     @endcode
 
-    @params ... optional arguments to the method
+    @param ... optional arguments to the method
 
     @return the return value of the method call
 
@@ -144,7 +147,7 @@ auto StaticMethod::call(...) {
 auto v = m.callArgs(argv);
     @endcode
 
-    @params argv optional arguments to the method
+    @param argv optional arguments to the method
 
     @return the return value of the method call
 

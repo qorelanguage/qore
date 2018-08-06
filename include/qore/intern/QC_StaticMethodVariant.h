@@ -34,8 +34,8 @@
 
 #include "qore/intern/QC_AbstractMethodVariant.h"
 
-DLLEXPORT extern qore_classid_t CID_ABSTRACTMETHODVARIANT;
-DLLLOCAL extern QoreClass* QC_ABSTRACTMETHODVARIANT;
+DLLEXPORT extern qore_classid_t CID_STATICMETHODVARIANT;
+DLLLOCAL extern QoreClass* QC_STATICMETHODVARIANT;
 
 DLLLOCAL void preinitStaticMethodVariantClass();
 DLLLOCAL QoreClass* initStaticMethodVariantClass(QoreNamespace& ns);

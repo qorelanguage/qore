@@ -32,6 +32,7 @@
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/QC_AbstractVariant.h"
+#include "qore/intern/QC_AbstractMethodVariant.h"
 #include "qore/intern/qore_program_private.h"
 
 int check_call(QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
@@ -102,6 +103,8 @@ method_type_e QoreReflectionMethod::getMethodType(const QoreMethod* m) {
 //! The abstract base class for %Qore class methods
 /**
     This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
+
+    @see @ref Qore::Reflection::AbstractMethodVariant "AbstractMethodVariant"
 
     @since %Qore 0.9.0
  */

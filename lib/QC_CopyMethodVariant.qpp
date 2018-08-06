@@ -29,11 +29,14 @@
 #include "qore/Qore.h"
 #include "qore/intern/QC_CopyMethodVariant.h"
 #include "qore/intern/QC_AbstractMethod.h"
+#include "qore/intern/QC_NormalMethodVariant.h"
 #include "qore/intern/Function.h"
 
 //! The class for %Qore class copy method variants
 /**
     This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
+
+    @see @ref Qore::Reflection::CopyMethod "CopyMethod"
 
     @since %Qore 0.9.0
  */

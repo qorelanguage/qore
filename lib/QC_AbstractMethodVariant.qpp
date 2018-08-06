@@ -34,6 +34,8 @@
 /**
     This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
 
+    @see @ref Qore::Reflection::AbstractMethod "AbstractMethod"
+
     @since %Qore 0.9.0
  */
 qclass AbstractMethodVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; vparent=AbstractVariant];

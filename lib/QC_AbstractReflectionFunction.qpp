@@ -35,6 +35,9 @@
 #include "qore/intern/QC_AbstractVariant.h"
 #include "qore/intern/QC_NormalMethodVariant.h"
 #include "qore/intern/QC_StaticMethodVariant.h"
+#include "qore/intern/QC_ConstructorMethodVariant.h"
+#include "qore/intern/QC_DestructorMethodVariant.h"
+#include "qore/intern/QC_CopyMethodVariant.h"
 //#include "qore/intern/QC_FunctionVariant.h"
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/qore_program_private.h"
@@ -58,6 +61,8 @@ QoreObject* QoreReflectionFunction::getFunctionObject(ExceptionSink* xsink) cons
 
 QoreObject* get_variant_object(QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, const AbstractQoreFunctionVariant* v, ExceptionSink* xsink) {
     switch (mtype) {
+        //case MT_None:
+            //return new QoreObject(QC_FUNCTIONVARIANT, f->pgm, new QoreReflectionVariant(pgm, f, v));
         case MT_Static:
             return new QoreObject(QC_STATICMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
         case MT_Normal:
@@ -72,7 +77,6 @@ QoreObject* get_variant_object(QoreProgram* pgm, const QoreFunction* f, method_t
             break;
     }
 
-    //return new QoreObject(QC_FUNCTIONVARIANT, f->pgm, new QoreReflectionVariant(pgm, f, v));
     xsink->raiseException("UNSUPPORTED", "implement me");
     return nullptr;
 }

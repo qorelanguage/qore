@@ -197,17 +197,17 @@ QoreObject* find_variant(const QoreReflectionClass* c, const QoreStringNode* nam
 */
 //@{
 //! describes public access
-/** Equivalent to @ref Qore::MC_PUBLIC
+/** Equivalent to @ref Qore::Reflection::MC_PUBLIC
 */
 const AC_PUBLIC = MC_PUBLIC;
 
 //! describes private access; accessible from anywhere in a class hierarchy (similar to \c protected in C++ and Java)
-/** Equivalent to @ref Qore::MC_PRIVATE
+/** Equivalent to @ref Qore::Reflection::MC_PRIVATE
 */
 const AC_PRIVATE = MC_PRIVATE;
 
 //! describes internal private access; only accessible from the same class where the definition is made (similar to \c private in C++ and Java)
-/** Equivalent to @ref Qore::MC_PRIVATEINTERNAL
+/** Equivalent to @ref Qore::Reflection::MC_PRIVATEINTERNAL
 */
 const AC_PRIVATEINTERNAL = MC_PRIVATEINTERNAL;
 //@}
@@ -219,17 +219,17 @@ const AC_PRIVATEINTERNAL = MC_PRIVATEINTERNAL;
 */
 //@{
 //! describes public access
-/** Equivalent to @ref Qore::AC_PUBLIC
+/** Equivalent to @ref Qore::Reflection::AC_PUBLIC
 */
 const MC_PUBLIC = MC_PUBLIC;
 
 //! describes private access; accessible from anywhere in a class hierarchy (similar to \c protected in C++ and Java)
-/** Equivalent to @ref Qore::AC_PRIVATE
+/** Equivalent to @ref Qore::Reflection::AC_PRIVATE
 */
 const MC_PRIVATE = MC_PRIVATE;
 
 //! describes internal private access; only accessible from the same class where the definition is made (similar to \c private in C++ and Java)
-/** Equivalent to @ref Qore::AC_PRIVATEINTERNAL
+/** Equivalent to @ref Qore::Reflection::AC_PRIVATEINTERNAL
 */
 const MC_PRIVATEINTERNAL = MC_PRIVATEINTERNAL;
 
@@ -249,12 +249,12 @@ const MC_DEPRECATED = MC_DEPRECATED;
 const MC_INJECTED = MC_INJECTED;
 
 //! describes builtin code
-/** @ref Qore::MC_BUILTIN "MC_BUILTIN" and @ref Qore::MC_USER "MC_USER" are mutually exclusive
+/** @ref Qore::Reflection::MC_BUILTIN "MC_BUILTIN" and @ref Qore::Reflection::MC_USER "MC_USER" are mutually exclusive
 */
 const MC_BUILTIN = MC_BUILTIN;
 
 //! describes user code
-/** @ref Qore::MC_BUILTIN "MC_BUILTIN" and @ref Qore::MC_USER "MC_USER" are mutually exclusive
+/** @ref Qore::Reflection::MC_BUILTIN "MC_BUILTIN" and @ref Qore::Reflection::MC_USER "MC_USER" are mutually exclusive
 */
 const MC_USER = MC_USER;
 //@}
@@ -265,7 +265,7 @@ const MC_USER = MC_USER;
     @since %Qore 0.9.0
 */
 //@{
-//!< provides process control functionality (can affect or stop the current process)
+//! provides process control functionality (can affect or stop the current process)
 /** @see
     - @ref Qore::PO_NO_PROCESS_CONTROL "PO_NO_PROCESS_CONTROL"
     - @ref no-process-control
@@ -411,8 +411,8 @@ const CF_DEPRECATED = QC_DEPRECATED;
 */
 const CF_RET_VALUE_ONLY = QC_RET_VALUE_ONLY;
 
-//! Like @ref Qore::CF_NOOP "CF_NOOP" but makes variants unavailable at both parse time and run time when either @ref strict-args or @ref require-types or both are set
-/** as with @ref Qore::CF_NOOP "CF_NOOP", variants with this flag set should be considered deprecated
+//! Like @ref Qore::Reflection::CF_NOOP "CF_NOOP" but makes variants unavailable at both parse time and run time when either @ref strict-args or @ref require-types or both are set
+/** as with @ref Qore::Reflection::CF_NOOP "CF_NOOP", variants with this flag set should be considered deprecated
 */
 const CF_RUNTIME_NOOP = QC_RUNTIME_NOOP;
 //@}
@@ -555,12 +555,12 @@ int i = cls.getModifiers();
     @endcode
 
     @return a bitfield of @ref modifier_constants "modifiers" describing the class; possible values are:
-    - @ref Qore::MC_ABSTRACT "MC_ABSTRACT": the class is @ref abstract
-    - @ref Qore::MC_BUILTIN "MC_BUILTIN": the class is builtin
-    - @ref Qore::MC_FINAL "MC_FINAL": the class has the @ref final_classes "final flag" set
-    - @ref Qore::MC_INJECTED "MC_INJECTED": the class has been @ref allow-injection "injected" into the current @ref Qore::Program "Program" container
-    - @ref Qore::MC_PUBLIC "MC_PUBLIC": the class has the @ref mod_public "module public" flag set (not related to any inheritance properties in a class hierarchy)
-    - @ref Qore::MC_USER "MC_USER": the class is a user class
+    - @ref Qore::Reflection::MC_ABSTRACT "MC_ABSTRACT": the class is @ref abstract
+    - @ref Qore::Reflection::MC_BUILTIN "MC_BUILTIN": the class is builtin
+    - @ref Qore::Reflection::MC_FINAL "MC_FINAL": the class has the @ref final_classes "final flag" set
+    - @ref Qore::Reflection::MC_INJECTED "MC_INJECTED": the class has been @ref allow-injection "injected" into the current @ref Qore::Program "Program" container
+    - @ref Qore::Reflection::MC_PUBLIC "MC_PUBLIC": the class has the @ref mod_public "module public" flag set (not related to any inheritance properties in a class hierarchy)
+    - @ref Qore::Reflection::MC_USER "MC_USER": the class is a user class
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 
@@ -1016,7 +1016,7 @@ object Class::newObject(...) {
 object o = cls.newObjectArgs(args);
     @endcode
 
-    @param args the arguments for the constructor
+    @param argv the arguments for the constructor
 
     @return an object if the current class based on the constructor arguments passed
 
@@ -1115,7 +1115,7 @@ AbstractMethodVariant m = cls.getVariant(name, TypeInt, TypeString);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown method
-    @theow RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
 
     @see
     - getVariantArgs()
@@ -1143,7 +1143,7 @@ AbstractMethodVariant m = cls.getVariantArgs(name, (TypeInt, TypeString));
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown method
-    @theow RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
 
     @see
     - getVariant()
@@ -1171,7 +1171,7 @@ AbstractMethodVariant m = cls.getExactVariant(name, TypeInt, TypeString);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown method
-    @theow RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
 
     @see
     - getVariant()
@@ -1199,7 +1199,7 @@ AbstractMethodVariant m = cls.getExactVariantArgs(name, (TypeInt, TypeString));
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown method
-    @theow RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
 
     @see
     - getVariant()
@@ -1227,7 +1227,7 @@ NormalMethodVariant m = cls.getNormalVariant(name, TypeInt, TypeString);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown normal (non-static, non-special) method
-    @theow RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
 
     @see
     - getNormalVariantArgs()
@@ -1255,7 +1255,7 @@ NormalMethodVariant m = cls.getNormalVariantArgs(name, (TypeInt, TypeString));
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown normal (non-static, non-special) method
-    @theow RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
 
     @see
     - getNormalVariant()
@@ -1283,7 +1283,7 @@ NormalMethodVariant m = cls.getExactNormalVariant(name, TypeInt, TypeString);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown normal (non-static, non-special) method
-    @theow RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
 
     @see
     - getNormalVariant()
@@ -1311,7 +1311,7 @@ NormalMethodVariant m = cls.getExactNormalVariantArgs(name, (TypeInt, TypeString
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown normal (non-static, non-special) method
-    @theow RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
 
     @see
     - getNormalVariant()
@@ -1339,7 +1339,7 @@ StaticMethodVariant m = cls.getStaticVariant(name, TypeInt, TypeString);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown static method
-    @theow RUNTIME-OVERLOAD-ERROR no static method variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no static method variant van be found matching the given argument types
 
     @see
     - getStaticVariantArgs()
@@ -1367,7 +1367,7 @@ StaticMethodVariant m = cls.getStaticVariantArgs(name, (TypeInt, TypeString));
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown static method
-    @theow RUNTIME-OVERLOAD-ERROR no method static variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no method static variant van be found matching the given argument types
 
     @see
     - getStaticVariant()
@@ -1395,7 +1395,7 @@ StaticMethodVariant m = cls.getExactStaticVariant(name, TypeInt, TypeString);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown static method
-    @theow RUNTIME-OVERLOAD-ERROR no static method variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no static method variant van be found matching the given argument types
 
     @see
     - getStaticVariant()
@@ -1423,7 +1423,7 @@ StaticMethodVariant m = cls.getExactStaticVariantArgs(name, (TypeInt, TypeString
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown static method
-    @theow RUNTIME-OVERLOAD-ERROR no static method variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no static method variant van be found matching the given argument types
 
     @see
     - getStaticVariant()
@@ -1449,7 +1449,7 @@ ConstructorMethodVariant m = cls.getConstructorVariant(TypeInt, TypeString);
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR no constructor method defined
-    @theow RUNTIME-OVERLOAD-ERROR no constructor method variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no constructor method variant van be found matching the given argument types
 
     @see
     - getConstructorVariantArgs()
@@ -1476,14 +1476,14 @@ ConstructorMethodVariant m = cls.getConstructorVariantArgs((TypeInt, TypeString)
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR no constructor method defined
-    @theow RUNTIME-OVERLOAD-ERROR no method constructor variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no method constructor variant van be found matching the given argument types
 
     @see
     - getConstructorVariant()
     - getExactConstructorVariant()
     - getExactConstructorVariantArgs()
 */
-ConstructorMethodVariant Class::getConstructorVariantArgs(string name, *softlist<Type> argv) [flags=RET_VALUE_ONLY] {
+ConstructorMethodVariant Class::getConstructorVariantArgs(*softlist<Type> argv) [flags=RET_VALUE_ONLY] {
     return find_variant(c, "constructor", FV_CONSTRUCTOR, argv, 0, false, xsink);
 }
 
@@ -1503,7 +1503,7 @@ ConstructorMethodVariant m = cls.getExactConstructorVariant(TypeInt, TypeString)
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR no constructor method defined
-    @theow RUNTIME-OVERLOAD-ERROR no constructor method variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no constructor method variant van be found matching the given argument types
 
     @see
     - getConstructorVariant()
@@ -1530,14 +1530,14 @@ ConstructorMethodVariant m = cls.getExactConstructorVariantArgs((TypeInt, TypeSt
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR no constructor method defined
-    @theow RUNTIME-OVERLOAD-ERROR no constructor method variant van be found matching the given argument types
+    @throw RUNTIME-OVERLOAD-ERROR no constructor method variant van be found matching the given argument types
 
     @see
     - getConstructorVariant()
     - getConstructorVariantArgs()
     - getExactConstructorVariant()
 */
-ConstructorMethodVariant Class::getExactConstructorVariantArgs(string name, softlist<Type> argv) [flags=RET_VALUE_ONLY] {
+ConstructorMethodVariant Class::getExactConstructorVariantArgs(softlist<Type> argv) [flags=RET_VALUE_ONLY] {
     return find_variant(c, "constructor", FV_CONSTRUCTOR, argv, 0, true, xsink);
 }
 
