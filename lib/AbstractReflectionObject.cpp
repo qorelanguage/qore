@@ -30,6 +30,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/AbstractReflectionObject.h"
+#include "qore/intern/QC_Class.h"
 
 int get_access(ClassAccess access) {
     switch (access) {
