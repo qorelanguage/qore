@@ -1088,7 +1088,7 @@ hash: (2 members)
             #printf("MSTR (i: %d): %s\n", i, mstr);
 
             # find end
-            int j = mstr.find("\r\n--" + boundary + "--");
+            int j = mstr.rfind("\r\n--" + boundary + "--");
             if (j == -1)
                 throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find closing boundary %y in body", "--" + boundary + "--");
 
