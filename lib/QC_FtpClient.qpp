@@ -650,6 +650,40 @@ nothing FtpClient::setURL(string url) {
    f->setURL(url, xsink);
 }
 
+//! Sets the network address family to use for new connections; use this method to restrict connections to IPv4 or IPv6 connections
+/** @param family the network address family to use for new connections; see @ref network_address_family_constants for valid values; use @ref Qore::AF_UNSPEC to automatically choose the family (the default)
+
+    @par Example:
+    @code{.py}
+ftp.setNetworkFamily(AF_INET);
+    @endcode
+
+    @throw FTPCLIENT-SETNETWORKFAMILY-ERROR invalid or unknown network family
+
+    @since %Qore 0.9.0
+*/
+nothing FtpClient::setNetworkFamily(int family) {
+    if (family != AF_INET && family != AF_INET6 && family != AF_UNSPEC) {
+        xsink->raiseException("FTPCLIENT-SETNETWORKFAMILY-ERROR", "invalid network family " QLLD, family);
+        return QoreValue();
+    }
+    f->setNetworkFamily(family);
+}
+
+//! Returns the network address family to use for new connections
+/** @return the network address family to use for new connections; see @ref network_address_family_constants for valid values; @ref Qore::AF_UNSPEC means to automatically choose the family (the default)
+
+    @par Example:
+    @code{.py}
+int family = ftp.getNetworkFamily();
+    @endcode
+
+    @since %Qore 0.9.0
+*/
+int FtpClient::getNetworkFamily() [flags=CONSTANT] {
+    return f->getNetworkFamily();
+}
+
 //! Returns the current username value or @ref nothing if none is set
 /**
     @return the current username value that will be used for the next connection or @ref nothing if none is set
@@ -662,6 +696,90 @@ nothing FtpClient::setURL(string url) {
 *string FtpClient::getUserName() {
    const char *u = f->getUserName();
    return u ? new QoreStringNode(u) : 0;
+}
+
+//! Returns information about the local control socket as a hash
+/** If the control socket is not open, an exception is thrown
+
+    @par Example:
+    @code{.py}
+hash<auto> h = ftp.getControlSocketInfo();
+    @endcode
+
+    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+
+    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETSOCKETINFO-ERROR error in getsockname()
+
+    @since %Qore 0.9.0
+ */
+hash<auto> FtpClient::getControlSocketInfo(bool host_lookup = True) {
+   return f->getControlSocketInfo(xsink, host_lookup);
+}
+
+//! Returns information about the local data socket as a hash
+/** If the data socket is not open, an exception is thrown
+
+    @par Example:
+    @code{.py}
+hash<auto> h = ftp.getControlSocketInfo();
+    @endcode
+
+    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+
+    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETSOCKETINFO-ERROR error in getsockname()
+
+    @since %Qore 0.9.0
+ */
+hash<auto> FtpClient::getDataSocketInfo(bool host_lookup = True) {
+   return f->getDataSocketInfo(xsink, host_lookup);
+}
+
+//! Returns information about the remote end of the control socket as a hash
+/** If the control socket is not open, an exception is thrown
+
+    @par Example:
+    @code{.py}
+hash<auto> h = ftp.getControlPeerInfo();
+    @endcode
+
+    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+
+    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETPEERINFO-ERROR error in getpeername()
+
+    @since %Qore 0.9.0
+ */
+hash<auto> FtpClient::getControlPeerInfo(bool host_lookup = True) {
+   return f->getControlPeerInfo(xsink, host_lookup);
+}
+
+//! Returns information about the remote data socket as a hash
+/** If the data socket is not open, an exception is thrown
+
+    @par Example:
+    @code{.py}
+hash<auto> h = ftp.getDataPeerInfo();
+    @endcode
+
+    @param host_lookup do a lookup of the hostname; if this is @ref Qore::False "False" then \c "hostname" and \c "hostname_desc" are not present in the response hash
+
+    @return a @ref socket_info_hash "hash of information" about the remote end for connected sockets
+
+    @throw SOCKET-NOT-OPEN The socket is not open
+    @throw SOCKET-GETPEERINFO-ERROR error in getpeername()
+
+    @since %Qore 0.9.0
+ */
+hash<auto> FtpClient::getDataPeerInfo(bool host_lookup = True) {
+   return f->getDataPeerInfo(xsink, host_lookup);
 }
 
 //! Returns the current password value or @ref nothing if none is set

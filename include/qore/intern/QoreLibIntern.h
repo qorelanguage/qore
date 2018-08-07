@@ -785,7 +785,11 @@ private:
    DLLLOCAL ThreadLocalData(const ThreadLocalData&);
 };
 
+// maps from Q_AF_* to standard system AF_ constants
 DLLLOCAL int q_get_af(int type);
+// maps from AF_* to Q_AF_ constants
+DLLLOCAL int q_get_raf(int type);
+// maps from Q_SOCK_ to standard system SOCK_ constants
 DLLLOCAL int q_get_sock_type(int t);
 
 class OptHashRefHelper {
