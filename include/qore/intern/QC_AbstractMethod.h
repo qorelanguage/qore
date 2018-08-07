@@ -53,8 +53,10 @@ public:
             case MT_Constructor: return "constructor";
             case MT_Destructor: return "destructor";
             case MT_Copy: return "copy";
-            default: assert(false);
+            default: break;
         }
+        assert(false);
+        return nullptr
     }
 
     DLLLOCAL static method_type_e getMethodType(const QoreMethod* m);
