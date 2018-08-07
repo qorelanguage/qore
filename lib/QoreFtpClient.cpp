@@ -177,7 +177,7 @@ struct qore_ftp_private {
 
     DLLLOCAL QoreHashNode* getDataSocketInfo(ExceptionSink* xsink, bool host_lookup) const {
         AutoLocker al(m);
-        return control.getSocketInfo(xsink, host_lookup);
+        return data.getSocketInfo(xsink, host_lookup);
     }
 
     DLLLOCAL void setControlEventQueue(Queue *cbq, ExceptionSink* xsink) {
@@ -803,17 +803,6 @@ struct qore_ftp_private {
    DLLLOCAL void clearStats() {
       AutoLocker al(m);
    }
-
-private:
-    DLLLOCAL void init() {
-        control_connected = loggedin = false;
-        mode = FTP_MODE_UNKNOWN;
-        port = DEFAULT_FTP_CONTROL_PORT;
-        user = pass = host = 0;
-        secure = secure_data = manual_mode = false;
-        // 30-second timeout by default
-        timeout_ms = 30000;
-    }
 };
 
 QoreFtpClient::QoreFtpClient(const QoreString *url, ExceptionSink* xsink) : priv(new qore_ftp_private(url, xsink)) {
