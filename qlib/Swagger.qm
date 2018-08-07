@@ -2154,10 +2154,10 @@ public class OperationObject inherits ObjectBase {
          */
         hash<string, AbstractParameterObject> parameters();
 
-        #! the body parameter, if defined for this operation will exclude formData parameter
+        #! the body parameter, if defined for this operation than it will exclude formData parameter
         AbstractParameterObject body;
 
-        #! the formData parameter, if defined for this operation will exclude body parameter
+        #! the formData parameter, if defined for this operation than it will exclude body parameter
         AbstractParameterObject formData;
 
         #! Required. The list of possible responses as they are returned from executing this operation.
@@ -2240,8 +2240,8 @@ public class OperationObject inherits ObjectBase {
                 AbstractParameterObject param = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1, listObj.lsize()), p, swagger);
                 if (param.inLoc == "body")
                     body = param;
-		        else if (param.inLoc == "formData")
-		            formData = param;
+                else if (param.inLoc == "formData")
+                    formData = param;
                 else
                     parameters{param.name} = param;
             }
@@ -2328,8 +2328,8 @@ public class OperationObject inherits ObjectBase {
             *AbstractParameterObject formData_po = formData;
             if (body_po)
                 body_po.check(serialize, True, path, method, "body", \body);
-	        else if (formData_po)
-		        formData_po.check(serialize, True, path, method, "formData", \body);
+            else if (formData_po)
+                formData_po.check(serialize, True, path, method, "formData", \body);
             else if (body)
                 error("SCHEMA-VALIDATION-ERROR", "No message body is accepted; body keys passed: %y", keys body);
         }
