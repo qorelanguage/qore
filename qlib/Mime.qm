@@ -31,7 +31,7 @@
 %new-style
 
 module Mime {
-    version = "1.4.1";
+    version = "1.4.2";
     desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
@@ -88,6 +88,10 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
     @endverbatim
 
     @section mimereleasenotes Release Notes
+
+    @subsection mime_1_4_2 v1.4.2
+    - fixed exception throwing when trying to send binary files
+      (<a href="https://github.com/qorelanguage/qore/issues/2936">issue 2936</a>)
 
     @subsection mime_1_4_1 v1.4.1
     - fixed a bug in @ref Mime::mime_parse_form_urlencoded_string() "mime_parse_form_urlencoded_string()" where
@@ -1088,7 +1092,7 @@ hash: (2 members)
             #printf("MSTR (i: %d): %s\n", i, mstr);
 
             # find end
-            int j = mstr.find("\r\n--" + boundary + "--");
+            int j = mstr.rfind("\r\n--" + boundary + "--");
             if (j == -1)
                 throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find closing boundary %y in body", "--" + boundary + "--");
 
