@@ -440,6 +440,16 @@ class SchemaBase {
                     name, path, method, keys enum, value);
     }
 
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, list v, reference<list> value) {
+        if (type != "list")
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is %y, but the expected type is list", name, path, method, type);
+    }
+
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, hash v, reference<hash> value) {
+        if (type != "file")
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is %y, but the expected type is file", name, path, method, type);
+    }
+
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, int v, reference<int> value) {
         if (type != "integer")
             throwInvalidType(name, "integer", type);
@@ -2144,8 +2154,11 @@ public class OperationObject inherits ObjectBase {
          */
         hash<string, AbstractParameterObject> parameters();
 
-        #! the body parameter, if defined for this operation
+        #! body parameter; if defined for this operation, formData parameter will be excluded
         AbstractParameterObject body;
+
+        #! formData parameter; if defined for this operation, body parameter will be excluded
+        AbstractParameterObject formData;
 
         #! Required. The list of possible responses as they are returned from executing this operation.
         ResponsesObject responses;
@@ -2227,6 +2240,8 @@ public class OperationObject inherits ObjectBase {
                 AbstractParameterObject param = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1, listObj.lsize()), p, swagger);
                 if (param.inLoc == "body")
                     body = param;
+                else if (param.inLoc == "formData")
+                    formData = param;
                 else
                     parameters{param.name} = param;
             }
@@ -2310,8 +2325,11 @@ public class OperationObject inherits ObjectBase {
         # check body parameters
         {
             *AbstractParameterObject body_po = self.body ?? pio.body;
+            *AbstractParameterObject formData_po = formData;
             if (body_po)
                 body_po.check(serialize, True, path, method, "body", \body);
+            else if (formData_po)
+                formData_po.check(serialize, True, path, method, "formData", \body);
             else if (body)
                 error("SCHEMA-VALIDATION-ERROR", "No message body is accepted; body keys passed: %y", keys body);
         }
