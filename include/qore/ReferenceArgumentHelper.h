@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ReferenceArgumentHelper.h
+    ReferenceArgumentHelper.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_REFERENCEARGUMENTHELPER_H
@@ -66,64 +66,51 @@ private:
    DLLLOCAL ReferenceArgumentHelper& operator=(const ReferenceArgumentHelper&);
 
 public:
-   //! creates a fake local variable assigned to "val" and creates a reference to the local variable
-   /**
-       @param name of argument
-       @param val the value to assign to the local variable
-       @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
-       @since %Qore 0.8.13
-   */
-   DLLEXPORT ReferenceArgumentHelper(QoreValue val, ExceptionSink* xsink);
+    //! creates a fake local variable assigned to "val" and creates a reference to the local variable
+    /**
+        @param val the value to assign to the local variable
+        @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
 
-   // creates a fake local variable assigned to "val" and creates a reference to the local variable
-   /*
-      @param val the value to assign to the local variable
-      @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
+        @code
+        // incorrect - MEMORY LEAK!
+        ReferenceArgumentHelper rah(new QoreHashNode, &xsink2);
+
+        // correct
+        ValueHolder holder(new QoreHashNode, &xsink2);
+        ReferenceArgumentHelper rah(*holder, &xsink2);
+        @endcode
     */
-   //DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, ExceptionSink* xsink);
-   // creates a fake local variable assigned to "val" and creates a reference to the local variable
-   /*
-         @param val the value to assign to the local variable
-         @param typeInfo the type restriction for the lvalue
-         @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
-         @since %Qore 0.8.13
+    DLLEXPORT ReferenceArgumentHelper(QoreValue val, ExceptionSink* xsink);
 
-       Warning using this constructor may lead to memory leak when value is changed in Qore script. Problem is
-       when AbstractQoreNode is created and assigned to helper then QoreValue is taken but original reference in node
-       is not dereferenced. So when is AbstractQoreNode is to be destroyed then destroys invalid QoreValue which has been
-       destroyed is script. The other option is to leave AbstractQoreNode referenced but it causes memory leak.
+    //! creates a fake local variable assigned to "val" and creates a reference to the local variable
+    /**
+        @param val the value to assign to the local variable
+        @param typeInfo type information for the lvalue
+        @param xsink this value is saved to be used for dereferencing the fake local variable in the destructor
 
-    @code
-      // wrong
-      QoreBigIntNode *rc = new QoreBigIntNode(retCode);   // 48 bytes in 2 blocks are definitely lost in loss record .... allocated here by: operator new(unsigned long)
-      ReferenceArgumentHelper rah(rc, &xsink2);
+        @code
+        // incorrect - MEMORY LEAK!
+        ReferenceArgumentHelper rah(new QoreHashNode, autoHashTypeInfo, &xsink2);
 
-      // correct
-      ReferenceArgumentHelper rah(retCode, &xsink2);
-    @endcode
-
-   */
-   //DLLEXPORT ReferenceArgumentHelper(AbstractQoreNode* val, const QoreTypeInfo* typeInfo, ExceptionSink* xsink);
-
-   //! frees all memory still managed by the object
-   DLLEXPORT ~ReferenceArgumentHelper();
-
-   //! returns the reference to the fake local variable for use in an argument list, the caller owns the reference returned
-   /** @return the reference to the fake local variable for use in an argument list, the caller owns the reference returned
+        // correct
+        ValueHolder holder(new QoreHashNode, &xsink2);
+        ReferenceArgumentHelper rah(*holder, autoHashTypeInfo, &xsink2);
+        @endcode
     */
-   DLLEXPORT AbstractQoreNode* getArg() const;
+    DLLEXPORT ReferenceArgumentHelper(QoreValue val, const QoreTypeInfo* typeInfo, ExceptionSink* xsink);
 
-   //! returns the value of the reference and leaves the reference empty, the caller owns the reference returned
-   /** @return the value of the reference and leaves the reference empty, the caller owns the reference returned
+    //! frees all memory still managed by the object
+    DLLEXPORT ~ReferenceArgumentHelper();
+
+    //! returns the reference to the fake local variable for use in an argument list, the caller owns the reference returned
+    /** @return the reference to the fake local variable for use in an argument list, the caller owns the reference returned
     */
-   DLLEXPORT AbstractQoreNode *getOutputValue();
+    DLLEXPORT ReferenceNode* getArg() const;
 
-   //! returns the value of the reference and leaves the reference empty, the caller owns the reference returned
-   /** @return the value of the reference and leaves the reference empty, the caller owns the reference returned
-
-       @since %Qore 0.8.13
+    //! returns the value of the reference and leaves the reference empty, the caller owns the reference returned
+    /** @return the value of the reference and leaves the reference empty, the caller owns the reference returned
     */
-   DLLEXPORT QoreValue getOutputQoreValue();
+    DLLEXPORT QoreValue getOutputValue();
 };
 
 #endif

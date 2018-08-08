@@ -89,6 +89,7 @@
 #define PO_NO_INHERIT_SYSTEM_HASHDECLS      (1LL << 49)  //!< do not inherit system hashdecls from the parent into the new program's space
 #define PO_ALLOW_WEAK_REFERENCES            (1LL << 50)  //!< allow the use of the weak reference assignment operator ':='
 #define PO_ALLOW_DEBUGGER                   (1LL << 51)  //!< allow the use debugger stuff
+#define PO_ALLOW_STATEMENT_NO_EFFECT        (1LL << 52)  //!< allow for old pre-%Qore 0.9 top-level statements having no effect
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS

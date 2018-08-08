@@ -407,3 +407,62 @@ else(CMAKE_USE_PTHREADS_INIT)
     message(FATAL_ERROR "POSIX threads do not seem to be supported on this platform, aborting")
 endif()
 endmacro(QORE_FIND_PTHREADS)
+
+# find pthread_setname
+macro(QORE_FIND_PTHREAD_SETNAME_NP)
+  message(STATUS "Looking for pthread_setname_np()")
+
+  check_cxx_source_compiles("
+#include <pthread.h>
+int main(int argc, char* argv []) {
+    pthread_setname_np(\"foo\");
+    return 0;
+}
+" QORE_HAVE_PTHREAD_SETNAME_NP_1)
+
+  if (NOT QORE_HAVE_PTHREAD_SETNAME_NP_1)
+    check_cxx_source_compiles("
+#include <pthread.h>
+int main(int argc, char* argv []) {
+    pthread_setname_np(pthread_self(), \"foo\");
+    return 0;
+}
+" QORE_HAVE_PTHREAD_SETNAME_NP_2)
+
+    if (NOT QORE_HAVE_PTHREAD_SETNAME_NP_2)
+      check_cxx_source_compiles("
+#include <pthread.h>
+int main(int argc, char* argv []) {
+    pthread_setname_np(pthread_self(), \"foo\", (void*)0);
+    return 0;
+}
+" QORE_HAVE_PTHREAD_SETNAME_NP_3)
+
+      if (NOT QORE_HAVE_PTHREAD_SETNAME_NP_3)
+        check_cxx_source_compiles("
+#include <pthread.h>
+int main(int argc, char* argv []) {
+    pthread_set_name_np(pthread_self(), \"foo\");
+    return 0;
+}
+" QORE_HAVE_PTHREAD_SET_NAME_NP)
+
+      endif()
+
+    endif()
+
+  endif()
+
+endmacro(QORE_FIND_PTHREAD_SETNAME_NP)
+
+# find pthread_getattr_np
+macro(QORE_FIND_PTHREAD_GETATTR_NP)
+  check_cxx_source_compiles("
+#include <pthread.h>
+int main(int argc, char* argv []) {
+    pthread_attr_t attr;
+    pthread_getattr_np(pthread_self(), &attr);
+    return 0;
+}
+" QORE_HAVE_PTHREAD_GETATTR_NP)
+endmacro()

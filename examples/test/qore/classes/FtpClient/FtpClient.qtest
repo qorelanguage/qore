@@ -25,7 +25,7 @@ class FtpServer {
 
     constructor(int port, int verbose = 0) {
         self.verbose = verbose;
-        s.bindINET("localhost", port.toString(), True);
+        s.bindINET("localhost", port.toString(), True, AF_INET);
         if (s.listen())
             throw "FTPSERVER-ERROR", strerror();
         cnt.inc();
@@ -241,7 +241,7 @@ class FtpServer {
         while (True) {
             dport = 10000 + (rand() % 40000);
             try {
-                data.bindINET("localhost", dport, True);
+                data.bindINET("localhost", dport, True, AF_INET);
                 break;
             }
             catch (hash ex) {
@@ -395,7 +395,15 @@ class FtpTest inherits QUnit::Test {
         FtpClient fc("ftp://user:pass@localhost:" + port);
         Queue q();
         fc.setWarningQueue(20000, 20000, q, "test");
+        assertEq(AF_UNSPEC, fc.getNetworkFamily());
+        assertThrows("FTPCLIENT-SETNETWORKFAMILY-ERROR", \fc.setNetworkFamily(), -1);
+        fc.setNetworkFamily(AF_INET);
         assertEq(NOTHING, fc.connect());
+
+        hash info = fc.getControlSocketInfo();
+        assertEq(AF_INET, info.family);
+        info = fc.getControlPeerInfo();
+        assertEq(AF_INET, info.family);
 
         # create a local file to send
         string local_path = tmp_location() + '/ftptest';

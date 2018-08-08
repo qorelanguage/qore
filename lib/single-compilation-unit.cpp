@@ -1,29 +1,29 @@
 /*
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include "parser.cpp"
@@ -46,9 +46,6 @@
 #include "qore_date_private.cpp"
 #include "QoreHashNode.cpp"
 #include "BinaryNode.cpp"
-#include "QoreBigIntNode.cpp"
-#include "QoreBoolNode.cpp"
-#include "QoreFloatNode.cpp"
 #include "QoreNumberNode.cpp"
 #include "QoreNullNode.cpp"
 #include "QoreNothingNode.cpp"
@@ -62,7 +59,6 @@
 #include "QoreImplicitArgumentNode.cpp"
 #include "QoreImplicitElementNode.cpp"
 #include "Function.cpp"
-#include "BuiltinFunctionList.cpp"
 #include "GlobalVariableList.cpp"
 #include "FunctionList.cpp"
 #include "AbstractStatement.cpp"
@@ -115,7 +111,6 @@
 #include "RSet.cpp"
 #include "RSection.cpp"
 #include "QoreListNode.cpp"
-#include "QoreValueList.cpp"
 #include "qore-main.cpp"
 #include "QoreGetOpt.cpp"
 #include "QoreFtpClient.cpp"
@@ -310,6 +305,7 @@
 #include "QC_RangeIterator.cpp"
 #include "QC_ThreadPool.cpp"
 #include "QC_AbstractDatasource.cpp"
+#include "QC_AbstractSQLStatement.cpp"
 #include "QC_Datasource.cpp"
 #include "QC_DatasourcePool.cpp"
 #include "QC_SQLStatement.cpp"
@@ -332,6 +328,7 @@
 #include "QC_TimeZone.cpp"
 #include "QC_TreeMap.cpp"
 #include "QC_AbstractThreadResource.cpp"
+#include "QC_StreamBase.cpp"
 #include "QC_InputStream.cpp"
 #include "QC_BinaryInputStream.cpp"
 #include "QC_StringInputStream.cpp"

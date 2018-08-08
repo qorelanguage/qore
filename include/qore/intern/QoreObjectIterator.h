@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreHashIterator.h
+    QoreHashIterator.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREOBJECTITERATOR_H
@@ -44,34 +44,34 @@ extern QoreClass* QC_OBJECTREVERSEITERATOR;
 // the c++ object
 class QoreObjectIterator : public QoreHashIterator {
 public:
-   DLLLOCAL QoreObjectIterator(const QoreObject* o) : QoreHashIterator(qore_object_private::get(*o)->getRuntimeMemberHash(0)) {
-   }
+    DLLLOCAL QoreObjectIterator(const QoreObject* o) : QoreHashIterator(qore_object_private::get(*o)->getRuntimeMemberHash(0)) {
+    }
 
-   DLLLOCAL QoreObjectIterator() {
-   }
+    DLLLOCAL QoreObjectIterator() {
+    }
 
-   DLLLOCAL QoreObjectIterator(const QoreObjectIterator& old) : QoreHashIterator(old) {
-   }
+    DLLLOCAL QoreObjectIterator(const QoreObjectIterator& old) : QoreHashIterator(old) {
+    }
 
-   DLLLOCAL virtual const char* getName() const { return "ObjectIterator"; }
+    DLLLOCAL virtual const char* getName() const { return "ObjectIterator"; }
 };
 
 // internal reverse iterator class implementation only for the getName() function - the iterators remain
 // forwards and are used in the reverse sense by the Qore language class implementation below
 class QoreObjectReverseIterator : public QoreObjectIterator {
 public:
-   DLLLOCAL QoreObjectReverseIterator(const QoreObject* o) : QoreObjectIterator(o) {
-   }
+    DLLLOCAL QoreObjectReverseIterator(const QoreObject* o) : QoreObjectIterator(o) {
+    }
 
-   DLLLOCAL QoreObjectReverseIterator() {
-   }
+    DLLLOCAL QoreObjectReverseIterator() {
+    }
 
-   DLLLOCAL QoreObjectReverseIterator(const QoreObjectReverseIterator& old) : QoreObjectIterator(old) {
-   }
+    DLLLOCAL QoreObjectReverseIterator(const QoreObjectReverseIterator& old) : QoreObjectIterator(old) {
+    }
 
-   DLLLOCAL virtual const char* getName() const {
-      return "ObjectReverseIterator";
-   }
+    DLLLOCAL virtual const char* getName() const {
+        return "ObjectReverseIterator";
+    }
 };
 
 #endif // _QORE_QOREOBJECTITERATOR_H

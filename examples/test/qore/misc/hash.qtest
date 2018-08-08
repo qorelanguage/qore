@@ -1,0 +1,25 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class HashTest
+
+
+class HashTest inherits QUnit::Test {
+    constructor() : QUnit::Test("HashTest", "1.0") {
+        addTestCase("issue 2860", \issue2860());
+
+        set_return_value(main());
+    }
+
+    issue2860() {
+        assertEq({"a": "b", "c": "d"}, hash(("a", "b", "c", "d")));
+        assertEq({"a": "b", "c": NOTHING}, hash(("a", "b", "c")));
+    }
+}
