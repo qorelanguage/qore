@@ -53,7 +53,7 @@
 %requires(reexport) RestSchemaValidator >= 1.0
 
 module Swagger {
-    version = "1.0.2";
+    version = "1.1.0";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -1706,7 +1706,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         # return if text/plain is not allowed for this operation
         if (!mime_types."text/plain")
             return False;
-        
+
         if (content_types) {
             # check that text/plain is accepted as a response
             *hash<string, bool> ctypesHash = map {$1 : True}, content_types;
