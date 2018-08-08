@@ -519,7 +519,7 @@ void StatementBlock::parseInitClosure(UserVariantBase* uvb, UserClosureFunction*
    parseCheckReturn();
 }
 
-void TopLevelStatementBlock::parseInit(int64 po) {
+void TopLevelStatementBlock::parseInit() {
     QORE_TRACE("TopLevelStatementBlock::parseInit");
 
     //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d\n", &rns, first);

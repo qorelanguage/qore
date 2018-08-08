@@ -47,6 +47,9 @@ protected:
     //! if the node has an effect when evaluated (changes something)
     bool effect : 1;
 
+    //! if the node has meaning as a top-level node
+    bool effect_as_root : 1;
+
     //! if the return value is ignored
     bool ref_rv : 1;
 
@@ -59,10 +62,13 @@ protected:
 
 public:
     DLLLOCAL ParseNode(const QoreProgramLocation* loc, qore_type_t t, bool n_needs_eval = true) : SimpleQoreNode(t, false, n_needs_eval), loc(loc), effect(n_needs_eval), ref_rv(true), parse_init(false) {
+        effect_as_root = effect;
     }
     DLLLOCAL ParseNode(const QoreProgramLocation* loc, qore_type_t t, bool n_needs_eval, bool n_effect) : SimpleQoreNode(t, false, n_needs_eval), loc(loc), effect(n_effect), ref_rv(true), parse_init(false) {
+        effect_as_root = effect;
     }
     DLLLOCAL ParseNode(const ParseNode& old) : SimpleQoreNode(old.type, false, old.needs_eval_flag), loc(old.loc), effect(old.effect), ref_rv(old.ref_rv), parse_init(false) {
+        effect_as_root = effect;
     }
     // parse types should never be copied
     DLLLOCAL virtual AbstractQoreNode* realCopy() const {
@@ -82,6 +88,12 @@ public:
     }
     DLLLOCAL bool has_effect() const {
         return effect;
+    }
+    DLLLOCAL void set_effect_as_root(bool n_effect) {
+        effect_as_root = n_effect;
+    }
+    DLLLOCAL bool has_effect_as_root() const {
+        return effect_as_root;
     }
     DLLLOCAL void ignore_rv() {
         ref_rv = false;

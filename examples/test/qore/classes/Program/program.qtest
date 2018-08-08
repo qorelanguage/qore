@@ -597,7 +597,7 @@ class ProgramTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
-            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; set_local_var_value(0, 'i', 2); set_local_var_value(0, 'str', 'bye'); sub () { i = 3; }; return get_local_vars(frame); }", "");
+            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; set_local_var_value(0, 'i', 2); set_local_var_value(0, 'str', 'bye'); code f = sub() {i = 3;}; return get_local_vars(frame); }", "");
 
             hash vh = (
                 "frame": ("type": "local", "value": 0),
@@ -606,7 +606,7 @@ class ProgramTest inherits QUnit::Test {
                 "argv": ("type": "local", "value": NOTHING),
                 );
 
-            assertEq(vh, p.callFunction("test", 0));
+            assertEq(vh, p.callFunction("test", 0) - "f");
             assertEq(p, p.callFunction("test", 1).p.value);
         }
 
@@ -618,13 +618,13 @@ class ProgramTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
-            p.parse("sub test() { int i = 1; set_local_var_value(0, 'x', 2); sub () { i = 3; };}", "");
+            p.parse("sub test() { int i = 1; set_local_var_value(0, 'x', 2); code f = sub() {i = 3;};}", "");
             assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
         }
 
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
-            p.parse("sub test() { int i = 1; set_local_var_value(0, 'i', 'hi'); sub () { i = 3; };}", "");
+            p.parse("sub test() { int i = 1; set_local_var_value(0, 'i', 'hi'); code f = sub() {i = 3;};}", "");
             assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "test");
         }
 

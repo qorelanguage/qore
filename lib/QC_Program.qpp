@@ -510,6 +510,12 @@ const PO_ALLOW_WEAK_REFERENCES = PO_ALLOW_WEAK_REFERENCES;
     @since %Qore 0.8.13
  */
 const PO_ALLOW_DEBUGGER = PO_ALLOW_DEBUGGER;
+
+//! Allows for old pre-%Qore 0.9 top-level statements having no effect
+/**
+    @since %Qore 0.9
+ */
+const PO_ALLOW_STATEMENT_NO_EFFECT = PO_ALLOW_STATEMENT_NO_EFFECT;
 //@}
 
 /** @defgroup warning_constants Warning Constants
