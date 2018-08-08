@@ -44,7 +44,7 @@ module Mime {
     The %Mime module provides definitions and functions related to MIME processing.  MIME concepts are used in HTTP and SMTP communications, among others.
 
     To use this module, use \c "%requires Mime" in your code.  See the SmtpClient and the HttpServer modules for examples of %Qore code using this module.
-    
+
     All the public symbols in the module are defined in the Mime namespace
 
     The main definitions and functions are:
@@ -99,7 +99,7 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b($
     - added Mime::get_mime_type_from_ext()
     - minor corrections
     - added constants for css and js files + more extension -> mime type mappings
-    
+
     @subsection mime_1_3 v1.3
     - made get Mime::MultiPartMessage::getMsgAndHeaders() abstract as originally intended
     - added Mime::MultiPartMessage::parseBody() static method
@@ -358,14 +358,14 @@ public namespace Mime {
 	"t": "application/x-troff",
 	"tar": "application/x-tar",
 	"tar.bz2": "application/x-bzip-compressed-tar",
-	"tar.gz": "application/x-tar-gz",	
+	"tar.gz": "application/x-tar-gz",
 	"tbz": "application/x-bzip-compressed-tar",
 	"tcl": "application/x-tcl",
 	"tex": "application/x-tex",
 	"texi": "application/x-texinfo",
 	"texinfo": "application/x-texinfo",
 	"text": MimeTypeText,
-	"tgz": "application/x-tar-gz",	
+	"tgz": "application/x-tar-gz",
 	"tif": "image/tiff",
 	"tiff": "image/tiff",
 	"tr": "application/x-troff",
@@ -432,7 +432,7 @@ public namespace Mime {
 
     /** @defgroup MimeEncodingFunctions MIME Encoding Functions
      */
-    #@{ 
+    #@{
     #! returns a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to encode
 	@param len the maximum line length
@@ -531,7 +531,7 @@ public namespace Mime {
 
     /** @defgroup MimeDecodingFunctions MIME Decoding Functions
      */
-    #@{ 
+    #@{
     #! returns a binary value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to decode
 
@@ -691,7 +691,7 @@ public namespace Mime {
     #! for sending noncontiguous byte ranges of a single message (http://tools.ietf.org/html/rfc2616)
     public const MPT_BYTERANGES  = "byteranges";
     #@}
-        
+
     #! MultiPartMessage class implementation
     public class MultiPartMessage {
         const MP_DEFAULT_MSG = "This is a MIME multipart message";
@@ -818,15 +818,15 @@ hash: (2 members)
             #printf("MSTR (i: %d): %s\n", $i, $mstr);
 
             # find end
-            my int $j = $mstr.find("\r\n--" + $boundary + "--\r\n");
+            my int $j = $mstr.rfind("\r\n--" + $boundary + "--\r\n");
             if ($j == -1)
                 throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find closing boundary %y in body", $boundary + "--");
 
             # remove multipart string from body
             splice $body, $i, $j + $boundary.size() * 2 + 8 + $so;
-            
+
             #printf("BODY (i: %d, j: %d): %s\n", $i, $j, $body);
-    
+
             # remove final boundary and any excess text from the multipart string
             splice $mstr, $j;
 
@@ -836,7 +836,7 @@ hash: (2 members)
                 $i = $pstr.find("\r\n\r\n");
                 if ($i == -1)
                     throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d; could not find content boundary", $# + 1, $l.size());
-        
+
                 # get header string
                 my string $phdr = $pstr.substr(0, $i);
                 # parse header
@@ -847,16 +847,16 @@ hash: (2 members)
                     my (*string $hdr, *string $val) = ($phl =~ x/([^:]+):\s*(.*)$/);
                     if (!$hdr || !$val.val())
                         throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d header line: %y", $# + 1, $l.size(), $phl);
-                    
+
                     # see if the following line is a long header field as defined in RFC 2822 section 2.2.3: http://tools.ietf.org/html/rfc2822#section-2.2.3
                     while ($pl[$k + 1] =~ /^[ \t]/)
                         $val += " " + trim($pl[++$k]);
-                    
+
                     # make sure header keys are returned in lower case
                     $hdr = $hdr.lwr();
                     $h.$hdr = $val;
                 }
-                
+
                 # remove header from content
                 splice $pstr, 0, $i + 4;
 
@@ -902,7 +902,7 @@ hash: (2 members)
                 if ($part)
                     $l[$#].part = $part;
             }
-            
+
             return (
                 "body": $body,
                 "part": $l,
@@ -925,7 +925,7 @@ hash: (2 members)
         static binary serializeHeaders(hash $hdr) {
             my binary $b;
             foreach my string $k in ($hdr.keyIterator())
-                $b += sprintf("%s: %s\r\n", $k, $hdr.$k); 
+                $b += sprintf("%s: %s\r\n", $k, $hdr.$k);
             $b += "\r\n";
             return $b;
         }
@@ -955,7 +955,7 @@ hash: (2 members)
                 $msg += $bd;
             }
             $msg += "\r\n" + $.boundary + "--";
-            
+
             return (
                 "hdr": $.hdr + ("Content-Type": $content_type),
                 "body": $msg,
@@ -985,7 +985,7 @@ hash: (2 members)
                         if (!$ct.empty())
                             $ct += ";";
                         $ct += sprintf("charset=%s", get_encoding($data));
-                        $hdr."Content-Type" = $ct;		
+                        $hdr."Content-Type" = $ct;
                     }
                     if (!exists $hdr."Content-Transfer-Encoding")
                         $hdr."Content-Transfer-Encoding" = "8bit";
@@ -993,7 +993,7 @@ hash: (2 members)
                 }
                 case NT_BINARY: {
                     if (!exists $hdr."Content-Transfer-Encoding")
-                        $hdr."Content-Transfer-Encoding" = "binary";		
+                        $hdr."Content-Transfer-Encoding" = "binary";
                 }
             }
             return (
