@@ -15,6 +15,9 @@
     - fixed a race condition in @ref Qore::Thread::ThreadPool "ThreadPool" destruction that could
       cause a crash
       (<a href="https://github.com/qorelanguage/qore/issues/2906">issue 2906</a>)
+    - fixed a hard to reproduce bug with internal runtime type matching that sometimes caused
+      invalid runtime exceptions to be raised with base class constructors
+      (<a href="https://github.com/qorelanguage/qore/issues/2928">issue 2928</a>)
 
     @section qore_08136 Qore 0.8.13.6
 
