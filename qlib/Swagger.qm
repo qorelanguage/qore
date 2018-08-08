@@ -152,6 +152,9 @@ RestHandler handler(NOTHING, swagger);
 
     @section swagger_relnotes Swagger Module Release Notes
 
+    @subsection swagger_1_1_0 Swagger v1.1.0
+    - fixed accepting multipart/form-data content-type and also working with list and hash parameters (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
+
     @subsection swagger_1_0_2 Swagger v1.0.2
     - fixed sending of simple string responses to use text/plain Content-Type if possible (<a href="https://github.com/qorelanguage/qore/issues/2893">issue 2893</a>)
     - fixed checking of response body in case response schema is not present (<a href="https://github.com/qorelanguage/qore/issues/2894">issue 2894</a>)
@@ -2154,10 +2157,10 @@ public class OperationObject inherits ObjectBase {
          */
         hash<string, AbstractParameterObject> parameters();
 
-        #! the body parameter, if defined for this operation will exclude formData parameter
+        #! the body parameter, if defined for this operation than it will exclude formData parameter
         AbstractParameterObject body;
 
-        #! the formData parameter, if defined for this operation will exclude body parameter
+        #! the formData parameter, if defined for this operation than it will exclude body parameter
         AbstractParameterObject formData;
 
         #! Required. The list of possible responses as they are returned from executing this operation.
@@ -2240,8 +2243,8 @@ public class OperationObject inherits ObjectBase {
                 AbstractParameterObject param = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1, listObj.lsize()), p, swagger);
                 if (param.inLoc == "body")
                     body = param;
-		        else if (param.inLoc == "formData")
-		            formData = param;
+                else if (param.inLoc == "formData")
+                    formData = param;
                 else
                     parameters{param.name} = param;
             }
@@ -2328,8 +2331,8 @@ public class OperationObject inherits ObjectBase {
             *AbstractParameterObject formData_po = formData;
             if (body_po)
                 body_po.check(serialize, True, path, method, "body", \body);
-	        else if (formData_po)
-		        formData_po.check(serialize, True, path, method, "formData", \body);
+            else if (formData_po)
+                formData_po.check(serialize, True, path, method, "formData", \body);
             else if (body)
                 error("SCHEMA-VALIDATION-ERROR", "No message body is accepted; body keys passed: %y", keys body);
         }
