@@ -56,7 +56,7 @@ public:
             default: break;
         }
         assert(false);
-        return nullptr
+        return nullptr;
     }
 
     DLLLOCAL static method_type_e getMethodType(const QoreMethod* m);
