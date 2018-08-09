@@ -93,6 +93,10 @@
         - added public function \c check_ip_address() (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
         - added public methods \c AbstractCsvIterator::getRawLine() and \c AbstractCsvIterator::getRawLineValues() (<a href="https://github.com/qorelanguage/qore/issues/2739">issue 2739</a>)
+      - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
+        - Swagger module does not accept multipart/form-data content-type and also does not work with list and hash parameters
+          (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
+
     - @ref relative_dates "relative date" changes
         - fraction seconds are accepted in the @ref single_reldates
         - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
