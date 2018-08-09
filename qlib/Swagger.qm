@@ -2157,10 +2157,10 @@ public class OperationObject inherits ObjectBase {
          */
         hash<string, AbstractParameterObject> parameters();
 
-        #! the body parameter, if defined for this operation than it will exclude formData parameter
+        #! body parameter; if defined for this operation, formData parameter will be excluded
         AbstractParameterObject body;
 
-        #! the formData parameter, if defined for this operation than it will exclude body parameter
+        #! formData parameter; if defined for this operation, body parameter will be excluded
         AbstractParameterObject formData;
 
         #! Required. The list of possible responses as they are returned from executing this operation.
