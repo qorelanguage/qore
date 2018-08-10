@@ -101,6 +101,11 @@
         - fraction seconds are accepted in the @ref single_reldates
         - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
 
+    - improved debugging support:
+        - @ref Qore::ProgramControl::getStatementIdInfo() "ProgramControl::getStatementIdInfo()" provides breakpoint info
+        - command to resolve statement
+        - interrupt notification provides call stack info
+
     @subsection qore_09_bug_fixes Bug Fixes in Qore
     - fixed a bug where rvalue references with complex subtypes could get modified during an assignment
       (<a href="https://github.com/qorelanguage/qore/issues/2891">issue 2891</a>)

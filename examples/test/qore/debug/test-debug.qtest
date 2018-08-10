@@ -499,7 +499,11 @@ class DebugTest inherits QUnit::Test {
         b1.setEnabled(True);
         b1.addThreadId(gettid());
         b1.assignProgram(thisProgram);
-        b1.assignStatement(thisProgram.findStatementId('', line.tstProgram+5));
+        int sid = thisProgram.findStatementId('', line.tstProgram+5);
+        b1.assignStatement(sid);
+
+        hash<StatementInfo> si = thisProgram.getStatementIdInfo(sid, True);
+        testAssertionValue('getBreakpointId', b1.getBreakpointId(), si.breakpoints[0].getBreakpointId());
 
         b2.setEnabled(True);
         b2.addThreadId(gettid());
@@ -690,8 +694,8 @@ class DebugTest inherits QUnit::Test {
         testAssertionValue(name+'findStatementId("main.q", 1)', sid > 0, True);
 
         hash info;
-        info = pp.getStatementIdInfo(sid);
-        testAssertionValue(name+'getStatementIdInfo("main.q", 1)', info, ('file': 'main.q', 'source': '', 'offset': 0, 'start_line': 1, 'end_line': 1) );
+        info = pp.getStatementIdInfo(sid, True);
+        testAssertionValue(name+'getStatementIdInfo("main.q", 1)', info, ('file': 'main.q', 'source': '', 'offset': 0, 'start_line': 1, 'end_line': 1, 'breakpoints': ()) );
 
         sid = pp.findStatementId("label-f1", 2);
         testAssertionValue(name+'findStatementId("label-f1", 2) label match', sid > 0, True);
