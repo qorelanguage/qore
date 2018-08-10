@@ -744,6 +744,11 @@ public:
     */
    DLLEXPORT void getBreakpoints(QoreBreakpointList_t &bkptList);
 
+   /** get list of breakpoint assigned to statement.
+    *
+    */
+   DLLEXPORT void getStatementBreakpoints(const AbstractStatement* statement, QoreBreakpointList_t &bkptList);
+
    /** find statement related to particular line in a source file
     *
     */

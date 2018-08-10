@@ -534,6 +534,21 @@ public namespace DebugProgramControl {
                         }
                         break;
 
+                    case 'statement':
+                        switch (shift cmd) {
+                        case 'get':
+                            int sid = resolveStatement(pgmb, receiveData.value);
+                            result = hash(pgmb.getStatementIdInfo(sid, True));
+                            list bkpts = remove result.breakpoints;
+                            result.id = sid;
+                            result.breakpoints = ();
+                            foreach Breakpoint b2 in (bkpts) {
+                                push result.breakpoints, getBreakpointInfo(b2, False);
+                            }
+                            break;
+                        }
+                        break;
+
                     case 'breakpoint':
                         Breakpoint b;
                         string bkptName = shift cmd;
@@ -810,20 +825,22 @@ public namespace DebugProgramControl {
             return result;
         }
 
-        private hash getBreakpointInfo(Breakpoint b) {
+        private hash getBreakpointInfo(Breakpoint b, bool listStatements = True) {
             hash binfo.id = b.getBreakpointId();
             binfo.programId = b.getProgram().getProgramId();
             binfo.enabled = encodeValue('enabled', b.getEnabled(), boolStrings);
             binfo.threads = b.getThreadIds();
             binfo.policy = encodeValue('policy', b.getPolicy(), policyStrings);
-            binfo.statements = ();
-            foreach int sid in (b.getStatementIds()) {
-                push binfo.statements, ('id': sid) + b.getProgram().getStatementIdInfo(sid);
+            if (listStatements) {
+                binfo.statements = ();
+                foreach int sid in (b.getStatementIds()) {
+                    push binfo.statements, ('id': sid) + b.getProgram().getStatementIdInfo(sid);
+                }
+                if (!binfo.statements)
+                    remove binfo.statements;
             }
             if (!binfo.threads)
                 remove binfo.threads;
-            if (!binfo.statements)
-                remove binfo.statements;
             return binfo;
         }
 
@@ -988,6 +1005,8 @@ public namespace DebugProgramControl {
              #   assert(!exists ctxThread{tid});
                 ctxThread{tid} = ctx;
             }
+
+            ctx.intrInfo.stack = adjustStack(get_thread_call_stack(), ctx);
 
 %ifdef DEBUG_ADD_LOCAL_VARS
             for (int i=0; i < 8; i++) {

@@ -1967,6 +1967,10 @@ void QoreProgram::getBreakpoints(QoreBreakpointList_t &bkptList) {
    priv->getBreakpoints(bkptList);
 }
 
+void QoreProgram::getStatementBreakpoints(const AbstractStatement* statement, QoreBreakpointList_t &bkptList) {
+   priv->getStatementBreakpoints(statement, bkptList);
+}
+
 AbstractStatement* QoreProgram::findStatement(const char* fileName, int line) const {
    return priv->getStatementFromIndex(fileName, line);
 }
