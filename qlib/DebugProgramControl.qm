@@ -940,7 +940,7 @@ public namespace DebugProgramControl {
             return stack;
         }
 
-        private *hash handleInterrupt(string func, ProgramControl pgm, reference runState, *int statementId, *string refName, *reference refValue, *int breakpointId, *hash except) {
+        private *hash handleInterrupt(string func, ProgramControl pgm, reference runState, reference runToStatementId, *int statementId, *string refName, *reference refValue, *int breakpointId, *hash except) {
             # serialize data, send to all websockets, break/suspend thread
             int tid = gettid();
             hash ctx = (
@@ -955,9 +955,11 @@ public namespace DebugProgramControl {
                     'stamp': now_us(),
                     'func': func,
                     'runstate': encodeValue('runState', runState, runStateStrings),
+                    'runtostatementid': runToStatementId,
                     'frame': 0,
                 ),
             );
+            runToStatementId = 0; # reset RunToStatement
             ctx.intrInfo.framecnt = ctx.stackSize - frameOffset;
             if (exists statementId) {
                 ctx.intrInfo.statementid = statementId;
@@ -1063,6 +1065,9 @@ public namespace DebugProgramControl {
                             runState = resolveValue('runState', shift cmd, runStateStrings, runState);
                             if (exists refName) {
                                 refValue = ctxCT{refName};
+                            }
+                            if (rd.value) {
+                                runToStatementId = resolveStatement(pgm, rd.value);
                             }
                             ret = True;
                             break;
@@ -1244,6 +1249,7 @@ public namespace DebugProgramControl {
                 'tid': tid,
                 'stamp': now_us(),
                 'runstate': encodeValue('runState', runState, runStateStrings),
+                'runtostatementid': runToStatementId,
             );
             try {
                 broadcastDataImpl(sd);
@@ -1252,37 +1258,37 @@ public namespace DebugProgramControl {
             }
         }
 
-        onAttach(ProgramControl pgm, reference rs) {
-            handleInterrupt("attach", pgm, \rs);
+        onAttach(ProgramControl pgm, reference rs, reference runToStatementId) {
+            handleInterrupt("attach", pgm, \rs, \runToStatementId);
         }
 
-        onDetach(ProgramControl pgm, reference rs) {
-            handleInterrupt("detach", pgm, \rs);
+        onDetach(ProgramControl pgm, reference rs, reference runToStatementId) {
+            handleInterrupt("detach", pgm, \rs, \runToStatementId);
         }
 
-        onStep(ProgramControl pgm, int blockStatementId, *int statementId, *int breakpointId, reference flow, reference rs) {
-            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "flow", \flow, breakpointId);
+        onStep(ProgramControl pgm, int blockStatementId, *int statementId, *int breakpointId, reference flow, reference rs, reference runToStatementId) {
+            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, \runToStatementId, statementId ?? blockStatementId, "flow", \flow, breakpointId);
         }
 
         # backward compatability only when executed with <=0.8.13.2
-        onStep(ProgramControl pgm, int blockStatementId, *int statementId, reference flow, reference rs) {
-            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "flow", \flow);
+        onStep(ProgramControl pgm, int blockStatementId, *int statementId, reference flow, reference rs, reference runToStatementId) {
+            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, \runToStatementId, statementId ?? blockStatementId, "flow", \flow);
         }
 
-        onFunctionEnter(ProgramControl pgm, int statementId, reference rs) {
-            handleInterrupt('funcEnter', pgm, \rs, statementId);
+        onFunctionEnter(ProgramControl pgm, int statementId, reference rs, reference runToStatementId) {
+            handleInterrupt('funcEnter', pgm, \rs, \runToStatementId, statementId);
         }
 
-        onFunctionExit(ProgramControl pgm, int statementId, reference result, reference rs) {
-            handleInterrupt('funcExit', pgm, \rs, statementId, "result", \result);
+        onFunctionExit(ProgramControl pgm, int statementId, reference result, reference rs, reference runToStatementId) {
+            handleInterrupt('funcExit', pgm, \rs, \runToStatementId, statementId, "result", \result);
         }
 
-        onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference rs) {
-            handleInterrupt('exception', pgm, \rs, statementId, "dismiss", \dismiss, NOTHING, ex);
+        onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference rs, reference runToStatementId) {
+            handleInterrupt('exception', pgm, \rs, \runToStatementId, statementId, "dismiss", \dismiss, NOTHING, ex);
         }
 
-        onExit(ProgramControl pgm, int statementId, reference result, reference rs) {
-            handleInterrupt('exit', pgm, \rs, statementId, "result", \result);
+        onExit(ProgramControl pgm, int statementId, reference result, reference rs, reference runToStatementId) {
+            handleInterrupt('exit', pgm, \rs, \runToStatementId, statementId, "result", \result);
         }
     }
 }

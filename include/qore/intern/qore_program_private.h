@@ -109,16 +109,18 @@ private:
 
    // thread debug types, field is read/write only in thread being debugged, no locking is needed
    DebugRunStateEnum runState;
-   DebugRunStateEnum saveRunState;
+   // used to implement "to to statement" debugger command, reset it when program is interrupted
+   const AbstractStatement* runToStatement;
    // when stepover or until return we need calls function calls
    int functionCallLevel;
-   inline void setRunState(DebugRunStateEnum rs) {
+   inline void setRunState(DebugRunStateEnum rs, const AbstractStatement* rts) {
       assert(rs < DBG_RS_STOPPED); // DBG_RS_STOPPED is wrong value when program is running
       if (rs == DBG_RS_UNTIL_RETURN) {
          functionCallLevel = 1;  // function called only when runState is not DBG_RS_UNTIL_RETURN
       }
-      printd(5, "ThreadLocalProgramData::setRunState(), this: %p, rs: %d->%d\n", this, runState, rs);
+      printd(5, "ThreadLocalProgramData::setRunState(), this: %p, rs: %d->%d, rts: %p\n", this, runState, rs, rts);
       runState = rs;
+      runToStatement = rts;
    }
    // set to true by any process do break running program asap
    volatile bool breakFlag;
@@ -2052,13 +2054,13 @@ public:
       // debug_program_counter may be non zero to finish pending calls. Just this instance cannot be deleted, it's satisfied in destructor
    }
 
-   DLLLOCAL void onAttach(DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onDetach(DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onFunctionEnter(const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onException(const AbstractStatement *statement, DebugRunStateEnum &rs, ExceptionSink* xsink);
-   DLLLOCAL void onExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink);
+   DLLLOCAL void onAttach(DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onDetach(DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onFunctionEnter(const StatementBlock *statement, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onException(const AbstractStatement *statement, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+   DLLLOCAL void onExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
 
    DLLLOCAL int breakProgramThread(int tid) {
       printd(5, "qore_program_private::breakProgramThread(), this: %p, tid: %d\n", this, gettid());
@@ -2427,13 +2429,13 @@ public:
       return l.release();
    }
 
-   DLLLOCAL void onAttach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onAttach(QoreProgram *pgm, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onAttach(pgm, rs, xsink);
+      dpgm->onAttach(pgm, rs, rts, xsink);
    }
-   DLLLOCAL void onDetach(QoreProgram *pgm, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onDetach(QoreProgram *pgm, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onDetach(pgm, rs, xsink);
+      dpgm->onDetach(pgm, rs, rts, xsink);
    }
    /**
     * Executed on every step of StatementBlock.
@@ -2441,35 +2443,35 @@ public:
     * @param statement current AbstractStatement of blockStatement being processed. Executed also when blockStatement is entered with value of NULL
     * @param flow
     */
-   DLLLOCAL void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onStep(pgm, blockStatement, statement, bkptId, flow, rs, xsink);
+      dpgm->onStep(pgm, blockStatement, statement, bkptId, flow, rs, rts, xsink);
 
    }
-   DLLLOCAL void onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onFunctionEnter(pgm, statement, rs, xsink);
+      dpgm->onFunctionEnter(pgm, statement, rs, rts, xsink);
    }
    /**
     * Executed when a function is exited.
     */
-   DLLLOCAL void onFunctionExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onFunctionExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onFunctionExit(pgm, statement, returnValue, rs, xsink);
+      dpgm->onFunctionExit(pgm, statement, returnValue, rs, rts, xsink);
    }
    /**
     * Executed when an exception is raised.
     */
-   DLLLOCAL void onException(QoreProgram* pgm, const AbstractStatement* statement, DebugRunStateEnum& rs, ExceptionSink* xsink) {
+   DLLLOCAL void onException(QoreProgram* pgm, const AbstractStatement* statement, DebugRunStateEnum& rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onException(pgm, statement, rs, xsink);
+      dpgm->onException(pgm, statement, rs, rts, xsink);
    }
    /**
     * Executed when a thread/program is exited.
     */
-   DLLLOCAL void onExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, ExceptionSink* xsink) {
+   DLLLOCAL void onExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
       AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onExit(pgm, statement, returnValue, rs, xsink);
+      dpgm->onExit(pgm, statement, returnValue, rs, rts, xsink);
    }
 
    DLLLOCAL int breakProgramThread(QoreProgram* pgm, int tid) {
