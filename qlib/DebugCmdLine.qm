@@ -1172,10 +1172,13 @@ public namespace DebugCmdLine {
                             'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                 hash data.cmd = 'thread/go/'+pop path;
                                 data.tid = dcl.checkThreadId();
+                                if (args) {
+                                    data.value = dcl.getStatementValue(args);
+                                }
                                 dcl.doCommand(data, True);
                             },
                         ),
-                        'desc': sprintf('go thread with specified runstate, arg: %s', (keys AbstractDebugControl::runStateStrings).join('|')),
+                        'desc': sprintf('go thread with specified runstate and optionally to specified statement, arg: %s [ [function([args, ...])] | [file] lineno | #statementId ]', (keys AbstractDebugControl::runStateStrings).join('|')),
                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                             hash data.cmd = 'thread/go';
                             data.tid = dcl.checkThreadId();
