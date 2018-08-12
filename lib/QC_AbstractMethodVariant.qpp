@@ -28,6 +28,8 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QC_AbstractMethodVariant.h"
+#include "qore/intern/QC_Class.h"
+#include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/Function.h"
 
 //! The abstract base class for %Qore class variants
@@ -87,4 +89,33 @@ bool AbstractMethodVariant::isFinal() [flags=RET_VALUE_ONLY] {
 
     // the variant ptr must be valid
     return !static_cast<const MethodVariantBase*>(v->variant)->isFinal();
+}
+
+//! Returns the method for the method variant
+/**
+    @return the method for the method variant
+
+    @par Example:
+    @code{.py}
+AbbstractMethod m = v.getMethod();
+    @endcode
+ */
+AbstractMethod AbstractMethodVariant::getMethod() [flags=CONSTANT] {
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(v->pgm,
+        static_cast<const MethodVariantBase*>(v->variant)->method()), xsink);
+    return get_method_object(m, xsink);
+}
+
+//! Returns the class for the variant
+/**
+    @return the class for the variant
+
+    @par Example:
+    @code{.py}
+Class cls = v.getClass();
+    @endcode
+ */
+Class AbstractMethodVariant::getClass() [flags=CONSTANT] {
+    return new QoreObject(QC_CLASS, v->pgm,
+        new QoreReflectionClass(v->pgm, static_cast<const MethodVariantBase*>(v->variant)->getClass()));
 }

@@ -10,6 +10,20 @@
 
 %exec-class ReflectionTest
 
+class Test {
+    public {
+        int i = 1;
+    }
+
+    private {
+        string str = "string";
+    }
+
+    private:internal {
+        number pi = M_PI;
+    }
+}
+
 class ReflectionTest inherits QUnit::Test {
     constructor() : QUnit::Test("ReflectionTest", "1.0") {
         addTestCase("reflection tests", \reflectionTests());
@@ -240,8 +254,21 @@ class ReflectionTest inherits QUnit::Test {
             assertThrows("METHOD-ERROR", \destrv.call(), cond);
             destrv.call(q);
             assertFalse(q.val());
+            assertTrue(c1.isEqual(destrv.getClass()));
+            assertTrue(c1.getDestructorMethod().isEqual(destrv.getMethod()));
 
             #list<ConstructorMethodVariant>
+        }
+
+        {
+            Test t();
+            list<Member> l = t.getClass().getMembers();
+            assertEq("i", l[0].getName());
+            assertTrue(IntType.isEqual(l[0].getType()));
+            assertEq(MC_PUBLIC, l[0].getModifiers());
+            assertEq("public", l[0].getAccessModifierString());
+            assertTrue(t.getClass().isEqual(l[0].getClass()));
+            #map printf("%s %s %s\n", $1.getAccessModifierString(), $1.getType().getName(), $1.getName()), l;
         }
     }
 }

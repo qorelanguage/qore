@@ -30,6 +30,7 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QoreClassIntern.h"
+#include "qore/intern/QC_Class.h"
 #include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/QC_AbstractVariant.h"
 #include "qore/intern/QC_AbstractMethodVariant.h"
@@ -181,3 +182,17 @@ list<AbstractMethodVariant> AbstractMethod::getVariants() [flags=RET_VALUE_ONLY]
     append_variant_objects(**rv, m->pgm, m->f, m->mtype, xsink);
     return rv.release();
 }
+
+//! Returns the class for the method
+/**
+    @return the class for the method
+
+    @par Example:
+    @code{.py}
+Class cls = m.getClass();
+    @endcode
+ */
+Class AbstractMethod::getClass() [flags=CONSTANT] {
+    return new QoreObject(QC_CLASS, m->pgm, new QoreReflectionClass(m->pgm, m->m->getClass()));
+}
+

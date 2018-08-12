@@ -91,6 +91,7 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_ConstructorMethod.cpp \
 	QC_DestructorMethod.cpp \
     QC_CopyMethod.cpp \
+    QC_Member.qpp \
 	QC_Class.cpp \
 	QC_Type.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \

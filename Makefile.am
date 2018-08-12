@@ -172,7 +172,23 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_TransformOutputStream.qpp \
 	lib/QC_StdoutOutputStream.qpp \
 	lib/QC_StderrOutputStream.qpp \
+	lib/QC_AbstractVariant.qpp \
+	lib/QC_AbstractMethodVariant.qpp \
+	lib/QC_NormalMethodVariant.qpp \
+	lib/QC_StaticMethodVariant.qpp \
+	lib/QC_ConstructorMethodVariant.qpp \
+	lib/QC_DestructorMethodVariant.qpp \
+	lib/QC_CopyMethodVariant.qpp \
+	lib/QC_AbstractReflectionFunction.qpp \
+	lib/QC_AbstractMethod.qpp \
+	lib/QC_NormalMethod.qpp \
+	lib/QC_StaticMethod.qpp \
+	lib/QC_ConstructorMethod.qpp \
+	lib/QC_DestructorMethod.qpp \
+	lib/QC_CopyMethod.qpp \
 	lib/QC_Class.qpp \
+	lib/QC_Member.qpp \
+	lib/QC_Type.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -717,6 +733,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_DestructorMethod.h \
 	include/qore/intern/QC_CopyMethod.h \
 	include/qore/intern/QC_Class.h \
+	include/qore/intern/QC_Member.h \
 	include/qore/intern/QC_Type.h \
 	lib/getopt_long.h \
 	command-line.h

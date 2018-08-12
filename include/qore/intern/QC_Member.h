@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.h Class class definition */
+/** @file QC_Member.h Member class definition */
 /*
     Qore Programming Language
 
@@ -28,44 +28,32 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_CLASS_H
+#ifndef _QORE_INTERN_QC_MEMBER_H
 
-#define _QORE_INTERN_QC_CLASS_H
+#define _QORE_INTERN_QC_MEMBER_H
 
 #include "qore/intern/AbstractReflectionObject.h"
-#include "qore/intern/QC_AbstractMethod.h"
 
-enum qore_modifier_t {
-    MC_PUBLIC = (1 << 0),
-    MC_PRIVATE = (1 << 1),
-    MC_PRIVATEINTERNAL = (1 << 2),
-    MC_ABSTRACT = (1 << 3),
-    MC_STATIC = (1 << 4),
-    MC_SYNCHRONIZED = (1 << 5),
-    MC_DEPRECATED = (1 << 6),
-    MC_INJECTED = (1 << 7),
-    MC_BUILTIN = (1 << 8),
-    MC_USER = (1 << 9),
-    MC_FINAL = (1 << 10),
-};
+#include <string>
 
-class QoreReflectionClass : public AbstractReflectionObject {
+// forward references
+class QoreMemberInfo;
+
+class QoreReflectionMember : public AbstractReflectionObject {
 public:
     const QoreClass* cls;
+    std::string name;
+    const QoreMemberInfo* mem;
 
-    DLLLOCAL QoreReflectionClass(const char* name, ExceptionSink* xsink);
-
-    DLLLOCAL QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls);
+    DLLLOCAL QoreReflectionMember(QoreProgram* pgm, const QoreClass* cls, const char* name, const QoreMemberInfo* mem) :
+        AbstractReflectionObject(pgm), cls(cls), name(name), mem(mem) {
+    }
 };
 
-DLLLOCAL QoreObject* get_method_object(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink);
+DLLEXPORT extern qore_classid_t CID_MEMBER;
+DLLLOCAL extern QoreClass* QC_MEMBER;
 
-DLLEXPORT extern qore_classid_t CID_CLASS;
-DLLLOCAL extern QoreClass* QC_CLASS;
-
-DLLLOCAL void preinitClassClass();
-DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
-
-DLLLOCAL TypedHashDecl* init_hashdecl_ClassAccessInfo(QoreNamespace& ns);
+DLLLOCAL void preinitMemberClass();
+DLLLOCAL QoreClass* initMemberClass(QoreNamespace& ns);
 
 #endif

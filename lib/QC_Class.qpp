@@ -45,6 +45,7 @@
 #include <qore/intern/QC_ConstructorMethodVariant.h>
 #include <qore/intern/QC_DestructorMethodVariant.h>
 #include <qore/intern/QC_CopyMethodVariant.h>
+#include <qore/intern/QC_Member.h>
 #include <qore/intern/QC_Type.h>
 #include "qore/intern/qore_program_private.h"
 
@@ -500,7 +501,7 @@ bool b = c1.isEqual(c2);
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
-bool Class::isEqual(Type[QoreReflectionClass] cls) [flags=CONSTANT] {
+bool Class::isEqual(Class[QoreReflectionClass] cls) [flags=RET_VALUE_ONLY] {
     ReferenceHolder<QoreReflectionClass> holder(cls, xsink);
 
     // get read access to program object
@@ -604,10 +605,10 @@ int Class::getModifiers() [flags=RET_VALUE_ONLY] {
     return rc;
 }
 
-//! returns a bitfield of @ref modifier_constants "modifiers" describing the class
+//! returns a list of strings of modifiers describing the class
 /** @par Example:
     @code{.py}
-list<stringL l = cls.getModifierList();
+list<string> l = cls.getModifierList();
     @endcode
 
     @return list of strings of modifiers describing the class; possible values are:
@@ -2122,6 +2123,68 @@ list<hash<ClassAccessInfo>> Class::getParentClasses() [flags=RET_VALUE_ONLY] {
 
             l->push(h.release(), xsink);
         }
+    }
+
+    return l.release();
+}
+
+//! returns the requested member or throws an exception if the member is not defined in the class
+/**  @par Example:
+    @code{.py}
+Member m = cls.getMember(name);
+    @endcode
+
+    @return the requested member or throws an exception if the member is not defined in the class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw UNKNOWN-MEMBER if the requested member is not defined in the class
+*/
+Member Class::getMember(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    const qore_class_private* qc = qore_class_private::get(*c->cls);
+    ClassAccess access;
+    bool internal_member;
+    const QoreMemberInfo* mi = qc->runtimeGetMemberInfo(tname->c_str(), access, qc, internal_member);
+    if (!mi) {
+        xsink->raiseException("UNKNOWN-MEMBER", "member '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_MEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, tname->c_str(), mi));
+}
+
+//! returns a list of all declared class members
+/** @par Example:
+    @code{.py}
+list<Member> l = cls.getMembers();
+    @endcode
+
+    @return a list of all class members
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<Member> Class::getMembers() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_MEMBER->getTypeInfo()), xsink);
+
+    const qore_class_private* qc = qore_class_private::get(*c->cls);
+    for (QoreMemberMap::DeclOrderIterator i = qc->members.beginDeclOrder(), e = qc->members.endDeclOrder(); i != e; ++i) {
+        l->push(new QoreObject(QC_MEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, i->first, i->second)), xsink);
     }
 
     return l.release();

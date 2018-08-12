@@ -229,7 +229,7 @@ list<string> l = v.getModifierList();
     - \c "final": (only returned for method variants) the variant has the @ref final_classes "final flag" set
     - \c "injected": the class or function has been @ref allow-injection "injected" into the current @ref Qore::Program "Program" container
     - \c "private": (only returned for method variants) gives the accessibility of the variant
-    - \c "privateinternal": (only returned for method variants) gives the accessibility of the variant
+    - \c "private:internal": (only returned for method variants) gives the accessibility of the variant
     - \c "public": for function variants, the variant has the @ref mod_public "module public" flag set on the function, for method variants, this gives the accessibility of the variant
     - \c "static": (only returned for method variants) the variant is a static method variant
     - \c "synchronized": the variant is synchronized

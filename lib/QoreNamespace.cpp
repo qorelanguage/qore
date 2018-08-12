@@ -78,6 +78,7 @@
 #include "qore/intern/QC_DestructorMethod.h"
 #include "qore/intern/QC_CopyMethod.h"
 #include "qore/intern/QC_Class.h"
+#include "qore/intern/QC_Member.h"
 #include "qore/intern/QC_Type.h"
 
 // functions
@@ -902,6 +903,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    preinitDestructorMethodClass();
    preinitCopyMethodClass();
    preinitClassClass();
+   preinitMemberClass();
    preinitTypeClass();
 
    // now add hashdecls
@@ -1012,6 +1014,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    reflection->addSystemClass(initDestructorMethodClass(*reflection));
    reflection->addSystemClass(initCopyMethodClass(*reflection));
    reflection->addSystemClass(initClassClass(*reflection));
+   reflection->addSystemClass(initMemberClass(*reflection));
    reflection->addSystemClass(initTypeClass(*reflection));
 
    qore_ns_private::addNamespace(qns, reflection);

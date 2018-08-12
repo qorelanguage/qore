@@ -68,12 +68,12 @@ const AutoListOrNothingType = qore(get_type_object(autoListOrNothingTypeInfo));
 //! @ref int_type "int type"
 /**
 */
-const BigIntType = qore(get_type_object(bigIntTypeInfo));
+const IntType = qore(get_type_object(bigIntTypeInfo));
 
 //! @ref int_or_nothing_type "*int type"
 /**
 */
-const BigIntOrNothingType = qore(get_type_object(bigIntOrNothingTypeInfo));
+const IntOrNothingType = qore(get_type_object(bigIntOrNothingTypeInfo));
 
 //! @ref binary_type "binary type"
 /**
@@ -213,12 +213,12 @@ const SoftAutoListOrNothingType = qore(get_type_object(softAutoListOrNothingType
 //! @ref softint_type "softint type"
 /**
 */
-const SoftBigIntType = qore(get_type_object(softBigIntTypeInfo));
+const SoftIntType = qore(get_type_object(softBigIntTypeInfo));
 
 //! @ref softint_or_nothing_type "*softint type"
 /**
 */
-const SoftBigIntOrNothingType = qore(get_type_object(softBigIntOrNothingTypeInfo));
+const SoftIntOrNothingType = qore(get_type_object(softBigIntOrNothingTypeInfo));
 
 //! @ref softbool_type "softbool type"
 /**

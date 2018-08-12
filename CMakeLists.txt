@@ -172,6 +172,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_ConstructorMethod.qpp
     lib/QC_DestructorMethod.qpp
     lib/QC_CopyMethod.qpp
+    lib/QC_Member.qpp
     lib/QC_Class.qpp
     lib/QC_Type.qpp
     lib/ql_misc.qpp
