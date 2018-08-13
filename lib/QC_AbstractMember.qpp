@@ -36,14 +36,6 @@
 #include <qore/intern/QC_Type.h>
 #include "qore/intern/qore_program_private.h"
 
-static int check_member(QoreObject* obj, const char* mname, const QoreClass* cls, ExceptionSink* xsink) {
-    if (!obj->validInstanceOf(*cls)) {
-        xsink->raiseException("MEMBER-ERROR", "object is of class '%s' which is not compatible with member '%s' of class '%s'", obj->getClassName(), mname, cls->getName());
-        return -1;
-    }
-    return 0;
-}
-
 //! This class provides information about %Qore class members
 /** @since %Qore 0.9.0
  */
