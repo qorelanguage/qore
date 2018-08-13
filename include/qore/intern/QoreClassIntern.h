@@ -2039,17 +2039,17 @@ public:
     }
 
     DLLLOCAL const QoreVarInfo* parseFindVar(const char* vname, const qore_class_private*& qc, ClassAccess& access, bool toplevel) const {
-            //printd(5, "parseFindVar() this: %p cls: %p (%s) scl: %p\n", this, cls, cls->getName(), scl);
+        //printd(5, "parseFindVar() this: %p cls: %p (%s) scl: %p\n", this, cls, cls->getName(), scl);
 
-            QoreVarInfo* vi = vars.find(const_cast<char*>(vname));
+        QoreVarInfo* vi = vars.find(const_cast<char*>(vname));
 
-            if (vi) {
-                qc = this;
-                access = vi->getAccess();
-                return vi;
-            }
+        if (vi) {
+            qc = this;
+            access = vi->getAccess();
+            return vi;
+        }
 
-            return scl ? scl->parseFindVar(vname, qc, access, toplevel) : nullptr;
+        return scl ? scl->parseFindVar(vname, qc, access, toplevel) : nullptr;
     }
 
     DLLLOCAL int parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& l_mi, const qore_class_private& b_qc, const QoreMemberInfo& b_mi);

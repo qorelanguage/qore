@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Member.h Member class definition */
+/** @file QC_StaticMember.h StaticMember class definition */
 /*
     Qore Programming Language
 
@@ -7,7 +7,7 @@
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
+    to deal in the Software wiathout restriction, including without limitation
     the rights to use, copy, modify, merge, publish, distribute, sublicense,
     and/or sell copies of the Software, and to permit persons to whom the
     Software is furnished to do so, subject to the following conditions:
@@ -28,32 +28,16 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_MEMBER_H
+#ifndef _QORE_INTERN_QC_STATICMEMBER_H
 
-#define _QORE_INTERN_QC_MEMBER_H
+#define _QORE_INTERN_QC_STATICMEMBER_H
 
-#include "qore/intern/AbstractReflectionObject.h"
+#include "qore/intern/QC_AbstractMember.h"
 
-#include <string>
+DLLEXPORT extern qore_classid_t CID_STATICMEMBER;
+DLLLOCAL extern QoreClass* QC_STATICMEMBER;
 
-// forward references
-class QoreMemberInfo;
-
-class QoreReflectionMember : public AbstractReflectionObject {
-public:
-    const QoreClass* cls;
-    std::string name;
-    const QoreMemberInfo* mem;
-
-    DLLLOCAL QoreReflectionMember(QoreProgram* pgm, const QoreClass* cls, const char* name, const QoreMemberInfo* mem) :
-        AbstractReflectionObject(pgm), cls(cls), name(name), mem(mem) {
-    }
-};
-
-DLLEXPORT extern qore_classid_t CID_MEMBER;
-DLLLOCAL extern QoreClass* QC_MEMBER;
-
-DLLLOCAL void preinitMemberClass();
-DLLLOCAL QoreClass* initMemberClass(QoreNamespace& ns);
+DLLLOCAL void preinitStaticMemberClass();
+DLLLOCAL QoreClass* initStaticMemberClass(QoreNamespace& ns);
 
 #endif

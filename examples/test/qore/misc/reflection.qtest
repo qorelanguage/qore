@@ -13,14 +13,20 @@
 class Test {
     public {
         int i = 1;
+
+        static int si = 2;
     }
 
     private {
         string str = "string";
+
+        static string sstr = "string2";
     }
 
     private:internal {
         number pi = M_PI;
+
+        static number spi = M_PI * M_PI;
     }
 }
 
@@ -234,6 +240,7 @@ class ReflectionTest inherits QUnit::Test {
             ConstructorMethodVariant conv = c.getConstructorVariant();
             Condition cond = conv.call();
             assertEq("Condition", cond.className());
+            assertEq("public", conv.getAccessModifierString());
 
             assertThrows("CALL-WITH-TYPE-ERRORS", \conv.call(), 1);
 
@@ -256,19 +263,33 @@ class ReflectionTest inherits QUnit::Test {
             assertFalse(q.val());
             assertTrue(c1.isEqual(destrv.getClass()));
             assertTrue(c1.getDestructorMethod().isEqual(destrv.getMethod()));
-
-            #list<ConstructorMethodVariant>
         }
 
         {
             Test t();
-            list<Member> l = t.getClass().getMembers();
-            assertEq("i", l[0].getName());
-            assertTrue(IntType.isEqual(l[0].getType()));
-            assertEq(MC_PUBLIC, l[0].getModifiers());
-            assertEq("public", l[0].getAccessModifierString());
-            assertTrue(t.getClass().isEqual(l[0].getClass()));
-            #map printf("%s %s %s\n", $1.getAccessModifierString(), $1.getType().getName(), $1.getName()), l;
+            Class c1 = t.getClass();
+            list<AbstractMember> l = c1.getMembers();
+            NormalMember nm = l[0];
+            assertEq("i", nm.getName());
+            assertTrue(IntType.isEqual(nm.getType()));
+            assertEq(MC_PUBLIC | MC_USER, nm.getModifiers());
+            assertEq("public", nm.getAccessModifierString());
+            assertTrue(c1.isEqual(nm.getClass()));
+            assertThrows("UNKNOWN-MEMBER", \c1.getMember(), "x");
+            assertEq(t.i, nm.getValue(t));
+            assertThrows("RUNTIME-TYPE-ERROR", \nm.setValue(), (t, "str"));
+            assertEq(t.i, nm.getValue(t));
+            nm.setValue(t, 4);
+            assertEq(4, nm.getValue(t));
+            assertEq(4, t.i);
+
+            StaticMember sm = c1.getStaticMember("si");
+            assertEq(MC_PUBLIC | MC_STATIC | MC_USER, sm.getModifiers());
+            assertEq(2, sm.getValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \sm.setValue(), "str");
+            assertEq(2, sm.getValue());
+            sm.setValue(3);
+            assertEq(3, sm.getValue());
         }
     }
 }

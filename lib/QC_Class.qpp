@@ -45,7 +45,9 @@
 #include <qore/intern/QC_ConstructorMethodVariant.h>
 #include <qore/intern/QC_DestructorMethodVariant.h>
 #include <qore/intern/QC_CopyMethodVariant.h>
-#include <qore/intern/QC_Member.h>
+#include <qore/intern/QC_AbstractMember.h>
+#include <qore/intern/QC_NormalMember.h>
+#include <qore/intern/QC_StaticMember.h>
 #include <qore/intern/QC_Type.h>
 #include "qore/intern/qore_program_private.h"
 
@@ -2131,15 +2133,19 @@ list<hash<ClassAccessInfo>> Class::getParentClasses() [flags=RET_VALUE_ONLY] {
 //! returns the requested member or throws an exception if the member is not defined in the class
 /**  @par Example:
     @code{.py}
-Member m = cls.getMember(name);
+AbstractMember m = cls.getMember(name);
     @endcode
 
     @return the requested member or throws an exception if the member is not defined in the class
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw UNKNOWN-MEMBER if the requested member is not defined in the class
+
+    @see
+    - @ref getNormalMember()
+    - @ref getStaticMember()
 */
-Member Class::getMember(string name) [flags=RET_VALUE_ONLY] {
+AbstractMember Class::getMember(string name) [flags=RET_VALUE_ONLY] {
     TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
     if (*xsink) {
         return QoreValue();
@@ -2152,39 +2158,126 @@ Member Class::getMember(string name) [flags=RET_VALUE_ONLY] {
     }
 
     const qore_class_private* qc = qore_class_private::get(*c->cls);
-    ClassAccess access;
-    bool internal_member;
-    const QoreMemberInfo* mi = qc->runtimeGetMemberInfo(tname->c_str(), access, qc, internal_member);
-    if (!mi) {
-        xsink->raiseException("UNKNOWN-MEMBER", "member '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
+    {
+        const QoreMemberInfo* mi = qc->members.find(tname->c_str());
+        if (mi) {
+            return new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, tname->c_str(), mi, false));
+        }
+    }
+
+    {
+        const QoreVarInfo* vi = qc->vars.find(tname->c_str());
+        if (vi) {
+            return new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, tname->c_str(), vi, true));
+        }
+    }
+
+    xsink->raiseException("UNKNOWN-MEMBER", "member '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
+    return QoreValue();
+}
+
+//! returns the requested normal (non-static) member or throws an exception if the normal member is not defined in the class
+/**  @par Example:
+    @code{.py}
+NormalMember m = cls.getNormalMember(name);
+    @endcode
+
+    @return the requested normal (non-static) member or throws an exception if the member is not defined in the class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw UNKNOWN-NORMAL-MEMBER if the requested normal (non-static) member is not defined in the class
+
+    @see
+    - @ref getMember()
+    - @ref getStaticMember()
+*/
+NormalMember Class::getNormalMember(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
         return QoreValue();
     }
 
-    return new QoreObject(QC_MEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, tname->c_str(), mi));
-}
-
-//! returns a list of all declared class members
-/** @par Example:
-    @code{.py}
-list<Member> l = cls.getMembers();
-    @endcode
-
-    @return a list of all class members
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
-*/
-list<Member> Class::getMembers() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
 
-    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_MEMBER->getTypeInfo()), xsink);
+    const qore_class_private* qc = qore_class_private::get(*c->cls);
+    const QoreMemberInfo* mi = qc->members.find(tname->c_str());
+    if (mi) {
+        return new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, tname->c_str(), mi, false));
+    }
+
+    xsink->raiseException("UNKNOWN-NORMAL-MEMBER", "normal (non-static) member '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
+    return QoreValue();
+}
+
+//! returns the requested static member or throws an exception if the static member is not defined in the class
+/**  @par Example:
+    @code{.py}
+StaticMember m = cls.getStaticMember(name);
+    @endcode
+
+    @return the requested static member or throws an exception if the member is not defined in the class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw UNKNOWN-STATIC-MEMBER if the requested static member is not defined in the class
+
+    @see
+    - @ref getMember()
+    - @ref getNormalMember()
+*/
+StaticMember Class::getStaticMember(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
 
     const qore_class_private* qc = qore_class_private::get(*c->cls);
+    const QoreVarInfo* vi = qc->vars.find(tname->c_str());
+    if (vi) {
+        return new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, tname->c_str(), vi, true));
+    }
+
+    xsink->raiseException("UNKNOWN-STATIC-MEMBER", "static member '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
+    return QoreValue();
+}
+
+//! returns a list of all declared class members, non-static (first) and static (second) in declaration order
+/** @par Example:
+    @code{.py}
+list<AbstractMember> l = cls.getMembers();
+    @endcode
+
+    @return a list of all declared class members, non-static (first) and static (second) in declaration order
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<AbstractMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTMEMBER->getTypeInfo()), xsink);
+
+    const qore_class_private* qc = qore_class_private::get(*c->cls);
+    // first get non-static members
     for (QoreMemberMap::DeclOrderIterator i = qc->members.beginDeclOrder(), e = qc->members.endDeclOrder(); i != e; ++i) {
-        l->push(new QoreObject(QC_MEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, i->first, i->second)), xsink);
+        l->push(new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, i->first, i->second, false)), xsink);
+    }
+
+    // now get static members
+    for (QoreVarMap::DeclOrderIterator i = qc->vars.beginDeclOrder(), e = qc->vars.endDeclOrder(); i != e; ++i) {
+        l->push(new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, i->first, i->second, true)), xsink);
     }
 
     return l.release();

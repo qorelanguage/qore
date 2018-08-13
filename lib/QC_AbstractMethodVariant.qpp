@@ -119,3 +119,28 @@ Class AbstractMethodVariant::getClass() [flags=CONSTANT] {
     return new QoreObject(QC_CLASS, v->pgm,
         new QoreReflectionClass(v->pgm, static_cast<const MethodVariantBase*>(v->variant)->getClass()));
 }
+
+//! returns a string for the access modifier for the method variant
+/** @par Example:
+    @code{.py}
+string str = v.getAccessModifierString();
+    @endcode
+
+    @return a string for the access modifier for the method variant; possible values are:
+    - \c "private": gives the accessibility of the variant
+    - \c "private:internal": gives the accessibility of the variant
+    - \c "public": gives the accessibility of the variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+string AbstractMethodVariant::getAccessModifierString() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return new QoreStringNode(get_access_string(static_cast<const MethodVariantBase*>(v->variant)->getAccess()));
+}
+

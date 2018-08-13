@@ -365,7 +365,9 @@
 #include "QC_ConstructorMethod.cpp"
 #include "QC_DestructorMethod.cpp"
 #include "QC_CopyMethod.cpp"
-#include "QC_Member.cpp"
+#include "QC_AbstractMember.cpp"
+#include "QC_NormalMember.cpp"
+#include "QC_StaticMember.cpp"
 #include "QC_Class.cpp"
 #include "QC_Type.cpp"
 

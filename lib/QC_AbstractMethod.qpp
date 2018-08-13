@@ -184,13 +184,12 @@ list<AbstractMethodVariant> AbstractMethod::getVariants() [flags=RET_VALUE_ONLY]
 }
 
 //! Returns the class for the method
-/**
-    @return the class for the method
-
-    @par Example:
+/** @par Example:
     @code{.py}
 Class cls = m.getClass();
     @endcode
+
+    @return the class for the method
  */
 Class AbstractMethod::getClass() [flags=CONSTANT] {
     return new QoreObject(QC_CLASS, m->pgm, new QoreReflectionClass(m->pgm, m->m->getClass()));
