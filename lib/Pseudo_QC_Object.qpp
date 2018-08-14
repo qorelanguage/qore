@@ -173,12 +173,12 @@ string <object>::className() [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-Class cls = o.getClass();
+Class cls = o.getReflectionClass();
     @endcode
 
     @since %Qore 0.9
  */
-Class <object>::getClass() [flags=CONSTANT] {
+Class <object>::getReflectionClass() [flags=CONSTANT] {
     QoreProgram* pgm = obj->getProgram();
     return new QoreObject(QC_CLASS, pgm, new QoreReflectionClass(pgm, obj->getClass()));
 }

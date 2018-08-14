@@ -63,7 +63,7 @@ class ReflectionTest inherits QUnit::Test {
         {
             auto v = c.newObject();
             assertTrue(v instanceof Mutex);
-            Class c1 = v.getClass();
+            Class c1 = v.getReflectionClass();
             assertEq(c1.getId(), c.getId());
             assertEq(c1.getHash(), c.getHash());
         }
@@ -71,7 +71,7 @@ class ReflectionTest inherits QUnit::Test {
         {
             auto v = c.newObjectArgs();
             assertTrue(v instanceof Mutex);
-            Class c1 = v.getClass();
+            Class c1 = v.getReflectionClass();
             assertEq(c1.getId(), c.getId());
             assertEq(c1.getHash(), c.getHash());
         }
@@ -204,7 +204,7 @@ class ReflectionTest inherits QUnit::Test {
             assertThrows("CALL-WITH-TYPE-ERRORS", \v.call(), (mtx, 1));
 
             Condition cond();
-            NormalMethodVariant v1 = cond.getClass().getMethod("wait").getVariants()[0];
+            NormalMethodVariant v1 = cond.getReflectionClass().getMethod("wait").getVariants()[0];
             assertThrows("RUNTIME-TYPE-ERROR", \v1.call(), (cond, 1));
         }
 
@@ -275,7 +275,7 @@ class ReflectionTest inherits QUnit::Test {
 
         {
             Test t();
-            Class c1 = t.getClass();
+            Class c1 = t.getReflectionClass();
             list<AbstractMember> l = c1.getMembers();
             NormalMember nm = l[0];
             assertEq("i", nm.getName());
