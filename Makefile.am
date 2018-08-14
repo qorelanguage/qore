@@ -190,6 +190,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_AbstractMember.qpp \
 	lib/QC_NormalMember.qpp \
 	lib/QC_StaticMember.qpp \
+	lib/QC_AbstractConstant.qpp \
+	lib/QC_ClassConstant.qpp \
 	lib/QC_Type.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
@@ -738,6 +740,8 @@ noinst_HEADERS = \
 	include/qore/intern/QC_AbstractMember.h \
 	include/qore/intern/QC_NormalMember.h \
 	include/qore/intern/QC_StaticMember.h \
+	include/qore/intern/QC_AbstractConstant.h \
+	include/qore/intern/QC_ClassConstant.h \
 	include/qore/intern/QC_Type.h \
 	lib/getopt_long.h \
 	command-line.h

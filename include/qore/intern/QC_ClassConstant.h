@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.h Class class definition */
+/** @file QC_ClassConstant.h ClassConstant class definition */
 /*
     Qore Programming Language
 
@@ -28,47 +28,29 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_CLASS_H
+#ifndef _QORE_INTERN_QC_CLASSCONSTANT_H
 
-#define _QORE_INTERN_QC_CLASS_H
+#define _QORE_INTERN_QC_CLASSCONSTANT_H
 
-#include "qore/intern/AbstractReflectionObject.h"
-#include "qore/intern/QC_AbstractMethod.h"
+#include "qore/intern/QC_AbstractConstant.h"
 
-enum qore_modifier_t {
-    MC_PUBLIC = (1 << 0),
-    MC_PRIVATE = (1 << 1),
-    MC_PRIVATEINTERNAL = (1 << 2),
-    MC_ABSTRACT = (1 << 3),
-    MC_STATIC = (1 << 4),
-    MC_SYNCHRONIZED = (1 << 5),
-    MC_DEPRECATED = (1 << 6),
-    MC_INJECTED = (1 << 7),
-    MC_BUILTIN = (1 << 8),
-    MC_USER = (1 << 9),
-    MC_FINAL = (1 << 10),
-};
-
-class QoreReflectionClass : public AbstractReflectionObject {
+class QoreReflectionClassConstant : public QoreReflectionConstant {
 public:
     const QoreClass* cls;
 
-    DLLLOCAL QoreReflectionClass(const char* name, ExceptionSink* xsink);
+    DLLLOCAL QoreReflectionClassConstant(QoreProgram* pgm, const ConstantEntry* ce, const QoreClass* cls) :
+        QoreReflectionConstant(pgm, ce), cls(cls) {
+    }
 
-    DLLLOCAL QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls);
+    DLLLOCAL virtual const QoreClass* getClass() const {
+        return cls;
+    }
 };
 
-DLLLOCAL QoreObject* get_method_object(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink);
+DLLEXPORT extern qore_classid_t CID_CLASSCONSTANT;
+DLLLOCAL extern QoreClass* QC_CLASSCONSTANT;
 
-DLLLOCAL QoreHashNode* get_source_location(const QoreProgramLocation* loc);
-
-DLLEXPORT extern qore_classid_t CID_CLASS;
-DLLLOCAL extern QoreClass* QC_CLASS;
-
-DLLLOCAL void preinitClassClass();
-DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
-
-DLLLOCAL TypedHashDecl* init_hashdecl_ClassAccessInfo(QoreNamespace& ns);
-DLLLOCAL TypedHashDecl* init_hashdecl_SourceLocationInfo(QoreNamespace& ns);
+DLLLOCAL void preinitClassConstantClass();
+DLLLOCAL QoreClass* initClassConstantClass(QoreNamespace& ns);
 
 #endif

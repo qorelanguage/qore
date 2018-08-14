@@ -81,6 +81,8 @@
 #include "qore/intern/QC_AbstractMember.h"
 #include "qore/intern/QC_NormalMember.h"
 #include "qore/intern/QC_StaticMember.h"
+#include "qore/intern/QC_AbstractConstant.h"
+#include "qore/intern/QC_ClassConstant.h"
 #include "qore/intern/QC_Type.h"
 
 // functions
@@ -198,7 +200,8 @@ const TypedHashDecl* hashdeclStatInfo,
       * hashdeclExceptionInfo,
       * hashdeclStatementInfo,
       * hashdeclNetIfInfo,
-      * hashdeclClassAccessInfo;
+      * hashdeclClassAccessInfo,
+      * hashdeclSourceLocationInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -908,6 +911,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    preinitAbstractMemberClass();
    preinitNormalMemberClass();
    preinitStaticMemberClass();
+   preinitAbstractConstantClass();
+   preinitClassConstantClass();
    preinitTypeClass();
 
    // now add hashdecls
@@ -922,6 +927,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    hashdeclStatementInfo = init_hashdecl_StatementInfo(qns);
    hashdeclNetIfInfo = init_hashdecl_NetIfInfo(qns);
    hashdeclClassAccessInfo = init_hashdecl_ClassAccessInfo(qns);
+   hashdeclSourceLocationInfo = init_hashdecl_SourceLocationInfo(qns);
 
    qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
@@ -1021,6 +1027,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    reflection->addSystemClass(initAbstractMemberClass(*reflection));
    reflection->addSystemClass(initNormalMemberClass(*reflection));
    reflection->addSystemClass(initStaticMemberClass(*reflection));
+   reflection->addSystemClass(initAbstractConstantClass(*reflection));
+   reflection->addSystemClass(initClassConstantClass(*reflection));
    reflection->addSystemClass(initTypeClass(*reflection));
 
    qore_ns_private::addNamespace(qns, reflection);

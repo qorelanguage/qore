@@ -28,12 +28,12 @@
     information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
 #include "qore/intern/QoreClassIntern.h"
-#include <qore/intern/QoreNamespaceIntern.h>
-#include <qore/intern/QC_Class.h>
-#include <qore/intern/QC_AbstractMember.h>
-#include <qore/intern/QC_Type.h>
+#include "qore/intern/QoreNamespaceIntern.h"
+#include "qore/intern/QC_Class.h"
+#include "qore/intern/QC_AbstractMember.h"
+#include "qore/intern/QC_Type.h"
 #include "qore/intern/qore_program_private.h"
 
 //! This class provides information about %Qore class members
@@ -78,10 +78,10 @@ bool b = m1.isEqual(m2);
 
     @return @ref True if the AbstractMember object passed as an argument is equal to the current object; @ref False if not
 */
-bool AbstractMember::isEqual(Type[QoreReflectionMember] mem) [flags=CONSTANT] {
+bool AbstractMember::isEqual(AbstractMember[QoreReflectionMember] mem) [flags=CONSTANT] {
     ReferenceHolder<QoreReflectionMember> holder(mem, xsink);
 
-    return mem == m;
+    return mem->mem == m->mem;
 }
 
 //! returns a bitfield of @ref modifier_constants "modifiers" describing the member
@@ -281,7 +281,7 @@ Type AbstractMember::getType() [flags=RET_VALUE_ONLY] {
     return new QoreObject(QC_TYPE, m->pgm, new QoreType(m->mem->getTypeInfo()));
 }
 
-//! Returns the default value for the member or @ref nothing if the tymemberpe has no default value
+//! Returns the default value for the member or @ref nothing if the member has no default value
 /** @par Example:
     @code{.py}
 auto v = m.getDefaultValue();
@@ -291,7 +291,7 @@ auto v = m.getDefaultValue();
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
-auto AbstractMember::getDefaultValue() [flags=CONSTANT] {
+auto AbstractMember::getDefaultValue() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
     if (*xsink) {
@@ -312,4 +312,25 @@ Class cls = m.getClass();
  */
 Class AbstractMember::getClass() [flags=CONSTANT] {
     return new QoreObject(QC_CLASS, m->pgm, new QoreReflectionClass(m->pgm, m->cls));
+}
+
+//! Returns the source location of the member declaration
+/** @par Example:
+    @code{.py}
+hash<SourceLocationInfo> loc = mem.getSourceLocation();
+    @endcode
+
+    @return the source location of the member declaration
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+hash<SourceLocationInfo> AbstractMember::getSourceLocation() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the constant ptr must be valid
+    return get_source_location(m->mem->loc);
 }

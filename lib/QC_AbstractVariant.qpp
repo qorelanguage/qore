@@ -734,11 +734,39 @@ list<string> AbstractVariant::getParamNames() [flags=RET_VALUE_ONLY] {
 
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
 
-
-
     for (auto& i : v->variant->getSignature()->getParamNames()) {
         rv->push(i.empty() ? QoreValue() : QoreValue(new QoreStringNode(i)), xsink);
     }
 
     return rv.release();
+}
+
+//! Returns the source location of the variant declaration
+/** @par Example:
+    @code{.py}
+hash<SourceLocationInfo> loc = v.getSourceLocation();
+    @endcode
+
+    @return the source location of the variant declaration
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+hash<SourceLocationInfo> AbstractVariant::getSourceLocation() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    const QoreProgramLocation* loc;
+    const UserVariantBase* uvb = v->variant->getUserVariantBase();
+    if (uvb) {
+        loc = uvb->getUserSignature()->getParseLocation();
+    }
+    else {
+        loc = nullptr;
+    }
+
+    return get_source_location(loc);
 }

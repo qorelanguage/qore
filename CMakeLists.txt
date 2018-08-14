@@ -176,6 +176,8 @@ set(LIBQORE_QPP_SRC
     lib/QC_NormalMember.qpp
     lib/QC_StaticMember.qpp
     lib/QC_Class.qpp
+    lib/QC_AbstractConstant.qpp
+    lib/QC_ClassConstant.qpp
     lib/QC_Type.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp

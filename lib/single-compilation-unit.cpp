@@ -369,6 +369,8 @@
 #include "QC_NormalMember.cpp"
 #include "QC_StaticMember.cpp"
 #include "QC_Class.cpp"
+#include "QC_AbstractConstant.cpp"
+#include "QC_ClassConstant.cpp"
 #include "QC_Type.cpp"
 
 #include "QorePseudoMethods.cpp"

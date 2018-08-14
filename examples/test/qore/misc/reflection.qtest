@@ -15,18 +15,24 @@ class Test {
         int i = 1;
 
         static int si = 2;
+
+        const C_I = 3;
     }
 
     private {
         string str = "string";
 
         static string sstr = "string2";
+
+        const C_STR = "string3";
     }
 
     private:internal {
         number pi = M_PI;
 
         static number spi = M_PI * M_PI;
+
+        const C_PI = M_PI * M_PI * M_PI;
     }
 }
 
@@ -95,49 +101,51 @@ class ReflectionTest inherits QUnit::Test {
 
         assertThrows("METHOD-ERROR", \m.call(), new Condition());
 
-        ConstructorMethod con = c.getMethod("constructor");
-        assertEq("constructor", con.getMethodTypeName());
-        assertTrue(con.isBuiltin());
-        assertFalse(con.isUser());
-        assertEq("constructor", con.getName());
         {
-            object o = con.call();
-            assertTrue(o instanceof Mutex);
-        }
+            ConstructorMethod con = c.getMethod("constructor");
+            assertEq("constructor", con.getMethodTypeName());
+            assertTrue(con.isBuiltin());
+            assertFalse(con.isUser());
+            assertEq("constructor", con.getName());
+            {
+                object o = con.call();
+                assertTrue(o instanceof Mutex);
+            }
 
-        DestructorMethod des = c.getMethod("destructor");
-        assertEq("destructor", des.getMethodTypeName());
-        assertTrue(des.isBuiltin());
-        assertFalse(des.isUser());
-        assertEq("destructor", des.getName());
-        {
-            object o = con.call();
-            assertTrue(o instanceof Mutex);
-            assertEq("Mutex", o.className());
-            des.call(o);
-            assertThrows("OBJECT-ALREADY-DELETED", \o.lock());
-        }
+            DestructorMethod des = c.getMethod("destructor");
+            assertEq("destructor", des.getMethodTypeName());
+            assertTrue(des.isBuiltin());
+            assertFalse(des.isUser());
+            assertEq("destructor", des.getName());
+            {
+                object o = con.call();
+                assertTrue(o instanceof Mutex);
+                assertEq("Mutex", o.className());
+                des.call(o);
+                assertThrows("OBJECT-ALREADY-DELETED", \o.lock());
+            }
 
-        {
-            Class c1 = Class::forName("Mutex");
-            assertEq("Mutex", c1.getName());
-            assertEq(c1.getId(), c.getId());
-            assertEq(c1.getHash(), c.getHash());
-        }
+            {
+                Class c1 = Class::forName("Mutex");
+                assertEq("Mutex", c1.getName());
+                assertEq(c1.getId(), c.getId());
+                assertEq(c1.getHash(), c.getHash());
+            }
 
-        CopyMethod copy = c.getMethod("copy");
-        assertEq("copy", copy.getMethodTypeName());
-        assertTrue(copy.isBuiltin());
-        assertFalse(copy.isUser());
-        assertEq("copy", copy.getName());
-        {
-            object o = con.call();
-            assertTrue(o instanceof Mutex);
-            assertEq("Mutex", o.className());
-            Mutex o2 = copy.call(o);
-            assertTrue(o2 instanceof Mutex);
-            assertEq("Mutex", o2.className());
-            assertThrows("METHOD-ERROR", \copy.call(), new Condition());
+            CopyMethod copy = c.getMethod("copy");
+            assertEq("copy", copy.getMethodTypeName());
+            assertTrue(copy.isBuiltin());
+            assertFalse(copy.isUser());
+            assertEq("copy", copy.getName());
+            {
+                object o = con.call();
+                assertTrue(o instanceof Mutex);
+                assertEq("Mutex", o.className());
+                Mutex o2 = copy.call(o);
+                assertTrue(o2 instanceof Mutex);
+                assertEq("Mutex", o2.className());
+                assertThrows("METHOD-ERROR", \copy.call(), new Condition());
+            }
         }
 
         {
@@ -282,6 +290,7 @@ class ReflectionTest inherits QUnit::Test {
             nm.setValue(t, 4);
             assertEq(4, nm.getValue(t));
             assertEq(4, t.i);
+            assertTrue(nm.isEqual(c1.getMember("i")));
 
             assertThrows("UNKNOWN-NORMAL-MEMBER", \c1.getNormalMember(), "si");
             assertThrows("UNKNOWN-STATIC-MEMBER", \c1.getStaticMember(), "i");
@@ -293,6 +302,17 @@ class ReflectionTest inherits QUnit::Test {
             assertEq(2, sm.getValue());
             sm.setValue(3);
             assertEq(3, sm.getValue());
+
+            list<ClassConstant> cl = c1.getConstants();
+            ClassConstant con = cl[0];
+            assertEq("C_I", con.getName());
+            assertEq(MC_PUBLIC | MC_USER, con.getModifiers());
+            assertFalse(con.getSourceLocation().builtin);
+
+            assertThrows("UNKNOWN-CONSTANT", \c1.getConstant(), "x");
+            ClassConstant con2 = c1.getConstant("C_I");
+            assertTrue(con2.isEqual(con));
+            #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getSourceLocation()), cl;
         }
     }
 }

@@ -48,6 +48,7 @@
 #include <qore/intern/QC_AbstractMember.h>
 #include <qore/intern/QC_NormalMember.h>
 #include <qore/intern/QC_StaticMember.h>
+#include <qore/intern/QC_ClassConstant.h>
 #include <qore/intern/QC_Type.h>
 #include "qore/intern/qore_program_private.h"
 
@@ -197,6 +198,40 @@ QoreObject* find_variant(const QoreReflectionClass* c, const QoreStringNode* nam
     }
 
     return find_variant(c, nname->c_str(), which, args, offset, exact, xsink);
+}
+
+QoreHashNode* get_source_location(const QoreProgramLocation* loc) {
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclSourceLocationInfo, nullptr), nullptr);
+    auto ph = qore_hash_private::get(**h);
+
+    if (!loc) {
+        loc = &loc_builtin;
+        ph->setKeyValueIntern("builtin", true);
+    }
+    else {
+        ph->setKeyValueIntern("builtin", false);
+    }
+
+    {
+        const char* file = loc->getFile();
+        if (file) {
+            ph->setKeyValueIntern("file", new QoreStringNode(file));
+        }
+    }
+
+    ph->setKeyValueIntern("line", loc->start_line);
+    ph->setKeyValueIntern("endline", loc->end_line);
+
+    {
+        const char* source = loc->getSource();
+        if (source) {
+            ph->setKeyValueIntern("source", new QoreStringNode(source));
+        }
+    }
+
+    ph->setKeyValueIntern("offset", loc->offset);
+
+    return h.release();
 }
 
 /** @defgroup access_constants Access Constants
@@ -441,6 +476,30 @@ hashdecl ClassAccessInfo {
     string access_string;
 }
 
+//! source location information
+/**
+    @since %Qore 0.9.0
+*/
+hashdecl SourceLocationInfo {
+    //! if @ref True then the code is builtin and there is no user source location
+    bool builtin;
+
+    //! the file name or parse label for the code
+    *string file;
+
+    //! the starting source line number
+    int line;
+
+    //! the ending source line number
+    int endline;
+
+    //! the source object or file name tag (used when multiple source objects are defined from the same source)
+    *string source;
+
+    //! the offset line in the source (for when multiple source objects are defined from the same source)
+    int offset;
+}
+
 //! This class provides information about %Qore classes
 /** @since %Qore 0.9.0
  */
@@ -455,6 +514,7 @@ Class cls("Thread::Mutex");
     @param path the class name or namespace-justified path as a string
 
     @throw CLASS-ERROR cannot find a class with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
  */
 Class::constructor(string path) {
     TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
@@ -1125,6 +1185,7 @@ AbstractMethodVariant m = cls.getVariant(name, TypeInt, TypeString);
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown method
     @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getVariantArgs()
@@ -1153,6 +1214,7 @@ AbstractMethodVariant m = cls.getVariantArgs(name, (TypeInt, TypeString));
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown method
     @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getVariant()
@@ -1181,6 +1243,7 @@ AbstractMethodVariant m = cls.getExactVariant(name, TypeInt, TypeString);
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown method
     @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getVariant()
@@ -1209,6 +1272,7 @@ AbstractMethodVariant m = cls.getExactVariantArgs(name, (TypeInt, TypeString));
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown method
     @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getVariant()
@@ -1237,6 +1301,7 @@ NormalMethodVariant m = cls.getNormalVariant(name, TypeInt, TypeString);
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown normal (non-static, non-special) method
     @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getNormalVariantArgs()
@@ -1265,6 +1330,7 @@ NormalMethodVariant m = cls.getNormalVariantArgs(name, (TypeInt, TypeString));
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown normal (non-static, non-special) method
     @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getNormalVariant()
@@ -1293,6 +1359,7 @@ NormalMethodVariant m = cls.getExactNormalVariant(name, TypeInt, TypeString);
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown normal (non-static, non-special) method
     @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getNormalVariant()
@@ -1321,6 +1388,7 @@ NormalMethodVariant m = cls.getExactNormalVariantArgs(name, (TypeInt, TypeString
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown normal (non-static, non-special) method
     @throw RUNTIME-OVERLOAD-ERROR no normal (non-static, non-special) method variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getNormalVariant()
@@ -1349,6 +1417,7 @@ StaticMethodVariant m = cls.getStaticVariant(name, TypeInt, TypeString);
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown static method
     @throw RUNTIME-OVERLOAD-ERROR no static method variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getStaticVariantArgs()
@@ -1377,6 +1446,7 @@ StaticMethodVariant m = cls.getStaticVariantArgs(name, (TypeInt, TypeString));
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown static method
     @throw RUNTIME-OVERLOAD-ERROR no method static variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getStaticVariant()
@@ -1405,6 +1475,7 @@ StaticMethodVariant m = cls.getExactStaticVariant(name, TypeInt, TypeString);
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown static method
     @throw RUNTIME-OVERLOAD-ERROR no static method variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getStaticVariant()
@@ -1433,6 +1504,7 @@ StaticMethodVariant m = cls.getExactStaticVariantArgs(name, (TypeInt, TypeString
     @throw GETVARIANT-ERROR invalid argument to method
     @throw METHOD-ERROR unknown static method
     @throw RUNTIME-OVERLOAD-ERROR no static method variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getStaticVariant()
@@ -1606,6 +1678,7 @@ AbstractMethod m = cls.getMethod(name);
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw METHOD-ERROR unknown method
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @note Methods group variants with the same name; see @ref getVariant() for a method that will return a method
     variant given the method name and the method variant arguments
@@ -1649,6 +1722,7 @@ NormalMethod m = cls.getNormalMethod(name);
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw METHOD-ERROR unknown method or method is not normal
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getMethod()
@@ -1694,6 +1768,7 @@ StaticMethod m = cls.getStaticMethod(name);
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw METHOD-ERROR unknown method or method is not static
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - getMethod()
@@ -2046,6 +2121,7 @@ list<ConstructorMethodVariant> Class::getConstructorVariants() [flags=RET_VALUE_
         return QoreValue();
     }
 
+    // the class ptr must be valid
     const QoreMethod* destr = c->cls->getDestructor();
 
     if (destr) {
@@ -2080,6 +2156,7 @@ list<ConstructorMethodVariant> Class::getConstructorVariants() [flags=RET_VALUE_
         return QoreValue();
     }
 
+    // the class ptr must be valid
     const QoreMethod* copy = c->cls->getCopyMethod();
 
     if (copy) {
@@ -2110,6 +2187,7 @@ list<hash<ClassAccessInfo>> Class::getParentClasses() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
+    // the class ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(hashdeclClassAccessInfo->getTypeInfo()), xsink);
 
     const qore_class_private* qc = qore_class_private::get(*c->cls);
@@ -2140,6 +2218,7 @@ AbstractMember m = cls.getMember(name);
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw UNKNOWN-MEMBER if the requested member is not defined in the class
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - @ref getNormalMember()
@@ -2157,6 +2236,7 @@ AbstractMember Class::getMember(string name) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
+    // the class ptr must be valid
     const qore_class_private* qc = qore_class_private::get(*c->cls);
     {
         const QoreMemberInfo* mi = qc->members.find(tname->c_str());
@@ -2186,6 +2266,7 @@ NormalMember m = cls.getNormalMember(name);
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw UNKNOWN-NORMAL-MEMBER if the requested normal (non-static) member is not defined in the class
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - @ref getMember()
@@ -2203,6 +2284,7 @@ NormalMember Class::getNormalMember(string name) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
+    // the class ptr must be valid
     const qore_class_private* qc = qore_class_private::get(*c->cls);
     const QoreMemberInfo* mi = qc->members.find(tname->c_str());
     if (mi) {
@@ -2223,6 +2305,7 @@ StaticMember m = cls.getStaticMember(name);
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw UNKNOWN-STATIC-MEMBER if the requested static member is not defined in the class
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
     - @ref getMember()
@@ -2240,6 +2323,7 @@ StaticMember Class::getStaticMember(string name) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
+    // the class ptr must be valid
     const qore_class_private* qc = qore_class_private::get(*c->cls);
     const QoreVarInfo* vi = qc->vars.find(tname->c_str());
     if (vi) {
@@ -2267,6 +2351,7 @@ list<AbstractMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
+    // the class ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTMEMBER->getTypeInfo()), xsink);
 
     const qore_class_private* qc = qore_class_private::get(*c->cls);
@@ -2283,6 +2368,64 @@ list<AbstractMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
     return l.release();
 }
 
+//! Returns the given class constant or throws an exception if the constant is not defined
+/** @par Example:
+    @code{.py}
+ClassConstant con = cls.getConstant(name);
+    @endcode
+
+    @return given class constant or throws an exception if the constant is not defined
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw UNKNOWN-CONSTANT thrown if the constant cannot be found
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+*/
+ClassConstant Class::getConstant(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    const qore_class_private* qc = qore_class_private::get(*c->cls);
+    const ConstantEntry* ce = qc->constlist.findEntry(tname->c_str());
+    if (!ce) {
+        xsink->raiseException("UNKNOWN-CONSTANT", "constant '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_CLASSCONSTANT, c->pgm, new QoreReflectionClassConstant(c->pgm, ce, c->cls));
+}
+
+//! Returns a list of all declared class constants
+/** @par Example:
+    @code{.py}
+list<ClassConstant> l = cls.getConstants();
+    @endcode
+
+    @return a list of all declared class constants
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<ClassConstant> Class::getConstants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASSCONSTANT->getTypeInfo()), xsink);
+
+    const qore_class_private* qc = qore_class_private::get(*c->cls);
+
+    for (auto& i : qc->constlist.cnemap) {
+        l->push(new QoreObject(QC_CLASSCONSTANT, c->pgm, new QoreReflectionClassConstant(c->pgm, i.second, c->cls)), xsink);
+    }
+
+    return l.release();
+}
+
 //! Returns a %Class object from the class name or namespace-justified path as a string
 /** @par Example:
     @code{.py}
@@ -2294,6 +2437,7 @@ Class cls = Class::forName("Thread::Mutex");
     @return a class object corresponding to the name or namespace-justified path provided as an argument
 
     @throw CLASS-ERROR cannot find a class with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
  */
 static Class Class::forName(string path) [flags=RET_VALUE_ONLY] {
     TempEncodingHelper npath(path, QCS_DEFAULT, xsink);

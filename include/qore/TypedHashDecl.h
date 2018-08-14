@@ -134,4 +134,7 @@ DLLEXPORT extern const TypedHashDecl* hashdeclNetIfInfo;
 //! ClassAccessInfo hashdecl
 DLLEXPORT extern const TypedHashDecl* hashdeclClassAccessInfo;
 
+//! SourceLocationInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclSourceLocationInfo;
+
 #endif
