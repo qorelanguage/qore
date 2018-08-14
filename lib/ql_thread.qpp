@@ -297,8 +297,6 @@ nothing delete_all_thread_data() [dom=THREAD_CONTROL] {
     @code{.py}
 auto data = get_thread_data("key1");
     @endcode
-
-    @note this function is not flagged with @ref CONSTANT since its value could change at runtime
 */
 auto get_thread_data(string key) [flags=RET_VALUE_ONLY;dom=THREAD_CONTROL,THREAD_INFO] {
    TempEncodingHelper tmp(key, QCS_DEFAULT, xsink);

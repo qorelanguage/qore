@@ -80,7 +80,7 @@ QoreValue QoreDotEvalOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
 void QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& expTypeInfo) {
     assert(!expTypeInfo);
     const QoreTypeInfo* typeInfo = nullptr;
-    parse_init_value(left, oflag, pflag, lvids, typeInfo);
+    parse_init_value(left, oflag, pflag & ~PF_RETURN_VALUE_IGNORED, lvids, typeInfo);
 
     QoreClass* qc = const_cast<QoreClass*>(QoreTypeInfo::getUniqueReturnClass(typeInfo));
 

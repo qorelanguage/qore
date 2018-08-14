@@ -77,6 +77,10 @@ public:
             return nullptr;
         return new QoreQuestionMarkOperatorNode(get_runtime_location(), n_e0.release(), n_e1.release(), n_e2.release());
     }
+
+    DLLLOCAL virtual bool hasEffectAsRoot() const {
+        return true;
+    }
 };
 
 #endif

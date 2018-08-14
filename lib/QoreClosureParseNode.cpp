@@ -32,6 +32,7 @@
 #include "qore/intern/QoreClassIntern.h"
 
 QoreClosureParseNode::QoreClosureParseNode(const QoreProgramLocation* loc, UserClosureFunction* n_uf, bool n_lambda) : ParseNode(loc, NT_CLOSURE), uf(n_uf), lambda(n_lambda), in_method(false) {
+    set_effect_as_root(false);
 }
 
 QoreClosureNode* QoreClosureParseNode::evalClosure() const {

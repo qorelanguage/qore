@@ -63,6 +63,10 @@ public:
 
     DLLLOCAL static const QoreTypeInfo* setReturnTypeInfo(const QoreTypeInfo*& returnTypeInfo, const QoreTypeInfo* expTypeInfo, const QoreTypeInfo* iteratorTypeInfo);
 
+    DLLLOCAL virtual bool hasEffectAsRoot() const {
+        return true;
+    }
+
 protected:
     const QoreTypeInfo* returnTypeInfo;
     const QoreTypeInfo* expTypeInfo = nullptr;

@@ -454,7 +454,6 @@ class QoreParseListNode;
 #include "qore/intern/QoreException.h"
 #include "qore/intern/StatementBlock.h"
 #include "qore/intern/VarRefNode.h"
-#include "qore/intern/FunctionCallNode.h"
 #include "qore/intern/QoreRegexSubst.h"
 #include "qore/intern/QoreRegex.h"
 #include "qore/intern/QoreTransliteration.h"
@@ -786,7 +785,11 @@ private:
    DLLLOCAL ThreadLocalData(const ThreadLocalData&);
 };
 
+// maps from Q_AF_* to standard system AF_ constants
 DLLLOCAL int q_get_af(int type);
+// maps from AF_* to Q_AF_ constants
+DLLLOCAL int q_get_raf(int type);
+// maps from Q_SOCK_ to standard system SOCK_ constants
 DLLLOCAL int q_get_sock_type(int t);
 
 class OptHashRefHelper {

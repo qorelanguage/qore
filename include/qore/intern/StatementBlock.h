@@ -192,7 +192,7 @@ public:
     }
 
     using StatementBlock::parseInit;
-    DLLLOCAL void parseInit(int64 po);
+    DLLLOCAL void parseInit();
 
     DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 
