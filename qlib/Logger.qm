@@ -78,7 +78,7 @@ module Logger {
 
     The user code will log from multiple threads; the events are pushed to a
     @ref Logger::LoggerAppenderQueue "LoggerAppenderQueue" object. The processing is done in a dedicated thread
-    when the events are passed to appenders. The the user code logging command is non-blocking as it terminates
+    when the events are passed to appenders. The user code logging command is non-blocking as it terminates
     immediately when the event is pushed in the queue.
 
     Example:
@@ -2422,9 +2422,7 @@ public namespace Logger {
         */
         private callAppenders(LoggerEvent event) {
             AutoReadLock arl(m_lock);
-            foreach LoggerAppender appender in (m_appenders) {
-                appender.post(event);
-            }
+            map $1.post(event), m_appenders;
         }
 
         #! Adds an appender to the appender list
