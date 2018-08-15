@@ -231,7 +231,7 @@ class ReflectionTest inherits QUnit::Test {
 
         c = Class::forName("Condition");
 
-        v = c.getVariant("wait", Class::forName("AbstractSmartLock").getType(), TimeoutType);
+        v = c.getVariant("wait", Class::forName("AbstractSmartLock").typeObject(), TimeoutType);
         assertEq("int", v.getReturnType().getName());
         assertEq((NOTHING, 0), v.getDefaultArgs());
         assertEq(("lock", "timeout_ms"), v.getParamNames());
@@ -279,7 +279,7 @@ class ReflectionTest inherits QUnit::Test {
             list<AbstractMember> l = c1.getMembers();
             NormalMember nm = l[0];
             assertEq("i", nm.getName());
-            assertTrue(IntType.isEqual(nm.getType()));
+            assertTrue(IntType.isEqual(nm.typeObject()));
             assertEq(MC_PUBLIC | MC_USER, nm.getModifiers());
             assertEq("public", nm.getAccessModifierString());
             assertTrue(c1.isEqual(nm.getClass()));
@@ -313,6 +313,23 @@ class ReflectionTest inherits QUnit::Test {
             ClassConstant con2 = c1.getConstant("C_I");
             assertTrue(con2.isEqual(con));
             #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getSourceLocation()), cl;
+        }
+
+        {
+            Namespace n = Namespace::forName("Thread");
+            assertFalse(n.isRoot());
+            assertFalse(n.isImported());
+            assertTrue(n.isBuiltin());
+            assertFalse(n.isUser());
+            assertEq("Thread", n.getName());
+            assertEq("Qore::Thread", n.getPathName());
+
+            assertThrows("UNKNOWN-CONSTANT", \n.getConstant(), "x");
+
+            n = Namespace::forName("Option");
+            Constant c1 = n.getConstant("HAVE_ROUND");
+            assertTrue(c1.getValue());
+            #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getSourceLocation()), n.getConstants();
         }
     }
 }

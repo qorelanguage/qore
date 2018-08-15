@@ -62,7 +62,7 @@ static QoreValue PSEUDONULL_typeCode(QoreObject *ignored, AbstractQoreNode *node
 static QoreClass* do_type_code(const char *name, q_method_n_t f) {
     QoreClass* qc = new QoreClass(name);
     qc->addBuiltinVirtualBaseClass(QC_PSEUDOVALUE);
-    qc->addMethod("typeCode", f, Public, QC_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
+    qc->addMethod("typeCode", f, Public, QCF_CONSTANT, QDOM_DEFAULT, bigIntTypeInfo);
     return qc;
 }
 

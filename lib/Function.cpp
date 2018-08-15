@@ -271,7 +271,7 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
         if (po & (PO_REQUIRE_TYPES | PO_STRICT_ARGS)) {
             int64 flags = variant->getFlags();
 
-            if (!(flags & QC_USES_EXTRA_ARGS)) {
+            if (!(flags & QCF_USES_EXTRA_ARGS)) {
                 for (unsigned i = nparams; i < nargs; ++i) {
                     //printd(5, "processDefaultArgs() %s arg %d nothing: %d\n", func->getName(), i, tmp->retrieveEntry(i).isNothing());
                     if (!tmp->retrieveEntry(i).isNothing()) {
@@ -693,7 +693,7 @@ QoreListNode* QoreFunction::runtimeGetCallVariants() const {
       bool strict_args = po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS);
 
       // ignore "runtime noop" variants if necessary
-      if (strict_args && (vflags & QC_RUNTIME_NOOP)) {
+      if (strict_args && (vflags & QCF_RUNTIME_NOOP)) {
          printd(5, "QoreFunction::runtimeGetCallVariants() this: %p, skip runtime noop, vflags: %p\n", this, vflags);
          continue;
       }
@@ -785,11 +785,11 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
             int64 vflags = (*i)->getFlags();
 
             // ignore "runtime noop" variants if necessary
-            if (strict_args && (vflags & QC_RUNTIME_NOOP))
+            if (strict_args && (vflags & QCF_RUNTIME_NOOP))
                 continue;
 
             // does the variant accept extra arguments?
-            bool uses_extra_args = vflags & QC_USES_EXTRA_ARGS;
+            bool uses_extra_args = vflags & QCF_USES_EXTRA_ARGS;
 
             ++cnt;
 
@@ -962,7 +962,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
                 return 0;
             }
 
-            assert(!(po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS)) || !(variant->getFlags() & QC_RUNTIME_NOOP));
+            assert(!(po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS)) || !(variant->getFlags() & QCF_RUNTIME_NOOP));
         }
     }
 
@@ -1004,7 +1004,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(Excepti
          int64 vflags = (*i)->getFlags();
 
          // ignore "runtime noop" variants if necessary
-         if (strict_args && (vflags & QC_RUNTIME_NOOP))
+         if (strict_args && (vflags & QCF_RUNTIME_NOOP))
             continue;
 
          sig = (*i)->getSignature();
@@ -1088,7 +1088,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(Excepti
          return nullptr;
       }
 
-      assert(!(po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS)) || !(variant->getFlags() & QC_RUNTIME_NOOP));
+      assert(!(po & (PO_REQUIRE_TYPES|PO_STRICT_ARGS)) || !(variant->getFlags() & QCF_RUNTIME_NOOP));
    }
 
    //printd(5, "QoreFunction::runtimeFindExactVariant() this: %p %s() returning %p %s(%s) class: %s\n", this, getName(), variant, getName(), variant ? variant->getSignature()->getSignatureText() : "n/a", variant && aqf && aqf->className() ? aqf->className() : "n/a");
@@ -1153,11 +1153,11 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
             bool strict_args = (*i)->getParseOptions(po) & (PO_REQUIRE_TYPES|PO_STRICT_ARGS);
 
             // ignore "noop" variants if necessary
-            if (strict_args && (vflags & (QC_NOOP | QC_RUNTIME_NOOP)))
+            if (strict_args && (vflags & (QCF_NOOP | QCF_RUNTIME_NOOP)))
                 continue;
 
             // does the variant accept extra arguments?
-            bool uses_extra_args = vflags & QC_USES_EXTRA_ARGS;
+            bool uses_extra_args = vflags & QCF_USES_EXTRA_ARGS;
 
             ++cnt;
 
@@ -1332,7 +1332,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                     bool strict_args = (*i)->getParseOptions(po) & (PO_REQUIRE_TYPES|PO_STRICT_ARGS);
 
                     // ignore "noop" variants if necessary
-                    if (strict_args && ((*i)->getFlags() & (QC_NOOP | QC_RUNTIME_NOOP)))
+                    if (strict_args && ((*i)->getFlags() & (QCF_NOOP | QCF_RUNTIME_NOOP)))
                         continue;
 
                     desc->concat("\n   ");
@@ -1353,14 +1353,14 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
     }
     else if (variant && !xsink) {
         int64 flags = variant->getFlags();
-        if (flags & (QC_NOOP | QC_RUNTIME_NOOP)) {
+        if (flags & (QCF_NOOP | QCF_RUNTIME_NOOP)) {
             QoreStringNode* desc = getNoopError(this, aqf, variant);
             desc->concat("; to disable this warning, use '%disable-warning invalid-operation' in your code");
             qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_CALL_WITH_TYPE_ERRORS, "CALL-WITH-TYPE-ERRORS", desc);
         }
 
         AbstractFunctionSignature* sig = variant->getSignature();
-        if (!(flags & QC_USES_EXTRA_ARGS) && num_args > sig->numParams())
+        if (!(flags & QCF_USES_EXTRA_ARGS) && num_args > sig->numParams())
             warn_excess_args(loc, this, argTypeInfo, sig);
     }
 

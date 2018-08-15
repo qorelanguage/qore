@@ -33,7 +33,7 @@
 #include "qore/intern/QC_ClassConstant.h"
 #include "qore/intern/QC_Class.h"
 
-//! This class provides information about %Qore class members
+//! This class provides information about %Qore class constants
 /** @since %Qore 0.9.0
  */
 qclass ClassConstant [ns=Qore::Reflection; arg=QoreReflectionClassConstant* c; vparent=AbstractConstant];

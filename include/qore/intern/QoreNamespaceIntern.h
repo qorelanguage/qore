@@ -321,6 +321,7 @@ public:
 
     DLLLOCAL const QoreClass* runtimeMatchScopedClassWithMethod(const NamedScope& nscope) const;
     DLLLOCAL const QoreClass* runtimeMatchClass(const NamedScope& nscope, const qore_ns_private*& rns) const;
+    DLLLOCAL const qore_ns_private* runtimeMatchNamespace(const NamedScope& nscope, int offset = 0) const;
     DLLLOCAL const qore_ns_private* runtimeMatchAddClass(const NamedScope& nscope, bool& fnd) const;
 
     DLLLOCAL const TypedHashDecl* runtimeMatchHashDecl(const NamedScope& nscope, const qore_ns_private*& rns) const;
@@ -790,6 +791,18 @@ public:
     DLLLOCAL void clear() {
         nsmap.clear();
         nsrmap.clear();
+    }
+
+    // find the first namespace with the given name
+    DLLLOCAL QoreNamespace* findFirst(const char* name) {
+        nsmap_t::iterator mi = nsmap.find(name);
+        if (mi != nsmap.end()) {
+            nsdmap_t::iterator i = mi->second.begin();
+            if (i != mi->second.end()) {
+                return i->second->ns;
+            }
+        }
+        return nullptr;
     }
 };
 
@@ -1475,6 +1488,28 @@ public:
 
     DLLLOCAL void deferParseCheckAbstractNew(const qore_class_private* qc, const QoreProgramLocation* loc) {
         deferred_new_check_vec.push_back(deferred_new_check_t(qc, loc));
+    }
+
+    DLLLOCAL QoreNamespace* runtimeFindNamespace(const NamedScope& name) {
+        // iterate all namespaces with the initial name and look for the match
+        NamespaceMapIterator nmi(nsmap, name[0]);
+        while (nmi.next()) {
+            const qore_ns_private* rv = nmi.get()->runtimeMatchNamespace(name);
+            if (rv) {
+                return const_cast<QoreNamespace*>(rv->ns);
+            }
+        }
+
+        return nullptr;
+    }
+
+    DLLLOCAL QoreNamespace* runtimeFindNamespace(const QoreString& name) {
+        if (name.bindex("::", 0) != -1) {
+            NamedScope scope(name.c_str());
+            return runtimeFindNamespace(scope);
+        }
+
+        return nsmap.findFirst(name.c_str());
     }
 
     /*

@@ -84,6 +84,8 @@
 #include "qore/intern/QC_AbstractConstant.h"
 #include "qore/intern/QC_ClassConstant.h"
 #include "qore/intern/QC_Type.h"
+#include "qore/intern/QC_Namespace.h"
+#include "qore/intern/QC_Constant.h"
 
 // functions
 #include "qore/intern/ql_time.h"
@@ -914,6 +916,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    preinitAbstractConstantClass();
    preinitClassConstantClass();
    preinitTypeClass();
+   preinitNamespaceClass();
+   preinitConstantClass();
 
    // now add hashdecls
    hashdeclStatInfo = init_hashdecl_StatInfo(qns);
@@ -1030,6 +1034,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
    reflection->addSystemClass(initAbstractConstantClass(*reflection));
    reflection->addSystemClass(initClassConstantClass(*reflection));
    reflection->addSystemClass(initTypeClass(*reflection));
+   reflection->addSystemClass(initNamespaceClass(*reflection));
+   reflection->addSystemClass(initConstantClass(*reflection));
 
    qore_ns_private::addNamespace(qns, reflection);
 
@@ -2640,59 +2646,50 @@ const QoreClass* qore_ns_private::runtimeMatchClass(const NamedScope& nscope, co
    return rns->classList.find(nscope.getIdentifier());
 }
 
-const qore_ns_private* qore_ns_private::runtimeMatchAddClass(const NamedScope& nscope, bool& fnd) const {
-   assert(name == nscope[0]);
-
-   const QoreNamespace* fns = ns;
-   // check for a match of the structure in this namespace
-   for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
-      fns = fns->priv->nsl.find(nscope[i]);
-      if (!fns)
-         return 0;
-   }
-   fnd = true;
-   return fns->priv->classList.find(nscope.getIdentifier()) ? nullptr : fns->priv;
-}
-
-const TypedHashDecl* qore_ns_private::runtimeMatchHashDecl(const NamedScope& nscope, const qore_ns_private*& rns) const {
-   assert(name == nscope[0]);
-
-   const QoreNamespace* fns = ns;
-   // check for a match of the structure in this namespace
-   for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
-      fns = fns->priv->nsl.find(nscope[i]);
-      if (!fns)
-         return nullptr;
-   }
-   rns = fns->priv;
-   return rns->hashDeclList.find(nscope.getIdentifier());
-}
-
-const FunctionEntry* qore_ns_private::runtimeMatchFunctionEntry(const NamedScope& nscope) const {
+const qore_ns_private* qore_ns_private::runtimeMatchNamespace(const NamedScope& nscope, int offset) const {
     assert(name == nscope[0]);
 
     const QoreNamespace* fns = ns;
     // check for a match of the structure in this namespace
-    for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
+    for (unsigned i = 1; i < (nscope.size() - offset); ++i) {
         fns = fns->priv->nsl.find(nscope[i]);
-        if (!fns)
+        if (!fns) {
             return nullptr;
+        }
     }
-    return fns->priv->func_list.findNode(nscope.getIdentifier(), true);
+    return fns->priv;
+}
+
+const qore_ns_private* qore_ns_private::runtimeMatchAddClass(const NamedScope& nscope, bool& fnd) const {
+    const qore_ns_private* fns = runtimeMatchNamespace(nscope, 1);
+    if (!fns) {
+        return nullptr;
+    }
+    if (!fnd) {
+        fnd = true;
+    }
+    return fns->classList.find(nscope.getIdentifier()) ? nullptr : fns;
+}
+
+const TypedHashDecl* qore_ns_private::runtimeMatchHashDecl(const NamedScope& nscope, const qore_ns_private*& rns) const {
+    rns = runtimeMatchNamespace(nscope, 1);
+    return rns ? rns->hashDeclList.find(nscope.getIdentifier()) : nullptr;
+}
+
+const FunctionEntry* qore_ns_private::runtimeMatchFunctionEntry(const NamedScope& nscope) const {
+    const qore_ns_private* fns = runtimeMatchNamespace(nscope, 1);
+    return fns ? fns->func_list.findNode(nscope.getIdentifier(), true) : nullptr;
 }
 
 const qore_ns_private* qore_ns_private::runtimeMatchAddFunction(const NamedScope& nscope, bool& fnd) const {
-   assert(name == nscope[0]);
-
-   const QoreNamespace* fns = ns;
-   // check for a match of the structure in this namespace
-   for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
-      fns = fns->priv->nsl.find(nscope[i]);
-      if (!fns)
-         return 0;
-   }
-   fnd = true;
-   return fns->priv->func_list.find(nscope.getIdentifier(), false) ? 0 : fns->priv;
+    const qore_ns_private* fns = runtimeMatchNamespace(nscope, 1);
+    if (!fns) {
+        return nullptr;
+    }
+    if (!fnd) {
+        fnd = true;
+    }
+    return fns->func_list.find(nscope.getIdentifier(), false) ? nullptr : fns;
 }
 
 // qore_ns_private::parseMatchNamespace()
@@ -2715,7 +2712,7 @@ QoreNamespace* qore_ns_private::parseMatchNamespace(const NamedScope& nscope, un
         if (i >= matched)
             matched = i + 1;
     }
-    return (QoreNamespace* )fns;
+    return const_cast<QoreNamespace*>(fns);
 }
 
 TypedHashDecl* qore_ns_private::parseMatchScopedHashDecl(const NamedScope& nscope, unsigned& matched) {
@@ -2737,7 +2734,7 @@ TypedHashDecl* qore_ns_private::parseMatchScopedHashDecl(const NamedScope& nscop
 
     // if we need to follow the namespaces, then do so
     if (nscope.size() > 2) {
-        for (unsigned i = 1; i < (nscope.size() - 1); i++) {
+        for (unsigned i = 1; i < (nscope.size() - 1); ++i) {
             fns = fns->priv->parseFindLocalNamespace(nscope[i]);
             if (!fns)
                 return 0;

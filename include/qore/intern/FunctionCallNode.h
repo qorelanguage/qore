@@ -84,11 +84,11 @@ protected:
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const = 0;
 
     DLLLOCAL void doFlags(int64 flags) {
-        if (flags & QC_RET_VALUE_ONLY) {
+        if (flags & QCF_RET_VALUE_ONLY) {
             set_effect(false);
             set_effect_as_root(false);
         }
-        if (flags & QC_CONSTANT) {
+        if (flags & QCF_CONSTANT) {
             set_effect_as_root(false);
         }
     }
@@ -118,7 +118,7 @@ public:
     // ns can be nullptr if the function is a method
     DLLLOCAL int parseArgs(LocalVar* oflag, int pflag, QoreFunction* func, qore_ns_private* ns, const QoreTypeInfo*& returnTypeInfo) {
         int lvids = parseArgsVariant(loc, oflag, pflag, func, ns, returnTypeInfo);
-        // clear "effect" flag if possible, only if QC_CONSTANT is set on the variant or function
+        // clear "effect" flag if possible, only if QCF_CONSTANT is set on the variant or function
         if (variant)
             doFlags(variant->getFlags());
         else if (func)

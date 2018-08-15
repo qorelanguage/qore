@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractConstant.h AbstractConstant class definition */
+/** @file QC_Namespace.h Namespace class definition */
 /*
     Qore Programming Language
 
@@ -28,30 +28,25 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_ABSTRACTCONSTANT_H
+#ifndef _QORE_INTERN_QC_NAMESPACE_H
 
-#define _QORE_INTERN_QC_ABSTRACTCONSTANT_H
+#define _QORE_INTERN_QC_NAMESPACE_H
 
 #include "qore/intern/AbstractReflectionObject.h"
 
-// forward references
-class ConstantEntry;
-
-class QoreReflectionConstant : public AbstractReflectionObject {
+class QoreReflectionNamespace : public AbstractReflectionObject {
 public:
-    const ConstantEntry* ce;
+    const QoreNamespace* ns;
 
-    DLLLOCAL QoreReflectionConstant(QoreProgram* pgm, const ConstantEntry* ce) :
-        AbstractReflectionObject(pgm), ce(ce) {
-    }
+    DLLLOCAL QoreReflectionNamespace(const QoreString& name, ExceptionSink* xsink);
 
-    DLLLOCAL virtual const QoreClass* getClass() const = 0;
+    DLLLOCAL QoreReflectionNamespace(QoreProgram* pgm, const QoreNamespace* ns);
 };
 
-DLLEXPORT extern qore_classid_t CID_ABSTRACTCONSTANT;
-DLLLOCAL extern QoreClass* QC_ABSTRACTCONSTANT;
+DLLEXPORT extern qore_classid_t CID_NAMESPACE;
+DLLLOCAL extern QoreClass* QC_NAMESPACE;
 
-DLLLOCAL void preinitAbstractConstantClass();
-DLLLOCAL QoreClass* initAbstractConstantClass(QoreNamespace& ns);
+DLLLOCAL void preinitNamespaceClass();
+DLLLOCAL QoreClass* initNamespaceClass(QoreNamespace& ns);
 
 #endif

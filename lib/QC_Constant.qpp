@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractConstant.h AbstractConstant class definition */
+/** @file QC_Constant.qpp Constant class definition */
 /*
     Qore Programming Language
 
@@ -28,30 +28,32 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_ABSTRACTCONSTANT_H
+#include "qore/Qore.h"
+#include "qore/intern/ConstantList.h"
+#include "qore/intern/QC_Constant.h"
+#include "qore/intern/QC_Namespace.h"
 
-#define _QORE_INTERN_QC_ABSTRACTCONSTANT_H
+//! This class provides information about %Qore constants
+/** @since %Qore 0.9.0
+ */
+qclass Constant [ns=Qore::Reflection; arg=QoreReflectionNamespaceConstant* c; vparent=AbstractConstant];
 
-#include "qore/intern/AbstractReflectionObject.h"
+//! Throws an exception; this class cannot be created directly or used in a user class hierarchy
+/** @throw CONSTANT-CONSTRUCTOR-ERROR the Constant class cannot be constructed directly or inherited directly by a user-defined class
+ */
+Constant::constructor() {
+    xsink->raiseException("CONSTANT-CONSTRUCTOR-ERROR", "this class cannot be constructed directly or inherited directly by a user-defined class");
+}
 
-// forward references
-class ConstantEntry;
+//! Returns the namespace for the constant
+/** @par Example:
+    @code{.py}
+Namespace ns = con.getNamespace();
+    @endcode
 
-class QoreReflectionConstant : public AbstractReflectionObject {
-public:
-    const ConstantEntry* ce;
+    @return the namespace for the constant
+ */
+Namespace Constant::getNamespace() [flags=CONSTANT] {
+    return new QoreObject(QC_NAMESPACE, c->pgm, new QoreReflectionNamespace(c->pgm, c->ns));
+}
 
-    DLLLOCAL QoreReflectionConstant(QoreProgram* pgm, const ConstantEntry* ce) :
-        AbstractReflectionObject(pgm), ce(ce) {
-    }
-
-    DLLLOCAL virtual const QoreClass* getClass() const = 0;
-};
-
-DLLEXPORT extern qore_classid_t CID_ABSTRACTCONSTANT;
-DLLLOCAL extern QoreClass* QC_ABSTRACTCONSTANT;
-
-DLLLOCAL void preinitAbstractConstantClass();
-DLLLOCAL QoreClass* initAbstractConstantClass(QoreNamespace& ns);
-
-#endif

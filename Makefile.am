@@ -193,6 +193,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_AbstractConstant.qpp \
 	lib/QC_ClassConstant.qpp \
 	lib/QC_Type.qpp \
+	lib/QC_Namespace.qpp \
+	lib/QC_Constant.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -743,6 +745,8 @@ noinst_HEADERS = \
 	include/qore/intern/QC_AbstractConstant.h \
 	include/qore/intern/QC_ClassConstant.h \
 	include/qore/intern/QC_Type.h \
+	include/qore/intern/QC_Namespace.h \
+	include/qore/intern/QC_Constant.h \
 	lib/getopt_long.h \
 	command-line.h
 

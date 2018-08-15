@@ -537,7 +537,7 @@ protected:
     }
 
 public:
-    DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags = QC_NO_FLAGS) :
+    DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags = QCF_NO_FLAGS) :
         AbstractQoreFunctionVariant(n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced), mod_pub(false) {
     }
 
@@ -609,11 +609,11 @@ protected:
 
     // if true means all variants have the same return value
     int64 unique_functionality = QDOM_DEFAULT;
-    int64 unique_flags = QC_NO_FLAGS;
+    int64 unique_flags = QCF_NO_FLAGS;
 
-    // same as above but for variants without QC_RUNTIME_NOOP
+    // same as above but for variants without QCF_RUNTIME_NOOP
     int64 nn_unique_functionality = QDOM_DEFAULT;
-    int64 nn_unique_flags = QC_NO_FLAGS;
+    int64 nn_unique_flags = QCF_NO_FLAGS;
     int nn_count = 0;
 
     bool same_return_type : 1;
@@ -670,7 +670,7 @@ protected:
         int64 vf = variant->getFunctionality();
         int64 vflags = variant->getFlags();
 
-        bool rtn = (bool)(vflags & QC_RUNTIME_NOOP);
+        bool rtn = (bool)(vflags & QCF_RUNTIME_NOOP);
 
         if (vlist.empty()) {
             unique_functionality = vf;
@@ -1157,7 +1157,7 @@ public:
 class UserClosureVariant : public UserFunctionVariant {
 protected:
 public:
-    DLLLOCAL UserClosureVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
+    DLLLOCAL UserClosureVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QCF_NO_FLAGS) : UserFunctionVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags) {
     }
 
     DLLLOCAL virtual void parseInit(QoreFunction* f);
@@ -1176,7 +1176,7 @@ protected:
     const QoreTypeInfo* classTypeInfo;
 
 public:
-    DLLLOCAL UserClosureFunction(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QC_NO_FLAGS) : QoreFunction("<anonymous closure>"), classTypeInfo(0) {
+    DLLLOCAL UserClosureFunction(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced = false, int64 n_flags = QCF_NO_FLAGS) : QoreFunction("<anonymous closure>"), classTypeInfo(0) {
         addPendingVariant(new UserClosureVariant(b, n_sig_first_line, n_sig_last_line, params, rv, synced, n_flags));
     }
 

@@ -273,7 +273,7 @@ public:
        static QoreValue AL_lock(QoreObject* self, QoreAutoLock* m, const QoreListNode* args, q_rt_flags_t rtflag, ExceptionSink* xsink);
        ...
        // and then casted to (q_method_t) in the addMethod call:
-       QC_AutoLock->addMethod("lock", (q_method_n_t)AL_lock, Public, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+       QC_AutoLock->addMethod("lock", (q_method_n_t)AL_lock, Public, QCF_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
        @endcode
 
        in debuggging mode, the call will abort if the name of the method is
@@ -296,7 +296,7 @@ public:
        @see QoreClass::setDestructor()
        @see QoreClass::setCopy()
    */
-   DLLEXPORT void addMethod(const char* n_name, q_method_n_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+   DLLEXPORT void addMethod(const char* n_name, q_method_n_t meth, ClassAccess access = Public, int64 n_flags = QCF_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin method variant to a class with the calling convention for external modules
    /** @par Example:
@@ -305,7 +305,7 @@ public:
        static QoreValue AL_lock(const QoreMethod& method, const void* ptr, QoreObject* self, QoreAutoLock* m, const QoreListNode* args, q_rt_flags_t flags, ExceptionSink* xsink)
        ...
        // and then casted to (q_method_t) in the addMethod call:
-       QC_AutoLock->addMethod(nullptr, "lock", (q_external_method_t)AL_lock, Public, QC_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
+       QC_AutoLock->addMethod(nullptr, "lock", (q_external_method_t)AL_lock, Public, QCF_NO_FLAGS, QDOM_DEFAULT, nothingTypeInfo);
        @endcode
 
        in debuggging mode, the call will abort if the name of the method is
@@ -333,18 +333,18 @@ public:
 
        @since %Qore 0.8.13
    */
-   DLLEXPORT void addMethod(const void* ptr, const char* n_name, q_external_method_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
+   DLLEXPORT void addMethod(const void* ptr, const char* n_name, q_external_method_t meth, ClassAccess access = Public, int64 n_flags = QCF_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
-   DLLEXPORT void addStaticMethod(const char* n_name, q_func_n_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+   DLLEXPORT void addStaticMethod(const char* n_name, q_func_n_t meth, ClassAccess access = Public, int64 n_flags = QCF_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds a builtin static method with extended information; additional functional domain info, return and parameter type info
    /** @since %Qore 0.9
     */
-   DLLEXPORT void addStaticMethod(const void* ptr, const char* n_name, q_external_static_method_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
+   DLLEXPORT void addStaticMethod(const void* ptr, const char* n_name, q_external_static_method_t meth, ClassAccess access = Public, int64 n_flags = QCF_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
 
    //! adds an unimplemented abstract method variant to the class with extended information; with return and parameter type info
-   DLLEXPORT void addAbstractMethod(const char* n_name, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+   DLLEXPORT void addAbstractMethod(const char* n_name, ClassAccess access = Public, int64 n_flags = QCF_NO_FLAGS, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
 
    //! adds an unimplemented abstract method variant to the class with return and parameter type info
    DLLEXPORT void addAbstractMethod(const char* n_name, ClassAccess access, int64 n_flags, const QoreTypeInfo* returnTypeInfo, const type_vec_t& n_typeList, const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
@@ -379,12 +379,12 @@ public:
    DLLEXPORT void setDestructor(const void* ptr, q_external_destructor_t m);
 
    //! adds a constructor method variant with the access specifier, additional functional domain info, and parameter type info
-   DLLEXPORT void addConstructor(q_constructor_n_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
+   DLLEXPORT void addConstructor(q_constructor_n_t meth, ClassAccess access = Public, int64 n_flags = QCF_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, unsigned num_params = 0, ...);
 
    //! adds a constructor method variant with the external calling convention and includes the access specifier, additional functional domain info, and parameter type info
    /** @since %Qore 0.9
     */
-   DLLEXPORT void addConstructor(const void* ptr, q_external_constructor_t meth, ClassAccess access = Public, int64 n_flags = QC_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
+   DLLEXPORT void addConstructor(const void* ptr, q_external_constructor_t meth, ClassAccess access = Public, int64 n_flags = QCF_NO_FLAGS, int64 n_domain = QDOM_DEFAULT, const type_vec_t& n_typeList = type_vec_t(), const arg_vec_t& defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t());
 
    //! sets the builtin constructor for system objects (ex: used as constant values)
    /** @note system constructors in a class hierarchy must call the base class constructors manually

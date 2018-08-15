@@ -108,14 +108,14 @@ static void warn_deprecated(const QoreProgramLocation* loc, QoreFunction* func) 
 static void check_flags(const QoreProgramLocation* loc, QoreFunction* func, int64 flags, int64 pflag) {
     if (pflag & (PF_RETURN_VALUE_IGNORED | PF_BACKGROUND)) {
         bool is_bg_call = (pflag & PF_BACKGROUND);
-        if ((flags & QC_CONSTANT) == QC_CONSTANT) {
+        if ((flags & QCF_CONSTANT) == QCF_CONSTANT) {
             warn_retval_ignored(loc, func, is_bg_call);
         }
-        else if (flags & QC_RET_VALUE_ONLY) {
+        else if (flags & QCF_RET_VALUE_ONLY) {
             warn_only_may_throw_and_retval_ignored(loc, func, is_bg_call);
         }
     }
-    if (flags & QC_DEPRECATED) {
+    if (flags & QCF_DEPRECATED) {
         warn_deprecated(loc, func);
     }
 }
@@ -161,7 +161,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
         //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p variant: %p rt: %s\n", this, func->className() ? func->className() : "", func->getName(), pflag & PF_RETURN_VALUE_IGNORED, func, variant, QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
 
         if (variant) {
-            //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p f: %lld (%lld) (%lld) rt: %s\n", this, func->className() ? func->className() : "", func->getName(), variant, variant->getFunctionality(), variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY, QoreTypeInfo::getName(variant->parseGetReturnTypeInfo()));
+            //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p f: %lld (%lld) (%lld) rt: %s\n", this, func->className() ? func->className() : "", func->getName(), variant, variant->getFunctionality(), variant->getFlags(), variant->getFlags() & QCF_RET_VALUE_ONLY, QoreTypeInfo::getName(variant->parseGetReturnTypeInfo()));
             if (qc) {
                 assert(dynamic_cast<const MethodVariantBase*>(variant));
                 const MethodVariantBase* mv = reinterpret_cast<const MethodVariantBase*>(variant);
@@ -185,7 +185,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
             }
         }
         else {
-            //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %p f: %lld (%lld) c: %lld (%lld)\n", this, func, func->parseGetUniqueFunctionality(), func->parseGetUniqueFunctionality() & parse_get_parse_options(), func->parseGetUniqueFlags(), func->parseGetUniqueFlags() & QC_RET_VALUE_ONLY);
+            //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %p f: %lld (%lld) c: %lld (%lld)\n", this, func, func->parseGetUniqueFunctionality(), func->parseGetUniqueFunctionality() & parse_get_parse_options(), func->parseGetUniqueFlags(), func->parseGetUniqueFlags() & QCF_RET_VALUE_ONLY);
 
             int64 dflags = func->parseGetUniqueFunctionality();
             if (dflags && qore_program_private::parseAddDomain(pgm, dflags))

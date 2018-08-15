@@ -372,6 +372,8 @@
 #include "QC_AbstractConstant.cpp"
 #include "QC_ClassConstant.cpp"
 #include "QC_Type.cpp"
+#include "QC_Namespace.cpp"
+#include "QC_Constant.cpp"
 
 #include "QorePseudoMethods.cpp"
 

@@ -230,14 +230,14 @@ bool AbstractConstant::isUser() [flags=RET_VALUE_ONLY] {
 //! Returns the type object for this constant
 /** @par Example:
     @code{.py}
-Type t = con.getType();
+Type t = con.typeObject();
     @endcode
 
     @return the type object for this constant
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
 */
-Type AbstractConstant::getType() [flags=RET_VALUE_ONLY] {
+Type AbstractConstant::typeObject() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {

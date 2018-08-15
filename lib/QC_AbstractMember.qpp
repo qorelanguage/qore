@@ -263,14 +263,14 @@ bool AbstractMember::isStatic() [flags=RET_VALUE_ONLY] {
 //! Returns the type object for this member
 /** @par Example:
     @code{.py}
-Type t = m.getType();
+Type t = m.typeObject();
     @endcode
 
     @return the type object for this member
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
-Type AbstractMember::getType() [flags=RET_VALUE_ONLY] {
+Type AbstractMember::typeObject() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
     if (*xsink) {
