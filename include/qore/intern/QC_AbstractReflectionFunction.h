@@ -57,6 +57,8 @@ public:
     DLLLOCAL QoreObject* getFunctionObject(ExceptionSink* xsink) const;
 };
 
+DLLLOCAL QoreObject* find_function_variant(QoreProgram* pgm, const QoreFunction* func, const QoreListNode* args, size_t offset, bool exact, method_type_e mtype, ExceptionSink* xsink);
+
 DLLLOCAL QoreObject* get_variant_object(QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, const AbstractQoreFunctionVariant* v, ExceptionSink* xsink);
 
 DLLLOCAL void append_variant_objects(QoreListNode& l, QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, ExceptionSink* xsink);

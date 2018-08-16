@@ -88,26 +88,6 @@ QoreObject* get_method_object(ReferenceHolder<QoreReflectionMethod>& m, Exceptio
 #define FV_ALL (FV_NORMAL | FV_STATIC | FV_CONSTRUCTOR | FV_DESTRUCTOR | FV_COPY)
 
 QoreObject* find_variant(const QoreReflectionClass* c, const char* name, unsigned which, const QoreListNode* args, size_t offset, bool exact, ExceptionSink* xsink) {
-    // create argument list
-    type_vec_t type_vec;
-
-    for (size_t i = offset; i < (args ? args->size() : 0); ++i) {
-        const QoreValue v = args->retrieveEntry(i);
-        if (v.getType() != NT_OBJECT) {
-            xsink->raiseException("GETVARIANT-ERROR", "expecting a Type argument describing the parameter type; got type '%s' instead", v.getTypeName());
-            return nullptr;
-        }
-
-        ReferenceHolder<QoreType> t(static_cast<QoreType*>(v.get<const QoreObject>()->tryGetReferencedPrivateData(CID_TYPE, xsink)), xsink);
-        if (!t) {
-            if (!*xsink) {
-                xsink->raiseException("GETVARIANT-ERROR", "expecting a Type argument describing the parameter type; got object of class '%s' instead", v.get<const QoreObject>()->getClassName());
-            }
-            return nullptr;
-        }
-        type_vec.push_back(t->typeInfo);
-    }
-
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
@@ -179,16 +159,7 @@ QoreObject* find_variant(const QoreReflectionClass* c, const char* name, unsigne
     }
 
     const QoreFunction* func = qore_method_private::get(*m)->func;
-
-    const AbstractQoreFunctionVariant* v = exact
-        ? func->runtimeFindExactVariant(xsink, type_vec, qore_class_private::get(*c->cls))
-        : func->parseFindVariant(nullptr, type_vec, qore_class_private::get(*c->cls), xsink);
-
-    if (*xsink) {
-        return nullptr;
-    }
-
-    return get_variant_object(c->pgm, func, mtype, v, xsink);
+    return find_function_variant(c->pgm, func, args, offset, exact, mtype, xsink);
 }
 
 QoreObject* find_variant(const QoreReflectionClass* c, const QoreStringNode* name, unsigned which, const QoreListNode* args, size_t offset, bool exact, ExceptionSink* xsink) {

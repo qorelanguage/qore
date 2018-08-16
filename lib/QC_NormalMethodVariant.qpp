@@ -76,6 +76,7 @@ auto v = m.call(obj, arg1, arg2);
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
     @throw METHOD-ERROR the object was not instantiated from the class implementing this method
+    @throw RUNTIME-TYPE-ERROR invalid argument types passed to the variant
 
     @see callArgs()
 */
@@ -118,6 +119,7 @@ auto v = m.callArgs(obj, (arg1, arg2));
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
     @throw METHOD-ERROR the object was not instantiated from the class implementing this method
+    @throw RUNTIME-TYPE-ERROR invalid argument types passed to the variant
 
     @see call()
 */

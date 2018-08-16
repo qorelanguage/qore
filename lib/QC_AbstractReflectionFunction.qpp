@@ -38,7 +38,7 @@
 #include "qore/intern/QC_ConstructorMethodVariant.h"
 #include "qore/intern/QC_DestructorMethodVariant.h"
 #include "qore/intern/QC_CopyMethodVariant.h"
-//#include "qore/intern/QC_FunctionVariant.h"
+#include "qore/intern/QC_FunctionVariant.h"
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/qore_program_private.h"
 
@@ -55,14 +55,47 @@ QoreObject* QoreReflectionFunction::getFunctionObject(ExceptionSink* xsink) cons
         return get_method_object(meth, xsink);
     }
 
-    xsink->raiseException("UNSUPPORTED", "implement me");
-    return nullptr;
+    return new QoreObject(QC_FUNCTION, pgm, new QoreReflectionFunction(pgm, f));
+}
+
+QoreObject* find_function_variant(QoreProgram* pgm, const QoreFunction* func, const QoreListNode* args, size_t offset, bool exact, method_type_e mtype, ExceptionSink* xsink) {
+    // create argument list
+    type_vec_t type_vec;
+
+    for (size_t i = offset; i < (args ? args->size() : 0); ++i) {
+        const QoreValue v = args->retrieveEntry(i);
+        if (v.getType() != NT_OBJECT) {
+            xsink->raiseException("GETVARIANT-ERROR", "expecting a Type argument describing the parameter type; got type '%s' instead", v.getTypeName());
+            return nullptr;
+        }
+
+        ReferenceHolder<QoreType> t(static_cast<QoreType*>(v.get<const QoreObject>()->tryGetReferencedPrivateData(CID_TYPE, xsink)), xsink);
+        if (!t) {
+            if (!*xsink) {
+                xsink->raiseException("GETVARIANT-ERROR", "expecting a Type argument describing the parameter type; got object of class '%s' instead", v.get<const QoreObject>()->getClassName());
+            }
+            return nullptr;
+        }
+        type_vec.push_back(t->typeInfo);
+    }
+
+    const QoreClass* cls = mtype != MT_None ? func->getClass() : nullptr;
+    const qore_class_private* qc = cls ? qore_class_private::get(*cls) : nullptr;
+    const AbstractQoreFunctionVariant* v = exact
+        ? func->runtimeFindExactVariant(xsink, type_vec, qc)
+        : func->parseFindVariant(nullptr, type_vec, qc, xsink);
+
+    if (*xsink) {
+        return nullptr;
+    }
+
+    return get_variant_object(pgm, func, mtype, v, xsink);
 }
 
 QoreObject* get_variant_object(QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, const AbstractQoreFunctionVariant* v, ExceptionSink* xsink) {
     switch (mtype) {
-        //case MT_None:
-            //return new QoreObject(QC_FUNCTIONVARIANT, f->pgm, new QoreReflectionVariant(pgm, f, v));
+        case MT_None:
+            return new QoreObject(QC_FUNCTIONVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
         case MT_Static:
             return new QoreObject(QC_STATICMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
         case MT_Normal:
@@ -77,7 +110,7 @@ QoreObject* get_variant_object(QoreProgram* pgm, const QoreFunction* f, method_t
             break;
     }
 
-    xsink->raiseException("UNSUPPORTED", "implement me");
+    assert(false);
     return nullptr;
 }
 

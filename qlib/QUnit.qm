@@ -1241,7 +1241,7 @@ assertNRegex("regex string", string_function());
         }
     }
 
-    #! Tests for no vlaue
+    #! Tests for no value
     /** @par Example:
         @code{.py}
 assertNothing(function_that_should_not_return_a value());

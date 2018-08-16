@@ -160,7 +160,132 @@ string AbstractMethod::getMethodTypeName() [flags=RET_VALUE_ONLY] {
     return new QoreStringNode(m->getType());
 }
 
-//! returns the variants implemented by the function or method
+//! Returns the given direct child method variant declared in this method or throws an exception if the method variant is not defined
+/** @par Example:
+    @code{.py}
+AbstractMethodVariant v = n.getVariant(IntType, StringType);
+    @endcode
+
+    @param name the name of the method variant to find
+    @param ... type arguments for the variant; types must be compatible for the search to be successful
+
+    @return given method variant or throws an exception if the method variant is not defined in this method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and the method has been destroyed
+    @throw RUNTIME-OVERLOAD-ERROR thrown if the variant cannot be matched to the given arguments
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getVariantArgs()
+    - getExactVariant()
+    - getExactVariantArgs()
+*/
+AbstractMethodVariant AbstractMethod::getVariant(...) [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    const QoreFunction* func = qore_method_private::get(*m->m)->func;
+    return find_function_variant(m->pgm, func, args, 0, false, m->mtype, xsink);
+}
+
+//! Returns the given direct child method variant declared in this method or throws an exception if the method variant is not defined
+/** @par Example:
+    @code{.py}
+AbstractMethodVariant v = n.getVariantArgs((IntType, StringType));
+    @endcode
+
+    @param argv type arguments for the variant; types must be compatible for the search to be successful
+
+    @return given method variant or throws an exception if the method variant is not defined in this method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and the method has been destroyed
+    @throw RUNTIME-OVERLOAD-ERROR thrown if the variant cannot be matched to the given arguments
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getVariant()
+    - getExactVariant()
+    - getExactVariantArgs()
+*/
+AbstractMethodVariant AbstractMethod::getVariantArgs(softlist<Type> argv) [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    const QoreFunction* func = qore_method_private::get(*m->m)->func;
+    return find_function_variant(m->pgm, func, argv, 0, false, m->mtype, xsink);
+}
+
+//! Returns the given direct child method variant declared in this method or throws an exception if the method variant is not defined
+/** @par Example:
+    @code{.py}
+AbstractMethodVariant v = n.getVariant(IntType, StringType);
+    @endcode
+
+    @param ... type arguments for the variant; types must match exactly for the search to be successful
+
+    @return given method variant or throws an exception if the method variant is not defined in this method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and the method has been destroyed
+    @throw RUNTIME-OVERLOAD-ERROR thrown if the variant cannot be matched to the given arguments
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getVariant()
+    - getVariantArgs()
+    - getExactVariantArgs()
+*/
+AbstractMethodVariant AbstractMethod::getExactVariant(...) [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    const QoreFunction* func = qore_method_private::get(*m->m)->func;
+    return find_function_variant(m->pgm, func, args, 0, true, m->mtype, xsink);
+}
+
+//! Returns the given direct child method variant declared in this method or throws an exception if the method variant is not defined
+/** @par Example:
+    @code{.py}
+AbstractMethodVariant v = n.getVariantArgs((IntType, StringType));
+    @endcode
+
+    @param argv type arguments for the variant; types must match exactly for the search to be successful
+
+    @return given method variant or throws an exception if the method variant is not defined in this method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and the method has been destroyed
+    @throw RUNTIME-OVERLOAD-ERROR thrown if the variant cannot be matched to the given arguments
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getVariant()
+    - getVariantArgs()
+    - getExactVariant()
+*/
+AbstractMethodVariant AbstractMethod::getExactVariantArgs(softlist<Type> argv) [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    const QoreFunction* func = qore_method_private::get(*m->m)->func;
+    return find_function_variant(m->pgm, func, argv, 0, true, m->mtype, xsink);
+}
+
+//! returns the variants implemented by the method
 /** @par Example:
     @code{.py}
 list<AbstractMethodVariant> l = f.getVariants();
@@ -168,7 +293,7 @@ list<AbstractMethodVariant> l = f.getVariants();
 
     @return the variants implemented by the method
 
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and the method has been destroyed
 */
 list<AbstractMethodVariant> AbstractMethod::getVariants() [flags=RET_VALUE_ONLY] {
     // get read access to program object

@@ -413,7 +413,7 @@ public:
 //! base class for holding a QoreValue object
 class ValueHolderBase {
 protected:
-    //! the vlaue held
+    //! the value held
     QoreValue v;
     //! for possible Qore-language exceptions
     ExceptionSink* xsink;

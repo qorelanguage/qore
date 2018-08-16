@@ -159,6 +159,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_StdoutOutputStream.qpp
     lib/QC_StderrOutputStream.qpp
     lib/QC_AbstractVariant.qpp
+    lib/QC_FunctionVariant.qpp
     lib/QC_AbstractMethodVariant.qpp
     lib/QC_NormalMethodVariant.qpp
     lib/QC_StaticMethodVariant.qpp
@@ -166,6 +167,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_DestructorMethodVariant.qpp
     lib/QC_CopyMethodVariant.qpp
     lib/QC_AbstractReflectionFunction.qpp
+    lib/QC_Function.qpp
     lib/QC_AbstractMethod.qpp
     lib/QC_NormalMethod.qpp
     lib/QC_StaticMethod.qpp

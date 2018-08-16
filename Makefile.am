@@ -173,6 +173,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_StdoutOutputStream.qpp \
 	lib/QC_StderrOutputStream.qpp \
 	lib/QC_AbstractVariant.qpp \
+	lib/QC_FunctionVariant.qpp \
 	lib/QC_AbstractMethodVariant.qpp \
 	lib/QC_NormalMethodVariant.qpp \
 	lib/QC_StaticMethodVariant.qpp \
@@ -180,6 +181,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_DestructorMethodVariant.qpp \
 	lib/QC_CopyMethodVariant.qpp \
 	lib/QC_AbstractReflectionFunction.qpp \
+	lib/QC_Function.qpp \
 	lib/QC_AbstractMethod.qpp \
 	lib/QC_NormalMethod.qpp \
 	lib/QC_StaticMethod.qpp \
@@ -725,6 +727,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_TreeMap.h \
 	include/qore/intern/QC_AbstractThreadResource.h \
 	include/qore/intern/QC_AbstractVariant.h \
+	include/qore/intern/QC_FunctionVariant.h \
 	include/qore/intern/QC_AbstractMethodVariant.h \
 	include/qore/intern/QC_NormalMethodVariant.h \
 	include/qore/intern/QC_StaticMethodVariant.h \
@@ -732,6 +735,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_DestructorMethodVariant.h \
 	include/qore/intern/QC_CopyMethodVariant.h \
 	include/qore/intern/QC_AbstractReflectionFunction.h \
+	include/qore/intern/QC_Function.h \
 	include/qore/intern/QC_AbstractMethod.h \
 	include/qore/intern/QC_NormalMethod.h \
 	include/qore/intern/QC_StaticMethod.h \

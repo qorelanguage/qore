@@ -345,6 +345,37 @@ class ReflectionTest inherits QUnit::Test {
 
             #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getPathName()), n.getClasses();
             #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getPathName()), n.getNamespaces();
+
+            assertThrows("UNKNOWN-FUNCTION", \n.getFunction(), "xxx");
+
+            Function f = n.getFunction("sprintf");
+            assertEq("sprintf", f.getName());
+
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \f.getExactVariant(), IntType);
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \f.getExactVariantArgs(), IntType);
+
+            FunctionVariant v1 = f.getExactVariant(StringType);
+            assertEq(MC_BUILTIN, v1.getModifiers());
+            assertEq(("builtin",), v1.getModifierList());
+             v1 = f.getExactVariantArgs(StringType);
+            assertEq(MC_BUILTIN, v1.getModifiers());
+            assertEq(("builtin",), v1.getModifierList());
+
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \n.getExactVariant(), ("sprintf", IntType));
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \n.getExactVariantArgs(), ("sprintf", IntType));
+
+            FunctionVariant v2 = n.getExactVariant("sprintf", StringType);
+            assertTrue(v1.isEqual(v2));
+            v2 = n.getExactVariantArgs("sprintf", StringType);
+            assertTrue(v1.isEqual(v2));
+
+            {
+                string str = v1.call("test %d", 1);
+                assertEq("test 1", str);
+            }
+
+            assertThrows("RUNTIME-TYPE-ERROR", \v1.call(), 1);
+            #map printf("%s\n", $1.toString()), n.getVariants();
         }
     }
 }
