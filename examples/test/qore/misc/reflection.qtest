@@ -330,6 +330,21 @@ class ReflectionTest inherits QUnit::Test {
             Constant c1 = n.getConstant("HAVE_ROUND");
             assertTrue(c1.getValue());
             #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getSourceLocation()), n.getConstants();
+
+            assertEq((), n.getClasses());
+            assertThrows("UNKNOWN-CLASS", \n.getClass(), "x");
+
+            assertEq((), n.getNamespaces());
+            assertThrows("UNKNOWN-NAMESPACE", \n.getNamespace(), "x");
+
+            n = Namespace::forName("Qore");
+            assertTrue(Class::forName("File").isEqual(n.getClass("File")));
+            assertFalse(Class::forName("File").isEqual(n.getClass("ReadOnlyFile")));
+            assertTrue(Namespace::forName("Thread").isEqual(n.getNamespace("Thread")));
+            assertFalse(Namespace::forName("Thread").isEqual(n.getNamespace("Option")));
+
+            #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getPathName()), n.getClasses();
+            #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getPathName()), n.getNamespaces();
         }
     }
 }

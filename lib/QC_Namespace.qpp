@@ -413,10 +413,127 @@ list<Constant> Namespace::getConstants() [flags=RET_VALUE_ONLY] {
     return l.release();
 }
 
+//! Returns the given direct child namespace or throws an exception if the namespace is not defined
+/** @par Example:
+    @code{.py}
+Namespace con = n.getNamespace(name);
+    @endcode
+
+    @return given namespace or throws an exception if the namespace is not defined
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the namespace has been destroyed
+    @throw UNKNOWN-NAMESPACE thrown if the namespace cannot be found
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+*/
+Namespace Namespace::getNamespace(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the namespace ptr must be valid
+    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
+    const QoreNamespace* rv = ns->nsl.find(tname->c_str());
+    if (!rv) {
+        xsink->raiseException("UNKNOWN-NAMESPACE", "namespace '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_NAMESPACE, n->pgm, new QoreReflectionNamespace(n->pgm, rv));
+}
+
+//! Returns a list of all declared namespaces in the namespace
+/** @par Example:
+    @code{.py}
+list<Namespace> l = n.getNamespaces();
+    @endcode
+
+    @return a list of all declared namespaces in the namespace
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the namespace has been destroyed
+*/
+list<Namespace> Namespace::getNamespaces() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the namespace ptr must be valid
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_NAMESPACE->getTypeInfo()), xsink);
+
+    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
+
+    for (auto& i : ns->nsl.nsmap) {
+        l->push(new QoreObject(QC_NAMESPACE, n->pgm, new QoreReflectionNamespace(n->pgm, i.second)), xsink);
+    }
+
+    return l.release();
+}
+
+//! Returns the given direct child class declared in this namespace or throws an exception if the class is not defined
+/** @par Example:
+    @code{.py}
+Class cls = n.getClass(name);
+    @endcode
+
+    @return given class or throws an exception if the class is not defined in this namespace
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the namespace has been destroyed
+    @throw UNKNOWN-CLASS thrown if the class cannot be found
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+*/
+Class Namespace::getClass(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the namespace ptr must be valid
+    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
+    const QoreClass* rv = ns->classList.find(tname->c_str());
+    if (!rv) {
+        xsink->raiseException("UNKNOWN-CLASS", "class '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_CLASS, n->pgm, new QoreReflectionClass(n->pgm, rv));
+}
+
+//! Returns a list of all declared classes in the namespace
+/** @par Example:
+    @code{.py}
+list<Class> l = n.getClasses();
+    @endcode
+
+    @return a list of all declared classes in the namespace
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the namespace has been destroyed
+*/
+list<Class> Namespace::getClasses() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the namespace ptr must be valid
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASS->getTypeInfo()), xsink);
+
+    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
+
+    ConstClassListIterator i(ns->classList);
+    while (i.next()) {
+        l->push(new QoreObject(QC_CLASS, n->pgm, new QoreReflectionClass(n->pgm, i.get())), xsink);
+    }
+
+    return l.release();
+}
+
 //! Returns a %Namespace object from the namespace name or namespace-justified path as a string
 /** @par Example:
     @code{.py}
-Namespace cls = Namespace::forName("Thread::Mutex");
+Namespace n = Namespace::forName("Thread::Mutex");
     @endcode
 
     @param path the namespace name or namespace-justified path as a string
