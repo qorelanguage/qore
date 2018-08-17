@@ -491,26 +491,29 @@ public:
 // this class ensures that instantiated variables in user code are uninstantiated, even if an exception occurs
 class UserVariantExecHelper : ProgramThreadCountContextHelper, ThreadFrameBoundaryHelper {
 protected:
-   const UserVariantBase* uvb;
-   ReferenceHolder<QoreListNode> argv;
-   ExceptionSink* xsink;
+    const UserVariantBase* uvb;
+    ReferenceHolder<QoreListNode> argv;
+    ExceptionSink* xsink;
 
 public:
-   DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) : ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true), uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
-      assert(xsink);
-      if (*xsink || uvb->setupCall(ceh, argv, xsink))
-         uvb = nullptr;
-   }
+    DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) :
+        ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true),
+        ThreadFrameBoundaryHelper(!*n_xsink),
+        uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
+        assert(xsink);
+        if (*xsink || uvb->setupCall(ceh, argv, xsink))
+            uvb = nullptr;
+    }
 
-   DLLLOCAL ~UserVariantExecHelper();
+    DLLLOCAL ~UserVariantExecHelper();
 
-   DLLLOCAL operator bool() const {
-      return uvb;
-   }
+    DLLLOCAL operator bool() const {
+        return uvb;
+    }
 
-   DLLLOCAL ReferenceHolder<QoreListNode>& getArgv() {
-      return argv;
-   }
+    DLLLOCAL ReferenceHolder<QoreListNode>& getArgv() {
+        return argv;
+    }
 };
 
 class UserFunctionVariant : public AbstractQoreFunctionVariant, public UserVariantBase {
