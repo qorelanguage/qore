@@ -183,6 +183,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_Type.qpp
     lib/QC_Namespace.qpp
     lib/QC_Constant.qpp
+    lib/QC_GlobalVar.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp
     lib/ql_thread.qpp

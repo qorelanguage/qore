@@ -136,7 +136,7 @@ AbstractReflectionFunction::constructor() {
    xsink->raiseException("ABSTRACTREFLECTIONFUNCTION-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
-//! Returns @ref True if the function or method objet passed as an argument is equal to the current object; @ref False if not
+//! Returns @ref True if the function or method object passed as an argument is equal to the current object; @ref False if not
 /** @par Example:
     @code{.py}
 bool b = f1.isEqual(f2);

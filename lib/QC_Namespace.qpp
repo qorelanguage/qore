@@ -35,6 +35,7 @@
 #include <qore/intern/QC_Type.h>
 #include "qore/intern/QC_AbstractReflectionFunction.h"
 #include "qore/intern/QC_Function.h"
+#include "qore/intern/QC_GlobalVar.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/Function.h"
 
@@ -806,6 +807,64 @@ list<FunctionVariant> Namespace::getVariants() [flags=RET_VALUE_ONLY] {
         if (*xsink) {
             return QoreValue();
         }
+    }
+
+    return l.release();
+}
+
+//! Returns the given direct child global variable declared in this namespace or throws an exception if the global variable is not defined
+/** @par Example:
+    @code{.py}
+GlobalVar cls = n.getGlobalVar(name);
+    @endcode
+
+    @return given global variable or throws an exception if the global variable is not defined in this namespace
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the namespace has been destroyed
+    @throw UNKNOWN-GLOBAL-VAR thrown if the global variable cannot be found
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+*/
+GlobalVar Namespace::getGlobalVar(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the namespace ptr must be valid
+    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
+    Var* rv = ns->var_list.runtimeFindVar(tname->c_str());
+    if (!rv) {
+        xsink->raiseException("UNKNOWN-GLOBAL-VAR", "global variable '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_GLOBALVAR, n->pgm, new QoreReflectionGlobalVar(n->pgm, rv));
+}
+
+//! Returns a list of all declared global variable in the namespace
+/** @par Example:
+    @code{.py}
+list<GlobalVar> l = n.getGlobalVars();
+    @endcode
+
+    @return a list of all declared global variable in the namespace
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the namespace has been destroyed
+*/
+list<GlobalVar> Namespace::getGlobalVars() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the namespace ptr must be valid
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_GLOBALVAR->getTypeInfo()), xsink);
+
+    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
+
+    for (auto& i : ns->var_list.vmap) {
+        l->push(new QoreObject(QC_GLOBALVAR, n->pgm, new QoreReflectionGlobalVar(n->pgm, i.second)), xsink);
     }
 
     return l.release();

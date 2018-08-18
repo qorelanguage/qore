@@ -102,6 +102,7 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_AbstractConstant.cpp \
 	QC_ClassConstant.cpp \
 	QC_Constant.cpp \
+	QC_GlobalVar.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_pwd.cpp ql_object.cpp \
 	ql_dbi.cpp ql_context.cpp ql_env.cpp ql_type.cpp \

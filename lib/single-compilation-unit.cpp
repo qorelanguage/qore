@@ -376,6 +376,7 @@
 #include "QC_Type.cpp"
 #include "QC_Namespace.cpp"
 #include "QC_Constant.cpp"
+#include "QC_GlobalVar.cpp"
 
 #include "QorePseudoMethods.cpp"
 

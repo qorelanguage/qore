@@ -319,6 +319,7 @@ public:
     DLLLOCAL void parseCommit();
     DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
 
+    DLLLOCAL Var* runtimeMatchGlobalVar(const NamedScope& nscope, const qore_ns_private*& rns) const;
     DLLLOCAL const QoreClass* runtimeMatchScopedClassWithMethod(const NamedScope& nscope) const;
     DLLLOCAL const QoreClass* runtimeMatchClass(const NamedScope& nscope, const qore_ns_private*& rns) const;
     DLLLOCAL const qore_ns_private* runtimeMatchNamespace(const NamedScope& nscope, int offset = 0) const;
@@ -1311,7 +1312,14 @@ protected:
         return nullptr;
     }
 
+    DLLLOCAL Var* runtimeFindGlobalVar(const NamedScope& nscope, const qore_ns_private*& vns) const;
+
     DLLLOCAL Var* runtimeFindGlobalVar(const char* vname, const qore_ns_private*& vns) const {
+        if (strstr(vname, "::")) {
+            NamedScope nscope(vname);
+            return runtimeFindGlobalVar(nscope, vns);
+        }
+
         varmap_t::const_iterator i = varmap.find(vname);
         if (i != varmap.end()) {
             assert(i->second.ns);
@@ -1329,8 +1337,8 @@ protected:
         varmap.update(var->getName(), &tns, var);
     }
 
-    DLLLOCAL Var* runtimeCreateVar(qore_ns_private& vns, const char* vname, const QoreTypeInfo* typeInfo) {
-        Var* v = vns.var_list.runtimeCreateVar(vname, typeInfo);
+    DLLLOCAL Var* runtimeCreateVar(qore_ns_private& vns, const char* vname, const QoreTypeInfo* typeInfo, bool builtin) {
+        Var* v = vns.var_list.runtimeCreateVar(vname, typeInfo, builtin);
 
         if (v)
             varmap.update(v->getName(), &vns, v);
@@ -1834,8 +1842,8 @@ public:
         return rns.rpriv->runtimeFindGlobalVar(vname, vns);
     }
 
-    DLLLOCAL static Var* runtimeCreateVar(RootQoreNamespace& rns, QoreNamespace& vns, const char* vname, const QoreTypeInfo* typeInfo) {
-        return rns.rpriv->runtimeCreateVar(*vns.priv, vname, typeInfo);
+    DLLLOCAL static Var* runtimeCreateVar(RootQoreNamespace& rns, QoreNamespace& vns, const char* vname, const QoreTypeInfo* typeInfo, bool builtin = false) {
+        return rns.rpriv->runtimeCreateVar(*vns.priv, vname, typeInfo, builtin);
     }
 
     DLLLOCAL static void runtimeImportGlobalVariable(RootQoreNamespace& rns, QoreNamespace& tns, Var* v, bool readonly, ExceptionSink* xsink) {

@@ -36,6 +36,10 @@ class Test {
     }
 }
 
+namespace TestNs {
+    our int global_i;
+}
+
 class ReflectionTest inherits QUnit::Test {
     constructor() : QUnit::Test("ReflectionTest", "1.0") {
         addTestCase("reflection tests", \reflectionTests());
@@ -376,6 +380,24 @@ class ReflectionTest inherits QUnit::Test {
 
             assertThrows("RUNTIME-TYPE-ERROR", \v1.call(), 1);
             #map printf("%s\n", $1.toString()), n.getVariants();
+
+            n = Namespace::forName("::TestNs");
+            assertThrows("UNKNOWN-GLOBAL-VAR", \n.getGlobalVar(), "xxx");
+            GlobalVar gv = n.getGlobalVar("global_i");
+            assertEq("global_i", gv.getName());
+            assertTrue(gv.isUser());
+            assertFalse(gv.isBuiltin());
+            assertNothing(gv.getValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \gv.setValue(), "string");
+            gv.setValue(1);
+            assertEq(1, gv.getValue());
+            GlobalVar gv2 = n.getGlobalVars()[0];
+            assertTrue(gv.isEqual(gv2));
+            gv2 = GlobalVar::forName("ARGV");
+            assertFalse(gv.isEqual(gv2));
+            assertFalse(gv2.isUser());
+            assertTrue(gv2.isBuiltin());
+            assertTrue(IntType.isEqual(gv.typeObject()));
         }
     }
 }
