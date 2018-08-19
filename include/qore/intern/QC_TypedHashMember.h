@@ -37,7 +37,7 @@
 #include <string>
 
 // forward references
-class QoreMemberInfo;
+class HashDeclMemberInfo;
 
 class QoreReflectionHashDeclMember : public QoreReflectionMember {
 public:

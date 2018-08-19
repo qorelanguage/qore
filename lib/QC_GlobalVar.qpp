@@ -34,6 +34,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/QC_Type.h"
+#include "qore/intern/QC_Namespace.h"
 
 QoreReflectionGlobalVar::QoreReflectionGlobalVar(const char* path, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
     const qore_ns_private* pns;

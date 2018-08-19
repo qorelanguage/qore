@@ -34,6 +34,11 @@
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/QC_Type.h"
 #include "qore/intern/QC_Namespace.h"
+#include "qore/intern/QC_Constant.h"
+#include "qore/intern/QC_Function.h"
+#include "qore/intern/QC_GlobalVar.h"
+#include "qore/intern/QC_TypedHash.h"
+#include "qore/intern/QC_FunctionVariant.h"
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 
