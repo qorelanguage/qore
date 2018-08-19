@@ -40,6 +40,7 @@
 #include "qore/intern/QC_CopyMethodVariant.h"
 #include "qore/intern/QC_FunctionVariant.h"
 #include "qore/intern/QC_Class.h"
+#include "qore/intern/QC_Type.h"
 #include "qore/intern/QC_Function.h"
 #include "qore/intern/qore_program_private.h"
 
