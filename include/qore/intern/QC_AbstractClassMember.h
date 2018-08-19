@@ -32,7 +32,7 @@
 
 #define _QORE_INTERN_QC_ABSTRACTCLASSMEMBER_H
 
-#include "qore/intern/AbstractReflectionObject.h"
+#include "qore/intern/QC_AbstractMember.h"
 
 #include <string>
 
