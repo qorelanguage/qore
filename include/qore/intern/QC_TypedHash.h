@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_NormalMember.h NormalMember class definition */
+/** @file QC_TypedHash.h TypedHash class definition */
 /*
     Qore Programming Language
 
@@ -7,7 +7,7 @@
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
-    to deal in the Software wiathout restriction, including without limitation
+    to deal in the Software without restriction, including without limitation
     the rights to use, copy, modify, merge, publish, distribute, sublicense,
     and/or sell copies of the Software, and to permit persons to whom the
     Software is furnished to do so, subject to the following conditions:
@@ -28,16 +28,28 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_NORMALMEMBER_H
+#ifndef _QORE_INTERN_QC_TYPEDHASH_H
 
-#define _QORE_INTERN_QC_NORMALMEMBER_H
+#define _QORE_INTERN_QC_TYPEDHASH_H
 
-#include "qore/intern/QC_AbstractClassMember.h"
+#include "qore/intern/AbstractReflectionObject.h"
+#include "qore/TypedHashDecl.h"
 
-DLLEXPORT extern qore_classid_t CID_NORMALMEMBER;
-DLLLOCAL extern QoreClass* QC_NORMALMEMBER;
+class QoreReflectionTypedHash : public AbstractReflectionObject {
+public:
+    const TypedHashDecl* th = nullptr;
+    const QoreNamespace* ns = nullptr;
 
-DLLLOCAL void preinitNormalMemberClass();
-DLLLOCAL QoreClass* initNormalMemberClass(QoreNamespace& ns);
+    DLLLOCAL QoreReflectionTypedHash(const char* path, ExceptionSink* xsink);
+
+    DLLLOCAL QoreReflectionTypedHash(QoreProgram* pgm, const TypedHashDecl* th, const QoreNamespace* ns) : AbstractReflectionObject(pgm), th(th), ns(ns) {
+    }
+};
+
+DLLEXPORT extern qore_classid_t CID_TYPEDHASH;
+DLLLOCAL extern QoreClass* QC_TYPEDHASH;
+
+DLLLOCAL void preinitTypedHashClass();
+DLLLOCAL QoreClass* initTypedHashClass(QoreNamespace& ns);
 
 #endif

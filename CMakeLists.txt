@@ -175,6 +175,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_DestructorMethod.qpp
     lib/QC_CopyMethod.qpp
     lib/QC_AbstractMember.qpp
+    lib/QC_AbstractClassMember.qpp
     lib/QC_NormalMember.qpp
     lib/QC_StaticMember.qpp
     lib/QC_Class.qpp
@@ -184,6 +185,8 @@ set(LIBQORE_QPP_SRC
     lib/QC_Namespace.qpp
     lib/QC_Constant.qpp
     lib/QC_GlobalVar.qpp
+    lib/QC_TypedHash.qpp
+    lib/QC_TypedHashMember.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp
     lib/ql_thread.qpp

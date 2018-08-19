@@ -41,13 +41,11 @@ class QoreMemberInfo;
 
 class QoreReflectionMember : public AbstractReflectionObject {
 public:
-    const QoreClass* cls;
     std::string name;
-    const QoreMemberInfoBaseAccess* mem;
-    bool is_static;
+    const QoreMemberInfoBase* mem;
 
-    DLLLOCAL QoreReflectionMember(QoreProgram* pgm, const QoreClass* cls, const char* name, const QoreMemberInfoBaseAccess* mem, bool is_static) :
-        AbstractReflectionObject(pgm), cls(cls), name(name), mem(mem), is_static(is_static) {
+    DLLLOCAL QoreReflectionMember(QoreProgram* pgm, const char* name, const QoreMemberInfoBase* mem) :
+        AbstractReflectionObject(pgm), name(name), mem(mem) {
     }
 };
 

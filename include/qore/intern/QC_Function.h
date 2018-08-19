@@ -32,7 +32,7 @@
 
 #define _QORE_INTERN_QC_FUNCTION_H
 
-#include "qore/intern/AbstractReflectionObject.h"
+#include "qore/intern/QC_AbstractReflectionFunction.h"
 
 DLLEXPORT extern qore_classid_t CID_FUNCTION;
 DLLLOCAL extern QoreClass* QC_FUNCTION;

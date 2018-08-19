@@ -368,6 +368,7 @@
 #include "QC_DestructorMethod.cpp"
 #include "QC_CopyMethod.cpp"
 #include "QC_AbstractMember.cpp"
+#include "QC_AbstractClassMember.cpp"
 #include "QC_NormalMember.cpp"
 #include "QC_StaticMember.cpp"
 #include "QC_Class.cpp"
@@ -377,6 +378,8 @@
 #include "QC_Namespace.cpp"
 #include "QC_Constant.cpp"
 #include "QC_GlobalVar.cpp"
+#include "QC_TypedHash.cpp"
+#include "QC_TypedHashMember.cpp"
 
 #include "QorePseudoMethods.cpp"
 

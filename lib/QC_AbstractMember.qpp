@@ -36,7 +36,7 @@
 #include "qore/intern/QC_Type.h"
 #include "qore/intern/qore_program_private.h"
 
-//! This class provides information about %Qore class members
+//! This class provides information about %Qore class and @ref hashdecl "typed hash (hashdecl)" members
 /** @since %Qore 0.9.0
  */
 qclass AbstractMember [ns=Qore::Reflection; arg=QoreReflectionMember* m];
@@ -56,7 +56,7 @@ string name = mem.getName();
 
     @return the member's name
 
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class or @ref hashdecl "typed hash (hashdecl)" has been destroyed
  */
 string AbstractMember::getName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -82,182 +82,6 @@ bool AbstractMember::isEqual(AbstractMember[QoreReflectionMember] mem) [flags=CO
     ReferenceHolder<QoreReflectionMember> holder(mem, xsink);
 
     return mem->mem == m->mem;
-}
-
-//! returns a bitfield of @ref modifier_constants "modifiers" describing the member
-/** @par Example:
-    @code{.py}
-int i = mem.getModifiers();
-    @endcode
-
-    @return a bitfield of @ref modifier_constants "modifiers" describing the member; possible values are:
-    - @ref Qore::Reflection::MC_BUILTIN "MC_BUILTIN": the class declaring the member is builtin
-    - @ref Qore::Reflection::MC_PRIVATE "MC_PRIVATE": gives the accessibility of the member
-    - @ref Qore::Reflection::MC_PRIVATEINTERNAL "MC_PRIVATEINTERNAL": gives the accessibility of the member
-    - @ref Qore::Reflection::MC_PUBLIC "MC_PUBLIC": gives the accessibility of the member
-    - @ref Qore::Reflection::MC_USER "MC_USER": the class declaring the member is a user class
-    - @ref Qore::Reflection::MC_STATIC "MC_STATIC": the member is static
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
-
-    @see
-    - @ref getAccessModifierList()
-    - @ref getAccessModifierString()
-*/
-int AbstractMember::getModifiers() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the class ptr must be valid
-    int64 rc = 0;
-    const qore_class_private* qc = qore_class_private::get(*m->cls);
-    if (m->cls->isSystem()) {
-        rc |= MC_BUILTIN;
-    }
-    else {
-        rc |= MC_USER;
-    }
-
-    if (m->is_static) {
-        rc |= MC_STATIC;
-    }
-
-    rc |= get_access(m->mem->access);
-
-    return rc;
-}
-
-//! returns a list of strings of modifiers describing the member
-/** @par Example:
-    @code{.py}
-list<string> l = m.getModifierList();
-    @endcode
-
-    @return list of strings of modifiers describing the member; possible values are:
-    - \c "builtin": the class declaring the member is builtin
-    - \c "private": gives the accessibility of the member
-    - \c "private:internal": gives the accessibility of the member
-    - \c "public": gives the accessibility of the member
-    - \c "user": the class declaring the member is a user class
-    - \c "static": the member is static
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
-
-    @see @ref getModifiers()
-*/
-list<string> AbstractMember::getModifierList() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the class ptr must be valid
-    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
-    const qore_class_private* qc = qore_class_private::get(*m->cls);
-    if (m->cls->isSystem()) {
-        rv->push(new QoreStringNode("builtin"), xsink);
-    }
-    else {
-        rv->push(new QoreStringNode("user"), xsink);
-    }
-
-    if (m->is_static) {
-        rv->push(new QoreStringNode("static"), xsink);
-    }
-
-    rv->push(new QoreStringNode(get_access_string(m->mem->access)), xsink);
-
-    return rv.release();
-}
-
-//! returns a string for the access modifier for the member
-/** @par Example:
-    @code{.py}
-string str = m.getAccessModifierString();
-    @endcode
-
-    @return a string for the access modifier for the member; possible values are:
-    - \c "private": gives the accessibility of the member
-    - \c "private:internal": gives the accessibility of the member
-    - \c "public": gives the accessibility of the member
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
-
-    @see
-    - @ref getAccessModifierList()
-    - @ref getModifiers()
-*/
-string AbstractMember::getAccessModifierString() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the class ptr must be valid
-    const qore_class_private* qc = qore_class_private::get(*m->cls);
-    return new QoreStringNode(get_access_string(m->mem->access));
-}
-
-//! returns @ref True if the class defining the member is a builtin class
-/** @par Example:
-    @code{.py}
-bool b = m.isBuiltin();
-    @endcode
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
-*/
-bool AbstractMember::isBuiltin() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the class ptr must be valid
-    return m->cls->isSystem();
-}
-
-//! returns @ref True if the class defining the member is a user class
-/** @par Example:
-    @code{.py}
-bool b = m.isUser();
-    @endcode
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
-*/
-bool AbstractMember::isUser() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the class ptr must be valid
-    return !m->cls->isSystem();
-}
-
-//! returns @ref True if the member is static
-/** @par Example:
-    @code{.py}
-bool b = m.isStatic();
-    @endcode
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
-*/
-bool AbstractMember::isStatic() [flags=RET_VALUE_ONLY] {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // the class ptr must be valid
-    return m->is_static;
 }
 
 //! Returns the type object for this member
@@ -300,18 +124,6 @@ auto AbstractMember::getDefaultValue() [flags=RET_VALUE_ONLY] {
 
     // the class ptr must be valid
     return m->mem->exp.eval(xsink);
-}
-
-//! Returns the class for the member
-/** @par Example:
-    @code{.py}
-Class cls = m.getClass();
-    @endcode
-
-    @return the class for the member
- */
-Class AbstractMember::getClass() [flags=CONSTANT] {
-    return new QoreObject(QC_CLASS, m->pgm, new QoreReflectionClass(m->pgm, m->cls));
 }
 
 //! Returns the source location of the member declaration

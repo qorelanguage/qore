@@ -45,11 +45,12 @@
 #include <qore/intern/QC_ConstructorMethodVariant.h>
 #include <qore/intern/QC_DestructorMethodVariant.h>
 #include <qore/intern/QC_CopyMethodVariant.h>
-#include <qore/intern/QC_AbstractMember.h>
+#include <qore/intern/QC_AbstractClassMember.h>
 #include <qore/intern/QC_NormalMember.h>
 #include <qore/intern/QC_StaticMember.h>
 #include <qore/intern/QC_ClassConstant.h>
 #include <qore/intern/QC_Type.h>
+#include <qore/intern/QC_Namespace.h>
 #include "qore/intern/qore_program_private.h"
 
 QoreReflectionClass::QoreReflectionClass(const char* name, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
@@ -208,7 +209,7 @@ QoreHashNode* get_source_location(const QoreProgramLocation* loc) {
 /** @defgroup access_constants Access Constants
     Constants giving access information
 
-    @since %Qore 0.9.0
+    @since %Qore 0.9
 */
 //@{
 //! describes public access
@@ -230,7 +231,7 @@ const AC_PRIVATEINTERNAL = MC_PRIVATEINTERNAL;
 /** @defgroup modifier_constants Modifier Constants
     Constants giving modifier information; each constant is a unique element of a bitfield
 
-    @since %Qore 0.9.0
+    @since %Qore 0.9
 */
 //@{
 //! describes public access
@@ -274,130 +275,10 @@ const MC_BUILTIN = MC_BUILTIN;
 const MC_USER = MC_USER;
 //@}
 
-/** @defgroup functional_domain_constants Functional Domain Constants
-    Constants providing values for functional domains; each constant is a unique element of a bitfield
-
-    @since %Qore 0.9.0
-*/
-//@{
-//! provides process control functionality (can affect or stop the current process)
-/** @see
-    - @ref Qore::PO_NO_PROCESS_CONTROL "PO_NO_PROCESS_CONTROL"
-    - @ref no-process-control
-*/
-const DOM_PROCESS_CONTROL = QDOM_PROCESS;
-
-//! provides network functionality
-/** @see
-    - @ref Qore::PO_NO_NETWORK "PO_NO_NETWORK"
-    - @ref no-network
-*/
-const DOM_NETWORK = QDOM_NETWORK;
-
-//! provides external process control functionality (can affect) start) or stop external processes)
-/** @see
-    - @ref Qore::PO_NO_EXTERNAL_PROCESS "PO_NO_EXTERNAL_PROCESS"
-    - @ref no-external-process
-*/
-const DOM_EXTERNAL_PROCESS = QDOM_EXTERNAL_PROCESS;
-
-//! provides access to the filesystem
-/** @see
-    - @ref Qore::PO_NO_FILESYSTEM "PO_NO_FILESYSTEM"
-    - @ref no-filesystem
-*/
-const DOM_FILESYSTEM = QDOM_FILESYSTEM;
-
-//! provides thread control functionality
-/** @see
-    - @ref Qore::PO_NO_THREAD_CLASSES "PO_NO_THREAD_CLASSES"
-    - @ref no-thread-classes
-*/
-const DOM_THREAD_CLASS = QDOM_THREAD_CLASS;
-
-//! provides the ability to check or manipulate threads (including starting new threads)
-/** @see
-    - @ref Qore::PO_NO_THREAD_CONTROL "PO_NO_THREAD_CONTROL"
-    - @ref no-thread-control
-*/
-const DOM_THREAD_CONTROL = QDOM_THREAD_CONTROL;
-
-//! provides access to databases
-/** @see
-    - @ref Qore::PO_NO_DATABASE "PO_NO_DATABASE"
-    - @ref no-database
-*/
-const DOM_DATABASE = QDOM_DATABASE;
-
-//! provides GUI functionality
-/** @see
-    - @ref Qore::PO_NO_GUI "PO_NO_GUI"
-    - @ref no-gui
-*/
-const DOM_GUI = QDOM_GUI;
-
-//! provides terminal I/O functionality
-/** @see
-    - @ref Qore::PO_NO_TERMINAL_IO "PO_NO_TERMINAL_IO"
-    - @ref no-terminal-io
-*/
-const DOM_TERMINAL_IO = QDOM_TERMINAL_IO;
-
-//! provides access to external information (ex: hostname, pid, process uid, etc)
-/** @see
-    - @ref Qore::PO_NO_EXTERNAL_INFO "PO_NO_EXTERNAL_INFO"
-    - @ref no-external-info
-*/
-const DOM_EXTERNAL_INFO = QDOM_EXTERNAL_INFO;
-
-//! provides access to information regarding threading (tid, active threads, etc)
-/** @see
-    - @ref Qore::PO_NO_THREAD_INFO "PO_NO_THREAD_INFO"
-    - @ref no-thread-info
-*/
-const DOM_THREAD_INFO = QDOM_THREAD_INFO;
-
-//! provides access to functionality that changes locale information
-/** @see
-    - @ref Qore::PO_NO_LOCALE_CONTROL "PO_NO_LOCALE_CONTROL"
-    - @ref no-locale-control
-*/
-const DOM_LOCALE_CONTROL = QDOM_LOCALE_CONTROL;
-
-//! provides access to external modules
-/** @see
-    - @ref Qore::PO_NO_MODULES "PO_NO_MODULES"
-    - @ref no-modules
-*/
-const DOM_MODULE = QDOM_MODULES;
-
-//! provides dynamic parsing functionality
-/** @see @ref Qore::PO_NO_EMBEDDED_LOGIC "PO_NO_EMBEDDED_LOGIC"
-*/
-const DOM_EMBEDDED_LOGIC = QDOM_EMBEDDED_LOGIC;
-
-//! provides functionality related to code / dependency injection
-/** @see @ref Qore::PO_ALLOW_INJECTION "PO_ALLOW_INJECTION"
-*/
-const DOM_INJECTION = QDOM_INJECTION;
-
-//! provides unchecked access to system functionality that could bypass Qore's sandboxing controls
-/** @see
-    - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS"
-    - @ref no-uncontrolled-apis
-*/
-const DOM_UNCONTROLLED_API = QDOM_UNCONTROLLED_API;
-
-//! provides debugging functionality
-/** @see @ref Qore::PO_ALLOW_DEBUGGER "PO_ALLOW_DEBUGGER"
-*/
-const DOM_DEBUGGER = QDOM_DEBUGGER;
-//@}
-
 /** @defgroup code_flag_constants Code Flag Constants
     Constants providing information about code variants
 
-    @since %Qore 0.9.0
+    @since %Qore 0.9
 */
 //@{
 //! Set on variants that are present for backwards-compatibility that always return a constant value (normally @ref nothing) due to argument errors
@@ -434,7 +315,7 @@ const CF_RUNTIME_NOOP = QCF_RUNTIME_NOOP;
 
 //! class and inheritance access information
 /**
-    @since %Qore 0.9.0
+    @since %Qore 0.9
 */
 hashdecl ClassAccessInfo {
     //! the inherited class
@@ -449,7 +330,7 @@ hashdecl ClassAccessInfo {
 
 //! source location information
 /**
-    @since %Qore 0.9.0
+    @since %Qore 0.9
 */
 hashdecl SourceLocationInfo {
     //! if @ref True then the code is builtin and there is no user source location
@@ -472,7 +353,7 @@ hashdecl SourceLocationInfo {
 }
 
 //! This class provides information about %Qore classes
-/** @since %Qore 0.9.0
+/** @since %Qore 0.9
  */
 qclass Class [ns=Qore::Reflection; arg=QoreReflectionClass* c];
 
@@ -1102,7 +983,7 @@ Type t = cls.typeObject();
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 
-    @see getOrNothingType()
+    @see orNothingTypeObject()
 */
 Type Class::typeObject() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -1125,7 +1006,7 @@ Type t = cls.orNothingTypeObject();
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 
-    @see getType()
+    @see typeObject()
 */
 Type Class::orNothingTypeObject() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -2182,7 +2063,7 @@ list<hash<ClassAccessInfo>> Class::getParentClasses() [flags=RET_VALUE_ONLY] {
 //! returns the requested member or throws an exception if the member is not defined in the class
 /**  @par Example:
     @code{.py}
-AbstractMember m = cls.getMember(name);
+AbstractClassMember m = cls.getMember(name);
     @endcode
 
     @return the requested member or throws an exception if the member is not defined in the class
@@ -2195,7 +2076,7 @@ AbstractMember m = cls.getMember(name);
     - @ref getNormalMember()
     - @ref getStaticMember()
 */
-AbstractMember Class::getMember(string name) [flags=RET_VALUE_ONLY] {
+AbstractClassMember Class::getMember(string name) [flags=RET_VALUE_ONLY] {
     TempEncodingHelper tname(name, QCS_DEFAULT, xsink);
     if (*xsink) {
         return QoreValue();
@@ -2212,14 +2093,14 @@ AbstractMember Class::getMember(string name) [flags=RET_VALUE_ONLY] {
     {
         const QoreMemberInfo* mi = qc->members.find(tname->c_str());
         if (mi) {
-            return new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, tname->c_str(), mi, false));
+            return new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), mi, false));
         }
     }
 
     {
         const QoreVarInfo* vi = qc->vars.find(tname->c_str());
         if (vi) {
-            return new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, tname->c_str(), vi, true));
+            return new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), vi, true));
         }
     }
 
@@ -2259,7 +2140,7 @@ NormalMember Class::getNormalMember(string name) [flags=RET_VALUE_ONLY] {
     const qore_class_private* qc = qore_class_private::get(*c->cls);
     const QoreMemberInfo* mi = qc->members.find(tname->c_str());
     if (mi) {
-        return new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, tname->c_str(), mi, false));
+        return new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), mi, false));
     }
 
     xsink->raiseException("UNKNOWN-NORMAL-MEMBER", "normal (non-static) member '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
@@ -2298,7 +2179,7 @@ StaticMember Class::getStaticMember(string name) [flags=RET_VALUE_ONLY] {
     const qore_class_private* qc = qore_class_private::get(*c->cls);
     const QoreVarInfo* vi = qc->vars.find(tname->c_str());
     if (vi) {
-        return new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, tname->c_str(), vi, true));
+        return new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), vi, true));
     }
 
     xsink->raiseException("UNKNOWN-STATIC-MEMBER", "static member '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
@@ -2308,14 +2189,14 @@ StaticMember Class::getStaticMember(string name) [flags=RET_VALUE_ONLY] {
 //! returns a list of all declared class members, non-static (first) and static (second) in declaration order
 /** @par Example:
     @code{.py}
-list<AbstractMember> l = cls.getMembers();
+list<AbstractClassMember> l = cls.getMembers();
     @endcode
 
     @return a list of all declared class members, non-static (first) and static (second) in declaration order
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
-list<AbstractMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
+list<AbstractClassMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
     if (*xsink) {
@@ -2323,17 +2204,17 @@ list<AbstractMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTMEMBER->getTypeInfo()), xsink);
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTCLASSMEMBER->getTypeInfo()), xsink);
 
     const qore_class_private* qc = qore_class_private::get(*c->cls);
     // first get non-static members
     for (QoreMemberMap::DeclOrderIterator i = qc->members.beginDeclOrder(), e = qc->members.endDeclOrder(); i != e; ++i) {
-        l->push(new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, i->first, i->second, false)), xsink);
+        l->push(new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, i->first, i->second, false)), xsink);
     }
 
     // now get static members
     for (QoreVarMap::DeclOrderIterator i = qc->vars.beginDeclOrder(), e = qc->vars.endDeclOrder(); i != e; ++i) {
-        l->push(new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionMember(c->pgm, c->cls, i->first, i->second, true)), xsink);
+        l->push(new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, i->first, i->second, true)), xsink);
     }
 
     return l.release();
@@ -2395,6 +2276,28 @@ list<ClassConstant> Class::getConstants() [flags=RET_VALUE_ONLY] {
     }
 
     return l.release();
+}
+
+//! Returns the namespace for the class
+/** @par Example:
+    @code{.py}
+Namespace ns = cls.getNamespace();
+    @endcode
+
+    @return the namespace for the class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+ */
+Namespace Class::getNamespace() [flags=CONSTANT] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    const qore_class_private* qc = qore_class_private::get(*c->cls);
+    return new QoreObject(QC_NAMESPACE, c->pgm, new QoreReflectionNamespace(c->pgm, qc->ns->ns));
 }
 
 //! Returns a %Class object from the class name or namespace-justified path as a string

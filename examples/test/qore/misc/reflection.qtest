@@ -38,6 +38,10 @@ class Test {
 
 namespace TestNs {
     our int global_i;
+
+    hashdecl T {
+        int i = 0;
+    }
 }
 
 class ReflectionTest inherits QUnit::Test {
@@ -398,6 +402,19 @@ class ReflectionTest inherits QUnit::Test {
             assertFalse(gv2.isUser());
             assertTrue(gv2.isBuiltin());
             assertTrue(IntType.isEqual(gv.typeObject()));
+
+            assertThrows("UNKNOWN-TYPED-HASH", \n.getTypedHash(), "xxx");
+            TypedHash th = n.getTypedHash("T");
+            assertEq("T", th.getName());
+            assertTrue(th.isUser());
+            assertFalse(th.isBuiltin());
+
+            assertThrows("UNKNOWN-MEMBER", \th.getMember(), "xxx");
+            TypedHashMember mem = th.getMember("i");
+            assertEq("i", mem.getName());
+            hash<T> h();
+            assertEq(0, mem.getValue(h));
+            assertThrows("MEMBER-ERROR", \mem.getValue(), {});
         }
     }
 }

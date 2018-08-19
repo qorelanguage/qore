@@ -46,7 +46,7 @@ static int check_member(QoreObject* obj, const char* mname, const QoreClass* cls
 //! This class provides information about %Qore class normal (non-static) members
 /** @since %Qore 0.9.0
  */
-qclass NormalMember [ns=Qore::Reflection; arg=QoreReflectionMember* m; vparent=AbstractMember];
+qclass NormalMember [ns=Qore::Reflection; arg=QoreReflectionClassMember* m; vparent=AbstractClassMember];
 
 //! Throws an exception; this class cannot be created directly or used in a user class hierarchy
 /** @throw NORMALMEMBER-CONSTRUCTOR-ERROR the NormalMember class cannot be constructed directly or inherited directly by a user-defined class
@@ -91,12 +91,12 @@ auto NormalMember::getValue(object obj) [flags=RET_VALUE_ONLY] {
 m.setValue(obj, val);
     @endcode
 
-    @param obj an object to get the member value from; must be an object of the class implementing the member or a \c MEMBER-ERROR exception is thrown
-    @param the new value of the static member
+    @param obj an object to set the member value on; must be an object of the class implementing the member or a \c MEMBER-ERROR exception is thrown
+    @param the new value of the member
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw MEMBER-ERROR the object was not instantiated from the class implementing this member
-    @throw RUNTIME-TYPE-ERROR value type is not compatible with the assigned static member's type
+    @throw RUNTIME-TYPE-ERROR value type is not compatible with the assigned member's type
 */
 nothing NormalMember::setValue(object obj, auto val) {
     // get read access to program object

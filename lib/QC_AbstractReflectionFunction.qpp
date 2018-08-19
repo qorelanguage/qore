@@ -40,6 +40,7 @@
 #include "qore/intern/QC_CopyMethodVariant.h"
 #include "qore/intern/QC_FunctionVariant.h"
 #include "qore/intern/QC_Class.h"
+#include "qore/intern/QC_Function.h"
 #include "qore/intern/qore_program_private.h"
 
 QoreObject* QoreReflectionFunction::getFunctionObject(ExceptionSink* xsink) const {
@@ -54,7 +55,6 @@ QoreObject* QoreReflectionFunction::getFunctionObject(ExceptionSink* xsink) cons
         ReferenceHolder<QoreReflectionMethod> meth(new QoreReflectionMethod(pgm, m), xsink);
         return get_method_object(meth, xsink);
     }
-
     return new QoreObject(QC_FUNCTION, pgm, new QoreReflectionFunction(pgm, f));
 }
 

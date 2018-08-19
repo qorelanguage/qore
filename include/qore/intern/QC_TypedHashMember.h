@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_NormalMember.h NormalMember class definition */
+/** @file QC_TypedHashMember.h TypedHashMember class definition */
 /*
     Qore Programming Language
 
@@ -28,16 +28,31 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_NORMALMEMBER_H
+#ifndef _QORE_INTERN_QC_TYPEDHASHMEMBER_H
 
-#define _QORE_INTERN_QC_NORMALMEMBER_H
+#define _QORE_INTERN_QC_TYPEDHASHMEMBER_H
 
-#include "qore/intern/QC_AbstractClassMember.h"
+#include "qore/intern/QC_AbstractMember.h"
 
-DLLEXPORT extern qore_classid_t CID_NORMALMEMBER;
-DLLLOCAL extern QoreClass* QC_NORMALMEMBER;
+#include <string>
 
-DLLLOCAL void preinitNormalMemberClass();
-DLLLOCAL QoreClass* initNormalMemberClass(QoreNamespace& ns);
+// forward references
+class QoreMemberInfo;
+
+class QoreReflectionHashDeclMember : public QoreReflectionMember {
+public:
+    const TypedHashDecl* th;
+    std::string name;
+
+    DLLLOCAL QoreReflectionHashDeclMember(QoreProgram* pgm, const TypedHashDecl* th, const char* name, const HashDeclMemberInfo* mem) :
+        QoreReflectionMember(pgm, name, mem), th(th), name(name) {
+    }
+};
+
+DLLEXPORT extern qore_classid_t CID_TYPEDHASHMEMBER;
+DLLLOCAL extern QoreClass* QC_TYPEDHASHMEMBER;
+
+DLLLOCAL void preinitTypedHashMemberClass();
+DLLLOCAL QoreClass* initTypedHashMemberClass(QoreNamespace& ns);
 
 #endif

@@ -219,6 +219,10 @@ public:
         name = n;
     }
 
+    DLLLOCAL const HashDeclMemberMap& getMembers() const {
+        return members;
+    }
+
 protected:
     // references
     mutable QoreReferenceCounter refs;

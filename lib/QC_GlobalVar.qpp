@@ -36,21 +36,21 @@
 #include "qore/intern/QC_Type.h"
 
 QoreReflectionGlobalVar::QoreReflectionGlobalVar(const char* path, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
-    const qore_ns_private* ns;
-    var = qore_root_ns_private::runtimeFindGlobalVar(*getRootNS(), path, ns);
+    const qore_ns_private* pns;
+    var = qore_root_ns_private::runtimeFindGlobalVar(*getRootNS(), path, pns);
     if (!var) {
         xsink->raiseException("UNKNOWN-GLOBAL-VAR", "cannot resolve global variable '%s'", path);
         return;
     }
+    ns = pns->ns;
 }
 
-QoreObject* QoreReflectionGlobalVar::getVarObject(ExceptionSink* xsink) const {
-    return new QoreObject(QC_GLOBALVAR, pgm, new QoreReflectionGlobalVar(pgm, var));
+QoreObject* QoreReflectionGlobalVar::getVarObject() const {
+    return new QoreObject(QC_GLOBALVAR, pgm, const_cast<QoreReflectionGlobalVar*>(this));
 }
 
 //! The abstract base class for %Qore global variables
 /**
-
     @since %Qore 0.9.0
  */
 qclass GlobalVar [ns=Qore::Reflection; arg=QoreReflectionGlobalVar* v];
@@ -80,7 +80,7 @@ GlobalVar::constructor(string path) {
     self->setPrivate(CID_GLOBALVAR, var.release());
 }
 
-//! Returns @ref True if the function passed as an argument is equal to the current object; @ref False if not
+//! Returns @ref True if the global variable passed as an argument is equal to the current object; @ref False if not
 /** @par Example:
     @code{.py}
 bool b = var1.isEqual(var2);
@@ -183,7 +183,7 @@ hash<SourceLocationInfo> GlobalVar::getSourceLocation() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    // the constant ptr must be valid
+    // the global variable ptr must be valid
     return get_source_location(v->var->getParseLocation());
 }
 
@@ -204,8 +204,20 @@ Type GlobalVar::typeObject() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    // the class ptr must be valid
+    // the global variable ptr must be valid
     return new QoreObject(QC_TYPE, v->pgm, new QoreType(v->var->getTypeInfo()));
+}
+
+//! Returns the namespace for the global variable
+/** @par Example:
+    @code{.py}
+Namespace ns = var.getNamespace();
+    @endcode
+
+    @return the namespace for the global variable
+ */
+Namespace GlobalVar::getNamespace() [flags=CONSTANT] {
+    return new QoreObject(QC_NAMESPACE, v->pgm, new QoreReflectionNamespace(v->pgm, v->ns));
 }
 
 //! Returns the value of the global variable
@@ -279,5 +291,5 @@ static GlobalVar GlobalVar::forName(string path) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    return new QoreObject(QC_GLOBALVAR, getProgram(), var.release());
+    return var.release()->getVarObject();
 }

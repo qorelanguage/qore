@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_StaticMember.qpp StaticMember class definition */
+/** @file QC_TypedHashMember.qpp TypedHashMember class definition */
 /*
     Qore Programming Language
 
@@ -32,61 +32,57 @@
 #include "qore/intern/QoreClassIntern.h"
 #include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/QC_Class.h>
-#include <qore/intern/QC_StaticMember.h>
+#include <qore/intern/QC_TypedHashMember.h>
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/Variable.h"
 
-//! This class provides information about %Qore class normal (non-static) members
-/** @since %Qore 0.9.0
+static int check_member(const QoreHashNode* h, const char* mname, const TypedHashDecl* th, ExceptionSink* xsink) {
+    if (h->getHashDecl() != th) {
+        xsink->raiseException("MEMBER-ERROR", "hash was not declared as hashdecl '%s' (referencing member '%s')", th->getName(), mname);
+        return -1;
+    }
+    return 0;
+}
+
+//! This class provides information about %Qore @ref hashdecl "typed hash (hashdecl)" members
+/** There is no setter method in this class due to design issues related to lvalue restrictions
+    with non-object data.
+
+    @since %Qore 0.9.0
  */
-qclass StaticMember [ns=Qore::Reflection; arg=QoreReflectionClassMember* m; vparent=AbstractClassMember];
+qclass TypedHashMember [ns=Qore::Reflection; arg=QoreReflectionHashDeclMember* m; vparent=AbstractMember];
 
 //! Throws an exception; this class cannot be created directly or used in a user class hierarchy
-/** @throw STATICMEMBER-CONSTRUCTOR-ERROR the StaticMember class cannot be constructed directly or inherited directly by a user-defined class
+/** @throw TYPEDHASHMEMBER-CONSTRUCTOR-ERROR the TypedHashMember class cannot be constructed directly or inherited directly by a user-defined class
  */
-StaticMember::constructor() {
-    xsink->raiseException("STATICMEMBER-CONSTRUCTOR-ERROR", "this class cannot be constructed directly or inherited directly by a user-defined class");
+TypedHashMember::constructor() {
+    xsink->raiseException("TYPEDHASHMEMBER-CONSTRUCTOR-ERROR", "this class cannot be constructed directly or inherited directly by a user-defined class");
 }
 
-//! Returns the value of the static member
+//! Returns the value of the member for the given object
 /** @par Example:
     @code{.py}
-auto val = m.getValue();
+auto val = m.getValue(h);
     @endcode
 
-    @return the value of the static member
+    @param h a hash to get the member value from; must have been declared with the @ref hashdecl "typed hash (hashdecl)"'s type declaring the member, or a \c MEMBER-ERROR exception is thrown
+
+    @return the value of the member for the given object; must have been declared with the @ref hashdecl "typed hash (hashdecl)"'s type declaring the member, or a \c MEMBER-ERROR exception is thrown
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw MEMBER-ERROR the hash was not declared with the @ref hashdecl "typed hash (hashdecl)"'s type implementing this member
 */
-auto StaticMember::getValue() [flags=RET_VALUE_ONLY] {
+auto TypedHashMember::getValue(hash<auto> h) [flags=RET_VALUE_ONLY] {
     // get read access to program object
     ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
     if (*xsink) {
         return QoreValue();
     }
 
-    return static_cast<const QoreVarInfo*>(m->mem)->getReferencedValue();
-}
-
-//! Sets the value of the static member
-/** @par Example:
-    @code{.py}
-m.setValue(val);
-    @endcode
-
-    @param the new value of the static member
-
-    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
-    @throw RUNTIME-TYPE-ERROR value type is not compatible with the assigned static member's type
-*/
-nothing StaticMember::setValue(auto val) {
-    // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
-    if (*xsink) {
+    // the typed hash ptr must be valid
+    if (check_member(h, m->name.c_str(), m->th, xsink)) {
         return QoreValue();
     }
 
-    LValueHelper lvh(xsink);
-    const_cast<QoreVarInfo*>(static_cast<const QoreVarInfo*>(m->mem))->getLValue(lvh);
-
-    lvh.assign(val.refSelf(), "<value arugment to StaticMember::setValue()>");
+    return h->getKeyValue(m->name.c_str());
 }

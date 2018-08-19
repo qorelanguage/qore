@@ -30,7 +30,6 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QC_Function.h"
-#include "qore/intern/QC_AbstractReflectionFunction.h"
 #include "qore/intern/QC_FunctionVariant.h"
 #include "qore/intern/QC_AbstractVariant.h"
 #include "qore/intern/QoreNamespaceIntern.h"

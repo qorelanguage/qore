@@ -190,6 +190,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_CopyMethod.qpp \
 	lib/QC_Class.qpp \
 	lib/QC_AbstractMember.qpp \
+	lib/QC_AbstractClassMember.qpp \
 	lib/QC_NormalMember.qpp \
 	lib/QC_StaticMember.qpp \
 	lib/QC_AbstractConstant.qpp \
@@ -198,6 +199,8 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_Namespace.qpp \
 	lib/QC_Constant.qpp \
 	lib/QC_GlobalVar.qpp \
+	lib/QC_TypedHash.qpp \
+	lib/QC_TypedHashMember.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -745,6 +748,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_CopyMethod.h \
 	include/qore/intern/QC_Class.h \
 	include/qore/intern/QC_AbstractMember.h \
+	include/qore/intern/QC_AbstractClassMember.h \
 	include/qore/intern/QC_NormalMember.h \
 	include/qore/intern/QC_StaticMember.h \
 	include/qore/intern/QC_AbstractConstant.h \
@@ -753,6 +757,8 @@ noinst_HEADERS = \
 	include/qore/intern/QC_Namespace.h \
 	include/qore/intern/QC_Constant.h \
 	include/qore/intern/QC_GlobalVar.h \
+	include/qore/intern/QC_TypedHash.h \
+	include/qore/intern/QC_TypedHashMember.h \
 	lib/getopt_long.h \
 	command-line.h
 

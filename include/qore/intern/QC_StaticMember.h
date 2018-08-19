@@ -32,7 +32,7 @@
 
 #define _QORE_INTERN_QC_STATICMEMBER_H
 
-#include "qore/intern/QC_AbstractMember.h"
+#include "qore/intern/QC_AbstractClassMember.h"
 
 DLLEXPORT extern qore_classid_t CID_STATICMEMBER;
 DLLLOCAL extern QoreClass* QC_STATICMEMBER;

@@ -81,6 +81,7 @@
 #include "qore/intern/QC_CopyMethod.h"
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/QC_AbstractMember.h"
+#include "qore/intern/QC_AbstractClassMember.h"
 #include "qore/intern/QC_NormalMember.h"
 #include "qore/intern/QC_StaticMember.h"
 #include "qore/intern/QC_AbstractConstant.h"
@@ -89,6 +90,8 @@
 #include "qore/intern/QC_Namespace.h"
 #include "qore/intern/QC_Constant.h"
 #include "qore/intern/QC_GlobalVar.h"
+#include "qore/intern/QC_TypedHash.h"
+#include "qore/intern/QC_TypedHashMember.h"
 
 // functions
 #include "qore/intern/ql_time.h"
@@ -916,6 +919,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     preinitCopyMethodClass();
     preinitClassClass();
     preinitAbstractMemberClass();
+    preinitAbstractClassMemberClass();
     preinitNormalMemberClass();
     preinitStaticMemberClass();
     preinitAbstractConstantClass();
@@ -924,6 +928,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     preinitNamespaceClass();
     preinitConstantClass();
     preinitGlobalVarClass();
+    preinitTypedHashClass();
+    preinitTypedHashMemberClass();
 
     // now add hashdecls
     hashdeclStatInfo = init_hashdecl_StatInfo(qns);
@@ -1037,6 +1043,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     reflection->addSystemClass(initCopyMethodClass(*reflection));
     reflection->addSystemClass(initClassClass(*reflection));
     reflection->addSystemClass(initAbstractMemberClass(*reflection));
+    reflection->addSystemClass(initAbstractClassMemberClass(*reflection));
     reflection->addSystemClass(initNormalMemberClass(*reflection));
     reflection->addSystemClass(initStaticMemberClass(*reflection));
     reflection->addSystemClass(initAbstractConstantClass(*reflection));
@@ -1045,6 +1052,8 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     reflection->addSystemClass(initNamespaceClass(*reflection));
     reflection->addSystemClass(initConstantClass(*reflection));
     reflection->addSystemClass(initGlobalVarClass(*reflection));
+    reflection->addSystemClass(initTypedHashClass(*reflection));
+    reflection->addSystemClass(initTypedHashMemberClass(*reflection));
 
     qore_ns_private::addNamespace(qns, reflection);
 

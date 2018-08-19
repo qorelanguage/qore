@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_NormalMember.h NormalMember class definition */
+/** @file QC_AbstractClassMember.h AbstractClassMember class definition */
 /*
     Qore Programming Language
 
@@ -7,7 +7,7 @@
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
-    to deal in the Software wiathout restriction, including without limitation
+    to deal in the Software without restriction, including without limitation
     the rights to use, copy, modify, merge, publish, distribute, sublicense,
     and/or sell copies of the Software, and to permit persons to whom the
     Software is furnished to do so, subject to the following conditions:
@@ -28,16 +28,35 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_NORMALMEMBER_H
+#ifndef _QORE_INTERN_QC_ABSTRACTCLASSMEMBER_H
 
-#define _QORE_INTERN_QC_NORMALMEMBER_H
+#define _QORE_INTERN_QC_ABSTRACTCLASSMEMBER_H
 
-#include "qore/intern/QC_AbstractClassMember.h"
+#include "qore/intern/AbstractReflectionObject.h"
 
-DLLEXPORT extern qore_classid_t CID_NORMALMEMBER;
-DLLLOCAL extern QoreClass* QC_NORMALMEMBER;
+#include <string>
 
-DLLLOCAL void preinitNormalMemberClass();
-DLLLOCAL QoreClass* initNormalMemberClass(QoreNamespace& ns);
+// forward references
+class QoreMemberInfo;
+
+class QoreReflectionClassMember : public QoreReflectionMember {
+public:
+    const QoreClass* cls;
+    bool is_static;
+
+    DLLLOCAL QoreReflectionClassMember(QoreProgram* pgm, const QoreClass* cls, const char* name, const QoreMemberInfoBaseAccess* mem, bool is_static) :
+        QoreReflectionMember(pgm, name, mem), cls(cls), is_static(is_static) {
+    }
+
+    DLLLOCAL ClassAccess getAccess() const {
+        return static_cast<const QoreMemberInfoBaseAccess*>(mem)->access;
+    }
+};
+
+DLLEXPORT extern qore_classid_t CID_ABSTRACTCLASSMEMBER;
+DLLLOCAL extern QoreClass* QC_ABSTRACTCLASSMEMBER;
+
+DLLLOCAL void preinitAbstractClassMemberClass();
+DLLLOCAL QoreClass* initAbstractClassMemberClass(QoreNamespace& ns);
 
 #endif

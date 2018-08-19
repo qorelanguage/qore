@@ -42,6 +42,131 @@
 #include "qore/intern/ModuleInfo.h"
 extern QoreModuleManager QMM;
 
+/** @defgroup functional_domain_constants Functional Domain Constants
+    Constants providing values for functional domains; each constant is a unique element of a bitfield
+
+    @since %Qore 0.9
+*/
+//@{
+//! provides process control functionality (can affect or stop the current process)
+/** @see
+    - @ref Qore::PO_NO_PROCESS_CONTROL "PO_NO_PROCESS_CONTROL"
+    - @ref no-process-control
+*/
+const DOM_PROCESS_CONTROL = QDOM_PROCESS;
+
+//! provides network functionality
+/** @see
+    - @ref Qore::PO_NO_NETWORK "PO_NO_NETWORK"
+    - @ref no-network
+*/
+const DOM_NETWORK = QDOM_NETWORK;
+
+//! provides external process control functionality (can affect) start) or stop external processes)
+/** @see
+    - @ref Qore::PO_NO_EXTERNAL_PROCESS "PO_NO_EXTERNAL_PROCESS"
+    - @ref no-external-process
+*/
+const DOM_EXTERNAL_PROCESS = QDOM_EXTERNAL_PROCESS;
+
+//! provides access to the filesystem
+/** @see
+    - @ref Qore::PO_NO_FILESYSTEM "PO_NO_FILESYSTEM"
+    - @ref no-filesystem
+*/
+const DOM_FILESYSTEM = QDOM_FILESYSTEM;
+
+//! provides thread control functionality
+/** @see
+    - @ref Qore::PO_NO_THREAD_CLASSES "PO_NO_THREAD_CLASSES"
+    - @ref no-thread-classes
+*/
+const DOM_THREAD_CLASS = QDOM_THREAD_CLASS;
+
+//! provides the ability to check or manipulate threads (including starting new threads)
+/** @see
+    - @ref Qore::PO_NO_THREAD_CONTROL "PO_NO_THREAD_CONTROL"
+    - @ref no-thread-control
+*/
+const DOM_THREAD_CONTROL = QDOM_THREAD_CONTROL;
+
+//! provides access to databases
+/** @see
+    - @ref Qore::PO_NO_DATABASE "PO_NO_DATABASE"
+    - @ref no-database
+*/
+const DOM_DATABASE = QDOM_DATABASE;
+
+//! provides GUI functionality
+/** @see
+    - @ref Qore::PO_NO_GUI "PO_NO_GUI"
+    - @ref no-gui
+*/
+const DOM_GUI = QDOM_GUI;
+
+//! provides terminal I/O functionality
+/** @see
+    - @ref Qore::PO_NO_TERMINAL_IO "PO_NO_TERMINAL_IO"
+    - @ref no-terminal-io
+*/
+const DOM_TERMINAL_IO = QDOM_TERMINAL_IO;
+
+//! provides access to external information (ex: hostname, pid, process uid, etc)
+/** @see
+    - @ref Qore::PO_NO_EXTERNAL_INFO "PO_NO_EXTERNAL_INFO"
+    - @ref no-external-info
+*/
+const DOM_EXTERNAL_INFO = QDOM_EXTERNAL_INFO;
+
+//! provides access to information regarding threading (tid, active threads, etc)
+/** @see
+    - @ref Qore::PO_NO_THREAD_INFO "PO_NO_THREAD_INFO"
+    - @ref no-thread-info
+*/
+const DOM_THREAD_INFO = QDOM_THREAD_INFO;
+
+//! provides access to functionality that changes locale information
+/** @see
+    - @ref Qore::PO_NO_LOCALE_CONTROL "PO_NO_LOCALE_CONTROL"
+    - @ref no-locale-control
+*/
+const DOM_LOCALE_CONTROL = QDOM_LOCALE_CONTROL;
+
+//! provides access to external modules
+/** @see
+    - @ref Qore::PO_NO_MODULES "PO_NO_MODULES"
+    - @ref no-modules
+*/
+const DOM_MODULE = QDOM_MODULES;
+
+//! provides dynamic parsing functionality
+/** @see @ref Qore::PO_NO_EMBEDDED_LOGIC "PO_NO_EMBEDDED_LOGIC"
+*/
+const DOM_EMBEDDED_LOGIC = QDOM_EMBEDDED_LOGIC;
+
+//! provides functionality related to code / dependency injection
+/** @see @ref Qore::PO_ALLOW_INJECTION "PO_ALLOW_INJECTION"
+*/
+const DOM_INJECTION = QDOM_INJECTION;
+
+//! provides unchecked access to system functionality that could bypass Qore's sandboxing controls
+/** @see
+    - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS"
+    - @ref no-uncontrolled-apis
+*/
+const DOM_UNCONTROLLED_API = QDOM_UNCONTROLLED_API;
+
+//! provides debugging functionality
+/** @see @ref Qore::PO_ALLOW_DEBUGGER "PO_ALLOW_DEBUGGER"
+*/
+const DOM_DEBUGGER = QDOM_DEBUGGER;
+
+//! provides reflection functionality
+/** @see @ref Qore::PO_NO_REFLECTION "PO_NO_REFLECTION"
+*/
+const DOM_REFLECTION = QDOM_REFLECTION;
+//@}
+
 /** @defgroup parse_options Parse Option Constants
     These are the possible values that can be or'ed together to set @ref Qore::Program "Program" parse options
 */
@@ -63,14 +188,14 @@ const ParseOptionStringMap = qore(pomaps.getStringToCodeMap());
 //! Maps from functional domain bitfield code values (as string keys) to functional domain names
 /** @see DomainStringMap for the reverse mapping
 
-    @since %Qore 0.9.0
+    @since %Qore 0.9
  */
 const DomainCodeMap = qore(pomaps.getDomainToStringMap());
 
 //! Maps from functional domain strings to functional domain bitfield integer codes
 /** @see DomainCodeMap for the reverse mapping
 
-    @since %Qore 0.9.0
+    @since %Qore 0.9
  */
 const DomainStringMap = qore(pomaps.getStringToDomainMap());
 
@@ -530,6 +655,12 @@ const PO_ALLOW_DEBUGGER = PO_ALLOW_DEBUGGER;
     @since %Qore 0.9
  */
 const PO_ALLOW_STATEMENT_NO_EFFECT = PO_ALLOW_STATEMENT_NO_EFFECT;
+
+//! Disallows access to reflection
+/**
+    @since %Qore 0.9
+*/
+const PO_NO_REFLECTION = PO_NO_REFLECTION;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -1225,7 +1356,7 @@ list<string> l = pgm.getParseOptionStringList();
 
     @return a list of parse option strings for the program object
 
-    @since %Qore 0.9.0
+    @since %Qore 0.9
 */
 list<string> Program::getParseOptionStringList() [flags=CONSTANT] {
     return parse_option_bitfield_to_string_list(p->getParseOptions64(), xsink);
