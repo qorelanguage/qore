@@ -31,11 +31,11 @@
 #include "qore/Qore.h"
 #include "qore/intern/QC_TypedHash.h"
 #include "qore/intern/QC_TypedHashMember.h"
-#include "qore/intern/QoreNamespaceIntern.h"
-#include "qore/intern/qore_program_private.h"
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/QC_Type.h"
 #include "qore/intern/QC_Namespace.h"
+#include "qore/intern/typed_hash_decl_private.h"
+#include "qore/intern/QoreNamespaceIntern.h"
 
 QoreReflectionTypedHash::QoreReflectionTypedHash(const char* path, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
     const qore_ns_private* pns;
