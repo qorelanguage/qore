@@ -1167,6 +1167,16 @@ QoreValueList* qore_program_private::runtimeFindCallVariants(const char* name, E
    return qore_root_ns_private::get(*RootNS)->runtimeFindCallVariants(name, xsink);
 }
 
+/*
+    When a debug handler is invoked then current stack frame/node is not visible in get_thread_call_stack()
+    as a statement is injected (not real function call). The statment information are passed as handler parameters
+    so the higher level library can assemble backtrace.
+    To do it correctly v C++ code requires manipulating call stack (CallStackHelper+CodeContextHelperBase) to provide
+    fake entry and also ProgramThreadCountContextHelper to provide new frame corresponding to new stack entry for
+    get_local_vars(frameId) function.
+    These manipulations are very tricky so let's leave stack unchanged and assemble stack in higher-level
+    server side debug library.
+*/
 void ThreadLocalProgramData::dbgAttach(ExceptionSink* xsink) {
    if (runState == DBG_RS_DETACH) {
       DebugRunStateEnum rs = runState;

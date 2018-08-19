@@ -83,6 +83,7 @@ public namespace DebugProgramControl {
             #! source file search path
             string sourceSearchPath = "";
 
+            #! number of frames related to DebugProgramControl library when handleInterrupt() is invoked
             const frameOffset = 2;
         }
 
@@ -844,6 +845,38 @@ public namespace DebugProgramControl {
             return binfo;
         }
 
+        # stackInfo keys: file, [source], [offset], line
+        private *hash getSourceCodeFromFileOrLabel(ProgramControl pgm, hash stackInfo, int linesBefore, int linesAfter) {
+            string type = 'file';
+            int offset = 0;
+            hash h;
+            if (exists stackInfo.source) {
+                # label used
+                if (isSupportedSourceCodeForLabel()) {
+                    # use label
+                    type = 'label';
+                    h{type} = stackInfo.file;
+                } else {
+                    # fallback to file
+                    offset = stackInfo.offset;
+                    h{type} = stackInfo.source;
+                }
+            } else {
+                h{type} = stackInfo.file;
+            }
+            int n = stackInfo.line + offset - linesBefore;
+            if (n < 1) {
+                n = 1;
+            }
+            h.line = n;
+            n = stackInfo.line + offset + linesAfter;
+            if (n < h.line) {
+                h.line = n;
+            }
+            h.count = n - h.line + 1;
+            return getSourceCode(pgm, type, h).('code', 'startline', 'origin') + ('currentline': stackInfo.line + offset);
+        }
+
         private *hash getSourceCode(ProgramControl pgmb, string type, hash rd) {
             hash res;
             if (!exists (type=='file' ? pgmb.getSourceFileNames() : pgmb.getSourceLabels() ){rd{type}}) {
@@ -922,7 +955,9 @@ public namespace DebugProgramControl {
                 while (stack.size() > ctx.stackSize - frameOffset) {
                     shift stack;
                 }
-                # FIXME: workaround for bug 2468
+                # when debug injection stuff is invoked in C++ then it is not real function call which would
+                # create new stack entry (and frame). Data related to statement being debugged are passed
+                # as handler parameters so we need modify the stack entry (see issue #2468)
                 stack[0].function = sprintf("interrupt: %s", ctx.intrInfo.func);
                 if (ctx.intrInfo.statementid) {
                     stack[0].file = ctx.intrInfo.file;
@@ -935,6 +970,10 @@ public namespace DebugProgramControl {
                         remove stack[0].source;
                         remove stack[0].offset;
                     }
+                }
+                stack[0].programid = ctx.intrInfo.pgmid;
+                if (ctx.intrInfo.statementid) {
+                    stack[0].statementid = ctx.intrInfo.statementid;
                 }
             }
             return stack;
@@ -976,6 +1015,15 @@ public namespace DebugProgramControl {
                     ctx.intrInfo.source = location.source;
                 }
                 ctx.intrInfo.offset = location.offset;
+                try {
+                    ctx.intrInfo.linecode = getSourceCodeFromFileOrLabel(pgm, (
+                        'file': location.file,
+                        'line': location.start_line,
+                        'source': location.source != "" ? location.source : NOTHING,
+                        'offset': location.offset,
+                    ), 0, 0).code;
+                } catch (hash<ExceptionInfo> ex) {
+                }
             }
             if (exists except) {
                 # we need make real copy as the worker thread might keep reference slightly longer and
@@ -1008,6 +1056,7 @@ public namespace DebugProgramControl {
                 ctxThread{tid} = ctx;
             }
 
+            # debugger client cannot ask for stack when procession message as it dead lock thread handler so we add it to original message
             ctx.intrInfo.stack = adjustStack(get_thread_call_stack(), ctx);
 
 %ifdef DEBUG_ADD_LOCAL_VARS
@@ -1175,34 +1224,7 @@ public namespace DebugProgramControl {
                             list stack = adjustStack(get_thread_call_stack(), ctx);
                             int frame = rd.frameid ?? ctxCT.frameId;
                             if (frame < stack.size()) {
-                                string type = 'file';
-                                int offset = 0;
-                                hash h;
-                                if (exists stack[frame].source) {
-                                    # label used
-                                    if (isSupportedSourceCodeForLabel()) {
-                                        # use label
-                                        type = 'label';
-                                        h{type} = stack[frame].file;
-                                    } else {
-                                        # fallback to file
-                                        offset = stack[frame].offset;
-                                        h{type} = stack[frame].source;
-                                    }
-                                } else {
-                                    h{type} = stack[frame].file;
-                                }
-                                int n = stack[frame].line + offset - (rd.linesbefore ?? 3);
-                                if (n < 1) {
-                                    n = 1;
-                                }
-                                h.line = n;
-                                n = stack[frame].line + offset + (rd.linesafter ?? 3);
-                                if (n < h.line) {
-                                    h.line = n;
-                                }
-                                h.count = n - h.line + 1;
-                                result = getSourceCode(pgm, type, h).('code', 'startline', 'origin') + ('currentline': stack[frame].line + offset);
+                                result = getSourceCodeFromFileOrLabel(pgm, stack[frame], rd.linesbefore ?? 3, rd.linesafter ?? 3);
                             }
                             break;
                         }
@@ -1267,24 +1289,42 @@ public namespace DebugProgramControl {
         }
 
         onStep(ProgramControl pgm, int blockStatementId, *int statementId, *int breakpointId, reference flow, reference rs, reference runToStatementId) {
-            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, \runToStatementId, statementId ?? blockStatementId, "flow", \flow, breakpointId);
+            statementId = statementId ?? blockStatementId;
+            /*
+                when a statement is parsed in non-pgm context then it is not registered in pgm and no statementId can be resolved
+                Typical case is bootstrap when program is starting. If we need debug even this code then we need add relation statment->program or
+                reassign statement index from original program which might be impossible. The former case seems as memory wasting as 99.9% statement are
+                assigned to program being debugged and skipping bootstrap is demanded feature.
+            */
+            if (statementId) {
+                handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, \runToStatementId, statementId, "flow", \flow, breakpointId);
+            }
         }
 
         # backward compatability only when executed with <=0.8.13.2
         onStep(ProgramControl pgm, int blockStatementId, *int statementId, reference flow, reference rs, reference runToStatementId) {
-            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, \runToStatementId, statementId ?? blockStatementId, "flow", \flow);
+            statementId = statementId ?? blockStatementId;
+            if (statementId) {
+                handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, \runToStatementId, statementId, "flow", \flow);
+            }
         }
 
         onFunctionEnter(ProgramControl pgm, int statementId, reference rs, reference runToStatementId) {
-            handleInterrupt('funcEnter', pgm, \rs, \runToStatementId, statementId);
+            if (statementId) {
+                handleInterrupt('funcEnter', pgm, \rs, \runToStatementId, statementId);
+            }
         }
 
         onFunctionExit(ProgramControl pgm, int statementId, reference result, reference rs, reference runToStatementId) {
-            handleInterrupt('funcExit', pgm, \rs, \runToStatementId, statementId, "result", \result);
+            if (statementId) {
+                handleInterrupt('funcExit', pgm, \rs, \runToStatementId, statementId, "result", \result);
+            }
         }
 
         onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference rs, reference runToStatementId) {
-            handleInterrupt('exception', pgm, \rs, \runToStatementId, statementId, "dismiss", \dismiss, NOTHING, ex);
+            if (statementId) {
+                handleInterrupt('exception', pgm, \rs, \runToStatementId, statementId, "dismiss", \dismiss, NOTHING, ex);
+            }
         }
 
         onExit(ProgramControl pgm, int statementId, reference result, reference rs, reference runToStatementId) {

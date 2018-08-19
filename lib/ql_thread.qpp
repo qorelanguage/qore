@@ -157,6 +157,12 @@ hashdecl CallStackInfo {
 
     //! a type string; either \c "user", \c "builtin", \c "new-thread" or \c "rethrow" (for rethrown exceptions)
     string type;
+
+    //! related program id (since 0.8.13.7)
+    *int programid;
+
+    //! related statement id (since 0.8.13.7)
+    *int statementid;
 }
 
 /** @defgroup threading_functions Threading Functions

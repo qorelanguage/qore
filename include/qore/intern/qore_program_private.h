@@ -869,6 +869,11 @@ public:
 
       QoreParseLocationHelper qplh(sname, src, offset);
 
+      /*
+         beginParsing() called in QoreParseLocationHelper constructor but unless we call here twice
+         then endParsing() coredump with "Assertion `td->plStack' failed"
+         Seems endParsing() should do rather "if (!td->plStack) return".
+      */
       beginParsing(sname, nullptr, src, offset);
 
       // no need to save buffer, because it's deleted automatically in lexer
@@ -989,6 +994,11 @@ public:
 
          QoreParseLocationHelper qplh(sname, nullptr, 0);
 
+         /*
+            beginParsing() called in QoreParseLocationHelper constructor but unless we call here twice
+            then endParsing() coredump with "Assertion `td->plStack' failed"
+            Seems endParsing() should do rather "if (!td->plStack) return".
+         */
          beginParsing(sname);
 
          //printd(5, "QoreProgram::parse(): about to call yyparse()\n");
