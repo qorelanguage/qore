@@ -52,6 +52,7 @@
 #include <qore/intern/QC_Type.h>
 #include <qore/intern/QC_Namespace.h>
 #include "qore/intern/qore_program_private.h"
+#include "qore/intern/QoreHashNodeIntern.h"
 
 QoreReflectionClass::QoreReflectionClass(const char* name, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
     cls = qore_program_private::runtimeFindClass(*pgm, name, xsink);
