@@ -408,13 +408,32 @@ class ReflectionTest inherits QUnit::Test {
             assertEq("T", th.getName());
             assertTrue(th.isUser());
             assertFalse(th.isBuiltin());
+            TypedHash th2 = n.getTypedHashes()[0];
+            assertTrue(th.isEqual(th2));
 
             assertThrows("UNKNOWN-MEMBER", \th.getMember(), "xxx");
             TypedHashMember mem = th.getMember("i");
             assertEq("i", mem.getName());
+            assertTrue(mem.isUser());
+            assertFalse(mem.isBuiltin());
+            assertTrue(mem.typeObject().isEqual(IntType));
             hash<T> h();
             assertEq(0, mem.getValue(h));
             assertThrows("MEMBER-ERROR", \mem.getValue(), {});
+            list<TypedHashMember> tml = th.getMembers();
+            assertEq(1, tml.size());
+            assertEq("list<object<TypedHashMember>>", tml.fullType());
+            TypedHashMember mem2 = tml[0];
+            assertTrue(mem.isEqual(mem2));
+
+            th = TypedHash::forName("StatInfo");
+            assertFalse(th.isEqual(th2));
+            assertFalse(th.isUser());
+            assertTrue(th.isBuiltin());
+            mem = th.getMember("size");
+            assertFalse(mem.isUser());
+            assertTrue(mem.isBuiltin());
+            assertFalse(mem.isEqual(mem2));
         }
     }
 }

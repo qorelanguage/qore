@@ -59,6 +59,44 @@ TypedHashMember::constructor() {
     xsink->raiseException("TYPEDHASHMEMBER-CONSTRUCTOR-ERROR", "this class cannot be constructed directly or inherited directly by a user-defined class");
 }
 
+//! returns @ref True if the @ref hashdecl "typed hash (hashdecl)" defining the member is a builtin @ref hashdecl "typed hash (hashdecl)"
+/** @par Example:
+    @code{.py}
+bool b = m.isBuiltin();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the @ref hashdecl "typed hash (hashdecl)" has been destroyed
+*/
+bool TypedHashMember::isBuiltin() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the typed hash ptr must be valid
+    return m->th->isSystem();
+}
+
+//! returns @ref True if the @ref hashdecl "typed hash (hashdecl)" defining the member is a user @ref hashdecl "typed hash (hashdecl)"
+/** @par Example:
+    @code{.py}
+bool b = m.isUser();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the cl@ref hashdecl "typed hash (hashdecl)"ass has been destroyed
+*/
+bool TypedHashMember::isUser() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the typed hash ptr must be valid
+    return !m->th->isSystem();
+}
+
 //! Returns the value of the member for the given object
 /** @par Example:
     @code{.py}
