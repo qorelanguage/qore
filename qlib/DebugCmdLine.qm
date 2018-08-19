@@ -1021,7 +1021,7 @@ public namespace DebugCmdLine {
                                     data.tid = dcl.checkThreadId();
                                     *list tl = dcl.doCommand(data, False).result;
                                     if (tl)
-                                        printfImpl("local vars in frame%s\n", (foldl $1 + ", " + $2, tl));
+                                        printfImpl("local vars in frame: %s\n", (foldl $1 + ", " + $2, tl));
                                     else
                                         printfImpl("no local vars in frame\n");
                                 },
@@ -1161,7 +1161,7 @@ public namespace DebugCmdLine {
                                 data.linesbefore = int(args[0]);
                                 data.linesafter = data.linesbefore;
                             }
-                            dcl.printSource(dcl.doCommand(data, False).result);
+                            dcl.printfImpl("%s", dcl.formatSource(dcl.doCommand(data, False).result));
                         },
                     ),
                     'go': (
@@ -1292,6 +1292,12 @@ public namespace DebugCmdLine {
                 str += loc + " ";
             str += lh.type;
             str += ")";
+            if (lh.programid) {
+                str += sprintf(" pgm:%d", lh.programid);
+            }
+            if (lh.statementid) {
+                str += sprintf(" stmtid:%d", lh.statementid);
+            }
             return str;
         }
 
@@ -1302,7 +1308,8 @@ public namespace DebugCmdLine {
             }
         }
 
-        public printSource(*hash src) {
+        # src keys: code, [startLine], [currentLine]
+        public *string formatSource(*hash src) {
             if (exists src.code) {
                 if (src.startline > 0) {
                     # add line numbers
@@ -1315,9 +1322,10 @@ public namespace DebugCmdLine {
                         }
                         s = sprintf(fmt, src.startline + $#, mark, s);
                     }
-                    src.code = l.join("\n");
+                    return l.join("\n");
+                } else {
+                    return src.code;
                 }
-                printfImpl("%s", src.code);
             }
         }
         public processGetSource(string type, list path, list args) {
@@ -1333,7 +1341,7 @@ public namespace DebugCmdLine {
             if (src.checksum) {
                 printfImpl("%s: %s", src.checksum.algorithm, src.checksum.cs);
             }
-            printSource(src);
+            printfImpl("%s", formatSource(src));
         }
 
         static public validateInt(DebugCommandLine dcl, softlist path, softlist val) {
@@ -1837,10 +1845,17 @@ public namespace DebugCmdLine {
                                 setContextValue('threadId', data.tid);
                                 outs += ", [thread ctx set]";
                             }
+                            if (exists data.linecode) {
+                                outs += "\n";
+                                outs += formatSource((
+                                    'code': data.linecode,
+                                    'startline': data.line,
+                                    'currentline': data.line,
+                                ));
+                            }
                         }
                         break;
                     }
-                    outs += "\n";
                     break;
 
                 case 'error':

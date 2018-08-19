@@ -107,6 +107,10 @@
         - interrupt notification provides call stack info
         - \c "Run to statement" implementation
         - <a href="../../modules/DebugHandler/html/index.html">DebugHandler</a> reimplemented to support multiple websocket handlers
+        - program is not interrupted at bootstrap code
+        - command line utils display source line code when interrupted
+      - new features:
+        - @ref Qore::CallStackInfo "CallStackInfo" new memebers \c programid and \c statementid
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
     - fixed a bug where rvalue references with complex subtypes could get modified during an assignment

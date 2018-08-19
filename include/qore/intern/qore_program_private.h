@@ -911,6 +911,11 @@ public:
 
         QoreParseLocationHelper qplh(sname, src, offset);
 
+        /*
+           beginParsing() called in QoreParseLocationHelper constructor but unless we call here twice
+           then endParsing() coredump with "Assertion `td->plStack' failed"
+           Seems endParsing() should do rather "if (!td->plStack) return".
+        */
         beginParsing(sname, nullptr, src, offset);
 
         if (!parsing_in_progress) {
@@ -1058,7 +1063,12 @@ public:
 
             QoreParseLocationHelper qplh(sname, nullptr, 0);
 
-            beginParsing(sname);
+            /*
+                beginParsing() called in QoreParseLocationHelper constructor but unless we call here twice
+                then endParsing() coredump with "Assertion `td->plStack' failed"
+                Seems endParsing() should do rather "if (!td->plStack) return".
+            */
+			beginParsing(sname);
 
             if (!parsing_in_progress) {
                 parsing_in_progress = true;
