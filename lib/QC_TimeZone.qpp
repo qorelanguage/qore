@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/QC_TimeZone.h>
+#include "qore/intern/QC_TimeZone.h"
 
 //! The TimeZone class provides access to time zone functionality
 /** TimeZone objects based on zoneinfo region files (on UNIX) or registry information (on Windows) can have daylight savings time information; those based on UTC offsets have none.
@@ -55,7 +55,7 @@ TimeZone tz("Europe/Prague");
 TimeZone::constructor(string region) {
    bool is_path = (!region->empty() && region->getBuffer()[0] == '.') || q_absolute_path(region->getBuffer());
    if (is_path && runtime_check_parse_option(PO_NO_FILESYSTEM))
-      xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot cretae a TimeZone object from absolute path '%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region->getBuffer());
+      xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot create a TimeZone object from absolute path '%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region->getBuffer());
    const AbstractQoreZoneInfo *zone = is_path
       ? QTZM.findLoadRegionFromPath(region->getBuffer(), xsink)
       : QTZM.findLoadRegion(region->getBuffer(), xsink);

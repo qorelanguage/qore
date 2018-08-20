@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 
 #ifndef _QORE_IMPLICIT_ELEMENT_NODE_H
 
-#define _QORE_IMPLICIT_ELEMENT_NODE_H 
+#define _QORE_IMPLICIT_ELEMENT_NODE_H
 
 class QoreImplicitElementNode : public ParseNode {
 private:
@@ -50,7 +50,7 @@ private:
    }
 
 public:
-   DLLLOCAL QoreImplicitElementNode() : ParseNode(NT_IMPLICIT_ELEMENT) {
+   DLLLOCAL QoreImplicitElementNode(const QoreProgramLocation& loc) : ParseNode(loc, NT_IMPLICIT_ELEMENT) {
    }
 
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
@@ -59,7 +59,7 @@ public:
 
    DLLLOCAL static const char *getStaticTypeName() {
       return "implicit element reference";
-   }      
+   }
 };
 
 #endif

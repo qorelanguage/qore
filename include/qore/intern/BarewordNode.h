@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,6 @@
 
 class BarewordNode : public ParseNoEvalNode {
 protected:
-   QoreProgramLocation loc;
    // if true it means the node was given in parentheses
    bool finalized;
 
@@ -49,7 +48,8 @@ public:
    char *str;
 
    // object takes over ownership of str
-   DLLLOCAL BarewordNode(char *c_str, int sline, int eline);
+   DLLLOCAL BarewordNode(const QoreProgramLocation& loc, char *c_str);
+
    DLLLOCAL virtual ~BarewordNode();
 
    // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -57,16 +57,19 @@ public:
    // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
    // returns -1 for exception raised, 0 = OK
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+
    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
 
    // returns the data type
    DLLLOCAL virtual qore_type_t getType() const;
+
    // returns the type name as a c string
    DLLLOCAL virtual const char *getTypeName() const;
 
    // takes the string and returns a QoreStringNode, gives the memory to the new QoreStringNode
    DLLLOCAL QoreStringNode *makeQoreStringNode();
+
    // returns the string, caller now owns the memory
    DLLLOCAL char *takeString();
 

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,12 +29,12 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/ExpressionStatement.h>
+#include "qore/intern/ExpressionStatement.h"
 
-ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQoreNode *v) : AbstractStatement(start_line, end_line), exp(v) {
+ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQoreNode* v) : AbstractStatement(start_line, end_line), exp(v) {
    // if it is a global variable declaration, then do not register
    if (exp->getType() == NT_VARREF) {
-      VarRefNode *vr = reinterpret_cast<VarRefNode *>(exp);
+      VarRefNode *vr = reinterpret_cast<VarRefNode*>(exp);
       // used by QoreProgram to detect invalid top-level statements
       is_declaration = !vr->has_effect();
       // used in parsing to eliminate noops from the parse tree
@@ -42,10 +42,10 @@ ExpressionStatement::ExpressionStatement(int start_line, int end_line, AbstractQ
       return;
    }
 
-   QoreListNode *l = exp->getType() == NT_LIST ? reinterpret_cast<QoreListNode *>(exp) : 0;
+   QoreParseListNode *l = exp->getType() == NT_PARSE_LIST ? reinterpret_cast<QoreParseListNode*>(exp) : nullptr;
    if (l && l->isVariableList()) {
       is_declaration = true;
-      is_parse_declaration = reinterpret_cast<VarRefNode *>(l->retrieve_entry(0))->getType() == VT_GLOBAL ? true : false;
+      is_parse_declaration = reinterpret_cast<VarRefNode*>(l->get(0))->getType() == VT_GLOBAL ? true : false;
       return;
    }
 
@@ -60,12 +60,12 @@ ExpressionStatement::~ExpressionStatement() {
       exp->deref(0);
 }
 
-int ExpressionStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
+int ExpressionStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
    exp->bigIntEval(xsink);
    return 0;
 }
 
-int ExpressionStatement::parseInitImpl(LocalVar *oflag, int pflag) {
+int ExpressionStatement::parseInitImpl(LocalVar* oflag, int pflag) {
    //printd(5, "ExpressionStatement::parseInitImpl() exp=%p (%s)\n", exp, exp->getTypeName());
    int lvids = 0;
    if (exp) {

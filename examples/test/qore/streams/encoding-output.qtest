@@ -1,0 +1,61 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class EncodingConversionOutputStreamTest
+
+public class EncodingConversionOutputStreamTest inherits QUnit::Test {
+
+    constructor() : Test("EncodingConversionOutputStreamTest", "1.0") {
+        addTestCase("empty", \empty());
+        addTestCase("close", \close());
+        addTestCase("write", \write());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    empty() {
+        assertEq(binary(), convert(binary(), "UTF-8", "ISO8859-2", 100000));
+    }
+
+    close() {
+        BinaryOutputStream bos();
+        EncodingConversionOutputStream tos(bos, "UTF-8", "ISO8859-2");
+        tos.close();
+        assertThrows("OUTPUT-STREAM-CLOSED-ERROR", sub() { tos.close(); });
+        assertThrows("OUTPUT-STREAM-CLOSED-ERROR", sub() { tos.write(<0203>); });
+    }
+
+    write() {
+        binary utf8 = File::readBinaryFile(get_script_dir() + "/../../data/lorem");
+        binary utf16le = File::readBinaryFile(get_script_dir() + "/../../data/lorem.utf16le");
+        assertEq(utf16le, convert(utf8, "UTF-8", "UTF-16LE", 100000));
+        assertEq(utf16le, convert(utf8, "UTF-8", "UTF-16LE", 1));
+        assertEq(utf8, convert(utf16le, "UTF-16LE", "UTF-8", 100000));
+        assertEq(utf8, convert(utf16le, "UTF-16LE", "UTF-8", 1));
+        assertEq(utf8, convert(utf8, "UTF-8", "UTF-8", 100000));
+    }
+
+    private binary convert(binary src, string srcEnc, string dstEnc, int writeSize) {
+        BinaryOutputStream bos();
+        EncodingConversionOutputStream tos(bos, srcEnc, dstEnc);
+        int o = 0;
+        while (o < src.size()) {
+            int w = src.size() - o;
+            if (w > writeSize) {
+                w = writeSize;
+            }
+            tos.write(src.substr(o, w));
+            o += w;
+        }
+        tos.close();
+        return bos.getData();
+    }
+}

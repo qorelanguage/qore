@@ -23,10 +23,10 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.12
+%requires qore >= 0.8.13
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.2
+%requires SqlUtil >= 1.4.1
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.1.2";
+    version = "1.2.1";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -60,7 +60,7 @@ module PgsqlSqlUtil {
 
     All the public symbols in the module are defined in the PgsqlSqlUtil namespace
 
-    @note This module requires the <a href="http://qore.org/qore-modules/15-pgsql-module">pgsql</a> binary module for communication with PostgreSQL databases
+    @note This module requires the <a href="https://github.com/qorelanguage/module-pgsql">pgsql</a> binary module for communication with PostgreSQL databases
 
     @section pgsql_schema_management Schema Management on PostgreSQL
 
@@ -148,12 +148,20 @@ $function$
     @endcode
     @note Future versions of the module may provide more intelligence to reformat user-supplied functions to match the
     format retrieved from the database, however currently functions should be provided in the format above in order
-    to use functionality like @ref SqlUtil::Database::getAlignFunctionSql() for example.
+    to use functionality like @ref SqlUtil::AbstractDatabase::getAlignFunctionSql() "AbstractDatabase::getAlignFunctionSql()" for example.
 
     @section pgsql_relnotes Release Notes
 
+    @subsection pgsqlsqlutilv121 PgsqlSqlUtil v1.2.1
+    - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
+    - fixed a bug where default column values were compared incorrectly leading to false positives when comparing and aligning DB schemas (<a href="https://github.com/qorelanguage/qore/issues/2527">issue 2527</a>)
+
+    @subsection pgsqlsqlutilv12 PgsqlSqlUtil v1.2
+    - updated for complex types
+
     @subsection pgsqlsqlutilv112 PgsqlSqlUtil v1.1.2
     - fixed a bug in setting a \c comment for a table column (<a href="https://github.com/qorelanguage/qore/issues/1886">issue 1886</a>)
+    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
 
     @subsection pgsqlsqlutilv111 PgsqlSqlUtil v1.1.1
     - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
@@ -186,7 +194,7 @@ public namespace PgsqlSqlUtil {
         return new PgsqlDatabase(nds, opts);
     }
 
-    sub parse_schema_name(string nname, reference schema, reference name) {
+    sub parse_schema_name(string nname, reference<string> schema, reference<string> name) {
         *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
         if (sstr) {
             schema = sstr;
@@ -420,6 +428,7 @@ my list $l = $col.getModifySql($t, $newcol);
 
             @param t the SqlUtil::AbstractTable object to modify
             @param col the new column definition
+            @param opt column modification options (none are supported by this class)
 
             @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
          */
@@ -441,11 +450,21 @@ my list $l = $col.getModifySql($t, $newcol);
                     l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
             }
             else if (def_val !== c.def_val) {
-                #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
-                if (exists c.def_val && c.def_val !== NULL)
-                    l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
-                else
-                    l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
+                # issue #2527: ensure that mismatches are not due to server type info
+                bool ok;
+                if (c.def_val.val() && c.def_val !~ /::/ && def_val =~ /::/) {
+                    string ndv = def_val;
+                    ndv =~ s/::.*//;
+                    if (ndv == c.def_val)
+                        ok = True;
+                }
+                if (!ok) {
+                    #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
+                    if (exists c.def_val && c.def_val !== NULL)
+                        l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), name, c.def_val);
+                    else
+                        l += sprintf("alter table %s alter %s drop default", t.getSqlName(), name);
+                }
             }
             if (nullable != c.nullable) {
                 l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), name, c.nullable ? "drop" : "set");
@@ -535,7 +554,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         abstract AbstractIterator keyIterator();
 
         #! adds index options onto the sql creation string
-        getIndexSql(reference sql, string name, *hash opts) {
+        getIndexSql(reference<string> sql, string name, *hash opts) {
             *string ix = opts.index ? opts.index : index;
             if (ix)
                 sql += sprintf(" using index %s", ix);
@@ -569,7 +588,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -631,7 +650,7 @@ my any $v = $c.name;
         #! returns the PgsqlColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -962,7 +981,7 @@ my any $v = $c.name;
             return getFunctionImpl(name);
         }
 
-        static *string getFunctionArgs(string err, reference src) {
+        static *string getFunctionArgs(string err, reference<string> src) {
             # remove function name and "(" at beginning of hdr
             int i = src.find("(");
             if (i == -1)
@@ -1228,25 +1247,25 @@ my any $v = $c.name;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecRawImpl(string sql, *softlist args) {
+        private auto tryExecRawImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecRaw(ds, sql);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        static any tryExecArgs(AbstractDatasource ds, string sql, *softlist args) {
+        static auto tryExecArgs(AbstractDatasource ds, string sql, *softlist args) {
             ds.exec("savepoint " + PGSQL_TempSavepoint);
 
-            any rv;
+            auto rv;
             try {
                 rv = ds.vexec(sql, args);
                 ds.exec("release savepoint " + PGSQL_TempSavepoint);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 ds.exec("rollback to savepoint " + PGSQL_TempSavepoint);
                 rethrow;
             }
@@ -1254,15 +1273,15 @@ my any $v = $c.name;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        static any tryExecRaw(AbstractDatasource ds, string sql) {
+        static auto tryExecRaw(AbstractDatasource ds, string sql) {
             ds.exec("savepoint " + PGSQL_TempSavepoint);
 
-            any rv;
+            auto rv;
             try {
                 rv = ds.execRaw(sql);
                 ds.exec("release savepoint " + PGSQL_TempSavepoint);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 ds.exec("rollback to savepoint " + PGSQL_TempSavepoint);
                 rethrow;
             }
@@ -1364,7 +1383,7 @@ my any $v = $c.name;
             const PgsqlAlignTableOptions = AbstractTable::AlignTableOptions + PgsqlTableCreationOptions;
 
             #! column operator specializations for PostgreSQL
-            const PgsqlCopMap = DefaultCopMap + (
+            const PgsqlCopMap = (
                 COP_CAST: (
                     "code": string sub (string cve, list args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
@@ -1389,41 +1408,30 @@ my any $v = $c.name;
                         return sql;
                     },
                 ),
-                COP_OVER: (
-                    "argcolumn": True,
-                    "argoptional": True,
-                    "code": string sub (*string cve, *string arg) {
-                        string sql = cve + " over (";
-                        if (arg)
-                            sql += sprintf("partition by %s", arg);
-                        sql += ")";
-                        return sql;
-                    },
-                ),
                 COP_YEAR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY')", arg1);
                     }
                 ),
                 COP_YEAR_MONTH: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM')", arg1);
                     }
                 ),
                 COP_YEAR_DAY: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM-DD')", arg1);
                     }
                 ),
                 COP_YEAR_HOUR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM-DD HH24')", arg1);
                     }
                 ),
                 COP_SEQ: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("nextval('%s')", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -1435,7 +1443,7 @@ my any $v = $c.name;
                 COP_SEQ_CURRVAL: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("currval('%s')", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -1444,6 +1452,24 @@ my any $v = $c.name;
                         return sql;
                     }
                 ),
+                COP_TRUNC_DATE: (
+                    "code": string sub(string arg1, auto arg) {
+                        if (!PgsqlTruncDate.hasKey(arg)) {
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, PgsqlTruncDate.keys());
+                        }
+                        return sprintf("date_trunc(%s, %s)", PgsqlTruncDate{arg}, arg1);
+                    }
+                )
+                );
+
+            #! Map @ref SqlUtil::cop_trunc_date() constants to PostgreSQL internal masks
+            const PgsqlTruncDate = (
+                    DT_YEAR     : "'year'",
+                    DT_MONTH    : "'month'",
+                    DT_DAY      : "'day'",
+                    DT_HOUR     : "'hour'",
+                    DT_MINUTE   : "'minute'",
+                    DT_SECOND   : "'second'",
                 );
 
             #! a hash of default value operator descriptions for PostgreSQL
@@ -1567,7 +1593,7 @@ my any $v = $c.name;
         }
 
         #! returns the column operator map for this object
-        private hash getColumnOperatorMap() {
+        private hash getColumnOperatorMapImpl() {
             return PgsqlCopMap;
         }
 
@@ -1699,7 +1725,7 @@ my any $v = $c.name;
             if (qh.constraint_name) {
                 hash ch;
                 foreach hash row in (qh.contextIterator()) {
-                    reference c = \ch.(row.constraint_name);
+                    reference<hash> c = \ch.(row.constraint_name);
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.target_table;
                     c.target.columns.(row.target_column) = True;
@@ -1729,7 +1755,7 @@ my any $v = $c.name;
             qh = ds.select("select tc.constraint_name, kcu.column_name from information_schema.table_constraints tc join information_schema.key_column_usage kcu on (tc.table_schema = kcu.table_schema and tc.table_name = kcu.table_name and tc.constraint_name = kcu.constraint_name) where constraint_type = 'UNIQUE' and tc.table_schema = %v and tc.table_name = %v order by ordinal_position", schema, name);
             delete rv;
             foreach hash row in (qh.contextIterator()) {
-                reference ch = \rv.(row.constraint_name);
+                reference<PgsqlUniqueConstraint> ch = \rv.(row.constraint_name);
                 if (!ch)
                     ch = new PgsqlUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
                 ch.add(row.column_name, columns{row.column_name});
@@ -1897,7 +1923,7 @@ my any $v = $c.name;
                 ds.vexec(sql, row.values());
                 ds.exec("release savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /duplicate key value/) {
                     ds.exec("rollback to savepoint " + PgsqlDatabase::PGSQL_TempSavepoint);
                     return False;
@@ -1916,7 +1942,7 @@ my any $v = $c.name;
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private *string getSqlValueImpl(any v) {
+        private *string getSqlValueImpl(auto v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
                 case NT_INT: return v.toString();
@@ -1981,13 +2007,13 @@ my any $v = $c.name;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
            sql += " limit %v";
            args += qh.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
             if (qh.limit) {
                 sql += " limit %v";
@@ -2001,12 +2027,12 @@ my any $v = $c.name;
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecArgsImpl(string sql, *softlist args) {
+        private auto tryExecArgsImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecArgs(ds, sql, args);
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
-        private any tryExecRawImpl(string sql, *softlist args) {
+        private auto tryExecRawImpl(string sql, *softlist args) {
             return PgsqlDatabase::tryExecRaw(ds, sql);
         }
 
@@ -2016,9 +2042,9 @@ my any $v = $c.name;
                 triggerFunctions = triggerFunctions.copy();
         }
 
-        private *hash doReturningImpl(hash opt, reference sql, list args) {
+        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
             list l = ();
-            foreach any v in (opt.returning) {
+            foreach auto v in (opt.returning) {
                 hash rh;
                 switch (v.typeCode()) {
                     case NT_STRING: rh.key = v; break;
@@ -2041,7 +2067,7 @@ my any $v = $c.name;
 
         private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             list ce = ();
-            foreach any cv in (qh{key}) {
+            foreach auto cv in (qh{key}) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
                         if (cv.toInt() == cv)

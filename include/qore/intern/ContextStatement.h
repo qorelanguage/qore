@@ -33,7 +33,7 @@
 
 #define _QORE_CONTEXTSTATEMENT_H
 
-#include <qore/intern/AbstractStatement.h>
+#include "qore/intern/AbstractStatement.h"
 
 #include <qore/safe_dslist>
 
@@ -77,6 +77,7 @@ public:
    DLLLOCAL virtual bool hasFinalReturn() const {
       return false;
    }
+   DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 };
 
 #endif

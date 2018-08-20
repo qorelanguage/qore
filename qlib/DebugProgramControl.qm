@@ -1,0 +1,1225 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file DebugProgramControl.qm Debug common code
+
+/*  DebugProgramControl.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.13
+%requires(reexport) DebugUtil
+
+%require-types
+%enable-all-warnings
+%new-style
+%no-debugging
+%allow-debugger
+# child program won't inherit parent program options (including %allow-debugger)
+%no-child-restrictions
+
+module DebugProgramControl {
+    version = "0.1.2";
+    desc = "user module providing common debug server stuff";
+    author = "Tomas Mandys <tomas.mandys@qoretechnologies.org>";
+    url = "http://qoretechnologies.org";
+    license = "MIT";
+}
+
+/** @mainpage DebugProgramControl Module
+
+    @tableofcontents
+
+    @section debugprogramcontrolintro Introduction to the DebugProgramControl Module
+
+    The %DebugProgramControl module provides common functionality for implementing debugger server utilities
+
+    @subsection dc_v0_1_2 v0.1.2
+    - return breakpointId and statementId when creating breakpoint
+    - onExit() event
+    - frameId argument for thread/local command
+    - source file API
+    - options API
+
+    @subsection dc_v0_1_1 v0.1.1
+    - fixed bug providing programId context (<a href="https://github.com/qorelanguage/qore/issues/2603">issue 2603</a>)
+    - improved breakpoint usability (<a href="https://github.com/qorelanguage/qore/issues/2604">issue 2604</a>)
+
+    @subsection dc_v0_1 v0.1
+    - the initial version of the DebugProgramControl module
+*/
+
+#! the DebugProgramControl namespace contains all the definitions in the DebugProgramControl module
+public namespace DebugProgramControl {
+    #! Class implementing @ref Qore::DebugProgram "DebugProgram" control using commands
+    public class DebugProgramControl inherits DebugProgram, AbstractDebugControl {
+        private {
+            #! data pool related to suspended thread, key is threadId
+            hash ctxThread;
+            #! data pool for data related to cx.id
+            hash ctxConnection;
+            #! lock for @ref ctxThread access
+            Qore::Thread::RWLock rwlThread();
+            #! lock for @ref ctxConnection access
+            Qore::Thread::RWLock rwlConnection();
+            #! server name
+            string serverName;
+            #! source file search path
+            string sourceSearchPath = "";
+
+            const frameOffset = 2;
+        }
+
+        #! creates the object
+        constructor(string serverName) : DebugProgram() {
+            self.serverName = serverName;
+        }
+
+        #! resumes any blocked threads and destroys the object
+        destructor() {
+            shutdown();
+        }
+
+        #! resume any blocked threads
+        shutdown() {
+            rwlThread.writeLock();
+            on_exit rwlThread.writeUnlock();
+
+            hash qrd = (
+                "data": (
+                    "cmd": "thread/go",
+                ),
+                "cx": {},
+            );
+
+            map $1.queue.push(qrd), ctxThread.iterator(), $1.queue;
+        }
+
+        #! register context for new connection
+        public registerConnection(hash cx) {
+            rwlConnection.writeLock();
+            on_exit rwlConnection.writeUnlock();
+            ctxConnection{cx.id} = {};
+            # Note: we cannot sendDataImpl/broadcaseDataImpl as cx.id not registered in WebSocketHandler
+        }
+
+        #! send welcome message
+        public connectionRegistered(hash cx) {
+            hash sd.type = 'event';
+            sd.stamp = now_us();
+            sd.cmd = 'welcome';
+            sd.result = serverName;
+            try {
+                sendDataImpl(cx, sd);
+            }
+            catch (hash<ExceptionInfo> ex) {
+            }
+        }
+
+        #! unregister a connection context
+        public unregisterConnection(hash cx) {
+            rwlConnection.writeLock();
+            on_exit rwlConnection.writeUnlock();
+
+            # remove attached programs
+            map removeProgram($1), ctxConnection{cx.id}.program.iterator();
+
+            delete ctxConnection{cx.id};
+            # if (!ctxConnection)  run stopped programs ?
+        }
+
+        private updateConnectionContext(hash cx, auto cx_data) {
+        }
+
+        #! send data to particular client
+        abstract public sendDataImpl(hash cx, auto data);
+        #! send data to all clients
+        abstract public broadcastDataImpl(auto data);
+
+        private broadcastBreakpoint(hash cx, Breakpoint b, string change) {
+            hash sd = (
+                'type': 'event',
+                'cmd': 'breakpoint',
+                'event': change,
+                'info': getBreakpointInfo(b),
+                'stamp': now_us(),
+                'cx': cx,
+            );
+            broadcastDataImpl(sd);
+        }
+
+        #! Create new program
+        public Program createProgram(string fileName, *hash opts, list args, *string script) {
+            log(DUV_DEBUG_1, "create program: %y", fileName);
+            Program pgm = new Program(PO_DEFAULT);
+            # restore default options as we have PO_NO_CHILD_PO_RESTRICTIONS
+            # note this program has PO_NO_TOP_LEVEL_STATEMENTS | PO_NEW_STYLE
+            #pgm.replaceParseOptions(PO_DEFAULT);
+            if (exists opts.parse_option) {
+                hash poops = Qore::ParseOptionCmdStringMap;
+                int oo = 0;
+                foreach string o in (opts.parse_option) {
+                    if (!exists poops{o}) {
+                        throw "DEBUG-CREATE-PROGRAM", sprintf("Unknown parse option %y", o);
+                    }
+                    oo |= poops{o};
+                }
+                pgm.setParseOptions(oo);
+            }
+            if (opts.define) {
+                foreach string d in (opts.define) {
+                    int i = bindex(d, "=");
+                    if (i >= 0) {
+                        pgm.define(substr(d, 0, i), substr(d, i+1));
+                    } else {
+                        pgm.define(d);
+                    }
+                }
+            }
+            if (exists opts.time_zone) {
+                # TODO: parse exact shifts
+                pgm.setTimeZoneRegion(opts.time_zone);
+            }
+            # update arguments without debug options
+            pgm.setGlobalVarValue('ARGV', args);
+            pgm.define('QoreDebugging', True);   # TODO: vs. QoreDebug define, better name ?
+            log(DUV_DEBUG_1, "add program");
+            addProgram(pgm.getProgram());
+
+            if ((script ?? '') == '') {
+                if (fileName == '/dev/stdin') {  # is exception needed ??
+                    log(DUV_DEBUG_1, "read stdin");
+                    script = stdin.read(-1, 0);
+                    log(DUV_DEBUG_1, "%s", script);
+                } else {
+                    log(DUV_DEBUG_1, "read file: %y", fileName);
+                    script = ReadOnlyFile::readTextFile(fileName);
+                }
+            }
+            pgm.setScriptPath(fileName);
+            log(DUV_DEBUG_1, "parse code");
+            *hash wh = pgm.parse(script, fileName, WARN_DEFAULT, NOTHING, NOTHING, False);
+            if (wh) {
+                log(DUV_INFO, "warning: %N", wh);
+            }
+            return pgm;
+        }
+
+        #! run and remove program from debugging
+        private *int runAndDetach(Program pgm) {
+            *int res = pgm.run();
+            removeProgram(pgm.getProgram()); # I would be called in Program::destructor() but this is more transparent
+            return res;
+        }
+
+        #! process message in debugging thread, if message is related to debugged thread then put it in particular queue
+        public *hash processCommand(hash cx, hash receiveData) {
+            log(DUV_DEBUG_1, "processCommand: %y", receiveData);
+            hash sendData;
+            auto result;
+            try {
+                list cmd = receiveData.cmd.split('/');
+                log(DUV_DEBUG_1, "command: %y", cmd);
+
+                switch (shift cmd) {
+                case 'help':
+                    result = list('TODO: help text');
+                    break;
+                case 'version':
+                    result = ('class': self.className());
+                    break;
+                case 'options':
+                    string optionName = shift cmd;
+                    bool optionSet;
+                    switch (shift cmd) {
+                    case 'get':
+                        optionSet = False;
+                        break;
+                    case 'set':
+                        optionSet = True;
+                        break;
+                    }
+                    if (exists optionSet) {
+                        switch (optionName) {
+                        case 'fullexceptioninfo':
+                            if (optionSet) {
+                                showFullException = receiveData.value;
+                            }
+                            result = showFullException;
+                            break;
+                        case 'sourcepath':
+                            if (optionSet) {
+                                sourceSearchPath = receiveData.value;
+                            }
+                            result = sourceSearchPath;
+                            break;
+                        }
+                    }
+                    break;
+                case 'session':
+                    switch (shift cmd) {
+                    case 'get':
+                        foreach ProgramControl p in (getAllPrograms()) {
+                            int pgmId = p.getProgramId();
+                            result{pgmId}.scriptName = p.getScriptName();
+                            result{pgmId}.scriptPath = p.getScriptPath();
+                            #result{pgmId}.scriptDir = p.getScriptDir();
+                            {
+                                rwlThread.readLock();
+                                on_exit rwlThread.readUnlock();
+                                foreach softint tid in (keys ctxThread) {
+                                    if (ctxThread{tid}.pgmId == pgmId) {
+                                        result{pgmId}.interrupted += (tid,);
+                                    }
+                                }
+                            }
+                            result{pgmId}.breakpoints = ();
+                            foreach Breakpoint b2 in (p.getBreakpoints()) {
+                                push result{pgmId}.breakpoints, getBreakpointInfo(b2);
+                            }
+                            if (!result{pgmId}.breakpoints)
+                                remove result{pgmId}.breakpoints;
+                        }
+                        break;
+                    case 'set':
+                        log(DUV_DEBUG_1, "set session: %y", receiveData.value);
+                        # go through provided list and match current programs, no sophisticated matching algorithm
+                        result = hash();
+                        foreach string pgmName in (keys receiveData.value) {
+                            hash pgm = receiveData.value{pgmName};
+                            try {
+                                ProgramControl p = ProgramControl::resolveProgramId(int(pgmName));
+                                if (pgm.scriptName != p.getScriptName()) {
+                                    throw 'PROGRAM-ERROR', sprintf('script name does not match: %y vs. %y', pgm.scriptName, p.getScriptName());
+                                }
+                                foreach hash bkpt in (pgm.breakpoints) {
+                                    Breakpoint b = new Breakpoint();
+                                    if (exists bkpt.enabled) {
+                                        b.setEnabled(AbstractDebugControl::boolStrings{bkpt.enabled});
+                                    }
+                                    if (exists bkpt.policy) {
+                                        b.setPolicy(AbstractDebugControl::policyStrings{bkpt.policy});
+                                    }
+                                    if (bkpt.threads) {
+                                        b.setThreadIds(bkpt.threads);
+                                    }
+                                    b.assignProgram(p);
+                                    foreach hash stmt in (bkpt.statements) {
+                                        # assing by id is the easiest way
+                                        try {
+                                            b.assignStatement(resolveStatement(p, ('id': stmt.id)));
+                                        } catch (hash ex) {
+                                            result{pgmName} += list(ex.desc);
+                                        }
+                                    }
+                                }
+                            } catch (hash ex) {
+                                if (ex.err == 'PROGRAM-ERROR') {
+                                    result{pgmName} = ex.desc;
+                                } else
+                                    rethrow;
+                            }
+                        }
+                        break;
+                    }
+                    break;
+                case 'program':
+                    ProgramControl pgmb;
+                    *string pgmName = shift cmd;
+                    switch (cmd[0]) {
+                    case 'list':
+                        break;
+                    case 'create':
+                        break;
+                    case 'breakpoint':
+                        if (pgmName == '') {
+                            break;  # pgmId is assigned to breakpoint so it is optional
+                        }
+                        # nobreak;
+                    default:
+                        pgmb = ProgramControl::resolveProgramId(int(pgmName));
+                    }
+                    switch (shift cmd) {
+                    case 'stop':
+                        # no locking
+                        switch (breakProgram(pgmb)) {
+                            case 0:
+                                result = 'ok';
+                                break;
+                            case -1:
+                                result = "ERROR: operation failed; target Program does not support debugging (PO_NO_DEBUGGING set)";
+                                break;
+                            case -2:
+                                result = "ERROR: operation failed; target Program has not yet been added as a debug target; add the program first and try again";
+                                break;
+                        }
+                        break;
+
+                    case 'thread':
+                        softint tid = shift cmd;
+                        switch (shift cmd) {
+                        case 'stop':
+                            switch (breakProgramThread(pgmb, tid)) {
+                                case 0:
+                                    result = 'ok';
+                                    break;
+                                case -1:
+                                    result = "ERROR: operation failed; target Program does not support debugging (PO_NO_DEBUGGING set)";
+                                    break;
+                                case -2:
+                                    result = "ERROR: operation failed; target Program has not yet been added as a debug target; add the program first and try again";
+                                    break;
+                                case -3:
+                                    result = sprintf("ERROR: operation failed; TID %d not active in target Program", tid);
+                                    break;
+                            }
+                            break;
+                        }
+                        break;
+
+                    case 'list':
+                        foreach ProgramControl p in (ProgramControl::getAllPrograms()) {
+                            string pgmId = string(p.getProgramId());
+                            if (AbstractDebugControl::evalCondition((pgmName =~ /^[0-9]+$/) ? pgmId : p.getScriptName(), pgmName)) {
+                                result{pgmId}.scriptName = p.getScriptName();
+                                result{pgmId}.scriptPath = p.getScriptPath();
+                                #result{pgmId}.scriptDir = p.getScriptDir();
+                                result{pgmId}.threads = p.getThreadList();
+                                result{pgmId}.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
+                            }
+                        }
+                        map result{$1.getProgramId()}.debugged = True, getAllPrograms(), exists result{$1.getProgramId()};
+                        {
+                            rwlThread.readLock();
+                            on_exit rwlThread.readUnlock();
+                            foreach softint tid in (keys ctxThread) {
+                                if (exists ctxThread{tid}.pgmId && exists result{ctxThread{tid}.pgmId}) {
+                                    result{ctxThread{tid}.pgmId}.interrupted += list(tid);
+                                }
+                            }
+                        }
+                        break;
+                    case 'create':
+                        Program pgm = createProgram(receiveData.filename, NOTHING, receiveData.args);
+                        ProgramControl p = pgm.getProgram();
+                        string pgmId = string(p.getProgramId());
+                        result{pgmId}.scriptName = p.getScriptName();
+                        result{pgmId}.scriptPath = p.getScriptPath();
+                        #result{pgmId}.scriptDir = p.getScriptDir();
+                        result{pgmId}.threads = ((background runAndDetach(pgm)), );
+                        result{pgmId}.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
+                        break;
+                    case 'add':
+                        {
+                            rwlConnection.writeLock();
+                            on_exit rwlConnection.writeUnlock();
+                            reference r = \ctxConnection{cx.id}.program{pgmb.getProgramId()};
+                            if (r) {
+                                result = sprintf('program ID %d already added', pgmb.getProgramId());
+                                break;
+                            }
+                            r = pgmb;
+                        }
+                        addProgram(pgmb);
+                        result = 'ok';
+                        break;
+
+                    case 'remove':
+                        {
+                            rwlConnection.writeLock();
+                            on_exit rwlConnection.writeUnlock();
+                            reference r = \ctxConnection{cx.id}.program{pgmb.getProgramId()};
+                            if (!r) {
+                                result = sprintf('program ID %d not added', pgmb.getProgramId());
+                                break;
+                            }
+                            remove r;
+                        }
+                        removeProgram(pgmb);
+                        result = 'ok';
+                        break;
+
+                    case 'global':
+                        string varName = shift cmd;
+                        switch (shift cmd) {
+                        case 'set':
+                            pgmb.setGlobalVarValue(varName, AbstractDebugControl::unserialize(receiveData.value));
+                            result = 'ok';
+                            break;
+
+                        case 'get':
+                            bool existF;
+                            auto v = AbstractDebugControl::serialize(pgmb.getGlobalVariable(varName, \existF));
+                            if (existF) {
+                                result = v;
+                            }
+                            break;
+
+                        case 'list':
+                            softlist l  = keys pgmb.getGlobalVars();
+                            foreach my string s in (\l) {
+                                s =~ s/^Qore:://;
+                            }
+                            result = AbstractDebugControl::enumFilter(l, varName);
+                            break;
+                        }
+                        break;
+
+                    case 'define':
+                        string defName = shift cmd;
+                        switch (shift cmd) {
+
+                        case 'get':
+                            if (pgmb.isDefined(defName)) {
+                                result = pgmb.getDefine(defName);
+                            }
+                            bool existF;
+                            auto v = pgmb.getGlobalVariable(defName, \existF);
+                            if (existF) {
+                                result = v;
+                            }
+                            break;
+
+                        case 'list':
+                            *hash defs = pgmb.getAllDefines();
+                            list dd = AbstractDebugControl::enumFilter(keys defs, defName);
+                            result = hash();
+                            map result{$1} = defs{$1}, dd;
+                            break;
+                        }
+                        break;
+
+                    case 'options':
+                        int opts = pgmb.getParseOptions();
+                        result = ();
+                        foreach string o in (keys ParseOptionCodeMap) {
+                            softint oo = o;
+                            if (oo != 0 && (oo & opts) == oo) {
+                                push result, ParseOptionCodeMap{o};
+                            }
+                        }
+                        break;
+
+                    case 'file':
+                        switch (shift cmd) {
+                        case 'list':
+                            result = pgmb.getSourceFileNames();
+                            break;
+                        case 'source':
+                            result = getSourceCode(pgmb, 'file', receiveData);
+                            break;
+                        }
+                        break;
+
+                    case 'label':
+                        switch (shift cmd) {
+                        case 'list':
+                            result = pgmb.getSourceLabels();
+                            break;
+                        case 'source':
+                            result = getSourceCode(pgmb, 'label', receiveData);
+                            break;
+                        }
+                        break;
+
+                    case 'breakpoint':
+                        Breakpoint b;
+                        string bkptName = shift cmd;
+                        switch (cmd[0]) {
+                        case 'list':
+                            break;
+                        case 'create':
+                            if (!pgmb) {
+                                throw "DEBUG-HANDLER-ERROR", "Program is not specified";
+                            }
+                            int stmt;
+                            if (receiveData.value) {
+                                stmt = resolveStatement(pgmb, receiveData.value);
+                            }
+                            b = new Breakpoint();
+                            b.setEnabled(True);
+                            b.assignProgram(pgmb);
+                            result.bkptid = b.getBreakpointId();
+                            if (exists stmt) {
+                                b.assignStatement(stmt);
+                                result.stmtid = stmt;
+                            }
+                            break;
+                        default:
+                            b = Breakpoint::resolveBreakpointId(int(bkptName));
+                            if (pgmb && b.getProgram().getProgramId() != pgmb.getProgramId()) {
+                                throw "DEBUG-HANDLER-ERROR", sprintf("Program %y is not assigned to breakpoint %y", pgmb.getProgramId(), b.getBreakpointId());
+                            }
+                            break;
+                        }
+                        switch (shift cmd) {
+                        case 'list':
+                            if (pgmb) {
+                                list bkpts = pgmb.getBreakpoints();
+                                result = ();
+                                foreach Breakpoint b2 in (bkpts) {
+                                    if (AbstractDebugControl::evalCondition(b2.getBreakpointId(), bkptName)) {
+                                        push result, getBreakpointInfo(b2);
+                                    }
+                                }
+                            } else {
+                                result = ();
+                                foreach ProgramControl p in (ProgramControl::getAllPrograms()) {
+                                    if ((p.getParseOptions() & PO_NO_DEBUGGING) == 0) {
+                                        foreach Breakpoint b2 in (p.getBreakpoints()) {
+                                            if (AbstractDebugControl::evalCondition(b2.getBreakpointId(), bkptName)) {
+                                                push result, getBreakpointInfo(b2);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+
+                        case 'create':
+                            # already done
+                            broadcastBreakpoint(cx, b, "create");
+                            break;
+
+                        case 'delete':
+                            broadcastBreakpoint(cx, b, "delete");
+                            b.unassignProgram();
+                            b.clearThreadIds();
+                            list sl = b.getStatementIds();
+                            foreach int s in (sl) {
+                                b.unassignStatement(s);
+                            }
+                            # delete b;   ??
+                            result = 'ok';
+                            break;
+
+                        case 'enable':
+                            if (!b.getEnabled()) {
+                                b.setEnabled(True);
+                                broadcastBreakpoint(cx, b, "enabled");
+                            }
+                            result = 'ok';
+                            break;
+
+                        case 'disable':
+                            if (b.getEnabled()) {
+                                b.setEnabled(False);
+                                broadcastBreakpoint(cx, b, "enabled");
+                            }
+                            result = 'ok';
+                            break;
+
+                        case 'statement':
+                            switch (shift cmd) {
+                            case 'list':
+                                result = hash();
+                                foreach int sid in (b.getStatementIds()) {
+                                    result{sid} = b.getProgram().getStatementIdInfo(sid);
+                                }
+                                break;
+
+                            case 'assign':
+                                int stmt = resolveStatement(b.getProgram(), receiveData.value);
+                                b.assignStatement(stmt);
+                                result.stmtid = stmt;
+                                broadcastBreakpoint(cx, b, "statement");
+                                break;
+
+                            case 'unassign':
+                                int stmt = resolveStatement(b.getProgram(), receiveData.value);
+                                b.unassignStatement(stmt);
+                                result.stmtid = stmt;
+                                broadcastBreakpoint(cx, b, "statement");
+                                break;
+                            }
+                            break;
+
+                        case 'thread':
+                            list saveThreadIds = b.getThreadIds();
+                            switch (shift cmd) {
+                            case 'add':
+                                b.addThreadId(receiveData.value);
+                                result = 'ok';
+                                break;
+                            case 'remove':
+                                b.removeThreadId(receiveData.value);
+                                result = 'ok';
+                                break;
+                            case 'get':
+                                result = b.getThreadIds();
+                                break;
+                            case 'set':
+                                *softlist sl = receiveData.value;
+                                b.setThreadIds(sl);
+                                result = 'ok';
+                                break;
+                            }
+                            if (saveThreadIds != b.getThreadIds()) {
+                                broadcastBreakpoint(cx, b, "thread");
+                            }
+                            break;
+
+                        case 'policy':
+                            switch (shift cmd) {
+                            case 'get':
+                                result = encodeValue('policy', string(b.getPolicy()), policyStrings);
+                                break;
+                            case 'set':
+                                int savePolicy = b.getPolicy();
+                                b.setPolicy(resolveValue('policy', receiveData.value, policyStrings, b.getPolicy()));
+                                if (savePolicy != b.getPolicy()) {
+                                    broadcastBreakpoint(cx, b, "policy");
+                                }
+                                result = 'ok';
+                                break;
+                            }
+                            break;
+                        }
+
+                        break;
+                    }
+                    break;
+
+                case 'shutdown':
+                    shutdown();
+                    result = 'ok';
+                    break;
+
+                case 'thread': {
+                    bool break_flag = False;
+                    if (!exists receiveData.tid) {
+                        switch (cmd[0]) {
+                        case 'stack':
+                            hash stacks = get_all_thread_call_stacks();
+                            foreach softint tid in (keys stacks) {
+                                rwlThread.readLock();
+                                on_exit rwlThread.readUnlock();
+                                if (exists ctxThread{tid}) {
+                                    stacks{tid} = adjustStack(stacks{tid}, ctxThread{tid});
+                                }
+                            }
+                            result = stacks;
+                            break_flag = True;
+                            break;
+                        }
+                    }
+                    if (break_flag) {
+                        break;
+                    }
+                    # no break and pass to default
+                }
+
+                default:
+                    if (exists receiveData.tid) {
+                        rwlThread.readLock();
+                        on_exit rwlThread.readUnlock();
+                        if (ctxThread{receiveData.tid}) {
+                            ctxThread{receiveData.tid}.queue.push(('cx': cx, 'data': receiveData));
+                            sendData.type = 'thread';
+                            sendData.tid = receiveData.tid;
+                        } else {
+                            throw "DEBUG-HANDLER-ERROR", sprintf("threadId %y is not stopped", receiveData.tid);
+                        }
+                    } else {
+                        throw "DEBUG-HANDLER-ERROR", sprintf("cannot process command %y", receiveData.cmd);
+                    }
+                }
+                if (exists result) {
+                    sendData.type = 'response';
+                }
+            } catch (hash<ExceptionInfo> ex) {
+                log(DUV_DEBUG, "exception: %y", ex);
+                sendData.type = 'error';
+                result.err = ex.err;
+                result.desc = ex.desc;
+                if (showFullException)
+                    result.ex = ex;
+            }
+            if (sendData) {
+                sendData.uid = receiveData.uid;
+                sendData.cmd = receiveData.cmd;
+                sendData.stamp = now_us();
+                sendData.result = result;
+                return sendData;
+            }
+        }
+
+        private auto resolveValue(string name, *string val, hash strings, auto defVal) {
+            if (exists val) {
+                if (!exists strings{val}) {
+                    throw "DEBUG-HANDLER-ERROR", sprintf("%y value %y is not found in %y", name, val, keys strings);
+                }
+                return strings{val};
+            } else {
+                return defVal;
+            }
+        }
+
+        private string encodeValue(string name, auto val, hash strings) {
+            foreach string k in (keys strings) {
+                if (strings{k} == val) {
+                    return k;
+                }
+            }
+            throw "DEBUG-HANDLER-ERROR", sprintf("Cannot encode %y value %y", name, val);
+        }
+
+        private int resolveStatement(ProgramControl pgm, *hash value) {
+            if (exists value.id) {
+                return value.id;
+            }
+            if (exists value.function) {
+                return pgm.findFunctionStatementId(value.function, value.args);
+            }
+            if (exists value.lineno) {
+                return pgm.findStatementId(value.file ?? '', value.lineno);
+            }
+            throw "DEBUG-HANDLER-ERROR", sprintf("Cannot resolve statement from %y", value);
+        }
+
+        private hash getBreakpointInfo(Breakpoint b) {
+            hash binfo.id = b.getBreakpointId();
+            binfo.programId = b.getProgram().getProgramId();
+            binfo.enabled = encodeValue('enabled', b.getEnabled(), boolStrings);
+            binfo.threads = b.getThreadIds();
+            binfo.policy = encodeValue('policy', b.getPolicy(), policyStrings);
+            binfo.statements = ();
+            foreach int sid in (b.getStatementIds()) {
+                push binfo.statements, ('id': sid) + b.getProgram().getStatementIdInfo(sid);
+            }
+            if (!binfo.threads)
+                remove binfo.threads;
+            if (!binfo.statements)
+                remove binfo.statements;
+            return binfo;
+        }
+
+        private *hash getSourceCode(ProgramControl pgmb, string type, hash rd) {
+            hash res;
+            if (!exists (type=='file' ? pgmb.getSourceFileNames() : pgmb.getSourceLabels() ){rd{type}}) {
+                throw "DEBUG-HANDLER-ERROR", sprintf("Cannot get source for %y", rd{type});
+            }
+            string content;
+            if (type=='file') {
+                content = getSourceCodeFromFile(rd{type});
+            } else {
+                content = getSourceCodeForLabel(rd{type});
+            }
+            res.checksum.algorithm= 'sha1';
+            res.checksum.cs = content.toSHA1();
+            if (exists rd.count && rd.count <= 0) {
+                # skip source, just checksum
+            } else {
+                rd.line = rd.line ?? 1;
+                if (rd.line < 1) {
+                    rd.line = 1;
+                }
+                if (rd.line > 1 || rd.count > 0) {
+                    list l = content.split("\n");
+                    l = l[rd.line-1..rd.line+rd.count-2];
+                    content = l.join("\n");
+                }
+                res.code = content;
+                res.startline = rd.line;
+            }
+            return res;
+        }
+
+        private string getSourceCodeForLabel(string name) {
+            throw "DEBUG-HANDLER-ERROR", "Local debug server does not support label source code";
+        }
+        private string getSourceCodeFromFile(string name) {
+            if (!absolute_path(name)) {
+                foreach string p in (sourceSearchPath.split(':')) {
+                    if (p != "") {
+                        if (p !~ /[\\\/]$/ ) {
+                            p += DirSep;
+                        }
+                        log(DUV_DEBUG_1, "is_file(%s)", p + name);
+                        if (is_file(p + name)) {
+                            name = p + name;
+                            break;
+                        }
+                    }
+                }
+            }
+            return ReadOnlyFile::readTextFile(name);
+        }
+
+        private *hash serializeLocal(string name, hash val) {
+            val.value = AbstractDebugControl::serialize(val.value);
+            return ('name': name) + val;
+        }
+
+        private *hash serializeLocals(*hash vals) {
+            foreach string k in (keys vals) {
+                vals{k}.value = AbstractDebugControl::serialize(vals{k}.value);
+            }
+            return vals;
+        }
+
+        private list adjustStack(list stack, *hash ctx) {
+            if (ctx && ctx.stackSize >= frameOffset) {
+                #assert(ctx.stackSize >= frameOffset);
+                while (stack.size() > ctx.stackSize - frameOffset) {
+                    shift stack;
+                }
+                # FIXME: workaround for bug 2468
+                stack[0].function = sprintf("interrupt: %s", ctx.intrInfo.func);
+                if (ctx.intrInfo.statementid) {
+                    stack[0].file = ctx.intrInfo.file;
+                    stack[0].line = ctx.intrInfo.line;
+                    stack[0].endline = ctx.intrInfo.endline;
+                    if (exists ctx.intrInfo.source) {
+                        stack[0].source = ctx.intrInfo.source;
+                        stack[0].offset = ctx.intrInfo.offset;
+                    } else {
+                        remove stack[0].source;
+                        remove stack[0].offset;
+                    }
+                }
+            }
+            return stack;
+        }
+
+        private *hash handleInterrupt(string func, ProgramControl pgm, reference runState, *int statementId, *string refName, *reference refValue, *int breakpointId, *hash except) {
+            # serialize data, send to all websockets, break/suspend thread
+            int tid = gettid();
+            hash ctx = (
+                "queue": new Queue(),
+                "pgmId": pgm.getProgramId(),
+                "stackSize": get_thread_call_stack().size(),
+                "intrInfo": (
+                    'type': 'event',
+                    'cmd': 'interrupt',
+                    'pgmid': pgm.getProgramId(),
+                    'tid': tid,
+                    'stamp': now_us(),
+                    'func': func,
+                    'runstate': encodeValue('runState', runState, runStateStrings),
+                    'frame': 0,
+                ),
+            );
+            ctx.intrInfo.framecnt = ctx.stackSize - frameOffset;
+            if (exists statementId) {
+                ctx.intrInfo.statementid = statementId;
+            }
+            if (exists breakpointId) {
+                ctx.intrInfo.bkptid = breakpointId;
+            }
+            if (exists statementId && statementId > 0) {
+                hash location = pgm.getStatementIdInfo(statementId);
+                ctx.intrInfo.file = location.file;
+                ctx.intrInfo.line = location.start_line;
+                ctx.intrInfo.endline = location.end_line;
+                #ctx.intrInfo.statement = location;
+            }
+            if (exists except) {
+                # we need make real copy as the worker thread might keep reference slightly longer and
+                # C++ will complain about reference_count() > 1 when pushing new callstack item.
+                ctx.intrInfo.exception = hash();
+                foreach string k in (keys except) {
+                    switch (k) {
+                    case "callstack":
+                        ctx.intrInfo.exception{k} = ();
+                        foreach hash cs in (except{k}) {
+                            push ctx.intrInfo.exception{k}, cs;
+                        }
+                        break;
+                    case "next":
+                        break;
+                    default:
+                        ctx.intrInfo.exception{k} = except{k};
+                    }
+                }
+            }
+            if (exists refName) {
+                ctx.intrInfo.debugvar = refName;
+                ctx.intrInfo{refName} = refValue;
+            }
+            # minor race issue when list of all thread stack might return internal frames till ctx is not registered in ctxThread
+            {
+                rwlThread.writeLock();
+                on_exit rwlThread.writeUnlock();
+             #   assert(!exists ctxThread{tid});
+                ctxThread{tid} = ctx;
+            }
+
+%ifdef DEBUG_ADD_LOCAL_VARS
+            for (int i=0; i < 8; i++) {
+                # to show important stack values each step
+                try {
+                    *hash lv = get_local_vars(i);   # the same for each dump (serializeLocals adds frame!)
+                    if (i >= 20 && i < 8) {
+                        ctx.intrInfo.localvars[i] = serializeLocals(lv);
+                    } else {
+                        ctx.intrInfo.localvars[i] = keys lv;
+                    }
+                } catch (hash<ExceptionInfo> ex) {
+                    #printf("Exception: %y\n", ex);
+                }
+            }
+            try {
+                ctx.intrInfo.stackDump = get_thread_call_stack();
+                ctx.intrInfo.dpgmid = ProgramControl::getProgram().getProgramId();
+            } catch (hash<ExceptionInfo> ex) {
+                #printf("Exception: %y\n", ex);
+            }
+%endif
+
+            try {
+                broadcastDataImpl(ctx.intrInfo);
+            } catch (hash<ExceptionInfo> ex) {
+            }
+
+            hash ctxCT;
+            {
+                rwlConnection.writeLock();
+                on_exit rwlConnection.writeUnlock();
+                # default values
+                ctxCT{refName} = refValue;
+                ctxCT.frameId = 0;
+                ctxConnection{ctx.id}.thread{tid} = ctxCT;
+            }
+            # wait to process command passed as marshalled call from websocket thread
+            bool ret = False;
+            while (!ret) {
+                auto qrd = ctx.queue.get();
+                {
+                    auto result;
+                    hash sd;
+                    hash cx;
+                    hash rd;
+                    try {
+                        rd = qrd.data;
+                        cx = qrd.cx;
+                        list cmd = rd.cmd.split('/');
+                        shift cmd;  # remove thread
+                        switch (shift cmd) {
+                        case 'go':
+                            runState = resolveValue('runState', shift cmd, runStateStrings, runState);
+                            if (exists refName) {
+                                refValue = ctxCT{refName};
+                            }
+                            ret = True;
+                            break;
+
+                        case 'local':
+                            string varName = shift cmd;
+                            int frameId2 = (rd.frameid ?? ctxCT.frameId) + frameOffset;
+                            switch (shift cmd) {
+                            case 'get':
+                                *hash lv = get_local_vars(frameId2);
+                                if (exists lv{varName}) {
+                                    result = serializeLocal(varName, lv{varName});
+                                }
+                                break;
+                            case 'set':
+                                set_local_var_value(frameId2, varName, AbstractDebugControl::unserialize(rd.value));
+                                break;
+                            case 'list':
+                                softlist l  = keys get_local_vars(frameId2);
+                                result = AbstractDebugControl::enumFilter(l, varName);
+                                break;
+                            }
+                            break;
+
+                        case 'debug':
+                            string varName = shift cmd;
+                            switch (shift cmd) {
+                            case 'get':
+                                if (varName == refName) {
+                                    switch (varName) {
+                                    case 'flow':
+                                        result = encodeValue(varName, ctxCT{varName}, flowStrings);
+                                        break;
+
+                                    case 'dismiss':
+                                        result = encodeValue(varName, ctxCT{varName}, boolStrings);
+                                        break;
+
+                                    case 'result':
+                                        result = AbstractDebugControl::serialize(ctxCT{varName});
+                                        break;
+                                    }
+                                } else {
+                                    switch (varName) {
+                                    case 'frame':
+                                        result = ctxCT.frameId;
+                                        break;
+                                    case 'event':
+                                        result = ctx.intrInfo;
+                                        break;
+                                    }
+                                }
+                                break;
+                            case 'set':
+                                if (varName == refName) {
+                                    switch (varName) {
+                                    case 'flow':
+                                        ctxCT{varName} = resolveValue(varName, string(AbstractDebugControl::unserialize(rd.value)), flowStrings, ctxCT{rd.name});
+                                        break;
+
+                                    case 'dismiss':
+                                        any v = AbstractDebugControl::unserialize(rd.value);
+                                        ctxCT{varName} = v.typeCode() == NT_BOOLEAN ? v : resolveValue(varName, string(v), boolStrings, ctxCT{rd.name});
+                                        break;
+
+                                    case 'result':
+                                        ctxCT{varName} = AbstractDebugControl::unserialize(rd.value);
+                                        break;
+                                    }
+                                } else {
+                                    any v = AbstractDebugControl::unserialize(rd.value);
+                                    switch (varName) {
+                                    case 'frame':
+                                        if (v <= 0) {
+                                            ctxCT.frameId = 0;
+                                        } else {
+                                            ctxCT.frameId = int(v);
+                                        }
+                                        break;
+                                    }
+                                }
+                                break;
+                            case 'list':
+                                list l  = list('frame', 'event');
+                                if (refName) {
+                                    l += refName;
+                                }
+                                result = AbstractDebugControl::enumFilter(l, varName);
+                                break;
+                            }
+                            break;
+
+                        case 'stack':
+                            list stack = adjustStack(get_thread_call_stack(), ctx);
+                            if ((rd.frameid ?? ctxCT.frameId) < stack.size()) {
+                                stack[rd.frameid ?? ctxCT.frameId].current = True;
+                            }
+                            result = stack;
+                            break;
+
+                        case 'breakpoint':
+                            break;
+
+                        case 'source':
+                            list stack = adjustStack(get_thread_call_stack(), ctx);
+                            int frame = rd.frameid ?? ctxCT.frameId;
+                            if (frame < stack.size()) {
+                                hash h.name = stack[frame].file;
+                                int n = stack[frame].line - (rd.linesbefore ?? 3);
+                                if (n < 1) {
+                                    n = 1;
+                                }
+                                h.line = n;
+                                n = stack[frame].line + (rd.linesafter ?? 3);
+                                if (n < h.line) {
+                                    h.line = n;
+                                }
+                                h.count = n - h.line + 1;
+                                result = getSourceCode(pgm, 'file', h).('code', 'startline') + ('currentline': stack[frame].line);
+                            }
+                            break;
+                        }
+
+                        if (exists result) {
+                            sd.type = 'response';
+                        }
+
+                    } catch (hash<ExceptionInfo> ex) {
+                        sd.type = 'error';
+                        result.err = ex.err;
+                        result.desc = ex.desc;
+                        if (showFullException)
+                            result.ex = ex;
+                    }
+                    if (exists result) {
+                        sd.tid = tid;
+                        sd.stamp = now_us();
+                        sd.cmd = rd.cmd;
+                        sd.uid = rd.uid;
+                        sd.result = result;
+                        try {
+                            sendDataImpl(cx, sd);
+                        }
+                        catch (hash<ExceptionInfo> ex) {
+                            break;
+                        }
+                    }
+                }
+            }
+            if (exists except) {
+                remove ctx.intrInfo.exception;
+            }
+            {
+                rwlThread.writeLock();
+                on_exit rwlThread.writeUnlock();
+                remove ctxThread{tid};
+            }
+            # notify program is running again
+            hash sd = (
+                'type': 'event',
+                'cmd': 'run',
+                'pgmid': ctx.pgmId,
+                'tid': tid,
+                'stamp': now_us(),
+                'runstate': encodeValue('runState', runState, runStateStrings),
+            );
+            try {
+                broadcastDataImpl(sd);
+            }
+            catch (hash<ExceptionInfo> ex) {
+            }
+        }
+
+        onAttach(ProgramControl pgm, reference rs) {
+            handleInterrupt("attach", pgm, \rs);
+        }
+
+        onDetach(ProgramControl pgm, reference rs) {
+            handleInterrupt("detach", pgm, \rs);
+        }
+
+        onStep(ProgramControl pgm, int blockStatementId, *int statementId, *int breakpointId, reference flow, reference rs) {
+            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "flow", \flow, breakpointId);
+        }
+
+        # backward compatability only when executed with <=0.8.13.2
+        onStep(ProgramControl pgm, int blockStatementId, *int statementId, reference flow, reference rs) {
+            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "flow", \flow);
+        }
+
+        onFunctionEnter(ProgramControl pgm, int statementId, reference rs) {
+            handleInterrupt('funcEnter', pgm, \rs, statementId);
+        }
+
+        onFunctionExit(ProgramControl pgm, int statementId, reference result, reference rs) {
+            handleInterrupt('funcExit', pgm, \rs, statementId, "result", \result);
+        }
+
+        onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference rs) {
+            handleInterrupt('exception', pgm, \rs, statementId, "dismiss", \dismiss, NOTHING, ex);
+        }
+
+        onExit(ProgramControl pgm, int statementId, reference result, reference rs) {
+            handleInterrupt('exit', pgm, \rs, statementId, "result", \result);
+        }
+    }
+}

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -53,6 +53,7 @@
 #define DBI_CAP_EVENTS                   (1 << 14) //!< supports DBI events
 #define DBI_CAP_HAS_DESCRIBE             (1 << 15) //!< supports the describe API
 #define DBI_CAP_HAS_ARRAY_BIND           (1 << 16) //!< supports binding arrays by value for bulk DML operations
+#define DBI_CAP_HAS_RESULTSET_OUTPUT     (1 << 17) //!< supports the "resultset" placeholder buffer specification
 
 #define BN_PLACEHOLDER  0
 #define BN_VALUE        1
@@ -93,8 +94,9 @@
 #define QDBI_METHOD_STMT_DESCRIBE            31
 #define QDBI_METHOD_DESCRIBE                 32
 #define QDBI_METHOD_STMT_FREE                33
+#define QDBI_METHOD_STMT_EXEC_DESCRIBE         34
 
-#define QDBI_VALID_CODES 33
+#define QDBI_VALID_CODES 34
 
 /* DBI EVENT Types
    all DBI events must have the following keys:
@@ -331,7 +333,7 @@ public:
    DLLEXPORT void add(int code, q_dbi_stmt_prepare_raw_t method);
    // covers bind, bind_placeholders, bind_values
    DLLEXPORT void add(int code, q_dbi_stmt_bind_t method);
-   // covers exec, close, affected_rows, and define
+   // covers exec, close, affected_rows, define, and exec_describe
    DLLEXPORT void add(int code, q_dbi_stmt_exec_t method);
    // covers fetch_row, get_output, and get_output_rows
    DLLEXPORT void add(int code, q_dbi_stmt_fetch_row_t method);

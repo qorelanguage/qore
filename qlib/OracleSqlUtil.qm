@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
 
-/*  OracleSqlUtil.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+/*  OracleSqlUtil.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,11 +22,11 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+# this module requires Qore 0.8.13 or better
+%requires qore >= 0.8.13
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.0
+%requires SqlUtil >= 1.4.1
 
 # requires the Util module
 %requires Util >= 1.0
@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.2.3";
+    version = "1.2.5";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -69,7 +69,7 @@ module OracleSqlUtil {
 
     All the public symbols in the module are defined in the OracleSqlUtil namespace
 
-    @note This module requires the <a href="http://qore.org/qore-modules/14-oracle-module">oracle</a> binary module for communication with Oracle databases
+    @note This module requires the <a href="https://github.com/qorelanguage/module-oracle">oracle</a> binary module for communication with Oracle databases
 
     @section ora_sql_operations SQL Operations on Oracle
 
@@ -187,7 +187,7 @@ my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.t
     The \c "materialized_views" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
     @code{.py}
-my hash $schema = (
+hash schema = (
     "driver": (
         "oracle": (
             "materialized_views": (
@@ -213,7 +213,7 @@ my hash $schema = (
     The \c "packages" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
     @code{.py}
-my hash $schema = (
+hash schema = (
     "driver": (
         "oracle": (
             "packages": (
@@ -239,7 +239,7 @@ MYSTATERROR constant order_status.orderstatus%type := 'E';
     The \c "types" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
     @code{.py}
-my hash $schema = (
+hash schema = (
     "driver": (
         "oracle": (
             "types": (
@@ -255,8 +255,17 @@ my hash $schema = (
 
     @section ora_relnotes Release Notes
 
+    @subsection v125 OracleSqlUtil v1.2.5
+    - worked around an Oracle bug in materialized view creation where when the schema user is missing the <tt>CREATE MATERIALIZED VIEW</tt> grant the table backing the view is created but the materialized view itself is not created causing future creation actions to fail (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
+
+    @subsection v124 OracleSqlUtil v1.2.4
+    - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
+    - implemented support for chained synonyms (<a href="https://github.com/qorelanguage/qore/issues/2408">issue 2408</a>)
+    - allow to use DBA_* views instead of ALL_* if possible (<a href="https://github.com/qorelanguage/qore/issues/2418">issue 2418</a>)
+
     @subsection v123 OracleSqlUtil v1.2.3
     - fixed a bug in \c character_semantics for standalone column (<a href="https://github.com/qorelanguage/qore/issues/1688">issue 1688</a>)
+    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
 
     @subsection v122 OracleSqlUtil v1.2.2
     - fixed a bug in the \a force option (i.e. cascade) for dropping types (<a href="https://github.com/qorelanguage/qore/issues/1683">issue 1683</a>)
@@ -530,7 +539,7 @@ my string $str = $col.getRenameSql($t, "new_name");
         #! returns the OracleColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -621,7 +630,7 @@ my any $v = $c.name;
         #! returns the OracleColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
-my any $v = $c.name;
+auto v = c.name;
             @endcode
 
             @param k the name of the key to access
@@ -1173,7 +1182,7 @@ my any $v = $c.name;
             return new OracleSequence(name, start, increment, end);
         }
 
-        private getSchemaName(reference name, reference schema) {
+        private getSchemaName(reference<string> name, reference<string> schema) {
             # see if there is a schema in the name
             *string sstr = (name =~ x/^(\w+)\.\w+/)[0];
             if (sstr) {
@@ -1298,6 +1307,9 @@ my any $v = $c.name;
             if (tl) l += tl;
 
             # create materialized views
+            if (!opt.error_callback) {
+                opt.error_callback = \oracleErrorCallback();
+            }
             tl = alignCodeUnlocked("materialized_view", schema_hash, \getMaterializedView(), \makeMaterializedViewFromDescription(), opt, Type::Hash);
             if (tl) l += tl;
 
@@ -1367,7 +1379,7 @@ my any $v = $c.name;
             return src;
         }
 
-        private checkSource(string type, string name, reference src) {
+        private checkSource(string type, string name, reference<string> src) {
             # remove whitespace from the beginning and end of the string
             trim src;
 
@@ -1661,7 +1673,16 @@ my any $v = $c.name;
             }
         }
 
-    }
+        private oracleErrorCallback(int ac, string type, string name, *string table, *string new_name, *string info, string sql, hash<ExceptionInfo> ex) {
+            # issue #2643: if there is an ORA-01031 "insufficient privileges" error creating a materialized view,
+            # try to drop any table possibly created due to an Oracle bug
+            if (ac == AC_Create && type == "materialized_view" && ex.arg.alterr == "OCI-01031") {
+                # try to drop any table created to back the materialized view, ignoring ORA-00942
+                # "table or view does not exist" errors but rethrowing all others
+                ds.exec("begin execute immediate 'drop table " + name + "'; exception when others then if sqlcode != -942 then raise; end if; end;", name);
+            }
+        }
+   }
 
     #! represents an Oracle table
     /** this is the specialization of SqlUtil::AbstractTable
@@ -1825,7 +1846,7 @@ my any $v = $c.name;
             #! where operator specializations for Oracle
             const OracleOpMap = DefaultOpMap + (
                 OP_IN: (
-                    "code": string sub (object t, string cn, softlist arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (object t, string cn, softlist arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
 %ifndef NO_ORACLE
                         # Qorus bug #989 SqlUtil: oracle op_in can fail in large amount of input elements
                         # There is no support for CLOBs in WHERE clause in Oracle at all.
@@ -1882,14 +1903,13 @@ my any $v = $c.name;
                             return cn + " in (" + (map "select column_value from table(%v)", xrange(1,count)).join(" union all ") + ")";
                         else
                             return "1 != 1";
-%endif
-%ifdef NO_ORACLE
+%else
                         throw "MISSING-ORACLE-DRIVER", "op_in requires oracle driver";
 %endif
                     },
                 ),
                 OP_SUBSTR: (
-                    "code": string sub (object t, string cn, any arg, reference args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
                         args += arg[0]; # start
                         if (!exists arg[1]) {
                             args += arg[2]; # text
@@ -1903,7 +1923,7 @@ my any $v = $c.name;
             );
 
             #! column operator specializations for Oracle
-            const OracleCopMap = DefaultCopMap + (
+            const OracleCopMap = (
                 COP_CAST: (
                     "code": string sub (string cve, list args) {
                         string name = QoreTypeMap{args[0]} ?? args[0];
@@ -1935,41 +1955,30 @@ my any $v = $c.name;
                         return sprintf("substr(%s,%d,%d)", cve, args[0], args[1]);
                     },
                 ),
-                COP_OVER: (
-                    "argcolumn": True,
-                    "argoptional": True,
-                    "code": string sub (*string cve, *string arg) {
-                        string sql = cve + " over (";
-                        if (arg)
-                            sql += sprintf("partition by %s", arg);
-                        sql += ")";
-                        return sql;
-                    },
-                ),
                 COP_YEAR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY')", arg1);
                     }
                 ),
                 COP_YEAR_MONTH: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM')", arg1);
                     }
                 ),
                 COP_YEAR_DAY: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM-DD')", arg1);
                     }
                 ),
                 COP_YEAR_HOUR: (
-                    "code": string sub (string arg1, any arg) {
+                    "code": string sub (string arg1, auto arg) {
                         return sprintf("to_char(%s, 'YYYY-MM-DD HH24')", arg1);
                     }
                 ),
                 COP_SEQ: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("%s.nextval", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -1981,7 +1990,7 @@ my any $v = $c.name;
                 COP_SEQ_CURRVAL: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
                         string sql = sprintf("%s.currval", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -1990,6 +1999,29 @@ my any $v = $c.name;
                         return sql;
                     }
                 ),
+                COP_TRUNC_DATE: (
+                    "code": string sub(string arg1, auto arg) {
+                        if (!OracleTruncDate.hasKey(arg)) {
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %y: allowed: %y", arg, OracleTruncDate.keys());
+                        }
+                        # seconds are not part of TRUNC() in oracle
+                        if (exists OracleTruncDate{arg}) {
+                            return sprintf("trunc(%s, %s)", arg1, OracleTruncDate{arg});
+                        }
+                        # for timestamps
+                        return sprintf("cast (%s as date)", arg1);
+                    }
+                )
+                );
+
+            #! Map @ref SqlUtil::cop_trunc_date() constants to Oracle internal masks
+            const OracleTruncDate = (
+                    DT_YEAR     : "'YYYY'",
+                    DT_MONTH    : "'MM'",
+                    DT_DAY      : "'DD'",
+                    DT_HOUR     : "'HH24'",
+                    DT_MINUTE   : "'MI'",
+                    DT_SECOND   : NOTHING,
                 );
 
             #! a hash of default value operator descriptions for Oracle
@@ -2057,6 +2089,27 @@ my any $v = $c.name;
 
             # helper flag to indicate if is the OracleTable real table or a view
             bool m_isView = False;
+
+            # oraclesqlutil: allow to use DBA_* views instead of ALL_* if possible #2418
+            # An internal cache to find the highest priority available
+            # system dictionary object. Priority: DBA > ALL
+            hash m_sys_views = (
+                    "dba_col_comments"      : "all_col_comments",
+                    "dba_cons_columns"      : "all_cons_columns",
+                    "dba_constraints"       : "all_constraints",
+                    "dba_db_links"          : "all_db_links",
+                    "dba_ind_columns"       : "all_ind_columns",
+                    "dba_ind_expressions"   : "all_ind_expressions",
+                    "dba_indexes"           : "all_indexes",
+                    "dba_objects"           : "all_objects",
+                    "dba_sequences"         : "all_sequences",
+                    "dba_synonyms"          : "all_synonyms",
+                    "dba_tab_columns"       : "all_tab_columns",
+                    "dba_tab_comments"      : "all_tab_comments",
+                    "dba_tables"            : "all_tables",
+                    "dba_triggers"          : "all_triggers",
+                    "dba_views"             : "all_views",
+                );
         }
 
         constructor(AbstractDatasource nds, string nname, *hash opts) : AbstractTable(nds, nname, opts) {
@@ -2085,13 +2138,42 @@ my any $v = $c.name;
                 throw "ORACLE-DRIVER-ERROR", sprintf("OracleSqlUtil requires oracle module 3.0+ to query system catalogs since LONG support was added in oracle module version 3.0; current module version: %s; upgrade your oracle module to at least 3.0 to use OracleSqlUtil", get_module_hash().oracle.version);
 
             ora_major = (nds.getServerVersion() =~ x/([0-9]+)/)[0].toInt();
+
+%ifndef NO_ORACLE
+            # validate presence of DBA_* views for this connection/user
+            hash dba_in = bindOracleCollection("SYS.ODCIVARCHAR2LIST", map $1.upr(), m_sys_views.keys());
+            hash dba_sys = nds.select("select /* OracleSqlUtil::OracleTable::constructor */
+                                            object_name
+                                        from all_objects
+                                        where owner = %v
+                                            and object_name in (select column_value from table(%v))
+                                            and object_type = %v",
+                                      "SYS", dba_in, "VIEW");
+            context (dba_sys) {
+                string n = %object_name.lwr();
+                m_sys_views{n} = n;
+            }
+%endif
+%ifdef NO_ORACLE
+            throw "MISSING-ORACLE-DRIVER", "system catalogue/dictionary access requires oracle driver";
+%endif
+        }
+
+        # oraclesqlutil: allow to use DBA_* views instead of ALL_* if possible #2418
+        # get the most appropriate system catalogue/dictinary view available
+        private string systemView(string name) {
+            name = name.lwr();
+            if (!m_sys_views.hasKey(name)) {
+                throw "TABLE-ERROR", sprintf("Unknown system view %s, known: %y", name, m_sys_views.keys());
+            }
+            return m_sys_views{name};
         }
 
         private bool checkExistenceImpl() {
             try {
                 setTableInfoIntern();
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "TABLE-ERROR")
                     return False;
                 rethrow;
@@ -2109,7 +2191,7 @@ my any $v = $c.name;
 
             # get any comment
             if (!m_isView) {
-                any cm = ds.selectRow("select * from all_tab_comments" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr()).comments;
+                auto cm = ds.selectRow("select * from " + systemView("dba_tab_comments") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr()).comments;
                 comment = cm ? cm : NOTHING;
             }
 
@@ -2128,11 +2210,11 @@ my any $v = $c.name;
 
         private hash setSchemaTable() {
             # get the table information if possible
-            *hash row = ds.selectRow("select * from all_tables" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
+            *hash row = ds.selectRow("select * from " + systemView("dba_tables") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
             if (row)
                 return row;
 
-            row = ds.selectRow("select * from all_views" + (dblink ? "@" + dblink : "") + " where owner = %v and view_name = %v", schema.upr(), name.upr());
+            row = ds.selectRow("select * from " + systemView("dba_views") + (dblink ? "@" + dblink : "") + " where owner = %v and view_name = %v", schema.upr(), name.upr());
             if (row) {
                 m_isView = True;
                 return row;
@@ -2142,12 +2224,82 @@ my any $v = $c.name;
         }
 
         private setDblinkSchema() {
-            *hash dblr = ds.selectRow("select * from all_db_links where owner in ('PUBLIC', %v) and db_link = %v and rownum = 1", ds.getUserName().upr(), dblink);
+            *hash dblr = ds.selectRow("select * from " + systemView("dba_db_links") + " where owner in ('PUBLIC', %v) and db_link = %v and rownum = 1", ds.getUserName().upr(), dblink);
             if (!dblr)
                 throw "TABLE-ERROR", sprintf("dblink %y is unknown", dblink);
             schema = dblr.username;
             if (!native_case)
                 schema = schema.lwr();
+        }
+
+        # Oracle has supprt for unlimitted synonym loops. There
+        # can be mo relevels of synonyms before the real object
+        # is listed.
+        private *hash resolveSynonym(string s_owner, string s_name) {
+            *hash ret;
+
+            # dbms_utility.name_resolve handled some Oracle EBS
+            # cryptic aliases and view-hideouts out of the box.
+            # select(), no exec(), is used here for reason:
+            # we don't want to grab the transaction lock here.
+            try {
+                hash plsql = ds.select("declare
+                                        o_owner varchar2(30);
+                                        o_table varchar2(30);
+                                        o_db_link varchar2(30);
+                                        o_tmp1 varchar2(30);
+                                        o_tmp2 number;
+                                        o_tmp3 number;
+                                    begin
+                                    dbms_utility.name_resolve(%v, 0, o_owner, o_table, o_db_link, o_tmp1, o_tmp2, o_tmp3);
+                                    :owner := o_owner;
+                                    :table := o_table;
+                                    :link := o_db_link;
+                                    end;",
+                                    sprintf("%s.%s", s_owner.upr(), s_name.upr()),
+                                    Type::String, Type::String, Type::String
+                            );
+                # simulate resultset from all_synonyms output
+                return ("owner" : s_owner,
+                        "synonym_name" : s_name,
+                        "table_owner" : plsql.owner,
+                        "table_name" : plsql.table,
+                        "db_link" : plsql.link,
+                    );
+            }
+            catch (hash ex) {
+                # exceptions are silently ignored - session can miss
+                # dbms_utility grants, requested object can be missing etc.
+                #printf("resolveSynonym dbms_utility.name_resolve error: %s\n", get_exception_string(ex));
+            }
+
+            # fallback synonym resolution if there is no dbms_utility available
+            do {
+                # TODO/FIXME: db link handling
+                ret = ds.selectRow("select s.*, o.object_type
+                                    from " + systemView("dba_synonyms") + " s
+                                        join " + systemView("dba_objects") + " o
+                                        on
+                                        (
+                                                s.table_owner = o.owner
+                                            and s.table_name = o.object_name
+                                        )
+                                    where s.owner = %v
+                                        and s.synonym_name = %v
+                                        and o.object_type in ('TABLE', 'VIEW', 'SYNONYM')",
+                                s_owner.upr(), s_name.upr());
+
+                # ret can be NOTHING in case:
+                #  - no such synonym exists
+                #  - there is a broken synonym eg. pointing to non-existing object
+                if (!ret) break;
+
+                s_owner = ret.table_owner;
+                s_name = ret.table_name;
+            }
+            while (ret && ret.object_type == 'SYNONYM');
+
+            return ret;
         }
 
         private hash setTable() {
@@ -2167,10 +2319,10 @@ my any $v = $c.name;
 
             bool pub = False;
             # see if there is a user synonym with this name
-            row = ds.selectRow("select * from user_synonyms where synonym_name = %v", name.upr());
+            row = resolveSynonym(schema, name);
             if (!row) {
                 # see if there is a public synonym with this name
-                row = ds.selectRow("select * from all_synonyms where owner = 'PUBLIC' and synonym_name = %v", name.upr());
+                row = resolveSynonym("PUBLIC", name);
                 if (!row)
                     throw "TABLE-ERROR", sprintf("table %y or synonym %y does not exist or is not accessible to this user (%s)", name, name, getDBString());
                 pub = True;
@@ -2200,11 +2352,11 @@ my any $v = $c.name;
             }
 
             # get the table information if possible
-            row = ds.selectRow("select * from all_tables" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
+            row = ds.selectRow("select * from " + systemView("dba_tables") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
             if (row)
                 return row;
 
-            row = ds.selectRow("select * from all_views" + (dblink ? "@" + dblink : "") + " where owner = %v and view_name = %v", schema.upr(), name.upr());
+            row = ds.selectRow("select * from " + systemView("dba_views") + (dblink ? "@" + dblink : "") + " where owner = %v and view_name = %v", schema.upr(), name.upr());
             if (row) {
                 m_isView = True;
                 return row;
@@ -2256,7 +2408,7 @@ my any $v = $c.name;
             return OracleSelectOptions;
         }
 
-        private getSelectWhereSqlUnlocked(reference sql, reference args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
+        private getSelectWhereSqlUnlocked(reference<string> sql, reference<list> args, *hash qh, *hash jch, bool join = False, *hash ch, *hash psch) {
             AbstractTable::getSelectWhereSqlUnlocked(\sql, \args, qh, jch, join, ch, psch);
             # Oracle 12c+ supports limit (fetch) and offset
             if (ora_major >= 12)
@@ -2277,7 +2429,7 @@ my any $v = $c.name;
             }
         }
 
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference sql, reference args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
             # Oracle 12c+ supports limit (fetch) and offset
             if (ora_major >= 12) {
                 doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
@@ -2307,7 +2459,7 @@ my any $v = $c.name;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference sql, reference args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
             if (!qh.limit)
                 return;
 
@@ -2328,13 +2480,13 @@ my any $v = $c.name;
                 setTableInfoIntern();
 
             # get column descriptions
-            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, data_default, char_length, char_used, comments from all_tab_columns" + (dblink ? "@" + dblink : "") + " col, all_col_comments" + (dblink ? "@" + dblink : "") + " com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
+            *hash qh = ds.select("select col.column_name, data_type, data_length, data_precision, data_scale, nullable, data_default, char_length, char_used, comments from " + systemView("dba_tab_columns") + (dblink ? "@" + dblink : "") + " col, " + systemView("dba_col_comments") + (dblink ? "@" + dblink : "") + " com where col.owner = %v and col.table_name = %v and com.owner = col.owner and com.table_name = col.table_name and com.column_name = col.column_name order by column_id", schema.upr(), name.upr());
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y.%y in %y", schema, name, dsdesc);
 
             # now we have to find unvalidated but enabled not null constraints - because these cause the column to appear to be "nullable" when it really isn't
             # also we can't filter by search_condition, because it's a LONG, otherwise we could make a left join above :(
-            *hash nnq = ds.select("select * from all_constraints" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and generated = 'GENERATED NAME' and constraint_type = 'C' and status = 'ENABLED' and validated != 'VALIDATED'", schema.upr(), name.upr());
+            *hash nnq = ds.select("select * from " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and generated = 'GENERATED NAME' and constraint_type = 'C' and status = 'ENABLED' and validated != 'VALIDATED'", schema.upr(), name.upr());
             hash cnh;
             context (nnq) {
                 *string cn = (%search_condition =~ x/"([^"]+)" IS NOT NULL$/)[0];
@@ -2405,7 +2557,7 @@ my any $v = $c.name;
             hash rv;
 
             # get primary key description
-            *hash qh = ds.select("select cons.constraint_name, cols.column_name, cols.position, cons.status, cons.index_name from all_constraints" + (dblink ? "@" + dblink : "") + " cons, all_cons_columns" + (dblink ? "@" + dblink : "") + " cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = cols.owner and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr());
+            *hash qh = ds.select("select cons.constraint_name, cols.column_name, cols.position, cons.status, cons.index_name from " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") + " cons, " + systemView("dba_cons_columns") + (dblink ? "@" + dblink : "") + " cols where cols.owner = %v and cols.table_name = %v and cons.constraint_type = 'P' and cons.owner = cols.owner and cons.constraint_name = cols.constraint_name order by cols.position", schema.upr(), name.upr());
             if (!qh.constraint_name)
                 return new OraclePrimaryKey();
 
@@ -2436,13 +2588,13 @@ my any $v = $c.name;
 
             # get index description
             *hash qh = ds.select("select i.index_name, index_type, uniqueness, tablespace_name, constraint_name
- from all_indexes" + (dblink ? "@" + dblink : "") + " i left join all_constraints" + (dblink ? "@" + dblink : "") + " c on (i.index_name = c.index_name and i.owner = c.owner and i.table_name = c.table_name)
+ from " + systemView("dba_indexes") + (dblink ? "@" + dblink : "") + " i left join " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") + " c on (i.index_name = c.index_name and i.owner = c.owner and i.table_name = c.table_name)
  where i.owner = %v and i.table_name = %v", schema.upr(), name.upr());
             if (qh.index_name) {
                 hash ih;
 
                 # get column info for all indexes in 1 query
-                *hash iqh = ds.select("select c.index_name, c.column_name, e.column_expression from all_ind_columns" + (dblink ? "@" + dblink : "") + " c left join all_ind_expressions" + (dblink ? "@" + dblink : "") + " e on (c.table_owner = e.index_owner and c.index_name = e.index_name and c.table_name = e.table_name) where c.table_owner = %v and c.table_name = %v order by c.index_name, c.column_position", schema.upr(), name.upr());
+                *hash iqh = ds.select("select c.index_name, c.column_name, e.column_expression from " + systemView("dba_ind_columns") + (dblink ? "@" + dblink : "") + " c left join " + systemView("dba_ind_expressions") + (dblink ? "@" + dblink : "") + " e on (c.table_owner = e.index_owner and c.index_name = e.index_name and c.table_name = e.table_name) where c.table_owner = %v and c.table_name = %v order by c.index_name, c.column_position", schema.upr(), name.upr());
                 foreach hash row in (iqh.contextIterator()) {
                     if (!native_case)
                         map row.$1 = row.$1.lwr(), ("index_name", "column_name", "column_expression"), row.$1;
@@ -2494,7 +2646,7 @@ my any $v = $c.name;
                         "enabled": row.status == "ENABLED",
                         );
                 }
-                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from all_constraints" + (dblink ? "@" + dblink : "") + " c, all_cons_columns" + (dblink ? "@" + dblink : "") + " cols1, all_cons_columns" + (dblink ? "@" + dblink : "") + " cols2 where c.owner = %v and c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position and cols1.owner = c.owner and cols2.owner = c.owner order by cols1.position", schema.upr(), name.upr());
+                qh = ds.select("select c.constraint_name, status, cols1.column_name source_column, cols1.position, cols2.table_name target_table, cols2.column_name target_column from " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") + " c, " + systemView("dba_cons_columns") + (dblink ? "@" + dblink : "") + " cols1, " + systemView("dba_cons_columns") + (dblink ? "@" + dblink : "") + " cols2 where c.owner = %v and c.table_name = %v and c.constraint_name = cols1.constraint_name and constraint_type = 'R' and c.r_constraint_name = cols2.constraint_name and cols1.position = cols2.position and cols1.owner = c.owner and cols2.owner = c.owner order by cols1.position", schema.upr(), name.upr());
                 foreach hash row in (qh.contextIterator()) {
                     if (!native_case) {
                         row.constraint_name = row.constraint_name.lwr();
@@ -2502,7 +2654,7 @@ my any $v = $c.name;
                         row.target_column = row.target_column.lwr();
                         row.target_table = row.target_table.lwr();
                     }
-                    reference c = \rv.(row.constraint_name);
+                    reference<hash> c = \rv.(row.constraint_name);
                     #if (!columns.hasKey(row.source_column))# && c.target.columns.(row.target_column)) {
                     #    printf("ERROR: %y.%y ->  %y.%y (%y): %y\n", name, row.source_column, row.target_table, row.target_column, row.constraint_name, columns.keys());
                     c.columns.(row.source_column) = columns{row.source_column};
@@ -2526,7 +2678,7 @@ my any $v = $c.name;
                 setTableInfoIntern();
 
             # get only user check constraints
-            *hash qh = ds.select("select constraint_name, search_condition, status from all_constraints" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and constraint_type = 'C' and generated != 'GENERATED NAME'", schema.upr(), name.upr());
+            *hash qh = ds.select("select constraint_name, search_condition, status from " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v and constraint_type = 'C' and generated != 'GENERATED NAME'", schema.upr(), name.upr());
             hash rv;
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
@@ -2537,12 +2689,12 @@ my any $v = $c.name;
             Constraints c(rv);
 
             # now get unique constraints
-            qh = ds.select("select c.constraint_name, status, cols.column_name, cols.position, status, c.index_name from all_constraints" + (dblink ? "@" + dblink : "") + " c, all_cons_columns cols where c.owner = %v and c.table_name = %v and c.constraint_name = cols.constraint_name and constraint_type = 'U' and cols.owner = c.owner and generated != 'GENERATED NAME' order by cols.position", schema.upr(), name.upr());
+            qh = ds.select("select c.constraint_name, status, cols.column_name, cols.position, status, c.index_name from " + systemView("dba_constraints") + (dblink ? "@" + dblink : "") + " c, " + systemView("dba_cons_columns") + (dblink ? "@" + dblink : "") + " cols where c.owner = %v and c.table_name = %v and c.constraint_name = cols.constraint_name and constraint_type = 'U' and cols.owner = c.owner and generated != 'GENERATED NAME' order by cols.position", schema.upr(), name.upr());
             delete rv;
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("constraint_name", "column_name");
-                reference ch = \rv.(row.constraint_name);
+                reference<OracleUniqueConstraint> ch = \rv.(row.constraint_name);
                 if (!ch) {
                     ch = new OracleUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
                     if (row.index_name)
@@ -2570,7 +2722,7 @@ my any $v = $c.name;
             hash rv;
 
             # get trigger description
-            *hash qh = ds.select("select * from all_triggers" + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
+            *hash qh = ds.select("select * from " + systemView("dba_triggers") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
             foreach hash row in (qh.contextIterator()) {
                 if (!native_case)
                     map row.$1 = row.$1.lwr(), ("trigger_name", "trigger_type", "triggering_event", "referencing_names");
@@ -2650,7 +2802,7 @@ my any $v = $c.name;
             try {
                 ds.vexec(sql, row.values());
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.desc =~ /ORA-00001/)
                     return False;
                 rethrow;
@@ -2691,7 +2843,7 @@ my any $v = $c.name;
         }
 
         #! returns the column operator map for this object
-        private hash getColumnOperatorMap() {
+        private hash getColumnOperatorMapImpl() {
             return OracleCopMap;
         }
 
@@ -2711,7 +2863,7 @@ my any $v = $c.name;
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
-        private *string getSqlValueImpl(any v) {
+        private *string getSqlValueImpl(auto v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
                 case NT_NUMBER:
@@ -2867,9 +3019,9 @@ my any $v = $c.name;
             return True;
         }
 
-        private *hash doReturningImpl(hash opt, reference sql, list args) {
+        private *hash doReturningImpl(hash opt, reference<string> sql, list args) {
             list l = ();
-            foreach any v in (opt.returning) {
+            foreach auto v in (opt.returning) {
                 hash rh;
                 switch (v.typeCode()) {
                     case NT_STRING: rh.key = v; break;

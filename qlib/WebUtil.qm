@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file WebUtil.qm Qore user module supprting web server operations
 
-/*  WebUtil.qm Copyright (C) 2013 - 2016 Qore Technologies, sro
+/*  WebUtil.qm Copyright (C) 2013 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.12
+# this module requires Qore 0.8.13 or better
+%requires qore >= 0.8.13
 
 # require type definitions everywhere
 %require-types
@@ -35,7 +35,7 @@
 %new-style
 
 module WebUtil {
-    version = "1.3";
+    version = "1.4.1";
     desc = "user module supporting web server operations";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -67,6 +67,12 @@ module WebUtil {
 
     @section webutil_relnotes Release Notes
 
+    @subsection webutil_v1_4.1 WebUtil v1.4.1
+    - made it possible for FileHandler subclasses to add headers to response (<a href="https://github.com/qorelanguage/qore/issues/2686">issue 2686</a>)
+
+    @subsection webutil_v1_4 WebUtil v1.4
+    - updated for complex types
+
     @subsection webutil_v1_3 WebUtil v1.3
     - updated @ref WebUtil::FileHandler::handleRequest() "FileHandler::handleRequest()" to allow for chunked sends
     - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
@@ -97,14 +103,17 @@ public namespace WebUtil {
             string ct;
             #! chunk size
             int cs;
+            #! response headers
+            *hash respHdr;
         }
 
         #! creates the object
-        constructor(HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile file, bool textflag, string content_type, int chunk_size) : HttpServer::AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
+        constructor(HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile file, bool textflag, string content_type, int chunk_size, *hash respHdr) : HttpServer::AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
             f = file;
             txt = textflag;
             ct = content_type;
             cs = chunk_size;
+            self.respHdr = respHdr;
         }
 
         #! returns the reponse headers
@@ -114,12 +123,12 @@ public namespace WebUtil {
                 "hdr": (
                     "Content-Type": ct,
                     "Transfer-Encoding": "chunked",
-                ),
+                ) + respHdr,
                 );
         }
 
         #! returns data to send
-        private any sendImpl() {
+        private auto sendImpl() {
             return txt ? f.read(cs, 1m) : f.readBinary(cs, 1m);
         }
     }
@@ -140,6 +149,7 @@ public namespace WebUtil {
         constructor(int po = DefaultProgramOptions) {
             # create Program
             p = new Program(po);
+            p.setScriptPath(sprintf("Qore::WebUtil::%s", self.className()));
             # ensure old style for embedded Programs
             if (!(po & PO_ALLOW_BARE_REFS))
                 p.disableParseOptions(PO_ALLOW_BARE_REFS);
@@ -176,7 +186,7 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
         */
         static string add(Qore::Program p, string fn, string name, string src) {
             # break down source into components
-            list l = ();
+            list<hash> l();
 
             int i = 0;
             while (src) {
@@ -216,7 +226,7 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             foreach hash h in (\l) {
                 switch (h.type) {
                     case "text": h.text =~ s/"/\"/g; src += h.text; break;
-                    case "exp": src += TextTemplateBase::getCode(bare_refs, "\";my any $tmp_TEMPLATE_%d=(%s);$rv_TEMPLATE_str+=(($tmp_TEMPLATE_%d.strp()||!exists $tmp_TEMPLATE_%d||$tmp_TEMPLATE_%d===NULL)?$tmp_TEMPLATE_%d.toString():sprintf(\"%%y\",$tmp_TEMPLATE_%d));$rv_TEMPLATE_str+=\"", vc, h.text, vc, vc, vc, vc, vc); ++vc; break;
+                    case "exp": src += TextTemplateBase::getCode(bare_refs, "\";my auto $tmp_TEMPLATE_%d=(%s);$rv_TEMPLATE_str+=(($tmp_TEMPLATE_%d.strp()||!exists $tmp_TEMPLATE_%d||$tmp_TEMPLATE_%d===NULL)?$tmp_TEMPLATE_%d.toString():sprintf(\"%%y\",$tmp_TEMPLATE_%d));$rv_TEMPLATE_str+=\"", vc, h.text, vc, vc, vc, vc, vc); ++vc; break;
                     case "stmt": src += "\";" + h.text + TextTemplateBase::getCode(bare_refs, "$rv_TEMPLATE_str+=\""); break;
                 }
             }
@@ -242,7 +252,7 @@ TextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
         }
 
         #! a helper method used in parsing
-        private static bool doBlock(string end, reference src, string type, reference i, reference l) {
+        private static bool doBlock(string end, reference<string> src, string type, reference<int> i, reference<list<hash>> l) {
             int j = src.find(end, i + 1);
             if (j == -1)
                 return True;
@@ -361,6 +371,7 @@ hash h = qft.render(ctx);
             if (mtime) {
                 delete p;
                 p = new Program(po);
+                p.setScriptPath(sprintf("Qore::WebUtil::%s", self.className()));
                 # ensure old style for embedded Programs
                 if (!(po & PO_ALLOW_BARE_REFS))
                     p.disableParseOptions(PO_ALLOW_BARE_REFS);
@@ -733,12 +744,15 @@ hash h = tm.render("html/index.qhtml", ctx);
         }
 
         #! this method calls handleRequestImpl() to service the request, if handleRequestImpl() returns @ref nothing, then it tries to automatically serve a matching template or files from the filesystem or serve the default resource if no resource can be matched
-        /** @param cx call context hash; this hash will have the following keys:
+        /** @param listener the listener handling the request
+            @param s the socket object for the connection
+            @param cx call context hash; this hash will have the following keys:
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
             - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
             - \c id: the unique HTTP connection ID
+            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
@@ -784,7 +798,7 @@ hash h = tm.render("html/index.qhtml", ctx);
                     return h;
 
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 return serverError(cx, ex);
             }
 
@@ -838,6 +852,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             return makeResponse(500, desc);
         }
 
+        #! tries to serve the request from the filesystem
         private *hash tryServeRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body) {
             *string path = cx.resource_path;
 
@@ -880,7 +895,7 @@ hash h = tm.render("html/index.qhtml", ctx);
                 f = new ReadOnlyFile(path);
                 sh = f.hstat();
             }
-            catch (hash ex) {
+            catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "READONLYFILE-OPEN-ERROR")
                     return;
                 rethrow;
@@ -892,26 +907,38 @@ hash h = tm.render("html/index.qhtml", ctx);
             string ct = get_mime_type_from_ext(path);
             bool txt = (ext =~ /^text\//) || (ext =~ /^application\/.*(json|xml|yaml|javascript|tex|tcl|troff|postscript)/);
 
-            return sh.size > chunked_threshold ? sendFileChunked(listener, s, cx, hdr, body, f, txt, ct) : sendFile(f, txt, ct);
+            *hash respHdr = getResponseHeadersForFile(path, cx, hdr);
+            return sh.size > chunked_threshold ? sendFileChunked(listener, s, cx, hdr, body, f, txt, ct, respHdr) : sendFile(f, txt, ct, respHdr);
         }
 
         #! must return a FileStreamRequest object to stream the requested file with chunked transfer encoding
-        private FileStreamRequest getFileStreamRequestImpl(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile f, bool txt, string ct) {
-            return new FileStreamRequest(listener, self, s, cx, hdr, body, f, txt, ct, chunk_size);
+        private FileStreamRequest getFileStreamRequestImpl(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile f, bool txt, string ct, *hash respHdr) {
+            return new FileStreamRequest(listener, self, s, cx, hdr, body, f, txt, ct, chunk_size, respHdr);
+        }
+
+        #! this method returns @ref nothing by default but can be subclassed to add headers to the response
+        /** this method is called before a file is sent to get additional headers to include in response; reimplement this method in subclasses to add response headers
+
+            @param path filepath
+            @param cx original request cx hash
+            @param hdr original request headers
+        */
+        private *hash getResponseHeadersForFile(string path, hash cx, hash hdr) {
+            return NOTHING;
         }
 
         #! returns a handler hash response with the file's data to be sent in a monolithic message
-        private hash sendFile(ReadOnlyFile f, bool txt, string ct) {
+        private hash sendFile(ReadOnlyFile f, bool txt, string ct, *hash respHdr) {
             return (
                 "code": 200,
                 "body": txt ? f.read(-1) : f.readBinary(-1),
-                "hdr": ("Content-Type": ct),
+                "hdr": ("Content-Type": ct) + respHdr,
                 );
         }
 
         #! returns a handler hash response with the file's data to be sent in a HTTP message with chunked transfer encoding
-        private hash sendFileChunked(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile f, bool txt, string ct) {
-            FileStreamRequest fsr = getFileStreamRequestImpl(listener, s, cx, hdr, body, f, txt, ct);
+        private hash sendFileChunked(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile f, bool txt, string ct, *hash respHdr) {
+            FileStreamRequest fsr = getFileStreamRequestImpl(listener, s, cx, hdr, body, f, txt, ct, respHdr);
             return fsr.handleRequest();
         }
 
@@ -934,6 +961,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
             - \c id: the unique HTTP connection ID
+            - \c ssl: @ref Qore::True "True" if the request was encrypted with HTTPS, @ref Qore::False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             - \c resource_path: the relative path without any query arguments and with the URL root stripped off (if the request was matched by the URL root, otherwise this will be the request path with any URI query arguments removed)
@@ -958,7 +986,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             - this method has the following additional keys in the \a cx hash: \c resource_path, \c url_root, and \c isregex
             - the default implementation simply returns @ref nothing all requests; reimplement this method in a subclass to provide the required functionality
         */
-        private *hash handleRequestImpl(reference cx, hash hdr, *data body) {
+        private *hash handleRequestImpl(reference<hash> cx, hash hdr, *data body) {
         }
     }
 }

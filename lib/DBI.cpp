@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 
 #include <qore/Qore.h>
 
-#include <qore/intern/qore_dbi_private.h>
+#include "qore/intern/qore_dbi_private.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -68,6 +68,7 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_EVENTS,                 "Events" },
   { DBI_CAP_HAS_DESCRIBE,           "HasDescribe" },
   { DBI_CAP_HAS_ARRAY_BIND,         "HasArrayBind" },
+  { DBI_CAP_HAS_RESULTSET_OUTPUT,   "HasResultsetOutput" },
 };
 
 #define NUM_DBI_CAPS (sizeof(dbi_cap_list) / sizeof(dbi_cap_hash))
@@ -170,7 +171,7 @@ void qore_dbi_method_list::add(int code, q_dbi_stmt_bind_t method) {
 
 // covers stmt exec, close, define, and affectedRows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_exec_t method) {
-   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS || code == QDBI_METHOD_STMT_FREE);
+   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS || code == QDBI_METHOD_STMT_FREE || code == QDBI_METHOD_STMT_EXEC_DESCRIBE);
    assert(priv->l.find(code) == priv->l.end());
    priv->l[code] = (void*)method;
 }
@@ -256,7 +257,9 @@ OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver
 
    tmp = true;
    val->ref();
-   val = QoreTypeInfo::acceptInputParam(ti, -1, "<dbi driver option>", val, xsink);
+   QoreValue qv(val);
+   QoreTypeInfo::acceptInputParam(ti, -1, "<dbi driver option>", qv, xsink);
+   val = qv.takeNode();
 }
 
 qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private& methods, int cps) {
@@ -339,6 +342,10 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
          case QDBI_METHOD_STMT_BIND_VALUES:
             assert(!f.stmt.bind_values);
             f.stmt.bind_values = (q_dbi_stmt_bind_t)(*i).second;
+            break;
+         case QDBI_METHOD_STMT_EXEC_DESCRIBE:
+            assert(!f.stmt.exec_describe);
+            f.stmt.exec_describe = (q_dbi_stmt_exec_t)(*i).second;
             break;
          case QDBI_METHOD_STMT_EXEC:
             assert(!f.stmt.exec);
@@ -565,8 +572,13 @@ void DBI_concat_numeric(QoreString* str, const AbstractQoreNode* v) {
    }
 
    qore_type_t t = v->getType();
-   if (t == NT_FLOAT || (t == NT_STRING && strchr((reinterpret_cast<const QoreStringNode*>(v))->getBuffer(), '.'))) {
+   if (t == NT_FLOAT || (t == NT_STRING && strchr((reinterpret_cast<const QoreStringNode*>(v))->c_str(), '.'))) {
+      size_t offset = str->size();
       str->sprintf("%g", v->getAsFloat());
+      // issue 1556: external modules that call setlocale() can change
+      // the decimal point character used here from '.' to ','
+      // only search the double added, QoreString::sprintf() concatenates
+      q_fix_decimal(str, offset);
       return;
    }
    else if (t == NT_NUMBER) {

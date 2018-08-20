@@ -7,7 +7,7 @@
 
   it should offer POSIX style command-line handling on any platform...
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -509,7 +509,7 @@ static void show_build_options(const char* arg) {
 }
 
 static void do_version(const char* arg) {
-   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2016 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
+   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2018 David Nichols\n", qore_target_os, qore_target_arch, qore_target_bits);
 
    printf("version %s", qore_version_string);
    FeatureList::iterator i = qoreFeatureList.begin();
@@ -898,7 +898,7 @@ int qore_main_intern(int argc, char* argv[], int other_po) {
       bool mod_errs = false;
 
       // set parse defines
-      qpgm->parseCmdLineDefines(defmap, xsink, wsink, warnings);
+      qpgm->parseCmdLineDefines(xsink, wsink, warnings, defmap);
 
       if (xsink.isException()) {
          rc = 2;

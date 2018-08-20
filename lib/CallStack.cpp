@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 */
 
 #include <qore/Qore.h>
+#include "qore/intern/QoreHashNodeIntern.h"
 
 // a read-write lock is used in an inverted fashion to provide thread-safe
 // access to call stacks: writing to each call stack is performed within
@@ -41,59 +42,38 @@ QoreRWLock *thread_stack_lock;
 QoreRWLock thread_stack_lock;
 #endif
 
-CallNode::CallNode(const char *f, int t, ClassObj o) : func(f), loc(RunTimeLocation), type(t), obj(o) {
-   // we do not reference the object here, because the object is already referenced by CodeContextHelper
-   // which is always used with this class
-   /*
-   QoreObject *qo = o.getObj();
-   if (qo) {
-      qo->ref();
-#ifdef DEBUG
-      printd(5, "CallNode::CallNode() pushing class=%p '%s' (name=%p) obj=%p\n", qo->getClass(), qo->getClass()->getName(), qo->getClass()->getName(), qo);
-#endif
-   }
-   */
+CallNode::CallNode(const char *f, int t, QoreObject* o, const qore_class_private* c) : func(f), loc(RunTimeLocation), type(t), obj(o), cls(c) {
 }
-
-/*
-void CallNode::objectDeref(ExceptionSink *xsink) {
-   QoreObject *qo = obj.getObj();
-   if (qo) {
-      printd(5, "CallNode::~CallNode() popping class=%s obj=%p\n", qo->getClass()->getName(), qo);
-      // deref object
-      qo->deref(xsink);
-   }
-}
-*/
 
 QoreHashNode* CallNode::getInfo() const {
-   QoreHashNode* h = new QoreHashNode;
-   // FIXME: add class name
-   QoreStringNode *str = new QoreStringNode;
-   if (obj) {
-      str->concat(obj.getClass()->name.c_str());
+   QoreHashNode* h = new QoreHashNode(hashdeclCallStackInfo, nullptr);
+   QoreStringNode* str = new QoreStringNode;
+   if (cls) {
+      str->concat(cls->name.c_str());
       str->concat("::");
    }
    str->concat(func);
 
-   h->setKeyValue("function", str, 0);
-   h->setKeyValue("line",     new QoreBigIntNode(loc.start_line), 0);
-   h->setKeyValue("endline",  new QoreBigIntNode(loc.end_line), 0);
-   h->setKeyValue("file",     new QoreStringNode(loc.file), 0);
-   h->setKeyValue("source",   loc.source ? new QoreStringNode(loc.source) : 0, 0);
-   h->setKeyValue("offset",   new QoreBigIntNode(loc.offset), 0);
-   h->setKeyValue("typecode", new QoreBigIntNode(type), 0);
+   qore_hash_private* ph = qore_hash_private::get(*h);
+
+   ph->setKeyValueIntern("function", str);
+   ph->setKeyValueIntern("line",     new QoreBigIntNode(loc.start_line));
+   ph->setKeyValueIntern("endline",  new QoreBigIntNode(loc.end_line));
+   ph->setKeyValueIntern("file",     new QoreStringNode(loc.file));
+   ph->setKeyValueIntern("source",   loc.source ? new QoreStringNode(loc.source) : 0);
+   ph->setKeyValueIntern("offset",   new QoreBigIntNode(loc.offset));
+   ph->setKeyValueIntern("typecode", new QoreBigIntNode(type));
    // CT_RETHROW is only aded manually
    switch (type) {
       case CT_USER:
-	 h->setKeyValue("type",  new QoreStringNode("user"), 0);
-	 break;
+         ph->setKeyValueIntern("type",  new QoreStringNode("user"));
+         break;
       case CT_BUILTIN:
-	 h->setKeyValue("type",  new QoreStringNode("builtin"), 0);
-	 break;
+         ph->setKeyValueIntern("type",  new QoreStringNode("builtin"));
+         break;
       case CT_NEWTHREAD:
-	 h->setKeyValue("type",  new QoreStringNode("new-thread"), 0);
-	 break;
+         ph->setKeyValueIntern("type",  new QoreStringNode("new-thread"));
+         break;
    }
    return h;
 }
@@ -122,17 +102,15 @@ void CallStack::push(CallNode *c) {
 
 void CallStack::pop(ExceptionSink *xsink) {
    QORE_TRACE("CallStack::pop()");
-   {
-      QoreAutoRWReadLocker l(thread_stack_lock);
-      tail = tail->prev;
-      if (tail)
-	 tail->next = 0;
-   }
+   QoreAutoRWReadLocker l(thread_stack_lock);
+   tail = tail->prev;
+   if (tail)
+      tail->next = 0;
 }
 
-QoreListNode *CallStack::getCallStack() const {
-   QoreListNode *l = new QoreListNode;
-   CallNode *c = tail;
+QoreListNode* CallStack::getCallStack() const {
+   QoreListNode* l = new QoreListNode(hashdeclCallStackInfo->getTypeInfo());
+   CallNode* c = tail;
    while (c) {
       l->push(c->getInfo());
       c = c->prev;
@@ -140,8 +118,9 @@ QoreListNode *CallStack::getCallStack() const {
    return l;
 }
 
+/*
 void CallStack::substituteObjectIfEqual(QoreObject *o) {
-   if (!tail->obj.getObj() && tail->prev && tail->prev->obj.getObj() == o) {
+   if (!tail->obj && tail->prev && tail->prev->obj == o) {
       tail->obj = o;
       o->ref();
    }
@@ -150,11 +129,12 @@ void CallStack::substituteObjectIfEqual(QoreObject *o) {
 QoreObject *CallStack::getStackObject() const {
    if (!tail)
       return 0;
-   return tail->obj.getObj();
+   return tail->obj;
 }
 
 QoreObject *CallStack::substituteObject(QoreObject *o) {
-   QoreObject *ro = tail->obj.getObj();
+   QoreObject *ro = tail->obj);
    tail->obj = o;
    return ro;
 }
+*/

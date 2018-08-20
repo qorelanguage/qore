@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 */
 
 #include <qore/Qore.h>
-#include <qore/intern/qore_date_private.h>
+#include "qore/intern/qore_date_private.h"
 
 #include <sys/time.h>
 #include <errno.h>
@@ -364,14 +364,14 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
             us *= 10;
             us += *p - '0';
          }
-	 ++dlen;
-	 ++p;
+         ++dlen;
+         ++p;
       }
 
       // adjust to microseconds
       while (dlen < 6) {
-	 us *= 10;
-	 ++dlen;
+         us *= 10;
+         ++dlen;
       }
 
       if (!*p) {
@@ -408,17 +408,17 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
       int utc_h = *p - '0';
       ++p;
       if (isdigit(*p)) {
-	 utc_h = utc_h * 10 + (*p - '0');
-	 ++p;
+         utc_h = utc_h * 10 + (*p - '0');
+         ++p;
       }
 
       int offset = utc_h * 3600;
 
       if (*p) {
-	 if (*p == ':')
+         if (*p == ':')
             ++p;
 
-	 if (!isdigit(*p)) {
+         if (!isdigit(*p)) {
             if (xsink) {
                if (*p)
                   xsink->raiseException("INVALID-DATE", "cannot parse date/time string '%s'; encountered unknown char '%c' when parsing the UTC offset minutes", str, *p);
@@ -431,35 +431,35 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
             return;
          }
 
-	 int utc_m = *p - '0';
-	 ++p;
-	 if (isdigit(*p)) {
-	    utc_m = utc_m * 10 + (*p - '0');
-	    ++p;
-	 }
+         int utc_m = *p - '0';
+         ++p;
+         if (isdigit(*p)) {
+            utc_m = utc_m * 10 + (*p - '0');
+            ++p;
+         }
 
-	 offset += utc_m * 60;
+         offset += utc_m * 60;
 
-	 if (*p) {
-	    if (*p == ':')
+         if (*p) {
+            if (*p == ':')
                ++p;
 
-	    if (!isdigit(*p)) {
+            if (!isdigit(*p)) {
                // ignore any time zone passed
                n_zone = findCreateOffsetZone(offset * mult);
                set(n_zone, year, month, day, hour, minute, second, us);
                return;
             }
 
-	    int utc_s = *p - '0';
-	    ++p;
-	    if (isdigit(*p)) {
-	       utc_s = utc_s * 10 + (*p - '0');
-	       ++p;
-	    }
+            int utc_s = *p - '0';
+            ++p;
+            if (isdigit(*p)) {
+               utc_s = utc_s * 10 + (*p - '0');
+               ++p;
+            }
 
-	    offset += utc_s;
-	 }
+            offset += utc_s;
+         }
       }
 
       // ignore any time zone passed
@@ -609,6 +609,8 @@ void qore_relative_time::set(const QoreValue v) {
                break;
             }
             case NT_INT: {
+               // issue #2591: zero the value before adding
+               zero();
                addSecondsTo(reinterpret_cast<const QoreBigIntNode*>(v.v.n)->val, 0);
                break;
             }
@@ -674,11 +676,7 @@ void qore_relative_time::set(const char* str) {
 void concatOffset(int utcoffset, QoreString &str) {
    //printd(0, "concatOffset(%d)", utcoffset);
 
-   if (!utcoffset) {
-      str.concat('Z');
-      return;
-   }
-
+   // issue #2684 do not concatenate a "Z" with no offset, output +00:00
    str.concat(utcoffset < 0 ? '-' : '+');
    if (utcoffset < 0)
       utcoffset = -utcoffset;
@@ -856,14 +854,14 @@ void qore_date_private::format(QoreString &str, const char *fmt) const {
             str.trim_trailing('0');
             break;
          case 'z':
-	    str.sprintf("%s", i.zname);
+            str.sprintf("%s", i.zname);
             break;
-	    // add iso8601 UTC offset
-	 case 'Z':
-	    concatOffset(i.utcoffset, str);
-	    break;
+            // add iso8601 UTC offset
+         case 'Z':
+            concatOffset(i.utcoffset, str);
+            break;
          default:
-	    str.concat(*s);
+            str.concat(*s);
             break;
       }
       s++;
@@ -978,9 +976,9 @@ void qore_simple_tm2::getISOWeek(int &yr, int &week, int &wday) const {
       jan1 = qore_date_info::getDayOfWeek(yr, 1, 1);
       //printd(5, "qore_simple_tm2::getISOWeek() previous year=%d, start=%d, leap=%d\n", yr, jan1, qore_date_info::isLeapYear(yr));
       if ((jan1 == 4 && !qore_date_info::isLeapYear(yr)) || (jan1 == 3 && qore_date_info::isLeapYear(yr)))
-	 week = 53;
+         week = 53;
       else
-	 week = 52;
+         week = 52;
       return;
    }
    yr = year;
@@ -989,10 +987,10 @@ void qore_simple_tm2::getISOWeek(int &yr, int &week, int &wday) const {
    week = ((dn + offset) / 7) + 1;
    if (week == 53) {
       if ((jan1 == 4 && !qore_date_info::isLeapYear(yr)) || (jan1 == 3 && qore_date_info::isLeapYear(yr)))
-	 return;
+         return;
       else {
-	 ++yr;
-	 week = 1;
+         ++yr;
+         week = 1;
       }
    }
 }

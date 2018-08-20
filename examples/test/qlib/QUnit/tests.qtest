@@ -6,6 +6,8 @@
 %enable-all-warnings
 %require-types
 
+%disable-warning module-only
+
 %include ../../../../qlib/QUnit.qm
 
 %exec-class QUnitTest
@@ -36,8 +38,9 @@ public class EmptyTest inherits QUnit::Test {
 
 public class QUnitTest inherits QUnit::Test {
     constructor() : Test("QUnitTest", "1.0") {
-        addTestCase("Dependency injection tests", \testInjectedClass(), NOTHING);
-        addTestCase("Test empty test", \testEmptyTest(), NOTHING);
+        addTestCase("Dependency injection tests", \testInjectedClass());
+        addTestCase("Test empty test", \testEmptyTest());
+        addTestCase("misc test", \testMisc());
 
         set_return_value(main());
     }
@@ -45,6 +48,193 @@ public class QUnitTest inherits QUnit::Test {
     bool boolWrapper(callref f, softlist args) {
         call_function_args(f, args);
         return True;
+    }
+
+    testMisc() {
+        assertNeqSoft(1, 2);
+        assertNeq(1, "1");
+        assertRegex("x", "1x1");
+        assertNRegex("z", "1x1");
+        assertGt(2, 3);
+        assertGtSoft(2, "3");
+        assertGe(2, 3);
+        assertGeSoft(2, "3");
+        assertGe(2, 2);
+        assertGeSoft(2, "2");
+        assertLt(2, 1);
+        assertLtSoft(2, "1");
+        assertLe(2, 1);
+        assertLeSoft(2, "1");
+        assertLe(2, 2);
+        assertLeSoft(2, "2");
+        assertNothing(NOTHING);
+
+        # check that asserts fail correctly and check error messages
+        try {
+            assertRegex("x", "y");
+        }
+        catch (hash<ExceptionInfo> ex) {
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("Regular Expression Match", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertNRegex("x", "1x1");
+        }
+        catch (hash<ExceptionInfo> ex) {
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("Negative Regular Expression Match", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertNeqSoft(1, "1");
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("identical", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertNeq(1, "1");
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("identical", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertNeq(1, 1);
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("identical", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertGt(2, 2);
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("Expected Greater Than", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertGt(2, "3");
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("Expected Greater Than", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertGe(2, 3);
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("Expected Greater Than", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertGe(2, "3");
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("Expected Greater Than", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertLt(2, 2);
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("Expected Less Than", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertLt(2, "1");
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("Expected Less Than", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertLe(2, 1);
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("Expected Less Than Or Equal To", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        try {
+            assertLe(2, "1");
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            assertRegex("Expected Less Than Or Equal To", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        # check that asserts fail correctly and check error messages
+        try {
+            assertNothing(1);
+        }
+        catch (hash<ExceptionInfo> ex) {
+            #printf("%s: %s\n", ex.err, ex.desc);
+            assertEq("TEST-EXCEPTION", ex.err);
+            #assertRegex("Regular Expression Match", ex.desc);
+            # force the test that failed to pass
+            assertionOk();
+        }
+
+        {
+            list l1 = ("hello\nworld",);
+            list l2 = ("hello\nmars",);
+            try {
+                assertEq(l1, l2);
+            }
+            catch (hash<ExceptionInfo> ex) {
+                #printf("desc: %y\n", ex.desc);
+                assertTrue(ex.desc =~ /hello\\\\nworld/);
+                assertTrue(ex.desc =~ /hello\\\\nmars/);
+            }
+        }
     }
 
     testInjectedClass() {

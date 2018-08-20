@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,9 +33,11 @@
 
 #define _QORE_INTERN_RSECTION_H
 
-#include <qore/intern/qore_var_rwlock_priv.h>
+#include "qore/intern/qore_var_rwlock_priv.h"
 
+// forward references
 class qore_rsection_priv;
+
 class RNotifier {
 private:
    DLLLOCAL RNotifier(const RNotifier&);
@@ -82,8 +84,8 @@ typedef std::list<RNotifier*> n_list_t;
 class qore_rsection_priv : public qore_var_rwlock_priv {
 private:
    // not implemented, listed here to prevent implicit usage
-   DLLLOCAL qore_rsection_priv(const qore_rsection_priv&);
-   DLLLOCAL qore_rsection_priv& operator=(const qore_rsection_priv&);
+   qore_rsection_priv(const qore_rsection_priv&) = delete;
+   qore_rsection_priv& operator=(const qore_rsection_priv&) = delete;
 
 protected:
    // tid of thread holding the rsection lock
@@ -122,34 +124,8 @@ public:
       assert(list.empty());
    }
 
-   // does not block under any circumstances, returns -1 if the lock cannot be acquired and sets a notification
-   DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier* rn) {
-      assert(has_notify);
-
-      int tid = gettid();
-
-      AutoLocker al(l);
-      assert(write_tid != tid);
-
-      if (write_tid == -1) {
-         // if we already have the rsection, then return
-         if (rs_tid == tid)
-            return 0;
-
-         if (rs_tid == -1) {
-            // grab the read lock
-            ++readers;
-
-            // grab the rsection
-            rs_tid = tid;
-            return 0;
-         }
-      }
-
-      setNotificationIntern(rn);
-
-      return -1;
-   }
+   // does not block if there is an rsection conflict, returns -1 if the lock cannot be acquired and sets a notification
+   DLLLOCAL int tryRSectionLockNotifyWaitRead(RNotifier* rn);
 
    DLLLOCAL void upgradeReadToRSection(int tid = gettid()) {
       AutoLocker al(l);

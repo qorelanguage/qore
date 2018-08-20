@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="text/x-qore">
+    <sub-class-of type="text/plain"/>
+    <comment>Qore source file</comment>
+    <magic priority="50">
+      <match value="#!/usr/bin/env qore" type="string" offset="0:25"/>
+      <match value="qore" type="string" offset="0:25"/>
+      <match value="%requires " type="string" offset="0:500"/>
+      <match value="%include " type="string" offset="0:500"/>
+      <match value="%new-style" type="string" offset="0:500"/>
+      <match value="%exec-class" type="string" offset="0:500"/>
+      <match value="mode: qore" type="string" offset="0:50"/>
+    </magic>
+    <glob pattern="*.q*"/>
+  </mime-type>
+</mime-info>

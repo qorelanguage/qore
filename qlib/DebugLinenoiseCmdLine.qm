@@ -1,0 +1,188 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file DebugLinenoiseCmdLine.qm Debug common code
+
+/*  DebugLinenoiseCmdLine.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.13
+%requires DebugCmdLine
+%requires linenoise
+
+%require-types
+%enable-all-warnings
+%new-style
+%no-debugging
+
+module DebugLinenoiseCmdLine {
+    version = "0.1";
+    desc = "user module providing common Linenoise command line debug stuff";
+    author = "Tomas Mandys <tomas.mandys@qoretechnologies.org>";
+    url = "http://qoretechnologies.org";
+    license = "MIT";
+}
+
+/** @mainpage DebugLinenoiseCmdLine Module
+
+    @section debuglinenoisecmdlineintro Introduction to the DebugLinenoiseCmdLine Module
+
+    The %DebugLinenoiseCmdLine module provides <a href="https://github.com/antirez/linenoise">linenoise</a> command-line
+    editing/history support for %Qore debugging; it is dependent on the binary
+    <a href="https://github.com/qorelanguage/module-linenoise">linenoise</a> module.
+
+    @subsection dlcl_v0_1 v0.1
+    - the initial version of the DebugLinenoiseCmdLine module
+*/
+
+#! the DebugLinenoiseCmdLine namespace contains all the definitions in the DebugLinenoiseCmdLine module
+public namespace DebugLinenoiseCmdLine {
+    #! debug linenoise command line class
+    public class DebugLinenoiseCommandLine inherits DebugCommandLine {
+        public {
+            string ln_prompt = 'qdbg> ';
+            const defaultHistoryFileName = '.qdbg.history';
+            const defaultIndent = "  ";
+        }
+
+        #! Creates the object
+        constructor() {
+        }
+
+        #! Returns all commands from the subclass plus history commands added by this module
+        private hash<auto> getCommands() {
+            hash cmds = DebugCommandLine::getCommands();
+            cmds.'>' += (
+                'history': (
+                    '>': (
+                        'load': (
+                            'desc': 'load command line history from file, args: filename',
+                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                *string fn = shift args;
+                                if (exists fn) {
+                                    Linenoise::history_load(fn);
+                                }
+                            },
+                        ),
+                        'save': (
+                            'desc': 'save command line history to file, args: filename',
+                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                *string fn = shift args;
+                                if (exists fn) {
+                                    Linenoise::history_save(fn);
+                                }
+                            },
+                        ),
+
+                    ),
+                    'desc': 'load or save history to file. The history is implicitly loaded when program starting and saved when exiting. See command line parameters.',
+                ),
+                'quit': (
+                    'desc': 'quit debugger',
+                    'action': bool sub(DebugCommandLine dcl, softlist path, softlist args) {
+                        return True;
+                    },
+                ),
+
+            );
+            return cmds;
+        }
+
+        #! Sets up command-line handling with linenoise
+        public runCmdLine() {
+            # Linenoise::history_load('history.txt');
+            # Linenoise::history_set_max_len(256);
+            Linenoise::set_callback(\getLineCompletions());
+            string lastLine = '';
+            while (True) {
+                *string line = Linenoise::line(ln_prompt);
+                if (!exists line) {
+                    printfImpl("\n^C signal caught. Exiting.\n");
+                    break;
+                }
+                if (line != '') {
+                    if (line !~ /^ /) {
+                        Linenoise::history_add(line);
+                    }
+                    lastLine = line;
+                } else {
+                    line = lastLine;
+                }
+                try {
+                    if (!processCmdLine(line)) {
+                        break;
+                    }
+                } catch (hash<ExceptionInfo> ex) {
+                    printfImpl("%s: %s", ex.err, ex.desc);
+                }
+            }
+            if (historyFileName) {
+                try {
+                    #printfImpl("Linenoise::history_save(%y)\n", historyFileName);
+                    Linenoise::history_save(historyFileName);
+                } catch (hash ex) {
+                    printfImpl("Cannot save history to %y (%s)\n", historyFileName, ex.desc);
+                }
+            }
+        }
+
+        #! Initializes the history and command-line session
+        public init(hash opt) {
+            DebugCommandLine::init(opt);
+            if (!exists opt.history) {
+                # use file name in home dir
+                foreach string k in (('HOME', 'USERPROFILE')) {
+                    if (exists ENV{k}) {
+                        historyFileName = ENV{k} + '/' + defaultHistoryFileName;
+                        break;
+                    }
+                }
+            } else if (opt.history != '.') {
+                historyFileName = opt.history;
+            }
+            if (historyFileName) {
+                try {
+                    Linenoise::history_load(historyFileName);
+                } catch (hash ex) {
+                    printfImpl("Cannot load history from %y (%s)\n", historyFileName, ex.desc);
+                }
+            }
+            if (opt.session) {
+                try {
+                    loadSession(opt.session);
+                } catch (hash ex) {
+                    printfImpl("Cannot load seesion from %y (%s)\n", opt.session, ex.desc);
+                }
+            }
+        }
+
+        #! Outputs data to a linenoise-configured terminal
+        public printfImpl(string fmt) {
+            string outs = vsprintf(fmt, argv);
+            # linenoise terminal has somehow redefined CRLF so force \r (TODO: what is Qore line delimiter on Windows ?)
+            outs = replace(outs, "\n", "\r\n");
+            if (outs !~ /\n$/) {
+                outs += "\r\n";
+            }
+            stdout.print(outs);
+            # TODO: how refresh linenoise command line ?
+        }
+    }
+}
