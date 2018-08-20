@@ -60,8 +60,6 @@ public:
 
 DLLLOCAL QoreObject* get_method_object(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink);
 
-DLLLOCAL QoreHashNode* get_source_location(const QoreProgramLocation* loc);
-
 DLLEXPORT extern qore_classid_t CID_CLASS;
 DLLLOCAL extern QoreClass* QC_CLASS;
 

@@ -29,8 +29,6 @@
 */
 
 #include "qore/Qore.h"
-#include "qore/intern/QoreClassIntern.h"
-#include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/QC_AbstractClassMember.h"
 #include "qore/intern/QC_Class.h"
 
@@ -86,7 +84,7 @@ int AbstractClassMember::getModifiers() [flags=RET_VALUE_ONLY] {
         rc |= MC_STATIC;
     }
 
-    rc |= get_access(m->getAccess());
+    rc |= get_access(member_get_access(reinterpret_cast<const QoreExternalNormalMember*>(m->mem)));
 
     return rc;
 }
@@ -129,7 +127,7 @@ list<string> AbstractClassMember::getModifierList() [flags=RET_VALUE_ONLY] {
         rv->push(new QoreStringNode("static"), xsink);
     }
 
-    rv->push(new QoreStringNode(get_access_string(m->getAccess())), xsink);
+    rv->push(new QoreStringNode(get_access_string(member_get_access(reinterpret_cast<const QoreExternalNormalMember*>(m->mem)))), xsink);
 
     return rv.release();
 }
@@ -159,7 +157,7 @@ string AbstractClassMember::getAccessModifierString() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    return new QoreStringNode(get_access_string(m->getAccess()));
+    return new QoreStringNode(get_access_string(member_get_access(reinterpret_cast<const QoreExternalNormalMember*>(m->mem))));
 }
 
 //! returns @ref True if the class defining the member is a builtin class

@@ -173,40 +173,6 @@ QoreObject* find_variant(const QoreReflectionClass* c, const QoreStringNode* nam
     return find_variant(c, nname->c_str(), which, args, offset, exact, xsink);
 }
 
-QoreHashNode* get_source_location(const QoreProgramLocation* loc) {
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclSourceLocationInfo, nullptr), nullptr);
-    auto ph = qore_hash_private::get(**h);
-
-    if (!loc) {
-        loc = &loc_builtin;
-        ph->setKeyValueIntern("builtin", true);
-    }
-    else {
-        ph->setKeyValueIntern("builtin", false);
-    }
-
-    {
-        const char* file = loc->getFile();
-        if (file) {
-            ph->setKeyValueIntern("file", new QoreStringNode(file));
-        }
-    }
-
-    ph->setKeyValueIntern("line", loc->start_line);
-    ph->setKeyValueIntern("endline", loc->end_line);
-
-    {
-        const char* source = loc->getSource();
-        if (source) {
-            ph->setKeyValueIntern("source", new QoreStringNode(source));
-        }
-    }
-
-    ph->setKeyValueIntern("offset", loc->offset);
-
-    return h.release();
-}
-
 /** @defgroup access_constants Access Constants
     Constants giving access information
 

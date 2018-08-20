@@ -85,11 +85,15 @@ class UserMethod;
 class BCANode;
 class qore_method_private;
 class MethodFunctionBase;
-class QoreExternalMethodVariant;
-class QoreExternalStaticMethodVariant;
 class NamedScope;
 class ConstantList;
 class MethodVariantBase;
+
+class QoreExternalVariant;
+class QoreExternalMethodVariant;
+class QoreExternalNormalMember;
+class QoreExternalStaticMember;
+class QoreExternalProgramLocation;
 
 //! a method in a QoreClass
 /** methods can be implemented in the Qore language (user methods) or in C++ (builtin methods)
@@ -184,7 +188,7 @@ public:
     /** @note this method should only be used when the caller can guarantee that the object will not go out of scope during the call
 
         @since %Qore 0.8.12
-        */
+    */
     DLLEXPORT QoreValue execManaged(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
 
     DLLLOCAL QoreMethod(const QoreClass* p_class, MethodFunctionBase* n_func, bool n_static = false);
@@ -895,5 +899,105 @@ public:
    //! copies the object
    DLLEXPORT QoreBuiltinClass(const QoreBuiltinClass& old);
 };
+
+//! returns the method for a method variant or nullptr for a normal variant
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreMethod* variant_get_method(const QoreExternalVariant* v);
+
+//! returns the method for a method variant
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreMethod* variant_get_method(const QoreExternalMethodVariant* v);
+
+//! returns the class for a method variant or nullptr for a normal variant
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreClass* variant_get_class(const QoreExternalVariant* v);
+
+//! returns the class for a method variant
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreClass* variant_get_class(const QoreExternalMethodVariant* v);
+
+//! returns true if the variant is a method variant and is abstract
+/** @since %Qore 0.9
+*/
+DLLEXPORT bool variant_is_abstract(const QoreExternalVariant* v);
+
+//! returns true if the method variant is abstract
+/** @since %Qore 0.9
+*/
+DLLEXPORT bool variant_is_abstract(const QoreExternalMethodVariant* v);
+
+//! returns the signature for the variant
+/** @since %Qore 0.9
+*/
+DLLEXPORT const char* variant_get_signature_text(const QoreExternalVariant* v);
+
+//! returns the signature for the variant
+/** @since %Qore 0.9
+*/
+DLLEXPORT const char* variant_get_signature_text(const QoreExternalMethodVariant* v);
+
+//! returns the type info for the member
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreTypeInfo* member_get_type_info(const QoreExternalNormalMember* mem);
+
+//! returns the type info for the member
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreTypeInfo* member_get_type_info(const QoreExternalStaticMember* mem);
+
+//! returns the access info for the member
+/** @since %Qore 0.9
+*/
+DLLEXPORT ClassAccess member_get_access(const QoreExternalNormalMember* mem);
+
+//! returns the access info for the member
+/** @since %Qore 0.9
+*/
+DLLEXPORT ClassAccess member_get_access(const QoreExternalStaticMember* mem);
+
+//! evaluates the initialization expression for the member and returns the referenced value
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreValue member_get_default_value(const QoreExternalNormalMember* mem, ExceptionSink* xsink);
+
+//! evaluates the initialization expression for the member and returns the referenced value
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreValue member_get_default_value(const QoreExternalStaticMember* mem, ExceptionSink* xsink);
+
+//! returns the current value of the member; caller owns an reference returned
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreValue static_member_get_value(const QoreExternalStaticMember* mem);
+
+//! sets the value of the member
+/** @param mem the static member to set
+    @param the value to set
+
+    @return 0 = no error, -1 Qore-language exception raised
+
+    @since %Qore 0.9
+*/
+DLLEXPORT int static_member_set_value(const QoreExternalStaticMember* mem, const QoreValue val, ExceptionSink* xsink);
+
+//! returns the source location of the member's declaration
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreExternalProgramLocation* member_get_source_location(const QoreExternalNormalMember* mem);
+
+//! returns the source location of the member's declaration
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreExternalProgramLocation* member_get_source_location(const QoreExternalStaticMember* mem);
+
+//! returns a hash of the given source location
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreHashNode* source_location_get_hash(const QoreExternalProgramLocation* sl);
 
 #endif // _QORE_QORECLASS_H

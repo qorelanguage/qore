@@ -44,6 +44,87 @@
 // global class ID sequence
 DLLLOCAL Sequence classIDSeq(1);
 
+const QoreMethod* variant_get_method(const QoreExternalVariant* v) {
+    const MethodVariantBase* mvb = dynamic_cast<const MethodVariantBase*>(reinterpret_cast<const AbstractQoreFunctionVariant*>(v));
+    return mvb ? mvb->method() : nullptr;
+}
+
+const QoreMethod* variant_get_method(const QoreExternalMethodVariant* v) {
+    return reinterpret_cast<const MethodVariantBase*>(v)->method();
+}
+
+const QoreClass* variant_get_class(const QoreExternalVariant* v) {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(v)->getClass();
+}
+
+const QoreClass* variant_get_class(const QoreExternalMethodVariant* v) {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(v)->getClass();
+}
+
+bool variant_is_abstract(const QoreExternalVariant* v) {
+    const MethodVariantBase* mvb = dynamic_cast<const MethodVariantBase*>(reinterpret_cast<const AbstractQoreFunctionVariant*>(v));
+    return mvb ? mvb->isAbstract() : false;
+}
+
+bool variant_is_abstract(const QoreExternalMethodVariant* v) {
+    return reinterpret_cast<const MethodVariantBase*>(v)->isAbstract();
+}
+
+const char* variant_get_signature_text(const QoreExternalVariant* v) {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(v)->getSignature()->getSignatureText();
+}
+
+const char* variant_get_signature_text(const QoreExternalMethodVariant* v) {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(v)->getSignature()->getSignatureText();
+}
+
+const QoreTypeInfo* member_get_type_info(const QoreExternalNormalMember* mem) {
+    return reinterpret_cast<const QoreMemberInfoBase*>(mem)->getTypeInfo();
+}
+
+const QoreTypeInfo* member_get_type_info(const QoreExternalStaticMember* mem) {
+    return reinterpret_cast<const QoreMemberInfoBase*>(mem)->getTypeInfo();
+}
+
+ClassAccess member_get_access(const QoreExternalNormalMember* mem) {
+    return reinterpret_cast<const QoreMemberInfoBaseAccess*>(mem)->getAccess();
+}
+
+ClassAccess member_get_access(const QoreExternalStaticMember* mem) {
+    return reinterpret_cast<const QoreMemberInfoBaseAccess*>(mem)->getAccess();
+}
+
+QoreValue member_get_default_value(const QoreExternalNormalMember* mem, ExceptionSink* xsink) {
+    return reinterpret_cast<const QoreMemberInfoBase*>(mem)->exp.eval(xsink);
+}
+
+QoreValue member_get_default_value(const QoreExternalStaticMember* mem, ExceptionSink* xsink) {
+    return reinterpret_cast<const QoreMemberInfoBase*>(mem)->exp.eval(xsink);
+}
+
+QoreValue static_member_get_value(const QoreExternalStaticMember* mem) {
+    return reinterpret_cast<const QoreVarInfo*>(mem)->getReferencedValue();
+}
+
+int static_member_set_value(const QoreExternalStaticMember* mem, const QoreValue val, ExceptionSink* xsink) {
+    LValueHelper lvh(xsink);
+    const_cast<QoreVarInfo*>(reinterpret_cast<const QoreVarInfo*>(mem))->getLValue(lvh);
+    lvh.assign(val.refSelf(), "<set static class member value>");
+    return *xsink ? -1 : 0;
+}
+
+const QoreExternalProgramLocation* member_get_source_location(const QoreExternalNormalMember* mem) {
+    return reinterpret_cast<const QoreExternalProgramLocation*>(reinterpret_cast<const QoreMemberInfoBase*>(mem)->loc);
+}
+
+const QoreExternalProgramLocation* member_get_source_location(const QoreExternalStaticMember* mem) {
+    return reinterpret_cast<const QoreExternalProgramLocation*>(reinterpret_cast<const QoreMemberInfoBase*>(mem)->loc);
+}
+
+QoreHashNode* source_location_get_hash(const QoreExternalProgramLocation* sl) {
+    return get_source_location(reinterpret_cast<const QoreProgramLocation*>(sl));
+}
+
 AbstractQoreClassUserData::~AbstractQoreClassUserData() {
 }
 

@@ -29,17 +29,19 @@
 #include "qore/Qore.h"
 #include "qore/intern/QC_NormalMethodVariant.h"
 #include "qore/intern/QC_AbstractMethod.h"
-#include "qore/intern/Function.h"
 
-int check_variant_call(const MethodVariantBase* mvb, QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
+int check_variant_call(const AbstractQoreFunctionVariant* v, QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
     if (check_call(obj, m, xsink)) {
         return -1;
     }
 
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v);
+
     // we have to explicitly check for abstract methods here and throw an exception
-    if (mvb->isAbstract()) {
+    if (variant_is_abstract(mv)) {
         xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly",
-            mvb->getClass()->getName(), m.getName(), mvb->getSignature()->getSignatureText());
+            variant_get_class(mv)->getName(),
+            m.getName(), variant_get_signature_text(mv));
         return -1;
     }
 
@@ -89,8 +91,8 @@ auto NormalMethodVariant::call(object obj, ...) {
 
     // we have to explictly test object compatibility here, otherwise QoreObject::evalMethod() will throw
     // a confusing exception
-    const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
-    if (check_variant_call(static_cast<const MethodVariantBase*>(v->variant), obj, *m, xsink)) {
+    const QoreMethod* m = variant_get_method(reinterpret_cast<const QoreExternalMethodVariant*>(v->variant));
+    if (check_variant_call(v->variant, obj, *m, xsink)) {
         return QoreValue();
     }
 
@@ -103,7 +105,7 @@ auto NormalMethodVariant::call(object obj, ...) {
     }
 
     // the method ptr must be valid
-    return qore_method_private::evalNormalVariant(*m, xsink, obj, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), *call_args);
+    return obj->evalMethodVariant(*m, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), *call_args, xsink);
 }
 
 //! calls the given method with the given object; the object must be a member of a compatible class
@@ -132,11 +134,11 @@ auto NormalMethodVariant::callArgs(object obj, *softlist<auto> argv) {
 
     // we have to explictly test object compatibility here, otherwise QoreObject::evalMethod() will throw
     // a confusing exception
-    const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
-    if (check_variant_call(static_cast<const MethodVariantBase*>(v->variant), obj, *m, xsink)) {
+    const QoreMethod* m = variant_get_method(reinterpret_cast<const QoreExternalMethodVariant*>(v->variant));
+    if (check_variant_call(v->variant, obj, *m, xsink)) {
         return QoreValue();
     }
 
     // the method ptr must be valid
-    return qore_method_private::evalNormalVariant(*m, xsink, obj, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), argv);
+    return obj->evalMethodVariant(*m, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), argv, xsink);
 }

@@ -29,12 +29,9 @@
 */
 
 #include "qore/Qore.h"
-#include "qore/intern/QoreClassIntern.h"
-#include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/QC_AbstractMember.h"
 #include "qore/intern/QC_Type.h"
-#include "qore/intern/qore_program_private.h"
 
 //! This class provides information about %Qore class and @ref hashdecl "typed hash (hashdecl)" members
 /** @since %Qore 0.9.0
@@ -64,6 +61,7 @@ string AbstractMember::getName() [flags=RET_VALUE_ONLY] {
     if (*xsink) {
         return QoreValue();
     }
+
     // the class ptr must be valid
     return new QoreStringNode(m->name);
 }
@@ -102,7 +100,7 @@ Type AbstractMember::typeObject() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    return new QoreObject(QC_TYPE, m->pgm, new QoreType(m->mem->getTypeInfo()));
+    return new QoreObject(QC_TYPE, m->pgm, new QoreType(member_get_type_info(reinterpret_cast<const QoreExternalNormalMember*>(m->mem))));
 }
 
 //! Returns the default value for the member or @ref nothing if the member has no default value
@@ -123,7 +121,7 @@ auto AbstractMember::getDefaultValue() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    return m->mem->exp.eval(xsink);
+    member_get_default_value(reinterpret_cast<const QoreExternalNormalMember*>(m->mem), xsink);
 }
 
 //! Returns the source location of the member declaration
@@ -144,5 +142,5 @@ hash<SourceLocationInfo> AbstractMember::getSourceLocation() [flags=RET_VALUE_ON
     }
 
     // the constant ptr must be valid
-    return get_source_location(m->mem->loc);
+    return source_location_get_hash(member_get_source_location(reinterpret_cast<const QoreExternalNormalMember*>(m->mem)));
 }

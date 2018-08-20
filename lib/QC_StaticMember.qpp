@@ -30,10 +30,8 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QoreClassIntern.h"
-#include <qore/intern/QoreNamespaceIntern.h>
 #include <qore/intern/QC_Class.h>
 #include <qore/intern/QC_StaticMember.h>
-#include "qore/intern/qore_program_private.h"
 
 //! This class provides information about %Qore class normal (non-static) members
 /** @since %Qore 0.9.0
@@ -87,6 +85,5 @@ nothing StaticMember::setValue(auto val) {
 
     LValueHelper lvh(xsink);
     const_cast<QoreVarInfo*>(static_cast<const QoreVarInfo*>(m->mem))->getLValue(lvh);
-
     lvh.assign(val.refSelf(), "<value arugment to StaticMember::setValue()>");
 }

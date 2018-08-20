@@ -28,7 +28,6 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QC_StaticMethodVariant.h"
-#include "qore/intern/Function.h"
 
 //! The class for %Qore class static method variants
 /**
@@ -71,7 +70,7 @@ auto StaticMethodVariant::call(...) {
 
     const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
     // the method ptr must be valid
-    return qore_method_private::evalNormalVariant(*m, xsink, nullptr, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), args);
+    return QoreObject::evalStaticMethodVariant(*m, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), args, xsink);
 }
 
 //! calls the given static method variant and returns the value returned by the method
@@ -98,5 +97,5 @@ auto StaticMethodVariant::callArgs(*softlist<auto> argv) {
 
     const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
     // the method ptr must be valid
-    return qore_method_private::evalNormalVariant(*m, xsink, nullptr, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), argv);
+    return QoreObject::evalStaticMethodVariant(*m, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), argv, xsink);
 }
