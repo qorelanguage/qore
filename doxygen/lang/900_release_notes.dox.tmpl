@@ -132,6 +132,9 @@
     - fixed a hard to reproduce bug with internal runtime type matching that sometimes caused
       invalid runtime exceptions to be raised with base class constructors
       (<a href="https://github.com/qorelanguage/qore/issues/2928">issue 2928</a>)
+    - fixed an error handling attach errors to @ref Qore::Program "Program" objects from foreign threads
+      after the program has been deleted
+      (<a href="https://github.com/qorelanguage/qore/issues/2950">issue 2950</a>)
 
     @section qore_08136 Qore 0.8.13.6
 

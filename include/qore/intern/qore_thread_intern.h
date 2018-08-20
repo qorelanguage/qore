@@ -963,15 +963,22 @@ public:
 
 class ThreadFrameBoundaryHelper {
 public:
-    DLLLOCAL ThreadFrameBoundaryHelper() {
-        //printd(5, "ThreadFrameBoundaryHelper::ThreadFrameBoundaryHelper: this:%p\n", this);
-        thread_push_frame_boundary();
+    DLLLOCAL ThreadFrameBoundaryHelper(bool doit) : doit(doit) {
+        if (doit) {
+            //printd(5, "ThreadFrameBoundaryHelper::ThreadFrameBoundaryHelper: this:%p\n", this);
+            thread_push_frame_boundary();
+        }
     }
 
     DLLLOCAL ~ThreadFrameBoundaryHelper() {
-        //printd(5, "ThreadFrameBoundaryHelper::~ThreadFrameBoundaryHelper: this:%p\n", this);
-        thread_pop_frame_boundary();
+        if (doit) {
+            //printd(5, "ThreadFrameBoundaryHelper::~ThreadFrameBoundaryHelper: this:%p\n", this);
+            thread_pop_frame_boundary();
+        }
     }
+
+private:
+    bool doit;
 };
 
 DLLLOCAL extern pthread_mutexattr_t ma_recursive;

@@ -504,7 +504,10 @@ protected:
     ExceptionSink* xsink;
 
 public:
-    DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) : ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true), uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
+    DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) :
+        ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true),
+        ThreadFrameBoundaryHelper(!*n_xsink),
+        uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
         assert(xsink);
         if (*xsink || uvb->setupCall(ceh, argv, xsink))
             uvb = nullptr;
