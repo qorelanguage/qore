@@ -52,11 +52,11 @@ class HttpTestServer {
 
 public class Main inherits QUnit::Test {
     public {
-        const ErrorReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/html\r\nDate: %s GMT\r\nContent-Length: 0\r\n\r\n",
+        const ErrorReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Encoding: identity\r\nContent-Type: text/html\r\nDate: %s GMT\r\nContent-Length: 0\r\n\r\n",
                                     gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
-        const ErrorReply2 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/html\r\nDate: %s GMT\r\n\r\n",
+        const ErrorReply2 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Encoding: identity\r\nContent-Type: text/html\r\nDate: %s GMT\r\n\r\n",
                                     gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
-        const ChunkedReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\nDate: %s GMT\r\n\r\n4\r\nTest\r\n5\r\n Mess\r\n4\r\nage.\r\n0\r\n\r\n",
+        const ChunkedReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Encoding: identity\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\nDate: %s GMT\r\n\r\n4\r\nTest\r\n5\r\n Mess\r\n4\r\nage.\r\n0\r\n\r\n",
                                       gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
 
         const TestCert = "-----BEGIN RSA PRIVATE KEY-----
