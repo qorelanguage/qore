@@ -1312,6 +1312,10 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                     dec = qore_gunzip_to_string;
                 else if (!strcasecmp(content_encoding, "bzip2") || !strcasecmp(content_encoding, "x-bzip2"))
                     dec = qore_bunzip2_to_string;
+                // issue #2953 ignore unknown content encodings or a crash will result
+                else {
+                    content_encoding = nullptr;
+                }
             }
         }
 
