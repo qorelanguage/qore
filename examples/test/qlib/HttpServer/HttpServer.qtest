@@ -61,6 +61,7 @@ public class HttpServerTest inherits QUnit::Test {
     }
 
     constructor() : Test("HttpServerTest", "1.0") {
+        addTestCase("issue 2805", \issue2805());
         addTestCase("Test basics", \basicTest());
         addTestCase("Test routing", \routingTest());
         addTestCase("Test status codes", \testStatusCodes());
@@ -90,13 +91,19 @@ public class HttpServerTest inherits QUnit::Test {
     }
 
     setUp() {
-        mClient = new HTTPClient(("url": "http://localhost:" + port));
+        mClient = new HTTPClient(("url": "http://localhost:" + port, "additional_methods": {"TEST": True}));
         mClient.connect();
     }
 
     tearDown() {
         mClient.disconnect();
         delete mClient;
+    }
+
+    issue2805() {
+        assertThrows("HTTP-CLIENT-RECEIVE-ERROR", \mClient.send(), ("", "TEST"));
+        mServer.addHttpMethod("TEST");
+        assertEq("TEST, , /", mClient.send("", "TEST").body);
     }
 
     secondWildcardListener() {

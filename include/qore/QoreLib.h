@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreLib.h
+    QoreLib.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QORELIB_H
@@ -153,10 +153,10 @@ DLLEXPORT QoreStringNode* q_sprintf(const QoreListNode* params, int field, int o
 DLLEXPORT QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
 
 //! a string formatting function that works with Qore data structures
-DLLEXPORT QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink);
+DLLEXPORT QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
 
 //! a string formatting function that works with Qore data structures
-DLLEXPORT QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink);
+DLLEXPORT QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
 
 //! thread-safe version of "localtime()"
 DLLEXPORT struct tm* q_localtime(const time_t* clock, struct tm* tms);
@@ -286,34 +286,34 @@ static inline char* strtoupper(char* str) {
 }
 
 //! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getSecZeroInt(const AbstractQoreNode* a);
+DLLEXPORT int getSecZeroInt(QoreValue a);
 
 //! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getSecZeroBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getSecZeroBigInt(QoreValue a);
 
 //! for getting an integer number of seconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int getSecMinusOneInt(const AbstractQoreNode* a);
+DLLEXPORT int getSecMinusOneInt(QoreValue a);
 
 //! for getting an integer number of seconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getSecMinusOneBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getSecMinusOneBigInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMsZeroInt(const AbstractQoreNode* a);
+DLLEXPORT int getMsZeroInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMsZeroBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getMsZeroBigInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMsMinusOneInt(const AbstractQoreNode* a);
+DLLEXPORT int getMsMinusOneInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMsMinusOneBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getMsMinusOneBigInt(QoreValue a);
 
 //! for getting an integer number of microseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMicroSecZeroInt(const AbstractQoreNode* a);
+DLLEXPORT int getMicroSecZeroInt(QoreValue a);
 
 //! for getting an integer number of microseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMicroSecZeroInt64(const AbstractQoreNode* a);
+DLLEXPORT int64 getMicroSecZeroInt64(QoreValue a);
 
 //! to check if an AbstractQoreNode object is NOTHING
 static inline bool is_nothing(const AbstractQoreNode* n) {
@@ -449,6 +449,10 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 #define QORE_OPT_FUNC_SETSID             "setsid()"
 //! option: is_executable() function available
 #define QORE_OPT_FUNC_IS_EXECUTABLE      "is_executable()"
+//! option: close_all_fd() function available
+#define QORE_OPT_FUNC_CLOSE_ALL_FD       "close_all_fd()"
+//! option: get_netif_list() function available
+#define QORE_OPT_FUNC_GET_NETIF_LIST     "get_netif_list()"
 
 //! option type feature
 #define QO_OPTION     0
@@ -534,7 +538,8 @@ DLLEXPORT int qore_release_signals(const sig_vec_t& sig_vec, const char* name);
 //! macro to return the minimum of 2 numbers
 #define QORE_MIN(a, b) ((a) < (b) ? (a) : (b))
 
-#define QORE_PARAM_NO_ARG (NULL)
+//! macro for no argument
+#define QORE_PARAM_NO_ARG QoreSimpleValue().assign(nullptr)
 
 // define QORE_PATH_MAX
 #ifndef QORE_PATH_MAX
@@ -563,7 +568,7 @@ DLLEXPORT bool qore_is_gc_enabled();
 DLLEXPORT bool q_path_is_readable(const char* path);
 
 //! tries to parse a boolean value - standard conversion or uses q_parse_bool(const char*) if it's a string
-DLLEXPORT bool q_parse_bool(const AbstractQoreNode* n);
+DLLEXPORT bool q_parse_bool(QoreValue n);
 
 //! parses a string and returns a boolean (ie case-insensitive "on","true","enable*","yes" are True, the rest is interpreted as a number where 0=false, everything else=true)
 DLLEXPORT bool q_parse_bool(const char* str);

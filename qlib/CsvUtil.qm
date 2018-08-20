@@ -1160,6 +1160,35 @@ while (i.next()) {
             return lineIterator.index();
         }
 
+        #! Returns the current line 'as it is', i.e. the original string
+        /** @par Example:
+            @code{.py}
+                string s = i.getRawLine();
+            @endcode
+
+            @return the current raw line, i.e. the original string before parsing
+
+            @since %CsvUtil 1.6.3
+        */
+        string getRawLine() {
+            return lineIterator.getValue();
+        }
+
+        #! Returns the list of raw string values of the current line
+        /** @par Example:
+            @code{.py}
+                list l = i.getRawLineValues();
+            @endcode
+
+            @return the list of raw string values of the current line. Parsing is done only
+                to split the fields but not to intrepret their contents according to their types.
+
+            @since %CsvUtil 1.6.3
+        */
+        list getRawLineValues() {
+            return getRawLine().split(separator, quote, ignoreWhitespace);
+        }
+
         private auto handleType(hash fh, *string val) {
             auto rv;
             string type = fh.type;

@@ -283,6 +283,10 @@ int QoreFile::open2(ExceptionSink *xsink, const char *fn, int flags, int mode, c
    return 0;
 }
 
+int QoreFile::redirect(QoreFile& file, ExceptionSink* xsink) {
+  return priv->redirect(*file.priv, xsink);
+}
+
 int QoreFile::readLine(QoreString &str) {
    return priv->readLine(str);
 }
