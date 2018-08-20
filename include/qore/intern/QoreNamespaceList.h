@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   namespaces are children of a program object.  there is a parse
   lock per program object to ensure that objects are added (or backed out)
@@ -77,23 +77,24 @@ public:
       deleteAll();
    }
 
-   DLLLOCAL QoreNamespace *find(const char *name) {
+   DLLLOCAL QoreNamespace *find(const char* name) {
       nsmap_t::iterator i = nsmap.find(name);
       return i == nsmap.end() ? 0 : i->second;
    }
+
    DLLLOCAL QoreNamespace *find(const std::string &name) {
       nsmap_t::iterator i = nsmap.find(name);
       return i == nsmap.end() ? 0 : i->second;
    }
-   DLLLOCAL const QoreNamespace* find(const std::string &name) const {
+   DLLLOCAL const QoreNamespace* find(const std::string& name) const {
       nsmap_t::const_iterator i = nsmap.find(name);
       return i == nsmap.end() ? 0 : i->second;
    }
 
    // do not delete the pointer returned from this function
-   DLLLOCAL qore_ns_private* parseAdd(QoreNamespace *ot, qore_ns_private* parent);
+   DLLLOCAL qore_ns_private* parseAdd(QoreNamespace* ot, qore_ns_private* parent);
 
-   DLLLOCAL qore_ns_private* runtimeAdd(QoreNamespace *ot, qore_ns_private* parent);
+   DLLLOCAL qore_ns_private* runtimeAdd(QoreNamespace* ot, qore_ns_private* parent);
 
    DLLLOCAL void resolveCopy();
    DLLLOCAL void parseInitConstants();
@@ -105,6 +106,7 @@ public:
 
    DLLLOCAL void parseInit();
    DLLLOCAL void parseCommit(QoreNamespaceList& n);
+   DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* sink);
    DLLLOCAL void parseRollback();
    DLLLOCAL void deleteAllConstants(ExceptionSink *xsink);
    DLLLOCAL void reset();

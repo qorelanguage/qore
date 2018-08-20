@@ -1,0 +1,39 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class XrangeTest
+
+public class XrangeTest inherits QUnit::Test {
+    constructor() : Test("xrange test", "1.0") {
+        addTestCase("Test 1", \test(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+    
+    test_xrange(list correct, RangeIterator testing, string message) {
+        list lst;
+        foreach int i in (testing)
+            push lst, i;
+
+        assertEq(correct, lst, message);
+    }
+
+    test() {
+        test_xrange(range(1), xrange(1), "xrange - basic test");
+        test_xrange(range(2, 5), xrange(2, 5), "xrange - boundaries test");
+        test_xrange(range(2, -2), xrange(2, -2), "xrange - descending test");
+        test_xrange(range(1, 10, 5), xrange(1, 10, 5), "xrange - step test");
+        test_xrange(range(0, 10, 5), xrange(0, 10, 5), "xrange - step from 0");
+        test_xrange(range(-10, 10, 5), xrange(-10, 10, 5), "xrange - asc test");
+        test_xrange(range(10, -10, 5), xrange(10, -10, 5), "xrange - descending step test");
+    }
+}
+

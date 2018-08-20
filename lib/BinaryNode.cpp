@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -138,7 +138,7 @@ int BinaryNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) con
       str.sprintf("!!binary %s", bstr.getBuffer());
    }
    else
-      str.sprintf("binary object %p ("QSD" byte%s)", getPtr(), size(), size() == 1 ? "" : "s");
+      str.sprintf("binary object %p (" QSD " byte%s)", getPtr(), size(), size() == 1 ? "" : "s");
    return 0;
 }
 
@@ -167,6 +167,7 @@ const char *BinaryNode::getTypeName() const {
 }
 
 int BinaryNode::preallocate(qore_size_t size) {
+   //printd(5, "BinaryNode::preallocate("QLLD") this: %p ptr: %p len: "QLLD"\n", size, this, ptr, len);
    ptr = q_realloc(ptr, size);
    if (ptr) {
       len = size;
@@ -282,7 +283,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* 
          memmove((char*)ptr + (end - length + data_len), (char*)ptr + end, ol - end);
    }
    else if (length > (qore_offset_t)data_len) // make smaller
-      memmove((char*)ptr + offset + data_len, (char*)ptr + offset + length, len - offset - data_len);
+      memmove((char*)ptr + offset + data_len, (char*)ptr + offset + length, len - offset - length);
 
    memcpy((char*)ptr + offset, data, data_len);
 
@@ -291,7 +292,7 @@ void BinaryNode::splice(qore_offset_t offset, qore_offset_t length, const void* 
 }
 
 int BinaryNode::substr(BinaryNode& b, qore_offset_t offset) const {
-   printd(5, "BinaryNode::substr(offset: "QSD") this: %p len: "QSD")\n", offset, this, len);
+   printd(5, "BinaryNode::substr(offset: " QSD ") this: %p len: " QSD ")\n", offset, this, len);
 
    checkOffset(offset);
    if (offset == (qore_offset_t)len)
@@ -302,7 +303,7 @@ int BinaryNode::substr(BinaryNode& b, qore_offset_t offset) const {
 }
 
 int BinaryNode::substr(BinaryNode& b, qore_offset_t offset, qore_offset_t length) const {
-   printd(5, "BinaryNode::substr(offset: "QSD", length: "QSD") this: %p len: "QSD"\n", offset, length, this, len);
+   printd(5, "BinaryNode::substr(offset: " QSD ", length: " QSD ") this: %p len: " QSD "\n", offset, length, this, len);
 
    checkOffset(offset, length);
 

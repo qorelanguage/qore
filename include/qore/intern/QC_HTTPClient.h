@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2014 Qore Technologies
+  Copyright (C) 2006 - 2015 Qore Technologies
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -50,6 +50,7 @@ public:
    DLLLOCAL ~HTTPInfoRefHelper() {
       // we have to create a temporary ExceptionSink if there is
       // an active exception, otherwise writing back the reference will fail
+      assert(xsink);
       ExceptionSink *txsink = *xsink ? new ExceptionSink : xsink;
 
       // write info hash to reference

@@ -1,0 +1,280 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class DeadlockTest
+
+class DeadlockTest inherits QUnit::Test {
+    private {
+        bool dl;  # deadlock flag
+    }
+
+    constructor() : QUnit::Test("Deadlock test", "1.0") {
+        addTestCase("Test deadlocks", \testDeadlocks());
+        set_return_value(main());
+    }
+
+    globalSetUp() {
+        dl = False;
+    }
+
+    synchronized internal_deadlock_a(*Counter c) {
+        if (c) {
+            c.dec();
+            c.waitForZero();
+        }
+        if (dl)
+            return;
+        try {
+            return internal_deadlock_b();
+        }
+        catch (ex) {
+            assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
+            dl = True;
+        }
+    }
+
+    synchronized internal_deadlock_b(*Counter c) {
+        if (c) {
+            c.dec();
+            c.waitForZero();
+        }
+        if (dl)
+            return;
+        try {
+            return internal_deadlock_a();
+        }
+        catch (ex) {
+            assertEq("THREAD-DEADLOCK", ex.err, "mutex-deadlock");
+            dl = True;
+        }
+    }
+
+    mutex_gate_deadlock_a(Counter c, Mutex m, Gate g) {
+        AutoLock al(m);
+        c.dec();
+        c.waitForZero();
+        try {
+            g.enter();
+            g.exit();
+        }
+        catch (ex) {
+            assertEq("THREAD-DEADLOCK", ex.err, "gate-deadlock");
+        }
+    }
+
+    mutex_gate_deadlock_b(Counter c, Mutex m, Gate g) {
+        AutoGate ag(g);
+        c.dec();
+        c.waitForZero();
+        try {
+            m.lock();
+            m.unlock();
+        }
+        catch (ex) {
+            assertEq("THREAD-DEADLOCK", ex.err, "gate-deadlock");
+        }
+    }
+
+    readwrite_deadlock_c(Counter c, RWLock rw1, RWLock rw2) {
+        AutoWriteLock al(rw1);
+        c.dec();
+        c.waitForZero();
+        try {
+            rw2.writeLock();
+            rw2.writeUnlock();
+        }
+        catch (ex) {
+            assertEq("THREAD-DEADLOCK", ex.err, "rwl-deadlock-c");
+        }
+    }
+
+    readwrite_deadlock_d(Counter c, RWLock rw1, RWLock rw2) {
+        AutoReadLock al(rw2);
+        c.dec();
+        c.waitForZero();
+        try {
+            rw1.readLock();
+            rw1.readUnlock();
+        }
+        catch (ex) {
+            assertEq("THREAD-DEADLOCK", ex.err, "rwl-deadlock-d");
+        }
+    }
+
+    test_thread_resources() {
+        Mutex m();
+        m.lock();
+
+        assertThrows('LOCK-ERROR', "terminated while holding", sub () {throw_thread_resource_exceptions();});
+
+        Gate g();
+        g.enter();
+        assertThrows('LOCK-ERROR', "terminated while holding", sub () {throw_thread_resource_exceptions();});
+
+        RWLock rw();
+        rw.readLock();
+        rw.readLock();
+        assertThrows('LOCK-ERROR', "terminated while holding", sub () {throw_thread_resource_exceptions();});
+
+        rw.writeLock();
+        assertThrows('LOCK-ERROR', "terminated while holding", sub () {throw_thread_resource_exceptions();});
+
+        rw.readLock();
+        mark_thread_resources();
+
+        # no exception should be thrown here
+        throw_thread_resource_exceptions_to_mark();
+
+        assertThrows('LOCK-ERROR', "terminated while holding", sub () {throw_thread_resource_exceptions();});
+    }
+
+    cond_test(Counter c, Condition cond, Mutex m, int n) {
+        m.lock();
+        c.dec();
+        try {
+            cond.wait(m);
+        }
+        catch (ex) {
+            assertEq("LOCK-ERROR", ex.err, "cond-error-" + n);
+        }
+    }
+
+    rwl_cond_test(Counter c, Condition cond, RWLock rwl, int n) {
+        rwl.readLock();
+        c.dec();
+        try {
+            cond.wait(rwl);
+        }
+        catch (ex) {
+            assertEq("LOCK-ERROR", ex.err, "rwl-cond-error-" + n);
+        }
+    }
+
+    counter_test(Counter c, int n) {
+        try {
+            c.waitForZero();
+        }
+        catch (ex) {
+            assertEq("COUNTER-ERROR", ex.err, "counter-error-" + n);
+        }
+    }
+
+    queue_test(Queue q, int n) {
+        try {
+            q.get();
+        }
+        catch (ex) {
+            assertEq("QUEUE-ERROR", ex.err, "queue-error-" + n);
+        }
+    }
+
+    testDeadlocks() {
+        # internal deadlock with synchronized subroutines
+        Counter c(2);
+        background internal_deadlock_a(c);
+        internal_deadlock_b(c);
+
+        # deadlock tests with qore classes and explicit locking
+        Mutex m();
+        Gate g();
+
+        # increment counter for synchronization
+        c.inc();
+        c.inc();
+        background mutex_gate_deadlock_a(c, m, g);
+        mutex_gate_deadlock_b(c, m, g);
+
+        # deadlock tests with other classes
+        RWLock rw1();
+        RWLock rw2();
+
+        # increment counter for synchronization
+        c.inc();
+        c.inc();
+        background readwrite_deadlock_c(c, rw1, rw2);
+        readwrite_deadlock_d(c, rw1, rw2);
+
+        # mutex tests
+        m.lock();
+        assertThrows('LOCK-ERROR', "called Mutex::lock.*twice without", sub () {m.lock();});
+
+        m.unlock();
+        assertThrows('LOCK-ERROR', "called Mutex::unlock.*while the lock was already unlocked", sub () {m.unlock();});
+
+        delete m;
+
+        # Gate tests
+        assertThrows('LOCK-ERROR', "called Gate::exit", sub () {g.exit();});
+        g.enter();
+        assertThrows('LOCK-ERROR', "deleted Gate object", sub () {delete g;});
+
+        assertThrows('LOCK-ERROR', "RWLock::writeUnlock", sub () {rw1.writeUnlock();});
+        assertThrows('LOCK-ERROR', "RWLock::readUnlock", sub () {rw1.readUnlock();});
+
+        rw1.writeLock();
+        assertThrows('LOCK-ERROR', "RWLock::readUnlock", sub () {rw1.readUnlock();});
+
+        rw1.writeUnlock();
+        rw1.readLock();
+        assertThrows('LOCK-ERROR', "RWLock::writeUnlock", sub () {rw1.writeUnlock();});
+
+        rw1.readUnlock();
+
+        # make sure threads sleeping on Condition variable wake up with an exception
+        # if the mutex object is deleted in another thread
+        Condition cond();
+        m = new Mutex();
+        # increment counter for synchronization
+        c.inc();
+        c.inc();
+        background cond_test(c, cond, m, 1);
+        background cond_test(c, cond, m, 2);
+        c.waitForZero();
+        # lock and unlock to ensure until there are 2 condition variables waiting on this Mutex
+        m.lock();
+        m.unlock();
+        assertThrows('LOCK-ERROR', "Mutex object deleted", sub () {delete m;});
+
+        # try it with a RWLock object
+        c.inc();
+        c.inc();
+        background rwl_cond_test(c, cond, rw1, 1);
+        background rwl_cond_test(c, cond, rw1, 2);
+        c.waitForZero();
+        # lock and unlock to ensure until there are 2 condition variables waiting on this Mutex
+        rw1.writeLock();
+        rw1.writeUnlock();
+        assertThrows('RWLOCK-ERROR', "RWLock object deleted", sub () {delete rw1;});
+
+        # make sure threads sleeping on a counter wake up with an exception
+        # when the counter is deleted
+        Counter c1();
+        c1.inc();
+        background counter_test(c1, 1);
+        background counter_test(c1, 2);
+        # sleep until there are 2 counter variables waiting on this Mutex
+        while (c1.getWaiting() != 2)
+            usleep(10ms);
+        assertThrows('COUNTER-ERROR', "Counter deleted while", sub () {delete c1;});
+
+        # make sure threads sleeping on a Queue wake up with an exception
+        # when the Queue is deleted
+        Queue q();
+        background queue_test(q, 1);
+        background queue_test(q, 2);
+        # sleep until there are 2 threads waiting on this Queue
+        while (q.getWaiting() != 2)
+            usleep(10ms);
+        assertThrows('QUEUE-ERROR', "Queue deleted while", sub () {delete q;});
+
+        # test thread resource tracking checks
+        background test_thread_resources();
+    }
+}

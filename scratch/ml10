@@ -1,0 +1,63 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-our
+%requires qore >= 0.8
+%new-style
+
+class GcTest1 { 
+    public {
+        static int cnt;
+        any a;
+        *GcTest1 b;
+        *GcTest1 c;
+    }
+
+    private {
+        *GcTest1 o;
+    }
+
+    /*
+    constructor(*GcTest obj) {
+        o = obj;
+    }
+    */
+
+    destructor() {
+        # increment static counter in destructor
+        ++cnt;
+    } 
+    
+    set(*GcTest1 obj) {
+        o = obj;
+    }
+}
+
+class GcTest2 inherits GcTest1;
+class GcTest3 inherits GcTest1;
+class GcTest4 inherits GcTest1;
+
+{
+    GcTest1 t1();
+    {
+        GcTest2 t2();
+        t1.set(t2);
+        t2.set(t1);
+        t2.b = t1;
+        {
+            GcTest3 t3();
+            t2.set(t3);
+            t2.b = t1;
+            {
+                GcTest4 t4();
+                t3.set(t4);
+                t4.set(t1);
+                printf("before assigment\n");
+                t3.b = t2;
+                printf("after assigment\n");
+                #t4.b = t3;
+            }
+        }
+    }
+}
+printf("cnt: %d\n", GcTest1::cnt);

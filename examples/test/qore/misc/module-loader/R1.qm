@@ -1,0 +1,13 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+
+module R1 {
+    version = "1.0";
+    desc = "Test Module R1";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+%requires ./R2.qm

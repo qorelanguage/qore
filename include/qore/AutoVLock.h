@@ -4,7 +4,7 @@
   
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ class AbstractSmartLock;
 
 struct QLckPtr {
 private:
-   QoreRWLock* rwl;
+   QoreVarRWLock* rwl;
 
 protected:
    DLLLOCAL void unlockIntern() {
@@ -49,11 +49,11 @@ public:
    DLLLOCAL QLckPtr() : rwl(0) {
    }
 
-   DLLLOCAL void set(QoreRWLock* n_rwl) {
+   DLLLOCAL void set(QoreVarRWLock* n_rwl) {
       rwl = n_rwl;
    }
 
-   DLLLOCAL QoreRWLock* getRWL() const {
+   DLLLOCAL QoreVarRWLock* getRWL() const {
       return rwl;
    }
 
@@ -116,13 +116,13 @@ public:
    DLLEXPORT void del();
 
    //! sets the current lock
-   DLLLOCAL void set(QoreRWLock* n_rwl);
+   DLLLOCAL void set(QoreVarRWLock* n_rwl);
 
    //! sets the current object (for dereference) and lock
-   DLLLOCAL void set(QoreObject* n_o, QoreRWLock* n_rwl);
+   DLLLOCAL void set(QoreObject* n_o, QoreVarRWLock* n_rwl);
 
    //! gets the current read-write lock
-   DLLLOCAL QoreRWLock* getRWL() const;
+   DLLLOCAL QoreVarRWLock* getRWL() const;
 
    //! gets the current object
    DLLLOCAL QoreObject* getObject() const;

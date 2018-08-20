@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,11 +30,23 @@
 
 #include <qore/Qore.h>
 #include <qore/intern/FunctionList.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #include <string.h>
 
+qore_ns_private* FunctionEntry::getNamespace() const {
+   return func->getNamespace();
+}
+
 ResolvedCallReferenceNode* FunctionEntry::makeCallReference() const {
    return new LocalFunctionCallReferenceNode(func);
+}
+
+void FunctionEntry::updateNs(qore_ns_private* ns) {
+   func->updateNs(ns);
+}
+
+ModuleImportedFunctionEntry::ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(*(old.getFunction()), PO_NO_SYSTEM_FUNC_VARIANTS, ns)) {
 }
 
 FunctionList::FunctionList(const FunctionList& old, qore_ns_private* ns, int64 po) {
@@ -80,17 +92,17 @@ FunctionEntry* FunctionList::import(QoreFunction* func, qore_ns_private* ns) {
 
    // copy function entry for import and insert into map
    FunctionEntry* fe = new FunctionEntry(new QoreFunction(*func, 0, ns));
-   insert(std::make_pair(fe->getName(), fe));
+   insert(fl_map_t::value_type(fe->getName(), fe));
    return fe;
 }
 
-FunctionEntry* FunctionList::import(const char* new_name, QoreFunction* func, qore_ns_private* ns) {
-   QORE_TRACE("FunctionList::add()");
+FunctionEntry* FunctionList::import(const char* new_name, QoreFunction* func, qore_ns_private* ns, bool inject) {
+   QORE_TRACE("FunctionList::import()");
 
    assert(!findNode(new_name));
 
    // copy function entry for import and insert into map
-   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func, 0, ns, true));
+   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func, 0, ns, true, inject));
    insert(std::make_pair(fe->getName(), fe));
    return fe;
 }
@@ -159,3 +171,21 @@ void FunctionList::assimilate(FunctionList& fl, qore_ns_private* ns) {
       fl.erase(i++);
    }   
 }
+
+int FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private* ns, ExceptionSink* xsink) {
+   int cnt = 0;
+   for (fl_map_t::const_iterator i = src.begin(), e = src.end(); i != e; ++i) {
+      if (i->second->hasBuiltin()) {
+	 fl_map_t::const_iterator ci = fl_map_t::find(i->second->getName());
+	 if (ci != fl_map_t::end() && !ci->second->getFunction()->injected()) {
+	    xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system function %s::%s() due to an existing function without the injection flag set", ns->name.c_str(), ci->second->getName());
+	    break;
+	 }
+
+	 import(i->second->getFunction(), ns);
+	 ++cnt;
+      }
+   }
+   return cnt;
+}
+

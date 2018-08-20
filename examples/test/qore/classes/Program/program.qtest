@@ -1,0 +1,299 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires QUnit
+
+%exec-class ProgramTest
+
+int sub t(any a) {
+    return a + 1;
+}
+
+class Test inherits Socket {
+    private {
+        int a;
+        int b;
+    }
+    public {
+        list data;
+        hash t;
+    }
+
+    constructor(any a, any b, any c) {
+        a = 1;
+        b = 2;
+        data = (a, b, c);
+    }
+    any getData(int elem) {
+	return data[elem];
+    }
+    string methodGate(string m) {
+        return m;
+    }
+    string memberGate(string m) {
+        return "memberGate-" + m;
+    }
+    memberNotification(string m) {
+        t.m = self.m;
+    }
+    code closure(any x) {
+        int a = 1;
+        # return a closure encapsulating the state of the object
+        return string sub (any y) {
+            return sprintf("%s-%n-%n-%n", data[1], x, y, ++a);
+        };
+    }
+    any argTest() {
+        return argv;
+    }
+}
+
+class ProgramTest inherits QUnit::Test {
+    public {
+    }
+
+    private {
+	const CombineSrc = "class B1 {private { x; }} class B2 {public {x;}} class D inherits B1, B2 {}";
+    }
+
+    constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
+	addTestCase("Program test", \programTest());
+	addTestCase("Combine test", \combineTest());
+        addTestCase("Int assignments test", \intAssignmentsTest());
+        addTestCase("constant exp test", \constantExpressionTest());
+        addTestCase("type error test", \typeErrorTest());
+        addTestCase("broken-operators test", \brokenOperatorsTest());
+        addTestCase("class test", \classTest());
+	set_return_value(main());
+    }
+
+    programTest() {
+	our Test to();
+	our Test ro();
+
+	string func = "namespace ITest { const val = 1.0; class X; } our int gv2 = 123; int sub t2(int a) { return a + 2; } int sub et(int a) { return t(a); } string sub tot() { return get_class_name(to); } Queue sub getObject() { return new Queue(); } X sub get_x() { return new X(); } sub deleteException() { ro.getData(0); delete ro; } bool sub check_ro() { return exists ro; }";
+
+	string pf = "newfunc();";
+	string nf = "bool sub newfunc() { return True; }";
+
+	Program a(PO_NEW_STYLE);
+	a.parsePending(pf, "pending test part1", 0);
+	a.parsePending(nf, "pending test part2", 0);
+	a.parseCommit();
+	a.importFunction("t");
+	a.importGlobalVariable("to");
+	a.importGlobalVariable("ro", True);
+	a.parse(func, "test");
+
+	assertEq(True, a.callFunction("newfunc"));
+	assertEq(3, a.callFunction("t2", 1));
+	assertEq(4, a.callFunctionArgs("t2", list(int(2))));
+	assertEq(2, a.callFunction("et", 1));
+	assertEq("Test", a.callFunction("tot"));
+	assertEq("memberGate-member", to.member);
+	assertEq("method", to.method());
+
+	try {
+	    a.callFunction("deleteException");
+	}
+	catch (hash ex) {
+	    assertEq("ACCESS-ERROR", ex.err);
+	}
+
+	assertEq(True, a.callFunction("check_ro"));
+
+	Queue o = a.callFunction("getObject");
+	object ox = a.callFunction("get_x");
+	delete a;
+	assertEq("Queue", get_class_name(o));
+	assertEq("X", get_class_name(ox));
+
+	# test for incorrect parse location when processing constants after a commit
+	a = new Program(PO_NEW_STYLE);
+	a.parse("sub x() {}", "lib");
+	*hash h = a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
+	assertEq("<run-time-loaded: warn>", h.file);
+
+	# make sure recursive constant definitions are handled
+	try {
+	    a.parse("const A = B; const B = A; any a = A;", "rec");
+	}
+	catch (hash ex) {
+	    assertEq("PARSE-EXCEPTION", ex.err);
+	}
+
+	string pstr = "class T { private { int i = 1; static *int j = 4; const X = 2; } int get() { return i; } static other (int x) {} } T sub getT() { return new T(); } int sub checkT(T t) { return t.get(); }";
+
+	Program p1(PO_NEW_STYLE);
+	Program p2(PO_NEW_STYLE);
+
+	p1.parse(pstr, "p");
+	p2.parse(pstr, "p");
+
+	object o2 = p1.callFunction("getT");
+	assertEq(1, p1.callFunction("checkT", o2));
+	assertEq(1, p2.callFunction("checkT", o2));
+
+	Program p4(PO_NEW_STYLE);
+	try {
+	    p4.parse("error", "error", 0, "source", 10);
+	    assertEq(True, False);
+	}
+	catch (hash ex) {
+	    assertEq("source", ex.source);
+	    assertEq(10, ex.offset);
+	}
+    }
+
+    combineTest() {
+	Program p(PO_NEW_STYLE);
+	testAssertion("combine", \p.parse(), (CombineSrc, "combine-test"), new TestResultExceptionRegexp("PARSE-ERROR", "B2"));
+    }
+
+    intAssignmentsTest() {
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("any h = {}; int i = h;", "");
+
+            assertThrows("RUNTIME-TYPE-ERROR", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_BROKEN_INT_ASSIGNMENTS);
+            p.parse("any h = {}; int i = h;", "");
+
+            assertEq(NOTHING, p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_BROKEN_INT_ASSIGNMENTS);
+            p.parse("%correct-int-assignments\nany h = {}; int i = h;", "");
+            assertThrows("RUNTIME-TYPE-ERROR", \p.run());
+        }
+    }
+
+    constantExpressionTest() {
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("ILLEGAL-MEMBER-REFERENCE", \p.parse(), ("class T {public {int i;} t() {while (True) {switch (1) {case 1+i: break;}}}}", ""));
+        }
+    }
+
+    typeErrorTest() {
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
+            assertThrows("CALL-WITH-TYPE-ERRORS", \p.parse(), ("sub f() {} f(1);", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_NO_CHILD_PO_RESTRICTIONS|PO_STRICT_ARGS);
+            p.parse("Program p(PO_NEW_STYLE); p.parse('sub f() {}', ''); p.callFunction('f', 1);", "");
+            assertEq(NOTHING, p.run());
+        }
+    }
+
+    brokenOperatorsTest() {
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("int i; i+ =1;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("hours()", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("hours()", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("hours()", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS);
+            assertEq(NOTHING, p.parse("%loose-args\nhours();", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_BROKEN_OPERATORS);
+            assertEq(NOTHING, p.parse("int i; i+ =1;", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_BROKEN_OPERATORS);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("%correct-operators\nint i; int i+ =1;", ""));
+        }
+    }
+
+    classTest() {
+        # test constructor methods
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            # it is illegal to declare a static contructor() method
+            assertThrows("ILLEGAL-STATIC-METHOD", \p.parse(), ("class X { static constructor(int i) {}}", ""));
+        }
+
+        # test destructor methods
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class X { destructor(int i) {}}", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class X { int destructor() {}}", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class X { private destructor() {}}", ""));
+            # it is illegal to declare a static destructor() method
+            assertThrows("ILLEGAL-STATIC-METHOD", \p.parse(), ("class X { static destructor() {}}", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class X { abstract destructor();}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { public destructor() {}}", ""));
+        }
+
+        # test copy methods
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("class X { copy(int i) {}}", ""));
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("class X { abstract copy() {}}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { private copy() {}}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { private copy(object obj) {}}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { private copy(*object obj) {}}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { private copy(*X obj) {}}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { private copy(X obj) {}}", ""));
+        }
+
+        # it is legal to declare a static copy() method
+        {
+            Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES);
+            assertEq(NOTHING, p.parse("class X { static copy(X obj) {}}", ""));
+        }
+    }
+}

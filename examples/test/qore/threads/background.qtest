@@ -1,0 +1,87 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("background", "1.0", \ARGV) {
+        addTestCase("background operator tests", \basicTests());
+        set_return_value(main());
+    }
+
+    basicTests() {
+        Counter cnt();
+        int i = 0;
+
+        code c = sub () {
+            delete i;
+            cnt.dec();
+        };
+
+        cnt.inc();
+        testNullAssertion("delete local var in background", c);
+        cnt.waitForZero();
+
+        c = sub () {
+            remove i;
+            cnt.dec();
+        };
+
+        cnt.inc();
+        testNullAssertion("remove local var in background", c);
+        cnt.waitForZero();
+
+        # do negative tests
+        c = sub () {
+            Program p(PO_NEW_STYLE);
+            p.parse("int i;background (i *= 10); #1
+            background (i /= 10); #2
+            background (i -= 10); #3
+            background (i += 10); #4
+            background (i %= 10); #5
+            background (i >>= 10); #6
+            background (i <<= 10); #7
+            background ++i; #8
+            background i++; #9
+            background --i; #10
+            background i--; #11
+            string str;
+            background splice str, 0; #12
+            background extract str, 0; #13", "bg");
+        };
+
+        *hash ex = testAssertion("background negative test", c, NOTHING, new TestResultExceptionType("PARSE-EXCEPTION"));
+
+        # count exceptions
+        while (ex) {
+            ++i;
+            ex = ex.next;
+        }
+        testAssertionValue("background negative count", i, 13);
+
+        cnt.inc();
+        testAssertion("create closure with bound local var in background exp", sub () {Test::f1(cnt);}, NOTHING, new TestResultValue());
+        cnt.waitForZero();
+
+        cnt.inc();
+        testAssertion("create complex closure in background exp", sub () {Test::f2(cnt);}, NOTHING, new TestResultValue());
+        cnt.waitForZero();
+    }
+
+    static any f1(Counter cnt) {
+        int a = 8;
+        background sub () {++a; cnt.dec();}();
+    }
+
+    static any f2(Counter cnt) {
+        int a = 8;
+        background sub () {++a; sub() {++a; cnt.dec();}();}();
+    }
+}

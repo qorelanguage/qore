@@ -1,0 +1,40 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class PluralTest
+
+public class PluralTest inherits QUnit::Test {
+    constructor() : Test ("PluralTest", "1.0") {
+        addTestCase ("Tests for plural() function", \test_plural());
+        set_return_value(main());
+    }
+
+    test_plural() {
+        # simple form
+        foreach list i in (((0, "beers"), (1, "beer"), (2, "beers"))) {
+            string expected = sprintf("%d %s", i[0], i[1]);
+            assertEq (expected, plural (i[0], "beer"), expected);
+        }
+        # different suffix
+        foreach list i in (((0, "children"), (1, "child"), (2, "children"))) {
+            string expected = sprintf("%d %s", i[0], i[1]);
+            assertEq (expected, plural (i[0], "child", "", "ren"), expected);
+        }
+        # different suffixes
+        foreach list i in (((0, "ladies"), (1, "lady"), (2, "ladies"))) {
+            string expected = sprintf("%d %s", i[0], i[1]);
+            assertEq (expected, plural (i[0], "lad", "y", "ies"), expected);
+        }
+        # different words
+        foreach list i in (((0, "mice"), (1, "mouse"), (2, "mice"))) {
+            string expected = sprintf("%d %s", i[0], i[1]);
+            assertEq (expected, plural (i[0], "", "mouse", "mice"), expected);
+        }
+    }
+}

@@ -1,9 +1,10 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   glob.h
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,12 +36,18 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include <qore/intern/QoreRegexNode.h>
 
 typedef int (*glob_error_t)(const char *, int);
 
 #ifdef _WIN32
+
+// some glob options
+#define GLOB_NONE 0
+#define GLOB_NOSORT (1 << 0)
+
 class QoreGlobWin {
 protected:
    typedef std::vector<std::string> names_t;
@@ -48,7 +55,7 @@ protected:
 
 public:
    size_t gl_pathc;
-   const char **gl_pathv;
+   const char** gl_pathv;
 
    DLLLOCAL QoreGlobWin() : gl_pathc(0), gl_pathv(0) {
    }
@@ -57,14 +64,26 @@ public:
       reset();
    }
 
-   DLLLOCAL int set(const char *pattern, int flags, glob_error_t errfunc) {
+   DLLLOCAL int set(const char* pattern, int flags, glob_error_t errfunc) {
       assert(!flags);
       assert(!errfunc);
       reset();
 
-      char *dirp = q_dirname(pattern);
+      // normalize the path
+      QoreString path(pattern);
+
+      // save the original dir name
+      QoreString orig_dir((const char*)q_dirname(path.c_str()));
+      //printd(5, "glob() dir: '%s'\n", orig_dir.c_str());
+      if (orig_dir == ".")
+         orig_dir.clear();
+      else
+         orig_dir.concat('\\');
+
+      q_normalize_path(path);
+      char* dirp = q_dirname(path.c_str());
       unsigned len = strlen(dirp);
-      QoreString dir(dirp, len, len + 1, QCS_DEFAULT); 
+      QoreString dir(dirp, len, len + 1, QCS_DEFAULT);
 
       // set the pattern to get all files in the directory, and then match according to glob() rules
       dir.concat("\\*.*");
@@ -72,8 +91,19 @@ public:
       HANDLE h = ::FindFirstFile(dir.getBuffer(), &pfd);
       ON_BLOCK_EXIT(::FindClose, h);
 
+      // remove wildcard to reuse directory name for matches
+      if (len > 1)
+         dir.terminate(dir.size() - 3);
+      else
+         dir.clear();
+
       // make regex pattern
-      QoreString str(q_basenameptr(pattern));
+      QoreString str(q_basenameptr(path.c_str()));
+
+      // check if we should get files that start with a "."
+      bool get_dot = (str[0] == '.');
+      //printd(5, "QoreGlobWin::set() path: '%s' dir: '%s' str: '%s' get_dot: %d\n", path.c_str(), dir.c_str(), str.c_str());
+
       str.replaceAll(".", "\\.");
       str.replaceAll("?", ".");
       str.replaceAll("*", ".*");
@@ -86,16 +116,23 @@ public:
 	 return -1;
 
       while (FindNextFile(h, &pfd)) {
+         if (pfd.cFileName[0] == '.' && !get_dot)
+            continue;
 	 if (qrn->exec(pfd.cFileName, strlen(pfd.cFileName))) {
-	    names.push_back(pfd.cFileName);
+            QoreString str(orig_dir);
+            str.concat(pfd.cFileName);
+	    names.push_back(str.c_str());
 	    //printd(5, "QoreGlobWin::set(pattern='%s') dir='%s' regex='%s' %s MATCHED\n", pattern, dir.getBuffer(), str.getBuffer(), pfd.cFileName);
 	 }
       }
 
       if (names.size()) {
+         if (!(flags & GLOB_NOSORT))
+            std::sort(names.begin(), names.end());
+
 	 gl_pathc = names.size();
 
-	 gl_pathv = (const char **)malloc(sizeof(char *) * names.size());
+	 gl_pathv = (const char**)malloc(sizeof(char*) * names.size());
 	 for (unsigned i = 0; i < names.size(); ++i) {
 	    gl_pathv[i] = names[i].c_str();
 	 }

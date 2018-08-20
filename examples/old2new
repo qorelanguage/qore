@@ -1,0 +1,119 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+main();
+
+const Opts = (
+    "rename": "r,rename-vars",
+    "help":   "h,help",
+    );
+
+const ReservedWords = (
+    "abstract",         "background",     "break",        "by",            "case",
+    "catch",            "chomp",          "class",        "const",         "context",
+    "continue",         "default",        "delete",       "deprecated",    "do",
+    "elements",         "else",           "exists",       "extract",       "final",
+    "find",             "foldl",          "foldr",        "for",           "foreach",
+    "if",               "in",             "inherits",     "instanceof",    "keys",
+    "map",              "module",         "my",           "namespace",     "new",
+    "on_error",         "on_exit",        "on_success",   "our",           "pop",
+    "private",          "public",         "push",         "remove",        "rethrow",
+    "return",           "returns",        "select",       "shift",         "sortBy",
+    "sortDescendingBy", "splice",         "static",       "sub",           "subcontext",
+    "summarize",        "switch",         "synchronized", "thread_exit",   "throw",
+    "trim",             "try",            "unreference",  "unshift",       "where",
+    "while",
+);
+
+sub usage() {
+    printf("%s: [options] input-file [output-file]
+ -r,--rename-vars  rename local vars to avoid collisions with class members
+ -h,--help         this help text
+", get_script_name());
+    exit(0);
+}
+
+sub error(string fmt) {
+    stderr.vprintf(get_script_name() + ": ERROR: " + fmt + "\n", argv);
+    exit(1);
+}
+
+sub main() {
+    GetOpt g(Opts);
+    hash o = g.parse3(\ARGV);
+
+    if (o.help || !ARGV[0])
+        usage();
+
+    string ofn = ARGV[1] ?? ARGV[0] ?? "-";
+    File of;
+    if (ofn == "-")
+        of = stdout;
+    else {
+        of = new File();
+        of.open2(ofn + ".tmp", O_CREAT | O_WRONLY | O_TRUNC);
+    }
+
+    string ifn = ARGV[0] ?? "-";
+    if (ifn == "-")
+        ifn = "/dev/stdin";
+
+    on_success if (ofn)
+        rename(ofn + ".tmp", ofn);
+
+    on_error if (ofn)
+        unlink(ofn + ".tmp");
+
+    FileLineIterator li(ifn);
+
+    while (li.next()) {
+        string str = li.getValue();
+
+        # skip parse directives
+        if (str !~ /^%/) {
+            # remove "my"
+            str =~ s/(my\s+)(\*?[a-zA-Z0-9_]+)?\s+(\$)/$2 \$/g;
+
+            # change . references of variables and in-object member references to bracket references
+            str =~ s/\.(\$\.?[a-z][a-zA-Z0-9_]*)/{$1}/g;
+
+            # check for reserved words
+            *list l = (str =~ x/(\$\.?abstract|\$\.?background|\$\.?break|\$\.?by|\$\.?case|\$\.?catch|\$\.?chomp|\$\.?const|\$\.?class|\$\.?context|\$\.?continue|\$\.?default|\$\.?delete|\$\.?deprecated|\$\.?do|\$\.?elements|\$\.?else|\$\.?exists|\$\.?extract|\$\.?final|\$\.?find|\$\.?foldl|\$\.?foldr|\$\.?for|\$\.?foreach|\$\.?if|\$\.?in|\$\.?inherits|\$\.?instanceof|\$\.?keys|\$\.?map|\$\.?module|\$\.?my|\$\.?namespace|\$\.?new|\$\.?on_error|\$\.?on_exit|\$\.?on_success|\$\.?our|\$\.?pop|\$\.?private|\$\.?public|\$\.?push|\$\.?remove|\$\.?rethrow|\$\.?return|\$\.?returns|\$\.?select|\$\.?shift|\$\.?sortBy|\$\.?sortDescendingBy|\$\.?splice|\$\.?static|\$\.?sub|\$\.?subcontext|\$\.?summarize|\$\.?switch|\$\.?synchronized|\$\.?thread_exit|\$\.?throw|\$\.?trim|\$\.?try|\$\.?unreference|\$\.?unshift|\$\.?where|\$\.?while)[^a-zA-Z0-9_]/g);
+
+            # substitute reserved words
+            foreach string rw in (l) {
+                bool cv = rw[1] == ".";
+                string nw = rw;
+                nw =~ s/^\$\.?//g;
+                nw += cv ? "c" : "v";
+                str = replace(str, rw, nw);
+            }
+
+            # remove dollar signs on vars
+            if (o.rename)
+                str =~ s/\$([a-z][a-z0-9_]*)/v_$1/ig;
+            else
+                str =~ s/\$([a-z][a-z0-9_]*)/$1/ig;
+
+            # this uses a trick: only even number of "s means that it is a var - otherwise it could be $ inside the string (ok, this is not very rigorous but what we can do without tokenizer)
+            #str =~ s/\A(?:[^"]*"[^"]*"[^"]*)\$([a-z][a-z0-9_]*)/v_$1/ig;
+
+            # remove and rename class vars class declarations with a constructor adding a suffix "c" to the class var name
+            # this uses a trick to recognize class declarations by the capitalized first letter of the class name
+            str =~ s/([A-Z][a-z0-9_]*\s+)\$\.([A-Za-z][A-Za-z0-9_]*)\(/$1$2(/g;
+
+            # remove dollar signs on class method calls
+            str =~ s/\$\.([a-z][a-z0-9_]*\()/$1/ig;
+
+            # remove dollar signs and rename class vars
+            str =~ s/\$\.([a-z][a-z0-9_]*)/$1/ig;
+        }
+
+        of.printf("%s\n", str);
+    }
+}

@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -156,6 +156,7 @@ static void dni(QoreStringNode *s, const AbstractQoreNode *n, int indent, Except
 
 //static 
 AbstractQoreNode *f_dbg_node_info(const QoreListNode *params, ExceptionSink *xsink) {
+   assert(xsink);
    QoreStringNodeHolder s(new QoreStringNode());
    dni(*s, get_param(params, 0), 0, xsink);
    if (*xsink)

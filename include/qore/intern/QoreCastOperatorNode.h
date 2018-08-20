@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreCastOperatorNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -39,14 +39,15 @@ protected:
    NamedScope *path;
    QoreClass *qc;
 
-   DLLLOCAL int evalIntern(const AbstractQoreNode *rv, ExceptionSink *xsink) const;
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
 
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
       return qc ? qc->getTypeInfo() : objectTypeInfo;
+   }
+
+   DLLLOCAL QoreCastOperatorNode(QoreClass* q, AbstractQoreNode *n_exp) : QoreSingleExpressionOperatorNode<QoreOperatorNode>(n_exp), path(0), qc(q) {
    }
 
 public:
@@ -68,6 +69,15 @@ public:
 
    DLLLOCAL virtual bool hasEffect() const {
       return false;
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      assert(!path);
+      assert(qc);
+      return new QoreCastOperatorNode(qc, n_exp.release());
    }
 };
 

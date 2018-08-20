@@ -2,8 +2,9 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
 %new-style
-%strict-args
 %enable-all-warnings
+%require-types
+%strict-args
 
 %requires SqlUtil
 
@@ -45,7 +46,7 @@ const Options = (
 const T_Customers = (
     "columns": (
         "id": (
-            "qore_type": Type::Number, 
+            "qore_type": Type::Number,
             "size": 14,
             "notnull": True,
             # this column is normally populated from a sequence by a trigger, but mysql
@@ -146,7 +147,7 @@ end",
 );
 
 const SequenceList = (
-    "seq_customers": hash(),
+    "seq_customers": {},
     );
 
 const Sequences = (

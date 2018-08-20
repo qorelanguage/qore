@@ -5,7 +5,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,14 +39,14 @@
 
 // constructor used when parsing
 RegexTransNode::RegexTransNode() : ParseNoEvalNode(NT_REGEX_TRANS) {
-   //printd(5, "RegexTransNode::RegexTransNode() this=%08p\n", this);
-   source = new QoreString();
-   target = new QoreString();
+   //printd(5, "RegexTransNode::RegexTransNode() this=%p\n", this);
+   source = new QoreString;
+   target = new QoreString;
    sr = tr = false;
 }
 
 RegexTransNode::~RegexTransNode() {
-   //printd(5, "RegexTransNode::~RegexTransNode() this=%08p\n", this);
+   //printd(5, "RegexTransNode::~RegexTransNode() this=%p\n", this);
    if (source)
       delete source;
    if (target)
@@ -58,14 +58,14 @@ RegexTransNode::~RegexTransNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int RegexTransNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-   str.sprintf("transliteration expression (0x%08p)", this);
+   str.sprintf("transliteration expression (%p)", this);
    return 0;
 }
 
 // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
 QoreString *RegexTransNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
-   QoreString *rv = new QoreString();
+   QoreString *rv = new QoreString;
    getAsString(*rv, foff, xsink);
    return rv;
 }
@@ -138,7 +138,7 @@ QoreStringNode *RegexTransNode::exec(const QoreString *str, ExceptionSink *xsink
    if (*xsink)
       return 0;
 
-   QoreStringNode *ns = new QoreStringNode();
+   QoreStringNode *ns = new QoreStringNode;
    for (qore_size_t i = 0; i < tstr->strlen(); i++) {
       char c = tstr->getBuffer()[i];
       const char *p = strchr(source->getBuffer(), c);

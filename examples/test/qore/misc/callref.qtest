@@ -1,0 +1,43 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class CallRefTest
+
+class C { m() { print("ERROR!\n");} }
+
+class CallRefTest inherits QUnit::Test {
+    constructor() : QUnit::Test("CallRef Test", "1.0") {
+        addTestCase("Test", \test());
+        set_return_value(main());
+    }
+
+    test() {
+        {
+            C obj();
+            code c = \obj.m();
+            delete obj;
+            assertThrows("OBJECT-ALREADY-DELETED", c);
+        }
+        {
+            object obj = new C();
+            code c = \obj.m();
+            delete obj;
+            assertThrows("OBJECT-ALREADY-DELETED", c);
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            p.parse("class C { m() { print('ERROR!\n'); }} C sub get() { return new C(); }", "");
+            object obj = p.callFunction("get");
+            code c = \obj.m();
+            delete p;
+            assertThrows("PROGRAM-ERROR", c);
+        }
+    }
+}

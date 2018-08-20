@@ -1,0 +1,77 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    private {
+        const DataList = (
+            "a2ps-4.13-1332.1.x86_64",
+            "a2ps-devel-4.13-1332.1.x86_64",
+            "aaa_base-11.3-7.2.x86_64",
+            "příliš žluťoučký kůň úpěl ďábelské ódy",
+        );
+
+        const DataListUtf16 = map convert_encoding($1, "utf16"), DataList;
+    }
+
+    constructor() : QUnit::Test("DataLineIterator", "1.0") {
+        addTestCase("LF Explicit tests", sub() {doTestsExplicit("\n");});
+        addTestCase("LF Auto tests", sub() {doTestsAuto("\n");});
+        addTestCase("LF Explicit UTF-16 tests", sub() {doTestsExplicitUtf16("\n");});
+        addTestCase("LF Auto UTF-16 tests", sub() {doTestsAutoUtf16("\n");});
+        addTestCase("CR Explicit tests", sub() {doTestsExplicit("\r");});
+        addTestCase("CR Auto tests", sub() {doTestsAuto("\r");});
+        addTestCase("CR Explicit UTF-16 tests", sub() {doTestsExplicitUtf16("\r");});
+        addTestCase("CR Auto UTF-16 tests", sub() {doTestsAutoUtf16("\r");});
+        addTestCase("CRLF Explicit tests", sub() {doTestsExplicit("\r\n");});
+        addTestCase("CRLF Auto tests", sub() {doTestsAuto("\r\n");});
+        addTestCase("CRLF Explicit UTF-16 tests", sub() {doTestsExplicitUtf16("\r\n");});
+        addTestCase("CRLF Auto UTF-16 tests", sub() {doTestsAutoUtf16("\r\n");});
+        set_return_value(main());
+    }
+
+    doTestsIntern(string data, DataLineIterator di) {
+        for (int i = 0; i < DataList.size(); ++i) {
+            testAssertion(sprintf("next() #%d", i+1), bool sub() {return di.next();});
+            testAssertion(sprintf("getValue() #%d", i+1), string sub() {return di.getValue();}, NOTHING, new TestResultValue(DataList[i]));
+        }
+
+        testAssertion("final next()", bool sub() {return !di.next();});
+    }
+
+    doTestsExplicit(string eol) {
+        string data = foldl $1 + eol + $2, DataList;
+        DataLineIterator di(data, eol);
+        doTestsIntern(data, di);
+    }
+
+    doTestsAuto(string eol) {
+        string data = foldl $1 + eol + $2, DataList;
+        DataLineIterator di(data);
+        doTestsIntern(data, di);
+    }
+
+    doTestsExplicitUtf16(string eol) {
+        # do UTF-16 (non-ascii-compat) tests
+        string eolutf16 = convert_encoding(eol, "utf16");
+        string data = foldl $1 + eolutf16 + $2, DataListUtf16;
+        DataLineIterator di(data, eol);
+        doTestsIntern(data, di);
+    }
+
+    doTestsAutoUtf16(string eol) {
+        # do UTF-16 (non-ascii-compat) tests
+        string eolutf16 = convert_encoding(eol, "utf16");
+        string data = foldl $1 + eolutf16 + $2, DataListUtf16;
+        DataLineIterator di(data);
+        doTestsIntern(data, di);
+    }
+}

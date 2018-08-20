@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file Mime.qm Mime module definition
 
-/*  Mime.qm Copyright (C) 2012 - 2014 David Nichols
+/*  Mime.qm Copyright (C) 2012 - 2016 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,12 +23,15 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.11
+%requires qore >= 0.8.12
 
 %requires Util
 
+# assume local var scope, do not use "$" for vars, members, and method calls
+%new-style
+
 module Mime {
-    version = "1.3.4";
+    version = "1.3.4.1";
     desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
@@ -44,7 +47,7 @@ module Mime {
     The %Mime module provides definitions and functions related to MIME processing.  MIME concepts are used in HTTP and SMTP communications, among others.
 
     To use this module, use \c "%requires Mime" in your code.  See the SmtpClient and the HttpServer modules for examples of %Qore code using this module.
-    
+
     All the public symbols in the module are defined in the Mime namespace
 
     The main definitions and functions are:
@@ -63,16 +66,16 @@ module Mime {
     - http://tools.ietf.org/html/rfc2047: "Q" and "B" encoded words (implemented by the Mime module)
 
     @par Example:
-    @code
+    @code{.py}
 #!/usr/bin/env qore
 
 %requires Mime
 
-my string $str = "This is a test: æéìœü";
-printf("%y: quoted printable: %y\n", mime_decode_quoted_printable(mime_encode_quoted_printable($str)), mime_encode_quoted_printable($str));
-printf("%y: base64: %y\n", mime_decode_base64_to_string(mime_encode_base64($str)), mime_encode_base64($str));
-printf("%y: header word q: %y\n", mime_decode_header(mime_encode_header_word_q($str)), mime_encode_header_word_q($str));
-printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b($str)), mime_encode_header_word_b($str));
+string str = "This is a test: æéìœü";
+printf("%y: quoted printable: %y\n", mime_decode_quoted_printable(mime_encode_quoted_printable(str)), mime_encode_quoted_printable(str));
+printf("%y: base64: %y\n", mime_decode_base64_to_string(mime_encode_base64(str)), mime_encode_base64(str));
+printf("%y: header word q: %y\n", mime_decode_header(mime_encode_header_word_q(str)), mime_encode_header_word_q(str));
+printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(str)), mime_encode_header_word_b(str));
     @endcode \n
     The output of the above example looks like:
     @verbatim
@@ -84,9 +87,13 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b($
 
     @section mimereleasenotes Release Notes
 
+    @subsection mime_1_3_4_1 v1.3.4.1
+    - added support for generating and parsing MIME multipart form encoded data
+
     @subsection mime_1_3_4 v1.3.4
     - added dependency on the Util module
     - replaced Mime::MultiPartMessage::getRandomString() with Util::get_random_string()
+    - converted to new-style
 
     @subsection mime_1_3_3 v1.3.3
     - added Mime::MimeTypeOctetStream constant
@@ -99,7 +106,7 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b($
     - added Mime::get_mime_type_from_ext()
     - minor corrections
     - added constants for css and js files + more extension -> mime type mappings
-    
+
     @subsection mime_1_3 v1.3
     - made get Mime::MultiPartMessage::getMsgAndHeaders() abstract as originally intended
     - added Mime::MultiPartMessage::parseBody() static method
@@ -120,7 +127,7 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b($
 #! public Mime namespace defines constants and functions relevant to MIME
 public namespace Mime {
     /** @defgroup MimeTypeDefinitions MIME Type Definitions
-	These are constants for common MIME types
+        These are constants for common MIME types
      */
     #@{
     public const MimeTypeUnknown = MimeTypeOctetStream;
@@ -173,131 +180,134 @@ public namespace Mime {
     #! Mime type for css
     public const MimeTypeCss = "text/css";
 
+    #! Mime type for multipart form URL encoding
+    public const MimeTypeFormUrlEncoded = "application/x-www-form-urlencoded";
+
     #! A map of default mime types per file extension; the hash keys are file extensions in lower-case without the dot (ex: \c "txt")
     /** @showinitializer
      */
     public const MimeTypes = (
-	"7z": "application/x-7z-compressed",
-	"ai": "application/postscript",
-	"aif": "audio/x-aiff",
-	"aifc": "audio/x-aiff",
-	"aiff": "audio/x-aiff",
-	"asc": MimeTypeText,
-	"atom": "application/atom+xml",
-	"au": "audio/basic",
-	"avi": "video/x-msvideo",
-	"bcpio": "application/x-bcpio",
-	"bin": MimeTypeUnknown,
-	"bmp": "image/bmp",
-	"bz2": "application/x-bzip",
-	"cc": MimeTypeText,
-	"cdf": "application/x-netcdf",
-	"cgm": "image/cgm",
-	"class": MimeTypeUnknown,
-	"cpio": "application/x-cpio",
-	"cpp": MimeTypeText,
-	"cpt": "application/mac-compactpro",
-	"csh": "application/x-csh",
-	"css": MimeTypeCss,
-	"csv": MimeTypeCsv,
-	"dcr": "application/x-director",
-	"dif": "video/x-dv",
-	"dir": "application/x-director",
-	"djv": "image/vnd.djvu",
-	"djvu": "image/vnd.djvu",
-	"dll": MimeTypeUnknown,
-	"dmg": MimeTypeUnknown,
-	"dms": MimeTypeUnknown,
-	"doc": "application/msword",
-	"dtd": "application/xml-dtd",
-	"dv": "video/x-dv",
-	"dvi": "application/x-dvi",
-	"dxr": "application/x-director",
-	"eps": "application/postscript",
-	"etx": "text/x-setext",
-	"exe": MimeTypeUnknown,
-	"ez": "application/andrew-inset",
-	"gif": "image/gif",
-	"gram": "application/srgs",
-	"grxml": "application/srgs+xml",
-	"gtar": "application/x-gtar",
-	"gz": "application/x-gzip",
-	"h": MimeTypeText,
-	"hdf": "application/x-hdf",
-	"hh": MimeTypeText,
-	"hpp": MimeTypeText,
-	"hqx": "application/mac-binhex40",
-	"htm": MimeTypeHtml,
-	"html": MimeTypeHtml,
-	"ice": "x-conference/x-cooltalk",
-	"ico": "image/x-icon",
-	"ics": "text/calendar",
-	"ief": "image/ief",
-	"ifb": "text/calendar",
-	"iges": "model/iges",
-	"igs": "model/iges",
-	"jar": "application/java-archive",
-	"java": MimeTypeText,
-	"jnlp": "application/x-java-jnlp-file",
-	"jp2": "image/jp2",
-	"jpe": MimeTypeJpeg,
-	"jpeg": MimeTypeJpeg,
-	"jpg": MimeTypeJpeg,
-	"js": MimeTypeJavascript,
-	"kar": "audio/midi",
-	"latex": "application/x-latex",
-	"lha": MimeTypeUnknown,
-	"lzh": MimeTypeUnknown,
-	"m3u": "audio/x-mpegurl",
-	"m4a": "audio/mp4a-latm",
-	"m4b": "audio/mp4a-latm",
-	"m4p": "audio/mp4a-latm",
-	"m4u": "video/vnd.mpegurl",
-	"m4v": "video/x-m4v",
-	"mac": "image/x-macpaint",
-	"man": "application/x-troff-man",
-	"mathml": "application/mathml+xml",
-	"me": "application/x-troff-me",
-	"mesh": "model/mesh",
-	"mid": "audio/midi",
-	"midi": "audio/midi",
-	"mif": "application/vnd.mif",
-	"mov": "video/quicktime",
-	"movie": "video/x-sgi-movie",
-	"mp2": "audio/mpeg",
-	"mp3": "audio/mpeg",
-	"mp4": "video/mp4",
-	"mpe": "video/mpeg",
-	"mpeg": "video/mpeg",
-	"mpg": "video/mpeg",
-	"mpga": "audio/mpeg",
-	"ms": "application/x-troff-ms",
-	"msh": "model/mesh",
-	"mxu": "video/vnd.mpegurl",
-	"nc": "application/x-netcdf",
-	"oda": "application/oda",
-	"ogg": "application/ogg",
-	"pbm": "image/x-portable-bitmap",
-	"pct": "image/pict",
-	"pdb": "chemical/x-pdb",
-	"pdf": "application/pdf",
-	"pgm": "image/x-portable-graymap",
-	"pgn": "application/x-chess-pgn",
-	"pic": "image/pict",
-	"pict": "image/pict",
-	"png": MimeTypePng,
-	"pnm": "image/x-portable-anymap",
-	"pnt": "image/x-macpaint",
-	"pntg": "image/x-macpaint",
-	"ppm": "image/x-portable-pixmap",
-	"ppt": "application/vnd.ms-powerpoint",
-	"ps": "application/postscript",
+        "7z": "application/x-7z-compressed",
+        "ai": "application/postscript",
+        "aif": "audio/x-aiff",
+        "aifc": "audio/x-aiff",
+        "aiff": "audio/x-aiff",
+        "asc": MimeTypeText,
+        "atom": "application/atom+xml",
+        "au": "audio/basic",
+        "avi": "video/x-msvideo",
+        "bcpio": "application/x-bcpio",
+        "bin": MimeTypeUnknown,
+        "bmp": "image/bmp",
+        "bz2": "application/x-bzip",
+        "cc": MimeTypeText,
+        "cdf": "application/x-netcdf",
+        "cgm": "image/cgm",
+        "class": MimeTypeUnknown,
+        "cpio": "application/x-cpio",
+        "cpp": MimeTypeText,
+        "cpt": "application/mac-compactpro",
+        "csh": "application/x-csh",
+        "css": MimeTypeCss,
+        "csv": MimeTypeCsv,
+        "dcr": "application/x-director",
+        "dif": "video/x-dv",
+        "dir": "application/x-director",
+        "djv": "image/vnd.djvu",
+        "djvu": "image/vnd.djvu",
+        "dll": MimeTypeUnknown,
+        "dmg": MimeTypeUnknown,
+        "dms": MimeTypeUnknown,
+        "doc": "application/msword",
+        "dtd": "application/xml-dtd",
+        "dv": "video/x-dv",
+        "dvi": "application/x-dvi",
+        "dxr": "application/x-director",
+        "eps": "application/postscript",
+        "etx": "text/x-setext",
+        "exe": MimeTypeUnknown,
+        "ez": "application/andrew-inset",
+        "gif": "image/gif",
+        "gram": "application/srgs",
+        "grxml": "application/srgs+xml",
+        "gtar": "application/x-gtar",
+        "gz": "application/x-gzip",
+        "h": MimeTypeText,
+        "hdf": "application/x-hdf",
+        "hh": MimeTypeText,
+        "hpp": MimeTypeText,
+        "hqx": "application/mac-binhex40",
+        "htm": MimeTypeHtml,
+        "html": MimeTypeHtml,
+        "ice": "x-conference/x-cooltalk",
+        "ico": "image/x-icon",
+        "ics": "text/calendar",
+        "ief": "image/ief",
+        "ifb": "text/calendar",
+        "iges": "model/iges",
+        "igs": "model/iges",
+        "jar": "application/java-archive",
+        "java": MimeTypeText,
+        "jnlp": "application/x-java-jnlp-file",
+        "jp2": "image/jp2",
+        "jpe": MimeTypeJpeg,
+        "jpeg": MimeTypeJpeg,
+        "jpg": MimeTypeJpeg,
+        "js": MimeTypeJavascript,
+        "kar": "audio/midi",
+        "latex": "application/x-latex",
+        "lha": MimeTypeUnknown,
+        "lzh": MimeTypeUnknown,
+        "m3u": "audio/x-mpegurl",
+        "m4a": "audio/mp4a-latm",
+        "m4b": "audio/mp4a-latm",
+        "m4p": "audio/mp4a-latm",
+        "m4u": "video/vnd.mpegurl",
+        "m4v": "video/x-m4v",
+        "mac": "image/x-macpaint",
+        "man": "application/x-troff-man",
+        "mathml": "application/mathml+xml",
+        "me": "application/x-troff-me",
+        "mesh": "model/mesh",
+        "mid": "audio/midi",
+        "midi": "audio/midi",
+        "mif": "application/vnd.mif",
+        "mov": "video/quicktime",
+        "movie": "video/x-sgi-movie",
+        "mp2": "audio/mpeg",
+        "mp3": "audio/mpeg",
+        "mp4": "video/mp4",
+        "mpe": "video/mpeg",
+        "mpeg": "video/mpeg",
+        "mpg": "video/mpeg",
+        "mpga": "audio/mpeg",
+        "ms": "application/x-troff-ms",
+        "msh": "model/mesh",
+        "mxu": "video/vnd.mpegurl",
+        "nc": "application/x-netcdf",
+        "oda": "application/oda",
+        "ogg": "application/ogg",
+        "pbm": "image/x-portable-bitmap",
+        "pct": "image/pict",
+        "pdb": "chemical/x-pdb",
+        "pdf": "application/pdf",
+        "pgm": "image/x-portable-graymap",
+        "pgn": "application/x-chess-pgn",
+        "pic": "image/pict",
+        "pict": "image/pict",
+        "png": MimeTypePng,
+        "pnm": "image/x-portable-anymap",
+        "pnt": "image/x-macpaint",
+        "pntg": "image/x-macpaint",
+        "ppm": "image/x-portable-pixmap",
+        "ppt": "application/vnd.ms-powerpoint",
+        "ps": "application/postscript",
 
-	# Qore script
-	"q": MimeTypeText,
+        # Qore script
+        "q": MimeTypeText,
 
-	# Qore class include file
-	"qc": MimeTypeText,
+        # Qore class include file
+        "qc": MimeTypeText,
 
         # Qorus function definition file
         "qfd": MimeTypeText,
@@ -311,11 +321,11 @@ public namespace Mime {
         # Qorus job definition
         "qjob": MimeTypeText,
 
-	# Qore include file
-	"ql": MimeTypeText,
+        # Qore include file
+        "ql": MimeTypeText,
 
-	# Qore user module source
-	"qm": MimeTypeText,
+        # Qore user module source
+        "qm": MimeTypeText,
 
         # Qorus service definition
         "qsd": MimeTypeText,
@@ -323,82 +333,102 @@ public namespace Mime {
         # Qorus workflow definition
         "qwf": MimeTypeText,
 
-	"qt": "video/quicktime",
-	"qti": "image/x-quicktime",
-	"qtif": "image/x-quicktime",
-	"ra": "audio/x-pn-realaudio",
-	"ram": "audio/x-pn-realaudio",
-	"ras": "image/x-cmu-raster",
-	"rdf": "application/rdf+xml",
-	"rgb": "image/x-rgb",
-	"rm": "application/vnd.rn-realmedia",
-	"roff": "application/x-troff",
-	"rtf": "text/rtf",
-	"rtx": "text/richtext",
-	"sgm": "text/sgml",
-	"sgml": "text/sgml",
-	"sh": "application/x-sh",
-	"shar": "application/x-shar",
-	"silo": "model/mesh",
-	"sit": "application/x-stuffit",
-	"skd": "application/x-koan",
-	"skm": "application/x-koan",
-	"skp": "application/x-koan",
-	"skt": "application/x-koan",
-	"smi": "application/smil",
-	"smil": "application/smil",
-	"snd": "audio/basic",
-	"so": MimeTypeUnknown,
-	"spl": "application/x-futuresplash",
-	"src": "application/x-wais-source",
-	"sv4cpio": "application/x-sv4cpio",
-	"sv4crc": "application/x-sv4crc",
-	"svg": "image/svg+xml",
-	"swf": "application/x-shockwave-flash",
-	"t": "application/x-troff",
-	"tar": "application/x-tar",
-	"tar.bz2": "application/x-bzip-compressed-tar",
-	"tar.gz": "application/x-tar-gz",	
-	"tbz": "application/x-bzip-compressed-tar",
-	"tcl": "application/x-tcl",
-	"tex": "application/x-tex",
-	"texi": "application/x-texinfo",
-	"texinfo": "application/x-texinfo",
-	"text": MimeTypeText,
-	"tgz": "application/x-tar-gz",	
-	"tif": "image/tiff",
-	"tiff": "image/tiff",
-	"tr": "application/x-troff",
-	"tsv": "text/tab-separated-values",
-	"txt": MimeTypeText,
-	"ustar": "application/x-ustar",
-	"vcd": "application/x-cdlink",
-	"vrml": "model/vrml",
-	"vxml": "application/voicexml+xml",
-	"wav": "audio/x-wav",
-	"wbmp": "image/vnd.wap.wbmp",
-	"wbmxl": "application/vnd.wap.wbxml",
-	"wml": "text/vnd.wap.wml",
-	"wmlc": "application/vnd.wap.wmlc",
-	"wmls": "text/vnd.wap.wmlscript",
-	"wmlsc": "application/vnd.wap.wmlscriptc",
-	"wrl": "model/vrml",
+        "qt": "video/quicktime",
+        "qti": "image/x-quicktime",
+        "qtif": "image/x-quicktime",
+        "ra": "audio/x-pn-realaudio",
+        "ram": "audio/x-pn-realaudio",
+        "ras": "image/x-cmu-raster",
+        "rdf": "application/rdf+xml",
+        "rgb": "image/x-rgb",
+        "rm": "application/vnd.rn-realmedia",
+        "roff": "application/x-troff",
+        "rtf": "text/rtf",
+        "rtx": "text/richtext",
+        "sgm": "text/sgml",
+        "sgml": "text/sgml",
+        "sh": "application/x-sh",
+        "shar": "application/x-shar",
+        "silo": "model/mesh",
+        "sit": "application/x-stuffit",
+        "skd": "application/x-koan",
+        "skm": "application/x-koan",
+        "skp": "application/x-koan",
+        "skt": "application/x-koan",
+        "smi": "application/smil",
+        "smil": "application/smil",
+        "snd": "audio/basic",
+        "so": MimeTypeUnknown,
+        "spl": "application/x-futuresplash",
+        "src": "application/x-wais-source",
+        "sv4cpio": "application/x-sv4cpio",
+        "sv4crc": "application/x-sv4crc",
+        "svg": "image/svg+xml",
+        "swf": "application/x-shockwave-flash",
+        "t": "application/x-troff",
+        "tar": "application/x-tar",
+        "tar.bz2": "application/x-bzip-compressed-tar",
+        "tar.gz": "application/x-tar-gz",
+        "tbz": "application/x-bzip-compressed-tar",
+        "tcl": "application/x-tcl",
+        "tex": "application/x-tex",
+        "texi": "application/x-texinfo",
+        "texinfo": "application/x-texinfo",
+        "text": MimeTypeText,
+        "tgz": "application/x-tar-gz",
+        "tif": "image/tiff",
+        "tiff": "image/tiff",
+        "tr": "application/x-troff",
+        "tsv": "text/tab-separated-values",
+        "txt": MimeTypeText,
+        "ustar": "application/x-ustar",
+        "vcd": "application/x-cdlink",
+        "vrml": "model/vrml",
+        "vxml": "application/voicexml+xml",
+        "wav": "audio/x-wav",
+        "wbmp": "image/vnd.wap.wbmp",
+        "wbmxl": "application/vnd.wap.wbxml",
+        "wml": "text/vnd.wap.wml",
+        "wmlc": "application/vnd.wap.wmlc",
+        "wmls": "text/vnd.wap.wmlscript",
+        "wmlsc": "application/vnd.wap.wmlscriptc",
+        "wrl": "model/vrml",
         "wsdl": "application/wsdl+xml",
-	"xbm": "image/x-xbitmap",
-	"xht": "application/xhtml+xml",
-	"xhtml": "application/xhtml+xml",
-	"xls": "application/vnd.ms-excel",
-	"xml": MimeTypeXml,
-	"xpm": "image/x-xpixmap",
+        "xbm": "image/x-xbitmap",
+        "xht": "application/xhtml+xml",
+        "xhtml": "application/xhtml+xml",
+        "xls": "application/vnd.ms-excel",
+        "xml": MimeTypeXml,
+        "xpm": "image/x-xpixmap",
         "xsd": MimeTypeXml,
-	"xsl": "application/xml",
-	"xslt": "application/xslt+xml",
-	"xul": "application/vnd.mozilla.xul+xml",
-	"xwd": "image/x-xwindowdump",
-	"xyz": "chemical/x-xyz",
-	"yaml": MimeTypeYaml,
-	"zip": "application/zip",
-	);
+        "xsl": "application/xml",
+        "xslt": "application/xslt+xml",
+        "xul": "application/vnd.mozilla.xul+xml",
+        "xwd": "image/x-xwindowdump",
+        "xyz": "chemical/x-xyz",
+        "yaml": MimeTypeYaml,
+        "zip": "application/zip",
+        );
+
+    #! hash of non-alphanumeric characters that can be used unencoded in URL encoded format
+    /** @note the plus character can also appear unencoded in a URL string, but because many
+        decoders interpret it as a space (which is it in the query part of a URL string), it's
+        not in this list
+
+        @see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>
+    */
+    public const UrlEncodedChars = (
+        "\$": True,
+        "-": True,
+        "_": True,
+        ".": True,
+        "!": True,
+        "*": True,
+        "'": True,
+        "(": True,
+        ")": True,
+        ",": True
+        );
     #@}
 
     /** @defgroup MimeContentTransferEncodingConstants MIME Content Transfer Encoding Constants
@@ -432,66 +462,66 @@ public namespace Mime {
 
     /** @defgroup MimeEncodingFunctions MIME Encoding Functions
      */
-    #@{ 
+    #@{
     #! returns a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to encode
-	@param len the maximum line length
+        @param len the maximum line length
 
-	@note this function is basically just a wrapper for the standard %Qore function makeBase64String()
+        @note this function is basically just a wrapper for the standard %Qore function make_base64_string()
      */
-    public string sub mime_encode_base64(data $str, int $len = MimeBase64LineLen) {
-	return makeBase64String($str, $len);
+    public string sub mime_encode_base64(data str, int len = MimeBase64LineLen) {
+        return make_base64_string(str, len);
     }
 
     #! returns a string in "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
     /** @param str the string to encode
-	@param hdr use rules for a MIME header (<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>)
+        @param hdr use rules for a MIME header (<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>)
      */
-    public string sub mime_encode_quoted_printable(string $str, bool $hdr = False) {
-	my string $rv;
-	my int $lp = 0;
+    public string sub mime_encode_quoted_printable(string str, bool hdr = False) {
+        string rv;
+        int lp = 0;
 
-	for (my int $i = 0; $i < $str.size(); ++$i) {
-	    my int $c = get_byte($str, $i);
+        for (int i = 0; i < str.size(); ++i) {
+            int c = get_byte(str, i);
 
-	    # check if we're processing a UNIX '\n' line break
-	    if ($c == 10) {
-		# we MUST encode this as a CRLF sequence (we assume it's a UNIX line break)
-		$rv += "\r\n";
-		$lp = 0;
-		continue;
-	    }
+            # check if we're processing a UNIX '\n' line break
+            if (c == 10) {
+                # we MUST encode this as a CRLF sequence (we assume it's a UNIX line break)
+                rv += "\r\n";
+                lp = 0;
+                continue;
+            }
 
-	    # check if we're processing a CRLF line break
-	    if ($c == 13 && get_byte($str, $i + 1) == 10) {
-		$rv += "\r\n";
-		$lp = 0;
-		++$i;
-		continue;
-	    }
+            # check if we're processing a CRLF line break
+            if (c == 13 && get_byte(str, i + 1) == 10) {
+                rv += "\r\n";
+                lp = 0;
+                ++i;
+                continue;
+            }
 
-	    # new string to append
-	    my string $nc;
-	    # if we are encoding a header and we have a space, transform to "_"
-	    if ($hdr && $c == 32)
-		$nc = "_";
-	    # check if the high bit is set or if it's an ASCII control character or '=', or we are encoding a header and the char is not '?' and '_', encode
-	    else if (($c & 0x80) || $c < 32 || $c == 61 || ($hdr && ($c == 63 || $c == 95 || $c == 137)))
-		$nc = sprintf("=%02x", $c).upr();
-	    else
-		$nc = chr($c);
+            # new string to append
+            string nc;
+            # if we are encoding a header and we have a space, transform to "_"
+            if (hdr && c == 32)
+                nc = "_";
+            # check if the high bit is set or if it's an ASCII control character or '=', or we are encoding a header and the char is not '?' and '_', encode
+            else if ((c & 0x80) || c < 32 || c == 61 || (hdr && (c == 63 || c == 95 || c == 137)))
+                nc = sprintf("=%02x", c).upr();
+            else
+                nc = chr(c);
 
-	    # we MUST break up lines longer than 76 characters (the line length includes the '=' but not the CRLF
-	    if (($nc.size() + $lp) >= (MimeQuotedPrintableLineLen - 1)) {
-		# insert soft line break
-		$rv += "=\r\n";
-		$lp = 0;
-	    }
+            # we MUST break up lines longer than 76 characters (the line length includes the '=' but not the CRLF
+            if ((nc.size() + lp) >= (MimeQuotedPrintableLineLen - 1)) {
+                # insert soft line break
+                rv += "=\r\n";
+                lp = 0;
+            }
 
-	    $rv += $nc;
-	    $lp += $nc.size();
-	}
-	return $rv;
+            rv += nc;
+            lp += nc.size();
+        }
+        return rv;
     }
 
     #! encodes data according to the given encoding
@@ -500,55 +530,55 @@ public namespace Mime {
 
         @throw MIME-TRANSFER-ENCODING-ERROR unknown transfer encoding
      */
-    public data sub mime_encode_transfer_data(data $data, string $enc) {
-        $enc = $enc.lwr();
-        switch ($enc) {
+    public data sub mime_encode_transfer_data(data data, string enc) {
+        enc = enc.lwr();
+        switch (enc) {
             case ContentTransEnc7Bit:
             case ContentTransEnc8Bit:
             case ContentTransEncBinary:
-                return $data;
+                return data;
 
             case ContentTransEncBase64:
-                return mime_encode_base64($data, MimeBase64LineLen);
+                return mime_encode_base64(data, MimeBase64LineLen);
 
             case ContentTransEncQuotedPrintable:
-                return mime_encode_quoted_printable($data);
+                return mime_encode_quoted_printable(data);
         }
 
-        throw "MIME-TRANSFER-ENCODING-ERROR", sprintf("Content-Transfer-Encoding: %y is unknown", $enc);
+        throw "MIME-TRANSFER-ENCODING-ERROR", sprintf("Content-Transfer-Encoding: %y is unknown", enc);
     }
 
     #! returns a string in "B" ("BASE64") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
-    public string sub mime_encode_header_word_b(string $str) {
-	return sprintf("=?%s?B?%s?=", get_encoding($str), makeBase64String($str, MimeBase64LineLen));
+    public string sub mime_encode_header_word_b(string str) {
+        return sprintf("=?%s?B?%s?=", get_encoding(str), make_base64_string(str, MimeBase64LineLen));
     }
 
     #! returns a string in "Q" ("quoted-printable") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
-    public string sub mime_encode_header_word_q(string $str) {
-	return sprintf("=?%s?Q?%s?=", get_encoding($str), mime_encode_quoted_printable($str, True));
+    public string sub mime_encode_header_word_q(string str) {
+        return sprintf("=?%s?Q?%s?=", get_encoding(str), mime_encode_quoted_printable(str, True));
     }
     #@}
 
     /** @defgroup MimeDecodingFunctions MIME Decoding Functions
      */
-    #@{ 
+    #@{
     #! returns a binary value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to decode
 
-	@note this function is basically just a wrapper for the standard %Qore function parseBase64String()
+        @note this function is basically just a wrapper for the standard %Qore function parse_base64_string()
      */
-    public binary sub mime_decode_base64(data $str) {
-	return parseBase64String($str);
+    public binary sub mime_decode_base64(data str) {
+        return parse_base64_string(str);
     }
 
     #! returns a string value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to decode
         @param encoding the character encoding to use for the string returned (if not present the default encoding is used)
 
-	@note this function is basically just a wrapper for the standard %Qore function parseBase64StringtoString()
+        @note this function is basically just a wrapper for the standard %Qore function parse_base64_string_to_string()
      */
-    public string sub mime_decode_base64_to_string(data $str, *string $encoding) {
-	return parseBase64StringToString($str, $encoding);
+    public string sub mime_decode_base64_to_string(data str, *string encoding) {
+        return parse_base64_string_to_string(str, encoding);
     }
 
     #! returns a string parsed from "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
@@ -557,42 +587,42 @@ public namespace Mime {
 
         @throw QUOTED-PRINTABLE-DECODE-ERROR an error occurred decoding the quoted-printable string
      */
-    public string sub mime_decode_quoted_printable(string $str, *string $encoding) {
-        $str = force_encoding($str, "us-ascii");
+    public string sub mime_decode_quoted_printable(string str, *string encoding) {
+        str = force_encoding(str, "us-ascii");
 
-        if ($encoding.empty())
-            $encoding = get_default_encoding();
+        if (encoding.empty())
+            encoding = get_default_encoding();
 
-	my string $rv;
-	my int $lp = 0;
+        string rv;
+        int lp = 0;
 
         # recombine broken lines
-        $str = replace($str, "=\r\n", "");
+        str = replace(str, "=\r\n", "");
 
 %ifdef Unix
         # substitute all \r\n occurrences with \n
-        $str = replace($str, "\r\n", "\n");
+        str = replace(str, "\r\n", "\n");
 %endif
 
         # substitute all "_" occurrences with " "
-        $str = replace($str, "_", " ");
+        str = replace(str, "_", " ");
 
-        my int $i = 0;
+        int i = 0;
         while (True) {
-            $i = $str.find("=", $i);
-            if ($i == -1)
+            i = str.find("=", i);
+            if (i == -1)
                 break;
 
-            my string $hex = extract $str, $i + 1, 2;
+            string hex = extract str, i + 1, 2;
             # according to RFC 2045 sec 6.7 rule (1): we have to use upper-case characters
-            if ($hex !~ /[0-9A-Z][0-9A-Z]/)
-                throw "QUOTED-PRINTABLE-DECODE-ERROR", sprintf("invalid hex byte code found: %y", $hex);
+            if (hex !~ /[0-9A-Z][0-9A-Z]/)
+                throw "QUOTED-PRINTABLE-DECODE-ERROR", sprintf("invalid hex byte code found: %y", hex);
             # replace the code with the given character
-            splice $str, $i, 1, chr(int($hex, 16), "us-ascii");
-            ++$i;
+            splice str, i, 1, chr(int(hex, 16), "us-ascii");
+            ++i;
         }
 
-        return force_encoding($str, $encoding);
+        return force_encoding(str, encoding);
     }
 
     #! decodes data according to the given encoding
@@ -602,52 +632,52 @@ public namespace Mime {
 
         @throw MIME-TRANSFER-ENCODING-ERROR unknown transfer encoding
      */
-    public data sub mime_decode_transfer_data(data $data, string $enc, *string $ct) {
-        $enc = $enc.lwr();
-        switch ($enc) {
+    public data sub mime_decode_transfer_data(data data, string enc, *string ct) {
+        enc = enc.lwr();
+        switch (enc) {
             case ContentTransEnc7Bit:
             case ContentTransEnc8Bit:
             case ContentTransEncBinary:
                 break;
 
             case ContentTransEncBase64: {
-                $data = mime_decode_base64($data);
+                data = mime_decode_base64(data);
                 break;
             }
 
             case ContentTransEncQuotedPrintable: {
-                $data = mime_decode_quoted_printable($data);
+                data = mime_decode_quoted_printable(data);
                 break;
             }
 
             default:
-                throw "MIME-TRANSFER-ENCODING-ERROR", sprintf("Content-Transfer-Encoding: %y is unknown", $enc);
+                throw "MIME-TRANSFER-ENCODING-ERROR", sprintf("Content-Transfer-Encoding: %y is unknown", enc);
         }
 
-        if ($data.typeCode() == NT_STRING) {
+        if (data.typeCode() == NT_STRING) {
             # see if there is a character encoding specification in the content-type
-            my *string $senc = ($ct =~ x/charset="?([^"]+)"?/)[0];
-            if (exists $senc)
-                $data = force_encoding($data, $senc);
+            *string senc = (ct =~ x/charset="?([^"]+)"?/)[0];
+            if (exists senc)
+                data = force_encoding(data, senc);
         }
 
-        return $data;
+        return data;
     }
 
     #! decodes a header string; if any part of the string is encoded with "B" ("BASE64") or "Q" ("quoted-printable") encodings according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>, then those parts are decoded and the decoded string is returned
     /** @param hdr the header value string to decode
         @return the decoded value of the header
      */
-    public string sub mime_decode_header(string $hdr) {
+    public string sub mime_decode_header(string hdr) {
         while (True) {
-            my (*string $enc, *string $he, *string $hw) = ($hdr =~ x/=\?([^?]+)\?(Q|B)\?(.+)\?=/i);
-            if (!$enc.val() || !$he.val() || !$hw.val())
+            (*string enc, *string he, *string hw) = (hdr =~ x/=\?([^?]+)\?(Q|B)\?(.+)\?=/i);
+            if (!enc.val() || !he.val() || !hw.val())
                 break;
-            my string $dv = $he.upr() == "Q" ? mime_decode_quoted_printable($hw, $enc) : mime_decode_base64_to_string($hw, $enc);
-            my string $os = sprintf("=?%s?%s?%s?=", $enc, $he, $hw);
-            $hdr = replace($hdr, $os, $dv);
+            string dv = he.upr() == "Q" ? mime_decode_quoted_printable(hw, enc) : mime_decode_base64_to_string(hw, enc);
+            string os = sprintf("=?%s?%s?%s?=", enc, he, hw);
+            hdr = replace(hdr, os, dv);
         }
-        return $hdr;
+        return hdr;
     }
     #@}
 
@@ -655,9 +685,132 @@ public namespace Mime {
      */
     #@{
     #! returns the mime type for the given filename from the extension or @ref MimeTypeUnknown if the extension is not present or unknown
-    public string sub get_mime_type_from_ext(string $path) {
-        my *string $ext = ($path =~ x/\.([a-z0-9]+)$/i)[0];
-        return ($ext && ($ext = MimeTypes{$ext.lwr()})) ? $ext : MimeTypeUnknown;
+    public string sub get_mime_type_from_ext(string path) {
+        *string ext = (path =~ x/\.([a-z0-9]+)$/i)[0];
+        return (ext && (ext = MimeTypes{ext.lwr()})) ? ext : MimeTypeUnknown;
+    }
+
+    #! returns a single string in MIME URL encoded format
+    /** reserved characters are replaced with percent encoding, characters outside the ASCII character set cause an exception to be thrown
+
+        @param the input value
+
+        @return the output string in MIME URL encoded format
+
+        @throw INVALID-VALUE the value given cannot be converted to a string
+        @throw INVALID-CHARACTER an invalid character has been found
+
+        @see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>
+
+        @note spaces are not replaced with \c '+' signs but rather encoded as \c %20 because \c '+' signs are often encoded and decoded improperly in URLs, and \c %20 is unambiguous
+
+        @since %Mime 1.3.4.1
+     */
+    public string sub mime_get_urlencoded_string(any val) {
+        if (!val.strp())
+            throw "INVALID-VALUE", sprintf("type %y cannot be converted to a string (value: %y)", val.type(), val);
+        string str = val.toString();
+
+        string rv = "";
+
+        for (int i = 0; i < str.size(); ++i) {
+            string c = str[i];
+            int code = c.getUnicode();
+            if (code > 127)
+                throw "INVALID-CHARACTER", sprintf("cannot generate a URL encoded string with non-ASCII character %y (unicode point %d)", c, code);
+            if ((code >= 48 && code <= 57) || (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || UrlEncodedChars{c}) {
+                rv += c;
+                continue;
+            }
+            rv += sprintf("%%%02X", code);
+        }
+
+        return rv;
+    }
+
+    #! returns a string in MIME multipart form URL encoded format (for use with \c "Content-Type: application/x-www-form-urlencoded" data)
+    /** Parameters will be separated by \c "&" characters.
+        All key values must be strings or convertible to strings or a URLENCODED-TYPE-ERROR exception is thrown
+
+        @param h the hash to use to generate the string
+
+        @return a string in \c application/x-www-form-urlencoded format
+
+        @throw URLENCODED-TYPE-ERROR hash value cannot be converted to a string
+        @throw INVALID-CHARACTER an invalid character has been found
+
+        @see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>
+
+        @since %Mime 1.3.4.1
+     */
+    public string sub mime_get_form_urlencoded_string(hash h) {
+        string str;
+        foreach hash kh in (h.pairIterator()) {
+            if (str)
+                str += "&";
+            str += mime_get_urlencoded_string(kh.key) + "=" + mime_get_urlencoded_string(kh.value);
+        }
+
+        return str;
+    }
+
+    #! decodes the given string from URL encoded format
+    /**
+        @param str the URL encoded string to decode
+
+        @return the decoded string
+
+        @see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>
+
+        @since %Mime 1.3.4.1
+     */
+    public string sub mime_decode_urlencoded_string(string str) {
+        while (True) {
+            int i = str.find("%");
+            if (i == -1)
+                break;
+
+            string source = str.substr(i, 3);
+
+            # gets the value of a hex digit in decimal
+            code get_digit = int sub (string d) {
+                int c = ord(d.upr());
+                if (c >= 48 && c <= 57)
+                    return c - 48;
+                return c - 55;
+            };
+
+            # get hex code
+            string code = source.substr(1);
+            int v = get_digit(code[0]) * 16 + get_digit(code[1]);
+            code = chr(v);
+            str = replace(str, source, code);
+        }
+
+        return str;
+    }
+
+    #! returns a hash corresponding to the string in MIME multipart form URL encoded format (for use with \c "Content-Type: application/x-www-form-urlencoded" data)
+    /** @param str the string to parse
+
+        @return the hash corresponding to the string
+
+        @throw URLENCODED-PARSE-ERROR cannot parse the given string
+
+        @see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>
+
+        @since %Mime 1.3.4.1
+     */
+    public hash sub mime_parse_form_urlencoded_string(string str) {
+        hash rv = {};
+        foreach string ustr in (str.split("&")) {
+            (*string key, *string value) = (ustr =~ x/([^=]+)=(.+)$/);
+            if (!key || !value)
+                throw "URLENCODED-PARSE-ERROR", sprintf("urlencoded parameter element not in key=value format: %y", ustr);
+            rv{mime_decode_urlencoded_string(key)} = mime_decode_urlencoded_string(value);
+        }
+
+        return rv;
     }
     #@}
 
@@ -691,7 +844,7 @@ public namespace Mime {
     #! for sending noncontiguous byte ranges of a single message (http://tools.ietf.org/html/rfc2616)
     public const MPT_BYTERANGES  = "byteranges";
     #@}
-        
+
     #! MultiPartMessage class implementation
     public class MultiPartMessage {
         const MP_DEFAULT_MSG = "This is a MIME multipart message";
@@ -699,31 +852,31 @@ public namespace Mime {
         #! @cond nodoc
         private {
             #! the type of multi-part message: see @ref MultiPartConstants for possible values
-            string $.mptype;
+            string mptype;
 
             #! the boundary to use between parts
-            string $.boundary;
+            string boundary;
 
             #! the content type for the message as a whole
-            string $.ct;
+            string ct;
 
             #! list of the parts of the message
-            list $.l = ();
+            list l = ();
 
             #! a hash of the headers of the message
-            hash $.hdr;
+            hash hdr;
         }
         #! @endcond
 
         #! creates the object
-        /** @param mptype the type of multi-part message: see @ref MultiPartConstants for possible values
-            @param boundary the boundary to use between parts
+        /** @param n_mptype the type of multi-part message: see @ref MultiPartConstants for possible values
+            @param n_boundary the boundary to use between parts
          */
-        constructor(string $mptype, string $boundary = MultiPartMessage::getBoundary()) {
-            $.mptype = $mptype;
-            $.boundary = $boundary;
-            $.ct = sprintf("multipart/%s;boundary=%s", $mptype, $boundary);
-            $.boundary = "--" + $.boundary;
+        constructor(string n_mptype, string n_boundary = MultiPartMessage::getBoundary()) {
+            mptype = n_mptype;
+            boundary = n_boundary;
+            ct = sprintf("multipart/%s;boundary=%s", n_mptype, n_boundary);
+            boundary = "--" + boundary;
         }
 
         #! returns a string embedded with the current timestamp designed to be used as MultiPart boundary string
@@ -734,10 +887,10 @@ public namespace Mime {
         #! returns a string of random characters
         /** @param len the length of the string to return
 
-            @since Mime 1.3.4 implemented by Util::get_random_string()
+            @since %Mime 1.3.4 implemented by Util::get_random_string()
          */
-        static string getRandomString(int $len) {
-            return get_random_string($len, 3);
+        static string getRandomString(int len) {
+            return get_random_string(len, 3);
         }
 
         #! returns a hash representing a parsed multipart message body from a boundary string and body arguments
@@ -745,8 +898,8 @@ public namespace Mime {
 
             @par Example:
             For example, given the following code:
-            @code
-my string $body = "This is a message with multiple parts in MIME format.\r
+            @code{.py}
+string body = "This is a message with multiple parts in MIME format.\r
 --frontier\r
 Content-Type: text/plain\r
 \r
@@ -759,7 +912,7 @@ PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUg\r
 Ym9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=\r
 --frontier--\r
 ";
-    printf("%N\n", MultiPartMessage::parseBody("frontier", $body, True));
+    printf("%N\n", MultiPartMessage::parseBody("frontier", body, True));
             @endcode \n
             The above code will output the following:
             @verbatim
@@ -799,122 +952,122 @@ hash: (2 members)
 
             @note multipart message parsing only works if the line termination characters are \c "\r\n"; make sure and convert the end of line characters before passing to this method if necessary
          */
-        static hash parseBody(string $boundary, string $body, bool $decode = True) {
+        static hash parseBody(string boundary, string body, bool decode = True) {
             # find beginning
-            my int $i = $body.find("--" + $boundary + "\r\n");
-            if ($i == -1)
-                throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find boundary %y in body", $boundary);
+            int i = body.find("--" + boundary + "\r\n");
+            if (i == -1)
+                throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find boundary %y in body", boundary);
 
             # see if the boundary is at the beginning of the body, in which case it is not preceded by "\r\n"
             # otherwise it should be
             # start offset
-            my int $so = 4;
-            if ($i >= 2 && $body[$i - 2] == "\r" && $body[$i - 1] == "\n") {
-                $so = 6;
-                $i -= 2;
+            int so = 4;
+            if (i >= 2 && body[i - 2] == "\r" && body[i - 1] == "\n") {
+                so = 6;
+                i -= 2;
             }
 
-            my string $mstr = $body.substr($i + $boundary.size() + $so);
-            #printf("MSTR (i: %d): %s\n", $i, $mstr);
+            string mstr = body.substr(i + boundary.size() + so);
+            #printf("MSTR (i: %d): %s\n", i, mstr);
 
             # find end
-            my int $j = $mstr.find("\r\n--" + $boundary + "--\r\n");
-            if ($j == -1)
-                throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find closing boundary %y in body", $boundary + "--");
+            int j = mstr.find("\r\n--" + boundary + "--\r\n");
+            if (j == -1)
+                throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot find closing boundary %y in body", boundary + "--");
 
             # remove multipart string from body
-            splice $body, $i, $j + $boundary.size() * 2 + 8 + $so;
-            
-            #printf("BODY (i: %d, j: %d): %s\n", $i, $j, $body);
-    
+            splice body, i, j + boundary.size() * 2 + 8 + so;
+
+            #printf("BODY (i: %d, j: %d): %s\n", i, j, body);
+
             # remove final boundary and any excess text from the multipart string
-            splice $mstr, $j;
+            splice mstr, j;
 
             # process parts
-            my list $l = $mstr.split("\r\n--" + $boundary + "\r\n");
-            foreach my data $pstr in ($l) {
-                $i = $pstr.find("\r\n\r\n");
-                if ($i == -1)
-                    throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d; could not find content boundary", $# + 1, $l.size());
-        
-                # get header string
-                my string $phdr = $pstr.substr(0, $i);
-                # parse header
-                my hash $h;
-                my list $pl = $phdr.split("\r\n");
-                for (my int $k = 0; $k < $pl.size(); ++$k) {
-                    my string $phl = $pl[$k];
-                    my (*string $hdr, *string $val) = ($phl =~ x/([^:]+):\s*(.*)$/);
-                    if (!$hdr || !$val.val())
-                        throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d header line: %y", $# + 1, $l.size(), $phl);
-                    
-                    # see if the following line is a long header field as defined in RFC 2822 section 2.2.3: http://tools.ietf.org/html/rfc2822#section-2.2.3
-                    while ($pl[$k + 1] =~ /^[ \t]/)
-                        $val += " " + trim($pl[++$k]);
-                    
-                    # make sure header keys are returned in lower case
-                    $hdr = $hdr.lwr();
-                    $h.$hdr = $val;
-                }
-                
-                # remove header from content
-                splice $pstr, 0, $i + 4;
+            list l = mstr.split("\r\n--" + boundary + "\r\n");
+            foreach data pstr in (l) {
+                i = pstr.find("\r\n\r\n");
+                if (i == -1)
+                    throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d; could not find content boundary", $# + 1, l.size());
 
-                my list $part = ();
+                # get header string
+                string phdr = pstr.substr(0, i);
+                # parse header
+                hash h;
+                list pl = phdr.split("\r\n");
+                for (int k = 0; k < pl.size(); ++k) {
+                    string phl = pl[k];
+                    my (*string hdr, *string val) = (phl =~ x/([^:]+):\s*(.*)$/);
+                    if (!hdr || !val.val())
+                        throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d header line: %y", $# + 1, l.size(), phl);
+
+                    # see if the following line is a long header field as defined in RFC 2822 section 2.2.3: http://tools.ietf.org/html/rfc2822#section-2.2.3
+                    while (pl[k + 1] =~ /^[ \t]/)
+                        val += " " + trim(pl[++k]);
+
+                    # make sure header keys are returned in lower case
+                    hdr = hdr.lwr();
+                    h{hdr} = val;
+                }
+
+                # remove header from content
+                splice pstr, 0, i + 4;
+
+                list part = ();
 
                 # decode the part if necessary
-                if ($decode) {
-		    # part content type (default = no encoding)
-		    my string $pct = Mime::ContentTransEnc7Bit;
-		    # part content transfer encoding (default: no encoding)
-		    my string $pcte = ContentTransEncBinary;
+                if (decode) {
+                    # part content type (default = no encoding)
+                    string pct = Mime::ContentTransEnc7Bit;
+                    # part content transfer encoding (default: no encoding)
+                    string pcte = ContentTransEncBinary;
 
                     # process part headers
-                    foreach my hash $hh in ($h.pairIterator()) {
-			if ($hh.key == "content-transfer-encoding")
-			    $pcte = $hh.value.lwr();
-			else if ($hh.key == "content-type")
-			    $pct = $hh.value;
+                    foreach hash hh in (h.pairIterator()) {
+                        if (hh.key == "content-transfer-encoding")
+                            pcte = hh.value.lwr();
+                        else if (hh.key == "content-type")
+                            pct = hh.value;
                     }
 
                     # decode the part's body
-		    $pstr = mime_decode_transfer_data($pstr, $pcte, $pct);
-                    if ($pstr.typeCode() == NT_BINARY && $pct =~ /text/)
-                        $pstr = binary_to_string($pstr);
+                    pstr = mime_decode_transfer_data(pstr, pcte, pct);
+                    if (pstr.typeCode() == NT_BINARY && pct =~ /text/)
+                        pstr = binary_to_string(pstr);
 
-		    # see if the part has parts itself
-                    if ($pct =~ /multipart\//i) {
-                        my *string $part_boundary = ($pct =~ x/boundary="?([^"]+)"?/)[0];
-                        if (!exists $part_boundary)
-                            throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse part %d Content-Type: %y; could not find message boundary", $#, $pct);
+                    # see if the part has parts itself
+                    if (pct =~ /multipart\//i) {
+                        *string part_boundary = (pct =~ x/boundary="?([^"]+)"?/)[0];
+                        if (!exists part_boundary)
+                            throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse part %d Content-Type: %y; could not find message boundary", $#, pct);
 
-                        my hash $ph = MultiPartMessage::parseBody($part_boundary, $pstr, True);
-                        $pstr = $ph.body;
-                        $part = $ph.part;
+                        hash ph = MultiPartMessage::parseBody(part_boundary, pstr, True);
+                        pstr = ph.body;
+                        part = ph.part;
                     }
                 }
 
-                $l[$#] = (
-                    "hdr": $h,
-                    "body": $pstr,
+                l[$#] = (
+                    "hdr": h,
+                    "body": pstr,
                     );
 
-                if ($part)
-                    $l[$#].part = $part;
+                if (part)
+                    l[$#].part = part;
             }
-            
+
             return (
-                "body": $body,
-                "part": $l,
+                "body": body,
+                "part": l,
                 );
         }
 
         #! serializes the message and returns a binary object ready to send over a socket
         binary serialize() {
-            my hash $h = $.getMsgAndHeaders();
-            my binary $rv = MultiPartMessage::serializeHeaders($h.hdr);
-            $rv += $h.body;
-            return $rv;
+            hash h = getMsgAndHeaders();
+            binary rv = MultiPartMessage::serializeHeaders(h.hdr);
+            rv += h.body;
+            return rv;
         }
 
         #! serializes a header hash to a binary object
@@ -922,12 +1075,12 @@ hash: (2 members)
 
             @return the binary object representing the hash with each header separated by \c "\r\n"
          */
-        static binary serializeHeaders(hash $hdr) {
-            my binary $b;
-            foreach my string $k in ($hdr.keyIterator())
-                $b += sprintf("%s: %s\r\n", $k, $hdr.$k); 
-            $b += "\r\n";
-            return $b;
+        static binary serializeHeaders(hash hdr) {
+            binary b;
+            foreach string k in (hdr.keyIterator())
+                b += sprintf("%s: %s\r\n", k, hdr{k});
+            b += "\r\n";
+            return b;
         }
 
         #! returns a hash of the message
@@ -940,65 +1093,65 @@ hash: (2 members)
         #! @cond nodoc
 
         # don't reimplement this method; fix/enhance it in the module
-        final private hash getMsgAndHeadersIntern(*string $content_type, bool $conlen = True) {
-            if (!exists $content_type)
-                $content_type = $.ct;
+        final private hash getMsgAndHeadersIntern(*string content_type, bool conlen = True) {
+            if (!exists content_type)
+                content_type = ct;
 
-            if ($.l.empty())
+            if (l.empty())
                 throw "HTTP-MULTIPART-ERROR", "the message has no parts";
 
-            my binary $msg = binary(MP_DEFAULT_MSG);
-            foreach my hash $m in ($.l) {
-                my binary $bd = binary($m.data);
-                $msg += "\r\n" + $.boundary + "\r\n";
-                $msg += MultiPartMessage::serializeHeaders($m.hdr + ($conlen ? ("Content-Length": $bd.size()) : NOTHING));
-                $msg += $bd;
+            binary msg = binary(MP_DEFAULT_MSG);
+            foreach hash m in (l) {
+                binary bd = binary(m.data);
+                msg += "\r\n" + boundary + "\r\n";
+                msg += MultiPartMessage::serializeHeaders(m.hdr + (conlen ? ("Content-Length": bd.size()) : NOTHING));
+                msg += bd;
             }
-            $msg += "\r\n" + $.boundary + "--";
-            
+            msg += "\r\n" + boundary + "--";
+
             return (
-                "hdr": $.hdr + ("Content-Type": $content_type),
-                "body": $msg,
+                "hdr": hdr + ("Content-Type": content_type),
+                "body": msg,
                 );
         }
 
         # don't reimplement this method; fix/enhance it in the module
-        private splicePartIntern(data $data, hash $hdr) {
-            splice $.l, 0, 0, MultiPartMessage::getPart($data, $hdr);
+        private splicePartIntern(data data, hash hdr) {
+            splice l, 0, 0, MultiPartMessage::getPart(data, hdr);
         }
 
         # don't reimplement this method; fix/enhance it in the module
-        private addPartIntern(data $data, hash $hdr) {
-            $.l += MultiPartMessage::getPart($data, $hdr);
+        private addPartIntern(data data, hash hdr) {
+            l += MultiPartMessage::getPart(data, hdr);
         }
 
-        private static hash getPart(data $data, hash $hdr) {
-            if (exists $hdr."Content-Length")
+        private static hash getPart(data data, hash hdr) {
+            if (exists hdr."Content-Length")
                 throw "HTTP-MULTIPART-ERROR", "illegal part header 'Content-Length': the Content-Length header will be generated automatically according to the size of each part";
 
-            switch ($data.typeCode()) {
+            switch (data.typeCode()) {
                 case NT_STRING: {
-                    my string $ct = $hdr."Content-Type";
+                    string ct = hdr."Content-Type";
                     # NOTE we do not check if the charset matches the actual encoding here
                     # we just add the charset= text if it's not already present
-                    if ($ct !~ /charset=/) {
-                        if (!$ct.empty())
-                            $ct += ";";
-                        $ct += sprintf("charset=%s", get_encoding($data));
-                        $hdr."Content-Type" = $ct;		
+                    if (ct !~ /charset=/) {
+                        if (!ct.empty())
+                            ct += ";";
+                        ct += sprintf("charset=%s", get_encoding(data));
+                        hdr."Content-Type" = ct;
                     }
-                    if (!exists $hdr."Content-Transfer-Encoding")
-                        $hdr."Content-Transfer-Encoding" = "8bit";
+                    if (!exists hdr."Content-Transfer-Encoding")
+                        hdr."Content-Transfer-Encoding" = "8bit";
                     break;
                 }
                 case NT_BINARY: {
-                    if (!exists $hdr."Content-Transfer-Encoding")
-                        $hdr."Content-Transfer-Encoding" = "binary";		
+                    if (!exists hdr."Content-Transfer-Encoding")
+                        hdr."Content-Transfer-Encoding" = "binary";
                 }
             }
             return (
-                "data": $data,
-                "hdr": $hdr,
+                "data": data,
+                "hdr": hdr,
                 );
         }
         #! @endcond
@@ -1009,14 +1162,14 @@ hash: (2 members)
         #! @cond nodoc
         private {
             # the starting part ID
-            string $.startid;
+            string startid;
         }
         #! @endcond
 
         #! creates the object
         /** @param boundary the boundary to use between parts
          */
-        constructor(string $boundary = MultiPartMessage::getBoundary()) : MultiPartMessage(MPT_RELATED, $boundary) {
+        constructor(string boundary = MultiPartMessage::getBoundary()) : MultiPartMessage(MPT_RELATED, boundary) {
         }
 
         #! adds a message part to the start of the list
@@ -1027,12 +1180,12 @@ hash: (2 members)
 
             @throw MULTIPART-RELATED-ERROR if the id parameter is empty, this exception is thrown
          */
-        splicePart(data $data, string $id, string $content_type, *hash $hdr) {
-            if ($id.empty())
+        splicePart(data data, string id, string content_type, *hash hdr) {
+            if (id.empty())
                 throw "MULTIPART-RELATED-ERROR", "missing second argument giving the Content-ID identifying the part; this header is required for each part as this is how the parts are related to the main message";
 
-            $.startid = $id;
-            $.splicePartIntern($data, $hdr + ("Content-ID": $id, "Content-Type": $content_type));
+            startid = id;
+            splicePartIntern(data, hdr + ("Content-ID": id, "Content-Type": content_type));
         }
 
         #! adds a message part to the end of the list
@@ -1043,14 +1196,14 @@ hash: (2 members)
 
             @throw MULTIPART-RELATED-ERROR if the id parameter is empty, this exception is thrown
          */
-        addPart(data $data, string $id, string $content_type, *hash $hdr) {
-            if ($id.empty())
+        addPart(data data, string id, string content_type, *hash hdr) {
+            if (id.empty())
                 throw "MULTIPART-RELATED-ERROR", "missing second argument giving the Content-ID identifying the part; this header is required for each part as this is how the parts are related to the main message";
 
-            if (!exists $.startid)
-                $.startid = $id;
+            if (!exists startid)
+                startid = id;
 
-            $.addPartIntern($data, $hdr + ("Content-ID": $id, "Content-Type": $content_type));
+            addPartIntern(data, hdr + ("Content-ID": id, "Content-Type": content_type));
         }
 
         #! returns a hash of the message
@@ -1059,7 +1212,7 @@ hash: (2 members)
             - \c msg: a binary object of serialized message parts
          */
         hash getMsgAndHeaders() {
-            return $.getMsgAndHeadersIntern($.ct + ";start=" + $.startid);
+            return getMsgAndHeadersIntern(ct + ";start=" + startid);
         }
     }
 
@@ -1068,8 +1221,8 @@ hash: (2 members)
         #! creates the object
         /** @param boundary the boundary to use between parts
          */
-        constructor(string $boundary = MultiPartMessage::getBoundary()) : MultiPartMessage(MPT_MIXED, $boundary) {
-            $.hdr = (
+        constructor(string boundary = MultiPartMessage::getBoundary()) : MultiPartMessage(MPT_MIXED, boundary) {
+            hdr = (
                 "MIME-Version": "1.0",
                 );
         }
@@ -1087,11 +1240,11 @@ hash: (2 members)
             - MultiPartMixedMessage::spliceEncodePart()
             - MultiPartMixedMessage::addEncodePart()
          */
-        splicePart(data $data, string $content_type = MimeTypeText, string $disp = "inline", *hash $hdr) {
-            if ($content_type.empty())
+        splicePart(data data, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+            if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
-            $.splicePartIntern($data, $hdr + ("Content-Type": $content_type, "Content-Disposition": $disp));
+            splicePartIntern(data, hdr + ("Content-Type": content_type, "Content-Disposition": disp));
         }
 
         #! adds a message part to the end of the list; the data muyst already be encoded and any Content-Transfer-Encoding header must already be present in hdr
@@ -1107,11 +1260,11 @@ hash: (2 members)
             - MultiPartMixedMessage::spliceEncodePart()
             - MultiPartMixedMessage::addEncodePart()
          */
-        addPart(data $data, string $content_type = MimeTypeText, string $disp = "inline", *hash $hdr) {
-            if ($content_type.empty())
+        addPart(data data, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+            if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
-            $.addPartIntern($data, $hdr + ("Content-Type": $content_type, "Content-Disposition": $disp));
+            addPartIntern(data, hdr + ("Content-Type": content_type, "Content-Disposition": disp));
         }
 
         #! adds a message part to the start of the list; encodes the data according to the transfer encoding argument passed
@@ -1129,13 +1282,13 @@ hash: (2 members)
             - MultiPartMixedMessage::addPart()
             - MultiPartMixedMessage::addEncodePart()
          */
-        spliceEncodePart(data $data, string $enc, string $content_type = MimeTypeText, string $disp = "inline", *hash $hdr) {
-            if ($content_type.empty())
+        spliceEncodePart(data data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+            if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
-            if ($data.typeCode() == NT_STRING && $content_type !~ /charset=/ && $disp == "inline")
-                $content_type += sprintf(";charset=%s", get_encoding($data));
-            $.splicePartIntern(mime_encode_transfer_data($data, $enc), $hdr + ("Content-Type": $content_type, "Content-Disposition": $disp, "Content-Transfer-Encoding": $enc));
+            if (data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline")
+                content_type += sprintf(";charset=%s", get_encoding(data));
+            splicePartIntern(mime_encode_transfer_data(data, enc), hdr + ("Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc));
         }
 
         #! adds a message part to the end of the list; encodes the data according to the transfer encoding argument passed
@@ -1153,13 +1306,13 @@ hash: (2 members)
             - MultiPartMixedMessage::splicePart()
             - MultiPartMixedMessage::spliceEncodePart()
          */
-        addEncodePart(data $data, string $enc, string $content_type = MimeTypeText, string $disp = "inline", *hash $hdr) {
-            if ($content_type.empty())
+        addEncodePart(data data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash hdr) {
+            if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
-            if ($data.typeCode() == NT_STRING && $content_type !~ /charset=/ && $disp == "inline")
-                $content_type += sprintf(";charset=%s", get_encoding($data));
-            $.addPartIntern(mime_encode_transfer_data($data, $enc), $hdr + ("Content-Type": $content_type, "Content-Disposition": $disp, "Content-Transfer-Encoding": $enc));
+            if (data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline")
+                content_type += sprintf(";charset=%s", get_encoding(data));
+            addPartIntern(mime_encode_transfer_data(data, enc), hdr + ("Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc));
         }
 
         #! returns a hash of the message
@@ -1168,7 +1321,7 @@ hash: (2 members)
             - \c msg: a binary object of serialized message parts
          */
         hash getMsgAndHeaders() {
-            return $.getMsgAndHeadersIntern(NOTHING, False);
+            return getMsgAndHeadersIntern(NOTHING, False);
         }
     }
 }

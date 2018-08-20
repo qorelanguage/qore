@@ -1,0 +1,21 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+# this module requires Qore 0.8.12 or better
+%requires qore >= 0.8.12
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+module T {
+    version = "1.0";
+    desc    = "test";
+    author  = "test";
+    url     = "http://qore.org";
+    license = "MIT";
+}
+
+public namespace T {
+    public namespace T1 {
+    }
+}

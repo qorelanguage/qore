@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreExtractOperatorNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -40,8 +40,7 @@ protected:
 
    DLLLOCAL static QoreString extract_str;
 
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    DLLLOCAL ~QoreExtractOperatorNode() {
       discard(lvalue_exp, 0);
@@ -71,7 +70,21 @@ public:
       return extract_str.getBuffer();
    }
 
-   DLLLOCAL AbstractQoreNode *extract(ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+      ReferenceHolder<> n_lv(copy_and_resolve_lvar_refs(lvalue_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_of(copy_and_resolve_lvar_refs(offset_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_ln(copy_and_resolve_lvar_refs(length_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_nw(copy_and_resolve_lvar_refs(new_exp, xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new QoreExtractOperatorNode(n_lv.release(), n_of.release(), n_ln.release(), n_nw.release());
+   }
 };
 
 #endif

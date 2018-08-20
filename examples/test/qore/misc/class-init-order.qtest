@@ -1,0 +1,94 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+our list staticOrder;
+our list order;
+
+class Field {
+    private { string n; }
+    constructor(string n) { self.n = n; order += n; }
+    destructor() { order += "~" + n; }
+}
+
+class StaticField {
+    constructor(string n) { staticOrder += n; }
+}
+
+class C1 {
+    public {
+        Field b("b");
+        Field a("a");
+        Field c("c");
+    }
+}
+
+class C2 {
+    public {
+        static StaticField h("h");
+        static StaticField a("a");
+        static StaticField z("z");
+    }
+}
+
+class Base1 {
+    public {
+        Field n("n1");
+    }
+}
+
+class Base2 inherits Base1 {
+    public {
+        Field m("m2");
+    }
+}
+
+class Base3 {
+    public {
+        Field k("k3");
+    }
+}
+
+class C3 inherits Base2, Base3 {
+    public {
+        Field z("z");
+        Field a("a");
+    }
+}
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("class member initialization order", "1.0", \ARGV) {
+        addTestCase("non-static members", \nonStaticMembers());
+        addTestCase("static members", \staticMembers());
+        addTestCase("inherited members", \inheritedMembers());
+        set_return_value(main());
+    }
+
+    nonStaticMembers() {
+        order = ();
+        {
+            C1 c();
+        }
+        assertEq(("b", "a", "c", "~c", "~a", "~b"), order);
+    }
+
+    staticMembers() {
+        assertEq(("h", "a", "z"), staticOrder);
+    }
+
+    inheritedMembers() {
+        order = ();
+        {
+            C3 c();
+        }
+        assertEq(("n1", "m2", "k3", "z", "a", "~a", "~z", "~k3", "~m2", "~n1"), order);
+    }
+}

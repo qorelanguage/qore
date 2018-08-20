@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,27 +31,29 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreObjectIterator.h>
 
+extern QoreClass* QC_HASHITERATOR;
+
 //! This class a basic iterator class for objects
 /** Call ObjectIterator::next() to iterate through the object; do not use the iterator if ObjectIterator::next() returns @ref False.
     An object can be iterated in reverse order by calling ObjectIterator::prev() instead of ObjectIterator::next()
 
     @par Example: ObjectIterator basic usage
-    @code
+    @code{.py}
     class Class1 {
        public {
-          int $.attr1;
-          date $.attr2;
+          int attr1;
+          date attr2;
        }
        constructor() {
-          $.attr1 = 1;
-          $.attr2 = now();
+          attr1 = 1;
+          attr2 = now();
        }
     }
-    my Class1 $o();
+    Class1 o();
 
-    my ObjectIterator $it($o);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    ObjectIterator it(o);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: 1
@@ -71,8 +73,8 @@ qclass ObjectIterator [arg=QoreObjectIterator* i; ns=Qore; vparent=HashIterator]
 /** @param o the object to iterate
 
     @par Example:
-    @code
-my ObjectIterator $i($obj);
+    @code{.py}
+ObjectIterator i(obj);
     @endcode
  */
 ObjectIterator::constructor(object o) {
@@ -81,9 +83,9 @@ ObjectIterator::constructor(object o) {
 
 //! Creates an empty object iterator object
 /** @par Example:
-    @code
-my *object $obj = get_object_or_nothing();
-my ObjectIterator $i($obj);
+    @code{.py}
+*object obj = get_object_or_nothing();
+ObjectIterator i(obj);
     @endcode
  */
 ObjectIterator::constructor() {
@@ -92,8 +94,8 @@ ObjectIterator::constructor() {
 
 //! Creates a copy of the ObjectIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
-my ObjectIterator $ni = $i.copy();
+    @code{.py}
+ObjectIterator ni = i.copy();
     @endcode
  */
 ObjectIterator::copy() {

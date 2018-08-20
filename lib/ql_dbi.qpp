@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -46,37 +46,27 @@ namespace Qore::SQL;
 
     @return a @ref datasource_hash "datasource hash" of the components of a datasource string
 
-    @par Example:
-    @code
-my hash $h = parseDatasource("pgsql:user/pass@dbname(utf8)%dbhost.internal:1521{min=4,max=10}");
-    @endcode
-
     @throw DATASOURCE-PARSE-ERROR a syntax error occurred parsing the datasource string (missing field, unexpected character, etc)
 
-    @see parse_datasource() for a similar function that uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()") and does not have a @ref NOOP variant
+    @deprecated use parse_datasource() instead; camel-case function names were deprecated in %Qore 0.8.12
  */
-hash parseDatasource(string ds) [flags=RET_VALUE_ONLY] {
+hash parseDatasource(string ds) [flags=RET_VALUE_ONLY,DEPRECATED] {
    return parseDatasource(ds->getBuffer(), xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing parseDatasource() [flags=NOOP] {
+nothing parseDatasource() [flags=NOOP,DEPRECATED] {
 }
 
 //! Returns a list of strings of DBI drivers currently loaded or @ref nothing if no drivers are loaded
 /** 
     @return a list of strings of DBI drivers currently loaded or @ref nothing if no drivers are loaded
 
-    @par Example:
-    @code
-my *list $l = getDBIDriverList();
-    @endcode
-
-    @see dbi_get_driver_list() for a similar function that uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()")
+    @deprecated use dbi_get_driver_list() instead; camel-case function names were deprecated in %Qore 0.8.12
  */
-*list getDBIDriverList() [flags=CONSTANT] {
+*list getDBIDriverList() [flags=CONSTANT,DEPRECATED] {
    return DBI.getDriverList();
 }
 
@@ -86,14 +76,9 @@ my *list $l = getDBIDriverList();
 
     @return a list of each capability supported by the given DBI driver (see @ref dbi_capabilities) or @ref nothing if the driver cannot be found
 
-    @par Example:
-    @code
-my *list $l = getDBIDriverCapabilityList("pgsql");
-    @endcode
-
-    @see dbi_get_driver_capability_list() for a similar function that uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()") and does not have a @ref NOOP variant
+    @deprecated use dbi_get_driver_capability_list() instead; camel-case function names were deprecated in %Qore 0.8.12
  */
-*list getDBIDriverCapabilityList(string driver) [flags=CONSTANT] {
+*list getDBIDriverCapabilityList(string driver) [flags=CONSTANT,DEPRECATED] {
    DBIDriver *dd = DBI.find(driver->getBuffer());
    return !dd ? 0 : qore_dbi_private::get(*dd)->getCapList();
 }
@@ -101,7 +86,7 @@ my *list $l = getDBIDriverCapabilityList("pgsql");
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /** 
  */
-nothing getDBIDriverCapabilityList() [flags=NOOP] {
+nothing getDBIDriverCapabilityList() [flags=NOOP,DEPRECATED] {
 }
 
 //! Returns an integer representing the capabilities of a DBI driver binary-OR'ed together (see @ref dbi_capabilities) or @ref nothing if the driver is not already loaded
@@ -110,14 +95,9 @@ nothing getDBIDriverCapabilityList() [flags=NOOP] {
 
     @return an integer representing the capabilities of a DBI driver binary-OR'ed together (see @ref dbi_capabilities) or @ref nothing if the driver is not already loaded
 
-    @par Example:
-    @code
-my *int $caps = getDBIDriverCapabilities("pgsql");
-    @endcode
-
-    @see dbi_get_driver_capabilities() for a similar function that uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()"), always returns an @ref int_type, and does not have a @ref NOOP variant
+    @deprecated use dbi_get_driver_capabilities() instead; camel-case function names were deprecated in %Qore 0.8.12
  */
-*int getDBIDriverCapabilities(string driver) [flags=CONSTANT] {
+*int getDBIDriverCapabilities(string driver) [flags=CONSTANT,DEPRECATED] {
    DBIDriver* dd = DBI.find(driver->getBuffer());
    return !dd ? 0 : new QoreBigIntNode(qore_dbi_private::get(*dd)->getCaps());
 }
@@ -125,7 +105,7 @@ my *int $caps = getDBIDriverCapabilities("pgsql");
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
  */
-nothing getDBIDriverCapabilities() [flags=NOOP] {
+nothing getDBIDriverCapabilities() [flags=NOOP,DEPRECATED] {
 }
 //@}
 
@@ -155,8 +135,8 @@ namespace Qore::SQL;
     @return a @ref datasource_hash "datasource hash" of the components of a datasource string
 
     @par Example:
-    @code
-my hash $h = parse_datasource("pgsql:user/pass@dbname(utf8)%dbhost.internal:1521{min=4,max=10}");
+    @code{.py}
+hash h = parse_datasource("pgsql:user/pass@dbname(utf8)%dbhost.internal:1521{min=4,max=10}");
     @endcode
 
     @throw DATASOURCE-PARSE-ERROR a syntax error occurred parsing the datasource string (missing field, unexpected character, etc)
@@ -174,8 +154,8 @@ hash parse_datasource(string ds) [flags=RET_VALUE_ONLY] {
     @return a list of strings of DBI drivers currently loaded or @ref nothing if no drivers are loaded
 
     @par Example:
-    @code
-my *list $l = dbi_get_driver_list();
+    @code{.py}
+*list l = dbi_get_driver_list();
     @endcode
 
     @note similar to getDBIDriverList() except uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()")
@@ -193,8 +173,8 @@ my *list $l = dbi_get_driver_list();
     @return a list of each capability supported by the given DBI driver (see @ref dbi_capabilities) or @ref nothing if the driver cannot be found
 
     @par Example:
-    @code
-my *list $l = dbi_get_driver_capability_list("pgsql");
+    @code{.py}
+*list l = dbi_get_driver_capability_list("pgsql");
     @endcode
 
     @note similar to getDBIDriverCapabilityList() except uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()") and does not have a @ref NOOP variant
@@ -212,8 +192,8 @@ my *list $l = dbi_get_driver_capability_list("pgsql");
     @return an integer representing the capabilities of a DBI driver binary-OR'ed together (see @ref dbi_capabilities) or 0 if the driver is not already loaded
 
     @par Example:
-    @code
-my int $caps = dbi_get_driver_capabilities("pgsql");
+    @code{.py}
+int caps = dbi_get_driver_capabilities("pgsql");
     @endcode
 
     @note similar to getDBIDriverCapabilities() except uses the standard function naming scheme (ie \c "names_like_this()" instead of \c "camelCase()"), always returns an @ref int_type, and does not have a @ref NOOP variant
@@ -234,8 +214,8 @@ int dbi_get_driver_capabilities(string driver) [flags=CONSTANT] {
     - \c "type": a string giving the data type restriction for the option
 
     @par Example:
-    @code
-my *hash $h = dbi_get_driver_options("pgsql");
+    @code{.py}
+*hash h = dbi_get_driver_options("pgsql");
     @endcode
 
     @since %Qore 0.8.6

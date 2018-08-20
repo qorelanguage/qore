@@ -1,0 +1,37 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    private {
+        const O = (
+            "outd" : "o,out=s",
+            );
+
+        const Args = ("-o", "ooo");
+    }
+
+    constructor() : QUnit::Test("GetOpt", "1.0") {
+        addTestCase("GetOpt::parse(list)", \parseList());
+        set_return_value(main());
+    }
+
+    parseList() {
+        list l = Args;
+
+        GetOpt g(O);
+        hash h = g.parse2(l);
+        testAssertionValue("GetOpt::parse2(list)", Args, l);
+
+        h = g.parse2(\l);
+        testAssertionValue("GetOpt::parse2(list)", (), l);
+    }
+}

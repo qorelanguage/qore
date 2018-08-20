@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ContextStatement.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -33,7 +33,7 @@
 
 #define _QORE_CONTEXTSTATEMENT_H
 
-#include "intern/AbstractStatement.h"
+#include <qore/intern/AbstractStatement.h>
 
 #include <qore/safe_dslist>
 
@@ -45,7 +45,7 @@ public:
    union ContextModUnion {
       class AbstractQoreNode *exp;
    } c;
-   
+
    DLLLOCAL ContextMod(int t, class AbstractQoreNode *e);
    DLLLOCAL ~ContextMod();
 };
@@ -61,7 +61,7 @@ public:
 
 class ContextStatement :public AbstractStatement {
 protected:
-   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int execImpl(QoreValue& return_value, class ExceptionSink *xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
 
 public:
@@ -69,7 +69,7 @@ public:
    class AbstractQoreNode *exp, *where_exp, *sort_ascending, *sort_descending;
    class StatementBlock *code;
    class LVList *lvars;
-   
+
    DLLLOCAL ContextStatement(int start_line, int end_line, char *n, class AbstractQoreNode *expr, class ContextModList *cm, class StatementBlock *cd);
    DLLLOCAL virtual ~ContextStatement();
 

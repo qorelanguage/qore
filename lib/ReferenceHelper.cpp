@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -93,7 +93,7 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
 	 if (discardDummy())
 	    return 0;
 
-	 dummy = getReferencedValue();
+	 dummy = getReferencedNodeValue();
 	 assign_dummy = true;
 	 return dummy;
       }
@@ -102,7 +102,7 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
       return LValueHelper::getValue();
    }
 
-   DLLLOCAL int assign(AbstractQoreNode* val) {
+   DLLLOCAL int assign(QoreValue val) {
       return LValueHelper::assign(val, "<reference>");
    }
 
@@ -115,7 +115,7 @@ struct qore_type_safe_ref_helper_priv_t : public LValueHelper {
 	 if (discardDummy())
 	    return 0;
 
-	 dummy = getReferencedValue();
+	 dummy = getReferencedNodeValue();
 	 return dummy;
       }
 
@@ -154,12 +154,16 @@ int QoreTypeSafeReferenceHelper::assign(AbstractQoreNode *val) {
    return priv->assign(val);
 }
 
+int QoreTypeSafeReferenceHelper::assign(QoreValue val) {
+   return priv->assign(val);
+}
+
 int QoreTypeSafeReferenceHelper::assignBigInt(int64 v) {
-   return priv->assignBigInt(v);
+   return priv->assign(v);
 }
 
 int QoreTypeSafeReferenceHelper::assignFloat(double v) {
-   return priv->assignFloat(v);
+   return priv->assign(v);
 }
 
 void QoreTypeSafeReferenceHelper::swap(QoreTypeSafeReferenceHelper &other) {
@@ -174,11 +178,10 @@ QoreTypeSafeReferenceHelper::operator bool() const {
    return *priv;
 }
 
-qore_type_t QoreTypeSafeReferenceHelper::getType() const { 
+qore_type_t QoreTypeSafeReferenceHelper::getType() const {
    return priv->getType();
 }
 
-const char* QoreTypeSafeReferenceHelper::getTypeName() const { 
+const char* QoreTypeSafeReferenceHelper::getTypeName() const {
    return priv->getTypeName();
 }
-

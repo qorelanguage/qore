@@ -2,7 +2,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -66,13 +66,13 @@ public:
       delete this;
    }
 
-   DLLLOCAL AbstractQoreNode* run(ExceptionSink* xsink) {
-      return code->exec(0, xsink);
+   DLLLOCAL QoreValue run(ExceptionSink* xsink) {
+      return code->execValue(0, xsink);
    }
 
    DLLLOCAL void cancel(ExceptionSink* xsink) {
       if (cancelCode)
-         discard(cancelCode->exec(0, xsink), xsink);
+         cancelCode->execValue(0, xsink).discard(xsink);
    }
 };
 
@@ -222,6 +222,7 @@ protected:
    }
 
    DLLLOCAL int addIdleWorker(ExceptionSink* xsink) {
+      assert(xsink);
       std::auto_ptr<ThreadPoolThread> tpth(new ThreadPoolThread(*this, xsink));
       if (!tpth->valid()) {
 	 assert(*xsink);
@@ -238,6 +239,7 @@ protected:
    }
 
    DLLLOCAL ThreadPoolThread* getThreadUnlocked(ExceptionSink* xsink) {
+      assert(xsink);
       while (!stopflag && fh.empty() && max && (int)ah.size() == max) {
 	 waiting = true;
 	 cond.wait(m);

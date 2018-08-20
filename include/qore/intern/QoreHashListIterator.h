@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,7 @@ class QoreHashListIterator : public QoreIteratorBase {
 protected:
    QoreHashNode* h;
    qore_offset_t i, limit;
+   bool is_list;
 
    DLLLOCAL virtual ~QoreHashListIterator() {
    }
@@ -57,10 +58,15 @@ protected:
       if (t == NT_NOTHING)
          return 0;
 
-      if (t != NT_LIST) {
-         xsink->raiseException("HASHLISTITERATOR-ERROR", "hash key '%s' is assigned to type '%s'; expecting 'list'", key, get_type_name(n));
+      if (!is_list || t != NT_LIST)
+         return n->refSelf();
+
+      const QoreListNode* l = reinterpret_cast<const QoreListNode*>(n);
+      if (l->size() != (size_t)limit) {
+         xsink->raiseException("HASHLISTITERATOR-ERROR", "hash key '%s' is assigned to a list of size " QSD "; expecting a list of size " QSD, key, l->size(), limit);
          return 0;
       }
+
       return reinterpret_cast<const QoreListNode*>(n)->get_referenced_entry(i);
    }
 
@@ -69,23 +75,27 @@ protected:
    }
 
 public:
-   DLLLOCAL QoreHashListIterator(const QoreHashNode* n_h) : h(n_h->hashRefSelf()), i(-1), limit(0) {
+   DLLLOCAL QoreHashListIterator(const QoreHashNode* n_h) : h(n_h->hashRefSelf()), i(-1), limit(0), is_list(false) {
       if (h->empty())
          return;
-      // use an iterator for quick access to the first key in the hash
+      // see if the hash has any lists assigned to it
       ConstHashIterator hi(h);
-      // must succeed because the hash is not empty
-      hi.next();
-      const AbstractQoreNode* n = hi.getValue();
-      if (get_node_type(n) != NT_LIST)
-         return;
-      limit = (qore_offset_t)reinterpret_cast<const QoreListNode*>(n)->size();
+      while (hi.next()) {
+         const AbstractQoreNode* n = hi.getValue();
+         if (get_node_type(n) == NT_LIST) {
+            is_list = true;
+            limit = (qore_offset_t)reinterpret_cast<const QoreListNode*>(n)->size();
+            break;
+         }
+      }
+      if (!is_list)
+         limit = 1;
    }
 
-   DLLLOCAL QoreHashListIterator() : h(0), i(-1), limit(0) {
+   DLLLOCAL QoreHashListIterator() : h(0), i(-1), limit(0), is_list(false) {
    }
 
-   DLLLOCAL QoreHashListIterator(const QoreHashListIterator& old) : h(old.h ? old.h->hashRefSelf() : 0), i(old.i), limit(old.limit) {
+   DLLLOCAL QoreHashListIterator(const QoreHashListIterator& old) : h(old.h ? old.h->hashRefSelf() : 0), i(old.i), limit(old.limit), is_list(old.is_list) {
    }
 
    DLLLOCAL void reset() {
@@ -169,6 +179,9 @@ public:
    DLLLOCAL QoreHashNode* getRow(ExceptionSink* xsink) const {
       if (checkPtr(xsink))
          return 0;
+
+      if (!is_list)
+         return h->hashRefSelf();
 
       ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
 

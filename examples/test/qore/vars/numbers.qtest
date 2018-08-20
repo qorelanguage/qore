@@ -1,0 +1,158 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class NumbersTest
+
+public class NumbersTest inherits QUnit::Test {
+    constructor() : Test("NumbersTest", "1.0") {
+        addTestCase("Test number to string conversions", \stringConversionTest());
+        addTestCase("Test number rounding during string conversions", \roundingTest());
+        addTestCase("Test number operations", \opTest());
+        addTestCase("Test number precision", \precTest());
+        addTestCase("Test infp", \infpTests());
+        addTestCase("Test nanp", \nanpTests());
+        addTestCase("format", \formatTests());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    string helperToString(any n, any param) { return n.toString(param); }
+
+    stringConversionTest() {
+        int i = 1;
+        testAssertion("conversion no. " + string(i++), \string(), (10.2n,), new TestResultValue("10.2"));
+        testAssertion("conversion no. " + string(i++), \string(), (-10.2n,), new TestResultValue("-10.2"));
+        testAssertion("conversion no. " + string(i++), \string(), (1.000000000099999999n,), new TestResultValue("1.000000000099999999"));
+
+        testAssertion("conversion no. " + string(i++), \helperToString(), (10.245n, NF_Scientific), new TestResultValue("1.0245e+01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-10.245n, NF_Scientific), new TestResultValue("-1.0245e+01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.10245n, NF_Scientific), new TestResultValue("1.0245e-01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-0.10245n, NF_Scientific), new TestResultValue("-1.0245e-01"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (1.0245n, NF_Scientific), new TestResultValue("1.0245e+00"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-1.0245n, NF_Scientific), new TestResultValue("-1.0245e+00"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (10.245n,), new TestResultValue("10.245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-10.245n,), new TestResultValue("-10.245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.10245n,), new TestResultValue("0.10245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-0.10245n), new TestResultValue("-0.10245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (1.0245n,), new TestResultValue("1.0245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-1.0245n), new TestResultValue("-1.0245"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (10.001999999999n,), new TestResultValue("10.001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-10.001999999999n,), new TestResultValue("-10.001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.10001999999999n,), new TestResultValue("0.10001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-0.10001999999999n,), new TestResultValue("-0.10001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (1.0001999999999n,), new TestResultValue("1.0001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (-1.0001999999999n,), new TestResultValue("-1.0001999999999"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.99999999999999991234n,), new TestResultValue("0.99999999999999991234"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.999999999999999991234n,), new TestResultValue("1"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.0000000000000000012345n,), new TestResultValue("0"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.00000000000000001234n,), new TestResultValue("0.00000000000000001234"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.899999999999999991234n,), new TestResultValue("0.899999999999999991234"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.8999999999999999991234n,), new TestResultValue("0.9"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.8000000000000000001234n,), new TestResultValue("0.8"));
+        testAssertion("conversion no. " + string(i++), \helperToString(), (0.800000000000000001234n,), new TestResultValue("0.800000000000000001234"));
+        # fixed in svn rev 6914
+        testAssertion("conversion no. " + string(i++), \helperToString(), (738.38.toNumber(),), new TestResultValue(helperToString(738.38)));
+    }
+
+    roundingTest() {
+        int i = 1;
+        testAssertion("rounding no. " + string(i++), \helperToString(), (0.8n,), new TestResultValue("0.8"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (0.8n, NF_Scientific), new TestResultValue("8e-01"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (-0.8n,), new TestResultValue("-0.8"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (-0.8n, NF_Scientific), new TestResultValue("-8e-01"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (34.9n * 100,), new TestResultValue("3490"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (1e50n,), new TestResultValue("100000000000000000000000000000000000000000000000000"));
+        testAssertion("rounding no. " + string(i++), \helperToString(), (-1e50n,), new TestResultValue("-100000000000000000000000000000000000000000000000000"));
+    }
+
+    opTest() {
+        assertEq(True, 1n >= 1n);
+        assertEq(True, 1n <= 1n);
+        assertEq(True, 1n == 1n);
+        assertEq(False, 1n != 1n);
+
+        assertEq(False, 1n < 1n);
+        assertEq(False, 1n > 1n);
+
+        assertEq(False, 1 < 1n);
+        assertEq(False, 1 > 1n);
+    }
+
+    precTest() {
+        number n1 = 1208925819614629174706176n;                                                 #2^80
+
+        number n2 = n1 * n1;
+        assertEq("1461501637330902918203684832716283019655932542976", sprintf("%y", n2));       #2^160
+
+        n1 *= n1;
+        assertEq("1461501637330902918203684832716283019655932542976", sprintf("%y", n1));       #2^160
+
+        number n3 = -1;
+        number n4 = 1;
+        for (int i = 0; i < 160; i++) {
+            n3 = n3 - -n3;
+            n4 += n4;
+        }
+        assertEq("-1461501637330902918203684832716283019655932542976", sprintf("%y", n3));      #2^160
+        assertEq("1461501637330902918203684832716283019655932542976", sprintf("%y", n4));       #2^160
+
+        assertEq("100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                sprintf("%y", pow(10n, 101)));
+        assertEq("10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                 "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                 "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                 "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                 "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                 "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                 "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                 "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                 "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                 "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                 "000000000000000000000", sprintf("%y", pow(10n, 1000)));
+    }
+
+    infpTests() {
+        assertTrue(@inf@n.infp());
+        assertTrue((-@inf@n).infp());
+        assertTrue(nlog(@inf@n).infp());
+        assertFalse((1.0n).infp());
+        assertFalse(@nan@n.infp());
+    }
+
+    nanpTests() {
+        assertTrue(@nan@n.nanp());
+        assertTrue(nlog(-1.0n).nanp());
+        assertFalse((1.0n).nanp());
+        assertFalse(@inf@n.nanp());
+    }
+
+    formatTests() {
+        assertEq("1001.3299999", 1001.3299999n.format("").substr(0, 12));
+        assertEq("1,001", 1001.3299999n.format(","));
+        assertEq("1,001", 1001.3299999n.format(",."));
+        assertEq("1,001.33", 1001.3299999n.format(",.2"));
+        assertEq("1.001", 1001.3299999n.format("."));
+        assertEq("1.001", 1001.3299999n.format(".,"));
+        assertEq("1.001,33", 1001.3299999n.format(".,2"));
+
+        assertEq("0.5", 0.5n.format(""));
+        assertEq("1", 0.5n.format(",.0"));
+        assertEq("-0.5", (-0.5n).format(""));
+        assertEq("-1", (-0.5n).format(",.0"));
+        assertEq("-0.49", (-0.49n).format(""));
+        assertEq("0", (-0.49n).format(",.0"));
+        assertEq("-0.5", (-0.49n).format(",.1"));
+        assertEq("-0.00000001", (-0.000000005n).format(",.8"));
+        assertEq("0.00000000", (-0.000000004n).format(",.8"));
+
+        assertEq("-48.392.093.894,235", (-48392093894.2349n).format(".,3"));
+        assertEq("-48.392.093.894,235", format_number(".,3", -48392093894.2349n));    }
+}

@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -57,28 +57,28 @@ DLLLOCAL void init_crypto_functions(QoreNamespace& ns);
 
 class BaseHelper {
 protected:
-   unsigned char *input;
+   unsigned char* input;
    size_t input_len;
 
    unsigned char md_value[EVP_MAX_MD_SIZE > HMAC_MAX_MD_CBLOCK ? EVP_MAX_MD_SIZE : HMAC_MAX_MD_CBLOCK];
    unsigned int md_len;
 
-   DLLLOCAL void setInput(const QoreStringNode& str) {
-      input = (unsigned char *)str.getBuffer();
+   DLLLOCAL void setInput(const QoreString& str) {
+      input = (unsigned char*)str.getBuffer();
       input_len = str.strlen();
    }
 
    DLLLOCAL void setInput(const BinaryNode& b) {
-      input = (unsigned char *)b.getPtr();
+      input = (unsigned char*)b.getPtr();
       input_len = b.size();
    }
 
-   DLLLOCAL void setInput(const AbstractQoreNode *pt) {
-      if (pt->getType() == NT_STRING)
-         setInput(*reinterpret_cast<const QoreStringNode *>(pt));
+   DLLLOCAL void setInput(const QoreValue pt) {
+      if (pt.getType() == NT_STRING)
+         setInput(*pt.get<const QoreStringNode>());
       else {
-         assert(pt->getType() == NT_BINARY);
-         setInput(*reinterpret_cast<const BinaryNode *>(pt));
+         assert(pt.getType() == NT_BINARY);
+         setInput(*pt.get<const BinaryNode>());
       }
    }
 
@@ -91,28 +91,85 @@ public:
       return (const void*)md_value;
    }
 
-   DLLLOCAL QoreStringNode *getString() const {
-      QoreStringNode *str = new QoreStringNode();
+   DLLLOCAL void getString(QoreString& str) const {
+      for (unsigned i = 0; i < md_len; i++)
+	 str.sprintf("%02x", md_value[i]);
+   }
+
+   DLLLOCAL QoreStringNode* getString() const {
+      QoreStringNode* str = new QoreStringNode;
       for (unsigned i = 0; i < md_len; i++)
 	 str->sprintf("%02x", md_value[i]);
 
       return str;
    }
 
-   DLLLOCAL BinaryNode *getBinary() const {
-      BinaryNode *b = new BinaryNode();
+   DLLLOCAL BinaryNode* getBinary() const {
+      BinaryNode* b = new BinaryNode;
       b->append(md_value, md_len);
       return b;
    }
 };
 
+class QoreEvpHelper {
+public:
+    DLLLOCAL QoreEvpHelper() {
+        mdctx = EVP_MD_CTX_create();
+    }
+
+    DLLLOCAL ~QoreEvpHelper() {
+        if (mdctx)
+            EVP_MD_CTX_destroy(mdctx);
+    }
+
+    DLLLOCAL EVP_MD_CTX* operator*() {
+        return mdctx;
+    }
+
+    DLLLOCAL const EVP_MD_CTX* operator*() const {
+        return mdctx;
+    }
+
+private:
+    EVP_MD_CTX* mdctx;
+};
+
+class QoreEvpCipherCtxHelper {
+public:
+    DLLLOCAL QoreEvpCipherCtxHelper() {
+        ctx = EVP_CIPHER_CTX_new();
+    }
+
+    DLLLOCAL ~QoreEvpCipherCtxHelper() {
+        if (ctx)
+           EVP_CIPHER_CTX_free(ctx);
+    }
+
+    DLLLOCAL EVP_CIPHER_CTX* operator*() {
+        return ctx;
+    }
+
+    DLLLOCAL const EVP_CIPHER_CTX* operator*() const {
+        return ctx;
+    }
+
+private:
+    EVP_CIPHER_CTX* ctx;
+};
+
 class DigestHelper : public BaseHelper {
 public:
-   DLLLOCAL DigestHelper(const QoreListNode *params) {
+   /*
+   DLLLOCAL DigestHelper(const QoreListNode* params) {
       setInput(get_param(params, 0));
    }
+   */
 
-   DLLLOCAL DigestHelper(const QoreStringNode& str) {
+   DLLLOCAL DigestHelper(const QoreValueList* params) {
+      setInput(get_param_value(params, 0));
+   }
+
+   DLLLOCAL DigestHelper(const QoreString& str) {
       setInput(str);
    }
 
@@ -125,31 +182,74 @@ public:
       input_len = len;
    }
 
-   DLLLOCAL int doDigest(const char *err, const EVP_MD *md, ExceptionSink *xsink = 0) {
-      EVP_MD_CTX mdctx;
-      EVP_MD_CTX_init(&mdctx);
-
-      EVP_DigestInit_ex(&mdctx, md, 0);
-
-      if (!EVP_DigestUpdate(&mdctx, input, input_len) || !EVP_DigestFinal_ex(&mdctx, md_value, &md_len)) {
-	 EVP_MD_CTX_cleanup(&mdctx);
+   DLLLOCAL int doDigest(const char* err, const EVP_MD* md, ExceptionSink* xsink = 0) {
+      QoreEvpHelper mdctx;
+      if (!*mdctx) {
          if (xsink)
-            xsink->raiseException(err, "error calculating digest");
-	 return -1;
+            xsink->raiseException(err, "error creating digest object");
+         return -1;
       }
 
-      EVP_MD_CTX_cleanup(&mdctx);
+      EVP_DigestInit_ex(*mdctx, md, 0);
+      if (!EVP_DigestUpdate(*mdctx, input, input_len) || !EVP_DigestFinal_ex(*mdctx, md_value, &md_len)) {
+         if (xsink)
+            xsink->raiseException(err, "error calculating digest");
+    	 return -1;
+      }
+
       return 0;
    }
 
 };
 
+class QoreHmacHelper {
+public:
+    DLLLOCAL QoreHmacHelper() {
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
+        ctx = HMAC_CTX_new();
+#else
+        HMAC_CTX_init(&ctx);
+#endif
+    }
+
+    DLLLOCAL ~QoreHmacHelper() {
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
+        HMAC_CTX_free(ctx);
+#else
+        HMAC_CTX_cleanup(&ctx);
+#endif
+}
+
+    DLLLOCAL HMAC_CTX* operator*() {
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
+        return ctx;
+#else
+        return &ctx;
+#endif
+    }
+
+    DLLLOCAL const HMAC_CTX* operator*() const {
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
+        return ctx;
+#else
+        return &ctx;
+#endif
+    }
+
+private:
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
+    HMAC_CTX* ctx;
+#else
+    HMAC_CTX ctx;
+#endif
+};
+
 class HMACHelper : public BaseHelper {
 
 public:
-    DLLLOCAL HMACHelper(const QoreListNode *params) {
-        setInput(get_param(params, 0));
-    }
+   DLLLOCAL HMACHelper(const QoreValueList* params) {
+      setInput(get_param_value(params, 0));
+   }
 
     DLLLOCAL HMACHelper(const QoreStringNode& str) {
         setInput(str);
@@ -164,32 +264,34 @@ public:
         input_len = len;
     }
 
-    DLLLOCAL int doHMAC(const char *err, const EVP_MD *md, const QoreStringNode *key, ExceptionSink *xsink) {
-        HMAC_CTX ctx;
-        HMAC_CTX_init(&ctx);
+    DLLLOCAL int doHMAC(const char* err, const EVP_MD* md, const QoreString* key, ExceptionSink* xsink) {
+        QoreHmacHelper ctx;
+        if (!*ctx) {
+            xsink->raiseException(err, "error allocating HMAC object");
+            return -1;
+        }
 
 #ifdef HAVE_OPENSSL_HMAC_RV
-        int rc = HMAC_Init_ex(&ctx, key->getBuffer(), key->strlen(), md, 0);
+        int rc = HMAC_Init_ex(*ctx, key->c_str(), key->strlen(), md, 0);
         if (!rc) {
             xsink->raiseException(err, "error initalizing HMAC");
             return -1;
         }
 #else
-        HMAC_Init_ex(&ctx, key->getBuffer(), key->strlen(), md, 0);
+        HMAC_Init_ex(*ctx, key->c_str(), key->strlen(), md, 0);
 #endif
 
 #ifdef HAVE_OPENSSL_HMAC_RV
-        if (!HMAC_Update(&ctx, input, input_len)
-            || !HMAC_Final(&ctx, md_value, &md_len)) {
+        if (!HMAC_Update(*ctx, input, input_len)
+            || !HMAC_Final(*ctx, md_value, &md_len)) {
             xsink->raiseException(err, "error calculating HMAC");
             return -1;
         }
 #else
-        HMAC_Update(&ctx, input, input_len);
-        HMAC_Final(&ctx, md_value, &md_len);
+        HMAC_Update(*ctx, input, input_len);
+        HMAC_Final(*ctx, md_value, &md_len);
 #endif
 
-        HMAC_CTX_cleanup(&ctx);
         return 0;
     }
 };

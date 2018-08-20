@@ -6,8 +6,8 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
-  
+  Copyright (C) 2003 - 2016 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -42,6 +42,18 @@
 
 #include <string>
 
+/*
+  getchar from stdio.h(included via string on some platforms)
+  is allowed to be defined as a macro and this can cause
+  problems here since the getchar mentioned in this file might
+  get replaced, so we undefine it if it is defined.
+  Undefining getchar is safe since getchar must be defined as
+  a function, so the function is used if the macro is not available.
+ */
+#ifdef getchar
+#undef getchar
+#endif
+
 class QoreTermIOS;
 class Queue;
 
@@ -52,17 +64,16 @@ class Queue;
     @see QoreEncoding
  */
 class QoreFile {
-private:
+protected:
    //! private implementation
    struct qore_qf_private *priv;
-      
-protected:
+
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreFile(const QoreFile&);
 
    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
    DLLLOCAL QoreFile& operator=(const QoreFile&);
-      
+
 public:
    //! creates the object and sets the default encoding
    DLLEXPORT QoreFile(const QoreEncoding *cs = QCS_DEFAULT);
@@ -80,7 +91,7 @@ public:
       @note for a version that raises a Qore-language exception when an error occurs opening the file, see QoreFile::open2()
       @see QoreFile::open2()
    */
-   DLLEXPORT int open(const char *fn, int flags = O_RDONLY, int mode = 0777, const QoreEncoding *cs = QCS_DEFAULT);      
+   DLLEXPORT int open(const char *fn, int flags = O_RDONLY, int mode = 0777, const QoreEncoding *cs = QCS_DEFAULT);
 
    //! opens the file and raises a Qore-language exception if an error occurs
    /**
@@ -93,7 +104,7 @@ public:
       @note for a version that does not raise a Qore exception when errors occur, see QoreFile::open2()
       @see QoreFile::open()
    */
-   DLLEXPORT int open2(ExceptionSink *xsink, const char *fn, int flags = O_RDONLY, int mode = 0777, const QoreEncoding *cs = QCS_DEFAULT);      
+   DLLEXPORT int open2(ExceptionSink *xsink, const char *fn, int flags = O_RDONLY, int mode = 0777, const QoreEncoding *cs = QCS_DEFAULT);
 
    //! closes the file
    /**
@@ -120,7 +131,7 @@ public:
    */
    DLLEXPORT QoreStringNode* readLine(ExceptionSink* xsink);
 
-   //! reads string data from the file up to and optionally including the terminating EOL characters (can be '\n', '\r' or '\r\n') and returns the string read
+   //! reads string data from the file up to and optionally including the terminating EOL characters (can be \c "\n", \c "\r" or \c "\r\n") and returns the string read
    /** if an error occurs (file is not open), a Qore-language exception is raised
 
        @param incl_eol if this parameter is true, then the EOL character(s) read will be written to the string, if false, then they are not
@@ -132,7 +143,7 @@ public:
    */
    DLLEXPORT QoreStringNode* readLine(bool incl_eol, ExceptionSink* xsink);
 
-   //! clears the string passed, then reads string data from the file up to and including the terminating EOL characters (can be '\n', '\r' or '\r\n'), returns 0 for no error, -1 for EOF, -2 for file not opened
+   //! clears the string passed, then reads string data from the file up to and including the terminating EOL characters (can be \c "\n", \c "\r" or \c "\r\n"), returns 0 for no error, -1 for EOF, -2 for file not opened
    /** @note string data will be appended to the string with the assumption that the string's encoding is the same as the file's
 
        @param str the string container that will have the line from the file written into
@@ -143,7 +154,7 @@ public:
    */
    DLLEXPORT int readLine(QoreString &str);
 
-   //! clears the string passed, then reads string data from the file up to and optionally including the terminating EOL characters (can be '\n', '\r' or '\r\n'), returns 0 for no error, -1 for EOF, -2 for file not opened
+   //! clears the string passed, then reads string data from the file up to and optionally including the terminating EOL characters (can be \c "\n", \c "\r" or \c "\r\n"), returns 0 for no error, -1 for EOF, -2 for file not opened
    /** @note string data will be appended to the string with the assumption that the string's encoding is the same as the file's
 
        @param str the string container that will have the line from the file written into
@@ -408,7 +419,9 @@ public:
    /** A Qore-language exception can be thrown if the file is not opened
        @param size the number of bytes to read from the file, use -1 to read all data from the file
        @param xsink if an error occurs, the Qore-language exception info will be added here
-       @return the string read (caller owns the reference count returned) or 0 if an error occured
+
+       @return the string read (caller owns the reference count returned) or 0 if an error occured or the file is empty
+
        @note the string will be tagged with the file's default encoding
    */
    DLLEXPORT QoreStringNode *read(qore_offset_t size, ExceptionSink *xsink);
@@ -427,7 +440,8 @@ public:
    /** A Qore-language exception can be thrown if the file is not opened
        @param size the number of bytes to read from the file, use -1 to read all data from the file
        @param xsink if an error occurs, the Qore-language exception info will be added here
-       @return the binary data read (caller owns the reference count returned) or 0 if an error occured
+
+       @return the binary data read (caller owns the reference count returned) or 0 if an error occured or the file is empty
    */
    DLLEXPORT BinaryNode *readBinary(qore_offset_t size, ExceptionSink *xsink);
 
@@ -495,7 +509,7 @@ public:
    //! returns the filename of the file being read (NULL if no file name is set); caller owns the reference count returned
    DLLEXPORT QoreStringNode* getFileName() const;
 
-#if (!defined _WIN32 && !defined __WIN32__) || defined __CYGWIN__ 
+#ifndef _Q_WINDOWS
    //! changes ownership of the file (if possible)
    DLLEXPORT int chown(uid_t owner, gid_t group, ExceptionSink *xsink);
 

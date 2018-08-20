@@ -1,0 +1,24 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class RecursiveDependencyTest
+
+class RecursiveDependencyTest inherits QUnit::Test {
+    constructor() : Test("Recursive dependency test", "1.0") {
+        addTestCase("RD Test", \test());
+
+        set_return_value(main());
+    }
+
+    test() {
+        assertThrows('LOAD-MODULE-ERROR', sub() {load_module("./R1.qm");});
+    }
+}
+

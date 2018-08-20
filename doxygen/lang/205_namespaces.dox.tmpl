@@ -21,7 +21,7 @@
 
 	@note No namespace path may be given with out of line namespace declarations.
 
-    When defining a @ref user_modules "user module", namespace declarations can be preceded by @ref mod_public "public", which means that the namespace's public contents will be exported into the @ref Qore::Program "Program" object importing the module.  When a namespace is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the namespace can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. S ee @ref mod_public "public" for more information.
+    When defining a @ref user_modules "user module", namespace declarations can be preceded by @ref mod_public "public", which means that the namespace's public contents will be exported into the @ref Qore::Program "Program" object importing the module.  When a namespace is declared @ref mod_public "public" outside of a @ref user_modules "user module", it means that the namespace can be inherited in any child @ref Qore::Program "Program" objects created in the same scope. See @ref mod_public "public" for more information.
 
     @anchor namespace_resolution
     @par Namespace Resolution
@@ -34,10 +34,10 @@
     - <em>starting_namespace::[sub_namespace(s)s::]constant|class|namespace</em>
 
     @par Example
-    @code
-namespace MyNamspace {
+    @code{.py}
+namespace MyNamespace {
     # global variable declarations in a namespace declaration cannot be initialized at the point they are declared
-    our bool $my_bool;
+    our bool my_bool;
 
     const MyConst = 1;
     class MyClass {
@@ -45,10 +45,10 @@ namespace MyNamspace {
     namespace MySubNamespace;
 }
 
-# out of line initialization for MyNamespace::$my_bool
-MyNamespace::$my_bool = False;
-# out of line declaration and initialization for MyNamespace::$my_int
-our int MyNamespace::$my_int = 200;
+# out of line initialization for MyNamespace::my_bool
+MyNamespace::my_bool = False;
+# out of line declaration and initialization for MyNamespace::my_int
+our int MyNamespace::my_int = 200;
     @endcode
 
     @note No semicolon (\c ";") should follow the closing bracket in a namespace declaration (in fact using a semicolon in this case would raise a parse exception).

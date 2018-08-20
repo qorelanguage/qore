@@ -1,0 +1,17 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+
+class T {
+    public {
+        static int c = 0;
+    }
+
+    destructor() {
+        ++c;
+    }
+}
+
+T t();
+delete t;

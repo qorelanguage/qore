@@ -1,0 +1,24 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class OptArgTest
+
+public class OptArgTest inherits QUnit::Test {
+    constructor() : Test("Call built-in function with optional argument", "1.0") {
+        addTestCase("Call built-in function with optional argument", \testOptArg());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testOptArg() {
+        assertEq("a", binary_to_string(<61>, True ? NOTHING : ""));
+    }
+}

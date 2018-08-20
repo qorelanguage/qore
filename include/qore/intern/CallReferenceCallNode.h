@@ -1,11 +1,11 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   CallReferenceCallNode.h
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -35,52 +35,38 @@
 
 class CallReferenceCallNode : public ParseNode {
 private:
-   AbstractQoreNode *exp;    // must evaluate to an AbstractCallReference
-   QoreListNode *args;
-
-   //! evaluates the value and returns the result
-   /** if a qore-language exception occurs, then the result returned must be 0.
-       the result of evaluation can also be 0 (equivalent to NOTHING) as well
-       without an exception.
-       @param xsink if an error occurs, the Qore-language exception information will be added here
-       @return the result of the evaluation (can be 0)
-   */
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+   AbstractQoreNode* exp;    // must evaluate to an AbstractCallReference
+   QoreListNode* args;
 
    //! optionally evaluates the argument
    /** return value requires a deref(xsink) if needs_deref is true
        @see AbstractQoreNode::eval()
    */
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const;
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const;
-
-   DLLLOCAL virtual AbstractQoreNode *parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo);
+   DLLLOCAL virtual AbstractQoreNode* parseInitImpl(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
       return 0;
    }
 
 public:
-   DLLLOCAL CallReferenceCallNode(AbstractQoreNode *n_exp, QoreListNode *n_args);
+   DLLLOCAL CallReferenceCallNode(AbstractQoreNode* n_exp, QoreListNode* n_args);
 
    DLLLOCAL virtual ~CallReferenceCallNode();
 
-   DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const;
+   DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
    //! returns the type name as a c string
-   DLLLOCAL virtual const char *getTypeName() const;
+   DLLLOCAL virtual const char* getTypeName() const;
 
    //! returns call expression (for background operator processing)
-   DLLLOCAL const AbstractQoreNode *getExp() const { return exp; }
+   DLLLOCAL const AbstractQoreNode* getExp() const { return exp; }
 
    //! returns the arguments (for background operator processing)
-   DLLLOCAL const QoreListNode *getArgs() const { return args; }
+   DLLLOCAL const QoreListNode* getArgs() const { return args; }
 };
 
 #endif

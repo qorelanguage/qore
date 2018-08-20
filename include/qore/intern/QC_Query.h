@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright 2003 - 2013 David Nichols
+  Copyright 2003 - 2015 David Nichols
 */
 
 #ifndef _QORE_SQL_OBJECTS_QUERY_H
@@ -78,7 +78,7 @@ class QueryList : public QoreThreadLock
       inline ~QueryList()
       {
 	 if (head)
-	    run_time_error("QueryList still has members (head=%08p, tail=%08p)", head, tail);
+	    run_time_error("QueryList still has members (head=%p, tail=%p)", head, tail);
       }
 #endif
       inline int register(class Query *q)
@@ -111,7 +111,7 @@ class QueryList : public QoreThreadLock
 	 class QueryNode *qn = findUnlocked(q);
 #ifdef DEBUG
 	 if (!qn)
-	    run_time_error("can't deregister unknown query %08p \"%s\"", q, q->name);
+	    run_time_error("can't deregister unknown query %p \"%s\"", q, q->name);
 #endif
 	 if (qn->prev)
 	    qn->prev->next = qn->next;
@@ -594,7 +594,7 @@ inline QoreString *QPartQoreListNode::getSQL(ExceptionSink *xsink, int dyn)
 
 inline Query::Query(char *nme, class Datasource *ds, char *qstr, int stc, ExceptionSink *xsink)
 {
-   printd(5, "Query::Query(\"%s\", %08p, %08p=%s)\n", nme, ds, qstr, qstr);
+   printd(5, "Query::Query(\"%s\", %p, %p=%s)\n", nme, ds, qstr, qstr);
    name = nme ? strdup(nme) : NULL;
    regustered = 0;
    datasource = ds;

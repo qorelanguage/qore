@@ -4,7 +4,7 @@
 
   Qore Programming Language
   
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
   
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -43,8 +43,8 @@ qclass Counter [dom=THREAD_CLASS; arg=Counter* c; ns=Qore::Thread];
 /** @param c an argument is supplied here, then the Counter will be initialized with this value, otherwise the Counter is initialized with 0
 
     @par Example:
-    @code
-my Counter $counter();
+    @code{.py}
+Counter counter();
     @endcode
 
     @throw COUNTER-ERROR a negative number was passed to initialize the Counter
@@ -61,8 +61,8 @@ Counter::constructor(softint c = 0) {
 /** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and also in each thread blocked on this object when it is deleted.
 
     @par Example:
-    @code
-delete $counter;
+    @code{.py}
+delete counter;
     @endcode
 
     @throw COUNTER-ERROR Object deleted while other threads blocked on it
@@ -75,8 +75,8 @@ Counter::destructor() {
 //! Creates a new Counter object with the same count as the original
 /** 
     @par Example:
-    @code
-my Counter $new_counter = $counter.copy();
+    @code{.py}
+Counter new_counter = counter.copy();
     @endcode
  */
 Counter::copy() {
@@ -86,8 +86,8 @@ Counter::copy() {
 //! Atomically increments the counter value
 /** 
     @par Example:
-    @code
-$counter.inc();
+    @code{.py}
+counter.inc();
     @endcode
  */
 nothing Counter::inc() {
@@ -98,8 +98,8 @@ nothing Counter::inc() {
 /** A \c COUNTER-ERROR exception can be thrown if the object is deleted in another thread while this call is in progress; this is a race condition caused by a user programming error and should not occur in practice with correct code.
 
     @par Example:
-    @code
-$counter.dec();
+    @code{.py}
+counter.dec();
     @endcode
 
     @throw COUNTER-ERROR Counter has been deleted in another thread or Counter is already at 0
@@ -111,8 +111,8 @@ nothing Counter::dec() {
 //! Blocks a thread until the counter reaches zero
 /** 
     @par Example:
-    @code
-$counter.waitForZero();
+    @code{.py}
+counter.waitForZero();
     @endcode
 
     @throw COUNTER-ERROR Counter has been deleted in another thread
@@ -127,8 +127,8 @@ nothing Counter::waitForZero() {
     @return 0 on sucess, or non-zero if a timeout occurred
 
     @par Example:
-    @code
-if ($counter.waitForZero(1500))
+    @code{.py}
+if (counter.waitForZero(1500))
     throw "TIMEOUT", "counter did not reach 0 in 1.5s";
     @endcode
 
@@ -142,8 +142,8 @@ int Counter::waitForZero(timeout timeout_ms) {
 /** @return the current counter value
 
     @par Example:
-    @code
-my int $c = $counter.getCount();
+    @code{.py}
+int c = counter.getCount();
     @endcode
  */
 int Counter::getCount() [flags=CONSTANT] {
@@ -154,8 +154,8 @@ int Counter::getCount() [flags=CONSTANT] {
 /** @return the number of threads currently blocked on this object
 
     @par Example:
-    @code
-my int $c = $counter.getWaiting();
+    @code{.py}
+int c = counter.getWaiting();
     @endcode
  */
 int Counter::getWaiting() [flags=CONSTANT] {

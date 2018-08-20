@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -50,9 +50,11 @@ DLLEXPORT extern QoreCounter thread_counter;
 
 #include <qore/QoreEncoding.h>
 #include <qore/ReferenceHolder.h>
+#include <qore/QoreValue.h>
 #include <qore/AbstractQoreNode.h>
 #include <qore/QoreNodeEvalOptionalRefHolder.h>
 #include <qore/QoreListNode.h>
+#include <qore/QoreValueList.h>
 #include <qore/QoreHashNode.h>
 #include <qore/AbstractPrivateData.h>
 #include <qore/QoreIteratorBase.h>
@@ -173,6 +175,7 @@ DLLEXPORT extern const QoreStringMaker mpfrInfo;
 #define QLO_DISABLE_SIGNAL_HANDLING    (1 << 0)  //!< disable qore signal handling entirely
 #define QLO_DISABLE_OPENSSL_INIT       (1 << 1)  //!< do not initialize the openssl library (= is initialized before the qore library is initialized)
 #define QLO_DISABLE_OPENSSL_CLEANUP    (1 << 2)  //!< do not perform cleanup on the openssl library (= is cleaned up manually)
+#define QLO_DISABLE_GARBAGE_COLLECTION (1 << 3)  //!< disable garbage collection / recursive object reference detection
 
 //! do not perform any initialization or cleanup of the openssl library (= is performed outside of the qore library)
 #define QLO_DISABLE_OPENSSL_INIT_CLEANUP (QLO_DISABLE_OPENSSL_INIT|QLO_DISABLE_OPENSSL_CLEANUP)

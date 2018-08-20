@@ -1,0 +1,53 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class LocalsInClassTest
+
+public class LocalsInClassTest inherits QUnit::Test {
+
+    constructor() : Test("LocalsInClassTest", "1.0") {
+        addTestCase("local variables in member decl", \testLocals(), NOTHING);
+        addTestCase("local variables in static decl", \testStatic(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testLocals() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", "illegal local variable declaration in member initialization expression",
+            \p.parse(), ("
+%new-style
+class C {
+    private {
+        int i = int j;
+    }
+}
+", ""));
+
+    }
+
+    testStatic() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        assertThrows("PARSE-EXCEPTION", "illegal local variable declaration in class static variable initialization expression",
+            \p.parse(), ("
+%new-style
+class C {
+    private {
+        static int i = int j;
+    }
+}
+", ""));
+
+    }
+}

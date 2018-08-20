@@ -5,7 +5,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -67,6 +67,7 @@ struct dbi_cap_hash dbi_cap_list[] =
   { DBI_CAP_AUTORECONNECT,          "AutoReconnect" },
   { DBI_CAP_EVENTS,                 "Events" },
   { DBI_CAP_HAS_DESCRIBE,           "HasDescribe" },
+  { DBI_CAP_HAS_ARRAY_BIND,         "HasArrayBind" },
 };
 
 #define NUM_DBI_CAPS (sizeof(dbi_cap_list) / sizeof(dbi_cap_hash))
@@ -92,10 +93,14 @@ qore_dbi_method_list::~qore_dbi_method_list() {
    delete priv;
 }
 
-// covers open, commit, rollback, begin transaction, and abort transaction start
+// covers open, commit, rollback, and begin transaction
 void qore_dbi_method_list::add(int code, q_dbi_open_t method) {
-   assert(code == QDBI_METHOD_OPEN || code == QDBI_METHOD_COMMIT || code == QDBI_METHOD_ROLLBACK || code == QDBI_METHOD_BEGIN_TRANSACTION
-      || code == QDBI_METHOD_ABORT_TRANSACTION_START);
+   assert(code == QDBI_METHOD_OPEN
+	  || code == QDBI_METHOD_COMMIT
+	  || code == QDBI_METHOD_ROLLBACK
+	  || code == QDBI_METHOD_BEGIN_TRANSACTION
+	  || code == QDBI_METHOD_ABORT_TRANSACTION_START
+      );
    assert(priv->l.find(code) == priv->l.end());
    priv->l[code] = (void*)method;
 }
@@ -165,7 +170,7 @@ void qore_dbi_method_list::add(int code, q_dbi_stmt_bind_t method) {
 
 // covers stmt exec, close, define, and affectedRows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_exec_t method) {
-   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS);
+   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS || code == QDBI_METHOD_STMT_FREE);
    assert(priv->l.find(code) == priv->l.end());
    priv->l[code] = (void*)method;
 }
@@ -246,12 +251,12 @@ OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver
 
    const QoreTypeInfo* ti = i->second.typeInfo;
 
-   if (!ti->mayRequireFilter(v))
+   if (!QoreTypeInfo::mayRequireFilter(ti, v))
       return;
 
    tmp = true;
    val->ref();
-   val = ti->acceptInputParam(-1, "<dbi driver option>", val, xsink);
+   val = QoreTypeInfo::acceptInputParam(ti, -1, "<dbi driver option>", val, xsink);
 }
 
 qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private& methods, int cps) {
@@ -305,10 +310,6 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
          case QDBI_METHOD_BEGIN_TRANSACTION:
             assert(!f.begin_transaction);
             f.begin_transaction = (q_dbi_begin_transaction_t)(*i).second;
-            break;
-         case QDBI_METHOD_ABORT_TRANSACTION_START:
-            assert(!f.abort_transaction_start);
-            f.abort_transaction_start = (q_dbi_abort_transaction_start_t)(*i).second;
             break;
          case QDBI_METHOD_GET_SERVER_VERSION:
             assert(!f.get_server_version);
@@ -371,6 +372,10 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
             assert(!f.stmt.close);
             f.stmt.close = (q_dbi_stmt_close_t)(*i).second;
             break;
+         case QDBI_METHOD_STMT_FREE:
+            assert(!f.stmt.free);
+            f.stmt.free = (q_dbi_stmt_close_t)(*i).second;
+            break;
          case QDBI_METHOD_STMT_AFFECTED_ROWS:
             assert(!f.stmt.affected_rows);
             f.stmt.affected_rows = (q_dbi_stmt_affected_rows_t)(*i).second;
@@ -394,6 +399,9 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
             break;
 
 #ifdef DEBUG
+	 // ignore unsupported method
+	 case QDBI_METHOD_ABORT_TRANSACTION_START:
+	    break;
          default:
             assert(false);
 #endif
@@ -484,19 +492,19 @@ struct qore_dbi_dlist_private {
       for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
 	 if (!strcmp(name, (*i)->getName()))
 	    return *i;
-	 
+
       return 0;
    }
 
    DLLLOCAL QoreListNode* getDriverList() const {
       if (l.empty())
 	 return 0;
-	 
+
       QoreListNode* lst = new QoreListNode;
-	 
+
       for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++)
 	 lst->push(new QoreStringNode((*i)->getName()));
-	 
+
       return lst;
    }
 };
@@ -540,7 +548,7 @@ DBIDriver* DBIDriverList::find(const char* name, ExceptionSink* xsink) const {
 
 DBIDriver* DBIDriverList::registerDriver(const char* name, const qore_dbi_method_list& methods, int caps) {
    assert(!priv->find_intern(name));
-   
+
    DBIDriver* dd = new DBIDriver(new qore_dbi_private(name, *qore_dbi_mlist_private::get(methods), caps));
    priv->l.push_back(dd);
    return dd;
@@ -569,6 +577,7 @@ void DBI_concat_numeric(QoreString* str, const AbstractQoreNode* v) {
 }
 
 int DBI_concat_string(QoreString* str, const AbstractQoreNode* v, ExceptionSink* xsink) {
+   assert(xsink);
    if (is_nothing(v) || is_null(v))
       return 0;
 
@@ -664,7 +673,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
       h->setKeyValue("db", new QoreStringNode(db), 0);
       str = p + 1;
 
-      if (tok == '%') {	 
+      if (tok == '%') {
 	 p = strchrs(str, ":{");
 
 	 if ((p == str) || !*str) {
@@ -702,10 +711,10 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
 	 }
 	 else
 	    str += strlen(str);
-	 
+
 	 while (isdigit(*pstr))
 	    ++pstr;
-	 
+
 	 if (*pstr) {
 	    xsink->raiseException(DATASOURCE_PARSE_ERROR, "invalid characters present in port number in '%s'", ds);
 	    return 0;

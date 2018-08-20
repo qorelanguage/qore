@@ -3,8 +3,8 @@
   QC_Mutex.qpp
 
   Qore Programming Language
-  
-  Copyright (C) 2003 - 2014 David Nichols
+
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,23 +34,31 @@
 #include <qore/intern/QC_AbstractSmartLock.h>
 
 //! A class providing an implementation for a simple thread lock
-/** This class inherits @ref Qore::Thread::AbstractSmartLock "AbstractSmartLock", so it can be used by  @ref Qore::Thread::Condition "Condition" objects.
-
-    The Mutex class implements a mutual-exclusion lock for thread locking. Like all %Qore thread primitives, objects of this class participate in deadlock detection and throw exceptions when threading errors occur (ex: unlocking a Mutex object locked by another thread, etc). See individual methods for more information on exceptions thrown.
-
-    See the  @ref Qore::Thread::AutoLock "AutoLock" class for a class that assists in exception-safe Mutex locking.
-
+/** @par Overview
+    This class inherits @ref Qore::Thread::AbstractSmartLock "AbstractSmartLock", so it can be used by  @ref Qore::Thread::Condition "Condition" objects.\n\n
+    The Mutex class implements a mutual-exclusion lock for thread locking. Like all %Qore thread primitives, objects of this class participate in deadlock detection and throw exceptions when threading errors occur (ex: unlocking a Mutex object locked by another thread, etc). See individual methods for more information on exceptions thrown.\n\n
+    See the  @ref Qore::Thread::AutoLock "AutoLock" class for a class that assists in exception-safe Mutex locking.\n\n
     Additionally, the @ref on_exit "on_exit statement" can provide exception-safe unlocking at the lexical block level for Mutex objects as in the following example:
-    @code
+    @code{.py}
 {
-    $m.lock();
+    m.lock();
     on_exit
-        $m.unlock();
+        m.unlock();
 
     # ... when this block exits the lock will be released, even in the
     #     case of return statements or exceptions
 }
     @endcode
+
+    @par Thread Resource Handling
+    The Mutex class manages the lock as a @ref thread_resources "thread resource"; if the lock is not released when the
+    thread exits (or when @ref Qore::throw_thread_resource_exceptions() or
+    @ref Qore::throw_thread_resource_exceptions_to_mark() is called), the lock is released automatically and a
+    \c LOCK-ERROR exception is thrown describing the situation.\n\n
+    Being an builtin class, the Mutex class does not
+    inherit @ref Qore::Thread::AbstractThreadResource "AbstractThreadResource" explicitly as a part of the exported API,
+    and the internal @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method
+    cannot be overridden or suppressed.
 
     @note This class is not available with the @ref PO_NO_THREAD_CLASSES parse option
  */
@@ -58,8 +66,8 @@ qclass Mutex [dom=THREAD_CLASS; arg=SmartMutex* m; ns=Qore::Thread; vparent=Abst
 
 //! Creates the Mutex object
 /** @par Example:
-    @code
-my Mutex $mutex();
+    @code{.py}
+Mutex mutex();
     @endcode
  */
 Mutex::constructor() {
@@ -68,10 +76,10 @@ Mutex::constructor() {
 
 //! Destroys the object
 /** Note that it is a programming error to delete this object while other threads are blocked on it; in this case an exception is thrown in the deleting thread, and in each thread blocked on this object when it is deleted.
-    
+
     @par Example:
-    @code
-delete $mutex;
+    @code{.py}
+delete mutex;
     @endcode
 
     @throw LOCK-ERROR Object deleted while other threads blocked on it
@@ -83,8 +91,8 @@ Mutex::destructor() {
 
 //! Creates a new Mutex object, not based on the original
 /** @par Example:
-    @code
-my Mutex $nm = $m.copy();
+    @code{.py}
+Mutex nm = m.copy();
     @endcode
 */
 Mutex::copy() {
@@ -95,8 +103,8 @@ Mutex::copy() {
 /** To release the Mutex, use @ref Mutex::unlock()
 
     @par Example:
-    @code
-$mutex.lock();
+    @code{.py}
+mutex.lock();
     @endcode
 
     @throw LOCK-ERROR lock called twice in the same thread, object deleted in another thread, etc
@@ -112,8 +120,8 @@ nothing Mutex::lock() {
     To release the Mutex, use @ref Mutex::unlock()
 
     @par Example:
-    @code
-if ($mutex.lock(1250ms))
+    @code{.py}
+if (mutex.lock(1250ms))
     throw "TIMEOUT-ERROR", "lock acquisition timed out after 1.25s";
     @endcode
 
@@ -129,26 +137,26 @@ int Mutex::lock(timeout timeout_ms) {
 }
 
 //! Acquires the lock only if it is not already held; returns 0 for success (lock acquired) or -1 if the call would block
-/** 
+/**
     @return 0 for success (lock acquired) or -1 if the call would block (lock not acquired)
 
     @par Example:
-    @code
-my int $i = $mutex.trylock();
+    @code{.py}
+int i = mutex.trylock();
     @endcode
 
     @throw LOCK-ERROR object deleted in another thread, etc
     @throw THREAD-DEADLOCK a deadlock was detected while trying to acquire the lock
 */
 int Mutex::trylock() {
-   return m->tryGrab(); 
+   return m->tryGrab();
 }
 
 //! Unlocks the Mutex object; wakes up one thread if any threads are blocked on this lock
-/** 
+/**
     @par Example:
-    @code
-$mutex.unlock();
+    @code{.py}
+mutex.unlock();
     @endcode
 
     @throw LOCK-ERROR unlock called by a thread that does not own the lock or the lock is not locked, object deleted in another thread, etc

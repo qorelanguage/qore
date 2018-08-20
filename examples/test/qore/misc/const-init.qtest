@@ -1,0 +1,56 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ConstInitTest
+
+class ConstInitTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Const init test", "1.0") {
+        addTestCase("Test", \testConstInit());
+        addTestCase("local var in const init", \testConstInitLocalVar());
+        set_return_value(main());
+    }
+
+    testConstInit() {
+        Program p(PO_LOCKDOWN);
+
+        string c = "
+class B {
+    abstract string getName();
+}
+
+class C inherits B {
+    string getName() { return 'C'; }
+}
+
+class D {
+    public {
+        const C = new C();
+    }
+}
+";
+
+        assertThrows("ILLEGAL-CLASS-INSTANTIATION", sub () { p.parse(c, "test"); });
+    }
+
+    testConstInitLocalVar() {
+        Program p(PO_LOCKDOWN);
+
+        string c = "
+class D {
+    public {
+        const C = string m;
+    }
+}
+";
+
+        assertThrows("ILLEGAL-VARIABLE-REFERENCE", sub () { p.parse(c, "test"); });
+
+    }
+}

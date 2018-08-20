@@ -1,0 +1,23 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+%require-our
+%requires qore >= 0.8
+
+class T { 
+    private { int $.id; } 
+    constructor(int $id) { $.id = $id; } 
+    destructor() { printf("deleting %d\n", $.id); } 
+    set(T $m) { $.m = $m; }
+}
+
+my T $obj1(1);
+{
+    my T $obj2(2);
+
+    $obj1.a = $obj2;
+    printf("end of first assignment\n");
+    $obj2.a = $obj1;
+    printf("second / recursive assignment\n");
+}
+printf("12: %y\n", boolean($obj1));
+printf("12.a: %y\n", $obj1.a);

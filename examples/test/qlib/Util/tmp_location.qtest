@@ -1,0 +1,31 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class TmpLocationTest
+
+public class TmpLocationTest inherits QUnit::Test {
+    constructor() : Test("TmpLocationTest", "1.0") {
+        addTestCase("Test presence of tmp_location()", \testTmpLocation(), NOTHING);
+
+        set_return_value(main());
+    }
+
+    bool haveLocation() {
+        if (tmp_location().length() > 0) {
+            return True;
+        }
+        return False;
+    }
+
+    testTmpLocation() {
+        testAssertion("have location", \haveLocation(), ());
+    }
+}

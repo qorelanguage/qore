@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright 2003 - 2014 Qore Technologies s.r.o.
+  Copyright 2003 - 2015 Qore Technologies s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,17 +36,17 @@
     numerical rows (sequences) with ascending and descending ordering.
 
     The RangeIterator class provides an iterator for loop statements with functionality
-    similar to @ref range(). Unlike range() RangeIterator objects
+    similar to @ref range(). Unlike range(), RangeIterator objects
     do not generate real @ref list "lists" but calculate iteration values on demand.
 
     This results in memory-friendly handling for large numerical sequences compared to
     generating a list in memory and iterating that list (as with @ref Qore::range()).
 
    @par Example: RangeIterator basic usage
-   @code
-my RangeIterator $r(2);
-for my int $i in ($r)
-    printf("i=%d\n", $i);
+   @code{.py}
+RangeIterator r(0, 2);
+foreach int i in (r)
+    printf("i=%d\n", i);
 # i=0
 # i=1
 # i=2
@@ -63,22 +63,48 @@ qclass RangeIterator [arg=RangeIterator* i; ns=Qore; vparent=AbstractIterator];
 /** @param start an initial value
     @param stop a final value
     @param step is the interval. Default = 1
+    @param val an optional value to be returned instead of the default integer value
 
     @par Example:
-    @code
-my RangeIterator $i(5, 10, 2);
+    @code{.py}
+RangeIterator i(5, 10, 2);
     @endcode
 
     @see xrange()
+
+    @since %Qore 0.8.11.1 this method takes the optional \a val argument
  */
-RangeIterator::constructor(int start, int stop, int step=1) {
-   self->setPrivate(CID_RANGEITERATOR, new RangeIterator(start, stop, step, xsink));
+RangeIterator::constructor(int start, int stop, int step = 1, any val) {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(start, stop, step, val, xsink), xsink);
+   if (*xsink)
+      return;
+   self->setPrivate(CID_RANGEITERATOR, r.release());
+}
+
+//! creates the numerical sequence iterator with the initial arguments
+/** @param stop a final value
+    @param val an optional value to be returned instead of the default integer value
+
+    @par Example:
+    @code{.py}
+RangeIterator i(5);
+    @endcode
+
+    @see xrange()
+
+    @since %Qore 0.8.11.1
+ */
+RangeIterator::constructor(int stop, any val) {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, val, xsink), xsink);
+   if (*xsink)
+      return;
+   self->setPrivate(CID_RANGEITERATOR, r.release());
 }
 
 //! Creates a copy of the RangeIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
-my RangeIterator $ni = $i.copy();
+    @code{.py}
+RangeIterator ni = i.copy();
     @endcode
  */
 RangeIterator::copy() {
@@ -91,9 +117,9 @@ RangeIterator::copy() {
     @return @ref Qore::True "True" and @ref Qore::False "False" alternately unless it has no value iterate.
 
     @par Example:
-    @code
-while ($i.next()) {
-    printf("value: %y\n", $i.getValue());
+    @code{.py}
+while (i.next()) {
+    printf("value: %y\n", i.getValue());
 }
     @endcode
 
@@ -109,18 +135,20 @@ bool RangeIterator::next() {
 /** @return the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
-while ($i.next()) {
-    printf("+ %y\n", $i.getValue());
+    @code{.py}
+while (i.next()) {
+    printf("+ %y\n", i.getValue());
 }
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+
+    @note if a value was passed to the constructor, then that value is returned instead of the current range index
  */
 any RangeIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-       return 0;
+       return QoreValue();
    return i->getValue(xsink);
 }
 
@@ -128,21 +156,21 @@ any RangeIterator::getValue() [flags=RET_VALUE_ONLY] {
 /** Reset the iterator instance to its initial state (start, stop, and step).
 
    @par Example
-   @code
+   @code{.py}
 # raw RangeIterator object usage
-my RangeIterator $r(2);
-foreach my int $i in ($r) {
-    printf("i=%d\n", $i);
-    if ($i == 1)
+RangeIterator r(0, 2);
+foreach int i in (r) {
+    printf("i=%d\n", i);
+    if (i == 1)
         break;
 }
 # i=0
 # i=1
 
 # show the reset feature; start iterating all over again
-$r.reset();
-foreach my int $i in ($r)
-    printf("reused i=%d\n", $i);
+r.reset();
+foreach int i in (r)
+    printf("reused i=%d\n", i);
 # reused i=0
 # reused i=1
 # reused i=2
@@ -152,7 +180,7 @@ foreach my int $i in ($r)
  */
 RangeIterator::reset() {
    if (i->check(xsink))
-       return 0;
+       return QoreValue();
    i->reset();
 }
 
@@ -160,9 +188,9 @@ RangeIterator::reset() {
 /** @return @ref Qore::True "True" if the iterator is currently pointing at a valid element, @ref Qore::False "False" if not
 
     @par Example:
-    @code
-if ($i.valid())
-    printf("current value: %y\n", $i.getValue());
+    @code{.py}
+if (i.valid())
+    printf("current value: %y\n", i.getValue());
     @endcode
  */
 bool RangeIterator::valid() [flags=CONSTANT] {
@@ -174,9 +202,9 @@ bool RangeIterator::valid() [flags=CONSTANT] {
     in easier usage in loop statements.
 
     @par Example
-    @code
-foreach my int $i in(xrange(5))
-    printf("i=%d\n", $i);
+    @code{.py}
+foreach int i in(xrange(5))
+    printf("i=%d\n", i);
 # resulting in:
 # i=0
 # i=1
@@ -190,7 +218,7 @@ foreach my int $i in(xrange(5))
 //! Returns a RangeIterator containing an arithmetic progression of integers.
 /**
     @par Example:
-    @code
+    @code{.py}
 xrange(2, 5); # 2, 3, 4, 5
 xrange(2, -2); # 2, 1, 0, -1, -2
 xrange(1, 10, 5); # 1, 6
@@ -202,6 +230,7 @@ xrange(10, -10, 5); # 10, 5, 0, -5, -10
     @param start the initial value
     @param stop the final value
     @param step the step; the default is 1; must be greater than 0; the function throws a \c RANGE-ERROR exception when this argument is < 1
+    @param val an optional value to be returned instead of the default integer value
 
     @retval Returns a RangeIterator containing an arithmetic progression of integers.
 
@@ -212,9 +241,14 @@ xrange(10, -10, 5); # 10, 5, 0, -5, -10
     @note the main difference between range() and xrange() is that range returns a real list and xrange() returns a RangeIterator
 
     @since %Qore 0.8.6
+    @since %Qore 0.8.11.1 this function takes the optional \a val argument
 */
-RangeIterator xrange(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
-   return new QoreObject(QC_RANGEITERATOR, 0, new RangeIterator(start, stop, step, xsink));
+RangeIterator xrange(int start, int stop, int step = 1, any val) [flags=RET_VALUE_ONLY] {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(start, stop, step, val, xsink), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   return new QoreObject(QC_RANGEITERATOR, 0, r.release());
 }
 
 //! Returns a RangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
@@ -222,12 +256,13 @@ RangeIterator xrange(int start, int stop, int step = 1) [flags=RET_VALUE_ONLY] {
     This is an overloaded version of xrange(int, int, int) meaning \c xrange(0, \c stop, 1)
 
     @par Example:
-    @code
+    @code{.py}
 xrange(1); # 0, 1
 xrange(-3); # 0, -1, -2, -3
     @endcode
 
     @param stop the final value
+    @param val an optional value to be returned instead of the default integer value
 
     @retval Returns a RangeIterator containing an arithmetic progression of integers with start = 0 and step = 1.
 
@@ -236,8 +271,13 @@ xrange(-3); # 0, -1, -2, -3
     @note the main difference between range() and xrange() is that range() returns a real list and xrange() returns a RangeIterator
 
     @since %Qore 0.8.6
+    @since %Qore 0.8.11.1 this function takes the optional \a val argument
  */
-RangeIterator xrange(int stop) [flags=CONSTANT] {
-   return new QoreObject(QC_RANGEITERATOR, 0, new RangeIterator(0, stop, 1, xsink));
+RangeIterator xrange(int stop, any val) [flags=CONSTANT] {
+   ReferenceHolder<RangeIterator> r(new RangeIterator(0, stop, 1, val, xsink), xsink);
+   if (*xsink)
+      return QoreValue();
+
+   return new QoreObject(QC_RANGEITERATOR, 0, r.release());
 }
 //@}

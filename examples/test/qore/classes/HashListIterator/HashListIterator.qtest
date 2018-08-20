@@ -1,0 +1,63 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    private {
+        const HashList = (
+            "a": (1, 2,),
+            "b": (2, 3,),
+            "c": 1,
+            "d": NOTHING,
+            );
+
+        const ListHash = (
+            ("a": 1, "b": 2, "c": 1, "d": NOTHING),
+            ("a": 2, "b": 3, "c": 1, "d": NOTHING),
+            );
+
+        const HashListNothing = (
+            "a": NOTHING,
+            "b": NOTHING,
+            );
+
+        const HashListEmpty = (
+            "a": (),
+            "b": (),
+            "constant": "string",
+            );
+
+        const HashListBad = HashList + (
+            "e": (1,),
+            );
+    }
+
+    constructor() : QUnit::Test("HashListIterator", "1.0") {
+        addTestCase("simple tests", \simpleTests());
+        set_return_value(main());
+    }
+
+    simpleTests() {
+        list l = map $1, ListHash[0].contextIterator();
+        assertEq(1, l.size());
+        assertEq(ListHash[0], l[0]);
+
+        l = map $1, HashList.contextIterator();
+        assertEq(2, l.size());
+        assertEq(ListHash, l);
+
+        # test corner cases
+        assertEq((HashListNothing,), map $1, HashListNothing.contextIterator());
+        assertEq((), map $1, HashListEmpty.contextIterator());
+
+        assertThrows("HASHLISTITERATOR-ERROR", sub () { map $1, HashListBad.contextIterator(); });
+    }
+}

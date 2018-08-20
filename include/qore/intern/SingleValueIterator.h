@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,18 +38,21 @@ extern QoreClass* QC_SINGLEVALUEITERATOR;
 // the c++ object
 class SingleValueIterator : public QoreIteratorBase {
 protected:
-   AbstractQoreNode* val;
+   QoreValue val;
    bool validp;
 
 public:
-   DLLLOCAL SingleValueIterator(const AbstractQoreNode* v) : val(!is_nothing(v) ? v->refSelf() : 0), validp(false) {
+   DLLLOCAL SingleValueIterator() : validp(false) {
    }
 
-   DLLLOCAL SingleValueIterator(const SingleValueIterator& old) : val(old.val ? old.val->refSelf() : 0), validp(old.validp) {
+   DLLLOCAL SingleValueIterator(const QoreValue v) : val(v.refSelf()), validp(false) {
+   }
+
+   DLLLOCAL SingleValueIterator(const SingleValueIterator& old) : val(old.val.refSelf()), validp(old.validp) {
    }
 
    DLLLOCAL bool next() {
-      if (!val)
+      if (val.isNothing())
          return false;
       return (validp = !validp);
    }
@@ -63,7 +66,7 @@ public:
    }
 
    DLLLOCAL AbstractQoreNode* getValue() {
-      return val ? val->refSelf() : 0;
+      return val.getReferencedValue();
    }
 
    DLLLOCAL bool valid() const {
@@ -78,8 +81,7 @@ public:
    using AbstractPrivateData::deref;
    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
       if (ROdereference()) {
-         if (val)
-            val->deref(xsink);
+         val.discard(xsink);
          delete this;
       }
    }

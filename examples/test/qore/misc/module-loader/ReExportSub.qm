@@ -1,0 +1,14 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+
+%requires(reexport) ./A.qm
+#/;
+
+module ReExportSub {
+    version = "1.0";
+    desc = "ReExport Sub Module";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}

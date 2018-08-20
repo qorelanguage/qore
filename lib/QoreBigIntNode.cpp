@@ -3,7 +3,7 @@
   
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -53,7 +53,7 @@ QoreString *QoreBigIntNode::getStringRepresentation(bool &del) const {
 
 // concatenate string representation to a QoreString (no action for complex types = default implementation)
 void QoreBigIntNode::getStringRepresentation(QoreString &str) const {
-   str.sprintf("%lld", val);
+   str.sprintf(QLLD, val);
 }
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not

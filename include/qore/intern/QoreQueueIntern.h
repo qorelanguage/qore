@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/* 
+/*
   QoreQueueIntern.h
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -36,12 +36,13 @@
 #include <qore/QoreThreadLock.h>
 #include <qore/QoreCondition.h>
 
+#include <string>
+
 class QoreQueueNode {
 public:
    AbstractQoreNode* node;
    QoreQueueNode* prev,
                 * next;
-
    DLLLOCAL QoreQueueNode(AbstractQoreNode* n, QoreQueueNode* p, QoreQueueNode* nx) : node(n), prev(p), next(nx) {
    }
 
@@ -51,9 +52,10 @@ public:
    }
 #endif
 
-   DLLLOCAL void del(ExceptionSink *xsink) {
+   DLLLOCAL void del(ExceptionSink* xsink) {
       if (node)
          node->deref(xsink);
+
 #ifdef DEBUG
       node = 0;
 #endif
@@ -72,6 +74,7 @@ public:
 
 #define QW_DEL     -1
 #define QW_TIMEOUT -2
+#define QW_ERROR   -3
 
 class qore_queue_private {
 private:
@@ -82,6 +85,8 @@ private:
                  write_cond;  // write Condition variable
    QoreQueueNode* head,
                 * tail;
+   std::string err;
+   QoreStringNode* desc;
    int len,   // the number of elements currently in the queue (or -1 for deleted)
        max;   // the maximum size of the queue (or -1 for unlimited)
    unsigned read_waiting,   // number of threads waiting on reads
@@ -96,17 +101,20 @@ private:
 
    DLLLOCAL void clearIntern(ExceptionSink* xsink);
 
+   // called in the lock; returns -1 if not possible (cannot write to the queue) or 0 of OK
+   DLLLOCAL int checkWriteIntern(ExceptionSink* xsink, bool always_error = false);
+
 public:
-   DLLLOCAL qore_queue_private(int n_max = -1) : head(0), tail(0), len(0), max(n_max), read_waiting(0), write_waiting(0) {
+   DLLLOCAL qore_queue_private(int n_max = -1) : head(0), tail(0), desc(0), len(0), max(n_max), read_waiting(0), write_waiting(0) {
       assert(max);
       //printd(5, "qore_queue_private::qore_queue_private() this: %p max: %d\n", this, max);
    }
 
-   DLLLOCAL qore_queue_private(const qore_queue_private &orig) : head(0), tail(0), len(0), max(orig.max), read_waiting(0), write_waiting(0) {
+   DLLLOCAL qore_queue_private(const qore_queue_private &orig) : head(0), tail(0), err(orig.err), desc(orig.desc ? orig.desc->stringRefSelf() : 0), len(0), max(orig.max), read_waiting(0), write_waiting(0) {
       AutoLocker al(orig.l);
       if (orig.len == Queue_Deleted)
          return;
-      
+
       QoreQueueNode* w = orig.head;
       while (w) {
          pushIntern(w->node ? w->node->refSelf() : 0);
@@ -124,19 +132,20 @@ public:
       assert(!head);
       assert(!tail);
       assert(len == Queue_Deleted);
+      assert(!desc);
    }
 
    // push at the end of the queue and take the reference - can only be used when len == -1
    DLLLOCAL void pushAndTakeRef(AbstractQoreNode* n);
 
    // push at the end of the queue
-   DLLLOCAL void push(ExceptionSink* xsink, const AbstractQoreNode* n, int timeout_ms = 0, bool *to = 0);
+   DLLLOCAL void push(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool& to);
 
    // insert at the beginning of the queue
-   DLLLOCAL void insert(ExceptionSink* xsink, const AbstractQoreNode* n, int timeout_ms = 0, bool *to = 0);
+   DLLLOCAL void insert(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool& to);
 
-   DLLLOCAL AbstractQoreNode* shift(ExceptionSink* xsink, int timeout_ms = 0, bool *to = 0);
-   DLLLOCAL AbstractQoreNode* pop(ExceptionSink* xsink, int timeout_ms = 0, bool *to = 0);
+   DLLLOCAL AbstractQoreNode* shift(ExceptionSink* xsink, int timeout_ms, bool& to);
+   DLLLOCAL AbstractQoreNode* pop(ExceptionSink* xsink, int timeout_ms, bool& to);
 
    DLLLOCAL bool empty() const {
       return !len;
@@ -160,6 +169,10 @@ public:
 
    DLLLOCAL void clear(ExceptionSink* xsink);
    DLLLOCAL void destructor(ExceptionSink* xsink);
+
+   DLLLOCAL void setError(const char* err, const QoreStringNode* desc, ExceptionSink* xsink);
+
+   DLLLOCAL void clearError();
 
    DLLLOCAL static void destructor(QoreQueue& q, ExceptionSink* xsink) {
       q.priv->destructor(xsink);

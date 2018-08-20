@@ -1,10 +1,10 @@
 /*
   QoreDeleteOperatorNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -43,33 +43,20 @@ int QoreDeleteOperatorNode::getAsString(QoreString &str, int foff, ExceptionSink
    return 0;
 }
 
-AbstractQoreNode *QoreDeleteOperatorNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue QoreDeleteOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    LValueRemoveHelper lvrh(exp, xsink, true);
-   if (!lvrh)
-      return 0;
-   lvrh.deleteLValue();
-   return 0;
-}
-
-AbstractQoreNode *QoreDeleteOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = false;
-   return QoreDeleteOperatorNode::evalImpl(xsink);
+   if (lvrh)
+      lvrh.deleteLValue();
+   return QoreValue();
 }
 
 AbstractQoreNode *QoreDeleteOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
    if (exp) {
       exp = exp->parseInit(oflag, pflag, lvids, typeInfo);
-      if (exp && check_lvalue(exp))
-	 parse_error("the delete operator expects an lvalue as its operand, got '%s' instead", exp->getTypeName());
+      if (exp)
+	 checkLValue(exp, pflag);
    }
    typeInfo = nothingTypeInfo;
    return this;
-}
-
-QoreDeleteOperatorNode* QoreDeleteOperatorNode::copyBackground(ExceptionSink* xsink) const {
-   ReferenceHolder<> n_exp(copy_and_resolve_lvar_refs(exp, xsink), xsink);
-   if (*xsink)
-      return 0;
-   return new QoreDeleteOperatorNode(n_exp.release());
 }

@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@ ContextRowNode::~ContextRowNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int ContextRowNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("context row reference '%%' (0x%08p)", this);
+   qstr.sprintf("context row reference '%%' (%p)", this);
    return 0;
 }
 
@@ -58,35 +58,8 @@ const char *ContextRowNode::getTypeName() const {
    return "context row reference";
 }
 
-// eval(): return value requires a deref(xsink)
-AbstractQoreNode *ContextRowNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue ContextRowNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    return evalContextRow(xsink);
-}
-
-// evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode *ContextRowNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
-   return ContextRowNode::evalImpl(xsink);
-}
-
-int64 ContextRowNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ContextRowNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBigInt() : 0;
-}
-
-int ContextRowNode::integerEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ContextRowNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsInt() : 0;
-}
-
-bool ContextRowNode::boolEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ContextRowNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBool() : 0;
-}
-
-double ContextRowNode::floatEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(ContextRowNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsFloat() : 0;
 }
 
 AbstractQoreNode *ContextRowNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {

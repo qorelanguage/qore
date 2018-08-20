@@ -1,0 +1,15 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+
+%requires(reexport) ./ReExportSub.qm
+%requires(reexport) A
+#/;
+
+module ReExportTest {
+    version = "1.0";
+    desc = "ReExport Test Module";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}

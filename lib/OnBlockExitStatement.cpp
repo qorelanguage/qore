@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@ OnBlockExitStatement::~OnBlockExitStatement() {
    delete code;
 }
 
-int OnBlockExitStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int OnBlockExitStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    // "activate" this block when the block exits in the thread "on block exit" stack
    advanceOnBlockExit();
    return 0;
@@ -51,4 +51,3 @@ int OnBlockExitStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    return 0;
 }
-

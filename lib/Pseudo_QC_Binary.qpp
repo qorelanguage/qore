@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,19 +32,19 @@
 #include <qore/Qore.h>
 
 //! Methods in this pseudo-class can be executed on @ref binary "binary values"
-/** 
+/**
  */
-qclass <binary> [arg=const BinaryNode* b;vparent=<value>];
+qclass <binary> [arg=const BinaryNode* b = v.get<const BinaryNode>();vparent=<value>];
 
 //! Returns Qore::NT_BINARY
-/** 
+/**
     @return Qore::NT_BINARY
 
     @par Example:
-    @code
-switch ($b.typeCode()) {
+    @code{.py}
+switch (b.typeCode()) {
     case NT_BINARY:
-        printf("%y: is a binary\n", $b);
+        printf("%y: is a binary\n", b);
         break;
 }
     @endcode
@@ -54,12 +54,12 @@ int <binary>::typeCode() [flags=CONSTANT] {
 }
 
 //! Returns the number of bytes in the binary object
-/** 
+/**
     @return the number of bytes in the binary object
 
     @par Example:
-    @code
-my int $len = $b.size();
+    @code{.py}
+int len = b.size();
     @endcode
 
     @see <binary>::sizep()
@@ -74,8 +74,8 @@ int <binary>::size() [flags=CONSTANT] {
     @return @ref True if the binary object is empty (size = 0), @ref False if not
 
     @par Example:
-    @code
-my bool $b = $bin.empty();
+    @code{.py}
+bool b = bin.empty();
     @endcode
 */
 bool <binary>::empty() [flags=CONSTANT] {
@@ -88,8 +88,8 @@ bool <binary>::empty() [flags=CONSTANT] {
     @return @ref False if the binary object is empty (size = 0), @ref True if not
 
     @par Example:
-    @code
-my bool $b = $bin.val();
+    @code{.py}
+bool b = bin.val();
     @endcode
 
     @see
@@ -107,8 +107,8 @@ bool <binary>::val() [flags=CONSTANT] {
     @return a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
 
     @par Example:
-    @code
-my list $l = $bin.split($sep);
+    @code{.py}
+list l = bin.split(sep);
     @endcode
 
     @note equivalent to split(binary, binary)
@@ -125,8 +125,8 @@ list <binary>::split(binary sep) [flags=CONSTANT] {
     @return a hex string of the digest (ex: \c "5d41402abc4b2a76b9719d911017c592")
 
     @par Example:
-    @code
-my string $str = binary("hello").toMD5(); # returns "5d41402abc4b2a76b9719d911017c592"
+    @code{.py}
+string str = binary("hello").toMD5(); # returns "5d41402abc4b2a76b9719d911017c592"
     @endcode
 
     @throw MD5-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -144,7 +144,7 @@ my string $str = binary("hello").toMD5(); # returns "5d41402abc4b2a76b9719d91101
 string <binary>::toMD5() [flags=RET_VALUE_ONLY] {
    DigestHelper dh(*b);
    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -155,8 +155,8 @@ string <binary>::toMD5() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")
 
     @par Example:
-    @code
-my string $str = binary("hello").toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    @code{.py}
+string str = binary("hello").toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
     @endcode
 
     @throw SHA1-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -172,7 +172,7 @@ my string $str = binary("hello").toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b
 string <binary>::toSHA1() [flags=RET_VALUE_ONLY] {
    DigestHelper dh(*b);
    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 }
@@ -186,8 +186,8 @@ string <binary>::toSHA1() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193")
 
     @par Example:
-    @code
-my string $str = binary("hello").toSHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
+    @code{.py}
+string str = binary("hello").toSHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed054556e5bfc8347907f12598aa24193"
     @endcode
 
     @throw SHA224-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -204,12 +204,12 @@ string <binary>::toSHA224() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*b);
    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA224", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -222,8 +222,8 @@ string <binary>::toSHA224() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
 
     @par Example:
-    @code
-my string $str = binary("hello").toSHA256(); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+    @code{.py}
+string str = binary("hello").toSHA256(); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
     @endcode
 
     @throw SHA256-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -240,12 +240,12 @@ string <binary>::toSHA256() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*b);
    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA256", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -258,8 +258,8 @@ string <binary>::toSHA256() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f")
 
     @par Example:
-    @code
-my string $str = binary("hello").toSHA384(); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
+    @code{.py}
+string str = binary("hello").toSHA384(); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
     @endcode
 
     @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -276,12 +276,12 @@ string <binary>::toSHA384() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*b);
    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA384", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
@@ -294,8 +294,8 @@ string <binary>::toSHA384() [flags=RET_VALUE_ONLY] {
     @return a hex string of the digest (ex: \c "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043")
 
     @par Example:
-    @code
-my string $str = binary("hello").toSHA512(); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
+    @code{.py}
+string str = binary("hello").toSHA512(); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
     @endcode
 
     @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -312,19 +312,19 @@ string <binary>::toSHA512() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
    DigestHelper dh(*b);
    if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink))
-      return 0;
+      return QoreValue();
 
    return dh.getString();
 #else
    missing_openssl_feature("SHA512", xsink);
-   return 0;
+   return QoreValue();
 #endif
 }
 
 //! returns a string of hexadecimal digits corresponding to the contents of the binary object
 /** @par Example:
-    @code
-my string $str = $b.toHex();
+    @code{.py}
+string str = b.toHex();
     @endcode
 
     @return a string of hexadecimal digits corresponding to the contents of the binary object
@@ -333,7 +333,7 @@ my string $str = $b.toHex();
 
     @see
     - @ref <string>::toHex()
-    - @ref Qore::makeHexString(binary)
+    - @ref Qore::make_hex_string(binary)
 
  */
 string <binary>::toHex() [flags=CONSTANT] {
@@ -344,8 +344,8 @@ string <binary>::toHex() [flags=CONSTANT] {
 
 //! Returns the base64-encoded representation of the binary object
 /** @par Example:
-    @code
-my string $base64 = $bin.toBase64(64);
+    @code{.py}
+string base64 = bin.toBase64(64);
     @endcode
 
     Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
@@ -358,7 +358,7 @@ my string $base64 = $bin.toBase64(64);
 
     @see
     - <string>::toBase64()
-    - makeBase64String(binary)
+    - make_base64_string(binary, softint)
 */
 string <binary>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
    return new QoreStringNode(b, maxlinelen);
@@ -372,9 +372,9 @@ string <binary>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
     @return the portion of the data starting from an integer bte offset; the rest of the data is returned after this offset
 
     @par Example:
-    @code
+    @code{.py}
 # get the last 10 bytes of a binary object
-my binary $b1 = $b0.substr(-10);
+binary b1 = b0.substr(-10);
     @endcode
 
     @note equivalent to @ref Qore::substr(binary, softint)
@@ -396,9 +396,9 @@ binary <binary>::substr(softint start) [flags=CONSTANT] {
     @return the portion of the data starting from an integer bte offset; the rest of the data is returned after this offset
 
     @par Example:
-    @code
+    @code{.py}
 # get the last 5 bytes of the last 10 bytes of a binary object
-my binary $b1 = $b0.substr(-10, 5);
+binary b1 = b0.substr(-10, 5);
     @endcode
 
     @note equivalent to @ref Qore::substr(binary, softint, softint)
@@ -418,8 +418,8 @@ binary <binary>::substr(softint start, softint len) [flags=CONSTANT] {
     @return a string created from the binary data passed
 
     @par Example:
-    @code
-my string $str = $b.toString($b, "iso-8859-1");
+    @code{.py}
+string str = b.toString(b, "iso-8859-1");
     @endcode
 
     @since %Qore 0.8.8

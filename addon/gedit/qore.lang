@@ -23,18 +23,37 @@ Boston, MA 02111-1307, USA.
 <language id="qore" _name="Qore" version="2.0" _section="Scripts">
   <metadata>
     <property name="mimetypes">text/x-qore;application/x-qore</property>
-    <property name="globs">*.q;*.qc;*.ql</property>
+    <property name="globs">*.q;*.qc;*.qclass;*.qm;*.ql;*.qtest;*.qconn;*.qconst;*.qfd;*.qjob;*.qrf;*.qsd;*.qsm;*.qwf</property>
     <property name="line-comment-start">#</property>
+    <property name="block-comment-start">/*</property>
+    <property name="block-comment-end">*/</property>
   </metadata>
 
   <styles>
+    <style id="comment" _name="Comment" map-to="def:comment"/>
+    <style id="error" _name="Error" map-to="def:error"/>
     <style id="variable" _name="Variable" map-to="def:type"/>
     <style id="keyword" _name="Keyword" map-to="def:keyword"/>
+    <style id="type" _name="Data Type" map-to="def:type"/>
+    <style id="storage-class" _name="Storage Class" map-to="def:type"/>
     <style id="operator" _name="Operator" map-to="def:operator"/>
+    <style id="common-defines" _name="Common Defines" map-to="def:special-constant"/>
     <style id="boolean" _name="Boolean value" map-to="def:boolean"/>
   </styles>
 
   <definitions>
+  
+    <context id="comment-multiline" style-ref="comment" class="comment" class-disabled="no-spell-check">
+      <start>/\*</start>
+      <end>\*/</end>
+      <include>
+        <context ref="def:in-comment"/>
+      </include>
+    </context>
+
+    <context id="close-comment-outside-comment" style-ref="error">
+      <match>\*/(?!\*)</match>
+    </context>
 
     <context id="variable" style-ref="variable">
       <match>[$ %][$]?[a-zA-Z_\ ][a-zA-Z0-9_\ ]*</match>
@@ -45,32 +64,51 @@ Boston, MA 02111-1307, USA.
     </context>
 
     <context id="keyword" style-ref="keyword">
+      <keyword>abstract</keyword>
+      <keyword>background</keyword>
       <keyword>by</keyword>
       <keyword>break</keyword>
+      <keyword>case</keyword>
       <keyword>catch</keyword>
-      <keyword>conts</keyword>
+      <keyword>chomp</keyword>
+      <keyword>class</keyword>
       <keyword>context</keyword>
       <keyword>continue</keyword>
+      <keyword>default</keyword>
+      <keyword>delete</keyword>
+      <keyword>deprecated</keyword>
       <keyword>do</keyword>
+      <keyword>elements</keyword>
       <keyword>else</keyword>
+      <keyword>exists</keyword>
+      <keyword>final</keyword>
+      <keyword>find</keyword>
+      <keyword>foldl</keyword>
+      <keyword>foldr</keyword>
       <keyword>for</keyword>
       <keyword>foreach</keyword>
       <keyword>if</keyword>
       <keyword>in</keyword>
       <keyword>inherits</keyword>
       <keyword>instanceof</keyword>
+      <keyword>keys</keyword>
+      <keyword>map</keyword>
       <keyword>namespace</keyword>
-      <keyword>my</keyword>
-      <keyword>NOTHING</keyword>
-      <keyword>NULL</keyword>
+      <keyword>new</keyword>
       <keyword>on_error</keyword>
       <keyword>on_exit</keyword>
       <keyword>on_success</keyword>
-      <keyword>our</keyword>
+      <keyword>pop</keyword>
+      <keyword>private</keyword>
+      <keyword>public</keyword>
+      <keyword>push</keyword>
       <keyword>rethrow</keyword>
       <keyword>return</keyword>
+      <keyword>select</keyword>
+      <keyword>shift</keyword>
       <keyword>sortBy</keyword>
       <keyword>sortDescendingBy</keyword>
+      <keyword>splice</keyword>
       <keyword>sub</keyword>
       <keyword>subcontext</keyword>
       <keyword>sumarize</keyword>
@@ -78,32 +116,51 @@ Boston, MA 02111-1307, USA.
       <keyword>synchronized</keyword>
       <keyword>thread_exit</keyword>
       <keyword>throw</keyword>
+      <keyword>trim</keyword>
       <keyword>try</keyword>
+      <keyword>unshift</keyword>
       <keyword>where</keyword>
       <keyword>while</keyword>
-      <keyword>background</keyword>
-      <keyword>case</keyword>
-      <keyword>chomp</keyword>
-      <keyword>class</keyword>
-      <keyword>delete</keyword>
-      <keyword>exists</keyword>
-      <keyword>foldl</keyword>
-      <keyword>foldr</keyword>
-      <keyword>map</keyword>
-      <keyword>pop</keyword>
-      <keyword>private</keyword>
-      <keyword>push</keyword>
-      <keyword>new</keyword>
-      <keyword>select</keyword>
-      <keyword>shift</keyword>
-      <keyword>splice</keyword>
-      <keyword>trim</keyword>
-      <keyword>unshift</keyword>
-      <keyword>default</keyword>
+    </context>
+    
+    <context id="types" style-ref="type" class="type">
+      <keyword>any</keyword>
+      <keyword>binary</keyword>
+      <keyword>bool</keyword>
+      <keyword>callref</keyword>
+      <keyword>closure</keyword>
+      <keyword>code</keyword>
+      <keyword>date</keyword>
+      <keyword>float</keyword>
+      <keyword>hash</keyword>
+      <keyword>int</keyword>
+      <keyword>list</keyword>
+      <keyword>nothing</keyword>
+      <keyword>null</keyword>
+      <keyword>number</keyword>
+      <keyword>object</keyword>
+      <keyword>reference</keyword>
+      <keyword>softbool</keyword>
+      <keyword>softdate</keyword>
+      <keyword>softfloat</keyword>
+      <keyword>softint</keyword>
+      <keyword>softlist</keyword>
+      <keyword>softnumber</keyword>
+      <keyword>softstring</keyword>
+      <keyword>string</keyword>
+      <keyword>timeout</keyword>
+    </context>
+    
+    <context id="storage-class" style-ref="storage-class" class="storage-class">
+      <keyword>const</keyword>
+      <keyword>my</keyword>
+      <keyword>our</keyword>
       <keyword>static</keyword>
-      <keyword>elements</keyword>
-      <keyword>find</keyword>
-      <keyword>keys</keyword>
+    </context>
+    
+    <context id="common-defines" style-ref="common-defines" class="common-defines">
+      <keyword>NULL</keyword>
+      <keyword>NOTHING</keyword>
     </context>
    
     <context id="operators" style-ref="operator" extend-parent="false">
@@ -122,9 +179,14 @@ Boston, MA 02111-1307, USA.
         <context ref="def:shell-like-comment"/>
         <context ref="def:string"/>
         <context ref="def:single-quoted-string"/>
+        <context ref="comment-multiline"/>
+        <context ref="close-comment-outside-comment"/>
         <context ref="variable"/>
         <context ref="array-operators"/>
         <context ref="keyword"/>
+        <context ref="types"/>
+        <context ref="storage-class"/>
+        <context ref="common-defines"/>
         <context ref="operators"/>
         <context ref="boolean"/>
       </include>

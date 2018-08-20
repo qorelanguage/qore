@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,83 +31,19 @@
 #include <qore/Qore.h>
 
 QoreString QoreLogicalLessThanOperatorNode::op_str("< operator expression");
-QoreString QoreLogicalGreaterThanOrEqualsOperatorNode::op_str(">= operator expression");
 
-bool QoreLogicalLessThanOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
+QoreValue QoreLogicalLessThanOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    if (pfunc)
       return (this->*pfunc)(xsink);
 
-   QoreNodeEvalOptionalRefHolder lh(left, xsink);
+   ValueEvalRefHolder lh(left, xsink);
    if (*xsink)
-      return false;
-   QoreNodeEvalOptionalRefHolder rh(right, xsink);
+      return QoreValue();
+   ValueEvalRefHolder rh(right, xsink);
    if (*xsink)
-      return false;
+      return QoreValue();
 
-   const AbstractQoreNode *l = *lh, *r = *rh;
-
-   qore_type_t lt = get_node_type(l);
-   qore_type_t rt = get_node_type(r);
-
-   if (!l)
-      l = &Nothing;
-   if (!r)
-      r = &Nothing;
-
-   if (lt == NT_NUMBER) {
-      switch (rt) {
-	 case NT_NUMBER:
-	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(*reinterpret_cast<const QoreNumberNode*>(r)) < 0;
-	 case NT_FLOAT:
-	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(reinterpret_cast<const QoreFloatNode*>(r)->f) < 0;
-	 case NT_INT:
-	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(reinterpret_cast<const QoreBigIntNode*>(r)->val) < 0;
-	 default: {
-	    ReferenceHolder<QoreNumberNode> rn(new QoreNumberNode(r), xsink);
-	    return reinterpret_cast<const QoreNumberNode*>(l)->compare(**rn) < 0;
-	 }
-      }
-   }
-
-   if (rt == NT_NUMBER) {
-      assert(lt != NT_NUMBER);
-      switch (lt) {
-	 case NT_FLOAT:
-	    return reinterpret_cast<const QoreNumberNode*>(r)->compare(reinterpret_cast<const QoreFloatNode*>(l)->f) >= 0;
-	 case NT_INT:
-	    return reinterpret_cast<const QoreNumberNode*>(r)->compare(reinterpret_cast<const QoreBigIntNode*>(l)->val) >= 0;
-	 default: {
-	    ReferenceHolder<QoreNumberNode> ln(new QoreNumberNode(l), xsink);
-	    return reinterpret_cast<const QoreNumberNode*>(r)->compare(**ln) >= 0;
-	 }
-      }
-   }
-
-   if (lt == NT_FLOAT || rt == NT_FLOAT)
-      return l->getAsFloat() < r->getAsFloat();
-
-   if (lt == NT_INT || rt == NT_INT)
-      return l->getAsBigInt() < r->getAsBigInt();
-
-   if (lt == NT_STRING || rt == NT_STRING) {
-      QoreStringValueHelper ls(l);
-      QoreStringValueHelper rs(r, ls->getEncoding(), xsink);
-      if (*xsink)
-	 return false;
-      return ls->compare(*rs) < 0;
-   }
- 
-   if (lt == NT_DATE || rt == NT_DATE) {
-      DateTimeNodeValueHelper ld(l);
-      DateTimeNodeValueHelper rd(r);
-      return DateTime::compareDates(*ld, *rd) < 0;
-   }
-
-   return l->getAsFloat() < r->getAsFloat();
-}
-
-AbstractQoreNode *QoreLogicalLessThanOperatorNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
-   return parseInitIntern(op_str.getBuffer(), oflag, pflag, lvids, typeInfo);
+   return doLessThan(*lh, *rh, xsink);
 }
 
 AbstractQoreNode *QoreLogicalLessThanOperatorNode::parseInitIntern(const char *name, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -125,20 +61,21 @@ AbstractQoreNode *QoreLogicalLessThanOperatorNode::parseInitIntern(const char *n
    if (left && left->is_value() && right && right->is_value()) {
       SimpleRefHolder<QoreLogicalLessThanOperatorNode> del(this);
       ParseExceptionSink xsink;
-      AbstractQoreNode *rv = get_bool_node(QoreLogicalLessThanOperatorNode::boolEvalImpl(*xsink));
-      return rv;
+      return get_bool_node(doLessThan(left, right, *xsink));
    }
 
    // check for optimizations based on type; but only if types are known on both sides, although the highest priority (float)
    // can be assigned if either side is a float
-   if (lti->isType(NT_FLOAT) || rti->isType(NT_FLOAT))
-      pfunc = &QoreLogicalLessThanOperatorNode::floatLessThan;
-   else if (lti->hasType() && rti->hasType()) {
-      if (lti->isType(NT_INT)) {
-	 if (rti->isType(NT_INT))
-	    pfunc = &QoreLogicalLessThanOperatorNode::bigIntLessThan;
+   if (!QoreTypeInfo::isType(lti, NT_NUMBER) && !QoreTypeInfo::isType(rti, NT_NUMBER)) {
+      if (QoreTypeInfo::isType(lti, NT_FLOAT) || QoreTypeInfo::isType(rti, NT_FLOAT))
+         pfunc = &QoreLogicalLessThanOperatorNode::floatLessThan;
+      else if (QoreTypeInfo::hasType(lti) && QoreTypeInfo::hasType(rti)) {
+         if (QoreTypeInfo::isType(lti, NT_INT)) {
+            if (QoreTypeInfo::isType(rti, NT_INT))
+               pfunc = &QoreLogicalLessThanOperatorNode::bigIntLessThan;
+         }
+         // FIXME: check for invalid operation here
       }
-      // FIXME: check for invalid operation here      
    }
 
    return this;
@@ -160,4 +97,62 @@ bool QoreLogicalLessThanOperatorNode::bigIntLessThan(ExceptionSink *xsink) const
    if (*xsink) return false;
 
    return l < r;
+}
+
+bool QoreLogicalLessThanOperatorNode::doLessThan(QoreValue lh, QoreValue rh, ExceptionSink* xsink) {
+   qore_type_t lt = lh.getType();
+   qore_type_t rt = rh.getType();
+
+   if (lt == NT_NUMBER) {
+      switch (rt) {
+         case NT_NUMBER:
+            return lh.get<const QoreNumberNode>()->lessThan(*rh.get<const QoreNumberNode>());
+         case NT_FLOAT:
+            return lh.get<const QoreNumberNode>()->lessThan(rh.getAsFloat());
+         case NT_BOOLEAN:
+         case NT_INT:
+            return lh.get<const QoreNumberNode>()->lessThan(rh.getAsBigInt());
+         default: {
+            ReferenceHolder<QoreNumberNode> rn(new QoreNumberNode(rh.getInternalNode()), xsink);
+            return lh.get<const QoreNumberNode>()->lessThan(**rn);
+         }
+      }
+   }
+
+   if (rt == NT_NUMBER) {
+      assert(lt != NT_NUMBER);
+      switch (lt) {
+         case NT_FLOAT:
+            return rh.get<const QoreNumberNode>()->greaterThan(lh.getAsFloat());
+         case NT_BOOLEAN:
+         case NT_INT:
+            return rh.get<const QoreNumberNode>()->greaterThan(lh.getAsBigInt());
+         default: {
+            ReferenceHolder<QoreNumberNode> ln(new QoreNumberNode(lh.getInternalNode()), xsink);
+            return rh.get<const QoreNumberNode>()->greaterThan(**ln);
+         }
+      }
+   }
+
+   if (lt == NT_FLOAT || rt == NT_FLOAT)
+      return lh.getAsFloat() < rh.getAsFloat();
+
+   if (lt == NT_INT || rt == NT_INT)
+      return lh.getAsBigInt() < rh.getAsBigInt();
+
+   if (lt == NT_STRING || rt == NT_STRING) {
+      QoreStringValueHelper ls(lh);
+      QoreStringValueHelper rs(rh, ls->getEncoding(), xsink);
+      if (*xsink)
+         return false;
+      return ls->compare(*rs) < 0;
+   }
+
+   if (lt == NT_DATE || rt == NT_DATE) {
+      DateTimeValueHelper ld(lh);
+      DateTimeValueHelper rd(rh);
+      return DateTime::compareDates(*ld, *rd) < 0;
+   }
+
+   return lh.getAsFloat() < rh.getAsFloat();
 }

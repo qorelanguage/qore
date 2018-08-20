@@ -6,7 +6,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,10 @@
 #define _QORE_QORERWLOCK_H
 
 #include <pthread.h>
+
+#ifdef DEBUG
+extern int gettid();
+#endif
 
 //! provides a simple POSIX-threads-based read-write lock
 /** This utility class is just a simple wrapper for pthread_rwlock_t.  It does 
@@ -67,22 +71,12 @@ public:
       assert(!rc);
    }
 
-   //! grabs the read lock
-   DLLLOCAL int rdlock() {
-      return pthread_rwlock_rdlock(&m);
-   }
-
    //! grabs the write lock
    DLLLOCAL int wrlock() {
       return pthread_rwlock_wrlock(&m);
    }
 
-   //! tries to grab the read lock; does not block if unsuccessful
-   DLLLOCAL int tryrdlock() {
-      return pthread_rwlock_tryrdlock(&m);
-   }
-
-   //! tries to grab the write lock; does not block if unsuccessful
+   //! tries to grab the write lock; does not block if unsuccessful; returns 0 if successful
    DLLLOCAL int trywrlock() {
       return pthread_rwlock_trywrlock(&m);
    }
@@ -90,6 +84,16 @@ public:
    //! unlocks the lock (assumes the lock is locked)
    DLLLOCAL int unlock() {
       return pthread_rwlock_unlock(&m);
+   }
+
+   //! grabs the read lock
+   DLLLOCAL int rdlock() {
+      return pthread_rwlock_rdlock(&m);
+   }
+
+   //! tries to grab the read lock; does not block if unsuccessful; returns 0 if successful
+   DLLLOCAL int tryrdlock() {
+      return pthread_rwlock_tryrdlock(&m);
    }
 };
 
@@ -335,4 +339,40 @@ public:
    }
 };
 
-#endif // #ifndef _QORE_QORERWLOCK_H
+class qore_var_rwlock_priv;
+
+class QoreVarRWLock {
+private:
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreVarRWLock(const QoreVarRWLock&);
+   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+   DLLLOCAL QoreVarRWLock& operator=(const QoreVarRWLock&);
+
+protected:
+   qore_var_rwlock_priv* priv;
+
+   DLLLOCAL QoreVarRWLock(qore_var_rwlock_priv* p);
+
+public:
+   DLLLOCAL QoreVarRWLock();
+
+   //! destroys the lock
+   DLLLOCAL ~QoreVarRWLock();
+
+   //! grabs the write lock
+   DLLLOCAL void wrlock();
+
+   //! tries to grab the write lock; does not block if unsuccessful; returns 0 if successful
+   DLLLOCAL int trywrlock();
+
+   //! unlocks the lock (assumes the lock is locked)
+   DLLLOCAL void unlock();
+
+   //! grabs the read lock
+   DLLLOCAL void rdlock();
+
+   //! tries to grab the read lock; does not block if unsuccessful; returns 0 if successful
+   DLLLOCAL int tryrdlock();
+};
+
+#endif

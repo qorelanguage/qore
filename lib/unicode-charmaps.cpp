@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -1530,47 +1530,6 @@ void init_charmaps() {
    for (unicodemap_t::const_iterator i = lumap.begin(), e = lumap.end(); i != e; ++i)
       ulmap[i->second] = i->first;
 }
-
-/*
-int do_unaccent(QoreString& str, ExceptionSink* xsink) {
-   assert(str.getEncoding() == QCS_UTF8);
-
-   char cbuf[5];
-
-   // loop through non-ascii characters and substitute any accented ones
-   for (const char* p = (char*)str.getBuffer(), *e = p + str.size(); p < e; ++p) {
-      if (!((*p) & 0x80))
-	 continue;
-
-      // find character length
-      qore_size_t cl = q_get_char_len(QCS_UTF8, p, e - p, xsink);
-      if (*xsink)
-	 return -1;
-      
-      assert(cl < 5);
-      memcpy(cbuf, p, cl);
-      // terminate string
-      cbuf[cl] = 0;
-      charmap_t::const_iterator i = accent_map.find(cbuf);
-      if (i == accent_map.end()) {
-	 p += cl - 1;
-	 continue;
-      }
-      unsigned nl = strlen(i->second);
-      
-      qore_size_t offset = p - str.getBuffer();
-      
-      // replace the accented character with the new character(s)
-      str.replace(offset, cl, i->second);
-      
-      // we have to recalculate p & e because the buffer may have been reallocated by replace()
-      p = str.getBuffer() + offset + nl - 1;
-      e = str.getBuffer() + str.size();	      
-   }
-
-   return 0;
-}
-*/
 
 static int apply_unicode_charmap(const unicodecharmap_t& umap, QoreString& str, const QoreString& src, ExceptionSink* xsink) {
    assert(str.empty());

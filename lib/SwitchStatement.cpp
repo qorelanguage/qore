@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 Qore Technologies
+  Copyright (C) 2003 - 2015 Qore Technologies
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -97,12 +97,12 @@ void SwitchStatement::addCase(CaseNode *c) {
    }
 }
 
-int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int SwitchStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    int rc = 0;
-   
+
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
-   
+
    AbstractQoreNode *se = sexp->eval(xsink);
    if (!xsink->isEvent()) {
       // find match
@@ -114,26 +114,26 @@ int SwitchStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xs
       }
       if (!w && deflt)
 	 w = deflt;
-      
+
       while (w && !rc && !xsink->isEvent()) {
 	 if (w->code)
 	    rc = w->code->execImpl(return_value, xsink);
-	 
+
 	 w = w->next;
       }
       if (rc == RC_BREAK || rc == RC_CONTINUE)
 	 rc = 0;
    }
-   
+
    if (se)
       se->deref(xsink);
-   
+
    return rc;
 }
 
 int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
-   
+
    // turn off top-level flag for statement vars
    pflag &= (~PF_TOP_LEVEL);
 
@@ -141,7 +141,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
    if (sexp)
       sexp = sexp->parseInit(oflag, pflag, lvids, argTypeInfo);
-   
+
    CaseNode *w = head;
    ExceptionSink xsink;
    QoreProgram *pgm = getProgram();
@@ -179,7 +179,7 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 
 	 // check for duplicate values
 	 CaseNode *cw = head;
-	 while (cw != w) {    
+	 while (cw != w) {
             // Check only the simple case blocks (case 1: ...),
             // not those with relational operators. Could be changed later to provide more checking.
 	    // note that no exception can be raised here as the case node values are parse values
@@ -189,12 +189,12 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
 	    cw = cw->next;
 	 }
       }
-      
+
       if (w->code)
 	 w->code->parseInitImpl(oflag, pflag);
       w = w->next;
    }
-   
+
    // save local variables
    if (lvids)
       lvars = new LVList(lvids);
@@ -202,22 +202,29 @@ int SwitchStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    return 0;
 }
 
+CaseNodeWithOperator::CaseNodeWithOperator(AbstractQoreNode* v, StatementBlock* c, Operator* op) : CaseNode(v, c), m_operator(op) {
+}
+
 bool CaseNodeWithOperator::isCaseNodeImpl() const {
    return false;
 }
 
 bool CaseNodeWithOperator::matches(AbstractQoreNode* lhs_value, ExceptionSink *xsink) {
-   return m_operator->bool_eval(lhs_value, val, xsink);
+   ValueHolder rv(m_operator->eval(lhs_value, val, true, xsink), xsink);
+   return rv->getAsBool();
+}
+
+CaseNodeRegex::CaseNodeRegex(QoreRegexNode *m_re, StatementBlock *blk) : CaseNode(NULL, blk), re(m_re) {
 }
 
 bool CaseNodeRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {
    QoreStringValueHelper str(lhs_value);
-   
+
    return re->exec(*str, xsink);
 }
 
 bool CaseNodeNegRegex::matches(AbstractQoreNode *lhs_value, ExceptionSink *xsink) {
    QoreStringValueHelper str(lhs_value);
-   
+
    return !re->exec(*str, xsink);
 }

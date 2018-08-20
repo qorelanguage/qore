@@ -1,0 +1,278 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("list operators", "1.0", \ARGV) {
+        addTestCase("push element", \pushElement());
+        addTestCase("push list", \pushList());
+        addTestCase("push empty list", \pushEmptyList());
+        addTestCase("push element to empty list", \pushElementToEmptyList());
+        addTestCase("push empty list to empty list", \pushEmptyListToEmptyList());
+        addTestCase("push element to nothing", \pushElementToNothing());
+        addTestCase("push element after delete", \pushElementAfterDelete());
+        addTestCase("unshift element", \unshiftElement());
+        addTestCase("unshift list", \unshiftList());
+        addTestCase("unshift empty list", \unshiftEmptyList());
+        addTestCase("unshift element to empty list", \unshiftElementToEmptyList());
+        addTestCase("unshift empty list to empty list", \unshiftEmptyListToEmptyList());
+        addTestCase("unshift element to nothing", \unshiftElementToNothing());
+        addTestCase("unshift element after delete", \unshiftElementAfterDelete());
+        addTestCase("pop basics", \popBasics());
+        addTestCase("pop from nothing", \popFromNothing());
+        addTestCase("pop after delete", \popAfterDelete());
+        addTestCase("shift basics", \shiftBasics());
+        addTestCase("shift from nothing", \shiftFromNothing());
+        addTestCase("shift after delete", \shiftAfterDelete());
+        addTestCase("strict-args", \strictArgsTest());
+        set_return_value(main());
+    }
+
+    pushElement() {
+        list l = (1, 2);
+        assertEq((1, 2, 3), push l, 3);
+        assertEq((1, 2, 3), l);
+    }
+
+    pushList() {
+        list l = (1, 2);
+        assertEq((1, 2, (3,)), push l, (3,));
+        assertEq((1, 2, (3,)), l);
+    }
+
+    pushEmptyList() {
+        list l = (1, 2);
+        assertEq((1, 2, ()), push l, ());
+        assertEq((1, 2, ()), l);
+    }
+
+    pushElementToEmptyList() {
+        list l = ();
+        assertEq((3,), push l, 3);
+        assertEq((3,), l);
+    }
+
+    pushEmptyListToEmptyList() {
+        list l = ();
+        assertEq(((),), push l, ());
+        assertEq(((),), l);
+    }
+
+    pushElementToNothing() {
+        list l1;
+        *list l2;
+        softlist l3;
+        *softlist l4;
+        assertEq((3,), push l1, 3);
+        assertThrows("PUSH-ERROR", sub() { push l2, 3; });
+        assertEq((3,), push l3, 3);
+        assertThrows("PUSH-ERROR", sub() { push l4, 3; });
+    }
+
+    pushElementAfterDelete() {
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        delete l1;
+        delete l2;
+        delete l3;
+        delete l4;
+
+        assertEq((3,), push l1, 3);
+        assertThrows("PUSH-ERROR", sub() { push l2, 3; });
+        assertEq((3,), push l3, 3);
+        assertThrows("PUSH-ERROR", sub() { push l4, 3; });
+    }
+
+
+    unshiftElement() {
+        list l = (1, 2);
+        assertEq((3, 1, 2), unshift l, 3);
+        assertEq((3, 1, 2), l);
+    }
+
+    unshiftList() {
+        list l = (1, 2);
+        assertEq(((3,), 1, 2), unshift l, (3,));
+        assertEq(((3,), 1, 2), l);
+    }
+
+    unshiftEmptyList() {
+        list l = (1, 2);
+        assertEq(((), 1, 2), unshift l, ());
+        assertEq(((), 1, 2), l);
+    }
+
+    unshiftElementToEmptyList() {
+        list l = ();
+        assertEq((3,), unshift l, 3);
+        assertEq((3,), l);
+    }
+
+    unshiftEmptyListToEmptyList() {
+        list l = ();
+        assertEq(((),), unshift l, ());
+        assertEq(((),), l);
+    }
+
+    unshiftElementToNothing() {
+        list l1;
+        *list l2;
+        softlist l3;
+        *softlist l4;
+        assertEq((3,), unshift l1, 3);
+        assertThrows("UNSHIFT-ERROR", sub() { unshift l2, 3; });
+        assertEq((3,), unshift l3, 3);
+        assertThrows("UNSHIFT-ERROR", sub() { unshift l4, 3; });
+    }
+
+    unshiftElementAfterDelete() {
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        delete l1;
+        delete l2;
+        delete l3;
+        delete l4;
+
+        assertEq((3,), unshift l1, 3);
+        assertThrows("UNSHIFT-ERROR", sub() { unshift l2, 3; });
+        assertEq((3,), unshift l3, 3);
+        assertThrows("UNSHIFT-ERROR", sub() { unshift l4, 3; });
+    }
+
+    popBasics() {
+        list l = (1, 2);
+        assertEq(2, pop l);
+        assertEq((1,), l);
+        assertEq(1, pop l);
+        assertEq((), l);
+        assertEq(NOTHING, pop l);
+        assertEq((), l);
+    }
+
+    popFromNothing() {
+        list l1;
+        *list l2;
+        softlist l3;
+        *softlist l4;
+        assertEq(NOTHING, pop l1);
+        assertEq(NOTHING, pop l2);
+        assertEq(NOTHING, pop l3);
+        assertEq(NOTHING, pop l4);
+
+        # pop and shift with untyped & unassigned lvalue
+        any nt;
+        assertEq(NOTHING, pop nt, "pop with NOTHING lvalue");
+        assertEq(NOTHING, shift nt, "shift with NOTHING lvalue");
+    }
+
+    popAfterDelete() {
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        delete l1;
+        delete l2;
+        delete l3;
+        delete l4;
+
+        assertEq(NOTHING, pop l1);
+        assertEq(NOTHING, pop l2);
+        assertEq(NOTHING, pop l3);
+        assertEq(NOTHING, pop l4);
+    }
+
+    shiftBasics() {
+        list l = (1, 2);
+        assertEq(1, shift l);
+        assertEq((2,), l);
+        assertEq(2, shift l);
+        assertEq((), l);
+        assertEq(NOTHING, shift l);
+        assertEq((), l);
+    }
+
+    shiftFromNothing() {
+        list l1;
+        *list l2;
+        softlist l3;
+        *softlist l4;
+        assertEq(NOTHING, shift l1);
+        assertEq(NOTHING, l1);
+        assertEq(NOTHING, l2);
+        assertEq(NOTHING, shift l3);
+        assertEq(NOTHING, l3);
+        assertEq(NOTHING, l4);
+    }
+
+    shiftAfterDelete() {
+        list l1 = (1, 2);
+        *list l2 = (1, 2);
+        softlist l3 = (1, 2);
+        *softlist l4 = (1, 2);
+
+        delete l1;
+        delete l2;
+        delete l3;
+        delete l4;
+
+        assertEq(NOTHING, shift l1);
+        assertEq(NOTHING, l1);
+        assertEq(NOTHING, l2);
+        assertEq(NOTHING, shift l3);
+        assertEq(NOTHING, l3);
+        assertEq(NOTHING, l4);
+    }
+
+    strictArgsTest() {
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+            p.parse("any l = 'str'; push l, 1; pop l; shift l;", "");
+            assertEq(NOTHING, p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+            p.parse("any l = 'str'; unshift l, 1;", "");
+            assertThrows("UNSHIFT-ERROR", \p.run());
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+            p.parse("any l = 'str'; push l, 1;", "");
+            assertThrows("PUSH-ERROR", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+            p.parse("any l = 'str'; pop l;", "");
+            assertThrows("POP-ERROR", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+            p.parse("any l = 'str'; shift l;", "");
+            assertThrows("SHIFT-ERROR", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES|PO_STRICT_ARGS);
+            p.parse("any l = 'str'; unshift l, 1;", "");
+            assertThrows("UNSHIFT-ERROR", \p.run());
+        }
+    }
+}

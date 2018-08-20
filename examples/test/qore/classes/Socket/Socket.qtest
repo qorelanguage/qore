@@ -1,0 +1,534 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class SocketTest
+
+const opts = (
+    "help"       : "h,help",
+    "server"     : "S,server=s",
+    "servonly"   : "O,server-only",
+    "ipv4"       : "4,ipv4",
+    "ipv6"       : "6,ipv6",
+    "ssl"        : "s,ssl",
+    "key"        : "k,private-key=s",
+    "cert"       : "c,cert=s",
+    "pass"       : "p,private-key-password=s",
+    "clientkey"  : "K,client-private-key=s",
+    "clientcert" : "C,client-cert=s",
+    "events"     : "e,show-events",
+    "verbose"    : "v,verbose",
+    );
+
+const i1 = 10;
+const i2 = 5121;
+const i4 = 2393921;
+const i8 = 12309309203932;
+
+const http_headers =  (
+    "Accept"       : "text",
+    "Content-Type" : "text",
+    "User-Agent"   : "Qore HTTP Test Agent",
+    "Connection"   : "Keep-Alive",
+    );
+
+const TestCert = "-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQDLa47sQHENJhycRfO20lgWdhSSNQKVUFsaHLtAo2N9j+xIlmIf
+j8ZAH5gAPgjWpfqz4Sez/AqglNfixJqodo0i5KTUAvBKcAbh2+/t2+aKoBrvf7Yq
+zC6Fbjdq0PmB1azVhn9RUsAn9YNNYiJ3yYT1FCF2yARxFcx87gsdo6diqQIDAQAB
+AoGAXFNQBhhldzNSDveM2vBzPJaRVZ6rsntLLfnWX0sJD+cvte5TUMHfmCD+yzVc
+q5efxt6tN3pwlFuZ9HmJPGa6PUnBoNLQRU3J6+6V9Nc2wJoS9phDzBCyNZJTWGHG
+353qsQFlaAvvQHXeBa+rvQ1p4eS6PHYrYnyGZpFFYEGmTYECQQDsuAqRuyOn2xcr
+mwLOnSlDVt2CokZXiMG+CohR/0Pd9t8GD0Y/AbMtXG2mRUvzGpYQZMgJtgvyrwpV
+ytkxGBaZAkEA2/0vlIlUnpu/UujD7xcIsPMf8kO7qBp1HW1DiHoUVv/KPxOSQ9E3
+BUnG8PHzHpcP32humrYLxKaz/44iZDMGkQJBALRZp5vOM2Uws9+CE0ptTMHETbG4
+htUsGUf76E5oqEFVVCfevUtFtUiLEfNK+ol2KPzGe+2CKGo2WC5zBLS1wIkCQA2U
+zfEvoUfBechWknIaS/EQsXI1eEpih8RvUHIGh2bvl77ZKHiDXBA5g8ywQ0AqN1Kl
+kd5/Sq6zU/18+uaQt+ECQC71IwUFSnsvUDpvvcpL12yTpLBQAH38wJtrKRirE29s
+GcOXOHjHj6wOr/fqQYEoXrNnewe18qYQd2c6HAHF2hQ=
+-----END RSA PRIVATE KEY-----
+-----BEGIN CERTIFICATE-----
+MIICrzCCAhgCCQDaUHqCEBM1kDANBgkqhkiG9w0BAQUFADCBmzELMAkGA1UEBhMC
+Q1oxDzANBgNVBAgTBlByYWd1ZTEPMA0GA1UEBxMGUHJhZ3VlMR8wHQYDVQQKExZR
+b3JlIFRlY2hub2xvZ2llcywgc3JvMRYwFAYDVQQDEw1EYXZpZCBOaWNob2xzMTEw
+LwYJKoZIhvcNAQkBFiJkYXZpZC5uaWNob2xzQHFvcmV0ZWNobm9sb2dpZXMuY29t
+MB4XDTEwMDcxMDE0MDk0NVoXDTIwMDcwNzE0MDk0NVowgZsxCzAJBgNVBAYTAkNa
+MQ8wDQYDVQQIEwZQcmFndWUxDzANBgNVBAcTBlByYWd1ZTEfMB0GA1UEChMWUW9y
+ZSBUZWNobm9sb2dpZXMsIHNybzEWMBQGA1UEAxMNRGF2aWQgTmljaG9sczExMC8G
+CSqGSIb3DQEJARYiZGF2aWQubmljaG9sc0Bxb3JldGVjaG5vbG9naWVzLmNvbTCB
+nzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAy2uO7EBxDSYcnEXzttJYFnYUkjUC
+lVBbGhy7QKNjfY/sSJZiH4/GQB+YAD4I1qX6s+Ens/wKoJTX4sSaqHaNIuSk1ALw
+SnAG4dvv7dvmiqAa73+2KswuhW43atD5gdWs1YZ/UVLAJ/WDTWIid8mE9RQhdsgE
+cRXMfO4LHaOnYqkCAwEAATANBgkqhkiG9w0BAQUFAAOBgQBr21qq2lumlPmYOOcm
+DsmBA/UtpeWckjlUUk+7yxuhSRY7yeM9MR+urXvYq26H/3QTJdjDt9tWzOJhNXfe
+iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
++LT4OPQXYrab6IlJVnK5QXbZ3g==
+-----END CERTIFICATE-----
+    ";
+
+class SocketTest inherits QUnit::Test {
+    private {
+        any o;
+        any fam;
+
+        const XString = "This is a binary string";
+        const XBinary = Qore::binary(XString);
+
+        Counter counter(1);
+
+        Queue queue();
+        Counter stopc();
+
+        int server_port;
+        int client_port;
+
+        string client_host;
+    }
+
+    constructor() : QUnit::Test("Socket test", "1.0") {
+        process_command_line();
+
+        addTestCase("Client/Server Socket tests", \clientServerSocketTest());
+        addTestCase("Unconnected Socket tests", \unconnectedSocketTest());
+        addTestCase("Random Port tests", \randomPortSocketTest());
+        addTestCase("SSL read test", \sslReadTest());
+        addTestCase("SSL write disconnect test", \sslWriteDisconnectTest());
+        set_return_value(main());
+    }
+
+    sslWriteDisconnectTest() {
+        Queue q();
+        background sslReadDisconnect(q);
+
+        # create server socket
+        Socket s();
+        # bind on a random free port
+        s.bind(0);
+        s.listen();
+        s.setCertificate(TestCert);
+        s.setPrivateKey(TestCert);
+        # send the port to the client
+        q.push(s.getSocketInfo().port);
+        # accept a new connection
+        Socket ns = s.acceptSSL(15s);
+
+        hash ex1;
+        while (True) {
+            try {
+                ns.send(TestCert);
+            }
+            catch (hash ex) {
+                ex1 = ex;
+                break;
+            }
+        }
+        assertEq("SOCKET-SSL-ERROR", ex1.err);
+    }
+
+    sslReadDisconnect(Queue q) {
+        Socket s();
+        int port = q.get();
+        s.connectSSL("localhost:" + port);
+
+        # get one byte
+        s.recvu1();
+        # and disconnect
+    }
+
+    sslReadTest() {
+        Queue q();
+        background sslReadError(q);
+
+        Socket s();
+        # wait for server to be listening and get port
+        int port = q.get();
+        s.connectSSL("localhost:" + port);
+        assertThrows("SOCKET-CLOSED", \s.readHTTPHeader());
+    }
+
+    sslReadError(Queue q) {
+        Socket s();
+        s.bind(0);
+        s.listen();
+        s.setCertificate(TestCert);
+        s.setPrivateKey(TestCert);
+        q.push(s.getSocketInfo().port);
+        s.acceptSSL(15s);
+    }
+
+    randomPortSocketTest() {
+        Socket s();
+        # bind on a random port
+        s.bindINET("localhost", 0);
+        # get port bound
+        hash h = s.getSocketInfo();
+        if (m_options.verbose > 2)
+            printf("port: %d\n", h.port);
+
+        assertEq(True, h.port > 0);
+        assertEq(h.port, s.getPort());
+        if (s.listen())
+            throw "LISTEN-ERROR", strerror();
+
+        Counter c(1);
+
+        string str = "hello";
+        code sendMsg = sub () {
+            Socket ns();
+            ns.connectINET("localhost", h.port, 10s);
+            ns.send(str);
+            assertEq(str, ns.recv(str.size()));
+            c.dec();
+        };
+        background sendMsg();
+
+        Socket ns = s.accept(10s);
+        assertEq(str, ns.recv(str.size()));
+        ns.send(str);
+        c.waitForZero();
+    }
+
+    unconnectedSocketTest() {
+        Socket s();
+        assertThrows("SOCKET-NOT-OPEN", \s.recv(), 1);
+        assertThrows("SOCKET-NOT-OPEN", \s.recvi1());
+        assertThrows("SOCKET-NOT-OPEN", \s.recvBinary(), 1);
+        assertThrows("SOCKET-NOT-OPEN", \s.send(), "1");
+        assertThrows("SOCKET-NOT-OPEN", \s.sendi1(), 1);
+
+        assertEq(NOTHING, s.verifyPeerCertificate());
+        assertEq(NOTHING, s.getSSLCipherName());
+        assertEq(NOTHING, s.getSSLCipherVersion());
+    }
+
+    clientServerSocketTest() {
+        # create event queue and start listening thread if necessary
+        if (o.events)
+            background listen();
+
+        if (!exists o.server) {
+            stopc.inc();
+            background server_thread();
+        }
+        if (!o.servonly) {
+            stopc.inc();
+            background client_thread();
+        }
+
+        stopc.waitForZero();
+        if (o.events)
+            queue.push();
+    }
+
+    private server_thread() {
+        on_exit stopc.dec();
+        #SocketTest::printf("listening for incoming connections on %s\n", server_port);
+        Socket s();
+        # setting the callback will output far too much data
+        if (o.events) {
+            s.setEventQueue(queue);
+        }
+
+        {
+            on_exit
+                counter.dec();
+
+            # get bind addresses for the local host
+            list addr = getaddrinfo(NOTHING, server_port, fam, AI_PASSIVE);
+
+            # sort ipv6 addresses first in list
+            addr = sort(addr, int sub (hash l, hash r) { return l.family === AF_INET6 ? -1 : 0; });
+
+            foreach hash a in (addr) {
+                try {
+                    s.bindINET(a.address, server_port, True, a.family);
+                    #SocketTest::printf("server: bound to %s socket on %s:%d\n", a.familystr, a.address_desc, server_port);
+                    break;
+                }
+                catch (ex) {
+                    if ($# == (elements addr - 1)) {
+                        #SocketTest::printf("server: error binding socket to %s:%d %s: %s (arg: %y)\n", a.address_desc, server_port, ex.err, ex.desc, ex.arg);
+                        thread_exit;
+                    }
+                }
+            }
+
+            if (s.listen()) {
+                SocketTest::printf("listen error (%s)\n", strerror(errno()));
+                thread_exit;
+            }
+        }
+
+        try {
+            if (o.ssl) {
+                if (o.cert) {
+                    File f();
+                    f.open2(o.cert);
+                    SSLCertificate cert(f.read(-1));
+                    s.setCertificate(cert);
+                    if (o.key) {
+                        f.open2(o.key);
+                        s.setPrivateKey(new SSLPrivateKey(f.read(-1), o.pass));
+                    }
+                }
+                s = s.acceptSSL();
+                #SocketTest::printf("returned from Socket::acceptSSL() s=%N\n", s);
+                SocketTest::printf("server: secure connection (%s %s) from %s\n", s.getSSLCipherName(), s.getSSLCipherVersion(), s.getPeerInfo().address_desc);
+                *string str = s.verifyPeerCertificate();
+                if (!str)
+                    SocketTest::printf("server: no client certificate\n");
+                else
+                    SocketTest::printf("server: client certificate: %n %s: %s\n", str, X509_VerificationReasons{str});
+            }
+            else {
+                s = s.accept();
+                #SocketTest::printf("server: cleartext connection from %s\n", s.getPeerInfo().address_desc);
+            }
+            if (o.events)
+                s.setEventQueue(queue);
+        }
+        catch (ex) {
+            SocketTest::printf("server error: %s: %s\n", ex.err, ex.desc);
+            thread_exit;
+        }
+
+        receive_messages(s, "server");
+        send_messages(s);
+
+        s.close();
+    }
+
+    private client_thread() {
+        on_exit stopc.dec();
+        if (!exists o.server)
+            counter.waitForZero();
+        Socket s();
+        # setting the callback will output far too much data
+        if (o.events)
+            s.setEventQueue(queue);
+
+        try {
+            if (o.ssl) {
+                if (strlen(o.clientcert)) {
+                    s.setCertificate(o.clientcert);
+                    if (!strlen(o.clientkey))
+                        s.setPrivateKey(o.clientcert);
+                }
+                if (strlen(o.clientkey))
+                    s.setPrivateKey(o.clientkey);
+                s.connectINETSSL(client_host, client_port, 15s, fam);
+
+                string str = s.verifyPeerCertificate();
+                SocketTest::printf("client: server certificate: %s: %s\n", str, X509_VerificationReasons{str});
+            }
+            else
+                s.connectINET(client_host, client_port, 15s, fam);
+        }
+        catch (ex) {
+            SocketTest::printf("client error (line %d): %s: %s\n", ex.line, ex.err, ex.desc);
+            thread_exit;
+        }
+
+        send_messages(s);
+        receive_messages(s, "client");
+    }
+
+    private receive_messages(Socket s, string who) {
+        any m = s.recv();
+        assertEq(XString, m, who + " string");
+        s.send("OK");
+
+        m = s.recvBinary();
+        assertEq(XBinary, m, who + " binary");
+        s.send("OK");
+
+        m = s.recvi1();
+        assertEq(i1, m, who + " sendi1");
+        s.send("OK");
+
+        m = s.recvi2();
+        assertEq(i2, m, who + " sendi2");
+        s.send("OK");
+
+        m = s.recvi4();
+        assertEq(i4, m, who + " sendi4");
+        s.send("OK");
+
+        m = s.recvi8();
+        assertEq(i8, m, who + " sendi8");
+        s.send("OK");
+
+        m = s.recvi2LSB();
+        assertEq(i2, m, who + " sendi2LSB");
+        s.send("OK");
+
+        m = s.recvi4LSB();
+        assertEq(i4, m, who + " sendi4LSB");
+        s.send("OK");
+
+        m = s.recvi8LSB();
+        assertEq(i8, m, who + " sendi8LSB");
+        s.send("OK");
+
+        m = s.readHTTPHeader();
+        assertEq("POST", m.method, who + " HTTP header method");
+        m = s.recv(m."content-length");
+        assertEq(XString, m, who + " HTTP message body");
+
+        s.sendHTTPResponse(200, "OK", "1.1", http_headers, "OK");
+    }
+
+    private send_messages(Socket s) {
+        SocketTest::check_send(s.send(XString), "string");
+        get_response(s);
+
+        SocketTest::check_send(s.send(XBinary), "binary");
+        get_response(s);
+
+        SocketTest::check_send(s.sendi1(i1), "i1");
+        get_response(s);
+        SocketTest::check_send(s.sendi2(i2), "i2");
+        get_response(s);
+        SocketTest::check_send(s.sendi4(i4), "i4");
+        get_response(s);
+        SocketTest::check_send(s.sendi8(i8), "i8");
+        get_response(s);
+
+        SocketTest::check_send(s.sendi2LSB(i2), "i2LSB");
+        get_response(s);
+        SocketTest::check_send(s.sendi4LSB(i4), "i4LSB");
+        get_response(s);
+        SocketTest::check_send(s.sendi8LSB(i8), "i8LSB");
+        get_response(s);
+        s.sendHTTPMessage("POST", "none", "1.1", http_headers, XString);
+        get_http_response(s);
+    }
+
+    static check_send(int rc, string data) {
+        if (rc == -1)
+            printf("%s send error: %s\n", data, strerror(errno()));
+    }
+
+    private get_response(Socket s) {
+        string m = s.recv(2);
+        if (m != "OK")
+            throw "RESPONSE-ERROR", sprintf("expecting 'OK', got: %N", m);
+    }
+
+    private get_http_response(Socket s) {
+        any m = s.readHTTPHeader();
+        m = s.recv(m."content-length");
+        if (m != "OK")
+            throw "RESPONSE-ERROR", sprintf("expecting 'OK', got: %N", m);
+    }
+
+    private static usage() {
+        SocketTest::printf("usage: %s -[options] [port]
+  -h,--help                    this help text
+  -S,--server=ip:port          no server thread; connect to remote server
+  -O,--server-only             no client thread; wait for remote clients
+  -4,--ipv4                    ipv4 sockets only
+  -6,--ipv6                    ipv6 sockets only
+  -s,--ssl                     use secure connections
+  -c,--cert=arg                set server SSL x509 certificate
+  -k,--private-key=arg         set server SSL private key
+  -C,--client-cert=arg         set client SSL x509 certificate
+  -K,--client-private-key=arg  set client SSL private key
+  -e,--show-events             monitor socket events
+", basename(ENV."_"));
+        exit();
+    }
+
+    private process_command_line() {
+        GetOpt g(opts);
+        o = g.parse(\ARGV);
+
+        if (exists o."_ERRORS_") {
+            SocketTest::printf("%s\n", o{"_ERRORS_"}[0]);
+            exit(1);
+        }
+
+        if (o.help)
+            SocketTest::usage();
+
+        if (exists o.server && o.servonly) {
+            SocketTest::printf("server only flag set and remote server option=%n set - aborting\n", o.server);
+            exit(1);
+        }
+
+        if (!(server_port = int(shift ARGV)))
+            server_port = 9001;
+
+        if (exists o.server) {
+            if (o.server == int(o.server)) {
+                client_port = int(o.server);
+                client_host = "localhost";
+            }
+            else {
+                hash h = parse_url(o.server);
+                if (!exists h.port) {
+                    SocketTest::printf("missing port in server specification %n - aborting\n", o.server);
+                    exit(1);
+                }
+
+                client_port = h.port;
+                if (!exists h.host)
+                    client_host = "localhost";
+                else
+                    client_host = h.host;
+            }
+        }
+        else {
+            client_port = server_port;
+            client_host = "localhost";
+        }
+
+        # set address family for sockets
+        if (o.ipv4 && !o.ipv6)
+            fam = AF_INET;
+        else if (o.ipv6 && !o.ipv4)
+            fam = AF_INET6;
+        else
+            fam = AF_UNSPEC;
+    }
+
+    private listen() {
+        while (True) {
+
+            # get a message from the event queue; a hash is returned with at
+            # least the following keys: "event" with the event code, and
+            # "source" with the event source identifier
+
+            any e = queue.get();
+
+            # stop listening when empty event posted to queue in constructor()
+            if (!exists e)
+                return;
+
+            SocketTest::printf("%s %s: %s\n", EVENT_SOURCE_MAP.(e.source), EVENT_MAP.(e.event), SocketTest::getstr(e - ("event", "source")));
+            flush(); # flush output
+        }
+    }
+
+    # ensure all output is synchronized
+    synchronized static printf(string fmt) {
+        vprintf(fmt, argv);
+    }
+
+    static string getstr(hash h) {
+        string str;
+
+        # we create the string by mapping our string format function on a list
+        # of the hash keys.  this is more consise than iterating the keys with
+        # a "foreach" statement, for example
+
+        map (str += sprintf("%s=%n ", $1, h.$1)), keys h;
+        return str;
+    }
+}

@@ -1,81 +1,117 @@
 As of version 0.7.0, qore binary modules are now delivered separately from the qore library.
 Some user (ie Qore-language) modules are delivered with Qore however.
 
-Currently the following binary modules are available (note the svn URLs point to the current development source):
+Currently the following binary modules are available:
+
 * xml
 XML module; XML functionality was removed from the main Qore library into this
 module as of Qore 0.8.1
-source: svn://svn.code.sf.net/p/qore/code/module-xml/trunk
+website: https://github.com/qorelanguage/module-xml
+git source: https://github.com/qorelanguage/module-xml.git
+
+* openldap
+LDAP module using openldap library
+website: https://github.com/qorelanguage/module-openldap
+git source: https://github.com/qorelanguage/module-openldap.git
+
+* mysql
+MySQL database driver
+website: https://github.com/qorelanguage/module-mysql
+git source: https://github.com/qorelanguage/module-mysql.git
 
 * oracle
 Oracle database driver
-source: svn://svn.code.sf.net/p/qore/code/module-oracle/trunk
+website: https://github.com/qorelanguage/module-oracle
+git source: https://github.com/qorelanguage/module-oracle.git
 
 * pgsql
 PostgreSQL database driver
-source: svn://svn.code.sf.net/p/qore/code/module-pgsql/trunk
+website: https://github.com/qorelanguage/module-pgsql
+git source: https://github.com/qorelanguage/module-pgsql.git
 
 * sybase and freetds
 Sybase and freetds database drivers (built from the same source)
 Note the "freetds" module was formerly called "mssql" in previous versions of qore
-source: svn://svn.code.sf.net/p/qore/code/module-sybase/trunk
+website: https://github.com/qorelanguage/module-sybase
+git source: https://github.com/qorelanguage/module-sybase.git
+
+* db2
+db2 datebase driver
+website: https://github.com/qorelanguage/module-db2
+git source: https://github.com/qorelanguage/module-db2.git
 
 * tibrv
 TIBCO Rendezvous(R) module
-source: svn://svn.code.sf.net/p/qore/code/module-tibrv/trunk
+website: https://github.com/qorelanguage/module-tibrv
+git source: https://github.com/qorelanguage/module-tibrv.git
 
 * tibae
 TIBCO ActiveEnterprise(TM) module
-source: svn://svn.code.sf.net/p/qore/code/module-tibae/trunk
+website: https://github.com/qorelanguage/module-tibae
+git source: https://github.com/qorelanguage/module-tibae.git
 
 * tuxedo
 Bea Tuxedo module
-source: svn://svn.code.sf.net/p/qore/code/module-tuxedo/trunk
+website: https://github.com/qorelanguage/module-tuxedo
+git source: https://github.com/qorelanguage/module-tuxedo.git
 
 * ncurses
 ncurses module
-source: svn://svn.code.sf.net/p/qore/code/module-ncurses/trunk
+website: https://github.com/qorelanguage/module-ncurses
+git source: https://github.com/qorelanguage/module-ncurses.git
 
 * qt4 module
 QT4 module
-source: svn://svn.code.sf.net/p/qore/code/module-qt4/trunk
+website: https://github.com/qorelanguage/module-qt4
+git source: https://github.com/qorelanguage/module-qt4.git
 
 * opengl
-opengl module
-source: svn://svn.code.sf.net/p/qore/code/module-opengl/trunk
+OpenGL module
+website: https://github.com/qorelanguage/module-opengl
+git source: https://github.com/qorelanguage/module-opengl.git
 
 * glut
 GLUT module
-source: svn://svn.code.sf.net/p/qore/code/module-glut/trunk
+website: https://github.com/qorelanguage/module-glut
+git source: https://github.com/qorelanguage/module-glut.git
 
 * asn1
 ASN.1 module
-source: svn://svn.code.sf.net/p/qore/code/module-asn1/trunk
+website: https://github.com/qorelanguage/module-asn1
+git source: https://github.com/qorelanguage/module-asn1.git
 
 * xmlsec
 xml security (xmlenc and xmldsig) module
-source: svn://svn.code.sf.net/p/qore/code/module-xmlsec/trunk
+website: https://github.com/qorelanguage/module-xmlsec
+git source: https://github.com/qorelanguage/module-xmlsec.git
 
 * ssh2
 sftp and ssh2 functionality
-source: svn://svn.code.sf.net/p/qore/code/module-ssh2/trunk
+website: https://github.com/qorelanguage/module-ssh2
+git source: https://github.com/qorelanguage/module-ssh2.git
 
 * sqlite3
 SQLite3 driver
-source: svn://svn.code.sf.net/p/qore/code/module-sqlite3/trunk
+website: https://github.com/qorelanguage/module-sqlite3
+git source: https://github.com/qorelanguage/module-sqlite3.git
 
 * yaml
 YAML module
-source: svn://svn.code.sf.net/p/qore/code/module-yaml/trunk
+website: https://github.com/qorelanguage/module-yaml
+git source: https://github.com/qorelanguage/module-yaml.git
 
 * json
 JSON module
-source: svn://svn.code.sf.net/p/qore/code/module-yaml/trunk
+website: https://github.com/qorelanguage/module-json
+git source: https://github.com/qorelanguage/module-json.git
 
 * uuid
 UUID module
-source: svn://svn.code.sf.net/p/qore/code/module-uuid/trunk
+website: https://github.com/qorelanguage/module-uuid
+git source: https://github.com/qorelanguage/module-uuid.git
 
 * gnu-java
 Java bindings, import class and JAR files to use Java APIs directly in Qore
-source: svn://svn.code.sf.net/p/qore/code/module-gnu-java/trunk
+website: https://github.com/qorelanguage/module-gnu-java
+git source: https://github.com/qorelanguage/module-gnu-java.git
+

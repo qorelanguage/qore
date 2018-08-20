@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,27 +31,29 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreObjectIterator.h>
 
+extern QoreClass* QC_OBJECTREVERSEITERATOR;
+
 //! This class an iterator class for objects
 /** Call ObjectPairReverseIterator::next() to iterate through the object in reverse order; do not use the iterator if ObjectPairReverseIterator::next() returns @ref False.
     A object can be iterated in reverse order by calling ObjectPairReverseIterator::prev() instead of ObjectPairReverseIterator::next()
 
     @par Example: ObjectPairReverseIterator basic usage
-    @code
+    @code{.py}
     class Class1 {
        public {
-          int $.attr1;
-          date $.attr2;
+          int attr1;
+          date attr2;
        }
        constructor() {
-          $.attr1 = 1;
-          $.attr2 = now();
+          attr1 = 1;
+          attr2 = now();
        }
     }
-    my Class1 $o();
+    Class1 o();
 
-    my ObjectPairReverseIterator $it($o);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    ObjectPairReverseIterator it(o);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: hash: (key : "attr2", value : 2013-04-17 16:38:31 Wed +02:00 (CEST))
@@ -76,8 +78,8 @@ qclass ObjectPairReverseIterator [arg=QoreObjectReverseIterator* i; ns=Qore; vpa
 /** @param o the object to iterate
 
     @par Example:
-    @code
-my ObjectPairReverseIterator $i($obj);
+    @code{.py}
+ObjectPairReverseIterator i(obj);
     @endcode
  */
 ObjectPairReverseIterator::constructor(object o) {
@@ -86,9 +88,9 @@ ObjectPairReverseIterator::constructor(object o) {
 
 //! Creates an empty iterator object
 /** @par Example:
-    @code
-my *object $obj = get_object_or_nothing();
-my ObjectPairReverseIterator $i($obj);
+    @code{.py}
+*object obj = get_object_or_nothing();
+ObjectPairReverseIterator i(obj);
     @endcode
  */
 ObjectPairReverseIterator::constructor() {
@@ -97,8 +99,8 @@ ObjectPairReverseIterator::constructor() {
 
 //! Creates a copy of the ObjectPairReverseIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
-my ObjectPairReverseIterator $ni = $i.copy();
+    @code{.py}
+ObjectPairReverseIterator ni = i.copy();
     @endcode
  */
 ObjectPairReverseIterator::copy() {
@@ -109,9 +111,9 @@ ObjectPairReverseIterator::copy() {
 /** @return a hash with the current key and value (a hash with 2 keys: \c "key" and \c "value") or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
-foreach my hash $h in (new ObjectPairReverseIterator($obj))
-    printf("%s: %y\n", $h.key, $h.value);
+    @code{.py}
+foreach hash h in (new ObjectPairReverseIterator(obj))
+    printf("%s: %y\n", h.key, h.value);
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
@@ -121,6 +123,6 @@ foreach my hash $h in (new ObjectPairReverseIterator($obj))
  */
 string ObjectPairReverseIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getReferencedValuePair(xsink);
 }

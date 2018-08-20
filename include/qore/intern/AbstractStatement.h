@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,7 @@
 
 class AbstractStatement {
 private:
-   DLLLOCAL virtual int execImpl(AbstractQoreNode** return_value, ExceptionSink* xsink) = 0;
+   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink) = 0;
    DLLLOCAL virtual int parseInitImpl(LocalVar* oflag, int pflag = 0) = 0;
 
 public:
@@ -61,7 +61,7 @@ public:
 
    DLLLOCAL virtual ~AbstractStatement() {}
 
-   DLLLOCAL int exec(AbstractQoreNode** return_value, ExceptionSink* xsink);
+   DLLLOCAL int exec(QoreValue& return_value, ExceptionSink* xsink);
    DLLLOCAL int parseInit(LocalVar* oflag, int pflag = 0);
 
    // statement should return true if it ends a block (break, continue, return, throw, etc)

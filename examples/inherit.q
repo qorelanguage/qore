@@ -56,42 +56,42 @@ class Base1 {
     private $.base1, $.x;
 
     constructor($a) {
-	printf("Base1::constructor(%n)\n", $a);
-	$.a = $a;
+        printf("Base1::constructor(%n)\n", $a);
+        $.a = $a;
     }
 
     destructor() {
-	printf("Base1::destructor() (%n)\n", $.a);
+        printf("Base1::destructor() (%n)\n", $.a);
     }
 
     copy() {
-	printf("Base1::copy() (%n)\n", $.a);
-	$.a = $.a + "-copy";
+        printf("Base1::copy() (%n)\n", $.a);
+        $.a = $.a + "-copy";
     }
 
     hello() {
-	# note that here to call method "subclass()" in a derived class, we have
-	# to use $self.subclass() instead of $.subclass(), because calls like 
-	# "$.subclass()" are resolved at parse time (which would resolve to run
-	# Base::subclass(), which is not what we want), but "$self.subclass()"
-	# is resolved at run-time, and so will run the "subclass" method in the
-	# derived class
+        # note that here to call method "subclass()" in a derived class, we have
+        # to use $self.subclass() instead of $.subclass(), because calls like 
+        # "$.subclass()" are resolved at parse time (which would resolve to run
+        # Base::subclass(), which is not what we want), but "$self.subclass()"
+        # is resolved at run-time, and so will run the "subclass" method in the
+        # derived class
 
-	# to avoid a warning about the unknown method, we use the cast<> operator	
-	printf("Base1 hello (%n, derived class %n)\n", $.a, cast<Mid>($self).subclass());
+        # to avoid a warning about the unknown method, we use the cast<> operator        
+        printf("Base1 hello (%n, derived class %n)\n", $.a, cast<Mid>($self).subclass());
     }
 
     # note that "Base1" here is just a regular method, the constructor
     # is always named "constructor"
     Base1($a) {
-	printf("Base1::Base1() (%n) %n\n", $.a, $a);
+        printf("Base1::Base1() (%n) %n\n", $.a, $a);
     }
 
     # "static" functions are not associated with an object; they are
     # like regular functions and can be called outside the class (if
     # they are not private)
     static test() {
-	printf("Base1::test() static function\n");
+        printf("Base1::test() static function\n");
     }
 }
 
@@ -101,24 +101,24 @@ class Base2 {
     private $.base2, $.y;
 
     constructor($a) {
-	printf("Base2::constructor(%n)\n", $a);
-	$.b = $a;
+        printf("Base2::constructor(%n)\n", $a);
+        $.b = $a;
     }
     copy() {
-	printf("Base2::copy() (%n)\n", $.b);
-	$.b = $.b + "-copy"; 
+        printf("Base2::copy() (%n)\n", $.b);
+        $.b = $.b + "-copy"; 
     }
     destructor() {
-	printf("Base2::destructor() (%n)\n", $.b);
+        printf("Base2::destructor() (%n)\n", $.b);
     }
     hello() {
-	printf("Base2 hello (%n)\n", $.b);
+        printf("Base2 hello (%n)\n", $.b);
     }
 
     # note that "Base2" here is just a regular method, the constructor
     # is always named "constructor"
     Base2($a) {
-	printf("Base2::Base2() (%n) %n\n", $.b, $a);
+        printf("Base2::Base2() (%n) %n\n", $.b, $a);
     }
 }
 
@@ -131,20 +131,20 @@ class Mid::Mid inherits Base1, Base2
     private $.mid, $.z;
 
     constructor($m) : Base1("Mid->Base1-" + $m), Base2("Mid->Base2-" + $m) {
-	printf("Mid::constructor(%n)\n", $m);
-	$.m = $m;
+        printf("Mid::constructor(%n)\n", $m);
+        $.m = $m;
     }
     copy() {
-	printf("Mid::copy() (%n)\n", $.m);
-	$.m = $.m + "-copy";
+        printf("Mid::copy() (%n)\n", $.m);
+        $.m = $.m + "-copy";
     }
     destructor() {
-	printf("Mid::destructor() (%n)\n", $.m);
+        printf("Mid::destructor() (%n)\n", $.m);
     }
     hello() {
-	Base1::$.hello();
-	Base2::$.hello();
-	printf("Mid hello (%n)\n", $.m);
+        Base1::$.hello();
+        Base2::$.hello();
+        printf("Mid hello (%n)\n", $.m);
     }
     subclass() {
         return "Mid";
@@ -152,9 +152,9 @@ class Mid::Mid inherits Base1, Base2
     # note that "Mid" here is just a regular method, the constructor
     # is always named "constructor"
     Mid($a) {
-	$.Base1("Mid");
-	$.Base2("Mid");
-	printf("Mid::Mid() (%n) %n\n", $.m, $a);
+        $.Base1("Mid");
+        $.Base2("Mid");
+        printf("Mid::Mid() (%n) %n\n", $.m, $a);
     }
 }
 

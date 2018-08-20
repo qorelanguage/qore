@@ -1,0 +1,40 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class PwdTest
+
+public class PwdTest inherits QUnit::Test {
+    constructor() : Test("PwdTest", "1.0") {
+        addTestCase("Pwd tests", \pwdTestMethod(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    pwdTestMethod() {
+        if (!Option::HAVE_UNIX_USERMGT) {
+            testSkip("No support for UNIX user management");
+        }
+
+        hash h;
+
+        testAssertion("getpwuid()", \getpwuid(), (0,), new TestResultPartialHashMatch(("pw_uid" : 0)));
+        testAssertion("getpwuid2()", \getpwuid2(), (0,), new TestResultPartialHashMatch(("pw_uid" : 0)));
+
+        testAssertion("getpwnam()", \getpwnam(), ("root",), new TestResultPartialHashMatch(("pw_uid" : 0)));
+        testAssertion("getpwnam2()", \getpwnam2(), ("root",), new TestResultPartialHashMatch(("pw_uid" : 0)));
+
+        h = testAssertion("getgrgid()", \getgrgid(), (0,), new TestResultPartialHashMatch(("gr_gid" : 0)));
+        testAssertion("getgrgid2()", \getgrgid2(), (0,), new TestResultPartialHashMatch(("gr_gid" : 0)));
+
+        testAssertion("getgrnam()", \getgrnam(), (h.gr_name,), new TestResultPartialHashMatch(("gr_gid" : 0)));
+        testAssertion("getgrnam2()", \getgrnam(), (h.gr_name,), new TestResultPartialHashMatch(("gr_gid" : 0)));
+    }
+}

@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   ReferenceNode.h
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,12 +31,12 @@
 
 #ifndef _QORE_REFERENCENODE_H
 
-#define _QORE_REFERENCENODE_H 
+#define _QORE_REFERENCENODE_H
 
 #include <qore/AbstractQoreNode.h>
 
 //! parse type: reference to a lvalue expression
-/** This type could be passed to a builtin function.  To get and set the value of the reference, 
+/** This type could be passed to a builtin function.  To get and set the value of the reference,
     use the TypeSafeReferenceHelper class.  To create a reference argument to pass to a user or builtin
     function, use the ReferenceArgumentHelper class.
     @see TypeSafeReferenceHelper
@@ -50,26 +50,24 @@ private:
    //! private implementation
    class lvalue_ref* priv;
 
-   DLLLOCAL ReferenceNode(lvalue_ref* p);
-
 protected:
    //! returns the value of the reference; caller owns any reference count returned for non-NULL return values
-   DLLEXPORT virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const;
+   DLLEXPORT virtual AbstractQoreNode* evalImpl(ExceptionSink* xsink) const;
 
    //! returns the value of the reference
-   DLLEXPORT virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+   DLLEXPORT virtual AbstractQoreNode* evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
    //! returns the value of the reference as an int64
-   DLLEXPORT virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const;
+   DLLEXPORT virtual int64 bigIntEvalImpl(ExceptionSink* xsink) const;
 
    //! returns the value of the reference as an int
-   DLLEXPORT virtual int integerEvalImpl(ExceptionSink *xsink) const;
+   DLLEXPORT virtual int integerEvalImpl(ExceptionSink* xsink) const;
 
    //! returns the value of the reference as a bool
-   DLLEXPORT virtual bool boolEvalImpl(ExceptionSink *xsink) const;
+   DLLEXPORT virtual bool boolEvalImpl(ExceptionSink* xsink) const;
 
    //! returns the value of the reference as a double
-   DLLEXPORT virtual double floatEvalImpl(ExceptionSink *xsink) const;
+   DLLEXPORT virtual double floatEvalImpl(ExceptionSink* xsink) const;
 
    //! frees all memory and destroys the object
    DLLEXPORT virtual ~ReferenceNode();
@@ -77,6 +75,11 @@ protected:
 public:
    //! creates the ReferenceNode object - internal function, not exported, not part of the Qore API
    DLLLOCAL ReferenceNode(AbstractQoreNode* exp, QoreObject* self, const void* lvalue_id);
+
+   //! creates a copy of the object
+   /** @since %Qore 0.8.12.9
+    */
+   DLLLOCAL ReferenceNode(const ReferenceNode& old);
 
    //! concatenate the verbose string representation of the value to an existing QoreString
    /** used for %n and %N printf formatting
@@ -94,20 +97,21 @@ public:
        @param xsink ignored in this version of the function
        @see QoreNodeAsStringHelper
    */
-   DLLEXPORT virtual QoreString *getAsString(bool& del, int foff, ExceptionSink* xsink) const;
+   DLLEXPORT virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
    //! returns a copy of the object
-   DLLEXPORT virtual AbstractQoreNode *realCopy() const;
+   DLLEXPORT virtual AbstractQoreNode* realCopy() const;
 
    //! compares the values
-   DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink* xsink) const;
+   DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const;
 
    //! compares the values
-   DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink* xsink) const;
+   DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const;
 
    //! returns the type name as a c string
-   DLLEXPORT virtual const char *getTypeName() const;
+   DLLEXPORT virtual const char* getTypeName() const;
 
+   //! called when the object is deleted
    DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
 };
 

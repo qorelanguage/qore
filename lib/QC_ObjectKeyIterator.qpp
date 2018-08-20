@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -31,27 +31,29 @@
 #include <qore/Qore.h>
 #include <qore/intern/QoreObjectIterator.h>
 
+extern QoreClass* QC_OBJECTITERATOR;
+
 //! This class an iterator class for objectes
 /** Call ObjectKeyIterator::next() to iterate through the object; do not use the iterator if ObjectKeyIterator::next() returns @ref False.
     A object can be iterated in reverse order by calling ObjectKeyIterator::prev() instead of ObjectKeyIterator::next()
 
     @par Example: ObjectKeyIterator basic usage
-    @code
+    @code{.py}
     class Class1 {
        public {
-          int $.attr1;
-          date $.attr2;
+          int attr1;
+          date attr2;
        }
        constructor() {
-          $.attr1 = 1;
-          $.attr2 = now();
+          attr1 = 1;
+          attr2 = now();
        }
     }
-    my Class1 $o();
+    Class1 o();
 
-    my ObjectKeyIterator $it($o);
-    while ($it.next()) {
-        printf("iter: %n\n", $it.getValue());
+    ObjectKeyIterator it(o);
+    while (it.next()) {
+        printf("iter: %n\n", it.getValue());
     }
 
     iter: "attr1"
@@ -71,8 +73,8 @@ qclass ObjectKeyIterator [arg=QoreObjectIterator* i; ns=Qore; vparent=ObjectIter
 /** @param o the object to iterate
 
     @par Example:
-    @code
-my ObjectKeyIterator $i($h);
+    @code{.py}
+ObjectKeyIterator i(h);
     @endcode
  */
 ObjectKeyIterator::constructor(object o) {
@@ -81,9 +83,9 @@ ObjectKeyIterator::constructor(object o) {
 
 //! Creates an empty object iterator object
 /** @par Example:
-    @code
-my *object $o = get_object_or_nothing();
-my ObjectKeyIterator $i($o);
+    @code{.py}
+*object o = get_object_or_nothing();
+ObjectKeyIterator i(o);
     @endcode
  */
 ObjectKeyIterator::constructor() {
@@ -92,8 +94,8 @@ ObjectKeyIterator::constructor() {
 
 //! Creates a copy of the ObjectKeyIterator object, iterating the same object as the original and in the same position
 /** @par Example:
-    @code
-my ObjectKeyIterator $ni = $i.copy();
+    @code{.py}
+ObjectKeyIterator ni = i.copy();
     @endcode
  */
 ObjectKeyIterator::copy() {
@@ -104,9 +106,9 @@ ObjectKeyIterator::copy() {
 /** @return the current key value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
 
     @par Example:
-    @code
-foreach my string $key in ($object.keyIterator())
-    printf("key: %s\n", $key);
+    @code{.py}
+foreach string key in (object.keyIterator())
+    printf("key: %s\n", key);
     @endcode
 
     @throw INVALID-ITERATOR the iterator is not pointing at a valid element
@@ -114,6 +116,6 @@ foreach my string $key in ($object.keyIterator())
  */
 string ObjectKeyIterator::getValue() [flags=RET_VALUE_ONLY] {
    if (i->check(xsink))
-      return 0;
+      return QoreValue();
    return i->getKey(xsink);
 }

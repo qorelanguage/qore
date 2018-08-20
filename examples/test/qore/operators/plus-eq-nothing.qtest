@@ -1,0 +1,43 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("assignment operators += and -= with *hash, *date etc", "1.0", \ARGV) {
+        addTestCase("x += NOTHING with implicit NOTHING in x", \plusEqImplicitNothing());
+        addTestCase("x += NOTHING with explicit NOTHING in x", \plusEqExplicitNothing());
+        set_return_value(main());
+    }
+
+    plusEqImplicitNothing() {
+        *hash h;
+        *string s;
+        *int i;
+        h += NOTHING;
+        assertEq(NT_NOTHING, h.typeCode());
+        s += NOTHING;
+        assertEq(NT_NOTHING, s.typeCode());
+        i += NOTHING;
+        assertEq(NT_NOTHING, i.typeCode());
+    }
+
+    plusEqExplicitNothing() {
+        *hash h = NOTHING;
+        *string s = NOTHING;
+        *int i = NOTHING;
+        h += NOTHING;
+        assertEq(NT_NOTHING, h.typeCode());
+        s += NOTHING;
+        assertEq(NT_NOTHING, s.typeCode());
+        i += NOTHING;
+        assertEq(NT_NOTHING, i.typeCode());
+    }
+}

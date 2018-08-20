@@ -1,0 +1,25 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-our
+%requires qore >= 0.8
+%new-style
+
+class T1 { 
+    public { int id; *T1 a; *T1 b; } 
+    constructor(int i) { id = i; } 
+    destructor() { printf("deleting %d\n", id); } 
+    set(*T1 aa) { a = aa; }
+}
+class T2 inherits T1 {
+    constructor(int i) : T1(i) {} 
+}
+#  t2.a -> t1, t1.a -> t2, t2.b -> t1  ---> [ t1(2), t2(1) ]
+T1 t1(1);
+{
+    T2 t2(2);
+    t1.set(t2);
+    t2.set(t1);
+    t2.b = t1;
+}
+printf("t1.a: %y\n", t1.a);

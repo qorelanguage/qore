@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -38,49 +38,46 @@ AbstractQoreNode *QoreDivideEqualsOperatorNode::parseInitImpl(LocalVar *oflag, i
    return this;
 }
 
-AbstractQoreNode *QoreDivideEqualsOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   QoreNodeEvalOptionalRefHolder res(right, xsink);
+QoreValue QoreDivideEqualsOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+   ValueEvalRefHolder res(right, xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper v(left, xsink);
    if (!v)
-      return 0;
+      return QoreValue();
 
    // is either side a number?
-   if ((res && res->getType() == NT_NUMBER) || v.getType() == NT_NUMBER) {
-      const QoreNumberNode* num = (res && res->getType() == NT_NUMBER) ? static_cast<const QoreNumberNode*>(*res) : 0;
-      if (!num || num->zero()) {
+   if (res->getType() == NT_NUMBER || v.getType() == NT_NUMBER) {
+      // check for divide by zero
+      if (res->getAsFloat() == 0.0) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in arbitrary-precision numeric expression");
-	 return 0;
+	 return QoreValue();
       }
-      v.divideEqualsNumber(*res, "</= operator>");
+      // FIXME: efficiency
+      ReferenceHolder<> rh(res.getReferencedValue(), xsink);
+      v.divideEqualsNumber(*rh, "</= operator>");
    }
    // is either side a float?
-   else if ((res && res->getType() == NT_FLOAT) || v.getType() == NT_FLOAT) {
-      double val = res ? res->getAsFloat() : 0.0;
+   else if (res->getType() == NT_FLOAT || v.getType() == NT_FLOAT) {
+      double val = res->getAsFloat();
       if (val == 0.0) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in floating-point expression");
-	 return 0;
+	 return QoreValue();
       }
-      v.divideEqualsFloat(val, "</= operator>");
+      return v.divideEqualsFloat(val, "</= operator>");
    }
    else { // do integer divide equals
-      int64 val = res ? res->getAsBigInt() : 0;
+      int64 val = res->getAsBigInt();
       if (!val) {
 	 xsink->raiseException("DIVISION-BY-ZERO", "division by zero in integer expression");
-	 return 0;
+	 return QoreValue();
       }
       // get new value if necessary
-      v.divideEqualsBigInt(val, "</= operator>");
+      return v.divideEqualsBigInt(val, "</= operator>");
    }
 
    // reference return value and return
-   return ref_rv ? v.getReferencedValue() : 0;
-}
-
-AbstractQoreNode *QoreDivideEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreDivideEqualsOperatorNode::evalImpl(xsink);
+   return ref_rv ? v.getReferencedValue() : QoreValue();
 }

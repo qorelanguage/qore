@@ -1,0 +1,37 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class NullCoalescingTest
+
+class NullCoalescingTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Null coalescing test", "1.0") {
+        addTestCase("Test", \testCoalescing());
+        set_return_value(main());
+    }
+
+    testCoalescing() {
+        code code_example = any sub() {return;};
+        File file_example = new File();
+
+        assertEq(2, 2 ?? 3, "int ?? int");
+        assertEq(0, 0 ?? 3, "zero ?? int");
+        assertEq(3, NOTHING ?? 3, "NOTHING ?? int");
+        assertEq("a", "a" ?? 3, "str ?? int");
+        assertEq(code_example, code_example ?? 3, "code ?? int");
+        assertEq('a', NOTHING ?? 'a', "NOTHING ?? str");
+        assertEq(NOTHING, NOTHING ?? NOTHING, "NOTHING ?? NOTHING");
+        assertEq(False, False ?? True, "False ?? True");
+        assertEq(4, NOTHING ?? NOTHING ?? 4 ?? NOTHING, "NOTHING ?? NOTHING ?? int ?? NOTHING");
+        assertEq(False, True && NOTHING ?? True, "True && NOTHING ?? True (?? is first)");
+        assertEq('a', True ?? False ? 'a' : 'b', "?: has lower prio");
+        assertEq(file_example, file_example ?? 3, "object ?? int");
+    }
+}
+

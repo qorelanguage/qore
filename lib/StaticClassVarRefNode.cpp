@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -55,31 +55,9 @@ const char *StaticClassVarRefNode::getTypeName() const {
    return "static class variable reference";
 }
 
-// eval(): return value requires a deref(xsink)
-AbstractQoreNode *StaticClassVarRefNode::evalImpl(ExceptionSink *xsink) const {
-   return vi.getReferencedValue();
-}
-
 // evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode *StaticClassVarRefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
+QoreValue StaticClassVarRefNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    return vi.getReferencedValue();
-}
-
-int64 StaticClassVarRefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   return vi.getAsBigInt();
-}
-
-int StaticClassVarRefNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return (int)vi.getAsBigInt();
-}
-
-bool StaticClassVarRefNode::boolEvalImpl(ExceptionSink *xsink) const {
-   return vi.getAsBool();
-}
-
-double StaticClassVarRefNode::floatEvalImpl(ExceptionSink *xsink) const {
-   return vi.getAsFloat();
 }
 
 AbstractQoreNode *StaticClassVarRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
@@ -93,7 +71,7 @@ void StaticClassVarRefNode::getLValue(LValueHelper& lvh) const {
 }
 
 void StaticClassVarRefNode::remove(LValueRemoveHelper& lvrh) {
-   QoreAutoRWWriteLocker sl(vi.rwl);
+   QoreAutoVarRWWriteLocker sl(vi.rwl);
    lvrh.doRemove((QoreLValueGeneric&)vi.val, vi.getTypeInfo());
 }
 

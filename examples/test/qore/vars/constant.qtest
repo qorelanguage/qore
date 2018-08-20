@@ -1,0 +1,107 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+const a = "key";
+const b = 1.0;
+const i = 1;
+const l = (1, 2, 3);
+const chash = ( a : "one", b : l );
+
+const exp   = elements l;
+const hexp2 = chash{b};
+const t1 = "goodbye";
+
+class C {
+    const a = 2;
+    static int t1() { return 2; }
+    static int t2() { return Type::i; }
+}
+
+int sub d1() { return 2; }
+int sub d2() { return Type::i; }
+const K1 = "b";
+const K2 = "a";
+
+namespace Type {
+    const i = 2;
+    const hithere = 2;
+}
+
+namespace NTest {
+    const t1 = "hello";
+
+    namespace Type {
+        const i = 1;
+    }
+
+    const Type::hithere = 1;
+
+    class C {
+        const a = 1;
+        static int t1() { return 1; }
+        static int t2() { return Type::i; }
+    }
+
+    int sub d1() { return 1; }
+    int sub d2() { return Type::i; }
+
+    const K1 = "a";
+    const K2 = "b";
+    const H = (K1: 1, K2: 2);
+
+    class T1;
+
+    sub test(reference ct) {
+        ct.assertEq("hello", t1, "1st namespace constant resolution");
+        ct.assertEq(1, Type::i, "2nd namespace constant resolution");
+        ct.assertEq(1, Type::hithere, "3rd namespace constant resolution");
+        ct.assertEq(1, C::a, "class constant resolution in namespace context");
+        ct.assertEq(1, C::t1(), "static method resolution in namespace context");
+        ct.assertEq(1, C::t2(), "constant resolution in namespace context in class code");
+        ct.assertEq(1, d1(), "first function resolution in namespace context");
+        ct.assertEq(1, d2(), "second function resolution in namespace context");
+        ct.assertEq(1, H.a, "hash key constant resolution in namespace context");
+    }
+}
+
+namespace NTest {
+    const t2 = 2;
+}
+
+const NTest::Type::val1 = 1;
+
+const Qore::myconst = 1;
+
+
+%exec-class ConstantTest
+
+public class ConstantTest inherits QUnit::Test {
+    constructor() : Test("Constant test", "1.0") {
+        addTestCase("Constant test", \testConstants(), NOTHING);
+        addTestCase("Constants in namespace test", \testConstantsInNamespace(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    testConstants() {
+        assertEq(1, i, "simple constant");
+        assertEq("integer", type(Type::val1), "first namespace constant");
+        assertEq(NTest::Type::val1, Qore::myconst, "second namespace constant");
+        assertEq(1, NTest::Type::i, "third namespace constant");
+        assertEq((1, 2, 3), chash{b}, "indirect constant");
+        assertEq(3, exp, "evaluated constant");
+        assertEq((1, 2, 3), hexp2, "evaluated constant hash");
+    }
+
+    testConstantsInNamespace() {
+        NTest::test(\self);
+    }
+}

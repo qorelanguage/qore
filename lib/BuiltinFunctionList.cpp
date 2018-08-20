@@ -3,7 +3,7 @@
 
   Qore Programming language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,6 +44,7 @@
 #include <qore/intern/ql_object.h>
 #include <qore/intern/ql_file.h>
 #include <qore/intern/ql_compression.h>
+#include <qore/intern/QoreNamespaceIntern.h>
 
 #ifdef DEBUG
 #include <qore/intern/ql_debug.h>
@@ -143,7 +144,7 @@ void BuiltinFunctionList::add2(const char *name, q_func_t f, int64 flags, int64 
    // qmc will be NULL when called from program initialization and not in a module
    // for backwards compatibility we load directly into the Qore namespace of the static system namespace
    BuiltinFunctionVariant* v = new BuiltinFunctionVariant(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList);
-   //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, returnTypeInfo->getName(), num_params);
+   //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, QoreTypeInfo::getName(returnTypeInfo), num_params);
    if (!qmc)
       qore_root_ns_private::getQore(*staticSystemNamespace)->addBuiltinVariantIntern(name, v);
    else
@@ -162,7 +163,7 @@ void BuiltinFunctionList::add3(const char *name, q_func_t f, int64 flags, int64 
    // qmc will be NULL when called from program initialization and not in a module
    // for backwards compatibility we load directly into the Qore namespace of the static system namespace
    BuiltinFunctionVariant* v = new BuiltinFunctionVariant(f, flags, functional_domain, returnTypeInfo, typeList, defaultArgList);
-   //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, returnTypeInfo->getName(), num_params);
+   //printd(0, "add2('%s', %p, flags=%lld, domain=%lld, ret=%s, num_params=%d, ...)\n", name, f, flags, functional_domain, QoreTypeInfo::getName(returnTypeInfo), num_params);
    if (!qmc)
       qore_root_ns_private::getQore(*staticSystemNamespace)->addBuiltinVariantIntern(name, v);
    else

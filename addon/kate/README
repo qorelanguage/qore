@@ -5,7 +5,11 @@ File:
 If you want to use it, copy it to 
 
     ~/.kde/share/apps/katepart/syntax/qore.xml
-    
+
+Kate 15, KDE 5    
+   - copy to /usr/share/katepart5/syntax/
+   - set environment XDG_DATA_DIRS=/usr/share    
+
 References:
 Kate (KDE Advanced Text Editor) http://kate.kde.org/
 Qore Programming Language http://qore.sourceforge.org

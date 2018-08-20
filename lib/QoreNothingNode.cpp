@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,7 @@ QoreNothingNode::QoreNothingNode() : UniqueValueQoreNode(NT_NOTHING) {
 }
 
 QoreNothingNode::~QoreNothingNode() {
-   //printd(0, "QoreNothingNode::~QoreNothingNode() called this=%08p\n", this);
+   //printd(0, "QoreNothingNode::~QoreNothingNode() called this=%p\n", this);
 }
 
 AbstractQoreNode *QoreNothingNode::evalImpl(class ExceptionSink *xsink) const {

@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,38 +30,13 @@
 
 #include <qore/Qore.h>
 
-AbstractQoreNode *QoreIntMinusEqualsOperatorNode::evalImpl(ExceptionSink *xsink) const {
-   int64 rv = QoreIntMinusEqualsOperatorNode::bigIntEvalImpl(xsink);
-   if (!ref_rv || *xsink)
-      return 0;
-
-   return new QoreBigIntNode(rv);
-}
-
-AbstractQoreNode *QoreIntMinusEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QoreIntMinusEqualsOperatorNode::evalImpl(xsink);
-}
-
-int64 QoreIntMinusEqualsOperatorNode::bigIntEvalImpl(ExceptionSink *xsink) const {
+QoreValue QoreIntMinusEqualsOperatorNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    int64 rv = right->bigIntEval(xsink);
    if (*xsink)
-      return 0;
+      return QoreValue();
 
    LValueHelper v(left, xsink);
    if (*xsink)
-      return 0;
-   return v.minusEqualsBigInt(rv, "<-= operator");
-}
-
-int QoreIntMinusEqualsOperatorNode::integerEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntMinusEqualsOperatorNode::bigIntEvalImpl(xsink);
-}
-
-double QoreIntMinusEqualsOperatorNode::floatEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntMinusEqualsOperatorNode::bigIntEvalImpl(xsink);
-}
-
-bool QoreIntMinusEqualsOperatorNode::boolEvalImpl(ExceptionSink *xsink) const {
-   return QoreIntMinusEqualsOperatorNode::bigIntEvalImpl(xsink);
+      return QoreValue();
+   return v.minusEqualsBigInt(rv, "<-= operator>");
 }

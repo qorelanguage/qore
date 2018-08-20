@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QoreNumberNode.h
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -81,6 +81,9 @@ public:
    //! creates a new number value from the node, if not possible then the new number will be assigned 0
    DLLEXPORT QoreNumberNode(const AbstractQoreNode* n);
 
+   //! creates a new number value from the node, if not possible then the new number will be assigned 0
+   DLLEXPORT QoreNumberNode(const QoreValue& n);
+
    //! creates a new number value and assigns the initial value to it
    /**
       @param f the value for the object
@@ -127,7 +130,7 @@ public:
    DLLEXPORT virtual void getStringRepresentation(QoreString& str) const;
 
    //! returns the DateTime representation of this value and sets del to true
-   /** The DateTime representation is calculated by converting the number value 
+   /** The DateTime representation is calculated by converting the number value
        to an integer interpreted as the number of seconds offset from January 1, 1970.
        @note Use the DateTimeValueHelper class instead of using this function directly
        @param del output parameter: if del is true, then the returned DateTime pointer belongs to the caller (and must be deleted manually), if false, then it must not be
@@ -136,7 +139,7 @@ public:
    DLLEXPORT virtual class DateTime *getDateTimeRepresentation(bool& del) const;
 
    //! assigns the date representation of the value to the DateTime reference passed
-   /** The DateTime representation is calculated by converting the number value 
+   /** The DateTime representation is calculated by converting the number value
        to an integer interpreted as the number of seconds offset from January 1, 1970.
        @param dt the DateTime reference to be assigned
    */
@@ -191,14 +194,20 @@ public:
    //! add the argument to this value and return the result
    DLLEXPORT QoreNumberNode* doPlus(const QoreNumberNode& n) const;
 
-   //! add the argument to this value and return the result
+   //! subtract the argument from this value and return the result
    DLLEXPORT QoreNumberNode* doMinus(const QoreNumberNode& n) const;
 
-   //! add the argument to this value and return the result
+   //! multiply the argument to this value and return the result
    DLLEXPORT QoreNumberNode* doMultiply(const QoreNumberNode& n) const;
 
-   //! add the argument to this value and return the result
+   //! divide this value by the argument return the result (can throw a division-by-zero exception)
    DLLEXPORT QoreNumberNode* doDivideBy(const QoreNumberNode& n, ExceptionSink* xsink) const;
+
+   //! divide this value by the argument return the result (can throw a division-by-zero exception)
+   DLLEXPORT QoreNumberNode* doDivideBy(double d, ExceptionSink* xsink) const;
+
+   //! divide this value by the argument return the result (can throw a division-by-zero exception)
+   DLLEXPORT QoreNumberNode* doDivideBy(int64 i, ExceptionSink* xsink) const;
 
    //! returns the negative of the current object (this)
    DLLEXPORT QoreNumberNode* negate() const;
@@ -209,14 +218,50 @@ public:
    //! returns -1 if the number is negative, 0 if zero, or 1 if the number is positive
    DLLEXPORT int sign() const;
 
-   //! compares the argument to the current object, returns -1 if the current object is less than the argument, 0 if equals, and 1 if greater than the argument
-   DLLEXPORT int compare(const QoreNumberNode& n) const;
+   //! returns true if the current object is less than the argument
+   DLLEXPORT bool lessThan(const QoreNumberNode& n) const;
 
-   //! compares the argument to the current object, returns -1 if the current object is less than the argument, 0 if equals, and 1 if greater than the argument
-   DLLEXPORT int compare(int64 n) const;
+   //! returns true if the current object is less than the argument
+   DLLEXPORT bool lessThan(double n) const;
 
-   //! compares the argument to the current object, returns -1 if the current object is less than the argument, 0 if equals, and 1 if greater than the argument
-   DLLEXPORT int compare(double n) const;
+   //! returns true if the current object is less than the argument
+   DLLEXPORT bool lessThan(int64 n) const;
+
+   //! returns true if the current object is less than or equal to the argument
+   DLLEXPORT bool lessThanOrEqual(const QoreNumberNode& n) const;
+
+   //! returns true if the current object is less than or equal to the argument
+   DLLEXPORT bool lessThanOrEqual(double n) const;
+
+   //! returns true if the current object is less than or equal to the argument
+   DLLEXPORT bool lessThanOrEqual(int64 n) const;
+
+   //! returns true if the current object is greater than the argument
+   DLLEXPORT bool greaterThan(const QoreNumberNode& n) const;
+
+   //! returns true if the current object is greater than the argument
+   DLLEXPORT bool greaterThan(double n) const;
+
+   //! returns true if the current object is greater than the argument
+   DLLEXPORT bool greaterThan(int64 n) const;
+
+   //! returns true if the current object is greater than or equal to the argument
+   DLLEXPORT bool greaterThanOrEqual(const QoreNumberNode& n) const;
+
+   //! returns true if the current object is greater than or equal to the argument
+   DLLEXPORT bool greaterThanOrEqual(double n) const;
+
+   //! returns true if the current object is greater than or equal to the argument
+   DLLEXPORT bool greaterThanOrEqual(int64 n) const;
+
+   //! returns true if the current object is equal to the argument
+   DLLEXPORT bool equals(const QoreNumberNode& n) const;
+
+   //! returns true if the current object is equal to the argument
+   DLLEXPORT bool equals(double n) const;
+
+   //! returns true if the current object is equal to the argument
+   DLLEXPORT bool equals(int64 n) const;
 
    //! returns a pointer to this with the reference count incremented
    DLLEXPORT QoreNumberNode* numberRefSelf() const;
@@ -230,11 +275,23 @@ public:
    //! returns the precision of the number
    DLLEXPORT unsigned getPrec() const;
 
+   //! returns true if the number is NaN
+   DLLEXPORT bool nan() const;
+
+   //! returns true if the number is +/-inf
+   DLLEXPORT bool inf() const;
+
+   //! returns true if the number is an ordinary number (neither NaN nor an infinity)
+   DLLEXPORT bool ordinary() const;
+
    //! returns the type information
    DLLLOCAL virtual AbstractQoreNode* parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo);
 
    //! returns the representation of the value as a number if possible (otherwise returns 0), caller owns the reference returned
    DLLEXPORT static QoreNumberNode* toNumber(const AbstractQoreNode* v);
+
+   //! returns the representation of the value as a number if possible (otherwise returns 0), caller owns the reference returned
+   DLLEXPORT static QoreNumberNode* toNumber(const QoreValue v);
 
    //! returns the type name (useful in templates)
    /**
@@ -248,6 +305,8 @@ public:
    DLLLOCAL static qore_type_t getStaticTypeCode() {
       return NT_NUMBER;
    }
+
+   static const qore_type_t TYPE = NT_NUMBER;
 };
 
 #endif

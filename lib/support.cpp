@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -195,23 +195,27 @@ void parseException(const QoreProgramLocation& loc, const char *err, const char 
 }
 
 // returns 1 for success
-static inline int tryIncludeDir(QoreString *dir, const char *file) {
-   //printd(5, "tryIncludeDir(dir='%s', file='%s')\n", dir->getBuffer(), file);
+static int try_include_dir(QoreString& dir, const char* file) {
+   //printd(5, "try_include_dir(dir='%s', file='%s')\n", dir.getBuffer(), file);
 
    // make fully-justified path
-   if (dir->strlen() && dir->getBuffer()[dir->strlen() - 1] != QORE_DIR_SEP)
-      dir->concat(QORE_DIR_SEP);
-   dir->concat(file);
+#ifdef _Q_WINDOWS
+   if (dir.strlen() && dir.getBuffer()[dir.strlen() - 1] != '\\' && dir.getBuffer()[dir.strlen() - 1] != '/')
+#else
+   if (dir.strlen() && dir.getBuffer()[dir.strlen() - 1] != QORE_DIR_SEP)
+#endif
+      dir.concat(QORE_DIR_SEP);
+   dir.concat(file);
    struct stat sb;
-   //printd(5, "tryIncludeDir() trying \"%s\"\n", dir->getBuffer());
-   return !stat(dir->getBuffer(), &sb);
+   //printd(5, "try_include_dir() trying \"%s\"\n", dir.getBuffer());
+   return !stat(dir.getBuffer(), &sb);
 }
 
 // FIXME: this could be a lot more efficient
-QoreString *findFileInPath(const char *file, const char *path) {
+int qore_find_file_in_path(QoreString& str, const char *file, const char *path) {
    // if path is empty, return null
    if (!path || !path[0])
-      return 0;
+      return -1;
 
    // duplicate string for invasive searches
    QoreString plist(path);
@@ -221,7 +225,7 @@ QoreString *findFileInPath(const char *file, const char *path) {
    // try each directory
    while (char *p = strchr(idir, ':')) {
       if (p != idir) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#ifdef _Q_WINDOWS
 	 // do not assume ':' separates paths on windows if it's the second character in a path
 	 if (p == idir + 1) {
 	    p = strchr(p + 1, ':');
@@ -230,21 +234,28 @@ QoreString *findFileInPath(const char *file, const char *path) {
 	 }
 #endif
 	 *p = '\0';
-	 TempString str(new QoreString(idir));
-	 if (tryIncludeDir(*str, file))
-	    return str.release();
+	 str = idir;
+	 if (try_include_dir(str, file))
+	    return 0;
       }
       idir = p + 1;
    }
 
    // try last directory
    if (idir[0]) {
-      TempString str(new QoreString(idir));
-      if (tryIncludeDir(*str, file))
-	 return str.release();
+      str = idir;
+      if (try_include_dir(str, file))
+	 return 0;
    }
 
-   return 0;
+   return -1;
+}
+
+
+// FIXME: this could be a lot more efficient
+QoreString *findFileInPath(const char *file, const char *path) {
+   TempString str;
+   return qore_find_file_in_path(**str, file, path) ? 0 : str.release();
 }
 
 // FIXME: this could be a lot more efficient
@@ -252,7 +263,7 @@ QoreString *findFileInEnvPath(const char *file, const char *varname) {
    //printd(5, "findFileInEnvPath(file=%s var=%s)\n", file, varname);
 
    // if the file is an absolute path, then return it
-   if (file[0] == QORE_DIR_SEP)
+   if (q_absolute_path(file))
       return new QoreString(file);
 
    // get path from environment

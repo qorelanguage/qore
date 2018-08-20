@@ -1,0 +1,40 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/QUnit.qm
+
+%exec-class FileTest
+
+class FileTest inherits QUnit::Test {
+    public {
+        const Data = "äsdfaä";
+    }
+
+    constructor() : QUnit::Test("File", "1.0") {
+        addTestCase("FileTest", \fileTest());
+        set_return_value(main());
+    }
+
+    fileTest() {
+        string file = sprintf(tmp_location() + DirSep + get_random_string());
+        {
+            File f();
+            f.open2(file, O_CREAT|O_WRONLY|O_TRUNC, 0666, "utf-8");
+            f.write(Data);
+        }
+        on_exit unlink(file);
+
+        ReadOnlyFile f(file);
+        # issue 1547
+        assertEq("ä", f.getchar());
+        assertEq("s", f.getchar());
+        f.setPos(0);
+        assertEq(Data, f.read(-1));
+    }
+}

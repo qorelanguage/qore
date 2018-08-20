@@ -1,0 +1,27 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../../qlib/QUnit.qm
+
+%requires ./ReExportTest.qm
+#/;
+
+%exec-class ReExportTest
+
+class ReExportTest inherits QUnit::Test {
+    constructor() : Test("ReExportTest", "1.0") {
+        addTestCase("ReExport Test", \test());
+
+        set_return_value(main());
+    }
+
+    test() {
+        testAssertion("ReExport Test-A", bool sub() { return AV.typeCode() == NT_INT; });
+        #testAssertion("ReExport Test-B", bool sub() { return BV.typeCode() == NT_INT; });
+    }
+}

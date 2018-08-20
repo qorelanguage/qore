@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2016 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -66,12 +66,14 @@ qore_license_t qore_license;
 const QoreStringMaker mpfrInfo("runtime: %s built with: %s (%d.%d.%d)", mpfr_get_version(), MPFR_VERSION_STRING, MPFR_VERSION_MAJOR,
       MPFR_VERSION_MINOR, MPFR_VERSION_PATCHLEVEL);
 
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
+// issue #2135: openssl locking functions were deprecated in openssl 1.0.0 and are no longer used in 1.1.0+
 // static locks for openssl
 typedef std::vector<QoreThreadLock*> mutex_vec_t;
 static mutex_vec_t q_openssl_mutex_list;
 
 static unsigned long q_openssl_id_function(void) {
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS
    return GetCurrentThreadId();
 #else
    return (unsigned long)pthread_self();
@@ -84,6 +86,7 @@ static void q_openssl_locking_function(int mode, int n, const char* file, int li
    else
       q_openssl_mutex_list[n]->unlock();
 }
+#endif
 
 void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
    qore_license = license;
@@ -91,22 +94,35 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 
    // initialize openssl library
    if (!qore_check_option(QLO_DISABLE_OPENSSL_INIT)) {
+#ifdef HAVE_OPENSSL_INIT_CRYPTO
+      OPENSSL_init_crypto(0, 0);
+#else
       OPENSSL_config(0);
+#endif
       SSL_load_error_strings();
       OpenSSL_add_all_algorithms();
       SSL_library_init();
       ERR_load_crypto_strings();
 
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
       // create locks
       for (int i = 0; i < CRYPTO_num_locks(); ++i)
-	 q_openssl_mutex_list.push_back(new QoreThreadLock());
+         q_openssl_mutex_list.push_back(new QoreThreadLock());
 
+      // issue #2135: openssl locking functions were deprecated in openssl 1.0.0 and are no longer used in 1.1.0+
       CRYPTO_set_id_callback(q_openssl_id_function);
       CRYPTO_set_locking_callback(q_openssl_locking_function);
+#endif
    }
+
+   if (qore_library_options & QLO_DISABLE_GARBAGE_COLLECTION)
+      q_disable_gc = true;
 
    qore_string_init();
    QoreHttpClientObject::static_init();
+
+   // init random salt
+   qore_init_random_salt();
 
    // init threading infrastructure
    init_qore_threads();
@@ -139,13 +155,14 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
    // set up pseudo-methods
    pseudo_classes_init();
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS
    // do windows socket initialization
    WORD wsver = MAKEWORD(2, 2);
    WSADATA wsd;
    int err = WSAStartup(wsver, &wsd);
    if (err)
       printf("qore_init(): WSAStartup() failed with error: %d; sockets will not be available\n", err);
+   _set_output_format(_TWO_DIGIT_EXPONENT);
 #endif
 }
 
@@ -154,10 +171,16 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 // unloaded in case there are any module-specific thread
 // cleanup functions to be run...
 void qore_cleanup() {
+   // purge thread resources before deleting modules
+   {
+      ExceptionSink xsink;
+      purge_thread_resources(&xsink);
+   }
+
    // first delete all user modules
    QMM.delUser();
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__ 
+#ifdef _Q_WINDOWS
    // do windows socket cleanup
    WSACleanup();
 #endif
@@ -166,12 +189,6 @@ void qore_cleanup() {
    // stop signal manager
    QSM.del();
 #endif
-
-   // purge thread resources before deleting modules
-   {
-      ExceptionSink xsink;
-      purge_thread_resources(&xsink);
-   }
 
    // delete all loadable modules
    QMM.cleanup();
@@ -211,12 +228,14 @@ void qore_cleanup() {
 
       CRYPTO_cleanup_all_ex_data();
 
+#ifndef HAVE_OPENSSL_INIT_CRYPTO
       CRYPTO_set_id_callback(0);
       CRYPTO_set_locking_callback(0);
 
       // delete openssl locks
       for (mutex_vec_t::iterator i = q_openssl_mutex_list.begin(), e = q_openssl_mutex_list.end(); i != e; ++i)
-	 delete *i;
+         delete *i;
+#endif
    }
    printd(5, "qore_cleanup() exiting cleanly\n");
 }

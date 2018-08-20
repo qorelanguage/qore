@@ -1115,7 +1115,7 @@ to create an object without explicitly using the "new" operator, use the "my" or
    my File $f();
 
 * cast<> operator
-This operator can be used to suppress warnings such as the non-existent-method-call warning; for example, if you make a method call from a base class to a method that only exists in a subclass, because qore has no way of defining "pure virtual" methods like in C++, the parser raises a "non-existent-method-call" warning.  You can use the cast<> operator to supress this warning as in the following example:
+This operator can be used to suppress warnings such as the non-existent-method-call warning; for example, if you make a method call from a base class to a method that only exists in a subclass, because qore has no way of defining "pure virtual" methods like in C++, the parser raises a "non-existent-method-call" warning.  You can use the cast<> operator to suppress this warning as in the following example:
      cast<ChildClass>($self).methodCall();
 
 * delete statement is now the delete operator

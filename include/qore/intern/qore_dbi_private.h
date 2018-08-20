@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,7 @@ struct dbi_driver_stmt {
    q_dbi_stmt_fetch_row_t describe;
    q_dbi_stmt_next_t next;
    q_dbi_stmt_define_t define;
-   q_dbi_stmt_close_t close;
+   q_dbi_stmt_close_t close, free;
    q_dbi_stmt_affected_rows_t affected_rows;
    q_dbi_stmt_get_output_t get_output;
    q_dbi_stmt_get_output_rows_t get_output_rows;
@@ -67,7 +67,7 @@ struct dbi_driver_stmt {
    DLLLOCAL dbi_driver_stmt() : prepare(0), prepare_raw(0), bind(0), bind_placeholders(0),
                                 bind_values(0), exec(0), fetch_row(0), fetch_rows(0),
                                 fetch_columns(0), describe(0), next(0), define(0),
-                                close(0), affected_rows(0), get_output(0), get_output_rows(0) {
+                                close(0), free(0), affected_rows(0), get_output(0), get_output_rows(0) {
    }
 };
 
@@ -91,9 +91,6 @@ struct DBIDriverFunctions {
    q_dbi_commit_t commit;
    q_dbi_rollback_t rollback;
    q_dbi_begin_transaction_t begin_transaction; // for DBI drivers that require explicit transaction starts
-   q_dbi_abort_transaction_start_t abort_transaction_start;  // for DBI drivers that require a rollback in order to use
-   // the connection after an exception as the first statement
-   // in a transaction
    q_dbi_get_server_version_t get_server_version;
    q_dbi_get_client_version_t get_client_version;
 
@@ -102,8 +99,7 @@ struct DBIDriverFunctions {
 
    DLLLOCAL DBIDriverFunctions() : open(0), close(0), select(0), selectRows(0), selectRow(0),
                                    execSQL(0), execRawSQL(0), describe(0), commit(0), rollback(0),
-                                   begin_transaction(0), abort_transaction_start(0),
-                                   get_server_version(0), get_client_version(0) {
+                                   begin_transaction(0), get_server_version(0), get_client_version(0) {
    }
 };
 
@@ -144,6 +140,7 @@ struct OptInputHelper {
    }
 
    DLLLOCAL operator bool() const {
+      assert(xsink);
       return !*xsink;
    }
 };
@@ -161,6 +158,7 @@ struct qore_dbi_private {
    }
 
    DLLLOCAL int init(Datasource* ds, ExceptionSink* xsink) const {
+      assert(xsink);
       int rc = f.open(ds, xsink);
       assert((!rc && !*xsink) || (rc && *xsink));
       // set option if init was successful
@@ -196,20 +194,16 @@ struct qore_dbi_private {
       if (!res)
          return 0;
 
-      if (res->getType() != NT_LIST) {
-         xsink->raiseException("DBI-SELECT-ROW-ERROR", "the call to selectRow() did not return a single row; type returned: %s", res->getTypeName());
-         return 0;
+      if (res->getType() != NT_HASH) {
+         assert(res->getType() == NT_LIST);
+         QoreListNode* l = reinterpret_cast<QoreListNode*>(*res);
+         assert(l->size() <= 1);
+         AbstractQoreNode* n = l->shift();
+         assert(!n || n->getType() == NT_HASH);
+         return reinterpret_cast<QoreHashNode*>(n);
       }
 
-      QoreListNode* l = reinterpret_cast<QoreListNode* >(*res);
-      if (l->size() > 1) {
-         xsink->raiseException("DBI-SELECT-ROW-ERROR", "the call to selectRow() returned %lld rows; SQL passed to this method must return not more than 1 row", l->size());
-         return 0;
-      }
-
-      AbstractQoreNode* rv = l->shift();
-      assert(!rv || rv->getType() == NT_HASH);
-      return reinterpret_cast<QoreHashNode* >(rv);
+      return reinterpret_cast<QoreHashNode*>(res.release());
    }
 
    DLLLOCAL AbstractQoreNode* execSQL(Datasource* ds, const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -254,12 +248,6 @@ struct qore_dbi_private {
       if (!f.begin_transaction)
          return f.commit(ds, xsink);
 
-      return 0; // 0 = OK
-   }
-
-   DLLLOCAL int abortTransactionStart(Datasource* ds, ExceptionSink* xsink) const {
-      if (f.abort_transaction_start)
-         return f.abort_transaction_start(ds, xsink);
       return 0; // 0 = OK
    }
 
@@ -355,6 +343,10 @@ struct qore_dbi_private {
       return f.stmt.close(stmt, xsink);
    }
 
+   DLLLOCAL int stmt_free(SQLStatement* stmt, ExceptionSink* xsink) const {
+      return f.stmt.free ? f.stmt.free(stmt, xsink) : 0;
+   }
+
    DLLLOCAL int opt_set(Datasource* ds, const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {
       OptInputHelper oh(xsink, *this, opt, true, val);
       if (!oh)
@@ -377,7 +369,7 @@ struct qore_dbi_private {
       for (dbi_opt_map_t::const_iterator i = omap.begin(), e = omap.end(); i != e; ++i) {
          QoreHashNode* h = new QoreHashNode;
          h->setKeyValue("desc", new QoreStringNode(i->second.desc), 0);
-         h->setKeyValue("type", new QoreStringNode(i->second.typeInfo->getName()), 0);
+         h->setKeyValue("type", new QoreStringNode(QoreTypeInfo::getName(i->second.typeInfo)), 0);
          h->setKeyValue("value", f.opt.get(ds, i->first), 0);
 
          rv->setKeyValue(i->first, h, 0);
@@ -391,7 +383,7 @@ struct qore_dbi_private {
       for (dbi_opt_map_t::const_iterator i = omap.begin(), e = omap.end(); i != e; ++i) {
          QoreHashNode* h = new QoreHashNode;
          h->setKeyValue("desc", new QoreStringNode(i->second.desc), 0);
-         h->setKeyValue("type", new QoreStringNode(i->second.typeInfo->getName()), 0);
+         h->setKeyValue("type", new QoreStringNode(QoreTypeInfo::getName(i->second.typeInfo)), 0);
 
          rv->setKeyValue(i->first, h, 0);
       }

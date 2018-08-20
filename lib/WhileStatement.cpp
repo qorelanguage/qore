@@ -1,10 +1,10 @@
 /*
   WhileStatement.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -44,12 +44,12 @@ WhileStatement::~WhileStatement() {
    delete lvars;
 }
 
-int WhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsink) {
+int WhileStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
    int rc = 0;
-   
+
    // instantiate local variables
    LVListInstantiator lvi(lvars, xsink);
-   
+
    while (cond->boolEval(xsink) && !xsink->isEvent()) {
       if (code && (((rc = code->execImpl(return_value, xsink)) == RC_BREAK) || xsink->isEvent())) {
 	 rc = 0;
@@ -66,7 +66,7 @@ int WhileStatement::execImpl(AbstractQoreNode **return_value, ExceptionSink *xsi
 
 int WhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    int lvids = 0;
-   
+
    // turn off top-level flag for statement vars
    pflag &= (~PF_TOP_LEVEL);
 
@@ -76,7 +76,7 @@ int WhileStatement::parseInitImpl(LocalVar *oflag, int pflag) {
    }
    if (code)
       code->parseInitImpl(oflag, pflag);
-   
+
    // save local variables
    if (lvids)
       lvars = new LVList(lvids);

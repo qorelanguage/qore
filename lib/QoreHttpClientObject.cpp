@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2014 Qore Technologies
+  Copyright (C) 2006 - 2017 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -61,8 +61,7 @@ struct qore_httpclient_priv {
 
    con_info connection, proxy_connection;
 
-   bool connected,
-      nodelay,
+   bool nodelay,
       proxy_connected, // means that a CONNECT message has been processed and the connection is now made as if it were directly with the client
       persistent;      // turns off implicit connections for the current connection only
    int default_port, max_redirects;
@@ -76,7 +75,7 @@ struct qore_httpclient_priv {
 
    DLLLOCAL qore_httpclient_priv(my_socket_priv* ms) :
       msock(ms), http11(true), connection(HTTPCLIENT_DEFAULT_PORT),
-      connected(false), nodelay(false), proxy_connected(false),
+      nodelay(false), proxy_connected(false),
       persistent(false),
       default_port(HTTPCLIENT_DEFAULT_PORT),
       max_redirects(HTTPCLIENT_DEFAULT_MAX_REDIRECTS),
@@ -132,7 +131,6 @@ struct qore_httpclient_priv {
 	 rc = msock->socket->connect(socketpath.c_str(), connect_timeout_ms, xsink);
 
       if (!rc) {
-	 connected = true;
 	 if (nodelay) {
 	    if (msock->socket->setNoDelay(1))
 	       nodelay = false;
@@ -142,9 +140,8 @@ struct qore_httpclient_priv {
    }
 
    DLLLOCAL void disconnect_unlocked() {
-      if (connected) {
+      if (msock->socket->isOpen()) {
 	 msock->socket->close();
-	 connected = false;
 	 proxy_connected = false;
 	 persistent = false;
       }
@@ -153,7 +150,7 @@ struct qore_httpclient_priv {
    DLLLOCAL int setNoDelay(bool nd) {
       AutoLocker al(msock->m);
 
-      if (!connected) {
+      if (!msock->socket->isOpen()) {
 	 nodelay = true;
 	 return 0;
       }
@@ -175,7 +172,7 @@ struct qore_httpclient_priv {
    DLLLOCAL void setPersistent(ExceptionSink* xsink) {
       AutoLocker al(msock->m);
 
-      if (!connected) {
+      if (!msock->socket->isOpen()) {
 	 xsink->raiseException("PERSISTENCE-ERROR", "HTTPClient::setPersistent() can only be called once an initial connection has been established; currently there is no connection to the server");
 	 return;
       }
@@ -294,7 +291,13 @@ struct qore_httpclient_priv {
    // always generate a Host header pointing to the host hosting the resource, not the proxy
    // (RFC 2616 is not totally clear on this, but other clients do it this way)
    DLLLOCAL AbstractQoreNode* getHostHeaderValue() {
-      if (connection.port == 80)
+      // RFC 7230 section 5.5: "if the connection's incoming TCP port number
+      //   differs from the default port for the effective request URI's
+      //   scheme, then a colon (":") and the incoming port number (in
+      //   decimal form) are appended to the authority component"
+      // https://tools.ietf.org/html/rfc7230#section-5.5
+      // therefore, we don't include the port number if it's the default port for the protocol
+      if ((!connection.ssl && connection.port == 80) || (connection.ssl && connection.port == 443))
 	 return new QoreStringNode(connection.host.c_str());
 
       QoreStringNode* str = new QoreStringNode;
@@ -304,7 +307,7 @@ struct qore_httpclient_priv {
       return str;
    }
 
-   DLLLOCAL QoreHashNode* sendMessageAndGetResponse(const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, QoreHashNode* info, bool with_connect, int timeout_ms, int& code, bool& aborted, ExceptionSink* xsink);
+   DLLLOCAL QoreHashNode* sendMessageAndGetResponse(const char* mname, const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, QoreHashNode* info, bool with_connect, int timeout_ms, int& code, bool& aborted, ExceptionSink* xsink);
 
    DLLLOCAL const char* getMsgPath(const char* mpath, QoreString &pstr) {
       pstr.clear();
@@ -312,8 +315,8 @@ struct qore_httpclient_priv {
       // use default path if no path is set
       if (!mpath || !mpath[0])
 	 mpath = connection.path.empty()
-	    ? (default_path.empty() ? "/" : (const char* )default_path.c_str())
-	    : (const char* )connection.path.c_str();
+	    ? (default_path.empty() ? "/" : (const char*)default_path.c_str())
+	    : (const char*)connection.path.c_str();
 
       if (proxy_connection.has_url()) {
          // create URL string for path for proxy
@@ -327,6 +330,7 @@ struct qore_httpclient_priv {
 	 if (mpath[0] != '/')
 	    pstr.concat('/');
       }
+
       // concat mpath to pstr, performing URL encoding
       const char* p = mpath;
       while (*p) {
@@ -338,7 +342,7 @@ struct qore_httpclient_priv {
 	    pstr.concat(*p);
 	 ++p;
       }
-      return (const char* )pstr.getBuffer();
+      return (const char*)pstr.getBuffer();
    }
 
    DLLLOCAL QoreHashNode* send_internal(ExceptionSink* xsink, const char* mname, const char* meth, const char* mpath, const QoreHashNode* headers, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback = 0, QoreObject* obj = 0);
@@ -643,6 +647,7 @@ bool QoreHttpClientObject::isProxySecure() const {
 
 int QoreHttpClientObject::connect(ExceptionSink* xsink) {
    SafeLocker sl(priv->m);
+   http_priv->disconnect_unlocked();
    return http_priv->connect_unlocked(xsink);
 }
 
@@ -651,11 +656,11 @@ void QoreHttpClientObject::disconnect() {
    http_priv->disconnect_unlocked();
 }
 
-QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, QoreHashNode* info, bool with_connect, int timeout_ms, int& code, bool& aborted, ExceptionSink* xsink) {
+QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname, const char* meth, const char* mpath, const QoreHashNode& nh, const void* data, unsigned size, const ResolvedCallReferenceNode* send_callback, QoreHashNode* info, bool with_connect, int timeout_ms, int& code, bool& aborted, ExceptionSink* xsink) {
    QoreString pathstr(msock->socket->getEncoding());
    const char* msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr);
 
-   if (!connected) {
+   if (!msock->socket->isOpen()) {
       if (persistent) {
 	 xsink->raiseException("PERSISTENCE-ERROR", "the current connection has been temporarily marked as persistent, but has been disconnected");
 	 return 0;
@@ -670,16 +675,19 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* meth, 
    }
 
    // send the message
-   int rc = msock->socket->priv->sendHttpMessage(xsink, info, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, send_callback, QORE_SOURCE_HTTPCLIENT, timeout_ms, &msock->m, &aborted);
-   //sendHTTPMessage(xsink, info, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, QORE_SOURCE_HTTPCLIENT, timeout_ms);
+   int rc = msock->socket->priv->sendHttpMessage(xsink, info, "HTTPClient", mname, meth, msgpath, http11 ? "1.1" : "1.0", &nh, data, size, send_callback, QORE_SOURCE_HTTPCLIENT, timeout_ms, &msock->m, &aborted);
 
-   if (rc) {
+   //printd(5, "qore_httpclient_priv::sendMessageAndGetResponse() '%s' path: '%s' send_callback: %p aborted: %d rc: %d\n", meth, msgpath, send_callback, aborted, rc);
+
+   // do not exit immediately if the transfer was aborted with a streaming send unless the socket was already closed
+   if (rc && (!send_callback || !aborted || !msock->socket->isOpen())) {
       assert(*xsink);
       if (rc == QSE_NOT_OPEN)
 	 disconnect_unlocked();
       return 0;
    }
 
+   // if the transfer was aborted with a streaming send, but the socket is still open, then try to read a response
    QoreHashNode* ah = 0;
    while (true) {
       ReferenceHolder<QoreHashNode> ans(msock->socket->readHTTPHeader(xsink, info, timeout, QORE_SOURCE_HTTPCLIENT), xsink);
@@ -705,6 +713,11 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* meth, 
       break;
    }
 
+   // only clear exceptions if a streaming (ie chunked) send was aborted and we really got a response from the remote
+   if (*xsink) {
+      assert(aborted);
+      xsink->clear();
+   }
    return ah;
 }
 
@@ -818,7 +831,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
       timeout_ms = timeout;
 
    SafeLocker sl(msock->m);
-   Queue *cb_queue = msock->socket->getQueue();
+   Queue* cb_queue = msock->socket->getQueue();
 
    ReferenceHolder<QoreHashNode> nh(new QoreHashNode, xsink);
    bool keep_alive = true;
@@ -914,6 +927,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	 meth = "CONNECT";
 	 use_proxy_connect = true;
 	 hostport.concat(connection.host);
+         // RFC 7231 section 4.3.6 (https://tools.ietf.org/html/rfc7231#section-4.3.6) states
+         // that the hostname and port number should be included when establishing an HTTP tunnel
+         // with the CONNECT method
 	 if (connection.port)
 	    hostport.sprintf(":%d", connection.port);
 	 proxy_path = hostport.getBuffer();
@@ -950,9 +966,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
       //printd(5, "qore_httpclient_priv::send_internal() meth=%s proxy_path=%s mpath=%s upc=%d\n", meth, proxy_path ? proxy_path : "n/a", mpath, use_proxy_connect);
       // send HTTP message and get response header
       if (use_proxy_connect)
-	 ans = sendMessageAndGetResponse(meth, proxy_path, *(*proxy_headers), 0, 0, 0, info, true, timeout_ms, code, send_aborted, xsink);
+	 ans = sendMessageAndGetResponse(mname, meth, proxy_path, *(*proxy_headers), 0, 0, 0, info, true, timeout_ms, code, send_aborted, xsink);
       else
-	 ans = sendMessageAndGetResponse(meth, mpath, *(*nh), data, size, send_callback, info, false, timeout_ms, code, send_aborted, xsink);
+	 ans = sendMessageAndGetResponse(mname, meth, mpath, *(*nh), data, size, send_callback, info, false, timeout_ms, code, send_aborted, xsink);
       if (!ans)
 	 return 0;
 
@@ -961,6 +977,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	 if (*xsink)
 	    return 0;
       }
+
+      if (!ans->is_unique())
+         ans = ans->copy();
 
       if (code >= 300 && code < 400) {
 	 disconnect_unlocked();
@@ -1050,7 +1069,6 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
       disconnect_unlocked();
       return 0;
    }
-   //ans->getKeyValue("content-type");
 
    // see if there is a character set specification in the content-type header
    if (v) {
@@ -1079,7 +1097,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	 // set new encoding
 	 msock->socket->setEncoding(QEM.findCreate(&enc));
 	 // strip from content-type
-	 QoreStringNode* nc = new QoreStringNode();
+	 QoreStringNode* nc = new QoreStringNode;
 	 // skip any spaces before the charset=
 	 while (p != str && (*(p - 1) == ' ' || *(p - 1) == ';'))
 	    p--;
@@ -1094,7 +1112,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
       p = strchr(str, ';');
       if (p) {
 	 bool multipart = false;
-	 QoreListNode* l = new QoreListNode();
+	 QoreListNode* l = new QoreListNode;
 	 do {
 	    // skip whitespace
 	    while (*str == ' ') str++;
@@ -1117,7 +1135,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
    }
 
    // send headers to recv_callback
-   if (recv_callback && msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, &msock->m, *ans, send_aborted, obj))
+   if (recv_callback && msock->socket->priv->runHeaderCallback(xsink, "HTTPClient", mname, *recv_callback, &msock->m, *ans, send_aborted, obj))
       return 0;
 
    AbstractQoreNode* body = 0;
@@ -1179,6 +1197,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	 return 0;
       }
       int len = cl ? atoi(cl) : 0;
+      // do not try to get a body in any case if Content-Length: 0 is sent
+      if (cl && !len)
+	 getbody = false;
 
       if (cl && cb_queue)
 	 do_content_length_event(cb_queue, msock->socket->getObjectIDForEvents(), len);
@@ -1189,15 +1210,15 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	 ReferenceHolder<QoreHashNode> nah(xsink);
 	 if (recv_callback) {
 	    if (content_encoding)
-	       msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m, obj);
+	       msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, "HTTPClient", QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m, obj);
 	    else
-	       msock->socket->priv->readHttpChunkedBody(timeout_ms, xsink, QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m, obj);
+	       msock->socket->priv->readHttpChunkedBody(timeout_ms, xsink, "HTTPClient", QORE_SOURCE_HTTPCLIENT, recv_callback, &msock->m, obj);
 	 }
 	 else {
 	    if (content_encoding)
-	       nah = msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, QORE_SOURCE_HTTPCLIENT);
+	       nah = msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, "HTTPClient", QORE_SOURCE_HTTPCLIENT);
 	    else
-	       nah = msock->socket->priv->readHttpChunkedBody(timeout_ms, xsink, QORE_SOURCE_HTTPCLIENT);
+	       nah = msock->socket->priv->readHttpChunkedBody(timeout_ms, xsink, "HTTPClient", QORE_SOURCE_HTTPCLIENT);
 	 }
 	 if (cb_queue)
 	    do_event(cb_queue, msock->socket->getObjectIDForEvents(), QORE_EVENT_HTTP_CHUNKED_END);
@@ -1208,15 +1229,25 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	    return 0;
 	 }
 
-	 if (info) {
+         if (info)
 	    info->setKeyValue("chunked", &True, xsink);
-	    if (*xsink)
-	       return 0;
-	 }
+
+         if (*xsink)
+            return 0;
 
 	 if (!recv_callback) {
-	    body = nah->takeKeyValue("body");
-	    ans->merge(*nah, xsink);
+            // merge all keys except the "body" key into ans
+            ConstHashIterator hi(*nah);
+            while (hi.next()) {
+               if (!strcmp(hi.getKey(), "body")) {
+		  assert(!body);
+		  body = hi.getReferencedValue();
+                  continue;
+	       }
+               ans->setKeyValue(hi.getKey(), hi.getReferencedValue(), xsink);
+               if (*xsink)
+                  return 0;
+            }
 	 }
       }
       else if (getbody || len) {
@@ -1275,12 +1306,13 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 	 // send data to recv_callback (already unlocked)
 	 if (recv_callback) {
 	    ReferenceHolder<> bh(body, xsink);
-	    if (msock->socket->priv->runDataCallback(xsink, mname, *recv_callback, 0, body, false)
-		|| msock->socket->priv->runHeaderCallback(xsink, mname, *recv_callback, 0, 0, send_aborted, obj))
+	    if (msock->socket->priv->runDataCallback(xsink, "HTTPClient", mname, *recv_callback, 0, body, false)
+		|| msock->socket->priv->runHeaderCallback(xsink, "HTTPClient", mname, *recv_callback, 0, 0, send_aborted, obj))
 	       return 0;
 	 }
-	 else
+	 else {
 	    ans->setKeyValue("body", body, xsink);
+         }
       }
    }
 
@@ -1315,8 +1347,9 @@ void QoreHttpClientObject::sendWithCallbacks(const char* meth, const char* mpath
 }
 
 // returns *string
+// @since Qore 0.8.12: do not send getbody = true which only works with completely broken HTTP servers and small messages and causes deadlocks on correct HTTP servers
 AbstractQoreNode* QoreHttpClientObject::get(const char* new_path, const QoreHashNode* headers, QoreHashNode* info, ExceptionSink* xsink) {
-   ReferenceHolder<QoreHashNode> ans(http_priv->send_internal(xsink, "get", "GET", new_path, headers, 0, 0, 0, true, info, http_priv->timeout), xsink);
+   ReferenceHolder<QoreHashNode> ans(http_priv->send_internal(xsink, "get", "GET", new_path, headers, 0, 0, 0, false, info, http_priv->timeout), xsink);
    if (!ans)
       return 0;
 
@@ -1328,8 +1361,9 @@ QoreHashNode* QoreHttpClientObject::head(const char* new_path, const QoreHashNod
 }
 
 // returns *string
+// @since Qore 0.8.12: do not send getbody = true which only works with completely broken HTTP servers and small messages and causes deadlocks on correct HTTP servers
 AbstractQoreNode* QoreHttpClientObject::post(const char* new_path, const QoreHashNode* headers, const void* data, unsigned size, QoreHashNode* info, ExceptionSink* xsink) {
-   ReferenceHolder<QoreHashNode> ans(http_priv->send_internal(xsink, "post", "POST", new_path, headers, data, size, 0, true, info, http_priv->timeout), xsink);
+   ReferenceHolder<QoreHashNode> ans(http_priv->send_internal(xsink, "post", "POST", new_path, headers, data, size, 0, false, info, http_priv->timeout), xsink);
    if (!ans)
       return 0;
 
@@ -1379,7 +1413,7 @@ bool QoreHttpClientObject::getNoDelay() const {
 }
 
 bool QoreHttpClientObject::isConnected() const {
-   return http_priv->connected;
+   return http_priv->msock->socket->isOpen();
 }
 
 void QoreHttpClientObject::setUserPassword(const char* user, const char* pass) {

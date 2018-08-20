@@ -1,10 +1,10 @@
 /*
   SelfVarrefNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -35,7 +35,7 @@
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int SelfVarrefNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("in-object variable reference '%s' (0x%p)", str ? str : "<null>", this);
+   qstr.sprintf("in-object variable reference '%s' (%p)", str ? str : "<null>", this);
    return 0;
 }
 
@@ -52,36 +52,10 @@ const char *SelfVarrefNode::getTypeName() const {
    return "in-object variable reference";
 }
 
-// eval(): return value requires a deref(xsink)
-AbstractQoreNode *SelfVarrefNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue SelfVarrefNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    assert(runtime_get_stack_object());
+   //printd(0, "");
    return runtime_get_stack_object()->getReferencedMemberNoMethod(str, xsink);
-}
-
-// evalImpl(): return value requires a deref(xsink) if not 0
-AbstractQoreNode *SelfVarrefNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = true;
-   return SelfVarrefNode::evalImpl(xsink);
-}
-
-int64 SelfVarrefNode::bigIntEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(SelfVarrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBigInt() : 0;
-}
-
-int SelfVarrefNode::integerEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(SelfVarrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsInt() : 0;
-}
-
-bool SelfVarrefNode::boolEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(SelfVarrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsBool() : 0;
-}
-
-double SelfVarrefNode::floatEvalImpl(ExceptionSink *xsink) const {
-   ReferenceHolder<AbstractQoreNode> rv(SelfVarrefNode::evalImpl(xsink), xsink);
-   return rv ? rv->getAsFloat() : 0;
 }
 
 char *SelfVarrefNode::takeString() {
@@ -93,8 +67,11 @@ char *SelfVarrefNode::takeString() {
 
 AbstractQoreNode *SelfVarrefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    printd(5, "SelfVarrefNode::parseInit() SELF_REF '%s' oflag=%p\n", str, oflag);
+   if (pflag & PF_CONST_EXPRESSION)
+      parseException(loc, "ILLEGAL-MEMBER-REFERENCE", "member '%s' referenced illegally in an expression executed at parse time to initialize a constant value", str);
+
    if (!oflag)
-      parse_error(loc, "cannot reference member \"%s\" out of an object member function definition", str);
+      parse_error(loc, "cannot reference member \"%s\" when not in an object context", str);
    else {
       qore_class_private::parseCheckInternalMemberAccess(getParseClass(), str, typeInfo, loc);
       returnTypeInfo = typeInfo;

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #ifndef _QORE_QOREQUESTIONMARKOPERATORNODE_H
 #define _QORE_QOREQUESTIONMARKOPERATORNODE_H
 
-class QoreQuestionMarkOperatorNode : public QoreTrinaryOperatorNode<> {
+class QoreQuestionMarkOperatorNode : public QoreNOperatorNodeBase<3> {
 protected:
    static QoreString question_mark_str;
 
@@ -42,8 +42,8 @@ protected:
       const QoreTypeInfo *leftTypeInfo = 0;
       e[0] = e[0]->parseInit(oflag, pflag, lvids, leftTypeInfo);
 
-      if (leftTypeInfo->nonNumericValue() && parse_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
-         leftTypeInfo->doNonBooleanWarning("the initial expression with the '?:' operator is ");
+      if (QoreTypeInfo::nonNumericValue(leftTypeInfo) && parse_check_parse_option(PO_STRICT_BOOLEAN_EVAL))
+         QoreTypeInfo::doNonBooleanWarning(leftTypeInfo, "the initial expression with the '?:' operator is ");
 
       leftTypeInfo = 0;
       e[1] = e[1]->parseInit(oflag, pflag, lvids, leftTypeInfo);
@@ -51,13 +51,27 @@ protected:
       const QoreTypeInfo* rightTypeInfo = 0;
       e[2] = e[2]->parseInit(oflag, pflag, lvids, rightTypeInfo);
 
-      typeInfo = returnTypeInfo = leftTypeInfo->isOutputIdentical(rightTypeInfo) ? leftTypeInfo : 0;
+      typeInfo = returnTypeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo) ? leftTypeInfo : 0;
 
       return this;
    }
 
+   DLLLOCAL virtual QoreValue evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
+      ValueEvalRefHolder b(e[0], xsink);
+      if (*xsink)
+         return QoreValue();
+
+      AbstractQoreNode* exp = b->getAsBool() ? e[1] : e[2];
+
+      ValueEvalRefHolder rv(exp, xsink);
+      if (*xsink)
+         return QoreValue();
+
+      return rv.takeValue(needs_deref);
+   }
+
 public:
-   DLLLOCAL QoreQuestionMarkOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) : QoreTrinaryOperatorNode<>(e0, e1, e2), typeInfo(0) {
+   DLLLOCAL QoreQuestionMarkOperatorNode(AbstractQoreNode* e0, AbstractQoreNode* e1, AbstractQoreNode* e2) : QoreNOperatorNodeBase<3>(e0, e1, e2), typeInfo(0) {
    }
 
    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {
@@ -68,51 +82,6 @@ public:
    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
       str.concat(&question_mark_str);
       return 0;
-   }
-
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(ExceptionSink *xsink) const {
-      bool b = e[0]->boolEval(xsink);
-      if (xsink->isEvent())
-         return 0;
-
-      return b ? e[1]->eval(xsink) : e[2]->eval(xsink);
-   }
-
-   DLLLOCAL virtual AbstractQoreNode *evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-      needs_deref = true;
-      return QoreQuestionMarkOperatorNode::evalImpl(xsink);
-   }
-
-   DLLLOCAL virtual int64 bigIntEvalImpl(ExceptionSink *xsink) const {
-      bool b = e[0]->boolEval(xsink);
-      if (xsink->isEvent())
-         return 0;
-
-      return b ? e[1]->bigIntEval(xsink) : e[2]->bigIntEval(xsink);
-   }
-
-   DLLLOCAL virtual int integerEvalImpl(ExceptionSink *xsink) const {
-      bool b = e[0]->boolEval(xsink);
-      if (xsink->isEvent())
-         return 0;
-
-      return b ? e[1]->integerEval(xsink) : e[2]->integerEval(xsink);
-   }
-
-   DLLLOCAL virtual double floatEvalImpl(ExceptionSink *xsink) const {
-      bool b = e[0]->boolEval(xsink);
-      if (xsink->isEvent())
-         return 0;
-
-      return b ? e[1]->floatEval(xsink) : e[2]->floatEval(xsink);
-   }
-
-   DLLLOCAL virtual bool boolEvalImpl(ExceptionSink *xsink) const {
-      bool b = e[0]->boolEval(xsink);
-      if (xsink->isEvent())
-         return 0;
-
-      return b ? e[1]->boolEval(xsink) : e[2]->boolEval(xsink);
    }
 
    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
@@ -126,6 +95,19 @@ public:
 
    DLLLOCAL virtual bool hasEffect() const {
       return ::node_has_effect(e[1]) || ::node_has_effect(e[2]);
+   }
+
+   DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+      ReferenceHolder<> n_e0(copy_and_resolve_lvar_refs(e[0], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e1(copy_and_resolve_lvar_refs(e[1], xsink), xsink);
+      if (*xsink)
+         return 0;
+      ReferenceHolder<> n_e2(copy_and_resolve_lvar_refs(e[2], xsink), xsink);
+      if (*xsink)
+         return 0;
+      return new QoreQuestionMarkOperatorNode(n_e0.release(), n_e1.release(), n_e2.release());
    }
 };
 

@@ -4,7 +4,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
  
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,8 @@
 
 #include <qore/common.h>
 
+#include <qore/intern/Function.h>
+
 #include <map>
 #include <string>
 
@@ -63,9 +65,7 @@ public:
       func->deref();
    }
 
-   DLLLOCAL qore_ns_private* getNamespace() const {
-      return func->getNamespace();
-   }
+   DLLLOCAL qore_ns_private* getNamespace() const;
 
    DLLLOCAL QoreFunction* getFunction() const {
       return func;
@@ -110,17 +110,16 @@ public:
       return func->hasUserPublic();
    }
 
-   DLLLOCAL void updateNs(qore_ns_private* ns) {
-      func->updateNs(ns);
+   DLLLOCAL bool hasBuiltin() const {
+      return func->hasBuiltin();
    }
+   
+   DLLLOCAL void updateNs(qore_ns_private* ns);
 };
 
 class ModuleImportedFunctionEntry : public FunctionEntry {
 public:
-   //DLLLOCAL ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(false, *(old.getFunction()), ns)) {
-   //}
-   DLLLOCAL ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(*(old.getFunction()), PO_NO_SYSTEM_FUNC_VARIANTS, ns)) {
-   }
+   DLLLOCAL ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns);
 };
 
 #ifdef HAVE_QORE_HASH_MAP
@@ -146,7 +145,7 @@ public:
 
    DLLLOCAL FunctionEntry* add(QoreFunction* func);
    DLLLOCAL FunctionEntry* import(QoreFunction* func, qore_ns_private* ns);
-   DLLLOCAL FunctionEntry* import(const char* new_name, QoreFunction* func, qore_ns_private* ns);
+   DLLLOCAL FunctionEntry* import(const char* new_name, QoreFunction* func, qore_ns_private* ns, bool inject);
    DLLLOCAL QoreFunction* find(const char* name, bool runtime) const;
    DLLLOCAL FunctionEntry* findNode(const char* name) const;
 
@@ -162,6 +161,9 @@ public:
          insert(fl_map_t::value_type(fe->getName(), fe));
       }
    }
+
+   // returns the number of functions imported
+   DLLLOCAL int importSystemFunctions(const FunctionList& src, qore_ns_private* ns, ExceptionSink* xsink);
 
    DLLLOCAL void del();
    DLLLOCAL void parseInit();

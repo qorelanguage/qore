@@ -1,10 +1,10 @@
 /*
   BarewordNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2016 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -32,7 +32,7 @@
 #include <qore/intern/QoreNamespaceIntern.h>
 
 // object takes over ownership of str
-BarewordNode::BarewordNode(char *c_str, int sline, int eline) : ParseNoEvalNode(NT_BAREWORD), loc(sline, eline), str(c_str) {
+BarewordNode::BarewordNode(char *c_str, int sline, int eline) : ParseNoEvalNode(NT_BAREWORD), loc(sline, eline), finalized(false), str(c_str) {
 }
 
 BarewordNode::~BarewordNode() {
@@ -45,7 +45,7 @@ BarewordNode::~BarewordNode() {
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using these functions directly
 // returns -1 for exception raised, 0 = OK
 int BarewordNode::getAsString(QoreString &qstr, int foff, ExceptionSink *xsink) const {
-   qstr.sprintf("%s '%s' (0x%08p)", getTypeName(), str ? str : "<null>", this);
+   qstr.sprintf("%s '%s' (%p)", getTypeName(), str ? str : "<null>", this);
    return 0;
 }
 

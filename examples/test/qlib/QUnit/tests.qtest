@@ -1,0 +1,63 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%strict-args
+%enable-all-warnings
+%require-types
+
+%include ../../../../qlib/QUnit.qm
+
+%exec-class QUnitTest
+
+public class DIJClass inherits QUnit::DependencyInjectedTest {
+    constructor() : DependencyInjectedTest("DIJClass", "1.0") {
+    }
+
+    performModuleInjections() {
+    }
+
+    performInjections(Program p) {
+    }
+
+    static DIJClass makeMe() {
+        return new DIJClass();
+    }
+}
+
+public class EmptyTest inherits QUnit::Test {
+    constructor() : Test("EmptyTest", "1.0") {
+    }
+
+    static EmptyTest makeMe() {
+        return new EmptyTest();
+    }
+}
+
+public class QUnitTest inherits QUnit::Test {
+    constructor() : Test("QUnitTest", "1.0") {
+        addTestCase("Dependency injection tests", \testInjectedClass(), NOTHING);
+        addTestCase("Test empty test", \testEmptyTest(), NOTHING);
+
+        set_return_value(main());
+    }
+
+    bool boolWrapper(callref f, softlist args) {
+        call_function_args(f, args);
+        return True;
+    }
+
+    testInjectedClass() {
+        DIJClass dit = DIJClass::makeMe();
+
+        # Try to run a dependency injected test before script path was set
+        testAssertion("missing script path", \dit.main(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "need to set the script path"));
+        # Try to instantiate a second dependency injected test
+        testAssertion("too many instances", \DIJClass::makeMe(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "Only one instance of"));
+    }
+
+    testEmptyTest() {
+        EmptyTest t();
+        testAssertion("no tests defined", \t.main(), list(), new QUnit::TestResultExceptionRegexp("TESTING-EXCEPTION", "define some tests first"));
+    }
+}

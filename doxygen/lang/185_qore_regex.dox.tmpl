@@ -2,9 +2,43 @@
 
     @tableofcontents
 
+    @section qore_regex_intro Qore Regular Expression Introduction
+
     Regular expression functionality in %Qore is provided by <a href="http://www.pcre.org">PCRE: Perl-Compatible Regular Expression library</a>.
 
-    Using this library, %Qore implements regular expression pattern matching using the same syntax and semantics as <a href="http://www.perl.org">Perl 5</a>.
+    Using this library, %Qore implements regular expression pattern matching using very simple syntax with semantics similar
+    to those of <a href="http://www.perl.org">Perl 5</a>.
+    One difference between %Qore and Perl to keep in mind is that @ref qore_regex_backreferences "backreferences" in %Qore
+    are referenced as \c $1, \c $2, \c $3, etc which differs from Perl's syntax (which uses numbered backslashes instead).
+
+    @par Examples:
+    @code{.py}
+    # call process() if the string starts with an alphanumeric character
+    if (str =~ /^[[:alnum:]]/)
+        process(str);
+    @endcode
+    @code{.py}
+    # example of using regular expressions in a switch statement
+    switch (str) {
+        case /^[^[:alnum:]]/: return True;
+        case /^[0-9]/: return False;
+        default: throw "ERROR", sprintf("invalid string %y", str);
+    }
+    @endcode
+    @code{.py}
+    # regular expression substitution + ignore case & global options
+    str =~ s/abc/xyz/gi;
+    @endcode
+    @code{.py}
+    # prefix all non-alphanumeric characters with a backslash
+    str =~ s/([^[:alnum:]])/\\$1/g;
+    @endcode
+    @code{.py}
+    # regular expression substring extraction
+    *list l = (str =~ x/(?:(\w+):(\w+):)(\w+)/);
+    @endcode
+
+    @section qore_regex_operators Qore Regular Expression Operators
 
     The following is a list of operators based on regular expressions (or similar to regular expressions in the case of the transliteration operator).
 
@@ -18,7 +52,8 @@
 
     See the table below for valid regular expression options.
 
-    @anchor regex_options
+    @subsection qore_regex_options Qore Regular Expression Operator Options
+
     <b>Regular Expression Options</b>
     |!Option|!Description
     |\c i|Ignores case when matching
@@ -27,6 +62,8 @@
     |\c x|ignores whitespace characters and enables comments prefixed by <tt>#</tt>
     |\c g|makes global substitutions or global extractions (only applicable with the substitution and extraction operators)
 
+    @section qore_regex_functions Qore Regular Expression Functions
+
     The following is a list of functions providing regular expression functionality where the pattern may be given at run-time:
 
     <b>Regular Expression Functions</b>
@@ -34,4 +71,19 @@
     |regex()|Returns @ref Qore::True "True" if the regular expression matches a string
     |regex_subst()|Substitutes a pattern in a string based on regular expressions and returns the new string
     |regex_extract()|Returns a list of substrings in a string based on matching patterns defined by a regular expression
+
+    @subsection qore_regex_backreferences Qore Regular Expression Backreferences
+
+    Qore uses <tt>$</tt><i>num</i> for backreferences in regular expression substitution expressions.  The first backreference is \c $1, the second $2, and so on.
+
+    @par Example
+    @code{.py}
+    # prefix all non-alphanumeric characters with a backslash
+    str =~ s/([^[:alnum:]])/\\$1/g;
+    @endcode
+    @code{.py}
+    # remove parentheses from string at the beginning of the line
+    str =~ s/^\((.*)\)/$1/;
+    @endcode
+
 */

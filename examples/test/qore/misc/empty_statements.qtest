@@ -1,0 +1,49 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class EmptyStmtTest
+
+public class EmptyStmtTest inherits QUnit::Test {
+
+    constructor() : Test("EmptyStmtTest", "1.0") {
+        addTestCase("topLevelEmptyBlock", \topLevelEmptyBlock(), NOTHING);
+        addTestCase("topLevelSemicolon", \topLevelSemicolon(), NOTHING);
+        addTestCase("emptyBlock", \emptyBlock(), NOTHING);
+        addTestCase("semicolon", \semicolon(), NOTHING);
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    topLevelEmptyBlock() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("{}", "");
+    }
+
+    topLevelSemicolon() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse(";", "");
+    }
+
+    emptyBlock() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("while (True) {}", "");
+    }
+
+    semicolon() {
+        Program p();
+        p.replaceParseOptions(PO_DEFAULT);
+        p.parse("while (True) ;", "");
+    }
+}

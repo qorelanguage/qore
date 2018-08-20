@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ private:
    class StatementBlock *code;
    enum obe_type_e type;
 
-   DLLLOCAL virtual int execImpl(class AbstractQoreNode **return_value, class ExceptionSink *xsink);
+   DLLLOCAL virtual int execImpl(QoreValue& return_value, class ExceptionSink *xsink);
    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0);
 
 public:

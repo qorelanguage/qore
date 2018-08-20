@@ -1,0 +1,22 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class NormalizeDirTest
+
+public class NormalizeDirTest inherits QUnit::Test {
+    constructor() : Test ("NormalizeDirTest", "1.0") {
+        addTestCase ("Tests for normalize_dir", \testNormalizeDir());
+        set_return_value(main());
+    }
+
+    testNormalizeDir() {
+        assertEq("\\\\vboxsrv\\home\\t.x", normalize_dir_windows("//vboxsrv///home/t.x"));
+        assertEq("\\\\vboxsrv\\home\\t.x", normalize_dir_windows("\\\\vboxsrv\\\\\\home\\t.x"));
+    }
+}

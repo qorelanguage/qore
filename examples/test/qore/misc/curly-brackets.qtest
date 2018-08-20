@@ -1,0 +1,42 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+namespace None {}
+class NoClass {}
+class None::NoClass {}
+
+class SomeClass {
+    public {}
+
+    noMeth() {}
+}
+
+sub no_func() {}
+
+%exec-class CurlyBracketsTest
+
+class CurlyBracketsTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Curly brackets test", "1.0") {
+        addTestCase("Test", \testCurlyBrackets());
+        set_return_value(main());
+    }
+
+    testCurlyBrackets() {
+        SomeClass sc();
+
+        # these test the reduce-reduce conflicts in the qore parser due to the introduction of the empty hash syntax: {}
+        assertEq(NT_OBJECT, sc.typeCode(), "empty-class-public-1");
+        assertEq(NT_OBJECT, (new NoClass()).typeCode(), "empty-class-public-2");
+        assertEq(NOTHING, no_func(), "empty-func");
+        assertEq(NOTHING, sc.noMeth(), "empty-func");
+        assertEq(NOTHING, (sub () {})(), "empty-closure");
+        assertEq(hash(), {}, "empty-hash");
+    }
+}

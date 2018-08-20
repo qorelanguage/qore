@@ -10,20 +10,20 @@
 
     <b>Special %Qore Variables</b>
     |!Variable|!Scope|!Data Type|!Explanation
-    |\c $argv|Local|List|automatically assigned local variable containing the list of function or method arguments that were not assigned to parameter variables (see @ref implicit_arguments for more information)
-    |\c Qore::$ARGV|Global|List|script command-line arguments (use the @ref Qore::GetOpt class to parse command-line arguments)
-    |\c Qore::$QORE_ARGV|Global|List|complete qore command-line arguments
-    |\c Qore::$ENV|Global|Hash|UNIX program environment
+    |\c argv|Local|List|automatically assigned local variable containing the list of function or method arguments that were not assigned to parameter variables (see @ref implicit_arguments for more information)
+    |\c Qore::ARGV|Global|List|script command-line arguments (use the @ref Qore::GetOpt class to parse command-line arguments)
+    |\c Qore::QORE_ARGV|Global|List|complete qore command-line arguments
+    |\c Qore::ENV|Global|Hash|UNIX program environment
 
     @note
-    - As of version 0.5.0, \c $STDERR and \c $STDOUT have been removed from %Qore. Use the I/O constants @ref Qore::stderr, @ref Qore::stdout, and @ref Qore::stdin constants of the @ref Qore::File class instead.
+    - As of version 0.5.0, \c STDERR and \c STDOUT have been removed from %Qore. Use the I/O constants @ref Qore::stderr, @ref Qore::stdout, and @ref Qore::stdin constants of the @ref Qore::File class instead.
     - As of version 0.8.4, global variables are namespace members; if a namespace path is not declared for the global variable, then the global variable will reside in the root namespace
 
     @section variable_declarations Variable Declarations and Lexical Scope
 
-    Unless the @ref assume-local "%assume-local" parse directive is used, variables not in a parameter list automatically have global scope unless the first reference is prefixed with @ref my. Variable names in a parameter list are always local to their associated function, method, or catch block. @ref global_variables "Global variables" can be explicitly declared with @ref our. The @ref our keyword is required if the parse option @ref require-our "%require-our" (\c -O or \c --require-our command-line option) is set for the parent program. See @ref parse_options for more information.
+    Unless the @ref assume-local "%assume-local" or @ref new-style "%new-style" parse directives are used, variables not in a parameter list automatically have global scope unless the first reference is prefixed with @ref my. Variable names in a parameter list are always local to their associated function, method, or catch block. @ref global_variables "Global variables" can be explicitly declared with @ref our. The @ref our keyword is required if the parse option @ref require-our "%require-our" (\c -O or \c --require-our command-line option) is set for the parent program. See @ref parse_options for more information.
 
-    When the @ref assume-local "%assume-local" parse directive is used, variables without an explicit scope declaration (i.e. @ref my or @ref our) are assumed to be @ref local_variables "local variables".
+    When the @ref assume-local "%assume-local" or @ref new-style "%new-style" parse directive is used, variables without an explicit scope declaration (i.e. @ref my or @ref our) are assumed to be @ref local_variables "local variables".
 
     Variables may be assigned any value unless restricted with a type declaration. If no type declaration is given, then the variable is assumed to be type @ref any_type "any". Note that type declarations are required for all variables (and for function and method parameters and class members) when the @ref require-types "%require-types" parse option is set.
 
@@ -33,24 +33,25 @@
 
     For example (in the following script, the @ref our keyword is optional unless @ref require-our "%require-our" is set):
 
-    @code
+    @code{.py}
 #!/usr/bin/qore
 #
 # variable scoping example
+%new-style
 
-our int $a = 1;                    # this is a global variable
-our (string $b, any $c, hash $d);  # list of global variables
+our int a = 1;                    # this is a global variable
+our (string b, any c, hash d);  # list of global variables
 
-if ($a == 1) {
-    my int $a = 2; 
-    my (string $b, any $c);
-    # $a, $b, and $c are local variables, 
-    # the use of which will not affect the 
+if (a == 1) {
+    int a = 2;
+    my (string b, any c);
+    # a, b, and c are local variables,
+    # the use of which will not affect the
     # global variables of the same name
-    print("local a = %d\n", $a); 
+    print("local a = %d\n", a);
 }
 
-print("global a = %d\n", $a); 
+print("global a = %d\n", a);
     @endcode
 
     The first print() statement will output:
@@ -61,22 +62,22 @@ local a = 2@endverbatim
     @verbatim
 global a = 1@endverbatim
 
-    @note If parse option @ref allow-bare-refs "%allow-bare-refs" is set, then variable references <b>must</b> be made without the "$" character.
+    @note If parse option @ref allow-bare-refs "%allow-bare-refs" or @ref new-style "%new-style" is set, then variable references <b>must</b> be made without the "$" character.  Because %Qore is moving toward establishing @ref new-style "%new-style" as the default syntax; all examples given in the %Qore documentation are given assuming @ref new-style "%new-style" unless otherwise indicated.
 
     @section local_variables Local Variables
     Local variables are local to the block in which they are declared; they are also thread-local, meaning that each thread will have its own value of a local variable.
 
     Local variables are generally accessed without any mutual-exclusion locking (with the exception of local variables bound in @ref closure "closures" and local variables that have a @ref lvalue_references "reference" taken of them).
-    
+
     @note Declaring a variable with \b my at the top-level of a program creates a local variable with global scope; in effect this is a global thread-local variable; see @ref threading_and_variables for more information.
 
     @subsection my The "my" Keyword
     Variables declared with \b my are always local variables.
 
     <b>my Example</b>\n
-    @code my int $i = 1;@endcode
+    @code{.py}my int i = 1;@endcode
 
-    The \b my keyword is not required if the @ref assume-local "%assume-local" parse directive is set (note that this parse directive is also set by @ref new-style "%new-style").  In this case, all variables are assumed to be local unless explicitly declared with @ref our "our".
+    The \b my keyword is not required if the @ref assume-local "%assume-local" or @ref new-style "%new-style" parse directive is set.  In this case, all variables are assumed to be local unless explicitly declared with @ref our "our".
 
     @section global_variables Global Variables
 
@@ -84,9 +85,9 @@ global a = 1@endverbatim
     Variables declared with \b our have global scope and are subject to mutual exclusion locks with each access.  Therefore even in single-threaded programs, it's more efficient to use local variables (even local variables with global scope - where a local variable is declared in the top-level block) if the value of the variable does not need to be shared among other threads.
 
     <b>our Example</b>\n
-    @code our int $i = 1;@endcode
+    @code{.py} our int i = 1;@endcode
 
-    Note that the \b our keyword is required when declaring a global variable if the parse option @ref require-our "%require-our" (\c -O or \c --require-our command-line option) is set for the parent program. See @ref parse_options for more information.  
+    Note that the \b our keyword is required when declaring a global variable if the parse option @ref require-our "%require-our" (\c -O or \c --require-our command-line option) is set for the parent program. See @ref parse_options for more information.
 
     Unlike local variables, global variables are members of @ref qore_namespaces "namespaces"; if a namespace path is not given, then the global variable will be assumed to be in the root namespace.  Global variables declared in @ref qore_namespaces "namespaces" cannot be initialized at the same time as the declaration, but instead have to be initialized elsewhere.
 

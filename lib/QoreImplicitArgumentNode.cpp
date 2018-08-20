@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -30,42 +30,25 @@
 
 #include <qore/Qore.h>
 
-QoreImplicitArgumentNode::QoreImplicitArgumentNode(int n_offset) : ParseNode(NT_IMPLICIT_ARG), offset(n_offset)
-{
+QoreImplicitArgumentNode::QoreImplicitArgumentNode(int n_offset) : ParseNode(NT_IMPLICIT_ARG), offset(n_offset) {
    if (!offset)
       parse_error("implicit argument offsets must be greater than 0 (first implicit argument is $1)");
    else if (offset > 0)
       --offset;
 }
 
-QoreImplicitArgumentNode::~QoreImplicitArgumentNode()
-{
+QoreImplicitArgumentNode::~QoreImplicitArgumentNode() {
 }
 
-const AbstractQoreNode *QoreImplicitArgumentNode::get() const
-{
+const AbstractQoreNode *QoreImplicitArgumentNode::get() const {
    const QoreListNode *argv = thread_get_implicit_args();
    if (!argv)
       return 0;
-   //printd(5, "QoreImplicitArgumentNode::get() offset=%d v=%08p\n", offset, argv->retrieve_entry(offset));
+   //printd(5, "QoreImplicitArgumentNode::get() offset=%d v=%p\n", offset, argv->retrieve_entry(offset));
    return argv->retrieve_entry(offset);
 }
 
-AbstractQoreNode *QoreImplicitArgumentNode::evalImpl(ExceptionSink *xsink) const
-{
-   if (offset == -1) {
-      const QoreListNode *argv = thread_get_implicit_args();
-      //printd(5, "QoreImplicitArgumentNode::evalImpl() offset=%d argv=%08p (%d)\n", offset, argv, argv ? argv->size() : -1);
-      return argv ? argv->refSelf() : 0;
-   }
-
-   const AbstractQoreNode *v = get();
-   //printd(5, "QoreImplicitArgumentNode::evalImpl() offset=%d v=%08p\n", offset, v);
-   return v ? v->refSelf() : 0;
-}
-
-AbstractQoreNode *QoreImplicitArgumentNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const
-{
+QoreValue QoreImplicitArgumentNode::evalValueImpl(bool &needs_deref, ExceptionSink *xsink) const {
    needs_deref = false;
    if (offset == -1)
       return const_cast<QoreListNode *>(thread_get_implicit_args());
@@ -73,44 +56,7 @@ AbstractQoreNode *QoreImplicitArgumentNode::evalImpl(bool &needs_deref, Exceptio
    return const_cast<AbstractQoreNode *>(get());
 }
 
-int64 QoreImplicitArgumentNode::bigIntEvalImpl(ExceptionSink *xsink) const
-{
-   if (offset == -1)
-      return 0;
-
-   const AbstractQoreNode *v = get();
-   return v ? v->getAsBigInt() : 0;
-}
-
-int QoreImplicitArgumentNode::integerEvalImpl(ExceptionSink *xsink) const
-{
-   if (offset == -1)
-      return 0;
-
-   const AbstractQoreNode *v = get();
-   return v ? v->getAsInt() : 0;
-}
-
-bool QoreImplicitArgumentNode::boolEvalImpl(ExceptionSink *xsink) const
-{
-   if (offset == -1)
-      return 0;
-
-   const AbstractQoreNode *v = get();
-   return v ? v->getAsBool() : 0;
-}
-
-double QoreImplicitArgumentNode::floatEvalImpl(ExceptionSink *xsink) const
-{
-   if (offset == -1)
-      return 0;
-
-   const AbstractQoreNode *v = get();
-   return v ? v->getAsFloat() : 0;
-}
-
-int QoreImplicitArgumentNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const
-{
+int QoreImplicitArgumentNode::getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
    str.concat("get implicit argument ");
    if (offset == -1)
       str.concat("list");
@@ -119,15 +65,13 @@ int QoreImplicitArgumentNode::getAsString(QoreString &str, int foff, ExceptionSi
    return 0;
 }
 
-QoreString *QoreImplicitArgumentNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const
-{
+QoreString *QoreImplicitArgumentNode::getAsString(bool &del, int foff, ExceptionSink *xsink) const {
    del = true;
    QoreString *rv = new QoreString();
    getAsString(*rv, foff, xsink);
    return rv;
 }
 
-const char *QoreImplicitArgumentNode::getTypeName() const
-{
+const char *QoreImplicitArgumentNode::getTypeName() const {
    return getStaticTypeName();
 }

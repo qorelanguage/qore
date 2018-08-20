@@ -3,7 +3,7 @@
  
   Qore Programming Language
  
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -74,11 +74,11 @@ NamedScope *ScopedRefNode::takeName() {
    return n;
 }
 
-AbstractQoreNode *ScopedRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
+AbstractQoreNode* ScopedRefNode::parseInitImpl(LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&typeInfo) {
    assert(!typeInfo);
    printd(5, "ScopedRefNode::parseInit() resolving scoped constant \"%s\"\n", scoped_ref->ostr);
 
-   AbstractQoreNode* rv = qore_root_ns_private::parseResolveScopedReference(*scoped_ref, typeInfo);
+   AbstractQoreNode* rv = qore_root_ns_private::parseResolveReferencedScopedReference(*scoped_ref, typeInfo);
    if (!rv)
       return this;
 

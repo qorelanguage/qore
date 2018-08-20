@@ -1,10 +1,10 @@
 /*
   QorePostDecrementOperatorNode.cpp
- 
+
   Qore Programming Language
- 
-  Copyright (C) 2003 - 2014 David Nichols
- 
+
+  Copyright (C) 2003 - 2015 David Nichols
+
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
   to deal in the Software without restriction, including without limitation
@@ -39,25 +39,20 @@ AbstractQoreNode *QorePostDecrementOperatorNode::parseInitImpl(LocalVar *oflag, 
    return (typeInfo == bigIntTypeInfo || typeInfo == softBigIntTypeInfo) ? makeSpecialization<QoreIntPostDecrementOperatorNode>() : this;
 }
 
-AbstractQoreNode *QorePostDecrementOperatorNode::evalImpl(ExceptionSink *xsink) const {
+QoreValue QorePostDecrementOperatorNode::evalValueImpl(bool& needs_deref, ExceptionSink* xsink) const {
    // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
    LValueHelper n(exp, xsink);
    if (!n)
-      return 0;
+      return QoreValue();
+
    if (n.getType() == NT_NUMBER)
       return n.postDecrementNumber(ref_rv, "<-- (post) operator>");
 
    if (n.getType() == NT_FLOAT) {
       double f = n.postDecrementFloat("<-- (post) operator>");
       assert(!*xsink);
-      return ref_rv ? new QoreFloatNode(f) : 0;
+      return f;
    }
 
-   int64 rc = n.postDecrementBigInt("<-- (post) operator>");
-   return *xsink || !ref_rv ? 0 : new QoreBigIntNode(rc);
-}
-
-AbstractQoreNode *QorePostDecrementOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-   needs_deref = ref_rv;
-   return QorePostDecrementOperatorNode::evalImpl(xsink);
+   return n.postDecrementBigInt("<-- (post) operator>");
 }

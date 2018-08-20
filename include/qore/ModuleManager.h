@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2014 David Nichols
+  Copyright (C) 2003 - 2015 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,9 @@
 /** @file ModuleManager.h
     provides definitions required to load qore modules
  */
+
+// If changing the module API numbers, make sure to change the appropriate
+// variables in CMakeLists.txt too.
 
 #define QORE_MODULE_API_MAJOR 0  //!< the major number of the Qore module API implemented
 #define QORE_MODULE_API_MINOR 19 //!< the minor number of the Qore module API implemented
