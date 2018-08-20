@@ -100,6 +100,7 @@ public class SqlTestBase inherits QUnit::Test {
         addTestCase("fetchColumns", \fetchColumnsTest());
         addTestCase("Delete", \deleteTest());
         addTestCase("result set placeholder", \resultSetPlaceholderTest());
+        addTestCase("Serialization", \serializationTest());
 
         addTestCase("wrong schema", \test2358SqlutilSchema());
     }
@@ -108,6 +109,17 @@ public class SqlTestBase inherits QUnit::Test {
         # drop the test schema
         if (schema)
             schema.drop(True, m_options.verbose);
+    }
+
+    serializationTest() {
+        if (!table) testSkip("no DB connection");
+
+        hash h = table.serialize();
+        AbstractTable t = AbstractTable::deserialize(h);
+        assertTrue(t instanceof AbstractTable);
+        # test that the table object works
+        string sql = t.getSelectSql(("columns": "id", "limit": 1));
+        assertEq(Type::String, sql.type());
     }
 
     insertTest() {
@@ -791,33 +803,33 @@ public class SqlTestBase inherits QUnit::Test {
 
         string sql; on_error printf ("SQL: %s\n", sql);
 
-        hash test_set = (
-                "case_1": (
-                    "in": ( "columns": ("id",), "limit": 1 ),
-                    "out": ( "count": 1 ),
-                    ),
-                "case_2": (
-                    "in": ( "columns": ("id",), "offset": 1, "limit": 2 ),
-                    "out": ( "count": 1 ),
-                    ),
-                "case_3": (
-                    "in": ( "columns": ("id",), "orderby": ("id",), "limit": 1 ),
-                    "out": ( "count": 1, "data": (("id": 1),) ),
-                    ),
-                "case_4": (
-                    "in": ( "columns": ("id",), "orderby": ("id",), "limit": 2 ),
-                    "out": ( "count": 2, "data": (("id": 1), ("id": 2)) ),
-                    ),
-                "case_5": (
-                    "in": ( "columns": ("id",), "orderby": ("id",), "offset": 1, "limit": 2 ),
-                    "out": ( "count": 1, "data": (("id": 2),) ),
-                    ),
-                "case_6": ( # triggers bug #749 (GitHub)
-                    "in": ( "columns": ("id",), "orderby": (1,), "offset": 1, "limit": 2 ),
-                    "out": ( "count": 1, "data": (("id": 2),) ),
-                    "skip": True, # TODO: remove this line once the bug is fixed
-                    ),
-                );
+        hash test_set = {
+            "case_1": (
+                "in": ( "columns": ("id",), "limit": 1 ),
+                "out": ( "count": 1 ),
+            ),
+            "case_2": (
+                "in": ( "columns": ("id",), "offset": 1, "limit": 2 ),
+                "out": ( "count": 1 ),
+            ),
+            "case_3": (
+                "in": ( "columns": ("id",), "orderby": ("id",), "limit": 1 ),
+                "out": ( "count": 1, "data": (("id": 1),) ),
+            ),
+            "case_4": (
+                "in": ( "columns": ("id",), "orderby": ("id",), "limit": 2 ),
+                "out": ( "count": 2, "data": (("id": 1), ("id": 2)) ),
+            ),
+            "case_5": (
+                "in": ( "columns": ("id",), "orderby": ("id",), "offset": 1, "limit": 2 ),
+                "out": ( "count": 1, "data": (("id": 2),) ),
+            ),
+            "case_6": ( # triggers bug #749 (GitHub)
+                "in": ( "columns": ("id",), "orderby": (1,), "offset": 1, "limit": 2 ),
+                "out": ( "count": 1, "data": (("id": 2),) ),
+                "skip": True, # TODO: remove this line once the bug is fixed
+            ),
+        };
 
         foreach hash t in (test_set.pairIterator()) {
             if (t.value.skip) {
@@ -1026,20 +1038,20 @@ public class SqlTestBase inherits QUnit::Test {
         }
 
         # real tests
-        hash sh = (
-                "columns" : (
-                        "id", "row_type", "row_value",
-                        cop_as(cop_over(cop_cume_dist(), "row_type", "id"), "cume_dist"),
-                        cop_as(cop_over(cop_dense_rank(), "row_type", "id"), "dense_rank"),
-                        cop_as(cop_over(cop_first_value("row_value"), "row_type", "id"), "first_value"),
-                        cop_as(cop_over(cop_last_value("row_value"), "row_type", "id"), "last_value"),
-                        cop_as(cop_over(cop_ntile(10), "row_type", "id"), "ntile"),
-                        cop_as(cop_over(cop_percent_rank(), "row_type", "id"), "percent_rank"),
-                        cop_as(cop_over(cop_rank(), "row_type", "id"), "rank"),
-                        cop_as(cop_over(cop_row_number(), "row_type", "id"), "row_number"),
-                    ),
-                "orderby" : "id",
-            );
+        hash sh = {
+            "columns": (
+                "id", "row_type", "row_value",
+                cop_as(cop_over(cop_cume_dist(), "row_type", "id"), "cume_dist"),
+                cop_as(cop_over(cop_dense_rank(), "row_type", "id"), "dense_rank"),
+                cop_as(cop_over(cop_first_value("row_value"), "row_type", "id"), "first_value"),
+                cop_as(cop_over(cop_last_value("row_value"), "row_type", "id"), "last_value"),
+                cop_as(cop_over(cop_ntile(10), "row_type", "id"), "ntile"),
+                cop_as(cop_over(cop_percent_rank(), "row_type", "id"), "percent_rank"),
+                cop_as(cop_over(cop_rank(), "row_type", "id"), "rank"),
+                cop_as(cop_over(cop_row_number(), "row_type", "id"), "row_number"),
+            ),
+            "orderby": "id",
+        };
         string sql;
         list res = t.selectRows(sh, \sql);
 
@@ -1067,13 +1079,14 @@ public class SqlTestBase inherits QUnit::Test {
         # 2227: sqlutil: cop_over is broken in statements with join
         # or superquery. partitionby and orderby clauses are not
         # expanded to fully qualified column names
-        hash sh2227 = (
-                "columns" : ("row_value",
-                             cop_as(cop_over(cop_max("row_value"), "row_type"), "max_value"),
-                       ),
-                "join" : join_inner("test_analytic_functions", "t1", ("id" : "id")),
-            );
-        any res2227 = t.select(sh2227, \sql);
+        hash sh2227 = {
+            "columns": (
+                "row_value",
+                cop_as(cop_over(cop_max("row_value"), "row_type"), "max_value"),
+            ),
+            "join": join_inner("test_analytic_functions", "t1", ("id" : "id")),
+        };
+        auto res2227 = t.select(sh2227, \sql);
         assertEq(True, res2227.firstValue().size() > 0, "bug 2227 test must return some data");
     }
 

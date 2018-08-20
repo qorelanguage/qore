@@ -1,31 +1,31 @@
 /*
-  QoreTypeInfo.cpp
+    QoreTypeInfo.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -200,13 +200,7 @@ QoreListNode* emptyList;
 QoreHashNode* emptyHash;
 QoreStringNode* NullString;
 DateTimeNode* ZeroDate, * OneDate;
-QoreBigIntNode* Zero;
-QoreFloatNode* ZeroFloat;
 QoreNumberNode* ZeroNumber, * NaNumber, * InfinityNumber, * piNumber;
-
-// map from types to default values
-typedef std::map<qore_type_t, AbstractQoreNode* > def_val_map_t;
-static def_val_map_t def_val_map;
 
 // map from names used when parsing to types
 typedef std::map<const char* , const QoreTypeInfo* , ltstr> str_typeinfo_map_t;
@@ -259,8 +253,6 @@ void init_qore_types() {
    NullString     = new QoreStringNode;
    ZeroDate       = DateTimeNode::makeAbsolute(0, 0, 0);
    OneDate        = DateTimeNode::makeAbsolute(0, 0, 0, 0, 0, 1);
-   Zero           = new QoreBigIntNode;
-   ZeroFloat      = new QoreFloatNode;
    ZeroNumber     = new QoreNumberNode;
    NaNumber       = qore_number_private::getNaNumber();
    InfinityNumber = qore_number_private::getInfinity();
@@ -268,18 +260,6 @@ void init_qore_types() {
 
    emptyList      = new QoreListNode;
    emptyHash      = new QoreHashNode;
-
-   def_val_map[NT_INT]     = Zero->refSelf();
-   def_val_map[NT_STRING]  = NullString->refSelf();
-   def_val_map[NT_BOOLEAN] = &False;
-   def_val_map[NT_DATE]    = ZeroDate->refSelf();
-   def_val_map[NT_FLOAT]   = ZeroFloat->refSelf();
-   def_val_map[NT_NUMBER]  = ZeroNumber->refSelf();
-   def_val_map[NT_LIST]    = emptyList->refSelf();
-   def_val_map[NT_HASH]    = emptyHash->refSelf();
-   def_val_map[NT_BINARY]  = new BinaryNode;
-   def_val_map[NT_NULL]    = &Null;
-   def_val_map[NT_NOTHING] = &Nothing;
 
    do_maps(NT_INT,         "int", bigIntTypeInfo, bigIntOrNothingTypeInfo);
    do_maps(NT_STRING,      "string", stringTypeInfo, stringOrNothingTypeInfo);
@@ -316,40 +296,34 @@ void init_qore_types() {
 }
 
 void delete_qore_types() {
-   // dereference all values from default value map
-   for (def_val_map_t::iterator i = def_val_map.begin(), e = def_val_map.end(); i != e; ++i)
-      i->second->deref(nullptr);
+    // dereference global default values
+    NullString->deref();
+    piNumber->deref();
+    InfinityNumber->deref();
+    NaNumber->deref();
+    ZeroNumber->deref();
+    OneDate->deref();
+    ZeroDate->deref();
+    emptyList->deref(nullptr);
+    emptyHash->deref(nullptr);
 
-   // dereference global default values
-   NullString->deref();
-   piNumber->deref();
-   InfinityNumber->deref();
-   NaNumber->deref();
-   ZeroNumber->deref();
-   ZeroFloat->deref();
-   Zero->deref();
-   OneDate->deref();
-   ZeroDate->deref();
-   emptyList->deref(nullptr);
-   emptyHash->deref(nullptr);
-
-   // delete stored type information
-   for (auto& i : ch_map)
-      delete i.second;
-   for (auto& i : chon_map)
-      delete i.second;
-   for (auto& i : cl_map)
-      delete i.second;
-   for (auto& i : clon_map)
-      delete i.second;
-   for (auto& i : cr_map)
-      delete i.second;
-   for (auto& i : cron_map)
-      delete i.second;
-   for (auto& i : csl_map)
-      delete i.second;
-   for (auto& i : cslon_map)
-      delete i.second;
+    // delete stored type information
+    for (auto& i : ch_map)
+        delete i.second;
+    for (auto& i : chon_map)
+        delete i.second;
+    for (auto& i : cl_map)
+        delete i.second;
+    for (auto& i : clon_map)
+        delete i.second;
+    for (auto& i : cr_map)
+        delete i.second;
+    for (auto& i : cron_map)
+        delete i.second;
+    for (auto& i : csl_map)
+        delete i.second;
+    for (auto& i : cslon_map)
+        delete i.second;
 }
 
 void add_to_type_map(qore_type_t t, const QoreTypeInfo* typeInfo) {
@@ -384,25 +358,25 @@ const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo) {
     {
         const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexHash(typeInfo);
         if (ti)
-            return qore_program_private::get(*getProgram())->getComplexHashOrNothingType(ti);
+            return qore_get_complex_hash_or_nothing_type(ti);
     }
 
     {
         const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexSoftList(typeInfo);
         if (ti)
-            return qore_program_private::get(*getProgram())->getComplexSoftListOrNothingType(ti);
+            return qore_get_complex_softlist_or_nothing_type(ti);
     }
 
     {
         const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
         if (ti)
-            return qore_program_private::get(*getProgram())->getComplexListOrNothingType(ti);
+            return qore_get_complex_list_or_nothing_type(ti);
     }
 
     {
         const QoreTypeInfo* ti = QoreTypeInfo::getUniqueReturnComplexReference(typeInfo);
         if (ti)
-            return qore_program_private::get(*getProgram())->getComplexReferenceOrNothingType(ti);
+            return qore_get_complex_reference_or_nothing_type(ti);
     }
 
     // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
@@ -533,16 +507,6 @@ const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n) {
    return getTypeInfoForType(t);
 }
 
-AbstractQoreNode* getDefaultValueForBuiltinValueType(qore_type_t t) {
-   def_val_map_t::iterator i = def_val_map.find(t);
-   assert(i != def_val_map.end());
-   return i->second->refSelf();
-}
-
-bool builtinTypeHasDefaultValue(qore_type_t t) {
-   return def_val_map.find(t) != def_val_map.end();
-}
-
 const QoreTypeInfo* getBuiltinUserTypeInfo(const char* str) {
    str_typeinfo_map_t::iterator i = str_typeinfo_map.find(str);
    if (i == str_typeinfo_map.end())
@@ -580,16 +544,16 @@ const char* getBuiltinTypeName(qore_type_t type) {
 }
 
 static qore_type_result_e match_type(const QoreTypeInfo* this_type, const QoreTypeInfo* that_type, bool& may_not_match, bool& may_need_filter) {
-   //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
-   qore_type_result_e res = QoreTypeInfo::parseAccepts(this_type, that_type, may_not_match, may_need_filter);
-   if (may_not_match)
-      return QTI_NOT_EQUAL;
-   // even if types are 100% compatible, if they are not equal, then we perform type folding
-   if (res == QTI_IDENT && !may_need_filter && !QoreTypeInfo::equal(this_type, that_type)) {
-      may_need_filter = true;
-      res = QTI_AMBIGUOUS;
-   }
-   return res;
+    //printd(5, "QoreTypeSpec::match() '%s' <- '%s'\n", QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti));
+    qore_type_result_e res = QoreTypeInfo::parseAccepts(this_type, that_type, may_not_match, may_need_filter);
+    if (may_not_match)
+        return QTI_NOT_EQUAL;
+    // even if types are 100% compatible, if they are not equal, then we perform type folding
+    if (res == QTI_IDENT && !may_need_filter && !QoreTypeInfo::equal(this_type, that_type)) {
+        may_need_filter = true;
+        res = QTI_AMBIGUOUS;
+    }
+    return res;
 }
 
 qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const {
@@ -615,6 +579,13 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             switch (t.typespec) {
                 case QTS_HASHDECL:
                     return typed_hash_decl_private::get(*t.u.hd)->parseEqual(*typed_hash_decl_private::get(*u.hd)) ? QTI_IDENT : QTI_NOT_EQUAL;
+                case QTS_TYPE:
+                    // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
+                    if (t.getType() == NT_ALL || t.getType() == NT_HASH) {
+                        may_not_match = true;
+                        return QTI_AMBIGUOUS;
+                    }
+                    // fall down to the next case
                 default: {
                     return QTI_NOT_EQUAL;
                 }
@@ -628,6 +599,13 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                     return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
                 case QTS_EMPTYHASH:
                     return QTI_NEAR;
+                case QTS_TYPE:
+                    // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
+                    if (t.getType() == NT_ALL || t.getType() == NT_HASH) {
+                        may_not_match = true;
+                        return QTI_AMBIGUOUS;
+                    }
+                    // fall down to the next case
                 default: {
                     return QTI_NOT_EQUAL;
                 }
@@ -640,9 +618,17 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
             switch (t.typespec) {
                 case QTS_COMPLEXSOFTLIST:
                 case QTS_COMPLEXLIST:
+                    //printd(5, "QoreTypeSpec::match() t.typespec: complexlist <- %d '%s' <- '%s' rc: %d)\n", (int)t.typespec, QoreTypeInfo::getName(u.ti), QoreTypeInfo::getName(t.u.ti), match_type(u.ti, t.u.ti, may_not_match, may_need_filter));
                     return match_type(u.ti, t.u.ti, may_not_match, may_need_filter);
                 case QTS_EMPTYLIST:
                     return QTI_NEAR;
+                case QTS_TYPE:
+                    // NOTE: with %strict-types, anything with may_not_match = true must return QTI_NOT_EQUAL
+                    if (t.getType() == NT_ALL || t.getType() == NT_LIST) {
+                        may_not_match = true;
+                        return QTI_AMBIGUOUS;
+                    }
+                    // fall down to the next case
                 default: {
                     return QTI_NOT_EQUAL;
                 }
@@ -759,9 +745,9 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                 HashIterator i(h);
                 while (i.next()) {
                     hash_assignment_priv ha(*qore_hash_private::get(*h), *qhi_priv::get(i)->i);
-                    QoreValue hn(ha.swap(nullptr));
+                    QoreValue hn(ha.swap(QoreValue()));
                     u.ti->acceptInputIntern(xsink, obj, param_num, param_name, hn, lvhelper);
-                    ha.swap(hn.takeNode());
+                    ha.swap(hn);
                     if (*xsink)
                         return true;
                 }
@@ -804,7 +790,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                 for (size_t i = 0; i < l->size(); ++i) {
                     QoreValue ln(lp->takeExists(i));
                     u.ti->acceptInputIntern(xsink, obj, param_num, param_name, ln, lvhelper);
-                    lp->swap(i, ln.takeNode());
+                    lp->swap(i, ln);
                     if (*xsink)
                         return true;
                 }
@@ -825,11 +811,13 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                 assert(!lvhelper);
                 ReferenceNode* r = n.get<ReferenceNode>();
                 const QoreTypeInfo* ti = r->getLValueTypeInfo();
-                //printd(5, "cr: %p '%s' == %p '%s': %d\n", u.ti, QoreTypeInfo::getName(u.ti), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::isOutputSubset(u.ti, ti));
+                //printd(5, "cr: %p '%s' == %p '%s': %d\n", u.ti, QoreTypeInfo::getName(u.ti), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::outputSuperSetOf(ti, u.ti));
                 // first check types before instantiating reference
                 if (QoreTypeInfo::outputSuperSetOf(ti, u.ti)) {
+                    // issue #2891: do not create a value in the source reference if none already exists
                     // do not process if there is no type restriction
-                    LValueHelper lvh(r, xsink);
+                    LValueHelper lvh(r, xsink, true);
+                    //printd(5, "lvh: %d *xsink: %d\n", (bool)lvh, (bool)*xsink);
                     if (lvh) {
                         QoreValue val = lvh.getReferencedValue();
                         if (!val.isNothing()) {
@@ -838,6 +826,10 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                             lvh.assign(val, "<reference>");
                         }
                         // we set ok unconditionally here, because any exception thrown above is enough if there is an error
+                        ok = true;
+                    }
+                    else if (!*xsink) {
+                        // issue #2891 the lvalue may not exist, but we can still perform the assignment
                         ok = true;
                     }
                 }
@@ -977,25 +969,25 @@ qore_type_result_e QoreTypeInfo::runtimeAcceptsValue(const QoreValue& n) const {
    return QTI_NOT_EQUAL;
 }
 
-void QoreTypeInfo::doNonNumericWarning(const QoreProgramLocation& loc, const char* preface) const {
+void QoreTypeInfo::doNonNumericWarning(const QoreProgramLocation* loc, const char* preface) const {
    QoreStringNode* desc = new QoreStringNode(preface);
    getThisTypeImpl(*desc);
    desc->sprintf(", which does not evaluate to a numeric type, therefore will always evaluate to 0 at runtime");
-   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::doNonBooleanWarning(const QoreProgramLocation& loc, const char* preface) const {
+void QoreTypeInfo::doNonBooleanWarning(const QoreProgramLocation* loc, const char* preface) const {
    QoreStringNode* desc = new QoreStringNode(preface);
    getThisTypeImpl(*desc);
    desc->sprintf(", which does not evaluate to a numeric or boolean type, therefore will always evaluate to False at runtime");
-   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
-void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation& loc, const char* preface) const {
+void QoreTypeInfo::doNonStringWarning(const QoreProgramLocation* loc, const char* preface) const {
    QoreStringNode* desc = new QoreStringNode(preface);
    getThisTypeImpl(*desc);
    desc->sprintf(", which cannot be converted to a string, therefore will always evaluate to an empty string at runtime");
-   qore_program_private::makeParseWarning(getProgram(), loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
+   qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION", desc);
 }
 
 void QoreTypeInfo::stripTypeInfo(QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper) {
@@ -1075,8 +1067,8 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveRuntimeSubtype() const {
                return nullptr;
             if (QoreTypeInfo::hasType(valueType)) {
                return !or_nothing
-                  ? qore_program_private::get(*getProgram())->getComplexHashType(valueType)
-                  : qore_program_private::get(*getProgram())->getComplexHashOrNothingType(valueType);
+                  ? qore_get_complex_hash_type(valueType)
+                  : qore_get_complex_hash_or_nothing_type(valueType);
             }
          }
       }
@@ -1095,8 +1087,8 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveRuntimeSubtype() const {
             return nullptr;
          if (QoreTypeInfo::hasType(valueType)) {
             return !or_nothing
-            ? qore_program_private::get(*getProgram())->getComplexListType(valueType)
-            : qore_program_private::get(*getProgram())->getComplexListOrNothingType(valueType);
+            ? qore_get_complex_list_type(valueType)
+            : qore_get_complex_list_or_nothing_type(valueType);
          }
       }
       else {
@@ -1114,8 +1106,8 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveRuntimeSubtype() const {
             return nullptr;
          if (QoreTypeInfo::hasType(valueType)) {
             return !or_nothing
-            ? qore_program_private::get(*getProgram())->getComplexSoftListType(valueType)
-            : qore_program_private::get(*getProgram())->getComplexSoftListOrNothingType(valueType);
+            ? qore_get_complex_softlist_type(valueType)
+            : qore_get_complex_softlist_or_nothing_type(valueType);
          }
       }
       else {
@@ -1133,8 +1125,8 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveRuntimeSubtype() const {
             return nullptr;
          if (QoreTypeInfo::hasType(valueType)) {
             return !or_nothing
-            ? qore_program_private::get(*getProgram())->getComplexReferenceType(valueType)
-            : qore_program_private::get(*getProgram())->getComplexReferenceOrNothingType(valueType);
+            ? qore_get_complex_reference_type(valueType)
+            : qore_get_complex_reference_or_nothing_type(valueType);
          }
       }
       else {
@@ -1166,7 +1158,7 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveRuntimeClass(const NamedScope& csc
    return or_nothing ? qc->getOrNothingTypeInfo() : qc->getTypeInfo();
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation& loc) const {
+const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation* loc) const {
    if (!strcmp(cscope->ostr, "hash")) {
       if (subtypes.size() == 1) {
          if (!strcmp(subtypes[0]->cscope->ostr, "auto"))
@@ -1178,7 +1170,7 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
       }
       if (subtypes.size() == 2) {
          if (strcmp(subtypes[0]->cscope->ostr, "string")) {
-            parseException(loc, "PARSE-TYPE-ERROR", "invalid complex hash type '%s'; hash key type must be 'string'; cannot declare a hash with key type '%s'", getName(), subtypes[0]->cscope->ostr);
+            parseException(*loc, "PARSE-TYPE-ERROR", "invalid complex hash type '%s'; hash key type must be 'string'; cannot declare a hash with key type '%s'", getName(), subtypes[0]->cscope->ostr);
          }
          else {
             if (!strcmp(subtypes[1]->cscope->ostr, "auto"))
@@ -1188,13 +1180,13 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
             const QoreTypeInfo* valueType = QoreParseTypeInfo::resolveAny(subtypes[1], loc);
             if (QoreTypeInfo::hasType(valueType)) {
                return !or_nothing
-                  ? qore_program_private::get(*getProgram())->getComplexHashType(valueType)
-                  : qore_program_private::get(*getProgram())->getComplexHashOrNothingType(valueType);
+                  ? qore_get_complex_hash_type(valueType)
+                  : qore_get_complex_hash_or_nothing_type(valueType);
             }
          }
       }
       else {
-         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'hash' takes a single hashdecl name as a subtype argument or two type names giving the key and value types", getName(), (int)subtypes.size());
+         parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'hash' takes a single hashdecl name as a subtype argument or two type names giving the key and value types", getName(), (int)subtypes.size());
       }
       return or_nothing ? hashOrNothingTypeInfo : hashTypeInfo;
    }
@@ -1206,12 +1198,12 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
          const QoreTypeInfo* valueType = QoreParseTypeInfo::resolveAny(subtypes[0], loc);
          if (QoreTypeInfo::hasType(valueType)) {
             return !or_nothing
-            ? qore_program_private::get(*getProgram())->getComplexListType(valueType)
-            : qore_program_private::get(*getProgram())->getComplexListOrNothingType(valueType);
+            ? qore_get_complex_list_type(valueType)
+            : qore_get_complex_list_or_nothing_type(valueType);
          }
       }
       else {
-         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'list' takes a single type name giving list element value type", getName(), (int)subtypes.size());
+         parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'list' takes a single type name giving list element value type", getName(), (int)subtypes.size());
       }
       return or_nothing ? listOrNothingTypeInfo : listTypeInfo;
    }
@@ -1223,12 +1215,12 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
          const QoreTypeInfo* valueType = QoreParseTypeInfo::resolveAny(subtypes[0], loc);
          if (QoreTypeInfo::hasType(valueType)) {
             return !or_nothing
-            ? qore_program_private::get(*getProgram())->getComplexSoftListType(valueType)
-            : qore_program_private::get(*getProgram())->getComplexSoftListOrNothingType(valueType);
+            ? qore_get_complex_softlist_type(valueType)
+            : qore_get_complex_softlist_or_nothing_type(valueType);
          }
       }
       else {
-         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'softlist' takes a single type name giving list element value type", getName(), (int)subtypes.size());
+         parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'softlist' takes a single type name giving list element value type", getName(), (int)subtypes.size());
       }
       return or_nothing ? softListOrNothingTypeInfo : softListTypeInfo;
    }
@@ -1240,18 +1232,18 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
          const QoreTypeInfo* valueType = QoreParseTypeInfo::resolveAny(subtypes[0], loc);
          if (QoreTypeInfo::hasType(valueType)) {
             return !or_nothing
-            ? qore_program_private::get(*getProgram())->getComplexReferenceType(valueType)
-            : qore_program_private::get(*getProgram())->getComplexReferenceOrNothingType(valueType);
+            ? qore_get_complex_reference_type(valueType)
+            : qore_get_complex_reference_or_nothing_type(valueType);
          }
       }
       else {
-         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'reference' takes a single type name giving referenced lvalue type", getName(), (int)subtypes.size());
+         parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s' with %d type arguments; base type 'reference' takes a single type name giving referenced lvalue type", getName(), (int)subtypes.size());
       }
       return or_nothing ? referenceOrNothingTypeInfo : referenceTypeInfo;
    }
    if (!strcmp(cscope->ostr, "object")) {
       if (subtypes.size() != 1) {
-         parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; base type 'object' takes a single class name as a subtype argument", getName());
+         parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; base type 'object' takes a single class name as a subtype argument", getName());
          return or_nothing ? objectOrNothingTypeInfo : objectTypeInfo;
       }
 
@@ -1262,18 +1254,18 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveSubtype(const QoreProgramLocation&
       return resolveClass(loc, *subtypes[0]->cscope, or_nothing);
    }
 
-   parseException(loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; type '%s' does not take subtype declarations", getName(), cscope->getIdentifier());
+   parseException(*loc, "PARSE-TYPE-ERROR", "cannot resolve '%s'; type '%s' does not take subtype declarations", getName(), cscope->getIdentifier());
    return autoTypeInfo;
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolve(const QoreProgramLocation& loc) const {
+const QoreTypeInfo* QoreParseTypeInfo::resolve(const QoreProgramLocation* loc) const {
    if (!subtypes.empty())
       return resolveSubtype(loc);
 
    return resolveClass(loc, *cscope, or_nothing);
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolveAny(const QoreProgramLocation& loc) const {
+const QoreTypeInfo* QoreParseTypeInfo::resolveAny(const QoreProgramLocation* loc) const {
    if (!subtypes.empty())
       return resolveSubtype(loc);
 
@@ -1281,19 +1273,19 @@ const QoreTypeInfo* QoreParseTypeInfo::resolveAny(const QoreProgramLocation& loc
    return rv ? rv : resolveClass(loc, *cscope, or_nothing);
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation& loc) {
+const QoreTypeInfo* QoreParseTypeInfo::resolveAndDelete(const QoreProgramLocation* loc) {
    std::unique_ptr<QoreParseTypeInfo> holder(this);
    return resolve(loc);
 }
 
-const QoreTypeInfo* QoreParseTypeInfo::resolveClass(const QoreProgramLocation& loc, const NamedScope& cscope, bool or_nothing) {
+const QoreTypeInfo* QoreParseTypeInfo::resolveClass(const QoreProgramLocation* loc, const NamedScope& cscope, bool or_nothing) {
    // resolve class
    const QoreClass* qc = qore_root_ns_private::parseFindScopedClass(loc, cscope);
 
    if (qc && or_nothing) {
       const QoreTypeInfo* rv = qc->getOrNothingTypeInfo();
       if (!rv) {
-         parse_error(loc, "class %s cannot be typed with '*' as the class's type handler has an input filter and the filter does not accept NOTHING", qc->getName());
+         parse_error(*loc, "class %s cannot be typed with '*' as the class's type handler has an input filter and the filter does not accept NOTHING", qc->getName());
          return objectOrNothingTypeInfo;
       }
       return rv;
@@ -1313,7 +1305,7 @@ QoreComplexSoftListTypeInfo::QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti
       {NT_LIST, [vti] (QoreValue& n, ExceptionSink* xsink) {
             QoreValue val;
             n.swap(val);
-            n.assign(qore_list_private::newComplexListFromValue(qore_program_private::get(*getProgram())->getComplexListType(vti), val, xsink));
+            n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
          }
       },
       {NT_NOTHING, [vti] (QoreValue& n, ExceptionSink* xsink) {
@@ -1324,7 +1316,7 @@ QoreComplexSoftListTypeInfo::QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti
       {NT_ALL, [vti] (QoreValue& n, ExceptionSink* xsink) {
             QoreValue val;
             n.swap(val);
-            n.assign(qore_list_private::newComplexListFromValue(qore_program_private::get(*getProgram())->getComplexListType(vti), val, xsink));
+            n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
          }
       },
    }, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}) {
@@ -1337,7 +1329,7 @@ QoreComplexSoftListOrNothingTypeInfo::QoreComplexSoftListOrNothingTypeInfo(const
       {NT_LIST, [vti] (QoreValue& n, ExceptionSink* xsink) {
             QoreValue val;
             n.swap(val);
-            n.assign(qore_list_private::newComplexListFromValue(qore_program_private::get(*getProgram())->getComplexListType(vti), val, xsink));
+            n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
          }
       },
       {NT_NOTHING, nullptr},
@@ -1345,7 +1337,7 @@ QoreComplexSoftListOrNothingTypeInfo::QoreComplexSoftListOrNothingTypeInfo(const
       {NT_ALL, [vti] (QoreValue& n, ExceptionSink* xsink) {
             QoreValue val;
             n.swap(val);
-            n.assign(qore_list_private::newComplexListFromValue(qore_program_private::get(*getProgram())->getComplexListType(vti), val, xsink));
+            n.assign(qore_list_private::newComplexListFromValue(qore_get_complex_list_type(vti), val, xsink));
          }
       },
       }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}}) {

@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QC_SSLPrivateKey.h
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -36,7 +36,7 @@
 #include <qore/QoreSSLPrivateKey.h>
 
 DLLEXPORT extern qore_classid_t CID_SSLPRIVATEKEY;
-DLLLOCAL extern QoreClass *QC_SSLPRIVATEKEY;
+DLLEXPORT extern QoreClass *QC_SSLPRIVATEKEY;
 DLLLOCAL QoreClass *initSSLPrivateKeyClass(QoreNamespace& ns);
 
 #endif // _QORE_CLASS_SSLPRIVATEKEY_H

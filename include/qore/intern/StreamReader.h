@@ -56,6 +56,10 @@ public:
       return enc;
    }
 
+   DLLLOCAL const InputStream* getInputStream() const {
+	   return *in;
+   }
+
    DLLLOCAL void setEncoding(const QoreEncoding* n_enc) {
       enc = n_enc;
    }

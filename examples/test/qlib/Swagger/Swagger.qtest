@@ -2439,7 +2439,7 @@ public class SwaggerTest inherits QUnit::Test {
 
             assertThrows("SERIALIZATION-ERROR", MimeTypeOctetStream, \so.processRequest(), ("POST", "/pet", body, hdr, MimeTypeOctetStream));
 
-            delete body.body.photoUrls;
+            delete body.photoUrls;
             assertThrows("SCHEMA-VALIDATION-ERROR", "missing.*photoUrls", \so.processRequest(), ("post", "/pet", body, hdr));
         }
 

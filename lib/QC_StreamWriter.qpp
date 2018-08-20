@@ -34,6 +34,8 @@
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/QoreClassIntern.h"
 
+DLLEXPORT extern QoreClass* QC_OUTPUTSTREAM;
+
 //! This class defines a stream writer for output streams.
 /** @since %Qore 0.8.13
 
@@ -73,6 +75,17 @@ StreamWriter::constructor(Qore::OutputStream[OutputStream] os, *string encoding)
  */
 string StreamWriter::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(sw->getEncoding()->getCode());
+}
+
+//! Returns the @ref OutputStream for the StreamWriter.
+/** Returns the @ref OutputStream for the StreamWriter.
+
+    @return the @ref OutputStream for the StreamWriter
+    
+    @since 0.9.0
+ */
+OutputStream StreamWriter::getOutputStream() {
+	return self->getReferencedMemberNoMethod("os", xsink);
 }
 
 //! Writes string data to an output stream; string data is converted to the StreamWriter's @ref character_encoding "character encoding" if necessary before writing.
