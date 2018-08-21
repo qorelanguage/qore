@@ -379,6 +379,12 @@ typedef bool (*q_delete_blocker_t)(QoreObject* self, AbstractPrivateData* privat
  */
 typedef unsigned q_trid_t;
 
+//! returns an integer value for a string
 DLLEXPORT long long q_atoll(const char* str);
+
+//! returns the type name for an opaqua QoreTypeInfo ptr
+/** @since %Qore 0.9
+*/
+DLLEXPORT const char* type_get_name(const QoreTypeInfo* t);
 
 #endif // _QORE_COMMON_H

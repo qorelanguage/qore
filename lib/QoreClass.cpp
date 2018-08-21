@@ -97,6 +97,31 @@ int64 QoreExternalVariant::getDomain() const {
     return rc;
 }
 
+unsigned QoreExternalVariant::numParams() const {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->numParams();
+}
+
+const QoreTypeInfo* QoreExternalVariant::getReturnTypeInfo() const {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getReturnTypeInfo();
+}
+
+const type_vec_t& QoreExternalVariant::getParamTypeList() const {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getSignature()->getTypeList();
+}
+
+const arg_vec_t& QoreExternalVariant::getDefaultArgList() const {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getSignature()->getDefaultArgList();
+}
+
+const name_vec_t& QoreExternalVariant::getParamNames() const {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getSignature()->getParamNames();
+}
+
+const QoreExternalProgramLocation* QoreExternalVariant::getSourceLocation() const {
+    const UserVariantBase* uvb = reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getUserVariantBase();
+    return reinterpret_cast<const QoreExternalProgramLocation*>(uvb ? uvb->getUserSignature()->getParseLocation() : &loc_builtin);
+}
+
 const QoreMethod* QoreExternalMethodVariant::getMethod() const {
     return reinterpret_cast<const MethodVariantBase*>(this)->method();
 }
@@ -138,7 +163,8 @@ QoreValue QoreExternalMemberVarBase::getDefaultValue(ExceptionSink* xsink) const
 }
 
 const QoreExternalProgramLocation* QoreExternalMemberVarBase::getSourceLocation() const {
-    return reinterpret_cast<const QoreExternalProgramLocation*>(reinterpret_cast<const QoreMemberInfoBase*>(this)->loc);
+    const QoreProgramLocation* loc = reinterpret_cast<const QoreMemberInfoBase*>(this)->loc;
+    return reinterpret_cast<const QoreExternalProgramLocation*>(loc ? loc : &loc_builtin);
 }
 
 QoreValue QoreExternalStaticMember::getValue() const {
@@ -3260,9 +3286,12 @@ void QoreClass::execMemberNotification(QoreObject* self, const char* mem, Except
    self->evalMethod(*priv->memberNotification, *args, xsink).discard(xsink);
 }
 
-// FIXME: remove
 QoreObject* QoreClass::execConstructor(const QoreListNode* args, ExceptionSink* xsink) const {
-   return priv->execConstructor(0, args, xsink);
+   return priv->execConstructor(nullptr, args, xsink);
+}
+
+QoreObject* QoreClass::execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *args, ExceptionSink* xsink) const {
+   return priv->execConstructor(reinterpret_cast<const ConstructorMethodVariant*>(mv), args, xsink);
 }
 
 QoreObject* qore_class_private::execSystemConstructor(QoreObject* self, int code, va_list args) const {

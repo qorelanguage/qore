@@ -908,6 +908,10 @@ QoreValue QoreObject::evalMethodVariant(const QoreMethod& method, const QoreExte
     return qore_method_private::evalNormalVariant(method, xsink, this, variant, args);
 }
 
+QoreValue QoreObject::evalStaticMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
+    return qore_method_private::eval(method, xsink, nullptr, args);
+}
+
 QoreValue QoreObject::evalStaticMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
     return qore_method_private::evalNormalVariant(method, xsink, nullptr, variant, args);
 }

@@ -32,7 +32,6 @@
 #include "qore/intern/QC_NormalMethodVariant.h"
 #include "qore/intern/Function.h"
 
-
 //! The class for %Qore class destructor method variants
 /**
     This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.

@@ -29,7 +29,6 @@
 */
 
 #include "qore/Qore.h"
-#include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/QC_StaticMethod.h"
 #include "qore/intern/QC_Class.h"
 
@@ -138,7 +137,7 @@ auto StaticMethod::call(...) {
     }
 
     // the method ptr must be valid
-    return qore_method_private::eval(*m->m, xsink, nullptr, args);
+    return QoreObject::evalStaticMethod(*m->m, args, xsink);
 }
 
 //! calls the given method with the given arguments as a list
@@ -163,5 +162,5 @@ auto StaticMethod::callArgs(*softlist<auto> argv) {
     }
 
     // the method ptr must be valid
-    return qore_method_private::eval(*m->m, xsink, nullptr, argv);
+    return QoreObject::evalStaticMethod(*m->m, argv, xsink);
 }

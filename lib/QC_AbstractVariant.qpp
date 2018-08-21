@@ -530,7 +530,8 @@ int AbstractVariant::numParams() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return v->variant->numParams();
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return variant->numParams();
 }
 
 //! returns a string giving a list of the parameters of the variant, including types, variable names, and default values
@@ -552,7 +553,8 @@ string AbstractVariant::getParamString() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return new QoreStringNode(v->variant->getSignature()->getSignatureText());
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return new QoreStringNode(variant->getSignatureText());
 }
 
 //! returns a string for the return type
@@ -574,7 +576,8 @@ string AbstractVariant::getReturnTypeString() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return new QoreStringNode(QoreTypeInfo::getName(v->variant->getReturnTypeInfo()));
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return new QoreStringNode(type_get_name(variant->getReturnTypeInfo()));
 }
 
 //! returns a string for the variant's signature including any modifiers (\c "synchronized", \c "private", etc), the return type, the class name (if any, without a namespace prefix and followed by \c "::"), and the function or method name followed by parameter types in parentheses
@@ -597,15 +600,15 @@ string AbstractVariant::toString() [flags=RET_VALUE_ONLY] {
     // the variant ptr must be valid
     SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
 
-    const QoreClass* cls = v->variant->getClass();
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    const QoreClass* cls = variant->getClass();
     if (cls) {
-        assert(dynamic_cast<const MethodVariantBase*>(v->variant));
-        const MethodVariantBase* mv = static_cast<const MethodVariantBase*>(v->variant);
+        const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(variant);
         if (mv->isFinal()) {
             rv->concat("final ");
         }
 
-        if (mv->method()->isStatic()) {
+        if (mv->isStatic()) {
             rv->concat("static ");
         }
 
@@ -613,26 +616,23 @@ string AbstractVariant::toString() [flags=RET_VALUE_ONLY] {
             rv->concat("abstract ");
         }
 
-        rv->concat(get_access_string(mv->getAccess()));
+        rv->concat(mv->getAccessString());
         rv->concat(' ');
     }
     else {
         // it is a function variant
-        if (v->variant->isModulePublic()) {
+        if (variant->isModulePublic()) {
             rv->concat("public ");
         }
     }
 
     // check for synchronized variants
-    {
-        const UserVariantBase* uv = v->variant->getUserVariantBase();
-        if (uv && uv->isSynchronized()) {
-            rv->concat("synchronized ");
-        }
+    if (variant->isSynchronized()) {
+        rv->concat("synchronized ");
     }
 
     // add return type
-    rv->concat(QoreTypeInfo::getName(v->variant->getReturnTypeInfo()));
+    rv->concat(type_get_name(variant->getReturnTypeInfo()));
 
     rv->concat(' ');
 
@@ -644,7 +644,7 @@ string AbstractVariant::toString() [flags=RET_VALUE_ONLY] {
     rv->concat(v->f->getName());
     // add parameters
     rv->concat('(');
-    rv->concat(v->variant->getSignature()->getSignatureText());
+    rv->concat(variant->getSignatureText());
     rv->concat(')');
 
     return rv.release();
@@ -667,7 +667,9 @@ Type AbstractVariant::getReturnType() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    return new QoreObject(QC_TYPE, v->pgm, new QoreType(v->variant->getReturnTypeInfo()));
+    // the variant ptr must be valid
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return new QoreObject(QC_TYPE, v->pgm, new QoreType(variant->getReturnTypeInfo()));
 }
 
 //! returns a list of parameter types for the variant; if the variant has no parameters, an empty list is returned
@@ -687,9 +689,12 @@ list<Type> AbstractVariant::getParamTypes() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
+    // the variant ptr must be valid
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+
     ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_TYPE->getTypeInfo()), xsink);
 
-    for (auto& i : v->variant->getSignature()->getTypeList()) {
+    for (auto& i : variant->getParamTypeList()) {
         rv->push(new QoreObject(QC_TYPE, v->pgm, new QoreType(i)), xsink);
     }
 
@@ -713,9 +718,12 @@ list<auto> AbstractVariant::getDefaultArgs() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
+    // the variant ptr must be valid
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+
     ReferenceHolder<QoreListNode> rv(new QoreListNode(autoTypeInfo), xsink);
 
-    for (auto& i : v->variant->getSignature()->getDefaultArgList()) {
+    for (auto& i : variant->getDefaultArgList()) {
         rv->push(i.refSelf(), xsink);
     }
 
@@ -739,9 +747,12 @@ list<string> AbstractVariant::getParamNames() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
+    // the variant ptr must be valid
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
 
-    for (auto& i : v->variant->getSignature()->getParamNames()) {
+    for (auto& i : variant->getParamNames()) {
         rv->push(i.empty() ? QoreValue() : QoreValue(new QoreStringNode(i)), xsink);
     }
 
@@ -766,14 +777,6 @@ hash<SourceLocationInfo> AbstractVariant::getSourceLocation() [flags=RET_VALUE_O
     }
 
     // the variant ptr must be valid
-    const QoreProgramLocation* loc;
-    const UserVariantBase* uvb = v->variant->getUserVariantBase();
-    if (uvb) {
-        loc = uvb->getUserSignature()->getParseLocation();
-    }
-    else {
-        loc = nullptr;
-    }
-
-    return get_source_location(loc);
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return variant->getSourceLocation()->getHash();
 }

@@ -463,6 +463,16 @@ public:
    */
    DLLEXPORT QoreObject* execConstructor(const QoreListNode* args, ExceptionSink* xsink) const;
 
+   //! creates a new object and executes the constructor on it and returns the new object
+   /** if a Qore-language exception occurs, 0 is returned.
+       @param mv the constructor variant to use; must belong to a constructor method of the current class
+       @param args the arguments for the method
+       @param xsink Qore-language exception information is added here
+
+       @return the object created
+   */
+   DLLEXPORT QoreObject* execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *arsg, ExceptionSink* xsink) const;
+
    //! creates a new "system" object for use as the value of a constant, executes the system constructor on it and returns the new object
    /** if a Qore-language exception occurs, 0 is returned
        @param code an optional code for the constructor; this parameter is here because passing a variable number of arguments requires at least one fixed parameter before the (possibly empty) list
@@ -948,6 +958,24 @@ public:
 
     //! returns the functional domain of the variant
     DLLEXPORT int64 getDomain() const;
+
+    //! returns the number of parameters
+    DLLEXPORT unsigned numParams() const;
+
+    //! returns the return type
+    DLLEXPORT const QoreTypeInfo* getReturnTypeInfo() const;
+
+    //! returns the parameter types for the variant
+    DLLEXPORT const type_vec_t& getParamTypeList() const;
+
+    //! returns a list of default arguments for the variant
+    DLLEXPORT const arg_vec_t& getDefaultArgList() const;
+
+    //! returns a list of parameter names for the variant
+    DLLEXPORT const name_vec_t& getParamNames() const;
+
+    //! returns the source location of the variant
+    DLLEXPORT const QoreExternalProgramLocation* getSourceLocation() const;
 
 private:
     //! not implemented

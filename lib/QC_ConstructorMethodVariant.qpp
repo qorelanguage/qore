@@ -69,8 +69,8 @@ object ConstructorMethodVariant::call(...) {
         return QoreValue();
     }
 
-    const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
-    return qore_class_private::get(*qore_method_private::get(*m)->parent_class)->execConstructor(v->variant, args, xsink);
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    return mv->getClass()->execConstructorVariant(mv, args, xsink);
 }
 
 //! calls the given constructor method with the given object and returns the object created
@@ -95,6 +95,6 @@ object ConstructorMethodVariant::callArgs(*softlist argv) {
         return QoreValue();
     }
 
-    const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
-    return qore_class_private::get(*qore_method_private::get(*m)->parent_class)->execConstructor(v->variant, argv, xsink);
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    return mv->getClass()->execConstructorVariant(mv, argv, xsink);
 }

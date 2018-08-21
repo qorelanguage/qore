@@ -649,4 +649,14 @@ DLLEXPORT int q_set_thread_var_value(int frame, const char* name, const QoreValu
 //! returns the pointer and size for string or binary data (return 0); no change for other data (return -1)
 DLLEXPORT int q_get_data(const QoreValue& data, const char*& ptr, size_t& len);
 
+//! returns a list<string> of parse option strings for the given bitfield; a Qore-language exception is raised for invalid values
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreListNode* parse_option_bitfield_to_string_list(int64 i, ExceptionSink* xsink);
+
+//! returns a list<string> of domain strings for the given bitfield; a Qore-language exception is raised for invalid values
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreListNode* domain_bitfield_to_string_list(int64 i, ExceptionSink* xsink);
+
 #endif // _QORE_QORELIB_H

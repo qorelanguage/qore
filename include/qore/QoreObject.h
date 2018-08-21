@@ -465,6 +465,11 @@ protected:
     //! executes a normal object method variant
     DLLEXPORT QoreValue evalMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
 
+    //! executes a static method
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT static QoreValue evalStaticMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
+
     //! executes a static method variant
     /** @since %Qore 0.9
     */

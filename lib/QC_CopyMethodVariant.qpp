@@ -30,7 +30,6 @@
 #include "qore/intern/QC_CopyMethodVariant.h"
 #include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/QC_NormalMethodVariant.h"
-#include "qore/intern/Function.h"
 
 //! The class for %Qore class copy method variants
 /**
@@ -71,10 +70,11 @@ auto CopyMethodVariant::call(object obj) {
 
     // we have to explictly test object compatibility here, otherwise QoreObject::evalMethod() will throw
     // a confusing exception
-    const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
-    if (check_variant_call(static_cast<const MethodVariantBase*>(v->variant), obj, *m, xsink)) {
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    const QoreMethod* m = mv->getMethod();
+    if (check_variant_call(v->variant, obj, *m, xsink)) {
         return QoreValue();
     }
 
-    return qore_class_private::get(*m->getClass())->execCopy(obj, xsink);
+    return m->getClass()->execCopy(obj, xsink);
 }
