@@ -203,6 +203,7 @@ class ReflectionTest inherits QUnit::Test {
         assertEq("nothing", v.getReturnTypeString());
         assertEq(DOM_THREAD_CLASS, v.getDomain());
         assertEq(("THREAD_CLASS",), v.getDomainStringList());
+        assertFalse(v.isFinal());
 
         {
             mtx = new Mutex();

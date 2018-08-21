@@ -29,7 +29,6 @@
 */
 
 #include "qore/Qore.h"
-#include "qore/intern/ConstantList.h"
 #include "qore/intern/QC_Constant.h"
 #include "qore/intern/QC_Namespace.h"
 

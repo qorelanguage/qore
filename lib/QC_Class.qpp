@@ -103,7 +103,7 @@ QoreObject* find_variant(const QoreReflectionClass* c, const char* name, unsigne
     if (which & (FV_NORMAL | FV_CONSTRUCTOR | FV_DESTRUCTOR | FV_COPY)) {
         m = c->cls->findMethod(name);
         if (m) {
-            mtype = QoreReflectionMethod::getMethodType(m);
+            mtype = m->getMethodType();
             switch (mtype) {
                 case MT_Normal:
                     if (!(which & FV_NORMAL)) {
@@ -1779,7 +1779,7 @@ list<NormalMethod> Class::getNormalMethods() [flags=RET_VALUE_ONLY] {
     QoreMethodIterator i(c->cls);
     while (i.next()) {
         const QoreMethod* m = i.getMethod();
-        if (QoreReflectionMethod::getMethodType(m) != MT_Normal) {
+        if (m->getMethodType() != MT_Normal) {
             continue;
         }
 
@@ -1817,7 +1817,7 @@ list<AbstractMethodVariant> Class::getVariants() [flags=RET_VALUE_ONLY] {
     while (i.next()) {
         const QoreMethod* m = i.getMethod();
         append_variant_objects(**rv, c->pgm, qore_method_private::get(*m)->func,
-            QoreReflectionMethod::getMethodType(m), xsink);
+            m->getMethodType(), xsink);
     }
 
     return rv.release();
@@ -1846,7 +1846,7 @@ list<NormalMethodVariant> Class::getNormalVariants() [flags=RET_VALUE_ONLY] {
     QoreMethodIterator i(c->cls);
     while (i.next()) {
         const QoreMethod* m = i.getMethod();
-        method_type_e mtype = QoreReflectionMethod::getMethodType(m);
+        method_type_e mtype = m->getMethodType();
         if (mtype != MT_Normal) {
             continue;
         }
@@ -1880,7 +1880,7 @@ list<StaticMethodVariant> Class::getStaticVariants() [flags=RET_VALUE_ONLY] {
     QoreMethodIterator i(c->cls);
     while (i.next()) {
         const QoreMethod* m = i.getMethod();
-        method_type_e mtype = QoreReflectionMethod::getMethodType(m);
+        method_type_e mtype = m->getMethodType();
         if (mtype != MT_Static) {
             continue;
         }

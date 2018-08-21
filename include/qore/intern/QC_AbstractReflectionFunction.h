@@ -34,16 +34,6 @@
 
 #include "qore/intern/AbstractReflectionObject.h"
 
-//! method type enum
-enum method_type_e {
-    MT_None = 0, // not a method function/variant
-    MT_Normal = 1,
-    MT_Static = 2,
-    MT_Constructor = 3,
-    MT_Destructor = 4,
-    MT_Copy = 5,
-};
-
 class QoreReflectionFunction : public AbstractReflectionObject {
 public:
     const QoreFunction* f = nullptr;

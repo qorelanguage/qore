@@ -30,7 +30,6 @@
 #include "qore/intern/QC_AbstractMethodVariant.h"
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/QC_AbstractMethod.h"
-#include "qore/intern/Function.h"
 
 //! The abstract base class for %Qore class variants
 /**
@@ -89,7 +88,8 @@ bool AbstractMethodVariant::isFinal() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return !static_cast<const MethodVariantBase*>(v->variant)->isFinal();
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    return mv->isFinal();
 }
 
 //! Returns the method for the method variant

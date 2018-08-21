@@ -95,6 +95,18 @@ class QoreExternalNormalMember;
 class QoreExternalStaticMember;
 class QoreExternalProgramLocation;
 
+//! method type enum
+/** @since %Qore 0.9
+*/
+enum method_type_e {
+    MT_None = 0, // not a method function/variant
+    MT_Normal = 1,
+    MT_Static = 2,
+    MT_Constructor = 3,
+    MT_Destructor = 4,
+    MT_Copy = 5,
+};
+
 //! a method in a QoreClass
 /** methods can be implemented in the Qore language (user methods) or in C++ (builtin methods)
     @see QoreClass
@@ -190,6 +202,11 @@ public:
         @since %Qore 0.8.12
     */
     DLLEXPORT QoreValue execManaged(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const;
+
+    //! returns the type of method
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT method_type_e getMethodType() const;
 
     DLLLOCAL QoreMethod(const QoreClass* p_class, MethodFunctionBase* n_func, bool n_static = false);
 
@@ -870,25 +887,25 @@ private:
 //! To be used to iterate through a class's normal (non-static) methods
 class QoreMethodIterator {
 private:
-   void* priv;
+    void* priv;
 
 public:
-   DLLEXPORT QoreMethodIterator(const QoreClass* qc);
-   DLLEXPORT ~QoreMethodIterator();
-   DLLEXPORT bool next();
-   DLLEXPORT const QoreMethod* getMethod() const;
+    DLLEXPORT QoreMethodIterator(const QoreClass* qc);
+    DLLEXPORT ~QoreMethodIterator();
+    DLLEXPORT bool next();
+    DLLEXPORT const QoreMethod* getMethod() const;
 };
 
 //! To be used to iterate through a class's static methods
 class QoreStaticMethodIterator {
 private:
-   void* priv;
+    void* priv;
 
 public:
-   DLLEXPORT QoreStaticMethodIterator(const QoreClass* qc);
-   DLLEXPORT ~QoreStaticMethodIterator();
-   DLLEXPORT bool next();
-   DLLEXPORT const QoreMethod* getMethod() const;
+    DLLEXPORT QoreStaticMethodIterator(const QoreClass* qc);
+    DLLEXPORT ~QoreStaticMethodIterator();
+    DLLEXPORT bool next();
+    DLLEXPORT const QoreMethod* getMethod() const;
 };
 
 //! allows for temporary storage of a QoreClass pointer
@@ -896,177 +913,38 @@ public:
  */
 class QoreClassHolder {
 public:
-   //! creates the object
-   DLLLOCAL QoreClassHolder(QoreClass* c) : c(c) {
-   }
+    //! creates the object
+    DLLLOCAL QoreClassHolder(QoreClass* c) : c(c) {
+    }
 
-   //! deletes the QoreClass object if still managed
-   DLLEXPORT ~QoreClassHolder();
+    //! deletes the QoreClass object if still managed
+    DLLEXPORT ~QoreClassHolder();
 
-   //! implicit conversion to QoreClass*
-   DLLLOCAL operator QoreClass*() const {
-      return c;
-   }
+    //! implicit conversion to QoreClass*
+    DLLLOCAL operator QoreClass*() const {
+        return c;
+    }
 
-   //! releases the QoreClass*
-   DLLLOCAL QoreClass* release() {
-      auto rv = c;
-      c = 0;
-      return rv;
-   }
+    //! releases the QoreClass*
+    DLLLOCAL QoreClass* release() {
+        auto rv = c;
+        c = 0;
+        return rv;
+    }
 
 private:
-   //! the object being managed
-   QoreClass* c;
+    //! the object being managed
+    QoreClass* c;
 };
 
 //! creates a builtin class
 class QoreBuiltinClass : public QoreClass {
 public:
-   //! creates the object and marks it as a builtin class
-   DLLEXPORT QoreBuiltinClass(const char* name, int64 n_domain = QDOM_DEFAULT);
+    //! creates the object and marks it as a builtin class
+    DLLEXPORT QoreBuiltinClass(const char* name, int64 n_domain = QDOM_DEFAULT);
 
-   //! copies the object
-   DLLEXPORT QoreBuiltinClass(const QoreBuiltinClass& old);
-};
-
-//! external wrapper class for function and call variants
-/** @since %Qore 0.9
-*/
-class QoreExternalVariant {
-public:
-    //! returns the class for a method variant or nullptr for a normal variant
-    DLLEXPORT const QoreClass* getClass() const;
-
-    //! returns the signature for the variant
-    DLLEXPORT const char* getSignatureText() const;
-
-    //! returns binary-or-combined code flags
-    DLLEXPORT int64 getCodeFlags() const;
-
-    //! returns true if the variant has the module public flag set
-    DLLEXPORT bool isModulePublic() const;
-
-    //! returns true if the variant has the synchronized flag set
-    DLLEXPORT bool isSynchronized() const;
-
-    //! returns true if the variant is builtin
-    DLLEXPORT bool isBuiltin() const;
-
-    //! returns true if the variant has a function body
-    DLLEXPORT bool hasBody() const;
-
-    //! returns the functional domain of the variant
-    DLLEXPORT int64 getDomain() const;
-
-    //! returns the number of parameters
-    DLLEXPORT unsigned numParams() const;
-
-    //! returns the return type
-    DLLEXPORT const QoreTypeInfo* getReturnTypeInfo() const;
-
-    //! returns the parameter types for the variant
-    DLLEXPORT const type_vec_t& getParamTypeList() const;
-
-    //! returns a list of default arguments for the variant
-    DLLEXPORT const arg_vec_t& getDefaultArgList() const;
-
-    //! returns a list of parameter names for the variant
-    DLLEXPORT const name_vec_t& getParamNames() const;
-
-    //! returns the source location of the variant
-    DLLEXPORT const QoreExternalProgramLocation* getSourceLocation() const;
-
-private:
-    //! not implemented
-    DLLLOCAL QoreExternalVariant();
-};
-
-//! external wrapper class for method variants
-/** @since %Qore 0.9
-*/
-class QoreExternalMethodVariant : public QoreExternalVariant {
-public:
-    //! returns the method for a method variant
-    DLLEXPORT const QoreMethod* getMethod() const;
-
-    //! returns true if the method variant is abstract
-    DLLEXPORT bool isAbstract() const;
-
-    //! returns true if the method variant is final
-    DLLEXPORT bool isFinal() const;
-
-    //! returns true if the method variant is static
-    DLLEXPORT bool isStatic() const;
-
-    //! returns the access info for the member
-    DLLEXPORT ClassAccess getAccess() const;
-
-    //! returns a string for the access info for the member
-    DLLEXPORT const char* getAccessString() const;
-
-private:
-    //! not implemented
-    DLLLOCAL QoreExternalMethodVariant();
-};
-
-//! external wrapper base class for class members
-/** @since %Qore 0.9
-*/
-class QoreExternalMemberVarBase {
-public:
-    //! returns the type info for the member
-    DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
-
-    //! returns the access info for the member
-    DLLEXPORT ClassAccess getAccess() const;
-
-    //! returns a string for the access info for the member
-    DLLEXPORT const char* getAccessString() const;
-
-    //! evaluates the initialization expression for the member and returns the referenced value
-    DLLEXPORT QoreValue getDefaultValue(ExceptionSink* xsink) const;
-
-    //! returns the source location of the member's declaration
-    DLLEXPORT const QoreExternalProgramLocation* getSourceLocation() const;
-
-private:
-    //! not implemented
-    DLLLOCAL QoreExternalMemberVarBase();
-};
-
-//! external wrapper base class for class static members
-/** @since %Qore 0.9
-*/
-class QoreExternalStaticMember : QoreExternalMemberVarBase {
-public:
-    //! returns the current value of the member; caller owns an reference returned
-    DLLEXPORT QoreValue getValue() const;
-
-    //! sets the value of the member
-    /** @param the value to set
-        @param xsink Qore-language exception info is stored here
-
-        @return 0 = no error, -1 Qore-language exception raised
-    */
-    DLLEXPORT int setValue(const QoreValue val, ExceptionSink* xsink) const;
-
-private:
-    //! not implemented
-    DLLLOCAL QoreExternalStaticMember();
-};
-
-//! external wrapper class for source code location information
-/** @since %Qore 0.9
-*/
-class QoreExternalProgramLocation {
-public:
-   //! returns a hash of the given source location
-    DLLEXPORT QoreHashNode* getHash() const;
-
-private:
-    //! not implemented
-    DLLLOCAL QoreExternalProgramLocation();
+    //! copies the object
+    DLLEXPORT QoreBuiltinClass(const QoreBuiltinClass& old);
 };
 
 DLLLOCAL const char* get_access_string(ClassAccess access);

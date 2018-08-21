@@ -81,25 +81,7 @@ void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, Exc
 
 void QoreReflectionMethod::setType() {
     // set type
-    mtype = getMethodType(m);
-}
-
-method_type_e QoreReflectionMethod::getMethodType(const QoreMethod* m) {
-    // set type
-    if (m->isStatic()) {
-        return MT_Static;
-    }
-    const qore_method_private* pm = qore_method_private::get(*m);
-    if (dynamic_cast<const ConstructorMethodFunction*>(pm->func)) {
-        return MT_Constructor;
-    }
-    if (dynamic_cast<const DestructorMethodFunction*>(pm->func)) {
-        return MT_Destructor;
-    }
-    if (dynamic_cast<const CopyMethodFunction*>(pm->func)) {
-        return MT_Copy;
-    }
-    return MT_Normal;
+    mtype = m->getMethodType();
 }
 
 //! The abstract base class for %Qore class methods

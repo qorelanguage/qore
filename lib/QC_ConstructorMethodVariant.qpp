@@ -28,7 +28,6 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QC_ConstructorMethodVariant.h"
-#include "qore/intern/Function.h"
 
 //! The class for %Qore class constructor method variants
 /**

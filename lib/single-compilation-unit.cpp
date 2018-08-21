@@ -89,6 +89,7 @@
 #include "QoreStandardException.cpp"
 #include "QoreClass.cpp"
 #include "TypedHashDecl.cpp"
+#include "QoreReflection.cpp"
 #include "Context.cpp"
 #include "FindNode.cpp"
 #include "charset.cpp"

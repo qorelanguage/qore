@@ -29,7 +29,6 @@
 */
 
 #include "qore/Qore.h"
-#include "qore/intern/ConstantList.h"
 #include "qore/intern/QC_AbstractConstant.h"
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/QC_Type.h"
@@ -64,7 +63,8 @@ string AbstractConstant::getName() [flags=RET_VALUE_ONLY] {
     }
 
     // the constant ptr must be valid
-    return new QoreStringNode(c->ce->name);
+    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
+    return new QoreStringNode(con->getName());
 }
 
 //! Returns @ref True if the AbstractConstant object passed as an argument is equal to the current object; @ref False if not
@@ -108,6 +108,7 @@ int AbstractConstant::getModifiers() [flags=RET_VALUE_ONLY] {
     }
 
     // the constant ptr must be valid
+    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
     const QoreClass* cls = c->getClass();
     int64 rc = 0;
     if (cls) {
@@ -118,17 +119,17 @@ int AbstractConstant::getModifiers() [flags=RET_VALUE_ONLY] {
             rc |= MC_USER;
         }
 
-        rc |= get_access(c->ce->getAccess());
+        rc |= get_access(con->getAccess());
     }
     else {
-        if (c->ce->builtin) {
+        if (con->isBuiltin()) {
             rc |= MC_BUILTIN;
         }
         else {
             rc |= MC_USER;
         }
 
-        if (c->ce->pub) {
+        if (con->isModulePublic()) {
             rc |= MC_PUBLIC;
         }
     }
@@ -162,6 +163,7 @@ list<string> AbstractConstant::getModifierList() [flags=RET_VALUE_ONLY] {
 
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
     const QoreClass* cls = c->getClass();
     if (cls) {
         if (cls->isSystem()) {
@@ -171,17 +173,17 @@ list<string> AbstractConstant::getModifierList() [flags=RET_VALUE_ONLY] {
             rv->push(new QoreStringNode("user"), xsink);
         }
 
-        rv->push(new QoreStringNode(get_access_string(c->ce->getAccess())), xsink);
+        rv->push(new QoreStringNode(get_access_string(con->getAccess())), xsink);
     }
     else {
-        if (c->ce->builtin) {
+        if (con->isBuiltin()) {
             rv->push(new QoreStringNode("builtin"), xsink);
         }
         else {
             rv->push(new QoreStringNode("user"), xsink);
         }
 
-        if (c->ce->pub) {
+        if (con->isModulePublic()) {
             rv->push(new QoreStringNode("public"), xsink);
         }
     }
@@ -205,7 +207,8 @@ bool AbstractConstant::isBuiltin() [flags=RET_VALUE_ONLY] {
     }
 
     // the constant ptr must be valid
-    return c->ce->builtin;
+    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
+    return con->isBuiltin();
 }
 
 //! returns @ref True if the constant is a user constant
@@ -224,7 +227,8 @@ bool AbstractConstant::isUser() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    return !c->ce->builtin;
+    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
+    return !con->isBuiltin();
 }
 
 //! Returns the type object for this constant
@@ -245,7 +249,8 @@ Type AbstractConstant::typeObject() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    return new QoreObject(QC_TYPE, c->pgm, new QoreType(c->ce->typeInfo));
+    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
+    return new QoreObject(QC_TYPE, c->pgm, new QoreType(con->getTypeInfo()));
 }
 
 //! Returns the value of the constant
@@ -266,7 +271,8 @@ auto AbstractConstant::getValue() [flags=RET_VALUE_ONLY] {
     }
 
     // the constant ptr must be valid
-    return c->ce->val.refSelf();
+    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
+    return con->getReferencedValue();
 }
 
 //! Returns the source location of the contant declaration
@@ -287,5 +293,6 @@ hash<SourceLocationInfo> AbstractConstant::getSourceLocation() [flags=RET_VALUE_
     }
 
     // the constant ptr must be valid
-    return get_source_location(c->ce->loc);
+    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
+    return con->getSourceLocation()->getHash();
 }
