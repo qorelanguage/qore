@@ -68,9 +68,10 @@ auto StaticMethodVariant::call(...) {
         return QoreValue();
     }
 
-    const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    const QoreMethod* m = mv->getMethod();
     // the method ptr must be valid
-    return QoreObject::evalStaticMethodVariant(*m, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), args, xsink);
+    return QoreObject::evalStaticMethodVariant(*m, mv, args, xsink);
 }
 
 //! calls the given static method variant and returns the value returned by the method
@@ -95,7 +96,8 @@ auto StaticMethodVariant::callArgs(*softlist<auto> argv) {
         return QoreValue();
     }
 
-    const QoreMethod* m = static_cast<const MethodVariantBase*>(v->variant)->method();
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    const QoreMethod* m = mv->getMethod();
     // the method ptr must be valid
-    return QoreObject::evalStaticMethodVariant(*m, reinterpret_cast<const QoreExternalMethodVariant*>(v->variant), argv, xsink);
+    return QoreObject::evalStaticMethodVariant(*m, mv, argv, xsink);
 }

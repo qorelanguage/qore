@@ -84,7 +84,7 @@ int AbstractClassMember::getModifiers() [flags=RET_VALUE_ONLY] {
         rc |= MC_STATIC;
     }
 
-    rc |= get_access(member_get_access(reinterpret_cast<const QoreExternalNormalMember*>(m->mem)));
+    rc |= get_access(reinterpret_cast<const QoreExternalMemberVarBase*>(m->mem)->getAccess());
 
     return rc;
 }
@@ -127,7 +127,7 @@ list<string> AbstractClassMember::getModifierList() [flags=RET_VALUE_ONLY] {
         rv->push(new QoreStringNode("static"), xsink);
     }
 
-    rv->push(new QoreStringNode(get_access_string(member_get_access(reinterpret_cast<const QoreExternalNormalMember*>(m->mem)))), xsink);
+    rv->push(new QoreStringNode(reinterpret_cast<const QoreExternalMemberVarBase*>(m->mem)->getAccessString()), xsink);
 
     return rv.release();
 }
@@ -157,7 +157,7 @@ string AbstractClassMember::getAccessModifierString() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    return new QoreStringNode(get_access_string(member_get_access(reinterpret_cast<const QoreExternalNormalMember*>(m->mem))));
+    return new QoreStringNode(reinterpret_cast<const QoreExternalMemberVarBase*>(m->mem)->getAccessString());
 }
 
 //! returns @ref True if the class defining the member is a builtin class

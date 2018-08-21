@@ -67,7 +67,8 @@ bool AbstractMethodVariant::isAbstract() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return static_cast<const MethodVariantBase*>(v->variant)->isAbstract();
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    return mv->isAbstract();
 }
 
 //! returns @ref True if the variant is final
@@ -101,8 +102,9 @@ AbbstractMethod m = v.getMethod();
     @endcode
  */
 AbstractMethod AbstractMethodVariant::getMethod() [flags=CONSTANT] {
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
     ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(v->pgm,
-        static_cast<const MethodVariantBase*>(v->variant)->method()), xsink);
+        mv->getMethod()), xsink);
     return get_method_object(m, xsink);
 }
 
@@ -116,8 +118,9 @@ Class cls = v.getClass();
     @endcode
  */
 Class AbstractMethodVariant::getClass() [flags=CONSTANT] {
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
     return new QoreObject(QC_CLASS, v->pgm,
-        new QoreReflectionClass(v->pgm, static_cast<const MethodVariantBase*>(v->variant)->getClass()));
+        new QoreReflectionClass(v->pgm, mv->getClass()));
 }
 
 //! returns a string for the access modifier for the method variant
@@ -141,6 +144,7 @@ string AbstractMethodVariant::getAccessModifierString() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return new QoreStringNode(get_access_string(static_cast<const MethodVariantBase*>(v->variant)->getAccess()));
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    return new QoreStringNode(mv->getAccessString());
 }
 

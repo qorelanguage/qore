@@ -89,7 +89,8 @@ int AbstractVariant::getCodeFlags() [flags=CONSTANT] {
     }
 
     // the variant ptr must be valid
-    return v->variant->getFlags();
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return variant->getCodeFlags();
 }
 
 //! returns a list of strings of code flags describing the variant
@@ -118,7 +119,8 @@ list<string> AbstractVariant::getCodeFlagList() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    int64 c = v->variant->getFlags();
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    int64 c = variant->getCodeFlags();
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
 
     if (c & QCF_NOOP) {
@@ -178,40 +180,40 @@ int AbstractVariant::getModifiers() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
     int64 rc = 0;
-    if (v->variant->getClass()) {
-        const MethodVariantBase* mvb = static_cast<const MethodVariantBase*>(v->variant);
-        if (mvb->isAbstract()) {
+    if (variant->getClass()) {
+        const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(variant);
+        if (mv->isAbstract()) {
             rc |= MC_ABSTRACT;
         }
-        if (mvb->isFinal()) {
+        if (mv->isFinal()) {
             rc |= MC_FINAL;
         }
-        rc |= get_access(mvb->getAccess());
-        const QoreMethod* m = mvb->method();
-        if (m->isStatic()) {
+        rc |= get_access(mv->getAccess());
+        if (mv->isStatic()) {
             rc |= MC_STATIC;
         }
     }
     else {
-        if (v->variant->isModulePublic()) {
+        if (variant->isModulePublic()) {
             rc |= MC_PUBLIC;
         }
     }
 
-    const UserVariantBase* uvb = v->variant->getUserVariantBase();
-    if (uvb && uvb->isSynchronized()) {
+    if (variant->isSynchronized()) {
         rc |= MC_SYNCHRONIZED;
     }
 
     if (v->f->injected()) {
         rc |= MC_INJECTED;
     }
-    if (v->variant->isUser()) {
-        rc |= MC_USER;
+
+    if (variant->isBuiltin()) {
+        rc |= MC_BUILTIN;
     }
     else {
-        rc |= MC_BUILTIN;
+        rc |= MC_USER;
     }
 
     return rc;
@@ -248,41 +250,38 @@ list<string> AbstractVariant::getModifierList() [flags=RET_VALUE_ONLY] {
 
     // the variant ptr must be valid
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
-    if (v->variant->getClass()) {
-        const MethodVariantBase* mvb = static_cast<const MethodVariantBase*>(v->variant);
-        if (mvb->isAbstract()) {
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    if (variant->getClass()) {
+        const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(variant);
+        if (mv->isAbstract()) {
             rv->push(new QoreStringNode("abstract"), xsink);
         }
-        if (mvb->isFinal()) {
+        if (mv->isFinal()) {
             rv->push(new QoreStringNode("final"), xsink);
         }
-        if (get_access(mvb->getAccess())) {
-            rv->push(new QoreStringNode(get_access_string(mvb->getAccess())), xsink);
-        }
-        const QoreMethod* m = mvb->method();
-        if (m->isStatic()) {
+        rv->push(new QoreStringNode(mv->getAccessString()), xsink);
+        if (mv->isStatic()) {
             rv->push(new QoreStringNode("static"), xsink);
         }
     }
     else {
-        if (v->variant->isModulePublic()) {
+        if (variant->isModulePublic()) {
             rv->push(new QoreStringNode("public"), xsink);
         }
     }
 
-    const UserVariantBase* uvb = v->variant->getUserVariantBase();
-    if (uvb && uvb->isSynchronized()) {
+    if (variant->isSynchronized()) {
         rv->push(new QoreStringNode("synchronized"), xsink);
     }
 
     if (v->f->injected()) {
         rv->push(new QoreStringNode("injected"), xsink);
     }
-    if (v->variant->isUser()) {
-        rv->push(new QoreStringNode("user"), xsink);
+    if (variant->isBuiltin()) {
+        rv->push(new QoreStringNode("builtin"), xsink);
     }
     else {
-        rv->push(new QoreStringNode("builtin"), xsink);
+        rv->push(new QoreStringNode("user"), xsink);
     }
 
     return rv.release();
@@ -329,7 +328,8 @@ int AbstractVariant::getDomain() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return v->getDomain();
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return variant->getDomain();
 }
 
 //! returns a list of functional domain strings for the variant (for builtin variants only); an empty list is returned for user variants
@@ -352,7 +352,8 @@ list<string> AbstractVariant::getDomainStringList() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return domain_bitfield_to_string_list(v->getDomain(), xsink);
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return domain_bitfield_to_string_list(variant->getDomain(), xsink);
 }
 
 //! returns @ref True if the variant is a builtin variant
@@ -375,7 +376,8 @@ bool AbstractVariant::isBuiltin() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return !v->variant->isUser();
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return variant->isBuiltin();
 }
 
 //! returns @ref True if the variant is a user variant
@@ -398,7 +400,8 @@ bool AbstractVariant::isUser() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return v->variant->isUser();
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return !variant->isBuiltin();
 }
 
 //! returns @ref True if the function or method that the variant belongs to (and therefore the variant itself) has been injected as a dependency injection
@@ -450,7 +453,8 @@ bool AbstractVariant::hasBody() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return v->variant->hasBody();
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return variant->hasBody();
 }
 
 //! returns @ref True if the variant has no code implementation; @ref False if it does
@@ -474,14 +478,16 @@ bool AbstractVariant::empty() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
+    // the variant ptr must be valid
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
     // we have to check for abstract methods here and return True, because AbstractQoreFunctionVariant::hasBody()
     // returns True for builtin abstract variants
-    if (v->variant->getClass() && static_cast<const MethodVariantBase*>(v->variant)->isAbstract()) {
+    if (variant->getClass() && static_cast<const QoreExternalMethodVariant*>(variant)->isAbstract()) {
         return true;
     }
 
     // the variant ptr must be valid
-    return !v->variant->hasBody();
+    return !variant->hasBody();
 }
 
 //! returns @ref True if the variant is a method variant, @ref False if not
@@ -502,7 +508,8 @@ bool AbstractVariant::isMethodVariant() [flags=RET_VALUE_ONLY] {
     }
 
     // the variant ptr must be valid
-    return (bool)v->variant->getClass();
+    const QoreExternalVariant* variant = reinterpret_cast<const QoreExternalVariant*>(v->variant);
+    return (bool)variant->getClass();
 }
 
 //! returns the number of parameters in the signature

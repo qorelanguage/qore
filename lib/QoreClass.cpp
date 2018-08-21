@@ -44,85 +44,116 @@
 // global class ID sequence
 DLLLOCAL Sequence classIDSeq(1);
 
-const QoreMethod* variant_get_method(const QoreExternalVariant* v) {
-    const MethodVariantBase* mvb = dynamic_cast<const MethodVariantBase*>(reinterpret_cast<const AbstractQoreFunctionVariant*>(v));
-    return mvb ? mvb->method() : nullptr;
+const char* get_access_string(ClassAccess access) {
+    switch (access) {
+        case Public: return "public";
+        case Private: return "private";
+        case Internal: return "private:internal";
+        default: break;
+    }
+    assert(false);
+    return nullptr;
 }
 
-const QoreMethod* variant_get_method(const QoreExternalMethodVariant* v) {
-    return reinterpret_cast<const MethodVariantBase*>(v)->method();
+const QoreClass* QoreExternalVariant::getClass() const {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getClass();
 }
 
-const QoreClass* variant_get_class(const QoreExternalVariant* v) {
-    return reinterpret_cast<const AbstractQoreFunctionVariant*>(v)->getClass();
+const char* QoreExternalVariant::getSignatureText() const {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getSignature()->getSignatureText();
 }
 
-const QoreClass* variant_get_class(const QoreExternalMethodVariant* v) {
-    return reinterpret_cast<const AbstractQoreFunctionVariant*>(v)->getClass();
+int64 QoreExternalVariant::getCodeFlags() const {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getFlags();
 }
 
-bool variant_is_abstract(const QoreExternalVariant* v) {
-    const MethodVariantBase* mvb = dynamic_cast<const MethodVariantBase*>(reinterpret_cast<const AbstractQoreFunctionVariant*>(v));
-    return mvb ? mvb->isAbstract() : false;
+bool QoreExternalVariant::isModulePublic() const {
+    const QoreClass* cls = getClass();
+    return cls
+        ? cls->isModulePublic()
+        : reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->isModulePublic();
 }
 
-bool variant_is_abstract(const QoreExternalMethodVariant* v) {
-    return reinterpret_cast<const MethodVariantBase*>(v)->isAbstract();
+bool QoreExternalVariant::isSynchronized() const {
+    const UserVariantBase* uvb = reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getUserVariantBase();
+    return uvb && uvb->isSynchronized();
 }
 
-const char* variant_get_signature_text(const QoreExternalVariant* v) {
-    return reinterpret_cast<const AbstractQoreFunctionVariant*>(v)->getSignature()->getSignatureText();
+bool QoreExternalVariant::isBuiltin() const {
+    return !reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->isUser();
 }
 
-const char* variant_get_signature_text(const QoreExternalMethodVariant* v) {
-    return reinterpret_cast<const AbstractQoreFunctionVariant*>(v)->getSignature()->getSignatureText();
+bool QoreExternalVariant::hasBody() const {
+    return reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->hasBody();
 }
 
-const QoreTypeInfo* member_get_type_info(const QoreExternalNormalMember* mem) {
-    return reinterpret_cast<const QoreMemberInfoBase*>(mem)->getTypeInfo();
+int64 QoreExternalVariant::getDomain() const {
+    int64 rc = reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getFunctionality();
+    const QoreClass* cls = getClass();
+    if (cls) {
+        rc |= cls->getDomain64();
+    }
+
+    return rc;
 }
 
-const QoreTypeInfo* member_get_type_info(const QoreExternalStaticMember* mem) {
-    return reinterpret_cast<const QoreMemberInfoBase*>(mem)->getTypeInfo();
+const QoreMethod* QoreExternalMethodVariant::getMethod() const {
+    return reinterpret_cast<const MethodVariantBase*>(this)->method();
 }
 
-ClassAccess member_get_access(const QoreExternalNormalMember* mem) {
-    return reinterpret_cast<const QoreMemberInfoBaseAccess*>(mem)->getAccess();
+bool QoreExternalMethodVariant::isAbstract() const {
+    return reinterpret_cast<const MethodVariantBase*>(this)->isAbstract();
 }
 
-ClassAccess member_get_access(const QoreExternalStaticMember* mem) {
-    return reinterpret_cast<const QoreMemberInfoBaseAccess*>(mem)->getAccess();
+bool QoreExternalMethodVariant::isFinal() const {
+    return reinterpret_cast<const MethodVariantBase*>(this)->isFinal();
 }
 
-QoreValue member_get_default_value(const QoreExternalNormalMember* mem, ExceptionSink* xsink) {
-    return reinterpret_cast<const QoreMemberInfoBase*>(mem)->exp.eval(xsink);
+bool QoreExternalMethodVariant::isStatic() const {
+    return getMethod()->isStatic();
 }
 
-QoreValue member_get_default_value(const QoreExternalStaticMember* mem, ExceptionSink* xsink) {
-    return reinterpret_cast<const QoreMemberInfoBase*>(mem)->exp.eval(xsink);
+ClassAccess QoreExternalMethodVariant::getAccess() const {
+    return reinterpret_cast<const MethodVariantBase*>(this)->getAccess();
 }
 
-QoreValue static_member_get_value(const QoreExternalStaticMember* mem) {
-    return reinterpret_cast<const QoreVarInfo*>(mem)->getReferencedValue();
+const char* QoreExternalMethodVariant::getAccessString() const {
+    return get_access_string(getAccess());
 }
 
-int static_member_set_value(const QoreExternalStaticMember* mem, const QoreValue val, ExceptionSink* xsink) {
+const QoreTypeInfo* QoreExternalMemberVarBase::getTypeInfo() const {
+    return reinterpret_cast<const QoreMemberInfoBase*>(this)->getTypeInfo();
+}
+
+ClassAccess QoreExternalMemberVarBase::getAccess() const {
+    return reinterpret_cast<const QoreMemberInfoBaseAccess*>(this)->getAccess();
+}
+
+const char* QoreExternalMemberVarBase::getAccessString() const {
+    return get_access_string(getAccess());
+}
+
+QoreValue QoreExternalMemberVarBase::getDefaultValue(ExceptionSink* xsink) const {
+    return reinterpret_cast<const QoreMemberInfoBase*>(this)->exp.eval(xsink);
+}
+
+const QoreExternalProgramLocation* QoreExternalMemberVarBase::getSourceLocation() const {
+    return reinterpret_cast<const QoreExternalProgramLocation*>(reinterpret_cast<const QoreMemberInfoBase*>(this)->loc);
+}
+
+QoreValue QoreExternalStaticMember::getValue() const {
+    return reinterpret_cast<const QoreVarInfo*>(this)->getReferencedValue();
+}
+
+int QoreExternalStaticMember::setValue(const QoreValue val, ExceptionSink* xsink) const {
     LValueHelper lvh(xsink);
-    const_cast<QoreVarInfo*>(reinterpret_cast<const QoreVarInfo*>(mem))->getLValue(lvh);
+    const_cast<QoreVarInfo*>(reinterpret_cast<const QoreVarInfo*>(this))->getLValue(lvh);
     lvh.assign(val.refSelf(), "<set static class member value>");
     return *xsink ? -1 : 0;
 }
 
-const QoreExternalProgramLocation* member_get_source_location(const QoreExternalNormalMember* mem) {
-    return reinterpret_cast<const QoreExternalProgramLocation*>(reinterpret_cast<const QoreMemberInfoBase*>(mem)->loc);
-}
-
-const QoreExternalProgramLocation* member_get_source_location(const QoreExternalStaticMember* mem) {
-    return reinterpret_cast<const QoreExternalProgramLocation*>(reinterpret_cast<const QoreMemberInfoBase*>(mem)->loc);
-}
-
-QoreHashNode* source_location_get_hash(const QoreExternalProgramLocation* sl) {
-    return get_source_location(reinterpret_cast<const QoreProgramLocation*>(sl));
+QoreHashNode* QoreExternalProgramLocation::getHash() const {
+    return get_source_location(reinterpret_cast<const QoreProgramLocation*>(this));
 }
 
 AbstractQoreClassUserData::~AbstractQoreClassUserData() {
@@ -2371,6 +2402,22 @@ qore_classid_t QoreClass::getIDForMethod() const {
 
 bool QoreClass::isSystem() const {
    return priv->sys;
+}
+
+bool QoreClass::isModulePublic() const {
+    return priv->pub;
+}
+
+bool QoreClass::isAbstract() const {
+    return priv->hasAbstract();
+}
+
+bool QoreClass::isFinal() const {
+    return priv->final;
+}
+
+bool QoreClass::isInjected() const {
+    return priv->inject;
 }
 
 void QoreClass::setSystem() {

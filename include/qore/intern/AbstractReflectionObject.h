@@ -41,6 +41,21 @@ public:
     DLLLOCAL ~AbstractReflectionObject();
 };
 
+//! access code modifiers
+enum qore_modifier_t {
+    MC_PUBLIC = (1 << 0),
+    MC_PRIVATE = (1 << 1),
+    MC_PRIVATEINTERNAL = (1 << 2),
+    MC_ABSTRACT = (1 << 3),
+    MC_STATIC = (1 << 4),
+    MC_SYNCHRONIZED = (1 << 5),
+    MC_DEPRECATED = (1 << 6),
+    MC_INJECTED = (1 << 7),
+    MC_BUILTIN = (1 << 8),
+    MC_USER = (1 << 9),
+    MC_FINAL = (1 << 10),
+};
+
 DLLLOCAL int get_access(ClassAccess access);
 DLLLOCAL const char* get_access_string(ClassAccess access);
 

@@ -43,17 +43,6 @@ int get_access(ClassAccess access) {
     return 0;
 }
 
-const char* get_access_string(ClassAccess access) {
-    switch (access) {
-        case Public: return "public";
-        case Private: return "private";
-        case Internal: return "private:internal";
-        default: break;
-    }
-    assert(false);
-    return nullptr;
-}
-
 AbstractReflectionObject::AbstractReflectionObject(QoreProgram* pgm) : pgm(pgm) {
     pgm->depRef();
 }

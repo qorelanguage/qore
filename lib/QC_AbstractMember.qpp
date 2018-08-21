@@ -100,7 +100,7 @@ Type AbstractMember::typeObject() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    return new QoreObject(QC_TYPE, m->pgm, new QoreType(member_get_type_info(reinterpret_cast<const QoreExternalNormalMember*>(m->mem))));
+    return new QoreObject(QC_TYPE, m->pgm, new QoreType(reinterpret_cast<const QoreExternalMemberVarBase*>(m->mem)->getTypeInfo()));
 }
 
 //! Returns the default value for the member or @ref nothing if the member has no default value
@@ -121,7 +121,7 @@ auto AbstractMember::getDefaultValue() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    member_get_default_value(reinterpret_cast<const QoreExternalNormalMember*>(m->mem), xsink);
+    return reinterpret_cast<const QoreExternalMemberVarBase*>(m->mem)->getDefaultValue(xsink);
 }
 
 //! Returns the source location of the member declaration
@@ -142,5 +142,5 @@ hash<SourceLocationInfo> AbstractMember::getSourceLocation() [flags=RET_VALUE_ON
     }
 
     // the constant ptr must be valid
-    return source_location_get_hash(member_get_source_location(reinterpret_cast<const QoreExternalNormalMember*>(m->mem)));
+    return reinterpret_cast<const QoreExternalMemberVarBase*>(m->mem)->getSourceLocation()->getHash();
 }

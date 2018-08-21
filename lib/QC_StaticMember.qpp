@@ -62,7 +62,7 @@ auto StaticMember::getValue() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    return static_cast<const QoreVarInfo*>(m->mem)->getReferencedValue();
+    return reinterpret_cast<const QoreExternalStaticMember*>(m->mem)->getValue();
 }
 
 //! Sets the value of the static member
@@ -83,7 +83,5 @@ nothing StaticMember::setValue(auto val) {
         return QoreValue();
     }
 
-    LValueHelper lvh(xsink);
-    const_cast<QoreVarInfo*>(static_cast<const QoreVarInfo*>(m->mem))->getLValue(lvh);
-    lvh.assign(val.refSelf(), "<value arugment to StaticMember::setValue()>");
+    reinterpret_cast<const QoreExternalStaticMember*>(m->mem)->setValue(val, xsink);
 }
