@@ -328,6 +328,10 @@ const QoreExternalMemberBase* TypedHashDecl::findLocalMember(const char* name) c
     return reinterpret_cast<const QoreExternalMemberBase*>(priv->findLocalMember(name));
 }
 
+const QoreExternalProgramLocation* TypedHashDecl::getSourceLocation() const {
+    return reinterpret_cast<const QoreExternalProgramLocation*>(priv->getParseLocation());
+}
+
 TypedHashDeclHolder::~TypedHashDeclHolder() {
     if (thd)
         typed_hash_decl_private::get(*thd)->deref();

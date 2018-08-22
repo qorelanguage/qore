@@ -39,8 +39,6 @@
 #include "qore/intern/QC_GlobalVar.h"
 #include "qore/intern/QC_TypedHash.h"
 #include "qore/intern/QC_FunctionVariant.h"
-#include "qore/intern/typed_hash_decl_private.h"
-#include "qore/intern/QoreNamespaceIntern.h"
 
 QoreReflectionTypedHash::QoreReflectionTypedHash(const char* path, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
     th = getProgram()->findHashDecl(path, ns);
@@ -186,8 +184,7 @@ hash<SourceLocationInfo> TypedHash::getSourceLocation() [flags=RET_VALUE_ONLY] {
     }
 
     // the typed hash ptr must be valid
-    const typed_hash_decl_private* th = typed_hash_decl_private::get(*thd->th);
-    return get_source_location(th->getParseLocation());
+    return thd->th->getSourceLocation()->getHash();
 }
 
 //! Returns the type object for this typed hash
