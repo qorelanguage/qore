@@ -698,11 +698,11 @@ class DebugTest inherits QUnit::Test {
                 return sprintf(\"%s,%d,%d,%d\", s, p, a, b);  #16
             }",
             "label-f1", NOTHING, "/usr/lib/my-source.q", 10, False);
-        p.parse(
+        p.parsePending(
             "sub doSleep(int ms) {
                 sleep(ms); #2
             }", "label-sleep", NOTHING, "/usr/lib/my-source.q", 100, False);
-        p.parse("sub main() { f1(10, 'MAIN'); }", "main.q", NOTHING, NOTHING, NOTHING, False);
+        p.parsePending("sub main() { f1(10, 'MAIN'); }", "main.q", NOTHING, NOTHING, NOTHING, False);
         p.parseCommit();
 
         ProgramControl pp = p.getProgram();
