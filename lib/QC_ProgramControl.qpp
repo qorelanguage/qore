@@ -60,6 +60,8 @@ hashdecl StatementInfo {
     int start_line;
     //! statement end line
     int end_line;
+    //! list of assigned breakpoints, unavailable if @ref no-debugging "%no-debugging" (since 0.8.13.7)
+    *list breakpoints;
 }
 
 //! The ProgramControl class provides safe information about a Qore program
@@ -293,13 +295,16 @@ list ProgramControl::getBreakpoints() {
 
 //! get information related to statement id
 /**
+   @param statementId
+   @param listBreakpoints list also breakpoints assigned to statement, no effect if @ref no-debugging "%no-debugging" (since 0.8.13.7)
+
    @return a hash of statement info
 
    @see
       @ref Qore::ProgramControl::findStatementId "ProgramControl::findStatementId()"
       @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId()"
 */
-hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId) {
+hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId, bool listBreakpoints = False) {
    if (!p->checkAllowDebugging(xsink))
       return QoreValue();
    AbstractStatement* s = p->resolveStatementId(statementId);
@@ -313,6 +318,15 @@ hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId) {
    ph->setKeyValueIntern("offset", new QoreBigIntNode(s->loc.offset));
    ph->setKeyValueIntern("start_line", new QoreBigIntNode(s->loc.start_line));
    ph->setKeyValueIntern("end_line", new QoreBigIntNode(s->loc.end_line));
+   if (listBreakpoints && p->checkAllowDebugging(xsink)) {
+      QoreBreakpointList_t bl;
+      p->getStatementBreakpoints(s, bl);
+      QoreListNode *l = new QoreListNode;
+      for (QoreBreakpointList_t::iterator it = bl.begin(); it != bl.end(); ++it) {
+         l->push((*it)->getQoreObject());
+      }
+      ph->setKeyValueIntern("breakpoints", l);
+   }
    return h;
 }
 

@@ -255,6 +255,7 @@ public:
    ProgramParseContext* plStack = nullptr;
    QoreProgramLocation parse_loc;
    QoreProgramLocation runtime_loc;
+   const AbstractStatement* runtime_statement;
    const char* parse_code = nullptr; // the current function, method, or closure being parsed
    void* parseState = nullptr;
    VNode* vstack = nullptr;  // used during parsing (local variable stack)
@@ -1163,6 +1164,16 @@ QoreProgramLocation update_get_runtime_location(const QoreProgramLocation& loc) 
 
 void update_runtime_location(const QoreProgramLocation& loc) {
    thread_data.get()->runtime_loc = loc;
+}
+
+const AbstractStatement* get_runtime_statement() {
+   return thread_data.get()->runtime_statement;
+}
+
+const AbstractStatement* update_get_runtime_statement(const AbstractStatement* s) {
+   const AbstractStatement* rv = thread_data.get()->runtime_statement;
+   thread_data.get()->runtime_statement = s;
+   return rv;
 }
 
 void set_parse_file_info(QoreProgramLocation& loc) {

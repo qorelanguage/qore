@@ -83,6 +83,7 @@ public namespace DebugProgramControl {
             #! source file search path
             string sourceSearchPath = "";
 
+            #! number of frames related to DebugProgramControl library when handleInterrupt() is invoked
             const frameOffset = 2;
         }
 
@@ -159,7 +160,6 @@ public namespace DebugProgramControl {
                 'event': change,
                 'info': getBreakpointInfo(b),
                 'stamp': now_us(),
-                'cx': cx,
             );
             broadcastDataImpl(sd);
         }
@@ -268,6 +268,12 @@ public namespace DebugProgramControl {
                                 sourceSearchPath = receiveData.value;
                             }
                             result = sourceSearchPath;
+                            break;
+                        case 'verbose':
+                            if (optionSet) {
+                                logger.verbose = receiveData.value;
+                            }
+                            result = logger.verbose;
                             break;
                         }
                     }
@@ -396,12 +402,8 @@ public namespace DebugProgramControl {
                     case 'list':
                         foreach ProgramControl p in (ProgramControl::getAllPrograms()) {
                             string pgmId = string(p.getProgramId());
-                            if (AbstractDebugControl::evalCondition((pgmName =~ /^[0-9]+$/) ? pgmId : p.getScriptName(), pgmName)) {
-                                result{pgmId}.scriptName = p.getScriptName();
-                                result{pgmId}.scriptPath = p.getScriptPath();
-                                #result{pgmId}.scriptDir = p.getScriptDir();
-                                result{pgmId}.threads = p.getThreadList();
-                                result{pgmId}.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
+                            if (AbstractDebugControl::evalCondition((pgmName =~ /^=[0-9]+$/) ? pgmId : (p.getScriptName() ?? ""), pgmName)) {
+                                result{pgmId} = getProgramInfo(p, receiveData.listFiles);
                             }
                         }
                         map result{$1.getProgramId()}.debugged = True, getAllPrograms(), exists result{$1.getProgramId()};
@@ -418,12 +420,7 @@ public namespace DebugProgramControl {
                     case 'create':
                         Program pgm = createProgram(receiveData.filename, NOTHING, receiveData.args);
                         ProgramControl p = pgm.getProgram();
-                        string pgmId = string(p.getProgramId());
-                        result{pgmId}.scriptName = p.getScriptName();
-                        result{pgmId}.scriptPath = p.getScriptPath();
-                        #result{pgmId}.scriptDir = p.getScriptDir();
-                        result{pgmId}.threads = ((background runAndDetach(pgm)), );
-                        result{pgmId}.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
+                        result{string(p.getProgramId())} = getProgramInfo(p, True, ((background runAndDetach(pgm)), ));
                         break;
                     case 'add':
                         {
@@ -534,6 +531,21 @@ public namespace DebugProgramControl {
                             break;
                         case 'source':
                             result = getSourceCode(pgmb, 'label', receiveData);
+                            break;
+                        }
+                        break;
+
+                    case 'statement':
+                        switch (shift cmd) {
+                        case 'get':
+                            int sid = resolveStatement(pgmb, receiveData.value);
+                            result = hash(pgmb.getStatementIdInfo(sid, True));
+                            list bkpts = remove result.breakpoints;
+                            result.id = sid;
+                            result.breakpoints = ();
+                            foreach Breakpoint b2 in (bkpts) {
+                                push result.breakpoints, getBreakpointInfo(b2, False);
+                            }
                             break;
                         }
                         break;
@@ -793,21 +805,76 @@ public namespace DebugProgramControl {
             throw "DEBUG-HANDLER-ERROR", sprintf("Cannot resolve statement from %y", value);
         }
 
-        private hash getBreakpointInfo(Breakpoint b) {
+        private hash getProgramInfo(ProgramControl p, bool listFiles = False, *list threads) {
+            hash result;
+            result.scriptName = p.getScriptName();
+            result.scriptPath = p.getScriptPath();
+            #resul.scriptDir = p.getScriptDir();
+            result.threads = threads ?? p.getThreadList();
+            result.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
+            if (result.debugging && listFiles) {
+                hash h;
+                h = p.getSourceFileNames();
+                if (h) {
+                    result.files = h;
+                }
+                h = p.getSourceLabels();
+                if (h) {
+                    result.labels = h;
+                }
+            }
+            return result;
+        }
+
+        private hash getBreakpointInfo(Breakpoint b, bool listStatements = True) {
             hash binfo.id = b.getBreakpointId();
             binfo.programId = b.getProgram().getProgramId();
             binfo.enabled = encodeValue('enabled', b.getEnabled(), boolStrings);
             binfo.threads = b.getThreadIds();
             binfo.policy = encodeValue('policy', b.getPolicy(), policyStrings);
-            binfo.statements = ();
-            foreach int sid in (b.getStatementIds()) {
-                push binfo.statements, ('id': sid) + b.getProgram().getStatementIdInfo(sid);
+            if (listStatements) {
+                binfo.statements = ();
+                foreach int sid in (b.getStatementIds()) {
+                    push binfo.statements, ('id': sid) + b.getProgram().getStatementIdInfo(sid);
+                }
+                if (!binfo.statements)
+                    remove binfo.statements;
             }
             if (!binfo.threads)
                 remove binfo.threads;
-            if (!binfo.statements)
-                remove binfo.statements;
             return binfo;
+        }
+
+        # stackInfo keys: file, [source], [offset], line
+        private *hash getSourceCodeFromFileOrLabel(ProgramControl pgm, hash stackInfo, int linesBefore, int linesAfter) {
+            string type = 'file';
+            int offset = 0;
+            hash h;
+            if (exists stackInfo.source) {
+                # label used
+                if (isSupportedSourceCodeForLabel()) {
+                    # use label
+                    type = 'label';
+                    h{type} = stackInfo.file;
+                } else {
+                    # fallback to file
+                    offset = stackInfo.offset;
+                    h{type} = stackInfo.source;
+                }
+            } else {
+                h{type} = stackInfo.file;
+            }
+            int n = stackInfo.line + offset - linesBefore;
+            if (n < 1) {
+                n = 1;
+            }
+            h.line = n;
+            n = stackInfo.line + offset + linesAfter;
+            if (n < h.line) {
+                h.line = n;
+            }
+            h.count = n - h.line + 1;
+            return getSourceCode(pgm, type, h).('code', 'startline', 'origin') + ('currentline': stackInfo.line + offset);
         }
 
         private *hash getSourceCode(ProgramControl pgmb, string type, hash rd) {
@@ -815,14 +882,15 @@ public namespace DebugProgramControl {
             if (!exists (type=='file' ? pgmb.getSourceFileNames() : pgmb.getSourceLabels() ){rd{type}}) {
                 throw "DEBUG-HANDLER-ERROR", sprintf("Cannot get source for %y", rd{type});
             }
-            string content;
+            hash<auto> sc;
             if (type=='file') {
-                content = getSourceCodeFromFile(rd{type});
+                sc = getSourceCodeFromFile(rd{type});
             } else {
-                content = getSourceCodeForLabel(rd{type});
+                sc = getSourceCodeForLabel(rd{type});
             }
-            res.checksum.algorithm= 'sha1';
-            res.checksum.cs = content.toSHA1();
+            res.checksum.algorithm = 'sha1';
+            res.checksum.cs = sc.content.toSHA1();
+            res.origin = sc.origin;
             if (exists rd.count && rd.count <= 0) {
                 # skip source, just checksum
             } else {
@@ -831,20 +899,24 @@ public namespace DebugProgramControl {
                     rd.line = 1;
                 }
                 if (rd.line > 1 || rd.count > 0) {
-                    list l = content.split("\n");
+                    list l = sc.content.split("\n");
                     l = l[rd.line-1..rd.line+rd.count-2];
-                    content = l.join("\n");
+                    sc.content = l.join("\n");
                 }
-                res.code = content;
+                res.code = sc.content;
                 res.startline = rd.line;
             }
             return res;
         }
 
-        private string getSourceCodeForLabel(string name) {
+        private bool isSupportedSourceCodeForLabel() {
+            return False;
+        }
+
+        private hash<auto> getSourceCodeForLabel(string name) {
             throw "DEBUG-HANDLER-ERROR", "Local debug server does not support label source code";
         }
-        private string getSourceCodeFromFile(string name) {
+        private hash<auto> getSourceCodeFromFile(string name) {
             if (!absolute_path(name)) {
                 foreach string p in (sourceSearchPath.split(':')) {
                     if (p != "") {
@@ -859,7 +931,10 @@ public namespace DebugProgramControl {
                     }
                 }
             }
-            return ReadOnlyFile::readTextFile(name);
+            return (
+                'origin': name,
+                'content': ReadOnlyFile::readTextFile(name),
+            );
         }
 
         private *hash serializeLocal(string name, hash val) {
@@ -880,7 +955,9 @@ public namespace DebugProgramControl {
                 while (stack.size() > ctx.stackSize - frameOffset) {
                     shift stack;
                 }
-                # FIXME: workaround for bug 2468
+                # when debug injection stuff is invoked in C++ then it is not real function call which would
+                # create new stack entry (and frame). Data related to statement being debugged are passed
+                # as handler parameters so we need modify the stack entry (see issue #2468)
                 stack[0].function = sprintf("interrupt: %s", ctx.intrInfo.func);
                 if (ctx.intrInfo.statementid) {
                     stack[0].file = ctx.intrInfo.file;
@@ -894,11 +971,15 @@ public namespace DebugProgramControl {
                         remove stack[0].offset;
                     }
                 }
+                stack[0].programid = ctx.intrInfo.pgmid;
+                if (ctx.intrInfo.statementid) {
+                    stack[0].statementid = ctx.intrInfo.statementid;
+                }
             }
             return stack;
         }
 
-        private *hash handleInterrupt(string func, ProgramControl pgm, reference runState, *int statementId, *string refName, *reference refValue, *int breakpointId, *hash except) {
+        private *hash handleInterrupt(string func, ProgramControl pgm, reference runState, reference runToStatementId, *int statementId, *string refName, *reference refValue, *int breakpointId, *hash except) {
             # serialize data, send to all websockets, break/suspend thread
             int tid = gettid();
             hash ctx = (
@@ -913,9 +994,11 @@ public namespace DebugProgramControl {
                     'stamp': now_us(),
                     'func': func,
                     'runstate': encodeValue('runState', runState, runStateStrings),
+                    'runtostatementid': runToStatementId,
                     'frame': 0,
                 ),
             );
+            runToStatementId = 0; # reset RunToStatement
             ctx.intrInfo.framecnt = ctx.stackSize - frameOffset;
             if (exists statementId) {
                 ctx.intrInfo.statementid = statementId;
@@ -928,7 +1011,19 @@ public namespace DebugProgramControl {
                 ctx.intrInfo.file = location.file;
                 ctx.intrInfo.line = location.start_line;
                 ctx.intrInfo.endline = location.end_line;
-                #ctx.intrInfo.statement = location;
+                if (location.source != "") {
+                    ctx.intrInfo.source = location.source;
+                }
+                ctx.intrInfo.offset = location.offset;
+                try {
+                    ctx.intrInfo.linecode = getSourceCodeFromFileOrLabel(pgm, (
+                        'file': location.file,
+                        'line': location.start_line,
+                        'source': location.source != "" ? location.source : NOTHING,
+                        'offset': location.offset,
+                    ), 0, 0).code;
+                } catch (hash<ExceptionInfo> ex) {
+                }
             }
             if (exists except) {
                 # we need make real copy as the worker thread might keep reference slightly longer and
@@ -960,6 +1055,9 @@ public namespace DebugProgramControl {
              #   assert(!exists ctxThread{tid});
                 ctxThread{tid} = ctx;
             }
+
+            # debugger client cannot ask for stack when procession message as it dead lock thread handler so we add it to original message
+            ctx.intrInfo.stack = adjustStack(get_thread_call_stack(), ctx);
 
 %ifdef DEBUG_ADD_LOCAL_VARS
             for (int i=0; i < 8; i++) {
@@ -1016,6 +1114,9 @@ public namespace DebugProgramControl {
                             runState = resolveValue('runState', shift cmd, runStateStrings, runState);
                             if (exists refName) {
                                 refValue = ctxCT{refName};
+                            }
+                            if (rd.value) {
+                                runToStatementId = resolveStatement(pgm, rd.value);
                             }
                             ret = True;
                             break;
@@ -1123,18 +1224,7 @@ public namespace DebugProgramControl {
                             list stack = adjustStack(get_thread_call_stack(), ctx);
                             int frame = rd.frameid ?? ctxCT.frameId;
                             if (frame < stack.size()) {
-                                hash h.name = stack[frame].file;
-                                int n = stack[frame].line - (rd.linesbefore ?? 3);
-                                if (n < 1) {
-                                    n = 1;
-                                }
-                                h.line = n;
-                                n = stack[frame].line + (rd.linesafter ?? 3);
-                                if (n < h.line) {
-                                    h.line = n;
-                                }
-                                h.count = n - h.line + 1;
-                                result = getSourceCode(pgm, 'file', h).('code', 'startline') + ('currentline': stack[frame].line);
+                                result = getSourceCodeFromFileOrLabel(pgm, stack[frame], rd.linesbefore ?? 3, rd.linesafter ?? 3);
                             }
                             break;
                         }
@@ -1181,6 +1271,7 @@ public namespace DebugProgramControl {
                 'tid': tid,
                 'stamp': now_us(),
                 'runstate': encodeValue('runState', runState, runStateStrings),
+                'runtostatementid': runToStatementId,
             );
             try {
                 broadcastDataImpl(sd);
@@ -1189,37 +1280,55 @@ public namespace DebugProgramControl {
             }
         }
 
-        onAttach(ProgramControl pgm, reference rs) {
-            handleInterrupt("attach", pgm, \rs);
+        onAttach(ProgramControl pgm, reference rs, reference runToStatementId) {
+            handleInterrupt("attach", pgm, \rs, \runToStatementId);
         }
 
-        onDetach(ProgramControl pgm, reference rs) {
-            handleInterrupt("detach", pgm, \rs);
+        onDetach(ProgramControl pgm, reference rs, reference runToStatementId) {
+            handleInterrupt("detach", pgm, \rs, \runToStatementId);
         }
 
-        onStep(ProgramControl pgm, int blockStatementId, *int statementId, *int breakpointId, reference flow, reference rs) {
-            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "flow", \flow, breakpointId);
+        onStep(ProgramControl pgm, int blockStatementId, *int statementId, *int breakpointId, reference flow, reference rs, reference runToStatementId) {
+            statementId = statementId ?? blockStatementId;
+            /*
+                when a statement is parsed in non-pgm context then it is not registered in pgm and no statementId can be resolved
+                Typical case is bootstrap when program is starting. If we need debug even this code then we need add relation statment->program or
+                reassign statement index from original program which might be impossible. The former case seems as memory wasting as 99.9% statement are
+                assigned to program being debugged and skipping bootstrap is demanded feature.
+            */
+            if (statementId) {
+                handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, \runToStatementId, statementId, "flow", \flow, breakpointId);
+            }
         }
 
         # backward compatability only when executed with <=0.8.13.2
-        onStep(ProgramControl pgm, int blockStatementId, *int statementId, reference flow, reference rs) {
-            handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, statementId ?? blockStatementId, "flow", \flow);
+        onStep(ProgramControl pgm, int blockStatementId, *int statementId, reference flow, reference rs, reference runToStatementId) {
+            statementId = statementId ?? blockStatementId;
+            if (statementId) {
+                handleInterrupt(statementId ? 'step' : 'block', pgm, \rs, \runToStatementId, statementId, "flow", \flow);
+            }
         }
 
-        onFunctionEnter(ProgramControl pgm, int statementId, reference rs) {
-            handleInterrupt('funcEnter', pgm, \rs, statementId);
+        onFunctionEnter(ProgramControl pgm, int statementId, reference rs, reference runToStatementId) {
+            if (statementId) {
+                handleInterrupt('funcEnter', pgm, \rs, \runToStatementId, statementId);
+            }
         }
 
-        onFunctionExit(ProgramControl pgm, int statementId, reference result, reference rs) {
-            handleInterrupt('funcExit', pgm, \rs, statementId, "result", \result);
+        onFunctionExit(ProgramControl pgm, int statementId, reference result, reference rs, reference runToStatementId) {
+            if (statementId) {
+                handleInterrupt('funcExit', pgm, \rs, \runToStatementId, statementId, "result", \result);
+            }
         }
 
-        onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference rs) {
-            handleInterrupt('exception', pgm, \rs, statementId, "dismiss", \dismiss, NOTHING, ex);
+        onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference rs, reference runToStatementId) {
+            if (statementId) {
+                handleInterrupt('exception', pgm, \rs, \runToStatementId, statementId, "dismiss", \dismiss, NOTHING, ex);
+            }
         }
 
-        onExit(ProgramControl pgm, int statementId, reference result, reference rs) {
-            handleInterrupt('exit', pgm, \rs, statementId, "result", \result);
+        onExit(ProgramControl pgm, int statementId, reference result, reference rs, reference runToStatementId) {
+            handleInterrupt('exit', pgm, \rs, \runToStatementId, statementId, "result", \result);
         }
     }
 }

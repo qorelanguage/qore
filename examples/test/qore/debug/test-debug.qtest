@@ -19,14 +19,14 @@ const ST_EXIT = 7;
 const ST_DETACH = 8;
 
 const stResolve = (
-  ST_ATTACH: "onAttach",
-  ST_BLOCK: "onBlock",
-  ST_STEP: "onStep",
-  ST_FUNC_ENTER: "onFunctionEnter",
-  ST_FUNC_EXIT: "onFunctionExit",
-  ST_EXCEPTION: "onException",
-  ST_EXIT: "onExit",
-  ST_DETACH: "onDetach",
+    ST_ATTACH: "onAttach",
+    ST_BLOCK: "onBlock",
+    ST_STEP: "onStep",
+    ST_FUNC_ENTER: "onFunctionEnter",
+    ST_FUNC_EXIT: "onFunctionExit",
+    ST_EXCEPTION: "onException",
+    ST_EXIT: "onExit",
+    ST_DETACH: "onDetach",
 );
 
 # test top-level statement
@@ -34,129 +34,134 @@ hash sub tstTlsGetStack() {return get_all_thread_call_stacks(){gettid()}[0];}
 nothing sub tstTlsFunction() {
     int i = tstTlsClosure();  #2
     while (i > 1) {  #3
-      i--;   #4
+        i--;   #4
     } #5
 } #6
 
 code tstTlsClosure = int sub() { #8
-   int i = 1; #9
-   return i; #10
+    int i = 1; #9
+    return i; #10
 }; #11
 # end test top-level statement
 
 
 class MyDebugProgram inherits DebugProgram {
-  public {
-    list traceLog;
-    list actions;
-    *softlist attach_only_tids;
-    Counter handleCount();
-  }
-
-  constructor(): DebugProgram() {
-    printf("MyDebugProgram::constructor()\n");
-  }
-
-  nothing setActions(list act, *softlist attach_only) {
-    traceLog = ();
-    actions = act;
-    attach_only_tids = attach_only;
-  }
-  any getAction(int func) {
-    if (!actions) return;
-    #printf("Act: %N\n", actions);
-    if (!exists actions[0].func || actions[0].func == func) {
-    #printf("Act2: %N\n", actions);
-        return actions[0];
+    public {
+        list traceLog;
+        list actions;
+        *softlist attach_only_tids;
+        Counter handleCount();
     }
-  }
-  handle(int func, ProgramControl pgm, reference runState, *int statementId, *hash extra) {
-    *hash location;
-    handleCount.inc();
-    if (statementId)
-      location = pgm.getStatementIdInfo(statementId);
-    #printf("%y: pgm: %y, %y, %y, %y\n", func, pgm, runState, location, extra);
-    hash it = (
-      'func': stResolve{func},
-      'file': location.file,
-      'line': location.start_line,
-      'tid': gettid(),
-    );
-    any act = getAction(func);
-    if (exists act.localVars) {
-      hash v = get_local_vars(2); # get local vars from program being debugged
-      hash vv;
-      foreach string lv in (act.localVars) {
-        vv{lv}= v{lv}.value;
-      }
-      it.localVars = vv;
+
+    constructor(): DebugProgram() {
+        printf("MyDebugProgram::constructor()\n");
     }
-    it += extra;
-    push traceLog, it;
-    if (exists act) {
-      shift actions;
-      if (act.typeCode() == NT_HASH) {
-        if (exists act.runState) {
-          runState = act.runState;
+
+    nothing setActions(list act, *softlist attach_only) {
+        traceLog = ();
+        actions = act;
+        attach_only_tids = attach_only;
+    }
+    auto getAction(int func) {
+        if (!actions) return;
+        #printf("Act: %N\n", actions);
+        if (!exists actions[0].func || actions[0].func == func) {
+            #printf("Act2: %N\n", actions);
+            return actions[0];
         }
-      } else {
-        runState = act;
-      }
     }
-    #printf("it:%y, runState:%d, act:%y\n", it, runState, act);
-  }
-
-  onAttach(ProgramControl pgm, reference runState) {
-    if (attach_only_tids && !attach_only_tids.contains(gettid())) {
-        #printf("Avoid attach %d\n", gettid());
-        runState = DebugDetach;
-    } else {
-        handle(ST_ATTACH, pgm, \runState);
+    handle(int func, ProgramControl pgm, reference runState, reference runToStatementId, *int statementId, *hash extra) {
+        *hash location;
+        handleCount.inc();
+        if (statementId)
+            location = pgm.getStatementIdInfo(statementId);
+        #printf("%y: pgm: %y, %y, %y, %y, %y\n", func, pgm, runState, runToStatementId, location, extra);
+        hash it = (
+            'func': stResolve{func},
+            'file': location.file,
+            'line': location.start_line,
+            'tid': gettid(),
+            'runToStatementId': runToStatementId,
+        );
+        auto act = getAction(func);
+        if (exists act.localVars) {
+            hash v = get_local_vars(2); # get local vars from program being debugged
+            hash vv;
+            foreach string lv in (act.localVars) {
+                vv{lv}= v{lv}.value;
+            }
+            it.localVars = vv;
+        }
+        it += extra;
+        push traceLog, it;
+        runToStatementId = 0;
+        if (exists act) {
+            shift actions;
+            if (act.typeCode() == NT_HASH) {
+                if (exists act.runState) {
+                    runState = act.runState;
+                }
+                if (exists act.runToStatementId) {
+                    runToStatementId = act.runToStatementId;
+                }
+            } else {
+                runState = act;
+            }
+        }
+        #printf("it:%y, runState:%d, runToStatementId:%d, act:%y\n", it, runState, runToStatementId, act);
     }
-  }
 
-  onDetach(ProgramControl pgm, reference runState) {
-    handle(ST_DETACH, pgm, \runState);
-  }
-
-  onStep(ProgramControl pgm, int blockStatementId, *int statementId, *int breakpointId, reference flow, reference runState) {
-    int st = statementId ? ST_STEP : ST_BLOCK;
-    any act = getAction(st);
-    if (exists act.flow) {
-        #printf("loc:%y, flow: %y\n", statementId, act.flow);
-        flow = act.flow;
+    onAttach(ProgramControl pgm, reference runState, reference runToStatementId) {
+        if (attach_only_tids && !attach_only_tids.contains(gettid())) {
+            #printf("Avoid attach %d\n", gettid());
+            runState = DebugDetach;
+        } else {
+            handle(ST_ATTACH, pgm, \runState, \runToStatementId);
+        }
     }
-    handle(st, pgm, \runState, statementId ?? blockStatementId, {"bkptId": breakpointId});
-  }
 
-  onFunctionEnter(ProgramControl pgm, int statementId, reference runState) {
-    handle(ST_FUNC_ENTER, pgm, \runState, statementId);
-  }
-
-  onFunctionExit(ProgramControl pgm, int statementId, reference returnValue, reference runState) {
-    any act = getAction(ST_FUNC_EXIT);
-    if (exists act.retVal) {
-        returnValue = act.retVal;
+    onDetach(ProgramControl pgm, reference runState, reference runToStatementId) {
+        handle(ST_DETACH, pgm, \runState, \runToStatementId);
     }
-    handle(ST_FUNC_EXIT, pgm, \runState, statementId, ("retVal": returnValue));
-  }
 
-  onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference runState) {
-    any act = getAction(ST_EXCEPTION);
-    if (exists act.dismiss) {
-        dismiss = act.dismiss;
+    onStep(ProgramControl pgm, int blockStatementId, *int statementId, *int breakpointId, reference flow, reference runState, reference runToStatementId) {
+        int st = statementId ? ST_STEP : ST_BLOCK;
+        auto act = getAction(st);
+        if (exists act.flow) {
+            #printf("loc:%y, flow: %y\n", statementId, act.flow);
+            flow = act.flow;
+        }
+        handle(st, pgm, \runState, \runToStatementId, statementId ?? blockStatementId, {"bkptId": breakpointId});
     }
-    #printf("Exception: %y\n", ex);
-    handle(ST_EXCEPTION, pgm, \runState, statementId, ("ex": ex));
-  }
 
-  onExit(ProgramControl pgm, int statementId, reference returnValue, reference runState) {
-    any act = getAction(ST_EXIT);
-    if (exists act.retVal) {
-        returnValue = act.retVal;
+    onFunctionEnter(ProgramControl pgm, int statementId, reference runState, reference runToStatementId) {
+        handle(ST_FUNC_ENTER, pgm, \runState, \runToStatementId, statementId);
     }
-    handle(ST_EXIT, pgm, \runState, statementId, ("retVal": returnValue));
-  }
+
+    onFunctionExit(ProgramControl pgm, int statementId, reference returnValue, reference runState, reference runToStatementId) {
+        auto act = getAction(ST_FUNC_EXIT);
+        if (exists act.retVal) {
+            returnValue = act.retVal;
+        }
+        handle(ST_FUNC_EXIT, pgm, \runState, \runToStatementId, statementId, ("retVal": returnValue));
+    }
+
+    onException(ProgramControl pgm, int statementId, hash ex, reference dismiss, reference runState, reference runToStatementId) {
+        auto act = getAction(ST_EXCEPTION);
+        if (exists act.dismiss) {
+            dismiss = act.dismiss;
+        }
+        #printf("Exception: %y\n", ex);
+        handle(ST_EXCEPTION, pgm, \runState, \runToStatementId, statementId, ("ex": ex));
+    }
+
+    onExit(ProgramControl pgm, int statementId, reference returnValue, reference runState, reference runToStatementId) {
+        auto act = getAction(ST_EXIT);
+        if (exists act.retVal) {
+            returnValue = act.retVal;
+        }
+        handle(ST_EXIT, pgm, \runState, \runToStatementId, statementId, ("retVal": returnValue));
+    }
 
 }
 
@@ -210,23 +215,23 @@ class DebugTest inherits QUnit::Test {
     # do not  add/delete lines
     hash tstGetStack() {return get_all_thread_call_stacks(){gettid()}[0];}
     int tstFunction2(int recurseCnt) {
-      if (recurseCnt > 0) {
-        return tstFunction2(recurseCnt-1)+1;
-      } else {
-        return 0;
-      }
+        if (recurseCnt > 0) {
+            return tstFunction2(recurseCnt-1)+1;
+        } else {
+            return 0;
+        }
     }
     string tstFunction(int i, string s) {
-      if (i > 0) {
-        s += sprintf(",i:%d", i);
-      } else {
-        s = "";
-      }
-      while (i > 0) {
-        i--;
-      }
-      tstFunction2(3);
-      return "DONE";
+        if (i > 0) {
+            s += sprintf(",i:%d", i);
+        } else {
+            s = "";
+        }
+        while (i > 0) {
+            i--;
+        }
+        tstFunction2(3);
+        return "DONE";
     }
     tstNoRetVal() {
     }
@@ -239,19 +244,19 @@ class DebugTest inherits QUnit::Test {
         }
         return res;
     }
-    any tstProgram() {
-      int i = tstLoop();
-      string s = i.type();
-      int tid = gettid();
-      string ret = tstFunction(1, "Func");
-      tstNoRetVal();
-      s = sprintf("%s", ret);  # just test if ret do not coredumps
-      try {
-        i = (tid+s.size()+ret.size()) / (tid-tid);
-      } catch (hash ex) {
-        s = ex.err;
-      }
-      return s;
+    auto tstProgram() {
+        int i = tstLoop();
+        string s = i.type();
+        int tid = gettid();
+        string ret = tstFunction(1, "Func");
+        tstNoRetVal();
+        s = sprintf("%s", ret);  # just test if ret do not coredumps
+        try {
+            i = (tid+s.size()+ret.size()) / (tid-tid);
+        } catch (hash ex) {
+            s = ex.err;
+        }
+        return s;
     }
     bool tstBreakProgram() {
         int max_ms = 1000;
@@ -304,16 +309,19 @@ class DebugTest inherits QUnit::Test {
             if (exists el.ex) {
                 testAssertionValue(sprintf(name+':tracelog %d exception err', i), al.ex.err, el.ex);
             }
+            if (exists el.runToStatementId) {
+                testAssertionValue(sprintf(name+':tracelog %d bkptid', i), al.runToStatementId, el.runToStatementId);
+            }
             i++;
         }
         testAssertionValue(sprintf(name+':tracelog end check, i:%d', i), debugProgram.traceLog, ());
     }
-    checkProgram(string name, list actions, list traceLog, any expectedRet) {
+    checkProgram(string name, list actions, list traceLog, auto expectedRet) {
         printf("checkProgram(%y)\n", name);
         debugProgram.setActions(actions);
 #printf("Actions: %N\n", debugProgram.actions);
         debugProgram.addProgram(thisProgram);
-        any ret = tstProgram();
+        auto ret = tstProgram();
         debugProgram.removeProgram(thisProgram);
 #printf("stack: %N\n", stack);
 #printf("expected log: %N\n", traceLog);
@@ -361,7 +369,7 @@ class DebugTest inherits QUnit::Test {
         semaphore.lock();
         counter.inc();
         background debugBreakThread(tid);
-        any res = tstBreakProgram();
+        auto res = tstBreakProgram();
         semaphore.unlock();
         debugProgram.waitForTerminationAndClear();
         testAssertionValue(sprintf(name+':program finished'), res, breakRes);  # do when debug is over not to make QUnit exception
@@ -483,6 +491,26 @@ class DebugTest inherits QUnit::Test {
             push l, ("func": ST_ATTACH);
         }*/
         checkProgram("do not attach", list(DebugDetach), list(), "DIVISION-BY-ZERO");
+
+        int sid_tstLoop_4 = thisProgram.findStatementId('', line.tstLoop+4);
+        int sid_tstFunction_1 = thisProgram.findStatementId('', line.tstFunction+1);
+        int sid_tstProgram_12 = thisProgram.findStatementId('', line.tstProgram+12);
+
+        l = (
+            ("func": ST_STEP, "line": line.tstLoop+4, 'runToStatementId': sid_tstLoop_4),
+            ("func": ST_STEP, "line": line.tstLoop+4, 'runToStatementId': sid_tstLoop_4),
+            ("func": ST_FUNC_EXIT, "line": line.tstLoop+1),
+            ("func": ST_STEP, "line": line.tstFunction+1, 'runToStatementId': sid_tstFunction_1),
+            ("func": ST_EXCEPTION, "line": line.tstProgram+8, "ex": "DIVISION-BY-ZERO"),
+        );
+        checkProgram("run to statement", list(
+            ('runState': DebugRun, 'runToStatementId': sid_tstLoop_4),
+            ('runState': DebugUntilReturn, 'runToStatementId': sid_tstLoop_4),  # but stop at statement
+            ('runState': DebugUntilReturn),
+            ('runState': DebugRun, 'runToStatementId': sid_tstFunction_1),
+            ('runState': DebugRun, 'runToStatementId': sid_tstProgram_12), # but stop on exception
+            DebugRun,
+            ), l, "DIVISION-BY-ZERO");
     }
 
     singleThreadBreakpointTest() {
@@ -499,7 +527,11 @@ class DebugTest inherits QUnit::Test {
         b1.setEnabled(True);
         b1.addThreadId(gettid());
         b1.assignProgram(thisProgram);
-        b1.assignStatement(thisProgram.findStatementId('', line.tstProgram+5));
+        int sid = thisProgram.findStatementId('', line.tstProgram+5);
+        b1.assignStatement(sid);
+
+        hash<StatementInfo> si = thisProgram.getStatementIdInfo(sid, True);
+        testAssertionValue('getBreakpointId', b1.getBreakpointId(), si.breakpoints[0].getBreakpointId());
 
         b2.setEnabled(True);
         b2.addThreadId(gettid());
@@ -648,37 +680,37 @@ class DebugTest inherits QUnit::Test {
         Program p();
         # stress statement test
         p.parsePending(
-         "*string sub f1(int p, string s) {
-            int a; int b;  #2
-            a = 1; b = 2;  #3
-            {
-              a = a + b; doSleep(10); #5
-              {
-                if (p > 0) {  #7
-                  b = 1+  #8
-                      1+
-                      1+
-                      1+
-                      1;  #12
-                } #13
-              }
-            }
-            return sprintf(\"%s,%d,%d,%d\", s, p, a, b);  #16
-          }",
-          "label-f1", NOTHING, "/usr/lib/my-source.q", 10, False);
+            "*string sub f1(int p, string s) {
+                int a; int b;  #2
+                a = 1; b = 2;  #3
+                {
+                a = a + b; doSleep(10); #5
+                {
+                    if (p > 0) {  #7
+                    b = 1+  #8
+                        1+
+                        1+
+                        1+
+                        1;  #12
+                    } #13
+                }
+                }
+                return sprintf(\"%s,%d,%d,%d\", s, p, a, b);  #16
+            }",
+            "label-f1", NOTHING, "/usr/lib/my-source.q", 10, False);
         p.parse(
-         "sub doSleep(int ms) {
-            sleep(ms); #2
-          }", "label-sleep", NOTHING, "/usr/lib/my-source.q", 100, False);
+            "sub doSleep(int ms) {
+                sleep(ms); #2
+            }", "label-sleep", NOTHING, "/usr/lib/my-source.q", 100, False);
         p.parse("sub main() { f1(10, 'MAIN'); }", "main.q", NOTHING, NOTHING, NOTHING, False);
         p.parseCommit();
 
         ProgramControl pp = p.getProgram();
 
-	    hash h = pp.getSourceLabels();
+        hash h = pp.getSourceLabels();
         testAssertionValue(name+'getSourceLabels()', h, ('label-f1':('/usr/lib/my-source.q': 10), 'label-sleep': ('/usr/lib/my-source.q': 100)));
 
-	    h = pp.getSourceFileNames();
+        h = pp.getSourceFileNames();
         testAssertionValue(name+'getSourceFileNames()', h, ('/usr/lib/my-source.q': ('label-f1': 10, 'label-sleep': 100), 'main.q': hash()));
 
         assertThrows('PROGRAM-STATEMENT-ERROR', \pp.findStatementId(), ("main.q", 10), name+'findStatementId("main.q", 10) line beyond');
@@ -690,8 +722,8 @@ class DebugTest inherits QUnit::Test {
         testAssertionValue(name+'findStatementId("main.q", 1)', sid > 0, True);
 
         hash info;
-        info = pp.getStatementIdInfo(sid);
-        testAssertionValue(name+'getStatementIdInfo("main.q", 1)', info, ('file': 'main.q', 'source': '', 'offset': 0, 'start_line': 1, 'end_line': 1) );
+        info = pp.getStatementIdInfo(sid, True);
+        testAssertionValue(name+'getStatementIdInfo("main.q", 1)', info, ('file': 'main.q', 'source': '', 'offset': 0, 'start_line': 1, 'end_line': 1, 'breakpoints': ()) );
 
         sid = pp.findStatementId("label-f1", 2);
         testAssertionValue(name+'findStatementId("label-f1", 2) label match', sid > 0, True);
