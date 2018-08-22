@@ -28,7 +28,6 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QC_FunctionVariant.h"
-#include "qore/intern/Function.h"
 
 //! The class for %Qore function variants
 /**
@@ -44,7 +43,7 @@ qclass FunctionVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; vpare
 /** @throw FUNCTIONVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
  */
 FunctionVariant::constructor() {
-   xsink->raiseException("FUNCTIONVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+    xsink->raiseException("FUNCTIONVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
 //! calls the given function variant and returns the value returned by the function

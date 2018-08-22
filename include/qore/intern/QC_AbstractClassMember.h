@@ -44,12 +44,16 @@ public:
     const QoreClass* cls;
     bool is_static;
 
-    DLLLOCAL QoreReflectionClassMember(QoreProgram* pgm, const QoreClass* cls, const char* name, const QoreMemberInfoBaseAccess* mem, bool is_static) :
+    DLLLOCAL QoreReflectionClassMember(QoreProgram* pgm, const QoreClass* cls, const char* name, const QoreExternalMemberBase* mem, bool is_static) :
         QoreReflectionMember(pgm, name, mem), cls(cls), is_static(is_static) {
     }
 
     DLLLOCAL ClassAccess getAccess() const {
-        return static_cast<const QoreMemberInfoBaseAccess*>(mem)->access;
+        return reinterpret_cast<const QoreExternalMemberVarBase*>(mem)->getAccess();
+    }
+
+    DLLLOCAL const char* getAccessString() const {
+        return reinterpret_cast<const QoreExternalMemberVarBase*>(mem)->getAccessString();
     }
 };
 

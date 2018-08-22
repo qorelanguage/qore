@@ -48,8 +48,8 @@
 
 #include <string>
 
-// forward declaration of code variant class
-class AbstractQoreFunctionVariant;
+// forward declarations
+class QoreExternalFunction;
 
 //! namespace class handler function type
 /** called when a class cannot be found in the namespace
@@ -226,8 +226,13 @@ public:
     //! this function must be called before the QoreNamespace object is deleted or a crash could result due if constants and/or class static vars contain objects
     DLLEXPORT void deleteData(ExceptionSink* xsink);
 
-    // adds a function variant
+    //! adds a function variant
     DLLEXPORT void addBuiltinVariant(const char* name, q_func_n_t f, int64 code_flags = QCF_NO_FLAGS, int64 functional_domain = QDOM_DEFAULT, const QoreTypeInfo* returnTypeInfo = 0, unsigned num_params = 0, ...);
+
+    //! find a function in the current namespace; returns nullptr if not found
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const QoreExternalFunction* findLocalFunction(const char* name) const;
 };
 
 //! the root namespace of a QoreProgram object
@@ -307,6 +312,27 @@ public:
     DLLEXPORT const QoreNamespace* operator*() const;
     //! returns the namespace
     DLLEXPORT const QoreNamespace* get() const;
+};
+
+//! allows functions in a namespace to be iterated
+/** @since %Qore 0.9
+ */
+class QoreNamespaceFunctionIterator {
+public:
+    //! creates the iterator
+    DLLEXPORT QoreNamespaceFunctionIterator(const QoreNamespace* ns);
+
+    //! destroys the iterator
+    DLLEXPORT ~QoreNamespaceFunctionIterator();
+
+    //! moves to the next position; returns true if on a valid position
+    DLLEXPORT bool next();
+
+    //! returns the function
+    DLLEXPORT const QoreExternalFunction* get() const;
+
+private:
+    class qore_namespace_function_iterator* priv;
 };
 
 #endif // QORE_NAMESPACE_H

@@ -55,6 +55,7 @@ public:
 typedef QoreMemberMapBase<HashDeclMemberInfo> HashDeclMemberMap;
 
 class typed_hash_decl_private {
+friend class typed_hash_decl_member_iterator;
 public:
     DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc) {
     }
@@ -221,6 +222,10 @@ public:
 
     DLLLOCAL const HashDeclMemberMap& getMembers() const {
         return members;
+    }
+
+    DLLLOCAL const HashDeclMemberInfo* findLocalMember(const char* name) const {
+        return members.find(name);
     }
 
 protected:

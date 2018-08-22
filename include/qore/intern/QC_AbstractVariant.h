@@ -40,20 +40,10 @@ class AbstractQoreFunctionVariant;
 
 class QoreReflectionVariant : public QoreReflectionFunction {
 public:
-    const AbstractQoreFunctionVariant* variant;
+    const QoreExternalVariant* variant;
 
-    DLLLOCAL QoreReflectionVariant(QoreProgram* pgm, const QoreFunction* func, const AbstractQoreFunctionVariant* variant) :
+    DLLLOCAL QoreReflectionVariant(QoreProgram* pgm, const QoreExternalFunction* func, const QoreExternalVariant* variant) :
         QoreReflectionFunction(pgm, func), variant(variant) {
-    }
-
-    DLLLOCAL int64 getDomain() const {
-        int64 rc = variant->getFunctionality();
-        const QoreClass* cls = variant->getClass();
-        if (cls) {
-            rc |= cls->getDomain64();
-        }
-
-        return rc;
     }
 };
 

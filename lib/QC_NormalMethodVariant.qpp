@@ -30,13 +30,12 @@
 #include "qore/intern/QC_NormalMethodVariant.h"
 #include "qore/intern/QC_AbstractMethod.h"
 
-int check_variant_call(const AbstractQoreFunctionVariant* v, QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
+int check_variant_call(const QoreExternalVariant* v, QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
     if (check_call(obj, m, xsink)) {
         return -1;
     }
 
     const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v);
-
     // we have to explicitly check for abstract methods here and throw an exception
     if (mv->isAbstract()) {
         xsink->raiseException("ABSTRACT-VARIANT-ERROR", "cannot call abstract variant %s::%s(%s) directly",
@@ -62,7 +61,7 @@ qclass NormalMethodVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; v
 /** @throw NORMALMETHODVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
  */
 NormalMethodVariant::constructor() {
-   xsink->raiseException("NORMALMETHODVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+    xsink->raiseException("NORMALMETHODVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
 //! calls the given method variant with the given object; the object must be a member of a compatible class

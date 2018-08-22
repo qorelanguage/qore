@@ -35,6 +35,7 @@
 
 // forward references
 class typed_hash_decl_private;
+class QoreExternalMemberBase;
 
 //! typed hash declaration
 /** @since %Qore 0.8.13
@@ -56,6 +57,11 @@ public:
     DLLEXPORT const char* getName() const;
 
     DLLEXPORT bool isSystem() const;
+
+    //! Finds the given local member or returns nullptr
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const QoreExternalMemberBase* findLocalMember(const char* name) const;
 
 protected:
     //! deletes the object and frees all memory
@@ -102,6 +108,23 @@ public:
 private:
     //! the object being managed
     TypedHashDecl* thd;
+};
+
+//! Allows iteration of a hashdecl's members
+class TypedHashDeclMemberIterator {
+public:
+    DLLEXPORT TypedHashDeclMemberIterator(const TypedHashDecl* thd);
+
+    DLLEXPORT ~TypedHashDeclMemberIterator();
+
+    DLLEXPORT bool next();
+
+    DLLEXPORT const QoreExternalMemberBase* getMember() const;
+
+    DLLEXPORT const char* getName() const;
+
+private:
+    class typed_hash_decl_member_iterator* priv;
 };
 
 //! StatInfo hashdecl

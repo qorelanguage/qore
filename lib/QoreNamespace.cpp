@@ -879,6 +879,10 @@ void QoreNamespace::addBuiltinVariant(const char* name, q_func_n_t f, int64 code
     va_end(args);
 }
 
+const QoreExternalFunction* QoreNamespace::findLocalFunction(const char* name) const {
+    return reinterpret_cast<const QoreExternalFunction*>(priv->func_list.find(name, true));
+}
+
 RootQoreNamespace::RootQoreNamespace(qore_root_ns_private* p) : QoreNamespace(p), rpriv(p) {
     p->rns = this;
 }
@@ -1806,7 +1810,7 @@ const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const c
             method = qore_class_private::get(*qc)->runtimeFindAnyCommittedMethod(scope.getIdentifier());
             //printd(5, "qore_root_ns_private::runtimeFindCall() '%s' qc: %p '%s' -> %p\n", scope.ostr, qc, scope.getIdentifier(), method);
             if (method)
-                qf = method->getFunction();
+                qf = qore_method_private::get(*method)->getFunction();
             else
                 qc = nullptr;
         }
@@ -1888,7 +1892,7 @@ QoreListNode* qore_root_ns_private::runtimeFindCallVariants(const char* name, Ex
             method = qore_class_private::get(*qc)->runtimeFindAnyCommittedMethod(scope.getIdentifier());
             //printd(5, "qore_root_ns_private::runtimeFindCallVariants() %s: qc: %p method: %p\n", scope.ostr, qc, method);
             if (method)
-                qf = method->getFunction();
+                qf = qore_method_private::get(*method)->getFunction();
             else
                 qc = nullptr;
         }
@@ -3002,4 +3006,50 @@ const QoreNamespace* QoreNamespaceConstIterator::operator*() const {
 
 const QoreNamespace* QoreNamespaceConstIterator::get() const {
     return priv->get()->ns;
+}
+
+class qore_namespace_function_iterator {
+public:
+    DLLLOCAL qore_namespace_function_iterator(const qore_ns_private* ns) :
+        ns(ns), i(ns->func_list.begin()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == ns->func_list.end()) {
+            i = ns->func_list.begin();
+        }
+        else {
+            ++i;
+        }
+        return (i != ns->func_list.end());
+    }
+
+    const QoreExternalFunction* get() const {
+        assert(i != ns->func_list.end());
+        assert(i->second->getFunction());
+        return reinterpret_cast<const QoreExternalFunction*>(i->second->getFunction());
+    }
+
+private:
+    const qore_ns_private* ns;
+    fl_map_t::const_iterator i;
+};
+
+//! creates the iterator
+QoreNamespaceFunctionIterator::QoreNamespaceFunctionIterator(const QoreNamespace* ns) : priv(new qore_namespace_function_iterator(qore_ns_private::get(*ns))) {
+}
+
+//! destroys the iterator
+QoreNamespaceFunctionIterator::~QoreNamespaceFunctionIterator() {
+    delete priv;
+}
+
+//! moves to the next position; returns true if on a valid position
+bool QoreNamespaceFunctionIterator::next() {
+    return priv->next();
+}
+
+//! returns the function
+const QoreExternalFunction* QoreNamespaceFunctionIterator::get() const {
+    return priv->get();
 }

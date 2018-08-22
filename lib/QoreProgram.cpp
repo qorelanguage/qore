@@ -2077,6 +2077,24 @@ QoreListNode* QoreProgram::runtimeFindCallVariants(const char* name, ExceptionSi
    return priv->runtimeFindCallVariants(name, xsink);
 }
 
+const QoreClass* QoreProgram::findClass(const char* cls_path, ExceptionSink* xsink) const {
+    return priv->runtimeFindClass(cls_path, xsink);
+}
+
+const QoreExternalFunction* QoreProgram::findFunction(const char* path) const {
+    const FunctionEntry* fe = qore_root_ns_private::runtimeFindFunctionEntry(*priv->RootNS, path);
+    return reinterpret_cast<const QoreExternalFunction*>(fe ? fe->getFunction() : nullptr);
+}
+
+const TypedHashDecl* QoreProgram::findHashDecl(const char* path, const QoreNamespace*& pns) {
+    const qore_ns_private* pns_priv;
+    const TypedHashDecl* th = qore_root_ns_private::runtimeFindHashDecl(*priv->RootNS, path, pns_priv);
+    if (th) {
+        pns = pns_priv->ns;
+    }
+    return th;
+}
+
 QoreRWLock QoreBreakpoint::lck_breakpoint;
 QoreBreakpoint::QoreBreakpointList_t QoreBreakpoint::breakpointList;
 volatile unsigned QoreBreakpoint::breakpointIdCounter = 1;

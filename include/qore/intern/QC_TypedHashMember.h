@@ -44,7 +44,7 @@ public:
     const TypedHashDecl* th;
     std::string name;
 
-    DLLLOCAL QoreReflectionHashDeclMember(QoreProgram* pgm, const TypedHashDecl* th, const char* name, const HashDeclMemberInfo* mem) :
+    DLLLOCAL QoreReflectionHashDeclMember(QoreProgram* pgm, const TypedHashDecl* th, const char* name, const QoreExternalMemberBase* mem) :
         QoreReflectionMember(pgm, name, mem), th(th), name(name) {
     }
 };

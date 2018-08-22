@@ -29,7 +29,6 @@
 */
 
 #include "qore/Qore.h"
-#include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/QC_AbstractReflectionFunction.h"
 #include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/QC_AbstractVariant.h"
@@ -42,24 +41,20 @@
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/QC_Type.h"
 #include "qore/intern/QC_Function.h"
-#include "qore/intern/qore_program_private.h"
 
 QoreObject* QoreReflectionFunction::getFunctionObject(ExceptionSink* xsink) const {
     const QoreClass* c = f->getClass();
     if (c) {
+        const QoreExternalMethodFunction* mf = static_cast<const QoreExternalMethodFunction*>(f);
         // must find the QoreMethod corresponding to this function by searching the class by name by method type
-        const MethodFunctionBase* mfb = static_cast<const MethodFunctionBase*>(f);
-        const qore_class_private* qc = qore_class_private::get(*c);
-        const QoreMethod* m = mfb->isStatic()
-            ? qc->findLocalCommittedStaticMethod(f->getName())
-            : qc->findLocalCommittedMethod(f->getName());
+        const QoreMethod* m = mf->getMethod();
         ReferenceHolder<QoreReflectionMethod> meth(new QoreReflectionMethod(pgm, m), xsink);
         return get_method_object(meth, xsink);
     }
     return new QoreObject(QC_FUNCTION, pgm, new QoreReflectionFunction(pgm, f));
 }
 
-QoreObject* find_function_variant(QoreProgram* pgm, const QoreFunction* func, const QoreListNode* args, size_t offset, bool exact, method_type_e mtype, ExceptionSink* xsink) {
+QoreObject* find_function_variant(QoreProgram* pgm, const QoreExternalFunction* func, const QoreListNode* args, size_t offset, bool exact, method_type_e mtype, ExceptionSink* xsink) {
     // create argument list
     type_vec_t type_vec;
 
@@ -81,19 +76,19 @@ QoreObject* find_function_variant(QoreProgram* pgm, const QoreFunction* func, co
     }
 
     const QoreClass* cls = mtype != MT_None ? func->getClass() : nullptr;
-    const qore_class_private* qc = cls ? qore_class_private::get(*cls) : nullptr;
-    const AbstractQoreFunctionVariant* v = exact
-        ? func->runtimeFindExactVariant(xsink, type_vec, qc)
-        : func->parseFindVariant(nullptr, type_vec, qc, xsink);
+    const QoreExternalVariant* v = exact
+        ? func->findExactVariant(type_vec, xsink)
+        : func->findVariant(type_vec, xsink);
 
     if (*xsink) {
         return nullptr;
     }
+    assert(v);
 
     return get_variant_object(pgm, func, mtype, v, xsink);
 }
 
-QoreObject* get_variant_object(QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, const AbstractQoreFunctionVariant* v, ExceptionSink* xsink) {
+QoreObject* get_variant_object(QoreProgram* pgm, const QoreExternalFunction* f, method_type_e mtype, const QoreExternalVariant* v, ExceptionSink* xsink) {
     switch (mtype) {
         case MT_None:
             return new QoreObject(QC_FUNCTIONVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
@@ -115,8 +110,8 @@ QoreObject* get_variant_object(QoreProgram* pgm, const QoreFunction* f, method_t
     return nullptr;
 }
 
-void append_variant_objects(QoreListNode& l, QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, ExceptionSink* xsink) {
-    QoreFunctionIterator i(*f);
+void append_variant_objects(QoreListNode& l, QoreProgram* pgm, const QoreExternalFunction* f, method_type_e mtype, ExceptionSink* xsink) {
+    QoreExternalFunctionIterator i(*f);
     while (i.next()) {
         l.push(get_variant_object(pgm, f, mtype, i.getVariant(), xsink), xsink);
     }
@@ -134,7 +129,7 @@ qclass AbstractReflectionFunction [ns=Qore::Reflection; arg=QoreReflectionFuncti
 /** @throw ABSTRACTREFLECTIONFUNCTION-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
  */
 AbstractReflectionFunction::constructor() {
-   xsink->raiseException("ABSTRACTREFLECTIONFUNCTION-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+    xsink->raiseException("ABSTRACTREFLECTIONFUNCTION-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
 //! Returns @ref True if the function or method object passed as an argument is equal to the current object; @ref False if not
@@ -197,7 +192,7 @@ bool AbstractReflectionFunction::isBuiltin() [flags=RET_VALUE_ONLY] {
     }
 
     // the function ptr must be valid
-    return f->f->hasBuiltin();
+    return f->f->isBuiltin();
 }
 
 //! returns @ref True if the function or method is a user function or method
@@ -220,7 +215,7 @@ bool AbstractReflectionFunction::isUser() [flags=RET_VALUE_ONLY] {
     }
 
     // the function ptr must be valid
-    return f->f->hasUser();
+    return !f->f->isBuiltin();
 }
 
 //! returns @ref True if the function or method has been injected as a dependency injection
@@ -241,7 +236,7 @@ bool AbstractReflectionFunction::isInjected() [flags=RET_VALUE_ONLY] {
     }
 
     // the function ptr must be valid
-    return f->f->injected();
+    return f->f->isInjected();
 }
 
 //! returns the number of variants implemented by the function or method

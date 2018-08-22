@@ -43,7 +43,7 @@ qclass StaticMethodVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; v
 /** @throw STATICMETHODVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
  */
 StaticMethodVariant::constructor() {
-   xsink->raiseException("STATICMETHODVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+    xsink->raiseException("STATICMETHODVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
 //! calls the given static method variant and returns the value returned by the method

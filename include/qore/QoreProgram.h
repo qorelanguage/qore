@@ -103,6 +103,7 @@ class AbstractQoreProgramExternalData;
 class QoreBreakpoint;
 class AbstractQoreFunctionVariant;
 class QoreRWLock;
+class QoreExternalFunction;
 
 typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
@@ -691,7 +692,20 @@ public:
     */
    DLLEXPORT QoreListNode* getThreadList() const;
 
-   DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = 0);
+   //! search for the given class in the program; can be a simple class name or a namespace-prefixed path (ex: "NamespaceName::ClassName")
+   /** @since %Qore 0.9
+   */
+   DLLEXPORT const QoreClass* findClass(const char* path, ExceptionSink* xsink) const;
+
+   //! search for the given function in the program; can be a simple function name or a namespace-prefixed path (ex: "NamespaceName::function_name")
+   /** @since %Qore 0.9
+   */
+   DLLEXPORT const QoreExternalFunction* findFunction(const char* path) const;
+
+   //! search for the given typed hash (hashdecl) in the program; can be a simple function name or a namespace-prefixed path (ex: "NamespaceName::TypedHashName")
+   DLLEXPORT const TypedHashDecl* findHashDecl(const char* path, const QoreNamespace*& pns);
+
+   DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = nullptr);
 
    DLLLOCAL LocalVar *createLocalVar(const char* name, const QoreTypeInfo *typeInfo);
 

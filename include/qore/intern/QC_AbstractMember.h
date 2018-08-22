@@ -42,9 +42,9 @@ class QoreMemberInfo;
 class QoreReflectionMember : public AbstractReflectionObject {
 public:
     std::string name;
-    const QoreMemberInfoBase* mem;
+    const QoreExternalMemberBase* mem;
 
-    DLLLOCAL QoreReflectionMember(QoreProgram* pgm, const char* name, const QoreMemberInfoBase* mem) :
+    DLLLOCAL QoreReflectionMember(QoreProgram* pgm, const char* name, const QoreExternalMemberBase* mem) :
         AbstractReflectionObject(pgm), name(name), mem(mem) {
     }
 };

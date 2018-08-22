@@ -41,13 +41,14 @@ static QoreReflectionFunction* get_function(const QoreString& path, ExceptionSin
         return nullptr;
     }
 
-    const FunctionEntry* fe = qore_root_ns_private::runtimeFindFunctionEntry(*getRootNS(), npath->c_str());
-    if (!fe) {
+    QoreProgram* pgm = getProgram();
+    const QoreExternalFunction* f = pgm->findFunction(npath->c_str());
+    if (!f) {
         xsink->raiseException("FUNCTION-ERROR", "cannot find function '%s'", npath->c_str());
         return nullptr;
     }
 
-    return new QoreReflectionFunction(getProgram(), fe->getFunction());
+    return new QoreReflectionFunction(pgm, f);
 }
 
 static QoreObject* get_function_object(const QoreString& path, ExceptionSink* xsink) {

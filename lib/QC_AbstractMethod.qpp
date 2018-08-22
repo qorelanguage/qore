@@ -29,13 +29,11 @@
 */
 
 #include "qore/Qore.h"
-#include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/QC_AbstractMethod.h"
 #include "qore/intern/QC_AbstractVariant.h"
 #include "qore/intern/QC_AbstractMethodVariant.h"
 #include "qore/intern/QC_Type.h"
-#include "qore/intern/qore_program_private.h"
 
 int check_call(QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
     if (!obj->validInstanceOf(*m.getClass())) {
@@ -50,7 +48,7 @@ QoreReflectionMethod::QoreReflectionMethod(const QoreClass* cls, const char* nam
 }
 
 QoreReflectionMethod::QoreReflectionMethod(const char* cls_path, const char* name, ExceptionSink* xsink) : QoreReflectionFunction(getProgram()) {
-    const QoreClass* cls = qore_program_private::runtimeFindClass(*pgm, cls_path, xsink);
+    const QoreClass* cls = pgm->findClass(cls_path, xsink);
     if (!cls) {
         if (!*xsink) {
             xsink->raiseException("CLASS-ERROR", "cannot resolve class '%s'", cls_path);
@@ -61,7 +59,7 @@ QoreReflectionMethod::QoreReflectionMethod(const char* cls_path, const char* nam
     setMethod(cls, name, xsink);
 }
 
-QoreReflectionMethod::QoreReflectionMethod(QoreProgram* pgm, const QoreMethod* m) : QoreReflectionFunction(pgm, qore_method_private::get(*m)->func), m(m) {
+QoreReflectionMethod::QoreReflectionMethod(QoreProgram* pgm, const QoreMethod* m) : QoreReflectionFunction(pgm, m->getFunction()), m(m) {
     setType();
 }
 
@@ -74,7 +72,7 @@ void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, Exc
         xsink->raiseException("METHOD-ERROR", "cannot resolve method '%s' in class '%s'", name, cls->getName());
     }
     else {
-        f = qore_method_private::get(*m)->func;
+        f = m->getFunction();
         setType();
     }
 }
@@ -98,7 +96,7 @@ qclass AbstractMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent
 /** @throw ABSTRACTMETHOD-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
  */
 AbstractMethod::constructor() {
-   xsink->raiseException("ABSTRACTMETHOD-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+    xsink->raiseException("ABSTRACTMETHOD-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
 }
 
 //! returns @ref True if the method is a static method
@@ -171,8 +169,7 @@ AbstractMethodVariant AbstractMethod::getVariant(...) [flags=RET_VALUE_ONLY] {
     }
 
     // the method ptr must be valid
-    const QoreFunction* func = qore_method_private::get(*m->m)->func;
-    return find_function_variant(m->pgm, func, args, 0, false, m->mtype, xsink);
+    return find_function_variant(m->pgm, m->f, args, 0, false, m->mtype, xsink);
 }
 
 //! Returns the given direct child method variant declared in this method or throws an exception if the method variant is not defined
@@ -202,8 +199,7 @@ AbstractMethodVariant AbstractMethod::getVariantArgs(softlist<Type> argv) [flags
     }
 
     // the method ptr must be valid
-    const QoreFunction* func = qore_method_private::get(*m->m)->func;
-    return find_function_variant(m->pgm, func, argv, 0, false, m->mtype, xsink);
+    return find_function_variant(m->pgm, m->f, argv, 0, false, m->mtype, xsink);
 }
 
 //! Returns the given direct child method variant declared in this method or throws an exception if the method variant is not defined
@@ -233,8 +229,7 @@ AbstractMethodVariant AbstractMethod::getExactVariant(...) [flags=RET_VALUE_ONLY
     }
 
     // the method ptr must be valid
-    const QoreFunction* func = qore_method_private::get(*m->m)->func;
-    return find_function_variant(m->pgm, func, args, 0, true, m->mtype, xsink);
+    return find_function_variant(m->pgm, m->f, args, 0, true, m->mtype, xsink);
 }
 
 //! Returns the given direct child method variant declared in this method or throws an exception if the method variant is not defined
@@ -264,8 +259,7 @@ AbstractMethodVariant AbstractMethod::getExactVariantArgs(softlist<Type> argv) [
     }
 
     // the method ptr must be valid
-    const QoreFunction* func = qore_method_private::get(*m->m)->func;
-    return find_function_variant(m->pgm, func, argv, 0, true, m->mtype, xsink);
+    return find_function_variant(m->pgm, m->f, argv, 0, true, m->mtype, xsink);
 }
 
 //! returns the variants implemented by the method

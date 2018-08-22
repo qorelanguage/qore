@@ -601,6 +601,7 @@ struct IList : public ilist_t {
 
 class QoreFunction : protected QoreReferenceCounter {
 friend class QoreFunctionIterator;
+friend class qore_external_function_iterator_private;
 protected:
     std::string name;
 

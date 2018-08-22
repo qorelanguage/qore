@@ -324,6 +324,10 @@ bool TypedHashDecl::isSystem() const {
     return priv->isSystem();
 }
 
+const QoreExternalMemberBase* TypedHashDecl::findLocalMember(const char* name) const {
+    return reinterpret_cast<const QoreExternalMemberBase*>(priv->findLocalMember(name));
+}
+
 TypedHashDeclHolder::~TypedHashDeclHolder() {
     if (thd)
         typed_hash_decl_private::get(*thd)->deref();
@@ -333,4 +337,59 @@ TypedHashDecl* TypedHashDeclHolder::operator=(TypedHashDecl* nhd) {
     if (thd)
         typed_hash_decl_private::get(*thd)->deref();
     return thd = nhd;
+}
+
+class typed_hash_decl_member_iterator {
+public:
+    DLLLOCAL typed_hash_decl_member_iterator(const typed_hash_decl_private* thd)
+        : thd(thd), i(thd->members.endDeclOrder()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == thd->members.endDeclOrder()) {
+            i = thd->members.beginDeclOrder();
+        }
+        else {
+            ++i;
+        }
+        return i != thd->members.endDeclOrder();
+    }
+
+    DLLLOCAL const QoreExternalMemberBase* getMember() const {
+        assert(valid());
+        return reinterpret_cast<const QoreExternalMemberBase*>(i->second);
+    }
+
+    DLLLOCAL const char* getName() const {
+        assert(valid());
+        return i->first;
+    }
+
+    DLLLOCAL bool valid() const {
+        return i != thd->members.endDeclOrder();
+    }
+
+private:
+    const typed_hash_decl_private* thd;
+    HashDeclMemberMap::DeclOrderIterator i;
+};
+
+TypedHashDeclMemberIterator::TypedHashDeclMemberIterator(const TypedHashDecl* thd) :
+    priv(new typed_hash_decl_member_iterator(typed_hash_decl_private::get(*thd))) {
+}
+
+TypedHashDeclMemberIterator::~TypedHashDeclMemberIterator() {
+    delete priv;
+}
+
+bool TypedHashDeclMemberIterator::next() {
+    return priv->next();
+}
+
+const QoreExternalMemberBase* TypedHashDeclMemberIterator::getMember() const {
+    return priv->getMember();
+}
+
+const char* TypedHashDeclMemberIterator::getName() const {
+    return priv->getName();
 }

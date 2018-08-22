@@ -112,19 +112,13 @@ private:
     DLLLOCAL QoreExternalMethodVariant();
 };
 
-//! external wrapper base class for class members
+//! external wrapper base class for class and hashdecl members
 /** @since %Qore 0.9
 */
-class QoreExternalMemberVarBase {
+class QoreExternalMemberBase {
 public:
     //! returns the type info for the member
     DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
-
-    //! returns the access info for the member
-    DLLEXPORT ClassAccess getAccess() const;
-
-    //! returns a string for the access info for the member
-    DLLEXPORT const char* getAccessString() const;
 
     //! evaluates the initialization expression for the member and returns the referenced value
     DLLEXPORT QoreValue getDefaultValue(ExceptionSink* xsink) const;
@@ -134,13 +128,29 @@ public:
 
 private:
     //! not implemented
+    DLLLOCAL QoreExternalMemberBase();
+};
+
+//! external wrapper base class for class members
+/** @since %Qore 0.9
+*/
+class QoreExternalMemberVarBase : public QoreExternalMemberBase {
+public:
+    //! returns the access info for the member
+    DLLEXPORT ClassAccess getAccess() const;
+
+    //! returns a string for the access info for the member
+    DLLEXPORT const char* getAccessString() const;
+
+private:
+    //! not implemented
     DLLLOCAL QoreExternalMemberVarBase();
 };
 
 //! external wrapper base class for class static members
 /** @since %Qore 0.9
 */
-class QoreExternalStaticMember : QoreExternalMemberVarBase {
+class QoreExternalStaticMember : public QoreExternalMemberVarBase {
 public:
     //! returns the current value of the member; caller owns an reference returned
     DLLEXPORT QoreValue getValue() const;
@@ -200,6 +210,67 @@ public:
 private:
     //! not implemented
     DLLLOCAL QoreExternalConstant();
+};
+
+class QoreExternalFunction {
+public:
+    //! returns the function name
+    DLLEXPORT const char* getName() const;
+
+    //! returns the class for the function if the function belongs to a class method or nullptr if not
+    DLLEXPORT const QoreClass* getClass() const;
+
+    //! returns a variant matching the arguments exactly or throws a Qore-language exception and returns nullptr
+    DLLEXPORT const QoreExternalVariant* findExactVariant(const type_vec_t& type_vec, ExceptionSink* xsink) const;
+
+    //! returns a variant matching the compatible arguments or throws a Qore-language exception and returns nullptr
+    DLLEXPORT const QoreExternalVariant* findVariant(const type_vec_t& type_vec, ExceptionSink* xsink) const;
+
+    //! returns true if the function is builtin
+    DLLEXPORT bool isBuiltin() const;
+
+    //! returns true if the function has been injected as a dependency injection
+    DLLEXPORT bool isInjected() const;
+
+    //! returns the number of variants for this function
+    DLLEXPORT unsigned numVariants() const;
+
+    //! evaluates the function with the given variant (which must belong to the function) and program (where the function must be defined) and returns the result
+    DLLEXPORT QoreValue evalFunction(const QoreExternalVariant* variant, const QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const;
+
+    //! returns the first declared variant in the variant list
+    DLLEXPORT const QoreExternalVariant* getFirstVariant() const;
+
+private:
+    //! not implemented
+    DLLLOCAL QoreExternalFunction();
+};
+
+class QoreExternalFunctionIterator {
+public:
+    DLLLOCAL QoreExternalFunctionIterator(const QoreExternalFunction& f);
+
+    DLLLOCAL ~QoreExternalFunctionIterator();
+
+    DLLLOCAL bool next();
+
+    DLLLOCAL const QoreExternalVariant* getVariant();
+
+private:
+    class qore_external_function_iterator_private* priv;
+};
+
+class QoreExternalMethodFunction : public QoreExternalFunction {
+public:
+    //! returns the method for the function if the function belongs to a class method or nullptr if not
+    DLLEXPORT const QoreMethod* getMethod() const;
+
+    //! returns true if the method is static
+    DLLEXPORT bool isStatic() const;
+
+private:
+    //! not implemented
+    DLLLOCAL QoreExternalMethodFunction();
 };
 
 #endif

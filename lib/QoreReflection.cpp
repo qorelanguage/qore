@@ -82,7 +82,7 @@ int64 QoreExternalVariant::getDomain() const {
     int64 rc = reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getFunctionality();
     const QoreClass* cls = getClass();
     if (cls) {
-        rc |= cls->getDomain64();
+        rc |= cls->getDomain();
     }
 
     return rc;
@@ -137,8 +137,17 @@ const char* QoreExternalMethodVariant::getAccessString() const {
     return get_access_string(getAccess());
 }
 
-const QoreTypeInfo* QoreExternalMemberVarBase::getTypeInfo() const {
+const QoreTypeInfo* QoreExternalMemberBase::getTypeInfo() const {
     return reinterpret_cast<const QoreMemberInfoBase*>(this)->getTypeInfo();
+}
+
+QoreValue QoreExternalMemberBase::getDefaultValue(ExceptionSink* xsink) const {
+    return reinterpret_cast<const QoreMemberInfoBase*>(this)->exp.eval(xsink);
+}
+
+const QoreExternalProgramLocation* QoreExternalMemberBase::getSourceLocation() const {
+    const QoreProgramLocation* loc = reinterpret_cast<const QoreMemberInfoBase*>(this)->loc;
+    return reinterpret_cast<const QoreExternalProgramLocation*>(loc ? loc : &loc_builtin);
 }
 
 ClassAccess QoreExternalMemberVarBase::getAccess() const {
@@ -147,15 +156,6 @@ ClassAccess QoreExternalMemberVarBase::getAccess() const {
 
 const char* QoreExternalMemberVarBase::getAccessString() const {
     return get_access_string(getAccess());
-}
-
-QoreValue QoreExternalMemberVarBase::getDefaultValue(ExceptionSink* xsink) const {
-    return reinterpret_cast<const QoreMemberInfoBase*>(this)->exp.eval(xsink);
-}
-
-const QoreExternalProgramLocation* QoreExternalMemberVarBase::getSourceLocation() const {
-    const QoreProgramLocation* loc = reinterpret_cast<const QoreMemberInfoBase*>(this)->loc;
-    return reinterpret_cast<const QoreExternalProgramLocation*>(loc ? loc : &loc_builtin);
 }
 
 QoreValue QoreExternalStaticMember::getValue() const {
@@ -200,4 +200,101 @@ const QoreExternalProgramLocation* QoreExternalConstant::getSourceLocation() con
 
 ClassAccess QoreExternalConstant::getAccess() const {
     return reinterpret_cast<const ConstantEntry*>(this)->getAccess();
+}
+
+const char* QoreExternalFunction::getName() const {
+    return reinterpret_cast<const QoreFunction*>(this)->getName();
+}
+
+const QoreClass* QoreExternalFunction::getClass() const {
+    return reinterpret_cast<const QoreFunction*>(this)->getClass();
+}
+
+const QoreExternalVariant* QoreExternalFunction::findExactVariant(const type_vec_t& type_vec, ExceptionSink* xsink) const {
+    const QoreClass* cls = getClass();
+    const qore_class_private* qc = cls ? qore_class_private::get(*cls) : nullptr;
+    return reinterpret_cast<const QoreExternalVariant*>(reinterpret_cast<const QoreFunction*>(this)->runtimeFindExactVariant(xsink, type_vec, qc));
+}
+
+const QoreExternalVariant* QoreExternalFunction::findVariant(const type_vec_t& type_vec, ExceptionSink* xsink) const {
+    const QoreClass* cls = getClass();
+    const qore_class_private* qc = cls ? qore_class_private::get(*cls) : nullptr;
+    return reinterpret_cast<const QoreExternalVariant*>(reinterpret_cast<const QoreFunction*>(this)->parseFindVariant(nullptr, type_vec, qc, xsink));
+}
+
+bool QoreExternalFunction::isBuiltin() const {
+    return reinterpret_cast<const QoreFunction*>(this)->hasBuiltin();
+}
+
+bool QoreExternalFunction::isInjected() const {
+    return reinterpret_cast<const QoreFunction*>(this)->injected();
+}
+
+unsigned QoreExternalFunction::numVariants() const {
+    return reinterpret_cast<const QoreFunction*>(this)->numVariants();
+}
+
+QoreValue QoreExternalFunction::evalFunction(const QoreExternalVariant* variant, const QoreListNode* args, QoreProgram* pgm, ExceptionSink* xsink) const {
+    return reinterpret_cast<const QoreFunction*>(this)->evalFunction(reinterpret_cast<const AbstractQoreFunctionVariant*>(variant), args, pgm, xsink);
+}
+
+const QoreExternalVariant* QoreExternalFunction::getFirstVariant() const {
+    return reinterpret_cast<const QoreExternalVariant*>(reinterpret_cast<const QoreFunction*>(this)->first());
+}
+
+class qore_external_function_iterator_private {
+public:
+    DLLLOCAL qore_external_function_iterator_private(const QoreExternalFunction& func) : f(reinterpret_cast<const QoreFunction&>(func)) {
+        i = f.vlist.end();
+    }
+
+    DLLLOCAL bool next() {
+        if (i == f.vlist.end()) {
+            i = f.vlist.begin();
+        }
+        else {
+            ++i;
+        }
+
+        return i != f.vlist.end();
+    }
+
+    DLLLOCAL const AbstractQoreFunctionVariant* getVariant() const {
+        return *i;
+    }
+
+private:
+    const QoreFunction& f;
+    VList::const_iterator i;
+};
+
+QoreExternalFunctionIterator::QoreExternalFunctionIterator(const QoreExternalFunction& f) : priv(new qore_external_function_iterator_private(f)) {
+}
+
+QoreExternalFunctionIterator::~QoreExternalFunctionIterator() {
+    delete priv;
+}
+
+bool QoreExternalFunctionIterator::next() {
+    return priv->next();
+}
+
+const QoreExternalVariant* QoreExternalFunctionIterator::getVariant() {
+    return reinterpret_cast<const QoreExternalVariant*>(priv->getVariant());
+}
+
+const QoreMethod* QoreExternalMethodFunction::getMethod() const {
+    const QoreClass* cls = getClass();
+    assert(cls);
+    const qore_class_private* qc = qore_class_private::get(*cls);
+    const char* name = getName();
+    const QoreMethod* rv = isStatic()
+        ? qc->parseFindLocalStaticMethod(name)
+        : qc->parseFindLocalMethod(name);
+    assert(rv);
+    return rv;
+}
+
+bool QoreExternalMethodFunction::isStatic() const {
+    return reinterpret_cast<const MethodFunctionBase*>(this)->isStatic();
 }

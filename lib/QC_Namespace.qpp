@@ -562,8 +562,7 @@ Function Namespace::getFunction(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    const QoreFunction* rv = ns->func_list.find(tname->c_str(), true);
+    const QoreExternalFunction* rv = n->ns->findLocalFunction(tname->c_str());
     if (!rv) {
         xsink->raiseException("UNKNOWN-FUNCTION", "function '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
         return QoreValue();
@@ -592,10 +591,9 @@ list<Function> Namespace::getFunctions() [flags=RET_VALUE_ONLY] {
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_FUNCTION->getTypeInfo()), xsink);
 
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-
-    for (auto& i : ns->func_list) {
-        l->push(new QoreObject(QC_FUNCTION, n->pgm, new QoreReflectionFunction(n->pgm, i.second->getFunction(true))), xsink);
+    QoreNamespaceFunctionIterator i(n->ns);
+    while (i.next()) {
+        l->push(new QoreObject(QC_FUNCTION, n->pgm, new QoreReflectionFunction(n->pgm, i.get())), xsink);
     }
 
     return l.release();
@@ -635,8 +633,7 @@ FunctionVariant Namespace::getVariant(string name, ...) [flags=RET_VALUE_ONLY] {
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    const QoreFunction* func = ns->func_list.find(tname->c_str(), true);
+    const QoreExternalFunction* func = n->ns->findLocalFunction(tname->c_str());
     if (!func) {
         xsink->raiseException("UNKNOWN-FUNCTION", "function '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
         return QoreValue();
@@ -679,8 +676,7 @@ FunctionVariant Namespace::getVariantArgs(string name, softlist<Type> argv) [fla
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    const QoreFunction* func = ns->func_list.find(tname->c_str(), true);
+    const QoreExternalFunction* func = n->ns->findLocalFunction(tname->c_str());
     if (!func) {
         xsink->raiseException("UNKNOWN-FUNCTION", "function '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
         return QoreValue();
@@ -723,8 +719,7 @@ FunctionVariant Namespace::getExactVariant(string name, ...) [flags=RET_VALUE_ON
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    const QoreFunction* func = ns->func_list.find(tname->c_str(), true);
+    const QoreExternalFunction* func = n->ns->findLocalFunction(tname->c_str());
     if (!func) {
         xsink->raiseException("UNKNOWN-FUNCTION", "function '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
         return QoreValue();
@@ -767,8 +762,7 @@ FunctionVariant Namespace::getExactVariantArgs(string name, softlist<Type> argv)
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    const QoreFunction* func = ns->func_list.find(tname->c_str(), true);
+    const QoreExternalFunction* func = n->ns->findLocalFunction(tname->c_str());
     if (!func) {
         xsink->raiseException("UNKNOWN-FUNCTION", "function '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
         return QoreValue();
@@ -797,13 +791,9 @@ list<FunctionVariant> Namespace::getVariants() [flags=RET_VALUE_ONLY] {
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_FUNCTIONVARIANT->getTypeInfo()), xsink);
 
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-
-    for (auto& i : ns->func_list) {
-        const QoreFunction* f = i.second->getFunction(true);
-        if (!f) {
-            continue;
-        }
+    QoreNamespaceFunctionIterator i(n->ns);
+    while (i.next()) {
+        const QoreExternalFunction* f = i.get();
         append_variant_objects(**l, n->pgm, f, MT_None, xsink);
         if (*xsink) {
             return QoreValue();

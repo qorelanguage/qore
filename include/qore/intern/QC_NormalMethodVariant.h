@@ -34,7 +34,7 @@
 
 #include "qore/intern/QC_AbstractMethodVariant.h"
 
-DLLLOCAL int check_variant_call(const AbstractQoreFunctionVariant* v, QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink);
+DLLLOCAL int check_variant_call(const QoreExternalVariant* v, QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink);
 
 DLLEXPORT extern qore_classid_t CID_NORMALMETHODVARIANT;
 DLLLOCAL extern QoreClass* QC_NORMALMETHODVARIANT;

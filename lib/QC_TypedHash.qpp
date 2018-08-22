@@ -43,13 +43,12 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 
 QoreReflectionTypedHash::QoreReflectionTypedHash(const char* path, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
-    const qore_ns_private* pns;
-    th = qore_root_ns_private::runtimeFindHashDecl(*getRootNS(), path, pns);
+    th = getProgram()->findHashDecl(path, ns);
+
     if (!th) {
-        xsink->raiseException("UNKNOWN-TYPED-HASH", "cannot resolve typed hash (hashdecl) (hashdecl) '%s'", path);
+        xsink->raiseException("UNKNOWN-TYPED-HASH", "cannot resolve typed hash (hashdecl) '%s'", path);
         return;
     }
-    ns = pns->ns;
 }
 
 //! The abstract base class for %Qore typed hashes (@ref hashdecl "hashdecls")
@@ -274,8 +273,7 @@ TypedHashMember TypedHash::getMember(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // the typed hash ptr must be valid
-    const typed_hash_decl_private* th = typed_hash_decl_private::get(*thd->th);
-    const HashDeclMemberInfo* mi = th->getMembers().find(tname->c_str());
+    const QoreExternalMemberBase* mi = thd->th->findLocalMember(tname->c_str());
     if (!mi) {
         xsink->raiseException("UNKNOWN-MEMBER", "member '%s' is not defined in typed hash (hashdecl) '%s'", tname->c_str(), thd->th->getName());
         return QoreValue();
@@ -304,10 +302,9 @@ list<TypedHashMember> TypedHash::getMembers() [flags=RET_VALUE_ONLY] {
     // the typed hash ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_TYPEDHASHMEMBER->getTypeInfo()), xsink);
 
-    const typed_hash_decl_private* th = typed_hash_decl_private::get(*thd->th);
-    // first get non-static members
-    for (HashDeclMemberMap::DeclOrderIterator i = th->getMembers().beginDeclOrder(), e = th->getMembers().endDeclOrder(); i != e; ++i) {
-        l->push(new QoreObject(QC_TYPEDHASHMEMBER, thd->pgm, new QoreReflectionHashDeclMember(thd->pgm, thd->th, i->first, i->second)), xsink);
+    TypedHashDeclMemberIterator i(thd->th);
+    while (i.next()) {
+        l->push(new QoreObject(QC_TYPEDHASHMEMBER, thd->pgm, new QoreReflectionHashDeclMember(thd->pgm, thd->th, i.getName(), i.getMember())), xsink);
     }
 
     return l.release();

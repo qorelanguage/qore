@@ -36,22 +36,22 @@
 
 class QoreReflectionFunction : public AbstractReflectionObject {
 public:
-    const QoreFunction* f = nullptr;
+    const QoreExternalFunction* f = nullptr;
 
     DLLLOCAL QoreReflectionFunction(QoreProgram* pgm) : AbstractReflectionObject(pgm) {
     }
 
-    DLLLOCAL QoreReflectionFunction(QoreProgram* pgm, const QoreFunction* f) : AbstractReflectionObject(pgm), f(f) {
+    DLLLOCAL QoreReflectionFunction(QoreProgram* pgm, const QoreExternalFunction* f) : AbstractReflectionObject(pgm), f(f) {
     }
 
     DLLLOCAL QoreObject* getFunctionObject(ExceptionSink* xsink) const;
 };
 
-DLLLOCAL QoreObject* find_function_variant(QoreProgram* pgm, const QoreFunction* func, const QoreListNode* args, size_t offset, bool exact, method_type_e mtype, ExceptionSink* xsink);
+DLLLOCAL QoreObject* find_function_variant(QoreProgram* pgm, const QoreExternalFunction* func, const QoreListNode* args, size_t offset, bool exact, method_type_e mtype, ExceptionSink* xsink);
 
-DLLLOCAL QoreObject* get_variant_object(QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, const AbstractQoreFunctionVariant* v, ExceptionSink* xsink);
+DLLLOCAL QoreObject* get_variant_object(QoreProgram* pgm, const QoreExternalFunction* f, method_type_e mtype, const QoreExternalVariant* v, ExceptionSink* xsink);
 
-DLLLOCAL void append_variant_objects(QoreListNode& l, QoreProgram* pgm, const QoreFunction* f, method_type_e mtype, ExceptionSink* xsink);
+DLLLOCAL void append_variant_objects(QoreListNode& l, QoreProgram* pgm, const QoreExternalFunction* f, method_type_e mtype, ExceptionSink* xsink);
 
 DLLEXPORT extern qore_classid_t CID_ABSTRACTREFLECTIONFUNCTION;
 DLLLOCAL extern QoreClass* QC_ABSTRACTREFLECTIONFUNCTION;

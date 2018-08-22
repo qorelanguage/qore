@@ -160,7 +160,7 @@ QoreObject* find_variant(const QoreReflectionClass* c, const char* name, unsigne
         return nullptr;
     }
 
-    const QoreFunction* func = qore_method_private::get(*m)->func;
+    const QoreExternalFunction* func = m->getFunction();
     return find_function_variant(c->pgm, func, args, offset, exact, mtype, xsink);
 }
 
@@ -392,17 +392,7 @@ string Class::getPathName() [flags=RET_VALUE_ONLY] {
     // the class ptr must be valid
 
     SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
-    const qore_class_private* qc = qore_class_private::get(*c->cls);
-    if (qc->ns) {
-        std::string path;
-        qc->ns->getPath(path);
-        if (!path.empty()) {
-            rv->concat(path);
-            rv->concat("::");
-        }
-    }
-
-    rv->concat(c->cls->getName());
+    rv->concat(c->cls->getNamespacePath());
     return rv.release();
 }
 
@@ -433,7 +423,7 @@ bool Class::isEqual(Class[QoreReflectionClass] cls) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    return qore_class_private::get(*c->cls)->equal(*qore_class_private::get(*cls->cls));
+    return c->cls->isEqual(*cls->cls);
 }
 
 //! returns a bitfield of @ref modifier_constants "modifiers" describing the class
@@ -463,17 +453,16 @@ int Class::getModifiers() [flags=RET_VALUE_ONLY] {
 
     // the class ptr must be valid
     int64 rc = 0;
-    const qore_class_private* qc = qore_class_private::get(*c->cls);
-    if (qc->hasAbstract()) {
+    if (c->cls->hasAbstract()) {
         rc |= MC_ABSTRACT;
     }
-    if (qc->pub) {
+    if (c->cls->isModulePublic()) {
         rc |= MC_PUBLIC;
     }
-    if (qc->final) {
+    if (c->cls->isFinal()) {
         rc |= MC_FINAL;
     }
-    if (qc->inject) {
+    if (c->cls->isInjected()) {
         rc |= MC_INJECTED;
     }
     if (c->cls->isSystem()) {
@@ -513,17 +502,16 @@ list<string> Class::getModifierList() [flags=RET_VALUE_ONLY] {
 
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
-    const qore_class_private* qc = qore_class_private::get(*c->cls);
-    if (qc->hasAbstract()) {
+    if (c->cls->hasAbstract()) {
         rv->push(new QoreStringNode("abstract"), xsink);
     }
-    if (qc->pub) {
+    if (c->cls->isModulePublic()) {
         rv->push(new QoreStringNode("public"), xsink);
     }
-    if (qc->final) {
+    if (c->cls->isFinal()) {
         rv->push(new QoreStringNode("final"), xsink);
     }
-    if (qc->inject) {
+    if (c->cls->isInjected()) {
         rv->push(new QoreStringNode("injected"), xsink);
     }
     if (c->cls->isSystem()) {
@@ -609,7 +597,7 @@ bool Class::isInjected() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    return qore_class_private::get(*c->cls)->inject;
+    return c->cls->isInjected();
 }
 
 //! returns @ref True if the class has the @ref mod_public "module public" flag set
@@ -628,7 +616,7 @@ bool Class::isModulePublic() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    return qore_class_private::get(*c->cls)->pub;
+    return c->cls->isModulePublic();
 }
 
 //! returns the internal ID of the class which is only valid for the current execution session
@@ -672,12 +660,7 @@ binary Class::getHash() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    SimpleRefHolder<BinaryNode> b(new BinaryNode);
-    char* hash = qore_class_private::get(*c->cls)->getHash();
-    assert(hash);
-    b->append(hash, SH_SIZE);
-
-    return b.release();
+    return c->cls->getBinaryHash();
 }
 
 //! returns @ref True if the class implements a "memberGate" method
@@ -765,7 +748,7 @@ int Class::getDomain() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    return c->cls->getDomain64();
+    return c->cls->getDomain();
 }
 
 //! returns a list of functional domain strings for the class (for builtin classes only); an empty list is returned for user classes
@@ -790,7 +773,7 @@ list<string> Class::getDomainStringList() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    return domain_bitfield_to_string_list(c->cls->getDomain64(), xsink);
+    return domain_bitfield_to_string_list(c->cls->getDomain(), xsink);
 }
 
 //! returns @ref True if the class has at least one constructor method variant
@@ -886,12 +869,12 @@ object Class::newObject(...) {
     }
 
     // the class ptr must be valid
-    if (getProgram()->getParseOptions64() & c->cls->getDomain64()) {
+    if (getProgram()->getParseOptions64() & c->cls->getDomain()) {
         xsink->raiseException("CREATE-OBJECT-ERROR", "Program sandboxing restrictions do not allow access to the '%s' class", c->cls->getName());
         return QoreValue();
     }
 
-    if (qore_class_private::runtimeCheckInstantiateClass(*c->cls, xsink)) {
+    if (c->cls->runtimeCheckInstantiateClass(xsink)) {
         return QoreValue();
     }
 
@@ -928,12 +911,12 @@ object Class::newObjectArgs(*softlist argv) {
     }
 
     // the class ptr must be valid
-    if (getProgram()->getParseOptions64() & c->cls->getDomain64()) {
+    if (getProgram()->getParseOptions64() & c->cls->getDomain()) {
         xsink->raiseException("CREATE-OBJECT-ERROR", "Program sandboxing restrictions do not allow access to the '%s' class", c->cls->getName());
         return QoreValue();
     }
 
-    if (qore_class_private::runtimeCheckInstantiateClass(*c->cls, xsink)) {
+    if (c->cls->runtimeCheckInstantiateClass(xsink)) {
         return QoreValue();
     }
 
@@ -1816,8 +1799,7 @@ list<AbstractMethodVariant> Class::getVariants() [flags=RET_VALUE_ONLY] {
     QoreMethodIterator i(c->cls);
     while (i.next()) {
         const QoreMethod* m = i.getMethod();
-        append_variant_objects(**rv, c->pgm, qore_method_private::get(*m)->func,
-            m->getMethodType(), xsink);
+        append_variant_objects(**rv, c->pgm, m->getFunction(), m->getMethodType(), xsink);
     }
 
     return rv.release();
@@ -1850,8 +1832,7 @@ list<NormalMethodVariant> Class::getNormalVariants() [flags=RET_VALUE_ONLY] {
         if (mtype != MT_Normal) {
             continue;
         }
-        append_variant_objects(**rv, c->pgm, qore_method_private::get(*m)->func,
-            mtype, xsink);
+        append_variant_objects(**rv, c->pgm, m->getFunction(), mtype, xsink);
     }
 
     return rv.release();
@@ -1884,8 +1865,7 @@ list<StaticMethodVariant> Class::getStaticVariants() [flags=RET_VALUE_ONLY] {
         if (mtype != MT_Static) {
             continue;
         }
-        append_variant_objects(**rv, c->pgm, qore_method_private::get(*m)->func,
-            mtype, xsink);
+        append_variant_objects(**rv, c->pgm, m->getFunction(), mtype, xsink);
     }
 
     return rv.release();
@@ -1914,8 +1894,7 @@ list<ConstructorMethodVariant> Class::getConstructorVariants() [flags=RET_VALUE_
     const QoreMethod* con = c->cls->getConstructor();
 
     if (con) {
-        append_variant_objects(**rv, c->pgm, qore_method_private::get(*con)->func,
-            MT_Constructor, xsink);
+        append_variant_objects(**rv, c->pgm, con->getFunction(), MT_Constructor, xsink);
     }
 
     return rv.release();
@@ -1944,8 +1923,8 @@ list<ConstructorMethodVariant> Class::getConstructorVariants() [flags=RET_VALUE_
     const QoreMethod* destr = c->cls->getDestructor();
 
     if (destr) {
-        const QoreFunction* func = qore_method_private::get(*destr)->func;
-        const AbstractQoreFunctionVariant* v = func->first();
+        const QoreExternalFunction* func = destr->getFunction();
+        const QoreExternalVariant* v = func->getFirstVariant();
         if (v) {
             return get_variant_object(c->pgm, func, MT_Destructor, v, xsink);
         }
@@ -1979,8 +1958,8 @@ list<ConstructorMethodVariant> Class::getConstructorVariants() [flags=RET_VALUE_
     const QoreMethod* copy = c->cls->getCopyMethod();
 
     if (copy) {
-        const QoreFunction* func = qore_method_private::get(*copy)->func;
-        const AbstractQoreFunctionVariant* v = func->first();
+        const QoreExternalFunction* func = copy->getFunction();
+        const QoreExternalVariant* v = func->getFirstVariant();
         if (v) {
             return get_variant_object(c->pgm, func, MT_Copy, v, xsink);
         }
@@ -2009,19 +1988,16 @@ list<hash<ClassAccessInfo>> Class::getParentClasses() [flags=RET_VALUE_ONLY] {
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(hashdeclClassAccessInfo->getTypeInfo()), xsink);
 
-    const qore_class_private* qc = qore_class_private::get(*c->cls);
+    QoreParentClassIterator i(c->cls);
+    while (i.next()) {
+        ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclClassAccessInfo, nullptr), xsink);
+        ReferenceHolder<QoreReflectionClass> pc(new QoreReflectionClass(c->pgm, i.getParentClass()), xsink);
 
-    if (qc->scl) {
-        for (auto& i : *qc->scl) {
-            ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclClassAccessInfo, nullptr), xsink);
-            ReferenceHolder<QoreReflectionClass> pc(new QoreReflectionClass(c->pgm, i->sclass), xsink);
+        h->setKeyValue("cls", new QoreObject(QC_CLASS, c->pgm, pc.release()), xsink);
+        h->setKeyValue("access", get_access(i.getAccess()), xsink);
+        h->setKeyValue("access_string", new QoreStringNode(get_access_string(i.getAccess())), xsink);
 
-            h->setKeyValue("cls", new QoreObject(QC_CLASS, c->pgm, pc.release()), xsink);
-            h->setKeyValue("access", get_access(i->access), xsink);
-            h->setKeyValue("access_string", new QoreStringNode(get_access_string(i->access)), xsink);
-
-            l->push(h.release(), xsink);
-        }
+        l->push(h.release(), xsink);
     }
 
     return l.release();
@@ -2056,16 +2032,15 @@ AbstractClassMember Class::getMember(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    const qore_class_private* qc = qore_class_private::get(*c->cls);
     {
-        const QoreMemberInfo* mi = qc->members.find(tname->c_str());
+        const QoreExternalMemberVarBase* mi = c->cls->findLocalMember(tname->c_str());
         if (mi) {
             return new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), mi, false));
         }
     }
 
     {
-        const QoreVarInfo* vi = qc->vars.find(tname->c_str());
+        const QoreExternalStaticMember* vi = c->cls->findLocalStaticMember(tname->c_str());
         if (vi) {
             return new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), vi, true));
         }
@@ -2104,8 +2079,7 @@ NormalMember Class::getNormalMember(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    const qore_class_private* qc = qore_class_private::get(*c->cls);
-    const QoreMemberInfo* mi = qc->members.find(tname->c_str());
+    const QoreExternalMemberVarBase* mi = c->cls->findLocalMember(tname->c_str());
     if (mi) {
         return new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), mi, false));
     }
@@ -2143,8 +2117,7 @@ StaticMember Class::getStaticMember(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    const qore_class_private* qc = qore_class_private::get(*c->cls);
-    const QoreVarInfo* vi = qc->vars.find(tname->c_str());
+    const QoreExternalStaticMember* vi = c->cls->findLocalStaticMember(tname->c_str());
     if (vi) {
         return new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, tname->c_str(), vi, true));
     }
@@ -2173,15 +2146,14 @@ list<AbstractClassMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTCLASSMEMBER->getTypeInfo()), xsink);
 
-    const qore_class_private* qc = qore_class_private::get(*c->cls);
-    // first get non-static members
-    for (QoreMemberMap::DeclOrderIterator i = qc->members.beginDeclOrder(), e = qc->members.endDeclOrder(); i != e; ++i) {
-        l->push(new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, i->first, i->second, false)), xsink);
+    QoreClassMemberIterator mi(c->cls);
+    while (mi.next()) {
+        l->push(new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, mi.getName(), mi.getMember(), false)), xsink);
     }
 
-    // now get static members
-    for (QoreVarMap::DeclOrderIterator i = qc->vars.beginDeclOrder(), e = qc->vars.endDeclOrder(); i != e; ++i) {
-        l->push(new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, i->first, i->second, true)), xsink);
+    QoreClassMemberIterator smi(c->cls);
+    while (smi.next()) {
+        l->push(new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, smi.getName(), smi.getMember(), false)), xsink);
     }
 
     return l.release();
