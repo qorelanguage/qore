@@ -248,13 +248,13 @@ private:
 
 class QoreExternalFunctionIterator {
 public:
-    DLLLOCAL QoreExternalFunctionIterator(const QoreExternalFunction& f);
+    DLLEXPORT QoreExternalFunctionIterator(const QoreExternalFunction& f);
 
-    DLLLOCAL ~QoreExternalFunctionIterator();
+    DLLEXPORT ~QoreExternalFunctionIterator();
 
-    DLLLOCAL bool next();
+    DLLEXPORT bool next();
 
-    DLLLOCAL const QoreExternalVariant* getVariant();
+    DLLEXPORT const QoreExternalVariant* getVariant();
 
 private:
     class qore_external_function_iterator_private* priv;
@@ -272,5 +272,23 @@ private:
     //! not implemented
     DLLLOCAL QoreExternalMethodFunction();
 };
+
+//! returns the name of the type; the argument may be nullptr meaning no type restrictions
+DLLEXPORT const char* qore_type_get_name(const QoreTypeInfo* ti);
+
+//! returns true if the types are equal; either argument may be nullptr meaning no type restrictions
+DLLEXPORT bool qore_type_equal(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
+
+//! returns true if ti2's return type is compatible with ti1's; either argument may be nullptr meaning no type restrictions
+DLLEXPORT bool qore_type_is_output_compatiblee(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2);
+
+//! returns true if the type's value can be converted to a scalar; the argument may be nullptr meaning no type restrictions
+DLLEXPORT bool qore_type_can_convert_to_scalar(const QoreTypeInfo* ti);
+
+//! returns true if the type has a default value; the argument may be nullptr meaning no type restrictions
+DLLEXPORT bool qore_type_has_default_value(const QoreTypeInfo* ti);
+
+//! returns the default value of the type (if any); the caller owns any reference returned; the argument may be nullptr meaning no type restrictions
+DLLEXPORT QoreValue qore_type_get_default_value(const QoreTypeInfo* ti);
 
 #endif

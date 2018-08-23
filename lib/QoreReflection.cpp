@@ -46,6 +46,30 @@ const char* get_access_string(ClassAccess access) {
     return nullptr;
 }
 
+const char* qore_type_get_name(const QoreTypeInfo* ti) {
+    return QoreTypeInfo::getName(ti);
+}
+
+bool qore_type_equal(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2) {
+    return QoreTypeInfo::equal(ti1, ti2);
+}
+
+bool qore_type_is_output_compatiblee(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2) {
+    return QoreTypeInfo::isOutputCompatible(ti1, ti2);
+}
+
+bool qore_type_can_convert_to_scalar(const QoreTypeInfo* ti) {
+    return QoreTypeInfo::canConvertToScalar(ti);
+}
+
+bool qore_type_has_default_value(const QoreTypeInfo* ti) {
+    return QoreTypeInfo::hasDefaultValue(ti);
+}
+
+QoreValue qore_type_get_default_value(const QoreTypeInfo* ti) {
+    return QoreTypeInfo::getDefaultQoreValue(ti);
+}
+
 const QoreClass* QoreExternalVariant::getClass() const {
     return reinterpret_cast<const AbstractQoreFunctionVariant*>(this)->getClass();
 }

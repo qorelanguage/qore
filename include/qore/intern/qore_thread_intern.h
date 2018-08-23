@@ -615,29 +615,30 @@ public:
 struct ThreadLocalProgramData;
 
 class QoreProgramBlockParseOptionHelper {
-protected:
-   int64 po;
-
 public:
-   DLLLOCAL QoreProgramBlockParseOptionHelper(int64 n_po);
-   DLLLOCAL ~QoreProgramBlockParseOptionHelper();
+    DLLLOCAL QoreProgramBlockParseOptionHelper(int64 n_po);
+    DLLLOCAL ~QoreProgramBlockParseOptionHelper();
+
+protected:
+    int64 po;
 };
 
 class ProgramThreadCountContextHelper {
 public:
-   DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
-   DLLLOCAL ~ProgramThreadCountContextHelper();
-   static ThreadLocalProgramData* getContextFrame(int& frame, ExceptionSink* xsink);
-   bool isFirstThreadLocalProgramData(const ThreadLocalProgramData* tlpd) const;
+    DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
+    DLLLOCAL ~ProgramThreadCountContextHelper();
+    static ThreadLocalProgramData* getContextFrame(int& frame, ExceptionSink* xsink);
+    bool isFirstThreadLocalProgramData(const ThreadLocalProgramData* tlpd) const;
+
 protected:
-   QoreProgram* old_pgm = nullptr;
-   ThreadLocalProgramData* old_tlpd = nullptr;
-   ProgramThreadCountContextHelper* old_ctx = nullptr;
-   // frame count of tlpd when context is started
-   int save_frameCount = 0;
-   int old_frameCount;
-   bool restore = false;
-   bool init_tlpd = false;
+    QoreProgram* old_pgm = nullptr;
+    ThreadLocalProgramData* old_tlpd = nullptr;
+    ProgramThreadCountContextHelper* old_ctx = nullptr;
+    // frame count of tlpd when context is started
+    int save_frameCount = 0;
+    int old_frameCount;
+    bool restore = false;
+    bool init_tlpd = false;
 };
 
 class ProgramRuntimeParseContextHelper {

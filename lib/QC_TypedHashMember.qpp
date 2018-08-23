@@ -65,7 +65,7 @@ bool b = m.isBuiltin();
 */
 bool TypedHashMember::isBuiltin() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -84,7 +84,7 @@ bool b = m.isUser();
 */
 bool TypedHashMember::isUser() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -108,7 +108,7 @@ auto val = m.getValue(h);
 */
 auto TypedHashMember::getValue(hash<auto> h) [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }

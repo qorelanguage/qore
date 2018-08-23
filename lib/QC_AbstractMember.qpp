@@ -57,7 +57,7 @@ string name = mem.getName();
  */
 string AbstractMember::getName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -94,7 +94,7 @@ Type t = m.typeObject();
 */
 Type AbstractMember::typeObject() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -115,7 +115,7 @@ auto v = m.getDefaultValue();
 */
 auto AbstractMember::getDefaultValue() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -136,7 +136,7 @@ hash<SourceLocationInfo> loc = mem.getSourceLocation();
 */
 hash<SourceLocationInfo> AbstractMember::getSourceLocation() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }

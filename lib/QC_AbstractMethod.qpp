@@ -111,7 +111,7 @@ bool b = m.isStatic();
 */
 bool AbstractMethod::isStatic() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -132,7 +132,7 @@ string type = m.getMethodTypeName();
 */
 string AbstractMethod::getMethodTypeName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -163,7 +163,7 @@ AbstractMethodVariant v = n.getVariant(IntType, StringType);
 */
 AbstractMethodVariant AbstractMethod::getVariant(...) [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -193,7 +193,7 @@ AbstractMethodVariant v = n.getVariantArgs((IntType, StringType));
 */
 AbstractMethodVariant AbstractMethod::getVariantArgs(softlist<Type> argv) [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -223,7 +223,7 @@ AbstractMethodVariant v = n.getVariant(IntType, StringType);
 */
 AbstractMethodVariant AbstractMethod::getExactVariant(...) [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -253,7 +253,7 @@ AbstractMethodVariant v = n.getVariantArgs((IntType, StringType));
 */
 AbstractMethodVariant AbstractMethod::getExactVariantArgs(softlist<Type> argv) [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -274,7 +274,7 @@ list<AbstractMethodVariant> l = f.getVariants();
 */
 list<AbstractMethodVariant> AbstractMethod::getVariants() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }

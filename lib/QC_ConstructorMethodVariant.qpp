@@ -63,7 +63,7 @@ object v = m.call(arg1, arg2);
 */
 object ConstructorMethodVariant::call(...) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -89,7 +89,7 @@ object v = m.callArgs((arg1, arg2));
 */
 object ConstructorMethodVariant::callArgs(*softlist argv) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }

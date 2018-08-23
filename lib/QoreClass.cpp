@@ -4036,6 +4036,10 @@ BinaryNode* QoreClass::getBinaryHash() const {
     return b.release();
 }
 
+const QoreExternalConstant* QoreClass::findConstant(const char* name) const {
+    return reinterpret_cast<const QoreExternalConstant*>(priv->constlist.findEntry(name));
+}
+
 void MethodFunctionBase::parseInit() {
     QoreFunction::parseInit(qore_class_private::get(*qc)->ns);
 }
@@ -4792,6 +4796,58 @@ const QoreClass* QoreParentClassIterator::getParentClass() const {
 
 ClassAccess QoreParentClassIterator::getAccess() const {
     return priv->getAccess();
+}
+
+class qore_class_constant_iterator {
+public:
+    DLLLOCAL qore_class_constant_iterator(const qore_class_private* qc) :
+        qc(qc), i(qc->constlist.cnemap.end()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == qc->constlist.cnemap.end()) {
+            i = qc->constlist.cnemap.begin();
+        }
+        else {
+            ++i;
+        }
+        return (i != qc->constlist.cnemap.end());
+    }
+
+    //! returns true if the iterator is pointing at a valid element
+    DLLLOCAL bool valid() const {
+        return i != qc->constlist.cnemap.end();
+    }
+
+    //! returns the
+    DLLLOCAL const QoreExternalConstant* get() const {
+        assert(valid());
+        return reinterpret_cast<const QoreExternalConstant*>(i->second);
+    }
+
+private:
+    const qore_class_private* qc;
+    cnemap_t::const_iterator i;
+};
+
+QoreClassConstantIterator::QoreClassConstantIterator(const QoreClass* cls)
+    : priv(new qore_class_constant_iterator(qore_class_private::get(*cls))) {
+}
+
+QoreClassConstantIterator::~QoreClassConstantIterator() {
+    delete priv;
+}
+
+bool QoreClassConstantIterator::next() {
+    return priv->next();
+}
+
+bool QoreClassConstantIterator::valid() const {
+    return priv->valid();
+}
+
+const QoreExternalConstant* QoreClassConstantIterator::get() const {
+    return priv->get();
 }
 
 class qore_class_member_iterator_private {

@@ -50,6 +50,7 @@
 
 // forward declarations
 class QoreExternalFunction;
+class QoreExternalConstant;
 
 //! namespace class handler function type
 /** called when a class cannot be found in the namespace
@@ -218,8 +219,8 @@ public:
     */
     DLLEXPORT void setClassHandler(q_ns_class_handler_t class_handler);
 
-    //! returns a pointer to the parent namespace or 0 if there is no parent
-    /** @return a pointer to the parent namespace or 0 if there is no parent
+    //! returns a pointer to the parent namespace or nullptr if there is no parent
+    /** @return a pointer to the parent namespace or nullptr if there is no parent
     */
     DLLEXPORT const QoreNamespace* getParent() const;
 
@@ -233,6 +234,38 @@ public:
     /** @since %Qore 0.9
     */
     DLLEXPORT const QoreExternalFunction* findLocalFunction(const char* name) const;
+
+    //! find a constant in the current namespace; returns nullptr if not found
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const QoreExternalConstant* findLocalConstant(const char* name) const;
+
+    //! returns the path for the namespace
+    /** @param anchored if true then the namespace will be prefixed with "::" for the unnamed root namespace
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT std::string getPath(bool anchored = false) const;
+
+    //! returns true if the namespace has its module public flag set
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT bool isModulePublic() const;
+
+    //! returns true if the namespace is builtin
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT bool isBuiltin() const;
+
+    //! returns true if the namespace was imported from another program object
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT bool isImported() const;
+
+    //! returns true if the namespace is the root namespace
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT bool isRoot() const;
 };
 
 //! the root namespace of a QoreProgram object
@@ -333,6 +366,27 @@ public:
 
 private:
     class qore_namespace_function_iterator* priv;
+};
+
+//! allows constants in a namespace to be iterated
+/** @since %Qore 0.9
+ */
+class QoreNamespaceConstantIterator {
+public:
+    //! creates the iterator
+    DLLEXPORT QoreNamespaceConstantIterator(const QoreNamespace* ns);
+
+    //! destroys the iterator
+    DLLEXPORT ~QoreNamespaceConstantIterator();
+
+    //! moves to the next position; returns true if on a valid position
+    DLLEXPORT bool next();
+
+    //! returns the function
+    DLLEXPORT const QoreExternalConstant* get() const;
+
+private:
+    class qore_namespace_constant_iterator* priv;
 };
 
 #endif // QORE_NAMESPACE_H

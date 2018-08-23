@@ -91,7 +91,7 @@ QoreObject* get_method_object(ReferenceHolder<QoreReflectionMethod>& m, Exceptio
 
 QoreObject* find_variant(const QoreReflectionClass* c, const char* name, unsigned which, const QoreListNode* args, size_t offset, bool exact, ExceptionSink* xsink) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return nullptr;
     }
@@ -362,7 +362,7 @@ string name = cls.getName();
  */
 string Class::getName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -384,7 +384,7 @@ string name = cls.getPathName();
  */
 string Class::getPathName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -412,13 +412,13 @@ bool Class::isEqual(Class[QoreReflectionClass] cls) [flags=RET_VALUE_ONLY] {
     ReferenceHolder<QoreReflectionClass> holder(cls, xsink);
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch1(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch1(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch2(xsink, cls->pgm, true);
+    QoreExternalProgramContextHelper tch2(xsink, cls->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -446,7 +446,7 @@ int i = cls.getModifiers();
 */
 int Class::getModifiers() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -495,7 +495,7 @@ list<string> l = cls.getModifierList();
 */
 list<string> Class::getModifierList() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -534,7 +534,7 @@ bool b = cls.isBuiltin();
 */
 bool Class::isBuiltin() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -553,7 +553,7 @@ bool b = cls.isUser();
 */
 bool Class::isUser() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -572,7 +572,7 @@ bool b = cls.isAbstract();
 */
 bool Class::isAbstract() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -591,7 +591,7 @@ bool b = cls.isInjected();
 */
 bool Class::isInjected() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -610,7 +610,7 @@ bool b = cls.isModulePublic();
 */
 bool Class::isModulePublic() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -633,7 +633,7 @@ if (cls1.getId() == cls2.getId()) {
 */
 int Class::getId() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -654,7 +654,7 @@ binary b = cls.getHash();
 */
 binary Class::getHash() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -675,7 +675,7 @@ bool b = cls.hasMemberGate();
 */
 bool Class::hasMemberGate() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -696,7 +696,7 @@ bool b = cls.hasMethodGate();
 */
 bool Class::hasMethodGate() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -717,7 +717,7 @@ bool b = cls.hasMemberNotification();
 */
 bool Class::hasMemberNotification() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -742,7 +742,7 @@ int i = cls.getDomain();
 */
 int Class::getDomain() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -767,7 +767,7 @@ list<string> l = cls.getDomainStringList();
 */
 list<string> Class::getDomainStringList() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -788,7 +788,7 @@ bool b = cls.hasConstructorMethod();
 */
 bool Class::hasConstructorMethod() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -809,7 +809,7 @@ bool b = cls.hasDestructorMethod();
 */
 bool Class::hasDestructorMethod() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -830,7 +830,7 @@ bool b = cls.hasCopyMethod();
 */
 bool Class::hasCopyMethod() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -863,7 +863,7 @@ object o = cls.newObject();
 */
 object Class::newObject(...) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -905,7 +905,7 @@ object o = cls.newObjectArgs(args);
 */
 object Class::newObjectArgs(*softlist argv) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -937,7 +937,7 @@ Type t = cls.typeObject();
 */
 Type Class::typeObject() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -960,7 +960,7 @@ Type t = cls.orNothingTypeObject();
 */
 Type Class::orNothingTypeObject() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1499,7 +1499,7 @@ AbstractMethod Class::getMethod(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1540,7 +1540,7 @@ NormalMethod Class::getNormalMethod(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1586,7 +1586,7 @@ StaticMethod Class::getStaticMethod(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1624,7 +1624,7 @@ ConstructorMethod m = cls.getConstructorMethod();
 */
 ConstructorMethod Class::getConstructorMethod() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1659,7 +1659,7 @@ DestructorMethod m = cls.getDestructorMethod();
 */
 DestructorMethod Class::getDestructorMethod() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1694,7 +1694,7 @@ CopyMethod m = cls.getCopyMethod();
 */
 CopyMethod Class::getCopyMethod() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1721,7 +1721,7 @@ list<AbstractMethod> l = cls.getMethods();
 */
 list<AbstractMethod> Class::getMethods() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1752,7 +1752,7 @@ list<NormalMethod> l = cls.getNormalMethods();
 */
 list<NormalMethod> Class::getNormalMethods() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1788,7 +1788,7 @@ list<AbstractMethodVariant> l = cls.getVariants();
 */
 list<AbstractMethodVariant> Class::getVariants() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1817,7 +1817,7 @@ list<NormalMethodVariant> l = cls.getNormalVariants();
 */
 list<NormalMethodVariant> Class::getNormalVariants() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1850,7 +1850,7 @@ list<StaticMethodVariant> l = cls.getStaticVariants();
 */
 list<StaticMethodVariant> Class::getStaticVariants() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1883,7 +1883,7 @@ list<ConstructorMethodVariant> l = cls.getConstructorVariants();
 */
 list<ConstructorMethodVariant> Class::getConstructorVariants() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1914,7 +1914,7 @@ list<ConstructorMethodVariant> Class::getConstructorVariants() [flags=RET_VALUE_
 */
 *DestructorMethodVariant Class::getIfDestructorVariant() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1949,7 +1949,7 @@ list<ConstructorMethodVariant> Class::getConstructorVariants() [flags=RET_VALUE_
 */
 *CopyMethodVariant Class::getIfCopyVariant() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -1980,7 +1980,7 @@ list<hash<ClassAccessInfo>> l = cls.getParentClasses();
 */
 list<hash<ClassAccessInfo>> Class::getParentClasses() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -2026,7 +2026,7 @@ AbstractClassMember Class::getMember(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -2073,7 +2073,7 @@ NormalMember Class::getNormalMember(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -2111,7 +2111,7 @@ StaticMember Class::getStaticMember(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -2138,7 +2138,7 @@ list<AbstractClassMember> l = cls.getMembers();
 */
 list<AbstractClassMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -2165,7 +2165,7 @@ list<AbstractClassMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
 ClassConstant con = cls.getConstant(name);
     @endcode
 
-    @return given class constant or throws an exception if the constant is not defined
+    @return the given class constant or throws an exception if the constant is not defined
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw UNKNOWN-CONSTANT thrown if the constant cannot be found
@@ -2178,8 +2178,7 @@ ClassConstant Class::getConstant(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-    const qore_class_private* qc = qore_class_private::get(*c->cls);
-    const ConstantEntry* ce = qc->constlist.findEntry(tname->c_str());
+    const QoreExternalConstant* ce = c->cls->findConstant(tname->c_str());
     if (!ce) {
         xsink->raiseException("UNKNOWN-CONSTANT", "constant '%s' is not defined in class '%s'", tname->c_str(), c->cls->getName());
         return QoreValue();
@@ -2200,18 +2199,16 @@ list<ClassConstant> l = cls.getConstants();
 */
 list<ClassConstant> Class::getConstants() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASSCONSTANT->getTypeInfo()), xsink);
-
-    const qore_class_private* qc = qore_class_private::get(*c->cls);
-
-    for (auto& i : qc->constlist.cnemap) {
-        l->push(new QoreObject(QC_CLASSCONSTANT, c->pgm, new QoreReflectionClassConstant(c->pgm, i.second, c->cls)), xsink);
+    QoreClassConstantIterator i(c->cls);
+    while (i.next()) {
+        l->push(new QoreObject(QC_CLASSCONSTANT, c->pgm, new QoreReflectionClassConstant(c->pgm, i.get(), c->cls)), xsink);
     }
 
     return l.release();
@@ -2229,7 +2226,7 @@ Namespace ns = cls.getNamespace();
  */
 Namespace Class::getNamespace() [flags=CONSTANT] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }

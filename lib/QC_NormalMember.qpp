@@ -67,7 +67,7 @@ auto val = m.getValue(obj);
 */
 auto NormalMember::getValue(object obj) [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -95,7 +95,7 @@ m.setValue(obj, val);
 */
 nothing NormalMember::setValue(object obj, auto val) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }

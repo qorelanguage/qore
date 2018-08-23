@@ -107,7 +107,7 @@ FunctionVariant v = n.getVariant(IntType, StringType);
 */
 FunctionVariant Function::getVariant(...) [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -137,7 +137,7 @@ FunctionVariant v = n.getVariantArgs((IntType, StringType));
 */
 FunctionVariant Function::getVariantArgs(softlist<Type> argv) [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -167,7 +167,7 @@ FunctionVariant v = n.getVariant(IntType, StringType);
 */
 FunctionVariant Function::getExactVariant(...) [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -197,7 +197,7 @@ FunctionVariant v = n.getVariantArgs((IntType, StringType));
 */
 FunctionVariant Function::getExactVariantArgs(softlist<Type> argv) [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -222,7 +222,7 @@ auto v = f.call(arg1, arg2);
 */
 auto Function::call(...) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -247,7 +247,7 @@ auto v = f.callArgs(argv);
 */
 auto Function::callArgs(*softlist<auto> argv) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, f->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
     if (*xsink) {
         return QoreValue();
     }

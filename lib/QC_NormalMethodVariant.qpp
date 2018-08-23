@@ -83,7 +83,7 @@ auto v = m.call(obj, arg1, arg2);
 */
 auto NormalMethodVariant::call(object obj, ...) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -127,7 +127,7 @@ auto v = m.callArgs(obj, (arg1, arg2));
 */
 auto NormalMethodVariant::callArgs(object obj, *softlist<auto> argv) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }

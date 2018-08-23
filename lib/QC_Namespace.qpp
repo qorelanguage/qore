@@ -41,7 +41,8 @@
 #include "qore/intern/Function.h"
 
 QoreReflectionNamespace::QoreReflectionNamespace(const QoreString& name, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
-    ns = qore_root_ns_private::get(*qore_program_private::get(*pgm)->RootNS)->runtimeFindNamespace(name);
+    ns = getProgram()->findNamespace(name);
+
     if (!ns) {
         xsink->raiseException("NAMESPACE-ERROR", "cannot resolve namespace '%s'", name.c_str());
         return;
@@ -95,7 +96,7 @@ string name = ns.getName();
  */
 string Namespace::getName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -118,16 +119,13 @@ string name = n.getPathName();
  */
 string Namespace::getPathName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    std::string path;
-    ns->getPath(path);
-    return new QoreStringNode(path);
+    return new QoreStringNode(n->ns->getPath());
 }
 
 //! Returns @ref True if the Namespace object passed as an argument is equal to the current object; @ref False if not
@@ -146,13 +144,13 @@ bool Namespace::isEqual(Namespace[QoreReflectionNamespace] ns) [flags=RET_VALUE_
     ReferenceHolder<QoreReflectionNamespace> holder(ns, xsink);
 
     // get read access to program object
-    ProgramThreadCountContextHelper tnh1(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tnh1(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tnh2(xsink, ns->pgm, true);
+    QoreExternalProgramContextHelper tnh2(xsink, ns->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -177,18 +175,17 @@ int i = n.getModifiers();
 */
 int Namespace::getModifiers() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the namespace ptr must be valid
     int64 rc = 0;
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    if (ns->pub) {
+    if (n->ns->isModulePublic()) {
         rc |= MC_PUBLIC;
     }
-    if (ns->builtin) {
+    if (n->ns->isBuiltin()) {
         rc |= MC_BUILTIN;
     }
     else {
@@ -215,18 +212,17 @@ list<string> l = n.getModifierList();
 */
 list<string> Namespace::getModifierList() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    if (ns->pub) {
+    if (n->ns->isModulePublic()) {
         rv->push(new QoreStringNode("public"), xsink);
     }
-    if (ns->builtin) {
+    if (n->ns->isBuiltin()) {
         rv->push(new QoreStringNode("builtin"), xsink);
     }
     else {
@@ -246,13 +242,13 @@ bool b = n.isBuiltin();
 */
 bool Namespace::isBuiltin() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the namespace ptr must be valid
-    return qore_ns_private::get(*n->ns)->builtin;
+    return n->ns->isBuiltin();
 }
 
 //! returns @ref True if the namespace is a user namespace
@@ -265,13 +261,13 @@ bool b = n.isUser();
 */
 bool Namespace::isUser() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the namespace ptr must be valid
-    return !qore_ns_private::get(*n->ns)->builtin;
+    return !n->ns->isBuiltin();
 }
 
 //! returns @ref True if the namespace has the @ref mod_public "module public" flag set
@@ -284,13 +280,13 @@ bool b = n.isModulePublic();
 */
 bool Namespace::isModulePublic() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the namespace ptr must be valid
-    return qore_ns_private::get(*n->ns)->pub;
+    return n->ns->isModulePublic();
 }
 
 //! returns @ref True if the namespace has been imported from another @ref Qore::Program "Program" object
@@ -305,13 +301,13 @@ bool b = n.isImported();
 */
 bool Namespace::isImported() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the namespace ptr must be valid
-    return qore_ns_private::get(*n->ns)->imported;
+    return n->ns->isImported();
 }
 
 //! returns @ref True if the namespace is the root namespace
@@ -326,7 +322,7 @@ bool b = n.isRoot();
 */
 bool Namespace::isRoot() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -347,15 +343,15 @@ bool Namespace::isRoot() [flags=RET_VALUE_ONLY] {
 */
 *Namespace Namespace::getParentNamespace() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* parent = qore_ns_private::get(*n->ns)->parent;
+    const QoreNamespace* parent = n->ns->getParent();
     if (parent) {
-        return new QoreObject(QC_NAMESPACE, n->pgm, new QoreReflectionNamespace(n->pgm, parent->ns));
+        return new QoreObject(QC_NAMESPACE, n->pgm, new QoreReflectionNamespace(n->pgm, parent));
     }
     return QoreValue();
 }
@@ -379,8 +375,7 @@ Constant Namespace::getConstant(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    const ConstantEntry* ce = ns->constant.findEntry(tname->c_str());
+    const QoreExternalConstant* ce = n->ns->findLocalConstant(tname->c_str());
     if (!ce) {
         xsink->raiseException("UNKNOWN-CONSTANT", "constant '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
         return QoreValue();
@@ -401,7 +396,7 @@ list<Constant> l = n.getConstants();
 */
 list<Constant> Namespace::getConstants() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -409,10 +404,9 @@ list<Constant> Namespace::getConstants() [flags=RET_VALUE_ONLY] {
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CONSTANT->getTypeInfo()), xsink);
 
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-
-    for (auto& i : ns->constant.cnemap) {
-        l->push(new QoreObject(QC_CONSTANT, n->pgm, new QoreReflectionNamespaceConstant(n->pgm, i.second, n->ns)), xsink);
+    QoreNamespaceConstantIterator i(n->ns);
+    while (i.next()) {
+        l->push(new QoreObject(QC_CONSTANT, n->pgm, new QoreReflectionNamespaceConstant(n->pgm, i.get(), n->ns)), xsink);
     }
 
     return l.release();
@@ -459,7 +453,7 @@ list<Namespace> l = n.getNamespaces();
 */
 list<Namespace> Namespace::getNamespaces() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -517,7 +511,7 @@ list<Class> l = n.getClasses();
 */
 list<Class> Namespace::getClasses() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -556,7 +550,7 @@ Function Namespace::getFunction(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -583,7 +577,7 @@ list<Function> l = n.getFunctions();
 */
 list<Function> Namespace::getFunctions() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -627,7 +621,7 @@ FunctionVariant Namespace::getVariant(string name, ...) [flags=RET_VALUE_ONLY] {
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -670,7 +664,7 @@ FunctionVariant Namespace::getVariantArgs(string name, softlist<Type> argv) [fla
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -713,7 +707,7 @@ FunctionVariant Namespace::getExactVariant(string name, ...) [flags=RET_VALUE_ON
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -756,7 +750,7 @@ FunctionVariant Namespace::getExactVariantArgs(string name, softlist<Type> argv)
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -783,7 +777,7 @@ list<FunctionVariant> l = n.getVariants();
 */
 list<FunctionVariant> Namespace::getVariants() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -844,7 +838,7 @@ list<GlobalVar> l = n.getGlobalVars();
 */
 list<GlobalVar> Namespace::getGlobalVars() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -902,7 +896,7 @@ list<TypedHash> l = n.getTypedHashes();
 */
 list<TypedHash> Namespace::getTypedHashes() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, n->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, n->pgm);
     if (*xsink) {
         return QoreValue();
     }

@@ -63,7 +63,7 @@ auto val = v.call(arg1, arg2);
 */
 auto StaticMethodVariant::call(...) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -91,7 +91,7 @@ auto val = v.callArgs((arg1, arg2));
 */
 auto StaticMethodVariant::callArgs(*softlist<auto> argv) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }

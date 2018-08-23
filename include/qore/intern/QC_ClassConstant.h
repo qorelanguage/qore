@@ -38,7 +38,7 @@ class QoreReflectionClassConstant : public QoreReflectionConstant {
 public:
     const QoreClass* cls;
 
-    DLLLOCAL QoreReflectionClassConstant(QoreProgram* pgm, const ConstantEntry* ce, const QoreClass* cls) :
+    DLLLOCAL QoreReflectionClassConstant(QoreProgram* pgm, const QoreExternalConstant* ce, const QoreClass* cls) :
         QoreReflectionConstant(pgm, ce), cls(cls) {
     }
 

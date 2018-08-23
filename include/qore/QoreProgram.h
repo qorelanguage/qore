@@ -703,7 +703,10 @@ public:
    DLLEXPORT const QoreExternalFunction* findFunction(const char* path) const;
 
    //! search for the given typed hash (hashdecl) in the program; can be a simple function name or a namespace-prefixed path (ex: "NamespaceName::TypedHashName")
-   DLLEXPORT const TypedHashDecl* findHashDecl(const char* path, const QoreNamespace*& pns);
+   DLLEXPORT const TypedHashDecl* findHashDecl(const char* path, const QoreNamespace*& pns) const;
+
+   //! search for the given namespace in the program; can be a simple namespace name or a namespace-prefixed path (ex: "NamespaceName::Namespace")
+   DLLEXPORT const QoreNamespace* findNamespace(const QoreString& path) const;
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = nullptr);
 
@@ -1037,7 +1040,21 @@ public:
    DLLEXPORT void setQoreObject(QoreObject* n_qo);
 
    DLLEXPORT QoreObject* getQoreObject();
+};
 
+//! allows a program to be used and guarantees that it will stay valid until the destructor is run if successfully acquired in the constructor
+/** @since %Qore 0.9
+*/
+class QoreExternalProgramContextHelper {
+public:
+    //! try to attach to the given program, if not possible, then a Qore-language exception is thrown
+    DLLEXPORT QoreExternalProgramContextHelper(ExceptionSink* xsink, QoreProgram* pgm);
+
+    //! destroys the object and releases the program to be destroyed if it was successfully acquired in the constructor
+    DLLEXPORT ~QoreExternalProgramContextHelper();
+
+private:
+    class ProgramThreadCountContextHelper* priv;
 };
 
 #endif  // _QORE_QOREPROGRAM_H

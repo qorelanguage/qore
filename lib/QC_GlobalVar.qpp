@@ -112,7 +112,7 @@ string name = var.getName();
  */
 string GlobalVar::getName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -135,7 +135,7 @@ bool b = var.isBuiltin();
 */
 bool GlobalVar::isBuiltin() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -158,7 +158,7 @@ bool b = var.isUser();
 */
 bool GlobalVar::isUser() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -179,7 +179,7 @@ hash<SourceLocationInfo> loc = var.getSourceLocation();
 */
 hash<SourceLocationInfo> GlobalVar::getSourceLocation() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -200,7 +200,7 @@ Type t = var.typeObject();
 */
 Type GlobalVar::typeObject() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -233,7 +233,7 @@ auto val = var.getValue();
 */
 auto GlobalVar::getValue() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -254,7 +254,7 @@ var.setValue(val);
 */
 nothing GlobalVar::setValue(auto val) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, v->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
     if (*xsink) {
         return QoreValue();
     }

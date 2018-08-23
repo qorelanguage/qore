@@ -820,7 +820,7 @@ QoreNamespace* QoreNamespace::findLocalNamespace(const char* cname) const {
 }
 
 const QoreNamespace* QoreNamespace::getParent() const {
-    return priv->parent ? priv->parent->ns : 0;
+    return priv->parent ? priv->parent->ns : nullptr;
 }
 
 void QoreNamespace::deleteData(ExceptionSink* xsink) {
@@ -881,6 +881,32 @@ void QoreNamespace::addBuiltinVariant(const char* name, q_func_n_t f, int64 code
 
 const QoreExternalFunction* QoreNamespace::findLocalFunction(const char* name) const {
     return reinterpret_cast<const QoreExternalFunction*>(priv->func_list.find(name, true));
+}
+
+const QoreExternalConstant* QoreNamespace::findLocalConstant(const char* name) const {
+    return reinterpret_cast<const QoreExternalConstant*>(priv->constant.findEntry(name));
+}
+
+std::string QoreNamespace::getPath(bool anchored) const {
+    std::string rv;
+    priv->getPath(rv, anchored);
+    return rv;
+}
+
+bool QoreNamespace::isModulePublic() const {
+    return priv->pub;
+}
+
+bool QoreNamespace::isBuiltin() const {
+    return priv->builtin;
+}
+
+bool QoreNamespace::isImported() const {
+    return priv->imported;
+}
+
+bool QoreNamespace::isRoot() const {
+    return priv->root;
 }
 
 RootQoreNamespace::RootQoreNamespace(qore_root_ns_private* p) : QoreNamespace(p), rpriv(p) {
@@ -3051,5 +3077,51 @@ bool QoreNamespaceFunctionIterator::next() {
 
 //! returns the function
 const QoreExternalFunction* QoreNamespaceFunctionIterator::get() const {
+    return priv->get();
+}
+
+class qore_namespace_constant_iterator {
+public:
+    DLLLOCAL qore_namespace_constant_iterator(const qore_ns_private* ns) :
+        ns(ns), i(ns->constant.cnemap.begin()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == ns->constant.cnemap.end()) {
+            i = ns->constant.cnemap.begin();
+        }
+        else {
+            ++i;
+        }
+        return (i != ns->constant.cnemap.end());
+    }
+
+    const QoreExternalConstant* get() const {
+        assert(i != ns->constant.cnemap.end());
+        assert(i->second);
+        return reinterpret_cast<const QoreExternalConstant*>(i->second);
+    }
+
+private:
+    const qore_ns_private* ns;
+    cnemap_t::const_iterator i;
+};
+
+//! creates the iterator
+QoreNamespaceConstantIterator::QoreNamespaceConstantIterator(const QoreNamespace* ns) : priv(new qore_namespace_constant_iterator(qore_ns_private::get(*ns))) {
+}
+
+//! destroys the iterator
+QoreNamespaceConstantIterator::~QoreNamespaceConstantIterator() {
+    delete priv;
+}
+
+//! moves to the next position; returns true if on a valid position
+bool QoreNamespaceConstantIterator::next() {
+    return priv->next();
+}
+
+//! returns the constant
+const QoreExternalConstant* QoreNamespaceConstantIterator::get() const {
     return priv->get();
 }

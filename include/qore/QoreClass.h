@@ -97,6 +97,7 @@ class QoreExternalProgramLocation;
 class QoreExternalMethodFunction;
 class QoreExternalMemberVarBase;
 class QoreExternalStaticMember;
+class QoreExternalConstant;
 
 //! method type enum
 /** @since %Qore 0.9
@@ -828,6 +829,11 @@ public:
     */
     DLLEXPORT int runtimeCheckInstantiateClass(ExceptionSink* xsink) const;
 
+    //! Finds the given constant or returns nullptr if not found
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const QoreExternalConstant* findConstant(const char* name) const;
+
     //! constructor not exported in library's API
     DLLLOCAL QoreClass();
 
@@ -1044,6 +1050,30 @@ public:
 
 private:
     class qore_class_static_member_iterator_private* priv;
+};
+
+//! iterates class constants
+/**
+*/
+class QoreClassConstantIterator {
+public:
+    //! creates the iterator; call next() to start iterating
+    DLLEXPORT QoreClassConstantIterator(const QoreClass* cls);
+
+    //! destroys the object
+    DLLEXPORT ~QoreClassConstantIterator();
+
+    //! returns advances to the next element (or to the first element if starting to iterate) and returns true if there is an element to query or returns false if at the end of the list
+    DLLEXPORT bool next();
+
+    //! returns true if the iterator is pointing at a valid element
+    DLLEXPORT bool valid() const;
+
+    //! returns the
+    DLLEXPORT const QoreExternalConstant* get() const;
+
+private:
+    class qore_class_constant_iterator* priv;
 };
 
 DLLLOCAL const char* get_access_string(ClassAccess access);

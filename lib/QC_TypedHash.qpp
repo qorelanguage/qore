@@ -111,7 +111,7 @@ string name = th.getName();
  */
 string TypedHash::getName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, thd->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -134,7 +134,7 @@ bool b = th.isBuiltin();
 */
 bool TypedHash::isBuiltin() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, thd->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -157,7 +157,7 @@ bool b = th.isUser();
 */
 bool TypedHash::isUser() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, thd->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -178,7 +178,7 @@ hash<SourceLocationInfo> loc = th.getSourceLocation();
 */
 hash<SourceLocationInfo> TypedHash::getSourceLocation() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, thd->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -201,7 +201,7 @@ Type t = th.typeObject();
 */
 Type TypedHash::typeObject() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, thd->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -224,7 +224,7 @@ Type t = th.orNothingTypeObject();
 */
 Type TypedHash::orNothingTypeObject() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, thd->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -264,7 +264,7 @@ TypedHashMember TypedHash::getMember(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, thd->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
     if (*xsink) {
         return QoreValue();
     }
@@ -291,7 +291,7 @@ list<TypedHashMember> l = th.getMembers();
 */
 list<TypedHashMember> TypedHash::getMembers() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, thd->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
     if (*xsink) {
         return QoreValue();
     }

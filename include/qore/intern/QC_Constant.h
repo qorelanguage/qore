@@ -38,7 +38,7 @@ class QoreReflectionNamespaceConstant : public QoreReflectionConstant {
 public:
     const QoreNamespace* ns;
 
-    DLLLOCAL QoreReflectionNamespaceConstant(QoreProgram* pgm, const ConstantEntry* ce, const QoreNamespace* ns) :
+    DLLLOCAL QoreReflectionNamespaceConstant(QoreProgram* pgm, const QoreExternalConstant* ce, const QoreNamespace* ns) :
         QoreReflectionConstant(pgm, ce), ns(ns) {
     }
 

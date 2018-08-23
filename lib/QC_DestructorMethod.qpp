@@ -110,7 +110,7 @@ m.call(obj);
 */
 auto DestructorMethod::call(object obj) {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, m->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
     if (*xsink) {
         return QoreValue();
     }

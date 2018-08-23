@@ -2086,13 +2086,17 @@ const QoreExternalFunction* QoreProgram::findFunction(const char* path) const {
     return reinterpret_cast<const QoreExternalFunction*>(fe ? fe->getFunction() : nullptr);
 }
 
-const TypedHashDecl* QoreProgram::findHashDecl(const char* path, const QoreNamespace*& pns) {
+const TypedHashDecl* QoreProgram::findHashDecl(const char* path, const QoreNamespace*& pns) const {
     const qore_ns_private* pns_priv;
     const TypedHashDecl* th = qore_root_ns_private::runtimeFindHashDecl(*priv->RootNS, path, pns_priv);
     if (th) {
         pns = pns_priv->ns;
     }
     return th;
+}
+
+const QoreNamespace* QoreProgram::findNamespace(const QoreString& path) const {
+    return qore_root_ns_private::get(*priv->RootNS)->runtimeFindNamespace(path);
 }
 
 QoreRWLock QoreBreakpoint::lck_breakpoint;
@@ -2367,4 +2371,11 @@ QoreObject* QoreBreakpoint::getQoreObject() {
 
 void QoreBreakpoint::setQoreObject(QoreObject *n_qo) {
     qo = n_qo;
+}
+
+QoreExternalProgramContextHelper::QoreExternalProgramContextHelper(ExceptionSink* xsink, QoreProgram* pgm) : priv(new ProgramThreadCountContextHelper(xsink, pgm, true)) {
+}
+
+QoreExternalProgramContextHelper::~QoreExternalProgramContextHelper() {
+    delete priv;
 }

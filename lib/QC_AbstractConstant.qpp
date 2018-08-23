@@ -57,14 +57,13 @@ string name = con.getName();
  */
 string AbstractConstant::getName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the constant ptr must be valid
-    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
-    return new QoreStringNode(con->getName());
+    return new QoreStringNode(c->ce->getName());
 }
 
 //! Returns @ref True if the AbstractConstant object passed as an argument is equal to the current object; @ref False if not
@@ -102,13 +101,12 @@ int i = con.getModifiers();
 */
 int AbstractConstant::getModifiers() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the constant ptr must be valid
-    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
     const QoreClass* cls = c->getClass();
     int64 rc = 0;
     if (cls) {
@@ -119,17 +117,17 @@ int AbstractConstant::getModifiers() [flags=RET_VALUE_ONLY] {
             rc |= MC_USER;
         }
 
-        rc |= get_access(con->getAccess());
+        rc |= get_access(c->ce->getAccess());
     }
     else {
-        if (con->isBuiltin()) {
+        if (c->ce->isBuiltin()) {
             rc |= MC_BUILTIN;
         }
         else {
             rc |= MC_USER;
         }
 
-        if (con->isModulePublic()) {
+        if (c->ce->isModulePublic()) {
             rc |= MC_PUBLIC;
         }
     }
@@ -156,14 +154,13 @@ list<string> l = con.getModifierList();
 */
 list<string> AbstractConstant::getModifierList() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
-    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
     const QoreClass* cls = c->getClass();
     if (cls) {
         if (cls->isSystem()) {
@@ -173,17 +170,17 @@ list<string> AbstractConstant::getModifierList() [flags=RET_VALUE_ONLY] {
             rv->push(new QoreStringNode("user"), xsink);
         }
 
-        rv->push(new QoreStringNode(get_access_string(con->getAccess())), xsink);
+        rv->push(new QoreStringNode(get_access_string(c->ce->getAccess())), xsink);
     }
     else {
-        if (con->isBuiltin()) {
+        if (c->ce->isBuiltin()) {
             rv->push(new QoreStringNode("builtin"), xsink);
         }
         else {
             rv->push(new QoreStringNode("user"), xsink);
         }
 
-        if (con->isModulePublic()) {
+        if (c->ce->isModulePublic()) {
             rv->push(new QoreStringNode("public"), xsink);
         }
     }
@@ -201,14 +198,13 @@ bool b = con.isBuiltin();
 */
 bool AbstractConstant::isBuiltin() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the constant ptr must be valid
-    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
-    return con->isBuiltin();
+    return c->ce->isBuiltin();
 }
 
 //! returns @ref True if the constant is a user constant
@@ -221,14 +217,13 @@ bool b = con.isUser();
 */
 bool AbstractConstant::isUser() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the class ptr must be valid
-    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
-    return !con->isBuiltin();
+    return !c->ce->isBuiltin();
 }
 
 //! Returns the type object for this constant
@@ -243,14 +238,13 @@ Type t = con.typeObject();
 */
 Type AbstractConstant::typeObject() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the class ptr must be valid
-    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
-    return new QoreObject(QC_TYPE, c->pgm, new QoreType(con->getTypeInfo()));
+    return new QoreObject(QC_TYPE, c->pgm, new QoreType(c->ce->getTypeInfo()));
 }
 
 //! Returns the value of the constant
@@ -265,14 +259,13 @@ auto v = con.getValue();
 */
 auto AbstractConstant::getValue() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the constant ptr must be valid
-    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
-    return con->getReferencedValue();
+    return c->ce->getReferencedValue();
 }
 
 //! Returns the source location of the contant declaration
@@ -287,12 +280,11 @@ hash<SourceLocationInfo> loc = con.getSourceLocation();
 */
 hash<SourceLocationInfo> AbstractConstant::getSourceLocation() [flags=RET_VALUE_ONLY] {
     // get read access to program object
-    ProgramThreadCountContextHelper tch(xsink, c->pgm, true);
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
     if (*xsink) {
         return QoreValue();
     }
 
     // the constant ptr must be valid
-    const QoreExternalConstant* con = reinterpret_cast<const QoreExternalConstant*>(c->ce);
-    return con->getSourceLocation()->getHash();
+    return c->ce->getSourceLocation()->getHash();
 }
