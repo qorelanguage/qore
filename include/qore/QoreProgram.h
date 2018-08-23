@@ -712,6 +712,16 @@ public:
    //! search for the given global variable in the program; can be a simple function name or a namespace-prefixed path (ex: "NamespaceName::global_var")
    DLLEXPORT const QoreExternalGlobalVar* findGlobalVar(const char* path, const QoreNamespace*& pns) const;
 
+   //! incremements the weak reference count for the program object
+   /** @since %Qore 0.9
+   */
+   DLLEXPORT void depRef();
+
+   //! dereferences a weak reference for the program object
+   /** @since %Qore 0.9 public
+   */
+   DLLEXPORT void depDeref();
+
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = nullptr);
 
    DLLLOCAL LocalVar *createLocalVar(const char* name, const QoreTypeInfo *typeInfo);
@@ -720,8 +730,6 @@ public:
    DLLLOCAL ExceptionSink* getParseExceptionSink();
 
    DLLLOCAL QoreHashNode* getThreadData();
-   DLLLOCAL void depRef();
-   DLLLOCAL void depDeref();
    DLLLOCAL void addFile(char* f);
    DLLLOCAL QoreListNode* getVarList();
    DLLLOCAL void parseSetIncludePath(const char* path);

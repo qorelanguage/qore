@@ -31,7 +31,6 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/SingleValueIterator.h"
-#include <qore/intern/QC_Type.h>
 
 extern QoreClass* QC_SINGLEVALUEITERATOR;
 
@@ -66,8 +65,6 @@ switch (v.typeCode()) {
     - <value>::type()
     - <value>::fullType()
     - <value>::complexType()
-    - <value>::typeObject()
-    - <value>::orNothingTypeObject()
  */
 int <value>::typeCode() [flags=CONSTANT] {
    return v.getType();
@@ -87,8 +84,6 @@ string t = n.type();
     - <value>::typeCode()
     - <value>::fullType()
     - <value>::complexType()
-    - <value>::typeObject()
-    - <value>::orNothingTypeObject()
 */
 string <value>::type() [flags=CONSTANT] {
    return new QoreStringNode(v.getTypeName());
@@ -112,8 +107,6 @@ bool b = n.complexType();
     - <value>::fullType()
     - <value>::type()
     - <value>::typeCode()
-    - <value>::typeObject()
-    - <value>::orNothingTypeObject()
 
     @since %Qore 0.8.13
 */
@@ -144,8 +137,6 @@ str = m.fullType();
     - <value>::complexType()
     - <value>::type()
     - <value>::fullType()
-    - <value>::typeObject()
-    - <value>::orNothingTypeObject()
 
     @since %Qore 0.8.13
 */
@@ -387,48 +378,4 @@ AbstractIterator <value>::iterator() [flags=CONSTANT] {
 bool <value>::sizep() [flags=CONSTANT] {
    return false;
 }
-
-//! Returns the type object for this value
-/** @par Example:
-    @code{.py}
-Type t = v.typeObject();
-    @endcode
-
-    @return the type object for this value
-
-    @see
-    - <value>::orNothingTypeObject()
-    - <value>::type()
-    - <value>::typeCode()
-    - <value>::fullType()
-    - <value>::complexType()
-
-    @since %Qore 0.9.0
-*/
-Type <value>::typeObject() [flags=CONSTANT] {
-    return new QoreObject(QC_TYPE, getProgram(), new QoreType(v.getTypeInfo()));
-}
-
-//! Returns the "or nothing" type object for this value
-/** @par Example:
-    @code{.py}
-Type t = v.orNothingTypeObject();
-    @endcode
-
-    @return the "or nothing" type object for this value
-
-    @see
-    - <value>::typeObject()
-    - <value>::type()
-    - <value>::typeCode()
-    - <value>::fullType()
-    - <value>::complexType()
-
-    @since %Qore 0.9.0
-*/
-Type <value>::orNothingTypeObject() [flags=CONSTANT] {
-    // the class ptr must be valid
-    return new QoreObject(QC_TYPE, getProgram(), new QoreType(get_or_nothing_type_check(v.getTypeInfo())));
-}
-
 

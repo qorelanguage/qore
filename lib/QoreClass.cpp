@@ -4040,6 +4040,10 @@ const QoreExternalConstant* QoreClass::findConstant(const char* name) const {
     return reinterpret_cast<const QoreExternalConstant*>(priv->constlist.findEntry(name));
 }
 
+const QoreNamespace* QoreClass::getNamespace() const {
+    return priv->ns->ns;
+}
+
 void MethodFunctionBase::parseInit() {
     QoreFunction::parseInit(qore_class_private::get(*qc)->ns);
 }

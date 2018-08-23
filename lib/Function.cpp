@@ -1097,7 +1097,7 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindExactVariant(Excepti
 }
 
 // finds a variant at parse time
-const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProgramLocation* loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
+const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProgramLocation* loc, const type_vec_t& argTypeInfo, const qore_class_private* class_ctx) const {
     // the lowest match length with the highest score wins
     int match_len = -1;
     // the number of parameters * 2 matched to arguments (compatible but not perfect match = 1, perfect match = 2)
@@ -1301,7 +1301,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
     // if we only have one possible variant, then assign it, even it it's not a guaranteed match
     if (!variant && pvariant)
         variant = pvariant;
-    else if (!runtime_match && !variant && pmatch == -1 && getProgram()->getParseExceptionSink()) {
+    else if (!variant && !runtime_match && pmatch == -1 && getProgram()->getParseExceptionSink()) {
         QoreStringNode* desc = new QoreStringNode("no variant matching '");
         do_call_str(*desc, this, argTypeInfo);
         desc->concat(" can be found; ");
@@ -1344,14 +1344,9 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                 break;
             }
         }
-        if (xsink) {
-            xsink->raiseException("RUNTIME-TYPE-ERROR", desc);
-        }
-        else {
-            qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
-        }
+        qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
     }
-    else if (variant && !xsink) {
+    else if (variant) {
         int64 flags = variant->getFlags();
         if (flags & (QCF_NOOP | QCF_RUNTIME_NOOP)) {
             QoreStringNode* desc = getNoopError(this, aqf, variant);

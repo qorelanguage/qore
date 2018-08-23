@@ -1158,7 +1158,8 @@ bool is_valid_qore_thread() {
 }
 
 int gettid() {
-   return (thread_data.get())->tid;
+    ThreadData* td = thread_data.get();
+    return td ? td->tid : 0;
 }
 
 VLock* getVLock() {
@@ -1171,7 +1172,7 @@ Context* get_context_stack() {
 }
 
 void update_context_stack(Context* cstack) {
-   ThreadData* td    = thread_data.get();
+   ThreadData* td = thread_data.get();
    td->context_stack = cstack;
 }
 

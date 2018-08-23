@@ -221,9 +221,6 @@ public:
     DLLEXPORT const QoreClass* getClass() const;
 
     //! returns a variant matching the arguments exactly or throws a Qore-language exception and returns nullptr
-    DLLEXPORT const QoreExternalVariant* findExactVariant(const type_vec_t& type_vec, ExceptionSink* xsink) const;
-
-    //! returns a variant matching the compatible arguments or throws a Qore-language exception and returns nullptr
     DLLEXPORT const QoreExternalVariant* findVariant(const type_vec_t& type_vec, ExceptionSink* xsink) const;
 
     //! returns true if the function is builtin

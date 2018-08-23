@@ -494,6 +494,23 @@ const QoreTypeInfo* QoreValue::getTypeInfo() const {
     return nullptr;
 }
 
+const QoreTypeInfo* QoreValue::getFullTypeInfo() const {
+    switch (getType()) {
+        case NT_OBJECT: return get<const QoreObject>()->getClass()->getTypeInfo();
+        case NT_HASH: {
+            const QoreHashNode* h = get<const QoreHashNode>();
+            const TypedHashDecl* thd = h->getHashDecl();
+            if (thd) {
+                return thd->getTypeInfo();
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    return getTypeInfo();
+}
+
 ValueHolder::~ValueHolder() {
     discard(v.getInternalNode(), xsink);
 }

@@ -659,4 +659,9 @@ DLLEXPORT QoreListNode* parse_option_bitfield_to_string_list(int64 i, ExceptionS
 */
 DLLEXPORT QoreListNode* domain_bitfield_to_string_list(int64 i, ExceptionSink* xsink);
 
+//! returns the "or nothing" type for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo);
+
 #endif // _QORE_QORELIB_H

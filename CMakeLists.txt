@@ -158,35 +158,6 @@ set(LIBQORE_QPP_SRC
     lib/QC_TransformOutputStream.qpp
     lib/QC_StdoutOutputStream.qpp
     lib/QC_StderrOutputStream.qpp
-    lib/QC_AbstractVariant.qpp
-    lib/QC_FunctionVariant.qpp
-    lib/QC_AbstractMethodVariant.qpp
-    lib/QC_NormalMethodVariant.qpp
-    lib/QC_StaticMethodVariant.qpp
-    lib/QC_ConstructorMethodVariant.qpp
-    lib/QC_DestructorMethodVariant.qpp
-    lib/QC_CopyMethodVariant.qpp
-    lib/QC_AbstractReflectionFunction.qpp
-    lib/QC_Function.qpp
-    lib/QC_AbstractMethod.qpp
-    lib/QC_NormalMethod.qpp
-    lib/QC_StaticMethod.qpp
-    lib/QC_ConstructorMethod.qpp
-    lib/QC_DestructorMethod.qpp
-    lib/QC_CopyMethod.qpp
-    lib/QC_AbstractMember.qpp
-    lib/QC_AbstractClassMember.qpp
-    lib/QC_NormalMember.qpp
-    lib/QC_StaticMember.qpp
-    lib/QC_Class.qpp
-    lib/QC_AbstractConstant.qpp
-    lib/QC_ClassConstant.qpp
-    lib/QC_Type.qpp
-    lib/QC_Namespace.qpp
-    lib/QC_Constant.qpp
-    lib/QC_GlobalVar.qpp
-    lib/QC_TypedHash.qpp
-    lib/QC_TypedHashMember.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp
     lib/ql_thread.qpp
@@ -532,7 +503,6 @@ set(LIBQORE_CPP_SRC
     lib/ReferenceArgumentHelper.cpp
     lib/ReferenceHelper.cpp
     lib/QoreTypeInfo.cpp
-    lib/AbstractReflectionObject.cpp
     lib/QoreDeleteOperatorNode.cpp
     lib/QoreRemoveOperatorNode.cpp
     lib/QoreSpliceOperatorNode.cpp
@@ -791,6 +761,8 @@ add_dependencies(install-docs docs)
 
 # astparser module
 add_subdirectory(modules/astparser)
+# reflection module
+add_subdirectory(modules/reflection)
 
 # HACK: we need to simulate QORE_USER_MODULES_DIR as the versioned one
 #       for qore core qlib modules.

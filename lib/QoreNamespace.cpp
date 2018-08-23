@@ -63,36 +63,6 @@
 #include "qore/intern/QC_DatasourcePool.h"
 #include "qore/intern/QC_SQLStatement.h"
 
-#include "qore/intern/QC_AbstractVariant.h"
-#include "qore/intern/QC_FunctionVariant.h"
-#include "qore/intern/QC_AbstractMethodVariant.h"
-#include "qore/intern/QC_StaticMethodVariant.h"
-#include "qore/intern/QC_NormalMethodVariant.h"
-#include "qore/intern/QC_ConstructorMethodVariant.h"
-#include "qore/intern/QC_DestructorMethodVariant.h"
-#include "qore/intern/QC_CopyMethodVariant.h"
-#include "qore/intern/QC_AbstractReflectionFunction.h"
-#include "qore/intern/QC_Function.h"
-#include "qore/intern/QC_AbstractMethod.h"
-#include "qore/intern/QC_NormalMethod.h"
-#include "qore/intern/QC_StaticMethod.h"
-#include "qore/intern/QC_ConstructorMethod.h"
-#include "qore/intern/QC_DestructorMethod.h"
-#include "qore/intern/QC_CopyMethod.h"
-#include "qore/intern/QC_Class.h"
-#include "qore/intern/QC_AbstractMember.h"
-#include "qore/intern/QC_AbstractClassMember.h"
-#include "qore/intern/QC_NormalMember.h"
-#include "qore/intern/QC_StaticMember.h"
-#include "qore/intern/QC_AbstractConstant.h"
-#include "qore/intern/QC_ClassConstant.h"
-#include "qore/intern/QC_Type.h"
-#include "qore/intern/QC_Namespace.h"
-#include "qore/intern/QC_Constant.h"
-#include "qore/intern/QC_GlobalVar.h"
-#include "qore/intern/QC_TypedHash.h"
-#include "qore/intern/QC_TypedHashMember.h"
-
 // functions
 #include "qore/intern/ql_time.h"
 #include "qore/intern/ql_lib.h"
@@ -208,7 +178,6 @@ const TypedHashDecl* hashdeclStatInfo,
     * hashdeclExceptionInfo,
     * hashdeclStatementInfo,
     * hashdeclNetIfInfo,
-    * hashdeclClassAccessInfo,
     * hashdeclSourceLocationInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
@@ -938,37 +907,6 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     rpriv->qoreNS = new QoreNamespace("Qore");
     QoreNamespace& qns = *rpriv->qoreNS;
 
-    // pre-initialize reflection classes
-    preinitAbstractVariantClass();
-    preinitFunctionVariantClass();
-    preinitAbstractMethodVariantClass();
-    preinitNormalMethodVariantClass();
-    preinitStaticMethodVariantClass();
-    preinitConstructorMethodVariantClass();
-    preinitDestructorMethodVariantClass();
-    preinitCopyMethodVariantClass();
-    preinitAbstractReflectionFunctionClass();
-    preinitFunctionClass();
-    preinitAbstractMethodClass();
-    preinitNormalMethodClass();
-    preinitStaticMethodClass();
-    preinitConstructorMethodClass();
-    preinitDestructorMethodClass();
-    preinitCopyMethodClass();
-    preinitClassClass();
-    preinitAbstractMemberClass();
-    preinitAbstractClassMemberClass();
-    preinitNormalMemberClass();
-    preinitStaticMemberClass();
-    preinitAbstractConstantClass();
-    preinitClassConstantClass();
-    preinitTypeClass();
-    preinitNamespaceClass();
-    preinitConstantClass();
-    preinitGlobalVarClass();
-    preinitTypedHashClass();
-    preinitTypedHashMemberClass();
-
     // now add hashdecls
     hashdeclStatInfo = init_hashdecl_StatInfo(qns);
     hashdeclDirStatInfo = init_hashdecl_DirStatInfo(qns);
@@ -980,7 +918,6 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     hashdeclExceptionInfo = init_hashdecl_ExceptionInfo(qns);
     hashdeclStatementInfo = init_hashdecl_StatementInfo(qns);
     hashdeclNetIfInfo = init_hashdecl_NetIfInfo(qns);
-    hashdeclClassAccessInfo = init_hashdecl_ClassAccessInfo(qns);
     hashdeclSourceLocationInfo = init_hashdecl_SourceLocationInfo(qns);
 
     qore_ns_private::addNamespace(qns, get_thread_ns(qns));
@@ -1059,41 +996,6 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     qns.addSystemClass(initSingleValueIteratorClass(qns));
     qns.addSystemClass(initRangeIteratorClass(qns));
     qns.addSystemClass(initTreeMapClass(qns));
-
-    // reflection
-    // set up Reflection namespace
-    QoreNamespace* reflection = new QoreNamespace("Reflection");
-    reflection->addSystemClass(initAbstractVariantClass(*reflection));
-    reflection->addSystemClass(initFunctionVariantClass(*reflection));
-    reflection->addSystemClass(initAbstractMethodVariantClass(*reflection));
-    reflection->addSystemClass(initNormalMethodVariantClass(*reflection));
-    reflection->addSystemClass(initStaticMethodVariantClass(*reflection));
-    reflection->addSystemClass(initConstructorMethodVariantClass(*reflection));
-    reflection->addSystemClass(initDestructorMethodVariantClass(*reflection));
-    reflection->addSystemClass(initCopyMethodVariantClass(*reflection));
-    reflection->addSystemClass(initAbstractReflectionFunctionClass(*reflection));
-    reflection->addSystemClass(initFunctionClass(*reflection));
-    reflection->addSystemClass(initAbstractMethodClass(*reflection));
-    reflection->addSystemClass(initNormalMethodClass(*reflection));
-    reflection->addSystemClass(initStaticMethodClass(*reflection));
-    reflection->addSystemClass(initConstructorMethodClass(*reflection));
-    reflection->addSystemClass(initDestructorMethodClass(*reflection));
-    reflection->addSystemClass(initCopyMethodClass(*reflection));
-    reflection->addSystemClass(initClassClass(*reflection));
-    reflection->addSystemClass(initAbstractMemberClass(*reflection));
-    reflection->addSystemClass(initAbstractClassMemberClass(*reflection));
-    reflection->addSystemClass(initNormalMemberClass(*reflection));
-    reflection->addSystemClass(initStaticMemberClass(*reflection));
-    reflection->addSystemClass(initAbstractConstantClass(*reflection));
-    reflection->addSystemClass(initClassConstantClass(*reflection));
-    reflection->addSystemClass(initTypeClass(*reflection));
-    reflection->addSystemClass(initNamespaceClass(*reflection));
-    reflection->addSystemClass(initConstantClass(*reflection));
-    reflection->addSystemClass(initGlobalVarClass(*reflection));
-    reflection->addSystemClass(initTypedHashClass(*reflection));
-    reflection->addSystemClass(initTypedHashMemberClass(*reflection));
-
-    qore_ns_private::addNamespace(qns, reflection);
 
 #ifdef DEBUG_TESTS
     { // tests

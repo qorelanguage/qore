@@ -1,0 +1,124 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_CopyMethod.qpp CopyMethod class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include <qore_reflection.h>
+#include "QC_CopyMethod.h"
+#include "QC_Class.h"
+
+//! This class provides information about %Qore copy methods
+/**
+    @see @ref Qore::Reflection::CopyMethodVariant "CopyMethodVariant"
+
+    @since %Qore 0.9.0
+ */
+qclass CopyMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod];
+
+//! Creates the object from the class if the class implements a copy method
+/** @par Example:
+    @code{.py}
+CopyMethod m(cls);
+    @endcode
+
+    @param cls the class for the method
+
+    @throw METHOD-ERROR cannot find a copy method for the class
+ */
+CopyMethod::constructor(Class[QoreReflectionClass] cls) {
+    ReferenceHolder<QoreReflectionClass> holder(cls, xsink);
+
+    // get exclusive access to program object
+    QoreExternalProgramContextHelper pch(xsink, cls->pgm);
+    if (*xsink) {
+        return;
+    }
+
+    // the class pointer must be valid here
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(cls->cls, "copy", xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+
+    assert(m->mtype == MT_Copy);
+
+    self->setPrivate(CID_COPYMETHOD, m.release());
+}
+
+//! Creates the object from the class name or namespace path if the class implements a copy method
+/** @par Example:
+    @code{.py}
+CopyMethod m("Thread::Mutex");
+    @endcode
+
+    @param class_name the class name or namespace path for the class
+
+    @throw CLASS-ERROR cannot find a class with the given name or path
+    @throw METHOD-ERROR cannot find a copy method for the class
+ */
+CopyMethod::constructor(string class_name) {
+    TempEncodingHelper npath(class_name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(npath->c_str(), "copy", xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+
+    assert(m->mtype == MT_Copy);
+
+    self->setPrivate(CID_COPYMETHOD, m.release());
+}
+
+//! calls the copy method on given object and returns the new object
+/** @par Example:
+    @code{.py}
+object obj2 = m.call(obj1);
+    @endcode
+
+    @param obj the object to copy
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+    @throw METHOD-ERROR the object was not instantiated from the class implementing this method
+*/
+object CopyMethod::call(object obj) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // we have to explictly test object compatibility here
+    if (check_call(obj, *m->m, xsink)) {
+        return QoreValue();
+    }
+
+    return m->m->getClass()->execCopy(obj, xsink);
+}

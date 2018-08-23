@@ -2513,4 +2513,6 @@ public:
    }
 };
 
+DLLLOCAL TypedHashDecl* init_hashdecl_SourceLocationInfo(QoreNamespace& ns);
+
 #endif

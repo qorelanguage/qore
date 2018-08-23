@@ -42,6 +42,30 @@
 #include "qore/intern/ModuleInfo.h"
 extern QoreModuleManager QMM;
 
+//! source location information
+/**
+    @since %Qore 0.9
+*/
+hashdecl SourceLocationInfo {
+    //! if @ref True then the code is builtin and there is no user source location
+    bool builtin;
+
+    //! the file name or parse label for the code
+    *string file;
+
+    //! the starting source line number
+    int line;
+
+    //! the ending source line number
+    int endline;
+
+    //! the source object or file name tag (used when multiple source objects are defined from the same source)
+    *string source;
+
+    //! the offset line in the source (for when multiple source objects are defined from the same source)
+    int offset;
+}
+
 /** @defgroup functional_domain_constants Functional Domain Constants
     Constants providing values for functional domains; each constant is a unique element of a bitfield
 

@@ -161,7 +161,7 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 #endif
 
     // initialize static system namespaces
-    staticSystemNamespace = new StaticSystemNamespace();
+    staticSystemNamespace = new StaticSystemNamespace;
 
     // set up pseudo-methods
     pseudo_classes_init();
@@ -219,7 +219,7 @@ void qore_cleanup() {
     // delete static system namespace after modules
     delete staticSystemNamespace;
 #ifdef DEBUG
-    staticSystemNamespace = 0;
+    staticSystemNamespace = nullptr;
 #endif
 
     // delete default type values

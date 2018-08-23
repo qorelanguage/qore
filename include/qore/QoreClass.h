@@ -834,6 +834,11 @@ public:
     */
     DLLEXPORT const QoreExternalConstant* findConstant(const char* name) const;
 
+    //! Returns the namespace that owns this class
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const QoreNamespace* getNamespace() const;
+
     //! constructor not exported in library's API
     DLLLOCAL QoreClass();
 
@@ -1076,6 +1081,6 @@ private:
     class qore_class_constant_iterator* priv;
 };
 
-DLLLOCAL const char* get_access_string(ClassAccess access);
+DLLEXPORT const char* get_access_string(ClassAccess access);
 
 #endif // _QORE_QORECLASS_H

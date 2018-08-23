@@ -1,0 +1,103 @@
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_reflection.h"
+#include "QC_StaticMethodVariant.h"
+
+//! The class for %Qore class static method variants
+/**
+    This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
+
+    @see @ref Qore::Reflection::StaticMethod "StaticMethod"
+
+    @since %Qore 0.9.0
+ */
+qclass StaticMethodVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; vparent=AbstractMethodVariant];
+
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** @throw STATICMETHODVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+StaticMethodVariant::constructor() {
+    xsink->raiseException("STATICMETHODVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! calls the given static method variant and returns the value returned by the method
+/** @par Example:
+    @code{.py}
+auto val = v.call(arg1, arg2);
+    @endcode
+
+    @param ... optional arguments to the method
+
+    @return the return value of the static method call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+    @throw RUNTIME-TYPE-ERROR invalid argument types passed to the variant
+
+    @see callArgs()
+*/
+auto StaticMethodVariant::call(...) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    const QoreMethod* m = mv->getMethod();
+    // the method ptr must be valid
+    return QoreObject::evalStaticMethodVariant(*m, mv, args, xsink);
+}
+
+//! calls the given static method variant and returns the value returned by the method
+/** @par Example:
+    @code{.py}
+auto val = v.callArgs((arg1, arg2));
+    @endcode
+
+    @param argv optional arguments to the method
+
+    @return the return value of the method call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+    @throw RUNTIME-TYPE-ERROR invalid argument types passed to the variant
+
+    @see call()
+*/
+auto StaticMethodVariant::callArgs(*softlist<auto> argv) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    const QoreMethod* m = mv->getMethod();
+    // the method ptr must be valid
+    return QoreObject::evalStaticMethodVariant(*m, mv, argv, xsink);
+}

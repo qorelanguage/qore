@@ -1,0 +1,290 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractConstant.qpp AbstractConstant class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_reflection.h"
+#include "QC_AbstractConstant.h"
+#include "QC_Class.h"
+#include "QC_Type.h"
+
+//! This class provides information about %Qore class members
+/** @since %Qore 0.9.0
+ */
+qclass AbstractConstant [ns=Qore::Reflection; arg=QoreReflectionConstant* c];
+
+//! Throws an exception; this class cannot be created directly or used in a user class hierarchy
+/** @throw ABSTRACTCONSTANT-CONSTRUCTOR-ERROR the AbstractConstant class cannot be constructed directly or inherited directly by a user-defined class
+ */
+AbstractConstant::constructor() {
+    xsink->raiseException("ABSTRACTCONSTANT-CONSTRUCTOR-ERROR", "this class cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! returns the constant's name
+/** @par Example:
+    @code{.py}
+string name = con.getName();
+    @endcode
+
+    @return the constant's name
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
+ */
+string AbstractConstant::getName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the constant ptr must be valid
+    return new QoreStringNode(c->ce->getName());
+}
+
+//! Returns @ref True if the AbstractConstant object passed as an argument is equal to the current object; @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = con1.isEqual(con2);
+    @endcode
+
+    @param con the constant to check with the current object for equality
+
+    @return @ref True if the AbstractConstant object passed as an argument is equal to the current object; @ref False if not
+*/
+bool AbstractConstant::isEqual(AbstractConstant[QoreReflectionConstant] con) [flags=CONSTANT] {
+    ReferenceHolder<QoreReflectionConstant> holder(con, xsink);
+
+    return con->ce == c->ce;
+}
+
+//! returns a bitfield of @ref modifier_constants "modifiers" describing the constant
+/** @par Example:
+    @code{.py}
+int i = con.getModifiers();
+    @endcode
+
+    @return a bitfield of @ref modifier_constants "modifiers" describing the constant; possible values are:
+    - @ref Qore::Reflection::MC_BUILTIN "MC_BUILTIN": the constant is builtin
+    - @ref Qore::Reflection::MC_PRIVATE "MC_PRIVATE": gives the accessibility of the constant (class constants only)
+    - @ref Qore::Reflection::MC_PRIVATEINTERNAL "MC_PRIVATEINTERNAL": gives the accessibility of the constant (class constants only)
+    - @ref Qore::Reflection::MC_PUBLIC "MC_PUBLIC": for non-class constants, this is returned if the @ref mod_public "public" flag is on the constant, meaning that it will be exported to child @ref Qore::Program "Program" objects, otherwise thhis gives the access permission for class constants
+    - @ref Qore::Reflection::MC_USER "MC_USER": the constant is a user constant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
+
+    @see @ref getAccessModifierList()
+*/
+int AbstractConstant::getModifiers() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the constant ptr must be valid
+    const QoreClass* cls = c->getClass();
+    int64 rc = 0;
+    if (cls) {
+        if (cls->isSystem()) {
+            rc |= MC_BUILTIN;
+        }
+        else {
+            rc |= MC_USER;
+        }
+
+        rc |= get_access(c->ce->getAccess());
+    }
+    else {
+        if (c->ce->isBuiltin()) {
+            rc |= MC_BUILTIN;
+        }
+        else {
+            rc |= MC_USER;
+        }
+
+        if (c->ce->isModulePublic()) {
+            rc |= MC_PUBLIC;
+        }
+    }
+
+    return rc;
+}
+
+//! returns a list of strings of modifiers describing the constant
+/** @par Example:
+    @code{.py}
+list<string> l = con.getModifierList();
+    @endcode
+
+    @return list of strings of modifiers describing the member; possible values are:
+    - \c "builtin": the constant is builtin
+    - \c "private": gives the accessibility of the constant (class constants only)
+    - \c "private:internal": gives the accessibility of the constant (class constants only)
+    - \c "public": for non-class constants, this is returned if the @ref mod_public "public" flag is on the constant, meaning that it will be exported to child @ref Qore::Program "Program" objects, otherwise thhis gives the access permission for class constants
+    - \c "user": the constant is a user constant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
+
+    @see @ref getModifiers()
+*/
+list<string> AbstractConstant::getModifierList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+    const QoreClass* cls = c->getClass();
+    if (cls) {
+        if (cls->isSystem()) {
+            rv->push(new QoreStringNode("builtin"), xsink);
+        }
+        else {
+            rv->push(new QoreStringNode("user"), xsink);
+        }
+
+        rv->push(new QoreStringNode(get_access_string(c->ce->getAccess())), xsink);
+    }
+    else {
+        if (c->ce->isBuiltin()) {
+            rv->push(new QoreStringNode("builtin"), xsink);
+        }
+        else {
+            rv->push(new QoreStringNode("user"), xsink);
+        }
+
+        if (c->ce->isModulePublic()) {
+            rv->push(new QoreStringNode("public"), xsink);
+        }
+    }
+
+    return rv.release();
+}
+
+//! returns @ref True if the constant is builtin
+/** @par Example:
+    @code{.py}
+bool b = con.isBuiltin();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
+*/
+bool AbstractConstant::isBuiltin() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the constant ptr must be valid
+    return c->ce->isBuiltin();
+}
+
+//! returns @ref True if the constant is a user constant
+/** @par Example:
+    @code{.py}
+bool b = con.isUser();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
+*/
+bool AbstractConstant::isUser() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return !c->ce->isBuiltin();
+}
+
+//! Returns the type object for this constant
+/** @par Example:
+    @code{.py}
+Type t = con.getType();
+    @endcode
+
+    @return the type object for this constant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
+*/
+Type AbstractConstant::getType() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return new QoreObject(QC_TYPE, c->pgm, new QoreType(c->ce->getTypeInfo()));
+}
+
+//! Returns the value of the constant
+/** @par Example:
+    @code{.py}
+auto v = con.getValue();
+    @endcode
+
+    @return the value for the constant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
+*/
+auto AbstractConstant::getValue() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the constant ptr must be valid
+    return c->ce->getReferencedValue();
+}
+
+//! Returns the source location of the contant declaration
+/** @par Example:
+    @code{.py}
+hash<SourceLocationInfo> loc = con.getSourceLocation();
+    @endcode
+
+    @return the source location of the contant declaration
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
+*/
+hash<SourceLocationInfo> AbstractConstant::getSourceLocation() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the constant ptr must be valid
+    return c->ce->getSourceLocation()->getHash();
+}

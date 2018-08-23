@@ -234,16 +234,10 @@ const QoreClass* QoreExternalFunction::getClass() const {
     return reinterpret_cast<const QoreFunction*>(this)->getClass();
 }
 
-const QoreExternalVariant* QoreExternalFunction::findExactVariant(const type_vec_t& type_vec, ExceptionSink* xsink) const {
-    const QoreClass* cls = getClass();
-    const qore_class_private* qc = cls ? qore_class_private::get(*cls) : nullptr;
-    return reinterpret_cast<const QoreExternalVariant*>(reinterpret_cast<const QoreFunction*>(this)->runtimeFindExactVariant(xsink, type_vec, qc));
-}
-
 const QoreExternalVariant* QoreExternalFunction::findVariant(const type_vec_t& type_vec, ExceptionSink* xsink) const {
     const QoreClass* cls = getClass();
     const qore_class_private* qc = cls ? qore_class_private::get(*cls) : nullptr;
-    return reinterpret_cast<const QoreExternalVariant*>(reinterpret_cast<const QoreFunction*>(this)->parseFindVariant(nullptr, type_vec, qc, xsink));
+    return reinterpret_cast<const QoreExternalVariant*>(reinterpret_cast<const QoreFunction*>(this)->runtimeFindExactVariant(xsink, type_vec, qc));
 }
 
 bool QoreExternalFunction::isBuiltin() const {
