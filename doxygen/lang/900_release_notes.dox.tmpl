@@ -146,6 +146,9 @@
     - fixed an error handling attach errors to @ref Qore::Program "Program" objects from foreign threads
       after the program has been deleted
       (<a href="https://github.com/qorelanguage/qore/issues/2950">issue 2950</a>)
+    - fixed a bug that would cause a crash if an unknown \c "Content-Encoding" value were received by the
+      @ref Qore::HTTPClient "HTTPClient" class
+      (<a href="https://github.com/qorelanguage/qore/issues/2953">issue 2953</a>)
 
     @section qore_08136 Qore 0.8.13.6
 
