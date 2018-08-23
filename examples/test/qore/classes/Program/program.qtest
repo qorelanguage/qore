@@ -285,7 +285,7 @@ class ProgramTest inherits QUnit::Test {
         a = new Program(PO_NEW_STYLE);
         a.parse("sub x() {}", "lib");
         *hash h = a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
-        assertEq("<run-time-loaded: warn>", h.file);
+        assertEq("warn", h.file);
 
         # make sure recursive constant definitions are handled
         try {
