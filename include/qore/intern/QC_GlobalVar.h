@@ -36,12 +36,12 @@
 
 class QoreReflectionGlobalVar : public AbstractReflectionObject {
 public:
-    Var* var = nullptr;
+    const QoreExternalGlobalVar* var = nullptr;
     const QoreNamespace* ns = nullptr;
 
     DLLLOCAL QoreReflectionGlobalVar(const char* path, ExceptionSink* xsink);
 
-    DLLLOCAL QoreReflectionGlobalVar(QoreProgram* pgm, Var* var, const QoreNamespace* ns) : AbstractReflectionObject(pgm), var(var), ns(ns) {
+    DLLLOCAL QoreReflectionGlobalVar(QoreProgram* pgm, const QoreExternalGlobalVar* var, const QoreNamespace* ns) : AbstractReflectionObject(pgm), var(var), ns(ns) {
     }
 
     DLLLOCAL QoreObject* getVarObject() const;

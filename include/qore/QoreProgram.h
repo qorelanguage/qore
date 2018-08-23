@@ -104,6 +104,7 @@ class QoreBreakpoint;
 class AbstractQoreFunctionVariant;
 class QoreRWLock;
 class QoreExternalFunction;
+class QoreExternalGlobalVar;
 
 typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
@@ -707,6 +708,9 @@ public:
 
    //! search for the given namespace in the program; can be a simple namespace name or a namespace-prefixed path (ex: "NamespaceName::Namespace")
    DLLEXPORT const QoreNamespace* findNamespace(const QoreString& path) const;
+
+   //! search for the given global variable in the program; can be a simple function name or a namespace-prefixed path (ex: "NamespaceName::global_var")
+   DLLEXPORT const QoreExternalGlobalVar* findGlobalVar(const char* path, const QoreNamespace*& pns) const;
 
    DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = nullptr);
 

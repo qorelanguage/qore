@@ -273,6 +273,39 @@ private:
     DLLLOCAL QoreExternalMethodFunction();
 };
 
+class QoreExternalGlobalVar {
+public:
+    //! returns the global variable's name
+    DLLEXPORT const char* getName() const;
+
+    //! returns true if the global variable has the module public flag set
+    DLLEXPORT bool isModulePublic() const;
+
+    //! returns true if the global variable is builtin
+    DLLEXPORT bool isBuiltin() const;
+
+    //! returns the type info for the global variable
+    DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
+
+    //! returns the value of the global variable; caller owns any reference returned
+    DLLEXPORT QoreValue getReferencedValue() const;
+
+    //! returns the source code location of the global variable's definition
+    DLLEXPORT const QoreExternalProgramLocation* getSourceLocation() const;
+
+    //! sets the value of the global variable
+    /** @param the value to set
+        @param xsink Qore-language exception info is stored here
+
+        @return 0 = no error, -1 Qore-language exception raised
+    */
+    DLLEXPORT int setValue(const QoreValue val, ExceptionSink* xsink) const;
+
+private:
+    //! not implemented
+    DLLLOCAL QoreExternalGlobalVar();
+};
+
 //! returns the name of the type; the argument may be nullptr meaning no type restrictions
 DLLEXPORT const char* qore_type_get_name(const QoreTypeInfo* ti);
 

@@ -2099,6 +2099,15 @@ const QoreNamespace* QoreProgram::findNamespace(const QoreString& path) const {
     return qore_root_ns_private::get(*priv->RootNS)->runtimeFindNamespace(path);
 }
 
+const QoreExternalGlobalVar* QoreProgram::findGlobalVar(const char* path, const QoreNamespace*& pns) const {
+    const qore_ns_private* pns_priv;
+    Var* var = qore_root_ns_private::runtimeFindGlobalVar(*priv->RootNS, path, pns_priv);
+    if (var) {
+        pns = pns_priv->ns;
+    }
+    return reinterpret_cast<const QoreExternalGlobalVar*>(var);
+}
+
 QoreRWLock QoreBreakpoint::lck_breakpoint;
 QoreBreakpoint::QoreBreakpointList_t QoreBreakpoint::breakpointList;
 volatile unsigned QoreBreakpoint::breakpointIdCounter = 1;

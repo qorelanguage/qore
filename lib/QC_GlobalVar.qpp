@@ -30,20 +30,16 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QC_GlobalVar.h"
-#include "qore/intern/QoreNamespaceIntern.h"
-#include "qore/intern/qore_program_private.h"
 #include "qore/intern/QC_Class.h"
 #include "qore/intern/QC_Type.h"
 #include "qore/intern/QC_Namespace.h"
 
 QoreReflectionGlobalVar::QoreReflectionGlobalVar(const char* path, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
-    const qore_ns_private* pns;
-    var = qore_root_ns_private::runtimeFindGlobalVar(*getRootNS(), path, pns);
+    var = getProgram()->findGlobalVar(path, ns);
     if (!var) {
         xsink->raiseException("UNKNOWN-GLOBAL-VAR", "cannot resolve global variable '%s'", path);
         return;
     }
-    ns = pns->ns;
 }
 
 QoreObject* QoreReflectionGlobalVar::getVarObject() const {
@@ -167,6 +163,27 @@ bool GlobalVar::isUser() [flags=RET_VALUE_ONLY] {
     return !v->var->isBuiltin();
 }
 
+//! returns @ref True if the global variable has the @ref mod_public "module public" flag set
+/** @par Example:
+    @code{.py}
+bool b = var.isModulePublic();
+    @endcode
+
+    @return @ref True if the global variable has the @ref mod_public "module public" flag set
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the global variable has been destroyed
+*/
+bool GlobalVar::isModulePublic() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the global variable ptr must be valid
+    return v->var->isModulePublic();
+}
+
 //! Returns the source location of the global variable declaration
 /** @par Example:
     @code{.py}
@@ -185,7 +202,7 @@ hash<SourceLocationInfo> GlobalVar::getSourceLocation() [flags=RET_VALUE_ONLY] {
     }
 
     // the global variable ptr must be valid
-    return get_source_location(v->var->getParseLocation());
+    return v->var->getSourceLocation()->getHash();
 }
 
 //! Returns the type object for this global variable
@@ -238,7 +255,8 @@ auto GlobalVar::getValue() [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    return v->var->eval();
+    // the global variable ptr must be valid
+    return v->var->getReferencedValue();
 }
 
 //! Sets the value of the global variable
@@ -259,12 +277,8 @@ nothing GlobalVar::setValue(auto val) {
         return QoreValue();
     }
 
-    LValueHelper lvh(xsink);
-    if (v->var->getLValue(lvh, false)) {
-        return QoreValue();
-    }
-
-    lvh.assign(val.refSelf(), "<value arugment to GlobalVar::setValue()>");
+    // the global variable ptr must be valid
+    v->var->setValue(val, xsink);
 }
 
 //! Returns a global variable object corresponding to the name or namespace-justified path provided as an argument
@@ -292,5 +306,6 @@ static GlobalVar GlobalVar::forName(string path) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
+    // the global variable ptr must be valid
     return var.release()->getVarObject();
 }

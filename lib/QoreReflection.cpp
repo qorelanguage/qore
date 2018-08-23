@@ -322,3 +322,37 @@ const QoreMethod* QoreExternalMethodFunction::getMethod() const {
 bool QoreExternalMethodFunction::isStatic() const {
     return reinterpret_cast<const MethodFunctionBase*>(this)->isStatic();
 }
+
+const char* QoreExternalGlobalVar::getName() const {
+    return reinterpret_cast<const Var*>(this)->getName();
+}
+
+bool QoreExternalGlobalVar::isModulePublic() const {
+    return reinterpret_cast<const Var*>(this)->isPublic();
+}
+
+bool QoreExternalGlobalVar::isBuiltin() const {
+    return reinterpret_cast<const Var*>(this)->isBuiltin();
+}
+
+const QoreTypeInfo* QoreExternalGlobalVar::getTypeInfo() const {
+    return reinterpret_cast<const Var*>(this)->getTypeInfo();
+}
+
+QoreValue QoreExternalGlobalVar::getReferencedValue() const {
+    return reinterpret_cast<const Var*>(this)->eval();
+}
+
+const QoreExternalProgramLocation* QoreExternalGlobalVar::getSourceLocation() const {
+    return reinterpret_cast<const QoreExternalProgramLocation*>(reinterpret_cast<const Var*>(this)->getParseLocation());
+}
+
+int QoreExternalGlobalVar::setValue(const QoreValue val, ExceptionSink* xsink) const {
+    LValueHelper lvh(xsink);
+    if (const_cast<Var*>(reinterpret_cast<const Var*>(this))->getLValue(lvh, false)) {
+        return QoreValue();
+    }
+
+    lvh.assign(val.refSelf(), "<value arugment to GlobalVar::setValue()>");
+    return *xsink ? -1 : 0;
+}

@@ -887,6 +887,14 @@ const QoreExternalConstant* QoreNamespace::findLocalConstant(const char* name) c
     return reinterpret_cast<const QoreExternalConstant*>(priv->constant.findEntry(name));
 }
 
+const QoreExternalGlobalVar* QoreNamespace::findLocalGlobalVar(const char* name) const {
+    return reinterpret_cast<const QoreExternalGlobalVar*>(priv->var_list.runtimeFindVar(name));
+}
+
+const TypedHashDecl* QoreNamespace::findLocalTypedHash(const char* name) const {
+    return priv->hashDeclList.find(name);
+}
+
 std::string QoreNamespace::getPath(bool anchored) const {
     std::string rv;
     priv->getPath(rv, anchored);
@@ -3034,10 +3042,56 @@ const QoreNamespace* QoreNamespaceConstIterator::get() const {
     return priv->get()->ns;
 }
 
+class qore_namespace_namespace_iterator {
+public:
+    DLLLOCAL qore_namespace_namespace_iterator(const qore_ns_private* ns) :
+        ns(ns), i(ns->nsl.nsmap.end()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == ns->nsl.nsmap.end()) {
+            i = ns->nsl.nsmap.begin();
+        }
+        else {
+            ++i;
+        }
+        return (i != ns->nsl.nsmap.end());
+    }
+
+    const QoreNamespace* get() const {
+        assert(i != ns->nsl.nsmap.end());
+        assert(i->second);
+        return i->second;
+    }
+
+private:
+    const qore_ns_private* ns;
+    nsmap_t::const_iterator i;
+};
+
+//! creates the iterator
+QoreNamespaceNamespaceIterator::QoreNamespaceNamespaceIterator(const QoreNamespace* ns) : priv(new qore_namespace_namespace_iterator(qore_ns_private::get(*ns))) {
+}
+
+//! destroys the iterator
+QoreNamespaceNamespaceIterator::~QoreNamespaceNamespaceIterator() {
+    delete priv;
+}
+
+//! moves to the next position; returns true if on a valid position
+bool QoreNamespaceNamespaceIterator::next() {
+    return priv->next();
+}
+
+//! returns the function
+const QoreNamespace* QoreNamespaceNamespaceIterator::get() const {
+    return priv->get();
+}
+
 class qore_namespace_function_iterator {
 public:
     DLLLOCAL qore_namespace_function_iterator(const qore_ns_private* ns) :
-        ns(ns), i(ns->func_list.begin()) {
+        ns(ns), i(ns->func_list.end()) {
     }
 
     DLLLOCAL bool next() {
@@ -3083,7 +3137,7 @@ const QoreExternalFunction* QoreNamespaceFunctionIterator::get() const {
 class qore_namespace_constant_iterator {
 public:
     DLLLOCAL qore_namespace_constant_iterator(const qore_ns_private* ns) :
-        ns(ns), i(ns->constant.cnemap.begin()) {
+        ns(ns), i(ns->constant.cnemap.end()) {
     }
 
     DLLLOCAL bool next() {
@@ -3123,5 +3177,89 @@ bool QoreNamespaceConstantIterator::next() {
 
 //! returns the constant
 const QoreExternalConstant* QoreNamespaceConstantIterator::get() const {
+    return priv->get();
+}
+
+//! creates the iterator
+QoreNamespaceClassIterator::QoreNamespaceClassIterator(const QoreNamespace* ns) : priv(new ConstClassListIterator(qore_ns_private::get(*ns)->classList)) {
+}
+
+//! destroys the iterator
+QoreNamespaceClassIterator::~QoreNamespaceClassIterator() {
+    delete priv;
+}
+
+//! moves to the next position; returns true if on a valid position
+bool QoreNamespaceClassIterator::next() {
+    return priv->next();
+}
+
+//! returns the constant
+const QoreClass* QoreNamespaceClassIterator::get() const {
+    return priv->get();
+}
+
+class qore_namespace_globalvar_iterator {
+public:
+    DLLLOCAL qore_namespace_globalvar_iterator(const qore_ns_private* ns) :
+        ns(ns), i(ns->var_list.vmap.end()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == ns->var_list.vmap.end()) {
+            i = ns->var_list.vmap.begin();
+        }
+        else {
+            ++i;
+        }
+        return (i != ns->var_list.vmap.end());
+    }
+
+    const QoreExternalGlobalVar* get() const {
+        assert(i != ns->var_list.vmap.end());
+        assert(i->second);
+        return reinterpret_cast<const QoreExternalGlobalVar*>(i->second);
+    }
+
+private:
+    const qore_ns_private* ns;
+    map_var_t::const_iterator i;
+};
+
+//! creates the iterator
+QoreNamespaceGlobalVarIterator::QoreNamespaceGlobalVarIterator(const QoreNamespace* ns) : priv(new qore_namespace_globalvar_iterator(qore_ns_private::get(*ns))) {
+}
+
+//! destroys the iterator
+QoreNamespaceGlobalVarIterator::~QoreNamespaceGlobalVarIterator() {
+    delete priv;
+}
+
+//! moves to the next position; returns true if on a valid position
+bool QoreNamespaceGlobalVarIterator::next() {
+    return priv->next();
+}
+
+//! returns the constant
+const QoreExternalGlobalVar* QoreNamespaceGlobalVarIterator::get() const {
+    return priv->get();
+}
+
+//! creates the iterator
+QoreNamespaceTypedHashIterator::QoreNamespaceTypedHashIterator(const QoreNamespace* ns) : priv(new ConstHashDeclListIterator(qore_ns_private::get(*ns)->hashDeclList)) {
+}
+
+//! destroys the iterator
+QoreNamespaceTypedHashIterator::~QoreNamespaceTypedHashIterator() {
+    delete priv;
+}
+
+//! moves to the next position; returns true if on a valid position
+bool QoreNamespaceTypedHashIterator::next() {
+    return priv->next();
+}
+
+//! returns the constant
+const TypedHashDecl* QoreNamespaceTypedHashIterator::get() const {
     return priv->get();
 }

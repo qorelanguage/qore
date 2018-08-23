@@ -328,7 +328,7 @@ bool Namespace::isRoot() [flags=RET_VALUE_ONLY] {
     }
 
     // the namespace ptr must be valid
-    return qore_ns_private::get(*n->ns)->root;
+    return n->ns->isRoot();
 }
 
 //! Returns the parent namespace, if any (the root namespace has no parent); if the %Namespace has no parent, then @ref nothing is returned
@@ -431,8 +431,7 @@ Namespace Namespace::getNamespace(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    const QoreNamespace* rv = ns->nsl.find(tname->c_str());
+    const QoreNamespace* rv = n->ns->findLocalNamespace(tname->c_str());
     if (!rv) {
         xsink->raiseException("UNKNOWN-NAMESPACE", "namespace '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
         return QoreValue();
@@ -460,11 +459,9 @@ list<Namespace> Namespace::getNamespaces() [flags=RET_VALUE_ONLY] {
 
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_NAMESPACE->getTypeInfo()), xsink);
-
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-
-    for (auto& i : ns->nsl.nsmap) {
-        l->push(new QoreObject(QC_NAMESPACE, n->pgm, new QoreReflectionNamespace(n->pgm, i.second)), xsink);
+    QoreNamespaceNamespaceIterator i(n->ns);
+    while (i.next()) {
+        l->push(new QoreObject(QC_NAMESPACE, n->pgm, new QoreReflectionNamespace(n->pgm, i.get())), xsink);
     }
 
     return l.release();
@@ -489,8 +486,8 @@ Class Namespace::getClass(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    const QoreClass* rv = ns->classList.find(tname->c_str());
+
+    const QoreClass* rv = n->ns->findLocalClass(tname->c_str());
     if (!rv) {
         xsink->raiseException("UNKNOWN-CLASS", "class '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
         return QoreValue();
@@ -519,9 +516,7 @@ list<Class> Namespace::getClasses() [flags=RET_VALUE_ONLY] {
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASS->getTypeInfo()), xsink);
 
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-
-    ConstClassListIterator i(ns->classList);
+    QoreNamespaceClassIterator i(n->ns);
     while (i.next()) {
         l->push(new QoreObject(QC_CLASS, n->pgm, new QoreReflectionClass(n->pgm, i.get())), xsink);
     }
@@ -816,8 +811,7 @@ GlobalVar Namespace::getGlobalVar(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    Var* rv = ns->var_list.runtimeFindVar(tname->c_str());
+    const QoreExternalGlobalVar* rv = n->ns->findLocalGlobalVar(tname->c_str());
     if (!rv) {
         xsink->raiseException("UNKNOWN-GLOBAL-VAR", "global variable '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
         return QoreValue();
@@ -845,11 +839,9 @@ list<GlobalVar> Namespace::getGlobalVars() [flags=RET_VALUE_ONLY] {
 
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_GLOBALVAR->getTypeInfo()), xsink);
-
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-
-    for (auto& i : ns->var_list.vmap) {
-        l->push(new QoreObject(QC_GLOBALVAR, n->pgm, new QoreReflectionGlobalVar(n->pgm, i.second, n->ns)), xsink);
+    QoreNamespaceGlobalVarIterator i(n->ns);
+    while (i.next()) {
+        l->push(new QoreObject(QC_GLOBALVAR, n->pgm, new QoreReflectionGlobalVar(n->pgm, i.get(), n->ns)), xsink);
     }
 
     return l.release();
@@ -874,8 +866,7 @@ TypedHash Namespace::getTypedHash(string name) [flags=RET_VALUE_ONLY] {
     }
 
     // the namespace ptr must be valid
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    const TypedHashDecl* rv = ns->hashDeclList.find(tname->c_str());
+    const TypedHashDecl* rv = n->ns->findLocalTypedHash(tname->c_str());
     if (!rv) {
         xsink->raiseException("UNKNOWN-TYPED-HASH", "typed hash (hashdecl) '%s' is not defined in namespace '%s'", tname->c_str(), n->ns->getName());
         return QoreValue();
@@ -903,9 +894,7 @@ list<TypedHash> Namespace::getTypedHashes() [flags=RET_VALUE_ONLY] {
 
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_TYPEDHASH->getTypeInfo()), xsink);
-
-    const qore_ns_private* ns = qore_ns_private::get(*n->ns);
-    ConstHashDeclListIterator i(ns->hashDeclList);
+    QoreNamespaceTypedHashIterator i(n->ns);
     while (i.next()) {
         l->push(new QoreObject(QC_TYPEDHASH, n->pgm, new QoreReflectionTypedHash(n->pgm, i.get(), n->ns)), xsink);
     }
