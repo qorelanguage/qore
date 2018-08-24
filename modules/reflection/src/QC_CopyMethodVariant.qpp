@@ -1,3 +1,5 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_CopyMethodVariant.cpp CopyMethodVariant class definition */
 /*
     Qore Programming Language
 
@@ -39,7 +41,7 @@
 
     @since %Qore 0.9.0
  */
-qclass CopyMethodVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; vparent=AbstractMethodVariant];
+qclass CopyMethodVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; vparent=AbstractMethodVariant; dom=REFLECTION];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
 /** @throw COPYMETHODVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
@@ -76,5 +78,6 @@ auto CopyMethodVariant::call(object obj) {
         return QoreValue();
     }
 
-    return m->getClass()->execCopy(obj, xsink);
+    const QoreClass* cls = m->getClass();
+    return cls->execCopy(obj, xsink);
 }

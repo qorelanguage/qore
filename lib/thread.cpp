@@ -1158,6 +1158,8 @@ bool is_valid_qore_thread() {
 }
 
 int gettid() {
+    // when destroying objects in the static namespace, this function is called after thread data is destroyed
+    // to grab locks; therefore in such cases we return TID 0
     ThreadData* td = thread_data.get();
     return td ? td->tid : 0;
 }

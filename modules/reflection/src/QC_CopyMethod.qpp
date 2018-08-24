@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_CopyMethod.qpp CopyMethod class definition */
+/** @file QC_CopyMethod.cpp CopyMethod class definition */
 /*
     Qore Programming Language
 
@@ -38,7 +38,7 @@
 
     @since %Qore 0.9.0
  */
-qclass CopyMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod];
+qclass CopyMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod; dom=REFLECTION];
 
 //! Creates the object from the class if the class implements a copy method
 /** @par Example:
@@ -120,5 +120,6 @@ object CopyMethod::call(object obj) {
         return QoreValue();
     }
 
-    return m->m->getClass()->execCopy(obj, xsink);
+    const QoreClass* cls = m->m->getClass();
+    return cls->execCopy(obj, xsink);
 }

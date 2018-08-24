@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Class.qpp Class class definition */
+/** @file QC_Class.cpp Class class definition */
 /*
     Qore Programming Language
 
@@ -84,6 +84,15 @@ QoreObject* get_method_object(ReferenceHolder<QoreReflectionMethod>& m, Exceptio
 #define FV_DESTRUCTOR (1 << 3)
 #define FV_COPY (1 << 4)
 #define FV_ALL (FV_NORMAL | FV_STATIC | FV_CONSTRUCTOR | FV_DESTRUCTOR | FV_COPY)
+
+int check_constructor(const QoreClass* cls, ExceptionSink* xsink) {
+    if (getProgram()->getParseOptions64() & cls->getDomain()) {
+        xsink->raiseException("CREATE-OBJECT-ERROR", "Program sandboxing restrictions do not allow access to the '%s' class", cls->getName());
+        return -1;
+    }
+
+    return 0;
+}
 
 static QoreObject* find_variant(const QoreReflectionClass* c, const char* name, unsigned which, const QoreListNode* args, size_t offset, ExceptionSink* xsink) {
     // get read access to program object
@@ -297,7 +306,7 @@ hashdecl ClassAccessInfo {
 //! This class provides information about %Qore classes
 /** @since %Qore 0.9
  */
-qclass Class [ns=Qore::Reflection; arg=QoreReflectionClass* c];
+qclass Class [ns=Qore::Reflection; arg=QoreReflectionClass* c; dom=REFLECTION];
 
 //! Creates the object from the class name or namespace-justified path as a string
 /** @par Example:
@@ -309,6 +318,8 @@ Class cls("Thread::Mutex");
 
     @throw CLASS-ERROR cannot find a class with the given name or path
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see forName()
  */
 Class::constructor(string path) {
     TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
@@ -844,8 +855,7 @@ object Class::newObject(...) {
     }
 
     // the class ptr must be valid
-    if (getProgram()->getParseOptions64() & c->cls->getDomain()) {
-        xsink->raiseException("CREATE-OBJECT-ERROR", "Program sandboxing restrictions do not allow access to the '%s' class", c->cls->getName());
+    if (check_constructor(c->cls, xsink)) {
         return QoreValue();
     }
 
@@ -886,8 +896,7 @@ object Class::newObjectArgs(*softlist argv) {
     }
 
     // the class ptr must be valid
-    if (getProgram()->getParseOptions64() & c->cls->getDomain()) {
-        xsink->raiseException("CREATE-OBJECT-ERROR", "Program sandboxing restrictions do not allow access to the '%s' class", c->cls->getName());
+    if (check_constructor(c->cls, xsink)) {
         return QoreValue();
     }
 
@@ -1750,6 +1759,34 @@ list<hash<ClassAccessInfo>> Class::getParentClasses() [flags=RET_VALUE_ONLY] {
     return l.release();
 }
 
+//! Returns a list of all unique classes in the class hierarchy (including classes inherited with \c "private:internal" access protection) in constructor execution order; the current class is always returned in the last position of the list
+/** @par Example:
+    @code{.py}
+list<Class> l = cls.getClassHierarchy();
+    @endcode
+
+    @return a list of all unique classes in the class hierarchy (including classes inherited with \c "private:internal" access protection) in constructor execution order; the current class is always returned in the last position of the list
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<Class> Class::getClassHierarchy() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASS->getTypeInfo()), xsink);
+
+    QoreClassHierarchyIterator i(c->cls);
+    while (i.next()) {
+        l->push(new QoreObject(QC_CLASS, c->pgm, new QoreReflectionClass(c->pgm, i.get())), xsink);
+    }
+
+    return l.release();
+}
+
 //! returns the requested member or throws an exception if the member is not defined in the class
 /**  @par Example:
     @code{.py}
@@ -2012,7 +2049,7 @@ static Class Class::forName(string path) [flags=RET_VALUE_ONLY] {
 //! Returns the class for the object
 /** @par Example:
     @code{.py}
-Class cls = o.getReflectionClass();
+Class cls = Class::getClass(obj);
     @endcode
 
     @param obj the object to return the class for
@@ -2024,3 +2061,29 @@ static Class Class::getClass(object obj) [flags=CONSTANT] {
     return new QoreObject(QC_CLASS, pgm, new QoreReflectionClass(pgm, obj->getClass()));
 }
 
+//! Returns a list of classes matching the regular expression pattern argument or an empty list if no classes match
+/** @par Example:
+    @code{.py}
+# return all accessible classes that start with the letter "T"
+list<Class> l = Class::findAllRegex("^T");
+    @endcode
+
+    @param pattern the regular expression pattern to match
+    @param re_opts see @ref regex_constants for possible values
+
+    @return a list of classes matching the regular expression pattern argument or an empty list if no classes match
+*/
+static list<Class> Class::findAllRegex(string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
+    QoreProgram* pgm = getProgram();
+    class_vec_t class_vec = getProgram()->findAllClassesRegex(*pattern, re_opts, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASS->getTypeInfo()), xsink);
+    for (auto& i : class_vec) {
+        l->push(new QoreObject(QC_CLASS, getProgram(), new QoreReflectionClass(pgm, i)), xsink);
+    }
+
+    return l.release();
+}

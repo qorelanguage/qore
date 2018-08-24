@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_ConstructorMethod.qpp ConstructorMethod class definition */
+/** @file QC_ConstructorMethod.cpp ConstructorMethod class definition */
 /*
     Qore Programming Language
 
@@ -38,7 +38,7 @@
 
     @since %Qore 0.9.0
  */
-qclass ConstructorMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod];
+qclass ConstructorMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod; dom=REFLECTION];
 
 //! Creates the object from the class
 /** @par Example:
@@ -108,6 +108,7 @@ auto v = m.call(arg1, arg2);
     @return the object created by the constructor
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+    @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
 
     @see callArgs()
 */
@@ -119,7 +120,12 @@ auto ConstructorMethod::call(...) {
     }
 
     // the method ptr must be valid
-    return m->m->getClass()->execConstructor(args, xsink);
+    const QoreClass* cls = m->m->getClass();
+    if (check_constructor(cls, xsink)) {
+        return QoreValue();
+    }
+
+    return cls->execConstructor(args, xsink);
 }
 
 //! calls the construcrtor with the given arguments as a list
@@ -133,6 +139,7 @@ auto v = m.callArgs(argv);
     @return the object created by the constructor
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+    @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
 
     @see call()
 */
@@ -144,5 +151,10 @@ auto ConstructorMethod::callArgs(*softlist<auto> argv) {
     }
 
     // the method ptr must be valid
-    return m->m->getClass()->execConstructor(argv, xsink);
+    const QoreClass* cls = m->m->getClass();
+    if (check_constructor(cls, xsink)) {
+        return QoreValue();
+    }
+
+    return cls->execConstructor(argv, xsink);
 }

@@ -1,3 +1,5 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_FunctionVariant.cpp FunctionVariant class definition */
 /*
     Qore Programming Language
 
@@ -37,7 +39,7 @@
 
     @since %Qore 0.9.0
  */
-qclass FunctionVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; vparent=AbstractVariant];
+qclass FunctionVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; vparent=AbstractVariant; dom=REFLECTION];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
 /** @throw FUNCTIONVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)

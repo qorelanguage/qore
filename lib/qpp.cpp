@@ -4317,6 +4317,7 @@ void init() {
     dmap["MODULES"] = "PO_NO_MODULES";
     dmap["IN_MODULE"] = "PO_IN_MODULE";
     dmap["EMBEDDED_LOGIC"] = "PO_NO_EMBEDDED_LOGIC";
+    dmap["REFLECTION"] = "PO_NO_REFLECTION";
 
     dnmap["INJECTION"] = "PO_ALLOW_INJECTION";
     dnmap["DEBUGGER"] = "PO_ALLOW_DEBUGGER";

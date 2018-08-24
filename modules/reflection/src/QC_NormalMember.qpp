@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_NormalMember.qpp NormalMember class definition */
+/** @file QC_NormalMember.cpp NormalMember class definition */
 /*
     Qore Programming Language
 
@@ -43,7 +43,7 @@ static int check_member(QoreObject* obj, const char* mname, const QoreClass* cls
 //! This class provides information about %Qore class normal (non-static) members
 /** @since %Qore 0.9.0
  */
-qclass NormalMember [ns=Qore::Reflection; arg=QoreReflectionClassMember* m; vparent=AbstractClassMember];
+qclass NormalMember [ns=Qore::Reflection; arg=QoreReflectionClassMember* m; vparent=AbstractClassMember; dom=REFLECTION];
 
 //! Throws an exception; this class cannot be created directly or used in a user class hierarchy
 /** @throw NORMALMEMBER-CONSTRUCTOR-ERROR the NormalMember class cannot be constructed directly or inherited directly by a user-defined class

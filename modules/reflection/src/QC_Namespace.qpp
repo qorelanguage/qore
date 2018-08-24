@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Namespace.qpp Namespace namespace definition */
+/** @file QC_Namespace.cpp Namespace namespace definition */
 /*
     Qore Programming Language
 
@@ -53,7 +53,7 @@ QoreReflectionNamespace::QoreReflectionNamespace(QoreProgram* pgm, const QoreNam
 //! This namespace provides information about %Qore namespaces
 /** @since %Qore 0.9
  */
-qclass Namespace [ns=Qore::Reflection; arg=QoreReflectionNamespace* n];
+qclass Namespace [ns=Qore::Reflection; arg=QoreReflectionNamespace* n; dom=REFLECTION];
 
 //! Creates the object from the name name or namespace-justified path as a string
 /** @par Example:
@@ -61,10 +61,12 @@ qclass Namespace [ns=Qore::Reflection; arg=QoreReflectionNamespace* n];
 Namespace ns("Qore::Thread");
     @endcode
 
-    @param path the namespace name or namespace-justified path as a string
+    @param path the namespace name or namespace-justified path as a string; the root namespace is returned with an empty string or \c "::" argument
 
     @throw NAMESPACE-ERROR cannot find a namespace with the given name or path
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see forName()
  */
 Namespace::constructor(string path) {
     TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
@@ -820,7 +822,7 @@ list<TypedHash> Namespace::getTypedHashes() [flags=RET_VALUE_ONLY] {
 Namespace n = Namespace::forName("Thread::Mutex");
     @endcode
 
-    @param path the namespace name or namespace-justified path as a string
+    @param path the namespace name or namespace-justified path as a string; the root namespace is returned with an empty string or \c "::" argument
 
     @return a namespace object corresponding to the name or namespace-justified path provided as an argument
 
@@ -839,4 +841,31 @@ static Namespace Namespace::forName(string path) [flags=RET_VALUE_ONLY] {
     }
 
     return new QoreObject(QC_NAMESPACE, getProgram(), n.release());
+}
+
+//! Returns a list of namespaces matching the regular expression pattern argument or an empty list if no namespaces match
+/** @par Example:
+    @code{.py}
+# return all accessible typed hash that start with the letter "g"
+list<TypedHash> l = TypedHash::findAllRegex("^gg");
+    @endcode
+
+    @param pattern the regular expression pattern to match
+    @param re_opts see @ref regex_constants for possible values
+
+    @return a list of namespaces matching the regular expression pattern argument or an empty list if no namespaces match
+*/
+static list<Namespace> Namespace::findAllRegex(string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
+    QoreProgram* pgm = getProgram();
+    ns_vec_t ns_vec = getProgram()->findAllNamespacesRegex(*pattern, re_opts, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_NAMESPACE->getTypeInfo()), xsink);
+    for (auto& i : ns_vec) {
+        l->push(new QoreObject(QC_NAMESPACE, getProgram(), new QoreReflectionNamespace(pgm, i)), xsink);
+    }
+
+    return l.release();
 }

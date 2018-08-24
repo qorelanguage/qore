@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractClassMember.qpp AbstractClassMember class definition */
+/** @file QC_AbstractClassMember.cpp AbstractClassMember class definition */
 /*
     Qore Programming Language
 
@@ -35,7 +35,7 @@
 //! This class provides information about %Qore class members
 /** @since %Qore 0.9.0
  */
-qclass AbstractClassMember [ns=Qore::Reflection; arg=QoreReflectionClassMember* m; vparent=AbstractMember];
+qclass AbstractClassMember [ns=Qore::Reflection; arg=QoreReflectionClassMember* m; vparent=AbstractMember; dom=REFLECTION];
 
 //! Throws an exception; this class cannot be created directly or used in a user class hierarchy
 /** @throw ABSTRACTCLASSMEMBER-CONSTRUCTOR-ERROR the AbstractClassMember class cannot be constructed directly or inherited directly by a user-defined class

@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractMethod.qpp Method class definition */
+/** @file QC_AbstractMethod.cpp AbstractMethod class definition */
 /*
     Qore Programming Language
 
@@ -90,7 +90,7 @@ void QoreReflectionMethod::setType() {
 
     @since %Qore 0.9.0
  */
-qclass AbstractMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractReflectionFunction];
+qclass AbstractMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractReflectionFunction; dom=REFLECTION];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
 /** @throw ABSTRACTMETHOD-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)

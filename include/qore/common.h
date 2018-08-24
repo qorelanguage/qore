@@ -147,8 +147,16 @@ class AbstractPrivateData;
 class QoreMethod;
 class QoreBuiltinMethod;
 class QoreClass;
+class TypedHashDecl;
+class QoreExternalFunction;
+class QoreNamespace;
+
 struct QoreValue;
-typedef QoreListNode QoreListNode;
+
+typedef std::vector<const QoreClass*> class_vec_t;
+typedef std::vector<std::pair<const TypedHashDecl*, const QoreNamespace*>> hashdecl_vec_t;
+typedef std::vector<const QoreExternalFunction*> func_vec_t;
+typedef std::vector<const QoreNamespace*> ns_vec_t;
 
 //! functor template for calling free() on pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void> {

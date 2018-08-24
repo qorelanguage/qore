@@ -1,3 +1,5 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractVariant.cpp AbstractVariant class definition */
 /*
     Qore Programming Language
 
@@ -40,7 +42,7 @@
 
     @since %Qore 0.9.0
  */
-qclass AbstractVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v];
+qclass AbstractVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; dom=REFLECTION];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
 /** @throw ABSTRACTVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)

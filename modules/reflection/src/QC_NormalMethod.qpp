@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_NormalMethod.qpp NormalMethod class definition */
+/** @file QC_NormalMethod.cpp NormalMethod class definition */
 /*
     Qore Programming Language
 
@@ -38,7 +38,7 @@
 
     @since %Qore 0.9.0
  */
-qclass NormalMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod];
+qclass NormalMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod; dom=REFLECTION];
 
 //! Creates the object from the class and normal (non-static, non-special) method name
 /** @par Example:

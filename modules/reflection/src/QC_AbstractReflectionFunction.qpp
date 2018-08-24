@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AbstractReflectionFunction.qpp Function class definition */
+/** @file QC_AbstractReflectionFunction.cpp AbstractReflectionFunction class definition */
 /*
     Qore Programming Language
 
@@ -121,7 +121,7 @@ void append_variant_objects(QoreListNode& l, QoreProgram* pgm, const QoreExterna
 
     @since %Qore 0.9.0
  */
-qclass AbstractReflectionFunction [ns=Qore::Reflection; arg=QoreReflectionFunction* f];
+qclass AbstractReflectionFunction [ns=Qore::Reflection; arg=QoreReflectionFunction* f; dom=REFLECTION];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
 /** @throw ABSTRACTREFLECTIONFUNCTION-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)

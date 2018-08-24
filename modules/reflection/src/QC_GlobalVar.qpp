@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_GlobalVar.qpp global variable class definition */
+/** @file QC_GlobalVar.cpp global variable class definition */
 /*
     Qore Programming Language
 
@@ -50,7 +50,7 @@ QoreObject* QoreReflectionGlobalVar::getVarObject() const {
 /**
     @since %Qore 0.9.0
  */
-qclass GlobalVar [ns=Qore::Reflection; arg=QoreReflectionGlobalVar* v];
+qclass GlobalVar [ns=Qore::Reflection; arg=QoreReflectionGlobalVar* v; dom=REFLECTION];
 
 //! Creates the object from the global variable name or namespace-justified path as a string
 /** @par Example:
@@ -61,8 +61,9 @@ GlobalVar var("::ARGV");
     @param path the global variable name or namespace-justified path as a string
 
     @throw UNKNOWN-GLOBAL-VAR cannot find a global variable with the given name or path
-    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character
-encoding" and an error occurs during encoding conversion
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see forName()
  */
 GlobalVar::constructor(string path) {
     TempEncodingHelper npath(path, QCS_DEFAULT, xsink);

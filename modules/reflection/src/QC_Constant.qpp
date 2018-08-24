@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_Constant.qpp Constant class definition */
+/** @file QC_Constant.cpp Constant class definition */
 /*
     Qore Programming Language
 
@@ -35,7 +35,7 @@
 //! This class provides information about %Qore constants
 /** @since %Qore 0.9.0
  */
-qclass Constant [ns=Qore::Reflection; arg=QoreReflectionNamespaceConstant* c; vparent=AbstractConstant];
+qclass Constant [ns=Qore::Reflection; arg=QoreReflectionNamespaceConstant* c; vparent=AbstractConstant; dom=REFLECTION];
 
 //! Throws an exception; this class cannot be created directly or used in a user class hierarchy
 /** @throw CONSTANT-CONSTRUCTOR-ERROR the Constant class cannot be constructed directly or inherited directly by a user-defined class

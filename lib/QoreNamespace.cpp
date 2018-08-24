@@ -39,6 +39,7 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/typed_hash_decl_private.h"
+#include "qore/intern/QoreRegex.h"
 
 #include <qore/minitest.hpp>
 
@@ -1621,6 +1622,81 @@ const QoreClass* qore_root_ns_private::runtimeFindClassIntern(const NamedScope& 
     }
 
     return nullptr;
+}
+
+class_vec_t qore_root_ns_private::runtimeFindAllClassesRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    class_vec_t class_vec;
+
+    QoreRegex re(pattern, re_opts, xsink);
+    if (*xsink) {
+        return class_vec;
+    }
+
+    for (auto& i : clmap) {
+        const qore_class_private* qc = qore_class_private::get(*i.second.obj);
+        if (re.exec(qc->name.c_str(), qc->name.size())) {
+            class_vec.push_back(i.second.obj);
+        }
+    }
+
+    return class_vec;
+}
+
+hashdecl_vec_t qore_root_ns_private::runtimeFindAllHashDeclsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    hashdecl_vec_t hashdecl_vec;
+
+    QoreRegex re(pattern, re_opts, xsink);
+    if (*xsink) {
+        return hashdecl_vec;
+    }
+
+    for (auto& i : thdmap) {
+        const typed_hash_decl_private* th = typed_hash_decl_private::get(*i.second.obj);
+        const std::string& name = th->getNameStr();
+        if (re.exec(name.c_str(), name.size())) {
+            hashdecl_vec.push_back(hashdecl_vec_t::value_type(i.second.obj, i.second.ns->ns));
+        }
+    }
+
+    return hashdecl_vec;
+}
+
+func_vec_t qore_root_ns_private::runtimeFindAllFunctionsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    func_vec_t func_vec;
+
+    QoreRegex re(pattern, re_opts, xsink);
+    if (*xsink) {
+        return func_vec;
+    }
+
+    for (auto& i : fmap) {
+        const char* name = i.second.obj->getName();
+        size_t len = strlen(name);
+        if (re.exec(name, len)) {
+            func_vec.push_back(reinterpret_cast<const QoreExternalFunction*>(i.second.obj->getFunction()));
+        }
+    }
+
+    return func_vec;
+}
+
+ns_vec_t qore_root_ns_private::runtimeFindAllNamespacesRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    ns_vec_t ns_vec;
+
+    QoreRegex re(pattern, re_opts, xsink);
+    if (*xsink) {
+        return ns_vec;
+    }
+
+    ConstAllNamespacesIterator i(nsmap);
+    while (i.next()) {
+        const qore_ns_private* ns = i.get()->priv;
+        if (re.exec(ns->name.c_str(), ns->name.size())) {
+            ns_vec.push_back(i.get());
+        }
+    }
+
+    return ns_vec;
 }
 
 const TypedHashDecl* qore_root_ns_private::runtimeFindHashDeclIntern(const NamedScope& name, const qore_ns_private*& ns) {

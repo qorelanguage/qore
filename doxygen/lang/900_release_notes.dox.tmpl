@@ -28,7 +28,7 @@
 
     @subsection qore_09_new_features New Features in Qore
     - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
-    - the elimination of heap-allocated, atomic-reference-counted integers and floating-point values results
+    - the elimination of heap-allocated, atomic-reference-counted integer and floating-point values results
       in reduced memory usage as well as faster program execution
     - the default thread stack size was changed from 8MB to 512KB resulting in a large reduction in the total
       memory used in programs with many threads (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
@@ -65,6 +65,7 @@
       - @ref Qore::Option::HAVE_GET_STACK_SIZE "HAVE_GET_STACK_SIZE"
       - @ref Qore::Option::HAVE_MANAGE_STACK "HAVE_MANAGE_STACK"
       - @ref Qore::Option::HAVE_THREAD_NAME "HAVE_THREAD_NAME"
+      - @ref Qore::PO_NO_REFLECTION "PO_NO_REFLECTION"
       - @ref functional_domain_constants
     - new @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
       - \c "Dn" and \c "DN": the ordinal day number in the year
@@ -76,24 +77,24 @@
     - module updates
       - a new binary module: <a href="../../modules/reflection/html/index.html">reflection</a>
         providing a reflection API to %Qore
-      - <a href="../../modules/ConnectionProvider/html.indexhtml">ConnectionProvider</a> module changes:
+      - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module changes:
         - the \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
           connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
-      - <a href="../../modules/FreetdsSqlUtil/html.indexhtml">FreetdsSqlUtil</a> module changes:
+      - <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
-      - <a href="../../modules/HttpServer/html.indexhtml">HttpServer</a> module changes:
+      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module changes:
         - added support for adding new HTTP methods to the server with the \c HttpServer::addHttpMethod() method
           (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
-      - <a href="../../modules/MysqlSqlUtil/html.indexhtml">MysqlSqlUtil</a> module changes:
+      - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
-      - <a href="../../modules/OracleSqlUtil/html.indexhtml">OracleSqlUtil</a> module changes:
+      - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
-      - <a href="../../modules/PgsqlSqlUtil/html.indexhtml">PgsqlSqlUtil</a> module changes:
+      - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
-      - <a href="../../modules/RestSchemaValidator/html.indexhtml">RestSchemaValidator</a> module changes:
+      - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module changes:
         - updated the default validator to try all serialization methods if multiple methods are available and one fails
           (<a href="https://github.com/qorelanguage/qore/issues/2831">issue 2831</a>)
-      - <a href="../../modules/SqlUtil/html.indexhtml">SqlUtil</a> module changes:
+      - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module changes:
         - deprecated \c AbstractTable::getRowIterator() for \c AbstractTable::getStatement() (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
         - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)

@@ -604,7 +604,7 @@ public:
 
     T* findObj(const char* name) {
         typename map_t::iterator i = this->find(name);
-        return i == this->end() ? 0 : i->second.obj;
+        return i == this->end() ? nullptr : i->second.obj;
     }
 };
 
@@ -719,6 +719,7 @@ public:
 class NamespaceMap {
     friend class NamespaceMapIterator;
     friend class ConstNamespaceMapIterator;
+    friend class ConstAllNamespacesIterator;
 
 protected:
     // map from depth to namespace
@@ -863,6 +864,32 @@ public:
     DLLLOCAL const qore_ns_private* get() {
         return i->second;
     }
+};
+
+class ConstAllNamespacesIterator {
+public:
+    DLLLOCAL ConstAllNamespacesIterator(const NamespaceMap& nsmap) : nsrmap(nsmap.nsrmap), i(nsmap.nsrmap.end()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == nsrmap.end()) {
+            i = nsrmap.begin();
+        }
+        else {
+            ++i;
+        }
+
+        return i != nsrmap.end();
+    }
+
+    DLLLOCAL const QoreNamespace* get() const {
+        assert(i != nsrmap.end());
+        return i->first->ns;
+    }
+
+private:
+    const NamespaceMap::nsrmap_t& nsrmap;
+    NamespaceMap::nsrmap_t::const_iterator i;
 };
 
 typedef FunctionEntryRootMap fmap_t;
@@ -1620,6 +1647,14 @@ public:
     DLLLOCAL QoreListNode* runtimeFindCallVariants(const char* name, ExceptionSink* xsink);
 
     DLLLOCAL void parseInit();
+
+    DLLLOCAL class_vec_t runtimeFindAllClassesRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const;
+
+    DLLLOCAL hashdecl_vec_t runtimeFindAllHashDeclsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const;
+
+    DLLLOCAL func_vec_t runtimeFindAllFunctionsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const;
+
+    DLLLOCAL ns_vec_t runtimeFindAllNamespacesRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const;
 
     DLLLOCAL static QoreHashNode* getGlobalVars(RootQoreNamespace& rns) {
         return rns.rpriv->getGlobalVars();

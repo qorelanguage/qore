@@ -2081,6 +2081,22 @@ const QoreClass* QoreProgram::findClass(const char* cls_path, ExceptionSink* xsi
     return priv->runtimeFindClass(cls_path, xsink);
 }
 
+class_vec_t QoreProgram::findAllClassesRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    return qore_root_ns_private::get(*priv->RootNS)->runtimeFindAllClassesRegex(pattern, re_opts, xsink);
+}
+
+hashdecl_vec_t QoreProgram::findAllHashDeclsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    return qore_root_ns_private::get(*priv->RootNS)->runtimeFindAllHashDeclsRegex(pattern, re_opts, xsink);
+}
+
+func_vec_t QoreProgram::findAllFunctionsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    return qore_root_ns_private::get(*priv->RootNS)->runtimeFindAllFunctionsRegex(pattern, re_opts, xsink);
+}
+
+ns_vec_t QoreProgram::findAllNamespacesRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    return qore_root_ns_private::get(*priv->RootNS)->runtimeFindAllNamespacesRegex(pattern, re_opts, xsink);
+}
+
 const QoreExternalFunction* QoreProgram::findFunction(const char* path) const {
     const FunctionEntry* fe = qore_root_ns_private::runtimeFindFunctionEntry(*priv->RootNS, path);
     return reinterpret_cast<const QoreExternalFunction*>(fe ? fe->getFunction() : nullptr);
@@ -2096,6 +2112,9 @@ const TypedHashDecl* QoreProgram::findHashDecl(const char* path, const QoreNames
 }
 
 const QoreNamespace* QoreProgram::findNamespace(const QoreString& path) const {
+    if (path == "::") {
+        return priv->RootNS;
+    }
     return qore_root_ns_private::get(*priv->RootNS)->runtimeFindNamespace(path);
 }
 

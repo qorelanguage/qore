@@ -977,7 +977,7 @@ public:
 };
 
 //! iterates parent classes for a class with inheritance access information
-/**
+/** @since %Qore 0.9
 */
 class QoreParentClassIterator {
 public:
@@ -1004,7 +1004,7 @@ private:
 };
 
 //! iterates normal (non-static) members of a class
-/**
+/** @since %Qore 0.9
 */
 class QoreClassMemberIterator {
 public:
@@ -1031,7 +1031,7 @@ private:
 };
 
 //! iterates static members of a class
-/**
+/** @since %Qore 0.9
 */
 class QoreClassStaticMemberIterator {
 public:
@@ -1058,7 +1058,7 @@ private:
 };
 
 //! iterates class constants
-/**
+/** @since %Qore 0.9
 */
 class QoreClassConstantIterator {
 public:
@@ -1079,6 +1079,30 @@ public:
 
 private:
     class qore_class_constant_iterator* priv;
+};
+
+//! iterates the class hierarchy in the order of constructor execution
+/** @since %Qore 0.9
+*/
+class QoreClassHierarchyIterator {
+public:
+    //! creates the iterator; call next() to start iterating
+    DLLEXPORT QoreClassHierarchyIterator(const QoreClass* cls);
+
+    //! destroys the object
+    DLLEXPORT ~QoreClassHierarchyIterator();
+
+    //! returns advances to the next element (or to the first element if starting to iterate) and returns true if there is an element to query or returns false if at the end of the list
+    DLLEXPORT bool next();
+
+    //! returns true if the iterator is pointing at a valid element
+    DLLEXPORT bool valid() const;
+
+    //! returns the parent class
+    DLLEXPORT const QoreClass* get() const;
+
+private:
+    class qore_class_hierarchy_iterator* priv;
 };
 
 DLLEXPORT const char* get_access_string(ClassAccess access);

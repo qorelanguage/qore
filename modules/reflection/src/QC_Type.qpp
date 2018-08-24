@@ -1,3 +1,5 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_Type.cpp type class definition */
 /*
     Qore Programming Language
 
@@ -306,7 +308,7 @@ const TimeoutOrNothingType = qore(get_type_object(timeoutOrNothingTypeInfo));
 
     @since %Qore 0.9.0
  */
-qclass Type [ns=Qore::Reflection; arg=QoreType* t];
+qclass Type [ns=Qore::Reflection; arg=QoreType* t; dom=REFLECTION];
 
 //! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
 /** @throw TYPE-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)

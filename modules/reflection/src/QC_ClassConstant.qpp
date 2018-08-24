@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_ClassConstant.qpp ClassConstant class definition */
+/** @file QC_ClassConstant.cpp ClassConstant class definition */
 /*
     Qore Programming Language
 
@@ -35,7 +35,7 @@
 //! This class provides information about %Qore class constants
 /** @since %Qore 0.9.0
  */
-qclass ClassConstant [ns=Qore::Reflection; arg=QoreReflectionClassConstant* c; vparent=AbstractConstant];
+qclass ClassConstant [ns=Qore::Reflection; arg=QoreReflectionClassConstant* c; vparent=AbstractConstant; dom=REFLECTION];
 
 //! Throws an exception; this class cannot be created directly or used in a user class hierarchy
 /** @throw CLASSCONSTANT-CONSTRUCTOR-ERROR the ClassConstant class cannot be constructed directly or inherited directly by a user-defined class
