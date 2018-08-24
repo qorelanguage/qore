@@ -70,7 +70,7 @@ auto StaticMember::getValue() [flags=RET_VALUE_ONLY] {
 m.setValue(val);
     @endcode
 
-    @param the new value of the static member
+    @param val the new value of the static member
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw RUNTIME-TYPE-ERROR value type is not compatible with the assigned static member's type

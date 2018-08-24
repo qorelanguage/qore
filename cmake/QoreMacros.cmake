@@ -131,6 +131,30 @@ ENDMACRO (QORE_BINARY_MODULE)
 #  'make docs' - if there is Doxygen found
 #  'make uninstall' - if exists CMAKE_CURRENT_SOURCE_DIR/cmake/cmake_uninstall.cmake.in
 MACRO (QORE_BINARY_MODULE_INTERN _module_name _version _install_suffix)
+    QORE_BINARY_MODULE_INTERN2(${_module_name} ${_version} ${_install_suffix} "" ${ARGN})
+ENDMACRO (QORE_BINARY_MODULE_INTERN)
+
+MACRO (QORE_BINARY_MODULE_QORE _module_name _version _install_suffix)
+    QORE_BINARY_MODULE_INTERN2(${_module_name} ${_version} ${_install_suffix} 1 ${ARGN})
+ENDMACRO (QORE_BINARY_MODULE_QORE)
+
+MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suffix)
+    message(STATUS "DEBUG ms: ${_mod_suffix}")
+
+    if ("${_mod_suffix}" STREQUAL "")
+        set(_docs_targ docs)
+        set(_uninstall_targ uninstall)
+        set(_working_dir ${CMAKE_BINARY_DIR})
+        set(_dox_src ${CMAKE_SOURCE_DIR})
+        set(_dox_output ${CMAKE_BINARY_DIR})
+    else()
+        set(_docs_targ docs-${_module_name})
+        set(_uninstall_targ uninstall-${_module_name})
+        set(_working_dir ${CMAKE_BINARY_DIR}/modules/${_module_name})
+        set(_dox_src ${CMAKE_SOURCE_DIR}/modules/${_module_name}/src)
+        set(_dox_output ${CMAKE_BINARY_DIR}/docs/modules/${_module_name})
+        set(QORE_MOD_NAME ${_module_name})
+    endif()
 
     # standard repeating stuff for modules
     add_definitions("-DPACKAGE_VERSION=\"${_version}\"")
@@ -190,8 +214,12 @@ MACRO (QORE_BINARY_MODULE_INTERN _module_name _version _install_suffix)
             "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
             IMMEDIATE @ONLY
         )
-        ADD_CUSTOM_TARGET(uninstall
+        ADD_CUSTOM_TARGET(${_uninstall_targ}
             "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+
+        if (NOT "${_uninstall_suffix}" STREQUAL "")
+            add_dependencies(uninstall ${_uninstall_targ})
+        endif ()
 
         message(STATUS "")
         message(STATUS "Module ${_module_name} uninstall target: make uninstall")
@@ -204,15 +232,19 @@ MACRO (QORE_BINARY_MODULE_INTERN _module_name _version _install_suffix)
     FIND_PACKAGE(Doxygen)
     if (DOXYGEN_FOUND)
         if (EXISTS "${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
-            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
+            configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${_working_dir}/Doxyfile @ONLY)
 
-            add_custom_target(docs
-                ${DOXYGEN_EXECUTABLE} ${CMAKE_BINARY_DIR}/Doxyfile
-                COMMAND ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/html ${CMAKE_BINARY_DIR}/html/search
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            add_custom_target(${_docs_targ}
+                ${DOXYGEN_EXECUTABLE} ${_working_dir}/Doxyfile
+                COMMAND ${QORE_QDX_EXECUTABLE} --post ${_working_dir}/html ${_working_dir}/html/search
+                WORKING_DIRECTORY ${_working_dir}
                 COMMENT "Generating API documentation with Doxygen" VERBATIM
             )
-            add_dependencies(docs ${_module_name})
+            add_dependencies(${_docs_targ} ${_module_name})
+
+            if (NOT "${_mod_suffix}" STREQUAL "")
+                add_dependencies(docs ${_docs_targ})
+            endif ()
 
             message(STATUS "")
             message(STATUS "Module ${_module_name} documentation target: make docs")
@@ -224,7 +256,7 @@ MACRO (QORE_BINARY_MODULE_INTERN _module_name _version _install_suffix)
     else (DOXYGEN_FOUND)
         message(WARNING "Doxygen not found. Documentation won't be built.")
     endif (DOXYGEN_FOUND)
-ENDMACRO (QORE_BINARY_MODULE_INTERN)
+ENDMACRO (QORE_BINARY_MODULE_INTERN2)
 
 # Install qore native/user module (.qm file) into proper location.
 #

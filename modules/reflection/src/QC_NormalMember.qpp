@@ -87,7 +87,7 @@ m.setValue(obj, val);
     @endcode
 
     @param obj an object to set the member value on; must be an object of the class implementing the member or a \c MEMBER-ERROR exception is thrown
-    @param the new value of the member
+    @param val the new value of the member
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw MEMBER-ERROR the object was not instantiated from the class implementing this member

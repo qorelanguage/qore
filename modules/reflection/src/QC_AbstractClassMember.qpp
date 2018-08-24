@@ -61,7 +61,7 @@ int i = mem.getModifiers();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 
     @see
-    - @ref getAccessModifierList()
+    - @ref getModifierList()
     - @ref getAccessModifierString()
 */
 int AbstractClassMember::getModifiers() [flags=RET_VALUE_ONLY] {
@@ -146,7 +146,7 @@ string str = m.getAccessModifierString();
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 
     @see
-    - @ref getAccessModifierList()
+    - @ref getModifierList()
     - @ref getModifiers()
 */
 string AbstractClassMember::getAccessModifierString() [flags=RET_VALUE_ONLY] {

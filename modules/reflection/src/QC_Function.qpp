@@ -90,7 +90,6 @@ Function::constructor(string path) {
 FunctionVariant v = n.getVariant(IntType, StringType);
     @endcode
 
-    @param name the name of the function variant to find
     @param ... type arguments for the variant; types must be compatible for the search to be successful
 
     @return given function variant or throws an exception if the function variant is not defined in this function

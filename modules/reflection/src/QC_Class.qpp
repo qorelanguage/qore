@@ -236,6 +236,9 @@ const MC_BUILTIN = MC_BUILTIN;
 /** @ref Qore::Reflection::MC_BUILTIN "MC_BUILTIN" and @ref Qore::Reflection::MC_USER "MC_USER" are mutually exclusive
 */
 const MC_USER = MC_USER;
+
+//! describes the final flag
+const MC_FINAL = MC_FINAL;
 //@}
 
 /** @defgroup code_flag_constants Code Flag Constants

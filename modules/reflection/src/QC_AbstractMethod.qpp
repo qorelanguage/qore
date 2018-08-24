@@ -147,7 +147,6 @@ string AbstractMethod::getMethodTypeName() [flags=RET_VALUE_ONLY] {
 AbstractMethodVariant v = n.getVariant(IntType, StringType);
     @endcode
 
-    @param name the name of the method variant to find
     @param ... type arguments for the variant; types must be compatible for the search to be successful
 
     @return given method variant or throws an exception if the method variant is not defined in this method

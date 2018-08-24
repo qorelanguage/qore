@@ -32,47 +32,7 @@
       in reduced memory usage as well as faster program execution
     - the default thread stack size was changed from 8MB to 512KB resulting in a large reduction in the total
       memory used in programs with many threads (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
-    - reflection API:
-      - new classes:
-        - @ref Qore::Reflection::AbstractClassMember "AbstractClassMember"
-        - @ref Qore::Reflection::AbstractConstant "AbstractConstant"
-        - @ref Qore::Reflection::AbstractMember "AbstractMember"
-        - @ref Qore::Reflection::AbstractMethod "AbstractMethod"
-        - @ref Qore::Reflection::AbstractMethodVariant "AbstractMethodVariant"
-        - @ref Qore::Reflection::AbstractReflectionFunction "AbstractReflectionFunction"
-        - @ref Qore::Reflection::AbstractVariant "AbstractVariant"
-        - @ref Qore::Reflection::Class "Class"
-        - @ref Qore::Reflection::ClassConstant "ClassConstant"
-        - @ref Qore::Reflection::Constant "Constant"
-        - @ref Qore::Reflection::ConstructorMethod "ConstructorMethod"
-        - @ref Qore::Reflection::ConstructorMethodVariant "ConstructorMethodVariant"
-        - @ref Qore::Reflection::CopyMethod "CopyMethod"
-        - @ref Qore::Reflection::CopyMethodVariant "CopyMethodVariant"
-        - @ref Qore::Reflection::DestructorMethod "DestructorMethod"
-        - @ref Qore::Reflection::DestructorMethodVariant "DestructorMethodVariant"
-        - @ref Qore::Reflection::Function "Function"
-        - @ref Qore::Reflection::FunctionVariant "FunctionVariant"
-        - @ref Qore::Reflection::GlobalVar "GlobalVar"
-        - @ref Qore::Reflection::Member "Member"
-        - @ref Qore::Reflection::Namespace "Namespace"
-        - @ref Qore::Reflection::NormalMember "NormalMember"
-        - @ref Qore::Reflection::NormalMethod "NormalMethod"
-        - @ref Qore::Reflection::NormalMethodVariant "NormalMethodVariant"
-        - @ref Qore::Reflection::StaticMember "StaticMember"
-        - @ref Qore::Reflection::StaticMethod "StaticMethod"
-        - @ref Qore::Reflection::StaticMethodVariant "StaticMethodVariant"
-        - @ref Qore::Reflection::Type "Type"
-        - @ref Qore::Reflection::Type "TypedHash"
-        - @ref Qore::Reflection::Type "TypedHashMember"
-      - new constants:
-        - @ref access_constants
-        - @ref code_flag_constants
-        - @ref functional_domain_constants
-        - @ref modifier_constants
-        - @ref type_constants
-      - new typed hashes:
-        - @ref Qore::ClassAccessInfo "ClassAccessInfo"
-    - new classes (in addition to the reflection API):
+    - new classes:
       - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
       - @ref Qore::StreamBase "StreamBase": a base class for stream classes allowing for a controlled handoff of the stream to another thread
     - new and updated methods in existing classes:
@@ -105,6 +65,7 @@
       - @ref Qore::Option::HAVE_GET_STACK_SIZE "HAVE_GET_STACK_SIZE"
       - @ref Qore::Option::HAVE_MANAGE_STACK "HAVE_MANAGE_STACK"
       - @ref Qore::Option::HAVE_THREAD_NAME "HAVE_THREAD_NAME"
+      - @ref functional_domain_constants
     - new @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
       - \c "Dn" and \c "DN": the ordinal day number in the year
       - \c "I": ISO-8601 week string
@@ -113,6 +74,8 @@
       - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
       - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
     - module updates
+      - a new binary module: <a href="../../modules/reflection/html/index.html">reflection</a>
+        providing a reflection API to %Qore
       - <a href="../../modules/ConnectionProvider/html.indexhtml">ConnectionProvider</a> module changes:
         - the \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
           connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)

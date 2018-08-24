@@ -97,7 +97,7 @@ int i = con.getModifiers();
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
 
-    @see @ref getAccessModifierList()
+    @see @ref getModifierList()
 */
 int AbstractConstant::getModifiers() [flags=RET_VALUE_ONLY] {
     // get read access to program object

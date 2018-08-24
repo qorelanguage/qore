@@ -265,7 +265,7 @@ auto GlobalVar::getValue() [flags=RET_VALUE_ONLY] {
 var.setValue(val);
     @endcode
 
-    @param the new value of the global variable
+    @param val the new value of the global variable
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the global variable has been destroyed
     @throw RUNTIME-TYPE-ERROR value type is not compatible with the global variable's type
