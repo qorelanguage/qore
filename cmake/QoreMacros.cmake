@@ -131,16 +131,14 @@ ENDMACRO (QORE_BINARY_MODULE)
 #  'make docs' - if there is Doxygen found
 #  'make uninstall' - if exists CMAKE_CURRENT_SOURCE_DIR/cmake/cmake_uninstall.cmake.in
 MACRO (QORE_BINARY_MODULE_INTERN _module_name _version _install_suffix)
-    QORE_BINARY_MODULE_INTERN2(${_module_name} ${_version} ${_install_suffix} "" ${ARGN})
+    QORE_BINARY_MODULE_INTERN2(${_module_name} ${_version} "${_install_suffix}" "" ${ARGN})
 ENDMACRO (QORE_BINARY_MODULE_INTERN)
 
 MACRO (QORE_BINARY_MODULE_QORE _module_name _version _install_suffix)
-    QORE_BINARY_MODULE_INTERN2(${_module_name} ${_version} ${_install_suffix} 1 ${ARGN})
+    QORE_BINARY_MODULE_INTERN2(${_module_name} ${_version} "${_install_suffix}" 1 ${ARGN})
 ENDMACRO (QORE_BINARY_MODULE_QORE)
 
 MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suffix)
-    message(STATUS "DEBUG ms: ${_mod_suffix}")
-
     if ("${_mod_suffix}" STREQUAL "")
         set(_docs_targ docs)
         set(_uninstall_targ uninstall)

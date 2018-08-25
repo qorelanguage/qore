@@ -61,10 +61,6 @@
 #include "QC_TypedHash.h"
 #include "QC_TypedHashMember.h"
 
-#ifdef HAVE_CONFIG_H
-#include "../config.h"
-#endif
-
 QoreStringNode* reflection_module_init();
 void reflection_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
 void reflection_module_delete();

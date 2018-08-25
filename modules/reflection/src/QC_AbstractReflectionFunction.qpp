@@ -76,7 +76,6 @@ QoreObject* find_function_variant(QoreProgram* pgm, const QoreExternalFunction* 
         type_vec.push_back(t->typeInfo);
     }
 
-    const QoreClass* cls = mtype != MT_None ? func->getClass() : nullptr;
     const QoreExternalVariant* v = func->findVariant(type_vec, xsink);
 
     if (*xsink) {
