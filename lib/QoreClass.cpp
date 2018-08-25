@@ -2192,10 +2192,6 @@ int BCAList::execBaseClassConstructorArgs(BCEAList* bceal, ExceptionSink* xsink)
    return 0;
 }
 
-bool QoreClass::hasAbstract() const {
-   return priv->hasAbstract();
-}
-
 const QoreMethod* QoreClass::parseGetConstructor() const {
    const_cast<QoreClass*>(this)->priv->initialize();
    if (priv->constructor)
@@ -2306,6 +2302,85 @@ bool QoreClass::isFinal() const {
 
 bool QoreClass::isInjected() const {
     return priv->inject;
+}
+
+bool QoreClass::isPseudoClass() const {
+    return priv->name[0] == '<';
+}
+
+qore_type_t QoreClass::getPseudoClassType() const {
+    if (!isPseudoClass()) {
+        return -1;
+    }
+
+    if (priv->name == "<value>") {
+        return -1;
+    }
+
+    if (priv->name == "<binary>") {
+        return NT_BINARY;
+    }
+
+    if (priv->name == "<bool>") {
+        return NT_BOOLEAN;
+    }
+
+    if (priv->name == "<callref>") {
+        return NT_FUNCREF;
+    }
+
+    if (priv->name == "<closure>") {
+        return NT_RUNTIME_CLOSURE;
+    }
+
+    if (priv->name == "<date>") {
+        return NT_DATE;
+    }
+
+    if (priv->name == "<float>") {
+        return NT_FLOAT;
+    }
+
+    if (priv->name == "<hash>") {
+        return NT_HASH;
+    }
+
+    if (priv->name == "<int>") {
+        return NT_INT;
+    }
+
+    if (priv->name == "<int>") {
+        return NT_INT;
+    }
+
+    if (priv->name == "<list>") {
+        return NT_LIST;
+    }
+
+    if (priv->name == "<nothing>") {
+        return NT_NOTHING;
+    }
+
+    if (priv->name == "<number>") {
+        return NT_NUMBER;
+    }
+
+    if (priv->name == "<object>") {
+        return NT_OBJECT;
+    }
+
+    assert(priv->name == "<string>");
+    return NT_STRING;
+}
+
+QoreValue QoreClass::evalPseudoMethod(const QoreValue n, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
+    assert(isPseudoClass());
+    return priv->evalPseudoMethod(n, nme, args, xsink);
+}
+
+QoreValue QoreClass::evalPseudoMethod(const QoreMethod* m, const QoreExternalMethodVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const {
+    assert(isPseudoClass());
+    return priv->evalPseudoMethod(m, reinterpret_cast<const AbstractQoreFunctionVariant*>(variant), n, args, xsink);
 }
 
 void QoreClass::setSystem() {

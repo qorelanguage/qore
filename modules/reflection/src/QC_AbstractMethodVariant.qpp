@@ -30,7 +30,8 @@
 
 #include "qore_reflection.h"
 #include "QC_AbstractMethodVariant.h"
-#include "QC_Class.h"
+#include "QC_AbstractClass.h"
+#include "QC_AbstractClass.h"
 #include "QC_AbstractMethod.h"
 
 //! The abstract base class for %Qore class variants
@@ -111,18 +112,16 @@ AbstractMethod AbstractMethodVariant::getMethod() [flags=CONSTANT] {
 }
 
 //! Returns the class for the variant
-/**
-    @return the class for the variant
-
-    @par Example:
+/** @par Example:
     @code{.py}
-Class cls = v.getClass();
+AbstractClass cls = v.getClass();
     @endcode
+
+    @return the class for the variant
  */
-Class AbstractMethodVariant::getClass() [flags=CONSTANT] {
+AbstractClass AbstractMethodVariant::getClass() [flags=CONSTANT] {
     const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
-    return new QoreObject(QC_CLASS, v->pgm,
-        new QoreReflectionClass(v->pgm, mv->getClass()));
+    return get_class_object(v->pgm, mv->getClass());
 }
 
 //! returns a string for the access modifier for the method variant

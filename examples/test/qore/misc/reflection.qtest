@@ -51,6 +51,7 @@ class ReflectionTest inherits QUnit::Test {
     constructor() : QUnit::Test("ReflectionTest", "1.0") {
         addTestCase("reflection tests", \reflectionTests());
         addTestCase("sandbox tests", \sandboxTests());
+        addTestCase("pseudo-class tests", \pseudoClassTests());
         set_return_value(main());
     }
 
@@ -67,8 +68,8 @@ class ReflectionTest inherits QUnit::Test {
         assertFalse(c.hasMemberGate());
         assertFalse(c.hasMethodGate());
         assertFalse(c.hasMemberNotification());
-        assertEq(MC_BUILTIN, c.getModifiers());
-        assertEq(("builtin",), c.getModifierList());
+        assertEq(0, c.getModifiers());
+        assertEq((), c.getModifierList());
         assertEq(DOM_THREAD_CLASS, c.getDomain());
         assertEq(("THREAD_CLASS",), c.getDomainStringList());
 
@@ -201,8 +202,8 @@ class ReflectionTest inherits QUnit::Test {
         }
 
         NormalMethodVariant v = m.getVariants()[0];
-        assertEq(MC_PUBLIC | MC_BUILTIN, v.getModifiers());
-        assertEq(("public", "builtin",), v.getModifierList());
+        assertEq(MC_PUBLIC, v.getModifiers());
+        assertEq(("public",), v.getModifierList());
         assertEq("", v.getParamString());
         assertEq("nothing", v.getReturnTypeString());
         assertEq(DOM_THREAD_CLASS, v.getDomain());
@@ -295,7 +296,7 @@ class ReflectionTest inherits QUnit::Test {
             NormalMember nm = l[0];
             assertEq("i", nm.getName());
             assertTrue(IntType.isEqual(Type::getType(nm.getValue(t))));
-            assertEq(MC_PUBLIC | MC_USER, nm.getModifiers());
+            assertEq(MC_PUBLIC, nm.getModifiers());
             assertEq("public", nm.getAccessModifierString());
             assertTrue(c1.isEqual(nm.getClass()));
             assertThrows("UNKNOWN-MEMBER", \c1.getMember(), "x");
@@ -311,7 +312,7 @@ class ReflectionTest inherits QUnit::Test {
             assertThrows("UNKNOWN-STATIC-MEMBER", \c1.getStaticMember(), "i");
 
             StaticMember sm = c1.getStaticMember("si");
-            assertEq(MC_PUBLIC | MC_STATIC | MC_USER, sm.getModifiers());
+            assertEq(MC_PUBLIC | MC_STATIC, sm.getModifiers());
             assertEq(2, sm.getValue());
             assertThrows("RUNTIME-TYPE-ERROR", \sm.setValue(), "str");
             assertEq(2, sm.getValue());
@@ -321,7 +322,7 @@ class ReflectionTest inherits QUnit::Test {
             list<ClassConstant> cl = c1.getConstants();
             ClassConstant con = cl[0];
             assertEq("C_I", con.getName());
-            assertEq(MC_PUBLIC | MC_USER, con.getModifiers());
+            assertEq(MC_PUBLIC, con.getModifiers());
             assertFalse(con.getSourceLocation().builtin);
 
             assertThrows("UNKNOWN-CONSTANT", \c1.getConstant(), "x");
@@ -370,11 +371,11 @@ class ReflectionTest inherits QUnit::Test {
             assertThrows("RUNTIME-OVERLOAD-ERROR", \f.getVariantArgs(), IntType);
 
             FunctionVariant v1 = f.getVariant(StringType);
-            assertEq(MC_BUILTIN, v1.getModifiers());
-            assertEq(("builtin",), v1.getModifierList());
+            assertEq(0, v1.getModifiers());
+            assertEq((), v1.getModifierList());
              v1 = f.getVariantArgs(StringType);
-            assertEq(MC_BUILTIN, v1.getModifiers());
-            assertEq(("builtin",), v1.getModifierList());
+            assertEq(0, v1.getModifiers());
+            assertEq((), v1.getModifierList());
 
             assertThrows("RUNTIME-OVERLOAD-ERROR", \n.getVariant(), ("sprintf", IntType));
             assertThrows("RUNTIME-OVERLOAD-ERROR", \n.getVariantArgs(), ("sprintf", IntType));
@@ -581,6 +582,33 @@ class ReflectionTest inherits QUnit::Test {
             Program p(PO_NEW_STYLE | PO_NO_LOCALE_CONTROL);
             p.parse("(Class::forName(\"TimeZone\")).getStaticMethod(\"setRegion\").getVariant(StringType).callArgs(\"xxx\");", "");
             assertThrows("INVALID-FUNCTION-ACCESS", "access.*method", \p.run());
+        }
+    }
+
+    pseudoClassTests() {
+        {
+            assertThrows("CLASS-ERROR", \Class::forName(), "<int>");
+            assertThrows("CLASS-ERROR", \Class::forName(), "int");
+            PseudoClass c = PseudoClass::forValue(1);
+            assertEq("<int>", c.getName());
+            assertTrue(IntPseudoClass.isEqual(c));
+            assertFalse(IntPseudoClass.isEqual(Class::forName("Mutex")));
+            PseudoMethod m = c.getMethod("format");
+            assertEq("1.00", m.call(1));
+            assertThrows("METHOD-ERROR", \m.call(), "str");
+
+            list<AbstractMethod> l = ValuePseudoClass.getMethods();
+            #map printf("%s\n", $1.getName()), l;
+            assertTrue(l[0] instanceof PseudoMethod);
+
+            c = PseudoClass::forType(StringType);
+            assertTrue(c.isEqual(StringPseudoClass));
+            assertFalse(c.isEqual(IntPseudoClass));
+
+            assertTrue(ValuePseudoClass.isEqual(PseudoClass::forType(StringType.getOrNothingType())));
+
+            # "or nothing" types must return the <value> pseudo-class
+            assertTrue(ValuePseudoClass.isEqual(PseudoClass::forType(Type::getOrNothingType(new hash<ClassAccessInfo>()))));
         }
     }
 }

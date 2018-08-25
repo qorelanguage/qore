@@ -30,7 +30,7 @@
 
 #include "qore_reflection.h"
 #include "QC_AbstractClassMember.h"
-#include "QC_Class.h"
+#include "QC_AbstractClass.h"
 
 //! This class provides information about %Qore class members
 /** @since %Qore 0.9.0
@@ -51,11 +51,9 @@ int i = mem.getModifiers();
     @endcode
 
     @return a bitfield of @ref modifier_constants "modifiers" describing the member; possible values are:
-    - @ref Qore::Reflection::MC_BUILTIN "MC_BUILTIN": the class declaring the member is builtin
     - @ref Qore::Reflection::MC_PRIVATE "MC_PRIVATE": gives the accessibility of the member
     - @ref Qore::Reflection::MC_PRIVATEINTERNAL "MC_PRIVATEINTERNAL": gives the accessibility of the member
     - @ref Qore::Reflection::MC_PUBLIC "MC_PUBLIC": gives the accessibility of the member
-    - @ref Qore::Reflection::MC_USER "MC_USER": the class declaring the member is a user class
     - @ref Qore::Reflection::MC_STATIC "MC_STATIC": the member is static
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
@@ -73,13 +71,6 @@ int AbstractClassMember::getModifiers() [flags=RET_VALUE_ONLY] {
 
     // the class ptr must be valid
     int64 rc = 0;
-    if (m->cls->isSystem()) {
-        rc |= MC_BUILTIN;
-    }
-    else {
-        rc |= MC_USER;
-    }
-
     if (m->is_static) {
         rc |= MC_STATIC;
     }
@@ -96,11 +87,9 @@ list<string> l = m.getModifierList();
     @endcode
 
     @return list of strings of modifiers describing the member; possible values are:
-    - \c "builtin": the class declaring the member is builtin
     - \c "private": gives the accessibility of the member
     - \c "private:internal": gives the accessibility of the member
     - \c "public": gives the accessibility of the member
-    - \c "user": the class declaring the member is a user class
     - \c "static": the member is static
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
@@ -116,13 +105,6 @@ list<string> AbstractClassMember::getModifierList() [flags=RET_VALUE_ONLY] {
 
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
-    if (m->cls->isSystem()) {
-        rv->push(new QoreStringNode("builtin"), xsink);
-    }
-    else {
-        rv->push(new QoreStringNode("user"), xsink);
-    }
-
     if (m->is_static) {
         rv->push(new QoreStringNode("static"), xsink);
     }
@@ -220,11 +202,11 @@ bool AbstractClassMember::isStatic() [flags=RET_VALUE_ONLY] {
 //! Returns the class for the member
 /** @par Example:
     @code{.py}
-Class cls = m.getClass();
+AbstractClass cls = m.getClass();
     @endcode
 
     @return the class for the member
  */
-Class AbstractClassMember::getClass() [flags=CONSTANT] {
-    return new QoreObject(QC_CLASS, m->pgm, new QoreReflectionClass(m->pgm, m->cls));
+AbstractClass AbstractClassMember::getClass() [flags=CONSTANT] {
+    return get_class_object(m->pgm, m->cls);
 }

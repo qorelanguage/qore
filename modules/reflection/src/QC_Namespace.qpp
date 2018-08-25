@@ -165,9 +165,7 @@ int i = n.getModifiers();
     @endcode
 
     @return a bitfield of @ref modifier_constants "modifiers" describing the namespace; possible values are:
-    - @ref Qore::Reflection::MC_BUILTIN "MC_BUILTIN": the namespace is builtin
     - @ref Qore::Reflection::MC_PUBLIC "MC_PUBLIC": the namespace has the @ref mod_public "module public" flag set
-    - @ref Qore::Reflection::MC_USER "MC_USER": the namespace is a user namespace
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the namespace has been destroyed
 
@@ -185,12 +183,6 @@ int Namespace::getModifiers() [flags=RET_VALUE_ONLY] {
     if (n->ns->isModulePublic()) {
         rc |= MC_PUBLIC;
     }
-    if (n->ns->isBuiltin()) {
-        rc |= MC_BUILTIN;
-    }
-    else {
-        rc |= MC_USER;
-    }
 
     return rc;
 }
@@ -202,9 +194,7 @@ list<string> l = n.getModifierList();
     @endcode
 
     @return list of strings of modifiers describing the namespace; possible values are:
-    - \c "builtin": the namespace is builtin
     - \c "public": the namespace has the @ref mod_public "module public" flag set
-    - \c "user": the namespace is a user namespace
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the namespace has been destroyed
 
@@ -221,12 +211,6 @@ list<string> Namespace::getModifierList() [flags=RET_VALUE_ONLY] {
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
     if (n->ns->isModulePublic()) {
         rv->push(new QoreStringNode("public"), xsink);
-    }
-    if (n->ns->isBuiltin()) {
-        rv->push(new QoreStringNode("builtin"), xsink);
-    }
-    else {
-        rv->push(new QoreStringNode("user"), xsink);
     }
 
     return rv.release();

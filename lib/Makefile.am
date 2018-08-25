@@ -88,6 +88,7 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_AbstractReflectionFunction.cpp \
 	QC_Function.cpp \
 	QC_AbstractMethod.cpp \
+	QC_PseudoMethod.cpp \
 	QC_NormalMethod.cpp \
 	QC_StaticMethod.cpp \
 	QC_ConstructorMethod.cpp \
@@ -97,7 +98,9 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
     QC_AbstractClassMember.cpp \
     QC_NormalMember.cpp \
     QC_StaticMember.cpp \
+	QC_AbstractClass.cpp \
 	QC_Class.cpp \
+	QC_PseudoClass.cpp \
 	QC_Type.cpp \
 	QC_Namespace.cpp \
 	QC_AbstractConstant.cpp \

@@ -109,6 +109,7 @@ enum method_type_e {
     MT_Constructor = 3,
     MT_Destructor = 4,
     MT_Copy = 5,
+    MT_Pseudo = 6,
 };
 
 //! a method in a QoreClass
@@ -596,6 +597,42 @@ public:
     */
     DLLEXPORT bool isInjected() const;
 
+    //! returns true if the class is a pseudo class
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT bool isPseudoClass() const;
+
+    //! returns a pseudo-classes base type
+    /** if the class is not a pseudo-class, or is the default pseudo-class taking any value, then -1 is returned
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT qore_type_t getPseudoClassType() const;
+
+    //! evaluates a pseudo-method on a pseudo-class
+    /** The current class must be a pseudo-class or the call with abort in debug builds and crash in non-debug builds
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT QoreValue evalPseudoMethod(const QoreValue n, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const;
+
+    //! evaluates a pseudo-method on a pseudo-class
+    /** The current class must be a pseudo-class or the call with abort in debug builds and crash in non-debug builds
+
+        The method and variant arguments must belong to the class
+
+        @param m the method to call; must be non-nullptr and must belong to the class
+        @param variant may be nullptr meanin that the variant is matched in the call
+        @param n the value to use for the call
+        @param args call arguments, if any (may be nullptr)
+        @param xsink Qore-language exception info is stored here
+
+        @return the return value of the call
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT QoreValue evalPseudoMethod(const QoreMethod* m, const QoreExternalMethodVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const;
+
     //! marks the class as a builtin class
     DLLEXPORT void setSystem();
 
@@ -772,11 +809,6 @@ public:
         @param typeInfo only need to set if the initial value assigned to the static variable (as given by the 'value' parameter) is not an internally-defined type and therefore the type info cannot be automatically determined, otherwise this parameter may be passed as NULL, in which case the type info will be automatically determined
     */
     DLLEXPORT void addBuiltinStaticVar(const char* name, QoreValue value, ClassAccess access = Public, const QoreTypeInfo* typeInfo = nullptr);
-
-    //! returns true if the class has at least one abstract method variant
-    /** @return true if the class has at least one abstract method variant
-    */
-    DLLEXPORT bool hasAbstract() const;
 
     //! rescan builtin parent classes in a class hierarchy; to be used with out-of-order class hierarchy construction
     /** For example, when Qore classes are generated externally such as with the jni module, parent class

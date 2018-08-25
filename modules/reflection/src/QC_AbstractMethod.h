@@ -53,6 +53,7 @@ public:
             case MT_Constructor: return "constructor";
             case MT_Destructor: return "destructor";
             case MT_Copy: return "copy";
+            case MT_Pseudo: return "pseudo";
             default: break;
         }
         assert(false);

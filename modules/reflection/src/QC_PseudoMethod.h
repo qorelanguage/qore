@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file AbstractReflectionObject.h reflection base class definition */
+/** @file QC_PseudoMethod.h PseudoMethod class definition */
 /*
     Qore Programming Language
 
@@ -28,31 +28,19 @@
     information.
 */
 
-#ifndef _QORE_INTERN_ABSTRACTREFLECTIONOBJECT_H
+#ifndef _QORE_INTERN_QC_PSEUDOMETHOD_H
 
-#define _QORE_INTERN_ABSTRACTREFLECTIONOBJECT_H
+#define _QORE_INTERN_QC_PSEUDOMETHOD_H
 
-class AbstractReflectionObject : public AbstractPrivateData {
-public:
-    QoreProgram* pgm;
+#include "AbstractReflectionObject.h"
+#include "QC_AbstractMethod.h"
 
-    DLLLOCAL AbstractReflectionObject(QoreProgram* pgm);
+DLLLOCAL int check_pseudo_call(QoreValue& val, const QoreMethod& m, ExceptionSink* xsink);
 
-    DLLLOCAL ~AbstractReflectionObject();
-};
+DLLLOCAL extern qore_classid_t CID_PSEUDOMETHOD;
+DLLLOCAL extern QoreClass* QC_PSEUDOMETHOD;
 
-//! access code modifiers
-enum qore_modifier_t {
-    MC_PUBLIC = (1 << 0),
-    MC_PRIVATE = (1 << 1),
-    MC_PRIVATEINTERNAL = (1 << 2),
-    MC_ABSTRACT = (1 << 3),
-    MC_STATIC = (1 << 4),
-    MC_SYNCHRONIZED = (1 << 5),
-    MC_DEPRECATED = (1 << 6),
-    MC_FINAL = (1 << 7),
-};
-
-DLLLOCAL int get_access(ClassAccess access);
+DLLLOCAL void preinitPseudoMethodClass();
+DLLLOCAL QoreClass* initPseudoMethodClass(QoreNamespace& ns);
 
 #endif

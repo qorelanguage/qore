@@ -664,4 +664,13 @@ DLLEXPORT QoreListNode* domain_bitfield_to_string_list(int64 i, ExceptionSink* x
 */
 DLLEXPORT const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo);
 
+//! returns the pseudo-class for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreClass* qore_pseudo_get_class(qore_type_t t);
+
+//! returns the pseudo-class for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreClass* qore_pseudo_get_class(const QoreTypeInfo* t);
 #endif // _QORE_QORELIB_H

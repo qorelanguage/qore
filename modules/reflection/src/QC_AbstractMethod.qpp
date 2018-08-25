@@ -29,7 +29,7 @@
 */
 
 #include "qore_reflection.h"
-#include "QC_Class.h"
+#include "QC_AbstractClass.h"
 #include "QC_AbstractMethod.h"
 #include "QC_AbstractVariant.h"
 #include "QC_AbstractMethodVariant.h"
@@ -80,6 +80,9 @@ void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, Exc
 void QoreReflectionMethod::setType() {
     // set type
     mtype = m->getMethodType();
+    if (mtype == MT_Normal && m->getClass()->getName()[0] == '<') {
+        mtype = MT_Pseudo;
+    }
 }
 
 //! The abstract base class for %Qore class methods
@@ -227,12 +230,12 @@ list<AbstractMethodVariant> AbstractMethod::getVariants() [flags=RET_VALUE_ONLY]
 //! Returns the class for the method
 /** @par Example:
     @code{.py}
-Class cls = m.getClass();
+AbstractClass cls = m.getClass();
     @endcode
 
     @return the class for the method
  */
 Class AbstractMethod::getClass() [flags=CONSTANT] {
-    return new QoreObject(QC_CLASS, m->pgm, new QoreReflectionClass(m->pgm, m->m->getClass()));
+    return get_class_object(m->pgm, m->m->getClass());
 }
 

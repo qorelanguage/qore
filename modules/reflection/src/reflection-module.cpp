@@ -30,6 +30,7 @@
 #include "QC_AbstractVariant.h"
 #include "QC_FunctionVariant.h"
 #include "QC_AbstractMethodVariant.h"
+#include "QC_PseudoMethodVariant.h"
 #include "QC_StaticMethodVariant.h"
 #include "QC_NormalMethodVariant.h"
 #include "QC_ConstructorMethodVariant.h"
@@ -38,12 +39,15 @@
 #include "QC_AbstractReflectionFunction.h"
 #include "QC_Function.h"
 #include "QC_AbstractMethod.h"
+#include "QC_PseudoMethod.h"
 #include "QC_NormalMethod.h"
 #include "QC_StaticMethod.h"
 #include "QC_ConstructorMethod.h"
 #include "QC_DestructorMethod.h"
 #include "QC_CopyMethod.h"
+#include "QC_AbstractClass.h"
 #include "QC_Class.h"
+#include "QC_PseudoClass.h"
 #include "QC_AbstractMember.h"
 #include "QC_AbstractClassMember.h"
 #include "QC_NormalMember.h"
@@ -88,6 +92,7 @@ QoreStringNode* reflection_module_init() {
     preinitAbstractVariantClass();
     preinitFunctionVariantClass();
     preinitAbstractMethodVariantClass();
+    preinitPseudoMethodVariantClass();
     preinitNormalMethodVariantClass();
     preinitStaticMethodVariantClass();
     preinitConstructorMethodVariantClass();
@@ -96,12 +101,15 @@ QoreStringNode* reflection_module_init() {
     preinitAbstractReflectionFunctionClass();
     preinitFunctionClass();
     preinitAbstractMethodClass();
+    preinitPseudoMethodClass();
     preinitNormalMethodClass();
     preinitStaticMethodClass();
     preinitConstructorMethodClass();
     preinitDestructorMethodClass();
     preinitCopyMethodClass();
+    preinitAbstractClassClass();
     preinitClassClass();
+    preinitPseudoClassClass();
     preinitAbstractMemberClass();
     preinitAbstractClassMemberClass();
     preinitNormalMemberClass();
@@ -122,6 +130,7 @@ QoreStringNode* reflection_module_init() {
     ReflectionNS.addSystemClass(initAbstractVariantClass(ReflectionNS));
     ReflectionNS.addSystemClass(initFunctionVariantClass(ReflectionNS));
     ReflectionNS.addSystemClass(initAbstractMethodVariantClass(ReflectionNS));
+    ReflectionNS.addSystemClass(initPseudoMethodVariantClass(ReflectionNS));
     ReflectionNS.addSystemClass(initNormalMethodVariantClass(ReflectionNS));
     ReflectionNS.addSystemClass(initStaticMethodVariantClass(ReflectionNS));
     ReflectionNS.addSystemClass(initConstructorMethodVariantClass(ReflectionNS));
@@ -130,12 +139,15 @@ QoreStringNode* reflection_module_init() {
     ReflectionNS.addSystemClass(initAbstractReflectionFunctionClass(ReflectionNS));
     ReflectionNS.addSystemClass(initFunctionClass(ReflectionNS));
     ReflectionNS.addSystemClass(initAbstractMethodClass(ReflectionNS));
+    ReflectionNS.addSystemClass(initPseudoMethodClass(ReflectionNS));
     ReflectionNS.addSystemClass(initNormalMethodClass(ReflectionNS));
     ReflectionNS.addSystemClass(initStaticMethodClass(ReflectionNS));
     ReflectionNS.addSystemClass(initConstructorMethodClass(ReflectionNS));
     ReflectionNS.addSystemClass(initDestructorMethodClass(ReflectionNS));
     ReflectionNS.addSystemClass(initCopyMethodClass(ReflectionNS));
+    ReflectionNS.addSystemClass(initAbstractClassClass(ReflectionNS));
     ReflectionNS.addSystemClass(initClassClass(ReflectionNS));
+    ReflectionNS.addSystemClass(initPseudoClassClass(ReflectionNS));
     ReflectionNS.addSystemClass(initAbstractMemberClass(ReflectionNS));
     ReflectionNS.addSystemClass(initAbstractClassMemberClass(ReflectionNS));
     ReflectionNS.addSystemClass(initNormalMemberClass(ReflectionNS));

@@ -37,8 +37,9 @@
 #include "QC_ConstructorMethodVariant.h"
 #include "QC_DestructorMethodVariant.h"
 #include "QC_CopyMethodVariant.h"
+#include "QC_PseudoMethodVariant.h"
 #include "QC_FunctionVariant.h"
-#include "QC_Class.h"
+#include "QC_AbstractClass.h"
 #include "QC_Type.h"
 #include "QC_Function.h"
 
@@ -100,6 +101,8 @@ QoreObject* get_variant_object(QoreProgram* pgm, const QoreExternalFunction* f, 
             return new QoreObject(QC_DESTRUCTORMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
         case MT_Copy:
             return new QoreObject(QC_COPYMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
+        case MT_Pseudo:
+            return new QoreObject(QC_PSEUDOMETHODVARIANT, pgm, new QoreReflectionVariant(pgm, f, v));
         default:
             break;
     }
@@ -235,6 +238,48 @@ bool AbstractReflectionFunction::isInjected() [flags=RET_VALUE_ONLY] {
 
     // the function ptr must be valid
     return f->f->isInjected();
+}
+
+//! returns @ref True if the object is a method but not a pseudo-method
+/** @par Example:
+    @code{.py}
+bool b = f.isMethod();
+    @endcode
+
+    @return @ref True if the object is a method but not a pseudo-method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+bool AbstractReflectionFunction::isMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return (bool)(f->f->getClass() && !f->f->getClass()->isPseudoClass());
+}
+
+//! returns @ref True if the object is a pseudo-method
+/** @par Example:
+    @code{.py}
+bool b = f.isPseudoMethod();
+    @endcode
+
+    @return @ref True if the object is a pseudo-method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+bool AbstractReflectionFunction::isPseudoMethod() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return (bool)(f->f->getClass() && f->f->getClass()->isPseudoClass());
 }
 
 //! returns the number of variants implemented by the function or method

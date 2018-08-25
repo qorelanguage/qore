@@ -32,27 +32,14 @@
 
 #define _QORE_INTERN_QC_CLASS_H
 
-#include "AbstractReflectionObject.h"
-#include "QC_AbstractMethod.h"
-
-class QoreReflectionClass : public AbstractReflectionObject {
-public:
-    const QoreClass* cls;
-
-    DLLLOCAL QoreReflectionClass(const char* name, ExceptionSink* xsink);
-
-    DLLLOCAL QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls);
-};
+#include "QC_AbstractClass.h"
 
 DLLLOCAL int check_constructor(const QoreClass* cls, ExceptionSink* xsink);
-DLLLOCAL QoreObject* get_method_object(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink);
 
 DLLEXPORT extern qore_classid_t CID_CLASS;
 DLLLOCAL extern QoreClass* QC_CLASS;
 
 DLLLOCAL void preinitClassClass();
 DLLLOCAL QoreClass* initClassClass(QoreNamespace& ns);
-
-DLLLOCAL TypedHashDecl* init_hashdecl_ClassAccessInfo(QoreNamespace& ns);
 
 #endif

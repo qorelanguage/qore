@@ -89,11 +89,9 @@ int i = con.getModifiers();
     @endcode
 
     @return a bitfield of @ref modifier_constants "modifiers" describing the constant; possible values are:
-    - @ref Qore::Reflection::MC_BUILTIN "MC_BUILTIN": the constant is builtin
     - @ref Qore::Reflection::MC_PRIVATE "MC_PRIVATE": gives the accessibility of the constant (class constants only)
     - @ref Qore::Reflection::MC_PRIVATEINTERNAL "MC_PRIVATEINTERNAL": gives the accessibility of the constant (class constants only)
     - @ref Qore::Reflection::MC_PUBLIC "MC_PUBLIC": for non-class constants, this is returned if the @ref mod_public "public" flag is on the constant, meaning that it will be exported to child @ref Qore::Program "Program" objects, otherwise thhis gives the access permission for class constants
-    - @ref Qore::Reflection::MC_USER "MC_USER": the constant is a user constant
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
 
@@ -110,23 +108,9 @@ int AbstractConstant::getModifiers() [flags=RET_VALUE_ONLY] {
     const QoreClass* cls = c->getClass();
     int64 rc = 0;
     if (cls) {
-        if (cls->isSystem()) {
-            rc |= MC_BUILTIN;
-        }
-        else {
-            rc |= MC_USER;
-        }
-
         rc |= get_access(c->ce->getAccess());
     }
     else {
-        if (c->ce->isBuiltin()) {
-            rc |= MC_BUILTIN;
-        }
-        else {
-            rc |= MC_USER;
-        }
-
         if (c->ce->isModulePublic()) {
             rc |= MC_PUBLIC;
         }
@@ -142,11 +126,9 @@ list<string> l = con.getModifierList();
     @endcode
 
     @return list of strings of modifiers describing the member; possible values are:
-    - \c "builtin": the constant is builtin
     - \c "private": gives the accessibility of the constant (class constants only)
     - \c "private:internal": gives the accessibility of the constant (class constants only)
     - \c "public": for non-class constants, this is returned if the @ref mod_public "public" flag is on the constant, meaning that it will be exported to child @ref Qore::Program "Program" objects, otherwise thhis gives the access permission for class constants
-    - \c "user": the constant is a user constant
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
 
@@ -163,29 +145,36 @@ list<string> AbstractConstant::getModifierList() [flags=RET_VALUE_ONLY] {
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
     const QoreClass* cls = c->getClass();
     if (cls) {
-        if (cls->isSystem()) {
-            rv->push(new QoreStringNode("builtin"), xsink);
-        }
-        else {
-            rv->push(new QoreStringNode("user"), xsink);
-        }
-
         rv->push(new QoreStringNode(get_access_string(c->ce->getAccess())), xsink);
     }
     else {
-        if (c->ce->isBuiltin()) {
-            rv->push(new QoreStringNode("builtin"), xsink);
-        }
-        else {
-            rv->push(new QoreStringNode("user"), xsink);
-        }
-
         if (c->ce->isModulePublic()) {
             rv->push(new QoreStringNode("public"), xsink);
         }
     }
 
     return rv.release();
+}
+
+//! returns @ref True if the constant is a class constant
+/** @par Example:
+    @code{.py}
+bool b = con.isClassConstant();
+    @endcode
+
+    @return @ref True if the constant is a class constant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the constant has been destroyed
+*/
+bool AbstractConstant::isClassConstant() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the constant ptr must be valid
+    return (bool)c->getClass();
 }
 
 //! returns @ref True if the constant is builtin

@@ -101,15 +101,50 @@ void pseudo_classes_del() {
 
 // return the pseudo class for the given type
 static QoreClass* pseudo_get_class(qore_type_t t) {
-    assert(t >= 0);
-    if (t < NODE_ARRAY_LEN)
-        return po_list[t];
-    if (t == NT_FUNCREF)
-        return po_list[NODE_ARRAY_LEN];
-    if (t == NT_RUNTIME_CLOSURE)
-        return po_list[NODE_ARRAY_LEN + 1];
-    if (t == NT_WEAKREF)
+    if (t >= 0) {
+        if (t < NODE_ARRAY_LEN) {
+            return po_list[t];
+        }
+        if (t == NT_FUNCREF) {
+            return po_list[NODE_ARRAY_LEN];
+        }
+        if (t == NT_RUNTIME_CLOSURE) {
+            return po_list[NODE_ARRAY_LEN + 1];
+        }
+        if (t == NT_WEAKREF) {
+            return po_list[NT_OBJECT];
+        }
+    }
+
+    return QC_PSEUDOVALUE;
+}
+
+const QoreClass* qore_pseudo_get_class(qore_type_t t) {
+    return pseudo_get_class(t);
+}
+
+const QoreClass* qore_pseudo_get_class(const QoreTypeInfo* t) {
+    ValueHolder v(QoreTypeInfo::getDefaultQoreValue(t), nullptr);
+    qore_type_t nt = v->getType();
+    if (nt != NT_NOTHING) {
+        return pseudo_get_class(nt);
+    }
+
+    if (!QoreTypeInfo::hasType(t)) {
+        return QC_PSEUDOVALUE;
+    }
+
+    if (QoreTypeInfo::isType(t, NT_OBJECT)) {
         return po_list[NT_OBJECT];
+    }
+
+    if (QoreTypeInfo::isType(t, NT_FUNCREF)) {
+        return po_list[NODE_ARRAY_LEN];
+    }
+
+    if (QoreTypeInfo::isType(t, NT_RUNTIME_CLOSURE)) {
+        return po_list[NODE_ARRAY_LEN + 1];
+    }
 
     return QC_PSEUDOVALUE;
 }

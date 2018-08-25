@@ -395,6 +395,18 @@ auto Type::getDefaultValue() [flags=CONSTANT] {
     return qore_type_get_default_value(t->typeInfo);
 }
 
+//! Returns the "or nothing" type for the current type; if the type is already an "or nothing" type (i.e. it already accepts @ref nothing), then the same type is returned
+/** @par Example:
+    @code{.py}
+auto v = t.getOrNothingType();
+    @endcode
+
+    @return the "or nothing" type for the current type; if the type is already an "or nothing" type (i.e. it already accepts @ref nothing), then the same type is returned
+*/
+Type Type::getOrNothingType() [flags=CONSTANT] {
+    return new QoreObject(QC_TYPE, getProgram(), new QoreType(get_or_nothing_type_check(t->typeInfo)));
+}
+
 //! Returns the type object for the value
 /** @par Example:
     @code{.py}
