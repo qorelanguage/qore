@@ -331,7 +331,6 @@ libqore_la_SOURCES = \
 	FunctionalOperatorInterface.cpp \
 	FunctionalOperator.cpp
 
-
 if COND_SIGNAL_HANDLING
 libqore_la_SOURCES += QoreSignal.cpp
 endif

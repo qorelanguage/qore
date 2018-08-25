@@ -96,7 +96,7 @@ public:
     /** use if the namespace could contain objects
 
         @since %Qore 0.8.13
-        */
+    */
     DLLEXPORT void clear(ExceptionSink* xsink);
 
     //! adds a constant definition to the namespace

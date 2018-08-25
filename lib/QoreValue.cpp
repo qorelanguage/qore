@@ -532,9 +532,14 @@ ValueOptionalRefHolder::~ValueOptionalRefHolder() {
 }
 
 void ValueOptionalRefHolder::ensureReferencedValue() {
-    if (!needs_deref && v.type == QV_Node && v.v.n) {
-        v.v.n->ref();
+    if (!needs_deref) {
+        // update the flag unconditionally in case the object will be updated as a QoreValue and a dereferencable
+        // value will be stored here
         needs_deref = true;
+        // reference any node value
+        if (v.type == QV_Node && v.v.n) {
+            v.v.n->ref();
+        }
     }
 }
 
@@ -552,17 +557,22 @@ QoreValue ValueOptionalRefHolder::takeReferencedValue() {
             needs_deref = false;
             return v.takeNodeIntern();
         }
-        if (v.v.n)
+        if (v.v.n) {
             v.v.n->ref();
+        }
         return v.takeNodeIntern();
+    }
+    if (needs_deref) {
+        needs_deref = false;
     }
     return v;
 }
 
 void ValueOptionalRefHolder::sanitize() {
     if (v.type != QV_Node || !v.v.n) {
-        if (needs_deref)
+        if (needs_deref) {
             needs_deref = false;
+        }
         return;
     }
     switch (v.v.n->getType()) {

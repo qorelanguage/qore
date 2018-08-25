@@ -165,6 +165,5 @@ void reflection_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
 }
 
 void reflection_module_delete() {
-    // nothing to do here in this case
 }
 
