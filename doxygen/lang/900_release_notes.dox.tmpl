@@ -7,9 +7,9 @@
     @par Release Summary
     This is a major release of %Qore with large portions of code subject to extensive optimizations leading
     to large memory and performance improvements along with more control of @ref Qore::Program "Program"
-    logic containers, multithreading, and a reflection API.  This release breaks binary compatibility with
-    older versions of %Qore as well, requiring binary modules to support the new API and ABI.
-    WIP
+    logic containers, multithreading, and a <a href="../../modules/reflection/html/index.html">reflection API</a>.
+    This release breaks binary compatibility with older versions of %Qore as well, requiring binary modules
+    to support the new API and ABI.
 
     @subsection qore_09_compatibility Changes That Can Affect Backwards-Compatibility
     - Qore classes and functions can no longer be modified after creation; any attempt to add a new user
@@ -24,14 +24,13 @@
       code and most builtin code from the @ref Qore::Program "Program" object; delete the object instead of using
       this method
 
-    WIP
-
     @subsection qore_09_new_features New Features in Qore
     - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
     - the elimination of heap-allocated, atomic-reference-counted integer and floating-point values results
       in reduced memory usage as well as faster program execution
     - the default thread stack size was changed from 8MB to 512KB resulting in a large reduction in the total
       memory used in programs with many threads (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
+    - a new reflection API module: <a href="../../modules/reflection/html/index.html">reflection</a>
     - new classes:
       - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
       - @ref Qore::StreamBase "StreamBase": a base class for stream classes allowing for a controlled handoff of the stream to another thread
