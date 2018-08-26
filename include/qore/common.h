@@ -149,6 +149,8 @@ class QoreBuiltinMethod;
 class QoreClass;
 class TypedHashDecl;
 class QoreExternalFunction;
+class QoreExternalGlobalVar;
+class QoreExternalConstant;
 class QoreNamespace;
 
 struct QoreValue;
@@ -157,6 +159,8 @@ typedef std::vector<const QoreClass*> class_vec_t;
 typedef std::vector<std::pair<const TypedHashDecl*, const QoreNamespace*>> hashdecl_vec_t;
 typedef std::vector<const QoreExternalFunction*> func_vec_t;
 typedef std::vector<const QoreNamespace*> ns_vec_t;
+typedef std::vector<std::pair<const QoreExternalGlobalVar*, const QoreNamespace*>> gvar_vec_t;
+typedef std::vector<std::pair<const QoreExternalConstant*, const QoreNamespace*>> const_vec_t;
 
 //! functor template for calling free() on pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void> {

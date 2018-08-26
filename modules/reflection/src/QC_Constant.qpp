@@ -32,16 +32,46 @@
 #include "QC_Constant.h"
 #include "QC_Namespace.h"
 
-//! This class provides information about %Qore constants
-/** @since %Qore 0.9.0
+QoreReflectionNamespaceConstant::QoreReflectionNamespaceConstant(const char* name, ExceptionSink* xsink) {
+    ce = pgm->findNamespaceConstant(name, ns);
+    if (!ce) {
+        xsink->raiseException("UNKNOWN-CONSTANT", "cannot resolve namespace constant '%s'", name);
+    }
+}
+
+//! This class provides information about %Qore constants defined in %Qore @ref Qore::Reflection::Namespace "namespaces"
+/** @see @ref Qore::Reflection::ClassConstant "ClassConstant"
+
+    @since %Qore 0.9.0
  */
 qclass Constant [ns=Qore::Reflection; arg=QoreReflectionNamespaceConstant* c; vparent=AbstractConstant; dom=REFLECTION];
 
-//! Throws an exception; this class cannot be created directly or used in a user class hierarchy
-/** @throw CONSTANT-CONSTRUCTOR-ERROR the Constant class cannot be constructed directly or inherited directly by a user-defined class
+//! Creates the object from the constant name or namespace-justified path as a string
+/** @par Example:
+    @code{.py}
+Constant con("::ARGV");
+    @endcode
+
+    @param path the constant name or namespace-justified path as a string
+
+    @throw UNKNOWN-CONSTANT cannot find a constant with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @note searches namespace constants only; does not search class constants
+
+    @see forName()
  */
-Constant::constructor() {
-    xsink->raiseException("CONSTANT-CONSTRUCTOR-ERROR", "this class cannot be constructed directly or inherited directly by a user-defined class");
+Constant::constructor(string path) {
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    ReferenceHolder<QoreReflectionNamespaceConstant> con(new QoreReflectionNamespaceConstant(npath->c_str(), xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+    self->setPrivate(CID_CONSTANT, con.release());
 }
 
 //! Returns the namespace for the constant
@@ -56,3 +86,60 @@ Namespace Constant::getNamespace() [flags=CONSTANT] {
     return new QoreObject(QC_NAMESPACE, c->pgm, new QoreReflectionNamespace(c->pgm, c->ns));
 }
 
+//! Returns a %Constant object from the constant name or namespace-justified path as a string
+/** @par Example:
+    @code{.py}
+Constant con = Constant::forName("Option::HAVE_FORK");
+    @endcode
+
+    @param path the constant name or namespace-justified path as a string
+
+    @return a constant object corresponding to the name or namespace-justified path provided as an argument
+
+    @throw UNKNOWN-CONSTANT cannot find a constant with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @note searches namespace constants only; does not search class constants
+ */
+static Constant Constant::forName(string path) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionNamespaceConstant> cls(new QoreReflectionNamespaceConstant(npath->c_str(), xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return new QoreObject(QC_CONSTANT, getProgram(), cls.release());
+}
+
+//! Returns a list of constants matching the regular expression pattern argument or an empty list if no namespace constants match
+/** @par Example:
+    @code{.py}
+# return all accessible constants that start with the letter "T"
+list<Constant> l = Constant::findAllRegex("^T");
+    @endcode
+
+    @param pattern the regular expression pattern to match
+    @param re_opts see @ref regex_constants for possible values
+
+    @return a list of constants matching the regular expression pattern argument or an empty list if no constants match
+
+    @note searches namespace constants only; does not search class constants
+*/
+static list<Constant> Constant::findAllRegex(string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
+    QoreProgram* pgm = getProgram();
+    const_vec_t const_vec = getProgram()->findAllNamespaceConstantsRegex(*pattern, re_opts, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CONSTANT->getTypeInfo()), xsink);
+    for (auto& i : const_vec) {
+        l->push(new QoreObject(QC_CONSTANT, getProgram(), new QoreReflectionNamespaceConstant(pgm, i.first, i.second)), xsink);
+    }
+
+    return l.release();
+}

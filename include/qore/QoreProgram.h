@@ -105,6 +105,7 @@ class AbstractQoreFunctionVariant;
 class QoreRWLock;
 class QoreExternalFunction;
 class QoreExternalGlobalVar;
+class QoreExternalConstant;
 
 typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
@@ -718,19 +719,40 @@ public:
     */
     DLLEXPORT ns_vec_t findAllNamespacesRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const;
 
+    //! returns a list of all global variables that match the pattern
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT gvar_vec_t findAllGlobalVarsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const;
+
+    //! returns a list of all namespace constants that match the pattern
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const_vec_t findAllNamespaceConstantsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const;
+
     //! search for the given function in the program; can be a simple function name or a namespace-prefixed path (ex: "NamespaceName::function_name")
     /** @since %Qore 0.9
     */
     DLLEXPORT const QoreExternalFunction* findFunction(const char* path) const;
 
     //! search for the given typed hash (hashdecl) in the program; can be a simple function name or a namespace-prefixed path (ex: "NamespaceName::TypedHashName")
+    /** @since %Qore 0.9
+    */
     DLLEXPORT const TypedHashDecl* findHashDecl(const char* path, const QoreNamespace*& pns) const;
 
     //! search for the given namespace in the program; can be a simple namespace name or a namespace-prefixed path (ex: "NamespaceName::Namespace")
+    /** @since %Qore 0.9
+    */
     DLLEXPORT const QoreNamespace* findNamespace(const QoreString& path) const;
 
     //! search for the given global variable in the program; can be a simple function name or a namespace-prefixed path (ex: "NamespaceName::global_var")
+    /** @since %Qore 0.9
+    */
     DLLEXPORT const QoreExternalGlobalVar* findGlobalVar(const char* path, const QoreNamespace*& pns) const;
+
+    //! search for the given namespace constant in the program; can be a simple function name or a namespace-prefixed path (ex: "NamespaceName::MyConstant")
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const QoreExternalConstant* findNamespaceConstant(const char* path, const QoreNamespace*& pns) const;
 
     //! incremements the weak reference count for the program object
     /** @since %Qore 0.9

@@ -42,7 +42,7 @@ QoreReflectionNamespace::QoreReflectionNamespace(const QoreString& name, Excepti
     ns = getProgram()->findNamespace(name);
 
     if (!ns) {
-        xsink->raiseException("NAMESPACE-ERROR", "cannot resolve namespace '%s'", name.c_str());
+        xsink->raiseException("UNKNOWN-NAMESPACE", "cannot resolve namespace '%s'", name.c_str());
         return;
     }
 }
@@ -63,7 +63,7 @@ Namespace ns("Qore::Thread");
 
     @param path the namespace name or namespace-justified path as a string; the root namespace is returned with an empty string or \c "::" argument
 
-    @throw NAMESPACE-ERROR cannot find a namespace with the given name or path
+    @throw UNKNOWN-NAMESPACE cannot find a namespace with the given name or path
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see forName()
@@ -810,7 +810,7 @@ Namespace n = Namespace::forName("Thread::Mutex");
 
     @return a namespace object corresponding to the name or namespace-justified path provided as an argument
 
-    @throw NAMESPACE-ERROR cannot find a namespace with the given name or path
+    @throw UNKNOWN-NAMESPACE cannot find a namespace with the given name or path
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
  */
 static Namespace Namespace::forName(string path) [flags=RET_VALUE_ONLY] {
@@ -830,8 +830,8 @@ static Namespace Namespace::forName(string path) [flags=RET_VALUE_ONLY] {
 //! Returns a list of namespaces matching the regular expression pattern argument or an empty list if no namespaces match
 /** @par Example:
     @code{.py}
-# return all accessible typed hash that start with the letter "g"
-list<TypedHash> l = TypedHash::findAllRegex("^gg");
+# return all accessible namespaces that start with the letter "g"
+list<Namespace> l = Namespace::findAllRegex("^g");
     @endcode
 
     @param pattern the regular expression pattern to match

@@ -38,6 +38,8 @@ class QoreReflectionNamespaceConstant : public QoreReflectionConstant {
 public:
     const QoreNamespace* ns;
 
+    DLLLOCAL QoreReflectionNamespaceConstant(const char* name, ExceptionSink* xsink);
+
     DLLLOCAL QoreReflectionNamespaceConstant(QoreProgram* pgm, const QoreExternalConstant* ce, const QoreNamespace* ns) :
         QoreReflectionConstant(pgm, ce), ns(ns) {
     }

@@ -310,3 +310,30 @@ static GlobalVar GlobalVar::forName(string path) [flags=RET_VALUE_ONLY] {
     // the global variable ptr must be valid
     return var.release()->getVarObject();
 }
+
+//! Returns a list of global variables matching the regular expression pattern argument or an empty list if no global variables match
+/** @par Example:
+    @code{.py}
+# return all accessible global variables that start with the letter "E"
+list<GlobalVar> l = GlobalVar::findAllRegex("^E");
+    @endcode
+
+    @param pattern the regular expression pattern to match
+    @param re_opts see @ref regex_constants for possible values
+
+    @return a list of global variables matching the regular expression pattern argument or an empty list if no global variables match
+*/
+static list<GlobalVar> GlobalVar::findAllRegex(string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
+    QoreProgram* pgm = getProgram();
+    gvar_vec_t gvar_vec = getProgram()->findAllGlobalVarsRegex(*pattern, re_opts, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_GLOBALVAR->getTypeInfo()), xsink);
+    for (auto& i : gvar_vec) {
+        l->push(new QoreObject(QC_GLOBALVAR, getProgram(), new QoreReflectionGlobalVar(pgm, i.first, i.second)), xsink);
+    }
+
+    return l.release();
+}

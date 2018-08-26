@@ -48,7 +48,7 @@ ConstructorMethod m(cls);
 
     @param cls the class for the method
 
-    @throw METHOD-ERROR cannot find a constructor method for the given class
+    @throw UNKOWN-METHOD cannot find a constructor method for the given class
  */
 ConstructorMethod::constructor(Class[QoreReflectionClass] cls) {
     ReferenceHolder<QoreReflectionClass> holder(cls, xsink);
@@ -78,8 +78,8 @@ ConstructorMethod m(class_name);
 
     @param class_name the class name or namespace path for the method
 
-    @throw CLASS-ERROR cannot find a class with the given name or path
-    @throw METHOD-ERROR cannot find a constructor method for the given class
+    @throw UNKNOWN-CLASS cannot find a class with the given name or path
+    @throw UNKOWN-METHOD cannot find a constructor method for the given class
  */
 ConstructorMethod::constructor(string class_name) {
     TempEncodingHelper npath(class_name, QCS_DEFAULT, xsink);

@@ -465,6 +465,15 @@ class ReflectionTest inherits QUnit::Test {
         }
 
         {
+            Constant con = Constant::forName("Qore::CT_User");
+            assertEq("CT_User", con.getName());
+            assertEq(0, con.getValue());
+            assertEq("Qore", con.getNamespace().getName());
+            assertTrue(Namespace::forName("Qore").isEqual(con.getNamespace()));
+            assertFalse(con.isEqual(Constant::forName("Compiler")));
+        }
+
+        {
             Class c1 = Class::forName("ListIterator");
             list<Class> l = c1.getClassHierarchy();
             #map printf("%y %s\n", $1.getModifierList(), $1.getName()), l;
@@ -479,6 +488,7 @@ class ReflectionTest inherits QUnit::Test {
             list<Class> l = Class::findAllRegex("^Type$");
             assertEq(1, l.size());
             assertTrue(l[0].isEqual(Class::forName("Type")));
+            assertFalse(l[0].isEqual(Class::forName("TypedHash")));
             #map printf("%y %s\n", $1.getModifierList(), $1.getName()), l;
         }
 
@@ -486,6 +496,7 @@ class ReflectionTest inherits QUnit::Test {
             list<Function> l = Function::findAllRegex("^get_ex_pos$");
             assertEq(1, l.size());
             assertTrue(l[0].isEqual(Function::forName("get_ex_pos")));
+            assertFalse(l[0].isEqual(Function::forName("get_seconds")));
             #map printf("%s\n", $1.getName()), l;
         }
 
@@ -493,6 +504,7 @@ class ReflectionTest inherits QUnit::Test {
             list<TypedHash> l = TypedHash::findAllRegex("^SourceLocationInfo$");
             assertEq(1, l.size());
             assertTrue(l[0].isEqual(TypedHash::forName("SourceLocationInfo")));
+            assertFalse(l[0].isEqual(TypedHash::forName("ClassAccessInfo")));
             #map printf("%s\n", $1.getName()), l;
         }
 
@@ -500,6 +512,23 @@ class ReflectionTest inherits QUnit::Test {
             list<Namespace> l = Namespace::findAllRegex("^Option$");
             assertEq(1, l.size());
             assertTrue(l[0].isEqual(Namespace::forName("Qore::Option")));
+            assertFalse(l[0].isEqual(Namespace::forName("Qore::Thread")));
+            #map printf("%s\n", $1.getName()), l;
+        }
+
+        {
+            list<GlobalVar> l = GlobalVar::findAllRegex("^g");
+            assertEq(1, l.size());
+            assertTrue(l[0].isEqual(GlobalVar::forName("global_i")));
+            assertFalse(l[0].isEqual(GlobalVar::forName("ARGV")));
+            #map printf("%s\n", $1.getName()), l;
+        }
+
+        {
+            list<Constant> l = Constant::findAllRegex("^Compiler$");
+            assertEq(1, l.size());
+            assertTrue(l[0].isEqual(Constant::forName("Compiler")));
+            assertFalse(l[0].isEqual(Constant::forName("CodeType")));
             #map printf("%s\n", $1.getName()), l;
         }
     }
@@ -586,29 +615,47 @@ class ReflectionTest inherits QUnit::Test {
     }
 
     pseudoClassTests() {
+        assertThrows("UNKNOWN-CLASS", \Class::forName(), "<int>");
+        assertThrows("UNKNOWN-CLASS", \Class::forName(), "int");
+        PseudoClass c = PseudoClass::forValue(1);
+        assertEq("<int>", c.getName());
+        assertTrue(IntPseudoClass.isEqual(c));
+        assertFalse(IntPseudoClass.isEqual(Class::forName("Mutex")));
+        PseudoMethod m = c.getMethod("format");
+        assertEq("1.00", m.call(1));
+        assertThrows("METHOD-ERROR", \m.call(), "str");
+
+        list<AbstractMethod> l = ValuePseudoClass.getMethods();
+        #map printf("%s\n", $1.getName()), l;
+        assertTrue(l[0] instanceof PseudoMethod);
+
+        c = PseudoClass::forType(StringType);
+        assertTrue(c.isEqual(StringPseudoClass));
+        assertFalse(c.isEqual(IntPseudoClass));
+
+        assertTrue(ValuePseudoClass.isEqual(PseudoClass::forType(StringType.getOrNothingType())));
+
+        # "or nothing" types must return the <value> pseudo-class
+        assertTrue(ValuePseudoClass.isEqual(PseudoClass::forType(Type::getOrNothingType(new hash<ClassAccessInfo>()))));
+
+        list<AbstractMethodVariant> vl = m.getVariants();
+        assertEq(2, vl.size());
+        #map printf("%s\n", $1.toString()), vl;
+
         {
-            assertThrows("CLASS-ERROR", \Class::forName(), "<int>");
-            assertThrows("CLASS-ERROR", \Class::forName(), "int");
-            PseudoClass c = PseudoClass::forValue(1);
-            assertEq("<int>", c.getName());
-            assertTrue(IntPseudoClass.isEqual(c));
-            assertFalse(IntPseudoClass.isEqual(Class::forName("Mutex")));
-            PseudoMethod m = c.getMethod("format");
-            assertEq("1.00", m.call(1));
-            assertThrows("METHOD-ERROR", \m.call(), "str");
+            # get the following variant:
+            # public string <int>::format(int prec = 2, string decimal_sep = ".", string thousands_sep = "")
+            AbstractVariant v = m.getVariant(IntType, StringType, StringType);
+            assertTrue(v instanceof PseudoMethodVariant);
+            AbstractReflectionFunction f = v.getFunction();
+            assertTrue(f instanceof PseudoMethod);
+            assertTrue(v.isEqual(vl[1]));
 
-            list<AbstractMethod> l = ValuePseudoClass.getMethods();
-            #map printf("%s\n", $1.getName()), l;
-            assertTrue(l[0] instanceof PseudoMethod);
+            assertEq((2, ".", ""), v.getDefaultArgs());
 
-            c = PseudoClass::forType(StringType);
-            assertTrue(c.isEqual(StringPseudoClass));
-            assertFalse(c.isEqual(IntPseudoClass));
-
-            assertTrue(ValuePseudoClass.isEqual(PseudoClass::forType(StringType.getOrNothingType())));
-
-            # "or nothing" types must return the <value> pseudo-class
-            assertTrue(ValuePseudoClass.isEqual(PseudoClass::forType(Type::getOrNothingType(new hash<ClassAccessInfo>()))));
+            PseudoMethodVariant pv = v;
+            assertEq("1.00", pv.call(1));
+            assertThrows("METHOD-ERROR", \pv.call("str", 1n));
         }
     }
 }

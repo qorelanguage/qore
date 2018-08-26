@@ -51,7 +51,7 @@ QoreReflectionMethod::QoreReflectionMethod(const char* cls_path, const char* nam
     const QoreClass* cls = pgm->findClass(cls_path, xsink);
     if (!cls) {
         if (!*xsink) {
-            xsink->raiseException("CLASS-ERROR", "cannot resolve class '%s'", cls_path);
+            xsink->raiseException("UNKNOWN-CLASS", "cannot resolve class '%s'", cls_path);
         }
         return;
     }
@@ -69,7 +69,7 @@ void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, Exc
         m = cls->findStaticMethod(name);
     }
     if (!m) {
-        xsink->raiseException("METHOD-ERROR", "cannot resolve method '%s' in class '%s'", name, cls->getName());
+        xsink->raiseException("UNKNOWN-METHOD", "cannot resolve method '%s' in class '%s'", name, cls->getName());
     }
     else {
         f = m->getFunction();

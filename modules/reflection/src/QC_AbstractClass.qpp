@@ -57,7 +57,7 @@ QoreReflectionClass::QoreReflectionClass(const char* name, ExceptionSink* xsink)
     cls = pgm->findClass(name, xsink);
     if (!cls) {
         if (!*xsink) {
-            xsink->raiseException("CLASS-ERROR", "cannot resolve class '%s'", name);
+            xsink->raiseException("UNKNOWN-CLASS", "cannot resolve class '%s'", name);
         }
         return;
     }

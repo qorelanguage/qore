@@ -145,6 +145,10 @@ public:
 
     DLLLOCAL const char* getName() const;
 
+    DLLLOCAL const std::string& getNameStr() const {
+        return name;
+    }
+
     DLLLOCAL bool isBuiltin() const {
         return builtin;
     }

@@ -320,6 +320,7 @@ public:
     DLLLOCAL void parseCommitRuntimeInit(ExceptionSink* xsink);
 
     DLLLOCAL Var* runtimeMatchGlobalVar(const NamedScope& nscope, const qore_ns_private*& rns) const;
+    DLLLOCAL const ConstantEntry* runtimeMatchNamespaceConstant(const NamedScope& nscope, const qore_ns_private*& rns) const;
     DLLLOCAL const QoreClass* runtimeMatchScopedClassWithMethod(const NamedScope& nscope) const;
     DLLLOCAL const QoreClass* runtimeMatchClass(const NamedScope& nscope, const qore_ns_private*& rns) const;
     DLLLOCAL const qore_ns_private* runtimeMatchNamespace(const NamedScope& nscope, int offset = 0) const;
@@ -1356,6 +1357,23 @@ protected:
         return nullptr;
     }
 
+    DLLLOCAL const ConstantEntry* runtimeFindNamespaceConstant(const NamedScope& nscope, const qore_ns_private*& cns) const;
+
+    DLLLOCAL const ConstantEntry* runtimeFindNamespaceConstant(const char* cname, const qore_ns_private*& cns) const {
+        if (strstr(cname, "::")) {
+            NamedScope nscope(cname);
+            return runtimeFindNamespaceConstant(nscope, cns);
+        }
+
+        cnmap_t::const_iterator i = cnmap.find(cname);
+        if (i != cnmap.end()) {
+            assert(i->second.ns);
+            cns = i->second.ns;
+            return i->second.obj;
+        }
+        return nullptr;
+    }
+
     DLLLOCAL void runtimeImportGlobalVariable(qore_ns_private& tns, Var* v, bool readonly, ExceptionSink* xsink) {
         Var* var = tns.var_list.import(v, xsink, readonly);
         if (!var)
@@ -1656,6 +1674,10 @@ public:
 
     DLLLOCAL ns_vec_t runtimeFindAllNamespacesRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const;
 
+    DLLLOCAL gvar_vec_t runtimeFindAllGlobalVarsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const;
+
+    DLLLOCAL const_vec_t runtimeFindAllNamespaceConstantsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const;
+
     DLLLOCAL static QoreHashNode* getGlobalVars(RootQoreNamespace& rns) {
         return rns.rpriv->getGlobalVars();
     }
@@ -1896,6 +1918,10 @@ public:
 
     DLLLOCAL static const QoreClass* runtimeFindClass(RootQoreNamespace& rns, const char* name) {
         return rns.rpriv->runtimeFindClass(name);
+    }
+
+    DLLLOCAL static const ConstantEntry* runtimeFindNamespaceConstant(const RootQoreNamespace& rns, const char* cname, const qore_ns_private*& cns) {
+        return rns.rpriv->runtimeFindNamespaceConstant(cname, cns);
     }
 
     DLLLOCAL static QoreNamespace* runtimeFindNamespaceForAddFunction(RootQoreNamespace& rns, const NamedScope& name, ExceptionSink* xsink) {

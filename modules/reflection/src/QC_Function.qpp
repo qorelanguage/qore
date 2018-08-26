@@ -43,7 +43,7 @@ static QoreReflectionFunction* get_function(const QoreString& path, ExceptionSin
     QoreProgram* pgm = getProgram();
     const QoreExternalFunction* f = pgm->findFunction(npath->c_str());
     if (!f) {
-        xsink->raiseException("FUNCTION-ERROR", "cannot find function '%s'", npath->c_str());
+        xsink->raiseException("UNKNOWN-FUNCTION", "cannot find function '%s'", npath->c_str());
         return nullptr;
     }
 
@@ -74,7 +74,7 @@ Function f("Qore::printf");
 
     @param path the function name or namespace-justified path as a string
 
-    @throw FUNCTION-ERROR cannot find a function with the given name or path
+    @throw UNKNOWN-FUNCTION cannot find a function with the given name or path
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see forName()
@@ -206,7 +206,7 @@ Function f = Function::forName("Qore::printf");
 
     @return a function object corresponding to the name or namespace-justified path provided as an argument
 
-    @throw FUNCTION-ERROR cannot find a function with the given name or path
+    @throw UNKNOWN-FUNCTION cannot find a function with the given name or path
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
  */
 static Function Function::forName(string path) [flags=RET_VALUE_ONLY] {

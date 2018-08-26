@@ -48,7 +48,7 @@ DestructorMethod m(cls);
 
     @param cls the class for the method
 
-    @throw METHOD-ERROR cannot find a destructor method for the class
+    @throw UNKOWN-METHOD cannot find a destructor method for the class
  */
 DestructorMethod::constructor(Class[QoreReflectionClass] cls) {
     ReferenceHolder<QoreReflectionClass> holder(cls, xsink);
@@ -78,8 +78,8 @@ DestructorMethod m("Thread::Mutex");
 
     @param class_name the class name or namespace path for the class
 
-    @throw CLASS-ERROR cannot find a class with the given name or path
-    @throw METHOD-ERROR cannot find a destructor method for the class
+    @throw UNKNOWN-CLASS cannot find a class with the given name or path
+    @throw UNKOWN-METHOD cannot find a destructor method for the class
  */
 DestructorMethod::constructor(string class_name) {
     TempEncodingHelper npath(class_name, QCS_DEFAULT, xsink);

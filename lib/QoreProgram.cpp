@@ -2097,6 +2097,14 @@ ns_vec_t QoreProgram::findAllNamespacesRegex(const QoreString& pattern, int re_o
     return qore_root_ns_private::get(*priv->RootNS)->runtimeFindAllNamespacesRegex(pattern, re_opts, xsink);
 }
 
+gvar_vec_t QoreProgram::findAllGlobalVarsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    return qore_root_ns_private::get(*priv->RootNS)->runtimeFindAllGlobalVarsRegex(pattern, re_opts, xsink);
+}
+
+const_vec_t QoreProgram::findAllNamespaceConstantsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    return qore_root_ns_private::get(*priv->RootNS)->runtimeFindAllNamespaceConstantsRegex(pattern, re_opts, xsink);
+}
+
 const QoreExternalFunction* QoreProgram::findFunction(const char* path) const {
     const FunctionEntry* fe = qore_root_ns_private::runtimeFindFunctionEntry(*priv->RootNS, path);
     return reinterpret_cast<const QoreExternalFunction*>(fe ? fe->getFunction() : nullptr);
@@ -2125,6 +2133,15 @@ const QoreExternalGlobalVar* QoreProgram::findGlobalVar(const char* path, const 
         pns = pns_priv->ns;
     }
     return reinterpret_cast<const QoreExternalGlobalVar*>(var);
+}
+
+const QoreExternalConstant* QoreProgram::findNamespaceConstant(const char* path, const QoreNamespace*& pns) const {
+    const qore_ns_private* pns_priv;
+    const ConstantEntry* con = qore_root_ns_private::runtimeFindNamespaceConstant(*priv->RootNS, path, pns_priv);
+    if (con) {
+        pns = pns_priv->ns;
+    }
+    return reinterpret_cast<const QoreExternalConstant*>(con);
 }
 
 QoreRWLock QoreBreakpoint::lck_breakpoint;

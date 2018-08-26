@@ -49,7 +49,7 @@ NormalMethod m(cls, "lock");
     @param cls the class for the method
     @param method the (non-static, non-special) method name
 
-    @throw METHOD-ERROR cannot find a normal (non-static) method with the given name
+    @throw UNKOWN-METHOD cannot find a normal (non-static) method with the given name
  */
 NormalMethod::constructor(Class[QoreReflectionClass] cls, string method) {
     ReferenceHolder<QoreReflectionClass> holder(cls, xsink);
@@ -88,8 +88,8 @@ NormalMethod m("Thread::Mutex", "lock");
     @param class_name the class name or namespace path for the class implementing the method
     @param method the normal (non-static, non-special) method name
 
-    @throw CLASS-ERROR cannot find a class with the given name or path
-    @throw METHOD-ERROR cannot find a normal (non-static, non-special) method with the given name
+    @throw UNKNOWN-CLASS cannot find a class with the given name or path
+    @throw UNKOWN-METHOD cannot find a normal (non-static, non-special) method with the given name
  */
 NormalMethod::constructor(string class_name, string method) {
     TempEncodingHelper npath(class_name, QCS_DEFAULT, xsink);

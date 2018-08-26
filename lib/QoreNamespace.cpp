@@ -1602,9 +1602,22 @@ Var* qore_root_ns_private::runtimeFindGlobalVar(const NamedScope& name, const qo
 
     ConstNamespaceMapIterator nmi(nsmap, name.get(0));
     while (nmi.next()) {
-        Var* v = nullptr;
+        Var* v;
         if ((v = nmi.get()->runtimeMatchGlobalVar(name, ns)))
             return v;
+    }
+
+    return nullptr;
+}
+
+const ConstantEntry* qore_root_ns_private::runtimeFindNamespaceConstant(const NamedScope& name, const qore_ns_private*& cns) const {
+    assert(name.size() > 1);
+
+    ConstNamespaceMapIterator nmi(nsmap, name.get(0));
+    while (nmi.next()) {
+        const ConstantEntry* ce;
+        if ((ce = nmi.get()->runtimeMatchNamespaceConstant(name, cns)))
+            return ce;
     }
 
     return nullptr;
@@ -1697,6 +1710,43 @@ ns_vec_t qore_root_ns_private::runtimeFindAllNamespacesRegex(const QoreString& p
     }
 
     return ns_vec;
+}
+
+gvar_vec_t qore_root_ns_private::runtimeFindAllGlobalVarsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    gvar_vec_t gvar_vec;
+
+    QoreRegex re(pattern, re_opts, xsink);
+    if (*xsink) {
+        return gvar_vec;
+    }
+
+    for (auto& i : varmap) {
+        Var* v = i.second.obj;
+        const std::string& name = v->getNameStr();
+        if (re.exec(name.c_str(), name.size())) {
+            gvar_vec.push_back(gvar_vec_t::value_type(reinterpret_cast<const QoreExternalGlobalVar*>(v), i.second.ns->ns));
+        }
+    }
+
+    return gvar_vec;
+}
+
+const_vec_t qore_root_ns_private::runtimeFindAllNamespaceConstantsRegex(const QoreString& pattern, int re_opts, ExceptionSink* xsink) const {
+    const_vec_t const_vec;
+
+    QoreRegex re(pattern, re_opts, xsink);
+    if (*xsink) {
+        return const_vec;
+    }
+
+    for (auto& i : cnmap) {
+        const ConstantEntry* ce = i.second.obj;
+        if (re.exec(ce->name.c_str(), ce->name.size())) {
+            const_vec.push_back(const_vec_t::value_type(reinterpret_cast<const QoreExternalConstant*>(ce), i.second.ns->ns));
+        }
+    }
+
+    return const_vec;
 }
 
 const TypedHashDecl* qore_root_ns_private::runtimeFindHashDeclIntern(const NamedScope& name, const qore_ns_private*& ns) {
@@ -2684,6 +2734,13 @@ Var* qore_ns_private::runtimeMatchGlobalVar(const NamedScope& nscope, const qore
 
     rns = runtimeMatchNamespace(nscope, 1);
     return rns ? rns->var_list.runtimeFindVar(nscope.getIdentifier()) : nullptr;
+}
+
+const ConstantEntry* qore_ns_private::runtimeMatchNamespaceConstant(const NamedScope& nscope, const qore_ns_private*& rns) const {
+    assert(name == nscope[0]);
+
+    rns = runtimeMatchNamespace(nscope, 1);
+    return rns ? rns->constant.findEntry(nscope.getIdentifier()) : nullptr;
 }
 
 const QoreClass* qore_ns_private::runtimeMatchClass(const NamedScope& nscope, const qore_ns_private*& rns) const {

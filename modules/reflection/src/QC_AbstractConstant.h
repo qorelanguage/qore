@@ -39,7 +39,10 @@ class ConstantEntry;
 
 class QoreReflectionConstant : public AbstractReflectionObject {
 public:
-    const QoreExternalConstant* ce;
+    const QoreExternalConstant* ce = nullptr;
+
+    DLLLOCAL QoreReflectionConstant() : AbstractReflectionObject(getProgram()) {
+    }
 
     DLLLOCAL QoreReflectionConstant(QoreProgram* pgm, const QoreExternalConstant* ce) :
         AbstractReflectionObject(pgm), ce(ce) {
