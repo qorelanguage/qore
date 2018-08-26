@@ -624,6 +624,8 @@ class ReflectionTest inherits QUnit::Test {
         PseudoMethod m = c.getMethod("format");
         assertEq("1.00", m.call(1));
         assertThrows("METHOD-ERROR", \m.call(), "str");
+        assertTrue(m.getClass() instanceof PseudoClass);
+        assertTrue(m.getClass().isEqual(c));
 
         list<AbstractMethod> l = ValuePseudoClass.getMethods();
         #map printf("%s\n", $1.getName()), l;

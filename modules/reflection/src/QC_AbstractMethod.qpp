@@ -34,6 +34,7 @@
 #include "QC_AbstractVariant.h"
 #include "QC_AbstractMethodVariant.h"
 #include "QC_Type.h"
+#include "QC_AbstractClass.h"
 
 int check_call(QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
     if (!obj->validInstanceOf(*m.getClass())) {
@@ -235,7 +236,7 @@ AbstractClass cls = m.getClass();
 
     @return the class for the method
  */
-Class AbstractMethod::getClass() [flags=CONSTANT] {
+AbstractClass AbstractMethod::getClass() [flags=CONSTANT] {
     return get_class_object(m->pgm, m->m->getClass());
 }
 
