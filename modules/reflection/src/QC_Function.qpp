@@ -86,6 +86,29 @@ Function::constructor(string path) {
     }
 }
 
+//! returns the variants implemented by the function
+/** @par Example:
+    @code{.py}
+list<FunctionVariant> l = f.getVariants();
+    @endcode
+
+    @return the variants implemented by the function
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function has been destroyed
+*/
+list<FunctionVariant> Function::getVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_FUNCTIONVARIANT->getTypeInfo()), xsink);
+    append_variant_objects(**rv, f->pgm, f->f, MT_None, xsink);
+    return rv.release();
+}
+
 //! Returns the given direct child function variant declared in this function or throws an exception if the function variant is not defined
 /** @par Example:
     @code{.py}

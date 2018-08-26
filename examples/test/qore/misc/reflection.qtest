@@ -52,6 +52,7 @@ class ReflectionTest inherits QUnit::Test {
         addTestCase("reflection tests", \reflectionTests());
         addTestCase("sandbox tests", \sandboxTests());
         addTestCase("pseudo-class tests", \pseudoClassTests());
+        addTestCase("program tests", \programTests());
         set_return_value(main());
     }
 
@@ -658,6 +659,98 @@ class ReflectionTest inherits QUnit::Test {
             PseudoMethodVariant pv = v;
             assertEq("1.00", pv.call(1));
             assertThrows("METHOD-ERROR", \pv.call("str", 1n));
+        }
+    }
+
+    programTests() {
+        {
+            Class c;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("Class sub get() { return Class::forName('Mutex'); }", "");
+                c = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \c.getName());
+        }
+
+        {
+            AbstractMethod m;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("AbstractMethod sub get() { return Class::forName('Mutex').getMethod('lock'); }", "");
+                m = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \m.getName());
+        }
+
+        {
+            AbstractMethodVariant v;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("AbstractMethodVariant sub get() { return Class::forName('Mutex').getVariant('lock'); }", "");
+                v = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \v.getReturnType());
+        }
+
+        {
+            Constant c;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("Constant sub get() { return Constant::forName('Compiler'); }", "");
+                c = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \c.getName());
+        }
+
+        {
+            TypedHash h;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("TypedHash sub get() { return TypedHash::forName('StatInfo'); }", "");
+                h = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \h.getName());
+        }
+
+        {
+            GlobalVar g;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("GlobalVar sub get() { return GlobalVar::forName('ARGV'); }", "");
+                g = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \g.getName());
+        }
+
+        {
+            Namespace n;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("Namespace sub get() { return Namespace::forName('Option'); }", "");
+                n = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \n.getName());
+        }
+
+        {
+            Function f;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("Function sub get() { return Function::forName('get_ex_pos'); }", "");
+                f = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \f.getName());
+        }
+
+        {
+            AbstractVariant v;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("AbstractVariant sub get() { return Function::forName('get_ex_pos').getVariants()[0]; }", "");
+                v = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \v.getReturnType());
         }
     }
 }
