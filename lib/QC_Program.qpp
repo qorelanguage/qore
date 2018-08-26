@@ -1655,8 +1655,10 @@ nothing Program::undefine(string def) {
     @code{.py}
 bool b = pgm.isDefined("PRODUCTION");
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this error is thrown if the string cannot be converted to the @ref default_encoding "default character encoding"
  */
-bool Program::isDefined(string def) [flags=CONSTANT] {
+bool Program::isDefined(string def) [flags=RET_VALUE_ONLY] {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    return t ? qore_program_private::runTimeIsDefined(p, t->getBuffer()) : false;
 }
@@ -1669,9 +1671,11 @@ bool Program::isDefined(string def) [flags=CONSTANT] {
 auto val = pgm.getDefine("PRODUCTION");
     @endcode
 
+    @throw ENCODING-CONVERSION-ERROR this error is thrown if the string cannot be converted to the @ref default_encoding "default character encoding"
+
     @note A parse define may be defined with no value; use Program::isDefined() to check if a parse define is actually defined or not
  */
-auto Program::getDefine(string def) [flags=CONSTANT] {
+auto Program::getDefine(string def) [flags=RET_VALUE_ONLY] {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    return t ? qore_program_private::runTimeGetDefine(p, t->c_str()) : QoreValue();
 }

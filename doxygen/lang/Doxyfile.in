@@ -581,6 +581,7 @@ SHOW_NAMESPACES        = YES
 # provided by doxygen. Whatever the program writes to standard output
 # is used as the file version. See the manual for examples.
 
+# do not retrieve revisions; it slows down dox generation dramatically and provides no benefit
 #FILE_VERSION_FILTER    = @CMAKE_CURRENT_SOURCE_DIR@/getrev.sh
 
 # The LAYOUT_FILE tag can be used to specify a layout file which will be parsed
