@@ -34,6 +34,7 @@
 #include <QC_Type.h>
 #include "QC_AbstractReflectionFunction.h"
 #include "QC_Function.h"
+#include "QC_FunctionVariant.h"
 #include "QC_GlobalVar.h"
 #include "QC_TypedHash.h"
 #include "QC_Constant.h"
