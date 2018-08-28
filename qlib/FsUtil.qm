@@ -280,8 +280,15 @@ public namespace FsUtil {
         return local_handler.join_paths(paths);
     }
 
-    public bool sub path_exists(string path) {
-        *hash s = hstat(path);
+    #! Check whether the given path exists or not
+    /** @param path the path to be checked
+        @param follow_symlinks flag indicating whether target of a symlink should be checked instead
+
+        @return True if the given path exists, False otherwise. If follow_symlinks is True and path points to a symlink,
+        the link's target is checked instead of the link itself
+    */
+    public bool sub path_exists(string path, bool follow_symlinks=False) {
+        *hash s = follow_symlinks ? hstat(path) : hlstat(path);
         return (exists s || errno() != Err::ENOENT);
     }
 
