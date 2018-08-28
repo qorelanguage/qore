@@ -574,6 +574,11 @@ public namespace FsUtil {
         }
 
         if (src_stat.type == "SYMBOLIC-LINK" && !follow_symlinks) {
+            if (overwrite && path_exists(destination)) {
+                # creating symlink at an existing path is not allowed but we want to overwrite whatever there is
+                # -> clean the destination first
+                unlink(destination);
+            }
             symlink(readlink(source), destination);
         } else {
             File src_obj();
