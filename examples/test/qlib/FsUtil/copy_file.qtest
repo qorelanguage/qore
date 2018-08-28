@@ -18,7 +18,7 @@ public class CopyFileTest inherits QUnit::Test {
         addTestCase("copy_file test - exceptions", \test_copy_file_exceptions());
         addTestCase("copy_file test - don't follow symlinks", \test_copy_file_dont_follow_symlinks());
         addTestCase("copy_file test - follow symlinks", \test_copy_file_follow_symlinks());
-        addTestCase("copy_file test - symlink in source, existing target", \test_copy_file_symlink_in_src());
+        addTestCase("copy_file test - symlink in source", \test_copy_file_symlink_in_src());
         set_return_value(main());
     }
 
@@ -270,7 +270,17 @@ public class CopyFileTest inherits QUnit::Test {
         assert_file_contains(original.path, content2);
 
         # copy original via symlink (with overwrite) without follow_symlinks
-        copy_file(original.path, copy.path, False, True);
+        copy_file(link_original, copy.path, False, True);
+        assertTrue(path_exists(copy.path));
+        assertTrue(is_link(copy.path));
+        assert_file_contains(copy.path, content2);
+
+        # copy original via symlink without overwrite and without follow_symlinks should fail
+        assertThrows("FILE-EXISTS-ERROR", \copy_file(), (link_original, copy.path, False, False));
+
+        # copy original via symlink (dst doesn't exist this time -> no overwrite) without follow_symlinks
+        unlink(copy.path);
+        copy_file(link_original, copy.path, False, False);
         assertTrue(path_exists(copy.path));
         assertTrue(is_link(copy.path));
         assert_file_contains(copy.path, content2);
