@@ -89,6 +89,30 @@ class PgsqlTestSchema inherits SqlUtilTestSchema {
     }
 }
 
+
+# A minimal schema just to create simple table to test bug #2963
+#  = to drop triggers and functions during the schema alignment
+class Bug2963Schema inherits SqlUtilTestSchema {
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
+    }
+    private string getNameImpl() {
+        return "Bug2963Schema";
+    }
+    private string getVersionImpl() {
+        return "1.0";
+    }
+    private *hash getTablesImpl() {
+        return {
+            "pgsql_test_2963": {
+                "columns": {
+                    "id": c_number(14, True, "an example comment with 'quotes'"),
+                },
+            },
+        };
+    }
+} # class Bug2963Schema
+
+
 class PgsqlTest inherits SqlTestBase {
     public {
         const CustomColumns = (
@@ -206,6 +230,7 @@ class PgsqlTest inherits SqlTestBase {
             addTestCase("sequence operators", \testSequenceOperators());
             addTestCase("analytic/window functions", \testAnalyticFunctions());
             addTestCase("default value", \testDefaultValue());
+            addTestCase("pgsqlutil: schema align with trigger drop #2963", \test2963());
         }
 
         set_return_value(main());
@@ -240,6 +265,31 @@ class PgsqlTest inherits SqlTestBase {
         assertNRegex("::character varying", new_col.def_val);
         list l = c.getModifySql(table, new_col);
         assertEq((), l);
+    }
+
+    private test2963() {
+        AbstractDatasource ds = getDatasource();
+        on_exit ds.rollback();
+
+        Bug2963Schema schema(ds);
+        # to create test schema without triggers
+        auto res = schema.align(False, m_options.verbose);
+
+        # create trigger outseide the schema
+        ds.execRaw("create function pgsql_test_2963_func() returns trigger\n"
+                   "language plpgsql as $function$\n"
+                   "begin\n"
+                   "   null;\n"
+                   "end;\n"
+                   "$function$");
+        ds.execRaw("create trigger pgsql_test_2963_func "
+                   "before insert on pgsql_test_2963 execute procedure pgsql_test_2963_func()");
+
+        # align the schema again to drop trigger (and function)
+        res = schema.align(False, m_options.verbose);
+        # 1 = drop trigger
+        # 2 = drop function
+        assertEq(2, res, "2 actions must be performed");
     }
 
     private string getResultSetSql() {
