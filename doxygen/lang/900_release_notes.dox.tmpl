@@ -126,6 +126,9 @@
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>:
         - removed unnecessary serialization from AbstractConnection::get()
           (<a href="https://github.com/qorelanguage/qore/issues/2880">issue 2880</a>)
+      - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
+        - fixed schema alignment when there are functions to be droped
+          (a href="https://github.com/qorelanguage/qore/issues/2963">issue 2963</a>)
     - fixed a race condition in @ref Qore::Thread::ThreadPool "ThreadPool" destruction that could
       cause a crash
       (<a href="https://github.com/qorelanguage/qore/issues/2906">issue 2906</a>)
