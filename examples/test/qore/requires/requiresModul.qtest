@@ -1,0 +1,39 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class IncludeModuleTest
+
+class IncludeModuleTest inherits QUnit::Test {
+    constructor() : QUnit::Test("IncludeModule test", "1.0") {
+        addTestCase("Include whole separated module test", \testIncludeWholeModule());
+        set_return_value(main());
+    }
+
+    testIncludeWholeModule() {
+        Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+        p.parse("
+#!/usr/bin/env /home/tpetr/devel_release/bin/qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+# TODO: change to some relative path
+# examples path is for Jenkins; '.' is for manual runs
+%append-module-path examples/test/qore/requires:.
+%requires MyModule
+
+MyModule::mfunc(\"\");
+", "");
+
+        assertEq("MyModule::mfunc::EXAMPLE_C::SomeClass::cfunc
+MyModule::mfunc::EXAMPLE_C::func
+MyModule::mfunc::EXAMPLE_F::func
+", p.callFunctionArgs("mfunc", ""));
+    }
+}
