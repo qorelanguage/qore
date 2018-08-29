@@ -399,6 +399,12 @@ private:
    // not implemented
    DLLLOCAL QoreModuleManager& operator=(const QoreModuleManager&);
 
+   //! TODO
+   DLLEXPORT void trySeparateModuleLoading(const char * moduleName);
+
+   //! TODO
+   DLLEXPORT void loadSeparateModule();
+
 protected:
    // recursive mutex; initialized in init()
    QoreThreadLock* mutex;
