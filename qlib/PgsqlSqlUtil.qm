@@ -1868,7 +1868,7 @@ auto v = c.name;
                         l += AbstractDatabase::doCallback(opt, triggers{f.trigger}.getDropSql(name), AbstractDatabase::AC_Drop, "trigger", f.trigger, name);
                         triggers.take(f.trigger);
                     }
-                    l += AbstractDatabase::doCallback(opt, f.getDropSql(opt.force), AbstractDatabase::AC_Drop, "trigger function", f.name, name);
+                    l += AbstractDatabase::doCallback(opt, f.getDropSql(opt), AbstractDatabase::AC_Drop, "trigger function", f.name, name);
                 }
             }
 
