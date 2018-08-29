@@ -1,33 +1,33 @@
 /*
-  QoreString.cpp
+    QoreString.cpp
 
-  QoreString Class Definition
+    QoreString Class Definition
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -1613,15 +1613,15 @@ void QoreString::splice(qore_offset_t offset, qore_offset_t num, const QoreStrin
    splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen(), 0);
 }
 
-void QoreString::splice(qore_offset_t offset, qore_offset_t num, const AbstractQoreNode *strn, ExceptionSink* xsink) {
-   QoreStringNodeValueHelper sv(strn);
+void QoreString::splice(qore_offset_t offset, qore_offset_t num, QoreValue strn, ExceptionSink* xsink) {
+    QoreStringNodeValueHelper sv(strn);
 
-   if (!sv->strlen()) {
-      splice(offset, num, xsink);
-      return;
-   }
+    if (!sv->strlen()) {
+        splice(offset, num, xsink);
+        return;
+    }
 
-   splice(offset, num, **sv, xsink);
+    splice(offset, num, **sv, xsink);
 }
 
 QoreString* QoreString::extract(qore_offset_t offset, ExceptionSink* xsink) {
@@ -1649,31 +1649,29 @@ QoreString* QoreString::extract(qore_offset_t offset, qore_offset_t num, Excepti
    return str;
 }
 
-QoreString* QoreString::extract(qore_offset_t offset, qore_offset_t num, const AbstractQoreNode *strn, ExceptionSink* xsink) {
-   QoreStringNodeValueHelper sv(strn);
+QoreString* QoreString::extract(qore_offset_t offset, qore_offset_t num, QoreValue strn, ExceptionSink* xsink) {
+    QoreStringValueHelper tmp(strn, priv->charset, xsink);
+    if (*xsink) {
+        return nullptr;
+    }
 
-   if (!sv->strlen())
-      return extract(offset, num, xsink);
+    if (!tmp->strlen())
+        return extract(offset, num, xsink);
 
-   const QoreStringNode *str = *sv;
-   TempEncodingHelper tmp(str, priv->getEncoding(), xsink);
-   if (!tmp)
-       return 0;
-
-   QoreString* rv = new QoreString(priv->getEncoding());
-   if (!priv->getEncoding()->isMultiByte()) {
-      qore_size_t n_offset, n_num;
-      priv->check_offset(offset, num, n_offset, n_num);
-      if (n_offset == priv->len) {
-         if (!tmp->priv->len)
-            return rv;
-         n_num = 0;
-      }
-      splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen(), rv);
-   }
-   else
-      splice_complex(offset, num, *tmp, xsink, rv);
-   return rv;
+    QoreString* rv = new QoreString(priv->getEncoding());
+    if (!priv->getEncoding()->isMultiByte()) {
+        qore_size_t n_offset, n_num;
+        priv->check_offset(offset, num, n_offset, n_num);
+        if (n_offset == priv->len) {
+            if (!tmp->priv->len)
+                return rv;
+            n_num = 0;
+        }
+        splice_simple(n_offset, n_num, tmp->getBuffer(), tmp->strlen(), rv);
+    }
+    else
+        splice_complex(offset, num, *tmp, xsink, rv);
+    return rv;
 }
 
 // removes a single trailing newline
@@ -2014,17 +2012,17 @@ int QoreString::concatEncodeUriRequest(ExceptionSink* xsink, const QoreString& u
 }
 
 int QoreString::concatDecodeUriRequest(const QoreString& url_str, ExceptionSink* xsink) {
-   assert(xsink);
-   TempEncodingHelper str(url_str, priv->getEncoding(), xsink);
-   if (*xsink)
-      return -1;
+    assert(xsink);
+    TempEncodingHelper str(url_str, priv->getEncoding(), xsink);
+    if (*xsink)
+        return -1;
 
-   return priv->concatDecodeUriIntern(xsink, *str->priv, true);
+    return priv->concatDecodeUriIntern(xsink, *str->priv, true);
 }
 
 // return 0 for success
 int QoreString::vsprintf(const char* fmt, va_list args) {
-   return priv->vsprintf(fmt, args);
+    return priv->vsprintf(fmt, args);
 }
 
 void QoreString::concat(const char* str) {

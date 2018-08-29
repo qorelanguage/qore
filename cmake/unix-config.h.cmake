@@ -84,6 +84,11 @@
 #cmakedefine HAVE_NANOSLEEP
 #cmakedefine HAVE_POLL
 #cmakedefine HAVE_PTHREAD_ATTR_GETSTACKSIZE
+#cmakedefine QORE_HAVE_PTHREAD_SETNAME_NP_1
+#cmakedefine QORE_HAVE_PTHREAD_SETNAME_NP_2
+#cmakedefine QORE_HAVE_PTHREAD_SETNAME_NP_3
+#cmakedefine QORE_HAVE_PTHREAD_SET_NAME_NP
+#cmakedefine QORE_HAVE_PTHREAD_GETATTR_NP
 #cmakedefine HAVE_PUTENV
 #cmakedefine HAVE_RANDOM
 #cmakedefine HAVE_READLINK
@@ -125,6 +130,7 @@
 #cmakedefine HAVE_USLEEP
 #cmakedefine HAVE_VFORK
 #cmakedefine HAVE_VPRINTF
+#cmakedefine HAVE_GETIFADDRS
 #cmakedefine HAVE_WORKING_FORK
 #cmakedefine HAVE_WORKING_VFORK
 #cmakedefine STRERROR_R_CHAR_P
