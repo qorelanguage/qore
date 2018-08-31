@@ -35,6 +35,7 @@
 #include "qore/intern/ModuleInfo.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 #include "qore/intern/QoreException.h"
+#include "qore/intern/QoreDir.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
 #include <errno.h>
@@ -860,27 +861,11 @@ bool QoreModuleManager::trySeparateModuleLoading(
     QoreProgram* mpgm,
     unsigned load_opt) {
 
-    QoreString moduleName(name);
-    QoreString dirName('/');
-    qore_offset_t dirIndex = moduleName.find('.');
-    qore_offset_t extIndex = moduleName.rfind('.');
-
-    // simple check for case ModuleName.ClassName.qc
-    if (dirIndex < extIndex) {
-        moduleName.replaceChar(dirIndex, QORE_DIR_SEP);
-        dirName += moduleName.substr(0, dirIndex, &xsink)->c_str();
-        moduleName = moduleName.extract(dirIndex, &xsink);
-    }
-    else {
-        dirName += name;
-        dirName += "/";
-        moduleName += ".qm";
-    }
-// printd(0, "moduleName=%s dirName=%s\n", moduleName.c_str(), dirName.c_str());
     strdeque_t::const_iterator path = moduleDirList.begin();
     while (path != moduleDirList.end()) {
         QoreString modulePath(*path);
-        modulePath += dirName.c_str();
+        modulePath += QORE_DIR_SEP_STR;
+        modulePath += name;
 
         QoreDir modulDir(&xsink, QCS_DEFAULT, modulePath.c_str());
         if (xsink) {
@@ -889,7 +874,9 @@ bool QoreModuleManager::trySeparateModuleLoading(
         }
 
         if (!modulDir.checkPath()) {
-            modulePath += moduleName.c_str();
+            modulePath += QORE_DIR_SEP_STR;
+            modulePath += name;
+            modulePath += ".qm";printd(0, "modulePath=%s\n", modulePath.c_str());
             loadModuleIntern(xsink, modulePath.c_str(), pgm, reexport, op, version, src, mpgm, load_opt);
             return true;
         }
