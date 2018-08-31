@@ -68,9 +68,9 @@ private:
       sid = rtsv.getAsBigInt();
       rtsv.discard(&xsink2);
       if (sid <= 0) {
-        rts = nullptr;
+         rts = nullptr;
       } else {
-        rts = pgm->resolveStatementId(sid);
+         rts = pgm->resolveStatementId(sid);
       }
 
       //printd(5, "QoreDebugProgramWithCoreObject::callMethod(%s) this: %p, pgm: %p, rs: %d\n", name, this, pgm, rs);

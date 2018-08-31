@@ -1372,7 +1372,7 @@ public namespace DebugCmdLine {
             string s;
             s = trim(shift args);
             if (s =~ /^[0-9]+$/) {
-                return ('file': '', 'lineno': int(s));
+                return {'file': '', 'lineno': int(s)};
             }
             *list l = s =~ x/^(.+)\((.*)\)$/;
             if (l) {
@@ -1383,20 +1383,20 @@ public namespace DebugCmdLine {
                         push la, s2;
                     }
                 }
-                return ('function': l[0], 'args': la);
+                return {'function': l[0], 'args': la};
             }
             l = s =~ x/^#([0-9]+)$/;
             if (l) {
-                return ('id': int(l[0]));
+                return {'id': int(l[0])};
             }
             if (args[0] =~ /^[0-9]+$/) {
-                return ('file': s, 'lineno': int(args[0]));
+                return {'file': s, 'lineno': int(args[0])};
             }
             throw "DEBUG-PROGRAM-HELPER", sprintf("Wrong statement identification");
         }
 
         private hash splitCmd(string line) {
-            hash ret = ('args': (), 'pos': ());
+            hash ret = {'args': (), 'pos': ()};
             int i = 0;
             int q = 0;
             string s = '';
@@ -1410,7 +1410,7 @@ public namespace DebugCmdLine {
                     if (q == 0) {
                         if (s != '') {
                             push ret.args, s;
-                            push ret.pos, ('start': start, 'end': i);
+                            push ret.pos, {'start': start, 'end': i};
                             s = '';
                         }
                         start = -1;
@@ -1464,7 +1464,7 @@ public namespace DebugCmdLine {
                 throw "DEBUG-PROGRAM-HELPER", sprintf("Unmatched quotes in %y", line);
             if (s != '') {
                 push ret.args, s;
-                push ret.pos, ('start': start, 'end': i);
+                push ret.pos, {'start': start, 'end': i};
             }
             return ret;
         }
@@ -1649,7 +1649,7 @@ public namespace DebugCmdLine {
 
         public list getLineCompletions(string line) {
             hash h = splitCmd(line);
-            if (line == '' || (h.pos && h.pos.last().end < line.size() /* former line =~ / $/ */)) {
+            if (line == '' || (h.pos && h.pos.last().end < line.size())) {
                 h.args += '';
             } else {
                 if (h.pos) {
@@ -1847,11 +1847,11 @@ public namespace DebugCmdLine {
                             }
                             if (exists data.linecode) {
                                 outs += "\n";
-                                outs += formatSource((
+                                outs += formatSource({
                                     'code': data.linecode,
                                     'startline': data.line,
                                     'currentline': data.line,
-                                ));
+                                });
                             }
                         }
                         break;

@@ -86,6 +86,12 @@ public namespace DebugProgramControl {
             #! number of frames related to DebugProgramControl library when handleInterrupt() is invoked
             const frameOffset = 2;
         }
+        public {
+            #! default number of lines listed before current code position
+            const DEFAULT_LINES_BEFORE = 3;
+            #! default number of lines listed after current code position
+            const DEFAULT_LINES_AFTER = 3;
+        }
 
         #! creates the object
         constructor(string serverName) : DebugProgram() {
@@ -809,7 +815,6 @@ public namespace DebugProgramControl {
             hash result;
             result.scriptName = p.getScriptName();
             result.scriptPath = p.getScriptPath();
-            #resul.scriptDir = p.getScriptDir();
             result.threads = threads ?? p.getThreadList();
             result.debugging = (p.getParseOptions() & PO_NO_DEBUGGING) == 0;
             if (result.debugging && listFiles) {
@@ -931,10 +936,10 @@ public namespace DebugProgramControl {
                     }
                 }
             }
-            return (
+            return {
                 'origin': name,
                 'content': ReadOnlyFile::readTextFile(name),
-            );
+            };
         }
 
         private *hash serializeLocal(string name, hash val) {
@@ -1016,13 +1021,14 @@ public namespace DebugProgramControl {
                 }
                 ctx.intrInfo.offset = location.offset;
                 try {
-                    ctx.intrInfo.linecode = getSourceCodeFromFileOrLabel(pgm, (
+                    ctx.intrInfo.linecode = getSourceCodeFromFileOrLabel(pgm, {
                         'file': location.file,
                         'line': location.start_line,
                         'source': location.source != "" ? location.source : NOTHING,
                         'offset': location.offset,
-                    ), 0, 0).code;
+                    }, 0, 0).code;
                 } catch (hash<ExceptionInfo> ex) {
+                    # suppress exceptions as failure must not break main functionality
                 }
             }
             if (exists except) {
@@ -1070,6 +1076,7 @@ public namespace DebugProgramControl {
                         ctx.intrInfo.localvars[i] = keys lv;
                     }
                 } catch (hash<ExceptionInfo> ex) {
+                    # exception intentionally suppressed because local vars dump is only for debug purposses and failure must not break main functionality
                     #printf("Exception: %y\n", ex);
                 }
             }
@@ -1077,6 +1084,7 @@ public namespace DebugProgramControl {
                 ctx.intrInfo.stackDump = get_thread_call_stack();
                 ctx.intrInfo.dpgmid = ProgramControl::getProgram().getProgramId();
             } catch (hash<ExceptionInfo> ex) {
+                # exception intentionally suppressed because failure must not break main functionality
                 #printf("Exception: %y\n", ex);
             }
 %endif
@@ -1084,6 +1092,7 @@ public namespace DebugProgramControl {
             try {
                 broadcastDataImpl(ctx.intrInfo);
             } catch (hash<ExceptionInfo> ex) {
+                # suppress exceptions
             }
 
             hash ctxCT;
@@ -1224,7 +1233,7 @@ public namespace DebugProgramControl {
                             list stack = adjustStack(get_thread_call_stack(), ctx);
                             int frame = rd.frameid ?? ctxCT.frameId;
                             if (frame < stack.size()) {
-                                result = getSourceCodeFromFileOrLabel(pgm, stack[frame], rd.linesbefore ?? 3, rd.linesafter ?? 3);
+                                result = getSourceCodeFromFileOrLabel(pgm, stack[frame], rd.linesbefore ?? DEFAULT_LINES_BEFORE, rd.linesafter ?? DEFAULT_LINES_AFTER);
                             }
                             break;
                         }
@@ -1275,8 +1284,8 @@ public namespace DebugProgramControl {
             );
             try {
                 broadcastDataImpl(sd);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
+                # suppress exceptions
             }
         }
 

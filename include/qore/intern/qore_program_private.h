@@ -2124,10 +2124,10 @@ public:
    DLLLOCAL void getStatementBreakpoints(const AbstractStatement* statement, QoreBreakpointList_t &bkptList) {
       QoreAutoRWReadLocker al(&lck_breakpoint);
       bkptList.clear();
-	  if (statement->breakpoints) {
-	     for (std::list<QoreBreakpoint*>::iterator it = statement->breakpoints->begin(); it != statement->breakpoints->end(); ++it) {
-		    bkptList.push_back(*it);
-			(*it)->ref();
+      if (statement->breakpoints) {
+         for (std::list<QoreBreakpoint*>::iterator it = statement->breakpoints->begin(); it != statement->breakpoints->end(); ++it) {
+            bkptList.push_back(*it);
+            (*it)->ref();
          }
       }
    }

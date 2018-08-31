@@ -1202,7 +1202,7 @@ void ThreadLocalProgramData::dbgFunctionEnter(const StatementBlock* statement, E
     checkAttach(xsink);
     checkBreakFlag();
     if (runState == DBG_RS_STOPPED || runState == DBG_RS_DETACH) {
-
+        // no code
     } else if (runState == DBG_RS_STEP || statement == runToStatement) {
         printd(5, "ThreadLocalProgramData::dbgFunctionEnter() this: %p, rs: %d, rts: %p, tid: %d\n", this, runState, runToStatement, gettid());
         functionCallLevel = 0;
@@ -1223,7 +1223,7 @@ void ThreadLocalProgramData::dbgFunctionEnter(const StatementBlock* statement, E
 
 void ThreadLocalProgramData::dbgFunctionExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink) {
     if (runState == DBG_RS_STOPPED || runState == DBG_RS_DETACH) {
-
+        // no code
     } else if ((runState == DBG_RS_UNTIL_RETURN && functionCallLevel == 1) || runState == DBG_RS_STEP || (runState == DBG_RS_STEP_OVER && functionCallLevel == 0) || statement == runToStatement) {
         printd(5, "ThreadLocalProgramData::dbgFunctionExit() this: %p, rs: %d, rts: %p, tid: %d\n", this, runState, runToStatement, gettid());
         DebugRunStateEnum rs = runState;

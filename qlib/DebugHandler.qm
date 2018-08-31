@@ -288,10 +288,8 @@ public namespace DebugHandler {
 
         #! add web socket handler object to handler list
         public addHandler(AbstractWebSocketDebugHandler newHandler) {
-            foreach AbstractWebSocketDebugHandler h in (handlers) {
-                if (h == newHandler) {
-                    return;
-                }
+            if (inlist(newHandler, handlers)) {
+                return;
             }
             push handlers, newHandler;
         }
