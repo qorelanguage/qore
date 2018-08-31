@@ -59,6 +59,7 @@
 #include "qore/intern/QC_TermIOS.h"
 #include "qore/intern/QC_TimeZone.h"
 #include "qore/intern/QC_TreeMap.h"
+#include "qore/intern/QC_Serializable.h"
 
 #include "qore/intern/QC_Datasource.h"
 #include "qore/intern/QC_DatasourcePool.h"
@@ -179,7 +180,8 @@ const TypedHashDecl* hashdeclStatInfo,
     * hashdeclExceptionInfo,
     * hashdeclStatementInfo,
     * hashdeclNetIfInfo,
-    * hashdeclSourceLocationInfo;
+    * hashdeclSourceLocationInfo,
+    * hashdeclSerializationInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -920,6 +922,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     hashdeclStatementInfo = init_hashdecl_StatementInfo(qns);
     hashdeclNetIfInfo = init_hashdecl_NetIfInfo(qns);
     hashdeclSourceLocationInfo = init_hashdecl_SourceLocationInfo(qns);
+    hashdeclSerializationInfo = init_hashdecl_SerializationInfo(qns);
 
     qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
@@ -997,6 +1000,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     qns.addSystemClass(initSingleValueIteratorClass(qns));
     qns.addSystemClass(initRangeIteratorClass(qns));
     qns.addSystemClass(initTreeMapClass(qns));
+    qns.addSystemClass(initSerializableClass(qns));
 
 #ifdef DEBUG_TESTS
     { // tests

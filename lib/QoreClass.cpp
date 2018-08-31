@@ -5120,3 +5120,69 @@ bool QoreClassHierarchyIterator::valid() const {
 const QoreClass* QoreClassHierarchyIterator::get() const {
     return priv->get();
 }
+
+class qore_class_destructor_hierarchy_iterator {
+public:
+    DLLLOCAL qore_class_destructor_hierarchy_iterator(const qore_class_private* qc) : qc(qc) {
+        if (qc->scl) {
+            i = qc->scl->sml.rend();
+        }
+    }
+
+    DLLLOCAL bool next() {
+        if (!do_class && i == qc->scl->sml.rend()) {
+            do_class = true;
+            return true;
+        }
+        if (do_class) {
+            do_class = false;
+        }
+        if (!qc->scl) {
+            return false;
+        }
+
+        if (i == qc->scl->sml.rend()) {
+            i = qc->scl->sml.rbegin();
+        }
+        else {
+            ++i;
+        }
+        return i != qc->scl->sml.rend();
+    }
+
+    DLLLOCAL const QoreClass* get() const {
+        if (do_class) {
+            return qc->cls;
+        }
+        assert(valid());
+        return i->first;
+    }
+
+    DLLLOCAL bool valid() const {
+        return do_class || (qc->scl && i != qc->scl->sml.rend());
+    }
+
+private:
+    const qore_class_private* qc;
+    BCSMList::const_reverse_iterator i;
+    bool do_class = false;
+};
+
+QoreClassDestructorHierarchyIterator::QoreClassDestructorHierarchyIterator(const QoreClass* cls) : priv(new qore_class_destructor_hierarchy_iterator(qore_class_private::get(*cls))) {
+}
+
+QoreClassDestructorHierarchyIterator::~QoreClassDestructorHierarchyIterator() {
+    delete priv;
+}
+
+bool QoreClassDestructorHierarchyIterator::next() {
+    return priv->next();
+}
+
+bool QoreClassDestructorHierarchyIterator::valid() const {
+    return priv->valid();
+}
+
+const QoreClass* QoreClassDestructorHierarchyIterator::get() const {
+    return priv->get();
+}

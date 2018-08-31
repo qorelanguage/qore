@@ -1114,7 +1114,9 @@ private:
 };
 
 //! iterates the class hierarchy in the order of constructor execution
-/** @since %Qore 0.9
+/** @see QoreClassDestructorHierarchyIterator
+
+    @since %Qore 0.9
 */
 class QoreClassHierarchyIterator {
 public:
@@ -1135,6 +1137,32 @@ public:
 
 private:
     class qore_class_hierarchy_iterator* priv;
+};
+
+//! iterates the class hierarchy in the order of destructor execution
+/** @see QoreClassHierarchyIterator
+
+    @since %Qore 0.9
+*/
+class QoreClassDestructorHierarchyIterator {
+public:
+    //! creates the iterator; call next() to start iterating
+    DLLEXPORT QoreClassDestructorHierarchyIterator(const QoreClass* cls);
+
+    //! destroys the object
+    DLLEXPORT ~QoreClassDestructorHierarchyIterator();
+
+    //! returns advances to the next element (or to the first element if starting to iterate) and returns true if there is an element to query or returns false if at the end of the list
+    DLLEXPORT bool next();
+
+    //! returns true if the iterator is pointing at a valid element
+    DLLEXPORT bool valid() const;
+
+    //! returns the parent class
+    DLLEXPORT const QoreClass* get() const;
+
+private:
+    class qore_class_destructor_hierarchy_iterator* priv;
 };
 
 DLLEXPORT const char* get_access_string(ClassAccess access);

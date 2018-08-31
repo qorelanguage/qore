@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-    QC_Condition.h
+    QoreSerializable.h
 
     Qore Programming Language
 
@@ -29,43 +29,26 @@
     information.
 */
 
-#ifndef _QORE_CLASS_CONDITION_H
+#ifndef _QORE_CLASS_INTERN_QORESERIALIZABLE_H
 
-#define _QORE_CLASS_CONDITION_H
+#define _QORE_CLASS_INTERN_QORESERIALIZABLE_H
 
 #include <qore/Qore.h>
-#include <qore/QoreCondition.h>
-#include "qore/intern/AbstractSmartLock.h"
-#include "qore/intern/SmartMutex.h"
 
-DLLEXPORT extern qore_classid_t CID_CONDITION;
-DLLLOCAL extern QoreClass* QC_CONDITION;
+class QoreSerializable : public AbstractPrivateData {
+public:
+    DLLLOCAL QoreHashNode* serializeToData(QoreObject* self, ExceptionSink* xsink) const;
 
-DLLLOCAL QoreClass* initConditionClass(QoreNamespace& ns);
+    DLLLOCAL BinaryNode* serialize(QoreObject* self, ExceptionSink* xsink) const;
 
-class Condition : public AbstractPrivateData {
-private:
-   QoreCondition cond;
+    DLLLOCAL static QoreObject* deserialize(const BinaryNode* b, ExceptionSink* xsink);
+
+    DLLLOCAL static QoreObject* deserialize(const QoreHashNode* h, ExceptionSink* xsink);
 
 protected:
-   DLLLOCAL virtual ~Condition() {}
+    DLLLOCAL virtual ~QoreSerializable() {}
 
-public:
-   DLLLOCAL int wait(AbstractSmartLock *m, int64 timeout, ExceptionSink *xsink) {
-      return m->extern_wait(&cond, xsink, timeout);
-   }
-   DLLLOCAL int wait(AbstractSmartLock *m, ExceptionSink *xsink) {
-      return m->extern_wait(&cond, xsink);
-   }
-   DLLLOCAL int signal() {
-      return cond.signal();
-   }
-   DLLLOCAL int broadcast() {
-      return cond.broadcast();
-   }
-   DLLLOCAL int wait_count(AbstractSmartLock *m) {
-      return m->cond_count(&cond);
-   }
+    DLLLOCAL int serializeMemberValue(ValueHolder& val, ReferenceHolder<QoreHashNode>& index, const QoreClass* current_cls, const char* mname, ExceptionSink* xsink) const;
 };
 
-#endif // _QORE_CLASS_CONDITION_H
+#endif // _QORE_CLASS_INTERN_QORESERIALIZABLE_H

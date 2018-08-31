@@ -158,6 +158,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_TransformOutputStream.qpp
     lib/QC_StdoutOutputStream.qpp
     lib/QC_StderrOutputStream.qpp
+    lib/QC_Serializable.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp
     lib/ql_thread.qpp
@@ -593,6 +594,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreSelectOperatorNode.cpp
     lib/QoreRangeOperatorNode.cpp
     lib/QoreSquareBracketsRangeOperatorNode.cpp
+    lib/QoreSerializable.cpp
 )
 
 if (HAVE_SIGNAL_HANDLING)
