@@ -1074,6 +1074,8 @@ list<AbstractClassMember> l = cls.getMembers();
 
     @return a list of all declared class members, non-static (first) and static (second) in declaration order
 
+    @note only members declared in the local class are returned
+
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 list<AbstractClassMember> Class::getMembers() [flags=RET_VALUE_ONLY] {

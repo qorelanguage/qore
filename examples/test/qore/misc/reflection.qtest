@@ -13,7 +13,17 @@
 
 %exec-class ReflectionTest
 
-class Test {
+class Base {
+    public {
+        int bi = 1;
+
+        static int bsi = 2;
+
+        const BC_I = 3;
+    }
+}
+
+class Test inherits Base {
     public {
         int i = 1;
 
@@ -483,7 +493,7 @@ class ReflectionTest inherits QUnit::Test {
             assertTrue(l.last().isEqual(c1));
             c1 = Class::forName("Test");
             l = c1.getClassHierarchy();
-            assertEq(1, l.size());
+            assertEq(2, l.size());
             assertTrue(l.last().isEqual(c1));
         }
 

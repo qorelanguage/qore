@@ -4942,6 +4942,10 @@ public:
         else {
             ++i;
         }
+        // only iterate local members
+        while (i != qc->members.endDeclOrder() && !i->second->local()) {
+            ++i;
+        }
         return i != qc->members.endDeclOrder();
     }
 
