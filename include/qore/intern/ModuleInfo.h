@@ -400,10 +400,7 @@ private:
    DLLLOCAL QoreModuleManager& operator=(const QoreModuleManager&);
 
    //! TODO
-   DLLEXPORT void trySeparateModuleLoading(const char * moduleName);
-
-   //! TODO
-   DLLEXPORT void loadSeparateModule();
+   DLLLOCAL bool trySeparateModuleLoading(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport, mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm, unsigned load_opt);
 
 protected:
    // recursive mutex; initialized in init()
