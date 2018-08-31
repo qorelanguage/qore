@@ -294,6 +294,8 @@ class ReflectionTest inherits QUnit::Test {
             Test t();
             Class c1 = Class::getClass(t);
             list<AbstractMember> l = c1.getMembers();
+            hash<auto> mh = map {$1.getName(): $1}, l;
+            assertTrue(mh.si instanceof StaticMember);
             NormalMember nm = l[0];
             assertEq("i", nm.getName());
             assertTrue(IntType.isEqual(Type::getType(nm.getValue(t))));

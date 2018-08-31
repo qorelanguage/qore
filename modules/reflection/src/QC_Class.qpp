@@ -1091,7 +1091,7 @@ list<AbstractClassMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
         l->push(new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, mi.getName(), mi.getMember(), false)), xsink);
     }
 
-    QoreClassMemberIterator smi(c->cls);
+    QoreClassStaticMemberIterator smi(c->cls);
     while (smi.next()) {
         l->push(new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, smi.getName(), smi.getMember(), false)), xsink);
     }
