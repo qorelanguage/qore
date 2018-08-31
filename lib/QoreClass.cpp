@@ -651,16 +651,17 @@ int qore_class_private::initializeHierarchy(qcp_set_t& qcp_set) {
 
 // process signature entries for base classes
 static void do_sig(QoreString& csig, BCNode& n) {
-   qore_class_private* qc = qore_class_private::get(*n.sclass);
-   csig.sprintf("inherits %s %s ", privpub(n.getAccess()), qc->name.c_str());
-   SignatureHash& h = qc->hash;
-   if (h) {
-      csig.concat('[');
-      h.toString(csig);
-      csig.concat("]\n");
-   }
-   else
-      csig.sprintf("{%d}\n", qc->classID);
+    qore_class_private* qc = qore_class_private::get(*n.sclass);
+    csig.sprintf("inherits %s %s ", privpub(n.getAccess()), qc->name.c_str());
+    SignatureHash& h = qc->hash;
+    if (h) {
+        csig.concat('[');
+        h.toString(csig);
+        csig.concat("]\n");
+    }
+    else {
+        csig.sprintf("{%d}\n", qc->classID);
+    }
 }
 
 // process signature entries for class members
@@ -944,7 +945,12 @@ int qore_class_private::runtimeInitLocalMembers(QoreObject& o, bool& need_scan, 
             if (!i->second || (i->second && internal_only && i->second->access != Internal))
                 continue;
 
-            QoreValue& v = qore_object_private::get(o)->getMemberValueRefForInitialization(i->first, i->second->access == Internal ? this : nullptr);
+            // issue #2970: save member in the appropriate location in the object
+            const qore_class_private* member_class_ctx = (i->second->isLocalInternal())
+                ? this
+                : i->second->getClassContext();
+            //printd(5, "qore_class_private::runtimeInitLocalMembers() this: %p '%s.%s' member_class_ctx: %p '%s'\n", this, name.c_str(), i->first, member_class_ctx, member_class_ctx ? member_class_ctx->name.c_str() : "n/a");
+            QoreValue& v = qore_object_private::get(o)->getMemberValueRefForInitialization(i->first, member_class_ctx);
             assert(v.isNothing());
             if (!i->second->exp.isNothing()) {
                 // set runtime location
@@ -1589,15 +1595,17 @@ const QoreMemberInfo* BCNode::runtimeGetMemberInfo(const char* mem, ClassAccess&
 }
 
 const qore_class_private* BCNode::runtimeGetMemberClass(const char* mem, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const {
-   assert(sclass);
+    assert(sclass);
 
-   if (access == Internal && !allow_internal)
-      return 0;
+    if (access == Internal && !allow_internal) {
+        return nullptr;
+    }
 
-   const qore_class_private* rv = sclass->priv->runtimeGetMemberClassIntern(mem, n_access, class_ctx);
-   if (rv && n_access < access)
-      n_access = access;
-   return rv;
+    const qore_class_private* rv = sclass->priv->runtimeGetMemberClassIntern(mem, n_access, class_ctx);
+    if (rv && n_access < access) {
+        n_access = access;
+    }
+    return rv;
 }
 
 const QoreMemberInfo* BCNode::parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const {
@@ -1834,8 +1842,9 @@ int BCList::initialize(QoreClass* cls, bool& has_delete_blocker) {
 const qore_class_private* BCList::runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const {
     for (auto& i : *this) {
         const qore_class_private* rv = (*i).runtimeGetMemberClass(mem, access, class_ctx, allow_internal);
-        if (rv)
+        if (rv) {
             return rv;
+        }
     }
 
     return nullptr;
@@ -2415,31 +2424,31 @@ const QoreMethod* qore_class_private::parseFindAnyMethod(const char* nme, const 
 }
 
 const QoreMethod* qore_class_private::parseFindAnyMethodStaticFirst(const char* nme, const qore_class_private* class_ctx) {
-   const QoreMethod* m = 0;
+    const QoreMethod* m = 0;
 
-   // if we have a class context, first we have to check here for an internal method
-   if (class_ctx) {
-      m = class_ctx->parseFindLocalStaticMethod(nme);
-      if (m && qore_method_private::getAccess(*m) != Internal) {
-         m = class_ctx->parseFindLocalMethod(nme);
-         if (m && qore_method_private::getAccess(*m) != Internal) {
-            m = 0;
-         }
-      }
-   }
+    // if we have a class context, first we have to check here for an internal method
+    if (class_ctx) {
+        m = class_ctx->parseFindLocalStaticMethod(nme);
+        if (m && qore_method_private::getAccess(*m) != Internal) {
+            m = class_ctx->parseFindLocalMethod(nme);
+            if (m && qore_method_private::getAccess(*m) != Internal) {
+                m = 0;
+            }
+        }
+    }
 
-   if (!m)
-      m = parseFindStaticMethodIntern(nme, class_ctx);
+    if (!m)
+        m = parseFindStaticMethodIntern(nme, class_ctx);
 
-   if (m && ((qore_method_private::getAccess(*m) == Public) || class_ctx))
-      return m;
+    if (m && ((qore_method_private::getAccess(*m) == Public) || class_ctx))
+        return m;
 
-   m = parseFindNormalMethodIntern(nme, class_ctx);
+    m = parseFindNormalMethodIntern(nme, class_ctx);
 
-   if (m && (!strcmp(nme, "constructor") || !strcmp(nme, "destructor") || !strcmp(nme, "copy")))
-      m = 0;
+    if (m && (!strcmp(nme, "constructor") || !strcmp(nme, "destructor") || !strcmp(nme, "copy")))
+        m = 0;
 
-   return m && ((qore_method_private::getAccess(*m) == Public) || class_ctx) ? m : 0;
+    return m && ((qore_method_private::getAccess(*m) == Public) || class_ctx) ? m : 0;
 }
 
 // searches all methods, both pending and comitted
@@ -3035,14 +3044,13 @@ const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProg
 }
 
 bool qore_class_private::runtimeIsPrivateMemberIntern(const char* str, bool toplevel) const {
-   QoreMemberInfo* info = members.find(str);
-   if (info) {
-      ClassAccess ma = info->getAccess();
-      if (ma != Internal || toplevel)
-         return ma > Public;
-   }
+    QoreMemberInfo* info = members.find(str);
+    if (info && (toplevel || !info->isLocalInternal())) {
+        ClassAccess ma = info->getAccess();
+        return ma > Public;
+    }
 
-   return !scl ? false : scl->runtimeIsPrivateMember(str, toplevel);
+    return !scl ? false : scl->runtimeIsPrivateMember(str, toplevel);
 }
 
 QoreValue QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -3924,14 +3932,15 @@ void QoreClass::parseSetEmptyPublicMemberDeclaration() {
 }
 
 bool QoreClass::isPublicOrPrivateMember(const char* str, bool& priv_member) const {
-   ClassAccess access;
-   bool internal_member;
-   const qore_class_private* class_ctx = runtime_get_class();
-   if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx))
-      class_ctx = 0;
-   bool rv = (bool)priv->runtimeGetMemberClass(str, access, class_ctx, internal_member);
-   priv_member = access > Public;
-   return rv;
+    ClassAccess access;
+    bool internal_member;
+    const qore_class_private* class_ctx = runtime_get_class();
+    if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx)) {
+        class_ctx = nullptr;
+    }
+    bool rv = (bool)priv->runtimeGetMemberClass(str, access, class_ctx, internal_member);
+    priv_member = access > Public;
+    return rv;
 }
 
 bool QoreClass::hasPrivateCopyMethod() const {

@@ -10,6 +10,50 @@
 
 %exec-class ClassesTest
 
+class Issue2970_Base {
+    public {
+        int x1 = 2;
+    }
+
+    private {
+        int x2 = 2;
+    }
+
+    private:internal {
+        int i = 2;
+    }
+
+    int get() {
+        return x1;
+    }
+
+    int get2(int i0) {
+        return i0 + i;
+    }
+}
+
+class Issue2970_Child inherits private:internal Issue2970_Base {
+    public {
+        int i = 1;
+    }
+
+    private {
+        string str = "test";
+    }
+
+    private:internal {
+        bool flag = False;
+    }
+
+    int get() {
+        return Issue2970_Base::get();
+    }
+
+    int get2() {
+        return get2(1);
+    }
+}
+
 class Issue2741_B {
     int t(int i) {
         return t1(i);
@@ -260,6 +304,7 @@ namespace Issue2744_A {
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 2970", \issue2970());
         addTestCase("issue 2885", \issue2885());
         addTestCase("issue 2744", \issue2744());
         addTestCase("issue 2741", \issue2741());
@@ -275,6 +320,12 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue2970() {
+        Issue2970_Child c();
+        assertEq(2, c.get());
+        assertEq(3, c.get2());
     }
 
     issue2885() {
@@ -400,7 +451,7 @@ public class ClassesTest inherits QUnit::Test {
         catch (hash nex) {
             ex = nex;
         }
-        assertEq(162, ex.callstack[0].line);
+        assertEq(206, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);

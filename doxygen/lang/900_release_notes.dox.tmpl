@@ -112,8 +112,12 @@
     - fixed bug: @ref Qore::hash(list) "hash(list)" where l has an odd number of elements never returns (<a href="https://github.com/qorelanguage/qore/issues/2860">issue 2860</a>)
     - fixed bug where no error is issued when an expression does not have meaning as a top-level statement (<a href="https://github.com/qorelanguage/qore/issues/2826">issue 2826</a>),
       and also where such expression is an argument to the @ref background "background" operator (<a href="https://github.com/qorelanguage/qore/issues/2747">issue 2747</a>)
-    - fixed bug where the parser does not recognize that a return value of a function call is not ignored if it is an object and its method is immediately called
+    - fixed bug where the parser does not recognize that a return value of a function call is not ignored if it
+      is an object and its method is immediately called
       (<a href="https://github.com/qorelanguage/qore/issues/2863">issue 2863</a>),
+    - fixed bug where \c public and \c private members of classes inherited with \c private:internal inheritance
+      were not initialized when objects were created
+      (<a href="https://github.com/qorelanguage/qore/issues/2970">issue 2970</a>),
 
 
     @section qore_08137 Qore 0.8.13.7
