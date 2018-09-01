@@ -455,6 +455,8 @@ public:
       delete mutex;
    }
 
+   DLLLOCAL strdeque_t::const_iterator getModuleDirListBeginIt() const;
+   DLLLOCAL strdeque_t::const_iterator getModuleDirListEndIt() const;
    DLLLOCAL void init(bool se);
    DLLLOCAL void delUser();
    DLLLOCAL void cleanup();

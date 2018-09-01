@@ -850,6 +850,14 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
     xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), desc);
 }
 
+strdeque_t::const_iterator QoreModuleManager::getModuleDirListBeginIt() const {
+    return moduleDirList.begin();
+}
+
+strdeque_t::const_iterator QoreModuleManager::getModuleDirListEndIt() const {
+    return moduleDirList.end();
+}
+
 bool QoreModuleManager::trySeparateModuleLoading(
     ExceptionSink& xsink,
     const char* name,
@@ -878,7 +886,9 @@ bool QoreModuleManager::trySeparateModuleLoading(
             modulePath += name;
             modulePath += ".qm";printd(0, "modulePath=%s\n", modulePath.c_str());
             loadModuleIntern(xsink, modulePath.c_str(), pgm, reexport, op, version, src, mpgm, load_opt);
-            return true;
+            if (!xsink)
+            // assert(some assert);
+                return true;
         }
         ++path;
     }
