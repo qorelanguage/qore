@@ -52,8 +52,10 @@ public class CopyFileTest inherits QUnit::Test {
 
         string copy_path = join_paths(tmp_path, "copy");
         assertFalse(path_exists(copy_path));
-        copy_file(original.path, copy_path);
+        string dest_path = copy_file(original.path, copy_path);
+        assertEq(copy_path, dest_path);
         assertTrue(path_exists(copy_path));
+        assertEq(hstat(original.path).mode, hstat(copy_path).mode);
         assert_file_contains(copy_path, content);
 
         # now overwrite the file with different content
@@ -61,8 +63,18 @@ public class CopyFileTest inherits QUnit::Test {
         set_content_to_file(original.path, content2);
         assert_file_contains(original.path, content2);
         assert_file_contains(copy_path, content);
-        copy_file(original.path, copy_path);
+        dest_path = copy_file(original.path, copy_path);
+        assertEq(copy_path, dest_path);
+        assertEq(hstat(original.path).mode, hstat(copy_path).mode);
         assert_file_contains(copy_path, content2);
+
+        # now overwrite the file with different permissions
+        assertEq(0100600, hstat(original.path).mode);
+        chmod(original.path, 0640);
+        assertEq(0100640, hstat(original.path).mode);
+        dest_path = copy_file(original.path, copy_path);
+        assertEq(copy_path, dest_path);
+        assertEq(0100640, hstat(copy_path).mode);
     }
 
     test_copy_file_exceptions() {
@@ -112,8 +124,10 @@ public class CopyFileTest inherits QUnit::Test {
         # it's possible to copy to a directory though
         string copy_path = join_paths(subdir, basename(file1.path));
         assertFalse(path_exists(copy_path));
-        copy_file(file1.path, subdir);
+        string dest_path = copy_file(file1.path, subdir);
+        assertEq(copy_path, dest_path);
         assertTrue(path_exists(copy_path));
+        assertEq(hstat(file1.path).mode, hstat(copy_path).mode);
         assert_file_contains(copy_path, content);
     }
 
@@ -140,8 +154,10 @@ public class CopyFileTest inherits QUnit::Test {
         # copy the original file (via a link) to another file (which doesn't exist now)
         string copy_path = join_paths(tmp_path, "copy");
         assertFalse(path_exists(copy_path));
-        copy_file(link_original, copy_path);
+        string dest_path = copy_file(link_original, copy_path);
+        assertEq(copy_path, dest_path);
         assertTrue(path_exists(copy_path));
+        assertEq(hstat(link_original).mode, hstat(copy_path).mode);
         assertTrue(is_link(copy_path));   # follow_symlinks is False -> a new symlink is created as the copy
         assert_file_contains(copy_path, content);
 
@@ -152,8 +168,10 @@ public class CopyFileTest inherits QUnit::Test {
         assertTrue(is_link(link_copy2));
         assertEq(copy2_path, readlink(link_copy2));
         assertFalse(path_exists(copy2_path));
-        copy_file(original.path, link_copy2);
+        dest_path = copy_file(original.path, link_copy2);
+        assertEq(link_copy2, dest_path);
         assertTrue(path_exists(copy2_path));
+        assertEq(hstat(original.path).mode, hstat(link_copy2).mode);
         assertTrue(is_link(link_copy2));
         assertFalse(is_link(copy2_path));
         assert_file_contains(copy2_path, content);
@@ -168,10 +186,14 @@ public class CopyFileTest inherits QUnit::Test {
         # now copy the original file into the subdirectory via the link
         string copy3_path = join_paths(subdir, basename(original.path));
         assertFalse(path_exists(copy3_path));
-        copy_file(original.path, link_subdir);
+        dest_path = copy_file(original.path, link_subdir);
+        string link_cp_path = join_paths(link_subdir, basename(original.path));
+        assertEq(link_cp_path, dest_path);
+        assertTrue(path_exists(link_cp_path));
         assertTrue(is_link(link_subdir));
         assertFalse(is_link(copy3_path));
         assertTrue(path_exists(copy3_path));
+        assertEq(hstat(original.path).mode, hstat(copy3_path).mode);
         assert_file_contains(copy3_path, content);
     }
 
@@ -198,8 +220,10 @@ public class CopyFileTest inherits QUnit::Test {
         # copy the original file (via a link) to another file (which doesn't exist now)
         string copy_path = join_paths(tmp_path, "copy");
         assertFalse(path_exists(copy_path));
-        copy_file(link_original, copy_path, True);
+        string dest_path = copy_file(link_original, copy_path, True);
+        assertEq(copy_path, dest_path);
         assertTrue(path_exists(copy_path));
+        assertEq(hstat(link_original).mode, hstat(copy_path).mode);
         assertFalse(is_link(copy_path));
         assert_file_contains(copy_path, content);
 
@@ -210,8 +234,10 @@ public class CopyFileTest inherits QUnit::Test {
         assertTrue(is_link(link_copy2));
         assertEq(copy2_path, readlink(link_copy2));
         assertFalse(path_exists(copy2_path));
-        copy_file(original.path, link_copy2, True);
+        dest_path = copy_file(original.path, link_copy2, True);
+        assertEq(link_copy2, dest_path);
         assertTrue(path_exists(copy2_path));
+        assertEq(hstat(original.path).mode, hstat(link_copy2).mode);
         assertTrue(is_link(link_copy2));
         assertFalse(is_link(copy2_path));
         assert_file_contains(copy2_path, content);
@@ -226,10 +252,14 @@ public class CopyFileTest inherits QUnit::Test {
         # now copy the original file into the subdirectory via the link
         string copy3_path = join_paths(subdir, basename(original.path));
         assertFalse(path_exists(copy3_path));
-        copy_file(original.path, link_subdir, True);
+        dest_path = copy_file(original.path, link_subdir, True);
+        string link_cp_path = join_paths(link_subdir, basename(original.path));
+        assertEq(link_cp_path, dest_path);
+        assertTrue(path_exists(link_cp_path));
         assertTrue(is_link(link_subdir));
         assertFalse(is_link(copy3_path));
         assertTrue(path_exists(copy3_path));
+        assertEq(hstat(original.path).mode, hstat(copy3_path).mode);
         assert_file_contains(copy3_path, content);
     }
 
@@ -259,8 +289,10 @@ public class CopyFileTest inherits QUnit::Test {
         assertTrue(is_file(copy.path));
 
         # copy original via symlink (with overwrite) with follow_symlinks
-        copy_file(link_original, copy.path, True, True);
+        string dest_path = copy_file(link_original, copy.path, True, True);
+        assertEq(copy.path, dest_path);
         assertTrue(path_exists(copy.path));
+        assertEq(hstat(link_original).mode, hstat(copy.path).mode);
         assertFalse(is_link(copy.path));
         assert_file_contains(copy.path, content);
 
@@ -270,9 +302,12 @@ public class CopyFileTest inherits QUnit::Test {
         assert_file_contains(original.path, content2);
 
         # copy original via symlink (with overwrite) without follow_symlinks
-        copy_file(link_original, copy.path, False, True);
+        dest_path = copy_file(link_original, copy.path, False, True);
+        assertEq(copy.path, dest_path);
         assertTrue(path_exists(copy.path));
         assertTrue(is_link(copy.path));
+        assertEq(hstat(link_original).mode, hstat(copy.path).mode);
+        assertEq(hlstat(link_original).mode, hlstat(copy.path).mode);
         assert_file_contains(copy.path, content2);
 
         # copy original via symlink without overwrite and without follow_symlinks should fail
@@ -280,9 +315,12 @@ public class CopyFileTest inherits QUnit::Test {
 
         # copy original via symlink (dst doesn't exist this time -> no overwrite) without follow_symlinks
         unlink(copy.path);
-        copy_file(link_original, copy.path, False, False);
+        dest_path = copy_file(link_original, copy.path, False, False);
+        assertEq(copy.path, dest_path);
         assertTrue(path_exists(copy.path));
         assertTrue(is_link(copy.path));
+        assertEq(hstat(link_original).mode, hstat(copy.path).mode);
+        assertEq(hlstat(link_original).mode, hlstat(copy.path).mode);
         assert_file_contains(copy.path, content2);
     }
 }

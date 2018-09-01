@@ -1,0 +1,493 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class CopyPathTest
+
+public class CopyPathTest inherits QUnit::Test {
+
+    constructor() : Test ("CopyPathTest", "1.0") {
+        addTestCase("copy_path file test", \test_copy_path());
+        addTestCase("copy_path file test - exceptions", \test_copy_path_exceptions());
+        addTestCase("copy_path file test - don't follow symlinks", \test_copy_path_dont_follow_symlinks());
+        addTestCase("copy_path file test - follow symlinks", \test_copy_path_follow_symlinks());
+        addTestCase("copy_path file test - symlink in source", \test_copy_path_symlink_in_src());
+        addTestCase("copy_path tree test", \test_copy_path_tree());
+        addTestCase("copy_path tree exception test", \test_copy_path_tree_exception());
+        set_return_value(main());
+    }
+
+    set_content_to_file(string path, string content) {
+        File f();
+        f.open2(path, O_TRUNC | O_WRONLY);
+        f.write(content);
+        f.close();
+    }
+
+    assert_file_contains(string path, string content) {
+        File f();
+        f.open2(path);
+        string actual = f.read(-1);
+        assertEq(content, actual);
+        f.close();
+    }
+
+    test_copy_path() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_path);
+        }
+
+        string content = "Hello World!";
+
+        hash original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        original.file.write(content);
+        original.file.close();
+        assert_file_contains(original.path, content);
+
+        string copy0_path = join_paths(tmp_path, "copy");
+        assertFalse(path_exists(copy0_path));
+        string dest_path = copy_path(original.path, copy0_path);
+        assertEq(copy0_path, dest_path);
+        assertTrue(path_exists(copy0_path));
+        assertEq(hstat(original.path).mode, hstat(copy0_path).mode);
+        assert_file_contains(copy0_path, content);
+
+        # now check that permission bits are copied too
+        unlink(dest_path);
+        assertEq(0100600, hstat(original.path).mode);
+        chmod(original.path, 0640);
+        assertEq(0100640, hstat(original.path).mode);
+        dest_path = copy_path(original.path, copy0_path);
+        assertEq(copy0_path, dest_path);
+        assertEq(0100640, hstat(copy0_path).mode);
+    }
+
+    test_copy_path_exceptions() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_path);
+        }
+
+        # prepare FS structure
+        hash file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        string content = "Hello World!";
+        file1.file.write(content);
+        file1.file.close();
+        assert_file_contains(file1.path, content);
+        string link_file1 = join_paths(tmp_path, "link_file1");
+        symlink(file1.path, link_file1);
+        assertTrue(is_link(link_file1));
+        assertEq(file1.path, readlink(link_file1));
+        string subdir = make_tmp_dir(NOTHING, NOTHING, tmp_path);
+
+        # non-existent source should always fail
+        string non_existent = join_paths(tmp_path, "non_existent.txt");
+        assertThrows("FILE-STAT-ERROR", \copy_path(), (non_existent, file1.path));
+        assertThrows("FILE-STAT-ERROR", \copy_path(), (non_existent, file1.path, True));
+        assertThrows("FILE-STAT-ERROR", \copy_path(), (non_existent, file1.path, False));
+
+        # existing destination
+        hash file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        file1.file.close();
+        assertThrows("FILE-EXISTS-ERROR", \copy_path(), (file2.path, file1.path, True));
+        assertThrows("FILE-EXISTS-ERROR", \copy_path(), (file2.path, file1.path, False));
+
+        # existing destination via a link
+        assertThrows("FILE-EXISTS-ERROR", \copy_path(), (file2.path, link_file1, True));
+
+        # it's possible to copy to a directory though
+        string copy0_path = join_paths(subdir, basename(file1.path));
+        assertFalse(path_exists(copy0_path));
+        string dest_path = copy_path(file1.path, subdir);
+        assertEq(copy0_path, dest_path);
+        assertTrue(path_exists(copy0_path));
+        assertEq(hstat(file1.path).mode, hstat(copy0_path).mode);
+        assert_file_contains(copy0_path, content);
+    }
+
+    test_copy_path_dont_follow_symlinks() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_path);
+        }
+
+        string content = "Hello World!";
+
+        # get a file
+        hash original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        original.file.write(content);
+        original.file.close();
+        assert_file_contains(original.path, content);
+
+        # create a link to that file
+        string link_original = join_paths(tmp_path, "link1");
+        symlink(original.path, link_original);
+        assertTrue(is_link(link_original));
+        assertEq(original.path, readlink(link_original));
+
+        # copy the original file (via a link) to another file (which doesn't exist now)
+        string copy0_path = join_paths(tmp_path, "copy");
+        assertFalse(path_exists(copy0_path));
+        string dest_path = copy_path(link_original, copy0_path);
+        assertEq(copy0_path, dest_path);
+        assertTrue(path_exists(copy0_path));
+        assertEq(hstat(link_original).mode, hstat(copy0_path).mode);
+        assertTrue(is_link(copy0_path));   # follow_symlinks is False -> a new symlink is created as the copy
+        assert_file_contains(copy0_path, content);
+
+        # now get a link to yet another non_existent file and check that it gets created by copying of the original
+        string copy2_path = join_paths(tmp_path, "copy2");
+        string link_copy2 = join_paths(tmp_path, "link2");
+        symlink(copy2_path, link_copy2);
+        assertTrue(is_link(link_copy2));
+        assertEq(copy2_path, readlink(link_copy2));
+        assertFalse(path_exists(copy2_path));
+        dest_path = copy_path(original.path, link_copy2);
+        assertEq(link_copy2, dest_path);
+        assertTrue(path_exists(copy2_path));
+        assertEq(hstat(original.path).mode, hstat(link_copy2).mode);
+        assertTrue(is_link(link_copy2));
+        assertFalse(is_link(copy2_path));
+        assert_file_contains(copy2_path, content);
+
+        # get a directory and a link to it as well
+        string subdir = make_tmp_dir(NOTHING, NOTHING, tmp_path);
+        string link_subdir = join_paths(tmp_path, "link3");
+        symlink(subdir, link_subdir);
+        assertTrue(is_link(link_subdir));
+        assertEq(subdir, readlink(link_subdir));
+
+        # now copy the original file into the subdirectory via the link
+        string copy3_path = join_paths(subdir, basename(original.path));
+        assertFalse(path_exists(copy3_path));
+        dest_path = copy_path(original.path, link_subdir);
+        string link_cp_path = join_paths(link_subdir, basename(original.path));
+        assertEq(link_cp_path, dest_path);
+        assertTrue(path_exists(link_cp_path));
+        assertTrue(is_link(link_subdir));
+        assertFalse(is_link(copy3_path));
+        assertTrue(path_exists(copy3_path));
+        assertEq(hstat(original.path).mode, hstat(copy3_path).mode);
+        assert_file_contains(copy3_path, content);
+    }
+
+    test_copy_path_follow_symlinks() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_path);
+        }
+
+        string content = "Hello World!";
+
+        # get a file
+        hash original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        original.file.write(content);
+        original.file.close();
+        assert_file_contains(original.path, content);
+
+        # create a link to that file
+        string link_original = join_paths(tmp_path, "link1");
+        symlink(original.path, link_original);
+        assertTrue(is_link(link_original));
+        assertEq(original.path, readlink(link_original));
+
+        # copy the original file (via a link) to another file (which doesn't exist now)
+        string copy0_path = join_paths(tmp_path, "copy");
+        assertFalse(path_exists(copy0_path));
+        string dest_path = copy_path(link_original, copy0_path, True);
+        assertEq(copy0_path, dest_path);
+        assertTrue(path_exists(copy0_path));
+        assertEq(hstat(link_original).mode, hstat(copy0_path).mode);
+        assertFalse(is_link(copy0_path));
+        assert_file_contains(copy0_path, content);
+
+        # now get a link to yet another non_existent file and check that it gets created by copying of the original
+        string copy2_path = join_paths(tmp_path, "copy2");
+        string link_copy2 = join_paths(tmp_path, "link2");
+        symlink(copy2_path, link_copy2);
+        assertTrue(is_link(link_copy2));
+        assertEq(copy2_path, readlink(link_copy2));
+        assertFalse(path_exists(copy2_path));
+        dest_path = copy_path(original.path, link_copy2, True);
+        assertEq(link_copy2, dest_path);
+        assertTrue(path_exists(copy2_path));
+        assertEq(hstat(original.path).mode, hstat(link_copy2).mode);
+        assertTrue(is_link(link_copy2));
+        assertFalse(is_link(copy2_path));
+        assert_file_contains(copy2_path, content);
+
+        # get a directory and a link to it as well
+        string subdir = make_tmp_dir(NOTHING, NOTHING, tmp_path);
+        string link_subdir = join_paths(tmp_path, "link3");
+        symlink(subdir, link_subdir);
+        assertTrue(is_link(link_subdir));
+        assertEq(subdir, readlink(link_subdir));
+
+        # now copy the original file into the subdirectory via the link
+        string copy3_path = join_paths(subdir, basename(original.path));
+        assertFalse(path_exists(copy3_path));
+        dest_path = copy_path(original.path, link_subdir, True);
+        string link_cp_path = join_paths(link_subdir, basename(original.path));
+        assertEq(link_cp_path, dest_path);
+        assertTrue(path_exists(link_cp_path));
+        assertTrue(is_link(link_subdir));
+        assertFalse(is_link(copy3_path));
+        assertTrue(path_exists(copy3_path));
+        assertEq(hstat(original.path).mode, hstat(copy3_path).mode);
+        assert_file_contains(copy3_path, content);
+    }
+
+    test_copy_path_symlink_in_src() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_path);
+        }
+
+        string content = "Qore is great.";
+
+        # get a file
+        hash original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        original.file.write(content);
+        original.file.close();
+        assert_file_contains(original.path, content);
+
+        # create a link to that file
+        string link_original = join_paths(tmp_path, "link1");
+        symlink(original.path, link_original);
+        assertTrue(is_link(link_original));
+        assertEq(original.path, readlink(link_original));
+
+        # create a target path
+        string copy = join_paths(tmp_path, "copy");
+
+        # copy original via symlink with follow_symlinks
+        string dest_path = copy_path(link_original, copy, True);
+        assertEq(copy, dest_path);
+        assertTrue(path_exists(copy));
+        assertEq(hstat(link_original).mode, hstat(copy).mode);
+        assertFalse(is_link(copy));
+        assert_file_contains(copy, content);
+        unlink(copy);
+
+        # copy original via symlink without follow_symlinks
+        dest_path = copy_path(link_original, copy, False);
+        assertEq(copy, dest_path);
+        assertTrue(path_exists(copy));
+        assertTrue(is_link(copy));
+        assertEq(hstat(link_original).mode, hstat(copy).mode);
+        assertEq(hlstat(link_original).mode, hlstat(copy).mode);
+        assert_file_contains(copy, content);
+
+        # copy original via symlink and without follow_symlinks should fail (no overwrite)
+        assertThrows("FILE-EXISTS-ERROR", \copy_path(), (link_original, copy, False));
+
+        # copy original via symlink (dst doesn't exist this time) without follow_symlinks
+        unlink(copy);
+        dest_path = copy_path(link_original, copy, False);
+        assertEq(copy, dest_path);
+        assertTrue(path_exists(copy));
+        assertTrue(is_link(copy));
+        assertEq(hstat(link_original).mode, hstat(copy).mode);
+        assertEq(hlstat(link_original).mode, hlstat(copy).mode);
+        assert_file_contains(copy, content);
+    }
+
+    test_copy_path_tree() {
+        # create a temporary directory and a test directory tree in it
+        string tmp_root = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_root);
+        }
+        string source_path = join_paths(tmp_root, "src");
+        mkdir(source_path);
+        string dir_path = join_paths(source_path, "dir");
+        mkdir(dir_path);
+        File tmp_file = new File();
+        string file_path = join_paths(source_path, "file");
+        tmp_file.open(file_path, O_CREAT, 0600);
+        tmp_file.close();
+        string link_path = join_paths(dir_path, "link");
+        symlink(file_path, link_path);
+
+        # now we should have something like...
+        # tmp_root
+        # └── src
+        #     ├── dir
+        #     │   └── link -> tmp_root/src/file
+        #     └── file
+        # ... let's check it
+        assertTrue(path_exists(source_path));
+        assertTrue(is_dir(source_path));
+        assertTrue(path_exists(dir_path));
+        assertTrue(is_dir(dir_path));
+        assertTrue(path_exists(file_path));
+        assertTrue(is_file(file_path));
+        assertTrue(path_exists(link_path));
+        assertTrue(is_link(link_path));
+        assertEq(file_path, readlink(link_path));
+
+        # let's copy the source directory tree and check the result too
+        string dst_path = join_paths(tmp_root, "dst");
+        string cp_dest_path = copy_path(source_path, dst_path);
+        assertEq(dst_path, cp_dest_path);
+        # this is what we expect
+        string dst_dir_path = join_paths(dst_path, "dir");
+        string dst_file_path = join_paths(dst_path, "file");
+        string dst_link_path = join_paths(dst_dir_path, "link");
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_link(dst_link_path));
+        assertEq(file_path, readlink(dst_link_path));  # follow_symlinks=False
+        # let's clean it
+        rmtree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # let's try again but this time use an existing directory as destination
+        mkdir(dst_path);
+        string dst_root_path = dst_path;
+        cp_dest_path = copy_path(source_path, dst_path);
+        # this will also change the paths because src will be copied into it
+        dst_path = join_paths((tmp_root, "dst", "src"));
+        dst_dir_path = join_paths(dst_path, "dir");
+        dst_file_path = join_paths(dst_path, "file");
+        dst_link_path = join_paths(dst_dir_path, "link");
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_link(dst_link_path));
+        assertEq(file_path, readlink(dst_link_path));  # follow_symlinks=False
+        # let's clean it
+        rmtree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # let's try again with follow_symlinks=True
+        mkdir(dst_path);
+        cp_dest_path = copy_path(source_path, dst_root_path, True);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_file(dst_link_path));  # follow_symlinks=True
+        # let's clean it
+        rmtree(dst_path);
+        assertFalse(path_exists(dst_path));
+
+        # now let's copy it via a link to the source
+        # let's try again with follow_symlinks=True
+        mkdir(dst_path);
+        string src_link_path = join_paths(tmp_root, "src_link");
+        assertFalse(path_exists(src_link_path));
+        symlink(source_path, src_link_path);
+        assertTrue(path_exists(src_link_path));
+        assertTrue(is_link(src_link_path));
+        cp_dest_path = copy_path(source_path, dst_root_path, True);
+        assertEq(dst_path, cp_dest_path);
+        assertTrue(path_exists(dst_path));
+        assertTrue(is_dir(dst_path));
+        assertTrue(path_exists(dst_dir_path));
+        assertTrue(is_dir(dst_dir_path));
+        assertTrue(path_exists(dst_file_path));
+        assertTrue(is_file(dst_file_path));
+        assertTrue(path_exists(dst_link_path));
+        assertTrue(is_file(dst_link_path));  # follow_symlinks=True
+    }
+
+    test_copy_path_tree_exception() {
+        # create a temporary directory and a test directory tree in it
+        string tmp_root = make_tmp_dir();
+        on_exit {
+            rmtree(tmp_root);
+        }
+        string source_path = join_paths(tmp_root, "src");
+        mkdir(source_path);
+        string dir_path = join_paths(source_path, "dir");
+        mkdir(dir_path);
+        File tmp_file = new File();
+        string file_path = join_paths(source_path, "file");
+        tmp_file.open(file_path, O_CREAT, 0600);
+        tmp_file.close();
+        string link_path = join_paths(dir_path, "link");
+        symlink(file_path, link_path);
+        string dest_dir = join_paths(tmp_root, "dest");
+        mkdir(dest_dir);
+
+        # now we should have something like...
+        # tmp_root
+        # ├── dest
+        # └── src
+        #     ├── dir
+        #     │   └── link -> tmp_root/src/file
+        #     └── file
+        # ... let's check it
+        assertTrue(path_exists(source_path));
+        assertTrue(is_dir(source_path));
+        assertTrue(path_exists(dir_path));
+        assertTrue(is_dir(dir_path));
+        assertTrue(path_exists(file_path));
+        assertTrue(is_file(file_path));
+        assertTrue(path_exists(link_path));
+        assertTrue(is_link(link_path));
+        assertEq(file_path, readlink(link_path));
+        assertTrue(path_exists(dest_dir));
+        assertTrue(is_dir(dest_dir));
+
+        # try and copy non-existing directory
+        string non_existing = join_paths(tmp_root, "non-existing");
+        assertThrows("FILE-STAT-ERROR", \copy_path(), (non_existing, dest_dir));
+
+        # try and copy a directory into itself
+        assertThrows("SAME-DIR-ERROR", \copy_path(), (dest_dir, dest_dir));
+
+        # now let's make tmp_root/src/file unreadable -> copying it should fail
+        chmod(file_path, 0000);
+        bool exception_thrown = False;
+        try {
+            copy_path(source_path, dest_dir);
+        } catch (err) {
+            exception_thrown = True;
+            assertEq("COPY-TREE-ERROR", err.err);
+            assertEq(1, err.desc.size());
+            assertEq("FILE-OPEN2-ERROR", err.desc[0].err);
+            assertGt(-1, index(err.desc[0].desc, file_path));
+        }
+        assertTrue(exception_thrown);
+        rmtree(dest_dir);
+
+        # try that again with follow_symlinks (i.e. the link will also be unreadable)
+        exception_thrown = False;
+        try {
+            copy_path(source_path, dest_dir, True);
+        } catch (err) {
+            exception_thrown = True;
+            assertEq("COPY-TREE-ERROR", err.err);
+            assertEq(2, err.desc.size());
+            assertEq("FILE-OPEN2-ERROR", err.desc[0].err);
+            assertEq("FILE-OPEN2-ERROR", err.desc[1].err);
+            assertGt(-1, index(err.desc[0].desc, file_path));
+            assertGt(-1, index(err.desc[1].desc, file_path));
+        }
+        assertTrue(exception_thrown);
+    }
+}
