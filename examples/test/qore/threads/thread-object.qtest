@@ -18,7 +18,7 @@
 class TransparentObjectThreadTest {
     private:internal {
         Counter end(1);
-        bool stop = False;
+        bool stop;
     }
 
     constructor() {
@@ -28,7 +28,6 @@ class TransparentObjectThreadTest {
         Counter start(1);
         background test(self, start);
         start.waitForZero();
-        delete self;
     }
 
     destructor() {
