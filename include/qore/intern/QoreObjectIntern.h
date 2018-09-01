@@ -281,15 +281,16 @@ public:
 
         ClassAccess access;
         bool internal_member;
-        const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, access, class_ctx, internal_member);
-        if (!qc) {
+        const QoreMemberInfo* info = qore_class_private::get(*theclass)->runtimeGetMemberInfo(mem, access, class_ctx, internal_member);
+        if (!info) {
             return has_public_members ? QOA_PUB_ERROR : QOA_OK;
         }
         // if internal_member is true, then private access has already been verified
         if (internal_member) {
+            member_class_ctx = class_ctx;
             return QOA_OK;
         }
-
+        member_class_ctx = info->getClassContext();
         return ((access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
     }
 
@@ -333,15 +334,17 @@ public:
 
         ClassAccess access;
         bool internal_member;
-        const qore_class_private* qc = qore_class_private::runtimeGetMemberClass(*theclass, mem, access, class_ctx, internal_member);
-        if (!qc) {
+        const QoreMemberInfo* info = qore_class_private::get(*theclass)->runtimeGetMemberInfo(mem, access, class_ctx, internal_member);
+        if (!info) {
             return theclass->runtimeHasPublicMembersInHierarchy() ? QOA_PUB_ERROR : QOA_OK;
         }
         // if internal_member is true, then private access has already been verified
         if (internal_member) {
+            member_class_ctx = class_ctx;
             return QOA_OK;
         }
 
+        member_class_ctx = info->getClassContext();
         return ((access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
     }
 

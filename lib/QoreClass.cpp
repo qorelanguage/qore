@@ -1594,20 +1594,6 @@ const QoreMemberInfo* BCNode::runtimeGetMemberInfo(const char* mem, ClassAccess&
    return rv;
 }
 
-const qore_class_private* BCNode::runtimeGetMemberClass(const char* mem, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const {
-    assert(sclass);
-
-    if (access == Internal && !allow_internal) {
-        return nullptr;
-    }
-
-    const qore_class_private* rv = sclass->priv->runtimeGetMemberClassIntern(mem, n_access, class_ctx);
-    if (rv && n_access < access) {
-        n_access = access;
-    }
-    return rv;
-}
-
 const QoreMemberInfo* BCNode::parseFindMember(const char* mem, const qore_class_private*& qc, ClassAccess& n_access, bool toplevel) const {
    // sclass can be 0 if the class could not be found during parse initialization
    if (!sclass)
@@ -1837,17 +1823,6 @@ int BCList::initialize(QoreClass* cls, bool& has_delete_blocker) {
     }
 
     return valid ? 0 : -1;
-}
-
-const qore_class_private* BCList::runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const {
-    for (auto& i : *this) {
-        const qore_class_private* rv = (*i).runtimeGetMemberClass(mem, access, class_ctx, allow_internal);
-        if (rv) {
-            return rv;
-        }
-    }
-
-    return nullptr;
 }
 
 bool BCList::parseHasPublicMembersInHierarchy() const {
@@ -3938,7 +3913,7 @@ bool QoreClass::isPublicOrPrivateMember(const char* str, bool& priv_member) cons
     if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx)) {
         class_ctx = nullptr;
     }
-    bool rv = (bool)priv->runtimeGetMemberClass(str, access, class_ctx, internal_member);
+    bool rv = (bool)priv->runtimeGetMemberInfo(str, access, class_ctx, internal_member);
     priv_member = access > Public;
     return rv;
 }

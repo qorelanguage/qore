@@ -1351,7 +1351,6 @@ public:
     DLLLOCAL bool isBaseClass(QoreClass* qc, bool toplevel) const;
 
     DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfo(const char* mem, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const;
-    DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const;
 
     DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const;
     DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* name, ClassAccess& n_access, const qore_class_private* class_ctx, bool allow_internal) const;
@@ -1440,7 +1439,6 @@ public:
     DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* name, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
 
     DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfo(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
-    DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool allow_internal) const;
 
     DLLLOCAL bool match(const QoreClass* cls);
     DLLLOCAL void execConstructors(QoreObject* o, BCEAList* bceal, ExceptionSink* xsink) const;
@@ -2447,45 +2445,6 @@ public:
         scl->parseAddAncestors(m);
     }
 
-    /**
-        @param mem the member name
-        @param access the access for the member
-        @param class_ctx the current class contest for internal members; class_ctx is only set if it is
-            present and accessible, so we only need to check for internal access here
-        @param member_class_ctx the class to be used to access the member, if any, if inherited internally
-        @param internal_member set to true if the member is an internal member of class_ctx
-
-        @return the class defining the member
-    */
-    DLLLOCAL const qore_class_private* runtimeGetMemberClass(const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) const {
-        if (class_ctx) {
-            QoreMemberInfo *info = class_ctx->members.find(mem);
-            if (info && info->isLocalInternal()) {
-                internal_member = true;
-                access = Internal;
-                return this;
-            }
-        }
-
-        access = Public;
-        internal_member = false;
-
-        return runtimeGetMemberClassIntern(mem, access, class_ctx);
-    }
-
-    DLLLOCAL const qore_class_private* runtimeGetMemberClassIntern(const char* mem, ClassAccess& access, const qore_class_private* class_ctx) const {
-        QoreMemberInfo *info = members.find(mem);
-        if (info && !info->isLocalInternal()) {
-            ClassAccess ma = info->getAccess();
-            if (access < ma) {
-                access = ma;
-            }
-            return this;
-        }
-
-        return scl ? scl->runtimeGetMemberClass(mem, access, class_ctx, class_ctx && equal(*class_ctx)) : nullptr;
-    }
-
     DLLLOCAL int runtimeInitMembers(QoreObject& o, bool& need_scan, bool internal_only, ExceptionSink* xsink) const;
     DLLLOCAL int runtimeInitLocalMembers(QoreObject& o, bool& need_scan, bool internal_only, ExceptionSink* xsink) const;
 
@@ -3001,11 +2960,6 @@ public:
 
     DLLLOCAL static bool runtimeHasCallableStaticMethod(const QoreClass& qc, const char* m) {
         return qc.priv->runtimeHasCallableMethod(m, QCCM_STATIC);
-    }
-
-    DLLLOCAL static const qore_class_private* runtimeGetMemberClass(const QoreClass& qc, const char* mem, ClassAccess& access, const qore_class_private* class_ctx, bool& internal_member) {
-        access = Public;
-        return qc.priv->runtimeGetMemberClass(mem, access, class_ctx, internal_member);
     }
 
     DLLLOCAL static int runtimeCheckInstantiateClass(const QoreClass& qc, ExceptionSink* xsink) {

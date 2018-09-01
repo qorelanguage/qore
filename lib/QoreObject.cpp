@@ -1121,6 +1121,8 @@ QoreValue QoreObject::evalMember(const QoreString* member, ExceptionSink* xsink)
         return priv->theclass->evalMemberGate(this, *tstr, xsink);
     }
 
+    //printd(5, "QoreObject::evalMember() %s.%s: member_class_ctx: %p '%s'\n", priv->theclass->getName(), mem, member_class_ctx, member_class_ctx ? member_class_ctx->name.c_str() : "n/a");
+
     return rv;
 }
 
