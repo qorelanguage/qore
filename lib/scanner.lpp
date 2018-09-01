@@ -702,14 +702,19 @@ bool try_module_folder_loading(ExceptionSink& xsink, const char * name) {
 
         if (!moduleDir.checkPath()) {
             const QoreString regexClassesFunc(".+.(qc|ql)$");
-            // QoreString regexFu(".+.qc");
-            QoreListNode * moduleDirList = moduleDir.list(&xsink, S_IFREG, &regexClassesFunc, 0, true);
-            QoreValue val = moduleDirList->pop();
-            while (val) {
-                bool asd = true;
-                printd(0, "ASD try_module_folder_loading val=%s\n", val.get<AbstractQoreNode>()->getAsString(asd, 1, &xsink)->c_str());
-                val = moduleDirList->pop();
+            QoreListNode * moduleDirList = moduleDir.list(&xsink, S_IFREG, &regexClassesFunc);
+            for (qore_size_t i = 0; i < moduleDirList->size(); i++) {
+                modulePath += moduleDirList->retrieveEntry(i).get<const QoreStringNode>()->c_str();
+                QoreStringValueHelper s(moduleDirList->retrieveEntry(i));
+                printd(0, "ASD try_module_folder_loading path=%s\n", modulePath.c_str());
+                // paths.push_back(boost::filesystem::path(s->c_str()));
+                // QoreListNode * hashList = moduleDirList->retrieveEntry(i).get<QoreHashNode>()->getValues();
+                // for (qore_size_t j = 0; j < hashList->size(); j++) {
+                    // QoreStringValueHelper s(hashList->retrieveEntry(j));
+                    // printd(0, "ASD try_module_folder_loading path=%s\n", s->c_str());
+                // }
             }
+
             // get all files from folder
             // for qc, ql call include
             // for rest call requires
