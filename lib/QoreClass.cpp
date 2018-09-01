@@ -2550,42 +2550,42 @@ const QoreMethod* qore_class_private::parseResolveSelfMethodIntern(const QorePro
 }
 
 int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& b_mi, const qore_class_private& b_qc, const QoreMemberInfo& l_mi) {
-      if (l_mi.access != b_mi.access) {
-      // raise an exception only if parse exceptions are enabled
-      if (getProgram()->getParseExceptionSink()) {
-         qore_program_private::makeParseException(getProgram(), *l_mi.loc, "PARSE-ERROR", new QoreStringNodeMaker("class '%s' cannot be combined with class '%s' in the same hierarchy because member '%s' is declared both %s and %s, respectively", l_mi.getClass(this)->name.c_str(), b_mi.getClass(&b_qc)->name.c_str(), mname, privpub(l_mi.access), privpub(b_mi.access)));
-      }
-      return -1;
-   }
-   if (l_mi.parseHasTypeInfo() || b_mi.parseHasTypeInfo()) {
-      //printd(5, "qore_class_private::parseCheckClassHierarchyMembers() this: %p '%s' mname: '%s' l: '%s' %p b: '%s' %p ('%s' %p)\n", this, name.c_str(), mname, l_mi.getClass(this)->name.c_str(), l_mi.getClass(this), b_qc.name.c_str(), &b_qc, b_mi.getClass(&b_qc)->name.c_str(), b_mi.getClass(&b_qc));
-      // raise an exception only if parse exceptions are enabled
-      if (getProgram()->getParseExceptionSink()) {
-         qore_program_private::makeParseException(getProgram(), l_mi.parseHasTypeInfo() ? *l_mi.loc : *b_mi.loc, "PARSE-ERROR", new QoreStringNodeMaker("class '%s' cannot be combined with class '%s' in the same hierarchy because member '%s' is declared with a type definition", l_mi.getClass(this)->name.c_str(), b_mi.getClass(&b_qc)->name.c_str(), mname));
-      }
-      return -1;
-   }
-   return 0;
+    if (l_mi.access != b_mi.access) {
+        // raise an exception only if parse exceptions are enabled
+        if (getProgram()->getParseExceptionSink()) {
+            qore_program_private::makeParseException(getProgram(), *l_mi.loc, "PARSE-ERROR", new QoreStringNodeMaker("class '%s' cannot be combined with class '%s' in the same hierarchy because member '%s' is declared both %s and %s, respectively", l_mi.getClass(this)->name.c_str(), b_mi.getClass(&b_qc)->name.c_str(), mname, privpub(l_mi.access), privpub(b_mi.access)));
+        }
+        return -1;
+    }
+    if (l_mi.parseHasTypeInfo() || b_mi.parseHasTypeInfo()) {
+        //printd(5, "qore_class_private::parseCheckClassHierarchyMembers() this: %p '%s' mname: '%s' l: '%s' %p b: '%s' %p ('%s' %p)\n", this, name.c_str(), mname, l_mi.getClass(this)->name.c_str(), l_mi.getClass(this), b_qc.name.c_str(), &b_qc, b_mi.getClass(&b_qc)->name.c_str(), b_mi.getClass(&b_qc));
+        // raise an exception only if parse exceptions are enabled
+        if (getProgram()->getParseExceptionSink()) {
+            qore_program_private::makeParseException(getProgram(), l_mi.parseHasTypeInfo() ? *l_mi.loc : *b_mi.loc, "PARSE-ERROR", new QoreStringNodeMaker("class '%s' cannot be combined with class '%s' in the same hierarchy because member '%s' is declared with a type definition", l_mi.getClass(this)->name.c_str(), b_mi.getClass(&b_qc)->name.c_str(), mname));
+        }
+        return -1;
+    }
+    return 0;
 }
 
 void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess access) {
-   // issue #2657: ensure that parent class members are initialied before merging
-   //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p init qc: %p '%s' qc.members: %p\n", this, name.c_str(), &members, &qc, qc.name.c_str(), &qc.members);
-   qc.members.parseInit();
-   for (QoreMemberMap::DeclOrderIterator i = qc.members.beginDeclOrder(), e = qc.members.endDeclOrder(); i != e; ++i) {
-      if (i->second->access == Internal)
-         continue;
-      const QoreMemberInfo* mi = parseFindLocalPublicPrivateMemberNoInit(i->first);
-      if (mi) {
-         if (mi->access == Internal)
+    // issue #2657: ensure that parent class members are initialied before merging
+    //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p init qc: %p '%s' qc.members: %p\n", this, name.c_str(), &members, &qc, qc.name.c_str(), &qc.members);
+    qc.members.parseInit();
+    for (QoreMemberMap::DeclOrderIterator i = qc.members.beginDeclOrder(), e = qc.members.endDeclOrder(); i != e; ++i) {
+        if (i->second->access == Internal)
             continue;
-         if (!mi->getClass(this)->equal(*i->second->getClass(&qc)))
-            parseCheckClassHierarchyMembers(i->first, *(i->second), qc, *mi);
-         continue;
-      }
-      //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p add '%s' %p '%s' (%d)\n", this, name.c_str(), &members, i->first, i->second->exp, get_type_name(i->second->exp), get_node_type(i->second->exp));
-      members.addInheritedNoCheck(strdup(i->first), i->second->copy(i->first, &qc, access));
-   }
+        const QoreMemberInfo* mi = members.find(i->first);
+        if (mi) {
+            if (mi->access == Internal)
+                continue;
+            if (!mi->getClass(this)->equal(*i->second->getClass(&qc)))
+                parseCheckClassHierarchyMembers(i->first, *(i->second), qc, *mi);
+            continue;
+        }
+        //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p add '%s' %p '%s' (%d)\n", this, name.c_str(), &members, i->first, i->second->exp, get_type_name(i->second->exp), get_node_type(i->second->exp));
+        members.addInheritedNoCheck(strdup(i->first), i->second->copy(i->first, &qc, access));
+    }
 }
 
 void qore_class_private::parseRollback() {

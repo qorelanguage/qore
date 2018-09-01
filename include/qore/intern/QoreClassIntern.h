@@ -889,24 +889,33 @@ protected:
    bool init = false;
 };
 
+// the access stored here is a composite access for the member; the maximum of the class inheritance access
+// (for accessible members imported from base classes) and the member's access in the class where it's
+// defined
 class QoreMemberInfo : public QoreMemberInfoBaseAccess {
 public:
-    // class pointer in case member was imported from a base class
-    const qore_class_private* qc = nullptr,
-        // class context for members inherits from classes inherited with private:internal inheritance
+    const qore_class_private
+        // class pointer in case member was imported from a base class; this is the class defining the member
+        * qc = nullptr,
+        // class context for members inherited from classes with private:internal class inheritance
+        /** these members are accessible to the class, but stored in a class-specific hash.
+        */
         * class_ctx = nullptr;
 
     DLLLOCAL QoreMemberInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue(), ClassAccess n_access = Public) : QoreMemberInfoBaseAccess(loc, n_typeInfo, n_parseTypeInfo, e, n_access) {
     }
 
+    // returns true if the member is a locally-defined member with private:internal member access
     DLLLOCAL bool isLocalInternal() const {
         return !qc && access == Internal;
     }
 
+    // returns true if the member is locally defined
     DLLLOCAL bool local() const {
         return qc ? false : true;
     }
 
+    // reeturns the class where the member was defined or the class passeed as an argument if the member was locally defined
     DLLLOCAL const qore_class_private* getClass(const qore_class_private* c) const {
         return qc ? qc : c;
     }
@@ -916,11 +925,13 @@ public:
         return class_ctx;
     }
 
+    // initializes the member and then calls the copy constructor defined below
     DLLLOCAL QoreMemberInfo* copy(const char* name, const qore_class_private* n_qc, ClassAccess n_access = Public) const {
         const_cast<QoreMemberInfo*>(this)->parseInit(name);
         return new QoreMemberInfo(*this, n_qc, n_access);
     }
 
+    // initializes the member
     DLLLOCAL void parseInit(const char* name);
 
 private:
@@ -1925,7 +1936,7 @@ public:
     DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation* loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const {
         const_cast<qore_class_private*>(this)->parseInitPartial();
 
-        const qore_class_private* qc = 0;
+        const qore_class_private* qc = nullptr;
         ClassAccess access;
         const QoreMemberInfo* omi = parseFindMember(mem, qc, access);
 
@@ -1960,11 +1971,12 @@ public:
     DLLLOCAL int parseResolveInternalMemberAccess(const char* mem, const QoreTypeInfo*& memberTypeInfo) const {
         const_cast<qore_class_private*>(this)->parseInitPartial();
 
-        const qore_class_private* qc = 0;
+        const qore_class_private* qc = nullptr;
         ClassAccess access;
         const QoreMemberInfo* omi = parseFindMember(mem, qc, access);
-        if (omi)
+        if (omi) {
             memberTypeInfo = omi->getTypeInfo();
+        }
 
         return omi ? 0 : -1;
     }
@@ -1973,11 +1985,12 @@ public:
         const_cast<qore_class_private*>(this)->parseInitPartial();
 
         // throws a parse exception if there are public members and the name is not valid
-        const qore_class_private* qc = 0;
+        const qore_class_private* qc = nullptr;
         ClassAccess access;
         const QoreMemberInfo* omi = parseFindMember(mem, qc, access);
-        if (omi)
+        if (omi) {
             memberTypeInfo = omi->parseGetTypeInfo();
+        }
 
         int rc = 0;
         if (!omi) {
@@ -2064,7 +2077,7 @@ public:
 
     // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
     DLLLOCAL const QoreMemberInfo* runtimeGetMemberInfoIntern(const char* mem, ClassAccess& access, const qore_class_private* class_ctx) const {
-        QoreMemberInfo *info = members.find(mem);
+        QoreMemberInfo* info = members.find(mem);
         if (info && !info->isLocalInternal()) {
             ClassAccess ma = info->getAccess();
             if (access < ma) {
@@ -2082,19 +2095,20 @@ public:
         return parseFindMemberNoInit(mem, qc, access, true);
     }
 
-    DLLLOCAL const QoreMemberInfo* parseFindLocalPublicPrivateMemberNoInit(const char* mem) const {
-        return members.find(mem);
-    }
-
+    // returns the member if it's defined and reachable from the class and cannot be declared again in the top-level class
+    /** if the member is reachable through private inheritance and can be declared again, then nullptr is returned
+    */
     DLLLOCAL const QoreMemberInfo* parseFindMemberNoInit(const char* mem, const qore_class_private*& qc, ClassAccess& access, bool toplevel) const {
-        const QoreMemberInfo* mi = parseFindLocalPublicPrivateMemberNoInit(mem);
-        if (mi && (toplevel || !mi->isLocalInternal())) {
+        const QoreMemberInfo* mi = members.find(mem);
+        if (mi) {
             ClassAccess ma = mi->getAccess();
-            if (access < ma) {
-                access = ma;
+            if (toplevel || ma != Internal) {
+                if (access < ma) {
+                    access = ma;
+                }
+                qc = mi->getClass(this);
+                return mi;
             }
-            qc = mi->getClass(this);
-            return mi;
         }
 
         return scl ? scl->parseFindMember(mem, qc, access, true) : 0;
@@ -2135,21 +2149,25 @@ public:
     }
 
     DLLLOCAL int parseCheckMember(const char* mem, const QoreMemberInfo* mi) const {
-        const qore_class_private* qc = 0;
+        const qore_class_private* qc = nullptr;
         ClassAccess access = Public;
         const QoreMemberInfo* omi = parseFindMemberNoInit(mem, qc, access, true);
-        if (!omi)
+        if (!omi) {
             return 0;
+        }
 
         return checkExistingVarMember(mem, mi, omi, qc, omi->access);
     }
 
     DLLLOCAL int parseCheckMemberInBaseClasses(const char* mem, const QoreMemberInfo* mi) const {
-        const qore_class_private* qc = 0;
+        const qore_class_private* qc = nullptr;
         ClassAccess access = Public;
-        const QoreMemberInfo* omi = scl ? scl->parseFindMember(mem, qc, access, true) : 0;
-        if (!omi || (omi->getClass(qc) == mi->getClass(this)))
+        // issue #2970: do not check classes inherited by direct parents with private:internal inheritance
+        // as these members cannot cause a conflict
+        const QoreMemberInfo* omi = scl ? scl->parseFindMember(mem, qc, access, false) : nullptr;
+        if (!omi || (omi->getClass(qc) == mi->getClass(this))) {
             return 0;
+        }
 
         return checkExistingVarMember(mem, mi, omi, qc, omi->access);
     }

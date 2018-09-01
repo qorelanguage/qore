@@ -10,17 +10,35 @@
 
 %exec-class ClassesTest
 
-class Issue2970_Base {
+class Issue2970_Foundation {
+    private:internal {
+        int i = 3;
+        static int si = 3;
+
+        int x1 = 3;
+        static int sx1 = 3;
+    }
+
+    private {
+        string str = "test1";
+        static string sstr = "test1";
+    }
+}
+
+class Issue2970_Base inherits private:internal Issue2970_Foundation {
     public {
         int x1 = 2;
+        static int sx1 = 2;
     }
 
     private {
         int x2 = 2;
+        static int sx2 = 2;
     }
 
     private:internal {
         int i = 2;
+        static int si = 2;
     }
 
     int get() {
@@ -30,15 +48,21 @@ class Issue2970_Base {
     int get2(int i0) {
         return i0 + i;
     }
+
+    string get3() {
+        return str;
+    }
 }
 
 class Issue2970_Child inherits private:internal Issue2970_Base {
     public {
         int i = 1;
+        static int si = 1;
     }
 
     private {
         string str = "test";
+        static string sstr = "test";
     }
 
     private:internal {
@@ -51,6 +75,10 @@ class Issue2970_Child inherits private:internal Issue2970_Base {
 
     int get2() {
         return get2(1);
+    }
+
+    string get3() {
+        return Issue2970_Base::get3();
     }
 }
 
@@ -326,6 +354,7 @@ public class ClassesTest inherits QUnit::Test {
         Issue2970_Child c();
         assertEq(2, c.get());
         assertEq(3, c.get2());
+        assertEq("test", c.get3());
     }
 
     issue2885() {
@@ -451,7 +480,7 @@ public class ClassesTest inherits QUnit::Test {
         catch (hash nex) {
             ex = nex;
         }
-        assertEq(206, ex.callstack[0].line);
+        assertEq(234, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);
