@@ -840,9 +840,8 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
         ++w;
     }
 
-    printd(0, "ASD: no module found 848\n");
     // Qore 0.9.0
-    if (trySeparateModuleLoading(xsink, name, pgm, reexport, op, version, src, mpgm, load_opt))
+    if (tryToLoadAsModuleDir(xsink, name, pgm, reexport, op, version, src, mpgm, load_opt))
         return;
 
     QoreStringNode* desc = new QoreStringNodeMaker("feature '%s' is not builtin and no module with this name could be found in the module path: ", name);
@@ -850,15 +849,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
     xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), desc);
 }
 
-strdeque_t::const_iterator QoreModuleManager::getModuleDirListBeginIt() const {
-    return moduleDirList.begin();
-}
-
-strdeque_t::const_iterator QoreModuleManager::getModuleDirListEndIt() const {
-    return moduleDirList.end();
-}
-
-bool QoreModuleManager::trySeparateModuleLoading(
+bool QoreModuleManager::tryToLoadAsModuleDir(
     ExceptionSink& xsink,
     const char* name,
     QoreProgram* pgm,
@@ -876,18 +867,16 @@ bool QoreModuleManager::trySeparateModuleLoading(
         modulePath += name;
 
         QoreDir modulDir(&xsink, QCS_DEFAULT, modulePath.c_str());
-        if (xsink) {
-            // assert(some assert);
+        if (xsink)
             return false;
-        }
 
         if (!modulDir.checkPath()) {
             modulePath += QORE_DIR_SEP_STR;
             modulePath += name;
-            modulePath += ".qm";printd(0, "modulePath=%s\n", modulePath.c_str());
+            modulePath += ".qm";
+
             loadModuleIntern(xsink, modulePath.c_str(), pgm, reexport, op, version, src, mpgm, load_opt);
             if (!xsink)
-            // assert(some assert);
                 return true;
         }
         ++path;

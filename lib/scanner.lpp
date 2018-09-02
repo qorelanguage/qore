@@ -44,7 +44,6 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/ModuleInfo.h"
 #include "qore/intern/QoreParseHashNode.h"
-#include "qore/intern/QoreDir.h"
 
 #include "parser.hpp"
 
@@ -687,46 +686,6 @@ static bool angle_balanced(const char* p) {
    return ob == cb;
 }
 
-bool try_module_folder_loading(ExceptionSink& xsink, const char * name) {
-    strdeque_t::const_iterator defModPathIt = QMM.getModuleDirListBeginIt();
-    while (defModPathIt != QMM.getModuleDirListEndIt()) {
-        QoreString modulePath(*defModPathIt);
-        modulePath += QORE_DIR_SEP_STR;
-        modulePath += name;
-
-        QoreDir moduleDir(&xsink, QCS_DEFAULT, modulePath.c_str());
-        if (xsink) {
-            // assert(some assert);
-            return false;
-        }
-
-        if (!moduleDir.checkPath()) {
-            const QoreString regexClassesFunc(".+.(qc|ql)$");
-            QoreListNode * moduleDirList = moduleDir.list(&xsink, S_IFREG, &regexClassesFunc);
-            for (qore_size_t i = 0; i < moduleDirList->size(); i++) {
-                modulePath += moduleDirList->retrieveEntry(i).get<const QoreStringNode>()->c_str();
-                QoreStringValueHelper s(moduleDirList->retrieveEntry(i));
-                printd(0, "ASD try_module_folder_loading path=%s\n", modulePath.c_str());
-                // paths.push_back(boost::filesystem::path(s->c_str()));
-                // QoreListNode * hashList = moduleDirList->retrieveEntry(i).get<QoreHashNode>()->getValues();
-                // for (qore_size_t j = 0; j < hashList->size(); j++) {
-                    // QoreStringValueHelper s(hashList->retrieveEntry(j));
-                    // printd(0, "ASD try_module_folder_loading path=%s\n", s->c_str());
-                // }
-            }
-
-            // get all files from folder
-            // for qc, ql call include
-            // for rest call requires
-            if (!xsink)
-            // assert(some assert);
-                return true;
-        }
-        ++defModPathIt;
-    }
-    return true;
-}
-
 #define DO_DOT_KW_IDENTIFIER(kw) { yylval->String = new QoreStringNode(kw); qore_size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
 
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
@@ -1050,13 +1009,8 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                  //printd(5, "scanner requesting feature: '%s'\n", cn);
                                                  QoreProgram* pgm = getProgram();
                                                  ExceptionSink xsink;
-
-                                                QMM.parseLoadModule(xsink, cn, pgm, reexport);
-
-                                                // check whether it is a module folder
-                                                try_module_folder_loading(xsink, cn);
-
-                                                pgm->getParseExceptionSink()->assimilate(xsink);
+                                                 QMM.parseLoadModule(xsink, cn, pgm, reexport);
+                                                 pgm->getParseExceptionSink()->assimilate(xsink);
                                               }
                                            }
                                            BEGIN(INITIAL);

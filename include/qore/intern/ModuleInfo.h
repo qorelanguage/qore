@@ -398,9 +398,8 @@ private:
    DLLLOCAL QoreModuleManager(const QoreModuleManager&);
    // not implemented
    DLLLOCAL QoreModuleManager& operator=(const QoreModuleManager&);
-
-   //! TODO
-   DLLLOCAL bool trySeparateModuleLoading(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport, mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm, unsigned load_opt);
+   //! check whether name represents a module directory name. see #2966
+   DLLLOCAL bool tryToLoadAsModuleDir(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport, mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm, unsigned load_opt);
 
 protected:
    // recursive mutex; initialized in init()
@@ -455,8 +454,6 @@ public:
       delete mutex;
    }
 
-   DLLLOCAL strdeque_t::const_iterator getModuleDirListBeginIt() const;
-   DLLLOCAL strdeque_t::const_iterator getModuleDirListEndIt() const;
    DLLLOCAL void init(bool se);
    DLLLOCAL void delUser();
    DLLLOCAL void cleanup();
