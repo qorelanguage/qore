@@ -884,6 +884,38 @@ bool QoreModuleManager::tryToLoadAsModuleDir(
     return false;
 }
 
+bool exists(const QoreString& filePath) {
+    struct stat buffer;
+    return (stat (filePath.c_str(), &buffer) == 0);
+}
+
+QoreString QoreModuleManager::getModuleAbsPath(const char* n) const {
+    QoreString nameToParse(n);
+    qore_offset_t dirOffset = nameToParse.find('.');
+    qore_offset_t extOffset = nameToParse.rfind('.');
+
+    if (dirOffset >= extOffset) {
+        return QoreString();
+    }
+
+    nameToParse.replaceChar(dirOffset, QORE_DIR_SEP);
+    nameToParse.prepend(QORE_DIR_SEP_STR);
+
+    strdeque_t::const_iterator path = moduleDirList.begin();
+    QoreString dirName();
+    while (path != moduleDirList.end()) {
+        QoreString modulePath(*path);
+        modulePath += nameToParse.c_str();
+
+        if (exists(modulePath)) {
+            return modulePath.c_str();
+        }
+
+        ++path;
+    }
+    return QoreString();
+}
+
 void ModuleManager::registerUserModuleFromSource(const char* name, const char* src, QoreProgram* pgm, ExceptionSink* xsink) {
    QMM.registerUserModuleFromSource(name, src, pgm, *xsink);
 }

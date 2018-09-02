@@ -1205,6 +1205,13 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                            else {
                                               // re-get the buffer pointer
                                               fn = fname->getBuffer();
+
+                                              // in case fn is in form "ModuleName.SomeModuleClass.qc"
+                                              // convert it to absolute path "/some/implicit/path/ModuleName/SomeModuleClass.qc". see #2966
+                                              QoreString moduleAbsPath(QMM.getModuleAbsPath(fn));
+                                              if (!moduleAbsPath.empty())
+                                                fn = moduleAbsPath.c_str();
+
                                               // check if regular file
                                               struct stat sbuf;
                                               int rc = stat(fn, &sbuf);

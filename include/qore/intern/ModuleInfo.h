@@ -454,6 +454,7 @@ public:
       delete mutex;
    }
 
+   DLLLOCAL QoreString getModuleAbsPath(const char* n) const;
    DLLLOCAL void init(bool se);
    DLLLOCAL void delUser();
    DLLLOCAL void cleanup();
