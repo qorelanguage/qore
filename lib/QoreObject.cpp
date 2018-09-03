@@ -650,10 +650,6 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
 
 QoreValue qore_object_private::getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const {
     const qore_class_private* class_ctx = runtime_get_class();
-    if (class_ctx && !qore_class_private::runtimeCheckPrivateClassAccess(*theclass, class_ctx)) {
-        class_ctx = nullptr;
-    }
-
     const qore_class_private* member_class_ctx = qore_class_private::get(*theclass)->runtimeGetMemberContext(mem, class_ctx);
 
     QoreSafeVarRWReadLocker sl(rml);

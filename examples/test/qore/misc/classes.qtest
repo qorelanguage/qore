@@ -10,6 +10,119 @@
 
 %exec-class ClassesTest
 
+class Issue2970_F0 {
+    public {
+        int c0 = 0;
+        int c1 = 0;
+        int c2 = 0;
+    }
+
+    int get0b() {
+        return c0;
+    }
+}
+
+class Issue2970_B0 inherits private:internal Issue2970_F0 {
+    public {
+        int i = 1;
+    }
+
+    private:internal {
+        int c0 = 1;
+    }
+
+    int get0a() {
+        return c0;
+    }
+
+    int get0a1() {
+        return c1;
+    }
+
+    int get0b() {
+        return Issue2970_F0::get0b();
+    }
+
+    int get2() {
+        return c2;
+    }
+}
+
+class Issue2970_F1 {
+    public {
+        int c0 = 10;
+        int c1 = 10;
+        int c2 = 10;
+    }
+
+    int get1b() {
+        return c0;
+    }
+}
+
+class Issue2970_B1 inherits private:internal Issue2970_F1 {
+    private:internal {
+        int c0 = 11;
+    }
+
+    int get1a() {
+        return c0;
+    }
+
+    int get1a1() {
+        return c1;
+    }
+
+    int get1b() {
+        return Issue2970_F1::get1b();
+    }
+
+    int get2() {
+        return c2;
+    }
+}
+
+class Issue2970_A inherits private:internal Issue2970_B0, private:internal Issue2970_B1 {
+    public {
+        int c0 = 2;
+    }
+
+    constructor() {
+    }
+
+    int get0a() {
+        return Issue2970_B0::get0a();
+    }
+
+    int get0a1() {
+        return Issue2970_B0::get0a1();
+    }
+
+    int get0b() {
+        return Issue2970_B0::get0b();
+    }
+
+    int get1a() {
+        return Issue2970_B1::get1a();
+    }
+
+    int get1a1() {
+        return Issue2970_B1::get1a1();
+    }
+
+    int get1b() {
+        return Issue2970_B1::get1b();
+    }
+
+    int get2a() {
+        return Issue2970_B0::get2();
+    }
+
+    int get2b() {
+        return Issue2970_B1::get2();
+    }
+}
+
 class Issue2970_Foundation {
     private:internal {
         int i = 3;
@@ -22,6 +135,14 @@ class Issue2970_Foundation {
     private {
         string str = "test1";
         static string sstr = "test1";
+    }
+
+    public {
+        int ia = 0;
+    }
+
+    int get6() {
+        return ia;
     }
 }
 
@@ -52,12 +173,21 @@ class Issue2970_Base inherits private:internal Issue2970_Foundation {
     string get3() {
         return str;
     }
+
+    int get6() {
+        return ia;
+    }
+
+    int get6a() {
+        return Issue2970_Foundation::get6();
+    }
 }
 
 class Issue2970_Child inherits private:internal Issue2970_Base {
     public {
         int i = 1;
         static int si = 1;
+        int ia = 2;
     }
 
     private {
@@ -89,6 +219,17 @@ class Issue2970_Child inherits private:internal Issue2970_Base {
         return self.flag;
     }
 
+    int get6() {
+        return Issue2970_Base::get6();
+    }
+
+    int get6a() {
+        return Issue2970_Base::get6a();
+    }
+
+    int get6bis() {
+        return ia;
+    }
 }
 
 class Issue2741_B {
@@ -363,8 +504,22 @@ public class ClassesTest inherits QUnit::Test {
         Issue2970_Child c();
         assertEq(2, c.get());
         assertEq(3, c.get2());
-        assertEq("test", c.get3());
+        assertEq("test1", c.get3());
         assertFalse(c.get4());
+        assertEq(0, c.get6());
+        assertEq(0, c.get6a());
+        assertEq(2, c.get6bis());
+
+        Issue2970_A a();
+        assertEq(2, a.c0);
+        assertEq(1, a.get0a());
+        assertEq(0, a.get0a1());
+        assertEq(0, a.get0b());
+        assertEq(11, a.get1a());
+        assertEq(10, a.get1a1());
+        assertEq(10, a.get1b());
+        assertEq(0, a.get2a());
+        assertEq(10, a.get2b());
     }
 
     issue2885() {
@@ -384,8 +539,6 @@ public class ClassesTest inherits QUnit::Test {
 
     issue2741() {
         Issue2741_C3 c();
-        #assertEq(1, c.t0(1));
-        #assertEq(2, c.t1(1));
         assertEq(3, c.t2(1));
         assertEq(3, c.ta());
         assertEq(2, c.t(1));
@@ -490,7 +643,7 @@ public class ClassesTest inherits QUnit::Test {
         catch (hash nex) {
             ex = nex;
         }
-        assertEq(243, ex.callstack[0].line);
+        assertEq(384, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);
