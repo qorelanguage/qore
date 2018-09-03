@@ -453,6 +453,17 @@ void qore_program_private::internParseRollback(ExceptionSink* xsink) {
     loc_set.clear();
     pgmloc.clear();
 
+    // issue #2907 delete & clear statement index maps when doing a parse rollback
+    for (auto& i : statementByFileIndex) {
+        delete i.second;
+    }
+    statementByFileIndex.clear();
+
+    for (auto& i : statementByLabelIndex) {
+        delete i.second;
+    }
+    statementByLabelIndex.clear();
+
     // roll back pending domain
     pend_dom = 0;
 }
