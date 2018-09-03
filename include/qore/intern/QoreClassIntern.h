@@ -49,6 +49,7 @@
 #include <set>
 #include <vector>
 #include <deque>
+#include <algorithm>
 
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
@@ -1147,37 +1148,34 @@ public:
     typedef std::map<char*, T*, ltstr> member_map_t;
 #endif
     */
-    typedef typename member_map_t::const_iterator SigOrderIterator;
 
 public:
     DLLLOCAL ~QoreMemberMapBase() {
-        for (typename member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
-            //printd(5, "QoreMemberMap::~QoreMemberMap() this: %p freeing member %p '%s'\n", this, i->second, i->first);
-            delete i->second;
-            free(i->first);
+        for (auto& i : list) {
+            //printd(5, "QoreMemberMap::~QoreMemberMap() this: %p freeing member %p '%s'\n", this, i.second, i.first);
+            delete i.second;
+            free(i.first);
         }
-        map.clear();
         list.clear();
     }
 
     DLLLOCAL bool inList(const char* name) const {
-        return map.find(const_cast<char*>(name)) != map.end();
+        return std::find_if(list.begin(), list.end(), [name](const list_element_t& e) -> bool { return !strcmp(e.first, name); }) != list.end();
     }
 
     DLLLOCAL T* find(const char* name) const {
-        typename member_map_t::const_iterator it = map.find(const_cast<char*>(name));
-        return it == map.end() ? nullptr : it->second;
+        DeclOrderIterator i = std::find_if(list.begin(), list.end(), [name](const list_element_t& e) -> bool { return !strcmp(e.first, name); });
+        return i == list.end() ? nullptr : i->second;
     }
 
     DLLLOCAL bool empty() const {
-        return map.empty();
+        return list.empty();
     }
 
     DLLLOCAL void addNoCheck(char* name, T* info) {
         assert(name);
         assert(info);
         assert(!inList(name));
-        map[name] = info;
         list.push_back(std::make_pair(name, info));
     }
 
@@ -1186,9 +1184,7 @@ public:
     }
 
     DLLLOCAL void moveAllTo(QoreMemberMapBase<T>& dest) {
-        dest.map.insert(map.begin(), map.end());
         dest.list.insert(dest.list.end(), list.begin(), list.end());
-        map.clear();
         list.clear();
     }
 
@@ -1200,21 +1196,12 @@ public:
         return list.end();
     }
 
-    DLLLOCAL SigOrderIterator beginSigOrder() const {
-        return map.begin();
-    }
-
-    DLLLOCAL SigOrderIterator endSigOrder() const {
-        return map.end();
-    }
-
     DLLLOCAL size_t size() const {
         return list.size();
     }
 
 protected:
     member_list_t list;
-    member_map_t map;
 };
 
 class QoreMemberMap : public QoreMemberMapBase<QoreMemberInfo> {
@@ -1232,7 +1219,6 @@ public:
         assert(name);
         assert(info);
         assert(!inList(name));
-        map[name] = info;
         list.insert(list.begin(), std::make_pair(name, info));
     }
 
@@ -1256,26 +1242,23 @@ public:
             free(i->first);
             delete i->second;
         }
-        map.clear();
         list.clear();
     }
 
     DLLLOCAL void del() {
-        for (member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
-            assert(!i->second->val.hasValue());
+        for (auto& i : list) {
+            assert(!i.second->val.hasValue());
             /*
             // when rolling back a failed parse, vars may have values, but no exception can happen, so xsink can be nullptr
-            i->second->delVar(nullptr);
+            i.second->delVar(nullptr);
             */
-            free(i->first);
-            delete i->second;
+            free(i.first);
+            delete i.second;
         }
-        map.clear();
         list.clear();
     }
 
     DLLLOCAL void clearNoFree() {
-        map.clear();
         list.clear();
     }
 
@@ -1345,6 +1328,20 @@ typedef std::pair<QoreClass*, bool> class_virt_pair_t;
 //typedef std::list<class_virt_pair_t> class_list_t;
 typedef std::vector<class_virt_pair_t> class_list_t;
 
+// member initialization list entry
+struct member_init_entry_t {
+    const char* name;
+    const QoreMemberInfo* info;
+    const qore_class_private* member_class_ctx;
+
+    DLLLOCAL member_init_entry_t(const char* name, const QoreMemberInfo* info, const qore_class_private* member_class_ctx) :
+        name(name), info(info), member_class_ctx(member_class_ctx) {
+    }
+};
+
+// list of members in initialization order
+typedef std::vector<member_init_entry_t> member_init_list_t;
+
 // BCSMList: Base Class Special Method List
 // unique list of base classes for a class hierarchy to ensure that "special" methods, constructor(), destructor(), copy() - are executed only once
 // this class also tracks virtual classes to ensure that they are not inserted into the list in a complex tree and executed here
@@ -1356,6 +1353,8 @@ public:
     DLLLOCAL BCSMList(const BCSMList &old);
 
     DLLLOCAL ~BCSMList();
+
+    DLLLOCAL void processMemberInitializationList(const QoreMemberMap& members, member_init_list_t& mil);
 
     DLLLOCAL int add(QoreClass* thisclass, QoreClass* qc, bool is_virtual);
     DLLLOCAL int addBaseClassesToSubclass(QoreClass* thisclass, QoreClass* sc, bool is_virtual);
@@ -1747,6 +1746,8 @@ public:
 
     // member list (map)
     QoreMemberMap members;
+    // member initialization list in hierarchy nitialization order
+    member_init_list_t mil;
 
     // static var list (map)
     QoreVarMap vars;
