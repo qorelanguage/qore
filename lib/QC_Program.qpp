@@ -685,6 +685,12 @@ const PO_ALLOW_STATEMENT_NO_EFFECT = PO_ALLOW_STATEMENT_NO_EFFECT;
     @since %Qore 0.9
 */
 const PO_NO_REFLECTION = PO_NO_REFLECTION;
+
+//! Disallows the @ref transient "transient"
+/**
+    @since %Qore 0.9
+*/
+const PO_NO_TRANSIENT = PO_NO_TRANSIENT;
 //@}
 
 /** @defgroup warning_constants Warning Constants

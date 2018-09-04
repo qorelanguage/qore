@@ -97,6 +97,7 @@ class QoreExternalProgramLocation;
 class QoreExternalMethodFunction;
 class QoreExternalMemberVarBase;
 class QoreExternalStaticMember;
+class QoreExternalNormalMember;
 class QoreExternalConstant;
 
 //! method type enum
@@ -832,7 +833,7 @@ public:
     //! Finds the given local member or returns nullptr
     /** @since %Qore 0.9
     */
-    DLLEXPORT const QoreExternalMemberVarBase* findLocalMember(const char* name) const;
+    DLLEXPORT const QoreExternalNormalMember* findLocalMember(const char* name) const;
 
     //! Finds the given local static member or returns nullptr
     /** @since %Qore 0.9
@@ -1053,7 +1054,7 @@ public:
     DLLEXPORT bool valid() const;
 
     //! returns the member
-    DLLEXPORT const QoreExternalMemberVarBase* getMember() const;
+    DLLEXPORT const QoreExternalNormalMember* getMember() const;
 
     //! returns the member's name
     DLLEXPORT const char* getName() const;

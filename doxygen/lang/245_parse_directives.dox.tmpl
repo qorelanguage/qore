@@ -70,6 +70,7 @@
     |@ref no-network "%no-network"|Disallows access to the network; equivalent to parse option @ref Qore::PO_NO_NETWORK and the <tt>-</tt><tt>-no-network</tt> command line option
     |@ref no-new "%no-new"|Disallows use of the @ref new "new operator"; equivalent to parse option @ref Qore::PO_NO_NEW and the <tt>-</tt><tt>-no-new</tt> command line option
     |@ref no-process-control "%no-process-control"|Disallows access to functions that would affect the current process (see @ref no-process-control "%no-process-control" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_PROCESS_CONTROL and the <tt>-</tt><tt>-no-process-control</tt> command line option
+    |@ref no-reflection "%no-reflection"|Disallows access to the reflection API provided by the <a href="../../modules/reflection/html/index.html">reflection</a> module; equivalent to parse option @ref Qore::PO_NO_REFLECTION
     |@ref no-subroutine-defs "%no-subroutine-defs"|Disallows subroutine (function) definitions; equivalent to parse option @ref Qore::PO_NO_SUBROUTINE_DEFS and the <tt>-</tt><tt>-no-subroutine-defs</tt> command line option
     |@ref no-terminal-io "%no-terminal-io"|Disallows access to terminal I/O (see @ref no-terminal-io "%no-terminal-io" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_TERMINAL_IO and the <tt>-pno-terminal-io</tt> command line option
     |@ref no-thread-classes "%no-thread-classes"|Disallows access to thread classes (see @ref no-thread-classes "%no-thread-classes" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_CLASSES and the <tt>-</tt><tt>-no-thread-classes</tt> command line option
@@ -77,6 +78,7 @@
     |@ref no-thread-info "%no-thread-info"|Disallows any access to functionality that provides threading information (see @ref no-thread-info "%no-thread-info" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_INFO and the <tt>-</tt><tt>-no-thread-info</tt> command line option
     |@ref no-threads "%no-threads"|Disallows access to all thread control operations and thread classes (equivalent to <tt>-</tt><tt>-no-thread-control</tt> and <tt>-</tt><tt>-no-thread-classes</tt> together); equivalent to parse option @ref Qore::PO_NO_THREADS and the <tt>-</tt><tt>-no-threads</tt> command line option
     |@ref no-top-level "%no-top-level"|Disallows any further top level code; equivalent to parse option @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS and the <tt>-</tt><tt>-no-top-level</tt> command line option
+    |@ref no-transient "%no-transient"|Removes the @ref transient keyword for backwards-compatibility; equivalent to parse option @ref Qore::PO_NO_TRANSIENT
     |@ref no-uncontrolled-apis "%no-uncontrolled-apis"|Disallows access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls
     |@ref perl-bool-eval "%perl-bool-eval"|Set to mimic perl's boolean evaluation; this is the default with qore >= 0.8.6; prior to this version, by default qore used strict mathematic boolean evaluation, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True". <br><br>As of %Qore 0.8.6+, this parse option is only needed if @ref strict-bool-eval "%strict-bool-eval" is set. <br><br>When this option is set, boolean evaluation follows the same rules as <value>::val(); see also @ref strict-bool-eval "%strict-bool-eval"<br><br>Since %Qore 0.8.6
     |@ref push-parse-options "%push-parse-options"|Stores parse options so that they will be restored when the current file is done parsing; use in include files to ensure parse options are set appropriately for the file being parsed
@@ -1203,6 +1205,23 @@ i+ =4;
     - usleep()
 
     <hr>
+    @section no-reflection %no-reflection
+
+    @par Parse Directive:
+    <tt>%%no-reflection</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-pno-reflection</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_REFLECTION
+
+    @par Description:
+    Disallows access to the reflection API provided by the <a href="../../modules/reflection/html/index.html">reflection</a> module.
+
+    @since %Qore
+
+    <hr>
     @section no-subroutine-defs %no-subroutine-defs
 
     @par Parse Directive:
@@ -1358,6 +1377,23 @@ i+ =4;
 
     @par Description:
     Disallows top level code from this point on, any top level statements before this directive are still allowed and become part of the @ref Qore::Program "Program" context.
+
+    <hr>
+    @section no-transient %no-transient
+
+    @par Parse Directive:
+    <tt>%%no-transient</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-pno-transient</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_TRANSIENT
+
+    @par Description:
+    Removes the @ref transient keyword for backwards-compatibility.
+
+    @since %Qore 0.9
 
     <hr>
     @section no-uncontrolled-apis %no-uncontrolled-apis

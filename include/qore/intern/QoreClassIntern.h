@@ -1000,6 +1000,17 @@ public:
     // initializes the member
     DLLLOCAL void parseInit(const char* name);
 
+    // sets the transient flag
+    DLLLOCAL void setTransient() {
+        assert(!is_transient);
+        is_transient = true;
+    }
+
+    // returns the transient flag
+    DLLLOCAL bool getTransient() const {
+        return is_transient;
+    }
+
 private:
     // the classes where this member is accessible; the first class is the class where the member was defined
     cls_vec_t cls_vec;
@@ -1009,7 +1020,9 @@ private:
     mi_list_t* mi_list = nullptr;
 
     // local flag
-    bool is_local;
+    bool is_local,
+        // transient flag
+        is_transient = false;
 
     /**
         @param old the old object

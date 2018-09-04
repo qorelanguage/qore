@@ -4080,8 +4080,8 @@ void QoreClass::setGateAccessFlag() {
    priv->gate_access = true;
 }
 
-const QoreExternalMemberVarBase* QoreClass::findLocalMember(const char* name) const {
-    return reinterpret_cast<const QoreExternalMemberVarBase*>(priv->members.find(name));
+const QoreExternalNormalMember* QoreClass::findLocalMember(const char* name) const {
+    return reinterpret_cast<const QoreExternalNormalMember*>(priv->members.find(name));
 }
 
 const QoreExternalStaticMember* QoreClass::findLocalStaticMember(const char* name) const {
@@ -5042,9 +5042,9 @@ public:
         return i != qc->members.endDeclOrder();
     }
 
-    DLLLOCAL const QoreExternalMemberVarBase* getMember() const {
+    DLLLOCAL const QoreExternalNormalMember* getMember() const {
         assert(valid());
-        return reinterpret_cast<const QoreExternalMemberVarBase*>(i->second);
+        return reinterpret_cast<const QoreExternalNormalMember*>(i->second);
     }
 
     DLLLOCAL const char* getName() const {
@@ -5077,7 +5077,7 @@ bool QoreClassMemberIterator::valid() const {
     return priv->valid();
 }
 
-const QoreExternalMemberVarBase* QoreClassMemberIterator::getMember() const {
+const QoreExternalNormalMember* QoreClassMemberIterator::getMember() const {
     return priv->getMember();
 }
 

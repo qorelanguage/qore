@@ -35,23 +35,29 @@
 
 #include <qore/Qore.h>
 
+#include <map>
+#include <string>
+
+// maps from object hashes to index strings
+typedef std::map<std::string, std::string> imap_t;
+
 class QoreSerializable : public AbstractPrivateData {
 public:
-    DLLLOCAL static QoreHashNode* serializeToData(QoreObject* self, ExceptionSink* xsink);
+    DLLLOCAL static QoreHashNode* serializeToData(QoreValue val, ExceptionSink* xsink);
 
-    DLLLOCAL static BinaryNode* serialize(QoreObject* self, ExceptionSink* xsink);
+    DLLLOCAL static void serialize(QoreObject* self, OutputStream* stream, ExceptionSink* xsink);
 
-    DLLLOCAL static QoreObject* deserialize(const BinaryNode* b, ExceptionSink* xsink);
+    DLLLOCAL static QoreValue deserialize(InputStream* stream, ExceptionSink* xsink);
 
-    DLLLOCAL static QoreObject* deserialize(const QoreHashNode* h, ExceptionSink* xsink);
+    DLLLOCAL static QoreValue deserialize(const QoreHashNode* h, ExceptionSink* xsink);
 
 protected:
     DLLLOCAL virtual ~QoreSerializable() {}
 
-    DLLLOCAL static QoreValue serializeValue(const QoreValue val, ReferenceHolder<QoreHashNode>& index, ExceptionSink* xsink);
+    DLLLOCAL static QoreValue serializeValue(const QoreValue val, ReferenceHolder<QoreHashNode>& index, imap_t& imap, ExceptionSink* xsink);
 
-    DLLLOCAL static QoreHashNode* serializeObjectToData(const QoreObject& self, ReferenceHolder<QoreHashNode>& index, ExceptionSink* xsink);
-    DLLLOCAL static QoreHashNode* serializeHashToData(const QoreHashNode& h, ReferenceHolder<QoreHashNode>& index, ExceptionSink* xsink);
+    DLLLOCAL static QoreHashNode* serializeObjectToData(const QoreObject& self, ReferenceHolder<QoreHashNode>& index, imap_t& imap, imap_t::iterator hint, ExceptionSink* xsink);
+    DLLLOCAL static QoreHashNode* serializeHashToData(const QoreHashNode& h, ReferenceHolder<QoreHashNode>& index, imap_t& imap, ExceptionSink* xsink);
 };
 
 #endif // _QORE_CLASS_INTERN_QORESERIALIZABLE_H

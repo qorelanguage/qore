@@ -168,6 +168,19 @@ private:
     DLLLOCAL QoreExternalStaticMember();
 };
 
+//! external wrapper base class for class normal members
+/** @since %Qore 0.9
+*/
+class QoreExternalNormalMember : public QoreExternalMemberVarBase {
+public:
+    //! returns true if the member is transient (i.e. will not be serialized)
+    DLLEXPORT bool isTransient() const;
+
+private:
+    //! not implemented
+    DLLLOCAL QoreExternalNormalMember();
+};
+
 //! external wrapper class for source code location information
 /** @since %Qore 0.9
 */

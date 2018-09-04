@@ -36,6 +36,16 @@ class Base inherits Serializable {
 class T inherits Serializable, private:internal Base {
     public {
         int i = 1;
+        float f = 1.0;
+        number n = M_PIn;
+        date now = now_us();
+        date rel = 1s;
+        hash<auto> h = {
+            "a": 1,
+        };
+        hash<StatInfo> si();
+
+        transient int skip = 1;
 
         Other o0();
         Other o1;
@@ -74,6 +84,8 @@ class SerializableTest inherits QUnit::Test {
         assertEq(2, h._index.size());
         assertEq(1, h._data.size());
         assertEq(Type::String, h._data._index.type());
+        assertEq(1, h._index."1"._members.T.i);
+        assertNothing(h._index."1"._members.T.skip);
         printf("%N\n", h);
     }
 }

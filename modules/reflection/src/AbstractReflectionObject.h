@@ -51,6 +51,7 @@ enum qore_modifier_t {
     MC_SYNCHRONIZED = (1 << 5),
     MC_DEPRECATED = (1 << 6),
     MC_FINAL = (1 << 7),
+    MC_TRANSIENT = (1 << 8),
 };
 
 DLLLOCAL int get_access(ClassAccess access);
