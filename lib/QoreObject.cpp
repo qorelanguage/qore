@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  Object.cpp
+    Object.cpp
 
-  thread-safe object definition
+    thread-safe object definition
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -1051,6 +1051,14 @@ QoreValue QoreObject::evalMethodVariant(const QoreMethod& method, const QoreExte
     return qore_method_private::evalNormalVariant(method, xsink, this, variant, args);
 }
 
+QoreValue QoreObject::evalStaticMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
+    return qore_method_private::eval(method, xsink, nullptr, args);
+}
+
+QoreValue QoreObject::evalStaticMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
+    return qore_method_private::evalNormalVariant(method, xsink, nullptr, variant, args);
+}
+
 const QoreClass* QoreObject::getClass(qore_classid_t cid) const {
    if (cid == priv->theclass->getID())
       return priv->theclass;
@@ -1225,6 +1233,20 @@ QoreValue QoreObject::getMemberValueNoMethod(const char* key, AutoVLock *vl, Exc
         qolhm.stayLocked();
     }
     return rv;
+}
+
+QoreValue QoreObject::getReferencedMemberNoMethod(const char* key, const QoreClass* cls, ExceptionSink* xsink) const {
+    ObjectSubstitutionHelper osh(const_cast<QoreObject*>(this), qore_class_private::get(*cls));
+    return priv->getReferencedMemberNoMethod(key, xsink);
+}
+
+int QoreObject::setMemberValue(const char* key, const QoreClass* cls, const QoreValue val, ExceptionSink* xsink) {
+    LValueHelper lvh(xsink);
+    if (priv->getLValue(key, lvh, qore_class_private::get(*cls), false, xsink)) {
+        return -1;
+    }
+    lvh.assign(val.refSelf(), "<set normal class member value>");
+    return *xsink ? -1 : 0;
 }
 
 void QoreObject::deleteMemberValue(const QoreString* key, ExceptionSink* xsink) {

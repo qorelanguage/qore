@@ -1158,7 +1158,10 @@ bool is_valid_qore_thread() {
 }
 
 int gettid() {
-   return (thread_data.get())->tid;
+    // when destroying objects in the static namespace, this function is called after thread data is destroyed
+    // to grab locks; therefore in such cases we return TID 0
+    ThreadData* td = thread_data.get();
+    return td ? td->tid : 0;
 }
 
 VLock* getVLock() {
@@ -1171,7 +1174,7 @@ Context* get_context_stack() {
 }
 
 void update_context_stack(Context* cstack) {
-   ThreadData* td    = thread_data.get();
+   ThreadData* td = thread_data.get();
    td->context_stack = cstack;
 }
 

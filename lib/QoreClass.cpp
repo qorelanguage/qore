@@ -312,7 +312,7 @@ void AbstractMethodMap::parseInit(qore_class_private& qc, BCList* scl) {
                     m = new QoreMethod(qc.cls, new NormalUserMethod(qc.cls, i->first.c_str()), false);
                     qc.hm[m->getName()] = m;
                 }
-                m->getFunction()->replaceAbstractVariant(v);
+                qore_method_private::get(*m)->getFunction()->replaceAbstractVariant(v);
                 continue;
             }
             ++vi;
@@ -841,7 +841,7 @@ void qore_class_private::mergeAbstract() {
                 // see if there are pending normal variants...
                 hm_method_t::iterator mi = hm.find(j.first);
                 // merge committed parent abstract variants with any pending local variants
-                m->parseMergeBase((*j.second), mi == hm.end() ? 0 : mi->second->getFunction(), true);
+                m->parseMergeBase((*j.second), mi == hm.end() ? 0 : qore_method_private::get(*mi->second)->getFunction(), true);
                 if (!m->empty()) {
                     ahm.insert(amap_t::value_type(j.first, m.release()));
                     //printd(5, "qore_class_private::initializeIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str());
@@ -1445,7 +1445,7 @@ void BCANode::parseInit(BCList* bcl, const char* classname) {
             int lvids = 0;
             if (m) {
                 const QoreTypeInfo* argTypeInfo = nullptr;
-                lvids = parseArgsVariant(loc, qore_class_private::getSelfId(*sclass), 0, m->getFunction(), nullptr, argTypeInfo);
+                lvids = parseArgsVariant(loc, qore_class_private::getSelfId(*sclass), 0, qore_method_private::get(*m)->getFunction(), nullptr, argTypeInfo);
             }
             else {
                 if (parse_args) {
@@ -1973,97 +1973,97 @@ bool BCList::parseCheckHierarchy(const QoreClass* cls, ClassAccess& access, bool
 }
 
 void BCList::addNewAncestors(QoreMethod* m) {
-   QoreFunction *f = m->getFunction();
-   const char* name = m->getName();
-   for (auto& i : *this) {
-      QoreClass* qc = (*i).sclass;
-      // should be only called from builtin classes, therefore qc != NULL
-      assert(qc);
-      assert((*i).access != Internal);
-      const QoreMethod* w = qc->priv->findLocalCommittedMethod(name);
-      if (w)
-         f->addNewAncestor(w->getFunction(), (*i).access);
-      qc->priv->addNewAncestors(m);
-   }
+    QoreFunction *f = qore_method_private::get(*m)->getFunction();
+    const char* name = m->getName();
+    for (auto& i : *this) {
+        QoreClass* qc = (*i).sclass;
+        // should be only called from builtin classes, therefore qc != NULL
+        assert(qc);
+        assert((*i).access != Internal);
+        const QoreMethod* w = qc->priv->findLocalCommittedMethod(name);
+        if (w)
+            f->addNewAncestor(qore_method_private::get(*w)->getFunction(), (*i).access);
+        qc->priv->addNewAncestors(m);
+    }
 }
 
 void BCList::addNewStaticAncestors(QoreMethod* m) {
-   QoreFunction *f = m->getFunction();
-   const char* name = m->getName();
-   for (auto& i : *this) {
-      QoreClass* qc = (*i).sclass;
-      // should be only called from builtin classes, therefore qc != NULL
-      assert(qc);
-      assert((*i).access != Internal);
-      const QoreMethod* w = qc->priv->findLocalCommittedStaticMethod(name);
-      if (w)
-         f->addNewAncestor(w->getFunction(), (*i).access);
-      qc->priv->addNewStaticAncestors(m);
-   }
+    QoreFunction *f = qore_method_private::get(*m)->getFunction();
+    const char* name = m->getName();
+    for (auto& i : *this) {
+        QoreClass* qc = (*i).sclass;
+        // should be only called from builtin classes, therefore qc != NULL
+        assert(qc);
+        assert((*i).access != Internal);
+        const QoreMethod* w = qc->priv->findLocalCommittedStaticMethod(name);
+        if (w)
+            f->addNewAncestor(qore_method_private::get(*w)->getFunction(), (*i).access);
+        qc->priv->addNewStaticAncestors(m);
+    }
 }
 
 void BCList::addAncestors(QoreMethod* m) {
-   const char* name = m->getName();
-   for (auto& i : *this) {
-      QoreClass* qc = (*i).sclass;
-      assert(qc);
+    const char* name = m->getName();
+    for (auto& i : *this) {
+        QoreClass* qc = (*i).sclass;
+        assert(qc);
 
-      const QoreMethod* w = qc->priv->findLocalCommittedMethod(name);
-      if (w)
-         m->getFunction()->addAncestor(w->getFunction(), (*i).access);
+        const QoreMethod* w = qc->priv->findLocalCommittedMethod(name);
+        if (w)
+            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(), (*i).access);
 
-      qc->priv->addAncestors(m);
-   }
+        qc->priv->addAncestors(m);
+    }
 }
 
 void BCList::addStaticAncestors(QoreMethod* m) {
-   const char* name = m->getName();
-   for (auto& i : *this) {
-      QoreClass* qc = (*i).sclass;
-      assert(qc);
+    const char* name = m->getName();
+    for (auto& i : *this) {
+        QoreClass* qc = (*i).sclass;
+        assert(qc);
 
-      const QoreMethod* w = qc->priv->findLocalCommittedStaticMethod(name);
-      if (w)
-         m->getFunction()->addAncestor(w->getFunction(), (*i).access);
-      qc->priv->addStaticAncestors(m);
-   }
+        const QoreMethod* w = qc->priv->findLocalCommittedStaticMethod(name);
+        if (w)
+            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(), (*i).access);
+        qc->priv->addStaticAncestors(m);
+    }
 }
 
 void BCList::parseAddAncestors(QoreMethod* m) {
-   const char* name = m->getName();
+    const char* name = m->getName();
 
-   //printd(5, "BCList::parseAddAncestors(%p %s) this: %p size: %d\n", m, name, this, size());
+    //printd(5, "BCList::parseAddAncestors(%p %s) this: %p size: %d\n", m, name, this, size());
 
-   for (auto& i : *this) {
-      // if there was a parse error finding the base class, then skip
-      QoreClass* qc = (*i).sclass;
-      if (!qc)
-         continue;
+    for (auto& i : *this) {
+        // if there was a parse error finding the base class, then skip
+        QoreClass* qc = (*i).sclass;
+        if (!qc)
+            continue;
 
-      const QoreMethod* w = qc->priv->parseFindLocalMethod(name);
-      //printd(5, "BCList::parseAddAncestors(%p %s) this: %p qc: %p w: %p\n", m, name, this, qc, w);
+        const QoreMethod* w = qc->priv->parseFindLocalMethod(name);
+        //printd(5, "BCList::parseAddAncestors(%p %s) this: %p qc: %p w: %p\n", m, name, this, qc, w);
 
-      if (w)
-         m->getFunction()->addAncestor(w->getFunction(), (*i).access);
+        if (w)
+            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(), (*i).access);
 
-      qc->priv->parseAddAncestors(m);
-   }
+        qc->priv->parseAddAncestors(m);
+    }
 }
 
 void BCList::parseAddStaticAncestors(QoreMethod* m) {
-   const char* name = m->getName();
-   for (auto& i : *this) {
-      QoreClass* qc = (*i).sclass;
-      // qc may be 0 if there were a parse error with an unknown class earlier
-      if (!qc)
-         continue;
+    const char* name = m->getName();
+    for (auto& i : *this) {
+        QoreClass* qc = (*i).sclass;
+        // qc may be 0 if there were a parse error with an unknown class earlier
+        if (!qc)
+            continue;
 
-      const QoreMethod* w = qc->priv->parseFindLocalStaticMethod(name);
-      if (w)
-         m->getFunction()->addAncestor(w->getFunction(), (*i).access);
+        const QoreMethod* w = qc->priv->parseFindLocalStaticMethod(name);
+        if (w)
+            qore_method_private::get(*m)->getFunction()->addAncestor(qore_method_private::get(*w)->getFunction(), (*i).access);
 
-      qc->priv->parseAddStaticAncestors(m);
-   }
+        qc->priv->parseAddStaticAncestors(m);
+    }
 }
 
 void BCList::resolveCopy() {
@@ -2152,7 +2152,7 @@ MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, Meth
 
         QoreMethod* m = nqc->priv->parseFindLocalMethod(name);
         if (m) {
-            MethodFunctionBase* f = m->getFunction();
+            MethodFunctionBase* f = qore_method_private::get(*m)->getFunction();
             MethodVariantBase* ov = f->parseHasVariantWithSignature(v);
             if (ov && !ov->isAbstract())
                 return ov;
@@ -2173,10 +2173,6 @@ int BCAList::execBaseClassConstructorArgs(BCEAList* bceal, ExceptionSink* xsink)
          return -1;
    }
    return 0;
-}
-
-bool QoreClass::hasAbstract() const {
-   return priv->hasAbstract();
 }
 
 const QoreMethod* QoreClass::parseGetConstructor() const {
@@ -2275,6 +2271,101 @@ bool QoreClass::isSystem() const {
    return priv->sys;
 }
 
+bool QoreClass::isModulePublic() const {
+    return priv->pub;
+}
+
+bool QoreClass::isAbstract() const {
+    return priv->hasAbstract();
+}
+
+bool QoreClass::isFinal() const {
+    return priv->final;
+}
+
+bool QoreClass::isInjected() const {
+    return priv->inject;
+}
+
+bool QoreClass::isPseudoClass() const {
+    return priv->name[0] == '<';
+}
+
+qore_type_t QoreClass::getPseudoClassType() const {
+    if (!isPseudoClass()) {
+        return -1;
+    }
+
+    if (priv->name == "<value>") {
+        return -1;
+    }
+
+    if (priv->name == "<binary>") {
+        return NT_BINARY;
+    }
+
+    if (priv->name == "<bool>") {
+        return NT_BOOLEAN;
+    }
+
+    if (priv->name == "<callref>") {
+        return NT_FUNCREF;
+    }
+
+    if (priv->name == "<closure>") {
+        return NT_RUNTIME_CLOSURE;
+    }
+
+    if (priv->name == "<date>") {
+        return NT_DATE;
+    }
+
+    if (priv->name == "<float>") {
+        return NT_FLOAT;
+    }
+
+    if (priv->name == "<hash>") {
+        return NT_HASH;
+    }
+
+    if (priv->name == "<int>") {
+        return NT_INT;
+    }
+
+    if (priv->name == "<int>") {
+        return NT_INT;
+    }
+
+    if (priv->name == "<list>") {
+        return NT_LIST;
+    }
+
+    if (priv->name == "<nothing>") {
+        return NT_NOTHING;
+    }
+
+    if (priv->name == "<number>") {
+        return NT_NUMBER;
+    }
+
+    if (priv->name == "<object>") {
+        return NT_OBJECT;
+    }
+
+    assert(priv->name == "<string>");
+    return NT_STRING;
+}
+
+QoreValue QoreClass::evalPseudoMethod(const QoreValue n, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
+    assert(isPseudoClass());
+    return priv->evalPseudoMethod(n, nme, args, xsink);
+}
+
+QoreValue QoreClass::evalPseudoMethod(const QoreMethod* m, const QoreExternalMethodVariant* variant, const QoreValue n, const QoreListNode* args, ExceptionSink* xsink) const {
+    assert(isPseudoClass());
+    return priv->evalPseudoMethod(m, reinterpret_cast<const AbstractQoreFunctionVariant*>(variant), n, args, xsink);
+}
+
 void QoreClass::setSystem() {
    priv->sys = true;
    priv->committed = true;
@@ -2292,11 +2383,7 @@ bool QoreClass::hasMemberNotification() const {
    return priv->memberNotification != 0;
 }
 
-int QoreClass::getDomain() const {
-   return (int)priv->domain;
-}
-
-int64 QoreClass::getDomain64() const {
+int64 QoreClass::getDomain() const {
    return priv->domain;
 }
 
@@ -2346,6 +2433,10 @@ void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
    if (qc->priv->scl && qc->priv->scl->valid)
       qc->priv->scl->addBaseClassesToSubclass(qc, this, true);
    priv->scl->sml.add(this, qc, true);
+}
+
+int QoreClass::runtimeCheckInstantiateClass(ExceptionSink* xsink) const {
+    return priv->runtimeCheckInstantiateClass(xsink);
 }
 
 void qore_class_private::parseCheckAbstractNew(const QoreProgramLocation* loc) const {
@@ -2635,15 +2726,6 @@ QoreMethod::~QoreMethod() {
     delete priv;
 }
 
-MethodFunctionBase* QoreMethod::getFunction() const {
-   return priv->getFunction();
-}
-
-// DEPRECATED
-bool QoreMethod::newCallingConvention() const {
-   return false;
-}
-
 bool QoreMethod::isUser() const {
    return priv->isUniquelyUser();
 }
@@ -2686,14 +2768,26 @@ void QoreMethod::assign_class(const QoreClass* p_class) {
 }
 
 QoreValue QoreMethod::execManaged(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) const {
-   // to ensure the object does not get referenced for the call
-   ObjectSubstitutionHelper osh(self, qore_class_private::get(*priv->parent_class));
-   return priv->eval(xsink, self, args);
+    // to ensure the object does not get referenced for the call
+    ObjectSubstitutionHelper osh(self, qore_class_private::get(*priv->parent_class));
+    return priv->eval(xsink, self, args);
 }
 
-// FIXME: DEPRECATED API non functional
-bool QoreMethod::isSynchronized() const {
-   return false;
+method_type_e QoreMethod::getMethodType() const {
+    // set type
+    if (isStatic()) {
+        return MT_Static;
+    }
+    if (dynamic_cast<const ConstructorMethodFunction*>(priv->func)) {
+        return MT_Constructor;
+    }
+    if (dynamic_cast<const DestructorMethodFunction*>(priv->func)) {
+        return MT_Destructor;
+    }
+    if (dynamic_cast<const CopyMethodFunction*>(priv->func)) {
+        return MT_Copy;
+    }
+    return MT_Normal;
 }
 
 // only called for ::methodGate() and ::memberGate() which cannot be overloaded
@@ -2962,6 +3056,10 @@ bool QoreMethod::existsVariant(const type_vec_t &paramTypeInfo) const {
    return priv->func->existsVariant(paramTypeInfo);
 }
 
+const QoreExternalMethodFunction* QoreMethod::getFunction() const {
+    return reinterpret_cast<const QoreExternalMethodFunction*>(priv->func);
+}
+
 void QoreClass::insertMethod(QoreMethod* m) {
    priv->insertBuiltinMethod(m);
 }
@@ -3133,9 +3231,12 @@ void QoreClass::execMemberNotification(QoreObject* self, const char* mem, Except
    self->evalMethod(*priv->memberNotification, *args, xsink).discard(xsink);
 }
 
-// FIXME: remove
 QoreObject* QoreClass::execConstructor(const QoreListNode* args, ExceptionSink* xsink) const {
-   return priv->execConstructor(0, args, xsink);
+   return priv->execConstructor(nullptr, args, xsink);
+}
+
+QoreObject* QoreClass::execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *args, ExceptionSink* xsink) const {
+   return priv->execConstructor(reinterpret_cast<const ConstructorMethodVariant*>(mv), args, xsink);
 }
 
 QoreObject* qore_class_private::execSystemConstructor(QoreObject* self, int code, va_list args) const {
@@ -3574,7 +3675,7 @@ void qore_class_private::parseInitPartialIntern() {
                     // see if there are pending normal variants...
                     hm_method_t::iterator mi = hm.find(ai->first);
                     //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' looking for local '%s': %d\n", this, name.c_str(), ai->first.c_str(), mi != hm.end());
-                    m->parseMergeBase(*(ai->second), mi == hm.end() ? 0 : mi->second->getFunction());
+                    m->parseMergeBase(*(ai->second), mi == hm.end() ? 0 : qore_method_private::get(*mi->second)->getFunction());
                     if (!m->empty()) {
                         ahm.insert(amap_t::value_type(ai->first, m.release()));
                     }
@@ -3977,6 +4078,47 @@ void QoreClass::setPublicMemberFlag() {
 
 void QoreClass::setGateAccessFlag() {
    priv->gate_access = true;
+}
+
+const QoreExternalMemberVarBase* QoreClass::findLocalMember(const char* name) const {
+    return reinterpret_cast<const QoreExternalMemberVarBase*>(priv->members.find(name));
+}
+
+const QoreExternalStaticMember* QoreClass::findLocalStaticMember(const char* name) const {
+    return reinterpret_cast<const QoreExternalStaticMember*>(priv->vars.find(name));
+}
+
+std::string QoreClass::getNamespacePath(bool anchored) const {
+    std::string path;
+    priv->ns->getPath(path);
+    if (!path.empty()) {
+        path += "::";
+    }
+    if (anchored) {
+        path.insert(0, "::");
+    }
+    path += getName();
+    return path;
+}
+
+bool QoreClass::isEqual(const QoreClass& cls) const {
+    return priv->equal(*cls.priv);
+}
+
+BinaryNode* QoreClass::getBinaryHash() const {
+    SimpleRefHolder<BinaryNode> b(new BinaryNode);
+    char* hash = priv->getHash();
+    assert(hash);
+    b->append(hash, SH_SIZE);
+    return b.release();
+}
+
+const QoreExternalConstant* QoreClass::findConstant(const char* name) const {
+    return reinterpret_cast<const QoreExternalConstant*>(priv->constlist.findEntry(name));
+}
+
+const QoreNamespace* QoreClass::getNamespace() const {
+    return priv->ns->ns;
 }
 
 void MethodFunctionBase::parseInit() {
@@ -4763,4 +4905,315 @@ QoreBuiltinClass::QoreBuiltinClass(const char* name, int64 n_domain) : QoreClass
 }
 
 QoreBuiltinClass::QoreBuiltinClass(const QoreBuiltinClass& old) : QoreClass(old) {
+}
+
+class qore_parent_class_iterator_private {
+public:
+    DLLLOCAL qore_parent_class_iterator_private(const qore_class_private* qc) : qc(qc) {
+        if (qc->scl) {
+            i = qc->scl->end();
+        }
+    }
+
+    DLLLOCAL bool next() {
+        if (!qc->scl) {
+            return false;
+        }
+        if (i == qc->scl->end()) {
+            i = qc->scl->begin();
+        }
+        else {
+            ++i;
+        }
+        return i != qc->scl->end();
+    }
+
+    DLLLOCAL const QoreClass* getParentClass() const {
+        assert(valid());
+        return (*i)->sclass;
+    }
+
+    DLLLOCAL ClassAccess getAccess() const {
+        assert(valid());
+        return (*i)->access;
+    }
+
+    DLLLOCAL bool valid() const {
+        return qc->scl && i != qc->scl->end();
+    }
+
+private:
+    const qore_class_private* qc;
+    BCList::const_iterator i;
+};
+
+QoreParentClassIterator::QoreParentClassIterator(const QoreClass* cls) : priv(new qore_parent_class_iterator_private(qore_class_private::get(*cls))) {
+}
+
+QoreParentClassIterator::~QoreParentClassIterator() {
+    delete priv;
+}
+
+bool QoreParentClassIterator::next() {
+    return priv->next();
+}
+
+bool QoreParentClassIterator::valid() const {
+    return priv->valid();
+}
+
+const QoreClass* QoreParentClassIterator::getParentClass() const {
+    return priv->getParentClass();
+}
+
+ClassAccess QoreParentClassIterator::getAccess() const {
+    return priv->getAccess();
+}
+
+class qore_class_constant_iterator {
+public:
+    DLLLOCAL qore_class_constant_iterator(const qore_class_private* qc) :
+        qc(qc), i(qc->constlist.cnemap.end()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == qc->constlist.cnemap.end()) {
+            i = qc->constlist.cnemap.begin();
+        }
+        else {
+            ++i;
+        }
+        return (i != qc->constlist.cnemap.end());
+    }
+
+    //! returns true if the iterator is pointing at a valid element
+    DLLLOCAL bool valid() const {
+        return i != qc->constlist.cnemap.end();
+    }
+
+    //! returns the
+    DLLLOCAL const QoreExternalConstant* get() const {
+        assert(valid());
+        return reinterpret_cast<const QoreExternalConstant*>(i->second);
+    }
+
+private:
+    const qore_class_private* qc;
+    cnemap_t::const_iterator i;
+};
+
+QoreClassConstantIterator::QoreClassConstantIterator(const QoreClass* cls)
+    : priv(new qore_class_constant_iterator(qore_class_private::get(*cls))) {
+}
+
+QoreClassConstantIterator::~QoreClassConstantIterator() {
+    delete priv;
+}
+
+bool QoreClassConstantIterator::next() {
+    return priv->next();
+}
+
+bool QoreClassConstantIterator::valid() const {
+    return priv->valid();
+}
+
+const QoreExternalConstant* QoreClassConstantIterator::get() const {
+    return priv->get();
+}
+
+class qore_class_member_iterator_private {
+public:
+    DLLLOCAL qore_class_member_iterator_private(const qore_class_private* qc) :
+        qc(qc), i(qc->members.endDeclOrder()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == qc->members.endDeclOrder()) {
+            i = qc->members.beginDeclOrder();
+        }
+        else {
+            ++i;
+        }
+        // only iterate local members
+        while (i != qc->members.endDeclOrder() && !i->second->local()) {
+            ++i;
+        }
+        return i != qc->members.endDeclOrder();
+    }
+
+    DLLLOCAL const QoreExternalMemberVarBase* getMember() const {
+        assert(valid());
+        return reinterpret_cast<const QoreExternalMemberVarBase*>(i->second);
+    }
+
+    DLLLOCAL const char* getName() const {
+        assert(valid());
+        return i->first;
+    }
+
+    DLLLOCAL bool valid() const {
+        return i != qc->members.endDeclOrder();
+    }
+
+private:
+    const qore_class_private* qc;
+    QoreMemberMap::DeclOrderIterator i;
+};
+
+QoreClassMemberIterator::QoreClassMemberIterator(const QoreClass* cls) :
+    priv(new qore_class_member_iterator_private(qore_class_private::get(*cls))) {
+}
+
+QoreClassMemberIterator::~QoreClassMemberIterator() {
+    delete priv;
+}
+
+bool QoreClassMemberIterator::next() {
+    return priv->next();
+}
+
+bool QoreClassMemberIterator::valid() const {
+    return priv->valid();
+}
+
+const QoreExternalMemberVarBase* QoreClassMemberIterator::getMember() const {
+    return priv->getMember();
+}
+
+const char* QoreClassMemberIterator::getName() const {
+    return priv->getName();
+}
+
+class qore_class_static_member_iterator_private {
+public:
+    DLLLOCAL qore_class_static_member_iterator_private(const qore_class_private* qc) :
+        qc(qc), i(qc->vars.endDeclOrder()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == qc->vars.endDeclOrder()) {
+            i = qc->vars.beginDeclOrder();
+        }
+        else {
+            ++i;
+        }
+        return i != qc->vars.endDeclOrder();
+    }
+
+    DLLLOCAL const QoreExternalStaticMember* getMember() const {
+        assert(valid());
+        return reinterpret_cast<const QoreExternalStaticMember*>(i->second);
+    }
+
+    DLLLOCAL const char* getName() const {
+        assert(valid());
+        return i->first;
+    }
+
+    DLLLOCAL bool valid() const {
+        return i != qc->vars.endDeclOrder();
+    }
+
+private:
+    const qore_class_private* qc;
+    QoreVarMap::DeclOrderIterator i;
+};
+
+QoreClassStaticMemberIterator::QoreClassStaticMemberIterator(const QoreClass* cls) :
+    priv(new qore_class_static_member_iterator_private(qore_class_private::get(*cls))) {
+}
+
+QoreClassStaticMemberIterator::~QoreClassStaticMemberIterator() {
+    delete priv;
+}
+
+bool QoreClassStaticMemberIterator::next() {
+    return priv->next();
+}
+
+bool QoreClassStaticMemberIterator::valid() const {
+    return priv->valid();
+}
+
+const QoreExternalStaticMember* QoreClassStaticMemberIterator::getMember() const {
+    return priv->getMember();
+}
+
+const char* QoreClassStaticMemberIterator::getName() const {
+    return priv->getName();
+}
+
+class qore_class_hierarchy_iterator {
+public:
+    DLLLOCAL qore_class_hierarchy_iterator(const qore_class_private* qc) : qc(qc) {
+        if (qc->scl) {
+            i = qc->scl->sml.end();
+        }
+    }
+
+    DLLLOCAL bool next() {
+        if (!qc->scl) {
+            if (do_class) {
+                do_class = false;
+                return false;
+            }
+            do_class = true;
+            return true;
+        }
+        if (i == qc->scl->sml.end()) {
+            if (do_class) {
+                do_class = false;
+                return false;
+            }
+            i = qc->scl->sml.begin();
+        }
+        else {
+            ++i;
+            if (i == qc->scl->sml.end()) {
+                if (!do_class) {
+                    do_class = true;
+                    return true;
+                }
+            }
+
+        }
+        return i != qc->scl->sml.end();
+    }
+
+    DLLLOCAL const QoreClass* get() const {
+        if (do_class) {
+            return qc->cls;
+        }
+        assert(valid());
+        return i->first;
+    }
+
+    DLLLOCAL bool valid() const {
+        return do_class || (qc->scl && i != qc->scl->sml.end());
+    }
+
+private:
+    const qore_class_private* qc;
+    BCSMList::const_iterator i;
+    bool do_class = false;
+};
+
+QoreClassHierarchyIterator::QoreClassHierarchyIterator(const QoreClass* cls) : priv(new qore_class_hierarchy_iterator(qore_class_private::get(*cls))) {
+}
+
+QoreClassHierarchyIterator::~QoreClassHierarchyIterator() {
+    delete priv;
+}
+
+bool QoreClassHierarchyIterator::next() {
+    return priv->next();
+}
+
+bool QoreClassHierarchyIterator::valid() const {
+    return priv->valid();
+}
+
+const QoreClass* QoreClassHierarchyIterator::get() const {
+    return priv->get();
 }

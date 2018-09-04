@@ -64,6 +64,14 @@ QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, Excepti
    return o->evalMethod(c_str, args, xsink);
 }
 
+const QoreTypeInfo* AbstractMethodCallNode::getTypeInfo() const {
+    return variant
+        ? variant->parseGetReturnTypeInfo()
+        : (method
+            ? qore_method_private::get(*method)->getFunction()->parseGetUniqueReturnTypeInfo()
+            : nullptr);
+}
+
 static void invalid_access(const QoreProgramLocation* loc, QoreFunction* func) {
    // func will always be non-zero with builtin functions
    const char* class_name = func->className();
@@ -108,14 +116,14 @@ static void warn_deprecated(const QoreProgramLocation* loc, QoreFunction* func) 
 static void check_flags(const QoreProgramLocation* loc, QoreFunction* func, int64 flags, int64 pflag) {
     if (pflag & (PF_RETURN_VALUE_IGNORED | PF_BACKGROUND)) {
         bool is_bg_call = (pflag & PF_BACKGROUND);
-        if ((flags & QC_CONSTANT) == QC_CONSTANT) {
+        if ((flags & QCF_CONSTANT) == QCF_CONSTANT) {
             warn_retval_ignored(loc, func, is_bg_call);
         }
-        else if (flags & QC_RET_VALUE_ONLY) {
+        else if (flags & QCF_RET_VALUE_ONLY) {
             warn_only_may_throw_and_retval_ignored(loc, func, is_bg_call);
         }
     }
-    if (flags & QC_DEPRECATED) {
+    if (flags & QCF_DEPRECATED) {
         warn_deprecated(loc, func);
     }
 }
@@ -161,7 +169,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
         //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p variant: %p rt: %s\n", this, func->className() ? func->className() : "", func->getName(), pflag & PF_RETURN_VALUE_IGNORED, func, variant, QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
 
         if (variant) {
-            //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p f: %lld (%lld) (%lld) rt: %s\n", this, func->className() ? func->className() : "", func->getName(), variant, variant->getFunctionality(), variant->getFlags(), variant->getFlags() & QC_RET_VALUE_ONLY, QoreTypeInfo::getName(variant->parseGetReturnTypeInfo()));
+            //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p f: %lld (%lld) (%lld) rt: %s\n", this, func->className() ? func->className() : "", func->getName(), variant, variant->getFunctionality(), variant->getFlags(), variant->getFlags() & QCF_RET_VALUE_ONLY, QoreTypeInfo::getName(variant->parseGetReturnTypeInfo()));
             if (qc) {
                 assert(dynamic_cast<const MethodVariantBase*>(variant));
                 const MethodVariantBase* mv = reinterpret_cast<const MethodVariantBase*>(variant);
@@ -185,7 +193,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
             }
         }
         else {
-            //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %p f: %lld (%lld) c: %lld (%lld)\n", this, func, func->parseGetUniqueFunctionality(), func->parseGetUniqueFunctionality() & parse_get_parse_options(), func->parseGetUniqueFlags(), func->parseGetUniqueFlags() & QC_RET_VALUE_ONLY);
+            //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %p f: %lld (%lld) c: %lld (%lld)\n", this, func, func->parseGetUniqueFunctionality(), func->parseGetUniqueFunctionality() & parse_get_parse_options(), func->parseGetUniqueFlags(), func->parseGetUniqueFlags() & QCF_RET_VALUE_ONLY);
 
             int64 dflags = func->parseGetUniqueFunctionality();
             if (dflags && qore_program_private::parseAddDomain(pgm, dflags))
@@ -240,7 +248,7 @@ QoreValue SelfFunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
 void SelfFunctionCallNode::parseInitCall(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
     assert(!returnTypeInfo);
     assert(!qc || method);
-    lvids += parseArgs(oflag, pflag, method ? method->getFunction() : nullptr, nullptr, returnTypeInfo);
+    lvids += parseArgs(oflag, pflag, method ? qore_method_private::get(*method)->getFunction() : nullptr, nullptr, returnTypeInfo);
     // issue #2380 make sure to set the method correctly if resolved from a hierarchy
     if (variant)
         method = static_cast<const MethodVariantBase*>(variant)->method();
@@ -518,7 +526,7 @@ void ScopedObjectCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
 #endif
 
     const QoreMethod* constructor = oc ? oc->parseGetConstructor() : nullptr;
-    lvids += parseArgs(oflag, pflag, constructor ? constructor->getFunction() : nullptr, nullptr, typeInfo);
+    lvids += parseArgs(oflag, pflag, constructor ? qore_method_private::get(*constructor)->getFunction() : nullptr, nullptr, typeInfo);
 
     if (oc) {
         // parse init the class and check if we're trying to instantiate an abstract class
@@ -543,7 +551,7 @@ void ScopedObjectCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
             parse_error(*loc, "illegal external access to private constructor of class %s", oc->getName());
     }
 
-    //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, oc->getName(), oc, constructor, constructor ? constructor->getFunction() : 0, variant);
+    //printd(5, "ScopedObjectCallNode::parseInitImpl() this: %p class: %s (%p) constructor: %p function: %p variant: %p\n", this, oc->getName(), oc, constructor, constructor ? qore_method_private::get(*constructor)->getFunction() : 0, variant);
 }
 
 QoreValue ScopedObjectCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
@@ -682,7 +690,7 @@ void StaticMethodCallNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int pf
 
     assert(method->isStatic());
 
-    lvids += parseArgs(oflag, pflag, method->getFunction(), nullptr, typeInfo);
+    lvids += parseArgs(oflag, pflag, qore_method_private::get(*method)->getFunction(), nullptr, typeInfo);
     // issue #2380 make sure to set the method correctly if resolved from a hierarchy
     if (variant)
         method = static_cast<const MethodVariantBase*>(variant)->method();
@@ -693,4 +701,12 @@ QoreValue StaticMethodCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
     return tmp_args
         ? qore_method_private::evalTmpArgs(*method, xsink, nullptr, args)
         : qore_method_private::eval(*method, xsink, nullptr, args);
+}
+
+const QoreTypeInfo* StaticMethodCallNode::getTypeInfo() const {
+    return variant
+        ? variant->parseGetReturnTypeInfo()
+        : (method
+            ? qore_method_private::get(*method)->getFunction()->parseGetUniqueReturnTypeInfo()
+            : 0);
 }

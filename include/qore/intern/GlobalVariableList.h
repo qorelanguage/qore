@@ -82,7 +82,7 @@ public:
     // returns a non-0 Var* if a new variable was created, 0 if not (because it already existed - exception raised)
     DLLLOCAL Var* import(Var* var, ExceptionSink* xsink, bool readonly = false);
 
-    DLLLOCAL Var* runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo);
+    DLLLOCAL Var* runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo, bool builtin = false);
 
     DLLLOCAL Var* parseFindVar(const char* name);
     DLLLOCAL Var* parseCreatePendingVar(const QoreProgramLocation* loc, const char* name, const QoreTypeInfo* typeInfo);
@@ -93,9 +93,9 @@ public:
     // xxx DLLLOCAL Var* parseFindCreateVar(const char* name, QoreParseTypeInfo* typeInfo, bool& new_var);
     // xxx DLLLOCAL Var* parseFindCreateVar(const char* name, const QoreTypeInfo* typeInfo, bool& new_var);
 
-    DLLLOCAL Var* runtimeFindVar(const char* name) {
-        map_var_t::iterator i = vmap.find(name);
-        return i != vmap.end() ? i->second : 0;
+    DLLLOCAL Var* runtimeFindVar(const char* name) const {
+        map_var_t::const_iterator i = vmap.find(name);
+        return i != vmap.end() ? i->second : nullptr;
     }
 
     DLLLOCAL QoreListNode* getVarList() const;

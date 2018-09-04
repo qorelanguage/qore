@@ -450,15 +450,15 @@ public:
         }
 
         // initialize global vars
-        Var *var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ARGV", listTypeInfo);
+        Var *var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ARGV", listTypeInfo, true);
         if (var && ARGV)
             var->setInitial(ARGV->copy());
 
-        var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "QORE_ARGV", listTypeInfo);
+        var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "QORE_ARGV", listTypeInfo, true);
         if (var && QORE_ARGV)
             var->setInitial(QORE_ARGV->copy());
 
-        var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ENV", hashTypeInfo);
+        var = qore_root_ns_private::runtimeCreateVar(*RootNS, *QoreNS, "ENV", hashTypeInfo, true);
         if (var)
             var->setInitial(ENV->copy());
         setDefines();
@@ -2512,5 +2512,7 @@ public:
       return debug_program_counter.getCount();
    }
 };
+
+DLLLOCAL TypedHashDecl* init_hashdecl_SourceLocationInfo(QoreNamespace& ns);
 
 #endif

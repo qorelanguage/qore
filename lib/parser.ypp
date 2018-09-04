@@ -459,10 +459,10 @@ static int check_method(const QoreProgramLocation* loc, const char* name, BCALis
 static inline MethodVariantBase* new_method_variant(const QoreProgramLocation* loc, const char* name, int mod, int n_sig_first_line, int n_sig_last_line, QoreValue params, BCAList* bcal, RetTypeInfo* returnTypeInfo, StatementBlock *b) {
     //printd(5, "new_method_variant() '%s' b: %p\n", name, b);
 
-    int64 flags = QC_NO_FLAGS;
+    int64 flags = QCF_NO_FLAGS;
 
     if (get_pop_argv_ref())
-        flags |= QC_USES_EXTRA_ARGS;
+        flags |= QCF_USES_EXTRA_ARGS;
 
     ClassAccess access = Public;
     if (mod & OFM_PRIVATE) {
@@ -479,7 +479,7 @@ static inline MethodVariantBase* new_method_variant(const QoreProgramLocation* l
     }
 
     if (mod & OFM_DEPRECATED)
-        flags |= QC_DEPRECATED;
+        flags |= QCF_DEPRECATED;
 
     if (!strcmp(name, "constructor")) {
         if (mod & OFM_SYNCED)
@@ -3091,13 +3091,13 @@ return_value:
 sub_def:
         TOK_SUB ident_openparen myexp ')' return_value block {
             int ar = get_pop_argv_ref();
-            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+            int64 flags = ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS;
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @6.last_line);
             $$ = new ParseUserFunction(loc, $2, new UserFunctionVariant($6, @3.first_line, @3.last_line, $3, $5, false, flags));
         }
         | uncqtypedef TOK_SUB ident_openparen myexp ')' block {
             int ar = get_pop_argv_ref();
-            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+            int64 flags = ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS;
 
             RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($1), ParserTypeStruct::getTypeInfo($1));
             delete $1;
@@ -3109,9 +3109,9 @@ sub_def:
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @7.last_line);
             check_funcmod(loc, $1);
             int ar = get_pop_argv_ref();
-            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+            int64 flags = ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS;
             if ($1 & OFM_DEPRECATED)
-                flags |= QC_DEPRECATED;
+                flags |= QCF_DEPRECATED;
 
             $$ = new ParseUserFunction(loc, $3, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, $1 & OFM_SYNCED, flags));
             if ($1 & OFM_PUBLIC)
@@ -3121,9 +3121,9 @@ sub_def:
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @7.last_line);
             check_funcmod(loc, $1);
             int ar = get_pop_argv_ref();
-            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+            int64 flags = ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS;
             if ($1 & OFM_DEPRECATED)
-                flags |= QC_DEPRECATED;
+                flags |= QCF_DEPRECATED;
 
             RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($2), ParserTypeStruct::getTypeInfo($2));
             delete $2;
@@ -3137,13 +3137,13 @@ sub_def:
 scoped_sub_def:
         TOK_SUB SCOPED_REF '(' myexp ')' return_value block {
             int ar = get_pop_argv_ref();
-            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+            int64 flags = ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS;
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @7.last_line);
             $$ = new ParseScopedUserFunction(loc, $2, new UserFunctionVariant($7, @4.first_line, @4.last_line, $4, $6, false, flags));
         }
         | uncqtypedef TOK_SUB SCOPED_REF '(' myexp ')' block {
             int ar = get_pop_argv_ref();
-            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+            int64 flags = ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS;
 
             RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($1), ParserTypeStruct::getTypeInfo($1));
             delete $1;
@@ -3155,9 +3155,9 @@ scoped_sub_def:
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @8.last_line);
             check_funcmod(loc, $1);
             int ar = get_pop_argv_ref();
-            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+            int64 flags = ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS;
             if ($1 & OFM_DEPRECATED)
-                flags |= QC_DEPRECATED;
+                flags |= QCF_DEPRECATED;
 
             $$ = new ParseScopedUserFunction(loc, $3, new UserFunctionVariant($8, @5.first_line, @5.last_line, $5, $7, $1 & OFM_SYNCED, flags));
             if ($1 & OFM_PUBLIC)
@@ -3167,9 +3167,9 @@ scoped_sub_def:
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @8.last_line);
             check_funcmod(loc, $1);
             int ar = get_pop_argv_ref();
-            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+            int64 flags = ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS;
             if ($1 & OFM_DEPRECATED)
-                flags |= QC_DEPRECATED;
+                flags |= QCF_DEPRECATED;
 
             RetTypeInfo* rt = new RetTypeInfo(ParserTypeStruct::getParseTypeInfo($2), ParserTypeStruct::getTypeInfo($2));
             delete $2;
@@ -3749,7 +3749,7 @@ exp_c:
         | TOK_SUB '(' myexp ')' return_value block {
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @6.last_line);
             int ar = get_pop_argv_ref();
-            $$.set(new QoreClosureParseNode(loc, new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS)));
+            $$.set(new QoreClosureParseNode(loc, new UserClosureFunction($6, @3.first_line, @3.last_line, $3, $5, false, ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS)));
         }
         | uncqtypedef TOK_SUB '(' myexp ')' block {
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @6.last_line);
@@ -3757,15 +3757,15 @@ exp_c:
             delete $1;
 
             int ar = get_pop_argv_ref();
-            $$.set(new QoreClosureParseNode(loc, new UserClosureFunction($6, @4.first_line, @4.last_line, $4, rt, false, ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS)));
+            $$.set(new QoreClosureParseNode(loc, new UserClosureFunction($6, @4.first_line, @4.last_line, $4, rt, false, ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS)));
         }
         | method_modifiers TOK_SUB '(' myexp ')' return_value block {
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @7.last_line);
             check_funcmod(loc, $1);
             int ar = get_pop_argv_ref();
-            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+            int64 flags = ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS;
             if ($1 & OFM_DEPRECATED)
-                flags |= QC_DEPRECATED;
+                flags |= QCF_DEPRECATED;
             $$.set(new QoreClosureParseNode(loc, new UserClosureFunction($7, @4.first_line, @4.last_line, $4, $6, $1 | OFM_SYNCED, flags)));
         }
         | method_modifiers uncqtypedef TOK_SUB '(' myexp ')' block {
@@ -3776,9 +3776,9 @@ exp_c:
             delete $2;
 
             int ar = get_pop_argv_ref();
-            int64 flags = ar > 0 ? QC_USES_EXTRA_ARGS : QC_NO_FLAGS;
+            int64 flags = ar > 0 ? QCF_USES_EXTRA_ARGS : QCF_NO_FLAGS;
             if ($1 & OFM_DEPRECATED)
-                flags |= QC_DEPRECATED;
+                flags |= QCF_DEPRECATED;
             $$.set(new QoreClosureParseNode(loc, new UserClosureFunction($7, @5.first_line, @5.last_line, $5, rt, $1 | OFM_SYNCED, flags)));
         }
         | IMPLICIT_ARG_REF {

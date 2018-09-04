@@ -128,16 +128,16 @@ typedef std::vector<int> sig_vec_t;
 #define _QORE_HAS_DATETIME_ADD_SECONDS_TO 1
 
 // qore code flags
-#define QC_NO_FLAGS                 0   //! no flag
-#define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
-#define QC_USES_EXTRA_ARGS    (1 << 1)  //! code accesses arguments beyond the declared parameter list
-#define QC_CONSTANT_INTERN    (1 << 2)  //! internal constant flag, use QC_CONSTANT instead
-#define QC_DEPRECATED         (1 << 3)  //! function or method is deprecated and will be removed in a later release
-#define QC_RET_VALUE_ONLY     (1 << 4)  //! code only returns a value and has no other side effects
-#define QC_RUNTIME_NOOP       (1 << 5)  //! this variant is a noop like QC_NOOP, but additionally is not available to programs executing with %require-types (PO_REQUIRE_TYPES)
+#define QCF_NO_FLAGS                 0   //! no flag
+#define QCF_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
+#define QCF_USES_EXTRA_ARGS    (1 << 1)  //! code accesses arguments beyond the declared parameter list
+#define QCF_CONSTANT_INTERN    (1 << 2)  //! internal constant flag, use QCF_CONSTANT instead
+#define QCF_DEPRECATED         (1 << 3)  //! function or method is deprecated and will be removed in a later release
+#define QCF_RET_VALUE_ONLY     (1 << 4)  //! code only returns a value and has no other side effects
+#define QCF_RUNTIME_NOOP       (1 << 5)  //! this variant is a noop like QCF_NOOP, but additionally is not available to programs executing with %require-types (PO_REQUIRE_TYPES)
 
 // composite flags
-#define QC_CONSTANT (QC_CONSTANT_INTERN | QC_RET_VALUE_ONLY) //! code is safe to use in a constant expression (i.e. has no side effects, does not change internal state, cannot throw an exception under any circumstances, just returns a calculation based on its arguments)
+#define QCF_CONSTANT (QCF_CONSTANT_INTERN | QCF_RET_VALUE_ONLY) //! code is safe to use in a constant expression (i.e. has no side effects, does not change internal state, cannot throw an exception under any circumstances, just returns a calculation based on its arguments)
 
 class BinaryNode;
 class QoreStringNode;
@@ -649,4 +649,28 @@ DLLEXPORT int q_set_thread_var_value(int frame, const char* name, const QoreValu
 //! returns the pointer and size for string or binary data (return 0); no change for other data (return -1)
 DLLEXPORT int q_get_data(const QoreValue& data, const char*& ptr, size_t& len);
 
+//! returns a list<string> of parse option strings for the given bitfield; a Qore-language exception is raised for invalid values
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreListNode* parse_option_bitfield_to_string_list(int64 i, ExceptionSink* xsink);
+
+//! returns a list<string> of domain strings for the given bitfield; a Qore-language exception is raised for invalid values
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreListNode* domain_bitfield_to_string_list(int64 i, ExceptionSink* xsink);
+
+//! returns the "or nothing" type for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo);
+
+//! returns the pseudo-class for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreClass* qore_pseudo_get_class(qore_type_t t);
+
+//! returns the pseudo-class for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreClass* qore_pseudo_get_class(const QoreTypeInfo* t);
 #endif // _QORE_QORELIB_H

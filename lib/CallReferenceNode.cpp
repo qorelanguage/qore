@@ -344,6 +344,10 @@ bool RunTimeResolvedMethodReferenceNode::is_equal_hard(const AbstractQoreNode* v
    return vc && vc->obj == obj && vc->method == method;
 }
 
+QoreFunction* RunTimeResolvedMethodReferenceNode::getFunction() {
+    return method ? qore_method_private::get(*method)->getFunction() : 0;
+}
+
 RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode(const QoreProgramLocation* loc, QoreObject* n_obj, const char* n_method) : ResolvedCallReferenceNodeIntern(loc), obj(n_obj), method(n_method), qc(runtime_get_class()) {
    printd(5, "RunTimeObjectMethodReferenceNode::RunTimeObjectMethodReferenceNode() this: %p obj: %p (method: %s qc: %p)\n", this, obj, n_method, qc);
    obj->tRef();
@@ -413,6 +417,10 @@ bool LocalStaticMethodCallReferenceNode::is_equal_hard(const AbstractQoreNode* v
    const LocalStaticMethodCallReferenceNode* vc = dynamic_cast<const LocalStaticMethodCallReferenceNode*>(v);
    //printd(5, "LocalStaticMethodCallReferenceNode::is_equal_hard() %p == %p (%p %s)\n", uf, vc ? vc->uf : 0, v, v ? v->getTypeName() : "n/a");
    return vc && method == vc->method;
+}
+
+QoreFunction* LocalStaticMethodCallReferenceNode::getFunction() {
+    return method ? qore_method_private::get(*method)->getFunction() : nullptr;
 }
 
 // evalImpl(): return value requires a deref(xsink) if not 0
