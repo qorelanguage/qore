@@ -2489,7 +2489,7 @@ public namespace Logger {
         }
 
         private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
-            bool checkThrowable) {
+            bool checkThrowable, date timeStamp = now_us() ) {
             if (isEnabledFor(level)) {
                 *hash<ExceptionInfo> throwable;
                 if (args.size() && checkThrowable) {
@@ -2499,13 +2499,33 @@ public namespace Logger {
                         throwable = a;
                     }
                 }
-                callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), now_us(), throwable));
+                callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), timeStamp, throwable));
+                {
+                    AutoReadLock awl(m_lock);
+                    if (m_parent && getAdditivity()) {
+                        # Forward the event upstream if additivity is turned on
+                        m_parent.logIntern(level, message, args, location, throwable, timeStamp);
+                    }
+                }
+
+            } else {
+                AutoReadLock awl(m_lock);
+                if (m_parent && getAdditivity()) {
+                    # Forward the event upstream if additivity is turned on
+                    m_parent.logIntern(level, message, args, location, checkThrowable, timeStamp);
+                }
+            }
+        }
+
+        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location, *hash<ExceptionInfo> throwable, date timeStamp) {
+            if (isEnabledFor(level)) {
+                callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), timeStamp, throwable));
             }
             {
                 AutoReadLock awl(m_lock);
                 if (m_parent && getAdditivity()) {
                     # Forward the event upstream if additivity is turned on
-                    m_parent.logIntern(level, message, args, location, checkThrowable);
+                    m_parent.logIntern(level, message, args, location, throwable, timeStamp);
                 }
             }
         }
