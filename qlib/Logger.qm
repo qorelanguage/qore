@@ -929,7 +929,7 @@ public namespace Logger {
 
         #! Opens logging resources
         /**
-            The appender must be opened (i.e. in active state) to accept any logging events
+            The appender must be opened to accept any logging events
         */
         public open() {
             AutoWriteLock awl(m_lock);
@@ -948,8 +948,8 @@ public namespace Logger {
             }
         }
 
-        #! Returns the value of the \c active flag, i.e. @ref True if the appender is open and therefore active
-        public bool isActive() {
+        #! Returns @ref True if the appender is open and therefore active
+        public bool isOpen() {
             return m_active;
         }
 
@@ -1746,7 +1746,7 @@ public namespace Logger {
             @throw LOGGER-ERROR if rotation is disabled
         */
         public rotate() {
-            if (isActive()) {
+            if (isOpen()) {
                 if (m_count <= 0) {
                     throw "LOGGER-ERROR", "Rotation is disabled";
                 }
@@ -1912,7 +1912,7 @@ public namespace Logger {
             @throw LOGGER-ERROR if rotation is disabled
         */
         public rotate() {
-            if (isActive()) {
+            if (isOpen()) {
                 if (m_patternData.count <= 0) {
                     throw "LOGGER-ERROR", "Rotation is disabled";
                 }
@@ -2041,7 +2041,7 @@ public namespace Logger {
             switch (type) {
                 case EVENT_ARCHIVE:
                     mkdir(dirname(params), 0777, True);
-                    if (isActive()) {
+                    if (isOpen()) {
                         m_file.close();
                         rename(m_filename, params);
                         LoggerAppenderFile::processEventImpl(EVENT_OPEN, NOTHING);

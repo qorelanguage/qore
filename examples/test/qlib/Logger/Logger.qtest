@@ -409,11 +409,11 @@ class Test inherits QUnit::Test {
         LoggerFilterRegex lfr2("DUMMY");
         LoggerEvent lle = new LoggerEvent('Logger', 'mylogger', LoggerLevel::getLevelError(), 'ABCDEF');
         assertEq("TEST", la.getName());
-        assertFalse(la.isActive());
+        assertFalse(la.isOpen());
         assertEq(llp, la.getLayout());
         assertEq(NOTHING, la.getQueue());
         la.open();
-        assertTrue(la.isActive());
+        assertTrue(la.isOpen());
         la.post(lle);
         assertEq("ABCDEF", sos.getData());
         # filter list test
@@ -450,7 +450,7 @@ class Test inherits QUnit::Test {
         StreamWriter sw(sos);
         LoggerAppenderStream la("TEST", new LoggerLayoutPattern("%m"), sw);
         LoggerEvent lle = new LoggerEvent('Logger', 'mylogger', LoggerLevel::getLevelError(), 'ABCDEF');
-        assertFalse(la.isActive());
+        assertFalse(la.isOpen());
         assertEq(NOTHING, la.getQueue());
         LoggerAppenderQueue laq = new LoggerAppenderQueue();
         la.setQueue(laq);
@@ -459,14 +459,14 @@ class Test inherits QUnit::Test {
         assertEq(NOTHING, la.getQueue());
         la.setQueue(laq);
         la.open();
-        assertTrue(la.isActive());
+        assertTrue(la.isOpen());
         assertThrows("LOGGER-ERROR", "Appender is opened", \la.setQueue(), (laq,));
         la.post(lle);
         laq.process();
         assertEq("ABCDEF", sos.getData());
         la.close();
         laq.process(); # async close
-        assertFalse(la.isActive());
+        assertFalse(la.isOpen());
         la.setQueue(NOTHING);
         assertEq(NOTHING, la.getQueue());
         assertThrows("LOGGER-ERROR", "Cannot reopen stream", \la.open());
@@ -698,7 +698,7 @@ class Test inherits QUnit::Test {
         sleep(1200ms); # we need unique mtime
         la.post(new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "TEST"));
         la.close();
-        assertFalse(la.isActive());
+        assertFalse(la.isOpen());
         assertFalse(la.getFile().isOpen());
         la.open();
         assertEq(sprintf(fn2, 1), la.getFileName()); # check the latest file is found
@@ -736,7 +736,7 @@ class Test inherits QUnit::Test {
         unlink(afn);
         afn = la.archive(); # archive closed appender
         assertFalse(la.getFile().isOpen());
-        assertFalse(la.isActive());
+        assertFalse(la.isOpen());
         s = ReadOnlyFile::readTextFile(afn);
         assertEq("LOG", s);
         assertFalse(is_file(la.getFileName()));
