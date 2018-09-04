@@ -11,6 +11,14 @@
 
 %exec-class SerializableTest
 
+class Err inherits Serializable {
+    public {
+        Mutex m();
+    }
+}
+
+class Other inherits Serializable;
+
 class Base inherits Serializable {
     public {
         int x = 2;
@@ -28,6 +36,9 @@ class Base inherits Serializable {
 class T inherits Serializable, private:internal Base {
     public {
         int i = 1;
+
+        Other o0();
+        Other o1;
     }
 
     private {
@@ -36,6 +47,10 @@ class T inherits Serializable, private:internal Base {
 
     private:internal {
         bool flag = False;
+    }
+
+    constructor() {
+        o1 = o0;
     }
 
     int get() {
@@ -50,9 +65,15 @@ class SerializableTest inherits QUnit::Test {
     }
 
     serializableTest() {
+        {
+            Err err();
+            assertThrows("SERIALIZATION-ERROR", \err.serializeToData());
+        }
         T t();
-        printf("%y\n", t.get());
         hash<SerializationInfo> h = t.serializeToData();
+        assertEq(2, h._index.size());
+        assertEq(1, h._data.size());
+        assertEq(Type::String, h._data._index.type());
         printf("%N\n", h);
     }
 }

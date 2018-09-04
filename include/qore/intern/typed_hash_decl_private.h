@@ -56,6 +56,7 @@ typedef QoreMemberMapBase<HashDeclMemberInfo> HashDeclMemberMap;
 
 class typed_hash_decl_private {
 friend class typed_hash_decl_member_iterator;
+friend class TypedHashDecl;
 public:
     DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc) {
     }
@@ -232,12 +233,22 @@ public:
         return members.find(name);
     }
 
+    DLLLOCAL void setNamespace(qore_ns_private* n) {
+        ns = n;
+    }
+
+    DLLLOCAL const qore_ns_private* getNamespace() const {
+        return ns;
+    }
+
 protected:
     // references
     mutable QoreReferenceCounter refs;
     const QoreProgramLocation* loc;
     std::string name;
     TypedHashDecl* thd = nullptr;
+    // parent namespace
+    qore_ns_private* ns = nullptr;
 
     // type information
     QoreHashDeclTypeInfo* typeInfo = nullptr;

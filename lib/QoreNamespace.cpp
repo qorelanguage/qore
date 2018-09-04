@@ -181,7 +181,10 @@ const TypedHashDecl* hashdeclStatInfo,
     * hashdeclStatementInfo,
     * hashdeclNetIfInfo,
     * hashdeclSourceLocationInfo,
-    * hashdeclSerializationInfo;
+    * hashdeclSerializationInfo,
+    * hashdeclObjectSerializationInfo,
+    * hashdeclIndexedObjectSerializationInfo,
+    * hashdeclHashSerializationInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -223,6 +226,7 @@ void QoreNamespace::setClassHandler(q_ns_class_handler_t class_handler) {
 void QoreNamespace::addSystemHashDecl(TypedHashDecl* hd) {
     // set sys and pub flags
     typed_hash_decl_private::get(*hd)->setSystemPublic();
+    typed_hash_decl_private::get(*hd)->setNamespace(priv);
 #ifdef DEBUG
     if (priv->hashDeclList.add(hd))
         assert(false);
@@ -922,7 +926,10 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     hashdeclStatementInfo = init_hashdecl_StatementInfo(qns);
     hashdeclNetIfInfo = init_hashdecl_NetIfInfo(qns);
     hashdeclSourceLocationInfo = init_hashdecl_SourceLocationInfo(qns);
+    hashdeclObjectSerializationInfo = init_hashdecl_ObjectSerializationInfo(qns);
     hashdeclSerializationInfo = init_hashdecl_SerializationInfo(qns);
+    hashdeclIndexedObjectSerializationInfo = init_hashdecl_IndexedObjectSerializationInfo(qns);
+    hashdeclHashSerializationInfo = init_hashdecl_HashSerializationInfo(qns);
 
     qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
@@ -1511,8 +1518,9 @@ void qore_root_ns_private::parseAddHashDeclIntern(const QoreProgramLocation* loc
     if (sns) {
         //printd(5, "qore_root_ns_private::parseAddHashDeclIntern() '%s' adding %s:%p to %s:%p\n", nscope.ostr, hd->getName(), parseAddHashDeclIntern, sns->name.c_str(), sns);
         // add to pending hashdecl map if add was successful
-        if (!sns->parseAddPendingHashDecl(loc, hd))
+        if (!sns->parseAddPendingHashDecl(loc, hd)) {
             thdmap.update(hd->getName(), sns, hd);
+        }
     }
     else {
         //printd(5, "qore_root_ns_private::parseAddHashDeclIntern() hashdecl '%s' not added: '%s' namespace not found\n", hd->getName(), nscope.ostr);
@@ -2437,7 +2445,7 @@ int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation* loc, Typ
         return -1;
     }
 
-    //typed_hash_decl_private::setNamespace(oc, this);
+    typed_hash_decl_private::get(*hashdecl)->setNamespace(this);
     thd.release();
 
     return 0;
@@ -2565,7 +2573,7 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
    classList.mergeUserPublic(mns.classList, this);
 
    // merge in source hashdecls
-   hashDeclList.mergeUserPublic(mns.hashDeclList);
+   hashDeclList.mergeUserPublic(mns.hashDeclList, this);
 
    // merge in source functions
    func_list.mergeUserPublic(mns.func_list, this);

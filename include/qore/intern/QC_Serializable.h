@@ -40,5 +40,8 @@ DLLLOCAL extern QoreClass* QC_SERIALIZABLE;
 
 DLLLOCAL QoreClass* initSerializableClass(QoreNamespace& ns);
 DLLLOCAL TypedHashDecl* init_hashdecl_SerializationInfo(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_ObjectSerializationInfo(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_IndexedObjectSerializationInfo(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_HashSerializationInfo(QoreNamespace& ns);
 
 #endif // _QORE_CLASS_INTERN_SERIALIZABLE_H

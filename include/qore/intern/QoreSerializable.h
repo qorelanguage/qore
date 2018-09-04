@@ -37,9 +37,9 @@
 
 class QoreSerializable : public AbstractPrivateData {
 public:
-    DLLLOCAL QoreHashNode* serializeToData(QoreObject* self, ExceptionSink* xsink) const;
+    DLLLOCAL static QoreHashNode* serializeToData(QoreObject* self, ExceptionSink* xsink);
 
-    DLLLOCAL BinaryNode* serialize(QoreObject* self, ExceptionSink* xsink) const;
+    DLLLOCAL static BinaryNode* serialize(QoreObject* self, ExceptionSink* xsink);
 
     DLLLOCAL static QoreObject* deserialize(const BinaryNode* b, ExceptionSink* xsink);
 
@@ -48,7 +48,10 @@ public:
 protected:
     DLLLOCAL virtual ~QoreSerializable() {}
 
-    DLLLOCAL int serializeMemberValue(ValueHolder& val, ReferenceHolder<QoreHashNode>& index, const QoreClass* current_cls, const char* mname, ExceptionSink* xsink) const;
+    DLLLOCAL static QoreValue serializeValue(const QoreValue val, ReferenceHolder<QoreHashNode>& index, ExceptionSink* xsink);
+
+    DLLLOCAL static QoreHashNode* serializeObjectToData(const QoreObject& self, ReferenceHolder<QoreHashNode>& index, ExceptionSink* xsink);
+    DLLLOCAL static QoreHashNode* serializeHashToData(const QoreHashNode& h, ReferenceHolder<QoreHashNode>& index, ExceptionSink* xsink);
 };
 
 #endif // _QORE_CLASS_INTERN_QORESERIALIZABLE_H

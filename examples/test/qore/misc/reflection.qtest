@@ -455,6 +455,7 @@ class ReflectionTest inherits QUnit::Test {
             assertFalse(mem.isUser());
             assertTrue(mem.isBuiltin());
             assertFalse(mem.isEqual(mem2));
+            assertEq("Qore::StatInfo", th.getPathName());
         }
 
         {

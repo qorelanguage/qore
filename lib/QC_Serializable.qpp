@@ -32,19 +32,49 @@
 #include <qore/Qore.h>
 #include "qore/intern/QC_Serializable.h"
 
-//! object serialization information
+//! serialization information
 /**
     @since %Qore 0.9
 */
 hashdecl SerializationInfo {
+    //! unique object index
+    *hash<string, hash<ObjectSerializationInfo>> _index;
+
+    //! serialized data
+    auto _data;
+}
+
+//! object serialization information
+/**
+    @since %Qore 0.9
+*/
+hashdecl ObjectSerializationInfo {
     //! class path name
     string _class;
 
-    //! unique object index
-    *hash<string, hash<SerializationInfo>> _index;
-
     //! member values per class; class path -> member hash
-    hash<string, hash<string, auto>> _members;
+    *hash<string, hash<string, auto>> _members;
+}
+
+//! object serialization information for an indexed object
+/**
+    @since %Qore 0.9
+*/
+hashdecl IndexedObjectSerializationInfo {
+    //! index value
+    string _index;
+}
+
+//! @ref hashdecl "typed hash" serialization information
+/**
+    @since %Qore 0.9
+*/
+hashdecl HashSerializationInfo {
+    //! @ref hashdecl "typed hash" path name, if any; otherwise for an untyped hash: \c "^hash^"
+    string _hash;
+
+    //! member values
+    *hash<string, auto> _members;
 }
 
 //! The Serializable class can be used to mark a class as being serializable
@@ -87,7 +117,7 @@ Serializable::copy() {
 hash<SerializationInfo> h = obj.serializeToData();
     @endcode
 
-    @retun a serialization hash representing object
+    @retun a serialization hash representing the object
 
     All non-serializable data such as @ref closure "closures", @ref call_reference "call references",
     @ref lvalue_references "references", or non-serializable objects must be tagged as @ref transient

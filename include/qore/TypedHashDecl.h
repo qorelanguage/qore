@@ -69,6 +69,13 @@ public:
     */
     DLLEXPORT const QoreExternalProgramLocation* getSourceLocation() const;
 
+    //! returns the full namespace path of the class
+    /** @param anchored if true then the path will always be prefixed by "::" for the unnamed root namespace
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT std::string getNamespacePath(bool anchored = false) const;
+
 protected:
     //! deletes the object and frees all memory
     DLLEXPORT ~TypedHashDecl();
@@ -165,5 +172,14 @@ DLLEXPORT extern const TypedHashDecl* hashdeclSourceLocationInfo;
 
 //! SerializationInfo hashdecl
 DLLEXPORT extern const TypedHashDecl* hashdeclSerializationInfo;
+
+//! ObjectSerializationInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclObjectSerializationInfo;
+
+//! IndexedObjectSerializationInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclIndexedObjectSerializationInfo;
+
+//! HashSerializationInfo hashdecl
+DLLEXPORT extern const TypedHashDecl* hashdeclHashSerializationInfo;
 
 #endif
