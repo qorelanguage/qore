@@ -396,31 +396,28 @@ public namespace FsUtil {
         throw "FILE-WRITE-ERROR", "Impossible to find a unique name.";
     }
 
+    #! Removes a regular file or symlink specified by path
+    /** @param path path to a filesystem tree root which should be removed
+
+        @throws REMOVE-FILE-ERROR If something goes wrong with the removal. The description contains error message.
+
+        This function doesn't follow symlinks and it's merely a wrapper aroung unlink() call to ensure consistently
+        named remove/copy/move functions in this module.
+    */
+    public sub remove_file(string path) {
+        if (unlink(path) != 0) {
+            throw "REMOVE-FILE-ERROR", sprintf("Unable to remove %s: %s\n", path, strerror());
+        }
+    }
+
     #! Removes the filesystem tree specified by path
     /** @param path path to a filesystem tree root which should be removed
-        @param dir_only flag specifying whether the tree should be removed only if path leads to a directory
-                        (default: True)
 
-        @throws NOT-A-DIRECTORY If path doesn't point to a directory and dir_only is True -> can't remove it
-
-        By default this function will only remove a directory (i.e. path can't point to a regular file, symlink, etc.)
-        which can be overriden by dir_only flag. This doesn't hold true for the path's contents though of course.
-        Therefore if path leads to a directory, it's contents will be removed regardless of dir_only flag.
+        This function will only remove a directory (i.e. path can't point to a regular file, symlink, etc.).
+        This doesn't hold true for the path's contents though of course. That will be removed anyway.
         This function doesn't follow symlinks.
-
     */
-    public sub rmtree(string path, bool dir_only=True) {
-        if (!is_dir(path)) {
-            if (dir_only) {
-                throw "NOT-A-DIRECTORY", sprintf("Can't remove '%s': not a directory.", path);
-            }
-
-            # remove the file or symlink specified by path
-            unlink(path);
-            return;
-        }
-
-        # now we know path is a directory
+    public sub remove_tree(string path, bool dir_only=True) {
         Dir dir();
         dir.chdir(path);
 
@@ -428,14 +425,28 @@ public namespace FsUtil {
         foreach string name in (dir.list()) {
             string sub_path = join_paths(path, name);
             if (is_dir(sub_path)) {
-                rmtree(sub_path);
+                remove_tree(sub_path);
             } else {
-                unlink(sub_path);
+                remove_file(sub_path);
             }
         }
 
         # directory specified by path should be empty now
         rmdir(path);
+    }
+
+    #! Universal remove function
+    /** @param path path to be removed
+
+        This wrapper function exists for convenience. Path can be a regular file, symlink or a directory,
+        the respective functions for removing files/links or directories will be called.
+    */
+    public sub remove_path(string path) {
+        if (is_dir(path)) {
+            remove_tree(path);
+        } else {
+            remove_file(path);
+        }
     }
 
     #! Checks whether two stat hashes point to the same file or not
@@ -476,7 +487,7 @@ public namespace FsUtil {
     #! Checks whether two paths point to the same file/directory or not
     /** @param path1 first path
         @param path2 second path
-        @param follow_symlinks flag indicating whether symlinks should be fo    llowed (True by default)
+        @param follow_symlinks flag indicating whether symlinks should be followed (True by default)
         @param ignore_errors flag indicating that errors should be ignored (True by default)
 
         @return True if the two paths point to the same file or directory, False otherwise.

@@ -32,7 +32,7 @@ public class SamefilestatTest inherits QUnit::Test {
         string subdir = make_tmp_dir(NOTHING, NOTHING, tmp_path);
         hash subdir_stat = hstat(subdir);
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
             # file1 and file2 will be removed with tmp_path but file3 won't
             unlink(file3);
         }
@@ -76,7 +76,7 @@ public class SamefilestatTest inherits QUnit::Test {
         string tmp_path = make_tmp_dir();
         hash tmp_path_stat = hstat(tmp_path);
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
         *hash non_file_stat = NOTHING; # file does not exist
 

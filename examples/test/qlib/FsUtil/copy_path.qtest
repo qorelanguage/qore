@@ -42,7 +42,7 @@ public class CopyPathTest inherits QUnit::Test {
     test_copy_path() {
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
 
         string content = "Hello World!";
@@ -73,7 +73,7 @@ public class CopyPathTest inherits QUnit::Test {
     test_copy_path_exceptions() {
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
 
         # prepare FS structure
@@ -116,7 +116,7 @@ public class CopyPathTest inherits QUnit::Test {
     test_copy_path_dont_follow_symlinks() {
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
 
         string content = "Hello World!";
@@ -182,7 +182,7 @@ public class CopyPathTest inherits QUnit::Test {
     test_copy_path_follow_symlinks() {
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
 
         string content = "Hello World!";
@@ -248,7 +248,7 @@ public class CopyPathTest inherits QUnit::Test {
     test_copy_path_symlink_in_src() {
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
 
         string content = "Qore is great.";
@@ -304,7 +304,7 @@ public class CopyPathTest inherits QUnit::Test {
         # create a temporary directory and a test directory tree in it
         string tmp_root = make_tmp_dir();
         on_exit {
-            rmtree(tmp_root);
+            remove_tree(tmp_root);
         }
         string source_path = join_paths(tmp_root, "src");
         mkdir(source_path);
@@ -352,7 +352,7 @@ public class CopyPathTest inherits QUnit::Test {
         assertTrue(is_link(dst_link_path));
         assertEq(file_path, readlink(dst_link_path));  # follow_symlinks=False
         # let's clean it
-        rmtree(dst_path);
+        remove_tree(dst_path);
         assertFalse(path_exists(dst_path));
 
         # let's try again but this time use an existing directory as destination
@@ -375,7 +375,7 @@ public class CopyPathTest inherits QUnit::Test {
         assertTrue(is_link(dst_link_path));
         assertEq(file_path, readlink(dst_link_path));  # follow_symlinks=False
         # let's clean it
-        rmtree(dst_path);
+        remove_tree(dst_path);
         assertFalse(path_exists(dst_path));
 
         # let's try again with follow_symlinks=True
@@ -391,7 +391,7 @@ public class CopyPathTest inherits QUnit::Test {
         assertTrue(path_exists(dst_link_path));
         assertTrue(is_file(dst_link_path));  # follow_symlinks=True
         # let's clean it
-        rmtree(dst_path);
+        remove_tree(dst_path);
         assertFalse(path_exists(dst_path));
 
         # now let's copy it via a link to the source
@@ -418,7 +418,7 @@ public class CopyPathTest inherits QUnit::Test {
         # create a temporary directory and a test directory tree in it
         string tmp_root = make_tmp_dir();
         on_exit {
-            rmtree(tmp_root);
+            remove_tree(tmp_root);
         }
         string source_path = join_paths(tmp_root, "src");
         mkdir(source_path);
@@ -473,7 +473,7 @@ public class CopyPathTest inherits QUnit::Test {
             assertGt(-1, index(err.desc[0].desc, file_path));
         }
         assertTrue(exception_thrown);
-        rmtree(dest_dir);
+        remove_tree(dest_dir);
 
         # try that again with follow_symlinks (i.e. the link will also be unreadable)
         exception_thrown = False;
