@@ -46,17 +46,28 @@ MyModule::mfunc::EXAMPLE_F::func
 %append-module-path .
 %include MyModule.SimpleModuleClass.qc
 
-EXAMPLE_C::SomeClass sc();
-sc.cfunc(\"\");
+auto sub getObject() {
+    EXAMPLE_C::SomeClass sc();
+    return sc;
+}
+getObject().cfunc(\"\");
 EXAMPLE_C::func(\"\");
 ", "");
-        assertThrows("", \SomeClass.cfunc(), "");
-        assertEq("EXAMPLE_C::SomeClass::cfunc", p.callFunctionArgs("SomeClass::cfunc", ""));
+        assertEq("EXAMPLE_C::SomeClass::cfunc\n", p.callFunction("getObject").cfunc("") );
         assertEq("EXAMPLE_C::func\n", p.callFunctionArgs("func", ""));
-        assertEq(1, p.findFunctionVariants("::"));
     }
 
     testIncludeSingleModFunction() {
+        Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+        p.parse("
+#!/usr/bin/env /home/tpetr/devel_release/bin/qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
 
+%append-module-path .
+%include MyModule.SimpleModuleFunctions.ql
+
+EXAMPLE_F::func(\"\");
+", "");
+        assertEq("EXAMPLE_F::func\n", p.callFunctionArgs("func", ""));
     }
 }
