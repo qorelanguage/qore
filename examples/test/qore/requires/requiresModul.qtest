@@ -25,6 +25,7 @@ class IncludeModuleTest inherits QUnit::Test {
 #!/usr/bin/env /home/tpetr/devel_release/bin/qore
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
+# TODO: change to some relative path
 %append-module-path .
 %requires MyModule
 
