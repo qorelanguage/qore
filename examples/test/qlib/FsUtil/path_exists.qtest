@@ -45,7 +45,7 @@ public class CopyFileObjTest inherits QUnit::Test {
         assertFalse(path_exists(tmp_link));
 
         # remove the directory as well
-        rmtree(tmp_dir);
+        remove_tree(tmp_dir);
         assertFalse(path_exists(tmp_dir));
     }
 }

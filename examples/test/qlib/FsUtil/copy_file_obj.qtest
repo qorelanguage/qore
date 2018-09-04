@@ -29,7 +29,7 @@ public class CopyFileObjTest inherits QUnit::Test {
         # get files
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
         hash file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
         add_content_to_file(file1.file);
@@ -52,7 +52,7 @@ public class CopyFileObjTest inherits QUnit::Test {
         # get files
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
         hash file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
         add_content_to_file(file1.file);
@@ -74,7 +74,7 @@ public class CopyFileObjTest inherits QUnit::Test {
     test_copy_file_obj_exception() {
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
         hash file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
         add_content_to_file(file1.file);

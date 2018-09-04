@@ -26,7 +26,7 @@ public class MakeTmpExamplesTest inherits QUnit::Test {
         string tmp_path = make_tmp_dir();
         on_exit {
             # remove the dir (and it's contents) once we're done with it
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
 
         # check that the directory exists and is writable
@@ -64,7 +64,7 @@ public class MakeTmpExamplesTest inherits QUnit::Test {
         # create a temporary file in a specified path
         hash f2 = make_tmp_file(NOTHING, "", tmp_path);
         on_exit {
-            # this time we'll only close the file but not remove it -> let's leave it up to rmtree(tmp_path) above
+            # this time we'll only close the file but not remove it -> let's leave it up to remove_tree(tmp_path) above
             f2.file.close();
         }
 

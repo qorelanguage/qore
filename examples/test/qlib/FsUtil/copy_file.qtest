@@ -40,7 +40,7 @@ public class CopyFileTest inherits QUnit::Test {
     test_copy_file() {
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
 
         string content = "Hello World!";
@@ -80,7 +80,7 @@ public class CopyFileTest inherits QUnit::Test {
     test_copy_file_exceptions() {
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
 
         # same file
@@ -134,7 +134,7 @@ public class CopyFileTest inherits QUnit::Test {
     test_copy_file_dont_follow_symlinks() {
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
 
         string content = "Hello World!";
@@ -200,7 +200,7 @@ public class CopyFileTest inherits QUnit::Test {
     test_copy_file_follow_symlinks() {
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
 
         string content = "Hello World!";
@@ -266,7 +266,7 @@ public class CopyFileTest inherits QUnit::Test {
     test_copy_file_symlink_in_src() {
         string tmp_path = make_tmp_dir();
         on_exit {
-            rmtree(tmp_path);
+            remove_tree(tmp_path);
         }
 
         string content = "Qore is great.";
