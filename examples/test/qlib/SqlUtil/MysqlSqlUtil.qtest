@@ -225,13 +225,9 @@ class MysqlTest inherits SqlTestBase {
 
     private testCreateTableWithAutoIncrementNegative() {
         MysqlTestAutoIncrementNegativeSchema schema(table.getDatasource());
-        try {
-            schema.align(False, m_options.verbose);
-        }
-        catch (hash ex) {
-            assertEq("MYSQL-COLUMN-ERROR", ex.err, "exception check");
-            assertEq(True, ex.desc =~ /AUTO_INCREMENT can be used only with a subset of types/, "exception check");
-        }
+        assertThrows("MYSQL-COLUMN-ERROR", 
+                     "AUTO_INCREMENT can be used only with a subset of types",
+                     sub() { schema.align(False, m_options.verbose); });
     }
 
     private testCreateTableWithAutoIncrementPositive() {
