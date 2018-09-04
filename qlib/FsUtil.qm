@@ -59,13 +59,23 @@ module FsUtil {
 
     Currently the module provides the following multiplatform functions:
     @ref FsUtil::basename_ext()
+    @ref FsUtil::copy_file()
+    @ref FsUtil::copy_file_obj()
+    @ref FsUtil::copy_path()
+    @ref FsUtil::copy_tree()
     @ref FsUtil::join_paths()
     @ref FsUtil::make_tmp_dir()
+    @ref FsUtil::make_tmp_file()
+    @ref FsUtil::path_exists()
+    @ref FsUtil::remove_file()
+    @ref FsUtil::remove_path()
+    @ref FsUtil::remove_tree()
+    @ref FsUtil::same_file()
+    @ref FsUtil::same_file_stat()
 
     Also classes for platform specific operations are available:
     @ref FsUtil::PosixPathHandler
     @ref FsUtil::WinPathHandler
-
 
     @section fsutil_relnotes Release Notes
 
