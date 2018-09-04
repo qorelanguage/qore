@@ -63,6 +63,11 @@ private:
    DLLLOCAL QoreDir& operator=(const QoreDir&);
 
 public:
+    DLLEXPORT static bool file_exists(const QoreString& filePath) {
+        struct stat buffer;
+        return (::stat(filePath.c_str(), &buffer) == 0);
+    }
+
    //! creates the object and sets the default encoding
    /**
       @param xsink if an out of memory error occurs in the constructor

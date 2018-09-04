@@ -884,11 +884,6 @@ bool QoreModuleManager::tryToLoadAsModuleDir(
     return false;
 }
 
-bool exists(const QoreString& filePath) {
-    struct stat buffer;
-    return (stat (filePath.c_str(), &buffer) == 0);
-}
-
 QoreString QoreModuleManager::getModuleAbsPath(const char* n) const {
     QoreString nameToParse(n);
     qore_offset_t dirOffset = nameToParse.find('.');
@@ -907,7 +902,7 @@ QoreString QoreModuleManager::getModuleAbsPath(const char* n) const {
         QoreString modulePath(*path);
         modulePath += nameToParse.c_str();
 
-        if (exists(modulePath)) {
+        if (QoreDir::file_exists(modulePath)) {
             return modulePath.c_str();
         }
 
