@@ -809,7 +809,7 @@ public namespace Logger {
                         }
                         lastMatch.appender = e.appender;
                         m_pending{lastMatch.id} = {
-                            "id": lastMatch.id,  # BUG: see problem description above ThreadPool::submit(id, ...) call
+                            "id": lastMatch.id,  # to get reason of this value duplicating key see problem description above ThreadPool::submit(id, ...) call
                             "appender": e.appender,
                             "events": (),
                         };
@@ -841,6 +841,7 @@ public namespace Logger {
                 m_processing{id} = e;
                 # When passing "id" then no copy is passed to submit pool queue and worker may get wrong value
                 # so we must pass value in new variable which won't change meanwhile when the value is to be used.
+                # It is feature of submit implementation related to parameter passing.
                 m_tp.submit(sub() {call_function(\worker(), e.id, e.appender, e.events); } );
             }
         }
@@ -914,6 +915,7 @@ public namespace Logger {
             @throw "LOGGER-ERROR" thrown if appender is opened
         */
         public setQueue(*LoggerAppenderQueue queue) {
+            AutoWriteLock awl(m_lock);
             if (m_active) {
                 throw "LOGGER-ERROR", "Appender is opened";
             }
@@ -930,6 +932,7 @@ public namespace Logger {
             The appender must be opened (i.e. in active state) to accept any logging events
         */
         public open() {
+            AutoWriteLock awl(m_lock);
             if (!m_active) {
                 pushEvent(EVENT_OPEN, NOTHING);
                 m_active = True;
@@ -938,6 +941,7 @@ public namespace Logger {
 
         #! Releases any resources allocated by the appender and closes it
         public close() {
+            AutoWriteLock awl(m_lock);
             if (m_active) {
                 pushEvent(EVENT_CLOSE, NOTHING);
                 m_active = False;
@@ -2303,6 +2307,9 @@ public namespace Logger {
             #! The lock to protect object manipulation
             RWLock m_lock();
 
+            #! The lock to protect access to parent/child hierarchy
+            static RWLock m_hierarchyLock();
+
             #! Logger additivity. If set to true then child loggers will inherit the appenders of their ancestors by default.
             bool m_additive = True;
 
@@ -2347,7 +2354,9 @@ public namespace Logger {
             @throw LOGGER-ERROR in case of circular reference
         */
         public setParent(*Logger parent) {
+            AutoWriteLock awl(m_lock);
             if (parent) {
+                AutoWriteLock awhl(Logger::m_hierarchyLock);
                 *Logger l = self;
                 while (exists l) {
                     if (l == parent) {
@@ -2366,6 +2375,7 @@ public namespace Logger {
         */
         public *LoggerLevel getLevel(bool effective = True) {
             if (effective) {
+                AutoReadLock awhl(Logger::m_hierarchyLock);
                 *Logger l = self;
                 while (!exists l.getLevel(False)) {
                     l = l.getParent();
@@ -2470,16 +2480,17 @@ public namespace Logger {
 
         #! Returns the appender list
         /**
-            Note that the appender list may be manipulated in another thread as internal lock is released when list is returned
+            Note that the appender list may be manipulated in another thread as internal lock is released
+            when list is returned
         */
         public list<LoggerAppender> getAppenders() {
             AutoReadLock awl(m_lock);
             return m_appenders ?? ();
         }
 
-        private:internal logIntern(*LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
+        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
             bool checkThrowable) {
-            if (!exists level || isEnabledFor(level)) {
+            if (isEnabledFor(level)) {
                 *hash<ExceptionInfo> throwable;
                 if (args.size() && checkThrowable) {
                     # is the last argument ExceptionInfo ?
@@ -2490,9 +2501,12 @@ public namespace Logger {
                 }
                 callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), now_us(), throwable));
             }
-            if (m_parent && getAdditivity()) {
-                # Forward the event upstream if additivity is turned on
-                m_parent.logIntern(level, message, args, location, checkThrowable);
+            {
+                AutoReadLock awl(m_lock);
+                if (m_parent && getAdditivity()) {
+                    # Forward the event upstream if additivity is turned on
+                    m_parent.logIntern(level, message, args, location, checkThrowable);
+                }
             }
         }
 
@@ -2532,9 +2546,12 @@ public namespace Logger {
                 callAppenders(event);
             }
 
-            # Forward the event upstream if additivity is turned on
-            if (m_parent && getAdditivity()) {
-                m_parent.logEvent(event);
+            {
+                AutoReadLock awl(m_lock);
+                # Forward the event upstream if additivity is turned on
+                if (m_parent && getAdditivity()) {
+                    m_parent.logEvent(event);
+                }
             }
         }
 
