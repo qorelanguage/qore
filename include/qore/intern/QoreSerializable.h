@@ -81,6 +81,8 @@ protected:
     DLLLOCAL static QoreValue deserializeData(const QoreValue val, const oimap_t& oimap, ExceptionSink* xsink);
 
     DLLLOCAL static QoreValue deserializeHashData(const QoreStringNode* type, const QoreHashNode* h, const oimap_t& oimap, ExceptionSink* xsink);
+
+    DLLLOCAL static QoreValue deserializeListData(const QoreListNode* l, const oimap_t& oimap, ExceptionSink* xsink);
 };
 
 #endif // _QORE_CLASS_INTERN_QORESERIALIZABLE_H

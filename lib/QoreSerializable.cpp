@@ -274,9 +274,12 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode* h, ExceptionSink* xs
             assert(oh->getHashDecl() == hashdeclObjectSerializationInfo);
             QoreValue v = oh->getKeyValue("_class");
             assert(v.getType() == NT_STRING);
-            const QoreClass* cls = pgm->findClass(v.get<const QoreStringNode>()->c_str(), xsink);
+            const char* cname = v.get<const QoreStringNode>()->c_str();
+            const QoreClass* cls = pgm->findClass(cname, xsink);
             if (!cls) {
-                assert(*xsink);
+                if (!*xsink) {
+                    xsink->raiseException("DESERIALIZATION-ERROR", "cannot find class '%s' required for deserialization", cname);
+                }
                 return QoreValue();
             }
             QoreObject* obj = new QoreObject(cls, pgm);
@@ -378,6 +381,10 @@ QoreValue QoreSerializable::deserializeData(const QoreValue val, const oimap_t& 
         return QoreValue();
     }
 
+    if (val.getType() == NT_LIST) {
+        return deserializeListData(val.get<const QoreListNode>(), oimap, xsink);
+    }
+
     return val.refSelf();
 }
 
@@ -403,8 +410,19 @@ QoreValue QoreSerializable::deserializeHashData(const QoreStringNode* type, cons
 
     // do the runtime cast
     return typed_hash_decl_private::get(*hd)->newHash(members.get<const QoreHashNode>(), true, xsink);
+}
 
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hd), xsink);
+QoreValue QoreSerializable::deserializeListData(const QoreListNode* l, const oimap_t& oimap, ExceptionSink* xsink) {
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(autoTypeInfo), xsink);
+
+    ConstListIterator li(l);
+    while (li.next()) {
+        ValueHolder val(deserializeData(li.getValue(), oimap, xsink), xsink);
+        if (*xsink) {
+            return QoreValue();
+        }
+        rv->push(val.release(), xsink);
+    }
 
     return rv.release();
 }

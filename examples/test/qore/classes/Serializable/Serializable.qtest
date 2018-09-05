@@ -138,7 +138,7 @@ class SerializableTest inherits QUnit::Test {
 
             # ensure that transient members are not serialized
             assertNothing(h._index."0"._members.T.skip);
-            printf("%N\n", h);
+            #printf("%N\n", h);
 
             T t1 = Serializable::deserialize(h);
             assertEq(2, t1.get());
@@ -148,18 +148,17 @@ class SerializableTest inherits QUnit::Test {
             {
                 hash<SerializationInfo> h0 = h;
                 h0._index."0"._class = "T0";
-                printf("%y\n", h0.fullType());
-                assertThrows("xDESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+                assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
             }
-
             #printf("t: %N\n", t1);
         }
 
-        /*
         {
             Test t();
             hash<SerializationInfo> h = t.serializeToData();
-            printf("%N\n", h);
+            Test t1 = Serializable::deserialize(h);
+            assertEq(t1.t, t1);
+            #printf("%N\n", h);
             #h = x;
         }
 
@@ -176,8 +175,12 @@ class SerializableTest inherits QUnit::Test {
                 }
             }
             hash<SerializationInfo> h = Serializable::serializeToData(l);
-            printf("%N\n", h);
+            #printf("%N\n", h);
+            list<RTest> l1 = Serializable::deserialize(h);
+            assertTrue(l1[0].l[0] == l1[1]);
+            assertTrue(l1[0].l[1] == l1[2]);
+            assertTrue(l1[0].l[2] == l1[0]);
+            #printf("%N\n", l1);
         }
-        */
     }
 }
