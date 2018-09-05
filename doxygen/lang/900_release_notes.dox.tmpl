@@ -95,6 +95,7 @@
       - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes:
+        - implemented a check for allowed types when is the AUTO_INCREMENT flag used (<a href="https://github.com/qorelanguage/qore/issues/2978">issue 2978</a>)
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
@@ -116,6 +117,17 @@
     - @ref relative_dates "relative date" changes
         - fraction seconds are accepted in the @ref single_reldates
         - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
+
+    - improved debugging support:
+        - @ref Qore::ProgramControl::getStatementIdInfo() "ProgramControl::getStatementIdInfo()" provides breakpoint info
+        - command to resolve statement
+        - interrupt notification provides call stack info
+        - \c "Run to statement" implementation
+        - <a href="../../modules/DebugHandler/html/index.html">DebugHandler</a> reimplemented to support multiple websocket handlers
+        - program is not interrupted at bootstrap code
+        - command line utils display source line code when interrupted
+      - new features:
+        - @ref Qore::CallStackInfo "CallStackInfo" new memebers \c programid and \c statementid
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
     - fixed a bug where rvalue references with complex subtypes could get modified during an assignment
@@ -834,7 +846,7 @@
 
     @subsection qore_081212_new_features New Features in Qore
 
-    - aded the @ref Qore::Option::HAVE_DSS "HAVE_DSS" constant to indicate if the outdated DSS(), DSS1(), DSS_bin(), DSS1_bin(), DSS_HMAC(), and DSS1_HMAC() functions are available in the opnessl library used to compile %Qore
+    - added the @ref Qore::Option::HAVE_DSS "HAVE_DSS" constant to indicate if the outdated DSS(), DSS1(), DSS_bin(), DSS1_bin(), DSS_HMAC(), and DSS1_HMAC() functions are available in the opnessl library used to compile %Qore
 
     @subsection qore_081212_bug_fixes Bug Fixes in Qore
 

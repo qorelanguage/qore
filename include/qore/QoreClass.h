@@ -872,6 +872,11 @@ public:
     */
     DLLEXPORT const QoreNamespace* getNamespace() const;
 
+    //! Returns true if the class passed as an argument is present in the current class's hierachy, even if not accessible from the class due to private:internal inheritance
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT bool inHierarchy(const QoreClass& cls, ClassAccess& n_access) const;
+
     //! constructor not exported in library's API
     DLLLOCAL QoreClass();
 

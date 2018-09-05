@@ -2843,14 +2843,14 @@ protected:
 class QoreSoftAutoListTypeInfo : public QoreSoftListTypeInfo {
 public:
    DLLLOCAL QoreSoftAutoListTypeInfo() : QoreSoftListTypeInfo("softlist<auto>", q_accept_vec_t {
-         {NT_LIST, nullptr, true},
+         {QoreComplexListTypeSpec(autoTypeInfo), nullptr, true},
          {NT_NOTHING, [] (QoreValue& n, ExceptionSink* xsink) {
                QoreListNode* l = new QoreListNode;
                n.assign(l);
             }
          },
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {
-               QoreListNode* l = new QoreListNode;
+               QoreListNode* l = new QoreListNode(autoTypeInfo);
                l->push(n, nullptr);
                n.assign(l);
             }
@@ -2862,7 +2862,7 @@ public:
 class QoreSoftAutoListOrNothingTypeInfo : public QoreSoftListOrNothingTypeInfo {
 public:
    DLLLOCAL QoreSoftAutoListOrNothingTypeInfo() : QoreSoftListOrNothingTypeInfo("*softlist", q_accept_vec_t {
-         {NT_LIST, nullptr},
+         {QoreComplexListTypeSpec(autoTypeInfo), nullptr},
          {NT_NOTHING, nullptr},
          {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
          {NT_ALL, [] (QoreValue& n, ExceptionSink* xsink) {

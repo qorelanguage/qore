@@ -1637,50 +1637,65 @@ const QoreClass* BCNode::findInHierarchy(const qore_class_private& qc) {
 }
 
 const QoreClass* BCNode::getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const {
-   // sclass can be 0 if the class could not be found during parse initialization
-   if (!sclass)
-      return 0;
+    // sclass can be 0 if the class could not be found during parse initialization
+    if (!sclass)
+        return 0;
 
-   if (access == Internal && !toplevel)
-      return 0;
+    if (access == Internal && !toplevel)
+        return 0;
 
-   const QoreClass* qc = (sclass->getID() == cid) ? sclass : sclass->priv->getClassIntern(cid, n_access, false);
-   if (qc && n_access < access)
-      n_access = access;
+    const QoreClass* qc = (sclass->getID() == cid) ? sclass : sclass->priv->getClassIntern(cid, n_access, false);
+    if (qc && n_access < access)
+        n_access = access;
 
-   return qc;
+    return qc;
 }
 
 const QoreClass* BCNode::getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
-   // sclass can be 0 if the class could not be found during parse initialization
-   if (!sclass)
-      return 0;
+    // sclass can be 0 if the class could not be found during parse initialization
+    if (!sclass)
+        return 0;
 
-   if (access == Internal && !toplevel)
-      return 0;
+    if (access == Internal && !toplevel)
+        return 0;
 
-   const QoreClass* rv = sclass->priv->getClassIntern(qc, n_access, false);
+    const QoreClass* rv = sclass->priv->getClassIntern(qc, n_access, false);
 
-   if (rv && n_access < access)
-      n_access = access;
+    if (rv && n_access < access)
+        n_access = access;
 
-   return rv;
+    return rv;
 }
 
 const QoreClass *BCNode::parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
-   // sclass can be 0 if the class could not be found during parse initialization
-   if (!sclass)
-      return nullptr;
+    // sclass can be 0 if the class could not be found during parse initialization
+    if (!sclass)
+        return nullptr;
 
-   if (access == Internal && !toplevel)
-      return nullptr;
+    if (access == Internal && !toplevel)
+        return nullptr;
 
-   const QoreClass* rv = sclass->priv->parseGetClassIntern(qc, n_access, false);
+    const QoreClass* rv = sclass->priv->parseGetClassIntern(qc, n_access, false);
 
-   if (rv && n_access < access)
-      n_access = access;
+    if (rv && n_access < access)
+        n_access = access;
 
-   return rv;
+    return rv;
+}
+
+bool BCNode::inHierarchy(const qore_class_private& qc, ClassAccess& n_access) const {
+    // sclass can be 0 if the class could not be found during parse initialization
+    if (!sclass) {
+        return false;
+    }
+
+    bool rv = sclass->priv->inHierarchy(qc, n_access);
+
+    if (rv && n_access < access) {
+        n_access = access;
+    }
+
+    return rv;
 }
 
 bool BCNode::runtimeIsPrivateMember(const char* str, bool toplevel) const {
@@ -2121,23 +2136,34 @@ const QoreClass* BCList::getClass(qore_classid_t cid, ClassAccess& n_access, boo
 }
 
 const QoreClass* BCList::getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
-   for (auto& i : *this) {
-      const QoreClass* rv = (*i).getClass(qc, n_access, toplevel);
-      if (rv)
-         return rv;
-   }
+    for (auto& i : *this) {
+        const QoreClass* rv = (*i).getClass(qc, n_access, toplevel);
+        if (rv)
+            return rv;
+    }
 
-   return 0;
+    return 0;
 }
 
 const QoreClass* BCList::parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
-   for (auto& i : *this) {
-      const QoreClass* rv = (*i).parseGetClass(qc, n_access, toplevel);
-      if (rv)
-         return rv;
-   }
+    for (auto& i : *this) {
+        const QoreClass* rv = (*i).parseGetClass(qc, n_access, toplevel);
+        if (rv)
+            return rv;
+    }
 
-   return nullptr;
+    return nullptr;
+}
+
+bool BCList::inHierarchy(const qore_class_private& qc, ClassAccess& n_access) const {
+    for (auto& i : *this) {
+        bool b = (*i).inHierarchy(qc, n_access);
+        if (b) {
+            return b;
+        }
+    }
+
+    return false;
 }
 
 MethodVariantBase* BCList::matchNonAbstractVariant(const std::string& name, MethodVariantBase* v) const {
@@ -3033,23 +3059,28 @@ AbstractQoreClassUserData* QoreClass::getManagedUserData() const {
 }
 
 QoreClass* QoreClass::getClass(qore_classid_t cid) const {
-   if (cid == priv->classID)
-      return (QoreClass* )this;
-   return priv->scl ? priv->scl->sml.getClass(cid) : 0;
+    if (cid == priv->classID)
+        return (QoreClass* )this;
+    return priv->scl ? priv->scl->sml.getClass(cid) : nullptr;
 }
 
 const QoreClass* QoreClass::getClass(qore_classid_t cid, bool& cpriv) const {
-   ClassAccess access = Public;
-   const QoreClass* qc = priv->getClassIntern(cid, access, true);
-   cpriv = (access > Public);
-   return qc;
+    ClassAccess access = Public;
+    const QoreClass* qc = priv->getClassIntern(cid, access, true);
+    cpriv = (access > Public);
+    return qc;
 }
 
 const QoreClass* QoreClass::getClass(const QoreClass& qc, bool& cpriv) const {
-   ClassAccess access = Public;
-   const QoreClass* rv = priv->getClassIntern(*qc.priv, access, true);
-   cpriv = (access > Public);
-   return rv;
+    ClassAccess access = Public;
+    const QoreClass* rv = priv->getClassIntern(*qc.priv, access, true);
+    cpriv = (access > Public);
+    return rv;
+}
+
+bool QoreClass::inHierarchy(const QoreClass& cls, ClassAccess& n_access) const {
+    n_access = Public;
+    return priv->inHierarchy(*cls.priv, n_access);
 }
 
 bool QoreMethod::existsVariant(const type_vec_t &paramTypeInfo) const {

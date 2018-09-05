@@ -11,15 +11,43 @@
 
 %exec-class SerializableTest
 
+const RCount = 3;
+
 class Err inherits Serializable {
     public {
         Mutex m();
     }
 }
 
+class Test inherits Serializable {
+    public {
+        Test t;
+    }
+
+    constructor() {
+        t = self;
+    }
+}
+
+class RTest inherits Serializable {
+    public {
+        list<RTest> l;
+    }
+}
+
 class Other inherits Serializable;
 
-class Base inherits Serializable {
+class Foundation inherits Serializable {
+    public {
+        int i = 3;
+    }
+
+    int getfi() {
+        return i;
+    }
+}
+
+class Base inherits Serializable, private:internal Foundation {
     public {
         int x = 2;
     }
@@ -30,6 +58,14 @@ class Base inherits Serializable {
 
     int get() {
         return x;
+    }
+
+    int geti() {
+        return i;
+    }
+
+    int getfi() {
+        return Foundation::getfi();
     }
 }
 
@@ -66,6 +102,14 @@ class T inherits Serializable, private:internal Base {
     int get() {
         return Base::get();
     }
+
+    int geti() {
+        return Base::geti();
+    }
+
+    int getfi() {
+        return Base::getfi();
+    }
 }
 
 class SerializableTest inherits QUnit::Test {
@@ -79,13 +123,61 @@ class SerializableTest inherits QUnit::Test {
             Err err();
             assertThrows("SERIALIZATION-ERROR", \err.serializeToData());
         }
-        T t();
-        hash<SerializationInfo> h = t.serializeToData();
-        assertEq(2, h._index.size());
-        assertEq(1, h._data.size());
-        assertEq(Type::String, h._data._index.type());
-        assertEq(1, h._index."1"._members.T.i);
-        assertNothing(h._index."1"._members.T.skip);
-        printf("%N\n", h);
+
+        {
+            T t();
+            hash<SerializationInfo> h = t.serializeToData();
+            assertEq(2, h._index.size());
+            assertEq(1, h._data.size());
+            assertEq(Type::String, h._data._index.type());
+            assertEq(1, h._index."0"._members.T.i);
+
+            assertEq(2, t.get());
+            assertEq(2, t.geti());
+            assertEq(3, t.getfi());
+
+            # ensure that transient members are not serialized
+            assertNothing(h._index."0"._members.T.skip);
+            printf("%N\n", h);
+
+            T t1 = Serializable::deserialize(h);
+            assertEq(2, t1.get());
+            assertEq(2, t1.geti());
+            assertEq(3, t1.getfi());
+
+            {
+                hash<SerializationInfo> h0 = h;
+                h0._index."0"._class = "T0";
+                printf("%y\n", h0.fullType());
+                assertThrows("xDESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+            }
+
+            #printf("t: %N\n", t1);
+        }
+
+        /*
+        {
+            Test t();
+            hash<SerializationInfo> h = t.serializeToData();
+            printf("%N\n", h);
+            #h = x;
+        }
+
+        {
+            list<RTest> l = map new RTest(), xrange(RCount - 1);
+            for (int i = 0; i < RCount; ++i) {
+                for (int j = 0; j < RCount; ++j) {
+                    int k = i + j + 1;
+                    if (k >= RCount) {
+                        k -= RCount;
+                    }
+                    #printf("%y %y %y\n", i, j, k);
+                    l[i].l[j] = l[k];
+                }
+            }
+            hash<SerializationInfo> h = Serializable::serializeToData(l);
+            printf("%N\n", h);
+        }
+        */
     }
 }

@@ -691,7 +691,7 @@ public:
     /** @return a list of threads active in this Program object
 
         @since %Qore 0.8.13
-        */
+    */
     DLLEXPORT QoreListNode* getThreadList() const;
 
     //! search for the given class in the program; can be a simple class name or a namespace-prefixed path (ex: "NamespaceName::ClassName")
@@ -814,6 +814,10 @@ public:
     /** get list of breakpoint assigned to program.
     */
     DLLEXPORT void getBreakpoints(QoreBreakpointList_t &bkptList);
+
+    /** get list of breakpoint assigned to statement.
+    */
+    DLLEXPORT void getStatementBreakpoints(const AbstractStatement* statement, QoreBreakpointList_t &bkptList);
 
     /** find statement related to particular line in a source file
     */

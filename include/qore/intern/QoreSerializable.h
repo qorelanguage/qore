@@ -41,6 +41,24 @@
 // maps from object hashes to index strings
 typedef std::map<std::string, std::string> imap_t;
 
+// maps from index strings to objects
+typedef std::map<std::string, QoreObject*> oimap_t;
+
+class ObjectIndexMap : public oimap_t {
+public:
+    ObjectIndexMap(ExceptionSink* xs) : xs(xs) {
+    }
+
+    ~ObjectIndexMap() {
+        for (auto& i : *this) {
+            i.second->deref(xs);
+        }
+    }
+
+protected:
+    ExceptionSink* xs;
+};
+
 class QoreSerializable : public AbstractPrivateData {
 public:
     DLLLOCAL static QoreHashNode* serializeToData(QoreValue val, ExceptionSink* xsink);
@@ -58,6 +76,11 @@ protected:
 
     DLLLOCAL static QoreHashNode* serializeObjectToData(const QoreObject& self, ReferenceHolder<QoreHashNode>& index, imap_t& imap, imap_t::iterator hint, ExceptionSink* xsink);
     DLLLOCAL static QoreHashNode* serializeHashToData(const QoreHashNode& h, ReferenceHolder<QoreHashNode>& index, imap_t& imap, ExceptionSink* xsink);
+    DLLLOCAL static QoreListNode* serializeListToData(const QoreListNode& l, ReferenceHolder<QoreHashNode>& index, imap_t& imap, ExceptionSink* xsink);
+
+    DLLLOCAL static QoreValue deserializeData(const QoreValue val, const oimap_t& oimap, ExceptionSink* xsink);
+
+    DLLLOCAL static QoreValue deserializeHashData(const QoreStringNode* type, const QoreHashNode* h, const oimap_t& oimap, ExceptionSink* xsink);
 };
 
 #endif // _QORE_CLASS_INTERN_QORESERIALIZABLE_H

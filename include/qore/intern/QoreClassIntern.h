@@ -1453,6 +1453,7 @@ public:
     DLLLOCAL const QoreClass* getClass(qore_classid_t cid, ClassAccess& n_access, bool toplevel) const;
     DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
     DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
+    DLLLOCAL bool inHierarchy(const qore_class_private& qc, ClassAccess& n_access) const;
 
     // inaccessible methods are ignored
     DLLLOCAL const QoreMethod* parseFindNormalMethod(const char* name, const qore_class_private* class_ctx, bool allow_internal) const;
@@ -1544,6 +1545,7 @@ public:
     DLLLOCAL const QoreClass* getClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
 
     DLLLOCAL const QoreClass* parseGetClass(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const;
+    DLLLOCAL bool inHierarchy(const qore_class_private& qc, ClassAccess& n_access) const;
 
     DLLLOCAL void addNewAncestors(QoreMethod* m);
     DLLLOCAL void addAncestors(QoreMethod* m);
@@ -2860,6 +2862,14 @@ public:
 #endif
 
         return scl ? scl->parseGetClass(qc, n_access, toplevel) : nullptr;
+    }
+
+    DLLLOCAL bool inHierarchy(const qore_class_private& qc, ClassAccess& n_access) const {
+        if (equal(qc)) {
+            return cls;
+        }
+
+        return scl ? scl->inHierarchy(qc, n_access) : false;
     }
 
 #ifdef DEBUG_SKIP
