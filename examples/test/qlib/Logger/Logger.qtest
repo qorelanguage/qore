@@ -36,6 +36,7 @@ class Test inherits QUnit::Test {
         addTestCase("LoggerAppenderMultiThread", \testLoggerAppenderMultiThread());
         addTestCase("LoggerAppenderMultiThreadUnassigned", \testLoggerAppenderMultiThreadUnassigned());
         addTestCase("LoggerAppenderFile", \testLoggerAppenderFile());
+        addTestCase("LoggerAppenderStdErr", \testLoggerAppenderStdErr());
         addTestCase("LoggerAppenderFileRotate", \testLoggerAppenderFileRotate());
         addTestCase("LoggerAppenderFileRing", \testLoggerAppenderFileRing());
         addTestCase("LoggerAppenderFileArchive", \testLoggerAppenderFileArchive());
@@ -592,6 +593,24 @@ class Test inherits QUnit::Test {
         s = ReadOnlyFile::readTextFile(fn);
         assertEq("TESTTEST", s);
         unlink(fn);
+    }
+
+    testLoggerAppenderStdErr() {
+        string fn = tmp_location() + DirSep + "qore_logger_test_15432ewqhkofl.log";
+        File f();
+        f.open2(fn, O_CREAT|O_WRONLY|O_TRUNC);
+        on_exit unlink(fn);
+
+        LoggerAppenderStdErr laso("STDERR", new LoggerLayoutPattern("%m"));
+        LoggerEvent lle = new LoggerEvent("Logger", "a", LoggerLevel::getLevelError(), "STDTEST");
+        stderr.redirect(f);
+        stderr.setPos(0);
+        laso.open();
+        laso.post(lle);
+        laso.close();
+        stderr.redirect(stdout);  # TODO: redir back to real stderr, seems it is not possible so redir to stdout to see anything
+        f.close();
+        assertEq("STDTEST", ReadOnlyFile::readTextFile(fn));
     }
 
     testLoggerAppenderFileRotate() {

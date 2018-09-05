@@ -1632,6 +1632,62 @@ public namespace Logger {
         }
     }
 
+    #! Implements appender writing to a stdout file
+    /**
+        No multi-threading protection is implemented in the class; the @ref Qore::stdout "stdout" instance is reused
+    */
+    public class LoggerAppenderStdOut inherits LoggerAppenderWithLayout {
+
+        #! Creates the object
+        /**
+            @param name the name of the appender
+            @param layout the layout for the appender
+        */
+        constructor(string name, LoggerLayout layout): LoggerAppenderWithLayout(name, layout) {
+        }
+
+        #! Processes log events with the file and ignores all other events including open, close
+        /**
+            @param type the event type
+            @param params parameters for the event
+        */
+        public processEventImpl(int type, auto params) {
+            switch (type) {
+                case EVENT_LOG:
+                    stdout.print(params);
+                    break;
+            }
+        }
+    }
+
+    #! Implements appender writing to a stderr file
+    /**
+        No multi-threading protection is implemented in the class; the @ref Qore::stderr "stderr" instance is reused
+    */
+    public class LoggerAppenderStdErr inherits LoggerAppenderWithLayout {
+
+        #! Creates the object
+        /**
+            @param name the name of the appender
+            @param layout the layout for the appender
+        */
+        constructor(string name, LoggerLayout layout): LoggerAppenderWithLayout(name, layout) {
+        }
+
+        #! Processes log events with the file and ignores all other events including open, close
+        /**
+            @param type the event type
+            @param params parameters for the event
+        */
+        public processEventImpl(int type, auto params) {
+            switch (type) {
+                case EVENT_LOG:
+                    stderr.print(params);
+                    break;
+            }
+        }
+    }
+
     #! Implements appender writing to a file with file rotation support
     /**
         The events will be logged to a file until rotation occurs.
