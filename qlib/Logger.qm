@@ -113,7 +113,7 @@ module Logger {
     In this example, the appserver provides a logger API for a few sandboxed programs. The appserver is
     responsible for the <b>Log4q</b> configuration; i.e. it prepares loggers, appenders, filters, etc.
     according to configuration and provides the @ref Logger instance to the @ref Qore::Program "Program"
-    container running the sandboxed code.\n
+    container running the sandboxed code.
     The sandboxed code will log to this instance; the logging events are processed by the appserver in a
     dedicated thread which gets the event from a queue and passes it to appenders.  Multiple loggers may be
     configured in a parent/child hierarchy so that a higher logging level (i.e. more event levels) are logged
@@ -381,11 +381,63 @@ public namespace Logger {
         }
     }
 
+    #! Implements callable parameter which is evaluated in run-time when event is rendered
+    /**
+        It may implement logging for stuff which is time consuming to get and would slow program flow in case
+        the logging is actually not performed because of filters or logging levels.
+
+        Example:
+    @code{.py}
+    int ping_voyager(int num) {
+        try {
+            # ping voyager #num
+            ...
+        } except(hash<ExceptionInfo> ex) {
+            return -1;
+        }
+    }
+    Logger l;
+    ....
+    l.debug("Voyager 1: ping is %y secs", new LoggerEventParameter(\ping_voyager(), 1));
+    @endcode
+    */
+    public class LoggerEventParameter {
+        private:internal {
+            code func;
+            *list args;
+        }
+        #! Creates object
+        /**
+            @param n_func function to be called with optional arguments followed
+        */
+        constructor(code n_func) {
+            func = n_func;
+            args = argv;
+        }
+        #! Call function with arguments provided
+        /**
+            In case of user function call consider surpressing exceptions to return value corresponding to expected
+            formatting parameter (e.g. "%d").
+        */
+        public auto call() {
+            return call_function_args(func, args);
+        }
+        #! Returns new object instance
+        /**
+            @param n_func function to be called with optional arguments followed
+        */
+        public static LoggerEventParameter create(code n_func) {
+            return new LoggerEventParameter(n_func, argv);
+        }
+    }
+
     #! Implements an event to be logged
     /**
         The event data consists of format string and parameters. The output string is rendered at time when
         logging decision to target is made. Callable parameters are evaluated at this moment as well. It
-        should be considered when callable parameters do not return time persistent value.
+        should be considered when callable parameters do not return time persistent value. When callable raises
+        an exception then exception instance is passed for formatting. So it should be considered if format string and
+        use for example "%y" to get readable data.
     */
     public class LoggerEvent {
         private:internal {
@@ -529,35 +581,18 @@ public namespace Logger {
         */
         public string getMessage() {
             if (!exists m_renderedMessage) {
-                # evaluate callp which may be used to get time consuming stuff
+                # evaluating of callable parameters (via LoggerEventParameter) may be used to get time consuming stuff
                 # i.e. they are evaluated only when logging is performed
-                auto prevCall;
                 list args2 = ();
                 foreach auto arg in (m_args) {
-                    if (exists prevCall) {
-                        bool isParam = False;
-                        isParam = arg.typeCode() == NT_LIST;
+                    if (arg.typeCode() == NT_OBJECT && arg instanceof LoggerEventParameter) {
                         try {
-                            push args2, call_function_args(prevCall, arg);
+                            push args2, cast<LoggerEventParameter>(arg).call();
                         } catch (hash<ExceptionInfo> ex) {
                             push args2, ex;
                         }
-                        delete prevCall;
-                        if (isParam) {
-                            continue;
-                        }
-                    }
-                    if (arg.callp()) {
-                        prevCall = arg;
                     } else {
                         push args2, arg;
-                    }
-                }
-                if (prevCall) {
-                    try {
-                        push args2, prevCall();
-                    } catch (hash<ExceptionInfo> ex) {
-                        push args2, ex;
                     }
                 }
                 # message is considered as printf() format so we process it this way.

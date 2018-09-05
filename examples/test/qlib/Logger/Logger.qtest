@@ -89,19 +89,20 @@ class Test inherits QUnit::Test {
         assertEq(lle.getFullQualifiedClassname(), 'fqcn');
         assertEq(lle.getCategoryName(), 'ctg');
         assertTrue(lle.getLevel().isEqual(LoggerLevel::getLevelError()));
-        assertEq(lle.getMessage(), 'test: 1, 2');
+        assertEq('test: 1, 2', lle.getMessage());
         assertEq(lle.getThreadId(), gettid());
         assertEq(lle.getTimeStamp(), ts);
         assertEq(lle.getRelativeTime(), 1D);
 
         Logger l('testLogger');
-        lle = new LoggerEvent(l, LoggerLevel::getLevelError(), 'test: %d, %d');
+        lle = new LoggerEvent(l, LoggerLevel::getLevelError(), 'test: %d, %y, %d', (1, new LoggerEventParameter(\sprintf(), '%s:%s:%d:%y', 'A', 'B', 99, (3, 4)), 2));
         assertEq(lle.getFullQualifiedClassname(), get_class_name(l));
         assertEq(lle.getCategoryName(), 'testLogger');
         assertEq(lle.getLogger(), l);
         int id = lle.getUniqueId();
         assertTrue(id > 0);
         assertEq(id, lle.getUniqueId());
+        assertEq('test: 1, "A:B:99:[3, 4]", 2', lle.getMessage());
     }
 
     testLoggerLayout() {
@@ -889,8 +890,8 @@ class Test inherits QUnit::Test {
         assertEq("", sos2.getData());
         assertEq("", sos3.getData());
 
-        l1.log(LoggerLevel::getLevelDebug(), "test(%s)", "my");
-        assertEq("TEST/test(my)", sos1.getData());
+        l1.log(LoggerLevel::getLevelDebug(), "test(%s, %s)", "my", new LoggerEventParameter(\sprintf(), "%y", (1, 2)));
+        assertEq("TEST/test(my, [1, 2])", sos1.getData());
         assertEq("", sos2.getData());
         assertEq("", sos3.getData());
 
