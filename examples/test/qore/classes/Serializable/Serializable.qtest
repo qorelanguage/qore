@@ -113,6 +113,42 @@ class T inherits Serializable, private:internal Base {
 }
 
 class SerializableTest inherits QUnit::Test {
+    public {
+        const Data = (
+            1,
+            "two",
+            NOTHING,
+            0,
+            0.0,
+            22,
+            9223372036854775807,
+            -9223372036854775807,
+            500n,
+            M_PIn,
+            2.141578291e50n,
+            2010-05-05T15:35:02.100,
+            False,
+            M_PI,
+            250.192393,
+            1970-01-01Z,
+            (hash(), (), "three \"things\""),
+            P2M3DT10H14u,
+            now_us(),
+            <beadface>,
+            {
+                "a": 2.0,
+                "b": "hello",
+                "key": True,
+            },
+            @inf@n,
+            -@inf@n,
+            @inf@,
+            -@inf@,
+            "'single quoted string'",
+            "'1234'",
+        );
+    }
+
     constructor() : QUnit::Test("Serializable", "1.0") {
         addTestCase("SerializableTest", \serializableTest());
         set_return_value(main());
@@ -130,14 +166,14 @@ class SerializableTest inherits QUnit::Test {
             assertEq(2, h._index.size());
             assertEq(1, h._data.size());
             assertEq(Type::String, h._data._index.type());
-            assertEq(1, h._index."0"._members.T.i);
+            assertEq(1, h._index."0"._class_data.T.i);
 
             assertEq(2, t.get());
             assertEq(2, t.geti());
             assertEq(3, t.getfi());
 
             # ensure that transient members are not serialized
-            assertNothing(h._index."0"._members.T.skip);
+            assertNothing(h._index."0"._class_data.T.skip);
             #printf("%N\n", h);
 
             T t1 = Serializable::deserialize(h);
@@ -181,6 +217,21 @@ class SerializableTest inherits QUnit::Test {
             assertTrue(l1[0].l[1] == l1[2]);
             assertTrue(l1[0].l[2] == l1[0]);
             #printf("%N\n", l1);
+        }
+
+        {
+            hash<SerializationInfo> h = Serializable::serializeToData(Data);
+            auto d = Serializable::deserialize(h);
+            assertEq(Data, d);
+        }
+
+        {
+            TimeZone tz("Europe/Prague");
+            hash<SerializationInfo> h = tz.serializeToData();
+            #printf("%N\n", h);
+
+            TimeZone tz1 = Serializable::deserialize(h);
+            assertEq("Europe/Prague", tz1.region());
         }
     }
 }

@@ -447,6 +447,30 @@ public:
     */
     DLLEXPORT void setDeleteBlocker(q_delete_blocker_t m);
 
+    //! sets the serializer method for builtin classes
+    /** @param m the serializer method
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT void setSerializer(q_serializer_t m);
+
+    //! sets the deserializer method for builtin classes
+    /** @param m the deserializer method
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT void setDeserializer(q_deserializer_t m);
+
+    //! returns the serializer method or nullptr if not present
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT q_serializer_t getSerializer() const;
+
+    //! returns the deserializer method or nullptr if not present
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT q_deserializer_t getDeserializer() const;
+
     //! sets the final flag of the class
     DLLEXPORT void setFinal();
 
@@ -681,18 +705,16 @@ public:
     //! make a builtin class a child of another builtin class
     /** the xargs argument must not be used; before qore supported function overloading, base class arguments could be given here
         @param qc the base class to add
-        @param xargs DEPRECATED must be 0; do not use
     */
-    DLLEXPORT void addBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs = 0);
+    DLLEXPORT void addBuiltinBaseClass(QoreClass* qc);
 
     //! make a builtin class a child of another builtin class and ensures that the given class's private data will be used in all class methods
     /** In the case this function is used, this objects of class cannot have
         private data saved against the class ID.
         The xargs argument must not be used; before qore supported function overloading, base class arguments could be given here
         @param qc the base class to add
-        @param xargs DEPRECATED must be 0; do not use
     */
-    DLLEXPORT void addDefaultBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs = 0);
+    DLLEXPORT void addDefaultBuiltinBaseClass(QoreClass* qc);
 
     //! sets "virtual" base class for a class, meaning that the base class data is appropriate for use in the subclass builtin methods
     /** this method adds a base class placeholder for a subclass - where the subclass's private data

@@ -32,6 +32,15 @@
 #include <qore/Qore.h>
 #include "qore/intern/QC_Serializable.h"
 
+static QoreHashNode* Serializable_serializer(const QoreObject& self, const TimeZoneData& z, QoreSerializationContext& context, ExceptionSink* xsink) {
+    return nullptr;
+}
+
+static void Serializable_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
+    assert(!sdata);
+    self.setPrivate(CID_SERIALIZABLE, new QoreSerializable);
+}
+
 //! serialization information
 /**
     @since %Qore 0.9
@@ -53,7 +62,7 @@ hashdecl ObjectSerializationInfo {
     string _class;
 
     //! member values per class; class path -> member hash
-    *hash<string, hash<string, auto>> _members;
+    *hash<string, hash<string, auto>> _class_data;
 }
 
 //! object serialization information for an indexed object
@@ -95,20 +104,20 @@ hashdecl HashSerializationInfo {
 
     @since %Qore 0.9
  */
-qclass Serializable [arg=QoreSerializable* s];
+qclass Serializable [arg=QoreSerializable* s; serializer=reinterpret_cast<q_serializer_t>(Serializable_serializer); deserializer=Serializable_deserializer];
 
 //! The constructor does not perform any action; this class is just used to mark a class as serializable by inheriting this class
 /**
  */
 Serializable::constructor() {
-   self->setPrivate(CID_SERIALIZABLE, new QoreSerializable);
+    self->setPrivate(CID_SERIALIZABLE, new QoreSerializable);
 }
 
 //! The copy constructor does not perform any action; this class is just used to mark a class as serializable by inheriting this class
 /**
  */
 Serializable::copy() {
-   self->setPrivate(CID_SERIALIZABLE, new QoreSerializable);
+    self->setPrivate(CID_SERIALIZABLE, new QoreSerializable);
 }
 
 //! converts the object to a serialization hash representing the object
@@ -139,7 +148,7 @@ obj.serialize(stream);
 
     @param stream an output stream where the serialized data will be written
 
-    @return a binary object representing object
+    @return a binary object representing the object
 
     All non-serializable data such as @ref closure "closures", @ref call_reference "call references",
     @ref lvalue_references "references", or non-serializable objects must be tagged as @ref transient
@@ -151,7 +160,7 @@ obj.serialize(stream);
 */
 Serializable::serialize(OutputStream[OutputStream] stream) [flags=RET_VALUE_ONLY] {
     ReferenceHolder<OutputStream> holder(stream, xsink);
-    QoreSerializable::serialize(self, stream, xsink);
+    QoreSerializable::serialize(*self, *stream, xsink);
 }
 
 //! Deserializes data produced with serialize() and returns the value represented by the data
@@ -168,7 +177,7 @@ auto val = Serializable::deserialize(b);
  */
 static auto Serializable::deserialize(InputStream[InputStream] stream) {
     ReferenceHolder<InputStream> holder(stream, xsink);
-    return QoreSerializable::deserialize(stream, xsink);
+    return QoreSerializable::deserialize(*stream, xsink);
 }
 
 //! Deserializes data produced with serializeToData() and returns the value represented by the data
@@ -184,7 +193,7 @@ auto val = Serializable::deserialize(h);
     @throw DESERIALIZATION-ERROR the data cannot be deserialized due to an error in the serialization format or a reference to an unknown class or @ref hashdecl
  */
 static auto Serializable::deserialize(hash<SerializationInfo> data) {
-    return QoreSerializable::deserialize(data, xsink);
+    return QoreSerializable::deserialize(*data, xsink);
 }
 
 //! converts the value to a serialization hash representing the value

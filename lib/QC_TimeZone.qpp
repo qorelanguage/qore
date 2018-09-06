@@ -1,41 +1,91 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_TimeZone.qpp
+    QC_TimeZone.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2016 David Nichols
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/QC_TimeZone.h"
 
+static void create_timezone_from_region(const QoreString& region, QoreObject& self, ExceptionSink* xsink) {
+    bool is_path = (!region.empty() && region.c_str()[0] == '.') || q_absolute_path(region.c_str());
+    if (is_path && runtime_check_parse_option(PO_NO_FILESYSTEM)) {
+        xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot create a TimeZone object from absolute path '%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region.c_str());
+    }
+    const AbstractQoreZoneInfo* zone = is_path
+        ? QTZM.findLoadRegionFromPath(region.c_str(), xsink)
+        : QTZM.findLoadRegion(region.c_str(), xsink);
+    if (*xsink) {
+        return;
+    }
+
+    self.setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
+}
+
+static QoreHashNode* TimeZone_serializer(const QoreObject& self, const TimeZoneData& z, QoreSerializationContext& context, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+
+    if (dynamic_cast<const QoreOffsetZoneInfo*>(*z)) {
+        int utc_offset = AbstractQoreZoneInfo::getUTCOffset(*z);
+        rv->setKeyValue("offset", utc_offset, xsink);
+    }
+    else {
+        rv->setKeyValue("region", new QoreStringNode(AbstractQoreZoneInfo::getRegionName(*z)), xsink);
+    }
+
+    return rv.release();
+}
+
+static void TimeZone_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
+    QoreValue val = sdata->getKeyValue("region");
+    if (val) {
+        if (val.getType() != NT_STRING) {
+            xsink->raiseException("DESERIALIZATION-ERROR", "TimeZone serialization key 'region' has type '%s'; expecting 'string'", val.getTypeName());
+            return;
+        }
+        create_timezone_from_region(*val.get<QoreStringNode>(), self, xsink);
+        return;
+    }
+
+    val = sdata->getKeyValue("offset");
+    if (val) {
+        const AbstractQoreZoneInfo* zone = QTZM.findCreateOffsetZone(val.getAsBigInt());
+        self.setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
+        return;
+    }
+
+    xsink->raiseException("DESERIALIZATION-ERROR", "missing serialization data for the TimeZone class");
+}
+
 //! The TimeZone class provides access to time zone functionality
 /** TimeZone objects based on zoneinfo region files (on UNIX) or registry information (on Windows) can have daylight savings time information; those based on UTC offsets have none.
 */
-qclass TimeZone [arg=TimeZoneData* z];
+qclass TimeZone [arg=TimeZoneData* z; vparent=Serializable; serializer=reinterpret_cast<q_serializer_t>(TimeZone_serializer); deserializer=TimeZone_deserializer];
 
 //! Creates the TimeZone object based on the region name (ex: \c "America/Chicago")
 /** @param region The region name for the time zone (ex: \c "America/Chicago"); if the zoneinfo file for the region cannot be found or parsed (on UNIX) or if the registry entry cannot be found (on Windows), then an exception is thrown
@@ -53,16 +103,7 @@ TimeZone tz("Europe/Prague");
     @since %Qore 0.8.12 an absolute path to a zoneinfo file can be provided if the @ref Qore::PO_NO_FILESYSTEM sandboxing restriction is not in place (checked at runtime if an absolute path is passed)
  */
 TimeZone::constructor(string region) {
-   bool is_path = (!region->empty() && region->getBuffer()[0] == '.') || q_absolute_path(region->getBuffer());
-   if (is_path && runtime_check_parse_option(PO_NO_FILESYSTEM))
-      xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot create a TimeZone object from absolute path '%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region->getBuffer());
-   const AbstractQoreZoneInfo *zone = is_path
-      ? QTZM.findLoadRegionFromPath(region->getBuffer(), xsink)
-      : QTZM.findLoadRegion(region->getBuffer(), xsink);
-   if (*xsink)
-      return;
-
-   self->setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
+    create_timezone_from_region(region, *self, xsink);
 }
 
 //! Creates the TimeZone object based on the number of seconds east of UTC (3600 = UTC +01)
@@ -271,7 +312,8 @@ TimeZone::setRegion("Europe/Prague");
     @endcode
  */
 static nothing TimeZone::setRegion(string region) [dom=LOCALE_CONTROL] {
-   const AbstractQoreZoneInfo *zone = QTZM.findLoadRegion(region->getBuffer(), xsink);
-   if (!*xsink)
-      getProgram()->setTZ(zone);
+    const AbstractQoreZoneInfo *zone = QTZM.findLoadRegion(region->getBuffer(), xsink);
+    if (!*xsink) {
+        getProgram()->setTZ(zone);
+    }
 }

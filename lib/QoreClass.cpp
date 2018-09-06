@@ -478,6 +478,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreProgra
    : name(new_name ? new_name : old.name),
      ahm(old.ahm),
      constlist(old.constlist, 0, this),    // committed constants
+     serializer(old.serializer),
+     deserializer(old.deserializer),
      classID(old.classID),
      methodID(old.methodID),
      sys(old.sys),
@@ -2433,19 +2435,19 @@ int QoreClass::numStaticUserMethods() const {
    return priv->num_static_user_methods;
 }
 
-void QoreClass::addBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs) {
-   assert(!xargs);
-   if (!priv->scl)
-      priv->scl = new BCList;
-   priv->scl->push_back(new BCNode(&loc_builtin, qc));
-   priv->scl->sml.add(this, qc, false);
+void QoreClass::addBuiltinBaseClass(QoreClass* qc) {
+    if (!priv->scl) {
+        priv->scl = new BCList;
+    }
+    priv->scl->push_back(new BCNode(&loc_builtin, qc));
+    priv->scl->sml.add(this, qc, false);
 }
 
-void QoreClass::addDefaultBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs) {
-   addBuiltinBaseClass(qc, xargs);
-   // make sure no methodID has already been assigned
-   assert(priv->methodID == priv->classID);
-   priv->methodID = qc->priv->classID;
+void QoreClass::addDefaultBuiltinBaseClass(QoreClass* qc) {
+    addBuiltinBaseClass(qc);
+    // make sure no methodID has already been assigned
+    assert(priv->methodID == priv->classID);
+    priv->methodID = qc->priv->classID;
 }
 
 void QoreClass::addBuiltinVirtualBaseClass(QoreClass* qc) {
@@ -3639,6 +3641,22 @@ void QoreClass::setDeleteBlocker(q_delete_blocker_t m) {
 // sets the final flag
 void QoreClass::setFinal() {
     qore_class_private::setFinal(*this);
+}
+
+void QoreClass::setSerializer(q_serializer_t m) {
+    priv->setSerializer(m);
+}
+
+void QoreClass::setDeserializer(q_deserializer_t m) {
+    priv->setDeserializer(m);
+}
+
+q_serializer_t QoreClass::getSerializer() const {
+    return priv->serializer;
+}
+
+q_deserializer_t QoreClass::getDeserializer() const {
+    return priv->deserializer;
 }
 
 void QoreClass::setSystemConstructor(q_system_constructor_t m) {

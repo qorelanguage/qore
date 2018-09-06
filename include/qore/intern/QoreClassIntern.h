@@ -1776,6 +1776,9 @@ public:
         * deleteBlocker = nullptr,
         * memberNotification = nullptr;
 
+    q_serializer_t serializer = nullptr;
+    q_deserializer_t deserializer = nullptr;
+
     qore_classid_t classID,          // class ID
         methodID;                    // for subclasses of builtin classes that will not have their own private data,
                                      // instead they will get the private data from this class
@@ -2973,6 +2976,16 @@ public:
 
     DLLLOCAL char* getHash() const {
         return hash.getHash();
+    }
+
+    DLLLOCAL void setSerializer(q_serializer_t m) {
+        assert(!serializer);
+        serializer = m;
+    }
+
+    DLLLOCAL void setDeserializer(q_deserializer_t m) {
+        assert(!deserializer);
+        deserializer = m;
     }
 
     // static methods

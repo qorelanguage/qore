@@ -168,6 +168,8 @@ DLLLOCAL void init_dbi_constants(QoreNamespace& ns);
 DLLLOCAL void init_QC_Number_constants(QoreNamespace& ns);
 
 DLLLOCAL void preinitTimeZoneClass();
+DLLLOCAL void preinitInputStreamClass();
+DLLLOCAL void preinitOutputStreamClass();
 
 StaticSystemNamespace* staticSystemNamespace;
 
@@ -932,6 +934,12 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     hashdeclHashSerializationInfo = init_hashdecl_HashSerializationInfo(qns);
 
     qore_ns_private::addNamespace(qns, get_thread_ns(qns));
+
+    // pre-init classes
+    // serializable class
+    preinitSerializableClass();
+    preinitInputStreamClass();
+    preinitOutputStreamClass();
 
     // add stream classes
     qns.addSystemClass(initStreamBaseClass(qns));

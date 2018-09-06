@@ -644,6 +644,7 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
         m = odata->priv->findCreateMember(key);
 
     lvh.setValue(m->val, mti);
+    lvh.setObjectContext(this);
 
     return 0;
 }
