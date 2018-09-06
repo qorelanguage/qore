@@ -4,11 +4,11 @@
 /*  Simple module separated on parts
 */
 
-%requires qore >= 0.8.13
+# %requires qore >= 0.8.13
 %new-style
 
-%include SimpleModuleClass.qc
-%include SimpleModuleFunctions.ql
+# %include SimpleModuleClass.qc
+# %include SimpleModuleFunctions.ql
 
 
 module MyModule {
@@ -31,9 +31,9 @@ public namespace MyModule {
     public string sub mfunc(string str) {
         string MY_MODULE_NAME = str + "MyModule::mfunc::";
         # using class and stand alone function from SimpleModuleClass.qc
-        EXAMPLE_C::SomeClass sc();
-        str = sc.cfunc(MY_MODULE_NAME);
-        str += EXAMPLE_C::func(MY_MODULE_NAME);
+        # EXAMPLE_C::SomeClass sc();
+        # str = sc.cfunc(MY_MODULE_NAME);
+        # str += EXAMPLE_C::func(MY_MODULE_NAME);
 
         # using simple function from SimpleModuleFunctions.ql
         str += EXAMPLE_F::func(MY_MODULE_NAME);

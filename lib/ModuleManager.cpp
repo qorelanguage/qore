@@ -876,6 +876,8 @@ bool QoreModuleManager::tryToLoadAsModuleDir(
             modulePath += ".qm";
 
             loadModuleIntern(xsink, modulePath.c_str(), pgm, reexport, op, version, src, mpgm, load_opt);
+            pgm->parsePending("/home/tpetr/git/qore/examples/test/qore/requires/MyModule/SimpleModuleFunctions.ql", "SimpleModuleFunctions", &xsink, &xsink);
+            pgm->parseCommit(&xsink);
             if (!xsink)
                 return true;
         }
