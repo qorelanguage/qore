@@ -14,7 +14,7 @@
 
 class LoggerLayoutPattern2 inherits LoggerLayoutPattern {
     public list getParsedPattern() {
-        return m_parsedPattern ?? ();
+        return parsedPattern ?? ();
     }
 }
 

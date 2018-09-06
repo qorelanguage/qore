@@ -232,13 +232,13 @@ public namespace Logger {
 
         private:internal {
             #! Integer level value.
-            int m_levelCode;
+            int levelCode;
 
             #! String representation of the level.
-            string m_levelStr;
+            string levelStr;
 
             #! Contains a list of instantiated levels
-            static hash<string, LoggerLevel> m_levelMap;
+            static hash<string, LoggerLevel> levelMap;
 
             #! String to int hash
             const LEVELSTR_TO_LEVEL = (
@@ -262,18 +262,18 @@ public namespace Logger {
             @param str string representation
         */
         constructor(int code, string str) {
-            m_levelCode = code;
-            m_levelStr = str;
+            levelCode = code;
+            levelStr = str;
         }
 
         #! Gets level code value
         public int getValue() {
-            return m_levelCode;
+            return levelCode;
         }
 
         #! Gets level string
         public string getStr() {
-            return m_levelStr;
+            return levelStr;
         }
 
         #! Compares logger levels
@@ -282,7 +282,7 @@ public namespace Logger {
             @return True if level is greater or equal to the \a other level
         */
         public bool isGreaterOrEqual(LoggerLevel other) {
-            return m_levelCode >= other.getValue();
+            return levelCode >= other.getValue();
         }
 
         #! Compares two logger levels
@@ -290,7 +290,7 @@ public namespace Logger {
             @param other the other level to compares
         */
         public bool isEqual(LoggerLevel other) {
-            return m_levelCode == other.getValue();
+            return levelCode == other.getValue();
         }
 
         #! Returns an OFF Level
@@ -344,10 +344,10 @@ public namespace Logger {
         */
         public static LoggerLevel getLevel(int level, *LoggerLevel default_level) {
             if (exists LEVEL_TO_LEVEL_STR{level}) {
-                if (!exists m_levelMap{level}) {
-                    m_levelMap{level} = new LoggerLevel(level, LEVEL_TO_LEVEL_STR{level});
+                if (!exists levelMap{level}) {
+                    levelMap{level} = new LoggerLevel(level, LEVEL_TO_LEVEL_STR{level});
                 }
-                return m_levelMap{level};
+                return levelMap{level};
             } else {
                 if (!exists default_level) {
                     throw "LOGGER-ERROR", "Cannot get valid Level";
@@ -368,10 +368,10 @@ public namespace Logger {
             level_str = toupper(level_str);
             if (exists LEVELSTR_TO_LEVEL{level_str}) {
                 int level = LEVELSTR_TO_LEVEL{level_str};
-                if (!exists m_levelMap{level}) {
-                    m_levelMap{level} = new LoggerLevel(level, level_str);
+                if (!exists levelMap{level}) {
+                    levelMap{level} = new LoggerLevel(level, level_str);
                 }
-                return m_levelMap{level};
+                return levelMap{level};
             } else {
                 if (!exists default_level) {
                     throw "LOGGER-ERROR", "Cannot get valid Level";
@@ -435,46 +435,46 @@ public namespace Logger {
     public class LoggerEvent {
         private:internal {
             #! origin stamp to calculate relative time
-            static date m_startTime = now_us();
+            static date startTime = now_us();
 
             #! Fully Qualified Class Name of the calling category class.
-            string m_fqcn;
+            string fqcn;
 
             #! Logger reference
-            *Logger m_logger;
+            *Logger logger;
 
             #! The category (logger) name.
-            string m_categoryName;
+            string categoryName;
 
             #! Level of the logging event.
-            LoggerLevel m_level;
+            LoggerLevel level;
 
             #! The application supplied message of logging event (not rendered)
-            string m_message;
+            string messageFmt;
 
             #! arguments to be rendered
-            *list m_args;
+            *list messageArgs;
 
             #! The application supplied message rendered through the rendering mechanism.
-            *string m_renderedMessage;
+            *string renderedMessage;
 
             #! related thread id
-            int m_threadId;
+            int threadId;
 
             #! event time stamp
-            date m_timeStamp;
+            date timeStamp;
 
             #! location information where the logging was performed.
-            *hash<CallStackInfo> m_locationInfo;
+            *hash<CallStackInfo> locationInfo;
 
             #! internal representation of throwable
-            *hash<ExceptionInfo> m_throwableInfo;
+            *hash<ExceptionInfo> throwableInfo;
 
             #! unique id
-            int m_uniqueId;
+            int uniqueId;
 
             #! unique id generator
-            static Sequence m_sequence(1);
+            static Sequence sequence(1);
         }
 
         #! Instantiates a LoggingEvent from the supplied parameters.
@@ -492,17 +492,17 @@ public namespace Logger {
         */
         constructor(Logger n_logger, LoggerLevel n_level, string n_message, *list n_args, *hash<CallStackInfo> n_location_info,
                     int n_thread_id = gettid(), date n_time_stamp = now_us(), *hash<ExceptionInfo> n_throwable) {
-            m_fqcn = get_class_name(n_logger);
-            m_logger = n_logger;
-            m_categoryName = n_logger.getName();
-            m_level = n_level;
-            m_message = n_message;
-            m_args = n_args;
-            m_locationInfo = n_location_info;
-            m_threadId = n_thread_id;
-            m_timeStamp = n_time_stamp;
+            fqcn = get_class_name(n_logger);
+            logger = n_logger;
+            categoryName = n_logger.getName();
+            level = n_level;
+            messageFmt = n_message;
+            messageArgs = n_args;
+            locationInfo = n_location_info;
+            threadId = n_thread_id;
+            timeStamp = n_time_stamp;
             if (n_throwable) {
-                m_throwableInfo = n_throwable;
+                throwableInfo = n_throwable;
             }
         }
 
@@ -521,47 +521,47 @@ public namespace Logger {
         constructor(string n_fqcn, softstring n_category, LoggerLevel n_level, string n_message, *list n_args,
                     *hash<CallStackInfo> n_location_info, int n_thread_id = gettid(), date n_time_stamp = now_us(),
                     *hash<ExceptionInfo> n_throwable) {
-            m_fqcn = n_fqcn;
-            m_categoryName = n_category;
-            m_level = n_level;
-            m_message = n_message;
-            m_args = n_args;
-            m_locationInfo = n_location_info;
-            m_threadId = n_thread_id;
-            m_timeStamp = n_time_stamp;
+            fqcn = n_fqcn;
+            categoryName = n_category;
+            level = n_level;
+            messageFmt = n_message;
+            messageArgs = n_args;
+            locationInfo = n_location_info;
+            threadId = n_thread_id;
+            timeStamp = n_time_stamp;
             if (n_throwable) {
-                m_throwableInfo = n_throwable;
+                throwableInfo = n_throwable;
             }
         }
 
         #! Returns the full qualified classname
         public string getFullQualifiedClassname() {
-            return m_fqcn;
+            return fqcn;
         }
 
         #! Returns the location information for this logging event
         public *hash<CallStackInfo> getLocationInfo() {
-            return m_locationInfo;
+            return locationInfo;
         }
 
         #! Returns the level of this event
         public LoggerLevel getLevel() {
-            return m_level;
+            return level;
         }
 
         #! Returns the logger which created the event
         public *Logger getLogger() {
-            return m_logger;
+            return logger;
         }
 
         #! Returns the thread id which is related to event
         public int getThreadId() {
-            return m_threadId;
+            return threadId;
         }
 
         #! Returns the category name
         public string getCategoryName() {
-            return m_categoryName;
+            return categoryName;
         }
 
         #! Returns the string message for the logging event
@@ -573,11 +573,11 @@ public namespace Logger {
             @return the rendered message
         */
         public string getMessage() {
-            if (!exists m_renderedMessage) {
+            if (!exists renderedMessage) {
                 # evaluating of callable parameters (via LoggerEventParameter) may be used to get time consuming stuff
                 # i.e. they are evaluated only when logging is performed
                 list args2 = ();
-                foreach auto arg in (m_args) {
+                foreach auto arg in (messageArgs) {
                     if (arg.typeCode() == NT_OBJECT && arg instanceof LoggerEventParameter) {
                         try {
                             push args2, cast<LoggerEventParameter>(arg).call();
@@ -589,24 +589,24 @@ public namespace Logger {
                     }
                 }
                 # message is considered as printf() format so we process it this way.
-                m_renderedMessage = vsprintf(m_message, args2);
+                renderedMessage = vsprintf(messageFmt, args2);
             }
-            return m_renderedMessage;
+            return renderedMessage;
         }
 
         #! Returns the time when the application/logger started to calculate relative time
         public static date getStartTime() {
-            return LoggerEvent::m_startTime;
+            return LoggerEvent::startTime;
         }
 
         #! Sets the starting time for relative time
         public static setStartTime(date time) {
-            LoggerEvent::m_startTime = time;
+            LoggerEvent::startTime = time;
         }
 
         #! Returns the event timestamp as an @ref absolute_dates "absolute date/time value"
         public date getTimeStamp() {
-            return m_timeStamp;
+            return timeStamp;
         }
 
         #! Returns a relative timestamp for the event
@@ -617,20 +617,20 @@ public namespace Logger {
             @see @ref getStartTime()
         */
         public date getRelativeTime() {
-            return m_timeStamp - LoggerEvent::m_startTime;
+            return timeStamp - LoggerEvent::startTime;
         }
 
         #! Returns throwable info, if any
         public *hash<ExceptionInfo> getThrowableInfo() {
-            return m_throwableInfo;
+            return throwableInfo;
         }
 
         #! Generates a globally unique integer identifier and associates it to the event
         public int getUniqueId() {
-            if (!exists m_uniqueId) {
-                m_uniqueId = m_sequence.next();
+            if (!exists uniqueId) {
+                uniqueId = sequence.next();
             }
-            return m_uniqueId;
+            return uniqueId;
         }
     }
 
@@ -641,7 +641,7 @@ public namespace Logger {
     */
     public class LoggerAppenderQueue {
         private:internal {
-            Queue m_queue();
+            Queue queue();
         }
 
         #! Adds appender event
@@ -653,7 +653,7 @@ public namespace Logger {
         */
         public bool push(LoggerAppender appender, int type, auto params) {
             try {
-                m_queue.push(("appender": appender, "type": type, "params": params), -1);
+                queue.push(("appender": appender, "type": type, "params": params), -1);
             } catch (hash<ExceptionInfo> ex) {
                 return False;
             }
@@ -684,7 +684,7 @@ public namespace Logger {
 
         #! Returns the current number of events waiting in queue
         public int size() {
-            return m_queue.size();
+            return queue.size();
         }
 
         #! Returns the next event from queue or @ref nothing if there is no event available within the timeout period
@@ -700,14 +700,14 @@ public namespace Logger {
             @return the next event from queue or @ref nothing if there is no event available within the timeout period
         */
         private *hash getEvent(timeout ms) {
-            if (m_queue.size() > 0 || ms != 0) {
+            if (queue.size() > 0 || ms != 0) {
                 try {
                     if (ms == 0) {
-                        return m_queue.get(-1);
+                        return queue.get(-1);
                     } else if (ms > 0) {
-                        return m_queue.get(ms);
+                        return queue.get(ms);
                     } else {
-                        return m_queue.get(0);
+                        return queue.get(0);
                     }
                 } catch (hash<ExceptionInfo> ex) {
                     switch (ex.err) {
@@ -734,19 +734,19 @@ public namespace Logger {
             #! worker thread pool
             ThreadPool threadPool;
             #! number of running worker threads
-            Counter m_running(0);
+            Counter runningCounter(0);
             #! max.number of worker threads
-            int m_maxThreads;
+            int maxThreads;
             #! events removed from queue but not passed to worker thread
-            hash m_pending;
+            hash pendingEvents;
             #! events paseed to worker thread
-            hash m_processing;
+            hash processingEvents;
             #! queue of processed events in worker threads
-            Queue m_finished();
+            Queue finishedEvents();
             #! internal unique counter
-            Sequence m_lastId(0);
+            Sequence lastId(0);
             #! to protect process()
-            Mutex m_lock();
+            Mutex lock();
         }
 
         #! Implements worker thread code
@@ -758,13 +758,13 @@ public namespace Logger {
         private:internal worker(string id, LoggerAppender appender, list events) {
             #printf("start worker(), id: %y, tid: %d\n", id, gettid());
             #printf("<S:%y, tid: %d> ", id, gettid());
-            m_running.inc();
-            on_exit m_running.dec();
+            runningCounter.inc();
+            on_exit runningCounter.dec();
             try {
                 map appender.processEventImpl($1.type, $1.params), events;
             } catch (hash<ExceptionInfo> ex) {
             }
-            m_finished.push(id);
+            finishedEvents.push(id);
             #printf("end worker(), id: %y, tid: %d\n", id, gettid());
             #printf("<E:%y, tid: %d> ", id, gettid());
         }
@@ -776,11 +776,11 @@ public namespace Logger {
         */
         constructor(ThreadPool tp, int max_threads = -1) {
             threadPool = tp;
-            m_maxThreads = max_threads;
+            maxThreads = max_threads;
         }
 
         destructor() {
-            m_running.waitForZero();
+            runningCounter.waitForZero();
             threadPool.stopWait();
         }
 
@@ -804,69 +804,69 @@ public namespace Logger {
         */
         public process(timeout ms = 0) {
             # normally function is called from one thread and it is not time critical
-            AutoLock al(m_lock);
+            AutoLock al(lock);
             # get new events and match with pending
-            hash lastMatch;
+            hash last_match;
             while (True) {
                 *hash e = getEvent(ms);
                 if (!e) {
                     break;
                 }
-                if (lastMatch.appender != e.appender) {
+                if (last_match.appender != e.appender) {
                     bool found = False;
-                    foreach string id in (keys m_pending) {
-                        if (m_pending{id}.appender == e.appender) {
-                            lastMatch.id = id;
-                            lastMatch.appender = e.appender;
+                    foreach string id in (keys pendingEvents) {
+                        if (pendingEvents{id}.appender == e.appender) {
+                            last_match.id = id;
+                            last_match.appender = e.appender;
                             found = True;
                             break;
                         }
                     }
                     if (!found) {
                         # look into processing
-                        foreach string id in (keys m_processing) {
-                            if (m_processing{id}.appender == e.appender) {
-                                lastMatch.id = id;
+                        foreach string id in (keys processingEvents) {
+                            if (processingEvents{id}.appender == e.appender) {
+                                last_match.id = id;
                                 found = True;
                                 break;
                             }
                         }
                         if (!found) {
                             # add new entry
-                            lastMatch.id = string(m_lastId.next());
+                            last_match.id = string(lastId.next());
                         }
-                        lastMatch.appender = e.appender;
-                        m_pending{lastMatch.id} = {
-                            "id": lastMatch.id,  # to get reason of this value duplicating key see problem description above ThreadPool::submit(id, ...) call
+                        last_match.appender = e.appender;
+                        pendingEvents{last_match.id} = {
+                            "id": last_match.id,  # to get reason of this value duplicating key see problem description above ThreadPool::submit(id, ...) call
                             "appender": e.appender,
                             "events": (),
                         };
                     }
                 }
-                push m_pending{lastMatch.id}.events, e.('type', 'params');
+                push pendingEvents{last_match.id}.events, e.('type', 'params');
             }
 
             # remove finished
-            while (m_finished.size() > 0) {
-                string id = m_finished.get(-1);
-                remove m_processing{id};
+            while (finishedEvents.size() > 0) {
+                string id = finishedEvents.get(-1);
+                remove processingEvents{id};
             }
             # now try push pending
-            foreach string id in (keys m_pending) {
+            foreach string id in (keys pendingEvents) {
                 # remove meanwhile finished if any
-                while (m_finished.size() > 0) {
-                    remove m_processing{m_finished.get(-1)};
+                while (finishedEvents.size() > 0) {
+                    remove processingEvents{finishedEvents.get(-1)};
                 }
                 # is available a free worker thread ?
-                if (m_maxThreads >= 0 && m_processing.size() >= m_maxThreads) {
+                if (maxThreads >= 0 && processingEvents.size() >= maxThreads) {
                     return;
                 }
-                if (exists m_processing{id}) {
+                if (exists processingEvents{id}) {
                     # we cannot trigger new thread if is being processed
                     continue;
                 }
-                hash e = remove m_pending{id};
-                m_processing{id} = e;
+                hash e = remove pendingEvents{id};
+                processingEvents{id} = e;
                 # When passing "id" then no copy is passed to submit pool queue and worker may get wrong value
                 # so we must pass value in new variable which won't change meanwhile when the value is to be used.
                 # It is feature of submit implementation related to parameter passing.
@@ -876,8 +876,8 @@ public namespace Logger {
 
         #! Gets number of pending events
         public int size() {
-            AutoLock al(m_lock);
-            return LoggerAppenderQueue::size() + m_processing.size() + m_pending.size();
+            AutoLock al(lock);
+            return LoggerAppenderQueue::size() + processingEvents.size() + pendingEvents.size();
         }
     }
 
@@ -901,19 +901,19 @@ public namespace Logger {
 
         private:internal {
             #! The lock to ensure proper serialization with concurrent access
-            RWLock m_lock();
+            RWLock lock();
 
             #! An inactive appender won't accept any logging request
-            bool m_active = False;
+            bool active = False;
 
             #! filter chain
-            list<LoggerFilter> m_filters;
+            list<LoggerFilter> filters;
 
             #! Appender name
-            string m_name;
+            string name;
 
             #! async queue
-            *LoggerAppenderQueue m_queue;
+            *LoggerAppenderQueue queue;
         }
 
         #! Creates the object
@@ -921,16 +921,16 @@ public namespace Logger {
             @param n_name the appender name
         */
         constructor(string n_name = "") {
-            m_name = n_name;
+            name = n_name;
         }
 
         destructor() {
-            #close();  # TODO: cannot call as the target object may be already destroyed
+            #close();  # cannot call as the target object may be already destroyed
         }
 
         #! Returns the appender name
         public string getName() {
-            return m_name;
+            return name;
         }
 
         #! Sets the appender queue.
@@ -939,20 +939,20 @@ public namespace Logger {
             unless queue is assigned. In this case data are queued and
             dedicated process will process it asynchronously
 
-            @param queue
+            @param n_queue
             @throw "LOGGER-ERROR" thrown if appender is opened
         */
-        public setQueue(*LoggerAppenderQueue queue) {
-            AutoWriteLock awl(m_lock);
-            if (m_active) {
+        public setQueue(*LoggerAppenderQueue n_queue) {
+            AutoWriteLock awl(lock);
+            if (active) {
                 throw "LOGGER-ERROR", "Appender is opened";
             }
-            m_queue = queue;
+            queue = n_queue;
         }
 
         #! Returns async queue or @ref nothing when events are processed synchronously
         public *LoggerAppenderQueue getQueue() {
-            return m_queue;
+            return queue;
         }
 
         #! Opens logging resources
@@ -960,25 +960,25 @@ public namespace Logger {
             The appender must be opened to accept any logging events
         */
         public open() {
-            AutoWriteLock awl(m_lock);
-            if (!m_active) {
+            AutoWriteLock awl(lock);
+            if (!active) {
                 pushEvent(EVENT_OPEN, NOTHING);
-                m_active = True;
+                active = True;
             }
         }
 
         #! Releases any resources allocated by the appender and closes it
         public close() {
-            AutoWriteLock awl(m_lock);
-            if (m_active) {
+            AutoWriteLock awl(lock);
+            if (active) {
                 pushEvent(EVENT_CLOSE, NOTHING);
-                m_active = False;
+                active = False;
             }
         }
 
         #! Returns @ref True if the appender is open and therefore active
         public bool isOpen() {
-            return m_active;
+            return active;
         }
 
         #! Adds a filter to the chain
@@ -989,17 +989,17 @@ public namespace Logger {
             @throw "LOGGER-ERROR" thrown if the filter is already in the list
         */
         public addFilter(LoggerFilter filter, bool top = False) {
-            AutoWriteLock awl(m_lock);
-            if (!m_filters) {
-                m_filters = (filter, );
+            AutoWriteLock awl(lock);
+            if (!filters) {
+                filters = (filter, );
             } else {
-                if (m_filters.contains(filter)) {
+                if (filters.contains(filter)) {
                     throw "LOGGER-ERROR", "Filter already exists in list";
                 }
                 if (top) {
-                    unshift m_filters, filter;
+                    unshift filters, filter;
                 } else {
-                    push m_filters, filter;
+                    push filters, filter;
                 }
             }
         }
@@ -1009,10 +1009,10 @@ public namespace Logger {
             @param filter the filter to remove
         */
         public removeFilter(LoggerFilter filter) {
-            AutoWriteLock awl(m_lock);
-            foreach LoggerFilter f in (m_filters) {
+            AutoWriteLock awl(lock);
+            foreach LoggerFilter f in (filters) {
                 if (f == filter) {
-                    splice m_filters, $#, 1;
+                    splice filters, $#, 1;
                     break;
                 }
             }
@@ -1020,8 +1020,8 @@ public namespace Logger {
 
         #! Clears the filter chain by removing all filters
         public removeAllFilters() {
-            AutoWriteLock awl(m_lock);
-            splice m_filters, 0;
+            AutoWriteLock awl(lock);
+            splice filters, 0;
         }
 
         #! Returns the filter chain as a list
@@ -1029,8 +1029,8 @@ public namespace Logger {
             Note that appender filter chain may be modified as internal lock is released when copy of list is returned
         */
         public list<LoggerFilter> getFilters() {
-            AutoReadLock awl(m_lock);
-            return m_filters ?? ();
+            AutoReadLock awl(lock);
+            return filters ?? ();
         }
 
         #! Serializes the given event to put in the queue or write to the target device
@@ -1052,8 +1052,8 @@ public namespace Logger {
             @see @ref processEventImpl()
         */
         private bool pushEvent(int type, auto params) {
-            if (exists m_queue) {
-                return m_queue.push(self, type, params);
+            if (exists queue) {
+                return queue.push(self, type, params);
             } else {
                 processEventImpl(type, params);
                 return True;
@@ -1073,12 +1073,12 @@ public namespace Logger {
             event not accepted on queue, etc)
         */
         public bool post(LoggerEvent event) {
-            if(!m_active) {
+            if(!active) {
                 return False;
             }
             {
-                AutoReadLock arl(m_lock);
-                foreach LoggerFilter filter in (m_filters) {
+                AutoReadLock arl(lock);
+                foreach LoggerFilter filter in (filters) {
                     int d = filter.eval(event);
                     if (d == LoggerFilter::DENY) {
                         return False;
@@ -1156,12 +1156,12 @@ public namespace Logger {
 
         private:internal {
             #! pattern
-            string m_origPattern;
+            string origPattern;
         }
 
         private {
             #! parsed pattern
-            list m_parsedPattern;  # subclass may provide value e.g. for unit tests
+            list parsedPattern;  # subclass may provide value e.g. for unit tests
         }
 
         #! Creates the object
@@ -1248,13 +1248,13 @@ public namespace Logger {
                 }
             }
 
-            m_origPattern = value;
-            m_parsedPattern = pp;
+            origPattern = value;
+            parsedPattern = pp;
         }
 
         #! Returns the current pattern
         public string getPattern() {
-            return m_origPattern;
+            return origPattern;
         }
 
         #! Formats the event record with the current pattern
@@ -1264,7 +1264,7 @@ public namespace Logger {
         */
         public string format(auto data) {
             string res = "";
-            foreach auto a in (m_parsedPattern) {
+            foreach auto a in (parsedPattern) {
                 if (a.typeCode() == NT_STRING) {
                     res += a;
                 } else {
@@ -1462,7 +1462,7 @@ public namespace Logger {
     public class LoggerAppenderWithLayout inherits LoggerAppender {
         private:internal {
             #! assigned layout
-            LoggerLayout m_layout;
+            LoggerLayout layout;
         }
 
         #! Creates the object
@@ -1471,7 +1471,7 @@ public namespace Logger {
             @param n_layout the layout for the appender
         */
         constructor(string n_name, LoggerLayout n_layout): LoggerAppender(n_name) {
-            m_layout = n_layout;
+            layout = n_layout;
         }
 
         #! Assigns a layout to the appender
@@ -1479,12 +1479,12 @@ public namespace Logger {
         * @param n_layout the layout for the appender
         */
         public setLayout(LoggerLayout n_layout) {
-            m_layout = n_layout;
+            layout = n_layout;
         }
 
         #! Returns the layout for the appender
         public LoggerLayout getLayout() {
-            return m_layout;
+            return layout;
         }
 
         #! Returns the value formatted using the layout pattern
@@ -1492,7 +1492,7 @@ public namespace Logger {
             @param event the event to serialize
         */
         private auto serializeImpl(LoggerEvent event) {
-            return m_layout.format(event);
+            return layout.format(event);
         }
     }
 
@@ -1504,11 +1504,11 @@ public namespace Logger {
     public class LoggerAppenderStream inherits LoggerAppenderWithLayout {
         private:internal {
             #! stream writer
-            StreamWriter m_writer;
+            StreamWriter writer;
             #! closed flag
-            bool m_closed = False;
+            bool closed = False;
             #! assign thread for stream
-            bool m_assignThread;
+            bool assignThread;
         }
 
         #! Creates the object
@@ -1518,42 +1518,42 @@ public namespace Logger {
             @param n_writer the stream to write to
         */
         constructor(string n_name, LoggerLayout n_layout, StreamWriter n_writer): LoggerAppenderWithLayout(n_name, n_layout) {
-            m_writer = n_writer;
-            m_assignThread = m_writer.getOutputStream().getThreadId() == -1;
+            writer = n_writer;
+            assignThread = writer.getOutputStream().getThreadId() == -1;
         }
 
         #! Returns the stream writer object
         public StreamWriter getStreamWriter() {
-            return m_writer;
+            return writer;
         }
 
         #! Returns @ref True if assigning a thread for a stream
         public bool hasAssignThread() {
-            return m_assignThread;
+            return assignThread;
         }
 
         #! Processes open, log, and close events with the output stream; all other events are ignored
         public processEventImpl(int type, auto params) {
             if (type == EVENT_OPEN) {
-                if (m_closed) {
+                if (closed) {
                     # OutputStream does not provide open method
                     throw "LOGGER-ERROR", "Cannot reopen stream";
                 }
             } else {
-                if (m_assignThread) {
-                    m_writer.getOutputStream().reassignThread();
+                if (assignThread) {
+                    writer.getOutputStream().reassignThread();
                 }
                 switch (type) {
                     case EVENT_LOG:
-                        m_writer.print(params);
+                        writer.print(params);
                         break;
                     case EVENT_CLOSE:
-                        m_writer.getOutputStream().close();
-                        m_closed = True;
+                        writer.getOutputStream().close();
+                        closed = True;
                         break;
                 }
-                on_exit if (m_assignThread) {
-                    m_writer.getOutputStream().unassignThread();
+                on_exit if (assignThread) {
+                    writer.getOutputStream().unassignThread();
                 }
             }
         }
@@ -1565,8 +1565,8 @@ public namespace Logger {
     */
     public class LoggerAppenderFile inherits LoggerAppenderWithLayout {
         private {
-            File m_file;
-            string m_filename;
+            File file;
+            string fileName;
         }
 
         #! Creates the object
@@ -1577,18 +1577,18 @@ public namespace Logger {
             @param n_encoding the file's output encoding
         */
         constructor(string n_name, LoggerLayout n_layout, string n_filename, *string n_encoding): LoggerAppenderWithLayout(n_name, n_layout) {
-            m_file = new File(n_encoding);
-            m_filename = n_filename;
+            file = new File(n_encoding);
+            fileName = n_filename;
         }
 
         #! Returns the file object for the appender
         public File getFile() {
-            return m_file;
+            return file;
         }
 
         #! Returns the current filename
         public string getFileName() {
-            return m_filename;
+            return fileName;
         }
 
         #! Processes open, close, and log events with the file and ignores all other events
@@ -1599,10 +1599,10 @@ public namespace Logger {
         public processEventImpl(int type, auto params) {
             switch (type) {
                 case EVENT_OPEN:
-                    if (m_file.open(m_filename, O_APPEND | O_WRONLY) == -1) {
+                    if (file.open(fileName, O_APPEND | O_WRONLY) == -1) {
                         if (errno() == Qore::Err::ENOENT) {
                             # No such file or directory
-                            m_file.open2(m_filename, O_CREAT | O_WRONLY);
+                            file.open2(fileName, O_CREAT | O_WRONLY);
                         } else {
                             throw "FILE-OPEN2-ERROR", sprintf("%s (arg: %d)", strerror(), errno());
                         }
@@ -1610,16 +1610,16 @@ public namespace Logger {
                     break;
                 case EVENT_CLOSE:
                     try {
-                        m_file.close();
+                        file.close();
                     } catch (hash<ExceptionInfo> ex) {
                         if (ex.err != "ILLEGAL-EXPRESSION") {
-                            # catch unclosable stdxxx errors, TODO: m_file.isTTY() does the same job ?
+                            # catch unclosable stdxxx errors, TODO: file.isTTY() does the same job ?
                             rethrow;
                         }
                     }
                     break;
                 case EVENT_LOG:
-                    m_file.print(params);
+                    file.print(params);
                     break;
             }
         }
@@ -1698,7 +1698,7 @@ public namespace Logger {
         }
 
         private:internal {
-            int m_count;
+            int count;
         }
 
         #! Creates the object
@@ -1732,8 +1732,8 @@ public namespace Logger {
             \c "/var/run/log/MyLogger.log.1" \c "/var/run/log/MyLogger.log.2" \c "/var/run/log/MyLogger.log.3".
         */
         constructor(string n_name, LoggerLayout n_layout, string n_filename, int n_count, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): LoggerAppenderFile(n_name, n_layout, '', n_encoding), LoggerPattern(n_filename) { # do not split line not to confuse doxygen generator!!!
-            m_filename = format(NOTHING);  # no dynamic vars as timestamp
-            m_count = n_count;
+            fileName = format(NOTHING);  # no dynamic vars as timestamp
+            count = n_count;
             setPattern(n_archive);
         }
 
@@ -1794,7 +1794,7 @@ public namespace Logger {
         public processEventImpl(int type, auto params) {
             switch (type) {
                 case EVENT_ROTATE:
-                    if (m_count > 0 && is_file(m_filename)) {
+                    if (count > 0 && is_file(fileName)) {
                         list fn = ();
                         int i = 0;
                         while (True) {
@@ -1802,7 +1802,7 @@ public namespace Logger {
                             if (!is_dir(dirname(fn[i]))) {
                                 mkdir(dirname(fn[i]), 0777, True);
                             }
-                            if (i >= m_count-1 || !is_file(fn[i])) {
+                            if (i >= count-1 || !is_file(fn[i])) {
                                 # find a gap in chain or stop at the last file
                                 break;
                             }
@@ -1813,9 +1813,9 @@ public namespace Logger {
                             rename(fn[i-1], fn[i]);
                             i--;
                         }
-                        m_file.close();
-                        rename(m_filename, fn[0]);
-                        m_file.open2(m_filename, O_CREAT | O_WRONLY);
+                        file.close();
+                        rename(fileName, fn[0]);
+                        file.open2(fileName, O_CREAT | O_WRONLY);
                     }
                     break;
                 default:
@@ -1831,7 +1831,7 @@ public namespace Logger {
         */
         public rotate() {
             if (isOpen()) {
-                if (m_count <= 0) {
+                if (count <= 0) {
                     throw "LOGGER-ERROR", "Rotation is disabled";
                 }
                 pushEvent(EVENT_ROTATE, NOTHING);
@@ -1844,8 +1844,8 @@ public namespace Logger {
         */
         public string getArchiveFileName(int idx) {
             hash h;
-            h.filename = m_filename;
-            h.count = m_count;
+            h.filename = fileName;
+            h.count = count;
             h.index = idx;
             string res = format(h);
             return res;
@@ -1853,7 +1853,7 @@ public namespace Logger {
 
         #! Returns max.number of files in chain
         public int getCount() {
-            return m_count;
+            return count;
         }
     }
 
@@ -1873,7 +1873,7 @@ public namespace Logger {
         }
 
         private:internal {
-            hash m_patternData;
+            hash patternData;
         }
 
         #! Creates the object
@@ -1900,10 +1900,10 @@ public namespace Logger {
         */
         constructor(string n_name, LoggerLayout n_layout, string n_pattern, int n_count, *string n_encoding): LoggerAppenderFile(n_name, n_layout, "", n_encoding), LoggerPattern(n_pattern) {
             # set a provisional filename, to be updated when file is opened
-            m_patternData.timestamp = now_us();
-            m_patternData.count = n_count;
-            m_patternData.index = 0;
-            m_filename = format(m_patternData);
+            patternData.timestamp = now_us();
+            patternData.count = n_count;
+            patternData.index = 0;
+            fileName = format(patternData);
         }
 
         #! Returns a string for a format field for a pattern-based filename
@@ -1952,34 +1952,34 @@ public namespace Logger {
             switch (type) {
                 case EVENT_OPEN:
                     # find newest file
-                    m_patternData.timestamp = now_us();
-                    int lastIdx = 0;
-                    if (m_patternData.count > 0) {
-                        date lastStamp;
-                        hash pd = m_patternData;
-                        for (int i=0; i < m_patternData.count; i++) {
+                    patternData.timestamp = now_us();
+                    int last_idx = 0;
+                    if (patternData.count > 0) {
+                        date last_stamp;
+                        hash pd = patternData;
+                        for (int i=0; i < patternData.count; i++) {
                             pd.index = i;
                             string fn = format(pd);
                             *hash<StatInfo> si = hstat(fn);
                             if (si) {
-                                if (!lastStamp || si.mtime > lastStamp) {
-                                    lastStamp = si.mtime;
-                                    lastIdx = i;
+                                if (!last_stamp || si.mtime > last_stamp) {
+                                    last_stamp = si.mtime;
+                                    last_idx = i;
                                 }
                             }
                         }
                     }
-                    m_patternData.index = lastIdx;
-                    m_filename = format(m_patternData);
+                    patternData.index = last_idx;
+                    fileName = format(patternData);
                     LoggerAppenderFile::processEventImpl(type, params);
                     break;
                 case EVENT_ROTATE:
-                    if (m_patternData.count > 0) {
-                        m_file.close();
-                        m_patternData.index = (m_patternData.index + 1) % m_patternData.count;
-                        m_patternData.timestamp = now_us();
-                        m_filename = format(m_patternData);
-                        m_file.open2(m_filename, O_CREAT | O_WRONLY);
+                    if (patternData.count > 0) {
+                        file.close();
+                        patternData.index = (patternData.index + 1) % patternData.count;
+                        patternData.timestamp = now_us();
+                        fileName = format(patternData);
+                        file.open2(fileName, O_CREAT | O_WRONLY);
                     }
                     break;
                 default:
@@ -1995,7 +1995,7 @@ public namespace Logger {
         */
         public rotate() {
             if (isOpen()) {
-                if (m_patternData.count <= 0) {
+                if (patternData.count <= 0) {
                     throw "LOGGER-ERROR", "Rotation is disabled";
                 }
                 pushEvent(EVENT_ROTATE, NOTHING);
@@ -2004,12 +2004,12 @@ public namespace Logger {
 
         #! Returns number of files in ring
         public int getCount() {
-            return m_patternData.count;
+            return patternData.count;
         }
 
         #! Returns current ring index being used for logging
         public int getCurrentIndex() {
-            return m_patternData.index;
+            return patternData.index;
         }
     }
 
@@ -2060,7 +2060,7 @@ public namespace Logger {
         */
         constructor(string n_name, LoggerLayout n_layout, string n_filename, string n_archive = DEFAULT_ARCHIVE_PATTERN,
             *string n_encoding): LoggerAppenderFile(n_name, n_layout, n_filename, n_encoding), LoggerPattern(n_filename) {
-            m_filename = format(NOTHING);  # no dynamic vars as timestamp
+            fileName = format(NOTHING);  # no dynamic vars as timestamp
             setPattern(n_archive);
         }
 
@@ -2124,11 +2124,11 @@ public namespace Logger {
                 case EVENT_ARCHIVE:
                     mkdir(dirname(params), 0777, True);
                     if (isOpen()) {
-                        m_file.close();
-                        rename(m_filename, params);
+                        file.close();
+                        rename(fileName, params);
                         LoggerAppenderFile::processEventImpl(EVENT_OPEN, NOTHING);
                     } else {
-                        rename(m_filename, params);
+                        rename(fileName, params);
                     }
                     break;
                 default:
@@ -2148,7 +2148,7 @@ public namespace Logger {
             if (afn == "") {
                 throw "LOGGER-ERROR", "Empty target filename";
             }
-            if (normalize_dir(afn) == normalize_dir(m_filename)) {
+            if (normalize_dir(afn) == normalize_dir(fileName)) {
                 throw "LOGGER-ERROR", "Source and target path are equal";
             }
             if (is_dir(afn)) {
@@ -2169,7 +2169,7 @@ public namespace Logger {
         public string getArchiveFileName() {
             hash h;
             h.timestamp = now_us();
-            h.filename = m_filename;
+            h.filename = fileName;
             string res = format(h);
             return res;
         }
@@ -2217,107 +2217,107 @@ public namespace Logger {
     public class LoggerFilterLevel inherits LoggerFilter {
         private:internal {
             #! min.level
-            LoggerLevel m_minLevel;
+            LoggerLevel minLevel;
             #! max.level
-            LoggerLevel m_maxLevel;
+            LoggerLevel maxLevel;
         }
 
         #! Creates the object
         /**
-            @param min_level the minimum logging level
-            @param max_level the maximum logging level
+            @param min_value the minimum logging level
+            @param max_value the maximum logging level
         */
-        constructor(LoggerLevel min_level = LoggerLevel::getLevelInfo(), LoggerLevel max_level = LoggerLevel::getLevelOff()) {
-            setMinLevel(min_level);
-            setMaxLevel(max_level);
+        constructor(LoggerLevel min_value = LoggerLevel::getLevelInfo(), LoggerLevel max_value = LoggerLevel::getLevelOff()) {
+            setMinLevel(min_value);
+            setMaxLevel(max_value);
         }
 
         #! Creates the object
         /**
-            @param min_level the minimum logging level
-            @param max_level the maximum logging level
+            @param min_value the minimum logging level
+            @param max_value the maximum logging level
         */
-        constructor(int min_level, int max_level = LoggerLevel::OFF) {
-            setMinLevel(min_level);
-            setMaxLevel(max_level);
+        constructor(int min_value, int max_value = LoggerLevel::OFF) {
+            setMinLevel(min_value);
+            setMaxLevel(max_value);
         }
 
         #! Creates the object
         /**
-            @param min_level the minimum logging level
-            @param max_level the maximum logging level
+            @param min_value the minimum logging level
+            @param max_value the maximum logging level
         */
-        constructor(string min_level, string max_level = "OFF") {
-            setMinLevel(min_level);
-            setMaxLevel(max_level);
+        constructor(string min_value, string max_value = "OFF") {
+            setMinLevel(min_value);
+            setMaxLevel(max_value);
         }
 
         #! Sets the minimum logging level
         /**
-            @param min_level the minimum logging level
+            @param value the minimum logging level
         */
-        public setMinLevel(LoggerLevel min_level) {
-            m_minLevel = min_level;
+        public setMinLevel(LoggerLevel value) {
+            minLevel = value;
         }
 
         #! Sets the minimum logging level
         /**
-            @param min_level the minimum logging level
+            @param value the minimum logging level
         */
-        public setMinLevel(int min_level) {
-            setMinLevel(LoggerLevel::getLevel(min_level));
+        public setMinLevel(int value) {
+            setMinLevel(LoggerLevel::getLevel(value));
         }
 
         #! Sets the minimum logging level
         /**
-            @param min_level the minimum logging level
+            @param value the minimum logging level
         */
-        public setMinLevel(string min_level) {
-            setMinLevel(LoggerLevel::getLevel(min_level));
+        public setMinLevel(string value) {
+            setMinLevel(LoggerLevel::getLevel(value));
         }
 
         #! Returns the minimum logging level
         public LoggerLevel getMinLevel() {
-            return m_minLevel;
+            return minLevel;
         }
 
         #! Sets the maximum logging level
         /**
-            @param max_level the maximum logging level
+            @param value the maximum logging level
         */
-        public setMaxLevel(LoggerLevel max_level) {
-            m_maxLevel = max_level;
+        public setMaxLevel(LoggerLevel value) {
+            maxLevel = value;
         }
 
         #! Sets the maximum logging level
         /**
-            @param max_level the maximum logging level
+            @param value the maximum logging level
         */
-        public setMaxLevel(int max_level) {
-            setMaxLevel(LoggerLevel::getLevel(max_level));
+        public setMaxLevel(int value) {
+            setMaxLevel(LoggerLevel::getLevel(value));
         }
 
         #! Sets the maximum logging level
         /**
-            @param max_level the maximum logging level
+            @param value the maximum logging level
         */
-        public setMaxLevel(string max_level) {
-            setMaxLevel(LoggerLevel::getLevel(max_level));
+        public setMaxLevel(string value) {
+            setMaxLevel(LoggerLevel::getLevel(value));
         }
 
         #! Returns the maximum logging level
         public LoggerLevel getMaxLevel() {
-            return m_maxLevel;
+            return maxLevel;
         }
 
         #! Implements filtering by level
         public int eval(LoggerEvent event) {
-            if (m_maxLevel.isGreaterOrEqual(m_minLevel)) {
-                if (!(event.getLevel().isGreaterOrEqual(m_minLevel) && m_maxLevel.isGreaterOrEqual(event.getLevel()))) {
+            if (maxLevel.isGreaterOrEqual(minLevel)) {
+                if (!(event.getLevel().isGreaterOrEqual(minLevel) && maxLevel.isGreaterOrEqual(event.getLevel()))) {
                     return DENY;
                 }
             } else {
-                if (event.getLevel().isGreaterOrEqual(m_maxLevel) && m_minLevel.isGreaterOrEqual(event.getLevel())) {
+                if (event.getLevel().isGreaterOrEqual(maxLevel) && minLevel.isGreaterOrEqual(event.getLevel())) {
                     return DENY;
                 }
             }
@@ -2333,9 +2333,9 @@ public namespace Logger {
     public class LoggerFilterRegex inherits LoggerFilter {
         private:internal {
             #! regular string
-            string m_regexStr;
+            string regexStr;
             #! expected result
-            bool m_regexResult;
+            bool regexResult;
         }
 
         #! Creates the object
@@ -2353,23 +2353,23 @@ public namespace Logger {
             @param regex_result @ref True for a positive match, @ref False for a negative match
         */
         public setRegex(string regex_str, bool regex_result = True) {
-            m_regexStr = regex_str;
-            m_regexResult = regex_result;
+            regexStr = regex_str;
+            regexResult = regex_result;
         }
 
         #! Returns the current regex
         public string getRegex() {
-            return m_regexStr;
+            return regexStr;
         }
 
         #! Returns the expected result
         public bool getRegexResult() {
-            return m_regexResult;
+            return regexResult;
         }
 
         #! Evaluates the regex and compares with the expected result
         public int eval(LoggerEvent event) {
-            if (event.getMessage().regex(m_regexStr) != m_regexResult) {
+            if (event.getMessage().regex(regexStr) != regexResult) {
                 return DENY;
             } else {
                 return NEUTRAL;
@@ -2387,10 +2387,10 @@ public namespace Logger {
     public class Logger {
         private:internal {
             #! The lock to protect object manipulation
-            RWLock m_lock();
+            RWLock lock();
 
             #! The lock to protect access to parent/child hierarchy
-            static RWLock m_hierarchyLock();
+            static RWLock hierarchyLock();
 
             #! Logger additivity. If set to true then child loggers will inherit the appenders of their ancestors by default.
             bool additivity = True;
@@ -2399,13 +2399,13 @@ public namespace Logger {
             *LoggerLevel currentLevel;
 
             #! The name of this Logger instance.
-            string m_name;
+            string name;
 
             #! The parent logger. Unassigned if this is the root logger.
-            *Logger m_parent;
+            *Logger parent;
 
             #! A collection of appenders linked to this logger.
-            list<LoggerAppender> m_appenders;
+            list<LoggerAppender> appenders;
         }
 
         #! Creates the object
@@ -2413,7 +2413,7 @@ public namespace Logger {
             @param n_name the name of the object
         */
         constructor(string n_name) {
-            m_name = n_name;
+            name = n_name;
         }
 
         destructor() {
@@ -2422,32 +2422,32 @@ public namespace Logger {
 
         #! Returns the logger name
         public string getName() {
-            return m_name;
+            return name;
         }
 
         #! Returns the parent logger, if any
         public *Logger getParent() {
-            return m_parent;
+            return parent;
         }
 
         #! Sets the parent logger
         /**
-            @param n_parent the parent logger
+            @param value the parent logger
             @throw LOGGER-ERROR in case of circular reference
         */
-        public setParent(*Logger n_parent) {
-            AutoWriteLock awl(m_lock);
-            if (n_parent) {
-                AutoWriteLock awhl(Logger::m_hierarchyLock);
+        public setParent(*Logger value) {
+            AutoWriteLock awl(lock);
+            if (value) {
+                AutoWriteLock awhl(Logger::hierarchyLock);
                 *Logger l = self;
                 while (exists l) {
-                    if (l == n_parent) {
+                    if (l == value) {
                         throw "LOGGER-ERROR", "Circular logger chain";
                     }
                     l = l.getParent();
                 }
             }
-            m_parent = n_parent;
+            parent = value;
         }
 
         #! Returns the logging level
@@ -2457,7 +2457,7 @@ public namespace Logger {
         */
         public *LoggerLevel getLevel(bool effective = True) {
             if (effective) {
-                AutoReadLock awhl(Logger::m_hierarchyLock);
+                AutoReadLock awhl(Logger::hierarchyLock);
                 *Logger l = self;
                 while (!exists l.getLevel(False)) {
                     l = l.getParent();
@@ -2519,8 +2519,8 @@ public namespace Logger {
             @param event the event to forward
         */
         private callAppenders(LoggerEvent event) {
-            AutoReadLock arl(m_lock);
-            map $1.post(event), m_appenders;
+            AutoReadLock arl(lock);
+            map $1.post(event), appenders;
         }
 
         #! Adds an appender to the appender list
@@ -2529,14 +2529,14 @@ public namespace Logger {
             @throw "LOGGER-ERROR" exception if appender is already in list
         */
         public addAppender(LoggerAppender appender) {
-            AutoWriteLock awl(m_lock);
-            if (!m_appenders) {
-                m_appenders = (appender, );
+            AutoWriteLock awl(lock);
+            if (!appenders) {
+                appenders = (appender, );
             } else {
-                if (m_appenders.contains(appender)) {
+                if (appenders.contains(appender)) {
                     throw "LOGGER-ERROR", "Appender already exists in list";
                 }
-                push m_appenders, appender;
+                push appenders, appender;
             }
         }
 
@@ -2545,10 +2545,10 @@ public namespace Logger {
             @param appender the appender to remove
         */
         public removeAppender(LoggerAppender appender) {
-            AutoWriteLock awl(m_lock);
-            foreach LoggerAppender a in (m_appenders) {
+            AutoWriteLock awl(lock);
+            foreach LoggerAppender a in (appenders) {
                 if (a == appender) {
-                    splice m_appenders, $#, 1;
+                    splice appenders, $#, 1;
                     break;
                 }
             }
@@ -2556,8 +2556,8 @@ public namespace Logger {
 
         #! Clears the appender list by removing all appenders
         public removeAllAppenders() {
-            AutoWriteLock awl(m_lock);
-            splice m_appenders, 0;
+            AutoWriteLock awl(lock);
+            splice appenders, 0;
         }
 
         #! Returns the appender list
@@ -2566,8 +2566,8 @@ public namespace Logger {
             when list is returned
         */
         public list<LoggerAppender> getAppenders() {
-            AutoReadLock awl(m_lock);
-            return m_appenders ?? ();
+            AutoReadLock awl(lock);
+            return appenders ?? ();
         }
 
         private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
@@ -2583,18 +2583,18 @@ public namespace Logger {
                 }
                 callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), time_stamp, throwable));
                 {
-                    AutoReadLock awl(m_lock);
-                    if (m_parent && getAdditivity()) {
+                    AutoReadLock awl(lock);
+                    if (parent && getAdditivity()) {
                         # Forward the event upstream if additivity is turned on
-                        m_parent.logIntern(level, message, args, location, throwable, time_stamp);
+                        parent.logIntern(level, message, args, location, throwable, time_stamp);
                     }
                 }
 
             } else {
-                AutoReadLock awl(m_lock);
-                if (m_parent && getAdditivity()) {
+                AutoReadLock awl(lock);
+                if (parent && getAdditivity()) {
                     # Forward the event upstream if additivity is turned on
-                    m_parent.logIntern(level, message, args, location, check_throwable, time_stamp);
+                    parent.logIntern(level, message, args, location, check_throwable, time_stamp);
                 }
             }
         }
@@ -2604,10 +2604,10 @@ public namespace Logger {
                 callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), time_stamp, throwable));
             }
             {
-                AutoReadLock awl(m_lock);
-                if (m_parent && getAdditivity()) {
+                AutoReadLock awl(lock);
+                if (parent && getAdditivity()) {
                     # Forward the event upstream if additivity is turned on
-                    m_parent.logIntern(level, message, args, location, throwable, time_stamp);
+                    parent.logIntern(level, message, args, location, throwable, time_stamp);
                 }
             }
         }
@@ -2649,10 +2649,10 @@ public namespace Logger {
             }
 
             {
-                AutoReadLock awl(m_lock);
+                AutoReadLock awl(lock);
                 # Forward the event upstream if additivity is turned on
-                if (m_parent && getAdditivity()) {
-                    m_parent.logEvent(event);
+                if (parent && getAdditivity()) {
+                    parent.logEvent(event);
                 }
             }
         }
@@ -2834,22 +2834,22 @@ public namespace Logger {
         /**
             The root logger must always have a level.
 
-            @param level the level to set
+            @param value the level to set
             @throw LOGGER-ERROR if level is @ref nothing
         */
-        public setLevel(*LoggerLevel level) {
-            if (!exists level) {
+        public setLevel(*LoggerLevel value) {
+            if (!exists value) {
                 throw "LOGGER-ERROR", "Cannot set null level for root";
             }
-            Logger::setLevel(level);
+            Logger::setLevel(value);
         }
 
-        #! Overrides parent setter as the root logger cannot have a parent; this method always throws an exception if the argument is a value
+        #! Overrides value setter as the root logger cannot have a parent; this method always throws an exception if the argument is a value
         /**
             @throw LOGGER-ERROR if parent exists
         */
-        public setParent(*Logger n_parent) {
-            if (exists n_parent) {
+        public setParent(*Logger value) {
+            if (exists value) {
                 throw "LOGGER-ERROR", "Cannot set parent for root";
             }
         }
