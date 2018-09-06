@@ -144,7 +144,7 @@ class DebugWrapper {
                 if (ex.err != "CONNECTION-ERROR") {
                     rethrow;
                 }
-                if (opt.url !~ /:\/\//) {
+                if (opt.url !~ /:\/\// && opt.url !~ /:/ && opt.url !~ /\//) {
                     throw "CONNECTION-ERROR", sprintf("URL %y is not a valid URL and no connection can be found with this name; connection providers searched (QORE_CONNECTION_PROVIDERS env var): %y", opt.url, ENV.QORE_CONNECTION_PROVIDERS);
                 }
             }
@@ -231,6 +231,7 @@ class DebugWrapper {
             get_script_name(),
             DebugCommandLineRemote::WSC_TIMEOUT,
             DebugLinenoiseCommandLine::defaultHistoryFileName,
+            get_script_name(),
             get_script_name(),
 
         );

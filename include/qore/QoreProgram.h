@@ -546,22 +546,22 @@ public:
 
     //! returns the script file name, if known (0 if not)
     /** @return the script file name, if known (0 if not)
-        */
+    */
     DLLEXPORT QoreStringNode* getScriptName() const;
 
     //! returns the script path (directory and name), if known (0 if not)
     /** @return the script path (directory and name), if known (0 if not)
-        */
+    */
     DLLEXPORT QoreStringNode* getScriptPath() const;
 
     //! returns the script directory, if known (0 if not)
     /** @return the script directory, if known (0 if not)
-        */
+    */
     DLLEXPORT QoreStringNode* getScriptDir() const;
 
     //! sets the script path
     /** @param path the directory and filename of the script (set to 0 to clear)
-        */
+    */
     DLLEXPORT void setScriptPath(const char* path);
 
     //! returns the value of the global variable given (do not include the "$" symbol), the caller owns the reference count returned
@@ -587,14 +587,14 @@ public:
     //! manually add the feature to the program
     /** useful for use with %module-cmd when manually merging in namespace changes to the program
         @param name the name of the feature to add to the QoreProgram's feature list
-        */
+    */
     DLLEXPORT void addFeature(const char* name);
 
     //! sets the time zone during parsing
     /** @param zone can be either a region name (ex: 'Europe/Prague') or a UTC offset in the format SDD[:DD[:DD]] where S is + or - and D is an integer 0 - 9; the ':' characters are optional
 
         @note do not call this function if there are any running threads; a crash could result
-        */
+    */
     DLLEXPORT void parseSetTimeZone(const char* zone);
 
     //! defines a parse-time variable; call only at parse time (or before parsing)
@@ -633,7 +633,7 @@ public:
         @param pud the external data
 
         @since %Qore 0.8.13
-        */
+    */
     DLLEXPORT void setExternalData(const char* owner, AbstractQoreProgramExternalData* pud);
 
     //! retrieves the external data pointer
@@ -642,14 +642,14 @@ public:
         @return the data if set otherwise nullptr is returned
 
         @since %Qore 0.8.13
-        */
+    */
     DLLEXPORT AbstractQoreProgramExternalData* getExternalData(const char* owner) const;
 
     //! retrieves a hash of global variables and their values
     /** @return a hash of global variable information; keys are namespace-justified global variable names, values are the values
 
         @since %Qore 0.8.13
-        */
+    */
     DLLEXPORT QoreHashNode* getGlobalVars() const;
 
     //! sets the value of the given global variable
@@ -660,7 +660,7 @@ public:
         @return 0 for OK, -1 if an exception was raised
 
         @since %Qore 0.8.13
-        */
+    */
     DLLEXPORT int setGlobalVarValue(const char* name, QoreValue val, ExceptionSink* xsink);
 
     // finds a function or class method variant if possible
@@ -691,7 +691,7 @@ public:
     /** @return a list of threads active in this Program object
 
         @since %Qore 0.8.13
-        */
+    */
     DLLEXPORT QoreListNode* getThreadList() const;
 
     //! search for the given class in the program; can be a simple class name or a namespace-prefixed path (ex: "NamespaceName::ClassName")
@@ -736,7 +736,6 @@ public:
 
     //! search for the given typed hash (hashdecl) in the program; can be a simple function name or a namespace-prefixed path (ex: "NamespaceName::TypedHashName")
     /** @since %Qore 0.9
-    */
     DLLEXPORT const TypedHashDecl* findHashDecl(const char* path, const QoreNamespace*& pns) const;
 
     //! search for the given namespace in the program; can be a simple namespace name or a namespace-prefixed path (ex: "NamespaceName::Namespace")
@@ -792,7 +791,6 @@ public:
     // can only be called while parsing from the same thread doing the parsing
     DLLLOCAL bool parseExceptionRaised() const;
 
-
     // TODO: implement !
     /** returns the value of the local variable given (do not include the "$" symbol), the caller owns the reference count returned
         The variable is related to current frame. This function can be executed only when program is stopped
@@ -815,6 +813,10 @@ public:
     */
     DLLEXPORT void getBreakpoints(QoreBreakpointList_t &bkptList);
 
+    /** get list of breakpoint assigned to statement.
+    */
+    DLLEXPORT void getStatementBreakpoints(const AbstractStatement* statement, QoreBreakpointList_t &bkptList);
+
     /** find statement related to particular line in a source file
     */
     DLLEXPORT AbstractStatement* findStatement(const char* fileName, int line) const;
@@ -827,7 +829,7 @@ public:
     /**
         @param statement MUST be statement of this Program instance!
         @return the statement id which consist of pointer to both program and statement instances
-        */
+    */
     DLLEXPORT unsigned long getStatementId(const AbstractStatement* statement) const;
 
     //! get the statement from statement id
@@ -835,7 +837,7 @@ public:
         @param statementId created by @ref Program::getStatementId
 
         @return the original statement or null if statement cannot be resolved
-        */
+    */
     DLLEXPORT AbstractStatement* resolveStatementId(unsigned long statementId) const;
 
     //! get list of files which appears in a statement
