@@ -94,6 +94,10 @@ hashdecl HashSerializationInfo {
     serializable (in this case the serialization methods are only available inside the class
     itself).
 
+    Objects are serialized very efficiently; each object in a data structure will only be
+    serialized once, even if it appears multiple times in the data structure.  Recursive
+    references and cyclic graphs of objects are also supported with efficuent serialization.
+
     Classes that do not inherit this class cannot be serialized; if any non-tranient member
     of a serializable class holds an object from a class that does not inherit this class,
     a \c SERIALIZATION-ERROR will be thrown when the object is serialized.
