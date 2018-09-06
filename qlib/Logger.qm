@@ -1206,11 +1206,7 @@ public namespace Logger {
                     }
                     splice patt, 0, pos+1;
                     # now the string is token
-%ifdef _DUMMY_TO_PAIR_BRACES_IN_EDITOR
-# but qdx dislikes it when generating docs
-#   {
-%endif
-                    *list l = patt =~ x/^([0-9.-]*)([a-zA-Z]+)({[^}]*})?/ ;
+                    *list l = regex_extract(patt, "^([0-9.-]*)([a-zA-Z]+)({[^}]*})?");
                     if (l.size() < 2) {
                         throw "LOGGER-ERROR", sprintf("Wrong pattern starting %%%s", patt);
                     }
@@ -1233,17 +1229,9 @@ public namespace Logger {
                     }
                     f.key = l[1];
                     if (l.size() == 3) {
-%ifdef _DUMMY_TO_PAIR_BRACES_IN_EDITOR
-# but qdx dislikes it when generating docs
-#    {
-%endif
-                        f.option = ((l[2] =~ x/^{([^}]*)}$/)[0]) ?? "";
+                        f.option = (regex_extract(l[2], "^{([^}]*)}$")[0]) ?? "";
                     }
-%ifdef _DUMMY_TO_PAIR_BRACES_IN_EDITOR
-# but qdx dislikes it when generating docs
-#    {
-%endif
-                    patt =~ s/^[0-9.-]*[a-zA-Z]+({[^}]*})?//;
+                    patt = regex_subst(patt, "^[0-9.-]*[a-zA-Z]+({[^}]*})?", "");
                     push pp, f;
                 }
             }
