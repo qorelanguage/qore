@@ -422,23 +422,48 @@ public namespace FsUtil {
 
     #! Removes the filesystem tree specified by path
     /** @param path path to a filesystem tree root which should be removed
+        @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
+                                on the first error instead of accumulating all exceptions
+
+        @throws REMOVE-TREE-ERROR If something goes wrong in the recursive calls. In such case the rest of the tree is
+                                  removed anyway and this exception's description contains a list of exceptions thrown
+                                  in the recursive calls unless fail_immediately flag is True.
 
         This function will only remove a directory (i.e. path can't point to a regular file, symlink, etc.).
         This doesn't hold true for the path's contents though of course. That will be removed anyway.
-        This function doesn't follow symlinks.
+        This function doesn't follow symlinks. As mentioned in description of REMOVE-TREE-ERROR exception, if only some
+        parts of the tree can't be removed (e.g. due to permissions) and if fail_immediately is False, the tree is
+        partially removed anyway and REMOVE-TREE-ERROR is thrown and describes what exactly went wrong for each error.
     */
-    public sub remove_tree(string path, bool dir_only=True) {
+    public sub remove_tree(string path, bool fail_immediately=True) {
         Dir dir();
         dir.chdir(path);
 
         # remove the directory's contents
+        list errors = ();
         foreach string name in (dir.list()) {
             string sub_path = join_paths(path, name);
-            if (is_dir(sub_path)) {
-                remove_tree(sub_path);
-            } else {
-                remove_file(sub_path);
+            try {
+                if (is_dir(sub_path)) {
+                    remove_tree(sub_path);
+                } else {
+                    remove_file(sub_path);
+                }
+            } catch (err) {
+                if (fail_immediately) {
+                    rethrow;
+                }
+
+                if (err.err == "REMOVE-TREE-ERROR") {
+                    errors += err.desc;
+                } else {
+                    errors += err;
+                }
             }
+        }
+
+        if (errors) {
+            throw "REMOVE-TREE-ERROR", errors;
         }
 
         # directory specified by path should be empty now
@@ -635,7 +660,7 @@ public namespace FsUtil {
         @throws DIR-STAT-ERROR If stat call for the source path fails.
         @throws COPY-TREE-ERROR If something goes wrong in the recursive calls. In such case the rest of the tree is
                                 copied anyway and this exception's description contains a list of exceptions thrown
-                                in the recursive calls.
+                                in the recursive calls unless fail_immediately flag is True.
 
         Source must be a directory (or a symlink pointing to a directory if follow_symlinks is True). Destination can be
         an existing directory. If that's the case, this function will attempt to create a copy of source directory using
