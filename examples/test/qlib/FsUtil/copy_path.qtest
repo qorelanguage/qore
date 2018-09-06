@@ -489,5 +489,15 @@ public class CopyPathTest inherits QUnit::Test {
             assertGt(-1, index(err.desc[1].desc, file_path));
         }
         assertTrue(exception_thrown);
+        remove_tree(dest_dir);
+
+        # let's repeat the last two tests with fail_immediately flag
+        assertThrows("FILE-OPEN2-ERROR", \copy_tree(),
+                     (source_path, dest_dir, NOTHING, True));
+        remove_tree(dest_dir);
+
+        assertThrows("FILE-OPEN2-ERROR", \copy_tree(),
+                     (source_path, dest_dir, True, True));
+        remove_tree(dest_dir);
     }
 }

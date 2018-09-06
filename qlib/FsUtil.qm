@@ -628,6 +628,8 @@ public namespace FsUtil {
     /** @param source path to be copied (must be a directory or a symlink pointing to one if follow_symlinks is set)
         @param destination path where the copy should be created (must be a directory or must not exist)
         @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
+        @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
+                                on the first error instead of accumulating all exceptions
 
         @throws SAME-DIR-ERROR If both paths point to the same file.
         @throws DIR-STAT-ERROR If stat call for the source path fails.
@@ -640,10 +642,12 @@ public namespace FsUtil {
         the same name in the destination directory. Otherwise the destination directory will be created.
         Mode (permissions) bits are preserved but UID/GID, access time and modification time are not. As mentioned in
         description of COPY-TREE-ERROR exception, if only some parts of the tree can't be copied (e.g. due to
-        permissions), the tree is partially copied anyway and COPY-TREE-ERROR is thrown and describes what exactly went
-        wrong for each error. If the whole tree is copied correctly, the function returns path to the new copy.
+        permissions) and if fail_immediately is False, the tree is partially copied anyway and COPY-TREE-ERROR is thrown
+        and describes what exactly went wrong for each error. If the whole tree is copied correctly, the function
+        returns path to the new copy.
     */
-    public string sub copy_tree(string source, string destination, bool follow_symlinks=False) {
+    public string sub copy_tree(string source, string destination, bool follow_symlinks=False,
+                                bool fail_immediately=False) {
         if (same_file(source, destination, follow_symlinks, True)) {
             throw "SAME-DIR-ERROR", sprintf("'%s' and '%s' point to the same directory.", source, destination);
         }
@@ -675,13 +679,17 @@ public namespace FsUtil {
 
             try {
                 if (is_dir(src_path)) {
-                    copy_tree(src_path, dst_path, follow_symlinks);
+                    copy_tree(src_path, dst_path, follow_symlinks, fail_immediately);
                 } else {
                     # this will throw an exception for unsupported file types
                     # (only file and symlink are supported)
                     copy_file(src_path, dst_path, follow_symlinks, False);
                 }
             } catch (err) {
+                if (fail_immediately) {
+                    rethrow;
+                }
+
                 if (err.err == "COPY-TREE-ERROR") {
                     errors += err.desc;
                 } else {
