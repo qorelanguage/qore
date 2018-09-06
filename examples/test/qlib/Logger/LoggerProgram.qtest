@@ -49,8 +49,6 @@ class Test inherits QUnit::Test {
         p.importGlobalVariable("m_counter");
         p.parse('
             our Logger logger;  # logging API for Program sandbox
-            #our Counter cnt;    # just to notify caller informed when done
-            #our Counter m_counter;
             int sub main(int count) {
                 logger.log("INFO", "main(): start");
                 for (int i=0; i<count; i++) {
@@ -63,7 +61,6 @@ class Test inherits QUnit::Test {
             }
         ', sprintf("label-%d", n), WARN_DEFAULT);
         p.setGlobalVarValue("logger", l);
-        #p.setGlobalVarValue("cnt", m_counter);  # use rather real global variable and importGlobalVariable()
         m_counter.inc();
         background p.callFunction("main", iterCnt);
         return la;

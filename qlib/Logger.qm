@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file Logger.qm Logger library
+# @file Logger.qm Logger library
 
 /*  Logger.qm Copyright 2018 Qore Technologies, s.r.o.
 
@@ -232,7 +232,7 @@ public namespace Logger {
 
         private:internal {
             #! Integer level value.
-            int m_level;
+            int m_levelCode;
 
             #! String representation of the level.
             string m_levelStr;
@@ -258,17 +258,17 @@ public namespace Logger {
 
         #! Creates a new object
         /**
-            @param level integer value
-            @param levelStr string representation
+            @param code integer value
+            @param str string representation
         */
-        constructor(int level, string levelStr) {
-            m_level = level;
-            m_levelStr = levelStr;
+        constructor(int code, string str) {
+            m_levelCode = code;
+            m_levelStr = str;
         }
 
-        #! Gets level value
+        #! Gets level code value
         public int getValue() {
-            return m_level;
+            return m_levelCode;
         }
 
         #! Gets level string
@@ -282,7 +282,7 @@ public namespace Logger {
             @return True if level is greater or equal to the \a other level
         */
         public bool isGreaterOrEqual(LoggerLevel other) {
-            return m_level >= other.getValue();
+            return m_levelCode >= other.getValue();
         }
 
         #! Compares two logger levels
@@ -290,7 +290,7 @@ public namespace Logger {
             @param other the other level to compares
         */
         public bool isEqual(LoggerLevel other) {
-            return m_level == other.getValue();
+            return m_levelCode == other.getValue();
         }
 
         #! Returns an OFF Level
@@ -338,21 +338,21 @@ public namespace Logger {
             Return value is either instantiated or used the existing one if there is any.
 
             @param level the input level
-            @param defaultLevel value to return if conversion is not possible.
+            @param default_level value to return if conversion is not possible.
 
             @throw LOGGER-ERROR if defaultLevel is nothing and level not found
         */
-        public static LoggerLevel getLevel(int level, *LoggerLevel defaultLevel) {
+        public static LoggerLevel getLevel(int level, *LoggerLevel default_level) {
             if (exists LEVEL_TO_LEVEL_STR{level}) {
                 if (!exists m_levelMap{level}) {
                     m_levelMap{level} = new LoggerLevel(level, LEVEL_TO_LEVEL_STR{level});
                 }
                 return m_levelMap{level};
             } else {
-                if (!exists defaultLevel) {
+                if (!exists default_level) {
                     throw "LOGGER-ERROR", "Cannot get valid Level";
                 }
-                return defaultLevel;
+                return default_level;
             }
         }
 
@@ -360,23 +360,23 @@ public namespace Logger {
         /**
             Return value is either instantiated or used the existing one if there is any.
 
-            @param levelStr the string input level
-            @param defaultLevel value to return if conversion is not possible.
-            @throw LOGGER-ERROR if defaultLevel is nothing and levelStr not found
+            @param level_str the string input level
+            @param default_level value to return if conversion is not possible.
+            @throw LOGGER-ERROR if default_level is nothing and level_str not found
         */
-        public static LoggerLevel getLevel(string levelStr, *LoggerLevel defaultLevel) {
-            levelStr = toupper(levelStr);
-            if (exists LEVELSTR_TO_LEVEL{levelStr}) {
-                int level = LEVELSTR_TO_LEVEL{levelStr};
+        public static LoggerLevel getLevel(string level_str, *LoggerLevel default_level) {
+            level_str = toupper(level_str);
+            if (exists LEVELSTR_TO_LEVEL{level_str}) {
+                int level = LEVELSTR_TO_LEVEL{level_str};
                 if (!exists m_levelMap{level}) {
-                    m_levelMap{level} = new LoggerLevel(level, levelStr);
+                    m_levelMap{level} = new LoggerLevel(level, level_str);
                 }
                 return m_levelMap{level};
             } else {
-                if (!exists defaultLevel) {
+                if (!exists default_level) {
                     throw "LOGGER-ERROR", "Cannot get valid Level";
                 }
-                return defaultLevel;
+                return default_level;
             }
         }
     }
@@ -403,15 +403,15 @@ public namespace Logger {
     */
     public class LoggerEventParameter {
         private:internal {
-            code func;
+            code callable;
             *list args;
         }
         #! Creates object
         /**
-            @param n_func function to be called with optional arguments followed
+            @param func function to be called with optional arguments followed
         */
-        constructor(code n_func) {
-            func = n_func;
+        constructor(code func) {
+            callable = func;
             args = argv;
         }
         #! Call function with arguments provided
@@ -420,14 +420,7 @@ public namespace Logger {
             formatting parameter (e.g. "%d").
         */
         public auto call() {
-            return call_function_args(func, args);
-        }
-        #! Returns new object instance
-        /**
-            @param n_func function to be called with optional arguments followed
-        */
-        public static LoggerEventParameter create(code n_func) {
-            return new LoggerEventParameter(n_func, argv);
+            return call_function_args(callable, args);
         }
     }
 
@@ -488,56 +481,56 @@ public namespace Logger {
         /**
             The category becomes logger name and fqcn logger class name
 
-            @param logger Instance of the Logger class
-            @param level The event level
-            @param message The payload as format for @ref sprintf()
-            @param args The arguments for formatting
-            @param locationInfo code location related to logging event
-            @param threadId thread related to the event, Default: @ref gettid()
-            @param timeStamp logging event timestamp. Default value is @ref now_us
-            @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with logging event
+            @param n_logger Instance of the Logger class
+            @param n_level The event level
+            @param n_message The payload as format for @ref sprintf()
+            @param n_args The arguments for formatting
+            @param n_location_info code location related to logging event
+            @param n_thread_id thread related to the event, Default: @ref gettid()
+            @param n_time_stamp logging event timestamp. Default value is @ref now_us
+            @param n_throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with logging event
         */
-        constructor(Logger logger, LoggerLevel level, string message, *list args, *hash<CallStackInfo> locationInfo,
-                    int threadId = gettid(), date timeStamp = now_us(), *hash<ExceptionInfo> throwable) {
-            m_fqcn = get_class_name(logger);
-            m_logger = logger;
-            m_categoryName = logger.getName();
-            m_level = level;
-            m_message = message;
-            m_args = args;
-            m_locationInfo = locationInfo;
-            m_threadId = threadId;
-            m_timeStamp = timeStamp;
-            if (throwable) {
-                m_throwableInfo = throwable;
+        constructor(Logger n_logger, LoggerLevel n_level, string n_message, *list n_args, *hash<CallStackInfo> n_location_info,
+                    int n_thread_id = gettid(), date n_time_stamp = now_us(), *hash<ExceptionInfo> n_throwable) {
+            m_fqcn = get_class_name(n_logger);
+            m_logger = n_logger;
+            m_categoryName = n_logger.getName();
+            m_level = n_level;
+            m_message = n_message;
+            m_args = n_args;
+            m_locationInfo = n_location_info;
+            m_threadId = n_thread_id;
+            m_timeStamp = n_time_stamp;
+            if (n_throwable) {
+                m_throwableInfo = n_throwable;
             }
         }
 
         #! Instantiates a LoggingEvent from the supplied parameters.
         /**
-            @param fqcn name of the caller class.
-            @param category The event category.
-            @param level The event level
-            @param message The payload as format for @ref sprintf()
-            @param args The arguments for formatting
-            @param locationInfo code location related to logging event
-            @param threadId thread related to the event, Default: @ref gettid()
-            @param timeStamp logging event timestamp. Default value is @ref now_us
-            @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with logging event
+            @param n_fqcn name of the caller class.
+            @param n_category The event category.
+            @param n_level The event level
+            @param n_message The payload as format for @ref sprintf()
+            @param n_args The arguments for formatting
+            @param n_location_info code location related to logging event
+            @param n_thread_id thread related to the event, Default: @ref gettid()
+            @param n_time_stamp logging event timestamp. Default value is @ref now_us
+            @param n_throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with logging event
         */
-        constructor(string fqcn, softstring category, LoggerLevel level, string message, *list args,
-                    *hash<CallStackInfo> locationInfo, int threadId = gettid(), date timeStamp = now_us(),
-                    *hash<ExceptionInfo> throwable) {
-            m_fqcn = fqcn;
-            m_categoryName = category;
-            m_level = level;
-            m_message = message;
-            m_args = args;
-            m_locationInfo = locationInfo;
-            m_threadId = threadId;
-            m_timeStamp = timeStamp;
-            if (throwable) {
-                m_throwableInfo = throwable;
+        constructor(string n_fqcn, softstring n_category, LoggerLevel n_level, string n_message, *list n_args,
+                    *hash<CallStackInfo> n_location_info, int n_thread_id = gettid(), date n_time_stamp = now_us(),
+                    *hash<ExceptionInfo> n_throwable) {
+            m_fqcn = n_fqcn;
+            m_categoryName = n_category;
+            m_level = n_level;
+            m_message = n_message;
+            m_args = n_args;
+            m_locationInfo = n_location_info;
+            m_threadId = n_thread_id;
+            m_timeStamp = n_time_stamp;
+            if (n_throwable) {
+                m_throwableInfo = n_throwable;
             }
         }
 
@@ -739,7 +732,7 @@ public namespace Logger {
     public class LoggerAppenderQueueThreadPool inherits LoggerAppenderQueue {
         private:internal {
             #! worker thread pool
-            ThreadPool m_tp;
+            ThreadPool threadPool;
             #! number of running worker threads
             Counter m_running(0);
             #! max.number of worker threads
@@ -779,21 +772,21 @@ public namespace Logger {
         #! Creates the object
         /**
             @param tp worker @ref Qore::Thread::ThreadPool "ThreadPool" where loggging events are submitted
-            @param maxThreads max.number of worker threads, default value is \c -1, i.e. unlimited
+            @param max_threads max.number of worker threads, default value is \c -1, i.e. unlimited
         */
-        constructor(ThreadPool tp, int maxThreads = -1) {
-            m_tp = tp;
-            m_maxThreads = maxThreads;
+        constructor(ThreadPool tp, int max_threads = -1) {
+            threadPool = tp;
+            m_maxThreads = max_threads;
         }
 
         destructor() {
             m_running.waitForZero();
-            m_tp.stopWait();
+            threadPool.stopWait();
         }
 
         #! Returns the assigned @ref Qore::Thread::ThreadPool "ThreadPool"
         public ThreadPool getThreadPool() {
-            return m_tp;
+            return threadPool;
         }
 
         #! Processes queue events
@@ -877,7 +870,7 @@ public namespace Logger {
                 # When passing "id" then no copy is passed to submit pool queue and worker may get wrong value
                 # so we must pass value in new variable which won't change meanwhile when the value is to be used.
                 # It is feature of submit implementation related to parameter passing.
-                m_tp.submit(sub() {call_function(\worker(), e.id, e.appender, e.events); } );
+                threadPool.submit(sub() {call_function(\worker(), e.id, e.appender, e.events); } );
             }
         }
 
@@ -925,10 +918,10 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param name the appender name
+            @param n_name the appender name
         */
-        constructor(string name = "") {
-            m_name = name;
+        constructor(string n_name = "") {
+            m_name = n_name;
         }
 
         destructor() {
@@ -1118,7 +1111,7 @@ public namespace Logger {
         All events posted to the appender are silently ignored
     */
     public class LoggerAppenderNull inherits LoggerAppender {
-        constructor(string name = ""): LoggerAppender(name) {
+        constructor(string n_name = ""): LoggerAppender(n_name) {
         }
 
         private auto serializeImpl(LoggerEvent event) {
@@ -1163,7 +1156,7 @@ public namespace Logger {
 
         private:internal {
             #! pattern
-            string m_pattern;
+            string m_origPattern;
         }
 
         private {
@@ -1174,7 +1167,7 @@ public namespace Logger {
         #! Creates the object
         /**
             @param pattern the logger pattern
-            @throw LOGGER-ERROR when \a pattern is invalid
+            @throw LOGGER-ERROR when pattern is invalid
         */
         constructor(string pattern) {
             # parse pattern
@@ -1183,11 +1176,11 @@ public namespace Logger {
 
         #! Sets the new pattern
         /**
-            @param pattern the logger pattern
-            @throw LOGGER-ERROR when \a pattern is invalid
+            @param value the logger pattern
+            @throw LOGGER-ERROR when pattern is invalid
         */
-        public setPattern(string pattern) {
-            string patt = pattern;
+        public setPattern(string value) {
+            string patt = value;
             list pp = ();
             while (patt != "") {
                 int pos = 0;
@@ -1255,13 +1248,13 @@ public namespace Logger {
                 }
             }
 
-            m_pattern = pattern;
+            m_origPattern = value;
             m_parsedPattern = pp;
         }
 
         #! Returns the current pattern
         public string getPattern() {
-            return m_pattern;
+            return m_origPattern;
         }
 
         #! Formats the event record with the current pattern
@@ -1365,9 +1358,9 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param pattern the logger layout pattern
+            @param n_pattern the logger layout pattern
         */
-        constructor(string pattern = DEFAULT_PATTERN): LoggerPattern(pattern) {
+        constructor(string n_pattern = DEFAULT_PATTERN): LoggerPattern(n_pattern) {
         }
 
         #! Returns the line delimiter used on the current OS
@@ -1474,19 +1467,19 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param name the name of the appender
-            @param layout the layout for the appender
+            @param n_name the name of the appender
+            @param n_layout the layout for the appender
         */
-        constructor(string name, LoggerLayout layout): LoggerAppender(name) {
-            m_layout = layout;
+        constructor(string n_name, LoggerLayout n_layout): LoggerAppender(n_name) {
+            m_layout = n_layout;
         }
 
         #! Assigns a layout to the appender
         /**
-        * @param layout the layout for the appender
+        * @param n_layout the layout for the appender
         */
-        public setLayout(LoggerLayout layout) {
-            m_layout = layout;
+        public setLayout(LoggerLayout n_layout) {
+            m_layout = n_layout;
         }
 
         #! Returns the layout for the appender
@@ -1520,12 +1513,12 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param name the name of the appender
-            @param layout the layout for the appender
-            @param writer the stream to write to
+            @param n_name the name of the appender
+            @param n_layout the layout for the appender
+            @param n_writer the stream to write to
         */
-        constructor(string name, LoggerLayout layout, StreamWriter writer): LoggerAppenderWithLayout(name, layout) {
-            m_writer = writer;
+        constructor(string n_name, LoggerLayout n_layout, StreamWriter n_writer): LoggerAppenderWithLayout(n_name, n_layout) {
+            m_writer = n_writer;
             m_assignThread = m_writer.getOutputStream().getThreadId() == -1;
         }
 
@@ -1578,14 +1571,14 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param name the name of the appender
-            @param layout the layout for the appender
-            @param filename the output filename
-            @param encoding the file's output encoding
+            @param n_name the name of the appender
+            @param n_layout the layout for the appender
+            @param n_filename the output filename
+            @param n_encoding the file's output encoding
         */
-        constructor(string name, LoggerLayout layout, string filename, *string encoding): LoggerAppenderWithLayout(name, layout) {
-            m_file = new File(encoding);
-            m_filename = filename;
+        constructor(string n_name, LoggerLayout n_layout, string n_filename, *string n_encoding): LoggerAppenderWithLayout(n_name, n_layout) {
+            m_file = new File(n_encoding);
+            m_filename = n_filename;
         }
 
         #! Returns the file object for the appender
@@ -1632,6 +1625,7 @@ public namespace Logger {
         }
     }
 
+#%ifdef HAVE_TERMIOS_H
     #! Implements appender writing to a stdout file
     /**
         No multi-threading protection is implemented in the class; the @ref Qore::stdout "stdout" instance is reused
@@ -1640,10 +1634,10 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param name the name of the appender
-            @param layout the layout for the appender
+            @param n_name the name of the appender
+            @param n_layout the layout for the appender
         */
-        constructor(string name, LoggerLayout layout): LoggerAppenderWithLayout(name, layout) {
+        constructor(string n_name, LoggerLayout n_layout): LoggerAppenderWithLayout(n_name, n_layout) {
         }
 
         #! Processes log events with the file and ignores all other events including open, close
@@ -1668,10 +1662,10 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param name the name of the appender
-            @param layout the layout for the appender
+            @param n_name the name of the appender
+            @param n_layout the layout for the appender
         */
-        constructor(string name, LoggerLayout layout): LoggerAppenderWithLayout(name, layout) {
+        constructor(string n_name, LoggerLayout n_layout): LoggerAppenderWithLayout(n_name, n_layout) {
         }
 
         #! Processes log events with the file and ignores all other events including open, close
@@ -1687,6 +1681,7 @@ public namespace Logger {
             }
         }
     }
+#%endif
 
     #! Implements appender writing to a file with file rotation support
     /**
@@ -1708,12 +1703,12 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param name the name of the appender
-            @param layout the layout for the appender
-            @param filename with pattern support; see below for more information
-            @param count number of files in rotation chain, if count is <=0 then no ratation is performed
-            @param archive pattern to evaluate archive filename; see below for more information
-            @param encoding the encoding of the output file
+            @param n_name the name of the appender
+            @param n_layout the layout for the appender
+            @param n_filename with pattern support; see below for more information
+            @param n_count number of files in rotation chain, if count is <=0 then no ratation is performed
+            @param n_archive pattern to evaluate archive filename; see below for more information
+            @param n_encoding the encoding of the output file
 
             The following table explains the characters used in @ref LoggerPattern for both filename and archive parameter
 
@@ -1736,12 +1731,10 @@ public namespace Logger {
             For example, the archive pattern \c "%p%f.%i" rotates log file \c "/var/run/log/MyLogger.log" to:
             \c "/var/run/log/MyLogger.log.1" \c "/var/run/log/MyLogger.log.2" \c "/var/run/log/MyLogger.log.3".
         */
-        constructor(string name, LoggerLayout layout, string filename, int count,
-            string archive = DEFAULT_ARCHIVE_PATTERN, *string encoding):
-            LoggerAppenderFile(name, layout, "", encoding), LoggerPattern(filename) {
+        constructor(string n_name, LoggerLayout n_layout, string n_filename, int n_count, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): LoggerAppenderFile(n_name, n_layout, '', n_encoding), LoggerPattern(n_filename) { # do not split line not to confuse doxygen generator!!!
             m_filename = format(NOTHING);  # no dynamic vars as timestamp
-            m_count = count;
-            setPattern(archive);
+            m_count = n_count;
+            setPattern(n_archive);
         }
 
         #! Returns a string for a format field for a pattern-based filename
@@ -1859,8 +1852,6 @@ public namespace Logger {
         }
 
         #! Returns max.number of files in chain
-        /**
-        */
         public int getCount() {
             return m_count;
         }
@@ -1887,11 +1878,11 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param name the name of the appender
-            @param layout the layout for the appender
-            @param pattern to generate the file name; see information below
-            @param count number of files in ring, if count is <=0 then no ratation is performed
-            @param encoding the encoding of the output file
+            @param n_name the name of the appender
+            @param n_layout the layout for the appender
+            @param n_pattern to generate the file name; see information below
+            @param n_count number of files in ring, if count is <=0 then no ratation is performed
+            @param n_encoding the encoding of the output file
 
             The following table explains the characters used in @ref LoggerPattern and all other characters that you can use in your custom pattern:
 
@@ -1907,10 +1898,10 @@ public namespace Logger {
             For example, the pattern \c "/var/run/log/%c.log.%i{%03d}" creates the following file names:
             \c "/var/run/log/MyLogger.log.000", \c "/var/run/log/MyLogger.log.001" etc.
         */
-        constructor(string name, LoggerLayout layout, string pattern, int count, *string encoding): LoggerAppenderFile(name, layout, "", encoding), LoggerPattern(pattern) {
+        constructor(string n_name, LoggerLayout n_layout, string n_pattern, int n_count, *string n_encoding): LoggerAppenderFile(n_name, n_layout, "", n_encoding), LoggerPattern(n_pattern) {
             # set a provisional filename, to be updated when file is opened
             m_patternData.timestamp = now_us();
-            m_patternData.count = count;
+            m_patternData.count = n_count;
             m_patternData.index = 0;
             m_filename = format(m_patternData);
         }
@@ -2041,11 +2032,11 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param name the name of the appender
-            @param layout the layout for the appender
-            @param filename with pattern support; see below for more information
-            @param archive pattern to evaluate archive filename; see below for more information
-            @param encoding the output file's encoding
+            @param n_name the name of the appender
+            @param n_layout the layout for the appender
+            @param n_filename with pattern support; see below for more information
+            @param n_archive pattern to evaluate archive filename; see below for more information
+            @param n_encoding the output file's encoding
 
             The following table explains the characters used in @ref LoggerPattern for both filename and archive parameter
 
@@ -2067,10 +2058,10 @@ public namespace Logger {
             For example, the archive pattern \c "%p/archive/%d/%f" archives log file \c "/var/run/log/MyLogger.log" to:
             \c "/var/run/log/archive/20180120102030/MyLogger.log".
         */
-        constructor(string name, LoggerLayout layout, string filename, string archive = DEFAULT_ARCHIVE_PATTERN,
-            *string encoding): LoggerAppenderFile(name, layout, filename, encoding), LoggerPattern(filename) {
+        constructor(string n_name, LoggerLayout n_layout, string n_filename, string n_archive = DEFAULT_ARCHIVE_PATTERN,
+            *string n_encoding): LoggerAppenderFile(n_name, n_layout, n_filename, n_encoding), LoggerPattern(n_filename) {
             m_filename = format(NOTHING);  # no dynamic vars as timestamp
-            setPattern(archive);
+            setPattern(n_archive);
         }
 
         #! Returns a string for a format field for a pattern-based filename or archive file name
@@ -2233,56 +2224,56 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param minLevel the minimum logging level
-            @param maxLevel the maximum logging level
+            @param min_level the minimum logging level
+            @param max_level the maximum logging level
         */
-        constructor(LoggerLevel minLevel = LoggerLevel::getLevelInfo(), LoggerLevel maxLevel = LoggerLevel::getLevelOff()) {
-            setMinLevel(minLevel);
-            setMaxLevel(maxLevel);
+        constructor(LoggerLevel min_level = LoggerLevel::getLevelInfo(), LoggerLevel max_level = LoggerLevel::getLevelOff()) {
+            setMinLevel(min_level);
+            setMaxLevel(max_level);
         }
 
         #! Creates the object
         /**
-            @param minLevel the minimum logging level
-            @param maxLevel the maximum logging level
+            @param min_level the minimum logging level
+            @param max_level the maximum logging level
         */
-        constructor(int minLevel, int maxLevel = LoggerLevel::OFF) {
-            setMinLevel(minLevel);
-            setMaxLevel(maxLevel);
+        constructor(int min_level, int max_level = LoggerLevel::OFF) {
+            setMinLevel(min_level);
+            setMaxLevel(max_level);
         }
 
         #! Creates the object
         /**
-            @param minLevel the minimum logging level
-            @param maxLevel the maximum logging level
+            @param min_level the minimum logging level
+            @param max_level the maximum logging level
         */
-        constructor(string minLevel, string maxLevel = "OFF") {
-            setMinLevel(minLevel);
-            setMaxLevel(maxLevel);
+        constructor(string min_level, string max_level = "OFF") {
+            setMinLevel(min_level);
+            setMaxLevel(max_level);
         }
 
         #! Sets the minimum logging level
         /**
-            @param minLevel the minimum logging level
+            @param min_level the minimum logging level
         */
-        public setMinLevel(LoggerLevel minLevel) {
-            m_minLevel = minLevel;
+        public setMinLevel(LoggerLevel min_level) {
+            m_minLevel = min_level;
         }
 
         #! Sets the minimum logging level
         /**
-            @param minLevel the minimum logging level
+            @param min_level the minimum logging level
         */
-        public setMinLevel(int minLevel) {
-            setMinLevel(LoggerLevel::getLevel(minLevel));
+        public setMinLevel(int min_level) {
+            setMinLevel(LoggerLevel::getLevel(min_level));
         }
 
         #! Sets the minimum logging level
         /**
-            @param minLevel the minimum logging level
+            @param min_level the minimum logging level
         */
-        public setMinLevel(string minLevel) {
-            setMinLevel(LoggerLevel::getLevel(minLevel));
+        public setMinLevel(string min_level) {
+            setMinLevel(LoggerLevel::getLevel(min_level));
         }
 
         #! Returns the minimum logging level
@@ -2292,26 +2283,26 @@ public namespace Logger {
 
         #! Sets the maximum logging level
         /**
-            @param maxLevel the maximum logging level
+            @param max_level the maximum logging level
         */
-        public setMaxLevel(LoggerLevel maxLevel) {
-            m_maxLevel = maxLevel;
+        public setMaxLevel(LoggerLevel max_level) {
+            m_maxLevel = max_level;
         }
 
         #! Sets the maximum logging level
         /**
-            @param maxLevel the maximum logging level
+            @param max_level the maximum logging level
         */
-        public setMaxLevel(int maxLevel) {
-            setMaxLevel(LoggerLevel::getLevel(maxLevel));
+        public setMaxLevel(int max_level) {
+            setMaxLevel(LoggerLevel::getLevel(max_level));
         }
 
         #! Sets the maximum logging level
         /**
-            @param maxLevel the maximum logging level
+            @param max_level the maximum logging level
         */
-        public setMaxLevel(string maxLevel) {
-            setMaxLevel(LoggerLevel::getLevel(maxLevel));
+        public setMaxLevel(string max_level) {
+            setMaxLevel(LoggerLevel::getLevel(max_level));
         }
 
         #! Returns the maximum logging level
@@ -2349,21 +2340,21 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param regexStr the regular expression to use
-            @param regexResult @ref True for a positive match, @ref False for a negative match
+            @param regex_str the regular expression to use
+            @param regex_result @ref True for a positive match, @ref False for a negative match
         */
-        constructor(string regexStr = "", bool regexResult = True) {
-            setRegex(regexStr, regexResult);
+        constructor(string regex_str = "", bool regex_result = True) {
+            setRegex(regex_str, regex_result);
         }
 
         #! Sets the regular expression and the expected result for the filter
         /**
-            @param regexStr the regular expression to use
-            @param regexResult @ref True for a positive match, @ref False for a negative match
+            @param regex_str the regular expression to use
+            @param regex_result @ref True for a positive match, @ref False for a negative match
         */
-        public setRegex(string regexStr, bool regexResult = True) {
-            m_regexStr = regexStr;
-            m_regexResult = regexResult;
+        public setRegex(string regex_str, bool regex_result = True) {
+            m_regexStr = regex_str;
+            m_regexResult = regex_result;
         }
 
         #! Returns the current regex
@@ -2402,10 +2393,10 @@ public namespace Logger {
             static RWLock m_hierarchyLock();
 
             #! Logger additivity. If set to true then child loggers will inherit the appenders of their ancestors by default.
-            bool m_additive = True;
+            bool additivity = True;
 
             #! The assigned Logger level. If @ref nothing, the parent level is used
-            *LoggerLevel m_level;
+            *LoggerLevel currentLevel;
 
             #! The name of this Logger instance.
             string m_name;
@@ -2419,10 +2410,10 @@ public namespace Logger {
 
         #! Creates the object
         /**
-            @param name the name of the object
+            @param n_name the name of the object
         */
-        constructor(string name) {
-            m_name = name;
+        constructor(string n_name) {
+            m_name = n_name;
         }
 
         destructor() {
@@ -2441,22 +2432,22 @@ public namespace Logger {
 
         #! Sets the parent logger
         /**
-            @param parent the parent logger
+            @param n_parent the parent logger
             @throw LOGGER-ERROR in case of circular reference
         */
-        public setParent(*Logger parent) {
+        public setParent(*Logger n_parent) {
             AutoWriteLock awl(m_lock);
-            if (parent) {
+            if (n_parent) {
                 AutoWriteLock awhl(Logger::m_hierarchyLock);
                 *Logger l = self;
                 while (exists l) {
-                    if (l == parent) {
+                    if (l == n_parent) {
                         throw "LOGGER-ERROR", "Circular logger chain";
                     }
                     l = l.getParent();
                 }
             }
-            m_parent = parent;
+            m_parent = n_parent;
         }
 
         #! Returns the logging level
@@ -2476,7 +2467,7 @@ public namespace Logger {
                 }
                 return l.getLevel(False);
             } else {
-                return m_level;
+                return currentLevel;
             }
         }
 
@@ -2485,7 +2476,7 @@ public namespace Logger {
             @param level if nothing then inherits level from parent
         */
         public setLevel(*LoggerLevel level) {
-            m_level = level;
+            currentLevel = level;
         }
 
         #! Sets the logging level
@@ -2506,15 +2497,15 @@ public namespace Logger {
 
         #! Sets the additivity flag; when additivity is active, events are passed to parent loggers.
         /**
-            @param additive the additivity flag; when additivity is active, events are passed to parent loggers
+            @param enable the additivity flag; when additivity is active, events are passed to parent loggers
         */
-        public setAdditivity(bool additive) {
-            m_additive = additive;
+        public setAdditivity(bool enable) {
+            additivity = enable;
         }
 
         #! Returns the additivity flag.
         public bool getAdditivity() {
-            return m_additive;
+            return additivity;
         }
 
         #! Returns the call location where the log function was called from
@@ -2580,22 +2571,22 @@ public namespace Logger {
         }
 
         private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
-            bool checkThrowable, date timeStamp = now_us() ) {
+            bool check_throwable, date time_stamp = now_us() ) {
             if (isEnabledFor(level)) {
                 *hash<ExceptionInfo> throwable;
-                if (args.size() && checkThrowable) {
+                if (args.size() && check_throwable) {
                     # is the last argument ExceptionInfo ?
                     auto a = args[args.size()-1];
                     if (a.typeCode() == NT_HASH && a.fullType() == "hash<ExceptionInfo>") {
                         throwable = a;
                     }
                 }
-                callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), timeStamp, throwable));
+                callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), time_stamp, throwable));
                 {
                     AutoReadLock awl(m_lock);
                     if (m_parent && getAdditivity()) {
                         # Forward the event upstream if additivity is turned on
-                        m_parent.logIntern(level, message, args, location, throwable, timeStamp);
+                        m_parent.logIntern(level, message, args, location, throwable, time_stamp);
                     }
                 }
 
@@ -2603,20 +2594,20 @@ public namespace Logger {
                 AutoReadLock awl(m_lock);
                 if (m_parent && getAdditivity()) {
                     # Forward the event upstream if additivity is turned on
-                    m_parent.logIntern(level, message, args, location, checkThrowable, timeStamp);
+                    m_parent.logIntern(level, message, args, location, check_throwable, time_stamp);
                 }
             }
         }
 
-        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location, *hash<ExceptionInfo> throwable, date timeStamp) {
+        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location, *hash<ExceptionInfo> throwable, date time_stamp) {
             if (isEnabledFor(level)) {
-                callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), timeStamp, throwable));
+                callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), time_stamp, throwable));
             }
             {
                 AutoReadLock awl(m_lock);
                 if (m_parent && getAdditivity()) {
                     # Forward the event upstream if additivity is turned on
-                    m_parent.logIntern(level, message, args, location, throwable, timeStamp);
+                    m_parent.logIntern(level, message, args, location, throwable, time_stamp);
                 }
             }
         }
@@ -2740,22 +2731,22 @@ public namespace Logger {
         /**
             @see @ref log()
 
-            @param varName the variable name
+            @param var_name the variable name
             @param value the value of the variable
         */
-        public traceVar(string varName, auto value) {
-            logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %y", varName), (value, ), getLocation(), False);
+        public traceVar(string var_name, auto value) {
+            logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %y", var_name), (value, ), getLocation(), False);
         }
 
         #! Logs the variable name and value using DEBUG level
         /**
             @see @ref log()
 
-            @param varName the variable name
+            @param var_name the variable name
             @param value the value of the variable
         */
-        public debugVar(string varName, auto value) {
-            logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %y", varName), (value, ), getLocation(), False);
+        public debugVar(string var_name, auto value) {
+            logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %y", var_name), (value, ), getLocation(), False);
         }
 
         #! Checks whether this Logger is enabled for a given Level passed as parameter.
@@ -2857,8 +2848,8 @@ public namespace Logger {
         /**
             @throw LOGGER-ERROR if parent exists
         */
-        public setParent(*Logger parent) {
-            if (exists parent) {
+        public setParent(*Logger n_parent) {
+            if (exists n_parent) {
                 throw "LOGGER-ERROR", "Cannot set parent for root";
             }
         }
