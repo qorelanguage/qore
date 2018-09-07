@@ -62,21 +62,23 @@ static QoreHashNode* TimeZone_serializer(const QoreObject& self, const TimeZoneD
 }
 
 static void TimeZone_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
-    QoreValue val = sdata->getKeyValue("region");
-    if (val) {
-        if (val.getType() != NT_STRING) {
-            xsink->raiseException("DESERIALIZATION-ERROR", "TimeZone serialization key 'region' has type '%s'; expecting 'string'", val.getTypeName());
+    if (sdata) {
+        QoreValue val = sdata->getKeyValue("region");
+        if (val) {
+            if (val.getType() != NT_STRING) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "TimeZone serialization key 'region' has type '%s'; expecting 'string'", val.getTypeName());
+                return;
+            }
+            create_timezone_from_region(*val.get<QoreStringNode>(), self, xsink);
             return;
         }
-        create_timezone_from_region(*val.get<QoreStringNode>(), self, xsink);
-        return;
-    }
 
-    val = sdata->getKeyValue("offset");
-    if (val) {
-        const AbstractQoreZoneInfo* zone = QTZM.findCreateOffsetZone(val.getAsBigInt());
-        self.setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
-        return;
+        val = sdata->getKeyValue("offset");
+        if (val) {
+            const AbstractQoreZoneInfo* zone = QTZM.findCreateOffsetZone(val.getAsBigInt());
+            self.setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
+            return;
+        }
     }
 
     xsink->raiseException("DESERIALIZATION-ERROR", "missing serialization data for the TimeZone class");

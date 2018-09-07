@@ -5242,6 +5242,14 @@ public:
         return do_class || (qc->scl && i != qc->scl->sml.end());
     }
 
+    DLLLOCAL bool isVirtual() const {
+        if (do_class) {
+            return false;
+        }
+        assert(valid());
+        return i->second;
+    }
+
 private:
     const qore_class_private* qc;
     BCSMList::const_iterator i;
@@ -5265,6 +5273,10 @@ bool QoreClassHierarchyIterator::valid() const {
 
 const QoreClass* QoreClassHierarchyIterator::get() const {
     return priv->get();
+}
+
+bool QoreClassHierarchyIterator::isVirtual() const {
+    return priv->isVirtual();
 }
 
 class qore_class_destructor_hierarchy_iterator {
@@ -5308,6 +5320,14 @@ public:
         return do_class || (qc->scl && i != qc->scl->sml.rend());
     }
 
+    DLLLOCAL bool isVirtual() const {
+        if (do_class) {
+            return false;
+        }
+        assert(valid());
+        return i->second;
+    }
+
 private:
     const qore_class_private* qc;
     BCSMList::const_reverse_iterator i;
@@ -5331,4 +5351,8 @@ bool QoreClassDestructorHierarchyIterator::valid() const {
 
 const QoreClass* QoreClassDestructorHierarchyIterator::get() const {
     return priv->get();
+}
+
+bool QoreClassDestructorHierarchyIterator::isVirtual() const {
+    return priv->isVirtual();
 }

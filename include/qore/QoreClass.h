@@ -1163,6 +1163,11 @@ public:
     //! returns the parent class
     DLLEXPORT const QoreClass* get() const;
 
+    //! returns true if the class has virtual inheritance, meaning that it is a builtin class without its own private data
+    /** if true, compatible private data is supplied by a child class
+    */
+    DLLEXPORT bool isVirtual() const;
+
 private:
     class qore_class_hierarchy_iterator* priv;
 };
@@ -1188,6 +1193,11 @@ public:
 
     //! returns the parent class
     DLLEXPORT const QoreClass* get() const;
+
+    //! returns true if the class has virtual inheritance, meaning that it is a builtin class without its own private data
+    /** if true, compatible private data is supplied by a child class
+    */
+    DLLEXPORT bool isVirtual() const;
 
 private:
     class qore_class_destructor_hierarchy_iterator* priv;

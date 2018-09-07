@@ -34,8 +34,26 @@
 #include "qore/intern/QC_Serializable.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/typed_hash_decl_private.h"
+#include "qore/intern/QoreObjectIntern.h"
 
 #include <string>
+#include <set>
+
+typedef std::set<std::string> strset_t;
+
+ObjectIndexMap::~ObjectIndexMap() {
+    for (auto& i : *this) {
+        if (*xs) {
+            // in case of an exception, we need to obliterate the object before dereferencing
+            qore_object_private::get(*i.second)->obliterate(xs);
+        }
+        else {
+            // otherwise we just need to dereference
+            i.second->deref(xs);
+        }
+    }
+}
+
 
 class QoreInternalSerializationContext {
 public:
@@ -192,6 +210,11 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
 
     QoreClassHierarchyIterator ci(cls);
     while (ci.next()) {
+        // do not process virtual classes
+        if (ci.isVirtual()) {
+            continue;
+        }
+
         const QoreClass* current_cls = ci.get();
 
         // check if the class inherits Serializable and throw an exception if not
@@ -350,6 +373,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
             oimap.insert(oimap_t::value_type(key, obj));
         }
 
+        // iterate the hash again
         while (hi.next()) {
             const char* key = hi.getKey();
             QoreObject* obj = oimap.find(key)->second;
@@ -359,70 +383,117 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
 
             // deserialize each class in the hierarchy separately
             QoreValue v = oh->getKeyValue("_class_data");
-            if (v) {
-                assert(v.getType() == NT_HASH);
-                const QoreHashNode* mh = v.get<const QoreHashNode>();
+            assert(!v || v.getType() == NT_HASH);
+            const QoreHashNode* mh = v ? v.get<const QoreHashNode>() : nullptr;
+            // make sure we use all the keys in the hash
+            size_t found = 0;
 
-                ConstHashIterator mhi(mh);
-                while (mhi.next()) {
-                    const QoreClass* mcls = pgm->findClass(mhi.getKey(), xsink);
-                    if (!mcls) {
-                        assert(*xsink);
+            // ensure that the serialization hash includes all classes necessary for the parsent class
+            QoreClassHierarchyIterator chi(cls);
+
+            while (chi.next()) {
+                // do not process virtual classes
+                if (chi.isVirtual()) {
+                    continue;
+                }
+
+                const QoreClass* mcls = chi.get();
+
+                //printd(5, "iterating %p '%s' GOT CHILD %p '%s'\n", cls, cls->getName(), mcls, mcls->getNamespacePath().c_str());
+
+                // check if the class inherits Serializable and throw an exception if not
+                {
+                    bool priv = false;
+                    if (!mcls->getClass(*QC_SERIALIZABLE, priv)) {
+                        xsink->raiseException("SERIALIZATION-ERROR", "cannot deserialize class '%s' as it does not inherit 'Serializable' and therefore is not eligible for deserialization'",
+                            mcls->getName());
                         return QoreValue();
                     }
+                }
 
-                    // make sure that the class is part of the object's hierarchy
-                    {
-                        ClassAccess access;
-                        if (!cls->inHierarchy(*mcls, access)) {
-                            xsink->raiseException("DESERIALIZATION-ERROR", "object to be deserialized is of class '%s' which does not contain class '%s' in its hierarchy when being deserialized", obj->getClassName(), mcls->getName());
-                            return QoreValue();
+                std::string class_path = mcls->getNamespacePath();
+
+                QoreHashNode* cmh = nullptr;
+
+                QoreValue cv;
+                if (mh) {
+                    bool exists;
+                    cv = mh->getKeyValueExistence(class_path.c_str(), exists);
+                    if (exists) {
+                        ++found;
+                        if (cv) {
+                            if (cv.getType() != NT_HASH) {
+                                xsink->raiseException("DESERIALIZATION-ERROR", "serialized data for class '%s' has type '%s'; expecting 'hash' or 'nothing'",
+                                    mcls->getName(), cv.getTypeName());
+                                return QoreValue();
+                            }
+                            cmh = cv.get<QoreHashNode>();
                         }
                     }
+                }
 
-                    // check if the class inherits Serializable and throw an exception if not
-                    {
-                        bool priv = false;
-                        if (!mcls->getClass(*QC_SERIALIZABLE, priv)) {
-                            xsink->raiseException("SERIALIZATION-ERROR", "cannot serialize class '%s' as it does not inherit 'Serializable' and therefore is not eligible for serialization; to correct this error, declare Serializable as a parent class of '%s'",
-                                mcls->getName(), mcls->getName());
-                            return QoreValue();
-                        }
+                if (mcls->isSystem()) {
+                    q_deserializer_t deserializer = mcls->getDeserializer();
+                    assert(deserializer);
+
+                    QoreInternalDeserializationContext context(oimap);
+
+                    deserializer(*obj, cmh, reinterpret_cast<QoreDeserializationContext&>(context), xsink);
+                    if (*xsink) {
+                        return QoreValue();
                     }
+                }
+                else {
+                    if (cmh) {
+                        ConstHashIterator cmhi(cmh);
+                        while (cmhi.next()) {
+                            ValueHolder vh(deserializeData(cmhi.get(), oimap, xsink), xsink);
+                            if (*xsink) {
+                                return QoreValue();
+                            }
 
-                    v = mhi.get();
-                    assert(!v || v.getType() == NT_HASH);
-                    const QoreHashNode* cmh = v ? v.get<const QoreHashNode>() : nullptr;
-
-                    if (mcls->isSystem()) {
-                        q_deserializer_t deserializer = mcls->getDeserializer();
-                        assert(deserializer);
-
-                        QoreInternalDeserializationContext context(oimap);
-
-                        deserializer(*obj, cmh, reinterpret_cast<QoreDeserializationContext&>(context), xsink);
-                        if (*xsink) {
-                            return QoreValue();
-                        }
-                    }
-                    else {
-                        v = mhi.get();
-                        if (v) {
-                            ConstHashIterator cmhi(cmh);
-                            while (cmhi.next()) {
-                                ValueHolder vh(deserializeData(cmhi.get(), oimap, xsink), xsink);
-                                if (*xsink) {
-                                    return QoreValue();
-                                }
-
-                                obj->setMemberValue(cmhi.getKey(), mcls, *vh, xsink);
-                                if (*xsink) {
-                                    return QoreValue();
-                                }
+                            obj->setMemberValue(cmhi.getKey(), mcls, *vh, xsink);
+                            if (*xsink) {
+                                return QoreValue();
                             }
                         }
                     }
                 }
+            }
+
+            // get hierarchy size in terms of serialized data
+            size_t hsize = mh ? mh->size() : 0;
+            // throw an exception if we did not use all the keys in the serialization hash
+            if (found < hsize) {
+                // get list of "extra" classes in serialization hash
+                strset_t strset;
+
+                // first get a set of all classes in the serialization hash
+                ConstHashIterator chi2(mh);
+                while (chi2.next()) {
+                    strset.insert(chi2.getKey());
+                }
+
+                // remove all matching classes in the hierarchy
+                QoreClassHierarchyIterator chi3(cls);
+                while (chi3.next()) {
+                    strset_t::iterator i = strset.find(chi3.get()->getNamespacePath());
+                    if (i != strset.end()) {
+                        strset.erase(i);
+                    }
+                }
+
+                // create the error string
+                SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("incompatible class hierarchy; %d class%s in serialization data, but %d used for deserialization; unmatched classes: ", static_cast<int>(hsize), hsize == 1 ? "" : "es", static_cast<int>(found)));
+
+                for (auto& i : strset) {
+                    desc->sprintf("'%s', ", i.c_str());
+                }
+
+                desc->terminate(desc->size() - 2);
+
+                xsink->raiseException("DESERIALIZATION-ERROR", desc.release());
+                return QoreValue();
             }
         }
     }

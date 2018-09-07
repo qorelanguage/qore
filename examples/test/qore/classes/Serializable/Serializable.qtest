@@ -232,6 +232,23 @@ class SerializableTest inherits QUnit::Test {
 
             TimeZone tz1 = Serializable::deserialize(h);
             assertEq("Europe/Prague", tz1.region());
+            #printf("%N\n", tz1);
+
+            hash<auto> h1 = h;
+            assertEq("Europe/Prague", remove h1._index."0"._class_data."Qore::TimeZone".region);
+            assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+            h1 = h;
+            assertEq({"region": "Europe/Prague"}, remove h1._index."0"._class_data."Qore::TimeZone");
+            assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+            h1 = h;
+            h1._index."0"._class_data."Qore::extra" = {};
+            assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+            h1 = h;
+            h1._index."0"._class_data."Qore::Serializable" = {};
+            assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
         }
     }
 }

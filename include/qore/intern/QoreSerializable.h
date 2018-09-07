@@ -46,14 +46,10 @@ typedef std::map<std::string, std::string> imap_t;
 
 class ObjectIndexMap : public oimap_t {
 public:
-    ObjectIndexMap(ExceptionSink* xs) : xs(xs) {
+    DLLLOCAL ObjectIndexMap(ExceptionSink* xs) : xs(xs) {
     }
 
-    ~ObjectIndexMap() {
-        for (auto& i : *this) {
-            i.second->deref(xs);
-        }
-    }
+    DLLLOCAL ~ObjectIndexMap();
 
 protected:
     ExceptionSink* xs;

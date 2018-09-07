@@ -37,7 +37,10 @@ static QoreHashNode* Serializable_serializer(const QoreObject& self, const TimeZ
 }
 
 static void Serializable_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
-    assert(!sdata);
+    if (sdata) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "deserialization data provided for the 'Serializable' class where none was expected");
+        return;
+    }
     self.setPrivate(CID_SERIALIZABLE, new QoreSerializable);
 }
 
