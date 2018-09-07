@@ -1802,7 +1802,8 @@ public:
         gate_access : 1,                  // if the methodGate and memberGate methods should be called with a class access boolean
         committed : 1,                    // can only parse to a class once
         parse_resolve_hierarchy : 1,      // class hierarchy resolved
-        parse_resolve_abstract : 1       // abstract methods resolved
+        parse_resolve_abstract : 1,       // abstract methods resolved
+        has_transient_member : 1          // has at least one transient member
         ;
 
     int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
@@ -2258,6 +2259,9 @@ public:
                 has_sig_changes = true;
             }
             memberInfo->setDeclaringClass(this);
+            if (!has_transient_member && memberInfo->getTransient()) {
+                has_transient_member = true;
+            }
             //printd(5, "qore_class_private::parseAddMember() this: %p %s adding %s %p %s\n", this, name.c_str(), privpub(access), mem, mem);
             members.addNoCheck(mem, memberInfo);
             return;

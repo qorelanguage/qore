@@ -97,6 +97,7 @@ class T inherits Serializable, private:internal Base {
 
     constructor() {
         o1 = o0;
+        skip = 2;
     }
 
     int get() {
@@ -162,6 +163,7 @@ class SerializableTest inherits QUnit::Test {
 
         {
             T t();
+            assertEq(2, t.skip);
             hash<SerializationInfo> h = t.serializeToData();
             assertEq(2, h._index.size());
             assertEq(1, h._data.size());
@@ -177,6 +179,7 @@ class SerializableTest inherits QUnit::Test {
             #printf("%N\n", h);
 
             T t1 = Serializable::deserialize(h);
+            assertEq(1, t1.skip);
             assertEq(2, t1.get());
             assertEq(2, t1.geti());
             assertEq(3, t1.getfi());

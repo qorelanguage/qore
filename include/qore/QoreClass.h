@@ -899,6 +899,11 @@ public:
     */
     DLLEXPORT bool inHierarchy(const QoreClass& cls, ClassAccess& n_access) const;
 
+    //! Returns true if the class has at least one locally-declared transient member
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT bool hasTransientMember() const;
+
     //! constructor not exported in library's API
     DLLLOCAL QoreClass();
 

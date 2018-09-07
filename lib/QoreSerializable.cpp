@@ -445,6 +445,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                 }
                 else {
                     if (cmh) {
+                        // deserialize members
                         ConstHashIterator cmhi(cmh);
                         while (cmhi.next()) {
                             ValueHolder vh(deserializeData(cmhi.get(), oimap, xsink), xsink);
@@ -455,6 +456,26 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                             obj->setMemberValue(cmhi.getKey(), mcls, *vh, xsink);
                             if (*xsink) {
                                 return QoreValue();
+                            }
+                        }
+
+                        // initialize transient members
+                        if (mcls->hasTransientMember()) {
+                            QoreClassMemberIterator mi(mcls);
+                            while (mi.next()) {
+                                const QoreExternalNormalMember* mem = mi.getMember();
+                                if (!mem->isTransient()) {
+                                    continue;
+                                }
+                                ValueHolder val(mem->getDefaultValue(xsink), xsink);
+                                if (*xsink) {
+                                    return QoreValue();
+                                }
+
+                                obj->setMemberValue(mi.getName(), mcls, *val, xsink);
+                                if (*xsink) {
+                                    return QoreValue();
+                                }
                             }
                         }
                     }

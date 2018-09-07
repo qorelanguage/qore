@@ -459,6 +459,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
      committed(false),
      parse_resolve_hierarchy(false),
      parse_resolve_abstract(false),
+     has_transient_member(false),
      domain(dom),
      num_methods(0),
      num_user_methods(0),
@@ -501,6 +502,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreProgra
      committed(true),
      parse_resolve_hierarchy(true),
      parse_resolve_abstract(true),
+     has_transient_member(old.has_transient_member),
      domain(old.domain),
      num_methods(old.num_methods),
      num_user_methods(old.num_user_methods),
@@ -3083,6 +3085,10 @@ const QoreClass* QoreClass::getClass(const QoreClass& qc, bool& cpriv) const {
 bool QoreClass::inHierarchy(const QoreClass& cls, ClassAccess& n_access) const {
     n_access = Public;
     return priv->inHierarchy(*cls.priv, n_access);
+}
+
+bool QoreClass::hasTransientMember() const {
+    return priv->has_transient_member;
 }
 
 bool QoreMethod::existsVariant(const type_vec_t &paramTypeInfo) const {
