@@ -1613,10 +1613,11 @@ public namespace Logger {
         }
     }
 
-#%ifdef HAVE_TERMIOS_H
+%ifdef HAVE_TERMIOS
     #! Implements appender writing to a stdout file
     /**
-        No multi-threading protection is implemented in the class; the @ref Qore::stdout "stdout" instance is reused
+        No multi-threading protection is implemented in the class; the @ref Qore::stdout "stdout" instance is reused.
+        Unavailable when @ref Qore::PO_NO_TERMINAL_IO parse option is applied.
     */
     public class LoggerAppenderStdOut inherits LoggerAppenderWithLayout {
 
@@ -1644,7 +1645,8 @@ public namespace Logger {
 
     #! Implements appender writing to a stderr file
     /**
-        No multi-threading protection is implemented in the class; the @ref Qore::stderr "stderr" instance is reused
+        No multi-threading protection is implemented in the class; the @ref Qore::stderr "stderr" instance is reused.
+        Unavailable when @ref Qore::PO_NO_TERMINAL_IO parse option is applied.
     */
     public class LoggerAppenderStdErr inherits LoggerAppenderWithLayout {
 
@@ -1669,7 +1671,7 @@ public namespace Logger {
             }
         }
     }
-#%endif
+%endif
 
     #! Implements appender writing to a file with file rotation support
     /**
