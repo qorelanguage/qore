@@ -58,10 +58,13 @@ class typed_hash_decl_private {
 friend class typed_hash_decl_member_iterator;
 friend class TypedHashDecl;
 public:
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc), orig(this) {
     }
 
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, TypedHashDecl* thd) : loc(loc), name(n), thd(thd), typeInfo(new QoreHashDeclTypeInfo(thd, n)), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, TypedHashDecl* thd) :
+        loc(loc), name(n), thd(thd), orig(this),
+        typeInfo(new QoreHashDeclTypeInfo(thd, n)),
+        orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
     }
 
     DLLLOCAL typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd);
@@ -249,6 +252,9 @@ protected:
     TypedHashDecl* thd = nullptr;
     // parent namespace
     qore_ns_private* ns = nullptr;
+
+    // original declaration
+    const typed_hash_decl_private* orig;
 
     // type information
     QoreHashDeclTypeInfo* typeInfo = nullptr;

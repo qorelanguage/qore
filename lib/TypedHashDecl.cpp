@@ -70,7 +70,7 @@ void HashDeclMemberInfo::parseInit(const char* name, bool priv) {
     }
 }
 
-typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd) : loc(old.loc), name(old.name), thd(thd), typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str())), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str())), pub(old.pub), sys(old.sys), parse_init_done(old.parse_init_done) {
+typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd) : loc(old.loc), name(old.name), thd(thd), orig(old.orig), typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str())), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str())), pub(old.pub), sys(old.sys), parse_init_done(old.parse_init_done) {
     // copy member list
     for (HashDeclMemberMap::DeclOrderIterator i = old.members.beginDeclOrder(), e = old.members.endDeclOrder(); i != e; ++i)
         members.addNoCheck(strdup(i->first), i->second ? new HashDeclMemberInfo(*i->second) : nullptr);
@@ -343,6 +343,14 @@ std::string TypedHashDecl::getNamespacePath(bool anchored) const {
     }
     path += getName();
     return path;
+}
+
+bool TypedHashDecl::equal(const TypedHashDecl* other) const {
+    if (!other) {
+        return false;
+    }
+
+    return other->priv->orig == priv->orig;
 }
 
 TypedHashDeclHolder::~TypedHashDeclHolder() {

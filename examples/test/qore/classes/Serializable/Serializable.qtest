@@ -189,6 +189,35 @@ class SerializableTest inherits QUnit::Test {
                 h0._index."0"._class = "T0";
                 assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
             }
+
+            {
+                # invalid type
+                StringInputStream sis("QS_" + chr(0) + "1.0" + chr(0));
+                assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), sis);
+
+                # invalid version
+                sis = new StringInputStream("QS" + chr(0) + "0.9" + chr(0));
+                assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), sis);
+
+                # premature end of stream
+                sis = new StringInputStream("QS" + chr(0) + "1.0");
+                assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), sis);
+
+                # invalid header
+                sis = new StringInputStream("QS" + chr(0) + "1.0" + strmul("x", 100));
+                assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), sis);
+
+                /*
+                BinaryOutputStream bin();
+                t.serialize(bin);
+
+                BinaryInputStream bis(bin.getData());
+
+                auto x = Serializable::deserialize(bis);
+                printf("x: %N\n", x);
+                */
+            }
+
             #printf("t: %N\n", t1);
         }
 
@@ -199,6 +228,15 @@ class SerializableTest inherits QUnit::Test {
             assertEq(t1.t, t1);
             #printf("%N\n", h);
             #h = x;
+
+            BinaryOutputStream bin();
+            t.serialize(bin);
+
+            binary bin_data = bin.getData();
+            BinaryInputStream bis(bin_data);
+
+            auto x = Serializable::deserialize(bis);
+            printf("x: %N\n", x);
         }
 
         {

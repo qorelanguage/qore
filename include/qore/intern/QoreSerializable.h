@@ -34,6 +34,8 @@
 #define _QORE_CLASS_INTERN_QORESERIALIZABLE_H
 
 #include <qore/Qore.h>
+#include "qore/intern/StreamReader.h"
+#include "qore/intern/StreamWriter.h"
 
 #include <map>
 #include <string>
@@ -64,9 +66,13 @@ public:
 
     DLLLOCAL static void serialize(const QoreObject& self, OutputStream& stream, ExceptionSink* xsink);
 
+    DLLLOCAL static void serialize(const QoreValue val, OutputStream& stream, ExceptionSink* xsink);
+
     DLLLOCAL static QoreValue deserialize(InputStream& stream, ExceptionSink* xsink);
 
     DLLLOCAL static QoreValue deserialize(const QoreHashNode& h, ExceptionSink* xsink);
+
+    DLLLOCAL static int serializeValueToStream(const QoreValue val, OutputStream& stream, ExceptionSink* xsink);
 
 protected:
     DLLLOCAL virtual ~QoreSerializable() {}
@@ -83,6 +89,11 @@ protected:
 
     DLLLOCAL static QoreListNode* serializeListToData(const QoreListNode& l, ReferenceHolder<QoreHashNode>& index, imap_t& imap, ExceptionSink* xsink);
 
+    DLLLOCAL static int serializeValueToStream(const QoreValue val, StreamWriter& writer, ExceptionSink* xsink);
+    DLLLOCAL static int serializeHashToStream(const QoreHashNode& h, StreamWriter& writer, ExceptionSink* xsink);
+
+    DLLLOCAL static void serializeToStream(const QoreHashNode& h, OutputStream& stream, ExceptionSink* xsink);
+
     DLLLOCAL static QoreValue deserializeData(const QoreValue val, const oimap_t& oimap, ExceptionSink* xsink);
 
     DLLLOCAL static QoreValue deserializeHashData(const QoreStringNode& type, const QoreHashNode& h, const oimap_t& oimap, ExceptionSink* xsink);
@@ -90,6 +101,12 @@ protected:
     DLLLOCAL static QoreValue deserializeListData(const QoreListNode& l, const oimap_t& oimap, ExceptionSink* xsink);
 
     DLLLOCAL static QoreObject* deserializeIndexedObject(const char* key, const oimap_t& oimap, ExceptionSink* xsink);
+
+    DLLLOCAL static QoreValue deserializeValueFromStream(StreamReader& reader, ExceptionSink* xsink);
+
+    DLLLOCAL static QoreHashNode* deserializeHashFromStream(StreamReader& reader, ExceptionSink* xsink);
+
+    DLLLOCAL static QoreStringNode* deserializeStringFromStream(StreamReader& reader, ExceptionSink* xsink);
 };
 
 #endif // _QORE_CLASS_INTERN_QORESERIALIZABLE_H

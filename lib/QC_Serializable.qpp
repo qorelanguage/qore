@@ -165,7 +165,7 @@ obj.serialize(stream);
     (@ref closure "closures", @ref call_reference "call references", @ref lvalue_references "references",
     and non-serializable objects)
 */
-Serializable::serialize(OutputStream[OutputStream] stream) [flags=RET_VALUE_ONLY] {
+Serializable::serialize(OutputStream[OutputStream] stream) {
     ReferenceHolder<OutputStream> holder(stream, xsink);
     QoreSerializable::serialize(*self, *stream, xsink);
 }
@@ -182,7 +182,7 @@ auto val = Serializable::deserialize(b);
 
     @throw DESERIALIZATION-ERROR the data cannot be deserialized due to an error in the serialization format or a reference to an unknown class or @ref hashdecl
  */
-static auto Serializable::deserialize(InputStream[InputStream] stream) {
+static auto Serializable::deserialize(InputStream[InputStream] stream) [flags=RET_VALUE_ONLY] {
     ReferenceHolder<InputStream> holder(stream, xsink);
     return QoreSerializable::deserialize(*stream, xsink);
 }
@@ -199,7 +199,7 @@ auto val = Serializable::deserialize(h);
 
     @throw DESERIALIZATION-ERROR the data cannot be deserialized due to an error in the serialization format or a reference to an unknown class or @ref hashdecl
  */
-static auto Serializable::deserialize(hash<SerializationInfo> data) {
+static auto Serializable::deserialize(hash<SerializationInfo> data) [flags=RET_VALUE_ONLY] {
     return QoreSerializable::deserialize(*data, xsink);
 }
 
@@ -224,3 +224,26 @@ hash<SerializationInfo> h = serializeToData(val);
 static hash<SerializationInfo> Serializable::serializeToData(auto val) [flags=RET_VALUE_ONLY] {
     return QoreSerializable::serializeToData(val, xsink);
 }
+
+//! serializes the data and writes the serialized data to the given output stream
+/** @par Example:
+    @code{.py}
+Serializable::serialize(val, stream);
+    @endcode
+
+    @param data the data to serialize
+    @param stream an output stream where the serialized data will be written
+
+    All non-serializable data such as @ref closure "closures", @ref call_reference "call references",
+    @ref lvalue_references "references", or non-serializable objects must be tagged as @ref transient
+    in object members or a \c SERIALIZATION-ERROR exception will be thrown.
+
+    @throw SERIALIZATION-ERROR the object cannot be serialized as it contains non-serializable data
+    (@ref closure "closures", @ref call_reference "call references", @ref lvalue_references "references",
+    and non-serializable objects)
+*/
+static Serializable::serialize(auto val, OutputStream[OutputStream] stream) {
+    ReferenceHolder<OutputStream> holder(stream, xsink);
+    QoreSerializable::serialize(val, *stream, xsink);
+}
+

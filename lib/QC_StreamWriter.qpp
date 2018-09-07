@@ -81,7 +81,7 @@ string StreamWriter::getEncoding() [flags=CONSTANT] {
 /** Returns the @ref OutputStream for the StreamWriter.
 
     @return the @ref OutputStream for the StreamWriter
-    
+
     @since 0.9.0
  */
 OutputStream StreamWriter::getOutputStream() {
@@ -204,7 +204,7 @@ nothing StreamWriter::write(binary b) {
    sw->write(b, xsink);
 }
 
-//! Writes a 1-byte integer to the output stream.
+//! Writes a 1-byte signed integer to the output stream.
 /** @par Example:
     @code{.py}
 sw.writei1(val);

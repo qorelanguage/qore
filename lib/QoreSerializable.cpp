@@ -38,8 +38,25 @@
 
 #include <string>
 #include <set>
+#include <cstdint>
+
+static QoreString QoreSerializationTypeString("QS");
+static QoreString QoreSerializationVersionString("1.0");
 
 typedef std::set<std::string> strset_t;
+
+// qore serialization stream data type constants
+#define QSSDT_HASH 0
+#define QSSDT_LIST 1
+#define QSSDT_STRING 2
+#define QSSDT_BOOLEAN 3
+#define QSSDT_INT 4
+#define QSSDT_FLOAT 5
+#define QSSDT_NUMBER 6
+#define QSSDT_BINARY 7
+#define QSSDT_DATE 8
+#define QSSDT_NULL 9
+#define QSSDT_NOTHING 10
 
 ObjectIndexMap::~ObjectIndexMap() {
     for (auto& i : *this) {
@@ -52,6 +69,172 @@ ObjectIndexMap::~ObjectIndexMap() {
             i.second->deref(xs);
         }
     }
+}
+
+static int stream_write_string_raw1(StreamWriter& writer, const char* str, size_t len, const char* type, ExceptionSink* xsink) {
+    if (len > 126) {
+        xsink->raiseException("SERIALIZATION-ERROR", "invalid %s string length " QLLD, type, (int64)len);
+        return -1;
+    }
+    writer.writei1(len, xsink);
+    if (*xsink) {
+        return -1;
+    }
+    // write string
+    writer.write(str, len, xsink);
+    return *xsink ? -1 : 0;
+}
+
+static int stream_write_string_raw2(StreamWriter& writer, const char* str, size_t len, const char* type, ExceptionSink* xsink) {
+    if (len > 2048) {
+        xsink->raiseException("SERIALIZATION-ERROR", "invalid %s string length " QLLD, type, (int64)len);
+        return -1;
+    }
+    writer.writei2(len, xsink);
+    if (*xsink) {
+        return -1;
+    }
+    // write string
+    writer.write(str, len, xsink);
+    return 0;
+}
+
+static int stream_write_string_value(StreamWriter& writer, const char* key, size_t len, const QoreEncoding* enc, ExceptionSink* xsink) {
+    // write data type code to stream
+    writer.writei1(QSSDT_STRING, xsink);
+    if (*xsink) {
+        return -1;
+    }
+
+    // write string encoding if not UTF-8
+    if (enc && enc != QCS_UTF8) {
+        // write encoding string length
+        const char* enc_str = enc->getCode();
+        size_t enc_len = strlen(enc_str);
+        if (stream_write_string_raw1(writer, enc_str, enc_len, "encoding", xsink)) {
+            return -1;
+        }
+    }
+    else {
+        // write -1 to indicate UTF-8
+        writer.writei1(-1, xsink);
+    }
+    if (*xsink) {
+        return -1;
+    }
+
+    // write string size
+    writer.writei4(len, xsink);
+    if (*xsink) {
+        return -1;
+    }
+
+    // write string
+    writer.write(key, len, xsink);
+    return *xsink ? -1 : 0;
+}
+
+// data type code read; now read string
+static int stream_read_string_value(StreamReader& reader, QoreString& str, ExceptionSink* xsink) {
+    // read string encoding length or -1 for UTF-8
+    int64 size = reader.readi1(xsink);
+    if (*xsink) {
+        return -1;
+    }
+    if (!size || (size < 0 && size != -1)) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "invalid encoding string length size: " QLLD, size);
+        return -1;
+    }
+    const QoreEncoding* enc;
+    if (size != -1) {
+        // read encoding string
+        QoreString enc_str;
+        enc_str.reserve(size);
+
+        if (reader.read(xsink, const_cast<char*>(enc_str.c_str()), size) == -1) {
+            return -1;
+        }
+        enc_str.terminate(size);
+
+        enc = QEM.findCreate(enc_str.c_str());
+    }
+    else {
+        enc = QCS_UTF8;
+    }
+
+    // read string size
+    size = reader.readi4(xsink);
+    if (*xsink) {
+        return -1;
+    }
+    if (size < 0) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "invalid string length " QLLD " read", size);
+        return -1;
+    }
+
+    // clear string and read in string data
+    str.clear();
+    if (reader.read(xsink, const_cast<char*>(str.c_str()), size) == -1) {
+        return -1;
+    }
+    str.terminate(size);
+
+    str.setEncoding(enc);
+
+    return 0;
+}
+
+static int stream_read_string(ExceptionSink* xsink, InputStream& stream, QoreString& str, int max_size = -1) {
+    assert(max_size);
+    str.clear();
+
+    unsigned char c;
+    while (true) {
+        int64 rc = stream.read(&c, 1, xsink);
+        if (*xsink) {
+            return -1;
+        }
+        if (!rc) {
+            xsink->raiseException("DESERIALIZATION-ERROR", "end of stream found while reading string value");
+            return -1;
+        }
+
+        if (!c) {
+            break;
+        }
+
+        if (max_size > 0 && str.size() == (size_t)max_size) {
+            xsink->raiseException("DESERIALIZATION-ERROR", "string exceeded maximum size of %d while reading string value", max_size);
+            return -1;
+        }
+
+        str.concat(c);
+    }
+
+    return 0;
+}
+
+static int check_deserialization_string(const QoreString& str, const QoreString& expected, const char* type, ExceptionSink* xsink) {
+    if (str != expected) {
+        bool bin = false;
+
+        // see if string has binary data in it
+        for (const char* p = str.c_str(), * e = p + str.size(); p < e; ++p) {
+            if (*p < 32 || *p > 126) {
+                bin = true;
+                break;
+            }
+        }
+
+        if (bin) {
+            xsink->raiseException("DESERIALIZATION-ERROR", "stream data does not match expected %s string value '%s'; read binary (non-string) data instead", type, expected.c_str());
+        }
+        else {
+            xsink->raiseException("DESERIALIZATION-ERROR", "expecting expecting %s string value '%s' from stream; got '%s' instead", type, expected.c_str(), str.c_str());
+        }
+        return -1;
+    }
+    return 0;
 }
 
 
@@ -342,7 +525,7 @@ QoreListNode* QoreSerializable::serializeListToData(const QoreListNode& l, Refer
 }
 
 QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xsink) {
-    assert(h.getHashDecl() == hashdeclSerializationInfo);
+    assert(hashdeclSerializationInfo->equal(h.getHashDecl()));
 
     ObjectIndexMap oimap(xsink);
 
@@ -357,7 +540,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
         while (hi.next()) {
             const char* key = hi.getKey();
             const QoreHashNode* oh = hi.get().get<const QoreHashNode>();
-            assert(oh->getHashDecl() == hashdeclObjectSerializationInfo);
+            assert(hashdeclObjectSerializationInfo->equal(oh->getHashDecl()));
             QoreValue v = oh->getKeyValue("_class");
             assert(v.getType() == NT_STRING);
             const char* cname = v.get<const QoreStringNode>()->c_str();
@@ -405,7 +588,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                 {
                     bool priv = false;
                     if (!mcls->getClass(*QC_SERIALIZABLE, priv)) {
-                        xsink->raiseException("SERIALIZATION-ERROR", "cannot deserialize class '%s' as it does not inherit 'Serializable' and therefore is not eligible for deserialization'",
+                        xsink->raiseException("DESERIALIZATION-ERROR", "cannot deserialize class '%s' as it does not inherit 'Serializable' and therefore is not eligible for deserialization'",
                             mcls->getName());
                         return QoreValue();
                     }
@@ -605,16 +788,266 @@ QoreValue QoreSerializable::deserializeListData(const QoreListNode& l, const oim
     return rv.release();
 }
 
+void QoreSerializable::serialize(const QoreValue val, OutputStream& stream, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> h(serializeToData(val, xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+
+    serializeToStream(**h, stream, xsink);
+}
+
+
 void QoreSerializable::serialize(const QoreObject& self, OutputStream& stream, ExceptionSink* xsink) {
     ReferenceHolder<QoreHashNode> h(serializeToData(&self, xsink), xsink);
     if (*xsink) {
         return;
     }
 
-    xsink->raiseException("SERIALIZATION-ERROR", "unimplemented");
+    serializeToStream(**h, stream, xsink);
+}
+
+void QoreSerializable::serializeToStream(const QoreHashNode& h, OutputStream& stream, ExceptionSink* xsink) {
+    assert(hashdeclSerializationInfo->equal(h.getHashDecl()));
+
+    serializeValueToStream(&h, stream, xsink);
+    //xsink->raiseException("SERIALIZATION-ERROR", "unimplemented");
+}
+
+int QoreSerializable::serializeValueToStream(const QoreValue val, OutputStream& stream, ExceptionSink* xsink) {
+    if (!stream.check(xsink)) {
+        return -1;
+    }
+
+    // write header to output stream
+    stream.write(QoreSerializationTypeString.c_str(), QoreSerializationTypeString.size() + 1, xsink);
+    if (*xsink) {
+        return -1;
+    }
+    stream.write(QoreSerializationVersionString.c_str(), QoreSerializationVersionString.size() + 1, xsink);
+    if (*xsink) {
+        return -1;
+    }
+
+    // must reference the output stream for the assignment to StreamWriter
+    stream.ref();
+    ReferenceHolder<StreamWriter> writer(new StreamWriter(xsink, &stream, QCS_UTF8), xsink);
+
+    return serializeValueToStream(val, **writer, xsink);
+}
+
+int QoreSerializable::serializeValueToStream(const QoreValue val, StreamWriter& writer, ExceptionSink* xsink) {
+    switch (val.getType()) {
+        case NT_HASH:
+            return serializeHashToStream(*val.get<QoreHashNode>(), writer, xsink);
+
+        case NT_STRING: {
+            const QoreStringNode& str = *val.get<QoreStringNode>();
+            return stream_write_string_value(writer, str.c_str(), str.size(), str.getEncoding(), xsink);
+        }
+
+        default:
+            break;
+    }
+
+    xsink->raiseException("SERIALIZATION-ERROR", "cannot serialize type '%s'; type is not supported for serialization",
+        val.getTypeName());
+    return -1;
+}
+
+int QoreSerializable::serializeHashToStream(const QoreHashNode& h, StreamWriter& writer, ExceptionSink* xsink) {
+    // write data type code to stream
+    writer.writei1(QSSDT_HASH, xsink);
+    if (*xsink) {
+        return -1;
+    }
+
+    // write hashdecl type to stream, if any, otherwise -1
+    {
+        const TypedHashDecl* thd = h.getHashDecl();
+        if (thd) {
+            std::string path = thd->getNamespacePath();
+            //printd(5, "QoreSerializable::serializeHashToStream() writing path: %d '%s'\n", static_cast<int>(path.size()), path.c_str());
+            if (stream_write_string_raw2(writer, path.c_str(), path.size(), "hashdecl path", xsink)) {
+                return -1;
+            }
+        }
+        else {
+            // write -1 to indicate no hashdecl
+            writer.writei2(-1, xsink);
+            if (*xsink) {
+                return -1;
+            }
+        }
+    }
+
+    // write hash size to stream
+    writer.writei4(h.size(), xsink);
+    if (*xsink) {
+        return -1;
+    }
+
+    ConstHashIterator hi(h);
+    while (hi.next()) {
+        // write key string to stream
+        if (stream_write_string_value(writer, hi.getKey(), strlen(hi.getKey()), nullptr, xsink)) {
+            return -1;
+        }
+
+        if (serializeValueToStream(hi.get(), writer, xsink)) {
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 QoreValue QoreSerializable::deserialize(InputStream& stream, ExceptionSink* xsink) {
-    xsink->raiseException("DESERIALIZATION-ERROR", "unimplemented");
+    if (!stream.check(xsink)) {
+        return QoreValue();
+    }
+
+    // read serialization stream type
+    QoreString str;
+    if (stream_read_string(xsink, stream, str, 50)) {
+        return QoreValue();
+    }
+
+    if (check_deserialization_string(str, QoreSerializationTypeString, "header type", xsink)) {
+        return QoreValue();
+    }
+
+    // read serialization stream version
+    if (stream_read_string(xsink, stream, str, 50)) {
+        return QoreValue();
+    }
+
+    if (check_deserialization_string(str, QoreSerializationVersionString, "header version", xsink)) {
+        return QoreValue();
+    }
+
+    // must reference the input stream for the assignment to StreamReader
+    stream.ref();
+    ReferenceHolder<StreamReader> reader(new StreamReader(xsink, &stream, QCS_UTF8), xsink);
+
+    ValueHolder val(deserializeValueFromStream(**reader, xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    const QoreHashNode* h = val->getType() == NT_HASH ? val->get<const QoreHashNode>() : nullptr;
+
+    //printd(5, "QoreSerializable::deserialize() h: %p val: '%s' hd: %p '%s' (%p %d)\n", h, val->getFullTypeName(), h->getHashDecl(), h->getHashDecl() ? h->getHashDecl()->getName() : "n/a", hashdeclSerializationInfo, h->getHashDecl() == hashdeclSerializationInfo);
+    if (!h || !hashdeclSerializationInfo->equal(h->getHashDecl())) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "expecting a SerializationInfo hash from the serialization stream; got type '%s' instead", val->getFullTypeName());
+        return QoreValue();
+    }
+
+    return deserialize(*h, xsink);
+}
+
+QoreValue QoreSerializable::deserializeValueFromStream(StreamReader& reader, ExceptionSink* xsink) {
+    // read data type code
+    int64 code = reader.readi1(xsink);
+    if (*xsink) {
+        return -1;
+    }
+
+    switch (code) {
+        case QSSDT_HASH: return deserializeHashFromStream(reader, xsink);
+        case QSSDT_STRING: return deserializeStringFromStream(reader, xsink);
+        default:
+            break;
+    }
+
+    xsink->raiseException("DESERIALIZATION-ERROR", "invalid serialization type code " QLLD, code);
     return QoreValue();
+}
+
+QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, ExceptionSink* xsink) {
+    // read hashdecl type to stream, if any, otherwise -1 = no hashdecl type
+    int64 size = reader.readi2(xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+    if (!size || (size < 0 && size != -1)) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "invalid size " QLLD " in stream for hash type", size);
+        return nullptr;
+    }
+
+    const TypedHashDecl* thd;
+    if (size != -1) {
+        // read hashdecl path string
+        QoreString path_str;
+        path_str.reserve(size);
+
+        if (reader.read(xsink, const_cast<char*>(path_str.c_str()), size) == -1) {
+            return nullptr;
+        }
+        path_str.terminate(size);
+
+        const QoreNamespace* pns = nullptr;
+        thd = getProgram()->findHashDecl(path_str.c_str(), pns);
+        if (!thd) {
+            xsink->raiseException("DESERIALIZATION-ERROR", "stream data indicates that a '%s' typed hash should be deserialized, but no such typed hash (hashdecl) could be found in the current Program object", path_str.c_str());
+            return nullptr;
+        }
+    }
+    else {
+        thd = nullptr;
+    }
+
+    // now read in the number of hash keys
+    size = reader.readi4(xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    if (size < 0) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "stream data gives an invalid number of hash keys (" QLLD ")", size);
+        return nullptr;
+    }
+
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode, xsink);
+
+    // read in hash keys
+    for (int64 i = 0; i < size; ++i) {
+        // read key type (must be string)
+        int64 code = reader.readi1(xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+        if (code != QSSDT_STRING) {
+            xsink->raiseException("DESERIALIZATION-ERROR", "expecting string type for hash key; got type %d instead", static_cast<int>(code));
+            return nullptr;
+        }
+
+        SimpleRefHolder<QoreStringNode> key(deserializeStringFromStream(reader, xsink));
+        if (*xsink) {
+            return nullptr;
+        }
+        if (key->getEncoding() != QCS_UTF8) {
+            xsink->raiseException("DESERIALIZATION-ERROR", "expecting string with 'UTF-8' encoding for hash key; got encoding '%s' instead", key->getEncoding()->getCode());
+            return nullptr;
+        }
+
+        // convert key string to QCS_DEFAULT if necessary
+        TempEncodingHelper tstr(**key, QCS_DEFAULT, xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+
+        ValueHolder val(deserializeValueFromStream(reader, xsink), xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+
+        h->setKeyValue(tstr->c_str(), val.release(), xsink);
+    }
+
+    return thd ? typed_hash_decl_private::get(*thd)->newHash(*h, true, xsink) : h.release();
+}
+
+QoreStringNode* QoreSerializable::deserializeStringFromStream(StreamReader& reader, ExceptionSink* xsink) {
+    SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
+    return stream_read_string_value(reader, **str, xsink) == -1 ? nullptr : str.release();
 }

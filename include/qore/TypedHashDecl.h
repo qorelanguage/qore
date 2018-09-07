@@ -76,6 +76,12 @@ public:
     */
     DLLEXPORT std::string getNamespacePath(bool anchored = false) const;
 
+    //! returns true if the hashdecl passed as an arugment is equal to this hashdecl
+    /**
+        @since %Qore 0.9
+    */
+    DLLEXPORT bool equal(const TypedHashDecl* other) const;
+
 protected:
     //! deletes the object and frees all memory
     DLLEXPORT ~TypedHashDecl();
