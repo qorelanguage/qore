@@ -85,7 +85,11 @@ static void TimeZone_deserializer(QoreObject& self, const QoreHashNode* sdata, Q
 }
 
 //! The TimeZone class provides access to time zone functionality
-/** TimeZone objects based on zoneinfo region files (on UNIX) or registry information (on Windows) can have daylight savings time information; those based on UTC offsets have none.
+/** TimeZone objects based on zoneinfo region files (on UNIX) or registry information (on Windows) can
+    have daylight savings time information; those based on UTC offsets have none.
+
+    The TimeZone class supports @ref Serializable "data serialization"; deserialization can fail if the object is based on
+    a region that is not present on fhe target machine.
 */
 qclass TimeZone [arg=TimeZoneData* z; vparent=Serializable; serializer=reinterpret_cast<q_serializer_t>(TimeZone_serializer); deserializer=TimeZone_deserializer];
 

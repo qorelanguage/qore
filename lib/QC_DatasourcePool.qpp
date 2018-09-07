@@ -137,6 +137,40 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
       ds->destructor(xsink);
 }
 
+static QoreHashNode* DatasourcePool_serializer(const QoreObject& self, const DatasourcePool& dsp, QoreSerializationContext& context, ExceptionSink* xsink) {
+    SimpleRefHolder<QoreStringNode> str(const_cast<DatasourcePool&>(dsp).getConfigString(xsink));
+    if (*xsink) {
+        return nullptr;
+    }
+
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    rv->setKeyValue("conf", str.release(), xsink);
+    return rv.release();
+}
+
+static void DatasourcePool_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
+    if (sdata) {
+        QoreValue val = sdata->getKeyValue("conf");
+        if (val) {
+            if (val.getType() != NT_STRING) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "DatasourcePool serialization key 'conf' has type '%s'; expecting 'string'", val.getTypeName());
+                return;
+            }
+
+            ReferenceHolder<QoreHashNode> h(parseDatasource(val.get<QoreStringNode>()->c_str(), xsink), xsink);
+            if (!h) {
+                assert(*xsink);
+                return;
+            }
+
+            dsp_constructor_hash(*h, &self, nullptr, QoreValue(), xsink);
+            return;
+        }
+    }
+
+    xsink->raiseException("DESERIALIZATION-ERROR", "missing serialization data for the DatasourcePool class");
+}
+
 //! Provides transparent per-thread, per-transaction datasource connection pooling
 /** @par Overview
     In most cases, the %DatasourcePool class can be used as a drop-in replacement for the Datasource class with autocommit disabled; when a transaction begins, a datasource will be automatically assigned to the calling thread, and it will only be released when a commit or rollback is called on the object. If no datasource is available, the calling thread will block until a datasource comes available.\n\n
@@ -168,11 +202,18 @@ static void dsp_constructor_hash(const QoreHashNode* opts, QoreObject* self, Que
     and the internal @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method
     cannot be overridden or suppressed.
 
+    @par Data Serialization
+    The DatasourcePool class supports @ref Serializable "data serialization"; deserialization can fail if the database is not
+    supported on or reachable from the target machine.
+
+    When deserializing, any datasource event queue is lost; only the connection information is propagated in the
+    deserialized copy.
+
     @note This class is not available with the @ref PO_NO_DATABASE parse option
 
     @see <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> for a high level database-independent API
  */
-qclass DatasourcePool [dom=DATABASE; arg=DatasourcePool* ds; ns=Qore::SQL; vparent=AbstractDatasource];
+qclass DatasourcePool [dom=DATABASE; arg=DatasourcePool* ds; ns=Qore::SQL; vparent=AbstractDatasource, Serializable; serializer=reinterpret_cast<q_serializer_t>(DatasourcePool_serializer); deserializer=DatasourcePool_deserializer];
 
 //! Creates the DatasourcePool object; attempts to load a DBI driver if the driver is not already present in %Qore
 /** @param driver The name of the DBI driver for the Datasource. See @ref sql_constants for builtin constants for DBI drivers shipped with %Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
@@ -262,6 +303,7 @@ DatasourcePool::constructor(string desc, *Qore::Thread::Queue[Queue] queue, auto
       assert(*xsink);
       return;
    }
+
    dsp_constructor_hash(*h, self, q.release(), arg, xsink);
 }
 

@@ -358,13 +358,19 @@ static void get_string_list(strlist_t& l, const std::string& str, char separator
     size_t start = 0;
     while (true) {
         size_t sep = str.find(separator, start);
-        if (sep == std::string::npos)
+        if (sep == std::string::npos) {
             break;
-        l.push_back(std::string(str, start, sep - start));
+        }
+        std::string element(str, start, sep - start);
+        // remove leading whilespace from strings
+        element.erase(element.begin(), std::find_if(element.begin(), element.end(), std::bind1st(std::not_equal_to<char>(), ' ')));
+        l.push_back(element);
         start = sep + 1;
     }
-    l.push_back(std::string(str, start));
-
+    // remove leading whilespace from strings
+    std::string element(str, start);
+    element.erase(element.begin(), std::find_if(element.begin(), element.end(), std::bind1st(std::not_equal_to<char>(), ' ')));
+    l.push_back(element);
     //for (unsigned i = 0; i < l.size(); ++i)
     //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
 }
