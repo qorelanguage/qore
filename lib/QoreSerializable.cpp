@@ -329,30 +329,59 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
             }
         }
         else {
-            // iterate all nornal members in the class
-            QoreClassMemberIterator mi(ci.get());
-            while (mi.next()) {
-                const QoreExternalNormalMember* m = mi.getMember();
-                // skip members marked as transient
-                if (m->isTransient()) {
-                    continue;
-                }
-                const char* mname = mi.getName();
+            // see if the local class has a serializeMembers() method defined
+            const QoreMethod* serializeMembers = current_cls->findLocalMethod("serializeMembers");
 
-                ValueHolder val(self.getReferencedMemberNoMethod(mname, current_cls, xsink), xsink);
+            if (serializeMembers) {
+                ValueHolder val(const_cast<QoreObject&>(self).evalMethod(*serializeMembers, nullptr, xsink), xsink);
                 if (*xsink) {
                     return imap.end();
                 }
-
-                ValueHolder new_val(serializeValue(*val, index, imap, xsink), xsink);
-                if (*xsink) {
-                    return imap.end();
+                if (val) {
+                    if (val->getType() != NT_HASH) {
+                        xsink->raiseException("SERIALIZATION-ERROR", "%s::serializeMembers() returned type '%s'; expecting 'hash' or 'nothing'",
+                            current_cls->getName(), val->getFullTypeName());
+                        return imap.end();
+                    }
+                    // serialize data returned
+                    ReferenceHolder<QoreHashNode> serialized_member_data(new QoreHashNode(autoTypeInfo), xsink);
+                    ConstHashIterator mhi(val->get<QoreHashNode>());
+                    while (mhi.next()) {
+                        ValueHolder new_val(serializeValue(mhi.get(), index, imap, xsink), xsink);
+                        if (*xsink) {
+                            return imap.end();
+                        }
+                        serialized_member_data->setKeyValue(mhi.getKey(), new_val.release(), xsink);
+                    }
+                    class_members = serialized_member_data.release();
                 }
+            }
+            else {
+                // iterate all nornal members in the class
+                QoreClassMemberIterator mi(ci.get());
+                while (mi.next()) {
+                    const QoreExternalNormalMember* m = mi.getMember();
+                    // skip members marked as transient
+                    if (m->isTransient()) {
+                        continue;
+                    }
+                    const char* mname = mi.getName();
 
-                if (!class_members) {
-                    class_members = new QoreHashNode(autoTypeInfo);
+                    ValueHolder val(self.getReferencedMemberNoMethod(mname, current_cls, xsink), xsink);
+                    if (*xsink) {
+                        return imap.end();
+                    }
+
+                    ValueHolder new_val(serializeValue(*val, index, imap, xsink), xsink);
+                    if (*xsink) {
+                        return imap.end();
+                    }
+
+                    if (!class_members) {
+                        class_members = new QoreHashNode(autoTypeInfo);
+                    }
+                    class_members->setKeyValue(mname, new_val.release(), xsink);
                 }
-                class_members->setKeyValue(mname, new_val.release(), xsink);
             }
         }
 

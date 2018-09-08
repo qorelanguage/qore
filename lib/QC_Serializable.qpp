@@ -190,7 +190,51 @@ binary Serializable::serialize() {
     return *xsink ? QoreValue() : stream->getData(xsink);
 }
 
-//! overrides the default automatic member assignment loggic for user class during data deserialization
+//! overrides the default automatic member retrieval for user classes during data serialization
+/** @par Example:
+    @code{.py}
+class MyClass inherits Serializable {
+    private:internal {
+        transient string my_special_member;
+    }
+
+    # if this member is defined, all members retrieved from this class will be returned only
+    by this method, as in this case no automatic member retrieval for the given class will be
+    # performed
+    hash<auto> serializeMembers() {
+        return {
+            "special_data": get_specail_data(),
+        }
+    }
+}
+    @endcode
+
+    This method is special in that it is only called for user classes for each
+    class in a class hierarchy if the method is defined.
+
+    This method in the base class does nothing and should not be called from user classes;
+    this method is declared \c private:internal to emphasize that it is only called for
+    the local class by the internal serialization logic; it may be declared with any
+    access permission, but in any case the method only has an effect for the local class
+    and not for the hierarchy, which makes it different than other %Qore class methods
+    (other than the similar @ref deserializeMemebers() method).
+
+    This method can be used to implement special serialization logic when serializing
+    members of a particular class in a class hierarchy.
+
+    @return member information to be passed to the class during deserialization; overrides
+    the default member retrieval logic during object serialization
+
+    @note If this method is defined, then the class must reeturn its own members, as
+    automatic member retrieval will not be performed for the local class by the
+    serialization logic in this case.
+
+    @see deserializeMembers()
+*/
+private:internal *hash<auto> Serializable::serializeMembers() {
+}
+
+//! overrides the default automatic member assignment logic for user classes during data deserialization
 /** @par Example:
     @code{.py}
 class MyClass inherits Serializable {
@@ -207,14 +251,15 @@ class MyClass inherits Serializable {
 }
     @endcode
 
-    This method is special in that it is only called for user classes for each
-    class in a class hierarchy if the method is defined.
+    This method is special in that it is only called during data deserialization for user
+    classes for each class in a class hierarchy if the method is defined.
 
     This method in the base class does nothing and should not be called from user classes;
     this method is declared \c private:internal to emphasize that it is only called for
     the local class by the internal deserialization logic; it may be declared with any
     access permission, but in any case the method only has an effect for the local class
-    and not for the hierarchy, which makes it different than other %Qore class methods.
+    and not for the hierarchy, which makes it different than other %Qore class methods
+    (other than the similar @ref serializeMemebers() method.
 
     This method can be used to implement special deserialization logic when deserializing
     members of a particular class in a class hierarchy.
@@ -225,6 +270,8 @@ class MyClass inherits Serializable {
     @note If this method is defined, then the class must assign its own members including
     transient members, as automatic member initialization will not be performed for the
     local class by the deserialization logic in this case.
+
+    @see serializeMembers()
 */
 private:internal nothing Serializable::deserializeMembers(hash<auto> members) {
 }
