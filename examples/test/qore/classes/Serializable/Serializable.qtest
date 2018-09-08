@@ -22,6 +22,16 @@ class Err inherits Serializable {
 class Test inherits Serializable {
     public {
         Test t;
+        int i0 = 1;
+        int i2 = 1024;
+        int i4 = 100000;
+        int i8 = 23918328238923;
+        bool b = True;
+        list l = (1, "2", True);
+        float f = 1.1;
+        number n = 100n;
+        date ab = now_us();
+        date rel = now_us() - 2017-01-02;
     }
 
     constructor() {
@@ -235,8 +245,8 @@ class SerializableTest inherits QUnit::Test {
             binary bin_data = bin.getData();
             BinaryInputStream bis(bin_data);
 
-            auto x = Serializable::deserialize(bis);
-            printf("x: %N\n", x);
+            Test t2 = Serializable::deserialize(bis);
+            assertEq(t2.t, t2);
         }
 
         {

@@ -39,6 +39,8 @@
 #include <string>
 #include <set>
 #include <cstdint>
+#include <cctype>
+#include <cstdlib>
 
 static QoreString QoreSerializationTypeString("QS");
 static QoreString QoreSerializationVersionString("1.0");
@@ -47,16 +49,25 @@ typedef std::set<std::string> strset_t;
 
 // qore serialization stream data type constants
 #define QSSDT_HASH 0
-#define QSSDT_LIST 1
+#define QSSDT_HASHDECL 1
 #define QSSDT_STRING 2
-#define QSSDT_BOOLEAN 3
-#define QSSDT_INT 4
-#define QSSDT_FLOAT 5
-#define QSSDT_NUMBER 6
-#define QSSDT_BINARY 7
-#define QSSDT_DATE 8
-#define QSSDT_NULL 9
-#define QSSDT_NOTHING 10
+#define QSSDT_UTF8_STRING 3
+#define QSSDT_LIST 4
+#define QSSDT_BOOLEAN 5
+#define QSSDT_INT1 6
+#define QSSDT_INT2 7
+#define QSSDT_INT4 8
+#define QSSDT_INT8 9
+#define QSSDT_FLOAT 10
+#define QSSDT_NUMBER 11
+#define QSSDT_BINARY 12
+#define QSSDT_ABSDATE 13
+#define QSSDT_RELDATE 14
+#define QSSDT_NULL 15
+#define QSSDT_NOTHING 16
+
+#define CODE_IS_INT(x) ((x) == QSSDT_INT1 || (x) == QSSDT_INT2 || (x) == QSSDT_INT4 || (x) == QSSDT_INT8)
+#define CODE_IS_STRING(x) ((x) == QSSDT_STRING || (x) == QSSDT_UTF8_STRING)
 
 ObjectIndexMap::~ObjectIndexMap() {
     for (auto& i : *this) {
@@ -69,119 +80,6 @@ ObjectIndexMap::~ObjectIndexMap() {
             i.second->deref(xs);
         }
     }
-}
-
-static int stream_write_string_raw1(StreamWriter& writer, const char* str, size_t len, const char* type, ExceptionSink* xsink) {
-    if (len > 126) {
-        xsink->raiseException("SERIALIZATION-ERROR", "invalid %s string length " QLLD, type, (int64)len);
-        return -1;
-    }
-    writer.writei1(len, xsink);
-    if (*xsink) {
-        return -1;
-    }
-    // write string
-    writer.write(str, len, xsink);
-    return *xsink ? -1 : 0;
-}
-
-static int stream_write_string_raw2(StreamWriter& writer, const char* str, size_t len, const char* type, ExceptionSink* xsink) {
-    if (len > 2048) {
-        xsink->raiseException("SERIALIZATION-ERROR", "invalid %s string length " QLLD, type, (int64)len);
-        return -1;
-    }
-    writer.writei2(len, xsink);
-    if (*xsink) {
-        return -1;
-    }
-    // write string
-    writer.write(str, len, xsink);
-    return 0;
-}
-
-static int stream_write_string_value(StreamWriter& writer, const char* key, size_t len, const QoreEncoding* enc, ExceptionSink* xsink) {
-    // write data type code to stream
-    writer.writei1(QSSDT_STRING, xsink);
-    if (*xsink) {
-        return -1;
-    }
-
-    // write string encoding if not UTF-8
-    if (enc && enc != QCS_UTF8) {
-        // write encoding string length
-        const char* enc_str = enc->getCode();
-        size_t enc_len = strlen(enc_str);
-        if (stream_write_string_raw1(writer, enc_str, enc_len, "encoding", xsink)) {
-            return -1;
-        }
-    }
-    else {
-        // write -1 to indicate UTF-8
-        writer.writei1(-1, xsink);
-    }
-    if (*xsink) {
-        return -1;
-    }
-
-    // write string size
-    writer.writei4(len, xsink);
-    if (*xsink) {
-        return -1;
-    }
-
-    // write string
-    writer.write(key, len, xsink);
-    return *xsink ? -1 : 0;
-}
-
-// data type code read; now read string
-static int stream_read_string_value(StreamReader& reader, QoreString& str, ExceptionSink* xsink) {
-    // read string encoding length or -1 for UTF-8
-    int64 size = reader.readi1(xsink);
-    if (*xsink) {
-        return -1;
-    }
-    if (!size || (size < 0 && size != -1)) {
-        xsink->raiseException("DESERIALIZATION-ERROR", "invalid encoding string length size: " QLLD, size);
-        return -1;
-    }
-    const QoreEncoding* enc;
-    if (size != -1) {
-        // read encoding string
-        QoreString enc_str;
-        enc_str.reserve(size);
-
-        if (reader.read(xsink, const_cast<char*>(enc_str.c_str()), size) == -1) {
-            return -1;
-        }
-        enc_str.terminate(size);
-
-        enc = QEM.findCreate(enc_str.c_str());
-    }
-    else {
-        enc = QCS_UTF8;
-    }
-
-    // read string size
-    size = reader.readi4(xsink);
-    if (*xsink) {
-        return -1;
-    }
-    if (size < 0) {
-        xsink->raiseException("DESERIALIZATION-ERROR", "invalid string length " QLLD " read", size);
-        return -1;
-    }
-
-    // clear string and read in string data
-    str.clear();
-    if (reader.read(xsink, const_cast<char*>(str.c_str()), size) == -1) {
-        return -1;
-    }
-    str.terminate(size);
-
-    str.setEncoding(enc);
-
-    return 0;
 }
 
 static int stream_read_string(ExceptionSink* xsink, InputStream& stream, QoreString& str, int max_size = -1) {
@@ -842,8 +740,31 @@ int QoreSerializable::serializeValueToStream(const QoreValue val, StreamWriter& 
             return serializeHashToStream(*val.get<QoreHashNode>(), writer, xsink);
 
         case NT_STRING: {
-            const QoreStringNode& str = *val.get<QoreStringNode>();
-            return stream_write_string_value(writer, str.c_str(), str.size(), str.getEncoding(), xsink);
+            return serializeStringToStream(*val.get<QoreStringNode>(), writer, xsink);
+        }
+
+        case NT_INT: {
+            return serializeIntToStream(val.v.i, writer, xsink);
+        }
+
+        case NT_BOOLEAN: {
+            return serializeBoolToStream(val.v.b, writer, xsink);
+        }
+
+        case NT_LIST: {
+            return serializeListToStream(*val.get<QoreListNode>(), writer, xsink);
+        }
+
+        case NT_FLOAT: {
+            return serializeFloatToStream(val.v.f, writer, xsink);
+        }
+
+        case NT_NUMBER: {
+            return serializeNumberToStream(*val.get<QoreNumberNode>(), writer, xsink);
+        }
+
+        case NT_DATE: {
+            return serializeDateToStream(*val.get<DateTimeNode>(), writer, xsink);
         }
 
         default:
@@ -856,41 +777,44 @@ int QoreSerializable::serializeValueToStream(const QoreValue val, StreamWriter& 
 }
 
 int QoreSerializable::serializeHashToStream(const QoreHashNode& h, StreamWriter& writer, ExceptionSink* xsink) {
-    // write data type code to stream
-    writer.writei1(QSSDT_HASH, xsink);
-    if (*xsink) {
-        return -1;
-    }
-
     // write hashdecl type to stream, if any, otherwise -1
     {
         const TypedHashDecl* thd = h.getHashDecl();
         if (thd) {
+            // write data type code to stream
+            if (writer.writei1(QSSDT_HASHDECL, xsink)) {
+                return -1;
+            }
+
             std::string path = thd->getNamespacePath();
-            //printd(5, "QoreSerializable::serializeHashToStream() writing path: %d '%s'\n", static_cast<int>(path.size()), path.c_str());
-            if (stream_write_string_raw2(writer, path.c_str(), path.size(), "hashdecl path", xsink)) {
+
+            // write hashdecl string size to stream
+            if (serializeIntToStream(path.size(), writer, xsink)) {
+                return -1;
+            }
+
+            // write string
+            if (writer.write(path.c_str(), path.size(), xsink)) {
                 return -1;
             }
         }
         else {
-            // write -1 to indicate no hashdecl
-            writer.writei2(-1, xsink);
-            if (*xsink) {
+            // write data type code to stream
+            if (writer.writei1(QSSDT_HASH, xsink)) {
                 return -1;
             }
         }
     }
 
     // write hash size to stream
-    writer.writei4(h.size(), xsink);
-    if (*xsink) {
+    if (serializeIntToStream(h.size(), writer, xsink)) {
         return -1;
     }
 
     ConstHashIterator hi(h);
     while (hi.next()) {
         // write key string to stream
-        if (stream_write_string_value(writer, hi.getKey(), strlen(hi.getKey()), nullptr, xsink)) {
+        if (serializeStringToStream(writer, hi.getKey(), strlen(hi.getKey()), QCS_DEFAULT, xsink)) {
             return -1;
         }
 
@@ -900,6 +824,262 @@ int QoreSerializable::serializeHashToStream(const QoreHashNode& h, StreamWriter&
     }
 
     return 0;
+}
+
+int QoreSerializable::serializeStringToStream(const QoreStringNode& str, StreamWriter& writer, ExceptionSink* xsink) {
+    return serializeStringToStream(writer, str.c_str(), str.size(), str.getEncoding(), xsink);
+}
+
+int QoreSerializable::serializeStringToStream(StreamWriter& writer, const char* str, size_t len, const QoreEncoding* enc, ExceptionSink* xsink) {
+    // write string encoding if not UTF-8
+    if (enc && enc != QCS_UTF8) {
+        // write data type code to stream
+        if (writer.writei1(QSSDT_STRING, xsink)) {
+            return -1;
+        }
+        // get encoding string
+        const char* enc_str = enc->getCode();
+        size_t enc_len = strlen(enc_str);
+
+        // write encoding string size to stream
+        if (QoreSerializable::serializeIntToStream(enc_len, writer, xsink)) {
+            return -1;
+        }
+
+        // write string
+        if (writer.write(enc_str, enc_len, xsink)) {
+            return -1;
+        }
+    }
+    else {
+        // write data type code to stream
+        if (writer.writei1(QSSDT_UTF8_STRING, xsink)) {
+            return -1;
+        }
+    }
+
+    // write string size
+    if (QoreSerializable::serializeIntToStream(len, writer, xsink)) {
+        return -1;
+    }
+
+    // write string
+    return writer.write(str, len, xsink);
+}
+
+int QoreSerializable::serializeIntToStream(int64 i, StreamWriter& writer, ExceptionSink* xsink) {
+    if (i >= -128 & i <= 127) {
+        // write data type code to stream
+        if (!writer.writei1(QSSDT_INT1, xsink)) {
+            // write integer to stream
+            return writer.writei1((signed char)i, xsink);
+        }
+    }
+    else if (i >= -32768 && i <= 32767) {
+        // write data type code to stream
+        if (!writer.writei1(QSSDT_INT2, xsink)) {
+            // write integer to stream
+            return writer.writei2((int16_t)i, xsink);
+        }
+    }
+    else if (i >= -2147483648 && i <= 2147483647) {
+        // write data type code to stream
+        if (!writer.writei1(QSSDT_INT4, xsink)) {
+            // write integer to stream
+            return writer.writei4((int32_t)i, xsink);
+        }
+    }
+    else {
+        // write data type code to stream
+        if (!writer.writei1(QSSDT_INT8, xsink)) {
+            // write integer to stream
+            return writer.writei8((int64_t)i, xsink);
+        }
+    }
+
+    return -1;
+}
+
+int QoreSerializable::serializeBoolToStream(bool b, StreamWriter& writer, ExceptionSink* xsink) {
+    // write data type code to stream
+    if (!writer.writei1(QSSDT_BOOLEAN, xsink)) {
+        // write bool to stream
+        return writer.writei1((signed char)b, xsink);
+    }
+
+    return -1;
+}
+
+int QoreSerializable::serializeListToStream(const QoreListNode& l, StreamWriter& writer, ExceptionSink* xsink) {
+    // write data type code to stream
+    if (writer.writei1(QSSDT_LIST, xsink)) {
+        return -1;
+    }
+
+    // write list size to stream
+    if (serializeIntToStream(l.size(), writer, xsink)) {
+        return -1;
+    }
+
+    ConstListIterator i(l);
+    while (i.next()) {
+        if (serializeValueToStream(i.getValue(), writer, xsink)) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+int QoreSerializable::serializeFloatToStream(double f, StreamWriter& writer, ExceptionSink* xsink) {
+    // write data type code to stream
+    if (!writer.writei1(QSSDT_FLOAT, xsink)) {
+        // write value to stream
+        int64* i = reinterpret_cast<int64*>(&f);
+        return writer.writei8(*i, xsink);
+    }
+
+    return -1;
+}
+
+int QoreSerializable::serializeNumberToStream(const QoreNumberNode& n, StreamWriter& writer, ExceptionSink* xsink) {
+    // write data type code to stream
+    if (writer.writei1(QSSDT_NUMBER, xsink)) {
+        return -1;
+    }
+
+    QoreString tmp;
+    n.toString(tmp, QORE_NF_SCIENTIFIC|QORE_NF_RAW);
+    if (tmp == "inf") {
+        tmp.set("@inf@n");
+    }
+    else if (tmp == "-inf") {
+        tmp.set("-@inf@n");
+    }
+    else if (tmp == "nan") {
+        tmp.set("@nan@n");
+    }
+    else {
+        tmp.concat('n');
+    }
+    // append precision
+    tmp.sprintf("{%u}", n.getPrec());
+
+    // write number string size
+    if (QoreSerializable::serializeIntToStream(tmp.size(), writer, xsink)) {
+        return -1;
+    }
+
+    // write number string
+    return writer.write(tmp.c_str(), tmp.size(), xsink);
+}
+
+// absolute dates:
+//   utc zones:    int epoch | int us | int offset
+//   region zones: int epoch | int us | string region
+// relative dates:
+//   int size "P..."
+int QoreSerializable::serializeDateToStream(const DateTimeNode& n, StreamWriter& writer, ExceptionSink* xsink) {
+    if (n.isAbsolute()) {
+        // write data type code to stream
+        if (writer.writei1(QSSDT_ABSDATE, xsink)) {
+            return -1;
+        }
+
+        // write epoch to stream
+        int64 epoch = n.getEpochMicrosecondsUTC();
+        if (serializeIntToStream(epoch, writer, xsink)) {
+            return -1;
+        }
+
+        // write microseconds to stream
+        int us = n.getMicrosecond();
+        if (serializeIntToStream(us, writer, xsink)) {
+            return -1;
+        }
+
+        // write zone type to stream
+        const AbstractQoreZoneInfo* zone = n.getZone();
+        if (dynamic_cast<const QoreOffsetZoneInfo*>(zone)) {
+            int utc_offset = AbstractQoreZoneInfo::getUTCOffset(zone);
+
+            // write UTC offset to stream
+            if (serializeIntToStream(utc_offset, writer, xsink)) {
+                return -1;
+            }
+        }
+        else {
+            const char* region = AbstractQoreZoneInfo::getRegionName(zone);
+            assert(region);
+
+            if (serializeStringToStream(writer, region, strlen(region), nullptr, xsink)) {
+                return -1;
+            }
+        }
+
+        return 0;
+    }
+
+    // relative date
+    if (writer.writei1(QSSDT_RELDATE, xsink)) {
+        return -1;
+    }
+
+    QoreString str;
+
+    if (n.hasValue()) {
+        qore_tm info;
+        n.getInfo(info);
+
+        if (info.year) {
+            str.sprintf("%dY", info.year);
+        }
+        if (info.month) {
+            str.sprintf("%dM", info.month);
+        }
+        if (info.day) {
+            str.sprintf("%dD", info.day);
+        }
+
+        bool has_t = false;
+
+        if (info.hour) {
+            str.sprintf("T%dH", info.hour);
+            has_t = true;
+        }
+        if (info.minute) {
+            if (!has_t) {
+                str.concat('T');
+                has_t = true;
+            }
+            str.sprintf("%dM", info.minute);
+        }
+        if (info.second) {
+            if (!has_t) {
+                str.concat('T');
+                has_t = true;
+            }
+            str.sprintf("%dS", info.second);
+        }
+        if (info.us) {
+            if (!has_t) {
+                str.concat('T');
+                has_t = true;
+            }
+            str.sprintf("%du", info.us);
+        }
+    }
+    else {
+        str.concat("0D");
+    }
+
+    // write string size
+    if (QoreSerializable::serializeIntToStream(str.size(), writer, xsink)) {
+        return -1;
+    }
+
+    // write string
+    return writer.write(str.c_str(), str.size(), xsink);
 }
 
 QoreValue QoreSerializable::deserialize(InputStream& stream, ExceptionSink* xsink) {
@@ -953,8 +1133,38 @@ QoreValue QoreSerializable::deserializeValueFromStream(StreamReader& reader, Exc
     }
 
     switch (code) {
-        case QSSDT_HASH: return deserializeHashFromStream(reader, xsink);
-        case QSSDT_STRING: return deserializeStringFromStream(reader, xsink);
+        case QSSDT_HASH:
+        case QSSDT_HASHDECL:
+            return deserializeHashFromStream(reader, code, xsink);
+
+        case QSSDT_STRING:
+        case QSSDT_UTF8_STRING:
+            return deserializeStringFromStream(reader, code, xsink);
+
+        case QSSDT_INT1:
+        case QSSDT_INT2:
+        case QSSDT_INT4:
+        case QSSDT_INT8:
+            return deserializeIntFromStream(reader, code, xsink);
+
+        case QSSDT_BOOLEAN:
+            return deserializeBoolFromStream(reader, xsink);
+
+        case QSSDT_LIST:
+            return deserializeListFromStream(reader, xsink);
+
+        case QSSDT_FLOAT:
+            return deserializeFloatFromStream(reader, xsink);
+
+        case QSSDT_NUMBER:
+            return deserializeNumberFromStream(reader, xsink);
+
+        case QSSDT_ABSDATE:
+            return deserializeAbsDateFromStream(reader, xsink);
+
+        case QSSDT_RELDATE:
+            return deserializeRelDateFromStream(reader, xsink);
+
         default:
             break;
     }
@@ -963,27 +1173,40 @@ QoreValue QoreSerializable::deserializeValueFromStream(StreamReader& reader, Exc
     return QoreValue();
 }
 
-QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, ExceptionSink* xsink) {
-    // read hashdecl type to stream, if any, otherwise -1 = no hashdecl type
-    int64 size = reader.readi2(xsink);
+int64 QoreSerializable::readIntFromStream(StreamReader& reader, const char* type, ExceptionSink* xsink) {
+    // read int code
+    int64 code = reader.readi1(xsink);
     if (*xsink) {
-        return nullptr;
-    }
-    if (!size || (size < 0 && size != -1)) {
-        xsink->raiseException("DESERIALIZATION-ERROR", "invalid size " QLLD " in stream for hash type", size);
-        return nullptr;
+        return 0;
     }
 
+    if (!CODE_IS_INT(code)) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "expecting integer code for the %s value; got invalid code %d instead", type, code);
+        return 0;
+    }
+
+    int64 size = deserializeIntFromStream(reader, code, xsink);
+    if (*xsink) {
+        return 0;
+    }
+
+    if (size < 0) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "stream data gives an invalid %s value (" QLLD ")", size);
+        return 0;
+    }
+
+    return size;
+}
+
+QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, int64 code, ExceptionSink* xsink) {
     const TypedHashDecl* thd;
-    if (size != -1) {
+    int64 size;
+    if (code == QSSDT_HASHDECL) {
         // read hashdecl path string
         QoreString path_str;
-        path_str.reserve(size);
-
-        if (reader.read(xsink, const_cast<char*>(path_str.c_str()), size) == -1) {
+        if (readStringFromStream(reader, path_str, "hashdecl tag", xsink)) {
             return nullptr;
         }
-        path_str.terminate(size);
 
         const QoreNamespace* pns = nullptr;
         thd = getProgram()->findHashDecl(path_str.c_str(), pns);
@@ -993,17 +1216,13 @@ QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, 
         }
     }
     else {
+        assert(code == QSSDT_HASH);
         thd = nullptr;
     }
 
     // now read in the number of hash keys
-    size = reader.readi4(xsink);
+    size = readIntFromStream(reader, "hash keys", xsink);
     if (*xsink) {
-        return nullptr;
-    }
-
-    if (size < 0) {
-        xsink->raiseException("DESERIALIZATION-ERROR", "stream data gives an invalid number of hash keys (" QLLD ")", size);
         return nullptr;
     }
 
@@ -1012,21 +1231,17 @@ QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, 
     // read in hash keys
     for (int64 i = 0; i < size; ++i) {
         // read key type (must be string)
-        int64 code = reader.readi1(xsink);
+        code = reader.readi1(xsink);
         if (*xsink) {
             return nullptr;
         }
-        if (code != QSSDT_STRING) {
+        if (code != QSSDT_UTF8_STRING && code != QSSDT_STRING) {
             xsink->raiseException("DESERIALIZATION-ERROR", "expecting string type for hash key; got type %d instead", static_cast<int>(code));
             return nullptr;
         }
 
-        SimpleRefHolder<QoreStringNode> key(deserializeStringFromStream(reader, xsink));
+        SimpleRefHolder<QoreStringNode> key(deserializeStringFromStream(reader, code, xsink));
         if (*xsink) {
-            return nullptr;
-        }
-        if (key->getEncoding() != QCS_UTF8) {
-            xsink->raiseException("DESERIALIZATION-ERROR", "expecting string with 'UTF-8' encoding for hash key; got encoding '%s' instead", key->getEncoding()->getCode());
             return nullptr;
         }
 
@@ -1047,7 +1262,224 @@ QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, 
     return thd ? typed_hash_decl_private::get(*thd)->newHash(*h, true, xsink) : h.release();
 }
 
-QoreStringNode* QoreSerializable::deserializeStringFromStream(StreamReader& reader, ExceptionSink* xsink) {
+int QoreSerializable::readStringFromStream(StreamReader& reader, QoreString& str, const char* type, ExceptionSink* xsink) {
+    // read string size
+    int64 size = readIntFromStream(reader, "string size", xsink);
+    if (*xsink) {
+        return -1;
+    }
+
+    // read in string data
+    str.reserve(size);
+    if (reader.read(xsink, const_cast<char*>(str.c_str()), size) == -1) {
+        return -1;
+    }
+    str.terminate(size);
+    return 0;
+}
+
+QoreStringNode* QoreSerializable::deserializeStringFromStream(StreamReader& reader, int64 code, ExceptionSink* xsink) {
     SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
-    return stream_read_string_value(reader, **str, xsink) == -1 ? nullptr : str.release();
+
+    int64 size;
+    const QoreEncoding* enc;
+    if (code == QSSDT_STRING) {
+        // read encoding string
+        QoreString enc_str;
+        if (readStringFromStream(reader, enc_str, "encoding", xsink)) {
+            return nullptr;
+        }
+        enc = QEM.findCreate(enc_str.c_str());
+    }
+    else {
+        assert(code == QSSDT_UTF8_STRING);
+        enc = QCS_UTF8;
+    }
+
+    if (readStringFromStream(reader, **str, "data", xsink)) {
+        return nullptr;
+    }
+
+    str->setEncoding(enc);
+    return str.release();
+}
+
+int64 QoreSerializable::deserializeIntFromStream(StreamReader& reader, int64 code, ExceptionSink* xsink) {
+    int64 i;
+    switch (code) {
+        case QSSDT_INT1: i = reader.readi1(xsink); break;
+        case QSSDT_INT2: i = reader.readi2(xsink); break;
+        case QSSDT_INT4: i = reader.readi4(xsink); break;
+        case QSSDT_INT8: i = reader.readi8(xsink); break;
+        default:
+            assert(false);
+            break;
+    }
+
+    return *xsink ? 0 : i;
+}
+
+bool QoreSerializable::deserializeBoolFromStream(StreamReader& reader, ExceptionSink* xsink) {
+    return (bool)reader.readi1(xsink);
+}
+
+QoreListNode* QoreSerializable::deserializeListFromStream(StreamReader& reader, ExceptionSink* xsink) {
+    // read list size from stream
+    int64 size = readIntFromStream(reader, "list size", xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(autoTypeInfo), xsink);
+
+    for (int64 i = 0; i < size; ++i) {
+        ValueHolder val(deserializeValueFromStream(reader, xsink), xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+    }
+
+    return rv.release();
+}
+
+double QoreSerializable::deserializeFloatFromStream(StreamReader& reader, ExceptionSink* xsink) {
+    int64 i = reader.readi8(xsink);
+    double* f = reinterpret_cast<double*>(&i);
+    return *f;
+}
+
+static unsigned is_prec(const char* str, size_t len) {
+    //printd(5, "is_prec str: '%s' len: %d strlen: %d\n", str, len, strlen(str));
+    if (*str != '{') {
+        return 0;
+    }
+
+    const char* p = str + 1;
+    while (isdigit(*p)) {
+        ++p;
+    }
+    if (p == (str + 1) || *p != '}' || static_cast<size_t>(p - str + 1) != len) {
+        return 0;
+    }
+
+    return static_cast<unsigned>(atoi(str + 1));
+}
+
+QoreNumberNode* QoreSerializable::deserializeNumberFromStream(StreamReader& reader, ExceptionSink* xsink) {
+    QoreString tmp;
+    if (readStringFromStream(reader, tmp, "arbitrary-precision number", xsink)) {
+        return nullptr;
+    }
+
+    const char* val = tmp.c_str();
+    bool sign = (*val == '-' || *val == '+');
+
+    // check for @inf@ and @nan@
+    if (!strncasecmp(val + sign, "@nan@", 5) || !strncasecmp(val + sign, "@inf@", 5)) {
+        if (val[5 + sign] == 'n') {
+            if (tmp.size() == static_cast<size_t>(6 + sign)) {
+                return new QoreNumberNode(val);
+            }
+            else {
+                unsigned prec = is_prec(val + sign + 6, tmp.size() - sign - 6);
+                if (prec) {
+                    return new QoreNumberNode(val, prec);
+                }
+            }
+        }
+        xsink->raiseException("DESERIALIZATION-ERROR", "invalid number string '%s' read from stream", tmp.c_str());
+        return nullptr;
+    }
+
+    const char* p = strchr(val, '{');
+    if (p) {
+        unsigned prec = is_prec(p, tmp.size() - (p - val));
+        //printd(5, "%s prec %d\n", val, prec);
+        if (prec) {
+            return new QoreNumberNode(val, prec);
+        }
+        else {
+            xsink->raiseException("DESERIALIZATION-ERROR", "invalid number string '%s' read from stream", tmp.c_str());
+            return nullptr;
+        }
+    }
+
+    return new QoreNumberNode(val);
+}
+
+// absolute dates:
+//   utc zones:    int epoch | int us | int1 zt = 0 | int offset
+//   region zones: int epoch | int us | int1 zt = 1 | string region
+DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reader, ExceptionSink* xsink) {
+    // read in epoch
+    int64 epoch = readIntFromStream(reader, "absolute date epoch", xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    int64 us = readIntFromStream(reader, "absolute date microseconds", xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    // read key type (must be string)
+    int64 zt = reader.peek(xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    if (!CODE_IS_INT(zt) && zt != QSSDT_UTF8_STRING) {
+        xsink->raiseException("DESERIALIZATION-ERROR", "invalid absolute date zone type " QLLD " read from stream; expecting an integer or UTF-8 string type", zt);
+        return nullptr;
+    }
+
+    const AbstractQoreZoneInfo* zone;
+    if (CODE_IS_INT(zt)) {
+        // read UTC offset
+        int64 seconds_east = readIntFromStream(reader, "absolute date UTC offset", xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+
+        zone = QTZM.findCreateOffsetZone(seconds_east);
+    }
+    else {
+        // read data type code
+        int64 code = reader.readi1(xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+        assert(code = QSSDT_UTF8_STRING);
+
+        QoreString region;
+        if (readStringFromStream(reader, region, "absolute date region", xsink)) {
+            return nullptr;
+        }
+
+        bool is_path = (!region.empty() && region.c_str()[0] == '.') || q_absolute_path(region.c_str());
+        if (is_path && runtime_check_parse_option(PO_NO_FILESYSTEM)) {
+            xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot create a TimeZone object from absolute path '%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region.c_str());
+        }
+
+        zone = is_path
+            ? QTZM.findLoadRegionFromPath(region.c_str(), xsink)
+            : QTZM.findLoadRegion(region.c_str(), xsink);
+
+        if (*xsink) {
+            return nullptr;
+        }
+    }
+
+    return DateTimeNode::makeAbsolute(zone, epoch, us);
+}
+
+// relative dates:
+//   int size "P..."
+DateTimeNode* QoreSerializable::deserializeRelDateFromStream(StreamReader& reader, ExceptionSink* xsink) {
+    QoreString str;
+    if (readStringFromStream(reader, str, "relative date", xsink)) {
+        return nullptr;
+    }
+
+    return new DateTimeNode(str.c_str());
 }

@@ -89,8 +89,19 @@ protected:
 
     DLLLOCAL static QoreListNode* serializeListToData(const QoreListNode& l, ReferenceHolder<QoreHashNode>& index, imap_t& imap, ExceptionSink* xsink);
 
+    DLLLOCAL static int readStringFromStream(StreamReader& reader, QoreString& str, const char* type, ExceptionSink* xsink);
+    DLLLOCAL static int64 readIntFromStream(StreamReader& reader, const char* type, ExceptionSink* xsink);
+
     DLLLOCAL static int serializeValueToStream(const QoreValue val, StreamWriter& writer, ExceptionSink* xsink);
     DLLLOCAL static int serializeHashToStream(const QoreHashNode& h, StreamWriter& writer, ExceptionSink* xsink);
+    DLLLOCAL static int serializeStringToStream(const QoreStringNode& str, StreamWriter& writer, ExceptionSink* xsink);
+    DLLLOCAL static int serializeStringToStream(StreamWriter& writer, const char* key, size_t len, const QoreEncoding* enc, ExceptionSink* xsink);
+    DLLLOCAL static int serializeIntToStream(int64 i, StreamWriter& writer, ExceptionSink* xsink);
+    DLLLOCAL static int serializeBoolToStream(bool b, StreamWriter& writer, ExceptionSink* xsink);
+    DLLLOCAL static int serializeListToStream(const QoreListNode& l, StreamWriter& writer, ExceptionSink* xsink);
+    DLLLOCAL static int serializeFloatToStream(double f, StreamWriter& writer, ExceptionSink* xsink);
+    DLLLOCAL static int serializeNumberToStream(const QoreNumberNode& n, StreamWriter& writer, ExceptionSink* xsink);
+    DLLLOCAL static int serializeDateToStream(const DateTimeNode& n, StreamWriter& writer, ExceptionSink* xsink);
 
     DLLLOCAL static void serializeToStream(const QoreHashNode& h, OutputStream& stream, ExceptionSink* xsink);
 
@@ -104,9 +115,23 @@ protected:
 
     DLLLOCAL static QoreValue deserializeValueFromStream(StreamReader& reader, ExceptionSink* xsink);
 
-    DLLLOCAL static QoreHashNode* deserializeHashFromStream(StreamReader& reader, ExceptionSink* xsink);
+    DLLLOCAL static QoreHashNode* deserializeHashFromStream(StreamReader& reader, int64 code, ExceptionSink* xsink);
 
-    DLLLOCAL static QoreStringNode* deserializeStringFromStream(StreamReader& reader, ExceptionSink* xsink);
+    DLLLOCAL static QoreStringNode* deserializeStringFromStream(StreamReader& reader, int64 code, ExceptionSink* xsink);
+
+    DLLLOCAL static int64 deserializeIntFromStream(StreamReader& reader, int64 code, ExceptionSink* xsink);
+
+    DLLLOCAL static bool deserializeBoolFromStream(StreamReader& reader, ExceptionSink* xsink);
+
+    DLLLOCAL static QoreListNode* deserializeListFromStream(StreamReader& reader, ExceptionSink* xsink);
+
+    DLLLOCAL static double deserializeFloatFromStream(StreamReader& reader, ExceptionSink* xsink);
+
+    DLLLOCAL static QoreNumberNode* deserializeNumberFromStream(StreamReader& reader, ExceptionSink* xsink);
+
+    DLLLOCAL static DateTimeNode* deserializeAbsDateFromStream(StreamReader& reader, ExceptionSink* xsink);
+
+    DLLLOCAL static DateTimeNode* deserializeRelDateFromStream(StreamReader& reader, ExceptionSink* xsink);
 };
 
 #endif // _QORE_CLASS_INTERN_QORESERIALIZABLE_H
