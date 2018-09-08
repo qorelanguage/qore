@@ -141,12 +141,17 @@ class SerializableTest inherits QUnit::Test {
                 "b": "hello",
                 "key": True,
             },
+            new hash<StatInfo>({"size": 1001}),
             @inf@n,
             -@inf@n,
             @inf@,
             -@inf@,
             "'single quoted string'",
             "'1234'",
+            NULL,
+            -1Y - 2M - 3D - 4h - 5m - 6s - 7us,
+            now_us() - years(3000),
+            # note that we cannot test @nan@n and @nan@ as @nan@[n] != @nan@[n]
         );
     }
 
@@ -216,6 +221,18 @@ class SerializableTest inherits QUnit::Test {
                 assertEq(2, t2.get());
                 assertEq(2, t2.geti());
                 assertEq(3, t2.getfi());
+
+                t2 = Serializable::deserialize(t.serialize());
+                assertEq(1, t2.skip);
+                assertEq(2, t2.get());
+                assertEq(2, t2.geti());
+                assertEq(3, t2.getfi());
+
+                t2 = Serializable::deserialize(Serializable::serialize(t));
+                assertEq(1, t2.skip);
+                assertEq(2, t2.get());
+                assertEq(2, t2.geti());
+                assertEq(3, t2.getfi());
             }
 
             #printf("t: %N\n", t1);
@@ -236,6 +253,12 @@ class SerializableTest inherits QUnit::Test {
             BinaryInputStream bis(bin_data);
 
             Test t2 = Serializable::deserialize(bis);
+            assertEq(t2.t, t2);
+
+            t2 = Serializable::deserialize(t.serialize());
+            assertEq(t2.t, t2);
+
+            t2 = Serializable::deserialize(Serializable::serialize(t));
             assertEq(t2.t, t2);
         }
 
@@ -266,6 +289,11 @@ class SerializableTest inherits QUnit::Test {
             assertTrue(l2[0].l[1] == l2[2]);
             assertTrue(l2[0].l[2] == l2[0]);
             #printf("l2: %N\n", l2);
+
+            l2 = Serializable::deserialize(Serializable::serialize(l));
+            assertTrue(l2[0].l[0] == l2[1]);
+            assertTrue(l2[0].l[1] == l2[2]);
+            assertTrue(l2[0].l[2] == l2[0]);
         }
 
         {
@@ -277,6 +305,9 @@ class SerializableTest inherits QUnit::Test {
             Serializable::serialize(Data, bin);
             BinaryInputStream bis(bin.getData());
             d = Serializable::deserialize(bis);
+            assertEq(Data, d);
+
+            d = Serializable::deserialize(Serializable::serialize(Data));
             assertEq(Data, d);
         }
 
@@ -304,6 +335,12 @@ class SerializableTest inherits QUnit::Test {
             h1 = h;
             h1._index."0"._class_data."Qore::Serializable" = {};
             assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+            tz1 = Serializable::deserialize(tz.serialize());
+            assertEq("Europe/Prague", tz1.region());
+
+            tz1 = Serializable::deserialize(Serializable::serialize(tz));
+            assertEq("Europe/Prague", tz1.region());
         }
     }
 }

@@ -12,8 +12,8 @@
     to support the new API and ABI.
 
     @subsection qore_09_compatibility Changes That Can Affect Backwards-Compatibility
-    - Qore classes and functions can no longer be modified after creation; any attempt to add a new user
-      variant to an existing function or to add new declarations to an existing class will result in a
+    - Qore classes and functions are now immutable once created; any attempt to add a new user
+      variant to an existing function or method or to add new declarations to an existing class will result in a
       parse error.
     - @ref Qore::Program "Program" objects now only support a single complete parse action
       (@ref Qore::Program::parse() "Program::parse()" or @ref Qore::Program::parseCommit() "Program::parseCommit()");
@@ -33,10 +33,15 @@
     - the default thread stack size was changed from 8MB to 512KB resulting in a large reduction in the total
       memory used in programs with many threads (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
     - a new reflection API module: <a href="../../modules/reflection/html/index.html">reflection</a>
-    - language runtime support for @ref Qore::Serializable "object serialization"; the following builtin classes support serialization:
-      - @ref Qore::SQL::Datasource "Datasource"
-      - @ref Qore::SQL::DatasourcePool "DatasourcePool"
-      - @ref Qore::TimeZone "TimeZone"
+    - language runtime support for @ref Qore::Serializable "data and object serialization"
+      - all data types except @ref closure "closures", @ref call_reference "call references",
+        @ref lvalue_references "references", and non-serializable objects can be serializeed
+      - all objects from classes inheriting @ref Qore::Serializable "Serializable" can be serialized
+      - class members declared with the @ref transient "transient" keyword (new in this release) will not be serialized
+      - the following builtin classes support serialization:
+        - @ref Qore::SQL::Datasource "Datasource"
+        - @ref Qore::SQL::DatasourcePool "DatasourcePool"
+        - @ref Qore::TimeZone "TimeZone"
     - new classes:
       - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
       - @ref Qore::Serializable "Serializable"
