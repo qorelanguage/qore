@@ -993,21 +993,21 @@ int QoreSerializable::serializeStringToStream(StreamWriter& writer, const char* 
 }
 
 int QoreSerializable::serializeIntToStream(int64 i, StreamWriter& writer, ExceptionSink* xsink) {
-    if (i >= -128 & i <= 127) {
+    if ((i >= -128) & (i <= 127)) {
         // write data type code to stream
         if (!writer.writei1(QSSDT_INT1, xsink)) {
             // write integer to stream
             return writer.writei1((signed char)i, xsink);
         }
     }
-    else if (i >= -32768 && i <= 32767) {
+    else if ((i >= -32768) && (i <= 32767)) {
         // write data type code to stream
         if (!writer.writei1(QSSDT_INT2, xsink)) {
             // write integer to stream
             return writer.writei2((int16_t)i, xsink);
         }
     }
-    else if (i >= -2147483648 && i <= 2147483647) {
+    else if ((i >= -2147483648) && (i <= 2147483647)) {
         // write data type code to stream
         if (!writer.writei1(QSSDT_INT4, xsink)) {
             // write integer to stream
@@ -1431,7 +1431,6 @@ int QoreSerializable::readStringFromStream(StreamReader& reader, QoreString& str
 QoreStringNode* QoreSerializable::deserializeStringFromStream(StreamReader& reader, int64 code, ExceptionSink* xsink) {
     SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
 
-    int64 size;
     const QoreEncoding* enc;
     if (code == QSSDT_STRING) {
         // read encoding string

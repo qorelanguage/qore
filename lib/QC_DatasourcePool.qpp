@@ -33,6 +33,7 @@
 #include <qore/DBI.h>
 
 #include "qore/intern/QC_DatasourcePool.h"
+#include "qore/intern/QC_Serializable.h"
 
 DLLLOCAL extern QoreClass* QC_ABSTRACTDATASOURCE;
 DLLLOCAL extern QoreClass* QC_ABSTRACTSQLSTATEMENT;

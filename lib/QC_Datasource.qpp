@@ -31,6 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/QC_Datasource.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/QC_Serializable.h"
 
 DLLLOCAL extern QoreClass* QC_ABSTRACTDATASOURCE;
 DLLLOCAL extern QoreClass* QC_ABSTRACTSQLSTATEMENT;

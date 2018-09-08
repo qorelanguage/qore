@@ -1151,7 +1151,7 @@ list<hash<NetIfInfo>> get_netif_list() [dom=EXTERNAL_INFO] {
                 struct sockaddr_ll* s = (struct sockaddr_ll*)ifa->ifa_addr;
                 QoreStringNode* addrstr = new QoreStringNode;
                 for (unsigned i = 0; i < s->sll_halen; ++i) {
-                    addrstr->sprintf("%02x%s", s->sll_addr[i], i < (s->sll_halen - 1) ? ":" : "");
+                    addrstr->sprintf("%02x%s", s->sll_addr[i], static_cast<int>(i) < (s->sll_halen - 1) ? ":" : "");
                 }
                 hh->setKeyValueIntern("address", addrstr);
                 hh->setKeyValueIntern("address_desc", QoreAddrInfo::getAddressDesc(ifa->ifa_addr->sa_family, addrstr->c_str()));
