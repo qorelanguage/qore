@@ -38,6 +38,9 @@
         @ref lvalue_references "references", and non-serializable objects can be serializeed
       - all objects from classes inheriting @ref Qore::Serializable "Serializable" can be serialized
       - class members declared with the @ref transient "transient" keyword (new in this release) will not be serialized
+        but instead will get their default values when deserialized
+      - classes can define their own local deserialization logic by defining the
+        @ref Qore::Serializable::deserializeMembers() "deserializeMembers()" method
       - the following builtin classes support serialization:
         - @ref Qore::SQL::Datasource "Datasource"
         - @ref Qore::SQL::DatasourcePool "DatasourcePool"

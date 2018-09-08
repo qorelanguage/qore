@@ -190,6 +190,41 @@ binary Serializable::serialize() {
     return *xsink ? QoreValue() : stream->getData(xsink);
 }
 
+//! overrides the default automatic member assignment loggic for user class during data deserialization
+/** @par Example:
+    @code{.py}
+class MyClass inherits Serializable {
+    private:internal {
+        transient string my_special_member;
+    }
+
+    # when defining this member, all member assignment during deserialization must be performed by this method,
+    # even for transient members, as no automatic member assignment will be performed
+    deserializeMembers(*hash<auto> members) {
+        my_special_member = get_special_value();
+        self += members;
+    }
+}
+    @endcode
+
+    This method is special in that it is only called for user classes for each
+    class in a class hierarchy if the method is defined.
+
+    This method in the base class does nothing and should not be called from user classes.
+
+    This method can be used to implement special deserialization logic when deserializing
+    members of a particular class in a class hierarchy.
+
+    @param members locally-defined deserialized members to assign to the local class to be assigned manually in this method;
+    this hash will be empty if no members were serialized
+
+    @note If this method is defined, then the class must assign its own members including
+    transient members, as automatic member initialization will not be performed for the
+    local class by the deserialization logic in this case.
+*/
+nothing Serializable::deserializeMembers(hash<auto> members) {
+}
+
 //! Deserializes data produced with serialize() and returns the value represented by the data
 /** @par Example:
     @code{.py}

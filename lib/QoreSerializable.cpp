@@ -526,6 +526,12 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                 }
                 else {
                     if (cmh) {
+                        // see if the local class has a deserializeMembers() method defined
+                        const QoreMethod* deserializeMembers = mcls->findLocalMethod("deserializeMembers");
+
+                        // build deserialized meember hash for deserializeMembers() method if it exists
+                        ReferenceHolder<QoreHashNode> dmh(deserializeMembers ? new QoreHashNode(autoTypeInfo) : nullptr, xsink);
+
                         // deserialize members
                         ConstHashIterator cmhi(cmh);
                         while (cmhi.next()) {
@@ -534,28 +540,43 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                                 return QoreValue();
                             }
 
-                            obj->setMemberValue(cmhi.getKey(), mcls, *vh, xsink);
+                            if (!deserializeMembers) {
+                                obj->setMemberValue(cmhi.getKey(), mcls, *vh, xsink);
+                            }
+                            else {
+                                dmh->setKeyValue(cmhi.getKey(), vh.release(), xsink);
+                            }
                             if (*xsink) {
                                 return QoreValue();
                             }
                         }
 
-                        // initialize transient members
-                        if (mcls->hasTransientMember()) {
-                            QoreClassMemberIterator mi(mcls);
-                            while (mi.next()) {
-                                const QoreExternalNormalMember* mem = mi.getMember();
-                                if (!mem->isTransient()) {
-                                    continue;
-                                }
-                                ValueHolder val(mem->getDefaultValue(xsink), xsink);
-                                if (*xsink) {
-                                    return QoreValue();
-                                }
+                        if (deserializeMembers) {
+                            ReferenceHolder<QoreListNode> call_args(new QoreListNode(autoTypeInfo), xsink);
+                            call_args->push(dmh.release(), xsink);
+                            ValueHolder val(obj->evalMethod(*deserializeMembers, *call_args, xsink), xsink);
+                            if (*xsink) {
+                                return QoreValue();
+                            }
+                        }
+                        else {
+                            // initialize transient members
+                            if (mcls->hasTransientMember()) {
+                                QoreClassMemberIterator mi(mcls);
+                                while (mi.next()) {
+                                    const QoreExternalNormalMember* mem = mi.getMember();
+                                    if (!mem->isTransient()) {
+                                        continue;
+                                    }
+                                    ValueHolder val(mem->getDefaultValue(xsink), xsink);
+                                    if (*xsink) {
+                                        return QoreValue();
+                                    }
 
-                                obj->setMemberValue(mi.getName(), mcls, *val, xsink);
-                                if (*xsink) {
-                                    return QoreValue();
+                                    obj->setMemberValue(mi.getName(), mcls, *val, xsink);
+                                    if (*xsink) {
+                                        return QoreValue();
+                                    }
                                 }
                             }
                         }

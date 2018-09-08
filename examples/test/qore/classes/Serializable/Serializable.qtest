@@ -52,6 +52,10 @@ class Base inherits Serializable, private:internal Foundation {
         int x = 2;
     }
 
+    private {
+        int y = 3;
+    }
+
     private:internal {
         int i = 2;
     }
@@ -66,6 +70,11 @@ class Base inherits Serializable, private:internal Foundation {
 
     int getfi() {
         return Foundation::getfi();
+    }
+
+    deserializeMembers(hash<auto> members) {
+        self += members - "y";
+        self.y = -1;
     }
 }
 
@@ -110,6 +119,10 @@ class T inherits Serializable, private:internal Base {
 
     int getfi() {
         return Base::getfi();
+    }
+
+    int gety() {
+        return y;
     }
 }
 
@@ -178,6 +191,7 @@ class SerializableTest inherits QUnit::Test {
             assertEq(2, t.get());
             assertEq(2, t.geti());
             assertEq(3, t.getfi());
+            assertEq(3, t.gety());
 
             # ensure that transient members are not serialized
             assertNothing(h._index."0"._class_data.T.skip);
@@ -188,6 +202,7 @@ class SerializableTest inherits QUnit::Test {
             assertEq(2, t1.get());
             assertEq(2, t1.geti());
             assertEq(3, t1.getfi());
+            assertEq(-1, t1.gety());
 
             {
                 hash<SerializationInfo> h0 = h;
@@ -221,18 +236,21 @@ class SerializableTest inherits QUnit::Test {
                 assertEq(2, t2.get());
                 assertEq(2, t2.geti());
                 assertEq(3, t2.getfi());
+                assertEq(-1, t2.gety());
 
                 t2 = Serializable::deserialize(t.serialize());
                 assertEq(1, t2.skip);
                 assertEq(2, t2.get());
                 assertEq(2, t2.geti());
                 assertEq(3, t2.getfi());
+                assertEq(-1, t2.gety());
 
                 t2 = Serializable::deserialize(Serializable::serialize(t));
                 assertEq(1, t2.skip);
                 assertEq(2, t2.get());
                 assertEq(2, t2.geti());
                 assertEq(3, t2.getfi());
+                assertEq(-1, t2.gety());
             }
 
             #printf("t: %N\n", t1);
