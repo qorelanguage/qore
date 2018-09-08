@@ -210,7 +210,11 @@ class MyClass inherits Serializable {
     This method is special in that it is only called for user classes for each
     class in a class hierarchy if the method is defined.
 
-    This method in the base class does nothing and should not be called from user classes.
+    This method in the base class does nothing and should not be called from user classes;
+    this method is declared \c private:internal to emphasize that it is only called for
+    the local class by the internal deserialization logic; it may be declared with any
+    access permission, but in any case the method only has an effect for the local class
+    and not for the hierarchy, which makes it different than other %Qore class methods.
 
     This method can be used to implement special deserialization logic when deserializing
     members of a particular class in a class hierarchy.
@@ -222,7 +226,7 @@ class MyClass inherits Serializable {
     transient members, as automatic member initialization will not be performed for the
     local class by the deserialization logic in this case.
 */
-nothing Serializable::deserializeMembers(hash<auto> members) {
+private:internal nothing Serializable::deserializeMembers(hash<auto> members) {
 }
 
 //! Deserializes data produced with serialize() and returns the value represented by the data
@@ -303,7 +307,7 @@ static hash<SerializationInfo> Serializable::serializeToData(auto val) [flags=RE
 Serializable::serialize(val, stream);
     @endcode
 
-    @param data the data to serialize
+    @param val the data to serialize
     @param stream an output stream where the serialized data will be written
 
     All non-serializable data such as @ref closure "closures", @ref call_reference "call references",
@@ -325,7 +329,7 @@ static Serializable::serialize(auto val, OutputStream[OutputStream] stream) {
 binary bin = Serializable::serialize(val);
     @endcode
 
-    @param data the data to serialize
+    @param val the data to serialize
 
     @return serialized data representing the input data
 
