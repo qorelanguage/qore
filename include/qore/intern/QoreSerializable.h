@@ -90,7 +90,7 @@ protected:
     DLLLOCAL static QoreListNode* serializeListToData(const QoreListNode& l, ReferenceHolder<QoreHashNode>& index, imap_t& imap, ExceptionSink* xsink);
 
     DLLLOCAL static int readStringFromStream(StreamReader& reader, QoreString& str, const char* type, ExceptionSink* xsink);
-    DLLLOCAL static int64 readIntFromStream(StreamReader& reader, const char* type, ExceptionSink* xsink);
+    DLLLOCAL static int64 readIntFromStream(ExceptionSink* xsink, StreamReader& reader, const char* type, bool can_be_negative = false);
 
     DLLLOCAL static int serializeValueToStream(const QoreValue val, StreamWriter& writer, ExceptionSink* xsink);
     DLLLOCAL static int serializeHashToStream(const QoreHashNode& h, StreamWriter& writer, ExceptionSink* xsink);

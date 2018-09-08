@@ -1212,7 +1212,7 @@ QoreValue QoreSerializable::deserializeValueFromStream(StreamReader& reader, Exc
     return QoreValue();
 }
 
-int64 QoreSerializable::readIntFromStream(StreamReader& reader, const char* type, ExceptionSink* xsink) {
+int64 QoreSerializable::readIntFromStream(ExceptionSink* xsink, StreamReader& reader, const char* type, bool can_be_negative) {
     // read int code
     int64 code = reader.readi1(xsink);
     if (*xsink) {
@@ -1229,7 +1229,7 @@ int64 QoreSerializable::readIntFromStream(StreamReader& reader, const char* type
         return 0;
     }
 
-    if (size < 0) {
+    if (!can_be_negative && size < 0) {
         xsink->raiseException("DESERIALIZATION-ERROR", "stream data gives an invalid %s value (" QLLD ")", size);
         return 0;
     }
@@ -1260,7 +1260,7 @@ QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, 
     }
 
     // now read in the number of hash keys
-    size = readIntFromStream(reader, "hash keys", xsink);
+    size = readIntFromStream(xsink, reader, "hash size");
     if (*xsink) {
         return nullptr;
     }
@@ -1303,7 +1303,7 @@ QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, 
 
 int QoreSerializable::readStringFromStream(StreamReader& reader, QoreString& str, const char* type, ExceptionSink* xsink) {
     // read string size
-    int64 size = readIntFromStream(reader, "string size", xsink);
+    int64 size = readIntFromStream(xsink, reader, "string size");
     if (*xsink) {
         return -1;
     }
@@ -1364,7 +1364,7 @@ bool QoreSerializable::deserializeBoolFromStream(StreamReader& reader, Exception
 
 QoreListNode* QoreSerializable::deserializeListFromStream(StreamReader& reader, ExceptionSink* xsink) {
     // read list size from stream
-    int64 size = readIntFromStream(reader, "list size", xsink);
+    int64 size = readIntFromStream(xsink, reader, "list size");
     if (*xsink) {
         return nullptr;
     }
@@ -1453,12 +1453,12 @@ QoreNumberNode* QoreSerializable::deserializeNumberFromStream(StreamReader& read
 //   region zones: int epoch | int us | string region
 DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reader, ExceptionSink* xsink) {
     // read in epoch
-    int64 epoch = readIntFromStream(reader, "absolute date epoch", xsink);
+    int64 epoch = readIntFromStream(xsink, reader, "absolute date epoch", true);
     if (*xsink) {
         return nullptr;
     }
 
-    int64 us = readIntFromStream(reader, "absolute date microseconds", xsink);
+    int64 us = readIntFromStream(xsink, reader, "absolute date microseconds", true);
     if (*xsink) {
         return nullptr;
     }
@@ -1477,7 +1477,7 @@ DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reade
     const AbstractQoreZoneInfo* zone;
     if (CODE_IS_INT(zt)) {
         // read UTC offset
-        int64 seconds_east = readIntFromStream(reader, "absolute date UTC offset", xsink);
+        int64 seconds_east = readIntFromStream(xsink, reader, "absolute date UTC offset", true);
         if (*xsink) {
             return nullptr;
         }
@@ -1530,7 +1530,7 @@ DateTimeNode* QoreSerializable::deserializeRelDateFromStream(StreamReader& reade
 
 BinaryNode* QoreSerializable::deserializeBinaryFromStream(StreamReader& reader, ExceptionSink* xsink) {
     // read size
-    int64 size = readIntFromStream(reader, "binary object size", xsink);
+    int64 size = readIntFromStream(xsink, reader, "binary object size");
     if (*xsink) {
         return nullptr;
     }
