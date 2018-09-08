@@ -102,6 +102,7 @@ protected:
     DLLLOCAL static int serializeFloatToStream(double f, StreamWriter& writer, ExceptionSink* xsink);
     DLLLOCAL static int serializeNumberToStream(const QoreNumberNode& n, StreamWriter& writer, ExceptionSink* xsink);
     DLLLOCAL static int serializeDateToStream(const DateTimeNode& n, StreamWriter& writer, ExceptionSink* xsink);
+    DLLLOCAL static int serializeBinaryToStream(const BinaryNode& n, StreamWriter& writer, ExceptionSink* xsink);
 
     DLLLOCAL static void serializeToStream(const QoreHashNode& h, OutputStream& stream, ExceptionSink* xsink);
 
@@ -132,6 +133,8 @@ protected:
     DLLLOCAL static DateTimeNode* deserializeAbsDateFromStream(StreamReader& reader, ExceptionSink* xsink);
 
     DLLLOCAL static DateTimeNode* deserializeRelDateFromStream(StreamReader& reader, ExceptionSink* xsink);
+
+    DLLLOCAL static BinaryNode* deserializeBinaryFromStream(StreamReader& reader, ExceptionSink* xsink);
 };
 
 #endif // _QORE_CLASS_INTERN_QORESERIALIZABLE_H

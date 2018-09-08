@@ -22,16 +22,6 @@ class Err inherits Serializable {
 class Test inherits Serializable {
     public {
         Test t;
-        int i0 = 1;
-        int i2 = 1024;
-        int i4 = 100000;
-        int i8 = 23918328238923;
-        bool b = True;
-        list l = (1, "2", True);
-        float f = 1.1;
-        number n = 100n;
-        date ab = now_us();
-        date rel = now_us() - 2017-01-02;
     }
 
     constructor() {
@@ -217,15 +207,15 @@ class SerializableTest inherits QUnit::Test {
                 sis = new StringInputStream("QS" + chr(0) + "1.0" + strmul("x", 100));
                 assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), sis);
 
-                /*
                 BinaryOutputStream bin();
                 t.serialize(bin);
 
                 BinaryInputStream bis(bin.getData());
-
-                auto x = Serializable::deserialize(bis);
-                printf("x: %N\n", x);
-                */
+                T t2 = Serializable::deserialize(bis);
+                assertEq(1, t2.skip);
+                assertEq(2, t2.get());
+                assertEq(2, t2.geti());
+                assertEq(3, t2.getfi());
             }
 
             #printf("t: %N\n", t1);
@@ -267,12 +257,26 @@ class SerializableTest inherits QUnit::Test {
             assertTrue(l1[0].l[0] == l1[1]);
             assertTrue(l1[0].l[1] == l1[2]);
             assertTrue(l1[0].l[2] == l1[0]);
-            #printf("%N\n", l1);
+
+            BinaryOutputStream bin();
+            Serializable::serialize(l, bin);
+            BinaryInputStream bis(bin.getData());
+            list<RTest> l2 = Serializable::deserialize(bis);
+            assertTrue(l2[0].l[0] == l2[1]);
+            assertTrue(l2[0].l[1] == l2[2]);
+            assertTrue(l2[0].l[2] == l2[0]);
+            #printf("l2: %N\n", l2);
         }
 
         {
             hash<SerializationInfo> h = Serializable::serializeToData(Data);
             auto d = Serializable::deserialize(h);
+            assertEq(Data, d);
+
+            BinaryOutputStream bin();
+            Serializable::serialize(Data, bin);
+            BinaryInputStream bis(bin.getData());
+            d = Serializable::deserialize(bis);
             assertEq(Data, d);
         }
 

@@ -767,6 +767,20 @@ int QoreSerializable::serializeValueToStream(const QoreValue val, StreamWriter& 
             return serializeDateToStream(*val.get<DateTimeNode>(), writer, xsink);
         }
 
+        case NT_BINARY: {
+            return serializeBinaryToStream(*val.get<BinaryNode>(), writer, xsink);
+        }
+
+        case NT_NULL: {
+            // write data type code to stream
+            return writer.writei1(QSSDT_NULL, xsink);
+        }
+
+        case NT_NOTHING: {
+            // write data type code to stream
+            return writer.writei1(QSSDT_NOTHING, xsink);
+        }
+
         default:
             break;
     }
@@ -987,7 +1001,7 @@ int QoreSerializable::serializeDateToStream(const DateTimeNode& n, StreamWriter&
         }
 
         // write epoch to stream
-        int64 epoch = n.getEpochMicrosecondsUTC();
+        int64 epoch = n.getEpochSecondsUTC();
         if (serializeIntToStream(epoch, writer, xsink)) {
             return -1;
         }
@@ -1000,6 +1014,7 @@ int QoreSerializable::serializeDateToStream(const DateTimeNode& n, StreamWriter&
 
         // write zone type to stream
         const AbstractQoreZoneInfo* zone = n.getZone();
+        //printd(5, "QoreSerializable::serializeDateToStream() epoch: " QLLD " us: %d zone: '%s'\n", epoch, us, AbstractQoreZoneInfo::getRegionName(zone));
         if (dynamic_cast<const QoreOffsetZoneInfo*>(zone)) {
             int utc_offset = AbstractQoreZoneInfo::getUTCOffset(zone);
 
@@ -1020,7 +1035,8 @@ int QoreSerializable::serializeDateToStream(const DateTimeNode& n, StreamWriter&
         return 0;
     }
 
-    // relative date
+    // relative dates are written as strings to save serialization space on average
+    // write relative date type code
     if (writer.writei1(QSSDT_RELDATE, xsink)) {
         return -1;
     }
@@ -1080,6 +1096,20 @@ int QoreSerializable::serializeDateToStream(const DateTimeNode& n, StreamWriter&
 
     // write string
     return writer.write(str.c_str(), str.size(), xsink);
+}
+
+int QoreSerializable::serializeBinaryToStream(const BinaryNode& n, StreamWriter& writer, ExceptionSink* xsink) {
+    // write data type code to stream
+    if (writer.writei1(QSSDT_BINARY, xsink)) {
+        return -1;
+    }
+
+    // write size to stream
+    if (serializeIntToStream(n.size(), writer, xsink)) {
+        return -1;
+    }
+
+    return writer.write(n.getPtr(), n.size(), xsink);
 }
 
 QoreValue QoreSerializable::deserialize(InputStream& stream, ExceptionSink* xsink) {
@@ -1164,6 +1194,15 @@ QoreValue QoreSerializable::deserializeValueFromStream(StreamReader& reader, Exc
 
         case QSSDT_RELDATE:
             return deserializeRelDateFromStream(reader, xsink);
+
+        case QSSDT_BINARY:
+            return deserializeBinaryFromStream(reader, xsink);
+
+        case QSSDT_NULL:
+            return &Null;
+
+        case QSSDT_NOTHING:
+            return QoreValue();
 
         default:
             break;
@@ -1329,6 +1368,7 @@ QoreListNode* QoreSerializable::deserializeListFromStream(StreamReader& reader, 
     if (*xsink) {
         return nullptr;
     }
+    //printd(5, "QoreSerializable::deserializeListFromStream() list size: " QLLD "\n", size);
 
     ReferenceHolder<QoreListNode> rv(new QoreListNode(autoTypeInfo), xsink);
 
@@ -1337,6 +1377,7 @@ QoreListNode* QoreSerializable::deserializeListFromStream(StreamReader& reader, 
         if (*xsink) {
             return nullptr;
         }
+        rv->push(val.release(), xsink);
     }
 
     return rv.release();
@@ -1408,8 +1449,8 @@ QoreNumberNode* QoreSerializable::deserializeNumberFromStream(StreamReader& read
 }
 
 // absolute dates:
-//   utc zones:    int epoch | int us | int1 zt = 0 | int offset
-//   region zones: int epoch | int us | int1 zt = 1 | string region
+//   utc zones:    int epoch | int us | int offset
+//   region zones: int epoch | int us | string region
 DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reader, ExceptionSink* xsink) {
     // read in epoch
     int64 epoch = readIntFromStream(reader, "absolute date epoch", xsink);
@@ -1444,7 +1485,7 @@ DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reade
         zone = QTZM.findCreateOffsetZone(seconds_east);
     }
     else {
-        // read data type code
+        // read string data type code
         int64 code = reader.readi1(xsink);
         if (*xsink) {
             return nullptr;
@@ -1470,6 +1511,8 @@ DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reade
         }
     }
 
+    //printd(5, "QoreSerializable::deserializeDateFromStream() epoch: " QLLD " us: %d zone: '%s'\n", epoch, us, AbstractQoreZoneInfo::getRegionName(zone));
+
     return DateTimeNode::makeAbsolute(zone, epoch, us);
 }
 
@@ -1480,6 +1523,24 @@ DateTimeNode* QoreSerializable::deserializeRelDateFromStream(StreamReader& reade
     if (readStringFromStream(reader, str, "relative date", xsink)) {
         return nullptr;
     }
+    str.prepend("P");
 
     return new DateTimeNode(str.c_str());
+}
+
+BinaryNode* QoreSerializable::deserializeBinaryFromStream(StreamReader& reader, ExceptionSink* xsink) {
+    // read size
+    int64 size = readIntFromStream(reader, "binary object size", xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    SimpleRefHolder<BinaryNode> rv(new BinaryNode);
+    rv->preallocate(size);
+
+    if (reader.read(xsink, const_cast<void*>(rv->getPtr()), rv->size()) == -1) {
+        return nullptr;
+    }
+
+    return rv.release();
 }
