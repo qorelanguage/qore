@@ -120,6 +120,7 @@ public:
     DLLLOCAL void getPath(std::string& str, bool anchored = false) const {
         const qore_ns_private* w = parent;
         while (w && (anchored || w->parent)) {
+            //printd(5, "qore_ns_private::getPath() this: %p name: '%s' parent: %p root: %d\n", w, w->name.c_str(), parent, root);
             str.insert(0, "::");
             str.insert(0, w->name);
             w = w->parent;

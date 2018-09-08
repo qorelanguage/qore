@@ -82,6 +82,11 @@ public:
     */
     DLLEXPORT bool equal(const TypedHashDecl* other) const;
 
+    //! Returns the module name the class was loaded from or nullptr if it is a builtin class
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const char* getModuleName() const;
+
 protected:
     //! deletes the object and frees all memory
     DLLEXPORT ~TypedHashDecl();

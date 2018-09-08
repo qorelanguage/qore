@@ -468,10 +468,15 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
      typeInfo(n_typeInfo ? n_typeInfo : new QoreClassTypeInfo(cls, name.c_str())),
      orNothingTypeInfo(nullptr),
      selfid("self", typeInfo) {
-   assert(methodID == classID);
-   assert(!name.empty());
+    assert(methodID == classID);
+    assert(!name.empty());
 
-   printd(5, "qore_class_private::qore_class_private() this: %p creating '%s' ID:%d cls: %p pub: %d sys: %d\n", this, name.c_str(), classID, cls, pub, sys);
+    const char* mod_name = get_module_context_name();
+    if (mod_name) {
+        from_module = mod_name;
+    }
+
+    printd(5, "qore_class_private::qore_class_private() this: %p creating '%s' ID:%d cls: %p pub: %d sys: %d\n", this, name.c_str(), classID, cls, pub, sys);
 }
 
 // only called while the parse lock for the QoreProgram owning "old" is held
@@ -515,7 +520,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreProgra
      hash(old.hash),
      ptr(old.ptr),
      mud(old.mud ? old.mud->copy() : nullptr),
-     spgm(spgm ? spgm->programRefSelf() : nullptr) {
+     spgm(spgm ? spgm->programRefSelf() : nullptr),
+     from_module(old.from_module) {
     QORE_TRACE("qore_class_private::qore_class_private(const qore_class_private& old)");
     if (!old.initialized)
         const_cast<qore_class_private&>(old).initialize();
@@ -3089,6 +3095,10 @@ bool QoreClass::inHierarchy(const QoreClass& cls, ClassAccess& n_access) const {
 
 bool QoreClass::hasTransientMember() const {
     return priv->has_transient_member;
+}
+
+const char* QoreClass::getModuleName() const {
+    return priv->getModuleName();
 }
 
 bool QoreMethod::existsVariant(const type_vec_t &paramTypeInfo) const {

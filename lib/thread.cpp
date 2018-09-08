@@ -1380,14 +1380,19 @@ void parse_set_module_def_context_name(const char* name) {
 }
 
 const char* set_user_module_context_name(const char* n) {
-   ThreadData* td = thread_data.get();
-   const char* rv = td->user_module_context_name;
-   td->user_module_context_name = n;
-   return rv;
+    ThreadData* td = thread_data.get();
+    const char* rv = td->user_module_context_name;
+    td->user_module_context_name = n;
+    return rv;
 }
 
 const char* get_user_module_context_name() {
-   return thread_data.get()->user_module_context_name;
+    return thread_data.get()->user_module_context_name;
+}
+
+const char* get_module_context_name() {
+    ThreadData* td = thread_data.get();
+    return thread_data.get()->qmc ? thread_data.get()->qmc->getName() : td->user_module_context_name;
 }
 
 void ModuleContextNamespaceList::clear() {

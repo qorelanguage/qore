@@ -1838,6 +1838,9 @@ public:
     // pointer to owning program for imported classes
     QoreProgram* spgm = nullptr;
 
+    // the module that defined this class, if any
+    std::string from_module;
+
     DLLLOCAL qore_class_private(QoreClass* n_cls, std::string&& nme, int64 dom = QDOM_DEFAULT, QoreTypeInfo* n_typeinfo = nullptr);
 
     // only called while the parse lock for the QoreProgram owning "old" is held
@@ -1845,6 +1848,10 @@ public:
     DLLLOCAL qore_class_private(const qore_class_private& old, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass);
 
 public:
+    DLLLOCAL const char* getModuleName() const {
+        return from_module.empty() ? nullptr : from_module.c_str();
+    }
+
     DLLLOCAL void pgmRef() const {
         refs.ROreference();
         var_refs.ROreference();
@@ -3015,11 +3022,11 @@ public:
         return qc.priv->inject;
     }
 
-        DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass) {
-            qore_class_private* priv = new qore_class_private(*qc.priv, spgm, nme, inject, injectedClass);
-            //printd(5, "qore_program_private::makeImportClass() name: '%s' as '%s' inject: %d rv: %p\n", qc.getName(), priv->name.c_str(), inject, priv->cls);
-            return priv->cls;
-        }
+    DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass) {
+        qore_class_private* priv = new qore_class_private(*qc.priv, spgm, nme, inject, injectedClass);
+        //printd(5, "qore_program_private::makeImportClass() name: '%s' as '%s' inject: %d rv: %p\n", qc.getName(), priv->name.c_str(), inject, priv->cls);
+        return priv->cls;
+    }
 
     DLLLOCAL static const QoreMethod* runtimeFindCommittedStaticMethod(const QoreClass& qc, const char* nme, ClassAccess& access, const qore_class_private* class_ctx) {
         return qc.priv->runtimeFindCommittedStaticMethod(nme, access, class_ctx);

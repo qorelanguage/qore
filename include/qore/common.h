@@ -264,6 +264,8 @@ typedef long long int64;
 typedef uint64_t q_rt_flags_t;
 
 //! serialization context object used in builtin serializer methods
+/** @since %Qore 0.9
+*/
 class QoreSerializationContext {
 public:
     //! serializes the given object and return the serialization index, throws a Qore-language exception if there is an error serializing the object
@@ -272,12 +274,17 @@ public:
     //! serializes the given value and returns a serialized value representing the value to be serialized, throws a Qore-language exception if there is an error deserializing the object
     DLLLOCAL QoreValue serializeValue(const QoreValue val, ExceptionSink* xsink);
 
+    //! adds a module to be loaded when the data is deserialized
+    DLLLOCAL void addModule(const char* module);
+
 private:
     //! this class is a wrapper class that cannot be constructed
     DLLLOCAL QoreSerializationContext();
 };
 
 //! deserialization context object used in builtin deserializer methods
+/** @since %Qore 0.9
+*/
 class QoreDeserializationContext {
 public:
     //! returns the object corresponding to the given object serialization index, throws a Qore-language exception if there is an error deserializing the object

@@ -59,6 +59,10 @@ friend class typed_hash_decl_member_iterator;
 friend class TypedHashDecl;
 public:
     DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc), orig(this) {
+        const char* mod_name = get_module_context_name();
+        if (mod_name) {
+            from_module = mod_name;
+        }
     }
 
     DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, TypedHashDecl* thd) :
@@ -244,6 +248,10 @@ public:
         return ns;
     }
 
+    DLLLOCAL const char* getModuleName() const {
+        return from_module.empty() ? nullptr : from_module.c_str();
+    }
+
 protected:
     // references
     mutable QoreReferenceCounter refs;
@@ -252,6 +260,8 @@ protected:
     TypedHashDecl* thd = nullptr;
     // parent namespace
     qore_ns_private* ns = nullptr;
+    // the module that defined this class, if any
+    std::string from_module;
 
     // original declaration
     const typed_hash_decl_private* orig;

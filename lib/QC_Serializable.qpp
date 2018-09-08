@@ -49,6 +49,9 @@ static void Serializable_deserializer(QoreObject& self, const QoreHashNode* sdat
     @since %Qore 0.9
 */
 hashdecl SerializationInfo {
+    //! list of modules to load to support the data
+    *list<string> _modules;
+
     //! unique object index
     *hash<string, hash<ObjectSerializationInfo>> _index;
 
@@ -222,6 +225,8 @@ class MyClass inherits Serializable {
     This method can be used to implement special serialization logic when serializing
     members of a particular class in a class hierarchy.
 
+    @param members locally-defined serialized non-@ref transient "transient" members, if any
+
     @return member information to be passed to the class during deserialization; overrides
     the default member retrieval logic during object serialization
 
@@ -231,7 +236,7 @@ class MyClass inherits Serializable {
 
     @see deserializeMembers()
 */
-private:internal *hash<auto> Serializable::serializeMembers() {
+private:internal *hash<auto> Serializable::serializeMembers(*hash<auto> members) {
 }
 
 //! overrides the default automatic member assignment logic for user classes during data deserialization

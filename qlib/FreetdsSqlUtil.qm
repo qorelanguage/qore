@@ -162,10 +162,6 @@ public namespace FreetdsSqlUtil {
             *string filegroup;
         }
 
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractIndex(h) {
-        }
-
         #! creates the object from the arguments
         constructor(string n_name, bool n_unique, hash n_cols, *string n_filegroup) : AbstractIndex(n_name, n_unique, n_cols) {
             filegroup = n_filegroup;
@@ -194,10 +190,6 @@ public namespace FreetdsSqlUtil {
 
     #! represents a FreeTDS-specific foreign constraint
     public class FreetdsForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractForeignConstraint(h) {
-        }
-
         #! creates the constraint from the supplied arguments
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
         }
@@ -223,10 +215,6 @@ public namespace FreetdsSqlUtil {
 
     #! represents a FreeTDS-specific check constraint
     public class FreetdsCheckConstraint inherits SqlUtil::AbstractCheckConstraint {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractCheckConstraint(h) {
-        }
-
         #! creates the constraint from the supplied arguments
         constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
         }
@@ -259,10 +247,6 @@ public namespace FreetdsSqlUtil {
 
         #! empty constructor for subclasses
         private constructor() {
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractColumn(h) {
         }
 
         #! creates the column from the supplied arguments
@@ -359,11 +343,6 @@ string str = col.getRenameSql(t, "new_name");
 
     #! represents a FreeTDS-specific numeric column
     public class FreetdsNumericColumn inherits FreetdsColumn, SqlUtil::NumericColumnInfo {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) {
-            deserialize(h.members);
-        }
-
         #! creates the column from the supplied arguments
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : FreetdsColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
         }
@@ -383,10 +362,6 @@ string str = col.getRenameSql(t, "new_name");
 
         #! empty constructor for subclasses
         private constructor() {
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractUniqueConstraint(h) {
         }
 
         #! creates the constraint with an optional filegroup name
@@ -432,11 +407,6 @@ string str = col.getRenameSql(t, "new_name");
         private {
             #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) {
-            deserialize(h.members);
         }
 
         #! creates the object with the given attributes
@@ -498,11 +468,6 @@ auto v = c.name;
 
     #! represents a FreeTDS-specific primary key constraint
     public class FreetdsPrimaryKey inherits SqlUtil::AbstractPrimaryKey, FreetdsUniqueConstraintCommon {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) {
-            deserialize(h.members);
-        }
-
         #! creates an empty primary key object
         constructor() {
         }
@@ -552,10 +517,6 @@ any v = c.name;
 
     #! class for FreeTDS sequences
     public class FreetdsSequence inherits SqlUtil::AbstractSequence {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractSequence(h) {
-        }
-
         #! creates the object from the arguments
         constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
         }
@@ -580,10 +541,6 @@ any v = c.name;
 
     #! represents a FreeTDS view
     public class FreetdsView inherits SqlUtil::AbstractView {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractView(h) {
-        }
-
         #! creates the object from the arguments
         constructor(string n_name, string n_src, *string n_schemaname) : AbstractView(n_name, n_src) {
             schema = n_schemaname;
@@ -614,10 +571,6 @@ any v = c.name;
 
     #! represents a FreeTDS-specific trigger
     public class FreetdsTrigger inherits SqlUtil::AbstractTrigger {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractTrigger(h) {
-        }
-
         #! creates the object and sets its name and the trigger source
         constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
         }
@@ -648,10 +601,6 @@ any v = c.name;
     public class FreetdsFunction inherits SqlUtil::AbstractFunction {
         public {
             *string args;
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractFunction(h) {
         }
 
         constructor(string n, string n_src, *string a) : AbstractFunction(n, "function", n_src) {
@@ -2066,10 +2015,6 @@ order by
             list args = row{updc}.values() + row{cols.keys()}.values();
             auto x = ds.vexec(sql, args);
             return x.typeCode() == NT_HASH ? x.firstValue() : x;
-        }
-
-        #! used to deserialize table data
-        constructor(hash<SqlUtilDeserialization> h) : AbstractTable(h) {
         }
     }
 }

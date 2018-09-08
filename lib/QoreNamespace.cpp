@@ -565,6 +565,7 @@ void QoreNamespaceList::parseAssimilate(QoreNamespaceList& n, qore_ns_private* p
         nsmap[i->first] = i->second;
         if (parent) {
             i->second->priv->parent = parent;
+            assert(!i->second->priv->root);
             i->second->priv->updateDepthRecursive(parent->depth + 1);
         }
         ++i;
@@ -579,6 +580,7 @@ void QoreNamespaceList::runtimeAssimilate(QoreNamespaceList& n, qore_ns_private*
             nsmap[i->first] = i->second;
             if (parent) {
                 i->second->priv->parent = parent;
+                assert(!i->second->priv->root);
                 i->second->priv->updateDepthRecursive(parent->depth + 1);
             }
         }
@@ -603,6 +605,7 @@ qore_ns_private* QoreNamespaceList::parseAdd(QoreNamespace* ns, qore_ns_private*
     }
     nsmap[ns->priv->name] = ns;
     ns->priv->parent = parent;
+    assert(!ns->priv->root || !parent);
     ns->priv->updateDepthRecursive(parent->depth + 1);
     return ns->priv;
 }
@@ -617,6 +620,7 @@ qore_ns_private* QoreNamespaceList::runtimeAdd(QoreNamespace* ns, qore_ns_privat
     }
     nsmap[ns->priv->name] = ns;
     ns->priv->parent = parent;
+    assert(!ns->priv->root || !parent);
     ns->priv->updateDepthRecursive(parent->depth + 1);
     return ns->priv;
 }
@@ -639,15 +643,18 @@ QoreNamespace* QoreNamespace::copy(int64 po) const {
 }
 
 QoreNamespaceList::QoreNamespaceList(const QoreNamespaceList& old, int64 po, const qore_ns_private& parent) {
-    if ((po & PO_NO_API) == PO_NO_API)
+    if ((po & PO_NO_API) == PO_NO_API) {
         return;
+    }
     //printd(5, "QoreNamespaceList::QoreNamespaceList(old: %p) this: %p po: %lld size: %ld\n", &old, this, po, nsmap.size());
     nsmap_t::iterator last = nsmap.begin();
     for (nsmap_t::const_iterator i = old.nsmap.begin(), e = old.nsmap.end(); i != e; ++i) {
-        if (!qore_ns_private::isPublic(*i->second))
+        if (!qore_ns_private::isPublic(*i->second)) {
             continue;
+        }
         QoreNamespace* ns = i->second->copy(po);
         ns->priv->parent = &parent;
+        assert(!ns->priv->root);
         assert(ns->priv->depth);
         last = nsmap.insert(last, nsmap_t::value_type(i->first, ns));
     }

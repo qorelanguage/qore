@@ -72,15 +72,14 @@ class Base inherits Serializable, private:internal Foundation {
         return Foundation::getfi();
     }
 
-    hash<auto> serializeMembers() {
-        return {
-            "x": x,
+    private:internal hash<auto> serializeMembers(hash<auto> members) {
+        # override y member value
+        return members + {
             "y": 0,
-            "i": i,
         };
     }
 
-    deserializeMembers(hash<auto> members) {
+    private:internal deserializeMembers(hash<auto> members) {
         self += members - "y";
         self.y = members.y - 1;
     }

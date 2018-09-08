@@ -353,6 +353,10 @@ bool TypedHashDecl::equal(const TypedHashDecl* other) const {
     return other->priv->orig == priv->orig;
 }
 
+const char* TypedHashDecl::getModuleName() const {
+    return priv->getModuleName();
+}
+
 TypedHashDeclHolder::~TypedHashDeclHolder() {
     if (thd) {
         typed_hash_decl_private::get(*thd)->deref();

@@ -904,6 +904,11 @@ public:
     */
     DLLEXPORT bool hasTransientMember() const;
 
+    //! Returns the module name the class was loaded from or nullptr if it is a builtin class
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const char* getModuleName() const;
+
     //! constructor not exported in library's API
     DLLLOCAL QoreClass();
 

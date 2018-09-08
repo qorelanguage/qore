@@ -4772,8 +4772,9 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
 
     # private function used to deserialize datasources
     AbstractDatasource sub sqlutil_get_ds(string type, string config) {
-        if (ds_get)
+        if (ds_get) {
             return ds_get(type, config);
+        }
 
         switch (type) {
             case "DatasourcePool":
@@ -4787,8 +4788,9 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
 
     # private function used to serialize datasources
     hash<auto> sub sqlutil_ds(AbstractDatasource ds) {
-        if (ds_do)
+        if (ds_do) {
             return ds_do(ds);
+        }
 
         return {
             "ds_type": ds.className(),
@@ -4796,22 +4798,9 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         };
     }
 
-    #! hash used for deserializing objects
-    public hashdecl SqlUtilDeserialization {
-        #! the class name
-        string className;
-        #! an optional module name
-        *string mod;
-        #! serialized member data
-        hash<auto> members;
-    }
-
-    # private base class for serializable objects
-    public class Serializable {
-        #! for classes that inherit multiple Serializable classes
-        private constructor() {
-        }
-
+    /*
+    # private base class for SQlUtil serializable objects
+    public class SqlUtilSerializable inherits Serializable {
         #! deserializes the hash to a replica of the original object
         constructor(hash<SqlUtilDeserialization> h) {
             if (h.mod) {
@@ -4867,6 +4856,7 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
             return val;
         }
     }
+    */
 
     #! abstract container class that throws an exception if an unknown key is accessed
     public class AbstractHashContainer inherits Serializable {
@@ -4875,10 +4865,6 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         private {
             #! the data to be contained
             *hash h;
-        }
-
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object with the hash argument passed
@@ -5220,10 +5206,6 @@ bool b = h.hasKeyValue(key);
             softlist l;
         }
 
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
-        }
-
         #! creates the object with the list argument passed
         constructor(softlist nl) {
             l = nl;
@@ -5313,10 +5295,6 @@ int num = l.size();
 
     #! the table container class stores a collection of tables in a schema
     public class Tables inherits AbstractHashContainer {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
-        }
-
         #! creates an empty object
         constructor() {
         }
@@ -5703,10 +5681,6 @@ map $1.drop(), tables.getDropIterator();
 
     #! column container class that throws an exception if an unknown column is accessed
     public class Columns inherits AbstractHashContainer {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
-        }
-
         #! creates the object from the argument
         constructor(*hash c) : AbstractHashContainer(c) {
         }
@@ -5798,10 +5772,6 @@ AbstractColumn c = cols.id;
 
         #! empty constructor for subclasses
         private constructor() {
-        }
-
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string c) {
@@ -5933,10 +5903,6 @@ list l = col.getModifySql(t, newcol);
             int scale;
         }
 
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
-        }
-
         constructor(softint n_scale = 0) {
             scale = n_scale;
         }
@@ -5956,10 +5922,6 @@ list l = col.getModifySql(t, newcol);
 
     #! index container class that throws an exception if an unknown index is accessed
     public class Indexes inherits AbstractHashContainer {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
-        }
-
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
@@ -6027,10 +5989,6 @@ AbstractIndex ix = indexes.pk_jobs;
         private {
             #! the AbstractColumnSupportingConstraint that this index supports, if any
             *AbstractColumnSupportingConstraint constraint;
-        }
-
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object from the name, a unique flag, and a hash of column information
@@ -6128,10 +6086,6 @@ AbstractIndex ix = indexes.pk_jobs;
 
     #! constraint container class that throws an exception if an unknown constraint is accessed
     public class Constraints inherits AbstractHashContainer {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
-        }
-
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
@@ -6188,14 +6142,6 @@ AbstractConstraint ix = constraints.uk_jobs;
         private {
             #! the name of the constraint
             string name;
-        }
-
-        #! used for deserialization
-        private constructor() {
-        }
-
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object and sets its name
@@ -6264,10 +6210,6 @@ AbstractConstraint ix = constraints.uk_jobs;
             string src;
         }
 
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractConstraint(h) {
-        }
-
         #! creates the object and sets its name and the check clause source
         constructor(string n, string n_src) : AbstractConstraint(n) {
             name = n;
@@ -6297,11 +6239,6 @@ AbstractConstraint ix = constraints.uk_jobs;
 
             #! the index supporting the constraint
             *string index;
-        }
-
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) {
-            deserialize(h.members);
         }
 
         #! creates the object from the name and a hash of column information
@@ -6446,10 +6383,6 @@ uk.addSourceConstraint(table_name, constraint_name);
 
     #! represents a unique column constraint
     public class AbstractUniqueConstraint inherits AbstractColumnSupportingConstraint {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractColumnSupportingConstraint(h) {
-        }
-
         #! creates the object from the name an a hash of column information
         constructor(string n, *hash c, *string n_index) : AbstractColumnSupportingConstraint(n, c, n_index) {
         }
@@ -6457,10 +6390,6 @@ uk.addSourceConstraint(table_name, constraint_name);
 
     #! represents a primary key
     public class AbstractPrimaryKey inherits AbstractUniqueConstraint {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractUniqueConstraint(h) {
-        }
-
         constructor() : AbstractUniqueConstraint("") {
         }
 
@@ -6470,10 +6399,6 @@ uk.addSourceConstraint(table_name, constraint_name);
 
     #! foreign constraint container class that throws an exception if an unknown constraint is accessed
     public class ForeignConstraints inherits AbstractHashContainer {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
-        }
-
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
@@ -6539,10 +6464,6 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             Columns columns;
         }
 
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
-        }
-
         #! creates the object and sets the target table name and the target columns
         constructor(string t, Columns c) {
             table = t;
@@ -6560,10 +6481,6 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
         public {
             #! a ForeignConstraintTarget object to describe the target table and columns
             ForeignConstraintTarget target;
-        }
-
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractColumnSupportingConstraint(h) {
         }
 
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractColumnSupportingConstraint(n, c) {
@@ -6593,10 +6510,6 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
             #! the ending number
             *number max;
-        }
-
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object from the arguments
@@ -6648,10 +6561,6 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             bool updatable;
         }
 
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
-        }
-
         #! creates the object from the arguments
         constructor(string n_name, string n_src) {
             name = n_name;
@@ -6686,10 +6595,6 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
             #! the source of the object
             string src;
-        }
-
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : Serializable(h) {
         }
 
         #! creates the object from the arguments passed
@@ -6741,10 +6646,6 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
     #! base class for functions
     public class AbstractFunction inherits AbstractFunctionBase {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractFunctionBase(h) {
-        }
-
         #! creates the object from the arguments passed
         /** @param n the name of the object
             @param n_type the type of object
@@ -6770,10 +6671,6 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
     #! function container class that throws an exception if an unknown function is accessed
     public class Functions inherits AbstractHashContainer {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
-        }
-
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
@@ -6814,10 +6711,6 @@ AbstractFunction f = funcs.func1;
 
     #! the base class for triggers
     public class AbstractTrigger inherits AbstractFunctionBase {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractFunctionBase(h) {
-        }
-
         #! creates the object and sets its name and the trigger source
         constructor(string n, string n_src) : AbstractFunctionBase(n, "trigger", n_src) {
         }
@@ -6834,10 +6727,6 @@ AbstractFunction f = funcs.func1;
 
     #! trigger container class that throws an exception if an unknown trigger is accessed
     public class Triggers inherits AbstractHashContainer {
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) : AbstractHashContainer(h) {
-        }
-
         constructor(*hash c) : AbstractHashContainer(c) {
         }
 
@@ -6961,33 +6850,35 @@ AbstractDatabase db("pgsql:user/pass@db%host");
     #! base class for abstract SqlUtil classes
     public class AbstractSqlUtilBase inherits Serializable {
         private {
-            #! the connection to the database server
-            AbstractDatasource ds;
             #! datasource description
             string dsdesc;
-            #! mutex for atomic actions
-            Mutex l();
             #! option hash
             *hash opts;
+            #! the connection to the database server
+            transient AbstractDatasource ds;
+            #! mutex for atomic actions
+            transient Mutex l();
         }
 
-        #! used for deserialization
-        constructor(hash<SqlUtilDeserialization> h) {
-            ds = sqlutil_get_ds(h.members.ds.ds_type, h.members.ds.ds, h.members.ds."module");
-            deserialize(h.members - "ds");
+        # assigs the object's members after deserialization
+        private:internal deserializeMembers(hash<auto> members) {
+            # load any dependent module
+            load_module(remove members.mod);
+            # create datasource
+            hash<auto> dsh = remove members.ds;
+            ds = sqlutil_get_ds(dsh.ds_type, dsh.ds);
+
+            self += members;
         }
 
         # serializes the object's data to a hash
-        hash<SqlUtilDeserialization> serialize() {
+        private:internal hash<auto> serializeMembers(hash<auto> members) {
             string mod = ds.getDriverName();
             mod = mod[0].upr() + mod.substr(1) + "SqlUtil";
-            return new hash<SqlUtilDeserialization>({
-                "className": self.className(),
+            return members + {
                 "mod": mod,
-                "members": {
-                    "ds": sqlutil_ds(ds),
-                } + map {$1: serializeValue($1, self{$1})}, keys self, exists self{$1} && $1 != "ds" && $1 != "l",
-            });
+                "ds": sqlutil_ds(ds),
+            };
         }
 
         #! creates the object; private constructor
@@ -9035,10 +8926,6 @@ Table table("pgsql:user/pass@db%host", "table");
             bool manual = False;
 
             hash m_customCopMap = hash();
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractSqlUtilBase(h) {
         }
 
         #! creates the object; private constructor
@@ -15116,20 +15003,6 @@ any res = t.selectRows(sh, \sql);
             }
 
             m_customCopMap{name} = operator;
-        }
-
-        #! returns an AbstractTable object corresponding to the hash argument which must have been produced by a compatible version of an SqlUtil module using the @ref serialize() method
-        /** @return an AbstractTable object corresponding to the hash argument which must have been produced by a compatible version of an SqlUtil module using the @ref serialize() method
-
-            @see serialize()
-
-            @since SqlUtil 1.5
-        */
-        static AbstractTable deserialize(hash h) {
-            if (h.mod) {
-                load_module(h.mod);
-            }
-            return create_object(h.className, cast<hash<SqlUtilDeserialization>>(h));
         }
 
         #! returns the insert operator map for this object
