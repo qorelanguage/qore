@@ -53,7 +53,7 @@ QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private
             if (po & PO_NO_INHERIT_SYSTEM_CLASSES)
                 continue;
         QoreClass* qc = new QoreClass(*i->second.cls);
-        qore_class_private::setNamespace(qc, ns);
+        qore_class_private::getLocal(*qc)->setNamespace(ns);
         addInternal(qc, true);
     }
 }
@@ -119,7 +119,7 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
         }
 
         qc = new QoreClass(*i->second.cls);
-        qore_class_private::setNamespace(qc, ns);
+        qore_class_private::getLocal(*qc)->setNamespace(ns);
         addInternal(qc, true);
     }
 }
@@ -138,7 +138,7 @@ int QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_priv
             }
             //printd(5, "QoreClassList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
             QoreClass* qc = new QoreClass(*i->second.cls);
-            qore_class_private::setNamespace(qc, ns);
+            qore_class_private::getLocal(*qc)->setNamespace(ns);
             addInternal(qc, true);
             ++cnt;
         }
@@ -217,7 +217,7 @@ void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
 
             // "move" data to new list
             hm[i->first] = i->second;
-            qore_class_private::setNamespace(i->second.cls, &ns);
+            qore_class_private::getLocal(*i->second.cls)->setNamespace(&ns);
             n.hm.erase(i);
         }
         i = n.hm.begin();

@@ -373,6 +373,11 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
                     return imap.end();
                 }
 
+                // skip members with no value
+                if (!val) {
+                    continue;
+                }
+
                 ValueHolder new_val(serializeValue(*val, index, imap, mset, xsink), xsink);
                 if (*xsink) {
                     return imap.end();

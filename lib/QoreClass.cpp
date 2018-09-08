@@ -2994,11 +2994,11 @@ void BCSMList::resolveCopy() {
    }
 }
 
-QoreClass::QoreClass(qore_class_private* priv) : priv(priv) {
+QoreClass::QoreClass(qore_class_private* priv) : priv(priv), priv_local(new qore_class_private_local) {
     priv->cls = this;
 }
 
-QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
+QoreClass::QoreClass(const QoreClass& old) : priv(old.priv), priv_local(new qore_class_private_local) {
     priv->pgmRef();
 
     // ensure atomicity when writing to qcset
@@ -3006,14 +3006,16 @@ QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
     priv->qcset.insert(this);
 }
 
-QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
-   priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
-   priv->owns_ornothingtypeinfo = true;
+QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, std::string(nme), dom)),
+    priv_local(new qore_class_private_local) {
+    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
+    priv->owns_ornothingtypeinfo = true;
 }
 
-QoreClass::QoreClass(const char* nme, int dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
-   priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
-   priv->owns_ornothingtypeinfo = true;
+QoreClass::QoreClass(const char* nme, int dom) : priv(new qore_class_private(this, std::string(nme), dom)),
+    priv_local(new qore_class_private_local) {
+    priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
+    priv->owns_ornothingtypeinfo = true;
 }
 
 QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) {
@@ -3031,7 +3033,8 @@ QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) {
     }
 }
 
-QoreClass::QoreClass() : priv(new qore_class_private(this, parse_pop_name())) {
+QoreClass::QoreClass() : priv(new qore_class_private(this, parse_pop_name())),
+    priv_local(new qore_class_private_local) {
     priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, priv->name.c_str());
     priv->owns_ornothingtypeinfo = true;
 }
@@ -3705,7 +3708,7 @@ void qore_class_private::parseInitPartial() {
     if (parse_init_partial_called)
         return;
 
-    NamespaceParseContextHelper nspch(ns);
+    NamespaceParseContextHelper nspch(cls->priv_local->ns);
     QoreParseClassHelper qpch(cls);
     parseInitPartialIntern();
 }
@@ -3786,7 +3789,7 @@ void qore_class_private::parseInit() {
     parse_init_called = true;
 
     if (has_new_user_changes) {
-        NamespaceParseContextHelper nspch(ns);
+        NamespaceParseContextHelper nspch(cls->priv_local->ns);
         QoreParseClassHelper qpch(cls);
 
         if (!parse_init_partial_called)
@@ -4155,7 +4158,7 @@ const QoreExternalStaticMember* QoreClass::findLocalStaticMember(const char* nam
 
 std::string QoreClass::getNamespacePath(bool anchored) const {
     std::string path;
-    priv->ns->getPath(path);
+    priv_local->ns->getPath(path);
     if (!path.empty()) {
         path += "::";
     }
@@ -4183,11 +4186,11 @@ const QoreExternalConstant* QoreClass::findConstant(const char* name) const {
 }
 
 const QoreNamespace* QoreClass::getNamespace() const {
-    return priv->ns->ns;
+    return priv_local->ns->ns;
 }
 
 void MethodFunctionBase::parseInit() {
-    QoreFunction::parseInit(qore_class_private::get(*qc)->ns);
+    QoreFunction::parseInit(qore_class_private::getLocal(*qc)->ns);
 }
 
 void MethodFunctionBase::parseCommit() {
@@ -4841,51 +4844,51 @@ void QoreMemberInfo::parseInit(const char* name) {
 }
 
 void QoreVarInfo::parseInit(const char* name) {
-   if (QoreMemberInfoBaseAccess::init)
-      return;
-   QoreMemberInfoBaseAccess::init = true;
+    if (QoreMemberInfoBaseAccess::init)
+        return;
+    QoreMemberInfoBaseAccess::init = true;
 
-   if (!typeInfo) {
-      typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
-      parseTypeInfo = 0;
-   }
+    if (!typeInfo) {
+        typeInfo = QoreParseTypeInfo::resolveAndDelete(parseTypeInfo, loc);
+        parseTypeInfo = 0;
+    }
 #ifdef DEBUG
-   else assert(!parseTypeInfo);
+    else assert(!parseTypeInfo);
 #endif
 
-   val.set(typeInfo);
+    val.set(typeInfo);
 
-   if (exp) {
-      const QoreTypeInfo* argTypeInfo = 0;
-      int lvids = 0;
-      parse_init_value(exp, 0, 0, lvids, argTypeInfo);
-      if (lvids) {
-         parse_error(*loc, "illegal local variable declaration in class static variable initialization expression");
-         while (lvids--)
-            pop_local_var();
-      }
-      // throw a type exception only if parse exceptions are enabled
-      if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
-         QoreStringNode* desc = new QoreStringNode("initialization expression for ");
-         desc->sprintf("%s class static variable '%s' returns ", privpub(access), name);
-         QoreTypeInfo::getThisType(argTypeInfo, *desc);
-         desc->concat(", but the variable was declared as ");
-         QoreTypeInfo::getThisType(typeInfo, *desc);
-         qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
-      }
-   }
+    if (exp) {
+        const QoreTypeInfo* argTypeInfo = 0;
+        int lvids = 0;
+        parse_init_value(exp, 0, 0, lvids, argTypeInfo);
+        if (lvids) {
+            parse_error(*loc, "illegal local variable declaration in class static variable initialization expression");
+            while (lvids--)
+                pop_local_var();
+        }
+        // throw a type exception only if parse exceptions are enabled
+        if (!QoreTypeInfo::parseAccepts(typeInfo, argTypeInfo) && getProgram()->getParseExceptionSink()) {
+            QoreStringNode* desc = new QoreStringNode("initialization expression for ");
+            desc->sprintf("%s class static variable '%s' returns ", privpub(access), name);
+            QoreTypeInfo::getThisType(argTypeInfo, *desc);
+            desc->concat(", but the variable was declared as ");
+            QoreTypeInfo::getThisType(typeInfo, *desc);
+            qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
+        }
+    }
 }
 
 QoreParseClassHelper::QoreParseClassHelper(QoreClass* cls) : old(parse_get_class()), oldns(cls ? parse_get_ns() : 0), rn(cls) {
-   setParseClass(cls);
-   if (cls)
-      parse_set_ns(qore_class_private::get(*cls)->ns);
+    setParseClass(cls);
+    if (cls)
+        parse_set_ns(qore_class_private::getLocal(*cls)->ns);
 }
 
 QoreParseClassHelper::~QoreParseClassHelper() {
-   if (rn)
-      parse_set_ns(oldns);
-   setParseClass(old);
+    if (rn)
+        parse_set_ns(oldns);
+    setParseClass(old);
 }
 
 void QoreMemberMap::parseInit() {
