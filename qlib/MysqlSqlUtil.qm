@@ -312,15 +312,43 @@ my string $str = $col.getRenameSql($t, "new_name");
             bool pk = False;
         }
 
+        private {
+            # AUTO_INCREMENT applies only to integer and floating-point types
+            const AUTO_INCREMENT_VALID_TYPES = {
+                # int types
+                "tinyint": True,
+                "smallint": True,
+                "mediumint": True,
+                "int": True,
+                "bigint": True,
+                # float types
+                "float": True,
+                "real": True,
+                "double precision": True,
+            };
+        }
+
         #! deserializes the hash to a replica of the original object
         constructor(hash<SqlUtilDeserialization> h) {
             deserialize(h.members);
+
+            validateConstructor();
         }
 
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned = False, bool n_auto_increment = False, bool n_pk = False) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
             unsigned = n_unsigned;
             auto_increment = n_auto_increment;
             pk = n_pk;
+
+            validateConstructor();
+        }
+
+        private validateConstructor() {
+            if (auto_increment && !AUTO_INCREMENT_VALID_TYPES.hasKey(native_type)) {
+                throw "MYSQL-COLUMN-ERROR",
+                      sprintf("AUTO_INCREMENT can be used only with a subset of types. Used: %s, valid types: %n",
+                              native_type, keys AUTO_INCREMENT_VALID_TYPES);
+            }
         }
 
         string getNativeTypeString() {

@@ -42,7 +42,7 @@ QoreRWLock* thread_stack_lock;
 QoreRWLock thread_stack_lock;
 #endif
 
-CallNode::CallNode(const char *f, int t, QoreObject* o, const qore_class_private* c) : func(f), loc(get_runtime_location()), type(t), obj(o), cls(c) {
+CallNode::CallNode(const char *f, int t, QoreObject* o, const qore_class_private* c, const QoreProgram* p, const AbstractStatement* s) : func(f), loc(get_runtime_location()), type(t), obj(o), cls(c), pgm(p), statement(s) {
 }
 
 QoreHashNode* CallNode::getInfo() const {
@@ -75,6 +75,16 @@ QoreHashNode* CallNode::getInfo() const {
          ph->setKeyValueIntern("type",  new QoreStringNode("new-thread"));
          break;
    }
+   if (pgm) {
+      ph->setKeyValueIntern("programid", pgm->getProgramId());
+      if (statement) {
+         unsigned long sid = pgm->getStatementId(statement);
+         if (sid) {
+            ph->setKeyValueIntern("statementid", sid);
+         }
+      }
+   }
+
    return h;
 }
 

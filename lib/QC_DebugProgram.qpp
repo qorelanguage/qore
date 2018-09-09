@@ -182,47 +182,47 @@ list DebugProgram::getAllPrograms() {
 /**
  *
  */
-abstract DebugProgram::onAttach(ProgramControl[QoreProgram] pgm, reference rs);
+abstract DebugProgram::onAttach(ProgramControl[QoreProgram] pgm, reference rs, reference rtsid);
 
 //! Executed when thread is datached from program being debugged
 /**
  *
  */
-abstract DebugProgram::onDetach(ProgramControl[QoreProgram] pgm, reference rs);
+abstract DebugProgram::onDetach(ProgramControl[QoreProgram] pgm, reference rs, reference rtsid);
 
 //! Executed when step is performed
 /**
  *
  */
-abstract DebugProgram::onStep(ProgramControl[QoreProgram] pgm, int blockStatement, *int statement, *int breakpointId, reference flow, reference rs);
+abstract DebugProgram::onStep(ProgramControl[QoreProgram] pgm, int blockStatement, *int statement, *int breakpointId, reference flow, reference rs, reference rtsid);
 
 //! Executed when a function is entered.
 /**
     @see
        @ref Qore::ProgramControl::getStatementIdInfo "ProgramControl::getStatementIdInfo"
  */
-abstract DebugProgram::onFunctionEnter(ProgramControl[QoreProgram] pgm, int statement, reference rs);
+abstract DebugProgram::onFunctionEnter(ProgramControl[QoreProgram] pgm, int statement, reference rs, reference rtsid);
 
 //! Executed when a function is exited.
 /**
     @see
        @ref Qore::ProgramControl::getStatementIdInfo "ProgramControl::getStatementIdInfo"
  */
-abstract DebugProgram::onFunctionExit(ProgramControl[QoreProgram] pgm, int statement, reference returnValue, reference rs);
+abstract DebugProgram::onFunctionExit(ProgramControl[QoreProgram] pgm, int statement, reference returnValue, reference rs, reference rtsid);
 
 //! Executed when an exception is raised.
 /**
     @see
        @ref Qore::ProgramControl::getStatementIdInfo "ProgramControl::getStatementIdInfo"
  */
-abstract DebugProgram::onException(ProgramControl[QoreProgram] pgm, int statement, hash ex, reference dismiss, reference rs);
+abstract DebugProgram::onException(ProgramControl[QoreProgram] pgm, int statement, hash ex, reference dismiss, reference rs, reference rtsid);
 
 //! Executed when a program/thread is exited.
 /**
     @see
        @ref Qore::ProgramControl::getStatementIdInfo "ProgramControl::getStatementIdInfo"
  */
-abstract DebugProgram::onExit(ProgramControl[QoreProgram] pgm, int statement, reference returnValue, reference rs);
+abstract DebugProgram::onExit(ProgramControl[QoreProgram] pgm, int statement, reference returnValue, reference rs, reference rtsid);
 
 //! Break particular program thread
 /**

@@ -257,6 +257,7 @@ public:
    Context* context_stack = nullptr;
    ProgramParseContext* plStack = nullptr;
    const QoreProgramLocation* runtime_loc = &loc_builtin;
+   const AbstractStatement* runtime_statement;
    const char* parse_code = nullptr; // the current function, method, or closure being parsed
    const char* parse_file = nullptr; // the current file or label being parsed
    const char* parse_source = nullptr; // the current source being parsed
@@ -1187,6 +1188,16 @@ const QoreProgramLocation* update_get_runtime_location(const QoreProgramLocation
 
 void update_runtime_location(const QoreProgramLocation* loc) {
    thread_data.get()->runtime_loc = loc;
+}
+
+const AbstractStatement* get_runtime_statement() {
+   return thread_data.get()->runtime_statement;
+}
+
+const AbstractStatement* update_get_runtime_statement(const AbstractStatement* s) {
+   const AbstractStatement* rv = thread_data.get()->runtime_statement;
+   thread_data.get()->runtime_statement = s;
+   return rv;
 }
 
 void set_parse_file_info(QoreProgramLocation& loc) {
