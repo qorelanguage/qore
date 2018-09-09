@@ -133,6 +133,12 @@ class T inherits Serializable, private:internal Base {
     }
 }
 
+class OnlyTransient inherits Serializable {
+    public {
+        transient Mutex m();
+    }
+}
+
 class SerializableTest inherits QUnit::Test {
     public {
         const Data = (
@@ -172,6 +178,7 @@ class SerializableTest inherits QUnit::Test {
             -1Y - 2M - 3D - 4h - 5m - 6s - 7us,
             now_us() - years(3000),
             (0, {"a": {"b": 1}}),
+            "",
             # note that we cannot test @nan@n and @nan@ as @nan@[n] != @nan@[n]
         );
     }
@@ -268,7 +275,7 @@ class SerializableTest inherits QUnit::Test {
             Test t();
             hash<SerializationInfo> h = t.serializeToData();
             Test t1 = Serializable::deserialize(h);
-            assertEq(t1.t, t1);
+            assertEq(t1, t1.t);
             #printf("%N\n", h);
             #h = x;
 
@@ -367,6 +374,30 @@ class SerializableTest inherits QUnit::Test {
 
             tz1 = Serializable::deserialize(Serializable::serialize(tz));
             assertEq("Europe/Prague", tz1.region());
+        }
+
+        {
+            OnlyTransient t();
+            hash<SerializationInfo> h = t.serializeToData();
+            OnlyTransient t1 = Serializable::deserialize(h);
+            assertTrue(t1.m instanceof Mutex);
+            #printf("%N\n", h);
+            #h = x;
+
+            BinaryOutputStream bin();
+            t.serialize(bin);
+
+            binary bin_data = bin.getData();
+            BinaryInputStream bis(bin_data);
+
+            OnlyTransient t2 = Serializable::deserialize(bis);
+            assertTrue(t2.m instanceof Mutex);
+
+            t2 = Serializable::deserialize(t.serialize());
+            assertTrue(t2.m instanceof Mutex);
+
+            t2 = Serializable::deserialize(Serializable::serialize(t));
+            assertTrue(t2.m instanceof Mutex);
         }
     }
 }

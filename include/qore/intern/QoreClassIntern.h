@@ -915,6 +915,9 @@ public:
         }
     }
 
+    // copy to a new class - same member, new class
+    DLLLOCAL QoreMemberInfo(const QoreMemberInfo& old, const qore_class_private* cls);
+
     DLLLOCAL ~QoreMemberInfo() {
         delete cls_context_map;
         delete mi_list;
@@ -923,6 +926,7 @@ public:
     DLLLOCAL void setDeclaringClass(const qore_class_private* qc) {
         assert(cls_vec.empty());
         cls_vec.push_back(qc);
+        assert(is_local);
     }
 
     // returns true if the member is a locally-defined member with private:internal member access

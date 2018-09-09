@@ -572,7 +572,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, QoreProgra
 
     // copy member list
     for (QoreMemberMap::DeclOrderIterator i = old.members.beginDeclOrder(), e = old.members.endDeclOrder(); i != e; ++i) {
-        members.addNoCheck(strdup(i->first), i->second ? i->second->copy(i->first, this) : nullptr);
+        members.addNoCheck(strdup(i->first), i->second ? new QoreMemberInfo(*i->second, this) : nullptr);
     }
 
     // copy static var list
@@ -2663,6 +2663,7 @@ int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const
 
 // imports members from qc -> this
 void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess access) {
+    assert(qc.name != name || qc.cls->priv_local->ns->name != cls->priv_local->ns->name);
     //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p init qc: %p '%s' qc.members: %p\n", this, name.c_str(), &members, &qc, qc.name.c_str(), &qc.members);
     // issue #2657: ensure that parent class members are initialied before merging
     qc.members.parseInit();
@@ -4719,6 +4720,16 @@ bool QoreStaticMethodIterator::next() {
 
 const QoreMethod* QoreStaticMethodIterator::getMethod() const {
    return HMI_CAST(priv)->getMethod();
+}
+
+// FIXME: eliminate this method; move injected fields to local, always copy classes with priv by reference
+QoreMemberInfo::QoreMemberInfo(const QoreMemberInfo& old, const qore_class_private* cls) :
+    QoreMemberInfoBaseAccess(old, old.access),
+    cls_vec(old.cls_vec),
+    cls_context_map(old.cls_context_map ? new cls_context_map_t(*old.cls_context_map) : nullptr),
+    mi_list(old.mi_list ? new mi_list_t(*old.mi_list) : nullptr), is_local(old.is_local) {
+    // write new class owner in initial position
+    cls_vec[0] = cls;
 }
 
 QoreMemberInfo::QoreMemberInfo(const QoreMemberInfo& old, const qore_class_private* cls, ClassAccess cls_access) :
