@@ -2870,11 +2870,13 @@ void BCSMList::processMemberInitializationList(const QoreMemberMap& members, mem
         for (QoreMemberMap::DeclOrderIterator mi = i.first->priv->members.beginDeclOrder(), me = i.first->priv->members.endDeclOrder(); mi != me; ++mi) {
             // skip imported members
             if (!mi->second->local()) {
+                //printd(5, "BCSMList::processMemberInitializationList() %p '%s::%s' NOT LOCAL\n", i.first->priv, i.first->getName(), mi->first);
                 continue;
             }
-            // find corresponding member in base class
+            // find corresponding member in derived class
             const QoreMemberInfo* info = members.find(mi->first);
             if (!info) {
+                //printd(5, "BCSMList::processMemberInitializationList() %p '%s' NOT FOUND\n", i.first->priv, i.first->getName());
                 // in case dependency injections, the member may not be found in the class
                 continue;
             }
