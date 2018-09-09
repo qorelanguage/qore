@@ -179,6 +179,7 @@ class SerializableTest inherits QUnit::Test {
             now_us() - years(3000),
             (0, {"a": {"b": 1}}),
             "",
+            {"": ""},
             # note that we cannot test @nan@n and @nan@ as @nan@[n] != @nan@[n]
         );
     }
