@@ -72,6 +72,8 @@ public:
 
     DLLLOCAL static void serialize(const QoreValue val, OutputStream& stream, ExceptionSink* xsink);
 
+    DLLLOCAL static QoreHashNode* deserializeToData(InputStream& stream, ExceptionSink* xsink);
+
     DLLLOCAL static QoreValue deserialize(InputStream& stream, ExceptionSink* xsink);
 
     DLLLOCAL static QoreValue deserialize(const QoreHashNode& h, ExceptionSink* xsink);

@@ -1745,7 +1745,6 @@ public:
     qore_ns_private* ns = nullptr;  // parent namespace
 
     DLLLOCAL void setNamespace(qore_ns_private* n) {
-        assert(!ns);
         ns = n;
     }
 };

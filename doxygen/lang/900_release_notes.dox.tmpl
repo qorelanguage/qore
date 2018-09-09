@@ -23,8 +23,8 @@
     - @ref Qore::Program::parseRollback() "Program::parseRollback()" is now deprecated; this action removes all user
       code and most builtin code from the @ref Qore::Program "Program" object; delete the object instead of using
       this method
-    - the @ref transient "transient" keyword has been introduced to support control over @ref Qore::Serializable "object serialization";
-      see also @ref no-transient
+    - the @ref transient "transient" keyword has been introduced to support control over
+      @ref Qore::Serializable "object serialization"; see also @ref no-transient
 
     @subsection qore_09_new_features New Features in Qore
     - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
@@ -47,9 +47,11 @@
         - @ref Qore::SQL::DatasourcePool "DatasourcePool"
         - @ref Qore::TimeZone "TimeZone"
     - new classes:
-      - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
+      - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class
+        defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
       - @ref Qore::Serializable "Serializable"
-      - @ref Qore::StreamBase "StreamBase": a base class for stream classes allowing for a controlled handoff of the stream to another thread
+      - @ref Qore::StreamBase "StreamBase": a base class for stream classes allowing for a controlled
+        handoff of the stream to another thread
     - new and updated methods in existing classes:
       - @ref Qore::SQL::AbstractDatasource::getSQLStatement() "AbstractDatasource::getSQLStatement()"
       - @ref Qore::SQL::Datasource::getSQLStatement() "Datasource::getSQLStatement()"
@@ -87,7 +89,9 @@
       - \c "Dn" and \c "DN": the ordinal day number in the year
       - \c "I": ISO-8601 week string
       - \c "Id" and \c "ID": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> day number
-      - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_dates "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
+      - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both
+        @ref relative_dates "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute"
+        dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
       - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
       - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
     - new parse directives:

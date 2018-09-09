@@ -3053,6 +3053,7 @@ QoreClass::~QoreClass() {
 
         priv->deref(true, true, true);
     }
+    delete priv_local;
 }
 
 void QoreClass::setUserData(const void *n_ptr) {
@@ -4886,8 +4887,9 @@ QoreParseClassHelper::QoreParseClassHelper(QoreClass* cls) : old(parse_get_class
 }
 
 QoreParseClassHelper::~QoreParseClassHelper() {
-    if (rn)
+    if (rn) {
         parse_set_ns(oldns);
+    }
     setParseClass(old);
 }
 

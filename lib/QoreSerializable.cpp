@@ -328,8 +328,15 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
         {
             bool priv = false;
             if (!current_cls->getClass(*QC_SERIALIZABLE, priv)) {
-                xsink->raiseException("SERIALIZATION-ERROR", "cannot serialize class '%s' as it does not inherit 'Serializable' and therefore is not eligible for serialization; to correct this error, declare Serializable as a parent class of '%s'",
-                    current_cls->getName(), current_cls->getName());
+                SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("cannot serialize class '%s' as it does not inherit 'Serializable' and therefore is not eligible for serialization", current_cls->getName()));
+                if (!current_cls->isSystem()) {
+                    desc->sprintf("; to correct this error, declare Serializable as a parent class of '%s'",
+                        current_cls->getName());
+                }
+                if (cls != current_cls) {
+                    desc->sprintf(" (while serializing an object of class '%s')", cls->getName());
+                }
+                xsink->raiseException("SERIALIZATION-ERROR", desc.release());
                 return imap.end();
             }
         }
@@ -662,7 +669,11 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                                     if (*xsink) {
                                         return QoreValue();
                                     }
-
+                                    // skip transient member initialization if there is no expression
+                                    if (!val) {
+                                        continue;
+                                    }
+                                    // assign value to member
                                     obj->setMemberValue(mi.getName(), mcls, *val, xsink);
                                     if (*xsink) {
                                         return QoreValue();
@@ -768,7 +779,19 @@ QoreValue QoreSerializable::deserializeHashData(const QoreStringNode& type, cons
     }
 
     if (type == "^hash^") {
-        return members ? members.refSelf() : new QoreHashNode(autoTypeInfo);
+        ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+        if (members) {
+            // deserialize hash members
+            ConstHashIterator mi(members.get<const QoreHashNode>());
+            while (mi.next()) {
+                ValueHolder val(deserializeData(mi.get(), oimap, xsink), xsink);
+                if (*xsink) {
+                    return QoreValue();
+                }
+                rv->setKeyValue(mi.getKey(), val.release(), xsink);
+            }
+        }
+        return rv.release();
     }
 
     const QoreNamespace* pns = nullptr;
@@ -1223,28 +1246,28 @@ int QoreSerializable::serializeBinaryToStream(const BinaryNode& n, StreamWriter&
     return writer.write(n.getPtr(), n.size(), xsink);
 }
 
-QoreValue QoreSerializable::deserialize(InputStream& stream, ExceptionSink* xsink) {
+QoreHashNode* QoreSerializable::deserializeToData(InputStream& stream, ExceptionSink* xsink) {
     if (!stream.check(xsink)) {
-        return QoreValue();
+        return nullptr;
     }
 
     // read serialization stream type
     QoreString str;
     if (stream_read_string(xsink, stream, str, 50)) {
-        return QoreValue();
+        return nullptr;
     }
 
     if (check_deserialization_string(str, QoreSerializationTypeString, "header type", xsink)) {
-        return QoreValue();
+        return nullptr;
     }
 
     // read serialization stream version
     if (stream_read_string(xsink, stream, str, 50)) {
-        return QoreValue();
+        return nullptr;
     }
 
     if (check_deserialization_string(str, QoreSerializationVersionString, "header version", xsink)) {
-        return QoreValue();
+        return nullptr;
     }
 
     // must reference the input stream for the assignment to StreamReader
@@ -1253,17 +1276,26 @@ QoreValue QoreSerializable::deserialize(InputStream& stream, ExceptionSink* xsin
 
     ValueHolder val(deserializeValueFromStream(**reader, xsink), xsink);
     if (*xsink) {
-        return QoreValue();
+        return nullptr;
     }
-    const QoreHashNode* h = val->getType() == NT_HASH ? val->get<const QoreHashNode>() : nullptr;
+    QoreHashNode* h = val->getType() == NT_HASH ? val->get<QoreHashNode>() : nullptr;
 
     //printd(5, "QoreSerializable::deserialize() h: %p val: '%s' hd: %p '%s' (%p %d)\n", h, val->getFullTypeName(), h->getHashDecl(), h->getHashDecl() ? h->getHashDecl()->getName() : "n/a", hashdeclSerializationInfo, h->getHashDecl() == hashdeclSerializationInfo);
     if (!h || !hashdeclSerializationInfo->equal(h->getHashDecl())) {
         xsink->raiseException("DESERIALIZATION-ERROR", "expecting a SerializationInfo hash from the serialization stream; got type '%s' instead", val->getFullTypeName());
-        return QoreValue();
+        return nullptr;
     }
 
-    return deserialize(*h, xsink);
+    val.release();
+    return h;
+}
+
+QoreValue QoreSerializable::deserialize(InputStream& stream, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> h(deserializeToData(stream, xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    return deserialize(**h, xsink);
 }
 
 QoreValue QoreSerializable::deserializeValueFromStream(StreamReader& reader, ExceptionSink* xsink) {
@@ -1521,6 +1553,8 @@ QoreNumberNode* QoreSerializable::deserializeNumberFromStream(StreamReader& read
     if (readStringFromStream(reader, tmp, "arbitrary-precision number", xsink)) {
         return nullptr;
     }
+
+    //printd(5, "QoreSerializable::deserializeNumberFromStream() tmp: '%s'\n", tmp.c_str());
 
     const char* val = tmp.c_str();
     bool sign = (*val == '-' || *val == '+');
