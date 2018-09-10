@@ -44,12 +44,22 @@ BinaryNode::~BinaryNode() {
 }
 
 void BinaryNode::clear() {
-   if (len) {
-      assert(ptr);
-      free(ptr);
-      len = 0;
-      ptr = 0;
-   }
+    // issue #2982: must check 'ptr', len may be 0 with memory allocated
+    // NOTE: we check and then free & update to avoid writing to memory
+    // to avoid cache flushing on SMP systems (as used in the Linux
+    // kernel for example)
+    if (ptr) {
+        free(ptr);
+        if (len) {
+            len = 0;
+        }
+        ptr = nullptr;
+    }
+#ifdef DEBUG
+    else {
+        assert(!len);
+    }
+#endif
 }
 
 // returns 0 = equal, 1 = not equal
