@@ -134,8 +134,11 @@
     - fixed bug where no error is issued when an expression does not have meaning as a top-level statement (<a href="https://github.com/qorelanguage/qore/issues/2826">issue 2826</a>),
       and also where such expression is an argument to the @ref background "background" operator (<a href="https://github.com/qorelanguage/qore/issues/2747">issue 2747</a>)
     - fixed bug where the parser does not recognize that a return value of a function call is not ignored if it is an object and its method is immediately called
-      (<a href="https://github.com/qorelanguage/qore/issues/2863">issue 2863</a>),
-
+      (<a href="https://github.com/qorelanguage/qore/issues/2863">issue 2863</a>)
+    - module fixes:
+      - <a href="../../modules/QUnit/html/index.html">QUnit</a>:
+        - fixed error reporting with type errors with number values
+          (<a href="https://github.com/qorelanguage/qore/issues/2984">issue 2984</a>)
 
     @section qore_08137 Qore 0.8.13.7
 
