@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  thread.cpp
+    thread.cpp
 
-  threading functionality for Qore
+    threading functionality for Qore
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -85,8 +85,10 @@ DLLLOCAL QoreThreadLock lck_gethostbyaddr;
 
 DLLLOCAL QoreRWLock lck_debug_program;
 
-
 #ifdef QORE_MANAGE_STACK
+QoreThreadLock stack_lck;
+#define MAX_STACK_SIZE 512*1024
+
 // default size and limit for qore threads; to be set in init_qore_threads()
 size_t qore_thread_stack_size = 0;
 size_t qore_thread_stack_limit = 0;
@@ -101,143 +103,144 @@ DLLLOCAL QoreClass* initThreadPoolClass(QoreNamespace& ns);
 
 class ArgvRefStack {
 protected:
-   typedef std::vector<int> rvec_t;
-   rvec_t stack;
-   // ignore numeric count
-   int in;
+    typedef std::vector<int> rvec_t;
+    rvec_t stack;
+    // ignore numeric count
+    int in;
 
 public:
-   DLLLOCAL ArgvRefStack() : in(0) {
-      stack.push_back(0);
-   }
-   DLLLOCAL ~ArgvRefStack() {
-   }
-   DLLLOCAL void push() {
-      stack.push_back(0);
-   }
-   DLLLOCAL int pop() {
-      int rc = stack[stack.size() - 1];
-      if (stack.size() > 1)
-         stack.pop_back();
-      else
-         stack[0] = 0;
-      return rc;
-   }
-   DLLLOCAL int get() {
-      assert(stack.size() == 1);
-      int rc = stack[0];
-      stack[0] = 0;
-      return rc;
-   }
-   DLLLOCAL void push_numeric() {
-      ++in;
-   }
-   DLLLOCAL void pop_numeric() {
-      --in;
-      assert(in >= 0);
-   }
-   DLLLOCAL void inc_numeric() {
-      if (in)
-         return;
-      inc();
-   }
-   DLLLOCAL void inc() {
-      ++stack[stack.size() - 1];
-   }
-   DLLLOCAL void clear() {
-      stack.clear();
-      stack.push_back(0);
-   }
+    DLLLOCAL ArgvRefStack() : in(0) {
+        stack.push_back(0);
+    }
+    DLLLOCAL ~ArgvRefStack() {
+    }
+    DLLLOCAL void push() {
+        stack.push_back(0);
+    }
+    DLLLOCAL int pop() {
+        int rc = stack[stack.size() - 1];
+        if (stack.size() > 1)
+            stack.pop_back();
+        else
+            stack[0] = 0;
+        return rc;
+    }
+    DLLLOCAL int get() {
+        assert(stack.size() == 1);
+        int rc = stack[0];
+        stack[0] = 0;
+        return rc;
+    }
+    DLLLOCAL void push_numeric() {
+        ++in;
+    }
+    DLLLOCAL void pop_numeric() {
+        --in;
+        assert(in >= 0);
+    }
+    DLLLOCAL void inc_numeric() {
+        if (in)
+            return;
+        inc();
+    }
+    DLLLOCAL void inc() {
+        ++stack[stack.size() - 1];
+    }
+    DLLLOCAL void clear() {
+        stack.clear();
+        stack.push_back(0);
+    }
 };
 
 struct ParseCountHelper {
-   unsigned count;
+    unsigned count;
 
-   DLLLOCAL ParseCountHelper() : count(0) {
-   }
+    DLLLOCAL ParseCountHelper() : count(0) {
+    }
 
-   DLLLOCAL void inc() {
-      ++count;
-   }
+    DLLLOCAL void inc() {
+        ++count;
+    }
 
-   DLLLOCAL bool dec(const QoreProgramLocation& loc) {
-      if (!count) {
-         parse_error(loc, "unmatched %%endtry");
-         return false;
-      }
-      return !--count;
-   }
+    DLLLOCAL bool dec(const QoreProgramLocation* loc) {
+        if (!count) {
+            parse_error(*loc, "unmatched %%endtry");
+            return false;
+        }
+        return !--count;
+    }
 
-   DLLLOCAL void purge() {
-      if (count) {
-         parse_error(QoreProgramLocation(), "%d %%try-module block%s left open at end of file", count, count == 1 ? "" : "s");
-         count = 0;
-      }
-   }
+    DLLLOCAL void purge() {
+        if (count) {
+            parse_error(QoreProgramLocation(), "%d %%try-module block%s left open at end of file", count, count == 1 ? "" : "s");
+            count = 0;
+        }
+    }
 };
 
 struct ParseConditionalStack {
-   unsigned count;
-   typedef std::vector<unsigned> ui_vec_t;
-   ui_vec_t markvec;
+    unsigned count;
+    typedef std::vector<unsigned> ui_vec_t;
+    ui_vec_t markvec;
 
-   DLLLOCAL ParseConditionalStack() : count(0) {
-   }
+    DLLLOCAL ParseConditionalStack() : count(0) {
+    }
 
-   DLLLOCAL void push(bool do_mark = false) {
-      if (do_mark) {
-         markvec.push_back(count);
-      }
-      ++count;
-   }
+    DLLLOCAL void push(bool do_mark = false) {
+        if (do_mark) {
+            markvec.push_back(count);
+        }
+        ++count;
+    }
 
-   DLLLOCAL bool checkElse() {
-      return count;
-   }
+    DLLLOCAL bool checkElse() {
+        return count;
+    }
 
-   DLLLOCAL bool test(const QoreProgramLocation& loc) const {
-      if (!count) {
-         parse_error(loc, "%%else without %%ifdef");
-         return false;
-      }
-      if (markvec.empty())
-         return false;
-      return markvec.back() == (count - 1);
-   }
+    DLLLOCAL bool test(const QoreProgramLocation* loc) const {
+        if (!count) {
+            parse_error(*loc, "%%else without %%ifdef");
+            return false;
+        }
+        if (markvec.empty())
+            return false;
+        return markvec.back() == (count - 1);
+    }
 
-   DLLLOCAL bool pop(const QoreProgramLocation& loc) {
-      if (!count) {
-         parse_error(loc, "unmatched %%endif");
-         return false;
-      }
-      --count;
-      assert(!markvec.empty());
-      if (count == markvec.back()) {
-         markvec.pop_back();
-         return true;
-      }
-      return false;
-   }
+    DLLLOCAL bool pop(const QoreProgramLocation* loc) {
+        if (!count) {
+            parse_error(*loc, "unmatched %%endif");
+            return false;
+        }
+        --count;
+        assert(!markvec.empty());
+        if (count == markvec.back()) {
+            markvec.pop_back();
+            return true;
+        }
+        return false;
+    }
 
-   DLLLOCAL void purge() {
-      if (count) {
-         parse_error(QoreProgramLocation(), "%d conditional block%s left open at end of file", count, count == 1 ? "" : "s");
-         count = 0;
-         markvec.clear();
-      }
-   }
+    DLLLOCAL void purge() {
+        if (count) {
+            parse_error(QoreProgramLocation(), "%d conditional block%s left open at end of file", count, count == 1 ? "" : "s");
+            count = 0;
+            markvec.clear();
+        }
+    }
 };
 
 class ProgramParseContext {
 public:
-   const char* file, * src;
-   void* parseState;
-   int offset;
-   ParseConditionalStack* pcs;
-   ProgramParseContext* next;
+    const char* file;
+    const char* source;
+    int offset;
+    void* parseState;
+    ParseConditionalStack* pcs;
+    ProgramParseContext* next;
 
-   DLLLOCAL ProgramParseContext(const char* fname, void* ps, const char* psrc, int off, ParseConditionalStack* ppcs, ProgramParseContext* n) : file(fname), src(psrc), parseState(ps), offset(off), pcs(ppcs), next(n) {
-   }
+    DLLLOCAL ProgramParseContext(const char* fname, const char* source, int offset, void* ps, ParseConditionalStack* ppcs, ProgramParseContext* n) : file(fname), source(source), offset(offset), parseState(ps), pcs(ppcs), next(n) {
+    }
 };
 
 // for detecting circular references at runtime
@@ -253,9 +256,12 @@ public:
 
    Context* context_stack = nullptr;
    ProgramParseContext* plStack = nullptr;
-   QoreProgramLocation parse_loc;
-   QoreProgramLocation runtime_loc;
+   const QoreProgramLocation* runtime_loc = &loc_builtin;
+   const AbstractStatement* runtime_statement;
    const char* parse_code = nullptr; // the current function, method, or closure being parsed
+   const char* parse_file = nullptr; // the current file or label being parsed
+   const char* parse_source = nullptr; // the current source being parsed
+   int parse_offset = 0; // the current offset in the source being parsed
    void* parseState = nullptr;
    VNode* vstack = nullptr;  // used during parsing (local variable stack)
    CVNode* cvarstack = nullptr;
@@ -306,6 +312,8 @@ public:
 
 #ifdef QORE_MANAGE_STACK
    size_t stack_limit;
+   // this thread's stack size for error reporting
+   size_t stack_size;
 #ifdef IA64_64
    size_t rse_limit;
 #endif
@@ -364,7 +372,8 @@ public:
       try_reexport(false) {
 
 #ifdef QORE_MANAGE_STACK
-
+      // save this thread's stack size as the default stack size can change
+      stack_size = qore_thread_stack_size;
 #ifdef STACK_DIRECTION_DOWN
       stack_limit = get_stack_pos() - qore_thread_stack_limit;
 #else
@@ -500,41 +509,42 @@ bool ThreadProgramData::saveProgram(bool runtime, ExceptionSink* xsink) {
 }
 
 void ThreadProgramData::del(ExceptionSink* xsink) {
-   // first purge all data
-   arg_vec_t* cl = 0;
+    // first purge all data
+    arg_vec_t* cl = 0;
 
-   // remove and finalize all thread-local data in all referenced programs
-   {
-      AutoLocker al(pslock);
-      for (pgm_set_t::iterator i = pgm_set.begin(), e = pgm_set.end(); i != e; ++i)
-         qore_program_private::finalizeThreadData(*i, this, cl);
-   }
+    // remove and finalize all thread-local data in all referenced programs
+    {
+        AutoLocker al(pslock);
+        for (pgm_set_t::iterator i = pgm_set.begin(), e = pgm_set.end(); i != e; ++i)
+            qore_program_private::finalizeThreadData(*i, this, cl);
+    }
 
-   // delete thread-local data
-   if (cl) {
-      for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i)
-         (*i)->deref(xsink);
-      delete cl;
-   }
+    // delete thread-local data
+    if (cl) {
+        for (arg_vec_t::iterator i = cl->begin(), e = cl->end(); i != e; ++i) {
+            (*i).discard(xsink);
+        }
+        delete cl;
+    }
 
-   // purge thread data in contained programs
-   while (true) {
-      QoreProgram* pgm;
-      {
-         AutoLocker al(pslock);
-         pgm_set_t::iterator i = pgm_set.begin();
-         if (i == pgm_set.end())
-            break;
+    // purge thread data in contained programs
+    while (true) {
+        QoreProgram* pgm;
+        {
+            AutoLocker al(pslock);
+            pgm_set_t::iterator i = pgm_set.begin();
+            if (i == pgm_set.end())
+                break;
 
-         pgm = (*i);
-         pgm_set.erase(i);
-      }
-      //printd(5, "ThreadProgramData::del() this: %p pgm: %p\n", this, pgm);
-      pgm->depDeref();
-      // only dereference the current object if the thread was deleted from the program
-      if (!qore_program_private::endThread(pgm, this, xsink))
-         deref();
-   }
+            pgm = (*i);
+            pgm_set.erase(i);
+        }
+        //printd(5, "ThreadProgramData::del() this: %p pgm: %p\n", this, pgm);
+        pgm->depDeref();
+        // only dereference the current object if the thread was deleted from the program
+        if (!qore_program_private::endThread(pgm, this, xsink))
+            deref();
+    }
 }
 
 int ThreadProgramData::gettid() {
@@ -589,120 +599,135 @@ tid_node::~tid_node() {
 
 class BGThreadParams {
 private:
-   // call_obj: get and reference the current stack object, if any, for the new call stack
-   QoreObject* call_obj;
+    // call_obj: get and reference the current stack object, if any, for the new call stack
+    QoreObject* call_obj;
 
-   DLLLOCAL ~BGThreadParams() {
-   }
+    DLLLOCAL ~BGThreadParams() {
+    }
 
 public:
-   QoreObject* obj;
-   const qore_class_private* class_ctx;
+    QoreObject* obj = nullptr;
+    const qore_class_private* class_ctx;
 
-   AbstractQoreNode* fc;
-   QoreProgram* pgm;
-   int tid;
-   QoreProgramLocation loc;
-   bool registered, started;
+    QoreValue fc;
+    QoreProgram* pgm;
+    int tid;
+    const QoreProgramLocation* loc;
+    bool registered = false,
+        started = false;
 
-   DLLLOCAL BGThreadParams(AbstractQoreNode* f, int t, ExceptionSink* xsink)
-      : obj(0),
-        fc(f), pgm(getProgram()), tid(t), loc(RunTimeLocation), registered(false), started(false) {
-      assert(xsink);
-      {
-         ThreadData* td = thread_data.get();
-         call_obj = td->current_obj;
-         class_ctx = td->current_class;
-      }
+    DLLLOCAL BGThreadParams(QoreValue f, int t, ExceptionSink* xsink)
+        : fc(f), pgm(getProgram()), tid(t) {
+        assert(xsink);
+        {
+            ThreadData* td = thread_data.get();
+            call_obj = td->current_obj;
+            class_ctx = td->current_class;
+            loc = td->runtime_loc;
+        }
 
-      //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj, call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", fc->getType());
+        //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj, call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", fc->getType());
 
-      // first try to preregister the new thread
-      if (qore_program_private::preregisterNewThread(*pgm, xsink)) {
-         call_obj = 0;
-         return;
-      }
+        // first try to preregister the new thread
+        if (qore_program_private::preregisterNewThread(*pgm, xsink)) {
+            call_obj = nullptr;
+            return;
+        }
 
-      registered = true;
+        registered = true;
 
-      qore_type_t fctype = fc->getType();
-      if (fctype == NT_SELF_CALL) {
-         {
-            const QoreClass* qc = reinterpret_cast<SelfFunctionCallNode*>(fc)->getClass();
-            if (qc)
-               class_ctx = qore_class_private::get(*qc);
-         }
+        qore_type_t fctype = fc.getType();
+        if (fctype == NT_SELF_CALL) {
+            SelfFunctionCallNode* sfcn = fc.get<SelfFunctionCallNode>();
+            {
+                const QoreClass* qc = sfcn->getClass();
+                if (qc)
+                    class_ctx = qore_class_private::get(*qc);
+            }
 
-         // must have a current object if an in-object method call is being executed
-         // (i.e. $.method())
-         // we reference the object so it won't go out of scope while the thread is running
-         obj = call_obj;
-         assert(obj);
-         obj->realRef();
-         call_obj = 0;
-      }
+            //printd(5, "BGThreadParams::BGThreadParams() sfcn: %p class: '%s' method: '%s' static: %d\n", sfcn, class_ctx->name.c_str(), sfcn->getMethod()->getName(), sfcn->getMethod()->isStatic());
 
-      if (call_obj)
-         call_obj->tRef();
-   }
+            // issue #2653: calling a static method from inside a non-static method in the background operator
+            // incorrectly extends the lifetime of the object
+            if (!sfcn->getMethod()->isStatic()) {
+                //printd(5, "BGThreadParams::BGThreadParams() real object method call: %p\n", call_obj);
+                // must have a current object if an in-object method call is being executed
+                // (i.e. $.method())
+                // we reference the object so it won't go out of scope while the thread is running
+                obj = call_obj;
+                assert(obj);
+                obj->realRef();
+                call_obj = nullptr;
+            }
+        }
 
-   DLLLOCAL void del() {
-      // decrement program's thread count
-      if (started) {
-         qore_program_private::decThreadCount(*pgm, tid);
-         //printd(5, "BGThreadParams::del() this: %p pgm: %p\n", this, pgm);
-         pgm->depDeref();
-      }
-      else if (registered)
-         qore_program_private::cancelPreregistration(*pgm);
+        if (call_obj)
+            call_obj->tRef();
+    }
 
-      delete this;
-   }
+    DLLLOCAL void del() {
+        // decrement program's thread count
+        if (started) {
+            qore_program_private::decThreadCount(*pgm, tid);
+            //printd(5, "BGThreadParams::del() this: %p pgm: %p\n", this, pgm);
+            pgm->depDeref();
+        }
+        else if (registered)
+            qore_program_private::cancelPreregistration(*pgm);
 
-   DLLLOCAL void startThread(ExceptionSink& xsink) {
-      // register the new tid
-      qore_program_private::registerNewThread(*pgm, tid);
-      // create thread-local data in the program object
-      qore_program_private::startThread(*pgm, xsink);
-      // set program counter for new thread
-      update_runtime_location(loc);
-      started = true;
-      //printd(5, "BGThreadParams::startThread() this: %p pgm: %p\n", this, pgm);
-      pgm->depRef();
-   }
+        delete this;
+    }
 
-   DLLLOCAL QoreObject* getCallObject() {
-      return obj ? obj : call_obj;
-   }
+    DLLLOCAL void startThread(ExceptionSink& xsink) {
+        // register the new tid
+        qore_program_private::registerNewThread(*pgm, tid);
+        // create thread-local data in the program object
+        qore_program_private::startThread(*pgm, xsink);
+        // set program counter for new thread
+        update_runtime_location(loc);
+        started = true;
+        //printd(5, "BGThreadParams::startThread() this: %p pgm: %p\n", this, pgm);
+        pgm->depRef();
+    }
 
-   DLLLOCAL void cleanup(ExceptionSink* xsink) {
-      if (fc) fc->deref(xsink);
-      derefObj(xsink);
-      derefCallObj();
-   }
+    /*
+    DLLLOCAL QoreObject* getCallObject() {
+        return obj ? obj : call_obj;
+    }
+    */
 
-   DLLLOCAL void derefCallObj() {
-      // dereference call object if present
-      if (call_obj) {
-         call_obj->tDeref();
-         call_obj = 0;
-      }
-   }
+    DLLLOCAL QoreObject* getContextObject() {
+        return obj;
+    }
 
-   DLLLOCAL void derefObj(ExceptionSink* xsink) {
-      if (obj) {
-         obj->realDeref(xsink);
-         obj = 0;
-      }
-   }
+    DLLLOCAL void cleanup(ExceptionSink* xsink) {
+        fc.discard(xsink);
+        derefObj(xsink);
+        derefCallObj();
+    }
 
-   DLLLOCAL AbstractQoreNode* exec(ExceptionSink* xsink) {
-      //printd(5, "BGThreadParams::exec() this: %p fc: %p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
-      AbstractQoreNode* rv = fc->eval(xsink);
-      fc->deref(xsink);
-      fc = 0;
-      return rv;
-   }
+    DLLLOCAL void derefCallObj() {
+        // dereference call object if present
+        if (call_obj) {
+            call_obj->tDeref();
+            call_obj = nullptr;
+        }
+    }
+
+    DLLLOCAL void derefObj(ExceptionSink* xsink) {
+        if (obj) {
+            obj->realDeref(xsink);
+            obj = nullptr;
+        }
+    }
+
+    DLLLOCAL QoreValue exec(ExceptionSink* xsink) {
+        //printd(5, "BGThreadParams::exec() this: %p fc: %p (%s %d)\n", this, fc, fc->getTypeName(), fc->getType());
+        QoreValue rv = fc.eval(xsink);
+        fc.discard(xsink);
+        fc = QoreValue();
+        return rv;
+    }
 };
 
 ThreadCleanupList::ThreadCleanupList() {
@@ -748,11 +773,11 @@ void ThreadCleanupList::pop(bool exec) {
 #ifdef QORE_MANAGE_STACK
 int check_stack(ExceptionSink* xsink) {
    ThreadData* td = thread_data.get();
-   printd(5, "check_stack() current: %p limit: %p\n", get_stack_pos(), td->stack_limit);
+   //printd(5, "check_stack() current: %p limit: %p\n", get_stack_pos(), td->stack_limit);
 #ifdef IA64_64
    //printd(5, "check_stack() bsp current: %p limit: %p\n", get_rse_bsp(), td->rse_limit);
    if (td->rse_limit < get_rse_bsp()) {
-      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the IA-64 RSE (Register Stack Engine) stack size limit (%ld bytes)", qore_thread_stack_limit);
+      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the IA-64 RSE (Register Stack Engine) stack size limit (%ld bytes)", td->stack_size - QORE_STACK_GUARD);
       return -1;
    }
 
@@ -765,7 +790,7 @@ int check_stack(ExceptionSink* xsink) {
    <
 #endif
    get_stack_pos()) {
-      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit (%ld bytes)", qore_thread_stack_limit);
+      xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit (%ld bytes)", td->stack_size - QORE_STACK_GUARD);
       return -1;
    }
 
@@ -962,7 +987,7 @@ bool check_thread_resource(AbstractThreadResource* atr) {
    return td->trlist->check(atr);
 }
 
-void set_thread_resource(const ResolvedCallReferenceNode* rcr, QoreValue arg) {
+void set_thread_resource(const ResolvedCallReferenceNode* rcr, const QoreValue arg) {
    thread_data.get()->trlist->set(rcr, arg);
 }
 
@@ -1016,7 +1041,7 @@ void parse_try_module_inc() {
    td->tm.inc();
 }
 
-bool parse_try_module_dec(const QoreProgramLocation& loc) {
+bool parse_try_module_dec(const QoreProgramLocation* loc) {
    ThreadData* td = thread_data.get();
    return td->tm.dec(loc);
 }
@@ -1041,19 +1066,19 @@ bool parse_cond_else() {
    return td->pcs ? td->pcs->checkElse() : false;
 }
 
-bool parse_cond_pop(const QoreProgramLocation& loc) {
+bool parse_cond_pop(const QoreProgramLocation* loc) {
    ThreadData* td = thread_data.get();
    if (!td->pcs) {
-      parse_error(loc, "unmatched %%endif");
+      parse_error(*loc, "unmatched %%endif");
       return false;
    }
    return td->pcs->pop(loc);
 }
 
-bool parse_cond_test(const QoreProgramLocation& loc) {
+bool parse_cond_test(const QoreProgramLocation* loc) {
    ThreadData* td = thread_data.get();
    if (!td->pcs) {
-      parse_error(loc, "%%else without %%ifdef");
+      parse_error(*loc, "%%else without %%ifdef");
       return false;
    }
    return td->pcs->test(loc);
@@ -1061,7 +1086,7 @@ bool parse_cond_test(const QoreProgramLocation& loc) {
 
 void push_parse_options() {
    ThreadData* td = thread_data.get();
-   qore_program_private::pushParseOptions(td->current_pgm, td->parse_loc.file);
+   qore_program_private::get(*td->current_pgm)->pushParseOptions(td->parse_file);
 }
 
 // called when a StatementBlock has "on_exit" blocks
@@ -1086,46 +1111,46 @@ void advanceOnBlockExit() {
 
 // new file name, current parse state
 void beginParsing(const char* file, void* ps, const char* src, int offset) {
-   ThreadData* td = thread_data.get();
-   //printd(5, "beginParsing() td: %p of %p (%s), (stack: %s) src: %s:%d\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"), src ? src : "(null)", offset);
+    ThreadData* td = thread_data.get();
+    //printd(5, "beginParsing() td: %p of %p (%s), (stack: %s) src: %s:%d\n", td, file, file ? file : "(null)", (td->plStack ? td->plStack->file : "n/a"), src ? src : "(null)", offset);
 
-   // store current position
-   ProgramParseContext* pl = new ProgramParseContext(td->parse_loc.file, td->parseState, td->parse_loc.source, td->parse_loc.offset, td->pcs, td->plStack);
-   td->plStack = pl;
+    // store current position
+    ProgramParseContext* pl = new ProgramParseContext(td->parse_file, td->parse_source, td->parse_offset, td->parseState, td->pcs, td->plStack);
+    td->plStack = pl;
 
-   // set new position
-   td->parse_loc.file = file;
-   td->parseState = ps;
-   td->parse_loc.source = src;
-   td->parse_loc.offset = offset;
-   td->pcs = 0;
+    // set new position
+    td->parse_file = file;
+    td->parse_source = src;
+    td->parse_offset = offset;
+    td->parseState = ps;
+    td->pcs = 0;
 }
 
 void* endParsing() {
-   ThreadData* td = thread_data.get();
-   //printd(5, "endParsing() td: %p restoreParseOptions pgm: %p parse_file: %p '%s' src: %s:%d\n", td, td->current_pgm, td->parse_loc.file, td->parse_loc.file, td->parse_loc.source ? td->parse_loc.source : "(null)", td->parse_loc.offset);
-   qore_program_private::restoreParseOptions(td->current_pgm, td->parse_loc.file);
+    ThreadData* td = thread_data.get();
+    //printd(5, "endParsing() td: %p restoreParseOptions pgm: %p parse_file: %p '%s' src: %s:%d\n", td, td->current_pgm, td->parse_loc.getFile(), td->parse_loc.getFile(), td->parse_loc.getSource() ? td->parse_loc.getSource() : "(null)", td->parse_loc.offset);
+    qore_program_private::get(*td->current_pgm)->restoreParseOptions(td->parse_file);
 
-   void* rv = td->parseState;
+    void* rv = td->parseState;
 
-   // ensure there are no conditional blocks left open at EOF
-   td->endFileParsing();
+    // ensure there are no conditional blocks left open at EOF
+    td->endFileParsing();
 
-   assert(td->plStack);
-   assert(!td->pcs);
+    assert(td->plStack);
+    assert(!td->pcs);
 
-   ProgramParseContext* pl = td->plStack->next;
-   //printd(5, "endParsing() td: %p ending parsing of '%s', returning %p, setting file: %p '%s'\n", td, td->parse_file, rv, td->plStack->file, td->plStack->file);
+    ProgramParseContext* pl = td->plStack->next;
+    //printd(5, "endParsing() td: %p ending parsing of '%s', returning %p, setting file: %p '%s'\n", td, td->parse_file, rv, td->plStack->file, td->plStack->file);
 
-   td->parse_loc.file   = td->plStack->file;
-   td->parseState       = td->plStack->parseState;
-   td->parse_loc.source = td->plStack->src;
-   td->parse_loc.offset = td->plStack->offset;
-   td->pcs              = td->plStack->pcs;
-   delete td->plStack;
-   td->plStack = pl;
+    td->parse_file       = td->plStack->file;
+    td->parse_source     = td->plStack->source;
+    td->parse_offset     = td->plStack->offset;
+    td->parseState       = td->plStack->parseState;
+    td->pcs              = td->plStack->pcs;
+    delete td->plStack;
+    td->plStack = pl;
 
-   return rv;
+    return rv;
 }
 
 // thread-local functions
@@ -1151,35 +1176,36 @@ void update_context_stack(Context* cstack) {
    td->context_stack = cstack;
 }
 
-QoreProgramLocation get_runtime_location() {
+const QoreProgramLocation* get_runtime_location() {
    return thread_data.get()->runtime_loc;
 }
 
-QoreProgramLocation update_get_runtime_location(const QoreProgramLocation& loc) {
-   QoreProgramLocation rv = thread_data.get()->runtime_loc;
-   thread_data.get()->runtime_loc = loc;
-   return rv;
+const QoreProgramLocation* update_get_runtime_location(const QoreProgramLocation* loc) {
+    const QoreProgramLocation* rv = thread_data.get()->runtime_loc;
+    thread_data.get()->runtime_loc = loc;
+    return rv;
 }
 
-void update_runtime_location(const QoreProgramLocation& loc) {
+void update_runtime_location(const QoreProgramLocation* loc) {
    thread_data.get()->runtime_loc = loc;
+}
+
+const AbstractStatement* get_runtime_statement() {
+   return thread_data.get()->runtime_statement;
+}
+
+const AbstractStatement* update_get_runtime_statement(const AbstractStatement* s) {
+   const AbstractStatement* rv = thread_data.get()->runtime_statement;
+   thread_data.get()->runtime_statement = s;
+   return rv;
 }
 
 void set_parse_file_info(QoreProgramLocation& loc) {
    ThreadData* td = thread_data.get();
-   loc.file       = td->parse_loc.file;
-   loc.source     = td->parse_loc.source;
-   loc.offset     = td->parse_loc.offset;
-   //printd(5, "set_parse_file_info() setting %s src: %s:%d\n", loc.file, loc.source ? loc.source : "(null)", loc.offset);
-}
-
-QoreProgramLocation get_parse_location() {
-   return thread_data.get()->parse_loc;
-}
-
-void update_parse_location(const QoreProgramLocation& loc) {
-   //printd(5, "update_parse_location() setting %s:%d-%d src: %s%d\n", loc.file, loc.start_line, loc.end_line, loc.source ? loc.source : "(null)", loc.offset);
-   thread_data.get()->parse_loc = loc;
+   loc.setFile(td->parse_file);
+   loc.setSource(td->parse_source);
+   loc.offset = td->parse_offset;
+   //printd(5, "set_parse_file_info() setting %s src: %s:%d\n", loc.getFile(), loc.getSource() ? loc.getSource() : "(null)", loc.offset);
 }
 
 const char* get_parse_code() {
@@ -1416,7 +1442,7 @@ OptionalClassObjSubstitutionHelper::~OptionalClassObjSubstitutionHelper() {
    }
 }
 
-CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink) : xsink(xsink) {
+CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink, bool ref_obj) : xsink(xsink) {
    ThreadData* td  = thread_data.get();
    old_code = td->current_code;
    td->current_code = code;
@@ -1427,7 +1453,7 @@ CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, 
    old_class = td->current_class;
    td->current_class = c;
 
-   if (obj && obj != old_obj && !qore_object_private::get(*obj)->startCall(code, xsink))
+   if (obj && ref_obj && obj != old_obj && !qore_object_private::get(*obj)->startCall(code, xsink))
       do_ref = true;
    else
       do_ref = false;
@@ -1460,24 +1486,25 @@ ArgvContextHelper::~ArgvContextHelper() {
 }
 
 SingleArgvContextHelper::SingleArgvContextHelper(QoreValue val, ExceptionSink* n_xsink) : xsink(n_xsink) {
-   //printd(5, "SingleArgvContextHelper::SingleArgvContextHelper() this: %p arg: %p (%s)\n", this, val, val ? val->getTypeName() : 0);
-   ThreadData* td  = thread_data.get();
-   old_argv = td->current_implicit_arg;
-   QoreListNode* argv;
-   if (!val.isNothing()) {
-      argv = new QoreListNode;
-      argv->push(val.takeNode());
-   }
-   else
-      argv = 0;
-   td->current_implicit_arg = argv;
+    //printd(5, "SingleArgvContextHelper::SingleArgvContextHelper() this: %p arg: %p (%s)\n", this, val, val ? val->getTypeName() : 0);
+    ThreadData* td = thread_data.get();
+    old_argv = td->current_implicit_arg;
+    QoreListNode* argv;
+    if (!val.isNothing()) {
+        argv = new QoreListNode(autoTypeInfo);
+        argv->push(val, n_xsink);
+    }
+    else {
+        argv = nullptr;
+    }
+    td->current_implicit_arg = argv;
 }
 
 SingleArgvContextHelper::~SingleArgvContextHelper() {
-   ThreadData* td  = thread_data.get();
-   if (td->current_implicit_arg)
-      td->current_implicit_arg->deref(xsink);
-   td->current_implicit_arg = old_argv;
+    ThreadData* td = thread_data.get();
+    if (td->current_implicit_arg)
+        td->current_implicit_arg->deref(xsink);
+    td->current_implicit_arg = old_argv;
 }
 
 const QoreListNode* thread_get_implicit_args() {
@@ -2049,181 +2076,196 @@ struct ThreadArg {
    }
 };
 
-// put functions in an unnamed namespace to make them 'static extern "C"'
-namespace {
-   extern "C" void* q_run_thread(void* arg) {
-      ThreadArg* ta = (ThreadArg*)arg;
-
-      register_thread(ta->tid, pthread_self(), 0);
-      printd(5, "q_run_thread() ta: %p TID %d started\n", ta, ta->tid);
-
-      pthread_cleanup_push(qore_thread_cleanup, (void*)0);
-
-      {
-         ExceptionSink xsink;
-
-         {
-            ThreadLocalProgramData *tlpd = get_thread_local_program_data();
-            if (tlpd) {
-               tlpd->dbgAttach(&xsink);
-            }
-            ta->run(&xsink);
-            if (tlpd) {
-               QoreValue val((AbstractQoreNode*)nullptr);
-               tlpd->dbgExit(nullptr, val, &xsink);
-               // notify debugger that thread is terminated
-               tlpd->dbgDetach(&xsink);
-            }
-
-            // cleanup thread resources
-            purge_thread_resources(&xsink);
-
-            // delete any thread data
-            thread_data.get()->del(&xsink);
-
-            xsink.handleExceptions();
-
-            printd(4, "q_run_thread(): thread terminating");
-
-            // run any cleanup functions
-            tclist.exec();
-
-            // delete internal thread data structure and release TID entry
-            thread_list.deleteDataRelease(ta->tid);
-
-            //printd(5, "q_run_thread(): deleting thread params %p\n", ta);
-            delete ta;
-         }
-      }
-
-      pthread_cleanup_pop((int)1);
-      thread_counter.dec();
-      pthread_exit(0);
-      return 0;
-   }
-
-   extern "C" void* op_background_thread(void* x) {
-      BGThreadParams* btp = (BGThreadParams*) x;
-      // register thread
-      register_thread(btp->tid, pthread_self(), btp->pgm);
-      printd(5, "op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
-      //printf("op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
-
-      pthread_cleanup_push(qore_thread_cleanup, (void*)0);
-
-      {
-         ExceptionSink xsink;
-
-         // register thread in Program object
-         btp->startThread(xsink);
-
-         {
-            AbstractQoreNode* rv;
-            {
-               CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getCallObject(), btp->class_ctx);
-
-               // dereference call object if present
-               btp->derefCallObj();
-
-
-               ThreadLocalProgramData* tlpd = get_thread_local_program_data();
-               if (tlpd) {
-                  tlpd->dbgAttach(&xsink);
-               }
-               // run thread expression
-               rv = btp->exec(&xsink);
-               if (tlpd) {
-                  QoreValue val(rv);
-                  // notify return value and notify thread detach to program
-                  tlpd->dbgExit(nullptr, val, &xsink);
-                  tlpd->dbgDetach(&xsink);
-               }
-
-               // if there is an object, we dereference the extra reference here
-               btp->derefObj(&xsink);
-            }
-
-            // dereference any return value from the background expression
-            if (rv)
-               rv->deref(&xsink);
-
-            // cleanup thread resources
-            purge_thread_resources(&xsink);
-
-            int tid = btp->tid;
-            // dereference current Program object
-            btp->del();
-
-            // delete any thread data
-            thread_data.get()->del(&xsink);
-
-            xsink.handleExceptions();
-
-            printd(4, "thread terminating");
-
-            // run any cleanup functions
-            tclist.exec();
-
-            // delete internal thread data structure and release TID entry
-            thread_list.deleteDataRelease(tid);
-         }
-      }
-
-      pthread_cleanup_pop(1);
-      thread_counter.dec();
-      pthread_exit(0);
-      return 0;
-   }
+static void set_tid_thread_name(int tid) {
+#ifdef QORE_HAVE_THREAD_NAME
+    QoreStringMaker name("qore/%d", tid);
+    q_set_thread_name(name.c_str());
+#endif
 }
 
-QoreValue do_op_background(const AbstractQoreNode* left, ExceptionSink* xsink) {
-   if (!left)
-      return QoreValue();
 
-   //printd(2, "op_background() before crlr left = %p\n", left);
-   ReferenceHolder<AbstractQoreNode> nl(copy_and_resolve_lvar_refs(left, xsink), xsink);
-   //printd(2, "op_background() after crlr nl = %p\n", nl);
-   if (*xsink || !nl)
-      return QoreValue();
+// put functions in an unnamed namespace to make them 'static extern "C"'
+namespace {
+    extern "C" void* q_run_thread(void* arg) {
+        ThreadArg* ta = (ThreadArg*)arg;
 
-   // now we are ready to create the new thread
+        register_thread(ta->tid, pthread_self(), 0);
+        printd(5, "q_run_thread() ta: %p TID %d started\n", ta, ta->tid);
 
-   // get thread entry
-   //printd(2, "calling get_thread_entry()\n");
-   int tid = get_thread_entry();
-   //printd(2, "got %d()\n", tid);
+        set_tid_thread_name(ta->tid);
 
-   // if can't start thread, then throw exception
-   if (tid == -1) {
-      xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
-      return QoreValue();
-   }
+        pthread_cleanup_push(qore_thread_cleanup, nullptr);
 
-   BGThreadParams* tp = new BGThreadParams(nl.release(), tid, xsink);
-   //printd(5, "created BGThreadParams(%p, %d) = %p\n", *nl, tid, tp);
-   if (*xsink) {
-      deregister_thread(tid);
-      return QoreValue();
-   }
-   //printd(5, "tp = %p\n", tp);
-   // create thread
-   int rc;
-   pthread_t ptid;
+        {
+            ExceptionSink xsink;
 
-   //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
-   thread_counter.inc();
+            {
+                ThreadLocalProgramData *tlpd = get_thread_local_program_data();
+                if (tlpd) {
+                    tlpd->dbgAttach(&xsink);
+                }
+                ta->run(&xsink);
+                if (tlpd) {
+                    QoreValue val((AbstractQoreNode*)nullptr);
+                    tlpd->dbgExit(nullptr, val, &xsink);
+                    // notify debugger that thread is terminated
+                    tlpd->dbgDetach(&xsink);
+                }
 
-   if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
-      tp->cleanup(xsink);
-      tp->del();
+                // cleanup thread resources
+                purge_thread_resources(&xsink);
 
-      thread_counter.dec();
-      deregister_thread(tid);
-      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
-      return QoreValue();
-   }
-   //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
-   return tid;
+                // delete any thread data
+                thread_data.get()->del(&xsink);
+
+                xsink.handleExceptions();
+
+                printd(4, "q_run_thread(): thread terminating");
+
+                // run any cleanup functions
+                tclist.exec();
+
+                // delete internal thread data structure and release TID entry
+                thread_list.deleteDataRelease(ta->tid);
+
+                //printd(5, "q_run_thread(): deleting thread params %p\n", ta);
+                delete ta;
+            }
+        }
+
+        pthread_cleanup_pop((int)1);
+        thread_counter.dec();
+        pthread_exit(0);
+        return 0;
+    }
+
+    extern "C" void* op_background_thread(void* x) {
+        BGThreadParams* btp = (BGThreadParams*) x;
+        // register thread
+        register_thread(btp->tid, pthread_self(), btp->pgm);
+        printd(5, "op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
+        //printf("op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
+
+        set_tid_thread_name(btp->tid);
+
+        pthread_cleanup_push(qore_thread_cleanup, nullptr);
+
+        {
+            ExceptionSink xsink;
+
+            // register thread in Program object
+            btp->startThread(xsink);
+
+            {
+                QoreValue rv;
+                {
+                    CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getContextObject(), btp->class_ctx);
+
+                    // dereference call object if present
+                    btp->derefCallObj();
+
+
+                    ThreadLocalProgramData* tlpd = get_thread_local_program_data();
+                    if (tlpd) {
+                        tlpd->dbgAttach(&xsink);
+                    }
+                    // run thread expression
+                    rv = btp->exec(&xsink);
+                    if (tlpd) {
+                        // notify return value and notify thread detach to program
+                        tlpd->dbgExit(nullptr, rv, &xsink);
+                        tlpd->dbgDetach(&xsink);
+                    }
+
+                    // if there is an object, we dereference the extra reference here
+                    btp->derefObj(&xsink);
+                }
+
+                // dereference any return value from the background expression
+                rv.discard(&xsink);
+
+                // cleanup thread resources
+                purge_thread_resources(&xsink);
+
+                int tid = btp->tid;
+                // dereference current Program object
+                btp->del();
+
+                // delete any thread data
+                thread_data.get()->del(&xsink);
+
+                xsink.handleExceptions();
+
+                printd(4, "thread terminating");
+
+                // run any cleanup functions
+                tclist.exec();
+
+                // delete internal thread data structure and release TID entry
+                thread_list.deleteDataRelease(tid);
+            }
+        }
+
+        pthread_cleanup_pop(1);
+        thread_counter.dec();
+        pthread_exit(0);
+        return 0;
+    }
+}
+
+QoreValue do_op_background(const QoreValue left, ExceptionSink* xsink) {
+    if (!left)
+        return QoreValue();
+
+    //printd(2, "op_background() before crlr left = %p\n", left);
+    ValueHolder nl(copy_value_and_resolve_lvar_refs(left, xsink), xsink);
+    //printd(2, "op_background() after crlr nl = %p\n", nl);
+    if (*xsink || !nl)
+        return QoreValue();
+
+    // now we are ready to create the new thread
+
+    // get thread entry
+    //printd(2, "calling get_thread_entry()\n");
+    int tid = get_thread_entry();
+    //printd(2, "got %d()\n", tid);
+
+    // if can't start thread, then throw exception
+    if (tid == -1) {
+        xsink->raiseException("THREAD-CREATION-FAILURE", "thread list is full with %d threads", MAX_QORE_THREADS);
+        return QoreValue();
+    }
+
+    BGThreadParams* tp = new BGThreadParams(nl.release(), tid, xsink);
+    //printd(5, "created BGThreadParams(%p, %d) = %p\n", *nl, tid, tp);
+    if (*xsink) {
+        deregister_thread(tid);
+        return QoreValue();
+    }
+    //printd(5, "tp = %p\n", tp);
+    // create thread
+    int rc;
+    pthread_t ptid;
+
+    //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
+    thread_counter.inc();
+
+#ifdef QORE_MANAGE_STACK
+    // make sure accesses to ta_default are made locked
+    AutoLocker al(stack_lck);
+#endif
+
+    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), op_background_thread, tp))) {
+        tp->cleanup(xsink);
+        tp->del();
+
+        thread_counter.dec();
+        deregister_thread(tid);
+        xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
+        return QoreValue();
+    }
+    //printd(5, "pthread_create() new thread TID %d, pthread_create() returned %d\n", tid, rc);
+    return tid;
 }
 
 int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
@@ -2243,18 +2285,89 @@ int q_start_thread(ExceptionSink* xsink, q_thread_t f, void* arg) {
    int rc;
    pthread_t ptid;
 
-   //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
-   thread_counter.inc();
-   if ((rc = pthread_create(&ptid, ta_default.get_ptr(), q_run_thread, ta))) {
-      delete ta;
-      thread_counter.dec();
-      deregister_thread(tid);
-      xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
-      return -1;
-   }
+#ifdef QORE_MANAGE_STACK
+    // make sure accesses to ta_default are made locked
+    AutoLocker al(stack_lck);
+#endif
 
-   return tid;
+    //printd(5, "calling pthread_create(%p, %p, %p, %p)\n", &ptid, &ta_default, op_background_thread, tp);
+    thread_counter.inc();
+    if ((rc = pthread_create(&ptid, ta_default.get_ptr(), q_run_thread, ta))) {
+        delete ta;
+        thread_counter.dec();
+        deregister_thread(tid);
+        xsink->raiseErrnoException("THREAD-CREATION-FAILURE", rc, "could not create thread");
+        return -1;
+    }
+
+    return tid;
 }
+
+#ifdef QORE_MANAGE_STACK
+// returns the default thread stack size for new threads
+size_t q_thread_get_stack_size() {
+    // make sure accesses to stack info are made locked
+    AutoLocker al(stack_lck);
+
+    return qore_thread_stack_size;
+}
+
+// returns the default thread stack size set for new threads
+size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink) {
+    // make sure accesses to stack info are made locked
+    AutoLocker al(stack_lck);
+
+    int rc = ta_default.setstacksize(size);
+    if (rc) {
+        xsink->raiseErrnoException("SET-DEFAULT-THREAD-STACK-SIZE-ERROR", rc, "an error occurred setting the default thread stack size to %ld", size);
+        return 0;
+    }
+    // make sure we check what was actually set
+    qore_thread_stack_size = ta_default.getstacksize();
+
+    return qore_thread_stack_size;
+}
+#endif
+
+#ifdef QORE_HAVE_THREAD_NAME
+#define MAX_THREAD_NAME_SIZE 256
+#ifdef QORE_HAVE_PTHREAD_SETNAME_NP_1
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(name);
+}
+#elif defined(QORE_HAVE_PTHREAD_SETNAME_NP_2)
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(pthread_self(), name);
+}
+#elif defined(QORE_HAVE_PTHREAD_SETNAME_NP_3)
+void q_set_thread_name(const char* name) {
+    pthread_setname_np(pthread_self(), name, nullptr);
+}
+#elif defined(QORE_HAVE_PTHREAD_SET_NAME_NP)
+void q_set_thread_name(const char* name) {
+    pthread_set_name_np(pthread_self(), name);
+}
+#else
+#error no pthread_setname_np()
+#endif
+#if defined(QORE_HAVE_PTHREAD_SET_NAME_NP)
+void q_get_thread_name(QoreString& str) {
+    str.clear();
+    str.reserve(MAX_THREAD_NAME_SIZE);
+    if (!pthread_get_name_np(pthread_self(), (char*)str.c_str(), MAX_THREAD_NAME_SIZE + 1)) {
+        str.terminate(strlen(str.c_str()));
+    }
+}
+#else
+void q_get_thread_name(QoreString& str) {
+    str.clear();
+    str.reserve(MAX_THREAD_NAME_SIZE);
+    if (!pthread_getname_np(pthread_self(), (char*)str.c_str(), MAX_THREAD_NAME_SIZE + 1)) {
+        str.terminate(strlen(str.c_str()));
+    }
+}
+#endif
+#endif
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 #include <qore/QoreRWLock.h>
@@ -2280,20 +2393,23 @@ void init_qore_threads() {
 #ifdef SOLARIS
 #if TARGET_BITS == 32
    // pthread_attr_getstacksize() on default attributes returns 0 on Solaris
-   // so we set according to defaults - 1MB on 32-bit builds
-   qore_thread_stack_size = 1024*1024;
+   qore_thread_stack_size = MAX_STACK_SIZE;
 #else
-   // 2MB on 64-bit builds
-   qore_thread_stack_size = 1024*1024*2;
+   qore_thread_stack_size = MAX_STACK_SIZE;
 #endif // #if TARGET_BITS == 32
 #else
 #ifdef _Q_WINDOWS
    // windows stacks are extended automatically; here we set a limit of 1 MB per thread
-   qore_thread_stack_size = 1024 * 1024;
+   qore_thread_stack_size = MAX_STACK_SIZE;
 #else // !_Q_WINDOWS && !SOLARIS
    qore_thread_stack_size = ta_default.getstacksize();
    assert(qore_thread_stack_size);
    //printd(5, "getstacksize() returned: %ld\n", qore_thread_stack_size);
+   if (qore_thread_stack_size > MAX_STACK_SIZE) {
+       //printd(5, "setting stack size from %ld to %ld\n", qore_thread_stack_size, (size_t)MAX_STACK_SIZE);
+       ta_default.setstacksize(MAX_STACK_SIZE);
+       qore_thread_stack_size = MAX_STACK_SIZE;
+   }
 #endif // #ifdef _Q_WINDOWS
 #endif // #ifdef SOLARIS
 
@@ -2311,6 +2427,9 @@ void init_qore_threads() {
    // initialize recursive mutex attribute
    pthread_mutexattr_init(&ma_recursive);
    pthread_mutexattr_settype(&ma_recursive, PTHREAD_MUTEX_RECURSIVE);
+
+   // set default thread name for initial thread
+   set_tid_thread_name(gettid());
 
    // mark threading as active
    threads_initialized = true;
@@ -2345,7 +2464,7 @@ void delete_thread_local_data() {
    ThreadData* td = thread_data.get();
 
    // clear runtime location
-   td->runtime_loc.clear();
+   td->runtime_loc = nullptr;
 
    ExceptionSink xsink;
    // delete any thread data
@@ -2380,14 +2499,15 @@ void delete_qore_threads() {
 }
 
 QoreListNode* get_thread_list() {
-   QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode(bigIntTypeInfo);
 
-   QoreThreadListIterator i;
+    QoreThreadListIterator i;
 
-   while (i.next())
-      l->push(new QoreBigIntNode(*i));
+    while (i.next()) {
+        l->push(*i, nullptr);
+    }
 
-   return l;
+    return l;
 }
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE

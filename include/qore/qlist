@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -35,96 +35,10 @@
 
 #include <list>
 
-// this is a templated class wrapper for std::list that also maintains the list size (ie size() is O(1)
+// this class is no longer necessary since from c++11+ the list class supports list::size() as O(1)
 
 template<typename T>
-class qlist {
-protected:
-   typedef std::list<T> list_t;
-   list_t l;
-   size_t len;
-
-public:
-   typedef typename list_t::iterator iterator;
-   typedef typename list_t::const_iterator const_iterator;
-   typedef typename list_t::reverse_iterator reverse_iterator;
-
-   DLLLOCAL qlist() : len(0) {
-   }
-
-   DLLLOCAL iterator begin() {
-      return l.begin();
-   }
-
-   DLLLOCAL iterator end() {
-      return l.end();
-   }
-
-   DLLLOCAL const_iterator begin() const {
-      return l.begin();
-   }
-
-   DLLLOCAL const_iterator end() const {
-      return l.end();
-   }
-
-   DLLLOCAL reverse_iterator rbegin() {
-      return l.rbegin();
-   }
-
-   DLLLOCAL reverse_iterator rend() {
-      return l.rend();
-   }
-
-   DLLLOCAL T& front() {
-      return l.front();
-   }
-
-   DLLLOCAL T& back() {
-      return l.back();
-   }
-
-   DLLLOCAL const T& front() const {
-      return l.front();
-   }
-
-   DLLLOCAL const T& back() const {
-      return l.back();
-
-   }
-
-   DLLLOCAL void pop_front() {
-      l.pop_front();
-      --len;
-   }
-
-   DLLLOCAL void push_back(const T& t) {
-      l.push_back(t);
-      ++len;
-   }
-
-   DLLLOCAL iterator insert(iterator i, const T& val) {
-      ++len;
-      return l.insert(i, val);
-   }
-
-   DLLLOCAL size_t size() const {
-      return len;
-   }
-
-   DLLLOCAL bool empty() const {
-      return l.empty();
-   }
-
-   DLLLOCAL void erase(iterator i) {
-      l.erase(i);
-      --len;
-   }
-
-   DLLLOCAL void clear() {
-      l.clear();
-      len = 0;
-   }
+class qlist : public std::list<T> {
 };
 
 #endif

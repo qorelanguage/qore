@@ -43,8 +43,6 @@ DLLEXPORT extern QoreListNode* emptyList;
 DLLEXPORT extern QoreHashNode* emptyHash;
 DLLEXPORT extern QoreStringNode* NullString;
 DLLEXPORT extern DateTimeNode* ZeroDate;
-DLLEXPORT extern QoreBigIntNode* Zero;
-DLLEXPORT extern QoreFloatNode* ZeroFloat;
 DLLEXPORT extern QoreNumberNode* ZeroNumber, * InfinityNumber, * NaNumber, * piNumber;
 
 DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString,
@@ -121,24 +119,6 @@ DLLEXPORT bool compareHard(const AbstractQoreNode* l, const AbstractQoreNode* r,
 DLLEXPORT bool compareSoft(const AbstractQoreNode* l, const AbstractQoreNode* r, ExceptionSink* xsink);
 //! true = not equal, false = equal
 DLLEXPORT bool q_compare_soft(const QoreValue l, const QoreValue r, ExceptionSink* xsink);
-
-static inline AbstractQoreNode* boolean_false() {
-   return &False;
-}
-
-static inline AbstractQoreNode* boolean_true() {
-   return &True;
-}
-
-static inline QoreBigIntNode* zero() {
-   Zero->ref();
-   return Zero;
-}
-
-static inline QoreFloatNode* zero_float() {
-   ZeroFloat->ref();
-   return ZeroFloat;
-}
 
 static inline QoreNumberNode* zero_number() {
    ZeroNumber->ref();
