@@ -402,7 +402,7 @@ NormalMethod m = cls.getNormalMethod(name);
     @return the given normal (non-special, non-static) method
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
-    @throw METHOD-ERROR unknown method or method is not normal
+    @throw UNKNOWN-METHOD unknown method or method is not normal
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
@@ -424,13 +424,8 @@ NormalMethod Class::getNormalMethod(string name) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, nname->c_str(), xsink), xsink);
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, nname->c_str(), xsink, MT_Normal), xsink);
     if (*xsink) {
-        return QoreValue();
-    }
-
-    if (m->mtype != MT_Normal) {
-        xsink->raiseException("METHOD-ERROR", "method '%s()' in class '%s' has type '%s'; expecting 'normal'", nname->c_str(), c->cls->getName(), m->getType());
         return QoreValue();
     }
 
@@ -448,7 +443,7 @@ StaticMethod m = cls.getStaticMethod(name);
     @return the given static method
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
-    @throw METHOD-ERROR unknown method or method is not static
+    @throw UNKNOWN-METHOD unknown method or method is not static
     @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @see
@@ -470,13 +465,8 @@ StaticMethod Class::getStaticMethod(string name) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, nname->c_str(), xsink), xsink);
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, nname->c_str(), xsink, MT_Static), xsink);
     if (*xsink) {
-        return QoreValue();
-    }
-
-    if (m->mtype != MT_Static) {
-        xsink->raiseException("METHOD-ERROR", "method '%s()' in class '%s' has type '%s'; expecting 'static'", nname->c_str(), c->cls->getName(), m->getType());
         return QoreValue();
     }
 

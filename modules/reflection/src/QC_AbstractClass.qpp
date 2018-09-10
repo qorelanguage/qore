@@ -98,7 +98,7 @@ QoreObject* find_variant(const QoreReflectionClass* c, const char* name, unsigne
     const QoreMethod* m = nullptr;
     method_type_e mtype = MT_None;
     if (which & (FV_NORMAL | FV_CONSTRUCTOR | FV_DESTRUCTOR | FV_COPY | FV_PSEUDO)) {
-        m = c->cls->findMethod(name);
+        m = c->cls->findLocalMethod(name);
         if (m) {
             mtype = m->getMethodType();
             switch (mtype) {
@@ -134,7 +134,7 @@ QoreObject* find_variant(const QoreReflectionClass* c, const char* name, unsigne
         }
     }
     if (!m && (which & FV_STATIC)) {
-        m = c->cls->findStaticMethod(name);
+        m = c->cls->findLocalStaticMethod(name);
         if (m) {
             mtype = MT_Static;
         }
@@ -822,12 +822,25 @@ list<AbstractMethod> AbstractClass::getMethods() [flags=RET_VALUE_ONLY] {
 
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTMETHOD->getTypeInfo()), xsink);
 
-    QoreMethodIterator i(c->cls);
-    while (i.next()) {
-        ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->pgm, i.getMethod()), xsink);
-        l->push(get_method_object(m, xsink), xsink);
-        if (*xsink) {
-            return QoreValue();
+    {
+        QoreMethodIterator i(c->cls);
+        while (i.next()) {
+            ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->pgm, i.getMethod()), xsink);
+            l->push(get_method_object(m, xsink), xsink);
+            if (*xsink) {
+                return QoreValue();
+            }
+        }
+    }
+
+    {
+        QoreStaticMethodIterator i(c->cls);
+        while (i.next()) {
+            ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->pgm, i.getMethod()), xsink);
+            l->push(get_method_object(m, xsink), xsink);
+            if (*xsink) {
+                return QoreValue();
+            }
         }
     }
 

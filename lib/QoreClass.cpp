@@ -2226,36 +2226,15 @@ BCSMList* QoreClass::getBCSMList() const {
    return priv->scl ? &priv->scl->sml : nullptr;
 }
 
-const QoreMethod* QoreClass::findLocalStaticMethod(const char* nme) const {
-   CurrentProgramRuntimeParseContextHelper pch;
-   return priv->findLocalCommittedStaticMethod(nme);
-}
-
-const QoreMethod* QoreClass::findLocalMethod(const char* nme) const {
-   CurrentProgramRuntimeParseContextHelper pch;
-   return priv->findLocalCommittedMethod(nme);
-}
-
 const QoreMethod* QoreClass::findStaticMethod(const char* nme) const {
-   const qore_class_private* class_ctx = runtime_get_class();
-   if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx))
-      class_ctx = 0;
+    const qore_class_private* class_ctx = runtime_get_class();
+    if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx)) {
+        class_ctx = nullptr;
+    }
 
-   CurrentProgramRuntimeParseContextHelper pch;
-   ClassAccess access;
-   return priv->runtimeFindCommittedStaticMethod(nme, access, class_ctx);
-}
-
-const QoreMethod* QoreClass::findStaticMethod(const char* nme, bool& priv_flag) const {
-   const qore_class_private* class_ctx = runtime_get_class();
-   if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx))
-      class_ctx = 0;
-
-   CurrentProgramRuntimeParseContextHelper pch;
-   ClassAccess access;
-   const QoreMethod* rv = priv->runtimeFindCommittedStaticMethod(nme, access, class_ctx);
-   priv_flag = access > Public;
-   return rv;
+    CurrentProgramRuntimeParseContextHelper pch;
+    ClassAccess access;
+    return priv->runtimeFindCommittedStaticMethod(nme, access, class_ctx);
 }
 
 const QoreMethod* QoreClass::findStaticMethod(const char* nme, ClassAccess& access) const {
@@ -2267,28 +2246,28 @@ const QoreMethod* QoreClass::findStaticMethod(const char* nme, ClassAccess& acce
 }
 
 const QoreMethod* QoreClass::findMethod(const char* nme) const {
-   const qore_class_private* class_ctx = runtime_get_class();
-   if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx))
-      class_ctx = 0;
-   ClassAccess access = Public;
-   return priv->runtimeFindCommittedMethod(nme, access, class_ctx);
-}
-
-const QoreMethod* QoreClass::findMethod(const char* nme, bool& priv_flag) const {
-   const qore_class_private* class_ctx = runtime_get_class();
-   if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx))
-      class_ctx = 0;
-   ClassAccess access = Public;
-   const QoreMethod* rv = priv->runtimeFindCommittedMethod(nme, access, class_ctx);
-   priv_flag = access > Public;
-   return rv;
+    const qore_class_private* class_ctx = runtime_get_class();
+    if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx)) {
+        class_ctx = nullptr;
+    }
+    ClassAccess access = Public;
+    return priv->runtimeFindCommittedMethod(nme, access, class_ctx);
 }
 
 const QoreMethod* QoreClass::findMethod(const char* nme, ClassAccess& access) const {
-   const qore_class_private* class_ctx = runtime_get_class();
-   if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx))
-      class_ctx = 0;
-   return priv->runtimeFindCommittedMethod(nme, access, class_ctx);
+    const qore_class_private* class_ctx = runtime_get_class();
+    if (class_ctx && !priv->runtimeCheckPrivateClassAccess(class_ctx)) {
+        class_ctx = nullptr;
+    }
+    return priv->runtimeFindCommittedMethod(nme, access, class_ctx);
+}
+
+const QoreMethod* QoreClass::findLocalStaticMethod(const char* nme) const {
+    return priv->findLocalCommittedStaticMethod(nme);
+}
+
+const QoreMethod* QoreClass::findLocalMethod(const char* nme) const {
+    return priv->findLocalCommittedMethod(nme);
 }
 
 bool QoreClass::hasCopy() const {
@@ -4672,23 +4651,27 @@ QoreValue BuiltinNormalMethodVariantBase::evalPseudoMethod(const QoreValue n, Co
 
 class qmi_priv {
 public:
-   hm_method_t &m;
-   hm_method_t::iterator i;
+    hm_method_t& m;
+    hm_method_t::iterator i;
 
-   DLLLOCAL qmi_priv(hm_method_t &n_m) : m(n_m) {
-      i = m.end();
-   }
-   DLLLOCAL bool next() {
-      if (i == m.end())
-         i = m.begin();
-      else
-         ++i;
-      return i != m.end();
-   }
-   DLLLOCAL const QoreMethod* getMethod() const {
-      assert(i != m.end());
-      return i->second;
-   }
+    DLLLOCAL qmi_priv(hm_method_t& n_m) : m(n_m) {
+        i = m.end();
+    }
+
+    DLLLOCAL bool next() {
+        if (i == m.end()) {
+            i = m.begin();
+        }
+        else {
+            ++i;
+        }
+        return i != m.end();
+    }
+
+    DLLLOCAL const QoreMethod* getMethod() const {
+        assert(i != m.end());
+        return i->second;
+    }
 };
 #define HMI_CAST(p) (reinterpret_cast<qmi_priv*>(p))
 

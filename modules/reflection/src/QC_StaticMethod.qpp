@@ -137,7 +137,7 @@ auto StaticMethod::call(...) {
     }
 
     // the method ptr must be valid
-    return QoreObject::evalStaticMethod(*m->m, args, xsink);
+    return QoreObject::evalStaticMethod(*m->m, m->m->getClass(), args, xsink);
 }
 
 //! calls the given method with the given arguments as a list
@@ -162,5 +162,5 @@ auto StaticMethod::callArgs(*softlist<auto> argv) {
     }
 
     // the method ptr must be valid
-    return QoreObject::evalStaticMethod(*m->m, argv, xsink);
+    return QoreObject::evalStaticMethod(*m->m, m->m->getClass(), argv, xsink);
 }

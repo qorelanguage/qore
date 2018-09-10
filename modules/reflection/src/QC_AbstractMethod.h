@@ -40,9 +40,9 @@ public:
     const QoreMethod* m = nullptr;
     method_type_e mtype = MT_None;
 
-    DLLLOCAL QoreReflectionMethod(const char* cls_path, const char* name, ExceptionSink* xsink);
+    DLLLOCAL QoreReflectionMethod(const char* cls_path, const char* name, ExceptionSink* xsink, method_type_e type = MT_None);
 
-    DLLLOCAL QoreReflectionMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink);
+    DLLLOCAL QoreReflectionMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type = MT_None);
 
     DLLLOCAL QoreReflectionMethod(QoreProgram* pgm, const QoreMethod* m);
 
@@ -64,7 +64,7 @@ public:
 
 protected:
     //! also sets the method type if set successfully
-    DLLLOCAL void setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink);
+    DLLLOCAL void setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type);
 
     //! set the method type
     DLLLOCAL void setType();

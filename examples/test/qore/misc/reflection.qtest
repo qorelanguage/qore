@@ -53,6 +53,14 @@ class ITest inherits private:internal Test {
     public {
         number pi = 0n;
     }
+
+    private:internal int get() {
+        return 1;
+    }
+
+    private:internal static int get() {
+        return 2;
+    }
 }
 
 namespace TestNs {
@@ -118,7 +126,7 @@ class ReflectionTest inherits QUnit::Test {
         assertFalse(m.isUser());
         assertEq("lock", m.getName());
 
-        assertThrows("METHOD-ERROR", \c.getStaticMethod(), "lock");
+        assertThrows("UNKNOWN-METHOD", \c.getStaticMethod(), "lock");
 
         Mutex mtx = c.newObject();
         m.call(mtx);
@@ -511,6 +519,21 @@ class ReflectionTest inherits QUnit::Test {
             assertEq(M_PIn, nm.getValue(t));
             nm.setValue(t, 0);
             assertEq(0.0n, nm.getValue(t));
+            c1 = Class::forName("ITest");
+
+            list<AbstractMethod> l = c1.getMethods();
+            #map printf("%s %s()\n", $1.getMethodTypeName(), $1.getName()), l;
+            assertEq(2, l.size());
+
+            NormalMethod nmeth = c1.getNormalMethod("get");
+            assertEq(1, nmeth.call(t));
+            StaticMethod smeth = c1.getStaticMethod("get");
+            assertEq(2, smeth.call());
+
+            NormalMethodVariant nmv = c1.getNormalVariant("get");
+            assertEq(1, nmv.call(t));
+            StaticMethodVariant smv = c1.getStaticVariant("get");
+            assertEq(2, smv.call());
         }
 
         {
