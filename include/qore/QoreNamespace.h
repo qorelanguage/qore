@@ -69,19 +69,6 @@ class QoreNamespace {
     friend class qore_root_ns_private;
     friend struct NSOInfoBase;
 
-private:
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreNamespace(const QoreNamespace&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreNamespace& operator=(const QoreNamespace&);
-
-protected:
-    class qore_ns_private* priv; // private implementation
-
-    // protected, function not exported in the API
-    DLLLOCAL QoreNamespace(qore_ns_private* p);
-
 public:
     //! creates a namespace with the given name
     /** the name of a subnamespace must be unique in the parent namespace and must not have the same name as a class in the parent namespace either
@@ -89,8 +76,8 @@ public:
     */
     DLLEXPORT QoreNamespace(const char* n);
 
-    //! destroys the object and frees all associated memory
-    DLLEXPORT ~QoreNamespace();
+    //! destroys the object and frees memory
+    DLLEXPORT virtual ~QoreNamespace();
 
     //! clears the contents of the namespace before deleting
     /** use if the namespace could contain objects
@@ -277,6 +264,19 @@ public:
     /** @since %Qore 0.9
     */
     DLLEXPORT bool isRoot() const;
+
+private:
+    //! this function is not implemented
+    QoreNamespace(const QoreNamespace&) = delete;
+
+    //! this function is not implemented
+    QoreNamespace& operator=(const QoreNamespace&) = delete;
+
+protected:
+    class qore_ns_private* priv; // private implementation
+
+    // protected, function not exported in the API
+    DLLLOCAL QoreNamespace(qore_ns_private* p);
 };
 
 //! the root namespace of a QoreProgram object
@@ -289,13 +289,6 @@ class RootQoreNamespace : public QoreNamespace {
     friend class qore_root_ns_private;
     friend class StaticSystemNamespace;
 
-private:
-    DLLLOCAL RootQoreNamespace(class qore_root_ns_private* p);
-
-protected:
-    // private implementation
-    class qore_root_ns_private* rpriv;
-
 public:
     //! returns a pointer to the QoreNamespace for the "Qore" namespace
     /**
@@ -304,7 +297,20 @@ public:
     DLLEXPORT QoreNamespace* rootGetQoreNamespace() const;
 
     //! destructor is not exported in the library's public API
-    DLLLOCAL ~RootQoreNamespace();
+    DLLLOCAL virtual ~RootQoreNamespace();
+
+protected:
+    // private implementation
+    class qore_root_ns_private* rpriv;
+
+private:
+    //! this function is not implemented
+    RootQoreNamespace(const RootQoreNamespace&) = delete;
+
+    //! this function is not implemented
+    RootQoreNamespace& operator=(const RootQoreNamespace&) = delete;
+
+    DLLLOCAL RootQoreNamespace(class qore_root_ns_private* p);
 };
 
 class QorePrivateNamespaceIterator;
@@ -313,49 +319,74 @@ class QorePrivateNamespaceIterator;
 /** @since %Qore 0.8.13
  */
 class QoreNamespaceIterator {
-private:
-    QorePrivateNamespaceIterator* priv;
-
 public:
     //! creates the iterator; the namespace given will also be included in the iteration set
-    DLLEXPORT QoreNamespaceIterator(QoreNamespace* ns);
+    DLLEXPORT QoreNamespaceIterator(QoreNamespace& ns);
+
+    //! destroys the object
+    DLLEXPORT virtual ~QoreNamespaceIterator();
+
     //! moves to the next position; returns true if on a valid position
     DLLEXPORT bool next();
 
     //! returns the namespace
     DLLEXPORT QoreNamespace* operator->();
+
     //! returns the namespace
     DLLEXPORT QoreNamespace* operator*();
+
     //! returns the namespace
-    DLLEXPORT QoreNamespace* get();
+    DLLEXPORT QoreNamespace& get();
 
     //! returns the namespace
     DLLEXPORT const QoreNamespace* operator->() const;
     //! returns the namespace
     DLLEXPORT const QoreNamespace* operator*() const;
+
     //! returns the namespace
-    DLLEXPORT const QoreNamespace* get() const;
+    DLLEXPORT const QoreNamespace& get() const;
+
+private:
+    //! this function is not implemented
+    QoreNamespaceIterator(const QoreNamespaceIterator&) = delete;
+
+    //! this function is not implemented
+    QoreNamespaceIterator& operator=(const QoreNamespaceIterator&) = delete;
+
+    QorePrivateNamespaceIterator* priv;
 };
 
 //! allows all namespaces of a namespace to be iterated (including the namespace passed in the constructor)
 /** @since %Qore 0.8.13
  */
 class QoreNamespaceConstIterator {
-private:
-    QorePrivateNamespaceIterator* priv;
-
 public:
     //! creates the iterator; the namespace given will also be included in the iteration set
-    DLLEXPORT QoreNamespaceConstIterator(const QoreNamespace* ns);
+    DLLEXPORT QoreNamespaceConstIterator(const QoreNamespace& ns);
+
+    //! destroys the object
+    DLLEXPORT virtual ~QoreNamespaceConstIterator();
+
     //! moves to the next position; returns true if on a valid position
     DLLEXPORT bool next();
 
     //! returns the namespace
     DLLEXPORT const QoreNamespace* operator->() const;
+
     //! returns the namespace
     DLLEXPORT const QoreNamespace* operator*() const;
+
     //! returns the namespace
-    DLLEXPORT const QoreNamespace* get() const;
+    DLLEXPORT const QoreNamespace& get() const;
+
+private:
+    //! this function is not implemented
+    QoreNamespaceConstIterator(const QoreNamespaceConstIterator&) = delete;
+
+    //! this function is not implemented
+    QoreNamespaceConstIterator& operator=(const QoreNamespaceConstIterator&) = delete;
+
+    QorePrivateNamespaceIterator* priv;
 };
 
 //! allows local namespaces to be iterated
@@ -364,18 +395,24 @@ public:
 class QoreNamespaceNamespaceIterator {
 public:
     //! creates the iterator
-    DLLEXPORT QoreNamespaceNamespaceIterator(const QoreNamespace* ns);
+    DLLEXPORT QoreNamespaceNamespaceIterator(const QoreNamespace& ns);
 
-    //! destroys the iterator
-    DLLEXPORT ~QoreNamespaceNamespaceIterator();
+    //! destroys the object
+    DLLEXPORT virtual ~QoreNamespaceNamespaceIterator();
 
     //! moves to the next position; returns true if on a valid position
     DLLEXPORT bool next();
 
     //! returns the namespace
-    DLLEXPORT const QoreNamespace* get() const;
+    DLLEXPORT const QoreNamespace& get() const;
 
 private:
+    //! this function is not implemented
+    QoreNamespaceNamespaceIterator(const QoreNamespaceNamespaceIterator&) = delete;
+
+    //! this function is not implemented
+    QoreNamespaceNamespaceIterator& operator=(const QoreNamespaceNamespaceIterator&) = delete;
+
     class qore_namespace_namespace_iterator* priv;
 };
 
@@ -385,18 +422,24 @@ private:
 class QoreNamespaceFunctionIterator {
 public:
     //! creates the iterator
-    DLLEXPORT QoreNamespaceFunctionIterator(const QoreNamespace* ns);
+    DLLEXPORT QoreNamespaceFunctionIterator(const QoreNamespace& ns);
 
-    //! destroys the iterator
-    DLLEXPORT ~QoreNamespaceFunctionIterator();
+    //! destroys the object
+    DLLEXPORT virtual ~QoreNamespaceFunctionIterator();
 
     //! moves to the next position; returns true if on a valid position
     DLLEXPORT bool next();
 
     //! returns the function
-    DLLEXPORT const QoreExternalFunction* get() const;
+    DLLEXPORT const QoreExternalFunction& get() const;
 
 private:
+    //! this function is not implemented
+    QoreNamespaceFunctionIterator(const QoreNamespaceFunctionIterator&) = delete;
+
+    //! this function is not implemented
+    QoreNamespaceFunctionIterator& operator=(const QoreNamespaceFunctionIterator&) = delete;
+
     class qore_namespace_function_iterator* priv;
 };
 
@@ -406,18 +449,24 @@ private:
 class QoreNamespaceConstantIterator {
 public:
     //! creates the iterator
-    DLLEXPORT QoreNamespaceConstantIterator(const QoreNamespace* ns);
+    DLLEXPORT QoreNamespaceConstantIterator(const QoreNamespace& ns);
 
-    //! destroys the iterator
-    DLLEXPORT ~QoreNamespaceConstantIterator();
+    //! destroys the object
+    DLLEXPORT virtual ~QoreNamespaceConstantIterator();
 
     //! moves to the next position; returns true if on a valid position
     DLLEXPORT bool next();
 
-    //! returns the function
-    DLLEXPORT const QoreExternalConstant* get() const;
+    //! returns the constant
+    DLLEXPORT const QoreExternalConstant& get() const;
 
 private:
+    //! this function is not implemented
+    QoreNamespaceConstantIterator(const QoreNamespaceConstantIterator&) = delete;
+
+    //! this function is not implemented
+    QoreNamespaceConstantIterator& operator=(const QoreNamespaceConstantIterator&) = delete;
+
     class qore_namespace_constant_iterator* priv;
 };
 
@@ -427,18 +476,24 @@ private:
 class QoreNamespaceClassIterator {
 public:
     //! creates the iterator
-    DLLEXPORT QoreNamespaceClassIterator(const QoreNamespace* ns);
+    DLLEXPORT QoreNamespaceClassIterator(const QoreNamespace& ns);
 
-    //! destroys the iterator
-    DLLEXPORT ~QoreNamespaceClassIterator();
+    //! destroys the object
+    DLLEXPORT virtual ~QoreNamespaceClassIterator();
 
     //! moves to the next position; returns true if on a valid position
     DLLEXPORT bool next();
 
-    //! returns the function
-    DLLEXPORT const QoreClass* get() const;
+    //! returns the class
+    DLLEXPORT const QoreClass& get() const;
 
 private:
+    //! this function is not implemented
+    QoreNamespaceClassIterator(const QoreNamespaceClassIterator&) = delete;
+
+    //! this function is not implemented
+    QoreNamespaceClassIterator& operator=(const QoreNamespaceClassIterator&) = delete;
+
     class ConstClassListIterator* priv;
 };
 
@@ -448,18 +503,24 @@ private:
 class QoreNamespaceGlobalVarIterator {
 public:
     //! creates the iterator
-    DLLEXPORT QoreNamespaceGlobalVarIterator(const QoreNamespace* ns);
+    DLLEXPORT QoreNamespaceGlobalVarIterator(const QoreNamespace& ns);
 
-    //! destroys the iterator
-    DLLEXPORT ~QoreNamespaceGlobalVarIterator();
+    //! destroys the object
+    DLLEXPORT virtual ~QoreNamespaceGlobalVarIterator();
 
     //! moves to the next position; returns true if on a valid position
     DLLEXPORT bool next();
 
-    //! returns the function
-    DLLEXPORT const QoreExternalGlobalVar* get() const;
+    //! returns the global variable
+    DLLEXPORT const QoreExternalGlobalVar& get() const;
 
 private:
+    //! this function is not implemented
+    QoreNamespaceGlobalVarIterator(const QoreNamespaceGlobalVarIterator&) = delete;
+
+    //! this function is not implemented
+    QoreNamespaceGlobalVarIterator& operator=(const QoreNamespaceGlobalVarIterator&) = delete;
+
     class qore_namespace_globalvar_iterator* priv;
 };
 
@@ -469,18 +530,24 @@ private:
 class QoreNamespaceTypedHashIterator {
 public:
     //! creates the iterator
-    DLLEXPORT QoreNamespaceTypedHashIterator(const QoreNamespace* ns);
+    DLLEXPORT QoreNamespaceTypedHashIterator(const QoreNamespace& ns);
 
-    //! destroys the iterator
-    DLLEXPORT ~QoreNamespaceTypedHashIterator();
+    //! destroys the object
+    DLLEXPORT virtual ~QoreNamespaceTypedHashIterator();
 
     //! moves to the next position; returns true if on a valid position
     DLLEXPORT bool next();
 
-    //! returns the function
-    DLLEXPORT const TypedHashDecl* get() const;
+    //! returns the typed hash (hashdecl)
+    DLLEXPORT const TypedHashDecl& get() const;
 
 private:
+    //! this function is not implemented
+    QoreNamespaceTypedHashIterator(const QoreNamespaceTypedHashIterator&) = delete;
+
+    //! this function is not implemented
+    QoreNamespaceTypedHashIterator& operator=(const QoreNamespaceTypedHashIterator&) = delete;
+
     class ConstHashDeclListIterator* priv;
 };
 

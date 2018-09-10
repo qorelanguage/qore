@@ -151,18 +151,24 @@
     - fixed a bug where class members could be initialized multiple times in a class with multiple
       inheritance where the same class is inherited multiple times in the hierarchy
       (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
-    - fixed bugs handling @ref abstract "abstract" methods in complex hierarchies with multiple inheritance (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
+    - fixed bugs handling @ref abstract "abstract" methods in complex hierarchies with multiple inheritance
+      (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
     - fixed bugs handling object scope in @ref background "background" expressions (<a href="https://github.com/qorelanguage/qore/issues/2653">issue 2653</a>)
-    - fixed bug: @ref Qore::hash(list) "hash(list)" where l has an odd number of elements never returns (<a href="https://github.com/qorelanguage/qore/issues/2860">issue 2860</a>)
-    - fixed bug where no error is issued when an expression does not have meaning as a top-level statement (<a href="https://github.com/qorelanguage/qore/issues/2826">issue 2826</a>),
+    - fixed a bug: @ref Qore::hash(list) "hash(list)" where l has an odd number of elements never returns
+      (<a href="https://github.com/qorelanguage/qore/issues/2860">issue 2860</a>)
+    - fixed a bug where no error is issued when an expression does not have meaning as a top-level statement
+      (<a href="https://github.com/qorelanguage/qore/issues/2826">issue 2826</a>),
       and also where such expression is an argument to the @ref background "background" operator (<a href="https://github.com/qorelanguage/qore/issues/2747">issue 2747</a>)
-    - fixed bug where the parser does not recognize that a return value of a function call is not ignored if it
+    - fixed a bug where the parser does not recognize that a return value of a function call is not ignored if it
       is an object and its method is immediately called
       (<a href="https://github.com/qorelanguage/qore/issues/2863">issue 2863</a>),
-    - fixed bug where \c public and \c private members of classes inherited with \c private:internal inheritance
+    - fixed a bug where \c public and \c private members of classes inherited with \c private:internal inheritance
       were not initialized when objects were created
       (<a href="https://github.com/qorelanguage/qore/issues/2970">issue 2970</a>),
-
+    - module fixes:
+      - <a href="../../modules/QUnit/html/index.html">QUnit</a>:
+        - fixed error reporting with type errors with number values
+          (<a href="https://github.com/qorelanguage/qore/issues/2984">issue 2984</a>)
 
     @section qore_08137 Qore 0.8.13.7
 

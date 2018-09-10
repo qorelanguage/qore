@@ -389,9 +389,9 @@ list<Constant> Namespace::getConstants() [flags=RET_VALUE_ONLY] {
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CONSTANT->getTypeInfo()), xsink);
 
-    QoreNamespaceConstantIterator i(n->ns);
+    QoreNamespaceConstantIterator i(*n->ns);
     while (i.next()) {
-        l->push(new QoreObject(QC_CONSTANT, n->pgm, new QoreReflectionNamespaceConstant(n->pgm, i.get(), n->ns)), xsink);
+        l->push(new QoreObject(QC_CONSTANT, n->pgm, new QoreReflectionNamespaceConstant(n->pgm, &i.get(), n->ns)), xsink);
     }
 
     return l.release();
@@ -444,9 +444,9 @@ list<Namespace> Namespace::getNamespaces() [flags=RET_VALUE_ONLY] {
 
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_NAMESPACE->getTypeInfo()), xsink);
-    QoreNamespaceNamespaceIterator i(n->ns);
+    QoreNamespaceNamespaceIterator i(*n->ns);
     while (i.next()) {
-        l->push(new QoreObject(QC_NAMESPACE, n->pgm, new QoreReflectionNamespace(n->pgm, i.get())), xsink);
+        l->push(new QoreObject(QC_NAMESPACE, n->pgm, new QoreReflectionNamespace(n->pgm, &i.get())), xsink);
     }
 
     return l.release();
@@ -501,9 +501,9 @@ list<Class> Namespace::getClasses() [flags=RET_VALUE_ONLY] {
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASS->getTypeInfo()), xsink);
 
-    QoreNamespaceClassIterator i(n->ns);
+    QoreNamespaceClassIterator i(*n->ns);
     while (i.next()) {
-        l->push(new QoreObject(QC_CLASS, n->pgm, new QoreReflectionClass(n->pgm, i.get())), xsink);
+        l->push(new QoreObject(QC_CLASS, n->pgm, new QoreReflectionClass(n->pgm, &i.get())), xsink);
     }
 
     return l.release();
@@ -565,9 +565,9 @@ list<Function> Namespace::getFunctions() [flags=RET_VALUE_ONLY] {
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_FUNCTION->getTypeInfo()), xsink);
 
-    QoreNamespaceFunctionIterator i(n->ns);
+    QoreNamespaceFunctionIterator i(*n->ns);
     while (i.next()) {
-        l->push(new QoreObject(QC_FUNCTION, n->pgm, new QoreReflectionFunction(n->pgm, i.get())), xsink);
+        l->push(new QoreObject(QC_FUNCTION, n->pgm, new QoreReflectionFunction(n->pgm, &i.get())), xsink);
     }
 
     return l.release();
@@ -679,10 +679,10 @@ list<FunctionVariant> Namespace::getVariants() [flags=RET_VALUE_ONLY] {
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_FUNCTIONVARIANT->getTypeInfo()), xsink);
 
-    QoreNamespaceFunctionIterator i(n->ns);
+    QoreNamespaceFunctionIterator i(*n->ns);
     while (i.next()) {
-        const QoreExternalFunction* f = i.get();
-        append_variant_objects(**l, n->pgm, f, MT_None, xsink);
+        const QoreExternalFunction& f = i.get();
+        append_variant_objects(**l, n->pgm, &f, MT_None, xsink);
         if (*xsink) {
             return QoreValue();
         }
@@ -738,9 +738,9 @@ list<GlobalVar> Namespace::getGlobalVars() [flags=RET_VALUE_ONLY] {
 
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_GLOBALVAR->getTypeInfo()), xsink);
-    QoreNamespaceGlobalVarIterator i(n->ns);
+    QoreNamespaceGlobalVarIterator i(*n->ns);
     while (i.next()) {
-        l->push(new QoreObject(QC_GLOBALVAR, n->pgm, new QoreReflectionGlobalVar(n->pgm, i.get(), n->ns)), xsink);
+        l->push(new QoreObject(QC_GLOBALVAR, n->pgm, new QoreReflectionGlobalVar(n->pgm, &i.get(), n->ns)), xsink);
     }
 
     return l.release();
@@ -793,9 +793,9 @@ list<TypedHash> Namespace::getTypedHashes() [flags=RET_VALUE_ONLY] {
 
     // the namespace ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_TYPEDHASH->getTypeInfo()), xsink);
-    QoreNamespaceTypedHashIterator i(n->ns);
+    QoreNamespaceTypedHashIterator i(*n->ns);
     while (i.next()) {
-        l->push(new QoreObject(QC_TYPEDHASH, n->pgm, new QoreReflectionTypedHash(n->pgm, i.get(), n->ns)), xsink);
+        l->push(new QoreObject(QC_TYPEDHASH, n->pgm, new QoreReflectionTypedHash(n->pgm, &i.get(), n->ns)), xsink);
     }
 
     return l.release();

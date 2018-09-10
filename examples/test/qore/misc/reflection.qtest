@@ -41,11 +41,17 @@ class Test inherits Base {
     }
 
     private:internal {
-        number pi = M_PI;
+        number pi = M_PIn;
 
         static number spi = M_PI * M_PI;
 
         const C_PI = M_PI * M_PI * M_PI;
+    }
+}
+
+class ITest inherits private:internal Test {
+    public {
+        number pi = 0n;
     }
 }
 
@@ -496,6 +502,15 @@ class ReflectionTest inherits QUnit::Test {
             l = c1.getClassHierarchy();
             assertEq(2, l.size());
             assertTrue(l.last().isEqual(c1));
+        }
+
+        {
+            Class c1 = Class::forName("Test");
+            ITest t();
+            NormalMember nm = c1.getMember("pi");
+            assertEq(M_PIn, nm.getValue(t));
+            nm.setValue(t, 0);
+            assertEq(0.0n, nm.getValue(t));
         }
 
         {
