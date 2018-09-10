@@ -835,55 +835,39 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
                 qore_check_load_module_intern(mi, op, version, pgm, xsink);
                 return;
             }
+
+            // check whether it is a module folder
+            QoreString modulePath(*w);
+            modulePath += QORE_DIR_SEP_STR;
+            modulePath += name;
+
+            if (QoreDir::folder_exists(modulePath, xsink)) {
+                modulePath += QORE_DIR_SEP_STR;
+                modulePath += name;
+                modulePath += ".qm";
+
+                // mi = loadUserModuleFromSource(xsink, modulePath.c_str(), name, pgm, src, reexport, pholder.release(), true);
+                // list<string> moduleFiles = getModuleDependencyFiles();
+                // for (size_t i = 0; i < moduleFiles.size(); ++i) {
+                    // moduleFiles.at(i)
+                    // mi->getProgram()->parsePending(QoreDir::get_file_content("/home/tpetr/git/qore/examples/test/qore/requires/MyModule/SimpleModuleFunctions.ql"), name, &xsink, &xsink);
+                // }
+                // mi->getProgram()->parseCommit(&xsink);
+
+                if (xsink)
+                    assert(!mi);
+
+                qore_check_load_module_intern(mi, op, version, pgm, xsink);
+                return;
+            }
         }
 
         ++w;
     }
 
-    // Qore 0.9.0
-    if (tryToLoadAsModuleDir(xsink, name, pgm, reexport, op, version, src, mpgm, load_opt))
-        return;
-
     QoreStringNode* desc = new QoreStringNodeMaker("feature '%s' is not builtin and no module with this name could be found in the module path: ", name);
     moduleDirList.appendPath(*desc);
     xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), desc);
-}
-
-bool QoreModuleManager::tryToLoadAsModuleDir(
-    ExceptionSink& xsink,
-    const char* name,
-    QoreProgram* pgm,
-    bool reexport,
-    mod_op_e op,
-    version_list_t* version,
-    const char* src,
-    QoreProgram* mpgm,
-    unsigned load_opt) {
-
-    strdeque_t::const_iterator path = moduleDirList.begin();
-    while (path != moduleDirList.end()) {
-        QoreString modulePath(*path);
-        modulePath += QORE_DIR_SEP_STR;
-        modulePath += name;
-
-        QoreDir modulDir(&xsink, QCS_DEFAULT, modulePath.c_str());
-        if (xsink)
-            return false;
-
-        if (!modulDir.checkPath()) {
-            modulePath += QORE_DIR_SEP_STR;
-            modulePath += name;
-            modulePath += ".qm";
-
-            loadModuleIntern(xsink, modulePath.c_str(), pgm, reexport, op, version, src, mpgm, load_opt);
-            pgm->parsePending("/home/tpetr/git/qore/examples/test/qore/requires/MyModule/SimpleModuleFunctions.ql", "SimpleModuleFunctions", &xsink, &xsink);
-            pgm->parseCommit(&xsink);
-            if (!xsink)
-                return true;
-        }
-        ++path;
-    }
-    return false;
 }
 
 QoreString QoreModuleManager::getModuleAbsPath(const char* n) const {
@@ -1159,6 +1143,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& x
    ModuleReExportHelper mrh(mi.get(), reexport);
 
    QoreUserModuleDefContextHelper qmd(feature, pgm, xsink);
+
    mi->getProgram()->parse(src, path, &xsink, &xsink, QP_WARN_MODULES);
 
    return setupUserModule(xsink, mi, qmd);

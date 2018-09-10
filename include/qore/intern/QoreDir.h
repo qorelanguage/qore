@@ -63,10 +63,26 @@ private:
    DLLLOCAL QoreDir& operator=(const QoreDir&);
 
 public:
-    DLLEXPORT static bool file_exists(const QoreString& filePath) {
-        struct stat buffer;
-        return (::stat(filePath.c_str(), &buffer) == 0);
-    }
+    //! checks whether file exists
+    /**
+     * @param filePath file path
+     * @return true if file exists
+     */
+    DLLEXPORT static bool file_exists(const QoreString& filePath);
+
+    //! checks whether folder exists
+    /**
+     * @param folderPath folder path
+     * @return 0 = OK (folder exists) non-zero = errno returned by opendir()
+     */
+    DLLEXPORT static bool folder_exists(const QoreString& folderPath, ExceptionSink& xsink);
+
+    //! reads file content
+    /**
+     * @param fileName file name
+     * @return file content
+     */
+    DLLEXPORT static std::string get_file_content(const QoreString& fullPath);
 
    //! creates the object and sets the default encoding
    /**
