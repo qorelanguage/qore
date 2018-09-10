@@ -831,19 +831,22 @@ public:
 
 class ParseOptionMaps {
 protected:
-   DLLLOCAL void doMap(int64 code, const char* desc);
+   DLLLOCAL void doMap(int64 code, const char* desc, const char* dom = nullptr);
 
 public:
    typedef std::map<int64, const char*> pomap_t;
    typedef std::map<const char*, int64, ltstr> pormap_t;
 
-   pomap_t pomap;
-   pormap_t pormap;
+   pomap_t pomap, dommap;
+   pormap_t pormap, domrmap;
 
    DLLLOCAL ParseOptionMaps();
 
    DLLLOCAL QoreHashNode* getCodeToStringMap() const;
    DLLLOCAL QoreHashNode* getStringToCodeMap() const;
+
+   DLLLOCAL QoreHashNode* getDomainToStringMap() const;
+   DLLLOCAL QoreHashNode* getStringToDomainMap() const;
 };
 
 DLLLOCAL extern ParseOptionMaps pomaps;
@@ -925,5 +928,7 @@ DLLLOCAL size_t qore_get_in_len(struct sockaddr *sa);
 DLLLOCAL size_t q_thread_get_stack_size();
 DLLLOCAL size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink);
 #endif
+
+DLLLOCAL QoreHashNode* get_source_location(const QoreProgramLocation* loc);
 
 #endif

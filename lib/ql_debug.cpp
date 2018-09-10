@@ -179,7 +179,7 @@ static QoreValue f_dbg_global_vars(const QoreListNode* params, q_rt_flags_t flag
 }
 
 void init_debug_functions(QoreNamespace& qns) {
-    qns.addBuiltinVariant("dbg_node_info", f_dbg_node_info, QC_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, autoTypeInfo, QORE_PARAM_NO_ARG, "node");
-    qns.addBuiltinVariant("dbg_global_vars", f_dbg_global_vars, QC_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
-    qns.addBuiltinVariant("dbg_get_ns_info", f_dbg_get_ns_info, QC_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
+    qns.addBuiltinVariant("dbg_node_info", f_dbg_node_info, QCF_NO_FLAGS, QDOM_DEFAULT, stringTypeInfo, 1, autoTypeInfo, QORE_PARAM_NO_ARG, "node");
+    qns.addBuiltinVariant("dbg_global_vars", f_dbg_global_vars, QCF_NO_FLAGS, QDOM_DEFAULT, listTypeInfo);
+    qns.addBuiltinVariant("dbg_get_ns_info", f_dbg_get_ns_info, QCF_NO_FLAGS, QDOM_DEFAULT, hashTypeInfo);
 }

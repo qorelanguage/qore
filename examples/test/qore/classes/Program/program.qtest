@@ -255,6 +255,9 @@ class ProgramTest inherits QUnit::Test {
         string nf = "bool sub newfunc() { return True; }";
 
         Program a(PO_NEW_STYLE);
+        assertEq(PO_NEW_STYLE, a.getParseOptions());
+        # PO_NEW_STYLE is made up of the following two parse options
+        assertEq(("PO_ALLOW_BARE_REFS", "PO_ASSUME_LOCAL"), a.getParseOptionStringList());
         a.parsePending(pf, "pending test part1", 0);
         a.parsePending(nf, "pending test part2", 0);
         a.importFunction("t");

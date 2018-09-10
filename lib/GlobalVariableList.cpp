@@ -90,11 +90,11 @@ void GlobalVariableList::deleteAll(ExceptionSink* xsink) {
     vmap.clear();
 }
 
-Var* GlobalVariableList::runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo) {
+Var* GlobalVariableList::runtimeCreateVar(const char* name, const QoreTypeInfo* typeInfo, bool builtin) {
     if (parseFindVar(name))
         return nullptr;
 
-    Var* var = new Var(get_runtime_location(), name, typeInfo);
+    Var* var = new Var(get_runtime_location(), name, typeInfo, builtin);
     vmap[var->getName()] = var;
 
     printd(5, "GlobalVariableList::runtimeCreateVar(): %s (%p) added (resolved type %s)\n", name, var, QoreTypeInfo::getName(typeInfo));
