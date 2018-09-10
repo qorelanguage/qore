@@ -150,39 +150,43 @@ public:
 };
 
 class QoreModuleContext {
-protected:
-   const char* name;
-   qore_root_ns_private* rns;
-   QoreStringNode* err = nullptr;
-   ExceptionSink& xsink;
-
 public:
-   ModuleContextNamespaceList mcnl;
-   ModuleContextFunctionList mcfl;
+    ModuleContextNamespaceList mcnl;
+    ModuleContextFunctionList mcfl;
 
-   DLLLOCAL QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs) : name(n), rns(n_rns), xsink(xs) {
-   }
+    DLLLOCAL QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs) : name(n), rns(n_rns), xsink(xs) {
+    }
 
-   DLLLOCAL ~QoreModuleContext() {
-      assert(!err);
-   }
+    DLLLOCAL ~QoreModuleContext() {
+        assert(!err);
+    }
 
-   DLLLOCAL void error(const char* fmt, ...);
+    DLLLOCAL void error(const char* fmt, ...);
 
-   DLLLOCAL bool hasError() const {
-      return xsink;
-   }
+    DLLLOCAL bool hasError() const {
+        return xsink;
+    }
 
-   DLLLOCAL void commit();
+    DLLLOCAL void commit();
 
-   DLLLOCAL void rollback() {
-      mcnl.clear();
-      mcfl.clear();
-   }
+    DLLLOCAL void rollback() {
+        mcnl.clear();
+        mcfl.clear();
+    }
 
-   DLLLOCAL qore_root_ns_private* getRootNS() {
-      return rns;
-   }
+    DLLLOCAL qore_root_ns_private* getRootNS() {
+        return rns;
+    }
+
+    DLLLOCAL const char* getName() const {
+        return name;
+    }
+
+protected:
+    const char* name;
+    qore_root_ns_private* rns;
+    QoreStringNode* err = nullptr;
+    ExceptionSink& xsink;
 };
 
 class QoreModuleDefContext {
@@ -295,6 +299,7 @@ DLLLOCAL QoreModuleDefContext* get_module_def_context();
 DLLLOCAL void parse_set_module_def_context_name(const char* name);
 DLLLOCAL const char* set_user_module_context_name(const char* n);
 DLLLOCAL const char* get_user_module_context_name();
+DLLLOCAL const char* get_module_context_name();
 
 DLLLOCAL void parse_set_try_reexport(bool tr);
 DLLLOCAL bool parse_get_try_reexport();
