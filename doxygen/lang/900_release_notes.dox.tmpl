@@ -169,6 +169,9 @@
     - fixed a bug that would cause a crash if an unknown \c "Content-Encoding" value were received by the
       @ref Qore::HTTPClient "HTTPClient" class
       (<a href="https://github.com/qorelanguage/qore/issues/2953">issue 2953</a>)
+    - fixed a memory leak with binary objects in certain operations such as when reading a file into a
+      binary object
+      (<a href="https://github.com/qorelanguage/qore/issues/2982">issue 2982</a>)
 
     @section qore_08136 Qore 0.8.13.6
 
