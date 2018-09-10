@@ -736,6 +736,7 @@ public:
 
     //! search for the given typed hash (hashdecl) in the program; can be a simple function name or a namespace-prefixed path (ex: "NamespaceName::TypedHashName")
     /** @since %Qore 0.9
+    */
     DLLEXPORT const TypedHashDecl* findHashDecl(const char* path, const QoreNamespace*& pns) const;
 
     //! search for the given namespace in the program; can be a simple namespace name or a namespace-prefixed path (ex: "NamespaceName::Namespace")

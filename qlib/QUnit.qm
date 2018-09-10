@@ -975,11 +975,11 @@ addTestCase(obj);
                 }
             }
             if (!done) {
-                switch (act.typeCode()) {
-                    case  NT_NUMBER:
+                switch (exp.typeCode()) {
+                    case NT_NUMBER:
                         expected = sprintf("(%s) %N (%s)", exp.type(), exp, exp.toString(NF_Raw));
                         break;
-                    case  NT_FLOAT:
+                    case NT_FLOAT:
                         expected = sprintf("(%s) %N (%s)", exp.type(), exp, exp.toString());
                         break;
                     default:
