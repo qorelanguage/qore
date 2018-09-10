@@ -45,6 +45,9 @@ BinaryNode::~BinaryNode() {
 
 void BinaryNode::clear() {
     // issue #2982: must check 'ptr', len may be 0 with memory allocated
+    // NOTE: we check and then free & update to avoid writing to memory
+    // to avoid cache flushing on SMP systems (as used in the Linux
+    // kernel for example)
     if (ptr) {
         free(ptr);
         if (len) {
