@@ -874,37 +874,50 @@ bool QoreObject::evalDeleteBlocker(qore_classid_t classid_for_method, BuiltinDel
 }
 
 bool QoreObject::validInstanceOf(qore_classid_t cid) const {
-   if (priv->status == OS_DELETED)
-      return 0;
+    if (priv->status == OS_DELETED) {
+        return false;
+    }
 
-   return priv->theclass->getClass(cid);
+    return priv->theclass->getClass(cid);
 }
 
 bool QoreObject::validInstanceOf(const QoreClass& qc) const {
-   if (priv->status == OS_DELETED)
-      return 0;
+    if (priv->status == OS_DELETED) {
+        return false;
+    }
 
-   bool p = false;
-   return priv->theclass->getClass(qc, p);
+    bool p = false;
+    return priv->theclass->getClass(qc, p);
 }
 
 QoreValue QoreObject::evalMethod(const QoreString* name, const QoreListNode* args, ExceptionSink* xsink) {
-   TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
-   if (!tmp)
-      return QoreValue();
+    TempEncodingHelper tmp(name, QCS_DEFAULT, xsink);
+    if (!tmp) {
+        return QoreValue();
+    }
 
-   return evalMethod(tmp->c_str(), args, xsink);
+    return evalMethod(tmp->c_str(), args, xsink);
 }
 
 QoreValue QoreObject::evalMethod(const char* name, const QoreListNode* args, ExceptionSink* xsink) {
-   return priv->theclass->evalMethod(this, name, args, xsink);
+    return priv->theclass->evalMethod(this, name, args, xsink);
 }
 
 QoreValue QoreObject::evalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink) {
-   return qore_method_private::eval(method, xsink, this, args);
+    return qore_method_private::eval(method, xsink, this, args);
+}
+
+QoreValue QoreObject::evalMethod(const QoreMethod& method, const QoreClass* class_ctx, const QoreListNode* args, ExceptionSink* xsink) {
+    ObjectSubstitutionHelper osh(nullptr, qore_class_private::get(*class_ctx));
+    return qore_method_private::eval(method, xsink, this, args);
 }
 
 QoreValue QoreObject::evalMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
+    return qore_method_private::evalNormalVariant(method, xsink, this, variant, args);
+}
+
+QoreValue QoreObject::evalMethodVariant(const QoreMethod& method, const QoreClass* class_ctx, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
+    ObjectSubstitutionHelper osh(nullptr, qore_class_private::get(*class_ctx));
     return qore_method_private::evalNormalVariant(method, xsink, this, variant, args);
 }
 
@@ -912,7 +925,17 @@ QoreValue QoreObject::evalStaticMethod(const QoreMethod& method, const QoreListN
     return qore_method_private::eval(method, xsink, nullptr, args);
 }
 
+QoreValue QoreObject::evalStaticMethod(const QoreMethod& method, const QoreClass* class_ctx, const QoreListNode* args, ExceptionSink* xsink) {
+    ObjectSubstitutionHelper osh(nullptr, qore_class_private::get(*class_ctx));
+    return qore_method_private::eval(method, xsink, nullptr, args);
+}
+
 QoreValue QoreObject::evalStaticMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
+    return qore_method_private::evalNormalVariant(method, xsink, nullptr, variant, args);
+}
+
+QoreValue QoreObject::evalStaticMethodVariant(const QoreMethod& method, const QoreClass* class_ctx, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink) {
+    ObjectSubstitutionHelper osh(nullptr, qore_class_private::get(*class_ctx));
     return qore_method_private::evalNormalVariant(method, xsink, nullptr, variant, args);
 }
 

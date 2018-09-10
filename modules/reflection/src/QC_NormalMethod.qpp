@@ -153,7 +153,7 @@ auto NormalMethod::call(object obj, ...) {
     }
 
     // the method ptr must be valid
-    return obj->evalMethod(*m->m, *call_args, xsink);
+    return obj->evalMethod(*m->m, m->m->getClass(), *call_args, xsink);
 }
 
 //! calls the given method with the given object; the object must be a member of a compatible class
@@ -186,5 +186,5 @@ auto NormalMethod::callArgs(object obj, *softlist<auto> argv) {
     }
 
     // the method ptr must be valid
-    return obj->evalMethod(*m->m, argv, xsink);
+    return obj->evalMethod(*m->m, m->m->getClass(), argv, xsink);
 }

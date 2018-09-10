@@ -44,11 +44,11 @@ int check_call(QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
     return 0;
 }
 
-QoreReflectionMethod::QoreReflectionMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink) : QoreReflectionFunction(getProgram()) {
-    setMethod(cls, name, xsink);
+QoreReflectionMethod::QoreReflectionMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type) : QoreReflectionFunction(getProgram()) {
+    setMethod(cls, name, xsink, type);
 }
 
-QoreReflectionMethod::QoreReflectionMethod(const char* cls_path, const char* name, ExceptionSink* xsink) : QoreReflectionFunction(getProgram()) {
+QoreReflectionMethod::QoreReflectionMethod(const char* cls_path, const char* name, ExceptionSink* xsink, method_type_e type) : QoreReflectionFunction(getProgram()) {
     const QoreClass* cls = pgm->findClass(cls_path, xsink);
     if (!cls) {
         if (!*xsink) {
@@ -57,20 +57,29 @@ QoreReflectionMethod::QoreReflectionMethod(const char* cls_path, const char* nam
         return;
     }
 
-    setMethod(cls, name, xsink);
+    setMethod(cls, name, xsink, type);
 }
 
 QoreReflectionMethod::QoreReflectionMethod(QoreProgram* pgm, const QoreMethod* m) : QoreReflectionFunction(pgm, m->getFunction()), m(m) {
     setType();
 }
 
-void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink) {
-    m = cls->findMethod(name);
-    if (!m) {
-        m = cls->findStaticMethod(name);
+void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type) {
+    if (type == MT_None || type == MT_Normal) {
+        m = cls->findLocalMethod(name);
+    }
+    if (!m && (type == MT_None || type == MT_Static)) {
+        m = cls->findLocalStaticMethod(name);
     }
     if (!m) {
-        xsink->raiseException("UNKNOWN-METHOD", "cannot resolve method '%s' in class '%s'", name, cls->getName());
+        const char* typestr;
+        switch (type) {
+            case MT_Normal: typestr = "normal "; break;
+            case MT_Static: typestr = "static "; break;
+            case MT_None: typestr = ""; break;
+            default: assert(false); break;
+        }
+        xsink->raiseException("UNKNOWN-METHOD", "cannot resolve %smethod '%s' in class '%s'", typestr, name, cls->getName());
     }
     else {
         f = m->getFunction();

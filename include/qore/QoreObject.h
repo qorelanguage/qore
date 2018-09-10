@@ -336,6 +336,19 @@ protected:
     */
     DLLEXPORT QoreValue evalMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
 
+    //! evaluates the given method with the given class context and arguments passed and returns the return value, caller owns the AbstractQoreNode (reference) returned
+    /**
+        @param method the method to evaluate
+        @param class_ctx the class context for the method evaluation for evaluating private:internal methods
+        @param args the arguments for the method (may be 0)
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return the value returned by the method; the caller owns any reference returned
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT QoreValue evalMethod(const QoreMethod& method, const QoreClass* class_ctx, const QoreListNode* args, ExceptionSink* xsink);
+
     //! runs the destructor on the object (if it hasn't already been deleted)
     /**
         @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -465,15 +478,30 @@ protected:
     //! executes a normal object method variant
     DLLEXPORT QoreValue evalMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
 
+    //! executes a normal object method variant
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT QoreValue evalMethodVariant(const QoreMethod& method, const QoreClass* class_ctx, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
+
     //! executes a static method
     /** @since %Qore 0.9
     */
     DLLEXPORT static QoreValue evalStaticMethod(const QoreMethod& method, const QoreListNode* args, ExceptionSink* xsink);
 
+    //! executes a static method with the given class context to access private:internal methods
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT static QoreValue evalStaticMethod(const QoreMethod& method, const QoreClass* class_ctx, const QoreListNode* args, ExceptionSink* xsink);
+
     //! executes a static method variant
     /** @since %Qore 0.9
     */
     DLLEXPORT static QoreValue evalStaticMethodVariant(const QoreMethod& method, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
+
+    //! executes a static method variant with the given class context to access private:internal methods
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT static QoreValue evalStaticMethodVariant(const QoreMethod& method, const QoreClass* class_ctx, const QoreExternalMethodVariant* variant, const QoreListNode* args, ExceptionSink* xsink);
 
     DLLLOCAL int getStatus() const;
 

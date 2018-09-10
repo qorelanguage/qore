@@ -209,19 +209,19 @@ QoreValue ParseObjectMethodReferenceNode::evalImpl(bool& needs_deref, ExceptionS
         AutoLocker al(lck);
         // check m again inside the lock (this way we avoid the lock in the common case where the method has already been resolved)
         if (!m) {
-            bool m_priv = false;
-            m = oc->findMethod(method.c_str(), m_priv);
+            ClassAccess access = Public;
+            m = oc->findMethod(method.c_str(), access);
             if (!m) {
-                m = oc->findStaticMethod(method.c_str(), m_priv);
+                m = oc->findStaticMethod(method.c_str(), access);
                 if (!m) {
                     xsink->raiseException(*loc, "OBJECT-METHOD-REFERENCE-ERROR", QoreValue(), "cannot resolve reference to %s::%s(): unknown method", o->getClassName(), method.c_str());
                     return QoreValue();
                 }
             }
 
-            if (m_priv && !qore_class_private::runtimeCheckPrivateClassAccess(*oc)) {
+            if (access > Public && !qore_class_private::runtimeCheckPrivateClassAccess(*oc)) {
                 if (m->isPrivate())
-                    xsink->raiseException(*loc, "ILLEGAL-CALL-REFERENCE", QoreValue(), "cannot create a call reference to private %s::%s() from outside the class", o->getClassName(), method.c_str());
+                    xsink->raiseException(*loc, "ILLEGAL-CALL-REFERENCE", QoreValue(), "cannot create a call reference to %s %s::%s() from outside the class", privpub(access), o->getClassName(), method.c_str());
                 else
                     xsink->raiseException(*loc, "ILLEGAL-CALL-REFERENCE", QoreValue(), "cannot create a call reference to %s::%s() because the parent class that implements the method (%s::%s()) is privately inherited", o->getClassName(), method.c_str(), m->getClass()->getName(), method.c_str());
 

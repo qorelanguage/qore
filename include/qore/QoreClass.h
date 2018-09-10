@@ -497,22 +497,6 @@ public:
     */
     DLLEXPORT QoreObject* execCopy(QoreObject* old, ExceptionSink* xsink) const;
 
-    //! looks for a non-static method in the current class without searching base classes
-    /** not thread-safe with parsing operations; do not call this function while new code
-        is being parsed into the class
-        @param name the name of the method
-        @returns a pointer to the method found, or 0 if no such method exists in the class
-    */
-    DLLEXPORT const QoreMethod* findLocalMethod(const char* name) const;
-
-    //! looks for a static method in the current class without searching base classes
-    /** not thread-safe with parsing operations; do not call this function while new code
-        is being parsed into the class
-        @param name the name of the static method
-        @returns a pointer to the method found, or 0 if no such method exists in the class
-    */
-    DLLEXPORT const QoreMethod* findLocalStaticMethod(const char* name) const;
-
     //! returns a list strings of all non-static methods in the class, the caller owns the reference count returned
     /** always returns a list; if there are no non-static methods then an empty list is returned
         @return a list strings of all non-static methods in the class, the caller owns the reference count returned
@@ -653,29 +637,47 @@ public:
     //! returns the class name
     DLLEXPORT const char* getName() const;
 
-    //! finds a non-static method in the class hierarchy
-    // used at run-time
+    //! finds a normal (non-static) method in the class hierarchy
+    /** @note used at run-time: will not return inaccessible methods
+
+        @see findLocalMethod()
+    */
     DLLEXPORT const QoreMethod* findMethod(const char* nme) const;
 
     //! finds a static method in the class hierarchy
-    // used at run-time
+    /** @note used at run-time: will not return inaccessible methods
+
+        @see findLocalStaticMethod()
+    */
     DLLEXPORT const QoreMethod* findStaticMethod(const char* nme) const;
 
-    //! finds a non-static method in the class hierarchy at runtime and sets the priv flag if it's a private method or not
-    /** @deprecated use findMethod(const char*, ClassAccess&) instead
-    */
-    DLLEXPORT const QoreMethod* findMethod(const char* nme, bool& priv) const;
+    //! finds a normal (non-static) method in the class hierarchy at runtime and sets the access code
+    /** @note used at run-time: will not return inaccessible methods
 
-    //! finds a non-static method in the class hierarchy at runtime and sets the access code
+        @see findLocalMethod()
+    */
     DLLEXPORT const QoreMethod* findMethod(const char* nme, ClassAccess& access) const;
 
     //! finds a static method in the class hierarchy and sets the priv flag if it's a private method or not
-    /** @deprecated use findStaticMethod(const char*, ClassAccess&) instead
-    */
-    DLLEXPORT const QoreMethod* findStaticMethod(const char* nme, bool& priv) const;
+    /** @note used at run-time: will not return inaccessible methods
 
-    //! finds a static method in the class hierarchy and sets the priv flag if it's a private method or not
+        @see findLocalStaticMethod()
+    */
     DLLEXPORT const QoreMethod* findStaticMethod(const char* nme, ClassAccess& access) const;
+
+    //! finds a normal (non-static) method in the class hierarchy
+    /** @param name the name of the method
+
+        @returns a pointer to the method found, or nullptr if no such method exists in the class
+    */
+    DLLEXPORT const QoreMethod* findLocalMethod(const char* name) const;
+
+    //! finds a static method in the class hierarchy
+    /** @param name the name of the method
+
+        @returns a pointer to the method found, or nullptr if no such method exists in the class
+    */
+    DLLEXPORT const QoreMethod* findLocalStaticMethod(const char* name) const;
 
     //! make a builtin class a child of another builtin class
     /** the xargs argument must not be used; before qore supported function overloading, base class arguments could be given here
