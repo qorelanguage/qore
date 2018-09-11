@@ -151,8 +151,8 @@
         - removed unnecessary serialization from AbstractConnection::get()
           (<a href="https://github.com/qorelanguage/qore/issues/2880">issue 2880</a>)
       - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
-        - fixed schema alignment when there are functions to be droped
-          (a href="https://github.com/qorelanguage/qore/issues/2963">issue 2963</a>)
+        - fixed schema alignment when there are functions to be dropped
+          (<a href="https://github.com/qorelanguage/qore/issues/2963">issue 2963</a>)
     - fixed a race condition in @ref Qore::Thread::ThreadPool "ThreadPool" destruction that could
       cause a crash
       (<a href="https://github.com/qorelanguage/qore/issues/2906">issue 2906</a>)
@@ -165,6 +165,9 @@
     - fixed a bug that would cause a crash if an unknown \c "Content-Encoding" value were received by the
       @ref Qore::HTTPClient "HTTPClient" class
       (<a href="https://github.com/qorelanguage/qore/issues/2953">issue 2953</a>)
+    - fixed a memory leak with binary objects in certain operations such as when reading a file into a
+      binary object
+      (<a href="https://github.com/qorelanguage/qore/issues/2982">issue 2982</a>)
 
     @section qore_08136 Qore 0.8.13.6
 
