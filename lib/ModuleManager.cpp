@@ -835,31 +835,21 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
                 qore_check_load_module_intern(mi, op, version, pgm, xsink);
                 return;
             }
+        }
 
-            // check whether it is a module folder
-            QoreString modulePath(*w);
-            modulePath += QORE_DIR_SEP_STR;
-            modulePath += name;
+        // check whether it is a module folder
+        QoreString modulePath(*w);
+        modulePath += QORE_DIR_SEP_STR;
+        modulePath += name;
 
-            if (QoreDir::folder_exists(modulePath, xsink)) {
-                modulePath += QORE_DIR_SEP_STR;
-                modulePath += name;
-                modulePath += ".qm";
+        if (QoreDir::folder_exists(modulePath, xsink)) {
+            mi = loadSeparatedModule(xsink, modulePath, name, pgm, reexport);
 
-                // mi = loadUserModuleFromSource(xsink, modulePath.c_str(), name, pgm, src, reexport, pholder.release(), true);
-                // list<string> moduleFiles = getModuleDependencyFiles();
-                // for (size_t i = 0; i < moduleFiles.size(); ++i) {
-                    // moduleFiles.at(i)
-                    // mi->getProgram()->parsePending(QoreDir::get_file_content("/home/tpetr/git/qore/examples/test/qore/requires/MyModule/SimpleModuleFunctions.ql"), name, &xsink, &xsink);
-                // }
-                // mi->getProgram()->parseCommit(&xsink);
+            if (xsink)
+                assert(!mi);
 
-                if (xsink)
-                    assert(!mi);
-
-                qore_check_load_module_intern(mi, op, version, pgm, xsink);
-                return;
-            }
+            qore_check_load_module_intern(mi, op, version, pgm, xsink);
+            return;
         }
 
         ++w;
@@ -868,6 +858,42 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
     QoreStringNode* desc = new QoreStringNodeMaker("feature '%s' is not builtin and no module with this name could be found in the module path: ", name);
     moduleDirList.appendPath(*desc);
     xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), desc);
+}
+
+QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink, QoreString& path, const char* feature, QoreProgram* qoreProg, bool reexport) {
+    assert(feature);
+    //printd(5, "QoreModuleManager::loadSeparatedModule() path: %s feature: %s qoreProg: %p\n", path, feature, qoreProg);
+    QoreParseCountContextHelper pcch;
+    // parse options for the module
+    int64 parseOptions = USER_MOD_PO;
+    // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
+    if (qoreProg)
+        parseOptions |= (qoreProg->getParseOptions64() & ~(PO_FREE_OPTIONS | PO_REQUIRE_TYPES));
+
+    path += QORE_DIR_SEP_STR;
+    path += feature;
+    path += ".qm";
+
+    QoreProgram* newQoreProg = new QoreProgram(parseOptions);
+    std::unique_ptr<QoreUserModule> userModule(new QoreUserModule(0, path.c_str(), feature, newQoreProg, QMLO_NONE));
+
+    ModuleReExportHelper reExportHelper(userModule.get(), reexport);
+    QoreUserModuleDefContextHelper qmd(feature, newQoreProg, xsink);
+
+    std::string mainModuleCode = QoreDir::get_file_content(path.c_str());
+    userModule->getProgram()->parsePending(mainModuleCode.c_str(), feature, &xsink, &xsink, QP_WARN_MODULES);
+
+    QoreString* regexClassesFunc = new QoreString(".+.(qc|ql)$");
+    QoreListNode* moduleFiles = QoreDir::get_files(path, xsink, regexClassesFunc);
+    printd(0, "size=%d\n", moduleFiles ? moduleFiles->size() : 0);
+                // for (size_t i = 0; i < moduleFiles.size(); ++i) {
+                    // moduleFiles.at(i)
+                    std::string code = QoreDir::get_file_content("/home/tpetr/git/qore/examples/test/qore/requires/MyModule/SimpleModuleFunctions.ql");
+                    userModule->getProgram()->parsePending(code.c_str(), feature, &xsink, &xsink);
+                // }
+                userModule->getProgram()->parseCommit(&xsink);
+
+    return setupUserModule(xsink, userModule, qmd);
 }
 
 QoreString QoreModuleManager::getModuleAbsPath(const char* n) const {

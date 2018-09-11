@@ -75,7 +75,7 @@ public:
      * @param folderPath folder path
      * @return 0 = OK (folder exists) non-zero = errno returned by opendir()
      */
-    DLLEXPORT static bool folder_exists(const QoreString& folderPath, ExceptionSink& xsink);
+    DLLEXPORT static bool folder_exists(const QoreString& folderPath, ExceptionSink& xsink, const QoreEncoding* cs = QCS_DEFAULT);
 
     //! reads file content
     /**
@@ -90,6 +90,15 @@ public:
       @param cs the encoding to use for this directory
       @param dir the initial directory; 0 = the current directory
    */
+
+   //! look up files
+   /**
+    * @param path path where files should be looked up
+    * @param regex filter
+    * @return list of files
+    */
+   DLLEXPORT static QoreListNode* get_files(const QoreString& path, ExceptionSink& xsink, QoreString* regex = nullptr, const QoreEncoding* cs = QCS_DEFAULT);
+
    DLLEXPORT QoreDir(ExceptionSink *xsink, const QoreEncoding *cs = QCS_DEFAULT, const char *dir = 0);
 
    //! copies the object

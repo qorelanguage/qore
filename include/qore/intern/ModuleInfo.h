@@ -398,8 +398,8 @@ private:
    DLLLOCAL QoreModuleManager(const QoreModuleManager&);
    // not implemented
    DLLLOCAL QoreModuleManager& operator=(const QoreModuleManager&);
-   //! check whether name represents a module directory name. see #2966
-   DLLLOCAL bool tryToLoadAsModuleDir(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport, mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm, unsigned load_opt);
+   //! loads separated module. see #2966
+   DLLLOCAL QoreAbstractModule* loadSeparatedModule(ExceptionSink& xsink, QoreString& path, const char * feature, QoreProgram* qoreProgram, bool reexport);
 
 protected:
    // recursive mutex; initialized in init()

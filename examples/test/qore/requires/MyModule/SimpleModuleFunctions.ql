@@ -14,6 +14,6 @@ public namespace EXAMPLE_F;
 #! dome function
 /** @deprecated try to create the better one
   */
-deprecated string sub EXAMPLE_F::func(string str) {
+public deprecated string sub EXAMPLE_F::func(string str) {
   return str + "EXAMPLE_F::func\n";
 }
