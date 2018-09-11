@@ -870,28 +870,37 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
     if (qoreProg)
         parseOptions |= (qoreProg->getParseOptions64() & ~(PO_FREE_OPTIONS | PO_REQUIRE_TYPES));
 
-    path += QORE_DIR_SEP_STR;
-    path += feature;
-    path += ".qm";
+    QoreString modulePath(path);
+    modulePath += QORE_DIR_SEP_STR;
+    modulePath += feature;
+    modulePath += ".qm";
 
     QoreProgram* newQoreProg = new QoreProgram(parseOptions);
-    std::unique_ptr<QoreUserModule> userModule(new QoreUserModule(0, path.c_str(), feature, newQoreProg, QMLO_NONE));
+    std::unique_ptr<QoreUserModule> userModule(new QoreUserModule(0, modulePath.c_str(), feature, newQoreProg, QMLO_NONE));
 
     ModuleReExportHelper reExportHelper(userModule.get(), reexport);
     QoreUserModuleDefContextHelper qmd(feature, newQoreProg, xsink);
 
-    std::string mainModuleCode = QoreDir::get_file_content(path.c_str());
-    userModule->getProgram()->parsePending(mainModuleCode.c_str(), feature, &xsink, &xsink, QP_WARN_MODULES);
+    std::string moduleCode = QoreDir::get_file_content(modulePath.c_str());
+    userModule->getProgram()->parsePending(moduleCode.c_str(), feature, &xsink, &xsink, QP_WARN_MODULES);
 
-    QoreString* regexClassesFunc = new QoreString(".+.(qc|ql)$");
-    QoreListNode* moduleFiles = QoreDir::get_files(path, xsink, regexClassesFunc);
-    printd(0, "size=%d\n", moduleFiles ? moduleFiles->size() : 0);
-                // for (size_t i = 0; i < moduleFiles.size(); ++i) {
-                    // moduleFiles.at(i)
-                    std::string code = QoreDir::get_file_content("/home/tpetr/git/qore/examples/test/qore/requires/MyModule/SimpleModuleFunctions.ql");
-                    userModule->getProgram()->parsePending(code.c_str(), feature, &xsink, &xsink);
-                // }
-                userModule->getProgram()->parseCommit(&xsink);
+    QoreString regexClassesFunc(".+.(qc|ql)$");
+    QoreDir moduleDir(&xsink, QCS_DEFAULT, path.c_str());
+    QoreListNode* fileList = moduleDir.list(&xsink, S_IFREG, &regexClassesFunc);
+    for (size_t i = 0; i < fileList->size(); ++i) {
+        QoreString filePath(path);
+        filePath += QORE_DIR_SEP_STR;
+        filePath += fileList->retrieveEntry(i).get<const QoreStringNode>()->c_str();
+
+        // printd(0, "file path=%s\n", filePath.c_str());
+
+        std::string fileCode = QoreDir::get_file_content(filePath);
+
+        // printd(0, "file content = %s\n", fileCode.c_str());
+
+        userModule->getProgram()->parsePending(fileCode.c_str(), feature, &xsink, &xsink);
+    }
+    userModule->getProgram()->parseCommit(&xsink);
 
     return setupUserModule(xsink, userModule, qmd);
 }
