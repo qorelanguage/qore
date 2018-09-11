@@ -1,0 +1,74 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class IncludeModuleTest
+
+class IncludeModuleTest inherits QUnit::Test {
+    constructor() : QUnit::Test("IncludeModule test", "1.0") {
+        addTestCase("Include whole separated module test", \testIncludeWholeModule());
+        addTestCase("Include single module class test", \testIncludeSingleModClass());
+        addTestCase("Include single module function test", \testIncludeSingleModFunction());
+        set_return_value(main());
+    }
+
+    testIncludeWholeModule() {
+        Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+        p.parse("
+#!/usr/bin/env /home/tpetr/devel_release/bin/qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+# TODO: change to some relative path
+%append-module-path .
+%requires MyModule
+
+MyModule::mfunc(\"\");
+", "");
+
+        assertEq("MyModule::mfunc::EXAMPLE_C::SomeClass::cfunc
+MyModule::mfunc::EXAMPLE_C::func
+MyModule::mfunc::EXAMPLE_F::func
+", p.callFunctionArgs("mfunc", ""));
+    }
+
+    testIncludeSingleModClass() {
+        Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+        p.parse("
+#!/usr/bin/env /home/tpetr/devel_release/bin/qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%append-module-path .
+%include MyModule.SimpleModuleClass.qc
+
+auto sub getObject() {
+    EXAMPLE_C::SomeClass sc();
+    return sc;
+}
+getObject().cfunc(\"\");
+EXAMPLE_C::func(\"\");
+", "");
+        assertEq("EXAMPLE_C::SomeClass::cfunc\n", p.callFunction("getObject").cfunc("") );
+        assertEq("EXAMPLE_C::func\n", p.callFunctionArgs("func", ""));
+    }
+
+    testIncludeSingleModFunction() {
+        Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
+        p.parse("
+#!/usr/bin/env /home/tpetr/devel_release/bin/qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%append-module-path .
+%include MyModule.SimpleModuleFunctions.ql
+
+EXAMPLE_F::func(\"\");
+", "");
+        assertEq("EXAMPLE_F::func\n", p.callFunctionArgs("func", ""));
+    }
+}

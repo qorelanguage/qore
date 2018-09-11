@@ -896,7 +896,7 @@ public:
     // call must push the current program on the stack and pop it afterwards
     DLLLOCAL int internParsePending(ExceptionSink* xsink, const char* code, const char* label, const char* orig_src = nullptr, int offset = 0) {
         //printd(5, "qore_program_private::internParsePending() code: %p %d bytes label: '%s' src: '%s' offset: %d\n", code, strlen(code), label, orig_src ? orig_src : "(null)", offset);
-
+        printd(0, "internParsePending 898\n");
         assert(code && code[0]);
 
         // save this file name for storage in the parse tree and deletion
@@ -970,6 +970,7 @@ public:
     DLLLOCAL int parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = nullptr, int offset = 0) {
         //printd(5, "qore_program_private::parsePending() wm=0x%x UV=0x%x on: %d\n", wm, QP_WARN_UNREFERENCED_VARIABLE, wm & QP_WARN_UNREFERENCED_VARIABLE);
 
+        printd(0, "parsePending 967\n");
         ProgramRuntimeParseContextHelper pch(xsink, pgm);
         assert(xsink);
         if (*xsink) {
@@ -994,6 +995,7 @@ public:
    DLLLOCAL int internParseCommit();
 
     DLLLOCAL int parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+        printd(0, "parseCommit 992\n");
         ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
         assert(xsink);
         if (*xsink) {
@@ -1170,6 +1172,7 @@ public:
     DLLLOCAL void parsePending(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source = 0, int offset = 0) {
         assert(!str->empty());
         assert(xsink);
+        printd(0, "parsePending 1163\n");
 
         // ensure code string has correct character set encoding
         TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
