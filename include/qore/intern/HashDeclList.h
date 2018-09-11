@@ -74,7 +74,7 @@ public:
     DLLLOCAL ~HashDeclList();
     DLLLOCAL HashDeclList(const HashDeclList& old, int64 po, qore_ns_private* ns);
 
-    DLLLOCAL void mergeUserPublic(const HashDeclList& old);
+    DLLLOCAL void mergeUserPublic(const HashDeclList& old, qore_ns_private* ns);
 
     // returns the number of hashdecls imported
     DLLLOCAL int importSystemHashDecls(const HashDeclList& source, qore_ns_private* ns, ExceptionSink* xsink);

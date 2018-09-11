@@ -2560,7 +2560,7 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
    classList.mergeUserPublic(mns.classList, this);
 
    // merge in source hashdecls
-   hashDeclList.mergeUserPublic(mns.hashDeclList);
+   hashDeclList.mergeUserPublic(mns.hashDeclList, this);
 
    // merge in source functions
    func_list.mergeUserPublic(mns.func_list, this);
