@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  DBI.h
+    DBI.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_DBI_H
@@ -46,7 +46,7 @@
 #define DBI_CAP_HAS_EXECRAW              (1 << 7)  //!< provides the Datasource*::execRaw() method (set automatically by the Qore library)
 #define DBI_CAP_HAS_STATEMENT            (1 << 8)  //!< supports the SQLStatement class (set automatically by the Qore library)
 #define DBI_CAP_HAS_SELECT_ROW           (1 << 9)  //!< provides a native selectRow() method (set automatically by the Qore library)
-#define DBI_CAP_HAS_NUMBER_SUPPORT       (1 << 10) //!< supports arbitrary-precision numeric support for binding and retrieving values; if this is not true then any QoreNumberNode bind arguments will be converted to QoreFloatNode before binding
+#define DBI_CAP_HAS_NUMBER_SUPPORT       (1 << 10) //!< supports arbitrary-precision numeric support for binding and retrieving values; if this is not true then any QoreNumberNode bind arguments will be converted to floats before binding
 #define DBI_CAP_HAS_OPTION_SUPPORT       (1 << 11) //!< supports the new driver option API (set automatically by the Qore library)
 #define DBI_CAP_SERVER_TIME_ZONE         (1 << 12) //!< supports automatically converting date/time values to the server's presumed time zone (can be set with options) and tagging date/time values with the same; this is independent from the client's current time zone setting
 #define DBI_CAP_AUTORECONNECT            (1 << 13) //!< supports automatically/transparently reconnecting to the server if the connection is lost while not in a transaction
@@ -69,34 +69,33 @@
 #define QDBI_METHOD_COMMIT                    6
 #define QDBI_METHOD_ROLLBACK                  7
 #define QDBI_METHOD_BEGIN_TRANSACTION         8
-#define QDBI_METHOD_ABORT_TRANSACTION_START   9 //!< @deprecated this is no longer called / used as of Qore 0.8.12
-#define QDBI_METHOD_GET_SERVER_VERSION       10
-#define QDBI_METHOD_GET_CLIENT_VERSION       11
-#define QDBI_METHOD_EXECRAW                  12
-#define QDBI_METHOD_STMT_PREPARE             13
-#define QDBI_METHOD_STMT_PREPARE_RAW         14
-#define QDBI_METHOD_STMT_BIND                15
-#define QDBI_METHOD_STMT_BIND_PLACEHOLDERS   16
-#define QDBI_METHOD_STMT_BIND_VALUES         17
-#define QDBI_METHOD_STMT_EXEC                18
-#define QDBI_METHOD_STMT_FETCH_ROW           19
-#define QDBI_METHOD_STMT_FETCH_ROWS          20
-#define QDBI_METHOD_STMT_FETCH_COLUMNS       21
-#define QDBI_METHOD_STMT_NEXT                22
-#define QDBI_METHOD_STMT_CLOSE               23
-#define QDBI_METHOD_STMT_AFFECTED_ROWS       24
-#define QDBI_METHOD_STMT_GET_OUTPUT          25
-#define QDBI_METHOD_STMT_GET_OUTPUT_ROWS     26
-#define QDBI_METHOD_STMT_DEFINE              27
-#define QDBI_METHOD_SELECT_ROW               28
-#define QDBI_METHOD_OPT_SET                  29
-#define QDBI_METHOD_OPT_GET                  30
-#define QDBI_METHOD_STMT_DESCRIBE            31
-#define QDBI_METHOD_DESCRIBE                 32
-#define QDBI_METHOD_STMT_FREE                33
-#define QDBI_METHOD_STMT_EXEC_DESCRIBE         34
+#define QDBI_METHOD_GET_SERVER_VERSION        9
+#define QDBI_METHOD_GET_CLIENT_VERSION       10
+#define QDBI_METHOD_EXECRAW                  11
+#define QDBI_METHOD_STMT_PREPARE             12
+#define QDBI_METHOD_STMT_PREPARE_RAW         13
+#define QDBI_METHOD_STMT_BIND                14
+#define QDBI_METHOD_STMT_BIND_PLACEHOLDERS   15
+#define QDBI_METHOD_STMT_BIND_VALUES         16
+#define QDBI_METHOD_STMT_EXEC                17
+#define QDBI_METHOD_STMT_FETCH_ROW           18
+#define QDBI_METHOD_STMT_FETCH_ROWS          19
+#define QDBI_METHOD_STMT_FETCH_COLUMNS       20
+#define QDBI_METHOD_STMT_NEXT                21
+#define QDBI_METHOD_STMT_CLOSE               22
+#define QDBI_METHOD_STMT_AFFECTED_ROWS       23
+#define QDBI_METHOD_STMT_GET_OUTPUT          24
+#define QDBI_METHOD_STMT_GET_OUTPUT_ROWS     25
+#define QDBI_METHOD_STMT_DEFINE              26
+#define QDBI_METHOD_SELECT_ROW               27
+#define QDBI_METHOD_OPT_SET                  28
+#define QDBI_METHOD_OPT_GET                  29
+#define QDBI_METHOD_STMT_DESCRIBE            30
+#define QDBI_METHOD_DESCRIBE                 31
+#define QDBI_METHOD_STMT_FREE                32
+#define QDBI_METHOD_STMT_EXEC_DESCRIBE       33
 
-#define QDBI_VALID_CODES 34
+#define QDBI_VALID_CODES 33
 
 /* DBI EVENT Types
    all DBI events must have the following keys:
@@ -111,7 +110,6 @@ class Datasource;
 class ExceptionSink;
 class QoreString;
 class QoreListNode;
-class AbstractQoreNode;
 class QoreHashNode;
 class QoreNamespace;
 class SQLStatement;
@@ -142,7 +140,7 @@ typedef int (*q_dbi_close_t)(Datasource* ds);
     @param xsink if any errors occur, error information should be added to this object
     @return the data returned by executing the SQL or 0
 */
-typedef AbstractQoreNode* (*q_dbi_select_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_select_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
 
 //! signature for the DBI "selectRows" method - must be defined in each DBI driver
 /**
@@ -152,7 +150,7 @@ typedef AbstractQoreNode* (*q_dbi_select_t)(Datasource* ds, const QoreString* st
     @param xsink if any errors occur, error information should be added to this object
     @return the data returned by executing the SQL or 0
 */
-typedef AbstractQoreNode* (*q_dbi_select_rows_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_select_rows_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
 
 //! signature for the DBI "selectRow" method - must be defined in each DBI driver
 /** if the SQL causes more than 1 row to be returned, then the driver must raise an exception
@@ -173,7 +171,7 @@ typedef QoreHashNode* (*q_dbi_select_row_t)(Datasource* ds, const QoreString* st
     @param xsink if any errors occur, error information should be added to this object
     @return the data returned by executing the SQL or 0
 */
-typedef AbstractQoreNode* (*q_dbi_exec_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_exec_t)(Datasource* ds, const QoreString* str, const QoreListNode* args, ExceptionSink* xsink);
 
 //! signature for the DBI "execRawSQL" method - must be defined in each DBI driver
 /**
@@ -182,7 +180,7 @@ typedef AbstractQoreNode* (*q_dbi_exec_t)(Datasource* ds, const QoreString* str,
    @param xsink if any errors occur, error information should be added to this object
    @return the data returned by executing the SQL or 0
 */
-typedef AbstractQoreNode* (*q_dbi_execraw_t)(Datasource* ds, const QoreString* str, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_execraw_t)(Datasource* ds, const QoreString* str, ExceptionSink* xsink);
 
 //! signature for the DBI "commit" method - must be defined in each DBI driver
 /**
@@ -208,23 +206,13 @@ typedef int (*q_dbi_rollback_t)(Datasource* ds, ExceptionSink* xsink);
 */
 typedef int (*q_dbi_begin_transaction_t)(Datasource* ds, ExceptionSink* xsink);
 
-//! signature for the rollback method to be executed when the first statement in an explicit transaction started implicitly with the DBI "begin_transaction" method fails
-/** this should just be a pointer to the rollback method for those drivers that need it (ex: pgsql)
-    @param ds the Datasource for the connection
-    @param xsink if any errors occur, error information should be added to this object
-    @return 0 for OK, non-zero for error
-
-    @deprecated do not define, no longer used as of Qore 0.8.12
-*/
-typedef int (*q_dbi_abort_transaction_start_t)(Datasource* ds, ExceptionSink* xsink);
-
 //! signature for the "get_server_version" method
 /**
     @param ds the Datasource for the connection
     @param xsink if any errors occur, error information should be added to this object
     @return a value describing the server's version
 */
-typedef AbstractQoreNode* (*q_dbi_get_server_version_t)(Datasource* ds, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_get_server_version_t)(Datasource* ds, ExceptionSink* xsink);
 
 //! signature for the "get_client_version" method
 /**
@@ -232,7 +220,7 @@ typedef AbstractQoreNode* (*q_dbi_get_server_version_t)(Datasource* ds, Exceptio
     @param xsink if any errors occur, error information should be added to this object
     @return a value describing the client's version
 */
-typedef AbstractQoreNode* (*q_dbi_get_client_version_t)(const Datasource* ds, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_get_client_version_t)(const Datasource* ds, ExceptionSink* xsink);
 
 // FIXME: document
 //! prepare statement and process placeholder specifications and bind parameters
@@ -277,8 +265,8 @@ typedef QoreListNode* (*q_dbi_stmt_fetch_rows_t)(SQLStatement* stmt, int rows, E
 typedef bool (*q_dbi_stmt_next_t)(SQLStatement* stmt, ExceptionSink* xsink);
 typedef int (*q_dbi_stmt_close_t)(SQLStatement* stmt, ExceptionSink* xsink);
 
-typedef int (*q_dbi_option_set_t)(Datasource* ds, const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink);
-typedef AbstractQoreNode* (*q_dbi_option_get_t)(const Datasource* ds, const char* opt);
+typedef int (*q_dbi_option_set_t)(Datasource* ds, const char* opt, const QoreValue val, ExceptionSink* xsink);
+typedef QoreValue (*q_dbi_option_get_t)(const Datasource* ds, const char* opt);
 
 //! signature for the DBI "describe" method
 /**
@@ -451,13 +439,13 @@ DLLEXPORT extern DBIDriverList DBI;
 //! parses a datasource string and returns a hash of the component parts
 DLLEXPORT QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink);
 
-//! concatenates a numeric value to the QoreString from the QoreNode
-DLLEXPORT void DBI_concat_numeric(QoreString* str, const AbstractQoreNode* v);
+//! concatenates a numeric value to the QoreString from the value
+DLLEXPORT void DBI_concat_numeric(QoreString* str, QoreValue v);
 
-//! concatenates a string value to the QoreString from the AbstractQoreNode
+//! concatenates a string value to the QoreString from the value
 /** NOTE: no escaping is done here
     this function is most useful for table prefixes, etc in queries
 */
-DLLEXPORT int DBI_concat_string(QoreString* str, const AbstractQoreNode* v, ExceptionSink* xsink);
+DLLEXPORT int DBI_concat_string(QoreString* str, QoreValue v, ExceptionSink* xsink);
 
 #endif  // _QORE_DBI_H

@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,12 +33,12 @@
 #define _QORE_FILEOUTPUTSTREAM_H
 
 #include <stdint.h>
-#include "qore/intern/OutputStreamBase.h"
+#include "qore/OutputStream.h"
 
 /**
  * @brief Private data for the Qore::FileOutputStream class.
  */
-class FileOutputStream : public OutputStreamBase {
+class FileOutputStream : public OutputStream {
 
 public:
    DLLLOCAL FileOutputStream(const QoreStringNode *fileName, bool append, int mode, const QoreEncoding* encoding, ExceptionSink *xsink) {

@@ -34,6 +34,8 @@
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/QoreClassIntern.h"
 
+DLLEXPORT extern QoreClass* QC_INPUTSTREAM;
+
 //! This class defines a stream reader for input streams.
 /** @since %Qore 0.8.13
 
@@ -70,6 +72,17 @@ StreamReader::constructor(Qore::InputStream[InputStream] is, *string encoding) {
  */
 string StreamReader::getEncoding() [flags=CONSTANT] {
    return new QoreStringNode(sr->getEncoding()->getCode());
+}
+
+//! Returns the @ref InputStream for the StreamReader.
+/** Returns the @ref InputStream for the StreamReader.
+
+    @return the @ref InputStream for the StreamReader
+    
+    @since 0.9.0
+ */
+InputStream StreamReader::getInputStream() {
+	return self->getReferencedMemberNoMethod("is", xsink);
 }
 
 //! Reads a string from the input stream

@@ -301,6 +301,34 @@ public namespace DebugCmdLine {
                                 'desc': 'logger verbosity commands',
                             ),
 
+                            'rverbose': (
+                                '>': {
+                                    'set': (
+                                        'desc': 'set remote logger verbosity level, args: level',
+                                        '*': (
+                                            'validate': \DebugCommandLine::validateInt(),
+                                            'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                                doCommand((
+                                                    'cmd': 'options/verbose/set',
+                                                    'value': int(pop path),
+                                                ), True);
+                                            },
+                                        ),
+                                    ),
+                                    'get': (
+                                        'desc': 'get current remote logger verbosity level',
+                                        'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                            *hash vh = doCommand((
+                                                'cmd': 'options/verbose/get',
+                                            ), False);
+                                            printfImpl("Remote Logging level: %y\n", vh.result);
+                                        },
+                                    ),
+                                },
+                                'fallback': fallbackGetSetInt,
+                                'desc': 'remote logger verbosity commands',
+                            ),
+
                             'fullexceptioninfo': (
                                 '>': {
                                     'set': (
@@ -481,6 +509,7 @@ public namespace DebugCmdLine {
                                         'desc': 'verbose program listing',
                                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                             hash data.cmd = 'program//list';
+                                            data.listFiles = True;
                                             dcl.doCommand(data, True);
                                         },
                                     ),
@@ -904,6 +933,23 @@ public namespace DebugCmdLine {
                                 ),
                                 'desc': 'unassign statement from breakpoint, args: breakpointId [function([args, ...])] | [file] lineno | #statementId',
                             ),
+                            'get': (
+                                'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
+                                    hash data.cmd = 'program/'+dcl.checkProgramId()+'/statement/get';
+                                    data.value = dcl.getStatementValue(args);
+                                    *hash sd = dcl.doCommand(data, False);
+                                    if (exists sd.result) {
+                                        printfImpl(formatStatement(sd.result));
+                                        if (sd.result.breakpoints) {
+                                            printfImpl(" Breakpoints:\n");
+                                            foreach hash b in (sd.result.breakpoints) {
+                                                printfImpl("  "+formatBreakpoint(b));
+                                            }
+                                        }
+                                    }
+                                },
+                                'desc': 'get statement info and list related breakpoints, args: [function([args, ...])] | [file] lineno | #statementId',
+                            ),
                         ),
                         'desc': 'statement related commands',
                     ),
@@ -975,7 +1021,7 @@ public namespace DebugCmdLine {
                                     data.tid = dcl.checkThreadId();
                                     *list tl = dcl.doCommand(data, False).result;
                                     if (tl)
-                                        printfImpl("local vars in frame%s\n", (foldl $1 + ", " + $2, tl));
+                                        printfImpl("local vars in frame: %s\n", (foldl $1 + ", " + $2, tl));
                                     else
                                         printfImpl("no local vars in frame\n");
                                 },
@@ -1115,7 +1161,7 @@ public namespace DebugCmdLine {
                                 data.linesbefore = int(args[0]);
                                 data.linesafter = data.linesbefore;
                             }
-                            dcl.printSource(dcl.doCommand(data, False).result);
+                            dcl.printfImpl("%s", dcl.formatSource(dcl.doCommand(data, False).result));
                         },
                     ),
                     'go': (
@@ -1126,10 +1172,13 @@ public namespace DebugCmdLine {
                             'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                 hash data.cmd = 'thread/go/'+pop path;
                                 data.tid = dcl.checkThreadId();
+                                if (args) {
+                                    data.value = dcl.getStatementValue(args);
+                                }
                                 dcl.doCommand(data, True);
                             },
                         ),
-                        'desc': sprintf('go thread with specified runstate, arg: %s', (keys AbstractDebugControl::runStateStrings).join('|')),
+                        'desc': sprintf('go thread with specified runstate and optionally to specified statement, arg: %s [ [function([args, ...])] | [file] lineno | #statementId ]', (keys AbstractDebugControl::runStateStrings).join('|')),
                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                             hash data.cmd = 'thread/go';
                             data.tid = dcl.checkThreadId();
@@ -1198,17 +1247,25 @@ public namespace DebugCmdLine {
             }
         }
 
+        public string formatBreakpoint(hash b) {
+            return sprintf(" id: %-4d  pgmId: %-4d enabled: %-5s policy: %-6s threads: %y\n", b.id, b.programId, b.enabled, b.policy, b.threads);
+        }
+
+        public string formatStatement(hash stmt) {
+            string res = sprintf(" @ %-5d %s:%d-%d", stmt.id, stmt.file, stmt.start_line + stmt.offset, stmt.end_line + stmt.offset);
+            if (stmt.source) {
+                res += sprintf(" (%s:%d-%d)", stmt.source, stmt.start_line, stmt.end_line);
+            }
+            return res+"\n";
+        }
+
         public showBreakpoints(*list bkpts) {
             foreach hash b in (sort(bkpts, int sub (hash l, hash r) { return l.id <=> r.id; })) {
-                printfImpl(" id: %-4d  pgmId: %-4d enabled: %-5s policy: %-6s threads: %y\n", b.id, b.programId, b.enabled, b.policy, b.threads);
-                foreach hash stmt in (b.statements) {
-                    printfImpl("   @ %-5d %s:%d-%d", stmt.id, stmt.file, stmt.start_line + stmt.offset, stmt.end_line + stmt.offset);
-                    if (stmt.source) {
-                        printfImpl(" (%s:%d-%d)", stmt.source, stmt.start_line, stmt.end_line);
-                    }
-                    printfImpl("\n");
-                }
+                printfImpl(formatBreakpoint(b));
                 if (b.statements) {
+                    foreach hash stmt in (b.statements) {
+                        printfImpl("  "+formatStatement(stmt));
+                    }
                     printfImpl("\n");
                 }
             }
@@ -1235,6 +1292,12 @@ public namespace DebugCmdLine {
                 str += loc + " ";
             str += lh.type;
             str += ")";
+            if (lh.programid) {
+                str += sprintf(" pgm:%d", lh.programid);
+            }
+            if (lh.statementid) {
+                str += sprintf(" stmtid:%d", lh.statementid);
+            }
             return str;
         }
 
@@ -1245,7 +1308,8 @@ public namespace DebugCmdLine {
             }
         }
 
-        public printSource(*hash src) {
+        # src keys: code, [startLine], [currentLine]
+        public *string formatSource(*hash src) {
             if (exists src.code) {
                 if (src.startline > 0) {
                     # add line numbers
@@ -1258,9 +1322,10 @@ public namespace DebugCmdLine {
                         }
                         s = sprintf(fmt, src.startline + $#, mark, s);
                     }
-                    src.code = l.join("\n");
+                    return l.join("\n");
+                } else {
+                    return src.code;
                 }
-                printfImpl("%s", src.code);
             }
         }
         public processGetSource(string type, list path, list args) {
@@ -1272,11 +1337,11 @@ public namespace DebugCmdLine {
                     data.count = int(args[1]);
                 }
             }
-            hash src = doCommand(data, False).result;
+            *hash src = doCommand(data, False).result;
             if (src.checksum) {
                 printfImpl("%s: %s", src.checksum.algorithm, src.checksum.cs);
             }
-            printSource(src);
+            printfImpl("%s", formatSource(src));
         }
 
         static public validateInt(DebugCommandLine dcl, softlist path, softlist val) {
@@ -1307,7 +1372,7 @@ public namespace DebugCmdLine {
             string s;
             s = trim(shift args);
             if (s =~ /^[0-9]+$/) {
-                return ('file': '', 'lineno': int(s));
+                return {'file': '', 'lineno': int(s)};
             }
             *list l = s =~ x/^(.+)\((.*)\)$/;
             if (l) {
@@ -1318,31 +1383,37 @@ public namespace DebugCmdLine {
                         push la, s2;
                     }
                 }
-                return ('function': l[0], 'args': la);
+                return {'function': l[0], 'args': la};
             }
             l = s =~ x/^#([0-9]+)$/;
             if (l) {
-                return ('id': int(l[0]));
+                return {'id': int(l[0])};
             }
             if (args[0] =~ /^[0-9]+$/) {
-                return ('file': s, 'lineno': int(args[0]));
+                return {'file': s, 'lineno': int(args[0])};
             }
             throw "DEBUG-PROGRAM-HELPER", sprintf("Wrong statement identification");
         }
 
-        private list splitCmd(string line) {
-            list ret = ();
+        private hash splitCmd(string line) {
+            hash ret = {'args': (), 'pos': ()};
             int i = 0;
             int q = 0;
             string s = '';
+            int start = -1;
             while (i < line.size()) {
+                if (start < 0 && s == '' && line[i] != ' ') {
+                    start = i;
+                }
                 switch (line[i]) {
                 case ' ':
                     if (q == 0) {
                         if (s != '') {
-                            push ret, s;
+                            push ret.args, s;
+                            push ret.pos, {'start': start, 'end': i};
                             s = '';
                         }
+                        start = -1;
                     } else {
                         s += line[i];
                     }
@@ -1392,9 +1463,44 @@ public namespace DebugCmdLine {
             if (q != 0)
                 throw "DEBUG-PROGRAM-HELPER", sprintf("Unmatched quotes in %y", line);
             if (s != '') {
-                push ret, s;
+                push ret.args, s;
+                push ret.pos, {'start': start, 'end': i};
             }
             return ret;
+        }
+
+        private string escapeArg(string s) {
+            int i = 0;
+            while (i < s.size()) {
+                bool addEsc = True;
+                switch (s[i]) {
+                    case "\n":
+                        splice s, i, 1, 'n';
+                        break;
+                    case "\r":
+                        splice s, i, 1, 'r';
+                        break;
+                    case "\t":
+                        splice s, i, 1, 't';
+                        break;
+                    case "\0":
+                        splice s, i, 1, '0';
+                        break;
+                    case '\':
+                    case " ":
+                    case '"':
+                    case "'":
+                        break;
+                    default:
+                        addEsc = False;
+                }
+                if (addEsc) {
+                    splice s, i, 0, '\';
+                    i++;
+                }
+                i++;
+            }
+            return s;
         }
 
         public string listVariantCmds(hash v) {
@@ -1542,16 +1648,16 @@ public namespace DebugCmdLine {
         }
 
         public list getLineCompletions(string line) {
-            list args = splitCmd(line);
-            if (line =~ / $/ || line == '') {
-                args += '';
+            hash h = splitCmd(line);
+            if (line == '' || (h.pos && h.pos.last().end < line.size())) {
+                h.args += '';
             } else {
-                # strip last args
-                while (line != '' && line[line.size()-1] != ' ') {
-                    line = splice(line, -1);
+                if (h.pos) {
+                    # strip last args
+                    splice line, h.pos.last().start;
                 }
             }
-            *hash cmd = findCmd(args, fcExpandUniqueCmd);
+            *hash cmd = findCmd(h.args, fcExpandUniqueCmd);
             if (cmd.variants) {
                 *list v;
                 switch (cmd.variants.typeCode()) {
@@ -1566,7 +1672,7 @@ public namespace DebugCmdLine {
                     v = keys cmd.variants;
                 }
                 list res = ();
-                map (push res, line+$1), sort(v);
+                map (push res, line+escapeArg($1)), sort(v);
                 return res;
             } else {
                 return ();
@@ -1575,7 +1681,7 @@ public namespace DebugCmdLine {
 
         public bool processCmdLine(string line) {
             int last_param;
-            list args = splitCmd(line);
+            list args = splitCmd(line).args;
             *hash cmd = findCmd(args, fcExpandUniqueCmd | fcValidate | fcFallback, \last_param);
             if (cmd.cmd) {
 #                    printfImpl("line:%y\n", line);
@@ -1739,10 +1845,17 @@ public namespace DebugCmdLine {
                                 setContextValue('threadId', data.tid);
                                 outs += ", [thread ctx set]";
                             }
+                            if (exists data.linecode) {
+                                outs += "\n";
+                                outs += formatSource({
+                                    'code': data.linecode,
+                                    'startline': data.line,
+                                    'currentline': data.line,
+                                });
+                            }
                         }
                         break;
                     }
-                    outs += "\n";
                     break;
 
                 case 'error':
