@@ -105,7 +105,7 @@ public class JoinPathsTest inherits QUnit::Test {
 
 
     #! Returns input parameters as a list (in a way the list variant of join_paths expects)
-    list res_to_list_input_params(list res) {
+    list<string> res_to_list_input_params(list res) {
         if (res[1].type() == "list") {
             if (res[1].size() > 0) {
                 # insert res[0] at the beginning of the list
@@ -170,7 +170,7 @@ public class JoinPathsTest inherits QUnit::Test {
             results = results_posix;
 
         foreach list res in (results) {
-            list paths = res_to_list_input_params(res);
+            list<string> paths = res_to_list_input_params(res);
             assertEq(res[2], join_paths(paths), sprintf("join_paths: %n", paths));
         }
     }
@@ -179,7 +179,7 @@ public class JoinPathsTest inherits QUnit::Test {
     test_join_paths_posix_list() {
         PosixPathHandler ph = new PosixPathHandler();
         foreach list res in (results_posix) {
-            list paths = res_to_list_input_params(res);
+            list<string> paths = res_to_list_input_params(res);
             assertEq(res[2], ph.join_paths(paths), sprintf("POSIX join_paths: %n", paths));
         }
     }
@@ -188,14 +188,15 @@ public class JoinPathsTest inherits QUnit::Test {
     test_join_paths_win_list() {
         WinPathHandler ph = new WinPathHandler();
         foreach list res in (results_win) {
-            list paths = res_to_list_input_params(res);
+            list<string> paths = res_to_list_input_params(res);
             assertEq(res[2], ph.join_paths(paths), sprintf("WIN join_paths: %n", paths));
         }
     }
 
     #! Tests cases when an exception is expected
     test_join_paths_exception() {
-        assertThrows("MISSING-PARAMETER-ERROR", \join_paths(), ((),));
+        list<string> empty_list = new list<string>();
+        assertThrows("MISSING-PARAMETER-ERROR", \join_paths(), (empty_list,));
         assertThrows("RUNTIME-TYPE-ERROR", \join_paths(), (('some/path', (NOTHING,))));
         assertThrows("RUNTIME-TYPE-ERROR", \join_paths(), (('some', ('path', NOTHING,))));
         assertThrows("RUNTIME-TYPE-ERROR", \join_paths(), (('some', ('path', NOTHING, 'dir'))));

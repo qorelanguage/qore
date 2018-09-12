@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file FsUtil.qm Qore user module providing file system related functionality
 
-/*  FsUtil.qm Copyright 2017 - 2018 Qore Technologies, s.r.o.
+/*  FsUtil.qm Copyright 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -105,11 +105,11 @@ public namespace FsUtil {
     class PathHandler {
         public {
             #! path delimiters - to be set by platform specific path handlers
-            list Delimiters;
+            list<string> Delimiters;
         }
 
 
-        public string join_paths(list paths) {
+        public string join_paths(list<string> paths) {
             if (!paths) {
                 # NOTHING or an empty list
                 throw "MISSING-PARAMETER-ERROR", "No paths to join";
@@ -124,7 +124,7 @@ public namespace FsUtil {
         }
 
         # to be implemented by platform-specific classes
-        public abstract string join_paths(string path1, softlist paths);
+        public abstract string join_paths(string path1, softlist<string> paths);
     }
 
     #! path handler implementing Windows specific functionality
@@ -139,11 +139,10 @@ public namespace FsUtil {
         #! separates and returns the drive and the rest of the path
         /** @param path the path to be processed
 
-            @return list of two items - drive and the rest of the path, either
-            can be empty and concatenation of both parts always gives the
-            original path back.
+            @return list<string> of two items - drive and the rest of the path, either can be empty and concatenation of
+            both parts always gives the original path back.
         */
-        public list split_drive(string path) {
+        public list<string> split_drive(string path) {
             if (regex(path, '^[a-zA-Z]:'))
                 return (path.substr(0,2), path.substr(2));
             return ("", path);
@@ -159,7 +158,7 @@ public namespace FsUtil {
             (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
             Since the second parameter is a softlist, this variant also works for joining two string paths.
         */
-        public string join_paths(string path1, softlist paths) {
+        public string join_paths(string path1, softlist<string> paths) {
             string result = path1;
 
             foreach string path2 in (paths) {
@@ -168,8 +167,8 @@ public namespace FsUtil {
                 }
 
                 # extract drive (if present)
-                list result_split = split_drive(result);
-                list path2_split = split_drive(path2);
+                list<string> result_split = split_drive(result);
+                list<string> path2_split = split_drive(path2);
 
                 if (result == "" ||
                     absolute_path_windows(path2) ||
@@ -211,7 +210,7 @@ public namespace FsUtil {
             a correct result of join("/path/to", "../../file.txt");).
             Since the second parameter is a softlist, this variant also works for joining two string paths.
         */
-        public string join_paths(string path1, softlist paths) {
+        public string join_paths(string path1, softlist<string> paths) {
             string result = path1;
 
             foreach string path2 in (paths) {
@@ -272,7 +271,7 @@ public namespace FsUtil {
         (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
         Since the second parameter is a softlist, this variant also works for joining two string paths.
     */
-    public string sub join_paths(string path1, softlist paths) {
+    public string sub join_paths(string path1, softlist<string> paths) {
         return local_handler.join_paths(path1, paths);
     }
 
@@ -286,7 +285,7 @@ public namespace FsUtil {
 
         @throws MISSING-PARAMETER-ERROR if the list is empty
     */
-    public string sub join_paths(list paths) {
+    public string sub join_paths(list<string> paths) {
         return local_handler.join_paths(paths);
     }
 
