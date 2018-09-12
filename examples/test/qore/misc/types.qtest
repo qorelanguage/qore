@@ -317,11 +317,11 @@ class TypeTest inherits QUnit::Test {
         list<auto> l0 = ("str0", "str1");
         assertEq("list<string>", l0.fullType());
         softlist<auto> l1 = ("str0", "str1");
-        assertEq("list<string>", l1.fullType());
+        assertEq("softlist<auto>", l1.fullType());
         *list<auto> l2 = ("str0", "str1");
         assertEq("list<string>", l2.fullType());
         *softlist<auto> l3 = ("str0", "str1");
-        assertEq("list<string>", l3.fullType());
+        assertEq("*softlist<auto>", l3.fullType());
 
         hash<auto> h0 = ("a": 1, "b": 2);
         assertEq("hash<string, int>", h0.fullType());
