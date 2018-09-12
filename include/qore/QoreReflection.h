@@ -168,6 +168,15 @@ private:
     DLLLOCAL QoreExternalStaticMember();
 };
 
+//! external wrapper base class for class normal members
+/** @since %Qore 0.9
+*/
+class QoreExternalNormalMember : public QoreExternalMemberVarBase {
+private:
+    //! not implemented
+    DLLLOCAL QoreExternalNormalMember();
+};
+
 //! external wrapper class for source code location information
 /** @since %Qore 0.9
 */

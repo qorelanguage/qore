@@ -120,6 +120,7 @@ public:
     DLLLOCAL void getPath(std::string& str, bool anchored = false) const {
         const qore_ns_private* w = parent;
         while (w && (anchored || w->parent)) {
+            //printd(5, "qore_ns_private::getPath() this: %p name: '%s' parent: %p root: %d\n", w, w->name.c_str(), parent, root);
             str.insert(0, "::");
             str.insert(0, w->name);
             w = w->parent;
@@ -260,16 +261,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name = nullptr, bool inject = false, const qore_class_private* injectedClass = nullptr) {
-        if (checkImportClass(new_name ? new_name : c->getName(), xsink))
-            return nullptr;
-
-        QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject, injectedClass);
-        qore_class_private::setNamespace(nc, this);
-        classList.add(nc);
-
-        return nc;
-    }
+    DLLLOCAL QoreClass* runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name = nullptr, bool inject = false, const qore_class_private* injectedClass = nullptr);
 
     DLLLOCAL TypedHashDecl* runtimeImportHashDecl(ExceptionSink* xsink, const TypedHashDecl* hd, QoreProgram* spgm, const char* new_name = nullptr) {
         if (checkImportHashDecl(new_name ? new_name : hd->getName(), xsink))
