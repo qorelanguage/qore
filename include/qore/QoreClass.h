@@ -35,6 +35,7 @@
 
 #include <stdarg.h>
 #include <string>
+#include <memory>
 
 // all qore class IDs
 DLLEXPORT extern qore_classid_t CID_AUTOGATE;
@@ -682,18 +683,16 @@ public:
     //! make a builtin class a child of another builtin class
     /** the xargs argument must not be used; before qore supported function overloading, base class arguments could be given here
         @param qc the base class to add
-        @param xargs DEPRECATED must be 0; do not use
     */
-    DLLEXPORT void addBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs = 0);
+    DLLEXPORT void addBuiltinBaseClass(QoreClass* qc);
 
     //! make a builtin class a child of another builtin class and ensures that the given class's private data will be used in all class methods
     /** In the case this function is used, this objects of class cannot have
         private data saved against the class ID.
         The xargs argument must not be used; before qore supported function overloading, base class arguments could be given here
         @param qc the base class to add
-        @param xargs DEPRECATED must be 0; do not use
     */
-    DLLEXPORT void addDefaultBuiltinBaseClass(QoreClass* qc, QoreListNode* xargs = 0);
+    DLLEXPORT void addDefaultBuiltinBaseClass(QoreClass* qc);
 
     //! sets "virtual" base class for a class, meaning that the base class data is appropriate for use in the subclass builtin methods
     /** this method adds a base class placeholder for a subclass - where the subclass's private data
@@ -1013,7 +1012,7 @@ public:
 //! iterates parent classes for a class with inheritance access information
 /** @since %Qore 0.9
 */
-class QoreParentClassIterator {
+class QoreParentClassIterator final {
 public:
     //! creates the iterator; call next() to start iterating
     DLLEXPORT QoreParentClassIterator(const QoreClass* cls);
@@ -1034,13 +1033,13 @@ public:
     DLLEXPORT ClassAccess getAccess() const;
 
 private:
-    class qore_parent_class_iterator_private* priv;
+    std::unique_ptr<class qore_parent_class_iterator_private> priv;
 };
 
 //! iterates normal (non-static) members of a class
 /** @since %Qore 0.9
 */
-class QoreClassMemberIterator {
+class QoreClassMemberIterator final {
 public:
     //! creates the iterator; call next() to start iterating
     DLLEXPORT QoreClassMemberIterator(const QoreClass* cls);
@@ -1061,13 +1060,13 @@ public:
     DLLEXPORT const char* getName() const;
 
 private:
-    class qore_class_member_iterator_private* priv;
+    std::unique_ptr<class qore_class_member_iterator_private> priv;
 };
 
 //! iterates static members of a class
 /** @since %Qore 0.9
 */
-class QoreClassStaticMemberIterator {
+class QoreClassStaticMemberIterator final {
 public:
     //! creates the iterator; call next() to start iterating
     DLLEXPORT QoreClassStaticMemberIterator(const QoreClass* cls);
@@ -1088,13 +1087,13 @@ public:
     DLLEXPORT const char* getName() const;
 
 private:
-    class qore_class_static_member_iterator_private* priv;
+    std::unique_ptr<class qore_class_static_member_iterator_private> priv;
 };
 
 //! iterates class constants
 /** @since %Qore 0.9
 */
-class QoreClassConstantIterator {
+class QoreClassConstantIterator final {
 public:
     //! creates the iterator; call next() to start iterating
     DLLEXPORT QoreClassConstantIterator(const QoreClass* cls);
@@ -1112,13 +1111,13 @@ public:
     DLLEXPORT const QoreExternalConstant* get() const;
 
 private:
-    class qore_class_constant_iterator* priv;
+    std::unique_ptr<class qore_class_constant_iterator> priv;
 };
 
 //! iterates the class hierarchy in the order of constructor execution
 /** @since %Qore 0.9
 */
-class QoreClassHierarchyIterator {
+class QoreClassHierarchyIterator final {
 public:
     //! creates the iterator; call next() to start iterating
     DLLEXPORT QoreClassHierarchyIterator(const QoreClass* cls);
@@ -1136,7 +1135,7 @@ public:
     DLLEXPORT const QoreClass* get() const;
 
 private:
-    class qore_class_hierarchy_iterator* priv;
+    std::unique_ptr<class qore_class_hierarchy_iterator> priv;
 };
 
 DLLEXPORT const char* get_access_string(ClassAccess access);
