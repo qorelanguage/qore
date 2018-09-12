@@ -1743,16 +1743,6 @@ public:
 typedef vector_set_t<QoreClass*> qc_set_t;
 //typedef std::set<QoreClass*> qc_set_t;
 
-// local private implementation
-class qore_class_private_local {
-public:
-    qore_ns_private* ns = nullptr;  // parent namespace
-
-    DLLLOCAL void setNamespace(qore_ns_private* n) {
-        ns = n;
-    }
-};
-
 // private QoreClass implementation
 // only dynamically allocated; reference counter managed in "refs"
 class qore_class_private {
@@ -1760,6 +1750,7 @@ public:
     const QoreProgramLocation* loc; // location of declaration
     std::string name;               // the name of the class
     QoreClass* cls;                 // parent class
+    qore_ns_private* ns = nullptr;  // parent namespace
     BCList* scl = nullptr;          // base class list
     qc_set_t qcset;                 // set of QoreClass pointers associated with this private object (besides cls)
 
@@ -1858,7 +1849,7 @@ public:
 
     // only called while the parse lock for the QoreProgram owning "old" is held
     // called for injected classes only
-    DLLLOCAL qore_class_private(const qore_class_private& old, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass);
+    DLLLOCAL qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass);
 
 public:
     DLLLOCAL const char* getModuleName() const {
@@ -1920,6 +1911,17 @@ public:
 
     DLLLOCAL void parseDoCheckAbstractNew(const QoreProgramLocation* loc) const {
         ahm.parseCheckAbstractNew(loc, name.c_str());
+    }
+
+    DLLLOCAL void setNamespace(qore_ns_private* n) {
+        assert(!ns);
+        ns = n;
+    }
+
+    // used when assimilating a namespace at parse time
+    DLLLOCAL void updateNamespace(qore_ns_private* n) {
+        assert(ns);
+        ns = n;
     }
 
     DLLLOCAL void resolveCopy();
@@ -3033,8 +3035,8 @@ public:
         return qc.priv->inject;
     }
 
-    DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass) {
-        qore_class_private* priv = new qore_class_private(*qc.priv, spgm, nme, inject, injectedClass);
+    DLLLOCAL static QoreClass* makeImportClass(const QoreClass& qc, QoreProgram* spgm, const char* nme, bool inject, const qore_class_private* injectedClass, qore_ns_private* ns) {
+        qore_class_private* priv = new qore_class_private(*qc.priv, ns, spgm, nme, inject, injectedClass);
         //printd(5, "qore_program_private::makeImportClass() name: '%s' as '%s' inject: %d rv: %p\n", qc.getName(), priv->name.c_str(), inject, priv->cls);
         return priv->cls;
     }
@@ -3175,14 +3177,6 @@ public:
 
     DLLLOCAL static qore_type_result_e runtimeCheckCompatibleClass(const QoreClass& qc, const QoreClass& oc) {
         return qc.priv->runtimeCheckCompatibleClass(*oc.priv);
-    }
-
-    DLLLOCAL static qore_class_private_local* getLocal(QoreClass& qc) {
-        return qc.priv_local;
-    }
-
-    DLLLOCAL static const qore_class_private_local* getLocal(const QoreClass& qc) {
-        return qc.priv_local;
     }
 
     DLLLOCAL static qore_class_private* get(QoreClass& qc) {

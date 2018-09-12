@@ -252,7 +252,7 @@ void QoreNamespace::addSystemClass(QoreClass* oc) {
     QORE_TRACE("QoreNamespace::addSystemClass()");
 
     oc->setSystem();
-    qore_class_private::getLocal(*oc)->setNamespace(priv);
+    qore_class_private::get(*oc)->setNamespace(priv);
 
     // generate builtin class signature
     std::string path;
@@ -750,8 +750,7 @@ QoreClass* qore_ns_private::runtimeImportClass(ExceptionSink* xsink, const QoreC
         return nullptr;
     }
 
-    QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject, injectedClass);
-    qore_class_private::getLocal(*nc)->setNamespace(this);
+    QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject, injectedClass, this);
     classList.add(nc);
 
     return nc;
@@ -2437,7 +2436,7 @@ int qore_ns_private::parseAddPendingClass(const QoreProgramLocation* loc, QoreCl
         return -1;
     }
 
-    qore_class_private::getLocal(*oc)->setNamespace(this);
+    qore_class_private::get(*oc)->setNamespace(this);
     och.release();
     if (!strcmp(oc->getName(), "AbstractSqlUtilBase")) {
         //printd(5, "qore_ns_private::parseAddPendingClass() added class %p '%s' ns: %p '%s' parent: %p\n", oc, oc->getName(), this, name.c_str(), parent);

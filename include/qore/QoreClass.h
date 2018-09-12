@@ -954,8 +954,6 @@ private:
 
     //! shared private implementation of the class
     class qore_class_private* priv;
-    //! local private implementation
-    class qore_class_private_local* priv_local;
 
     // private constructor only called when the class is copied
     DLLLOCAL QoreClass(qore_class_private* priv);

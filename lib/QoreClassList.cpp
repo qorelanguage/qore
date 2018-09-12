@@ -46,14 +46,17 @@ QoreClassList::QoreClassList(const QoreClassList& old, int64 po, qore_ns_private
     for (hm_qc_t::const_iterator i = old.hm.begin(), e = old.hm.end(); i != e; ++i) {
         if (!i->second.cls->isSystem()) {
             //printd(5, "QoreClassList::QoreClassList() this: %p c: %p '%s' po & PO_NO_INHERIT_USER_CLASSES: %s pub: %s\n", this, i->second, i->second->getName(), po & PO_NO_INHERIT_USER_CLASSES ? "true": "false", qore_class_private::isPublic(*i->second) ? "true": "false");
-            if (po & PO_NO_INHERIT_USER_CLASSES || !qore_class_private::isPublic(*i->second.cls))
+            if (po & PO_NO_INHERIT_USER_CLASSES || !qore_class_private::isPublic(*i->second.cls)) {
                 continue;
+            }
         }
-        else
-            if (po & PO_NO_INHERIT_SYSTEM_CLASSES)
+        else {
+            if (po & PO_NO_INHERIT_SYSTEM_CLASSES) {
                 continue;
+            }
+        }
         QoreClass* qc = new QoreClass(*i->second.cls);
-        qore_class_private::getLocal(*qc)->setNamespace(ns);
+        // do not update namespace; the class always points to the same namespace
         addInternal(qc, true);
     }
 }
@@ -119,7 +122,7 @@ void QoreClassList::mergeUserPublic(const QoreClassList& old, qore_ns_private* n
         }
 
         qc = new QoreClass(*i->second.cls);
-        qore_class_private::getLocal(*qc)->setNamespace(ns);
+        // do not update namespace; the class always points to the same namespace
         addInternal(qc, true);
     }
 }
@@ -138,7 +141,7 @@ int QoreClassList::importSystemClasses(const QoreClassList& source, qore_ns_priv
             }
             //printd(5, "QoreClassList::importSystemClasses() this: %p importing %p %s::'%s'\n", this, i->second, ns->name.c_str(), i->second->getName());
             QoreClass* qc = new QoreClass(*i->second.cls);
-            qore_class_private::getLocal(*qc)->setNamespace(ns);
+            // we do not update the namespace in the class; the class always points to the original namespace
             addInternal(qc, true);
             ++cnt;
         }
@@ -217,7 +220,8 @@ void QoreClassList::assimilate(QoreClassList& n, qore_ns_private& ns) {
 
             // "move" data to new list
             hm[i->first] = i->second;
-            qore_class_private::getLocal(*i->second.cls)->setNamespace(&ns);
+            // move class to new namespace
+            qore_class_private::get(*i->second.cls)->updateNamespace(&ns);
             n.hm.erase(i);
         }
         i = n.hm.begin();

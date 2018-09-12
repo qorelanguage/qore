@@ -480,8 +480,9 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
 }
 
 // only called while the parse lock for the QoreProgram owning "old" is held
-qore_class_private::qore_class_private(const qore_class_private& old, QoreProgram* spgm, const char* new_name, bool inject, const qore_class_private* injectedClass)
+qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm, const char* new_name, bool inject, const qore_class_private* injectedClass)
    : name(new_name ? new_name : old.name),
+     ns(ns),
      ahm(old.ahm),
      constlist(old.constlist, 0, this),    // committed constants
      serializer(old.serializer),
@@ -2642,7 +2643,7 @@ int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const
 
 // imports members from qc -> this
 void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess access) {
-    assert(qc.name != name || qc.cls->priv_local->ns->name != cls->priv_local->ns->name);
+    assert(qc.name != name || qc.cls->priv->ns->name != cls->priv->ns->name);
     //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p init qc: %p '%s' qc.members: %p\n", this, name.c_str(), &members, &qc, qc.name.c_str(), &qc.members);
     // issue #2657: ensure that parent class members are initialied before merging
     qc.members.parseInit();
@@ -2976,11 +2977,11 @@ void BCSMList::resolveCopy() {
    }
 }
 
-QoreClass::QoreClass(qore_class_private* priv) : priv(priv), priv_local(new qore_class_private_local) {
+QoreClass::QoreClass(qore_class_private* priv) : priv(priv) {
     priv->cls = this;
 }
 
-QoreClass::QoreClass(const QoreClass& old) : priv(old.priv), priv_local(new qore_class_private_local) {
+QoreClass::QoreClass(const QoreClass& old) : priv(old.priv) {
     priv->pgmRef();
 
     // ensure atomicity when writing to qcset
@@ -2988,21 +2989,18 @@ QoreClass::QoreClass(const QoreClass& old) : priv(old.priv), priv_local(new qore
     priv->qcset.insert(this);
 }
 
-QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, std::string(nme), dom)),
-    priv_local(new qore_class_private_local) {
+QoreClass::QoreClass(const char* nme, int64 dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
     priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
     priv->owns_ornothingtypeinfo = true;
 }
 
-QoreClass::QoreClass(const char* nme, int dom) : priv(new qore_class_private(this, std::string(nme), dom)),
-    priv_local(new qore_class_private_local) {
+QoreClass::QoreClass(const char* nme, int dom) : priv(new qore_class_private(this, std::string(nme), dom)) {
     priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, nme);
     priv->owns_ornothingtypeinfo = true;
 }
 
-QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) {
+QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) : priv(new qore_class_private(this, std::string(nme), dom, const_cast<QoreTypeInfo*>(typeInfo))) {
     assert(typeInfo);
-    priv = new qore_class_private(this, std::string(nme), dom, const_cast<QoreTypeInfo*>(typeInfo));
 
     printd(5, "QoreClass::QoreClass() this: %p creating '%s' with custom typeinfo\n", this, priv->name.c_str());
 
@@ -3015,8 +3013,7 @@ QoreClass::QoreClass(const char* nme, int64 dom, const QoreTypeInfo* typeInfo) {
     }
 }
 
-QoreClass::QoreClass() : priv(new qore_class_private(this, parse_pop_name())),
-    priv_local(new qore_class_private_local) {
+QoreClass::QoreClass() : priv(new qore_class_private(this, parse_pop_name())) {
     priv->orNothingTypeInfo = new QoreClassOrNothingTypeInfo(this, priv->name.c_str());
     priv->owns_ornothingtypeinfo = true;
 }
@@ -3035,7 +3032,6 @@ QoreClass::~QoreClass() {
 
         priv->deref(true, true, true);
     }
-    delete priv_local;
 }
 
 void QoreClass::setUserData(const void *n_ptr) {
@@ -3691,7 +3687,7 @@ void qore_class_private::parseInitPartial() {
     if (parse_init_partial_called)
         return;
 
-    NamespaceParseContextHelper nspch(cls->priv_local->ns);
+    NamespaceParseContextHelper nspch(cls->priv->ns);
     QoreParseClassHelper qpch(cls);
     parseInitPartialIntern();
 }
@@ -3772,7 +3768,7 @@ void qore_class_private::parseInit() {
     parse_init_called = true;
 
     if (has_new_user_changes) {
-        NamespaceParseContextHelper nspch(cls->priv_local->ns);
+        NamespaceParseContextHelper nspch(cls->priv->ns);
         QoreParseClassHelper qpch(cls);
 
         if (!parse_init_partial_called)
@@ -4141,7 +4137,7 @@ const QoreExternalStaticMember* QoreClass::findLocalStaticMember(const char* nam
 
 std::string QoreClass::getNamespacePath(bool anchored) const {
     std::string path;
-    priv_local->ns->getPath(path);
+    priv->ns->getPath(path);
     if (!path.empty()) {
         path += "::";
     }
@@ -4169,11 +4165,11 @@ const QoreExternalConstant* QoreClass::findConstant(const char* name) const {
 }
 
 const QoreNamespace* QoreClass::getNamespace() const {
-    return priv_local->ns->ns;
+    return priv->ns->ns;
 }
 
 void MethodFunctionBase::parseInit() {
-    QoreFunction::parseInit(qore_class_private::getLocal(*qc)->ns);
+    QoreFunction::parseInit(qore_class_private::get(*qc)->ns);
 }
 
 void MethodFunctionBase::parseCommit() {
@@ -4878,8 +4874,9 @@ void QoreVarInfo::parseInit(const char* name) {
 
 QoreParseClassHelper::QoreParseClassHelper(QoreClass* cls) : old(parse_get_class()), oldns(cls ? parse_get_ns() : 0), rn(cls) {
     setParseClass(cls);
-    if (cls)
-        parse_set_ns(qore_class_private::getLocal(*cls)->ns);
+    if (cls) {
+        parse_set_ns(qore_class_private::get(*cls)->ns);
+    }
 }
 
 QoreParseClassHelper::~QoreParseClassHelper() {
