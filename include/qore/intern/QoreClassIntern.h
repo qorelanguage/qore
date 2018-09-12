@@ -1918,6 +1918,16 @@ public:
         ns = n;
     }
 
+    // returns true if the namespace was assigned
+    DLLLOCAL bool setNamespaceConditional(qore_ns_private* n) {
+        // only assign the namespace if it hasn't already been assiogned
+        if (!ns) {
+            ns = n;
+            return true;
+        }
+        return false;
+    }
+
     // used when assimilating a namespace at parse time
     DLLLOCAL void updateNamespace(qore_ns_private* n) {
         assert(ns);

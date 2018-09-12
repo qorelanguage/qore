@@ -252,12 +252,16 @@ void QoreNamespace::addSystemClass(QoreClass* oc) {
     QORE_TRACE("QoreNamespace::addSystemClass()");
 
     oc->setSystem();
-    qore_class_private::get(*oc)->setNamespace(priv);
+    if (qore_class_private::get(*oc)->setNamespaceConditional(priv)) {
+        // generate builtin class signature
+        std::string path;
+        priv->getPath(path);
+        qore_class_private::get(*oc)->finalizeBuiltin(path.c_str());
+    }
+    else {
+        assert(qore_class_private::get(*oc)->initialized);
+    }
 
-    // generate builtin class signature
-    std::string path;
-    priv->getPath(path);
-    qore_class_private::get(*oc)->finalizeBuiltin(path.c_str());
 #ifdef DEBUG
     if (priv->classList.add(oc))
         assert(false);
@@ -270,8 +274,9 @@ void QoreNamespace::addSystemClass(QoreClass* oc) {
 
     // see if namespace is attached to the root
     qore_root_ns_private* rns = priv->getRoot();
-    if (!rns)
+    if (!rns) {
         return;
+    }
 
     //printd(5, "QoreNamespace::addSystemClass() adding '%s' %p to classmap %p in ns '%s'\n", oc->getName(), oc, &rns->clmap, priv->name.c_str());
     rns->clmap.update(oc->getName(), priv, oc);

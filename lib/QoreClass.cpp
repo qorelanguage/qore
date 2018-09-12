@@ -868,16 +868,16 @@ void qore_class_private::finalizeBuiltin(const char* nspath) {
 }
 
 void qore_class_private::initializeBuiltin() {
-   assert(sys);
-   if (!initialized) {
-      initialized = true;
-      if (scl) {
-         // initialize builtin parent classes first
-         scl->initializeBuiltin();
-         // merge abstract variants from parent classes to this class
-         mergeAbstract();
-      }
-   }
+    assert(sys);
+    if (!initialized) {
+        initialized = true;
+        if (scl) {
+            // initialize builtin parent classes first
+            scl->initializeBuiltin();
+            // merge abstract variants from parent classes to this class
+            mergeAbstract();
+        }
+    }
 }
 
 void qore_class_private::generateBuiltinSignature(const char* nspath) {
