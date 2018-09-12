@@ -1613,7 +1613,7 @@ DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reade
     }
 
     // read key type (must be string)
-    int64 zt = reader.peek(xsink);
+    int64 zt = reader.peekCheck(xsink);
     if (*xsink) {
         return nullptr;
     }

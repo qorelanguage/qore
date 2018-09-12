@@ -195,7 +195,7 @@ public:
             else if (c == '\r') {
                 if (!trim)
                     str->concat(c);
-                int64 p = peekIntern(xsink);
+                int64 p = peek(xsink);
                 if (*xsink)
                     return 0;
                 if (p == '\n') {
@@ -308,15 +308,15 @@ public:
         @param xsink the exception sink
         @return the next byte available to be read, -1 indicates an error (end of stream is treated as an error)
     */
-    virtual int64 peek(ExceptionSink* xsink) {
-        int64 rc = peekIntern(xsink);
+    int64 peekCheck(ExceptionSink* xsink) {
+        int64 rc = peek(xsink);
         if (rc < 0) {
             if (!*xsink) {
                 if (rc == -1) {
                     xsink->raiseException("END-OF-STREAM-ERROR", "there is not enough data available in the stream; 1 byte was requested, and 0 were read");
                 }
                 else {
-                    xsink->raiseException("STREAM-ERROR", "an error occured attempting to read 1 byte from the stream");
+                    assert(*xsink);
                 }
             }
             return -1;
@@ -388,7 +388,7 @@ private:
         @param xsink the exception sink
         @return the next byte available to be read, -1 indicates end of the stream, -2 indicates an error
     */
-    virtual int64 peekIntern(ExceptionSink* xsink) {
+    virtual int64 peek(ExceptionSink* xsink) {
         return in->peek(xsink);
     }
 };
