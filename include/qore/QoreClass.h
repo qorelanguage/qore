@@ -35,6 +35,7 @@
 
 #include <stdarg.h>
 #include <string>
+#include <memory>
 
 // all qore class IDs
 DLLEXPORT extern qore_classid_t CID_AUTOGATE;
@@ -1022,7 +1023,7 @@ public:
 //! iterates parent classes for a class with inheritance access information
 /** @since %Qore 0.9
 */
-class QoreParentClassIterator {
+class QoreParentClassIterator final {
 public:
     //! creates the iterator; call next() to start iterating
     DLLEXPORT QoreParentClassIterator(const QoreClass* cls);
@@ -1043,13 +1044,13 @@ public:
     DLLEXPORT ClassAccess getAccess() const;
 
 private:
-    class qore_parent_class_iterator_private* priv;
+    std::unique_ptr<class qore_parent_class_iterator_private> priv;
 };
 
 //! iterates normal (non-static) members of a class
 /** @since %Qore 0.9
 */
-class QoreClassMemberIterator {
+class QoreClassMemberIterator final {
 public:
     //! creates the iterator; call next() to start iterating
     DLLEXPORT QoreClassMemberIterator(const QoreClass* cls);
@@ -1070,13 +1071,13 @@ public:
     DLLEXPORT const char* getName() const;
 
 private:
-    class qore_class_member_iterator_private* priv;
+    std::unique_ptr<class qore_class_member_iterator_private> priv;
 };
 
 //! iterates static members of a class
 /** @since %Qore 0.9
 */
-class QoreClassStaticMemberIterator {
+class QoreClassStaticMemberIterator final {
 public:
     //! creates the iterator; call next() to start iterating
     DLLEXPORT QoreClassStaticMemberIterator(const QoreClass* cls);
@@ -1097,13 +1098,13 @@ public:
     DLLEXPORT const char* getName() const;
 
 private:
-    class qore_class_static_member_iterator_private* priv;
+    std::unique_ptr<class qore_class_static_member_iterator_private> priv;
 };
 
 //! iterates class constants
 /** @since %Qore 0.9
 */
-class QoreClassConstantIterator {
+class QoreClassConstantIterator final {
 public:
     //! creates the iterator; call next() to start iterating
     DLLEXPORT QoreClassConstantIterator(const QoreClass* cls);
@@ -1121,7 +1122,7 @@ public:
     DLLEXPORT const QoreExternalConstant* get() const;
 
 private:
-    class qore_class_constant_iterator* priv;
+    std::unique_ptr<class qore_class_constant_iterator> priv;
 };
 
 //! iterates the class hierarchy in the order of constructor execution
@@ -1129,7 +1130,7 @@ private:
 
     @since %Qore 0.9
 */
-class QoreClassHierarchyIterator {
+class QoreClassHierarchyIterator final {
 public:
     //! creates the iterator; call next() to start iterating
     DLLEXPORT QoreClassHierarchyIterator(const QoreClass* cls);
@@ -1152,7 +1153,7 @@ public:
     DLLEXPORT bool isVirtual() const;
 
 private:
-    class qore_class_hierarchy_iterator* priv;
+    std::unique_ptr<class qore_class_hierarchy_iterator> priv;
 };
 
 //! iterates the class hierarchy in the order of destructor execution

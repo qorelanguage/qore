@@ -4989,9 +4989,7 @@ private:
 QoreParentClassIterator::QoreParentClassIterator(const QoreClass* cls) : priv(new qore_parent_class_iterator_private(qore_class_private::get(*cls))) {
 }
 
-QoreParentClassIterator::~QoreParentClassIterator() {
-    delete priv;
-}
+QoreParentClassIterator::~QoreParentClassIterator() = default;
 
 bool QoreParentClassIterator::next() {
     return priv->next();
@@ -5045,9 +5043,7 @@ QoreClassConstantIterator::QoreClassConstantIterator(const QoreClass* cls)
     : priv(new qore_class_constant_iterator(qore_class_private::get(*cls))) {
 }
 
-QoreClassConstantIterator::~QoreClassConstantIterator() {
-    delete priv;
-}
+QoreClassConstantIterator::~QoreClassConstantIterator() = default;
 
 bool QoreClassConstantIterator::next() {
     return priv->next();
@@ -5104,9 +5100,7 @@ QoreClassMemberIterator::QoreClassMemberIterator(const QoreClass* cls) :
     priv(new qore_class_member_iterator_private(qore_class_private::get(*cls))) {
 }
 
-QoreClassMemberIterator::~QoreClassMemberIterator() {
-    delete priv;
-}
+QoreClassMemberIterator::~QoreClassMemberIterator() = default;
 
 bool QoreClassMemberIterator::next() {
     return priv->next();
@@ -5163,9 +5157,7 @@ QoreClassStaticMemberIterator::QoreClassStaticMemberIterator(const QoreClass* cl
     priv(new qore_class_static_member_iterator_private(qore_class_private::get(*cls))) {
 }
 
-QoreClassStaticMemberIterator::~QoreClassStaticMemberIterator() {
-    delete priv;
-}
+QoreClassStaticMemberIterator::~QoreClassStaticMemberIterator() = default;
 
 bool QoreClassStaticMemberIterator::next() {
     return priv->next();
@@ -5249,9 +5241,7 @@ private:
 QoreClassHierarchyIterator::QoreClassHierarchyIterator(const QoreClass* cls) : priv(new qore_class_hierarchy_iterator(qore_class_private::get(*cls))) {
 }
 
-QoreClassHierarchyIterator::~QoreClassHierarchyIterator() {
-    delete priv;
-}
+QoreClassHierarchyIterator::~QoreClassHierarchyIterator() = default;
 
 bool QoreClassHierarchyIterator::next() {
     return priv->next();
