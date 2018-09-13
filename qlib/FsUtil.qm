@@ -297,7 +297,7 @@ public namespace FsUtil {
         the link's target is checked instead of the link itself
     */
     public bool sub path_exists(string path, bool follow_symlinks=False) {
-        *hash s = follow_symlinks ? hstat(path) : hlstat(path);
+        *hash<StatInfo> s = follow_symlinks ? hstat(path) : hlstat(path);
         return (exists s || errno() != Err::ENOENT);
     }
 
@@ -490,7 +490,7 @@ public namespace FsUtil {
 
         @return True if the two stat hashes point to the same file, False otherwise.
 
-        @throws STAT-HASH-ERROR If parameters don't both contain stat hashes.
+        @throws STAT-HASH-MISSING If parameters don't both contain stat hashes.
 
         Device and inode IDs are compared.
         If a stat hash does not exist and ignore_errors is True, then the function returns False. This is for
@@ -498,18 +498,14 @@ public namespace FsUtil {
         without taking care of possible NOTHINGs. In that case the paths can probably be considered not pointing to
         the same file.
     */
-    public bool sub same_file_stat(*hash stat1, *hash stat2, bool ignore_errors=True) {
-
-        # handle special cases
-        if (ignore_errors) {
-            if (!exists stat1 || !exists stat2) {
+    public bool sub same_file_stat(*hash<StatInfo> stat1, *hash<StatInfo> stat2, bool ignore_errors=True) {
+        # handle special case when one of the stat hashes doesn't exist (or both)
+        if (!exists stat1 || !exists stat2) {
+            if (ignore_errors) {
+                # the caller doesn't mind
                 return False;
-            }
-        } else {
-            if (!exists stat1 || !exists stat1.dev || !exists stat1.inode ||
-                !exists stat2 || !exists stat2.dev || !exists stat2.inode) {
-                # not a stat hash
-                throw "STAT-HASH-ERROR", "Parameters aren't stat hashes.";
+            } else {
+                throw "STAT-HASH-MISSING", "Stat hash is missing which is not allowed without ignore_errors flag";
             }
         }
 
@@ -536,8 +532,8 @@ public namespace FsUtil {
         indeed don't point to the same file.
     */
     public bool sub same_file(string path1, string path2, bool follow_symlinks=True, bool ignore_errors=True) {
-        hash stat1;
-        hash stat2;
+        hash<StatInfo> stat1;
+        hash<StatInfo> stat2;
 
         try {
             if (follow_symlinks) {
@@ -602,7 +598,7 @@ public namespace FsUtil {
     */
     public string sub copy_file(string source, string destination, bool follow_symlinks=False, bool overwrite=True) {
         # prepare the source
-        *hash src_stat = follow_symlinks ? hstat(source) : hlstat(source);
+        *hash<StatInfo> src_stat = follow_symlinks ? hstat(source) : hlstat(source);
         if (!exists src_stat) {
             throw "FILE-STAT-ERROR", sprintf("Couldn't stat source path '%s': %s", source, strerror());
         }
@@ -611,7 +607,7 @@ public namespace FsUtil {
         if (is_dir(destination)) {  # works even for symlinks pointing to directories
             destination = join_paths(destination, basename(source));
         }
-        *hash dst_stat = hstat(destination);
+        *hash<StatInfo> dst_stat = hstat(destination);
         if (!overwrite && exists dst_stat) {
             throw "FILE-EXISTS-ERROR", sprintf("Destination path '%s' already exists and overwriting is forbidden.",
                                                destination);
@@ -621,7 +617,7 @@ public namespace FsUtil {
             throw "SAME-FILE-ERROR", sprintf("'%s' and '%s' point to the same file.", source, destination);
         }
 
-        foreach *hash stat in (src_stat, dst_stat) {
+        foreach *hash<StatInfo> stat in (src_stat, dst_stat) {
             if (exists stat && stat.type != "REGULAR" && stat.type != "SYMBOLIC-LINK") {
                 throw "UNSUPPORTED-TYPE-ERROR", sprintf("Unsupported file type: '%s'.", stat.type);
             }
@@ -681,7 +677,7 @@ public namespace FsUtil {
         # prepare the source
         Dir src_dir();
         src_dir.chdir(source);
-        *hash src_stat = follow_symlinks ? hstat(source) : hlstat(source);
+        *hash<StatInfo> src_stat = follow_symlinks ? hstat(source) : hlstat(source);
         if (!exists src_stat) {
             throw "DIR-STAT-ERROR", sprintf("Couldn't stat source path '%s': %s", source, strerror());
         }
