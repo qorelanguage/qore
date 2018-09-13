@@ -236,6 +236,8 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
         if (EXISTS "${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
             configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${_working_dir}/Doxyfile @ONLY)
 
+            add_custom_command(TARGET ${_docs_targ} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E make_directory ${_dox_output})
+
             add_custom_target(${_docs_targ}
                 ${DOXYGEN_EXECUTABLE} ${_working_dir}/Doxyfile
                 COMMAND ${QORE_QDX_EXECUTABLE} --post ${_dox_output}/html ${_dox_output}/html/search
