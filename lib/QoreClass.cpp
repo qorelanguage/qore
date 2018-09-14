@@ -578,12 +578,13 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
 
     // copy static var list
     for (QoreVarMap::DeclOrderIterator i = old.vars.beginDeclOrder(), e = old.vars.endDeclOrder(); i != e; ++i) {
-        vars.addNoCheck(strdup(i->first), i->second ? i->second->copy(i->first) : nullptr);
+        i->second->parseInit(i->first);
+        vars.addNoCheck(strdup(i->first), i->second ? new QoreVarInfo(*i->second) : nullptr);
     }
 
     // setup initialization order
     if (scl) {
-        scl->sml.processMemberInitializationList(members, mil);
+        scl->sml.processMemberInitializationList(members, member_init_list);
     }
 }
 
@@ -950,7 +951,7 @@ int qore_class_private::initMembers(QoreObject& o, bool& need_scan, ExceptionSin
     SelfInstantiatorHelper sih(&selfid, &o);
 
     // issue #2970: initializes members once and save member info in the appropriate location in the object
-    for (auto& i : mil) {
+    for (auto& i : member_init_list) {
         //printd(5, "qore_class_private::initMembers() this: %p %s '%s::%s' ctx %p '%s' (access '%s') has parent members: %d\n", this, name.c_str(), i.info->getClass()->name.c_str(), i.name, i.member_class_ctx, i.member_class_ctx ? i.member_class_ctx->name.c_str() : "n/a", privpub(i.info->access), i.info->numParentMembers());
 
         if (initMember(o, need_scan, i.name, *i.info, i.member_class_ctx, xsink)) {
@@ -1181,7 +1182,7 @@ void qore_class_private::parseCommit() {
 
             // issue #2970: make member initialization list in correct order
             if (scl) {
-                scl->sml.processMemberInitializationList(members, mil);
+                scl->sml.processMemberInitializationList(members, member_init_list);
             }
             // now add local members last
             for (QoreMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
@@ -1193,7 +1194,7 @@ void qore_class_private::parseCommit() {
                 const qore_class_private* member_class_ctx = i->second->getClassContext(this);
                 // local members can only be stored in the standard object hash or in the private:internal hash for this class
                 assert(!member_class_ctx || member_class_ctx == this);
-                mil.push_back(member_init_entry_t(i->first, i->second, member_class_ctx));
+                member_init_list.push_back(member_init_entry_t(i->first, i->second, member_class_ctx));
             }
 
             has_new_user_changes = false;
@@ -2666,7 +2667,8 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
             }
             continue;
         }
-        QoreMemberInfo* nmi = i->second->copy(i->first, this, access);
+        i->second->parseInit(i->first);
+        QoreMemberInfo* nmi = new QoreMemberInfo(*i->second, this, access);
         //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' importing <- '%s::%s' ('%s') new access: '%s' old: '%s'\n", this, name.c_str(), qc.name.c_str(), i->first, i->second->exp.getTypeName(), privpub(nmi->access), privpub(i->second->access));
         members.addInheritedNoCheck(strdup(i->first), nmi);
     }
@@ -2843,7 +2845,7 @@ BCSMList::~BCSMList() {
     }
 }
 
-void BCSMList::processMemberInitializationList(const QoreMemberMap& members, member_init_list_t& mil) {
+void BCSMList::processMemberInitializationList(const QoreMemberMap& members, member_init_list_t& member_init_list) {
     for (auto& i : *this) {
         assert(i.first);
 
@@ -2865,7 +2867,7 @@ void BCSMList::processMemberInitializationList(const QoreMemberMap& members, mem
             const qore_class_private* member_class_ctx = info->getClassContext(i.first->priv);
             //printd(5, "BCSMList::processMemberInitializationList() adding '%s::%s' ctx: %p '%s'\n", i.first->getName(), mi->first, member_class_ctx, member_class_ctx ? member_class_ctx->name.c_str() : "n/a");
             // insert this entry with the class context for saving against the object
-            mil.push_back(member_init_entry_t(mi->first, mi->second, member_class_ctx));
+            member_init_list.push_back(member_init_entry_t(mi->first, mi->second, member_class_ctx));
         }
         //printd(5, "BCSMList::processMemberInitializationList() done processing %p '%s'\n", i.first->priv, i.first->getName());
     }
@@ -4706,7 +4708,7 @@ QoreMemberInfo::QoreMemberInfo(const QoreMemberInfo& old, const qore_class_priva
     QoreMemberInfoBaseAccess(old, old.access),
     cls_vec(old.cls_vec),
     cls_context_map(old.cls_context_map ? new cls_context_map_t(*old.cls_context_map) : nullptr),
-    mi_list(old.mi_list ? new mi_list_t(*old.mi_list) : nullptr), is_local(old.is_local) {
+    member_info_list(old.member_info_list ? new member_info_list_t(*old.member_info_list) : nullptr), is_local(old.is_local) {
     // write new class owner in initial position
     cls_vec[0] = cls;
 }
@@ -4715,8 +4717,8 @@ QoreMemberInfo::QoreMemberInfo(const QoreMemberInfo& old, const qore_class_priva
     QoreMemberInfoBaseAccess(old, (old.access == Internal) ? Inaccessible : QORE_MAX(old.access, cls_access)),
     cls_vec(old.cls_vec),
     cls_context_map(old.cls_context_map ? new cls_context_map_t(*old.cls_context_map) : nullptr),
-    mi_list(old.mi_list ? new mi_list_t(*old.mi_list) : nullptr), is_local(false) {
-    //printd(5, "QoreMemberInfo::QoreMemberInfo() copy cls: %p '%s' mi_list: %p old.access: '%s' new.access: '%s' context_map: %p (%d) mi_list: %p (%d)\n", cls, cls->name.c_str(), mi_list, privpub(old.access), privpub(access), cls_context_map, cls_context_map ? cls_context_map->size() : 0, mi_list, mi_list ? mi_list->size() : 0);
+    member_info_list(old.member_info_list ? new member_info_list_t(*old.member_info_list) : nullptr), is_local(false) {
+    //printd(5, "QoreMemberInfo::QoreMemberInfo() copy cls: %p '%s' member_info_list: %p old.access: '%s' new.access: '%s' context_map: %p (%d) member_info_list: %p (%d)\n", cls, cls->name.c_str(), member_info_list, privpub(old.access), privpub(access), cls_context_map, cls_context_map ? cls_context_map->size() : 0, member_info_list, member_info_list ? member_info_list->size() : 0);
     // add inheriting class to class vector if accessible
     if (access < Inaccessible) {
         cls_vec.push_back(cls);
@@ -4724,13 +4726,13 @@ QoreMemberInfo::QoreMemberInfo(const QoreMemberInfo& old, const qore_class_priva
     }
     else {
         // when importing internal members, add context access entries for the child classes
-        if (!mi_list) {
+        if (!member_info_list) {
             //printd(5, "QoreMemberInfo::QoreMemberInfo() adding context access for class %p '%s'\n", old.cls_vec.back(), old.cls_vec.back()->name.c_str());
             // add context to last class
             addContextAccess(old, old.cls_vec.back());
         }
         else {
-            //printd(5, "QoreMemberInfo::QoreMemberInfo() copy mi_list: %p old.access: '%s'\n", mi_list, privpub(old.access));
+            //printd(5, "QoreMemberInfo::QoreMemberInfo() copy member_info_list: %p old.access: '%s'\n", member_info_list, privpub(old.access));
         }
     }
 }
@@ -4739,10 +4741,10 @@ void QoreMemberInfo::addContextAccess(const QoreMemberInfo& mi) {
     //printd(5, "QoreMemberInfo::addContextAccess() this: %p cls_context_map: %p (%d) mi.cls_context_map: %p (%d) local: %d mi.local: %d\n", this, cls_context_map, cls_context_map ? cls_context_map->size() : 0, mi.cls_context_map, mi.cls_context_map ? mi.cls_context_map->size() : 0, local(), mi.local());
     if (!cls_context_map) {
         cls_context_map = new cls_context_map_t;
-        assert(!mi_list);
-        mi_list = new mi_list_t;
+        assert(!member_info_list);
+        member_info_list = new member_info_list_t;
     }
-    else if (mi_list->size()) {
+    else if (member_info_list->size()) {
         // see if we have already inherited this member
         if (getClass() == mi.getClass()) {
             //printd(5, "QoreMemberInfo::addContextAccess() this: %p already inherited member from class %p '%s'\n", this, mi.getClass(), mi.getClass()->name.c_str());
@@ -4755,7 +4757,7 @@ void QoreMemberInfo::addContextAccess(const QoreMemberInfo& mi) {
         for (auto& i : *mi.cls_context_map) {
             cls_context_map->insert(cls_context_map_t::value_type(i.first, i.second));
         }
-        mi_list->insert(mi_list->begin(), mi.mi_list->begin(), mi.mi_list->end());
+        member_info_list->insert(member_info_list->begin(), mi.member_info_list->begin(), mi.member_info_list->end());
     }
 
     // add a mapping for imported local members
@@ -4767,8 +4769,8 @@ void QoreMemberInfo::addContextAccess(const QoreMemberInfo& mi, const qore_class
 
     if (!cls_context_map) {
         cls_context_map = new cls_context_map_t;
-        assert(!mi_list);
-        mi_list = new mi_list_t;
+        assert(!member_info_list);
+        member_info_list = new member_info_list_t;
     }
 
 #ifdef DEBUG
@@ -4796,7 +4798,7 @@ void QoreMemberInfo::addContextAccess(const QoreMemberInfo& mi, const qore_class
 #ifdef DEBUG
     if (inserted) {
         //printd(5, "QoreMemberInfo::addContextAccess() this: %p adding link to inherited member from class %p '%s'\n", this, qc, qc->name.c_str());
-        mi_list->insert(mi_list->begin(), &mi);
+        member_info_list->insert(member_info_list->begin(), &mi);
     }
 #endif
 }
@@ -4908,7 +4910,7 @@ void QoreMemberMap::moveAllTo(QoreClass* qc, ClassAccess access) {
     for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
         qore_class_private::parseAddMember(*qc, i->first, access, i->second);
     }
-    list.clear();
+    member_list.clear();
 }
 
 void QoreVarMap::parseCommitRuntimeInit(ExceptionSink* xsink) {
@@ -4954,7 +4956,7 @@ void QoreVarMap::moveAllTo(QoreClass* qc, ClassAccess access) {
     for (DeclOrderIterator i = beginDeclOrder(); i != endDeclOrder(); ++i) {
         qore_class_private::parseAddStaticVar(qc, i->first, access, i->second);
     }
-    list.clear();
+    member_list.clear();
 }
 
 QoreClassHolder::~QoreClassHolder() {

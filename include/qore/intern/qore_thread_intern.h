@@ -174,7 +174,7 @@ public:
         mcfl.clear();
     }
 
-    DLLLOCAL qore_root_ns_private* getRootNS() {
+    DLLLOCAL qore_root_ns_private* getRootNS() const {
         return rns;
     }
 
