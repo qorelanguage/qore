@@ -60,6 +60,8 @@ hashdecl StatementInfo {
     int start_line;
     //! statement end line
     int end_line;
+    //! list of assigned breakpoints, unavailable if @ref no-debugging "%no-debugging" (since 0.9)
+    *list breakpoints;
 }
 
 //! The ProgramControl class provides safe information about a Qore program
@@ -293,27 +295,39 @@ list ProgramControl::getBreakpoints() {
 
 //! get information related to statement id
 /**
+   @param statementId
+   @param listBreakpoints list also breakpoints assigned to statement, no effect if @ref no-debugging "%no-debugging" (since 0.9)
+
    @return a hash of statement info
 
    @see
       @ref Qore::ProgramControl::findStatementId "ProgramControl::findStatementId()"
       @ref Qore::ProgramControl::findFunctionStatementId "ProgramControl::findFunctionStatementId()"
 */
-hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId) {
-    if (!p->checkAllowDebugging(xsink))
-        return QoreValue();
-    AbstractStatement* s = p->resolveStatementId(statementId);
-    if (!s) {
-        return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot resolve statement id from (%d)", statementId);
-    }
-    QoreHashNode* h = new QoreHashNode(hashdeclStatementInfo, nullptr);
-    qore_hash_private* ph = qore_hash_private::get(*h);
-    ph->setKeyValueIntern("file", new QoreStringNode(s->loc->getFile()));
-    ph->setKeyValueIntern("source", new QoreStringNode(s->loc->getSource()));
-    ph->setKeyValueIntern("offset", s->loc->offset);
-    ph->setKeyValueIntern("start_line", s->loc->start_line);
-    ph->setKeyValueIntern("end_line", s->loc->end_line);
-    return h;
+hash<StatementInfo> ProgramControl::getStatementIdInfo(int statementId, bool listBreakpoints = False) {
+   if (!p->checkAllowDebugging(xsink))
+      return QoreValue();
+   AbstractStatement* s = p->resolveStatementId(statementId);
+   if (!s) {
+      return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot resolve statement id from (%d)", statementId);
+   }
+   QoreHashNode* h = new QoreHashNode(hashdeclStatementInfo, nullptr);
+   qore_hash_private* ph = qore_hash_private::get(*h);
+   ph->setKeyValueIntern("file", new QoreStringNode(s->loc->getFile()));
+   ph->setKeyValueIntern("source", new QoreStringNode(s->loc->getSource()));
+   ph->setKeyValueIntern("offset", s->loc->offset);
+   ph->setKeyValueIntern("start_line", s->loc->start_line);
+   ph->setKeyValueIntern("end_line", s->loc->end_line);
+   if (listBreakpoints && p->checkAllowDebugging(xsink)) {
+      QoreBreakpointList_t bl;
+      p->getStatementBreakpoints(s, bl);
+      QoreListNode *l = new QoreListNode;
+      for (QoreBreakpointList_t::iterator it = bl.begin(); it != bl.end(); ++it) {
+         l->push((*it)->getQoreObject(), xsink);
+      }
+      ph->setKeyValueIntern("breakpoints", l);
+   }
+   return h;
 }
 
 //! Find statement related to position in file
