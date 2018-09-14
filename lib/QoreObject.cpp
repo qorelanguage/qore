@@ -77,19 +77,20 @@ qore_object_private::~qore_object_private() {
 
 typedef vector_map_t<const qore_class_private*, QoreListNode*> slicekeymap_t;
 
-class SliceKeyMap : public slicekeymap_t {
-public:
-    DLLLOCAL SliceKeyMap() {
-    }
-
-    DLLLOCAL ~SliceKeyMap() {
-        for (auto& i : *this) {
-            i.second->deref(nullptr);
-        }
-    }
-};
-
 QoreHashNode* qore_object_private::getSlice(const QoreListNode* l, ExceptionSink* xsink) const {
+    // local class only used in this function
+    class SliceKeyMap : public slicekeymap_t {
+    public:
+        DLLLOCAL SliceKeyMap() {
+        }
+
+        DLLLOCAL ~SliceKeyMap() {
+            for (auto& i : *this) {
+                i.second->deref(nullptr);
+            }
+        }
+    };
+
     assert(xsink);
     // get the current class context
     const qore_class_private* class_ctx = runtime_get_class();
