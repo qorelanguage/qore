@@ -105,11 +105,11 @@ public namespace FsUtil {
     class PathHandler {
         public {
             #! path delimiters - to be set by platform specific path handlers
-            list<string> Delimiters;
+            list<string> delimiters;
         }
 
 
-        public string join_paths(list<string> paths) {
+        public string joinPaths(list<string> paths) {
             if (!paths) {
                 # NOTHING or an empty list
                 throw "MISSING-PARAMETER-ERROR", "No paths to join";
@@ -120,11 +120,11 @@ public namespace FsUtil {
                 return paths[0];
             }
 
-            return self.join_paths(paths[0], paths[1..]);
+            return self.joinPaths(paths[0], paths[1..]);
         }
 
         # to be implemented by platform-specific classes
-        public abstract string join_paths(string path1, softlist<string> paths);
+        public abstract string joinPaths(string path1, softlist<string> paths);
     }
 
     #! path handler implementing Windows specific functionality
@@ -133,7 +133,7 @@ public namespace FsUtil {
         #! creates the object and sets the delimiter
         constructor() {
             # both slashes can be used as path delimiters on Windows
-            Delimiters = ("\\", "/");
+            delimiters = ("\\", "/");
         }
 
         #! separates and returns the drive and the rest of the path
@@ -142,7 +142,7 @@ public namespace FsUtil {
             @return list<string> of two items - drive and the rest of the path, either can be empty and concatenation of
             both parts always gives the original path back.
         */
-        public list<string> split_drive(string path) {
+        public list<string> splitDrive(string path) {
             if (regex(path, '^[a-zA-Z]:'))
                 return (path.substr(0,2), path.substr(2));
             return ("", path);
@@ -158,7 +158,7 @@ public namespace FsUtil {
             (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
             Since the second parameter is a softlist, this variant also works for joining two string paths.
         */
-        public string join_paths(string path1, softlist<string> paths) {
+        public string joinPaths(string path1, softlist<string> paths) {
             string result = path1;
 
             foreach string path2 in (paths) {
@@ -167,8 +167,8 @@ public namespace FsUtil {
                 }
 
                 # extract drive (if present)
-                list<string> result_split = split_drive(result);
-                list<string> path2_split = split_drive(path2);
+                list<string> result_split = splitDrive(result);
+                list<string> path2_split = splitDrive(path2);
 
                 if (result == "" ||
                     absolute_path_windows(path2) ||
@@ -182,8 +182,8 @@ public namespace FsUtil {
                 }
 
                 # otherwise let's join both parts and return
-                if (result_split[1] != "" && !inlist(result[-1], self.Delimiters)) {
-                    result += self.Delimiters[0];
+                if (result_split[1] != "" && !inlist(result[-1], self.delimiters)) {
+                    result += self.delimiters[0];
                 }
                 result = result + path2_split[1];
             }
@@ -197,7 +197,7 @@ public namespace FsUtil {
 
         #! creates the object and sets the delimiter
         constructor() {
-            Delimiters = ("/",);
+            delimiters = ("/",);
         }
 
         #! Returns path resulting from joining the given paths
@@ -210,7 +210,7 @@ public namespace FsUtil {
             a correct result of join("/path/to", "../../file.txt");).
             Since the second parameter is a softlist, this variant also works for joining two string paths.
         */
-        public string join_paths(string path1, softlist<string> paths) {
+        public string joinPaths(string path1, softlist<string> paths) {
             string result = path1;
 
             foreach string path2 in (paths) {
@@ -224,8 +224,8 @@ public namespace FsUtil {
                     continue;
                 }
 
-                if (result != "" && result[-1] != self.Delimiters[0]) {
-                    result += self.Delimiters[0];
+                if (result != "" && result[-1] != self.delimiters[0]) {
+                    result += self.delimiters[0];
                 }
                 result = result + path2;
             }
@@ -272,7 +272,7 @@ public namespace FsUtil {
         Since the second parameter is a softlist, this variant also works for joining two string paths.
     */
     public string sub join_paths(string path1, softlist<string> paths) {
-        return local_handler.join_paths(path1, paths);
+        return local_handler.joinPaths(path1, paths);
     }
 
     #! Returns path resulting from joining the given paths
@@ -286,7 +286,7 @@ public namespace FsUtil {
         @throws MISSING-PARAMETER-ERROR if the list is empty
     */
     public string sub join_paths(list<string> paths) {
-        return local_handler.join_paths(paths);
+        return local_handler.joinPaths(paths);
     }
 
     #! Check whether the given path exists or not

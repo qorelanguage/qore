@@ -149,7 +149,7 @@ public class JoinPathsTest inherits QUnit::Test {
     test_join_paths_posix() {
         PosixPathHandler ph = new PosixPathHandler();
         foreach list res in (results_posix) {
-            assertEq(res[2], ph.join_paths(res[0], res[1]), sprintf("POSIX join_paths('%s', '%s')", res[0], res[1]));
+            assertEq(res[2], ph.joinPaths(res[0], res[1]), sprintf("POSIX join_paths('%s', '%s')", res[0], res[1]));
         }
     }
 
@@ -157,7 +157,7 @@ public class JoinPathsTest inherits QUnit::Test {
     test_join_paths_win() {
         WinPathHandler ph = new WinPathHandler();
         foreach list res in (results_win) {
-            assertEq(res[2], ph.join_paths(res[0], res[1]), sprintf("WIN join_paths('%s', '%s')", res[0], res[1]));
+            assertEq(res[2], ph.joinPaths(res[0], res[1]), sprintf("WIN join_paths('%s', '%s')", res[0], res[1]));
         }
     }
 
@@ -180,7 +180,7 @@ public class JoinPathsTest inherits QUnit::Test {
         PosixPathHandler ph = new PosixPathHandler();
         foreach list res in (results_posix) {
             list<string> paths = res_to_list_input_params(res);
-            assertEq(res[2], ph.join_paths(paths), sprintf("POSIX join_paths: %n", paths));
+            assertEq(res[2], ph.joinPaths(paths), sprintf("POSIX join_paths: %n", paths));
         }
     }
 
@@ -189,7 +189,7 @@ public class JoinPathsTest inherits QUnit::Test {
         WinPathHandler ph = new WinPathHandler();
         foreach list res in (results_win) {
             list<string> paths = res_to_list_input_params(res);
-            assertEq(res[2], ph.join_paths(paths), sprintf("WIN join_paths: %n", paths));
+            assertEq(res[2], ph.joinPaths(paths), sprintf("WIN join_paths: %n", paths));
         }
     }
 
