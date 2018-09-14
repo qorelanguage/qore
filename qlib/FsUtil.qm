@@ -204,7 +204,7 @@ public namespace FsUtil {
         /** @param path1 the first part of the path
             @param paths the other parts of the path
 
-            @return @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except
+            @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except
             for cases when one of the paths (in the list) is an absolute path - in such cases that path is considered
             a new start of the resulting path. The resulting path is not normalized (i.e. "/path/to/../../file.txt" is
             a correct result of join("/path/to", "../../file.txt");).
