@@ -246,6 +246,9 @@ DLLLOCAL void update_runtime_location(const QoreProgramLocation* loc);
 DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
 DLLLOCAL const char* get_parse_code();
 
+DLLLOCAL const AbstractStatement* get_runtime_statement();
+DLLLOCAL const AbstractStatement* update_get_runtime_statement(const AbstractStatement* s);
+
 DLLLOCAL const QoreTypeInfo* parse_set_implicit_arg_type_info(const QoreTypeInfo* ti);
 DLLLOCAL const QoreTypeInfo* parse_get_implicit_arg_type_info();
 
@@ -394,29 +397,36 @@ public:
 class QoreProgramLocationHelper {
 protected:
    const QoreProgramLocation* loc;
+   const AbstractStatement* statement;
 public:
-   DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation* n_loc) : loc(update_get_runtime_location(n_loc)) {
+   DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation* n_loc, const AbstractStatement* n_stat = nullptr) : loc(update_get_runtime_location(n_loc)), statement(update_get_runtime_statement(n_stat)) {
    }
 
    DLLLOCAL ~QoreProgramLocationHelper() {
       update_runtime_location(loc);
+      update_get_runtime_statement(statement);
    }
 };
 
 class QoreProgramOptionalLocationHelper {
 protected:
     const QoreProgramLocation* loc;
+    const AbstractStatement* statement;
     bool restore;
 
 public:
-    DLLLOCAL QoreProgramOptionalLocationHelper(const QoreProgramLocation* n_loc) : restore((bool)n_loc) {
-        if (n_loc)
+    DLLLOCAL QoreProgramOptionalLocationHelper(const QoreProgramLocation* n_loc, const AbstractStatement* n_stat = nullptr) : restore((bool)n_loc) {
+        if (n_loc) {
             loc = update_get_runtime_location(n_loc);
+            statement = update_get_runtime_statement(n_stat);
+        }
     }
 
     DLLLOCAL ~QoreProgramOptionalLocationHelper() {
-        if (restore)
+        if (restore) {
             update_runtime_location(loc);
+            update_get_runtime_statement(statement);
+        }
     }
 };
 
@@ -753,9 +763,11 @@ public:
 
     QoreObject* obj;
     const qore_class_private* cls;
+    const QoreProgram* pgm;
+    const AbstractStatement* statement;
     CallNode* next, *prev;
 
-    DLLLOCAL CallNode(const char* f, int t, QoreObject* o, const qore_class_private* c);
+    DLLLOCAL CallNode(const char* f, int t, QoreObject* o, const qore_class_private* c, const QoreProgram* p=nullptr, const AbstractStatement* s=nullptr);
     DLLLOCAL QoreHashNode* getInfo() const;
 };
 
@@ -780,7 +792,7 @@ class CallStackHelper : public CallNode {
     DLLLOCAL void* operator new(size_t);
 
 public:
-    DLLLOCAL CallStackHelper(const char* f, int t, QoreObject* o, const qore_class_private* c, ExceptionSink* n_xsink) : CallNode(f, t, o, c), xsink(n_xsink) {
+    DLLLOCAL CallStackHelper(const char* f, int t, QoreObject* o, const qore_class_private* c, ExceptionSink* n_xsink) : CallNode(f, t, o, c, getProgram(), get_runtime_statement()), xsink(n_xsink) {
         pushCall(this);
     }
     DLLLOCAL ~CallStackHelper() {
@@ -963,15 +975,22 @@ public:
 
 class ThreadFrameBoundaryHelper {
 public:
-    DLLLOCAL ThreadFrameBoundaryHelper() {
-        //printd(5, "ThreadFrameBoundaryHelper::ThreadFrameBoundaryHelper: this:%p\n", this);
-        thread_push_frame_boundary();
+    DLLLOCAL ThreadFrameBoundaryHelper(bool doit) : doit(doit) {
+        if (doit) {
+            //printd(5, "ThreadFrameBoundaryHelper::ThreadFrameBoundaryHelper: this:%p\n", this);
+            thread_push_frame_boundary();
+        }
     }
 
     DLLLOCAL ~ThreadFrameBoundaryHelper() {
-        //printd(5, "ThreadFrameBoundaryHelper::~ThreadFrameBoundaryHelper: this:%p\n", this);
-        thread_pop_frame_boundary();
+        if (doit) {
+            //printd(5, "ThreadFrameBoundaryHelper::~ThreadFrameBoundaryHelper: this:%p\n", this);
+            thread_pop_frame_boundary();
+        }
     }
+
+private:
+    bool doit;
 };
 
 DLLLOCAL extern pthread_mutexattr_t ma_recursive;

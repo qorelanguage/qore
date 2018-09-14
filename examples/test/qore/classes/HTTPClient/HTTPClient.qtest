@@ -181,11 +181,11 @@ public class Main inherits QUnit::Test {
         const Utf8Str = "Hät";
         const Iso88591Str = convert_encoding(Utf8Str, "iso-8859-1");
 
-        const ErrorReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/html\r\nDate: %s GMT\r\nContent-Length: 0\r\n\r\n",
+        const ErrorReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Encoding: identity\r\nContent-Type: text/html\r\nDate: %s GMT\r\nContent-Length: 0\r\n\r\n",
                                     gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
-        const ErrorReply2 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/html\r\nDate: %s GMT\r\n\r\n",
+        const ErrorReply2 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Encoding: identity\r\nContent-Type: text/html\r\nDate: %s GMT\r\n\r\n",
                                     gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
-        const ChunkedReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\nDate: %s GMT\r\n\r\n4\r\nTest\r\n5\r\n Mess\r\n4\r\nage.\r\n0\r\n\r\n",
+        const ChunkedReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Encoding: identity\r\nContent-Type: text/plain\r\nTransfer-Encoding: chunked\r\nDate: %s GMT\r\n\r\n4\r\nTest\r\n5\r\n Mess\r\n4\r\nage.\r\n0\r\n\r\n",
                                       gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));
         const NormalReply1 = sprintf("HTTP/1.1 200 OK\r\nServer: Test/1.0\r\nContent-Type: text/plain\r\nContent-Length: 13\r\nDate: %s GMT\r\n\r\nTest Message.",
                                       gmtime().format("Dy, DD Mon YYYY HH:mm:SS"));

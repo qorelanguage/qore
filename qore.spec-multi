@@ -265,8 +265,11 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Mon Jun 25 2018 David Nichols <david@qore.org> 0.9
+* Tue Sep 11 2018 David Nichols <david@qore.org> 0.9
 - updated version to 0.9
+
+* Tue Sep 11 2018 David Nichols <david@qore.org> 0.8.13.7
+- updated version to 0.8.13.7
 
 * Fri Jun 22 2018 David Nichols <david@qore.org> 0.8.13.6
 - updated version to 0.8.13.6
