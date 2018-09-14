@@ -149,19 +149,21 @@ QoreHashNode* qore_object_private::getSlice(const QoreListNode* l, ExceptionSink
     // get internal members for each internal class
     for (auto& i : int_km) {
         const QoreHashNode* odata = getInternalData(i.first);
-        if (odata) {
-            ConstListIterator li(i.second);
-            while (li.next()) {
-                const char* k = li.getValue().get<const QoreStringNode>()->c_str();
-                bool exists;
-                QoreValue v = odata->getKeyValueExistence(k, exists);
-                if (!exists) {
-                    continue;
-                }
-                rv->setKeyValue(k, v.refSelf(), xsink);
-                if (*xsink) {
-                    return nullptr;
-                }
+        if (!odata) {
+            continue;
+        }
+
+        ConstListIterator li(i.second);
+        while (li.next()) {
+            const char* k = li.getValue().get<const QoreStringNode>()->c_str();
+            bool exists;
+            QoreValue v = odata->getKeyValueExistence(k, exists);
+            if (!exists) {
+                continue;
+            }
+            rv->setKeyValue(k, v.refSelf(), xsink);
+            if (*xsink) {
+                return nullptr;
             }
         }
     }
@@ -175,8 +177,9 @@ QoreHashNode* qore_object_private::getSlice(const QoreListNode* l, ExceptionSink
             const QoreStringNode* k = mgli.getValue().get<const QoreStringNode>();
             ValueHolder n(theclass->evalMemberGate(obj, k, xsink), xsink);
             //AbstractQoreNode* n = theclass->evalMemberGate(obj, k, xsink);
-            if (*xsink)
+            if (*xsink) {
                 return nullptr;
+            }
             rv->setKeyValue(k->c_str(), n.release(), xsink);
         }
     }
