@@ -888,6 +888,11 @@ public namespace Logger {
 
         The ability to selectively enable or disable logging requests based on level in @ref Logger is
         extended in the appender via @ref LoggerFilter, which implements filtering on any criteria.
+
+        The appender instance should be closed via @ref close() method explicitely to stop accepting
+        logging events which might arrive later than destructing process has started. This process
+        cannot start by design before all events has been processed as the @ref LoggerEvent instance holds refeence
+        to this appender instance.
     */
     public class LoggerAppender {
         public {
@@ -925,7 +930,12 @@ public namespace Logger {
         }
 
         destructor() {
-            #close();  # cannot call as the target object may be already destroyed
+            /*
+                Note that we cannot enforce calling close() method in destructor potentially generating an event
+                because the related member object instance (e.g. File) might be already destroyed in time when the event is
+                being processed. So such an appander instance should be closed explicitly in user code.
+            */
+            # close();
         }
 
         #! Returns the appender name
