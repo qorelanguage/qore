@@ -9,6 +9,7 @@
 %requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/QUnit.qm
 %requires ../../../../../qlib/Mime.qm
+%requires ../../../../../qlib/SqlUtil.qm
 
 %exec-class SerializableTest
 
@@ -86,6 +87,15 @@ class Base inherits Serializable, private:internal Foundation {
     }
 }
 
+class MyContainer inherits AbstractHashContainer {
+    string getElementName() {
+        return "x";
+    }
+
+    auto take(string k) {
+    }
+}
+
 class T inherits Serializable, private:internal Base {
     public {
         int i = 1;
@@ -98,6 +108,7 @@ class T inherits Serializable, private:internal Base {
         };
         hash<StatInfo> si();
         hash<MessagePartInfo> mpi();
+        MyContainer ahc();
         transient int skip = 1;
 
         Other o0();
@@ -200,12 +211,14 @@ class SerializableTest inherits QUnit::Test {
             T t();
             assertEq(2, t.skip);
             hash<SerializationInfo> h = t.serializeToData();
-            assertEq(2, h._index.size());
+            assertEq(3, h._index.size());
             assertEq(1, h._data.size());
             assertEq(Type::String, h._data._index.type());
             assertEq(1, h._index."0"._class_data.T.i);
             assertEq("Mime", h._modules[0]);
+            assertEq("SqlUtil", h._modules[1]);
             assertEq("hash<MessagePartInfo>", t.mpi.fullType());
+            assertEq("object<MyContainer>", t.ahc.fullType());
 
             assertEq(2, t.get());
             assertEq(2, t.geti());
