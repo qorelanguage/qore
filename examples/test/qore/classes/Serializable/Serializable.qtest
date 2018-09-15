@@ -18,6 +18,11 @@ const CertificatePath = get_script_dir() + "../../../qlib/ConnectionProvider/myc
 
 const RCount = 3;
 
+hashdecl MyTest {
+    int i;
+    hash<auto> h;
+}
+
 class Err inherits Serializable {
     public {
         Mutex m();
@@ -203,6 +208,8 @@ class SerializableTest inherits QUnit::Test {
         addTestCase("Serializable test", \serializableTest());
         addTestCase("private key test", \privateKeyTest());
         addTestCase("certificate test", \certificateTest());
+        addTestCase("hashdecl test", \hashdeclTest());
+
         set_return_value(main());
     }
 
@@ -485,5 +492,24 @@ class SerializableTest inherits QUnit::Test {
         h0 = h;
         h0._index."0"._class_data."Qore::SSLCertificate".der = <abcd>;
         assertThrows("SSLCERTIFICATE-CONSTRUCTOR-ERROR", \Serializable::deserialize(), h0);
+    }
+
+    hashdeclTest() {
+        hash<MyTest> h({
+            "i": 1,
+            "h": {
+                "a": 2,
+                "b": 3,
+            },
+        });
+
+        hash<auto> rv = {
+            "rv": h,
+        };
+
+        hash<SerializationInfo> sih = Serializable::serializeToData(rv);
+        hash<MyTest> h0 = Serializable::deserialize(sih).rv;
+        assertEq(h, h0);
+        assertEq(rv, Serializable::deserialize(Serializable::serialize(rv)));
     }
 }

@@ -792,19 +792,21 @@ QoreValue QoreSerializable::deserializeHashData(const QoreStringNode& type, cons
         return QoreValue();
     }
 
-    if (type == "^hash^") {
-        ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
-        if (members) {
-            // deserialize hash members
-            ConstHashIterator mi(members.get<const QoreHashNode>());
-            while (mi.next()) {
-                ValueHolder val(deserializeData(mi.get(), oimap, xsink), xsink);
-                if (*xsink) {
-                    return QoreValue();
-                }
-                rv->setKeyValue(mi.getKey(), val.release(), xsink);
+    // deserialize members first, then return hash
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    if (members) {
+        // deserialize hash members
+        ConstHashIterator mi(members.get<const QoreHashNode>());
+        while (mi.next()) {
+            ValueHolder val(deserializeData(mi.get(), oimap, xsink), xsink);
+            if (*xsink) {
+                return QoreValue();
             }
+            rv->setKeyValue(mi.getKey(), val.release(), xsink);
         }
+    }
+
+    if (type == "^hash^") {
         return rv.release();
     }
 
@@ -816,7 +818,7 @@ QoreValue QoreSerializable::deserializeHashData(const QoreStringNode& type, cons
     }
 
     // do the runtime cast
-    return typed_hash_decl_private::get(*hd)->newHash(members.get<const QoreHashNode>(), true, xsink);
+    return typed_hash_decl_private::get(*hd)->newHash(*rv, true, xsink);
 }
 
 QoreValue QoreSerializable::deserializeListData(const QoreListNode& l, const oimap_t& oimap, ExceptionSink* xsink) {
