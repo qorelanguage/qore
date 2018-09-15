@@ -199,13 +199,13 @@ binary Serializable::serialize() {
 //! overrides the default automatic member retrieval for user classes during data serialization
 /** @par Example:
     @code{.py}
-class MyClass inherits Serializable {
+class MyClass inherits Qore::Serializable {
     private:internal {
         transient string my_special_member;
     }
 
     # if this member is defined, all members retrieved from this class will be returned only
-    by this method, as in this case no automatic member retrieval for the given class will be
+    # by this method, as in this case no automatic member retrieval for the given class will be
     # performed
     hash<auto> serializeMembers() {
         return {
@@ -245,7 +245,7 @@ private:internal *hash<auto> Serializable::serializeMembers(*hash<auto> members)
 //! overrides the default automatic member assignment logic for user classes during data deserialization
 /** @par Example:
     @code{.py}
-class MyClass inherits Serializable {
+class MyClass inherits Qore::Serializable {
     private:internal {
         transient string my_special_member;
     }
