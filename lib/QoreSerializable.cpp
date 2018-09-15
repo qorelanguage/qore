@@ -461,7 +461,16 @@ QoreHashNode* QoreSerializable::serializeHashToData(const QoreHashNode& h, Refer
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclHashSerializationInfo, xsink), xsink);
 
     const TypedHashDecl* thd = h.getHashDecl();
-    rv->setKeyValue("_hash", thd ? new QoreStringNode(thd->getNamespacePath()) : new QoreStringNode("^hash^"), xsink);
+    if (thd) {
+        const char* module_name = thd->getModuleName();
+        //printd(5, "hashdecl '%s' mod: '%s'\n", thd->getNamespacePath().c_str(), module_name);
+        if (module_name) {
+            mset.insert(module_name);
+        }
+        rv->setKeyValue("_hash", new QoreStringNode(thd->getNamespacePath()), xsink);
+    } else {
+        rv->setKeyValue("_hash", new QoreStringNode("^hash^"), xsink);
+    }
 
     // serialize hash members
     ReferenceHolder<QoreHashNode> hash_members(xsink);

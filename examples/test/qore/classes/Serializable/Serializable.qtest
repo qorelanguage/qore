@@ -8,6 +8,7 @@
 
 %requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/QUnit.qm
+%requires ../../../../../qlib/Mime.qm
 
 %exec-class SerializableTest
 
@@ -96,7 +97,7 @@ class T inherits Serializable, private:internal Base {
             "a": 1,
         };
         hash<StatInfo> si();
-
+        hash<MessagePartInfo> mpi();
         transient int skip = 1;
 
         Other o0();
@@ -203,6 +204,8 @@ class SerializableTest inherits QUnit::Test {
             assertEq(1, h._data.size());
             assertEq(Type::String, h._data._index.type());
             assertEq(1, h._index."0"._class_data.T.i);
+            assertEq("Mime", h._modules[0]);
+            assertEq("hash<MessagePartInfo>", t.mpi.fullType());
 
             assertEq(2, t.get());
             assertEq(2, t.geti());
@@ -219,6 +222,13 @@ class SerializableTest inherits QUnit::Test {
             assertEq(2, t1.geti());
             assertEq(3, t1.getfi());
             assertEq(-1, t1.gety());
+            assertEq("hash<MessagePartInfo>", t1.mpi.fullType());
+
+            {
+                hash<SerializationInfo> h0 = h;
+                h0._modules[0] = "^invalid^";
+                assertThrows("LOAD-MODULE-ERROR", \Serializable::deserialize(), h0);
+            }
 
             {
                 hash<SerializationInfo> h0 = h;
@@ -278,7 +288,6 @@ class SerializableTest inherits QUnit::Test {
             Test t1 = Serializable::deserialize(h);
             assertEq(t1, t1.t);
             #printf("%N\n", h);
-            #h = x;
 
             BinaryOutputStream bin();
             t.serialize(bin);

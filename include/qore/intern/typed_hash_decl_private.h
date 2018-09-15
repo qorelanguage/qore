@@ -59,16 +59,14 @@ friend class typed_hash_decl_member_iterator;
 friend class TypedHashDecl;
 public:
     DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc), orig(this) {
-        const char* mod_name = get_module_context_name();
-        if (mod_name) {
-            from_module = mod_name;
-        }
+        assignModule();
     }
 
     DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, TypedHashDecl* thd) :
         loc(loc), name(n), thd(thd), orig(this),
         typeInfo(new QoreHashDeclTypeInfo(thd, n)),
         orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
+        assignModule();
     }
 
     DLLLOCAL typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd);
@@ -277,6 +275,13 @@ protected:
     bool sys = false;
 
     bool parse_init_done = false;
+
+    DLLLOCAL void assignModule() {
+        const char* mod_name = get_module_context_name();
+        if (mod_name) {
+            from_module = mod_name;
+        }
+    }
 };
 
 #endif

@@ -233,7 +233,7 @@ class MyClass inherits Serializable {
     @return member information to be passed to the class during deserialization; overrides
     the default member retrieval logic during object serialization
 
-    @note If this method is defined, then the class must reeturn its own members, as
+    @note If this method is defined, then the class must return its own members, as
     automatic member retrieval will not be performed for the local class by the
     serialization logic in this case.
 
