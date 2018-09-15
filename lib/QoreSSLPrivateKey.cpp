@@ -97,47 +97,50 @@ EVP_PKEY* QoreSSLPrivateKey::getData() const {
 }
 
 QoreStringNode* QoreSSLPrivateKey::getPEM(ExceptionSink* xsink) const {
-    BIO* bp = BIO_new(BIO_s_mem());
-    if (!PEM_write_bio_PrivateKey(bp, priv->pk, 0, 0, 0, 0, 0)) {
-        BIO_free(bp);
+    QoreMemBIO bio;
+    if (!PEM_write_bio_PrivateKey(*bio, priv->pk, 0, 0, 0, 0, 0)) {
         xsink->raiseException("SSLPRIVATEKEY-ERROR", "could not create PEM string from private key data");
-        return 0;
+        return nullptr;
     }
-    char* buf;
-    long len = BIO_get_mem_data(bp, &buf);
+    return bio.getAsString();
+}
 
-    QoreStringNode* str = new QoreStringNode(buf, (int)len);
-    BIO_free(bp);
-    return str;
+BinaryNode* QoreSSLPrivateKey::getDER(ExceptionSink* xsink) const {
+    QoreMemBIO bio;
+    if (i2d_PrivateKey_bio(*bio, priv->pk) <= 0) {
+        xsink->raiseException("SSLPRIVATEKEY-ERROR", "could not create DER binary from private key data");
+        return nullptr;
+    }
+    return bio.getAsBinary();
 }
 
 const char* QoreSSLPrivateKey::getType() const {
-   switch (EVP_PKEY_base_id(priv->pk)) {
+    switch (EVP_PKEY_base_id(priv->pk)) {
 #ifndef OPENSSL_NO_RSA
-      case EVP_PKEY_RSA:
-         return "RSA";
-      case EVP_PKEY_RSA2:
-         return "RSA2";
+        case EVP_PKEY_RSA:
+            return "RSA";
+        case EVP_PKEY_RSA2:
+            return "RSA2";
 #endif
 #ifndef OPENSSL_NO_DSA
-      case EVP_PKEY_DSA:
-         return "DSA";
-      case EVP_PKEY_DSA1:
-         return "DSA1";
-      case EVP_PKEY_DSA2:
-         return "DSA2";
-      case EVP_PKEY_DSA3:
-         return "DSA3";
-      case EVP_PKEY_DSA4:
-         return "DSA4";
+        case EVP_PKEY_DSA:
+            return "DSA";
+        case EVP_PKEY_DSA1:
+            return "DSA1";
+        case EVP_PKEY_DSA2:
+            return "DSA2";
+        case EVP_PKEY_DSA3:
+            return "DSA3";
+        case EVP_PKEY_DSA4:
+            return "DSA4";
 #endif
 #ifndef OPENSSL_NO_DH
-      case EVP_PKEY_DH:
-         return "DH";
+        case EVP_PKEY_DH:
+            return "DH";
 #endif
-      default:
-         return "unknown";
-   }
+        default:
+            return "unknown";
+    }
 }
 
 int64 QoreSSLPrivateKey::getVersion() const {

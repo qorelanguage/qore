@@ -59,12 +59,19 @@ public:
     */
     DLLEXPORT QoreSSLPrivateKey(const QoreString* str, const char* pp, ExceptionSink* xsink);
 
-    //! returns a string in PEM format representing the private key, caller owns the QoreString reference count returned
-    /** @return a string in PEM format representing the private key, caller owns the QoreString reference count returned
+    //! returns a string in PEM format representing the private key, caller owns the QoreStringNode reference count returned
+    /** @return a string in PEM format representing the private key, caller owns the QoreStringNode reference count returned
     */
     DLLEXPORT QoreStringNode* getPEM(ExceptionSink* xsink) const;
 
-    // caller does NOT own the EVP_PKEY returned; "const" cannot be used because of the openssl API does not support it
+    //! returns a binary in DER format representing the private key, caller owns the BinaryNode reference count returned
+    /** @return a binary in DER format representing the private key, caller owns the BinaryNode reference count returned
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT BinaryNode* getDER(ExceptionSink* xsink) const;
+
+    // caller does NOT own the EVP_PKEY returned; "const" cannot be used because the openssl API does not support it
     DLLEXPORT EVP_PKEY* getData() const;
 
     //! returns the key type

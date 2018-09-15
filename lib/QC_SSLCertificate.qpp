@@ -35,23 +35,26 @@
 
 static QoreHashNode* SSLCertificate_serializer(const QoreObject& self, const QoreSSLCertificate& cert, QoreSerializationContext& context, ExceptionSink* xsink) {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
-    rv->setKeyValue("pem", cert.getPEM(xsink), xsink);
+    // we serialize with DER format as it's approx 2/3 the size of a PEM string
+    SimpleRefHolder<BinaryNode> der(cert.getDER(xsink));
     if (*xsink) {
         return nullptr;
     }
+    rv->setKeyValue("der", der.release(), xsink);
     return *xsink ? nullptr : rv.release();
 }
 
 static void SSLCertificate_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
     if (sdata) {
-        QoreValue val = sdata->getKeyValue("pem");
+        // we serialize with DER format as it's approx 2/3 the size of a PEM string
+        QoreValue val = sdata->getKeyValue("der");
         if (val) {
-            if (val.getType() != NT_STRING) {
-                xsink->raiseException("DESERIALIZATION-ERROR", "SSLCertificate serialization key 'pem' has type '%s'; expecting 'string'", val.getTypeName());
+            if (val.getType() != NT_BINARY) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "SSLCertificate serialization key 'der' has type '%s'; expecting 'binary'", val.getTypeName());
                 return;
             }
-            const QoreStringNode* pem = val.get<const QoreStringNode>();
-            SimpleRefHolder<QoreSSLCertificate> qcert(new QoreSSLCertificate(pem, xsink));
+            const BinaryNode* der = val.get<const BinaryNode>();
+            SimpleRefHolder<QoreSSLCertificate> qcert(new QoreSSLCertificate(der, xsink));
             if (!*xsink) {
                 self.setPrivate(CID_SSLCERTIFICATE, qcert.release());
             }
@@ -112,11 +115,11 @@ SSLCertificate::constructor(binary der) {
     @since %Qore 0.9
  */
 SSLCertificate::copy() {
-    SimpleRefHolder<QoreStringNode> pem(s->getPEM(xsink));
+    SimpleRefHolder<BinaryNode> der(s->getDER(xsink));
     if (*xsink) {
         return;
     }
-    SimpleRefHolder<QoreSSLCertificate> qcert(new QoreSSLCertificate(*pem, xsink));
+    SimpleRefHolder<QoreSSLCertificate> qcert(new QoreSSLCertificate(*der, xsink));
     if (!*xsink) {
         self->setPrivate(CID_SSLCERTIFICATE, qcert.release());
     }
@@ -136,6 +139,22 @@ string SSLCertificate::getPEM() {
     return s->getPEM(xsink);
 }
 
+//! Returns a binary object in DER format representing the certificate
+/** @par Example:
+    @code{.py}
+binary der = cert.getDER();
+    @endcode
+
+    @return a binary object in DER format representing the certificate
+
+    @throw SSLPRIVATEKEY-ERROR could not create DER data from certificate data
+
+    @since %Qore 0.9
+*/
+binary SSLCertificate::getDER() [flags=RET_VALUE_ONLY] {
+    return s->getDER(xsink);
+}
+
 //! Returns a hash of all information for the certificate
 /** @return a hash of all information for the certificate with the following keys:
     - \c "version": The version of the X.509 certificate (see SSLCertificate::getVersion())
@@ -151,10 +170,10 @@ string SSLCertificate::getPEM() {
 
     @par Example:
     @code{.py}
-hash hash = cert.getInfo();
+hash<auto> h = cert.getInfo();
     @endcode
  */
-hash SSLCertificate::getInfo() [flags=CONSTANT] {
+hash<auto> SSLCertificate::getInfo() [flags=CONSTANT] {
     return s->getInfo();
 }
 

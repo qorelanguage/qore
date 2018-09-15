@@ -38,23 +38,27 @@
 
 static QoreHashNode* SSLPrivateKey_serializer(const QoreObject& self, const QoreSSLPrivateKey& pk, QoreSerializationContext& context, ExceptionSink* xsink) {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
-    rv->setKeyValue("pem", pk.getPEM(xsink), xsink);
+    // we serialize with DER format as it's approx 2/3 the size of a PEM string
+    SimpleRefHolder<BinaryNode> der(pk.getDER(xsink));
     if (*xsink) {
         return nullptr;
     }
+    //printd(5, "SSLPrivateKey_serializer() der: %p %d bytes\n", *der, der->size());
+    rv->setKeyValue("der", der.release(), xsink);
     return *xsink ? nullptr : rv.release();
 }
 
 static void SSLPrivateKey_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
     if (sdata) {
-        QoreValue val = sdata->getKeyValue("pem");
+        // we serialize with DER format as it's approx 2/3 the size of a PEM string
+        QoreValue val = sdata->getKeyValue("der");
         if (val) {
-            if (val.getType() != NT_STRING) {
-                xsink->raiseException("DESERIALIZATION-ERROR", "SSLPrivateKey serialization key 'pem' has type '%s'; expecting 'string'", val.getTypeName());
+            if (val.getType() != NT_BINARY) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "SSLPrivateKey serialization key 'der' has type '%s'; expecting 'binary'", val.getTypeName());
                 return;
             }
-            const QoreStringNode* pem = val.get<const QoreStringNode>();
-            SimpleRefHolder<QoreSSLPrivateKey> qpk(new QoreSSLPrivateKey(pem, nullptr, xsink));
+            const BinaryNode* der = val.get<const BinaryNode>();
+            SimpleRefHolder<QoreSSLPrivateKey> qpk(new QoreSSLPrivateKey(der, xsink));
             if (!*xsink) {
                 self.setPrivate(CID_SSLPRIVATEKEY, qpk.release());
             }
@@ -116,11 +120,11 @@ SSLPrivateKey::constructor(binary der) {
     @since %Qore 0.9
  */
 SSLPrivateKey::copy() {
-    SimpleRefHolder<QoreStringNode> pem(pk->getPEM(xsink));
+    SimpleRefHolder<BinaryNode> der(pk->getDER(xsink));
     if (*xsink) {
         return;
     }
-    SimpleRefHolder<QoreSSLPrivateKey> qpk(new QoreSSLPrivateKey(*pem, nullptr, xsink));
+    SimpleRefHolder<QoreSSLPrivateKey> qpk(new QoreSSLPrivateKey(*der, xsink));
     if (!*xsink) {
         self->setPrivate(CID_SSLPRIVATEKEY, qpk.release());
     }
@@ -134,10 +138,10 @@ SSLPrivateKey::copy() {
 
     @par Example:
     @code{.py}
-hash h = key.getInfo();
+hash<auto> h = key.getInfo();
     @endcode
  */
-hash SSLPrivateKey::getInfo() [flags=CONSTANT] {
+hash<auto> SSLPrivateKey::getInfo() [flags=CONSTANT] {
     return pk->getInfo();
 }
 
@@ -182,8 +186,30 @@ int SSLPrivateKey::getBitLength() [flags=CONSTANT] {
 string pem = key.getPEM();
     @endcode
 
+    @note No password is required to use the PEM data produced even if the object was originally
+    created with a password
+
     @throw SSLPRIVATEKEY-ERROR could not create PEM string from private key data
 */
-string SSLPrivateKey::getPEM() {
+string SSLPrivateKey::getPEM() [flags=RET_VALUE_ONLY] {
     return pk->getPEM(xsink);
+}
+
+//! Returns a binary object in DER format representing the private key
+/** @par Example:
+    @code{.py}
+binary der = key.getDER();
+    @endcode
+
+    @return a binary object in DER format representing the private key
+
+    @note No password is required to use the DER data produced even if the object was originally
+    created with a password
+
+    @throw SSLPRIVATEKEY-ERROR could not create DER data from private key data
+
+    @since %Qore 0.9
+*/
+binary SSLPrivateKey::getDER() [flags=RET_VALUE_ONLY] {
+    return pk->getDER(xsink);
 }
