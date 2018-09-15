@@ -35,6 +35,7 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/ModuleInfo.h"
 
 #include <string>
 #include <set>
