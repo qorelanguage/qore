@@ -1,44 +1,77 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_SSLPrivateKey.qpp
+    QC_SSLPrivateKey.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/QC_SSLPrivateKey.h"
+#include "qore/intern/QC_Serializable.h"
 
 #include <openssl/ssl.h>
 #include <openssl/pem.h>
 
+static QoreHashNode* SSLPrivateKey_serializer(const QoreObject& self, const QoreSSLPrivateKey& pk, QoreSerializationContext& context, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    rv->setKeyValue("pem", pk.getPEM(xsink), xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+    return *xsink ? nullptr : rv.release();
+}
+
+static void SSLPrivateKey_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
+    if (sdata) {
+        QoreValue val = sdata->getKeyValue("pem");
+        if (val) {
+            if (val.getType() != NT_STRING) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "SSLPrivateKey serialization key 'pem' has type '%s'; expecting 'string'", val.getTypeName());
+                return;
+            }
+            const QoreStringNode* pem = val.get<const QoreStringNode>();
+            SimpleRefHolder<QoreSSLPrivateKey> qpk(new QoreSSLPrivateKey(pem, nullptr, xsink));
+            if (!*xsink) {
+                self.setPrivate(CID_SSLPRIVATEKEY, qpk.release());
+            }
+            return;
+        }
+    }
+
+    xsink->raiseException("DESERIALIZATION-ERROR", "missing serialization data for the SSLPrivateKey class");
+}
+
 //! This class implements a container for private key data
-/** 
+/** The SSLPrivateKey class supports @ref Serializable "data serialization"; note that the
+    serialized data is a representation of the data that does not require a password, so
+    for source data that requires a password to use, the serialized representation of the
+    private key should be protected carefully (transmitted only in an encrypted stream)
  */
-qclass SSLPrivateKey [arg=QoreSSLPrivateKey* pk];
+qclass SSLPrivateKey [arg=QoreSSLPrivateKey* pk; vparent=Serializable; serializer=reinterpret_cast<q_serializer_t>(SSLPrivateKey_serializer); deserializer=SSLPrivateKey_deserializer];
 
 //! Creates the SSLPrivateKey object from the PEM-encoded text representation of the private key passed
 /** @param pem The PEM-encoded text representation of the private key
@@ -54,10 +87,11 @@ SSLPrivateKey key(pem);
     @since 0.8.4: the deprecated functionality where the if the string passed was less than 200 bytes long, it was assumed to be a file name has been removed; the string is assumed to be the PEM-encoded private key itself
  */
 SSLPrivateKey::constructor(string pem, *string pass) {
-   SimpleRefHolder<QoreSSLPrivateKey> qpk(new QoreSSLPrivateKey(pem, pass ? pass->getBuffer() : 0, xsink));
+    SimpleRefHolder<QoreSSLPrivateKey> qpk(new QoreSSLPrivateKey(pem, pass ? pass->c_str() : nullptr, xsink));
 
-   if (!*xsink)
-      self->setPrivate(CID_SSLPRIVATEKEY, qpk.release());
+    if (!*xsink) {
+        self->setPrivate(CID_SSLPRIVATEKEY, qpk.release());
+    }
 }
 
 //! Creates the SSLPrivateKey object from the data argument passed
@@ -71,17 +105,25 @@ SSLPrivateKey key(der);
     @throw SSLPRIVATEKEY-CONSTRUCTOR-ERROR error in private key data
  */
 SSLPrivateKey::constructor(binary der) {
-   SimpleRefHolder<QoreSSLPrivateKey> qc(new QoreSSLPrivateKey(der, xsink));
-   if (!*xsink)
-      self->setPrivate(CID_SSLPRIVATEKEY, qc.release());           
+    SimpleRefHolder<QoreSSLPrivateKey> qc(new QoreSSLPrivateKey(der, xsink));
+    if (!*xsink) {
+        self->setPrivate(CID_SSLPRIVATEKEY, qc.release());
+    }
 }
 
-//! Copying objects of this class is not supported, an exception will be thrown
-/** 
-    @throw SSLPRIVATEKEY-COPY-ERROR SSLPrivateKey objects cannot be copied
+//! Returns a copy of the private key object
+/**
+    @since %Qore 0.9
  */
 SSLPrivateKey::copy() {
-   xsink->raiseException("SSLPRIVATEKEY-COPY-ERROR", "SSLPrivateKey objects cannot be copied");
+    SimpleRefHolder<QoreStringNode> pem(pk->getPEM(xsink));
+    if (*xsink) {
+        return;
+    }
+    SimpleRefHolder<QoreSSLPrivateKey> qpk(new QoreSSLPrivateKey(*pem, nullptr, xsink));
+    if (!*xsink) {
+        self->setPrivate(CID_SSLPRIVATEKEY, qpk.release());
+    }
 }
 
 //! Returns a hash of all information for the private key
@@ -96,7 +138,7 @@ hash h = key.getInfo();
     @endcode
  */
 hash SSLPrivateKey::getInfo() [flags=CONSTANT] {
-   return pk->getInfo();
+    return pk->getInfo();
 }
 
 //! Returns a string giving the algorithm used for the private key
@@ -108,7 +150,7 @@ string str = pkey.getType();
     @endcode
  */
 string SSLPrivateKey::getType() [flags=CONSTANT] {
-   return new QoreStringNode(pk->getType());
+    return new QoreStringNode(pk->getType());
 }
 
 //! Returns a constant value of 1; do not use; only included for backwards-compatibility
@@ -117,7 +159,7 @@ string SSLPrivateKey::getType() [flags=CONSTANT] {
     @return a constant value of 1; do not use; only included for backwards-compatibility
  */
 int SSLPrivateKey::getVersion() [flags=CONSTANT] {
-   return pk->getVersion();
+    return pk->getVersion();
 }
 
 //! Returns the bit length of the private key
@@ -129,7 +171,7 @@ int len = key.getBitLength();
     @endcode
  */
 int SSLPrivateKey::getBitLength() [flags=CONSTANT] {
-   return pk->getBitLength();
+    return pk->getBitLength();
 }
 
 //! Returns a string in PEM format representing the private key
@@ -143,5 +185,5 @@ string pem = key.getPEM();
     @throw SSLPRIVATEKEY-ERROR could not create PEM string from private key data
 */
 string SSLPrivateKey::getPEM() {
-   return pk->getPEM(xsink);
+    return pk->getPEM(xsink);
 }

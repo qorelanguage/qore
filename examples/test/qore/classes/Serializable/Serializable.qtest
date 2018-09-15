@@ -13,6 +13,9 @@
 
 %exec-class SerializableTest
 
+const PrivateKeyPath = "../../../qlib/ConnectionProvider/mykey.pem";
+const CertificatePath = "../../../qlib/ConnectionProvider/mycert.pem";
+
 const RCount = 3;
 
 class Err inherits Serializable {
@@ -197,7 +200,9 @@ class SerializableTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("Serializable", "1.0") {
-        addTestCase("SerializableTest", \serializableTest());
+        addTestCase("Serializable test", \serializableTest());
+        addTestCase("private key test", \privateKeyTest());
+        addTestCase("certificate test", \certificateTest());
         set_return_value(main());
     }
 
@@ -422,5 +427,55 @@ class SerializableTest inherits QUnit::Test {
             t2 = Serializable::deserialize(Serializable::serialize(t));
             assertTrue(t2.m instanceof Mutex);
         }
+    }
+
+    privateKeyTest() {
+        SSLPrivateKey pkey(ReadOnlyFile::readTextFile(PrivateKeyPath), "password");
+        string pem = pkey.getPEM();
+        hash<SerializationInfo> h = pkey.serializeToData();
+        #printf("%N\n", h);
+
+        SSLPrivateKey pkey0 = Serializable::deserialize(h);
+        assertEq(pem, pkey0.getPEM());
+
+        pkey0 = pkey.copy();
+        assertEq(pem, pkey0.getPEM());
+
+        hash<SerializationInfo> h0 = h;
+        remove h0._index."0"._class_data."Qore::SSLPrivateKey".pem;
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+
+        h0 = h;
+        remove h0._index."0"._class_data."Qore::SSLPrivateKey";
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+
+        h0 = h;
+        h0._index."0"._class_data."Qore::SSLPrivateKey".pem = 1;
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+    }
+
+    certificateTest() {
+        SSLCertificate cert(ReadOnlyFile::readTextFile(CertificatePath));
+        string pem = cert.getPEM();
+        hash<SerializationInfo> h = cert.serializeToData();
+        #printf("%N\n", h);
+
+        SSLCertificate cert0 = Serializable::deserialize(h);
+        assertEq(pem, cert0.getPEM());
+
+        cert0 = cert.copy();
+        assertEq(pem, cert0.getPEM());
+
+        hash<SerializationInfo> h0 = h;
+        remove h0._index."0"._class_data."Qore::SSLCertificate".pem;
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+
+        h0 = h;
+        remove h0._index."0"._class_data."Qore::SSLCertificate";
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
+
+        h0 = h;
+        h0._index."0"._class_data."Qore::SSLCertificate".pem = 1;
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h0);
     }
 }
