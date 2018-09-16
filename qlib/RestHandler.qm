@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 # use new-style
 %new-style
@@ -52,7 +52,7 @@
 %endtry
 
 module RestHandler {
-    version = "1.2.1";
+    version = "1.3";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -311,6 +311,12 @@ Content-Length: 36
 
     @section resthandler_relnotes RestHandler Release Notes
 
+    @subsection rh_1_3 RestHandler v1.3
+    - updated to support alternative URI paths for actions so that an "action=xxx" argument is not needed; instead
+      the action can be added to the end of the URI path so that \c "PUT path/xxx" can be used instead of
+      \c "PUT path?action=xxx"
+      (<a href="https://github.com/qorelanguage/qore/issues/2994">issue 2994</a>)
+
     @subsection rh_1_2_1 RestHandler v1.2.1
     - updated to return a 400 Bad Request error when REST schema validation fails on messages received (<a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
     - updated to return a 400 Bad Request error when there are string encoding errors with messages received (<a href="https://github.com/qorelanguage/qore/issues/2398">issue 2398</a>)
@@ -356,16 +362,16 @@ public namespace RestHandler {
 
         private {
             #! call context hash
-            hash cx;
+            hash<auto> cx;
 
             #! if an exception is raised in a callback then the exception hash is saved here
-            *hash ex;
+            *hash<auto> ex;
 
             #! call argument hash
-            *hash ah;
+            *hash<auto> ah;
 
             #! headers to add in the response
-            hash rhdr;
+            hash<auto> rhdr;
 
             #! socket I/O timeout in milliseconds
             *int timeout_ms;
@@ -386,7 +392,7 @@ public namespace RestHandler {
             - \c aih: a hash of \c "Accept" values
             @param n_ah any URI arguments in the request
         */
-        constructor(hash n_cx, *hash n_ah) {
+        constructor(hash<auto> n_cx, *hash<auto> n_ah) {
             cx = n_cx;
             ah = n_ah;
         }
@@ -427,7 +433,7 @@ public namespace RestHandler {
             - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
             - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
         */
-        nothing recv(hash v) {
+        nothing recv(hash<auto> v) {
             try {
                 recvImpl(v);
             }
@@ -471,7 +477,7 @@ public namespace RestHandler {
         }
 
         #! registers stream errors in the send operation with the stream handler if no error is already present
-        streamError(hash n_ex) {
+        streamError(hash<auto> n_ex) {
             if (!ex)
                 ex = n_ex;
         }
@@ -617,10 +623,18 @@ public namespace RestHandler {
 
         #! this method is called by the RestHandler class to match the right object with incoming requests
         hash<HttpServer::HttpHandlerResponseInfo> handleRequest(HttpListenerInterface listener, RestHandler rh, Socket s, *list cl, string mn, hash cx, *hash args) {
-            if (!args && cx.body.typeCode() == NT_HASH)
+            if (!args && cx.body.typeCode() == NT_HASH) {
                 args = cx.body - "action";
+            }
             if (cl) {
                 string cname = shift cl;
+                # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
+                if (!cl && !args.action) {
+                    string mname = sprintf("%s%s%s", mn, cname[0].upr(), cname[1..]);
+                    if (self.hasCallableMethod(mname)) {
+                        return cast<hash<HttpHandlerResponseInfo>>(dispatch(rh, mname, args + {"action": cname}, cx));
+                    }
+                }
                 *AbstractRestClass cls = subClass(cname, cx, args);
                 if (!cls) {
                     rh.logDebug("REST DBG: class %y: unknown subclass %y: method %y args: %y", name(), cname, mn, args);
