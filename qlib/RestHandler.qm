@@ -96,7 +96,7 @@ module RestHandler {
 
     This class should be subclassed for each object type, and methods implemented for each REST method that the object will support.
 
-    Incoming requests matched by your @ref RestHandler::RestHandler "RestHandler" subclass (when called by the @ref HttpServer::HttpServer "HttpServer" when requests are appropriately matched) will be dispatched to methods in your @ref RestHandler::AbstractRestClass "AbstractRestClass" specialization (ie your user-defined subclass of this class) according to the following naming convention:
+    Incoming requests matched by your @ref RestHandler::RestHandler "RestHandler" subclass (when called by the @ref HttpServer::HttpServer "HttpServer" when requests are appropriately matched) will be dispatched to methods in your @ref RestHandler::AbstractRestClass "AbstractRestClass" specialization (ie your user-defined subclass of this class) first according to the following naming convention:
     - <tt>httpmethod</tt>[<i>RequestRestAction</i>]
 
     For example:
@@ -119,6 +119,17 @@ module RestHandler {
     |\c POST|\c AbstractRestClass::post()
     |\c DELETE|\c AbstractRestClass::del()
     |\c OPTIONS|\c AbstractRestClass::options()
+
+    If no action is provided in the URL and the final URI path component does not match to a subclass, and an action
+    method is defined in the last REST class, then this method will be run.
+
+    For example (assuming no subclass match for the trailing \c "status" path component):
+    - \c "GET /obj/status HTTP/1.1": matches method \c AbstractRestClass::getStatus()
+    - \c "PUT /obj/status HTTP/1.1": matches method \c AbstractRestClass::putStatus()
+    - \c "PATCH /obj/status HTTP/1.1": matches method \c AbstractRestClass::patchStatus()
+
+    It is recommended to avoid requiringg an \c "action" parameter, because this approach is generally not compatible
+    with REST schema solutions such as Swaggger/OAS or RAML.
 
     In all cases, the signature for these methods looks like:
     @code{.py}
@@ -181,8 +192,14 @@ class AbstractExampleInstanceBaseClass inherits AbstractRestClass {
 
     Assuming this object corresponds to URL path /files/info.txt, the following requests are supported:
     - \c "GET /files/info.txt HTTP/1.1": calls the get() method above (no action)
-    - \c "PUT /files/info.txt?action=chown;user=username HTTP/1.1": calls the putChown() method above (such arguments could also be passed in the message body; see @ref restargs for more information)
-    - \c "PUT /files/info.txt?action=chmod;mode=420 HTTP/1.1": calls the putChmod() method above (note that 420 = 0644)
+    - \c "PUT /files/info.txt/chown;user=username HTTP/1.1": calls the putChown() method above (such arguments
+      could also be passed in the message body; see @ref restargs for more information)
+    - \c "PUT /files/info.txt/chmod;mode=420 HTTP/1.1": calls the putChmod() method above (note that 420 = 0644)
+    - \c "PUT /files/info.txt/rename;newPath=/tmp/old.txt HTTP/1.1": calls the putRename() method above
+    - \c "PUT /files/info.txt?action=chown;user=username HTTP/1.1": calls the putChown() method above (such arguments
+      could also be passed in the message body; see @ref restargs for more information)
+    - \c "PUT /files/info.txt?action=chmod;mode=420 HTTP/1.1": calls the putChmod() method above
+      (note that 420 = 0644)
     - \c "PUT /files/info.txt?action=rename;newPath=/tmp/old.txt HTTP/1.1": calls the putRename() method above
 
     @section resthierarchy Implementing Object Hierarchies
@@ -268,7 +285,7 @@ class WorkflowOrderInstanceRestClass inherits AbstractRestClass {
 
     <b>Request With URI Argument</b>
     @verbatim
-PUT /files/info.txt?action=chmod;mode=420 HTTP/1.1
+PUT /files/info.txt/chmod;mode=420 HTTP/1.1
 Accept: application/x-yaml
 User-Agent: Qore-RestClient/1.0
 Accept-Encoding: deflate,gzip,bzip2
@@ -278,16 +295,16 @@ Host: localhost:8001
 
     <b>Request With Arguments in the Message Body</b>
     @verbatim
-PUT /files/info.txt HTTP/1.1
+PUT /files/info.txt/chmod HTTP/1.1
 Accept: application/x-yaml
 User-Agent: Qore-RestClient/1.0
 Accept-Encoding: deflate,gzip,bzip2
 Connection: Keep-Alive
 Host: localhost:8001
 Content-Type: application/json;charset=utf-8
-Content-Length: 36
+Content-Length: 16
 
-{ "action" : "chmod", "mode" : 420 }
+{ "mode" : 420 }
     @endverbatim
 
     @par REST URI Arguments
