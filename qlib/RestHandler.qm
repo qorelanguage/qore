@@ -628,15 +628,16 @@ public namespace RestHandler {
             }
             if (cl) {
                 string cname = shift cl;
-                # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
-                if (!cl && !args.action) {
-                    string mname = sprintf("%s%s%s", mn, cname[0].upr(), cname[1..]);
-                    if (self.hasCallableMethod(mname)) {
-                        return cast<hash<HttpHandlerResponseInfo>>(dispatch(rh, mname, args + {"action": cname}, cx));
-                    }
-                }
                 *AbstractRestClass cls = subClass(cname, cx, args);
                 if (!cls) {
+                    # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
+                    if (!cl && !args.action) {
+                        string mname = sprintf("%s%s%s", mn, cname[0].upr(), cname[1..]);
+                        if (self.hasCallableMethod(mname)) {
+                            return cast<hash<HttpHandlerResponseInfo>>(dispatch(rh, mname, args + {"action": cname}, cx));
+                        }
+                    }
+
                     rh.logDebug("REST DBG: class %y: unknown subclass %y: method %y args: %y", name(), cname, mn, args);
                     return unknownSubClassError(cname);
                 }
