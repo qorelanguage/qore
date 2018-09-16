@@ -233,6 +233,9 @@ const MC_DEPRECATED = MC_DEPRECATED;
 
 //! describes the final flag
 const MC_FINAL = MC_FINAL;
+
+//! describes the @ref transient "transient" flag
+const MC_TRANSIENT = MC_TRANSIENT;
 //@}
 
 /** @defgroup code_flag_constants Code Flag Constants

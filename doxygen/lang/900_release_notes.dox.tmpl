@@ -84,8 +84,8 @@
       - <a href="../../modules/Logger/html/index.html">Logger</a>
       - <a href="../../modules/reflection/html/index.html">reflection</a>
     - New and updated hashdecls:
-      - @ref Qore::NetIfInfo "NetIfInfo"
-      - @ref Qore::CallStackInfo "CallStackInfo": updated with new members" \c programid and \c statementid
+      - @ref Qore::NetIfInfo "NetIfInfo": new @ref hashdecl "hashdecl" for the @ref Qore::get_netif_list() "get_netif_list()" function
+      - @ref Qore::CallStackInfo "CallStackInfo": updated with new members: \c programid and \c statementid
     - New constants:
       - @ref Qore::DomainCodeMap "DomainCodeMap"
       - @ref Qore::DomainStringMap "DomainStringMap"
@@ -146,7 +146,7 @@
         - Swagger module does not accept multipart/form-data content-type and also does not work with list and hash parameters
           (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
     - @ref relative_dates "Relative date" changes
-      - Fraction seconds are accepted in the @ref single_reldates
+      - Fractional seconds are accepted in the @ref single_reldates
       - Fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
     - Improved debugging support:
       - @ref Qore::ProgramControl::getStatementIdInfo() "ProgramControl::getStatementIdInfo()" provides breakpoint info
