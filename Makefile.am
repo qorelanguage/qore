@@ -989,6 +989,7 @@ doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
         -e 's/@_dox_output@/docs\/modules\/astparser\//' \
         -e 's/@_dox_src@/modules\/astparser\/docs/' \
         -e 's/@CMAKE_CURRENT_BINARY_DIR@/modules\/astparser\/src/' \
+        -e "s/@CMAKE_BINARY_DIR@/$(top_srcdir)/" \
         -e "s/@CMAKE_SOURCE_DIR@/$(top_srcdir)/" $< > $@
 
 doxygen/modules/Doxyfile.reflection: doxygen/modules/Doxyfile.in
@@ -997,6 +998,7 @@ doxygen/modules/Doxyfile.reflection: doxygen/modules/Doxyfile.in
         -e 's/@_dox_output@/docs\/modules\/reflection\//' \
         -e 's/@_dox_src@/modules\/reflection\/docs/' \
         -e 's/@CMAKE_CURRENT_BINARY_DIR@/modules\/reflection\/src/' \
+        -e "s/@CMAKE_BINARY_DIR@/$(top_srcdir)/" \
         -e "s/@CMAKE_SOURCE_DIR@/$(top_srcdir)/" $< > $@
 
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
