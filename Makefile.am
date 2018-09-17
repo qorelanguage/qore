@@ -916,13 +916,13 @@ $(QPP): dummy
 	cd lib; make $(QPP_PGM)
 
 doxygen/lib/Doxyfile: doxygen/lib/Doxyfile.tmpl configure.ac
-	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen/" > $@
+	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen" "$(top_srcdir)/getrev.sh" > $@
 
 lang-dox-src: dummy
 	cd lib; make dox-src
 
 doxygen/lang/Doxyfile: doxygen/lang/Doxyfile.tmpl configure.ac
-	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen/" > $@
+	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen" "$(top_srcdir)/getrev.sh" > $@
 
 $(LANG_TMP_DOXYFILES_SRC): doxygen/lang/%.dox: doxygen/lang/%.dox.tmpl lib $(QPP) lang-dox-src
 	$(QPP) -t $< -o $@
