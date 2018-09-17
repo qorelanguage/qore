@@ -775,6 +775,7 @@ set(QORE_USER_MODULES_DIR ${USER_MODULE_VER_DIR})
 # base modules
 qore_user_module("qlib/DatasourceProvider.qm" "")
 qore_user_module("qlib/DebugUtil.qm" "")
+qore_user_module("qlib/FsUtil.qm" "")
 qore_user_module("qlib/Mapper.qm" "")
 qore_user_module("qlib/Qdx.qm" "")
 qore_user_module("qlib/Qorize.qm" "")
@@ -813,6 +814,7 @@ qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidat
 # base 7 modules
 qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/Logger.qm" "Logger")
 qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
 qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")

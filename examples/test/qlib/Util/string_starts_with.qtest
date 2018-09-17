@@ -1,0 +1,48 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class StringStartsWithTest
+
+public class StringStartsWithTest inherits QUnit::Test {
+
+    private {
+        list params_true = (
+            # (str, substr)
+            ("", ""),
+            ("FOO", ""),
+            ("FOO", "FOO"),
+            ("FOO", "FO"),
+            ("FOO", "F"),
+        );
+
+        list params_false = (
+            # (str, substr)
+            ("", "BAR"),
+            ("FOO", "foo"),
+            ("FOO", "f"),
+        );
+    }
+
+    constructor() : Test ("StringStartsWithTest", "1.0") {
+        addTestCase("string_starts_with test", \test_string_starts_with());
+        set_return_value(main());
+    }
+
+    test_string_starts_with() {
+
+        foreach list p in (params_true) {
+            assertTrue(string_starts_with(p[0], p[1]), sprintf("'%s' starts with '%s'", p[0], p[1]));
+        }
+
+        foreach list p in (params_false) {
+            assertFalse(string_starts_with(p[0], p[1]), sprintf("'%s' doesn't start with '%s'", p[0], p[1]));
+        }
+    }
+}

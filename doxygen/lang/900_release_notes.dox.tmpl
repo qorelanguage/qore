@@ -43,6 +43,8 @@
       - @ref Qore::FtpClient::getDataPeerInfo() "FtpClient::getDataPeerInfo()"
       - @ref Qore::FtpClient::getDataSocketInfo() "FtpClient::getDataSocketInfo()"
       - @ref Qore::Program::getParseOptionStringList() "Program::getParseOptionStringList()"
+      - @ref Qore::Program::parse() "Program::parse()" 
+      - @ref Qore::Program::parsePending() "Program::parsePending()" 
       - @ref Qore::StreamReader::getInputStream() "StreamReader::getInputStream()"
       - @ref Qore::StreamWriter::getOutputStream() "StreamWriter::getOutputStream()"
     - new functions:
@@ -52,6 +54,8 @@
       - @ref Qore::get_thread_name() "get_thread_name()"
       - @ref Qore::set_default_thread_stack_size() "set_default_thread_stack_size()"
       - @ref Qore::set_thread_name() "set_thread_name()"
+    - new modules:
+      - <a href="../../modules/Logger/html/index.html">Logger</a>
     - new hashdecls:
       - @ref Qore::NetIfInfo "NetIfInfo"
     - new constants:
@@ -66,17 +70,21 @@
       - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_date "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
       - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
       - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
+    - @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" updates: 
+      the \a format_label parameter is obsolete/ignored
+      (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)      
     - module updates
-      - <a href="../../modules/ConnectionProvider/html.indexhtml">ConnectionProvider</a> module changes:
+      - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module changes:
         - the \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
           connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
-      - <a href="../../modules/FreetdsSqlUtil/html.indexhtml">FreetdsSqlUtil</a> module changes:
+      - <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/HttpServer/html.indexhtml">HttpServer</a> module changes:
         - added support for adding new HTTP methods to the server with the \c HttpServer::addHttpMethod() method
           (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
       - <a href="../../modules/MysqlSqlUtil/html.indexhtml">MysqlSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+        - implemented a check for allowed types when is the AUTO_INCREMENT flag used (<a href="https://github.com/qorelanguage/qore/issues/2978">issue 2978</a>)
       - <a href="../../modules/OracleSqlUtil/html.indexhtml">OracleSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/PgsqlSqlUtil/html.indexhtml">PgsqlSqlUtil</a> module changes:
@@ -96,13 +104,19 @@
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
         - Swagger module does not accept multipart/form-data content-type and also does not work with list and hash parameters
           (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
-
     - @ref relative_dates "relative date" changes
         - fraction seconds are accepted in the @ref single_reldates
         - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
-
-    - @ref Qore::Program::parse() "Program::parse()", @ref Qore::Program::parsePending() "Program::parsePending()" \a format_label parameter is obsolete/ignored
-      (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)
+    - improved debugging support:
+        - @ref Qore::ProgramControl::getStatementIdInfo() "ProgramControl::getStatementIdInfo()" provides breakpoint info
+        - command to resolve statement
+        - interrupt notification provides call stack info
+        - \c "Run to statement" implementation
+        - <a href="../../modules/DebugHandler/html/index.html">DebugHandler</a> reimplemented to support multiple websocket handlers
+        - program is not interrupted at bootstrap code
+        - command line utils display source line code when interrupted
+      - new features:
+        - @ref Qore::CallStackInfo "CallStackInfo" new memebers \c programid and \c statementid
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
     - fixed a bug where rvalue references with complex subtypes could get modified during an assignment
@@ -129,6 +143,9 @@
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a>:
         - removed unnecessary serialization from AbstractConnection::get()
           (<a href="https://github.com/qorelanguage/qore/issues/2880">issue 2880</a>)
+      - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
+        - fixed schema alignment when there are functions to be dropped
+          (<a href="https://github.com/qorelanguage/qore/issues/2963">issue 2963</a>)
     - fixed a race condition in @ref Qore::Thread::ThreadPool "ThreadPool" destruction that could
       cause a crash
       (<a href="https://github.com/qorelanguage/qore/issues/2906">issue 2906</a>)
@@ -141,6 +158,9 @@
     - fixed a bug that would cause a crash if an unknown \c "Content-Encoding" value were received by the
       @ref Qore::HTTPClient "HTTPClient" class
       (<a href="https://github.com/qorelanguage/qore/issues/2953">issue 2953</a>)
+    - fixed a memory leak with binary objects in certain operations such as when reading a file into a
+      binary object
+      (<a href="https://github.com/qorelanguage/qore/issues/2982">issue 2982</a>)
 
     @section qore_08136 Qore 0.8.13.6
 
@@ -190,7 +210,7 @@
     - fixed a bug where user modules with global variables could not be loaded into @ref Qore::Program "Program"
       containers where @ref Qore::PO_NO_GLOBAL_VARS "PO_NO_GLOBAL_VARS" was set
       (<a href="https://github.com/qorelanguage/qore/issues/2807">issue 2807</a>)
-    - fixed a deadlock with @ref Qore::RWLock "RWLock" and @ref Qore::Condition "Condition" objects when the
+    - fixed a deadlock with @ref Qore::Thread::RWLock "RWLock" and @ref Qore::Thread::Condition "Condition" objects when the
       read lock is held recursively (<a href="https://github.com/qorelanguage/qore/issues/2817">issue 2817</a>)
     - module fixes:
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a>:
@@ -814,7 +834,7 @@
 
     @subsection qore_081212_new_features New Features in Qore
 
-    - aded the @ref Qore::HAVE_DSS "HAVE_DSS" constant to indicate if the outdated DSS(), DSS1(), DSS_bin(), DSS1_bin(), DSS_HMAC(), and DSS1_HMAC() functions are available in the opnessl library used to compile %Qore
+    - added the @ref Qore::Option::HAVE_DSS "HAVE_DSS" constant to indicate if the outdated DSS(), DSS1(), DSS_bin(), DSS1_bin(), DSS_HMAC(), and DSS1_HMAC() functions are available in the opnessl library used to compile %Qore
 
     @subsection qore_081212_bug_fixes Bug Fixes in Qore
 
