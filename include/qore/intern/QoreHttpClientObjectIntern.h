@@ -38,7 +38,7 @@
 // ssl-enabled protocols are stored as negative numbers, non-ssl as positive
 #define make_protocol(a, b) ((a) * ((b) ? -1 : 1))
 #define get_port(a) ((a) * (((a) < 0) ? -1 : 1))
-#define get_ssl(a) ((a) * (((a) < 0) ? true : false))
+#define get_ssl(a) (((a) < 0) ? true : false)
 
 // protocol map class to recognize user-defined protocols (mostly useful for derived classes)
 typedef std::map<std::string, int> prot_map_t;
