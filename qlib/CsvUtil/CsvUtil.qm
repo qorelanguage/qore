@@ -340,57 +340,6 @@ public namespace CsvUtil {
         global_compat_force_empty_string = val;
     }
 
-    #! The CsvFileWriter class for safe CSV file creation
-    /**
-        @see
-        - @ref CsvUtil::CsvWriter "CsvWriter" for a stream-based class providing the same functionality as this class in a more generic way
-     */
-    public class CsvFileWriter inherits AbstractCsvWriter {
-        private {
-            #! the file to write
-            Qore::File file;
-        }
-
-        #! creates the CsvFileWriter in single-type mode with the path of the file to create and an optional option hash
-        /**
-            @param path a file name (with path optionally) to write
-            @param opts @ref csvwriter_options
-
-            The file is created with @ref Qore::O_CREAT "O_CREAT", @ref Qore::O_TRUNC "O_TRUNC", @ref Qore::O_WRONLY "O_WRONLY" and \c 0644 access.
-
-            @throw CSVFILEITER-ERROR in the case of incorrect options
-        */
-        constructor(string path, *hash opts) : AbstractCsvWriter("FILE", opts) {
-            openFile(path);
-        }
-
-        #! creates the CsvFileWriter in multi-type mode with the path of the file to create and an optional option hash
-        /**
-            @param path a file name (with path optionally) to write
-            @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
-            @param opts @ref csvwriter_options
-
-            The file is created with @ref Qore::O_CREAT "O_CREAT", @ref Qore::O_TRUNC "O_TRUNC", @ref Qore::O_WRONLY "O_WRONLY" and \c 0644 access.
-
-            @throw CSVFILEITER-ERROR in the case of incorrect options
-        */
-        constructor(string path, hash spec, hash opts) : AbstractCsvWriter("FILE", spec, opts) {
-            openFile(path);
-        }
-
-        private openFile(string path) {
-            # we do not use the encoding option with the File constructor() here, because we always generate output data
-            # with the output encoding in any case
-            file = new File();
-            file.open2(path, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-            writeHeaders();
-        }
-
-        private writeRawLine(list values) {
-            file.write(prepareRawLine(values));
-        }
-    } # CsvFileWriter
-
     #! The CsvStringWriter class for in-memory string CSV creation
     /**
         @see
