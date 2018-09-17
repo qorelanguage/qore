@@ -47,6 +47,7 @@
 #include <map>
 #include <string>
 #include <set>
+#include <algorithm>
 
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
@@ -1028,86 +1029,53 @@ typedef std::map<char*, QoreVarInfo*, ltstr> var_map_t;
 template <typename T>
 class QoreMemberMapBase {
 public:
-    typedef std::pair<char*, T*> list_element_t;
-    typedef std::vector<list_element_t> member_list_t;
-    typedef typename member_list_t::const_iterator DeclOrderIterator;
-    // we use a vector map as the number of members is generally relatively small
-    typedef vector_map_t<char*, T*> member_map_t;
-    /*
-#ifdef HAVE_QORE_HASH_MAP
-    typedef HASH_MAP<char*, T*, qore_hash_str, eqstr> member_map_t;
-#else
-    typedef std::map<char*, T*, ltstr> member_map_t;
-#endif
-    */
-    typedef typename member_map_t::const_iterator SigOrderIterator;
+    typedef std::pair<char*, T*> member_list_element_t;
+    typedef std::vector<member_list_element_t> member_list_t;
+    typedef typename member_list_t::iterator iterator;
+    typedef typename member_list_t::const_iterator const_iterator;
+    member_list_t member_list;
 
-public:
     DLLLOCAL ~QoreMemberMapBase() {
-        for (typename member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
+        for (auto& i : member_list) {
             //printd(5, "QoreMemberMap::~QoreMemberMap() this: %p freeing member %p '%s'\n", this, i->second, i->first);
-            delete i->second;
-            free(i->first);
+            delete i.second;
+            free(i.first);
         }
-        map.clear();
-        list.clear();
+        member_list.clear();
     }
 
-   DLLLOCAL bool inList(const char* name) const {
-      return map.find(const_cast<char*>(name)) != map.end();
-   }
+    DLLLOCAL bool inList(const char* name) const {
+        return (bool)find(name);
+    }
 
-   DLLLOCAL T* find(const char* name) const {
-      typename member_map_t::const_iterator it = map.find(const_cast<char*>(name));
-      return it == map.end() ? nullptr : it->second;
-   }
+    DLLLOCAL T* find(const char* name) const {
+        typename member_list_t::const_iterator i = std::find_if(member_list.begin(), member_list.end(), [name](const member_list_element_t& e) -> bool {return !strcmp(e.first, name); });
+        return i == member_list.end() ? nullptr : i->second;
+    }
 
-   DLLLOCAL bool empty() const {
-      return map.empty();
-   }
+    DLLLOCAL bool empty() const {
+        return member_list.empty();
+    }
 
-   DLLLOCAL void addNoCheck(char* name, T* info) {
-      assert(name);
-      assert(info);
-      assert(!inList(name));
-      map[name] = info;
-      list.push_back(std::make_pair(name, info));
-   }
+    DLLLOCAL void addNoCheck(char* name, T* info) {
+        assert(name);
+        assert(info);
+        assert(!inList(name));
+        member_list.push_back(std::make_pair(name, info));
+    }
 
-   DLLLOCAL void addNoCheck(std::pair<char*, T*> pair) {
-      addNoCheck(pair.first, pair.second);
-   }
+    DLLLOCAL void addNoCheck(std::pair<char*, T*> pair) {
+        addNoCheck(pair.first, pair.second);
+    }
 
-   DLLLOCAL void moveAllTo(QoreMemberMapBase<T>& dest) {
-      dest.map.insert(map.begin(), map.end());
-      dest.list.insert(dest.list.end(), list.begin(), list.end());
-      map.clear();
-      list.clear();
-   }
+    DLLLOCAL void moveAllTo(QoreMemberMapBase<T>& dest) {
+        dest.member_list.insert(dest.member_list.end(), member_list.begin(), member_list.end());
+        member_list.clear();
+    }
 
-   DLLLOCAL DeclOrderIterator beginDeclOrder() const {
-      return list.begin();
-   }
-
-   DLLLOCAL DeclOrderIterator endDeclOrder() const {
-      return list.end();
-   }
-
-   DLLLOCAL SigOrderIterator beginSigOrder() const {
-      return map.begin();
-   }
-
-   DLLLOCAL SigOrderIterator endSigOrder() const {
-      return map.end();
-   }
-
-   DLLLOCAL size_t size() const {
-      return list.size();
-   }
-
-protected:
-   member_list_t list;
-   member_map_t map;
+    DLLLOCAL size_t size() const {
+        return member_list.size();
+    }
 };
 
 class QoreMemberMap : public QoreMemberMapBase<QoreMemberInfo> {
@@ -1119,8 +1087,7 @@ public:
       assert(name);
       assert(info);
       assert(!inList(name));
-      map[name] = info;
-      list.insert(list.begin() + inheritedCount++, std::make_pair(name, info));
+      member_list.insert(member_list.begin() + inheritedCount++, std::make_pair(name, info));
    }
 
    DLLLOCAL void parseInit();
@@ -1133,23 +1100,22 @@ private:
 class QoreVarMap : public QoreMemberMapBase<QoreVarInfo> {
 public:
     DLLLOCAL void clear(ExceptionSink* xsink) {
-        for (member_list_t::reverse_iterator i = list.rbegin(), e = list.rend(); i != e; ++i) {
+        for (member_list_t::reverse_iterator i = member_list.rbegin(), e = member_list.rend(); i != e; ++i) {
             i->second->clear(xsink);
         }
     }
 
     DLLLOCAL void del(ExceptionSink* xsink) {
-        for (member_list_t::reverse_iterator i = list.rbegin(), e = list.rend(); i != e; ++i) {
+        for (member_list_t::reverse_iterator i = member_list.rbegin(), e = member_list.rend(); i != e; ++i) {
             i->second->delVar(xsink);
             free(i->first);
             delete i->second;
         }
-        map.clear();
-        list.clear();
+        member_list.clear();
     }
 
     DLLLOCAL void del() {
-        for (member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
+        for (member_list_t::reverse_iterator i = member_list.rbegin(), e = member_list.rend(); i != e; ++i) {
             assert(!i->second->val.hasValue());
             /*
             // when rolling back a failed parse, vars may have values, but no exception can happen, so xsink can be nullptr
@@ -1158,13 +1124,11 @@ public:
             free(i->first);
             delete i->second;
         }
-        map.clear();
-        list.clear();
+        member_list.clear();
     }
 
     DLLLOCAL void clearNoFree() {
-        map.clear();
-        list.clear();
+        member_list.clear();
     }
 
     DLLLOCAL void moveAllTo(QoreClass* qc, ClassAccess access);
@@ -3238,6 +3202,49 @@ public:
 
     DLLLOCAL static const qore_method_private* get(const QoreMethod& m) {
         return m.priv;
+    }
+};
+
+template <class T>
+class PrivateIteratorBase {
+public:
+    DLLLOCAL PrivateIteratorBase(const T& obj) : obj(obj), i(obj.end()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == obj.end()) {
+            i = obj.begin();
+        }
+        else {
+            ++i;
+        }
+        return (i != obj.end());
+    }
+
+    //! returns true if the iterator is pointing at a valid element
+    DLLLOCAL bool valid() const {
+        return i != obj.end();
+    }
+
+protected:
+    const T& obj;
+    typename T::const_iterator i;
+};
+
+template <class T, class U>
+class PrivateMemberIteratorBase : public PrivateIteratorBase<typename T::member_list_t> {
+public:
+    DLLLOCAL PrivateMemberIteratorBase(const typename T::member_list_t& obj) : PrivateIteratorBase<typename T::member_list_t>(obj) {
+    }
+
+    DLLLOCAL const U& getMember() const {
+        assert(this->valid());
+        return *reinterpret_cast<const U*>(this->i->second);
+    }
+
+    DLLLOCAL const char* getName() const {
+        assert(this->valid());
+        return this->i->first;
     }
 };
 
