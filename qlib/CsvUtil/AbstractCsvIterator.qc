@@ -858,5 +858,5 @@ while (i.next()) {
             }
             return ("type": type, "spec_fields": r, "all_fields": l);
         }
-    }
+    } # AbstractCsvIterator class
 } # CsvUtil namespace

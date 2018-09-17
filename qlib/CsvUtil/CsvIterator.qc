@@ -80,5 +80,5 @@ public namespace CsvUtil {
         auto memberGate(string name) {
             return AbstractCsvIterator::memberGate(name);
         }
-    }
+    } # CsvIterator class
 } # CsvUtil namespace

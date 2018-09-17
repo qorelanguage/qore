@@ -61,5 +61,5 @@ public namespace CsvUtil {
             return AbstractCsvIterator::memberGate(name);
         }
 
-    }
+    } # CsvDataIterator class
 } # CsvUtil namespace

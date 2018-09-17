@@ -340,48 +340,6 @@ public namespace CsvUtil {
         global_compat_force_empty_string = val;
     }
 
-    #! The CsvWriter class for safe CSV data creation
-    public class CsvWriter inherits AbstractCsvWriter {
-        private {
-            #! the output stream for the CSV data
-            StreamWriter output;
-        }
-
-        #! creates the CsvWriter in single-type mode with the @ref Qore::OutputStream "OutputStream" and an optional option hash
-        /**
-            @param output the @ref Qore::OutputStream "OutputStream" for the CSV data generated
-            @param opts @ref csvwriter_options
-
-            @throw CSVFILEITER-ERROR in the case of incorrect options
-        */
-        constructor(Qore::OutputStream output, *hash opts) : AbstractCsvWriter("STREAM", opts) {
-            # we do not use the encoding option with the StreamWriter constructor() here, because we always generate output data
-            # with the output encoding in any case
-            self.output = new StreamWriter(output);
-            writeHeaders();
-        }
-
-        #! creates the CsvWriter in multi-type mode with the @ref Qore::OutputStream "OutputStream" and an option hash
-        /**
-            @param output the @ref Qore::OutputStream "OutputStream" for the CSV data generated
-            @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
-            @param opts @ref csvwriter_options
-
-            @throw CSVFILEITER-ERROR in the case of incorrect options
-        */
-        constructor(Qore::OutputStream output, hash spec, hash opts) : AbstractCsvWriter("STREAM", spec, opts) {
-            # we do not use the encoding option with the StreamWriter constructor() here, because we always generate output data
-            # with the output encoding in any case
-            self.output = new StreamWriter(output);
-            writeHeaders();
-        }
-
-        #! renders the line and writes it to the output stream
-        private writeRawLine(list values) {
-            output.print(prepareRawLine(values));
-        }
-    }
-
     #! The CsvFileWriter class for safe CSV file creation
     /**
         @see
