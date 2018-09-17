@@ -137,13 +137,13 @@ private:
 //! Allows iteration of a hashdecl's members
 class TypedHashDeclMemberIterator {
 public:
-    DLLEXPORT TypedHashDeclMemberIterator(const TypedHashDecl* thd);
+    DLLEXPORT TypedHashDeclMemberIterator(const TypedHashDecl& thd);
 
     DLLEXPORT ~TypedHashDeclMemberIterator();
 
     DLLEXPORT bool next();
 
-    DLLEXPORT const QoreExternalMemberBase* getMember() const;
+    DLLEXPORT const QoreExternalMemberBase& getMember() const;
 
     DLLEXPORT const char* getName() const;
 

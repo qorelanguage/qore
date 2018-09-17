@@ -92,13 +92,15 @@ public:
         if (name != other.name || members.size() != other.members.size())
             return false;
 
-        for (HashDeclMemberMap::DeclOrderIterator ti = members.beginDeclOrder(), oi = other.members.beginDeclOrder(), te = members.endDeclOrder(); ti != te; ++ti, ++oi) {
+        for (HashDeclMemberMap::const_iterator ti = members.member_list.begin(), oi = other.members.member_list.begin(), te = members.member_list.end(); ti != te; ++ti, ++oi) {
             // if the member's name is different, return false
-            if (strcmp(oi->first, ti->first))
+            if (strcmp(oi->first, ti->first)) {
                return false;
+            }
             // if the member's type is different, return false
-            if (!ti->second->equal(*oi->second))
+            if (!ti->second->equal(*oi->second)) {
                return false;
+            }
         }
 
         return true;
@@ -148,11 +150,12 @@ public:
         parse_init_done = true;
 
         // initialize new members
-        for (HashDeclMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
-            if (i->second)
-                i->second->parseInit(i->first, true);
+        for (auto& i : members.member_list) {
+            if (i.second) {
+                i.second->parseInit(i.first, true);
+            }
             // check new members for conflicts in base hashdecls
-            //parseCheckMemberInBaseHashDecl(i->first, i->second);
+            //parseCheckMemberInBaseHashDecl(i.first, i.second);
         }
     }
 
