@@ -1418,4 +1418,35 @@ check_ip_address(str, True);
         return False;
     }
 
+    #! Verifies whether a string begins with specific substring
+    /** @param str string to be checked
+        @param substr substring to look for at str's start
+
+        @return True if str starts with substr, False otherwise
+    */
+    public bool sub string_starts_with(string str, string substr) {
+        if (substr == "") {
+            return True;
+        }
+
+        return str.find(substr) == 0;
+    }
+
+    #! Verifies whether a string ends with specific substring
+    /** @param str string to be checked
+        @param substr substring to look for at str's end
+
+        @return True if str ends with substr, False otherwise
+    */
+    public bool sub string_ends_with(string str, string substr) {
+        int str_len = str.length();
+        int substr_len = substr.length();
+
+        if (substr_len == 0) {
+            return True;
+        }
+
+        return str_len >= substr_len && str.rfind(substr) == str_len - substr_len;
+    }
+
 }

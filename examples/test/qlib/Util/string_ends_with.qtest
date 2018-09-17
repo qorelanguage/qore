@@ -1,0 +1,48 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class StringEndsWithTest
+
+public class StringEndsWithTest inherits QUnit::Test {
+
+    private {
+        list params_true = (
+            # (str, substr)
+            ("", ""),
+            ("FOO", ""),
+            ("FOO", "FOO"),
+            ("FOO", "OO"),
+            ("FOO", "O"),
+        );
+
+        list params_false = (
+            # (str, substr)
+            ("", "BAR"),
+            ("FOO", "foo"),
+            ("FOO", "o"),
+        );
+    }
+
+    constructor() : Test ("StringEndsWithTest", "1.0") {
+        addTestCase("string_ends_with test", \test_string_ends_with());
+        set_return_value(main());
+    }
+
+    test_string_ends_with() {
+
+        foreach list p in (params_true) {
+            assertTrue(string_ends_with(p[0], p[1]), sprintf("'%s' ends with '%s'", p[0], p[1]));
+        }
+
+        foreach list p in (params_false) {
+            assertFalse(string_ends_with(p[0], p[1]), sprintf("'%s' doesn't end with '%s'", p[0], p[1]));
+        }
+    }
+}
