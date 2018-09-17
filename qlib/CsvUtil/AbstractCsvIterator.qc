@@ -22,11 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-# %requires qore >= 0.8.13
-
-# %requires Util
-
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
 %strict-args
