@@ -340,39 +340,6 @@ public namespace CsvUtil {
         global_compat_force_empty_string = val;
     }
 
-    #! The CsvDataIterator class allows arbitrary CSV string data to be iterated on a record basis
-    /** The class is deprecated as @ref CsvIterator provides more flexibility.
-        @see
-        - @ref CsvUtil::CsvIterator "CsvIterator" for a stream-based class providing the same functionality as this class in a more generic way
-        - @ref abstractcsviterator_options
-        - @ref abstractcsviterator_option_field_types
-        - @ref abstractcsviterator_option_field_hash
-     */
-    public class CsvDataIterator inherits CsvUtil::AbstractCsvIterator {
-
-        #! Creates the CsvDataIterator with the input data and optionally an option hash
-        /** @param data the input data to iterate
-            @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
-
-            @throw ABSTRACTCSVITERATOR-ERROR invalid or unknown option; invalid data type for option; \c "header_names" is @ref Qore::True "True" and \c "header_lines" is 0 or \c "headers" is also present; unknown field type
-         */
-        constructor(string data, *hash opts) : AbstractCsvIterator(new DataLineIterator(data, opts.eol), opts) {
-        }
-
-        #! Creates the CsvDataIterator in multi-type mode with the path of the file to read and an option hash
-        /** @param data the input data to iterate
-            @param spec a hash of field and type definition; see @ref abstractcsviterator_option_field_hash for more information
-            @param opts a hash of optional options; see @ref abstractcsviterator_options for more information
-         */
-        constructor(string data, hash spec, hash opts) : AbstractCsvIterator(new DataLineIterator(data, opts.eol), spec, opts) {
-        }
-
-        auto memberGate(string name) {
-            return AbstractCsvIterator::memberGate(name);
-        }
-
-    }
-
     #! The AbstractCsvWriter class provides a parent for all CSV writers
     /**
         Any inherited class must provide concrete implementations for the following abstract method, where the real physical write action must be implemented.
