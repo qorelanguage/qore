@@ -405,6 +405,53 @@ public namespace FsUtil {
         throw "FILE-WRITE-ERROR", "Impossible to find a unique name.";
     }
 
+    #! Class implementing a user friendly temporary directory creation - users don't need to care about removing it
+    public class TmpDir {
+
+        public {
+            string path;
+        }
+
+        #! Creates a unique temporary directory and returns its absolute path
+        /** @param prefix prefix to be used in the newly created directory name
+            @param suffix suffix to be used in the newly created directory name
+            @param path path to a dir in which the caller wants to create the new directory; if not provided, standard temp
+                        location will be used
+        */
+        public constructor(*string prefix, *string suffix, *string path) {
+            self.path = make_tmp_dir(prefix, suffix, path);
+        }
+
+        public destructor() {
+            remove_tree(path);
+        }
+    }
+
+    #! Class implementing a user friendly temporary file creation - users don't need to care about removing it
+    public class TmpFile {
+
+        public {
+            string path;
+            File file;
+        }
+
+        #! Creates and opens a unique temporary file and returns its absolute path as well as its File object
+        /** @param prefix prefix to be used in the newly created file name
+            @param suffix suffix to be used in the newly created file name
+            @param path path to a dir in which the caller wants to create the new file; if not provided, standard temp
+                        location will be used
+        */
+        public constructor(*string prefix, *string suffix, *string path) {
+            hash f = make_tmp_file(prefix, suffix, path);
+            self.path = f.path;
+            self.file = f.file;
+        }
+
+        public destructor() {
+            remove_file(path);
+        }
+    }
+
     #! Removes a regular file or symlink specified by path
     /** @param path path to a filesystem tree root which should be removed
 
