@@ -597,7 +597,7 @@ list<NormalMethod> Class::getNormalMethods() [flags=RET_VALUE_ONLY] {
 
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTMETHOD->getTypeInfo()), xsink);
 
-    QoreMethodIterator i(c->cls);
+    QoreMethodIterator i(*c->cls);
     while (i.next()) {
         const QoreMethod* m = i.getMethod();
         if (m->getMethodType() != MT_Normal) {
@@ -634,7 +634,7 @@ list<NormalMethodVariant> Class::getNormalVariants() [flags=RET_VALUE_ONLY] {
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_NORMALMETHODVARIANT->getTypeInfo()), xsink);
 
-    QoreMethodIterator i(c->cls);
+    QoreMethodIterator i(*c->cls);
     while (i.next()) {
         const QoreMethod* m = i.getMethod();
         method_type_e mtype = m->getMethodType();
@@ -667,7 +667,7 @@ list<StaticMethodVariant> Class::getStaticVariants() [flags=RET_VALUE_ONLY] {
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_STATICMETHODVARIANT->getTypeInfo()), xsink);
 
-    QoreMethodIterator i(c->cls);
+    QoreMethodIterator i(*c->cls);
     while (i.next()) {
         const QoreMethod* m = i.getMethod();
         method_type_e mtype = m->getMethodType();
@@ -925,9 +925,9 @@ list<Class> Class::getClassHierarchy() [flags=RET_VALUE_ONLY] {
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASS->getTypeInfo()), xsink);
 
-    QoreClassHierarchyIterator i(c->cls);
+    QoreClassHierarchyIterator i(*c->cls);
     while (i.next()) {
-        l->push(new QoreObject(QC_CLASS, c->pgm, new QoreReflectionClass(c->pgm, i.get())), xsink);
+        l->push(new QoreObject(QC_CLASS, c->pgm, new QoreReflectionClass(c->pgm, &i.get())), xsink);
     }
 
     return l.release();
@@ -1078,14 +1078,14 @@ list<AbstractClassMember> Class::getMembers() [flags=RET_VALUE_ONLY] {
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTCLASSMEMBER->getTypeInfo()), xsink);
 
-    QoreClassMemberIterator mi(c->cls);
+    QoreClassMemberIterator mi(*c->cls);
     while (mi.next()) {
-        l->push(new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, mi.getName(), mi.getMember(), false)), xsink);
+        l->push(new QoreObject(QC_NORMALMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, mi.getName(), &mi.getMember(), false)), xsink);
     }
 
-    QoreClassStaticMemberIterator smi(c->cls);
+    QoreClassStaticMemberIterator smi(*c->cls);
     while (smi.next()) {
-        l->push(new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, smi.getName(), smi.getMember(), false)), xsink);
+        l->push(new QoreObject(QC_STATICMEMBER, c->pgm, new QoreReflectionClassMember(c->pgm, c->cls, smi.getName(), &smi.getMember(), false)), xsink);
     }
 
     return l.release();
@@ -1138,9 +1138,9 @@ list<ClassConstant> Class::getConstants() [flags=RET_VALUE_ONLY] {
 
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_CLASSCONSTANT->getTypeInfo()), xsink);
-    QoreClassConstantIterator i(c->cls);
+    QoreClassConstantIterator i(*c->cls);
     while (i.next()) {
-        l->push(new QoreObject(QC_CLASSCONSTANT, c->pgm, new QoreReflectionClassConstant(c->pgm, i.get(), c->cls)), xsink);
+        l->push(new QoreObject(QC_CLASSCONSTANT, c->pgm, new QoreReflectionClassConstant(c->pgm, &i.get(), c->cls)), xsink);
     }
 
     return l.release();

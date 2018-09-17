@@ -327,9 +327,9 @@ list<TypedHashMember> TypedHash::getMembers() [flags=RET_VALUE_ONLY] {
     // the typed hash ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_TYPEDHASHMEMBER->getTypeInfo()), xsink);
 
-    TypedHashDeclMemberIterator i(thd->th);
+    TypedHashDeclMemberIterator i(*thd->th);
     while (i.next()) {
-        l->push(new QoreObject(QC_TYPEDHASHMEMBER, thd->pgm, new QoreReflectionHashDeclMember(thd->pgm, thd->th, i.getName(), i.getMember())), xsink);
+        l->push(new QoreObject(QC_TYPEDHASHMEMBER, thd->pgm, new QoreReflectionHashDeclMember(thd->pgm, thd->th, i.getName(), &i.getMember())), xsink);
     }
 
     return l.release();

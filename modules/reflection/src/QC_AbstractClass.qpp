@@ -826,7 +826,7 @@ list<AbstractMethod> AbstractClass::getMethods() [flags=RET_VALUE_ONLY] {
     ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTMETHOD->getTypeInfo()), xsink);
 
     {
-        QoreMethodIterator i(c->cls);
+        QoreMethodIterator i(*c->cls);
         while (i.next()) {
             ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->pgm, i.getMethod()), xsink);
             l->push(get_method_object(m, xsink), xsink);
@@ -837,7 +837,7 @@ list<AbstractMethod> AbstractClass::getMethods() [flags=RET_VALUE_ONLY] {
     }
 
     {
-        QoreStaticMethodIterator i(c->cls);
+        QoreStaticMethodIterator i(*c->cls);
         while (i.next()) {
             ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->pgm, i.getMethod()), xsink);
             l->push(get_method_object(m, xsink), xsink);
@@ -870,7 +870,7 @@ list<AbstractMethodVariant> AbstractClass::getVariants() [flags=RET_VALUE_ONLY] 
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_ABSTRACTMETHODVARIANT->getTypeInfo()), xsink);
 
-    QoreMethodIterator i(c->cls);
+    QoreMethodIterator i(*c->cls);
     while (i.next()) {
         const QoreMethod* m = i.getMethod();
         append_variant_objects(**rv, c->pgm, m->getFunction(), m->getMethodType(), xsink);
@@ -899,10 +899,10 @@ list<hash<ClassAccessInfo>> AbstractClass::getParentClasses() [flags=RET_VALUE_O
     // the class ptr must be valid
     ReferenceHolder<QoreListNode> l(new QoreListNode(hashdeclClassAccessInfo->getTypeInfo()), xsink);
 
-    QoreParentClassIterator i(c->cls);
+    QoreParentClassIterator i(*c->cls);
     while (i.next()) {
         ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclClassAccessInfo, nullptr), xsink);
-        h->setKeyValue("cls", get_class_object(c->pgm, i.getParentClass()), xsink);
+        h->setKeyValue("cls", get_class_object(c->pgm, &i.getParentClass()), xsink);
         h->setKeyValue("access", get_access(i.getAccess()), xsink);
         h->setKeyValue("access_string", new QoreStringNode(get_access_string(i.getAccess())), xsink);
 

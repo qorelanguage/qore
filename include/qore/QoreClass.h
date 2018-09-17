@@ -992,7 +992,7 @@ private:
     void* priv;
 
 public:
-    DLLEXPORT QoreMethodIterator(const QoreClass* qc);
+    DLLEXPORT QoreMethodIterator(const QoreClass& qc);
     DLLEXPORT ~QoreMethodIterator();
     DLLEXPORT bool next();
     DLLEXPORT const QoreMethod* getMethod() const;
@@ -1004,7 +1004,7 @@ private:
     void* priv;
 
 public:
-    DLLEXPORT QoreStaticMethodIterator(const QoreClass* qc);
+    DLLEXPORT QoreStaticMethodIterator(const QoreClass& qc);
     DLLEXPORT ~QoreStaticMethodIterator();
     DLLEXPORT bool next();
     DLLEXPORT const QoreMethod* getMethod() const;
@@ -1055,7 +1055,7 @@ public:
 class QoreParentClassIterator final {
 public:
     //! creates the iterator; call next() to start iterating
-    DLLEXPORT QoreParentClassIterator(const QoreClass* cls);
+    DLLEXPORT QoreParentClassIterator(const QoreClass& cls);
 
     //! destroys the object
     DLLEXPORT ~QoreParentClassIterator();
@@ -1067,7 +1067,7 @@ public:
     DLLEXPORT bool valid() const;
 
     //! returns the parent class
-    DLLEXPORT const QoreClass* getParentClass() const;
+    DLLEXPORT const QoreClass& getParentClass() const;
 
     //! returns the access of the parent class
     DLLEXPORT ClassAccess getAccess() const;
@@ -1082,7 +1082,7 @@ private:
 class QoreClassMemberIterator final {
 public:
     //! creates the iterator; call next() to start iterating
-    DLLEXPORT QoreClassMemberIterator(const QoreClass* cls);
+    DLLEXPORT QoreClassMemberIterator(const QoreClass& cls);
 
     //! destroys the object
     DLLEXPORT ~QoreClassMemberIterator();
@@ -1094,7 +1094,7 @@ public:
     DLLEXPORT bool valid() const;
 
     //! returns the member
-    DLLEXPORT const QoreExternalNormalMember* getMember() const;
+    DLLEXPORT const QoreExternalNormalMember& getMember() const;
 
     //! returns the member's name
     DLLEXPORT const char* getName() const;
@@ -1109,7 +1109,7 @@ private:
 class QoreClassStaticMemberIterator final {
 public:
     //! creates the iterator; call next() to start iterating
-    DLLEXPORT QoreClassStaticMemberIterator(const QoreClass* cls);
+    DLLEXPORT QoreClassStaticMemberIterator(const QoreClass& cls);
 
     //! destroys the object
     DLLEXPORT ~QoreClassStaticMemberIterator();
@@ -1121,7 +1121,7 @@ public:
     DLLEXPORT bool valid() const;
 
     //! returns the member
-    DLLEXPORT const QoreExternalStaticMember* getMember() const;
+    DLLEXPORT const QoreExternalStaticMember& getMember() const;
 
     //! returns the member's name
     DLLEXPORT const char* getName() const;
@@ -1136,7 +1136,7 @@ private:
 class QoreClassConstantIterator final {
 public:
     //! creates the iterator; call next() to start iterating
-    DLLEXPORT QoreClassConstantIterator(const QoreClass* cls);
+    DLLEXPORT QoreClassConstantIterator(const QoreClass& cls);
 
     //! destroys the object
     DLLEXPORT ~QoreClassConstantIterator();
@@ -1148,7 +1148,7 @@ public:
     DLLEXPORT bool valid() const;
 
     //! returns the
-    DLLEXPORT const QoreExternalConstant* get() const;
+    DLLEXPORT const QoreExternalConstant& get() const;
 
 private:
     std::unique_ptr<class qore_class_constant_iterator> priv;
@@ -1162,7 +1162,7 @@ private:
 class QoreClassHierarchyIterator final {
 public:
     //! creates the iterator; call next() to start iterating
-    DLLEXPORT QoreClassHierarchyIterator(const QoreClass* cls);
+    DLLEXPORT QoreClassHierarchyIterator(const QoreClass& cls);
 
     //! destroys the object
     DLLEXPORT ~QoreClassHierarchyIterator();
@@ -1174,7 +1174,7 @@ public:
     DLLEXPORT bool valid() const;
 
     //! returns the parent class
-    DLLEXPORT const QoreClass* get() const;
+    DLLEXPORT const QoreClass& get() const;
 
     //! returns true if the class has virtual inheritance, meaning that it is a builtin class without its own private data
     /** if true, compatible private data is supplied by a child class
