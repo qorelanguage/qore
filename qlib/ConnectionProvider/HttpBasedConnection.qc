@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# Qore InvalidConnection class definition
+# Qore HttpBasedConnection class definition
 
-/*  InvalidConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  HttpBasedConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -29,33 +29,6 @@
 
 #! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
 public namespace ConnectionProvider {
-    #! this class is used to mark invalid connections so they can be loaded and reported as invalid
-    public class InvalidConnection inherits AbstractConnection {
-        private {
-            string error;
-        }
-
-        #! creates the invalid connection object
-        constructor(string n_name, string n_desc, string n_url, *hash n_opts, string n_error, hash urlh) : AbstractConnection(n_name, n_desc, n_url, False, n_opts, urlh) {
-            error = n_error;
-        }
-
-        #! throws an exception because the object is invalid
-        private object getImpl(bool connect = True, *hash rtopts) {
-            throw "INVALID-CONNECTION", sprintf("connection %y (type %y url %y) is invalid and therefore could not be loaded: %s", name, urlh.protocol, url, error);
-        }
-
-        #! throws an exception because the object is invalid
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            getImpl(False);
-        }
-
-        #! returns \c "invalid"
-        string getType() {
-            return "invalid";
-        }
-    } # InvalidConnection class
-
     #! base class for HTTP-based connections that need their URLs rewritten to create the real connection object
     public class HttpBasedConnection inherits AbstractConnection {
         public {
