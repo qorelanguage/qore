@@ -28,7 +28,7 @@
 %require-types
 %enable-all-warnings
 
-#! the CsvUtil namespace. All objects used in the CsvUtil module should be inside this namespace
+#! the CsvUtil namespace. All classes used in the CsvUtil module should be inside this namespace
 public namespace CsvUtil {
     #! The CsvFileIterator class allows CSV files to be iterated on a record basis
     /** The class is deprecated as @ref CsvIterator provides more flexibility.

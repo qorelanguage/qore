@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore AbstractBulkOperation class definition
+#! Qore BulkInsertOperation class definition
 
-/*  AbstarctBulkOperation.qc Copyright 2015 - 2017 Qore Technologies, s.r.o.
+/*  BulkInsertOperation.qc Copyright 2015 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@
 # assume local scope for variables, do not use "$" signs
 %new-style
 
-#! the BulkSqlUtil namespace. All objects used in the BulkSqlUtil module should be inside this namespace
+#! the BulkSqlUtil namespace. All classes used in the BulkSqlUtil module should be inside this namespace
 public namespace BulkSqlUtil {
     #! base class for bulk DML insert operations
     /** This class assists with bulk inserts into a target @ref SqlUtil::AbstractTable "table".

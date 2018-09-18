@@ -28,7 +28,7 @@
 %require-types
 %enable-all-warnings
 
-#! the CsvUtil namespace. All objects used in the CsvUtil module should be inside this namespace
+#! the CsvUtil namespace. All classes used in the CsvUtil module should be inside this namespace
 public namespace CsvUtil {
     #! The CsvWriter class for safe CSV data creation
     public class CsvWriter inherits AbstractCsvWriter {
