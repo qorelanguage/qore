@@ -230,6 +230,54 @@ class qdx {
         return comment;
     }
 
+    #! doxygen dislikes qouted strings but accept apostrophed ones
+    string adjustQuotedStrings(string line) {
+        int flag = 0;
+        int i = 0;
+        while (i < line.size()) {
+            switch (flag) {
+                case 0:
+                    switch (line[i]) {
+                        case '"':
+                            splice line, i, 1, "'";
+                            flag = 1;
+                            break;
+                        case "'":
+                            flag = 2;
+                            break;
+                    }
+                    break;
+                case 1:  # in quoted string
+                    switch (line[i]) {
+                        case '\':
+                            i++;  # skip next char
+                            break;
+                        case '"':
+                            splice line, i, 1, "'";
+                            flag = 0;
+                            break;
+                        case "'":
+                            splice line, i, 0, '\';   # prefix apostroph
+                            i++;
+                            break;
+                    }
+                    break;
+                case 2:  # in apostropted string
+                    switch (line[i]) {
+                        case '\':
+                            i++;  # skip next char
+                            break;
+                        case "'":
+                            flag = 0;
+                            break;
+                    }
+                    break;
+            }
+            i++;
+        }
+        return line;
+    }
+
     processQore(string fn, string nn) {
         checkNames(fn, nn);
 
@@ -340,7 +388,7 @@ class qdx {
             # see if the line is the start of a method or function declaration
             if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*(#.*)?$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/
                 && line !~ /^[[:blank:]]*\"/) {
-                #printf("method or func: %s", line);
+                # printf("method or func: %s", line);
 
                 # remove "$" signs
                 line =~ s/\$//g;
@@ -351,15 +399,21 @@ class qdx {
                 # make into a declaration (also remove any parent class constructor calls)
                 line =~ s/[[:blank:]]*(?:([^:]):[^:].*\(.*)?{[[:blank:]]*$/$1;/;
 
+                # modify string default value quoted by quotes to apostroph
+                line = adjustQuotedStrings(line);
+
                 # read until closing curly bracket '}'
                 readUntilCloseBracket(inf);
             }
 
             if (line =~ /[[:blank:]]*abstract .*;[[:blank:]]*$/) {
-                #printf("method or func: %s", line);
+                #printf("abstract method: %s", line);
 
                 # remove "$" signs
                 line =~ s/\$//g;
+
+                # modify string default value quoted by quotes to apostroph
+                line = adjustQuotedStrings(line);
             }
 
             # convert Qore line comments to C++ line comments
