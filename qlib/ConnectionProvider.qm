@@ -171,7 +171,7 @@ public namespace ConnectionProvider {
         *date updated;    #!< the date/time value of the update (or @ref nothing if not updated)
         string url;       #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref Qore::True "True")
         hash url_hash;    #!< a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
-        bool enabled;     #!< a boolean value indicating if the connection should be enabled or not. This flag does not affects anything by default, it is for user re-implementations
+        bool enabled;     #!< a boolean value indicating if the connection should be enabled or not. This flag does not affect anything by default, it is for user re-implementations
     }
 
     #! config informaton as returned by @ref ConnectionProvider::AbstractConnection::getConfigHash() "AbstractConnection::getConfigHash()"
