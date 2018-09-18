@@ -30,6 +30,8 @@ public class ConnectionProviderTest inherits QUnit::Test {
         string url = "ftp://user:pass@localhost:1234/some_path";
         hash urlh = parse_url(url);
         FtpConnection fc("name", "desc", url, True, NOTHING, urlh);
+        assertEq(True, fc.enabled, "connection is enabled by default");
+
         hash<ConnectionConstructorInfo> info = fc.getConstructorInfo();
         assertEq("FtpClient", info.class_name);
         assertEq(url, info.args[0]);
@@ -68,6 +70,8 @@ public class ConnectionProviderTest inherits QUnit::Test {
             "ssl_key_password": KeyPassword,
         );
         HttpConnection hc("name", "desc", url, True, opts, urlh);
+        assertEq(True, hc.enabled, "connection is enabled by default");
+
         HTTPClient client = hc.get();
         assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
 
