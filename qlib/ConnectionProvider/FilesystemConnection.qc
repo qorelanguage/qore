@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# Qore HttpConnection class definition
+# Qore FilesystemConnection class definition
 
-/*  HttpConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  FilesystemConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -29,118 +29,6 @@
 
 #! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
 public namespace ConnectionProvider {
-    #! class for HTTP connections; returns @ref Qore::HTTPClient objects
-    /** supports the following options:
-        - \c "connect_timeout": connection timeout to use in milliseconds (default: 45 seconds)
-        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-        - \c "max_redirects": maximum redirects to support
-        - \c "proxy": proxy URL to use
-        - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
-        - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
-        - \c "ssl_key_password": the password to the private key given with \c "ssl_key_path"
-        - \c "ssl_verify_cert": if @ref Qore::True "True" then the server's certificate will only be accepted if it's verified
-        - \c "timeout": transfer timeout to use in milliseconds (default: 45 seconds)
-
-        @see @ref Qore::HTTPClient::constructor(hash) "HTTPClient::constructor(hash opts)" for more information on the above options
-    */
-    public class HttpConnection inherits AbstractConnection {
-        public {
-            #! HttpConnection object connection options
-            const Options = (
-                "http_version": True,
-                "max_redirects": True,
-                "proxy": True,
-                "timeout": True,
-                "connect_timeout": True,
-                "ssl_cert_path": True,
-                "ssl_key_password": True,
-                "ssl_key_path": True,
-                "ssl_verify_cert": True,
-                );
-
-            #! HttpConnection default options
-            const DefaultOptions = (
-                "timeout": 45s,
-                "connect_timeout": 45s,
-                );
-
-            const OptionList = Options.keys();
-        }
-
-        #! creates the HttpConnection object
-        /** @param name the name of the connection
-            @param desc connection description
-            @param url connection URL (potentially with password info)
-            @param monitor monitoring flag
-            @param opts connection options (@see getOptions() for valid options)
-            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
-        */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
-        }
-
-        #! returns an @ref Qore::HTTPClient object
-        /** @param connect if @ref Qore::True "True" then a connection is made by calling @ref Qore::HTTPClient::connect() before returning the object
-            @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
-        */
-        private Qore::HTTPClient getImpl(bool connect = True, *hash rtopts) {
-            HTTPClient sc(("url": url) + opts);
-            if (connect)
-                sc.connect();
-
-            return sc;
-        }
-
-        #! returns a hash that can be used to contruct the object dynamically
-        /** @since %ConnectionProvider 1.1
-        */
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            string my_code = "if (connect) {obj.connect();}";
-
-            return new hash<ConnectionConstructorInfo>((
-                "class_name": "HTTPClient",
-                "args": {"url": url} + opts,
-                "post_processing": my_code,
-            ));
-        }
-
-        #! gets options
-        /** @return returns a hash with the following supported options:
-            - \c "connect_timeout": connection timeout to use in milliseconds
-            - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-            - \c "max_redirects": maximum redirects to support
-            - \c "proxy": proxy URL to use
-            - \c "ssl_cert_path": a path to an X.509 client certificate file in PEM format
-            - \c "ssl_key_path": a path to a private key file in PEM format for the X.509 client certificate
-            - \c "ssl_key_password": the password to the private key given with \c "ssl_key_path"
-            - \c "ssl_verify_cert": if @ref Qore::True "True" then the server's certificate will only be accepted if it's verified
-            - \c "timeout": transfer timeout to use in milliseconds
-
-            @see @ref Qore::HTTPClient::constructor(hash) "HTTPClient::constructor(hash opts)" for more information on the above options
-        */
-        hash getOptions() {
-            return Options;
-        }
-
-        #! returns default options
-        /** @return default options as follows:
-            - \c "connect_timeout": (@ref relative_dates "relative date/time value") 45 seconds
-            - \c "timeout": (@ref relative_dates "relative date/time value") 45 seconds
-        */
-        *hash getDefaultOptions() {
-            return DefaultOptions;
-        }
-
-        #! returns \c "http"
-        string getType() {
-            return "http";
-        }
-
-        #! static constructor
-        static HttpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new HttpConnection(name, desc, url, monitor, opts, urlh);
-        }
-    } # HttpConnection class
-
     #! class for filesystem connections; returns an object of type @ref Qore::Dir; this can be used to monitor filesystem free space or to ensure a network filesystem is mounted, for example
     /** supports the following option:
         - \c "readonly": does not mark the connection as down if the directory is read-only; use for example if the connection should point to a read-only base directory; interface directories should normally be writable
