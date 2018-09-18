@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file BulkSqlUtil.qm module for performing bulk DML operations with SqlUtil
+#! Qore AbstractBulkOperation class definition
 
-/*  BulkSqlUtil.qm Copyright 2015 - 2017 Qore Technologies, s.r.o.
+/*  AbstarctBulkOperation.qc Copyright 2015 - 2017 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,6 +21,7 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 */
+%strict-args
 
 # minimum required Qore version
 %requires qore >= 0.9.0
@@ -34,54 +35,7 @@
 # assume local scope for variables, do not use "$" signs
 %new-style
 
-# use SqlUtil
-%requires(reexport) SqlUtil
-
-module BulkSqlUtil {
-    version = "1.3";
-    desc = "user module performing bulk DML operations with SqlUtil";
-    author = "David Nichols <david@qore.org>";
-    url = "http://qore.org";
-    license = "MIT";
-}
-
-/** @mainpage BulkSqlUtil Module
-
-    @tableofcontents
-
-    @section bulksqlutilintro Introduction to the BulkSqlUtil Module
-
-    The %BulkSqlUtil module provides APIs for bulk DML operations using <a href="../../SqlUtil/html/index.html">SqlUtil</a> in %Qore.
-    Bulk DML is the process of sending multiple rows to the dataserver in a single operation which allows for
-    the most efficient processing of large amounts of data.
-
-    Currently insert and upsert (SQL merge) operations are supported.
-
-    The main functionality provided by this module:
-    - @ref BulkSqlUtil::AbstractBulkOperation "AbstractBulkOperation": abstract base class for bulk DML operation classes
-    - @ref BulkSqlUtil::BulkInsertOperation "BulkInsertOperation": provides a high-level API for bulk DML inserts
-    - @ref BulkSqlUtil::BulkUpsertOperation "BulkUpsertOperation": provides a high-level API for bulk DML upsert uperations (ie SQL merge)
-
-    See the above classes for detailed information and examples.
-
-    @section bulksqlutil_relnotes Release Notes
-
-    @subsection bulksqlutil_v1_3 BulkSqlUtil v1.3
-    - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement"
-
-    @subsection bulksqlutil_v1_2 BulkSqlUtil v1.2
-    - updated the module to support drivers without bulk DML
-    - updated for complex types
-    - added @ref BulkSqlUtil::AbstractBulkOperation::size() "AbstractBulkOperation::size()"
-
-    @subsection bulksqlutil_v1_1 BulkSqlUtil v1.1
-    - fixed a bug in the @ref BulkSqlUtil::BulkInsertOperation "BulkInsertOperation" class where inserts would fail or silently insert invalid data in the second or later blocks when constant hashes were used (<a href="https://github.com/qorelanguage/qore/issues/1625">issue 1625</a>)
-
-    @subsection bulksqlutil_v1_0 BulkSqlUtil v1.0
-    - initial release of the module
-*/
-
-#! the BulkSqlUtil namespace contains all the definitions in the BulkSqlUtil module
+#! the BulkSqlUtil namespace. All objects used in the BulkSqlUtil module should be inside this namespace
 public namespace BulkSqlUtil {
     #! base class for bulk DML operations
     /** This is an abstract base class for bulk DML operations; this class provides the majority of the
@@ -516,7 +470,7 @@ on_error ds.rollback();
 
         #! flushes queued data to the database
         abstract private flushImpl();
-    }
+    } # AbstractBulkOperation class
 
     #! base class for bulk DML insert operations
     /** This class assists with bulk inserts into a target @ref SqlUtil::AbstractTable "table".
@@ -720,7 +674,7 @@ inserter.setRowCode(rowcode);
             if (rowcode)
                 map rowcode($1), (hbuf + rh).contextIterator();
         }
-    }
+    } # BulkInsertOperation class
 
     #! base class for bulk DML upsert operations
     /** This class assists with bulk upsert (SQL merge) operations into a target @ref SqlUtil::AbstractTable "table".
@@ -818,5 +772,5 @@ on_error ds.rollback();
             # execute the statement on the args
             upsert(hbuf);
         }
-    }
-}
+    } # BulkUpsertOperation class
+} # BulkSqlUtil namespace
