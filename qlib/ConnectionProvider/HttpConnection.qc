@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# Qore FtpConnection class definition
+# Qore HttpConnection class definition
 
-/*  FtpConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  HttpConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -29,83 +29,6 @@
 
 #! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
 public namespace ConnectionProvider {
-    #! class for FTP connections; returns @ref Qore::FtpClient objects
-    /** supports the following runtime options in getImpl():
-        - \c "path": overrides the path component in the URL at runtime
-        - \c "path_add": appends the given string to the path component of the URL at runtime
-    */
-    public class FtpConnection inherits AbstractConnection {
-        #! creates the FtpConnection object
-        /** @param name the name of the connection
-            @param desc connection description
-            @param url connection URL (potentially with password info)
-            @param monitor monitoring flag
-            @param opts connection options
-            @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
-        */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
-        }
-
-        #! returns \c "ftp"
-        string getType() {
-            return "ftp";
-        }
-
-        #! returns runtime options
-        /** return a hash with the following keys reflecting support for the corresponding runtime options in getImpl():
-            - \c "path": overrides the path component in the URL at runtime
-            - \c "path_add": appends the given string to the path component of the URL at runtime
-        */
-        *hash getRuntimeOptions() {
-            return {
-                "path": True,
-                "path_add": True,
-            };
-        }
-
-        #! returns an @ref Qore::FtpClient object
-        /** @param connect if @ref Qore::True "True" then a connection is made any if there is any path in the URL a \c CWD operation is performed to change to the target directory
-            @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
-        */
-        private FtpClient getImpl(bool connect = True, *hash rtopts) {
-            # set runtime path
-            *string rtpath = rtopts.path ?* urlh.path;
-            if (rtopts.path_add.val()) {
-                if (rtpath !~ /\/$/ && rtopts.path_add !~ /^\//)
-                    rtpath += "/";
-                rtpath += rtopts.path_add;
-            }
-
-            # create the object and perform post processing if necessary
-            FtpClient fc(url);
-            if (connect) {
-                fc.connect();
-                if (rtpath.val()) {
-                    fc.cwd(rtpath);
-                }
-            }
-            return fc;
-        }
-
-        #! returns a hash that can be used to contruct the object dynamically
-        /** @since %ConnectionProvider 1.1
-        */
-        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
-            string my_code = sprintf("if (connect) {obj.connect(); *string rtpath = rtopts.path ?* %s; if (rtpath.path_add.val()) {if (rtpath !~ /\\/$/ && rtopts.path_add !~ /^\\//) {rtpath += \"/\";} rtpath += rtopts.path_add;} if (rtpath.val()) {obj.cwd(rtpath);}}", urlh.path.val() ? sprintf("%y", urlh.path) : "NOTHING");
-
-            return new hash<ConnectionConstructorInfo>({
-                "class_name": "FtpClient",
-                "args": url,
-                "post_processing": my_code,
-            });
-        }
-
-        #! static constructor
-        static FtpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new FtpConnection(name, desc, url, monitor, opts, urlh);
-        }
-    } # FtpConnection class
-
     #! class for HTTP connections; returns @ref Qore::HTTPClient objects
     /** supports the following options:
         - \c "connect_timeout": connection timeout to use in milliseconds (default: 45 seconds)
