@@ -295,7 +295,7 @@ QoreValue QoreSerializable::serializeObjectToData(const QoreObject& obj, Referen
 }
 
 imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject& self, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, const QoreString& str, imap_t::iterator hint, ExceptionSink* xsink) {
-    const QoreClass* cls = self.getClass();
+    const QoreClass& cls = *self.getClass();
 
     // first write object to index
     assert(imap.find(str.c_str()) == imap.end());
@@ -303,7 +303,7 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
     imap_t::iterator i = imap.insert(hint, imap_t::value_type(str.c_str(), index_str));
 
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclObjectSerializationInfo, xsink), xsink);
-    h->setKeyValue("_class", new QoreStringNode(cls->getNamespacePath()), xsink);
+    h->setKeyValue("_class", new QoreStringNode(cls.getNamespacePath()), xsink);
 
     ReferenceHolder<QoreHashNode> class_data(xsink);
 
@@ -314,11 +314,11 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
             continue;
         }
 
-        const QoreClass* current_cls = ci.get();
+        const QoreClass& current_cls = ci.get();
 
         // insert module if necessary
         {
-            const char* module_name = current_cls->getModuleName();
+            const char* module_name = current_cls.getModuleName();
             if (module_name) {
                 mset.insert(module_name);
             }
@@ -327,14 +327,14 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
         // check if the class inherits Serializable and throw an exception if not
         {
             bool priv = false;
-            if (!current_cls->getClass(*QC_SERIALIZABLE, priv)) {
-                SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("cannot serialize class '%s' as it does not inherit 'Serializable' and therefore is not eligible for serialization", current_cls->getName()));
-                if (!current_cls->isSystem()) {
+            if (!current_cls.getClass(*QC_SERIALIZABLE, priv)) {
+                SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("cannot serialize class '%s' as it does not inherit 'Serializable' and therefore is not eligible for serialization", current_cls.getName()));
+                if (!current_cls.isSystem()) {
                     desc->sprintf("; to correct this error, declare Serializable as a parent class of '%s'",
-                        current_cls->getName());
+                        current_cls.getName());
                 }
-                if (cls != current_cls) {
-                    desc->sprintf(" (while serializing an object of class '%s')", cls->getName());
+                if (&cls != &current_cls) {
+                    desc->sprintf(" (while serializing an object of class '%s')", cls.getName());
                 }
                 xsink->raiseException("SERIALIZATION-ERROR", desc.release());
                 return imap.end();
@@ -344,12 +344,12 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
         // serialize class members for each member of the hierarchy separately
         ReferenceHolder<QoreHashNode> class_members(xsink);
 
-        if (current_cls->isSystem()) {
-            q_serializer_t serializer = current_cls->getSerializer();
+        if (current_cls.isSystem()) {
+            q_serializer_t serializer = current_cls.getSerializer();
             assert(serializer);
 
             // get class private data for serialization call
-            ReferenceHolder<AbstractPrivateData> private_data(self.getReferencedPrivateData(current_cls->getID(), xsink), xsink);
+            ReferenceHolder<AbstractPrivateData> private_data(self.getReferencedPrivateData(current_cls.getID(), xsink), xsink);
             if (*xsink) {
                 return imap.end();
             }
@@ -363,19 +363,19 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
         }
         else {
             // see if the local class has a serializeMembers() method defined
-            const QoreMethod* serializeMembers = current_cls->findLocalMethod("serializeMembers");
+            const QoreMethod* serializeMembers = current_cls.findLocalMethod("serializeMembers");
 
             // iterate all nornal members in the class
             QoreClassMemberIterator mi(ci.get());
             while (mi.next()) {
-                const QoreExternalNormalMember* m = mi.getMember();
+                const QoreExternalNormalMember& m = mi.getMember();
                 // skip members marked as transient
-                if (m->isTransient()) {
+                if (m.isTransient()) {
                     continue;
                 }
                 const char* mname = mi.getName();
 
-                ValueHolder val(self.getReferencedMemberNoMethod(mname, current_cls, xsink), xsink);
+                ValueHolder val(self.getReferencedMemberNoMethod(mname, &current_cls, xsink), xsink);
                 if (*xsink) {
                     return imap.end();
                 }
@@ -387,7 +387,7 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
 
                 ValueHolder new_val(serializeValue(*val, index, imap, mset, xsink), xsink);
                 if (*xsink) {
-                    xsink->appendLastDescription(" (while serializing object member '%s::%s')", current_cls->getName(), mname);
+                    xsink->appendLastDescription(" (while serializing object member '%s::%s')", current_cls.getName(), mname);
                     return imap.end();
                 }
 
@@ -406,7 +406,7 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
 
                 ValueHolder val(xsink);
                 {
-                    ObjectSubstitutionHelper osh(const_cast<QoreObject*>(&self), qore_class_private::get(*current_cls));
+                    ObjectSubstitutionHelper osh(const_cast<QoreObject*>(&self), qore_class_private::get(current_cls));
                     val = const_cast<QoreObject&>(self).evalMethod(*serializeMembers, *call_args, xsink);
                 }
                 if (*xsink) {
@@ -415,7 +415,7 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
                 if (val) {
                     if (val->getType() != NT_HASH) {
                         xsink->raiseException("SERIALIZATION-ERROR", "%s::serializeMembers() returned type '%s'; expecting 'hash' or 'nothing'",
-                            current_cls->getName(), val->getFullTypeName());
+                            current_cls.getName(), val->getFullTypeName());
                         return imap.end();
                     }
                     // serialize data returned
@@ -441,7 +441,7 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
             if (!class_data) {
                 class_data = new QoreHashNode(autoHashTypeInfo);
             }
-            std::string class_path = current_cls->getNamespacePath();
+            std::string class_path = current_cls.getNamespacePath();
             class_data->setKeyValue(class_path.c_str(), class_members.release(), xsink);
         }
     }
@@ -569,7 +569,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
             QoreObject* obj = oimap.find(key)->second;
 
             const QoreHashNode* oh = hi.get().get<const QoreHashNode>();
-            const QoreClass* cls = obj->getClass();
+            const QoreClass& cls = *obj->getClass();
 
             // deserialize each class in the hierarchy separately
             QoreValue v = oh->getKeyValue("_class_data");
@@ -587,21 +587,21 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                     continue;
                 }
 
-                const QoreClass* mcls = chi.get();
+                const QoreClass& mcls = chi.get();
 
-                //printd(5, "iterating %p '%s' GOT CHILD %p '%s'\n", cls, cls->getName(), mcls, mcls->getNamespacePath().c_str());
+                //printd(5, "iterating %p '%s' GOT CHILD %p '%s'\n", cls, cls->getName(), mcls, mcls.getNamespacePath().c_str());
 
                 // check if the class inherits Serializable and throw an exception if not
                 {
                     bool priv = false;
-                    if (!mcls->getClass(*QC_SERIALIZABLE, priv)) {
+                    if (!mcls.getClass(*QC_SERIALIZABLE, priv)) {
                         xsink->raiseException("DESERIALIZATION-ERROR", "cannot deserialize class '%s' as it does not inherit 'Serializable' and therefore is not eligible for deserialization'",
-                            mcls->getName());
+                            mcls.getName());
                         return QoreValue();
                     }
                 }
 
-                std::string class_path = mcls->getNamespacePath();
+                std::string class_path = mcls.getNamespacePath();
 
                 QoreHashNode* cmh = nullptr;
 
@@ -614,7 +614,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                         if (cv) {
                             if (cv.getType() != NT_HASH) {
                                 xsink->raiseException("DESERIALIZATION-ERROR", "serialized data for class '%s' has type '%s'; expecting 'hash' or 'nothing'",
-                                    mcls->getName(), cv.getTypeName());
+                                    mcls.getName(), cv.getTypeName());
                                 return QoreValue();
                             }
                             cmh = cv.get<QoreHashNode>();
@@ -622,8 +622,8 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                     }
                 }
 
-                if (mcls->isSystem()) {
-                    q_deserializer_t deserializer = mcls->getDeserializer();
+                if (mcls.isSystem()) {
+                    q_deserializer_t deserializer = mcls.getDeserializer();
                     assert(deserializer);
 
                     QoreInternalDeserializationContext context(oimap);
@@ -635,7 +635,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                 }
                 else {
                     // see if the local class has a deserializeMembers() method defined
-                    const QoreMethod* deserializeMembers = mcls->findLocalMethod("deserializeMembers");
+                    const QoreMethod* deserializeMembers = mcls.findLocalMethod("deserializeMembers");
 
                     // build deserialized meember hash for deserializeMembers() method if it exists
                     ReferenceHolder<QoreHashNode> dmh(deserializeMembers ? new QoreHashNode(autoTypeInfo) : nullptr, xsink);
@@ -650,7 +650,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                             }
 
                             if (!deserializeMembers) {
-                                obj->setMemberValue(cmhi.getKey(), mcls, *vh, xsink);
+                                obj->setMemberValue(cmhi.getKey(), &mcls, *vh, xsink);
                             }
                             else {
                                 dmh->setKeyValue(cmhi.getKey(), vh.release(), xsink);
@@ -664,7 +664,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                     if (deserializeMembers) {
                         ReferenceHolder<QoreListNode> call_args(new QoreListNode(autoTypeInfo), xsink);
                         call_args->push(dmh.release(), xsink);
-                        ObjectSubstitutionHelper osh(obj, qore_class_private::get(*mcls));
+                        ObjectSubstitutionHelper osh(obj, qore_class_private::get(mcls));
                         ValueHolder val(obj->evalMethod(*deserializeMembers, *call_args, xsink), xsink);
                         if (*xsink) {
                             return QoreValue();
@@ -672,24 +672,24 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                     }
                     else {
                         // initialize transient members
-                        if (mcls->hasTransientMember()) {
+                        if (mcls.hasTransientMember()) {
                             QoreClassMemberIterator mi(mcls);
                             while (mi.next()) {
-                                const QoreExternalNormalMember* mem = mi.getMember();
-                                if (!mem->isTransient()) {
+                                const QoreExternalNormalMember& mem = mi.getMember();
+                                if (!mem.isTransient()) {
                                     continue;
                                 }
-                                ValueHolder val(mem->getDefaultValue(xsink), xsink);
+                                ValueHolder val(mem.getDefaultValue(xsink), xsink);
                                 if (*xsink) {
                                     return QoreValue();
                                 }
                                 // skip transient member initialization if there is no expression
                                 if (!val) {
-                                    printd(0, "DESERIALIZE transient member %s::%s has no value\n", mcls->getName(), mi.getName());
+                                    printd(0, "DESERIALIZE transient member %s::%s has no value\n", mcls.getName(), mi.getName());
                                     continue;
                                 }
                                 // assign value to member
-                                obj->setMemberValue(mi.getName(), mcls, *val, xsink);
+                                obj->setMemberValue(mi.getName(), &mcls, *val, xsink);
                                 if (*xsink) {
                                     return QoreValue();
                                 }
@@ -715,7 +715,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                 // remove all matching classes in the hierarchy
                 QoreClassHierarchyIterator chi3(cls);
                 while (chi3.next()) {
-                    strset_t::iterator i = strset.find(chi3.get()->getNamespacePath());
+                    strset_t::iterator i = strset.find(chi3.get().getNamespacePath());
                     if (i != strset.end()) {
                         strset.erase(i);
                     }
