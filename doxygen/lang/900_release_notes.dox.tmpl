@@ -43,6 +43,8 @@
       - @ref Qore::FtpClient::getDataPeerInfo() "FtpClient::getDataPeerInfo()"
       - @ref Qore::FtpClient::getDataSocketInfo() "FtpClient::getDataSocketInfo()"
       - @ref Qore::Program::getParseOptionStringList() "Program::getParseOptionStringList()"
+      - @ref Qore::Program::parse() "Program::parse()" 
+      - @ref Qore::Program::parsePending() "Program::parsePending()" 
       - @ref Qore::StreamReader::getInputStream() "StreamReader::getInputStream()"
       - @ref Qore::StreamWriter::getOutputStream() "StreamWriter::getOutputStream()"
     - new functions:
@@ -68,6 +70,9 @@
       - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_date "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
       - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
       - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
+    - @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" updates: 
+      the \a format_label parameter is obsolete/ignored
+      (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)      
     - module updates
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module changes:
         - the \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
@@ -100,11 +105,9 @@
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
         - Swagger module does not accept multipart/form-data content-type and also does not work with list and hash parameters
           (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
-
     - @ref relative_dates "relative date" changes
         - fraction seconds are accepted in the @ref single_reldates
         - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
-
     - improved debugging support:
         - @ref Qore::ProgramControl::getStatementIdInfo() "ProgramControl::getStatementIdInfo()" provides breakpoint info
         - command to resolve statement
