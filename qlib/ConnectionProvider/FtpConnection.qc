@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# Qore HttpBasedConnection class definition
+# Qore FtpConnection class definition
 
-/*  HttpBasedConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
+/*  FtpConnection.qc Copyright 2016 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -29,21 +29,6 @@
 
 #! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
 public namespace ConnectionProvider {
-    #! base class for HTTP-based connections that need their URLs rewritten to create the real connection object
-    public class HttpBasedConnection inherits AbstractConnection {
-        public {
-            string real_url;
-        }
-
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
-            # sets an HTTP-based URL for the URL argument
-            string scheme = (url =~ x/^([^:]+)/)[0];
-            bool ssl = (scheme =~ /s$/);
-            string targ = "http" + (ssl ? "s" : "");
-            real_url = regex_subst(url, "^" + scheme, targ);
-        }
-    } # HttpBasedConnection class
-
     #! class for FTP connections; returns @ref Qore::FtpClient objects
     /** supports the following runtime options in getImpl():
         - \c "path": overrides the path component in the URL at runtime
