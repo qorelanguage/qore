@@ -953,7 +953,7 @@ private:
     //! this function is not implemented; it is here as a private function in order to prohibit it from being used
     QoreClass& operator=(const QoreClass&) = delete;
 
-    //! shared private implementation of the class
+    //! private implementation of the class
     class qore_class_private* priv;
 
     // private constructor only called when the class is copied
