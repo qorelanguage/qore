@@ -55,6 +55,7 @@
     |@ref object_or_nothing_type "*object"|@ref object, @ref null, or @ref nothing|@ref object or @ref nothing|Accepts either an @ref object or @ref nothing; if @ref null is passed then @ref nothing is returned
     |@ref classname_type_or_nothing "*<classname>"|@ref object of the given class, @ref null, or @ref nothing|@ref object of the given class or @ref nothing|Restricts values to objects of the specific class given or @ref nothing; either the class name can be given (ex: @ref Qore::Thread::Mutex "*Mutex" or a qualified path to the class: @ref Qore::Thread::Mutex "*Qore::Thread::Mutex"); if @ref null is passed then @ref nothing is returned
     |@ref classname_type_or_nothing "*object<...>"|@ref object of the given class, @ref null, or @ref nothing|@ref object of the given class or @ref nothing|Restricts values to objects of the specific class given or @ref nothing; if @ref null is passed then @ref nothing is returned
+    |@ref null_or_nothing_type "*null"|@ref null or @ref nothing|@ref null or @ref nothing|Restricts input to @ref null or @ref nothing and returns the same type
     |@ref data_or_nothing_type "*data"|@ref string, @ref binary, @ref null, or @ref nothing|@ref string, @ref binary, or @ref nothing|Restricts input to @ref string, @ref binary, or @ref nothing and returns the same type; if @ref null is passed then @ref nothing is returned
     |@ref code_or_nothing_type "*code"|@ref closure, @ref call_reference, @ref null, or @ref nothing|@ref closure, @ref call_reference, or @ref nothing|Restricts values to @ref closure "closures", @ref call_reference "call references" and @ref nothing; if @ref null is passed then @ref nothing is returned
     |@ref timeout_or_nothing_type "*timeout"|@ref integer, @ref date, @ref null, or @ref nothing|@ref integer or @ref nothing|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds. If no value or @ref null is passed, then @ref nothing is returned
@@ -862,6 +863,19 @@ reference<int> r = \i;
     @code{.py}
 sub foo(*Mutex m) {
 }
+    @endcode
+
+    <hr>
+    @section null_or_nothing_type *null
+
+    <b>null Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c null|@ref null or @ref nothing|@ref null or @ref nothing|Restricts values to %Qore's @ref null and @ref nothing types; this type has few (if any) practical applications and has been included for completeness' sake
+
+    @par Example
+    @code{.py}
+# I don't know if this type has any useful/practical applications...
+*null n = NULL;
     @endcode
 
     <hr>

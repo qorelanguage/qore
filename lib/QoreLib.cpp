@@ -2626,3 +2626,41 @@ void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &d
         //printd(0, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
     }
 }
+
+QoreHashNode* get_source_location(const QoreProgramLocation* loc) {
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclSourceLocationInfo, nullptr), nullptr);
+    auto ph = qore_hash_private::get(**h);
+
+    if (!loc) {
+        loc = &loc_builtin;
+        ph->setKeyValueIntern("builtin", true);
+    }
+    else {
+        ph->setKeyValueIntern("builtin", false);
+    }
+
+    {
+        const char* file = loc->getFile();
+        if (file) {
+            ph->setKeyValueIntern("file", new QoreStringNode(file));
+        }
+    }
+
+    ph->setKeyValueIntern("line", loc->start_line);
+    ph->setKeyValueIntern("endline", loc->end_line);
+
+    {
+        const char* source = loc->getSource();
+        if (source) {
+            ph->setKeyValueIntern("source", new QoreStringNode(source));
+        }
+    }
+
+    ph->setKeyValueIntern("offset", loc->offset);
+
+    return h.release();
+}
+
+const char* type_get_name(const QoreTypeInfo* t) {
+    return QoreTypeInfo::getName(t);
+}

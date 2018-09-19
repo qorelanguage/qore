@@ -8,7 +8,7 @@ qoredatadir = $(datarootdir)/qore
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = lib modules/astparser
+SUBDIRS = lib modules/astparser modules/reflection
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
@@ -319,7 +319,78 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/astparser/src/queries/GetNodesInfoQuery.cpp \
 	modules/astparser/src/queries/GetNodesInfoQuery.h \
 	modules/astparser/src/queries/SymbolInfoFixes.cpp \
-	modules/astparser/src/queries/SymbolInfoFixes.h
+	modules/astparser/src/queries/SymbolInfoFixes.h \
+	modules/reflection/src/qore_reflection.h \
+	modules/reflection/src/reflection_scu.cpp \
+	modules/reflection/src/reflection-module.cpp \
+	modules/reflection/src/AbstractReflectionObject.h \
+	modules/reflection/src/AbstractReflectionObject.cpp \
+	modules/reflection/src/QC_NormalMethod.h \
+	modules/reflection/src/QC_StaticMember.qpp \
+	modules/reflection/src/QC_StaticMethod.qpp \
+	modules/reflection/src/QC_CopyMethod.qpp \
+	modules/reflection/src/QC_AbstractVariant.qpp \
+	modules/reflection/src/QC_NormalMember.qpp \
+	modules/reflection/src/QC_NormalMethod.qpp \
+	modules/reflection/src/QC_AbstractConstant.qpp \
+	modules/reflection/src/QC_PseudoMethodVariant.qpp \
+	modules/reflection/src/QC_Constant.qpp \
+	modules/reflection/src/QC_Type.h \
+	modules/reflection/src/QC_StaticMethod.h \
+	modules/reflection/src/QC_CopyMethodVariant.qpp \
+	modules/reflection/src/QC_AbstractMethod.h \
+	modules/reflection/src/QC_AbstractMember.qpp \
+	modules/reflection/src/QC_AbstractMethod.qpp \
+	modules/reflection/src/QC_DestructorMethodVariant.h \
+	modules/reflection/src/QC_PseudoMethod.qpp \
+	modules/reflection/src/QC_Namespace.qpp \
+	modules/reflection/src/QC_ConstructorMethod.qpp \
+	modules/reflection/src/QC_TypedHash.h \
+	modules/reflection/src/QC_TypedHashMember.h \
+	modules/reflection/src/QC_PseudoMethod.h \
+	modules/reflection/src/QC_AbstractClassMember.qpp \
+	modules/reflection/src/QC_TypedHash.qpp \
+	modules/reflection/src/QC_NormalMethodVariant.qpp \
+	modules/reflection/src/QC_DestructorMethod.h \
+	modules/reflection/src/QC_GlobalVar.qpp \
+	modules/reflection/src/QC_CopyMethodVariant.h \
+	modules/reflection/src/QC_AbstractMethodVariant.qpp \
+	modules/reflection/src/QC_PseudoClass.qpp \
+	modules/reflection/src/QC_AbstractMethodVariant.h \
+	modules/reflection/src/QC_AbstractClassMember.h \
+	modules/reflection/src/QC_Constant.h \
+	modules/reflection/src/QC_Function.qpp \
+	modules/reflection/src/QC_NormalMethodVariant.h \
+	modules/reflection/src/QC_ClassConstant.qpp \
+	modules/reflection/src/QC_AbstractMember.h \
+	modules/reflection/src/QC_ClassConstant.h \
+	modules/reflection/src/QC_StaticMember.h \
+	modules/reflection/src/QC_Type.qpp \
+	modules/reflection/src/QC_ConstructorMethodVariant.qpp \
+	modules/reflection/src/QC_AbstractClass.qpp \
+	modules/reflection/src/QC_Class.h \
+	modules/reflection/src/QC_Namespace.h \
+	modules/reflection/src/QC_StaticMethodVariant.h \
+	modules/reflection/src/QC_AbstractReflectionFunction.qpp \
+	modules/reflection/src/QC_DestructorMethodVariant.qpp \
+	modules/reflection/src/QC_ConstructorMethodVariant.h \
+	modules/reflection/src/QC_AbstractVariant.h \
+	modules/reflection/src/QC_NormalMember.h \
+	modules/reflection/src/QC_TypedHashMember.qpp \
+	modules/reflection/src/QC_AbstractReflectionFunction.h \
+	modules/reflection/src/QC_StaticMethodVariant.qpp \
+	modules/reflection/src/QC_PseudoClass.h \
+	modules/reflection/src/QC_GlobalVar.h \
+	modules/reflection/src/QC_Function.h \
+	modules/reflection/src/QC_CopyMethod.h \
+	modules/reflection/src/QC_PseudoMethodVariant.h \
+	modules/reflection/src/QC_FunctionVariant.h \
+	modules/reflection/src/QC_DestructorMethod.qpp \
+	modules/reflection/src/QC_FunctionVariant.qpp \
+	modules/reflection/src/QC_AbstractClass.h \
+	modules/reflection/src/QC_Class.qpp \
+	modules/reflection/src/QC_AbstractConstant.h \
+	modules/reflection/src/QC_ConstructorMethod.h
 
 include_HEADERS = \
 	include/qore/QoreValue.h \
@@ -344,6 +415,7 @@ include_HEADERS = \
 	include/qore/QoreThreadLock.h \
 	include/qore/QoreThreadLocalStorage.h \
 	include/qore/QoreClass.h \
+	include/qore/QoreReflection.h \
 	include/qore/TypedHashDecl.h \
 	include/qore/QoreString.h \
 	include/qore/qore-version.h \
@@ -823,7 +895,7 @@ dist-hook:
 	$(RM) -rf `find $(distdir)/examples/test -type f -a \! -name \*.qtest -a \! -name \*.qm -a \! -name Europe_Vienna`
 
 if COND_DOXYGEN
-MOD_OUTPUT = $(addprefix docs/modules/,$(addsuffix /html,$(USER_MODS)))
+MOD_OUTPUT = $(addprefix docs/modules/,$(addsuffix /html,$(USER_MODS) astparser reflection))
 DOXYGEN_OUTPUT = docs/library/html docs/lang/html $(MOD_OUTPUT)
 
 LIB_TMP_DOXYFILES_SRC = \
@@ -909,6 +981,24 @@ doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 doxygen/qlib/Doxyfile.WebSocketHandler: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketHandler.qm:doxygen/qlib/WebSocketHandler.qm.dox.h -tHttpServerUtil.tag=../../HttpServerUtil/html -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
 
+doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
+	sed -e s/@QORE_MOD_NAME@/astparser/ \
+        -e "s/@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@/${PACKAGE_VERSION}/" \
+        -e 's/@_dox_output@/docs\/modules\/astparser\//' \
+        -e 's/@_dox_src@/modules\/astparser\/docs/' \
+        -e 's/@CMAKE_CURRENT_BINARY_DIR@/modules\/astparser\/src/' \
+        -e "s/@CMAKE_BINARY_DIR@/$(top_srcdir)/" \
+        -e "s/@CMAKE_SOURCE_DIR@/$(top_srcdir)/" $< > $@
+
+doxygen/modules/Doxyfile.reflection: doxygen/modules/Doxyfile.in
+	sed -e s/@QORE_MOD_NAME@/reflection/ \
+        -e "s/@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@/${PACKAGE_VERSION}/" \
+        -e 's/@_dox_output@/docs\/modules\/reflection\//' \
+        -e 's/@_dox_src@/modules\/reflection\/docs/' \
+        -e 's/@CMAKE_CURRENT_BINARY_DIR@/modules\/reflection\/src/' \
+        -e "s/@CMAKE_BINARY_DIR@/$(top_srcdir)/" \
+        -e "s/@CMAKE_SOURCE_DIR@/$(top_srcdir)/" $< > $@
+
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
 $(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm.dox.h $(QDX_MTAG_ARGS) $< $@
@@ -935,6 +1025,21 @@ TMP_MOD_HTML_TARG = $(addsuffix /html,$(addprefix docs/modules/,$(USER_MODS)))
 $(TMP_MOD_HTML_TARG): docs/modules/%/html: doxygen/qlib/%.qm.dox.h doxygen/qlib/Doxyfile.% #docs/lang/html
 	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.$*
+	$(top_srcdir)/doxygen/pdox $@ $@/search
+
+docs/modules/astparser/html: doxygen/modules/Doxyfile.astparser
+	${MAKE} -C modules/astparser
+	$(MKDIR_P) $@
+	$(DOXYGEN_CMD) doxygen/modules/Doxyfile.astparser
+	$(top_srcdir)/doxygen/pdox $@ $@/search
+
+modules/reflection/docs/mainpage.dox: modules/reflection/docs/mainpage.dox.tmpl $(QPP) modules/reflection
+	$(QPP) -t $< -o $@
+
+docs/modules/reflection/html: modules/reflection doxygen/modules/Doxyfile.reflection
+	${MAKE} -C modules/reflection
+	$(MKDIR_P) $@
+	$(DOXYGEN_CMD) doxygen/modules/Doxyfile.reflection
 	$(top_srcdir)/doxygen/pdox $@ $@/search
 
 doxygen-doc: $(DOXYGEN_OUTPUT)

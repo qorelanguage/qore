@@ -258,6 +258,8 @@ public:
 
     DLLLOCAL ConstantEntry* findEntry(const char* name);
 
+    DLLLOCAL const ConstantEntry* findEntry(const char* name) const;
+
     DLLLOCAL QoreValue find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access, bool& found);
 
     DLLLOCAL QoreValue find(const char* name, const QoreTypeInfo*& constantTypeInfo, bool& found) {

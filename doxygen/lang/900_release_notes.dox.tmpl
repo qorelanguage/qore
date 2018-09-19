@@ -5,7 +5,11 @@
     @section qore_09 Qore 0.9
 
     @par Release Summary
-    WIP
+    This is a major release of %Qore with large portions of code subject to extensive optimizations leading
+    to large memory and performance improvements along with more control of @ref Qore::Program "Program"
+    logic containers, multithreading, and a <a href="../../modules/reflection/html/index.html">reflection API</a>.
+    This release breaks binary compatibility with older versions of %Qore as well, requiring binary modules
+    to support the new API and ABI.
 
     @subsection qore_09_compatibility Changes That Can Affect Backwards-Compatibility
     - Qore classes and functions can no longer be modified after creation; any attempt to add a new user
@@ -20,14 +24,13 @@
       code and most builtin code from the @ref Qore::Program "Program" object; delete the object instead of using
       this method
 
-    WIP
-
     @subsection qore_09_new_features New Features in Qore
     - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
-    - the elimination of heap-allocated, atomic-reference-counted integers and floating-point values results
+    - the elimination of heap-allocated, atomic-reference-counted integer and floating-point values results
       in reduced memory usage as well as faster program execution
     - the default thread stack size was changed from 8MB to 512KB resulting in a large reduction in the total
       memory used in programs with many threads (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
+    - a new reflection API module: <a href="../../modules/reflection/html/index.html">reflection</a>
     - new classes:
       - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
       - @ref Qore::StreamBase "StreamBase": a base class for stream classes allowing for a controlled handoff of the stream to another thread
@@ -59,41 +62,47 @@
     - new hashdecls:
       - @ref Qore::NetIfInfo "NetIfInfo"
     - new constants:
+      - @ref Qore::DomainCodeMap "DomainCodeMap"
+      - @ref Qore::DomainStringMap "DomainStringMap"
       - @ref Qore::Option::HAVE_GET_NETIF_LIST "HAVE_GET_NETIF_LIST"
       - @ref Qore::Option::HAVE_GET_STACK_SIZE "HAVE_GET_STACK_SIZE"
       - @ref Qore::Option::HAVE_MANAGE_STACK "HAVE_MANAGE_STACK"
       - @ref Qore::Option::HAVE_THREAD_NAME "HAVE_THREAD_NAME"
+      - @ref Qore::PO_NO_REFLECTION "PO_NO_REFLECTION"
+      - @ref functional_domain_constants
     - new @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
       - \c "Dn" and \c "DN": the ordinal day number in the year
       - \c "I": ISO-8601 week string
       - \c "Id" and \c "ID": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> day number
-      - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_date "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
+      - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_dates "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
       - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
       - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
     - @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" updates: 
       the \a format_label parameter is obsolete/ignored
       (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)      
     - module updates
+      - a new binary module: <a href="../../modules/reflection/html/index.html">reflection</a>
+        providing a reflection API to %Qore
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module changes:
         - the \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
           connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
         - the \c AbstractConnection has new public flag \c enabled. Also constructors are updated. (<a href="https://github.com/qorelanguage/qore/issues/3001">issue 3001</a>)
       - <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
-      - <a href="../../modules/HttpServer/html.indexhtml">HttpServer</a> module changes:
+      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module changes:
         - added support for adding new HTTP methods to the server with the \c HttpServer::addHttpMethod() method
           (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
-      - <a href="../../modules/MysqlSqlUtil/html.indexhtml">MysqlSqlUtil</a> module changes:
+      - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes:
         - implemented a check for allowed types when is the AUTO_INCREMENT flag used (<a href="https://github.com/qorelanguage/qore/issues/2978">issue 2978</a>)
-      - <a href="../../modules/OracleSqlUtil/html.indexhtml">OracleSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
-      - <a href="../../modules/PgsqlSqlUtil/html.indexhtml">PgsqlSqlUtil</a> module changes:
+      - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
-      - <a href="../../modules/RestSchemaValidator/html.indexhtml">RestSchemaValidator</a> module changes:
+      - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module changes:
         - updated the default validator to try all serialization methods if multiple methods are available and one fails
           (<a href="https://github.com/qorelanguage/qore/issues/2831">issue 2831</a>)
-      - <a href="../../modules/SqlUtil/html.indexhtml">SqlUtil</a> module changes:
+      - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module changes:
         - deprecated \c AbstractTable::getRowIterator() for \c AbstractTable::getStatement() (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
         - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
@@ -131,8 +140,11 @@
     - fixed bug where no error is issued when an expression does not have meaning as a top-level statement (<a href="https://github.com/qorelanguage/qore/issues/2826">issue 2826</a>),
       and also where such expression is an argument to the @ref background "background" operator (<a href="https://github.com/qorelanguage/qore/issues/2747">issue 2747</a>)
     - fixed bug where the parser does not recognize that a return value of a function call is not ignored if it is an object and its method is immediately called
-      (<a href="https://github.com/qorelanguage/qore/issues/2863">issue 2863</a>),
-
+      (<a href="https://github.com/qorelanguage/qore/issues/2863">issue 2863</a>)
+    - module fixes:
+      - <a href="../../modules/QUnit/html/index.html">QUnit</a>:
+        - fixed error reporting with type errors with number values
+          (<a href="https://github.com/qorelanguage/qore/issues/2984">issue 2984</a>)
 
     @section qore_08137 Qore 0.8.13.7
 
@@ -263,7 +275,7 @@
         - updated to use the new SQL statement DBI method for efficient execution of queries only for describing
           result sets with outbound mappers to solve performance problems related to mappers that
           have statements with large data sets (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
-        - fixed @ref TableMapper::RawSqlStatementOutboundMapper "RawSqlStatementOutboundMapper" to be usable without subclassing
+        - fixed \c RawSqlStatementOutboundMapper to be usable without subclassing
           (<a href="https://github.com/qorelanguage/qore/issues/2775">issue 2775</a>)
 
     @section qore_08133 Qore 0.8.13.3
@@ -392,7 +404,7 @@
         - updated to return a 404 Not Found error when REST subclass does not exist (<a href="https://github.com/qorelanguage/qore/issues/2405">issue 2405</a>)
         - updated to return a 400 Bad Request error when ENCODING-CONVERSION-ERROR occurs during request parsing (<a href="https://github.com/qorelanguage/qore/issues/2543">issue 2543</a>)
       - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module fixes:
-        - updated docs for @ref RestSchemaValidator::AbstractRestSchemaValidator::parseRequest() "AbstractRestSchemaValidator::parseRequest()" to reflect how validation exceptions should be raised for proper error reporting (<a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
+        - updated docs for \c AbstractRestSchemaValidator::parseRequest() to reflect how validation exceptions should be raised for proper error reporting (<a href="https://github.com/qorelanguage/qore/issues/2344">issue 2344</a>)
         - fixed handling of messages with non-object (i.e. non-hash) bodies (<a href="https://github.com/qorelanguage/qore/issues/2366">issue 2366</a>)
       - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module changes
         - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)

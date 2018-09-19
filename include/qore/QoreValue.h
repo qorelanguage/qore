@@ -400,6 +400,11 @@ public:
     */
     DLLEXPORT const QoreTypeInfo* getTypeInfo() const;
 
+    //! returns the exact type of the value; i.e. the class type for classes, hashdecl type for hashdecls
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const QoreTypeInfo* getFullTypeInfo() const;
+
     //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer); differs from the return value of getTypeName() for complex types (ex: \c "hash<string, int>")
     DLLEXPORT const char* getFullTypeName() const;
 
@@ -413,7 +418,7 @@ public:
 //! base class for holding a QoreValue object
 class ValueHolderBase {
 protected:
-    //! the vlaue held
+    //! the value held
     QoreValue v;
     //! for possible Qore-language exceptions
     ExceptionSink* xsink;

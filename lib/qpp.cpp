@@ -1260,7 +1260,7 @@ int flags_get(strlist_t& flags, const std::string& str) {
     for (strlist_t::iterator fi = flags.begin(), e = flags.end(); fi != e; ++fi) {
         toupper(*fi);
         if (fset.find(*fi) == fset.end()) {
-            error("unknown code flag: '%s'; code flags must be listed separated by commas and without the QC_ prefix\n", (*fi).c_str());
+            error("unknown code flag: '%s'; code flags must be listed separated by commas and without the QCF_ prefix\n", (*fi).c_str());
             return -1;
         }
     }
@@ -1269,17 +1269,17 @@ int flags_get(strlist_t& flags, const std::string& str) {
 
 static void flags_output_cpp(FILE* fp, const strlist_t& flags, bool uses_extra_args) {
     if (flags.empty()) {
-        fputs(uses_extra_args ? "QC_USES_EXTRA_ARGS" : "QC_NO_FLAGS", fp);
+        fputs(uses_extra_args ? "QCF_USES_EXTRA_ARGS" : "QCF_NO_FLAGS", fp);
         return;
     }
 
     for (strlist_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
         if (i != flags.begin())
             fputc('|', fp);
-        fprintf(fp, "QC_%s", (*i).c_str());
+        fprintf(fp, "QCF_%s", (*i).c_str());
     }
     if (uses_extra_args)
-        fputs("|QC_USES_EXTRA_ARGS", fp);
+        fputs("|QCF_USES_EXTRA_ARGS", fp);
 }
 
 static void doRow(strlist_t& sl, std::string& tstr) {
@@ -4317,6 +4317,7 @@ void init() {
     dmap["MODULES"] = "PO_NO_MODULES";
     dmap["IN_MODULE"] = "PO_IN_MODULE";
     dmap["EMBEDDED_LOGIC"] = "PO_NO_EMBEDDED_LOGIC";
+    dmap["REFLECTION"] = "PO_NO_REFLECTION";
 
     dnmap["INJECTION"] = "PO_ALLOW_INJECTION";
     dnmap["DEBUGGER"] = "PO_ALLOW_DEBUGGER";
