@@ -42,6 +42,155 @@
 #include "qore/intern/ModuleInfo.h"
 extern QoreModuleManager QMM;
 
+//! source location information
+/**
+    @since %Qore 0.9
+*/
+hashdecl SourceLocationInfo {
+    //! if @ref True then the code is builtin and there is no user source location
+    bool builtin;
+
+    //! the file name or parse label for the code
+    *string file;
+
+    //! the starting source line number
+    int line;
+
+    //! the ending source line number
+    int endline;
+
+    //! the source object or file name tag (used when multiple source objects are defined from the same source)
+    *string source;
+
+    //! the offset line in the source (for when multiple source objects are defined from the same source)
+    int offset;
+}
+
+/** @defgroup functional_domain_constants Functional Domain Constants
+    Constants providing values for functional domains; each constant is a unique element of a bitfield
+
+    @since %Qore 0.9
+*/
+//@{
+//! provides process control functionality (can affect or stop the current process)
+/** @see
+    - @ref Qore::PO_NO_PROCESS_CONTROL "PO_NO_PROCESS_CONTROL"
+    - @ref no-process-control
+*/
+const DOM_PROCESS_CONTROL = QDOM_PROCESS;
+
+//! provides network functionality
+/** @see
+    - @ref Qore::PO_NO_NETWORK "PO_NO_NETWORK"
+    - @ref no-network
+*/
+const DOM_NETWORK = QDOM_NETWORK;
+
+//! provides external process control functionality (can affect) start) or stop external processes)
+/** @see
+    - @ref Qore::PO_NO_EXTERNAL_PROCESS "PO_NO_EXTERNAL_PROCESS"
+    - @ref no-external-process
+*/
+const DOM_EXTERNAL_PROCESS = QDOM_EXTERNAL_PROCESS;
+
+//! provides access to the filesystem
+/** @see
+    - @ref Qore::PO_NO_FILESYSTEM "PO_NO_FILESYSTEM"
+    - @ref no-filesystem
+*/
+const DOM_FILESYSTEM = QDOM_FILESYSTEM;
+
+//! provides thread control functionality
+/** @see
+    - @ref Qore::PO_NO_THREAD_CLASSES "PO_NO_THREAD_CLASSES"
+    - @ref no-thread-classes
+*/
+const DOM_THREAD_CLASS = QDOM_THREAD_CLASS;
+
+//! provides the ability to check or manipulate threads (including starting new threads)
+/** @see
+    - @ref Qore::PO_NO_THREAD_CONTROL "PO_NO_THREAD_CONTROL"
+    - @ref no-thread-control
+*/
+const DOM_THREAD_CONTROL = QDOM_THREAD_CONTROL;
+
+//! provides access to databases
+/** @see
+    - @ref Qore::PO_NO_DATABASE "PO_NO_DATABASE"
+    - @ref no-database
+*/
+const DOM_DATABASE = QDOM_DATABASE;
+
+//! provides GUI functionality
+/** @see
+    - @ref Qore::PO_NO_GUI "PO_NO_GUI"
+    - @ref no-gui
+*/
+const DOM_GUI = QDOM_GUI;
+
+//! provides terminal I/O functionality
+/** @see
+    - @ref Qore::PO_NO_TERMINAL_IO "PO_NO_TERMINAL_IO"
+    - @ref no-terminal-io
+*/
+const DOM_TERMINAL_IO = QDOM_TERMINAL_IO;
+
+//! provides access to external information (ex: hostname, pid, process uid, etc)
+/** @see
+    - @ref Qore::PO_NO_EXTERNAL_INFO "PO_NO_EXTERNAL_INFO"
+    - @ref no-external-info
+*/
+const DOM_EXTERNAL_INFO = QDOM_EXTERNAL_INFO;
+
+//! provides access to information regarding threading (tid, active threads, etc)
+/** @see
+    - @ref Qore::PO_NO_THREAD_INFO "PO_NO_THREAD_INFO"
+    - @ref no-thread-info
+*/
+const DOM_THREAD_INFO = QDOM_THREAD_INFO;
+
+//! provides access to functionality that changes locale information
+/** @see
+    - @ref Qore::PO_NO_LOCALE_CONTROL "PO_NO_LOCALE_CONTROL"
+    - @ref no-locale-control
+*/
+const DOM_LOCALE_CONTROL = QDOM_LOCALE_CONTROL;
+
+//! provides access to external modules
+/** @see
+    - @ref Qore::PO_NO_MODULES "PO_NO_MODULES"
+    - @ref no-modules
+*/
+const DOM_MODULE = QDOM_MODULES;
+
+//! provides dynamic parsing functionality
+/** @see @ref Qore::PO_NO_EMBEDDED_LOGIC "PO_NO_EMBEDDED_LOGIC"
+*/
+const DOM_EMBEDDED_LOGIC = QDOM_EMBEDDED_LOGIC;
+
+//! provides functionality related to code / dependency injection
+/** @see @ref Qore::PO_ALLOW_INJECTION "PO_ALLOW_INJECTION"
+*/
+const DOM_INJECTION = QDOM_INJECTION;
+
+//! provides unchecked access to system functionality that could bypass Qore's sandboxing controls
+/** @see
+    - @ref Qore::PO_NO_UNCONTROLLED_APIS "PO_NO_UNCONTROLLED_APIS"
+    - @ref no-uncontrolled-apis
+*/
+const DOM_UNCONTROLLED_API = QDOM_UNCONTROLLED_API;
+
+//! provides debugging functionality
+/** @see @ref Qore::PO_ALLOW_DEBUGGER "PO_ALLOW_DEBUGGER"
+*/
+const DOM_DEBUGGER = QDOM_DEBUGGER;
+
+//! provides reflection functionality
+/** @see @ref Qore::PO_NO_REFLECTION "PO_NO_REFLECTION"
+*/
+const DOM_REFLECTION = QDOM_REFLECTION;
+//@}
+
 /** @defgroup parse_options Parse Option Constants
     These are the possible values that can be or'ed together to set @ref Qore::Program "Program" parse options
 */
@@ -53,12 +202,26 @@ extern QoreModuleManager QMM;
  */
 const ParseOptionCodeMap = qore(pomaps.getCodeToStringMap());
 
-//! Maps from parse option strings to parse option integer codes
+//! Maps from parse option strings to parse option bitfield integer codes
 /** @see ParseOptionCodeMap for the reverse mapping
 
     @since %Qore 0.8.12
  */
 const ParseOptionStringMap = qore(pomaps.getStringToCodeMap());
+
+//! Maps from functional domain bitfield code values (as string keys) to functional domain names
+/** @see DomainStringMap for the reverse mapping
+
+    @since %Qore 0.9
+ */
+const DomainCodeMap = qore(pomaps.getDomainToStringMap());
+
+//! Maps from functional domain strings to functional domain bitfield integer codes
+/** @see DomainCodeMap for the reverse mapping
+
+    @since %Qore 0.9
+ */
+const DomainStringMap = qore(pomaps.getStringToDomainMap());
 
 //! Maps from parse option code values (as string keys) to parse option names. Names are in form used in script or on command line, e.g. new-style
 /** @see ParseOptionCmdStringMap for the reverse mapping
@@ -516,6 +679,12 @@ const PO_ALLOW_DEBUGGER = PO_ALLOW_DEBUGGER;
     @since %Qore 0.9
  */
 const PO_ALLOW_STATEMENT_NO_EFFECT = PO_ALLOW_STATEMENT_NO_EFFECT;
+
+//! Disallows access to reflection
+/**
+    @since %Qore 0.9
+*/
+const PO_NO_REFLECTION = PO_NO_REFLECTION;
 //@}
 
 /** @defgroup warning_constants Warning Constants
@@ -748,7 +917,7 @@ Program::destructor() {
     @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this argument is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
     @param source An optional source file name for the code being parsed; this is useful if sections of a file are parsed
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
-    @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
+    @param format_label obsolete / ignored since %Qore 0.9
 
     @return If warning included in the warning mask are raised during parsing, this method will return an @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
 
@@ -777,13 +946,13 @@ while (wh) {
     @since
     - %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
     - %Qore 0.9 parsing can only be executed once per %Program object
+    - %Qore 0.9 the \a format_label is obsolete / ignored
  */
 *hash Program::parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
-   QoreStringMaker nlabel(label->getEncoding(), format_label ? "<run-time-loaded: %s>" : "%s", label->getBuffer());
 
    if (warning_mask) {
       ExceptionSink wsink;
-      p->parse(code, &nlabel, xsink, &wsink, warning_mask, source, offset);
+      p->parse(code, label, xsink, &wsink, warning_mask, source, offset);
       if (!wsink.isException())
          return QoreValue();
 
@@ -791,7 +960,7 @@ while (wh) {
       return e->makeExceptionObjectAndDelete(xsink);
    }
 
-   p->parse(code, &nlabel, xsink, 0, 0, source, offset);
+   p->parse(code, label, xsink, 0, 0, source, offset);
 }
 
 //! Parses the text passed to pending lists in the Program object; does not resolve all references or commit the code to the Program object
@@ -806,7 +975,7 @@ while (wh) {
     @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this argument is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
     @param source An optional source file name for the code being parsed; this is useful if sections of a file are parsed
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
-    @param format_label If this argument is @ref Qore::True "True", then the label is formatted as \c "<run-time-loaded: label>"; if @ref Qore::False "False", then it is passed as-is
+    @param format_label obsolete / ignored since %Qore 0.9
 
     @return If warning included in the warning mask are raised during parsing, this method will return an @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
 
@@ -837,13 +1006,13 @@ pgm.parseCommit();
     @since
     - %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
     - %Qore 0.9 parsing can only be executed once per %Program object
+    - %Qore 0.9 the \a format_label is obsolete / ignored
  */
 *hash Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
-   QoreStringMaker nlabel(label->getEncoding(), format_label ? "<run-time-loaded: %s>" : "%s", label->getBuffer());
 
    if (warning_mask) {
       ExceptionSink wsink;
-      p->parsePending(code, &nlabel, xsink, &wsink, warning_mask, source, offset);
+      p->parsePending(code, label, xsink, &wsink, warning_mask, source, offset);
       if (!wsink.isException())
          return QoreValue();
 
@@ -851,7 +1020,7 @@ pgm.parseCommit();
       return e->makeExceptionObjectAndDelete(xsink);
    }
 
-   p->parsePending(code, &nlabel, xsink, 0, 0, source, offset);
+   p->parsePending(code, label, xsink, 0, 0, source, offset);
 }
 
 //! Commits and pending code processed with Program::parsePending() to the Program object after resolving all outstanding references in the pending code
@@ -1187,7 +1356,7 @@ nothing Program::importHashDecl(string name, *string new_name) {
 list l = pgm.getUserFunctionList();
     @endcode
  */
-softlist Program::getUserFunctionList() {
+softlist Program::getUserFunctionList() [flags=CONSTANT] {
    return p->getUserFunctionList();
 }
 
@@ -1199,8 +1368,22 @@ softlist Program::getUserFunctionList() {
 int mask = pgm.getParseOptions();
     @endcode
  */
-int Program::getParseOptions() {
+int Program::getParseOptions() [flags=CONSTANT] {
    return p->getParseOptions64();
+}
+
+//! returns a list of parse option strings for the program object
+/** @par Example:
+    @code{.py}
+list<string> l = pgm.getParseOptionStringList();
+    @endcode
+
+    @return a list of parse option strings for the program object
+
+    @since %Qore 0.9
+*/
+list<string> Program::getParseOptionStringList() [flags=CONSTANT] {
+    return parse_option_bitfield_to_string_list(p->getParseOptions64(), xsink);
 }
 
 //! Sets parse options in the parse option mask for the Program object
@@ -1290,7 +1473,7 @@ nothing Program::setScriptPath(*string path) {
 *string dir = pgm.getScriptDir();
     @endcode
  */
-*string Program::getScriptDir() {
+*string Program::getScriptDir() [flags=CONSTANT] {
    return p->getScriptDir();
 }
 
@@ -1304,7 +1487,7 @@ nothing Program::setScriptPath(*string path) {
 *string name = pgm.getScriptName();
     @endcode
  */
-*string Program::getScriptName() {
+*string Program::getScriptName() [flags=CONSTANT] {
    return p->getScriptName();
 }
 
@@ -1318,7 +1501,7 @@ nothing Program::setScriptPath(*string path) {
 *string path = pgm.getScriptPath();
     @endcode
  */
-*string Program::getScriptPath() {
+*string Program::getScriptPath() [flags=CONSTANT] {
    return p->getScriptPath();
 }
 
@@ -1430,7 +1613,7 @@ nothing Program::setTimeZone(TimeZone[TimeZoneData] zone) {
 TimeZone tz = pgm.getTimeZone();
     @endcode
  */
-TimeZone Program::getTimeZone() {
+TimeZone Program::getTimeZone() [flags=CONSTANT] {
    return new QoreObject(QC_TIMEZONE, 0, new TimeZoneData(p->currentTZ()));
 }
 
@@ -1472,8 +1655,10 @@ nothing Program::undefine(string def) {
     @code{.py}
 bool b = pgm.isDefined("PRODUCTION");
     @endcode
+
+    @throw ENCODING-CONVERSION-ERROR this error is thrown if the string cannot be converted to the @ref default_encoding "default character encoding"
  */
-bool Program::isDefined(string def) {
+bool Program::isDefined(string def) [flags=RET_VALUE_ONLY] {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    return t ? qore_program_private::runTimeIsDefined(p, t->getBuffer()) : false;
 }
@@ -1486,9 +1671,11 @@ bool Program::isDefined(string def) {
 auto val = pgm.getDefine("PRODUCTION");
     @endcode
 
+    @throw ENCODING-CONVERSION-ERROR this error is thrown if the string cannot be converted to the @ref default_encoding "default character encoding"
+
     @note A parse define may be defined with no value; use Program::isDefined() to check if a parse define is actually defined or not
  */
-auto Program::getDefine(string def) {
+auto Program::getDefine(string def) [flags=RET_VALUE_ONLY] {
    TempEncodingHelper t(def, QCS_DEFAULT, xsink);
    return t ? qore_program_private::runTimeGetDefine(p, t->c_str()) : QoreValue();
 }
@@ -1505,7 +1692,7 @@ auto Program::getDefine(string def) {
 
     @since %Qore 0.8.13
  */
-*hash Program::getAllDefines() {
+*hash Program::getAllDefines() [flags=CONSTANT] {
    return qore_program_private::runTimeGetAllDefines(p);
 }
 
@@ -1516,7 +1703,7 @@ auto Program::getDefine(string def) {
 
    @since %Qore 0.8.13
  */
-int Program::getProgramId() [flags=RET_VALUE_ONLY;] {
+int Program::getProgramId() [flags=CONSTANT] {
    return p->getProgramId();
 }
 

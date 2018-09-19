@@ -47,6 +47,8 @@
 #include <map>
 #include <string>
 #include <set>
+#include <algorithm>
+#include <memory>
 
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
@@ -205,9 +207,9 @@ protected:
     std::string asig;                       // abstract signature, only set for abstract method variants
 
 public:
-    // add QC_USES_EXTRA_ARGS to abstract methods by default as derived methods could use extra arguments
+    // add QCF_USES_EXTRA_ARGS to abstract methods by default as derived methods could use extra arguments
     DLLLOCAL MethodVariantBase(ClassAccess n_access, bool n_final, int64 n_flags, bool n_is_user = false, bool n_is_abstract = false) :
-        AbstractQoreFunctionVariant(n_flags | (n_is_abstract ? QC_USES_EXTRA_ARGS : 0), n_is_user), access(n_access), final(n_final), abstract(n_is_abstract) {
+        AbstractQoreFunctionVariant(n_flags | (n_is_abstract ? QCF_USES_EXTRA_ARGS : 0), n_is_user), access(n_access), final(n_final), abstract(n_is_abstract) {
     }
 
     DLLLOCAL bool isAbstract() const {
@@ -295,7 +297,7 @@ public:
 class DestructorMethodVariant : public MethodVariantBase {
 protected:
 public:
-   DLLLOCAL DestructorMethodVariant(bool n_is_user = false) : MethodVariantBase(Public, false, QC_NO_FLAGS, n_is_user) {
+   DLLLOCAL DestructorMethodVariant(bool n_is_user = false) : MethodVariantBase(Public, false, QCF_NO_FLAGS, n_is_user) {
    }
 
    DLLLOCAL virtual void evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const = 0;
@@ -307,7 +309,7 @@ public:
 class CopyMethodVariant : public MethodVariantBase {
 protected:
 public:
-   DLLLOCAL CopyMethodVariant(ClassAccess n_access, bool n_is_user = false) : MethodVariantBase(n_access, false, QC_NO_FLAGS, n_is_user) {
+   DLLLOCAL CopyMethodVariant(ClassAccess n_access, bool n_is_user = false) : MethodVariantBase(n_access, false, QCF_NO_FLAGS, n_is_user) {
    }
 
    DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const = 0;
@@ -364,7 +366,7 @@ protected:
    DLLLOCAL virtual ~UserConstructorVariant();
 
 public:
-   DLLLOCAL UserConstructorVariant(ClassAccess n_access, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, BCAList* n_bcal, int64 n_flags = QC_NO_FLAGS) : ConstructorMethodVariant(n_access, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, nullptr, false), bcal(n_bcal) {
+   DLLLOCAL UserConstructorVariant(ClassAccess n_access, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, BCAList* n_bcal, int64 n_flags = QCF_NO_FLAGS) : ConstructorMethodVariant(n_access, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, nullptr, false), bcal(n_bcal) {
    }
 
    // the following defines the pure virtual functions that are common to all user variants
@@ -469,7 +471,7 @@ protected:
     q_method_n_t method;
 
 public:
-    DLLLOCAL BuiltinNormalMethodValueVariant(q_method_n_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
+    DLLLOCAL BuiltinNormalMethodValueVariant(q_method_n_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QCF_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m) {
     }
     DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
         return method(self, private_data, args, rtflags, xsink);
@@ -482,7 +484,7 @@ protected:
     const void* ptr;
 
 public:
-    DLLLOCAL BuiltinExternalNormalMethodValueVariant(const void* n_ptr, q_external_method_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m), ptr(n_ptr) {
+    DLLLOCAL BuiltinExternalNormalMethodValueVariant(const void* n_ptr, q_external_method_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QCF_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinNormalMethodVariantBase(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), method(m), ptr(n_ptr) {
     }
     DLLLOCAL virtual QoreValue evalImpl(QoreObject* self, AbstractPrivateData* private_data, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) const {
         return method(*qmethod, ptr, self, private_data, args, rtflags, xsink);
@@ -494,7 +496,7 @@ protected:
     q_func_n_t static_method;
 
 public:
-    DLLLOCAL BuiltinStaticMethodValueVariant(q_func_n_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
+    DLLLOCAL BuiltinStaticMethodValueVariant(q_func_n_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QCF_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m) {
     }
 
     DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
@@ -510,7 +512,7 @@ protected:
     const void* ptr;
 
 public:
-    DLLLOCAL BuiltinExternalStaticMethodValueVariant(const void* n_ptr, q_external_static_method_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m), ptr(n_ptr) {
+    DLLLOCAL BuiltinExternalStaticMethodValueVariant(const void* n_ptr, q_external_static_method_t m, ClassAccess n_access, bool n_final = false, int64 n_flags = QCF_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const QoreTypeInfo* n_returnTypeInfo = 0, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinMethodVariant(n_access, n_final, n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names), static_method(m), ptr(n_ptr) {
     }
 
     DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
@@ -523,7 +525,7 @@ public:
 class BuiltinConstructorVariantBase : public ConstructorMethodVariant, public BuiltinFunctionVariantBase {
 public:
     // return type info is set to 0 because the new operator actually returns the new object, not the constructor
-    DLLLOCAL BuiltinConstructorVariantBase(ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : ConstructorMethodVariant(n_access, n_flags), BuiltinFunctionVariantBase(n_functionality, 0, n_typeList, n_defaultArgList, n_names) {
+    DLLLOCAL BuiltinConstructorVariantBase(ClassAccess n_access, int64 n_flags = QCF_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : ConstructorMethodVariant(n_access, n_flags), BuiltinFunctionVariantBase(n_functionality, 0, n_typeList, n_defaultArgList, n_names) {
     }
 
     // the following defines the pure virtual functions that are common to all builtin variants
@@ -539,7 +541,7 @@ protected:
     q_constructor_n_t constructor;
 
 public:
-    DLLLOCAL BuiltinConstructorValueVariant(q_constructor_n_t m, ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m) {
+    DLLLOCAL BuiltinConstructorValueVariant(q_constructor_n_t m, ClassAccess n_access, int64 n_flags = QCF_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m) {
     }
 
     DLLLOCAL virtual void evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
@@ -551,7 +553,7 @@ protected:
     const void* ptr;
 
 public:
-    DLLLOCAL BuiltinExternalConstructorValueVariant(const void* n_ptr, q_external_constructor_t m, ClassAccess n_access, int64 n_flags = QC_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m), ptr(n_ptr) {
+    DLLLOCAL BuiltinExternalConstructorValueVariant(const void* n_ptr, q_external_constructor_t m, ClassAccess n_access, int64 n_flags = QCF_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : BuiltinConstructorVariantBase(n_access, n_flags, n_functionality, n_typeList, n_defaultArgList, n_names), constructor(m), ptr(n_ptr) {
     }
 
     DLLLOCAL virtual void evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
@@ -1015,156 +1017,109 @@ public:
     DLLLOCAL void parseInit(const char* name);
 };
 
-/*
-#ifdef HAVE_QORE_HASH_MAP
-typedef HASH_MAP<char*, QoreMemberInfo*, qore_hash_str, eqstr> member_map_t;
-typedef HASH_MAP<char*, QoreVarInfo*, qore_hash_str, eqstr> var_map_t;
-#else
-typedef std::map<char*, QoreMemberInfo*, ltstr> member_map_t;
-typedef std::map<char*, QoreVarInfo*, ltstr> var_map_t;
-#endif
-*/
-
 template <typename T>
 class QoreMemberMapBase {
 public:
-    typedef std::pair<char*, T*> list_element_t;
-    typedef std::vector<list_element_t> member_list_t;
-    typedef typename member_list_t::const_iterator DeclOrderIterator;
-    // we use a vector map as the number of members is generally relatively small
-    typedef vector_map_t<char*, T*> member_map_t;
-    /*
-#ifdef HAVE_QORE_HASH_MAP
-    typedef HASH_MAP<char*, T*, qore_hash_str, eqstr> member_map_t;
-#else
-    typedef std::map<char*, T*, ltstr> member_map_t;
-#endif
-    */
-    typedef typename member_map_t::const_iterator SigOrderIterator;
+    typedef std::pair<char*, std::unique_ptr<T>> member_list_element_t;
+    typedef std::vector<member_list_element_t> member_list_t;
+    typedef typename member_list_t::iterator iterator;
+    typedef typename member_list_t::const_iterator const_iterator;
+    member_list_t member_list;
 
-public:
     DLLLOCAL ~QoreMemberMapBase() {
-        for (typename member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
+        for (auto& i : member_list) {
             //printd(5, "QoreMemberMap::~QoreMemberMap() this: %p freeing member %p '%s'\n", this, i->second, i->first);
-            delete i->second;
-            free(i->first);
+            // the key is allocated normally in the scanner, and must be freed manually here
+            free(i.first);
         }
-        map.clear();
-        list.clear();
+        member_list.clear();
     }
 
-   DLLLOCAL bool inList(const char* name) const {
-      return map.find(const_cast<char*>(name)) != map.end();
-   }
+    DLLLOCAL bool inList(const char* name) const {
+        return (bool)find(name);
+    }
 
-   DLLLOCAL T* find(const char* name) const {
-      typename member_map_t::const_iterator it = map.find(const_cast<char*>(name));
-      return it == map.end() ? nullptr : it->second;
-   }
+    DLLLOCAL T* find(const char* name) const {
+        typename member_list_t::const_iterator i = std::find_if(member_list.begin(), member_list.end(), [name](const member_list_element_t& e) -> bool {return !strcmp(e.first, name); });
+        return i == member_list.end() ? nullptr : i->second.get();
+    }
 
-   DLLLOCAL bool empty() const {
-      return map.empty();
-   }
+    DLLLOCAL bool empty() const {
+        return member_list.empty();
+    }
 
-   DLLLOCAL void addNoCheck(char* name, T* info) {
-      assert(name);
-      assert(info);
-      assert(!inList(name));
-      map[name] = info;
-      list.push_back(std::make_pair(name, info));
-   }
+    DLLLOCAL void addNoCheck(char* name, T* info) {
+        assert(name);
+        assert(info);
+        assert(!inList(name));
+        member_list.push_back(std::make_pair(name, std::unique_ptr<T>(info)));
+    }
 
-   DLLLOCAL void addNoCheck(std::pair<char*, T*> pair) {
-      addNoCheck(pair.first, pair.second);
-   }
+    DLLLOCAL void addNoCheck(std::pair<char*, T*> pair) {
+        addNoCheck(pair.first, pair.second);
+    }
 
-   DLLLOCAL void moveAllTo(QoreMemberMapBase<T>& dest) {
-      dest.map.insert(map.begin(), map.end());
-      dest.list.insert(dest.list.end(), list.begin(), list.end());
-      map.clear();
-      list.clear();
-   }
+    DLLLOCAL void moveAllTo(QoreMemberMapBase<T>& dest) {
+        dest.member_list.insert(dest.member_list.end(), member_list.begin(), member_list.end());
+        member_list.clear();
+    }
 
-   DLLLOCAL DeclOrderIterator beginDeclOrder() const {
-      return list.begin();
-   }
-
-   DLLLOCAL DeclOrderIterator endDeclOrder() const {
-      return list.end();
-   }
-
-   DLLLOCAL SigOrderIterator beginSigOrder() const {
-      return map.begin();
-   }
-
-   DLLLOCAL SigOrderIterator endSigOrder() const {
-      return map.end();
-   }
-
-   DLLLOCAL size_t size() const {
-      return list.size();
-   }
-
-protected:
-   member_list_t list;
-   member_map_t map;
+    DLLLOCAL size_t size() const {
+        return member_list.size();
+    }
 };
 
 class QoreMemberMap : public QoreMemberMapBase<QoreMemberInfo> {
 public:
-   using QoreMemberMapBase<QoreMemberInfo>::moveAllTo;
-   DLLLOCAL void moveAllTo(QoreClass* qc, ClassAccess access);
+    using QoreMemberMapBase<QoreMemberInfo>::moveAllTo;
+    DLLLOCAL void moveAllTo(QoreClass* qc, ClassAccess access);
 
-   DLLLOCAL void addInheritedNoCheck(char* name, QoreMemberInfo* info) {
-      assert(name);
-      assert(info);
-      assert(!inList(name));
-      map[name] = info;
-      list.insert(list.begin() + inheritedCount++, std::make_pair(name, info));
-   }
+    DLLLOCAL void addInheritedNoCheck(char* name, QoreMemberInfo* info) {
+        assert(name);
+        assert(info);
+        assert(!inList(name));
+        member_list.insert(member_list.begin() + inheritedCount++, std::make_pair(name, std::unique_ptr<QoreMemberInfo>(info)));
+    }
 
-   DLLLOCAL void parseInit();
+    DLLLOCAL void parseInit();
 
 private:
-   member_list_t::size_type inheritedCount = 0;
-   bool init = false;
+    member_list_t::size_type inheritedCount = 0;
+    bool init = false;
 };
 
 class QoreVarMap : public QoreMemberMapBase<QoreVarInfo> {
 public:
     DLLLOCAL void clear(ExceptionSink* xsink) {
-        for (member_list_t::reverse_iterator i = list.rbegin(), e = list.rend(); i != e; ++i) {
+        for (member_list_t::reverse_iterator i = member_list.rbegin(), e = member_list.rend(); i != e; ++i) {
             i->second->clear(xsink);
         }
     }
 
     DLLLOCAL void del(ExceptionSink* xsink) {
-        for (member_list_t::reverse_iterator i = list.rbegin(), e = list.rend(); i != e; ++i) {
+        for (member_list_t::reverse_iterator i = member_list.rbegin(), e = member_list.rend(); i != e; ++i) {
             i->second->delVar(xsink);
+            // the key is allocated normally in the scanner, and must be freed manually here
             free(i->first);
-            delete i->second;
         }
-        map.clear();
-        list.clear();
+        member_list.clear();
     }
 
     DLLLOCAL void del() {
-        for (member_map_t::iterator i = map.begin(), e = map.end(); i != e; ++i) {
+        for (member_list_t::reverse_iterator i = member_list.rbegin(), e = member_list.rend(); i != e; ++i) {
             assert(!i->second->val.hasValue());
             /*
             // when rolling back a failed parse, vars may have values, but no exception can happen, so xsink can be nullptr
             i->second->delVar(nullptr);
             */
+            // the key is allocated normally in the scanner, and must be freed manually here
             free(i->first);
-            delete i->second;
         }
-        map.clear();
-        list.clear();
+        member_list.clear();
     }
 
     DLLLOCAL void clearNoFree() {
-        map.clear();
-        list.clear();
+        member_list.clear();
     }
 
     DLLLOCAL void moveAllTo(QoreClass* qc, ClassAccess access);
@@ -2039,17 +1994,17 @@ public:
     }
 
     DLLLOCAL const QoreVarInfo* parseFindVar(const char* vname, const qore_class_private*& qc, ClassAccess& access, bool toplevel) const {
-            //printd(5, "parseFindVar() this: %p cls: %p (%s) scl: %p\n", this, cls, cls->getName(), scl);
+        //printd(5, "parseFindVar() this: %p cls: %p (%s) scl: %p\n", this, cls, cls->getName(), scl);
 
-            QoreVarInfo* vi = vars.find(const_cast<char*>(vname));
+        QoreVarInfo* vi = vars.find(const_cast<char*>(vname));
 
-            if (vi) {
-                qc = this;
-                access = vi->getAccess();
-                return vi;
-            }
+        if (vi) {
+            qc = this;
+            access = vi->getAccess();
+            return vi;
+        }
 
-            return scl ? scl->parseFindVar(vname, qc, access, toplevel) : nullptr;
+        return scl ? scl->parseFindVar(vname, qc, access, toplevel) : nullptr;
     }
 
     DLLLOCAL int parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& l_mi, const qore_class_private& b_qc, const QoreMemberInfo& b_mi);
@@ -3230,6 +3185,57 @@ public:
 
     DLLLOCAL static QoreValue evalTmpArgs(const QoreMethod& m, ExceptionSink* xsink, QoreObject* self, QoreListNode* args, const qore_class_private* cctx = nullptr) {
         return m.priv->evalTmpArgs(xsink, self, args, cctx);
+    }
+
+    DLLLOCAL static qore_method_private* get(QoreMethod& m) {
+        return m.priv;
+    }
+
+    DLLLOCAL static const qore_method_private* get(const QoreMethod& m) {
+        return m.priv;
+    }
+};
+
+template <class T>
+class PrivateIteratorBase {
+public:
+    DLLLOCAL PrivateIteratorBase(const T& obj) : obj(obj), i(obj.end()) {
+    }
+
+    DLLLOCAL bool next() {
+        if (i == obj.end()) {
+            i = obj.begin();
+        }
+        else {
+            ++i;
+        }
+        return (i != obj.end());
+    }
+
+    //! returns true if the iterator is pointing at a valid element
+    DLLLOCAL bool valid() const {
+        return i != obj.end();
+    }
+
+protected:
+    const T& obj;
+    typename T::const_iterator i;
+};
+
+template <class T, class U>
+class PrivateMemberIteratorBase : public PrivateIteratorBase<typename T::member_list_t> {
+public:
+    DLLLOCAL PrivateMemberIteratorBase(const typename T::member_list_t& obj) : PrivateIteratorBase<typename T::member_list_t>(obj) {
+    }
+
+    DLLLOCAL const U& getMember() const {
+        assert(this->valid());
+        return *reinterpret_cast<const U*>(this->i->second.get());
+    }
+
+    DLLLOCAL const char* getName() const {
+        assert(this->valid());
+        return this->i->first;
     }
 };
 

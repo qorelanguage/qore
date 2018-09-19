@@ -431,6 +431,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreStandardException.cpp
     lib/QoreClass.cpp
     lib/TypedHashDecl.cpp
+    lib/QoreReflection.cpp
     lib/Context.cpp
     lib/FindNode.cpp
     lib/charset.cpp
@@ -760,6 +761,8 @@ add_dependencies(install-docs docs)
 
 # astparser module
 add_subdirectory(modules/astparser)
+# reflection module
+add_subdirectory(modules/reflection)
 
 # HACK: we need to simulate QORE_USER_MODULES_DIR as the versioned one
 #       for qore core qlib modules.
@@ -775,6 +778,7 @@ set(QORE_USER_MODULES_DIR ${USER_MODULE_VER_DIR})
 # base modules
 qore_user_module("qlib/DatasourceProvider.qm" "")
 qore_user_module("qlib/DebugUtil.qm" "")
+qore_user_module("qlib/FsUtil.qm" "")
 qore_user_module("qlib/Mapper.qm" "")
 qore_user_module("qlib/Qdx.qm" "")
 qore_user_module("qlib/Qorize.qm" "")
