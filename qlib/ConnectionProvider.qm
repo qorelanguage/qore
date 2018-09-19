@@ -171,6 +171,7 @@ public namespace ConnectionProvider {
         *date updated;    #!< the date/time value of the update (or @ref nothing if not updated)
         string url;       #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref Qore::True "True")
         hash url_hash;    #!< a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
+        bool enabled;     #!< a boolean value indicating if the connection should be enabled or not. This flag does not affect anything by default, it is for user re-implementations
     }
 
     #! config informaton as returned by @ref ConnectionProvider::AbstractConnection::getConfigHash() "AbstractConnection::getConfigHash()"
@@ -351,6 +352,9 @@ string connstr = get_connection(str);
 
             #! optional code for default post-processing of objects created by getImpl(); must take the object created and the connection name as arguments
             static *code post_processing;
+
+            #! enabled/disabled indicator flag
+            bool enabled = True;
         }
 
         #! creates the AbstractConnection object
@@ -361,8 +365,10 @@ string connstr = get_connection(str);
             @param n_opts connection options
             @param n_urlh broken down URL hash (as returned by @ref Qore::parse_url())
             @param n_safe_url "safe" URL (password information removed); if not set this will be set automatically by calling @ref getSafeUrl()
+            @param n_enabled enabled/disabled flag
          */
-        constructor(string n_name, string n_desc, string n_url, bool n_monitor, *hash n_opts, hash n_urlh, *string n_safe_url) {
+        constructor(string n_name, string n_desc, string n_url, bool n_monitor, *hash n_opts, hash n_urlh, *string n_safe_url,
+                    *bool n_enabled) {
             name = n_name;
             desc = n_desc;
             url = n_url;
@@ -379,6 +385,7 @@ string connstr = get_connection(str);
                 }
             }
             opts = n_opts;
+            enabled = n_enabled ?? True;
         }
 
         #! creates a "safe" URL string with password information removed
@@ -440,7 +447,7 @@ string connstr = get_connection(str);
             @return a @ref ConnectionInfo hash of information about the connection
          */
         hash<ConnectionInfo> getInfo(bool with_password = False) {
-            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback") + ("type": getType(), "url_hash": urlh));
+            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled") + ("type": getType(), "url_hash": urlh));
             if (!with_password) {
                 h.url = safe_url;
                 delete h.url_hash.password;
