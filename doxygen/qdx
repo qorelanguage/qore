@@ -278,6 +278,10 @@ class qdx {
         return line;
     }
 
+    /* note: ideally the function should process input files to output ones keep line numbering. It would
+       allow to use doxygen filters as the line would be referenced to source file. But there are some
+       expansions which makes it difficult, i.e. table expansion to html tags
+     */
     processQore(string fn, string nn) {
         checkNames(fn, nn);
 
@@ -326,16 +330,17 @@ class qdx {
                 line =~ s/@mainpage ([\w]+)/@page $1 $1/;
 
             if (in_doc) {
-                if (line =~ /\*\//)
+                if (line =~ /\*\//) {
                     in_doc = False;
+                }
                 w.write(line);
                 continue;
             }
 
             # skip parse commands
-            if (line =~ /^%/)
+            if (line =~ /^%/) {
                 continue;
-
+            }
             # see if the line is the start of a doxygen block comment
             if (line =~ /^[[:blank:]]*\/\*\*/) { #/){
                 line = getComment(line, ins);
@@ -344,8 +349,9 @@ class qdx {
             }
 
             if (line =~ /^[[:blank:]]*\/\*/){ #/){
-                if (line !~ /\*\//)
+                if (line !~ /\*\//) {
                     in_doc = True;
+                }
                 w.write(line);
                 continue;
             }
@@ -379,15 +385,17 @@ class qdx {
 
             # skip module declarations for now
             if (line =~ /^[[:space:]]*module[[:space:]]+/) {
-                while (line.val() && line !~ /}/ && ins.next()) {
+                while (line.val() && !regex(line, "}") && ins.next()) {
                     line = ins.getValue();
                 }
                 continue;
             }
 
             # see if the line is the start of a method or function declaration
-            if (line =~ /\(.*\)[[:blank:]]*{[[:blank:]]*(#.*)?$/ && line !~ /const .*=/ && line !~ /extern .*=.*\(.*\)/
-                && line !~ /^[[:blank:]]*\"/) {
+            if (regex(line, '\(.*\)[[:blank:]]*{[[:blank:]]*(#.*)?$')
+                && line !~ /const .*=/
+                && line !~ /extern .*=.*\(.*\)/
+                && !regex(line, '^[[:blank:]]*\"') ) {
                 # printf("method or func: %s", line);
 
                 # remove "$" signs
@@ -397,7 +405,7 @@ class qdx {
                 line =~ s/#.*$//;
 
                 # make into a declaration (also remove any parent class constructor calls)
-                line =~ s/[[:blank:]]*(?:([^:]):[^:].*\(.*)?{[[:blank:]]*$/$1;/;
+                line = regex_subst(line, '[[:blank:]]*(?:([^:]):[^:].*\(.*)?{[[:blank:]]*$', "$1;");
 
                 # modify string default value quoted by quotes to apostroph
                 line = adjustQuotedStrings(line);
@@ -431,7 +439,7 @@ class qdx {
             # convert class inheritance lists to c++-style declarations
             if (line =~ /inherits / && line !~ /\/(\/|\*)/) {
                 trim line;
-                xl = (line =~ x/(.*) inherits ([^{]+)(.*)/);
+                xl = regex_extract(line, '(.*) inherits ([^{]+)(.*)');
                 xl[1] = split(",", xl[1]);
                 foreach string e in (\xl[1]) {
                     if (e !~ /(private|public)[^A-Za-z0-9_]/)
@@ -479,8 +487,8 @@ class qdx {
                     if (cbc)
                         throw "ERROR", sprintf("class found but cbc=%d\nline=%n\n", cbc, line);
 
-                    if (line =~ /{/) {
-                        if (line !~ /}/) {
+                    if (regex(line, "{") ) {
+                        if (!regex(line, "}")) {
                             line += "\npublic:\n";
                             ++cbc;
                         }
@@ -499,7 +507,7 @@ class qdx {
                         int cb = (line =~ x/(})/g).size();
                         cbc += (ob - cb);
                         if (!cbc) {
-                            line =~ s/}/};/;
+                            line = regex_subst(line, "}", "};");
                             delete class_name;
                         }
                     }
@@ -509,38 +517,38 @@ class qdx {
                         continue;
                     }
                     else if (!ppc) {
-                        if (line =~ /(public|private)[[:space:]]*{/) {
+                        if (regex(line, "(public|private)[[:space:]]*{")) {
                             ++ppc;
-                            line =~ s/{/:/;
+                            line = regex_subst(line, "{", ":");
                             #printf("PP line: %s\n", line);
                         }
                     }
                     else {
-                        if (line =~ /{/) {
-                            if (line !~ /}/)
+                        if (regex(line, "{") ) {
+                            if (!regex(line, "}") )
                                 ++ppc;
                         }
-                        else if (line =~ /}/) {
+                        else if (regex(line, "}")) {
                             if (!--ppc)
                                 line = "\npublic:\n";
                         }
                     }
                 }
                 else if (hashdecl_flag) {
-                    if (line =~ /}/) {
-                        line =~ s/}/};/;
+                    if (regex(line, "}") ) {
+                        line = regex_subst(line, "}", "};");
                         remove hashdecl_flag;
                     }
                 }
                 else if (ns_name) {
-                    if (line =~ /{/) {
-                        if (line !~ /}/)
+                    if (regex(line, "{")) {
+                        if (!regex(line, "}"))
                             ++nbc;
                     }
-                    else if (line =~ /}/) {
+                    else if (regex(line, "}")) {
                         --nbc;
                         if (!nbc) {
-                            line =~ s/}/};/;
+                            line = regex_subst(line, "}", "};");
                         }
                         ns_name = pop nss;
                     }
@@ -584,11 +592,11 @@ class qdx {
             w.write(line);
 
             if (mpp) {
-                if (line =~ /{/)
+                if (regex(line, "{")) {
                     ++mpc;
-                else if (line =~ /}/)
+                } else if (regex(line, "}")) {
                     --mpc;
-
+                }
                 if (!mpc) {
                     w.write("\npublic:\n");
                     mpp = False;
@@ -597,16 +605,19 @@ class qdx {
         }
     }
 
-    private readUntilCloseBracket(FileInputStream inf) {
+    # return number of lines processed
+    private int readUntilCloseBracket(FileInputStream inf) {
         int cnt = 1;
+        int line_cnt = 0;
         string quote;
         bool need = True;
         int regex = 0;
 
         StreamReader sr(inf);
         *string fc = sr.readString(1);
-        if (!exists fc)
-            return;
+        if (!exists fc) {
+            return line_cnt;
+        }
 
         string c = fc;
         need = False;
@@ -615,24 +626,32 @@ class qdx {
             if (need) {
                 c = sr.readString(1);
             }
-            else
+            else {
                 need = True;
+            }
+
+            if (c == "\n") {
+                line_cnt++;
+            }
 
             if (regex) {
                 if (c == "\\")
                     sr.readString(1);
-                if (c == "/")
+                if (c == "/") {
                     --regex;
+                }
                 continue;
             }
 
             if (c == "'" || c == '"') {
                 if (quote.val()) {
-                    if (c == quote)
+                    if (c == quote) {
                         delete quote;
+                    }
                 }
-                else
+                else {
                     quote = c;
+                }
                 continue;
             }
             if (quote.val()) {
@@ -646,26 +665,29 @@ class qdx {
                     regex = 1;
                     while (True) {
                         c = sr.readString(1);
-                        if (c == "s")
+                        if (c == "s") {
                             ++regex;
-                        else if (c == "/")
+                        } else if (c == "/") {
                             break;
+                        }
                     }
                 }
                 continue;
             }
 
-            if (c == "{")
+            if (c == "{") {
                 ++cnt;
+            }
             else if (c == "}") {
                 if (!--cnt) {
-                    return;
+                    return line_cnt;
                 }
             }
             else if (c == "$") {#"){
                 c = sr.readString(1);
-                if (c != "#")
+                if (c != "#") {
                     need = False;
+                }
             }
             else if (c == "#") {
                 # read until EOL
@@ -679,18 +701,22 @@ class qdx {
                     while (True) {
                         c = sr.readString(1);
                         if (star) {
-                            if (c == "/")
+                            if (c == "/") {
                                 break;
+                            }
                             star = (c == "*");
                             continue;
                         }
-                        if (c == "*")
+                        if (c == "*") {
                             star = True;
+                        }
                     }
                 }
-                else
+                else {
                     need = False;
+                }
             }
         }
+        return line_cnt;
     }
 }
