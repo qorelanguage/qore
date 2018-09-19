@@ -487,7 +487,9 @@ QoreHashNode* QoreSerializable::serializeHashToData(const QoreHashNode& h, Refer
         if (!hash_members) {
             hash_members = new QoreHashNode(autoTypeInfo);
         }
-        hash_members->setKeyValue(hi.getKey(), new_val.release(), xsink);
+        if (new_val) {
+            hash_members->setKeyValue(hi.getKey(), new_val.release(), xsink);
+        }
     }
 
     if (hash_members) {
@@ -1451,6 +1453,9 @@ QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, 
 
         ValueHolder val(deserializeValueFromStream(reader, xsink), xsink);
         if (*xsink) {
+            if (thd) {
+                xsink->appendLastDescription(" (while deserializing hashdecl '%s')", thd->getName());
+            }
             return nullptr;
         }
 
