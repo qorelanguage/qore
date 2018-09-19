@@ -109,6 +109,8 @@ string name = th.getName();
     @return the @ref hashdecl "typed hash (hashdecl)" name
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the @ref hashdecl "typed hash (hashdecl)" has been destroyed
+
+    @see getPathName()
  */
 string TypedHash::getName() [flags=RET_VALUE_ONLY] {
     // get read access to program object
@@ -119,6 +121,31 @@ string TypedHash::getName() [flags=RET_VALUE_ONLY] {
 
     // the typed hash (hashdecl) ptr must be valid
     return new QoreStringNode(thd->th->getName());
+}
+
+//! returns the @ref hashdecl "typed hash's (hashdecl's)" full namespace-justified path name
+/** @par Example:
+    @code{.py}
+string name = th.getPathName();
+    @endcode
+
+    @return the @ref hashdecl "typed hash's (hashdecl's)" full namespace-justified path name
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the @ref hashdecl "typed hash (hashdecl)" has been destroyed
+
+    @see getName()
+ */
+string TypedHash::getPathName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the typed hash (hashdecl) ptr must be valid
+    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
+    rv->concat(thd->th->getNamespacePath());
+    return rv.release();
 }
 
 //! returns @ref True if the @ref hashdecl "typed hash (hashdecl)" is a builtin typed hash

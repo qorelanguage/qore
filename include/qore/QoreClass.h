@@ -98,6 +98,7 @@ class QoreExternalProgramLocation;
 class QoreExternalMethodFunction;
 class QoreExternalMemberVarBase;
 class QoreExternalStaticMember;
+class QoreExternalNormalMember;
 class QoreExternalConstant;
 
 //! method type enum
@@ -833,7 +834,7 @@ public:
     //! Finds the given local member or returns nullptr
     /** @since %Qore 0.9
     */
-    DLLEXPORT const QoreExternalMemberVarBase* findLocalMember(const char* name) const;
+    DLLEXPORT const QoreExternalNormalMember* findLocalMember(const char* name) const;
 
     //! Finds the given local static member or returns nullptr
     /** @since %Qore 0.9
@@ -871,6 +872,16 @@ public:
     /** @since %Qore 0.9
     */
     DLLEXPORT const QoreNamespace* getNamespace() const;
+
+    //! Returns true if the class passed as an argument is present in the current class's hierachy, even if not accessible from the class due to private:internal inheritance
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT bool inHierarchy(const QoreClass& cls, ClassAccess& n_access) const;
+
+    //! Returns the module name the class was loaded from or nullptr if it is a builtin class
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT const char* getModuleName() const;
 
     //! constructor not exported in library's API
     DLLLOCAL QoreClass();
@@ -1054,7 +1065,7 @@ public:
     DLLEXPORT bool valid() const;
 
     //! returns the member
-    DLLEXPORT const QoreExternalMemberVarBase& getMember() const;
+    DLLEXPORT const QoreExternalNormalMember& getMember() const;
 
     //! returns the member's name
     DLLEXPORT const char* getName() const;
@@ -1115,7 +1126,9 @@ private:
 };
 
 //! iterates the class hierarchy in the order of constructor execution
-/** @since %Qore 0.9
+/** @see QoreClassDestructorHierarchyIterator
+
+    @since %Qore 0.9
 */
 class QoreClassHierarchyIterator final {
 public:
@@ -1134,8 +1147,44 @@ public:
     //! returns the parent class
     DLLEXPORT const QoreClass& get() const;
 
+    //! returns true if the class has virtual inheritance, meaning that it is a builtin class without its own private data
+    /** if true, compatible private data is supplied by a child class
+    */
+    DLLEXPORT bool isVirtual() const;
+
 private:
     std::unique_ptr<class qore_class_hierarchy_iterator> priv;
+};
+
+//! iterates the class hierarchy in the order of destructor execution
+/** @see QoreClassHierarchyIterator
+
+    @since %Qore 0.9
+*/
+class QoreClassDestructorHierarchyIterator {
+public:
+    //! creates the iterator; call next() to start iterating
+    DLLEXPORT QoreClassDestructorHierarchyIterator(const QoreClass* cls);
+
+    //! destroys the object
+    DLLEXPORT ~QoreClassDestructorHierarchyIterator();
+
+    //! returns advances to the next element (or to the first element if starting to iterate) and returns true if there is an element to query or returns false if at the end of the list
+    DLLEXPORT bool next();
+
+    //! returns true if the iterator is pointing at a valid element
+    DLLEXPORT bool valid() const;
+
+    //! returns the parent class
+    DLLEXPORT const QoreClass* get() const;
+
+    //! returns true if the class has virtual inheritance, meaning that it is a builtin class without its own private data
+    /** if true, compatible private data is supplied by a child class
+    */
+    DLLEXPORT bool isVirtual() const;
+
+private:
+    class qore_class_destructor_hierarchy_iterator* priv;
 };
 
 DLLEXPORT const char* get_access_string(ClassAccess access);
