@@ -67,6 +67,8 @@
       - @ref Qore::FtpClient::getDataPeerInfo() "FtpClient::getDataPeerInfo()"
       - @ref Qore::FtpClient::getDataSocketInfo() "FtpClient::getDataSocketInfo()"
       - @ref Qore::Program::getParseOptionStringList() "Program::getParseOptionStringList()"
+      - @ref Qore::Program::parse() "Program::parse()"
+      - @ref Qore::Program::parsePending() "Program::parsePending()"
       - @ref Qore::SSLCertificate::copy() "SSLCertificate::copy()"
       - @ref Qore::SSLCertificate::getDER() "SSLCertificate::getDER()"
       - @ref Qore::SSLPrivateKey::copy() "SSLPrivateKey::copy()"
@@ -108,12 +110,16 @@
     - New parse directives:
       - @ref no-reflection "%no-reflection"
       - @ref no-transient "%no-transient"
+    - @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" updates:
+      the \a format_label parameter is obsolete/ignored
+      (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)
     - Module updates
       - <a href="../../modules/reflection/html/index.html">reflection</a>: a new binary module providing a
         reflection API to %Qore
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module changes:
         - The \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
           connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+        - the \c AbstractConnection has new public flag \c enabled. Also constructors are updated. (<a href="https://github.com/qorelanguage/qore/issues/3001">issue 3001</a>)
       - <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> module changes:
         - Added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module changes:

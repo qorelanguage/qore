@@ -114,16 +114,16 @@ public class LogicTest inherits QUnit::Test {
             Program a(PO_BROKEN_LOGIC_PRECEDENCE|PO_NEW_STYLE);
             a.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
             *hash h = a.parse(Code, "warn", WARN_BROKEN_LOGIC_PRECEDENCE);
-            assertEq("<run-time-loaded: warn>", h.file);
+            assertEq("warn", h.file);
             assertEq("BROKEN-LOGIC-PRECEDENCE", h.err);
         }
         {
             Program a(PO_BROKEN_LOGIC_PRECEDENCE|PO_NEW_STYLE);
             a.disableParseOptions(PO_NO_TOP_LEVEL_STATEMENTS);
             *hash h = a.parse(Code + "x = 1 | 2 ^ 3 & 5;", "warn", WARN_BROKEN_LOGIC_PRECEDENCE);
-            assertEq("<run-time-loaded: warn>", h.file);
+            assertEq("warn", h.file);
             assertEq("BROKEN-LOGIC-PRECEDENCE", h.err);
-            assertEq("<run-time-loaded: warn>", h.next.file);
+            assertEq("warn", h.next.file);
             assertEq("BROKEN-LOGIC-PRECEDENCE", h.next.err);
         }
     }

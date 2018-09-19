@@ -806,7 +806,7 @@ int qore_class_private::initializeIntern() {
             // add committed members to signature
             for (auto& i : members.member_list) {
                 // check new members for conflicts in base classes
-                parseCheckMemberInBaseClasses(i.first, i.second);
+                parseCheckMemberInBaseClasses(i.first, i.second.get());
             }
 
             // initialize new members
@@ -1199,7 +1199,7 @@ void qore_class_private::parseCommit() {
                 const qore_class_private* member_class_ctx = i.second->getClassContext(this);
                 // local members can only be stored in the standard object hash or in the private:internal hash for this class
                 assert(!member_class_ctx || member_class_ctx == this);
-                member_init_list.push_back(member_init_entry_t(i.first, i.second, member_class_ctx));
+                member_init_list.push_back(member_init_entry_t(i.first, i.second.get(), member_class_ctx));
             }
 
             has_new_user_changes = false;
@@ -2872,7 +2872,7 @@ void BCSMList::processMemberInitializationList(const QoreMemberMap& members, mem
             const qore_class_private* member_class_ctx = info->getClassContext(i.first->priv);
             //printd(5, "BCSMList::processMemberInitializationList() adding '%s::%s' ctx: %p '%s'\n", i.first->getName(), mi.first, member_class_ctx, member_class_ctx ? member_class_ctx->name.c_str() : "n/a");
             // insert this entry with the class context for saving against the object
-            member_init_list.push_back(member_init_entry_t(mi.first, mi.second, member_class_ctx));
+            member_init_list.push_back(member_init_entry_t(mi.first, mi.second.get(), member_class_ctx));
         }
         //printd(5, "BCSMList::processMemberInitializationList() done processing %p '%s'\n", i.first->priv, i.first->getName());
     }
@@ -4900,7 +4900,7 @@ void QoreMemberMap::parseInit() {
     }
     init = true;
     for (auto& i : member_list) {
-        printd(5, "QoreMemberMap::parseInit() this: %p mem: '%s' (%p) type: %s (%d)\n", this, i.first, i.second, i.second->exp.getTypeName(), i.second->exp.getType());
+        printd(5, "QoreMemberMap::parseInit() this: %p mem: '%s' (%p) type: %s (%d)\n", this, i.first, i.second.get(), i.second->exp.getTypeName(), i.second->exp.getType());
         if (i.second) {
             i.second->parseInit(i.first);
         }
@@ -4913,7 +4913,7 @@ void QoreMemberMap::moveAllTo(QoreClass* qc, ClassAccess access) {
         return;
     }
     for (auto& i : member_list) {
-        qore_class_private::parseAddMember(*qc, i.first, access, i.second);
+        qore_class_private::parseAddMember(*qc, i.first, access, i.second.release());
     }
     member_list.clear();
 }
@@ -4959,7 +4959,7 @@ void QoreVarMap::moveAllTo(QoreClass* qc, ClassAccess access) {
         return;
     }
     for (auto& i : member_list) {
-        qore_class_private::parseAddStaticVar(qc, i.first, access, i.second);
+        qore_class_private::parseAddStaticVar(qc, i.first, access, i.second.release());
     }
     member_list.clear();
 }

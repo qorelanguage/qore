@@ -50,6 +50,7 @@
 #include <vector>
 #include <deque>
 #include <algorithm>
+#include <memory>
 
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
@@ -1125,20 +1126,10 @@ protected:
     }
 };
 
-/*
-#ifdef HAVE_QORE_HASH_MAP
-typedef HASH_MAP<char*, QoreMemberInfo*, qore_hash_str, eqstr> member_map_t;
-typedef HASH_MAP<char*, QoreVarInfo*, qore_hash_str, eqstr> var_map_t;
-#else
-typedef std::map<char*, QoreMemberInfo*, ltstr> member_map_t;
-typedef std::map<char*, QoreVarInfo*, ltstr> var_map_t;
-#endif
-*/
-
 template <typename T>
 class QoreMemberMapBase {
 public:
-    typedef std::pair<char*, T*> member_list_element_t;
+    typedef std::pair<char*, std::unique_ptr<T>> member_list_element_t;
     typedef std::deque<member_list_element_t> member_list_t;
     typedef typename member_list_t::iterator iterator;
     typedef typename member_list_t::const_iterator const_iterator;
@@ -1146,8 +1137,8 @@ public:
 
     DLLLOCAL ~QoreMemberMapBase() {
         for (auto& i : member_list) {
-            //printd(5, "QoreMemberMap::~QoreMemberMap() this: %p freeing member %p '%s'\n", this, i.second, i.first);
-            delete i.second;
+            //printd(5, "QoreMemberMap::~QoreMemberMap() this: %p freeing member %p '%s'\n", this, i->second, i->first);
+            // the key is allocated normally in the scanner, and must be freed manually here
             free(i.first);
         }
         member_list.clear();
@@ -1159,7 +1150,7 @@ public:
 
     DLLLOCAL T* find(const char* name) const {
         typename member_list_t::const_iterator i = std::find_if(member_list.begin(), member_list.end(), [name](const member_list_element_t& e) -> bool {return !strcmp(e.first, name); });
-        return i == member_list.end() ? nullptr : i->second;
+        return i == member_list.end() ? nullptr : i->second.get();
     }
 
     DLLLOCAL bool empty() const {
@@ -1170,7 +1161,7 @@ public:
         assert(name);
         assert(info);
         assert(!inList(name));
-        member_list.push_back(std::make_pair(name, info));
+        member_list.push_back(std::make_pair(name, std::unique_ptr<T>(info)));
     }
 
     DLLLOCAL void addNoCheck(std::pair<char*, T*> pair) {
@@ -1202,7 +1193,7 @@ public:
         assert(name);
         assert(info);
         assert(!inList(name));
-        member_list.insert(member_list.begin(), std::make_pair(name, info));
+        member_list.insert(member_list.begin(), std::make_pair(name, std::unique_ptr<QoreMemberInfo>(info)));
     }
 
     DLLLOCAL void parseInit();
@@ -1222,8 +1213,8 @@ public:
     DLLLOCAL void del(ExceptionSink* xsink) {
         for (member_list_t::reverse_iterator i = member_list.rbegin(), e = member_list.rend(); i != e; ++i) {
             i->second->delVar(xsink);
+            // the key is allocated normally in the scanner, and must be freed manually here
             free(i->first);
-            delete i->second;
         }
         member_list.clear();
     }
@@ -1235,8 +1226,8 @@ public:
             // when rolling back a failed parse, vars may have values, but no exception can happen, so xsink can be nullptr
             i->second->delVar(nullptr);
             */
+            // the key is allocated normally in the scanner, and must be freed manually here
             free(i->first);
-            delete i->second;
         }
         member_list.clear();
     }
@@ -3396,7 +3387,7 @@ public:
 
     DLLLOCAL const U& getMember() const {
         assert(this->valid());
-        return *reinterpret_cast<const U*>(this->i->second);
+        return *reinterpret_cast<const U*>(this->i->second.get());
     }
 
     DLLLOCAL const char* getName() const {

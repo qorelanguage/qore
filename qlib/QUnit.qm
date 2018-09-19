@@ -471,7 +471,6 @@ public class QUnit::TestCase {
                 if (!ok)
                     continue;
                 string loc = callSite.file;
-                loc =~ s/<run-time-loaded: (.*)>/$1/;
                 int ln = callSite.line + callSite.offset;
                 if (ln > 0)
                     loc += sprintf(":%d", ln);
