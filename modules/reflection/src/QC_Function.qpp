@@ -1,0 +1,264 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_Function.cpp Function class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_reflection.h"
+#include "QC_Function.h"
+#include "QC_FunctionVariant.h"
+#include "QC_AbstractVariant.h"
+#include "QC_Type.h"
+
+static QoreReflectionFunction* get_function(const QoreString& path, ExceptionSink* xsink) {
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    QoreProgram* pgm = getProgram();
+    const QoreExternalFunction* f = pgm->findFunction(npath->c_str());
+    if (!f) {
+        xsink->raiseException("UNKNOWN-FUNCTION", "cannot find function '%s'", npath->c_str());
+        return nullptr;
+    }
+
+    return new QoreReflectionFunction(pgm, f);
+}
+
+static QoreObject* get_function_object(const QoreString& path, ExceptionSink* xsink) {
+    QoreReflectionFunction* f = get_function(path, xsink);
+    if (!f) {
+        assert(*xsink);
+        return nullptr;
+    }
+
+    return new QoreObject(QC_FUNCTION, getProgram(), f);
+}
+
+//! A class representing a %Qore function
+/**
+    @since %Qore 0.9.0
+ */
+qclass Function [ns=Qore::Reflection; arg=QoreReflectionFunction* f; vparent=AbstractReflectionFunction; dom=REFLECTION];
+
+//! Creates the function from the name or namespace-justified path supplied as an argument
+/** @par Example:
+    @code{.py}
+Function f("Qore::printf");
+    @endcode
+
+    @param path the function name or namespace-justified path as a string
+
+    @throw UNKNOWN-FUNCTION cannot find a function with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see forName()
+ */
+Function::constructor(string path) {
+    QoreReflectionFunction* f = get_function(*path, xsink);
+    if (f) {
+        self->setPrivate(CID_FUNCTION, f);
+    }
+}
+
+//! returns the variants implemented by the function
+/** @par Example:
+    @code{.py}
+list<FunctionVariant> l = f.getVariants();
+    @endcode
+
+    @return the variants implemented by the function
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function has been destroyed
+*/
+list<FunctionVariant> Function::getVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_FUNCTIONVARIANT->getTypeInfo()), xsink);
+    append_variant_objects(**rv, f->pgm, f->f, MT_None, xsink);
+    return rv.release();
+}
+
+//! Returns the given direct child function variant declared in this function or throws an exception if the function variant is not defined
+/** @par Example:
+    @code{.py}
+FunctionVariant v = n.getVariant(IntType, StringType);
+    @endcode
+
+    @param ... type arguments for the variant; types must be compatible for the search to be successful
+
+    @return given function variant or throws an exception if the function variant is not defined in this function
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function has been destroyed
+    @throw RUNTIME-OVERLOAD-ERROR thrown if the function variant cannot be matched to the given arguments
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getVariantArgs()
+    - getExactVariant()
+    - getExactVariantArgs()
+*/
+FunctionVariant Function::getVariant(...) [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return find_function_variant(f->pgm, f->f, args, 0, MT_None, xsink);
+}
+
+//! Returns the given direct child function variant declared in this function or throws an exception if the function variant is not defined
+/** @par Example:
+    @code{.py}
+FunctionVariant v = n.getVariantArgs((IntType, StringType));
+    @endcode
+
+    @param argv type arguments for the variant; types must be compatible for the search to be successful
+
+    @return given function variant or throws an exception if the function variant is not defined in this function
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function has been destroyed
+    @throw RUNTIME-OVERLOAD-ERROR thrown if the function variant cannot be matched to the given arguments
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getVariant()
+    - getExactVariant()
+    - getExactVariantArgs()
+*/
+FunctionVariant Function::getVariantArgs(softlist<Type> argv) [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return find_function_variant(f->pgm, f->f, argv, 0, MT_None, xsink);
+}
+
+//! calls the function with the given arguments
+/** @par Example:
+    @code{.py}
+auto v = f.call(arg1, arg2);
+    @endcode
+
+    @param ... optional arguments to the function
+
+    @return the return value of the function call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function has been destroyed
+
+    @see callArgs()
+*/
+auto Function::call(...) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return f->f->evalFunction(nullptr, args, f->pgm, xsink);
+}
+
+//! calls the given function with the given arguments as a list
+/** @par Example:
+    @code{.py}
+auto v = f.callArgs(argv);
+    @endcode
+
+    @param argv optional arguments to the function
+
+    @return the return value of the function call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function has been destroyed
+
+    @see call()
+*/
+auto Function::callArgs(*softlist<auto> argv) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, f->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return f->f->evalFunction(nullptr, argv, f->pgm, xsink);
+}
+
+//! Returns a %Function object from the function name or namespace-justified path as a string
+/** @par Example:
+    @code{.py}
+Function f = Function::forName("Qore::printf");
+    @endcode
+
+    @param path the function name or namespace-justified path as a string
+
+    @return a function object corresponding to the name or namespace-justified path provided as an argument
+
+    @throw UNKNOWN-FUNCTION cannot find a function with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+ */
+static Function Function::forName(string path) [flags=RET_VALUE_ONLY] {
+    return get_function_object(*path, xsink);
+}
+
+//! Returns a list of functions matching the regular expression pattern argument or an empty list if no functions match
+/** @par Example:
+    @code{.py}
+# return all accessible functions that start with the letter "g"
+list<Function> l = Function::findAllRegex("^gg");
+    @endcode
+
+    @param pattern the regular expression pattern to match
+    @param re_opts see @ref regex_constants for possible values
+
+    @return a list of functions matching the regular expression pattern argument or an empty list if no functions match
+*/
+static list<Function> Function::findAllRegex(string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
+    QoreProgram* pgm = getProgram();
+    func_vec_t func_vec = getProgram()->findAllFunctionsRegex(*pattern, re_opts, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_FUNCTION->getTypeInfo()), xsink);
+    for (auto& i : func_vec) {
+        l->push(new QoreObject(QC_FUNCTION, getProgram(), new QoreReflectionFunction(pgm, i)), xsink);
+    }
+
+    return l.release();
+}

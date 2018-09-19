@@ -108,7 +108,7 @@ private:
     const QoreTypeInfo* typeInfo;
     const QoreTypeInfo* refTypeInfo = nullptr;
     bool pub,                          // is this global var public (valid and set for modules only)
-        finalized;                      // has this var already been cleared during Program destruction?
+        finalized;                     // has this var already been cleared during Program destruction?
 
     DLLLOCAL void del(ExceptionSink* xsink);
 
@@ -116,6 +116,8 @@ private:
     Var(const Var&) = delete;
 
 protected:
+    bool builtin = false;
+
     DLLLOCAL ~Var() { delete parseTypeInfo; }
 
     DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
@@ -133,7 +135,7 @@ public:
     DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name, QoreParseTypeInfo *n_parseTypeInfo) : loc(loc), val(QV_Node), name(n_name), parseTypeInfo(n_parseTypeInfo), typeInfo(0), pub(false), finalized(false) {
     }
 
-    DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name, const QoreTypeInfo *n_typeInfo) : loc(loc), val(n_typeInfo), name(n_name), parseTypeInfo(nullptr), typeInfo(n_typeInfo), pub(false), finalized(false) {
+    DLLLOCAL Var(const QoreProgramLocation* loc, const char* n_name, const QoreTypeInfo *n_typeInfo, bool builtin = false) : loc(loc), val(n_typeInfo), name(n_name), parseTypeInfo(nullptr), typeInfo(n_typeInfo), pub(false), finalized(false), builtin(builtin) {
     }
 
     DLLLOCAL Var(Var* ref, bool ro = false) : loc(ref->loc), val(QV_Ref), name(ref->name), parseTypeInfo(nullptr), typeInfo(ref->typeInfo), pub(false), finalized(false) {
@@ -142,6 +144,14 @@ public:
     }
 
     DLLLOCAL const char* getName() const;
+
+    DLLLOCAL const std::string& getNameStr() const {
+        return name;
+    }
+
+    DLLLOCAL bool isBuiltin() const {
+        return builtin;
+    }
 
     DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove) const;
     DLLLOCAL void remove(LValueRemoveHelper& lvrh);

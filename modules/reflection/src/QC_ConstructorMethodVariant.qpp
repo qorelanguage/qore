@@ -1,0 +1,114 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_ConstructorMethodVariant.cpp ConstructorMethodVariant class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_reflection.h"
+#include "QC_ConstructorMethodVariant.h"
+#include "QC_Class.h"
+
+//! The class for %Qore class constructor method variants
+/**
+    This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
+
+    @see @ref Qore::Reflection::ConstructorMethod "ConstructorMethod"
+
+    @since %Qore 0.9.0
+ */
+qclass ConstructorMethodVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; vparent=AbstractMethodVariant; dom=REFLECTION];
+
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** @throw CONSTRUCTORMETHODVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+ConstructorMethodVariant::constructor() {
+   xsink->raiseException("CONSTRUCTORMETHODVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! calls the given constructor method variant and returns the object created
+/** @par Example:
+    @code{.py}
+object v = m.call(arg1, arg2);
+    @endcode
+
+    @param ... optional arguments to the constructor method
+
+    @return the object created from the constructor call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+    @throw METHOD-ERROR the object was not instantiated from the class implementing this method
+    @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
+
+    @see callArgs()
+*/
+object ConstructorMethodVariant::call(...) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    const QoreClass* cls = mv->getClass();
+    if (check_constructor(cls, xsink)) {
+        return QoreValue();
+    }
+
+    return cls->execConstructorVariant(mv, args, xsink);
+}
+
+//! calls the given constructor method with the given object and returns the object created
+/** @par Example:
+    @code{.py}
+object v = m.callArgs((arg1, arg2));
+    @endcode
+
+    @param argv optional arguments to the constructor method
+
+    @return the object created from the constructor call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+    @throw METHOD-ERROR the object was not instantiated from the class implementing this method
+    @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
+
+    @see call()
+*/
+object ConstructorMethodVariant::callArgs(*softlist argv) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+    const QoreClass* cls = mv->getClass();
+    if (check_constructor(cls, xsink)) {
+        return QoreValue();
+    }
+
+    return cls->execConstructorVariant(mv, argv, xsink);
+}

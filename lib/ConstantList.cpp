@@ -322,6 +322,11 @@ ConstantEntry *ConstantList::findEntry(const char* name) {
     return i == cnemap.end() ? 0 : i->second;
 }
 
+const ConstantEntry *ConstantList::findEntry(const char* name) const {
+    cnemap_t::const_iterator i = cnemap.find(name);
+    return i == cnemap.end() ? 0 : i->second;
+}
+
 QoreValue ConstantList::find(const char* name, const QoreTypeInfo*& constantTypeInfo, ClassAccess& access, bool& found) {
     cnemap_t::iterator i = cnemap.find(name);
     if (i != cnemap.end()) {
