@@ -167,6 +167,8 @@ DLLLOCAL void init_dbi_constants(QoreNamespace& ns);
 DLLLOCAL void init_QC_Number_constants(QoreNamespace& ns);
 
 DLLLOCAL void preinitTimeZoneClass();
+DLLLOCAL void preinitInputStreamClass();
+DLLLOCAL void preinitOutputStreamClass();
 
 StaticSystemNamespace* staticSystemNamespace;
 
@@ -220,6 +222,7 @@ void QoreNamespace::setClassHandler(q_ns_class_handler_t class_handler) {
 void QoreNamespace::addSystemHashDecl(TypedHashDecl* hd) {
     // set sys and pub flags
     typed_hash_decl_private::get(*hd)->setSystemPublic();
+    typed_hash_decl_private::get(*hd)->setNamespace(priv);
 #ifdef DEBUG
     if (priv->hashDeclList.add(hd))
         assert(false);
@@ -244,11 +247,16 @@ void QoreNamespace::addSystemClass(QoreClass* oc) {
     QORE_TRACE("QoreNamespace::addSystemClass()");
 
     oc->setSystem();
+    if (qore_class_private::get(*oc)->setNamespaceConditional(priv)) {
+        // generate builtin class signature
+        std::string path;
+        priv->getPath(path);
+        qore_class_private::get(*oc)->finalizeBuiltin(path.c_str());
+    }
+    else {
+        assert(qore_class_private::get(*oc)->initialized);
+    }
 
-    // generate builtin class signature
-    std::string path;
-    priv->getPath(path);
-    qore_class_private::get(*oc)->finalizeBuiltin(path.c_str());
 #ifdef DEBUG
     if (priv->classList.add(oc))
         assert(false);
@@ -261,8 +269,9 @@ void QoreNamespace::addSystemClass(QoreClass* oc) {
 
     // see if namespace is attached to the root
     qore_root_ns_private* rns = priv->getRoot();
-    if (!rns)
+    if (!rns) {
         return;
+    }
 
     //printd(5, "QoreNamespace::addSystemClass() adding '%s' %p to classmap %p in ns '%s'\n", oc->getName(), oc, &rns->clmap, priv->name.c_str());
     rns->clmap.update(oc->getName(), priv, oc);
@@ -554,10 +563,9 @@ void QoreNamespaceList::parseAssimilate(QoreNamespaceList& n, qore_ns_private* p
         }
 
         nsmap[i->first] = i->second;
-        if (parent) {
-            i->second->priv->parent = parent;
-            i->second->priv->updateDepthRecursive(parent->depth + 1);
-        }
+        i->second->priv->parent = parent;
+        assert(parent || i->second->priv->root);
+        i->second->priv->updateDepthRecursive((parent ? parent->depth : 0) + 1);
         ++i;
     }
     n.nsmap.clear();
@@ -568,10 +576,9 @@ void QoreNamespaceList::runtimeAssimilate(QoreNamespaceList& n, qore_ns_private*
         nsmap_t::iterator ni = nsmap.find(i->first);
         if (ni == nsmap.end()) {
             nsmap[i->first] = i->second;
-            if (parent) {
-                i->second->priv->parent = parent;
-                i->second->priv->updateDepthRecursive(parent->depth + 1);
-            }
+            i->second->priv->parent = parent;
+            assert(parent || i->second->priv->root);
+            i->second->priv->updateDepthRecursive((parent ? parent->depth : 0) + 1);
         }
         else {
             ni->second->priv->runtimeAssimilate(i->second);
@@ -594,6 +601,7 @@ qore_ns_private* QoreNamespaceList::parseAdd(QoreNamespace* ns, qore_ns_private*
     }
     nsmap[ns->priv->name] = ns;
     ns->priv->parent = parent;
+    assert(!ns->priv->root || !parent);
     ns->priv->updateDepthRecursive(parent->depth + 1);
     return ns->priv;
 }
@@ -608,6 +616,7 @@ qore_ns_private* QoreNamespaceList::runtimeAdd(QoreNamespace* ns, qore_ns_privat
     }
     nsmap[ns->priv->name] = ns;
     ns->priv->parent = parent;
+    assert(!ns->priv->root || !parent);
     ns->priv->updateDepthRecursive(parent->depth + 1);
     return ns->priv;
 }
@@ -630,15 +639,18 @@ QoreNamespace* QoreNamespace::copy(int64 po) const {
 }
 
 QoreNamespaceList::QoreNamespaceList(const QoreNamespaceList& old, int64 po, const qore_ns_private& parent) {
-    if ((po & PO_NO_API) == PO_NO_API)
+    if ((po & PO_NO_API) == PO_NO_API) {
         return;
+    }
     //printd(5, "QoreNamespaceList::QoreNamespaceList(old: %p) this: %p po: %lld size: %ld\n", &old, this, po, nsmap.size());
     nsmap_t::iterator last = nsmap.begin();
     for (nsmap_t::const_iterator i = old.nsmap.begin(), e = old.nsmap.end(); i != e; ++i) {
-        if (!qore_ns_private::isPublic(*i->second))
+        if (!qore_ns_private::isPublic(*i->second)) {
             continue;
+        }
         QoreNamespace* ns = i->second->copy(po);
         ns->priv->parent = &parent;
+        assert(!ns->priv->root);
         assert(ns->priv->depth);
         last = nsmap.insert(last, nsmap_t::value_type(i->first, ns));
     }
@@ -731,6 +743,17 @@ QoreNamespace* QoreNamespace::findCreateNamespacePath(const char* nspath) {
     NamedScope nscope(nspath);
     bool is_new = false;
     return priv->findCreateNamespacePath(nscope, false, is_new);
+}
+
+QoreClass* qore_ns_private::runtimeImportClass(ExceptionSink* xsink, const QoreClass* c, QoreProgram* spgm, const char* new_name, bool inject, const qore_class_private* injectedClass) {
+    if (checkImportClass(new_name ? new_name : c->getName(), xsink)) {
+        return nullptr;
+    }
+
+    QoreClass* nc = qore_class_private::makeImportClass(*c, spgm, new_name, inject, injectedClass, this);
+    classList.add(nc);
+
+    return nc;
 }
 
 QoreNamespace* qore_ns_private::findCreateNamespacePath(const NamedScope& nscope, bool pub, bool& is_new) {
@@ -921,6 +944,10 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     hashdeclSourceLocationInfo = init_hashdecl_SourceLocationInfo(qns);
 
     qore_ns_private::addNamespace(qns, get_thread_ns(qns));
+
+    // pre-init classes
+    preinitInputStreamClass();
+    preinitOutputStreamClass();
 
     // add stream classes
     qns.addSystemClass(initStreamBaseClass(qns));
@@ -1506,8 +1533,9 @@ void qore_root_ns_private::parseAddHashDeclIntern(const QoreProgramLocation* loc
     if (sns) {
         //printd(5, "qore_root_ns_private::parseAddHashDeclIntern() '%s' adding %s:%p to %s:%p\n", nscope.ostr, hd->getName(), parseAddHashDeclIntern, sns->name.c_str(), sns);
         // add to pending hashdecl map if add was successful
-        if (!sns->parseAddPendingHashDecl(loc, hd))
+        if (!sns->parseAddPendingHashDecl(loc, hd)) {
             thdmap.update(hd->getName(), sns, hd);
+        }
     }
     else {
         //printd(5, "qore_root_ns_private::parseAddHashDeclIntern() hashdecl '%s' not added: '%s' namespace not found\n", hd->getName(), nscope.ostr);
@@ -2401,8 +2429,11 @@ int qore_ns_private::parseAddPendingClass(const QoreProgramLocation* loc, QoreCl
         return -1;
     }
 
-    qore_class_private::setNamespace(oc, this);
+    qore_class_private::get(*oc)->setNamespace(this);
     och.release();
+    if (!strcmp(oc->getName(), "AbstractSqlUtilBase")) {
+        //printd(5, "qore_ns_private::parseAddPendingClass() added class %p '%s' ns: %p '%s' parent: %p\n", oc, oc->getName(), this, name.c_str(), parent);
+    }
 
     return 0;
 }
@@ -2432,7 +2463,7 @@ int qore_ns_private::parseAddPendingHashDecl(const QoreProgramLocation* loc, Typ
         return -1;
     }
 
-    //typed_hash_decl_private::setNamespace(oc, this);
+    typed_hash_decl_private::get(*hashdecl)->setNamespace(this);
     thd.release();
 
     return 0;
@@ -2551,44 +2582,44 @@ void qore_ns_private::scanMergeCommittedNamespace(const qore_ns_private& mns, Qo
 }
 
 void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
-   //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s'\n", this, name.c_str());
+    //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s'\n", this, name.c_str());
 
-   // merge in source constants
-   constant.mergeUserPublic(mns.constant);
+    // merge in source constants
+    constant.mergeUserPublic(mns.constant);
 
-   // merge in source classes
-   classList.mergeUserPublic(mns.classList, this);
+    // merge in source classes
+    classList.mergeUserPublic(mns.classList, this);
 
-   // merge in source hashdecls
-   hashDeclList.mergeUserPublic(mns.hashDeclList);
+    // merge in source hashdecls
+    hashDeclList.mergeUserPublic(mns.hashDeclList, this);
 
-   // merge in source functions
-   func_list.mergeUserPublic(mns.func_list, this);
+    // merge in source functions
+    func_list.mergeUserPublic(mns.func_list, this);
 
-   // merge in global variables
-   var_list.mergePublic(mns.var_list);
+    // merge in global variables
+    var_list.mergePublic(mns.var_list);
 
-   // add sub namespaces
-   for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
-      if (!qore_ns_private::isUserPublic(*i->second)) {
-         //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p (%p) '%s::' skipping %p (%p) '%s::' pub: %d builtin: %d\n", this, ns, name.c_str(), i->second->priv, i->second, i->second->getName(), i->second->priv->pub, i->second->priv->builtin);
-         continue;
-      }
+    // add sub namespaces
+    for (nsmap_t::const_iterator i = mns.nsl.nsmap.begin(), e = mns.nsl.nsmap.end(); i != e; ++i) {
+        if (!qore_ns_private::isUserPublic(*i->second)) {
+            //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p (%p) '%s::' skipping %p (%p) '%s::' pub: %d builtin: %d\n", this, ns, name.c_str(), i->second->priv, i->second, i->second->getName(), i->second->priv->pub, i->second->priv->builtin);
+            continue;
+        }
 
-      QoreNamespace* nns = nsl.find(i->first);
-      if (!nns) {
-         qore_ns_private* npns = new qore_ns_private(i->first.c_str());
-         nns = npns->ns;
-         nns->priv->pub = i->second->priv->pub;
-         nns->priv->imported = true;
-         //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::' pub: %d\n", this, name.c_str(), nns, nns->getName(), nns->priv->pub);
-         nsl.runtimeAdd(nns, this);
-      }
+        QoreNamespace* nns = nsl.find(i->first);
+        if (!nns) {
+            qore_ns_private* npns = new qore_ns_private(i->first.c_str());
+            nns = npns->ns;
+            nns->priv->pub = i->second->priv->pub;
+            nns->priv->imported = true;
+            //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::' pub: %d\n", this, name.c_str(), nns, nns->getName(), nns->priv->pub);
+            nsl.runtimeAdd(nns, this);
+        }
 
-      nns->priv->copyMergeCommittedNamespace(*i->second->priv);
-      //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::'\n", this, name.c_str(), ns, ns->getName());
-   }
-   //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s' done\n", this, name.c_str());
+        nns->priv->copyMergeCommittedNamespace(*i->second->priv);
+        //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::'\n", this, name.c_str(), ns, ns->getName());
+    }
+    //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s' done\n", this, name.c_str());
 }
 
 void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
@@ -2654,34 +2685,34 @@ void qore_ns_private::parseAssimilate(QoreNamespace* ans) {
 }
 
 void qore_ns_private::runtimeAssimilate(QoreNamespace* ans) {
-   //printd(5, "qore_ns_private::runtimeAssimilate() this: %p '%s' pub: %d imported: %d ans->pub: %d ans->imported: %d\n", this, name.c_str(), pub, imported, ans->priv->pub, ans->priv->imported);
+    //printd(5, "qore_ns_private::runtimeAssimilate() this: %p '%s' pub: %d imported: %d ans->pub: %d ans->imported: %d\n", this, name.c_str(), pub, imported, ans->priv->pub, ans->priv->imported);
 
-   qore_ns_private* pns = ans->priv;
-   // make sure there are no objects in the pending lists in the namespace to be merged
-   assert(pns->pend_gvblist.empty());
+    qore_ns_private* pns = ans->priv;
+    // make sure there are no objects in the pending lists in the namespace to be merged
+    assert(pns->pend_gvblist.empty());
 
-   // assimilate constants
-   constant.assimilate(pns->constant);
+    // assimilate constants
+    constant.assimilate(pns->constant);
 
-   // assimilate classes
-   classList.assimilate(pns->classList, *this);
+    // assimilate classes
+    classList.assimilate(pns->classList, *this);
 
-   // assimilate hashdecls
-   hashDeclList.assimilate(pns->hashDeclList, *this);
+    // assimilate hashdecls
+    hashDeclList.assimilate(pns->hashDeclList, *this);
 
-   // assimilate pending functions
-   func_list.assimilate(pns->func_list, this);
+    // assimilate pending functions
+    func_list.assimilate(pns->func_list, this);
 
-   if (pns->class_handler) {
-      assert(!class_handler);
-      class_handler = pns->class_handler;
-   }
+    if (pns->class_handler) {
+        assert(!class_handler);
+        class_handler = pns->class_handler;
+    }
 
-   // assimilate target namespace list
-   nsl.runtimeAssimilate(pns->nsl, this);
+    // assimilate target namespace list
+    nsl.runtimeAssimilate(pns->nsl, this);
 
-   // delete source namespace
-   delete ans;
+    // delete source namespace
+    delete ans;
 }
 
 QoreClass* qore_ns_private::parseFindLocalClass(const char* cname) {

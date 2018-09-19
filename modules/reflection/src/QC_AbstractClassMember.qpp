@@ -148,6 +148,8 @@ string AbstractClassMember::getAccessModifierString() [flags=RET_VALUE_ONLY] {
 bool b = m.isBuiltin();
     @endcode
 
+    @return @ref True if the class defining the member is a builtin class
+
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 bool AbstractClassMember::isBuiltin() [flags=RET_VALUE_ONLY] {
@@ -167,6 +169,8 @@ bool AbstractClassMember::isBuiltin() [flags=RET_VALUE_ONLY] {
 bool b = m.isUser();
     @endcode
 
+    @return @ref True if the class defining the member is a user class
+
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
 bool AbstractClassMember::isUser() [flags=RET_VALUE_ONLY] {
@@ -185,6 +189,8 @@ bool AbstractClassMember::isUser() [flags=RET_VALUE_ONLY] {
     @code{.py}
 bool b = m.isStatic();
     @endcode
+
+    @return @ref True if the member is static
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 */
