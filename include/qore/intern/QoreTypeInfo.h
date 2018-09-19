@@ -654,9 +654,14 @@ public:
 
     // check for a common type
     DLLLOCAL static bool matchCommonType(const QoreTypeInfo*& ctype, const QoreTypeInfo* ntype) {
-        assert(ctype && ctype != anyTypeInfo);
-        if (ctype == ntype)
+        // issue #3005: if the first element had no type, then there is no common type
+        if (!ctype || ctype == anyTypeInfo) {
+            ctype = nullptr;
+            return false;
+        }
+        if (ctype == ntype) {
             return true;
+        }
         if (!QoreTypeInfo::hasType(ntype)) {
             // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
             ctype = ntype == anyTypeInfo ? nullptr : ntype;
