@@ -784,7 +784,7 @@ int qore_class_private::initializeIntern() {
             // add committed members to signature
             for (auto& i : members.member_list) {
                 // check new members for conflicts in base classes
-                parseCheckMemberInBaseClasses(i.first, i.second);
+                parseCheckMemberInBaseClasses(i.first, i.second.get());
             }
 
             // initialize new members
@@ -4727,7 +4727,7 @@ void QoreMemberMap::parseInit() {
     }
     init = true;
     for (auto& i : member_list) {
-        printd(5, "QoreMemberMap::parseInit() this: %p mem: '%s' (%p) type: %s (%d)\n", this, i.first, i.second, i.second->exp.getTypeName(), i.second->exp.getType());
+        printd(5, "QoreMemberMap::parseInit() this: %p mem: '%s' (%p) type: %s (%d)\n", this, i.first, i.second.get(), i.second->exp.getTypeName(), i.second->exp.getType());
         if (i.second) {
             i.second->parseInit(i.first);
         }
@@ -4740,7 +4740,7 @@ void QoreMemberMap::moveAllTo(QoreClass* qc, ClassAccess access) {
         return;
     }
     for (auto& i : member_list) {
-        qore_class_private::parseAddMember(*qc, i.first, access, i.second);
+        qore_class_private::parseAddMember(*qc, i.first, access, i.second.release());
     }
     member_list.clear();
 }
@@ -4781,14 +4781,14 @@ void QoreVarMap::parseCommitRuntimeInit(ExceptionSink* xsink) {
 }
 
 void QoreVarMap::moveAllTo(QoreClass* qc, ClassAccess access) {
-   if (empty() && access == Public) {
-      qc->parseSetEmptyPublicMemberDeclaration();
-      return;
-   }
-   for (auto& i : member_list) {
-      qore_class_private::parseAddStaticVar(qc, i.first, access, i.second);
-   }
-   member_list.clear();
+    if (empty() && access == Public) {
+        qc->parseSetEmptyPublicMemberDeclaration();
+        return;
+    }
+    for (auto& i : member_list) {
+        qore_class_private::parseAddStaticVar(qc, i.first, access, i.second.release());
+    }
+    member_list.clear();
 }
 
 QoreClassHolder::~QoreClassHolder() {
