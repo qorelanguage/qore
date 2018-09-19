@@ -487,9 +487,8 @@ QoreHashNode* QoreSerializable::serializeHashToData(const QoreHashNode& h, Refer
         if (!hash_members) {
             hash_members = new QoreHashNode(autoTypeInfo);
         }
-        if (new_val) {
-            hash_members->setKeyValue(hi.getKey(), new_val.release(), xsink);
-        }
+        // always set the hash key even if it has no value
+        hash_members->setKeyValue(hi.getKey(), new_val.release(), xsink);
     }
 
     if (hash_members) {

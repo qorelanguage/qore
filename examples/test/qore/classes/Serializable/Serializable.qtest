@@ -209,6 +209,7 @@ class SerializableTest inherits QUnit::Test {
         addTestCase("private key test", \privateKeyTest());
         addTestCase("certificate test", \certificateTest());
         addTestCase("hashdecl test", \hashdeclTest());
+        addTestCase("call stack test", \callStackTest());
 
         set_return_value(main());
     }
@@ -511,5 +512,12 @@ class SerializableTest inherits QUnit::Test {
         hash<MyTest> h0 = Serializable::deserialize(sih).rv;
         assertEq(h, h0);
         assertEq(rv, Serializable::deserialize(Serializable::serialize(rv)));
+    }
+
+    callStackTest() {
+        hash<CallStackInfo> cs = get_thread_call_stack()[0];
+        hash<SerializationInfo> sih = Serializable::serializeToData(cs);
+        hash<CallStackInfo> cs0 = Serializable::deserialize(sih);
+        assertEq(cs, cs0);
     }
 }
