@@ -1,5 +1,5 @@
 ---
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: AlwaysBreak
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlinesLeft: false
@@ -22,19 +22,21 @@ BraceWrapping:
   AfterClass: true
   AfterControlStatement: false
   AfterEnum: true
+  AfterExternBlock: false
   AfterFunction: false
-  AfterNamespace: true
+  AfterNamespace: false
   AfterStruct: false
-  BeforeCatch: false
+  AfterUnion: false
+  BeforeCatch: true
   BeforeElse: true
   SplitEmptyFunction: false
+  SplitEmptyRecord: false
 BreakBeforeTernaryOperators: false
-BreakConstructorInitializersBeforeComma: false
 BreakConstructorInitializers: AfterColon
-#BreakInheritanceList: AfterColon NOT WORKING
+#BreakInheritanceList: AfterColon NOT WORKING YET
 BreakStringLiterals: true
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
-Cpp11BracedListStyle: false
+Cpp11BracedListStyle: true
 CompactNamespaces: false
 DerivePointerAlignment: false
 FixNamespaceComments: true
@@ -48,7 +50,8 @@ IncludeCategories:
  - Regex:           ".*"
    Priority:        3
 IndentCaseLabels: true
-IndentWrappedFunctionNames: true
+IndentPPDirectives: None
+IndentWrappedFunctionNames: false
 IncludeBlocks: Regroup
 
 KeepEmptyLinesAtTheStartOfBlocks: false
@@ -56,6 +59,7 @@ MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
 ObjCSpaceAfterProperty: false
 ObjCSpaceBeforeProtocolList: false
+PenaltyBreakAssignment: 100
 PenaltyBreakBeforeFirstCallParameter: 150
 PenaltyBreakComment: 100
 PenaltyBreakFirstLessLess: 0
@@ -65,13 +69,15 @@ PenaltyReturnTypeOnItsOwnLine: 200
 PointerAlignment: Left
 ReflowComments: false
 SortIncludes: true
+SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
-#SpaceBeforeCtorInitializerColon: false NOT WORKING
-#SpaceBeforeCpp11BracedList: true NOT WORKING
-#SpaceBeforeInheritanceColon: false NOT WORKING
+SpaceAfterTemplateKeyword: false
+#SpaceBeforeCpp11BracedList: false NOT WORKING YET
+#SpaceBeforeCtorInitializerColon: true NOT WORKING YET
+#SpaceBeforeInheritanceColon: true NOT WORKING YET
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeParens: ControlStatements
-#SpaceBeforeRangeBasedForLoopColon: false NOT WORKING
+#SpaceBeforeRangeBasedForLoopColon: true NOT WORKING YET
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
 SpacesInAngles: false
