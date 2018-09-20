@@ -1185,6 +1185,7 @@ protected:
     DLLLOCAL QoreClass* parseFindScopedClassWithMethodIntern(const NamedScope& name, unsigned& matched);
 
     DLLLOCAL QoreClass* parseFindClassIntern(const char* cname) {
+        assert(cname);
         {
             // try to check in current namespace first
             qore_ns_private* nscx = parse_get_ns();
