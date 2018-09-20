@@ -1,6 +1,6 @@
 ---
 AccessModifierOffset: -4
-AlignAfterOpenBracket: AlwaysBreak
+AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlinesLeft: false
@@ -34,7 +34,6 @@ BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializers: AfterColon
-#BreakInheritanceList: AfterColon NOT WORKING YET
 BreakStringLiterals: true
 ColumnLimit: 120
 CompactNamespaces: false
@@ -78,11 +77,7 @@ SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true
-#SpaceBeforeCpp11BracedList: false NOT WORKING YET
-#SpaceBeforeCtorInitializerColon: true NOT WORKING YET
-#SpaceBeforeInheritanceColon: true NOT WORKING YET
 SpaceBeforeParens: ControlStatements
-#SpaceBeforeRangeBasedForLoopColon: true NOT WORKING YET
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
 SpacesInAngles: false
