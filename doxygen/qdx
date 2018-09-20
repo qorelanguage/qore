@@ -181,7 +181,7 @@ class qdx {
 
         string ofn = ifn + ".new";
 
-        printf("processing API file %s\n", ifn);
+        #printf("processing API file %s\n", ifn);
 
         StreamWriter w(new FileOutputStream(ofn));
 
