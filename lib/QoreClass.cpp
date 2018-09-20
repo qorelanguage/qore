@@ -2532,8 +2532,9 @@ const QoreMethod* qore_class_private::parseFindAnyMethodStaticFirst(const char* 
 
     m = parseFindNormalMethodIntern(nme, class_ctx);
 
-    if (m && (!strcmp(nme, "constructor") || !strcmp(nme, "destructor") || !strcmp(nme, "copy")))
-        m = 0;
+    if (m && (!strcmp(nme, "constructor") || !strcmp(nme, "destructor") || !strcmp(nme, "copy"))) {
+        m = nullptr;
+    }
 
     return m && ((qore_method_private::getAccess(*m) == Public) || class_ctx) ? m : 0;
 }
