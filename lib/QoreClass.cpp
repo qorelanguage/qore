@@ -1486,11 +1486,14 @@ int BCNode::initializeHierarchy(QoreClass* cls, qcp_set_t& qcp_set) {
             cname = 0;
         }
         else {
-            // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
-            sclass = qore_root_ns_private::parseFindClass(loc, cstr);
-            printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
-            free(cstr);
-            cstr = 0;
+            // issue #3005: cstr may be nullptr in case of a previous parse error
+            if (cstr) {
+                // if the class cannot be found, qore_root_ns_private::parseFindClass() will throw the appropriate exception
+                sclass = qore_root_ns_private::parseFindClass(loc, cstr);
+                printd(5, "BCNode::initializeHierarchy() %s inheriting %s (%p)\n", cls->getName(), cstr, sclass);
+                free(cstr);
+                cstr = nullptr;
+            }
         }
         if (cls == sclass) {
             parse_error(*cls->priv->loc, "class '%s' cannot inherit itself", cls->getName());
