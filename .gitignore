@@ -59,6 +59,8 @@ include/qore/intern/git-revision.h
 lib/qpp
 lib/qpp.exe
 lib/qpp_native
+lib/*.dox.h
+lib/*.qtest
 lib/Pseudo_QC_*.cpp
 lib/QC_*.cpp
 lib/qc_errno.cpp
@@ -95,11 +97,13 @@ modules/astparser/src/ast_parser.cpp
 modules/astparser/src/ast_scanner.cpp
 modules/astparser/src/QC_*.cpp
 modules/astparser/src/ql_ast.cpp
+modules/astparser/src/*.qtest
 
 # Doxygen generated files
 docs
 *.dox.h
 doxygen/lang/*.dox
+doxygen/qlib/*.qm
 Doxyfile
 Doxyfile.???*
 *.tag
