@@ -99,6 +99,11 @@
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module changes:
         - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module changes:
+        - Updated to support alternative URI paths for actions so that an "action=xxx" argument is not needed; instead
+          the action can be added to the end of the URI path so that \c "PUT path/xxx" can be used instead of
+          \c "PUT path?action=xxx"
+          (<a href="https://github.com/qorelanguage/qore/issues/2994">issue 2994</a>)
       - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module changes:
         - updated the default validator to try all serialization methods if multiple methods are available and one fails
           (<a href="https://github.com/qorelanguage/qore/issues/2831">issue 2831</a>)

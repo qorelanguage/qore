@@ -280,6 +280,16 @@ public class RestHandlerTest inherits QUnit::Test {
         assertEq(HashValue, val);
         val = mHandler.handleExternalRequest("PUT", "test?action=echo", HashValue);
         assertEq(HashValue, val);
+
+        # issue #2994: test URI path access to actions
+        val = mHandler.handleExternalRequest("GET", "test/echo", LargerHashValue);
+        assertEq(LargerHashValue, val);
+        val = mHandler.handleExternalRequest("PUT", "test/echo", LargerHashValue);
+        assertEq(LargerHashValue, val);
+        val = mHandler.handleExternalRequest("GET", "test/echo", HashValue);
+        assertEq(HashValue, val);
+        val = mHandler.handleExternalRequest("PUT", "test/echo", HashValue);
+        assertEq(HashValue, val);
     }
 
     serializationTest() {
