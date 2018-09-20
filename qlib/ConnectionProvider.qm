@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file ConnectionProvider.qm Qore user module providing an API for providing connections to %Qore
+#! @file ConnectionProvider.qm Qore user module providing an API for providing connections to %Qore
 
 /*  ConnectionProvider.qm Copyright 2016 - 2018 Qore Technologies, s.r.o.
 
@@ -150,7 +150,7 @@ public namespace ConnectionProvider {
             - @ref Qore::PO_REQUIRE_TYPES
 
             The following local variables will be available:
-            - <tt>reference<*softlist<auto>> args</tt>: a reference to the constructor arguments
+            - <tt>reference<*softlist&lt;auto;gt;> args</tt>: a reference to the constructor arguments
             - <tt>bool connect</tt>: if the object should be connected
             - <tt>*hash rtopts</tt>: any runtime options provided
         */

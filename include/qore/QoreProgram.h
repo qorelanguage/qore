@@ -674,8 +674,14 @@ public:
     */
     DLLEXPORT const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreListNode* params, ExceptionSink* xsink) const;
 
+<<<<<<< HEAD
     // finds all variants of a function or class method and returns a list of the results
     /** @param name the function or class method name; may also be namespace-justified
+=======
+   // finds all variants of a function or class method and returns a list of the results
+   /** @param name the function or class method name; may also be namespace-justified
+	   @param xsink
+>>>>>>> refs #3004 doxygen docs: get rid of warnings
 
         @return a list of hashes or nullptr if the name cannot be resolved; when matched, each hash element has the following keys:
         - \c desc: a string description of the call which includes the name and the full text call signature
@@ -1024,6 +1030,7 @@ public:
    /** Assign @ref QoreProgram to breakpoint.
     *
     *  @param new_pgm QoreProgram to be assigned, when NULL then unassigns Program and deletes all statement references
+	*  @param xsink
     */
    DLLEXPORT void assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink);
    /* Get assigned program to breakpoint
@@ -1083,7 +1090,7 @@ public:
 
    //! get the breakpoint from breakpoint id
    /**
-      @param breakpointId provided by @ref Program::getBreakpointId
+      @param breakpointId provided by @ref getBreakpointId
 
       @return the original breakpoint or null if object cannot be resolved
     */

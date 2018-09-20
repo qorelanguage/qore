@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file FsUtil.qm Qore user module providing file system related functionality
+#! @file FsUtil.qm Qore user module providing file system related functionality
 
 /*  FsUtil.qm Copyright 2018 Qore Technologies, s.r.o.
 

@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Schema.qm Qore user module for working with SQL data
+#! @file Schema.qm Qore user module for working with SQL data
 
 /*  Schema.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
 
