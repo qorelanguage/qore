@@ -654,7 +654,7 @@ public namespace RestHandler {
                     if (!cl && !args.action) {
                         string mname = sprintf("%s%s%s", mn, cname[0].upr(), cname[1..]);
                         if (self.hasCallableMethod(mname)) {
-                            return cast<hash<HttpHandlerResponseInfo>>(dispatch(rh, mname, args + {"action": cname}, cx));
+                            return cast<hash<HttpHandlerResponseInfo>>(dispatch(rh, mname, args, cx));
                         }
                     }
 
@@ -985,12 +985,26 @@ public namespace RestHandler {
             else {
                 if (!ch{cls}) {
                     *AbstractRestClass c = subClass(cls, cx, args);
-                    if (!c)
-                        throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(ch.keys())), 404;
+                    if (!c) {
+                        # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
+                        if (!cl && !args.action) {
+                            string mname = sprintf("%s%s%s", mn, cls[0].upr(), cls[1..]);
+                            if (self.hasCallableMethod(mname)) {
+                                c = self;
+                                mn = mname;
+                                #return cast<hash<HttpHandlerResponseInfo>>(dispatch(rh, mname, args, cx));
+                            }
+                        }
+
+                        if (!c) {
+                            throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(ch.keys())), 404;
+                        }
+                    }
                     rcls = c;
                 }
-                else
+                else {
                     rcls = ch{cls};
+                }
             }
 
             # dummy HttpListenerInterface object
