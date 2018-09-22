@@ -124,7 +124,7 @@ public namespace DebugHandler {
     /** Connections are represented by an object descended from @ref WebSocketHandler::WebSocketConnection "WebSocketConnection" which is
         instantiated via @ref WebSocketHandler::WebSocketHandler::getConnectionImpl().
 
-        The handler is registered via @ref HttpServer::HttpServer::setHandler() "HttpServer::setHandler()" to receive messages.
+        The handler is registered via @ref HtpServer::HttpServer::setHandler() "HttpServer::setHandler()" to receive messages.
 
         @par Receiving WebSocket Messages from Clients
         When a message is received via @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" from the client then it is passed to @ref receiveData as is.

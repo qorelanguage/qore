@@ -156,7 +156,7 @@ public:
     DLLEXPORT QoreValue getValue() const;
 
     //! sets the value of the member
-    /** @param the value to set
+    /** @param val the value to set
         @param xsink Qore-language exception info is stored here
 
         @return 0 = no error, -1 Qore-language exception raised

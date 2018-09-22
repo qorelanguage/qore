@@ -674,14 +674,9 @@ public:
     */
     DLLEXPORT const AbstractQoreFunctionVariant* runtimeFindCall(const char* name, const QoreListNode* params, ExceptionSink* xsink) const;
 
-<<<<<<< HEAD
     // finds all variants of a function or class method and returns a list of the results
     /** @param name the function or class method name; may also be namespace-justified
-=======
-   // finds all variants of a function or class method and returns a list of the results
-   /** @param name the function or class method name; may also be namespace-justified
-	   @param xsink
->>>>>>> refs #3004 doxygen docs: get rid of warnings
+	    @param xsink
 
         @return a list of hashes or nullptr if the name cannot be resolved; when matched, each hash element has the following keys:
         - \c desc: a string description of the call which includes the name and the full text call signature
@@ -841,7 +836,7 @@ public:
 
     //! get the statement from statement id
     /**
-        @param statementId created by @ref Program::getStatementId
+        @param statementId created by @ref QoreProgram::getStatementId
 
         @return the original statement or null if statement cannot be resolved
     */
@@ -866,7 +861,7 @@ public:
 
     //! get the program from program id
     /**
-        @param programId provided by @ref Program::getProgramId
+        @param programId provided by @ref QoreProgram::getProgramId
 
         @return the original program or null if program cannot be resolved
     */

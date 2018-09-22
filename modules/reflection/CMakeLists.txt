@@ -15,7 +15,7 @@ set(QORE_API_VERSION ${MODULE_API_MAJOR}.${MODULE_API_MINOR})
 include(${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake)
 ### end of hacks
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # source files
@@ -60,12 +60,59 @@ set(REFLECTION_CPP_SRC
     src/AbstractReflectionObject.cpp
 )
 
+# we need copy header files to avoid doxygen warning about duplicate files *.cpp
+# when src/ dir is in included_directory
+set(REFLECTION_H_SRC
+	src/qore_reflection.h
+	src/AbstractReflectionObject.h
+	src/QC_AbstractClass.h
+	src/QC_AbstractClassMember.h
+	src/QC_AbstractConstant.h
+	src/QC_AbstractMember.h
+	src/QC_AbstractMethod.h
+	src/QC_AbstractMethodVariant.h
+	src/QC_AbstractReflectionFunction.h
+	src/QC_AbstractVariant.h
+	src/QC_ClassConstant.h
+	src/QC_Class.h
+	src/QC_Constant.h
+	src/QC_ConstructorMethod.h
+	src/QC_ConstructorMethodVariant.h
+	src/QC_CopyMethod.h
+	src/QC_CopyMethodVariant.h
+	src/QC_DestructorMethod.h
+	src/QC_DestructorMethodVariant.h
+	src/QC_Function.h
+	src/QC_FunctionVariant.h
+	src/QC_GlobalVar.h
+	src/QC_Namespace.h
+	src/QC_NormalMember.h
+	src/QC_NormalMethod.h
+	src/QC_NormalMethodVariant.h
+	src/QC_PseudoClass.h
+	src/QC_PseudoMethod.h
+	src/QC_PseudoMethodVariant.h
+	src/QC_StaticMember.h
+	src/QC_StaticMethod.h
+	src/QC_StaticMethodVariant.h
+	src/QC_TypedHash.h
+	src/QC_TypedHashMember.h
+	src/QC_Type.h
+)
+
 set(QORE_DOX_TMPL_SRC
     docs/mainpage.dox.tmpl
 )
 
+foreach (it ${REFLECTION_H_SRC})
+	get_filename_component(_outfile ${it} NAME)
+    get_filename_component(_infile ${it} ABSOLUTE)
+    configure_file(${_infile} ${_outfile} COPYONLY)
+	set(REFLECTION_H_SOURCES, ${REFLECTION_H_SOURCES} ${_outfile})
+endforeach(it)
+
 qore_wrap_qpp_value(REFLECTION_QPP_SOURCES ${REFLECTION_QPP_SRC})
-add_custom_target(REFLECTION_QPP_GENERATED_FILES DEPENDS qpp ${REFLECTION_QPP_SOURCES})
+add_custom_target(REFLECTION_QPP_GENERATED_FILES DEPENDS qpp ${REFLECTION_QPP_SOURCES} ${REFLECTION_H_SOURCES})
 
 # prepare reflection module target
 set(reflection_module_name "reflection")

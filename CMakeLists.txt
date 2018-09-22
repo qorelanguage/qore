@@ -797,7 +797,6 @@ qore_user_module("qlib/SqlUtil.qm" "Util")
 qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
-qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil")
 qore_user_module("qlib/DebugProgramControl.qm" "DebugUtil")
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
 qore_user_module("qlib/MailMessage.qm" "Mime")
@@ -806,9 +805,10 @@ qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUti
 
 # base 4 modules
 qore_user_module("qlib/RestSchemaValidator.qm" "HttpServerUtil")
-qore_user_module("qlib/DebugLinenoiseCmdLine.qm" "DebugUtil;DebugCmdLine")
+qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil;DebugProgramControl")
 
 # base 5 modules
+qore_user_module("qlib/DebugLinenoiseCmdLine.qm" "DebugUtil;DebugCmdLine")
 qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator")
 
 # base 6 modules
@@ -817,13 +817,12 @@ qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidat
 # base 7 modules
 qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
-qore_user_module("qlib/Logger.qm" "Logger")
+qore_user_module("qlib/Logger.qm" "Util")
 qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
 qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")
 qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")
-qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util;RestSchemaValidator")
 qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/SewioRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/SewioWebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil;WebSocketClient")
@@ -835,7 +834,8 @@ qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
 qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
 
 # base 7 modules
-qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServerUtil;WebSocketHandler;WebSocketUtil")
+qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;HttpServer;Mime;Util;RestSchemaValidator")
+qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServerUtil;HttpServer;WebSocketHandler;WebSocketUtil")
 
 # print info
 message(STATUS "")
