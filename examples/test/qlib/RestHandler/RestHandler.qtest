@@ -313,6 +313,9 @@ public class RestHandlerTest inherits QUnit::Test {
 
         val = mHandler.handleExternalRequest("GET", "action");
         assertEq(False, val);
+
+        # invalid subclass
+        assertThrows("REST-CLASS-ERROR", "action.*test", \mHandler.handleExternalRequest(), ("GET", "invalid"));
     }
 
     serializationTest() {

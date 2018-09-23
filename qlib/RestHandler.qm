@@ -38,6 +38,7 @@
 %requires HttpServerUtil >= 0.3.11
 %requires Mime >= 1.3
 %requires(reexport) RestSchemaValidator >= 1.0
+%requires reflection
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -659,7 +660,7 @@ public namespace RestHandler {
                     }
 
                     rh.logDebug("REST DBG: class %y: unknown subclass %y: method %y args: %y", name(), cname, mn, args);
-                    return unknownSubClassError(cname);
+                    return unknownSubClassError(cname, cx);
                 }
 
                 rh.logDebug("REST DBG: class %y: dispatching to subclass %y: method %y args: %y", name(), cname, mn, args);
@@ -768,11 +769,47 @@ public namespace RestHandler {
         }
 
         #! returns a 404 Not Found response when a request tries to access an unknown subclass
-        private hash<HttpServer::HttpHandlerResponseInfo> unknownSubClassError(string n_name) {
-            return new hash<HttpServer::HttpHandlerResponseInfo>((
+        /** @param cls_name the URI path element that could not be matched to a REST subclass
+            @param cx the HTTP call context hash
+
+            @return REST response information
+
+            @since RestHandler 1.3 added the \a cx argument
+        */
+        private hash<HttpServer::HttpHandlerResponseInfo> unknownSubClassError(string cls_name, hash<auto> cx) {
+            # return possible subclasses, if any are known
+            *hash<string, bool> name_set = getPossibleSubClasses(cx);
+            string msg;
+            if (name_set) {
+                msg = sprintf("; known subclasses: %s", (foldl $1 + ", " + $2, (map sprintf("%y", $1), keys name_set)));
+            }
+
+            return new hash<HttpServer::HttpHandlerResponseInfo>({
                 "code": 404,
-                "body": sprintf("404 Not Found: class %y has no subclass %y", name(), n_name),
-            ));
+                "body": sprintf("404 Not Found: class %y has no subclass %y%s", name(), cls_name, msg),
+            });
+        }
+
+        #! returns a set of possible subclasses for a particular request
+        /** @param cx the HTTP call context hash
+
+            @return a set of possible subclasses for the request
+
+            @since RestHandler 1.3
+        */
+        private *hash<string, bool> getPossibleSubClasses(hash<auto> cx) {
+            # set of subclass names
+            *hash<string, bool> name_set;
+            # add any direct action methods for the HTTP method
+            string http_method = cx.hdr.method.lwr();
+            foreach Reflection::AbstractMethod method in (Reflection::Class::getClass(self).getMethods()) {
+                string method_name = method.getName();
+                if (!method_name.comparePartial(http_method)) {
+                    method_name = method_name[http_method.size()].lwr() + method_name[(http_method.size() + 1)..];
+                    name_set{method_name} = True;
+                }
+            }
+            return name_set;
         }
     }
 
@@ -992,12 +1029,11 @@ public namespace RestHandler {
                             if (self.hasCallableMethod(mname)) {
                                 c = self;
                                 mn = mname;
-                                #return cast<hash<HttpHandlerResponseInfo>>(dispatch(rh, mname, args, cx));
                             }
                         }
 
                         if (!c) {
-                            throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(ch.keys())), 404;
+                            throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(keys getPossibleSubClasses(cx))), 404;
                         }
                     }
                     rcls = c;
@@ -1170,22 +1206,38 @@ public namespace RestHandler {
             try {
                 AbstractRestClass rcls;
 
-                if (!cls)
+                if (!cls) {
                     rcls = self;
+                }
                 else {
                     if (!ch{cls}) {
                         *AbstractRestClass c = subClass(cls, cx, args);
-                        if (!c)
-                            rv = unknownSubClassError(cls);
-                        else
+                        if (!c) {
+                            # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
+                            if (!cl && !args.action) {
+                                string mname = sprintf("%s%s%s", mn, cls[0].upr(), cls[1..]);
+                                if (self.hasCallableMethod(mname)) {
+                                    rcls = self;
+                                    mn = mname;
+                                }
+                            }
+
+                            if (!rcls) {
+                                rv = unknownSubClassError(cls, cx);
+                            }
+                        }
+                        else {
                             rcls = c;
+                        }
                     }
-                    else
+                    else {
                         rcls = ch{cls};
+                    }
                 }
 
-                if (!rv)
+                if (!rv) {
                     rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
+                }
             }
             catch (hash<ExceptionInfo> ex) {
                 string desc = !cx.debug
@@ -1274,8 +1326,19 @@ public namespace RestHandler {
             return RestHandler::makeResponse(200, ch.keys());
         }
 
+        #! returns a set of possible subclasses for a particular request
+        /** @param cx the HTTP call context hash
+
+            @return a set of possible subclasses for the request
+
+            @since RestHandler 1.3
+        */
+        private *hash<string, bool> getPossibleSubClasses(hash<auto> cx) {
+            return (map {$1: True}, keys ch) + AbstractRestClass::getPossibleSubClasses(cx);
+        }
+
         #! creates a hash for an HTTP response with the response code and a literal response message body
-        static hash makeResponse(int code, auto body, *hash hdr) {
+        static hash<auto> makeResponse(int code, auto body, *hash hdr) {
             return (
                 "code": code,
                 "body": body,
