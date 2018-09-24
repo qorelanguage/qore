@@ -805,7 +805,9 @@ public namespace RestHandler {
             foreach Reflection::AbstractMethod method in (Reflection::Class::getClass(self).getMethods()) {
                 string method_name = method.getName();
                 if (!method_name.comparePartial(http_method)) {
-                    method_name = method_name[http_method.size()].lwr() + method_name[(http_method.size() + 1)..];
+                    if (http_method.size() < method_name.size()) {
+                        method_name = method_name[http_method.size()].lwr() + method_name[(http_method.size() + 1)..];
+                    }
                     name_set{method_name} = True;
                 }
             }
