@@ -1227,7 +1227,7 @@ public:
        @param fd the file descriptor to write to, must be already opened for writing
        @param size the number of bytes to read from the socket, -1 to read until the socket is closed
        @param timeout_ms timeout for socket I/O in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
-	   @param xsink
+       @param xsink
 
        @return 0 for OK, not 0 for error
 

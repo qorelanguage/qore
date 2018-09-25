@@ -97,14 +97,14 @@ public:
 
    /**
     * Executed on every step of StatementBlock.
-	* @param pgm
+    * @param pgm
     * @param blockStatement
     * @param bkptId breakpoint id if hit otherwise 0
     * @param statement current AbstractStatement of blockStatement being processed. Executed also when blockStatement is entered with value of NULL
     * @param flow
-	* @param rs
-	* @param rts
-	* @param xsink
+    * @param rs
+    * @param rts
+    * @param xsink
     */
    DLLEXPORT virtual void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, const AbstractStatement* &rts, ExceptionSink* xsink);
 
