@@ -805,15 +805,23 @@ function(get_module_api_versions)
     set(MODULE_COMPAT_API_MINOR ${QMCAMI_L} PARENT_SCOPE)
 endfunction(get_module_api_versions)
 
+# issue #3812: add library architecture directory to all library dirs; GNUInstallDirs
+# will only set this for /usr, but it needs to be set
+# for all library dirs
+# cmake changeg removing this support:
+#   https://gitlab.kitware.com/cmake/cmake/commit/620939e4e6f5a61cd5c0fac2704de4bfda0eb7ef
+# debian refs showing that in fact the arch-specific library dir should be used: 
+#   https://wiki.debian.org/Multiarch/TheCaseForMultiarch
+#   https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=685519
 macro(check_libdir_arch)
-    if ("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
-        # override library location for Debian / Ubuntu
-        if (EXISTS "/etc/debian_version")
-            #set (CMAKE_INSTALL_LIBDIR "lib/${CMAKE_LIBRARY_ARCHITECTURE}" CACHE PATH "Object code libraries")        
-            set (CMAKE_INSTALL_LIBDIR "lib/${CMAKE_LIBRARY_ARCHITECTURE}")        
-            set (CMAKE_INSTALL_FULL_LIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_LIBRARY_ARCHITECTURE}")        
-            message(STATUS "library dir: " ${CMAKE_INSTALL_LIBDIR})
-            message(STATUS "full library dir: " ${CMAKE_INSTALL_FULL_LIBDIR})
-        endif()
+    if(CMAKE_SYSTEM_NAME MATCHES "^(Linux|kFreeBSD|GNU)$"
+       AND NOT CMAKE_CROSSCOMPILING
+       AND EXISTS "/etc/debian_version"
+       AND CMAKE_LIBRARY_ARCHITECTURE
+       AND NOT (CMAKE_INSTALL_LIBDIR MATCHES "${CMAKE_LIBRARY_ARCHITECTURE}"))
+        set (CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_LIBDIR}/${CMAKE_LIBRARY_ARCHITECTURE}")        
+        set (CMAKE_INSTALL_FULL_LIBDIR "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_LIBRARY_ARCHITECTURE}")        
+        message(STATUS "library dir: " ${CMAKE_INSTALL_LIBDIR})
+        message(STATUS "full library dir: " ${CMAKE_INSTALL_FULL_LIBDIR})       
     endif()
 endmacro(check_libdir_arch)
