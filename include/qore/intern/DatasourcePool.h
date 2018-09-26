@@ -178,7 +178,7 @@ public:
     using AbstractPrivateData::deref;
     DLLLOCAL virtual void deref(ExceptionSink* xsink) {
         // if the object is obliterated (due to a constructor error in a child class or a serialization error), make sure
-        // it's destroyed properely
+        // it's destroyed properly
         if (ROdereference()) {
             config.del(xsink);
             delete this;

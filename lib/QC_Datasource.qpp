@@ -126,7 +126,7 @@ static void create_datasource_from_conf(const QoreString& conf, QoreObject& self
     qore_offset_t colon = conf.find(':');
     qore_offset_t atsign = conf.find('@');
     if (colon < 0 || (atsign < colon)) {
-        // do not report the string hear to avoid leaking password info in case present
+        // do not report the string here to avoid leaking password info in case present
         xsink->raiseException("DATASOURCE-PARSE-ERROR", "driver is missing from the datasource string");
         return;
     }

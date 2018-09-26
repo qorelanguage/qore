@@ -90,7 +90,7 @@ static void TimeZone_deserializer(QoreObject& self, const QoreHashNode* sdata, Q
     have daylight savings time information; those based on UTC offsets have none.
 
     The TimeZone class supports @ref Serializable "data serialization"; deserialization can fail if the object is based on
-    a region that is not present on fhe target machine.
+    a region that is not present on the target machine.
 */
 qclass TimeZone [arg=TimeZoneData* z; vparent=Serializable; serializer=reinterpret_cast<q_serializer_t>(TimeZone_serializer); deserializer=TimeZone_deserializer];
 
