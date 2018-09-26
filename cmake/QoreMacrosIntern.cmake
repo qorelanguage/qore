@@ -808,7 +808,7 @@ endfunction(get_module_api_versions)
 # issue #3812: add library architecture directory to all library dirs; GNUInstallDirs
 # will only set this for /usr, but it needs to be set
 # for all library dirs
-# cmake changeg removing this support:
+# cmake change removing this support:
 #   https://gitlab.kitware.com/cmake/cmake/commit/620939e4e6f5a61cd5c0fac2704de4bfda0eb7ef
 # debian refs showing that in fact the arch-specific library dir should be used: 
 #   https://wiki.debian.org/Multiarch/TheCaseForMultiarch
