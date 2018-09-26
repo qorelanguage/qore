@@ -128,8 +128,6 @@ protected:
 
     DLLLOCAL static int64 deserializeIntFromStream(StreamReader& reader, int64 code, ExceptionSink* xsink);
 
-    DLLLOCAL static bool deserializeBoolFromStream(StreamReader& reader, ExceptionSink* xsink);
-
     DLLLOCAL static QoreListNode* deserializeListFromStream(StreamReader& reader, ExceptionSink* xsink);
 
     DLLLOCAL static double deserializeFloatFromStream(StreamReader& reader, ExceptionSink* xsink);

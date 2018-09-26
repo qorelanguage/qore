@@ -54,18 +54,19 @@ typedef std::set<std::string> strset_t;
 #define QSSDT_STRING 2
 #define QSSDT_UTF8_STRING 3
 #define QSSDT_LIST 4
-#define QSSDT_BOOLEAN 5
-#define QSSDT_INT1 6
-#define QSSDT_INT2 7
-#define QSSDT_INT4 8
-#define QSSDT_INT8 9
-#define QSSDT_FLOAT 10
-#define QSSDT_NUMBER 11
-#define QSSDT_BINARY 12
-#define QSSDT_ABSDATE 13
-#define QSSDT_RELDATE 14
-#define QSSDT_NULL 15
-#define QSSDT_NOTHING 16
+#define QSSDT_BOOLEAN_TRUE 5
+#define QSSDT_BOOLEAN_FALSE 6
+#define QSSDT_INT1 7
+#define QSSDT_INT2 8
+#define QSSDT_INT4 9
+#define QSSDT_INT8 10
+#define QSSDT_FLOAT 11
+#define QSSDT_NUMBER 12
+#define QSSDT_BINARY 13
+#define QSSDT_ABSDATE 14
+#define QSSDT_RELDATE 15
+#define QSSDT_NULL 16
+#define QSSDT_NOTHING 17
 
 #define CODE_IS_INT(x) ((x) == QSSDT_INT1 || (x) == QSSDT_INT2 || (x) == QSSDT_INT4 || (x) == QSSDT_INT8)
 #define CODE_IS_STRING(x) ((x) == QSSDT_STRING || (x) == QSSDT_UTF8_STRING)
@@ -526,7 +527,6 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
     QoreValue val = h.getKeyValue("_modules");
     if (val) {
         assert(val.getType() == NT_LIST);
-        QoreProgram* pgm = getProgram();
 
         ConstListIterator li(val.get<const QoreListNode>());
         while (li.next()) {
@@ -686,7 +686,7 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                                 }
                                 // skip transient member initialization if there is no expression
                                 if (!val) {
-                                    printd(0, "DESERIALIZE transient member %s::%s has no value\n", mcls.getName(), mi.getName());
+                                    //printd(5, "DESERIALIZE transient member %s::%s has no value\n", mcls.getName(), mi.getName());
                                     continue;
                                 }
                                 // assign value to member
@@ -1067,12 +1067,7 @@ int QoreSerializable::serializeIntToStream(int64 i, StreamWriter& writer, Except
 
 int QoreSerializable::serializeBoolToStream(bool b, StreamWriter& writer, ExceptionSink* xsink) {
     // write data type code to stream
-    if (!writer.writei1(QSSDT_BOOLEAN, xsink)) {
-        // write bool to stream
-        return writer.writei1((signed char)b, xsink);
-    }
-
-    return -1;
+    return writer.writei1(b ? QSSDT_BOOLEAN_TRUE : QSSDT_BOOLEAN_FALSE, xsink);
 }
 
 int QoreSerializable::serializeListToStream(const QoreListNode& l, StreamWriter& writer, ExceptionSink* xsink) {
@@ -1337,8 +1332,11 @@ QoreValue QoreSerializable::deserializeValueFromStream(StreamReader& reader, Exc
         case QSSDT_INT8:
             return deserializeIntFromStream(reader, code, xsink);
 
-        case QSSDT_BOOLEAN:
-            return deserializeBoolFromStream(reader, xsink);
+        case QSSDT_BOOLEAN_TRUE:
+            return true;
+
+        case QSSDT_BOOLEAN_FALSE:
+            return false;
 
         case QSSDT_LIST:
             return deserializeListFromStream(reader, xsink);
@@ -1434,7 +1432,7 @@ QoreHashNode* QoreSerializable::deserializeHashFromStream(StreamReader& reader, 
         if (*xsink) {
             return nullptr;
         }
-        if (code != QSSDT_UTF8_STRING && code != QSSDT_STRING) {
+        if (!CODE_IS_STRING(code)) {
             xsink->raiseException("DESERIALIZATION-ERROR", "expecting string type for hash key; got type %d instead", static_cast<int>(code));
             return nullptr;
         }
@@ -1519,10 +1517,6 @@ int64 QoreSerializable::deserializeIntFromStream(StreamReader& reader, int64 cod
     }
 
     return *xsink ? 0 : i;
-}
-
-bool QoreSerializable::deserializeBoolFromStream(StreamReader& reader, ExceptionSink* xsink) {
-    return (bool)reader.readi1(xsink);
 }
 
 QoreListNode* QoreSerializable::deserializeListFromStream(StreamReader& reader, ExceptionSink* xsink) {
