@@ -86,7 +86,7 @@ AstTreeSearcher::constructor() {
 
 //! Hover info.
 /**
-    @param tree
+    @param tree AST tree structure
     @param kind symbol kind
     @param line on what line lies the symbol we want to get info about
     @param col on what column lies the symbol we want to get info about
@@ -146,7 +146,7 @@ AstTreeSearcher::constructor() {
 
 //! Find symbol info.
 /**
-    @param tree
+    @param tree AST tree structure
     @param line on what line lies the symbol we want to get info about
     @param col on what column lies the symbol we want to get info about
 
@@ -195,7 +195,7 @@ AstTreeSearcher::constructor() {
 
 //! Find symbol references
 /**
-    @param tree
+    @param tree AST tree structure
     @param uri document's uri
     @param line line on which the symbol lies
     @param col column at which the symbol lies
@@ -244,7 +244,7 @@ AstTreeSearcher::constructor() {
 
 //! Find all symbols in a document.
 /**
-    @param tree
+    @param tree AST tree structure
     @param uri document's uri
     @param fixSymbols whether to fix symbol infos
     @param bareNames whether to return bare symbol names (without namespace and class prefixes)
@@ -298,7 +298,7 @@ AstTreeSearcher::constructor() {
 
 //! Find matching symbols in a document.
 /**
-    @param tree
+    @param tree AST tree structure
     @param uri document's uri
     @param query search query
     @param exactMatch whether to only find exact matches

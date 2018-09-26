@@ -851,6 +851,12 @@ HTML_COLORSTYLE_GAMMA  = 100
 
 HTML_TIMESTAMP         = YES
 
+# If the HTML_ALIGN_MEMBERS tag is set to YES, the members of classes,
+# files or namespaces will be aligned in HTML using tables. If set to
+# NO a bullet list will be used.
+
+#HTML_ALIGN_MEMBERS     = YES
+
 # If the HTML_DYNAMIC_SECTIONS tag is set to YES then the generated HTML
 # documentation will contain sections that can be hidden and shown after the
 # page has loaded. For this to work a browser that supports
@@ -1034,6 +1040,11 @@ ENUM_VALUES_PER_LINE   = 4
 # Windows users are probably better off using the HTML help feature.
 
 GENERATE_TREEVIEW      = YES
+
+# By enabling USE_INLINE_TREES, doxygen will generate the Groups, Directories,
+# and Class Hierarchy pages using a tree view instead of an ordered list.
+
+#USE_INLINE_TREES       = YES
 
 # If the treeview is enabled (see GENERATE_TREEVIEW) then this tag can be
 # used to set the initial width (in pixels) of the frame in which the tree

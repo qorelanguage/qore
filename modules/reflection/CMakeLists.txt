@@ -15,6 +15,7 @@ set(QORE_API_VERSION ${MODULE_API_MAJOR}.${MODULE_API_MINOR})
 include(${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake)
 ### end of hacks
 
+# we cannot include src directory as it causes doxygen warnings for @file
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 

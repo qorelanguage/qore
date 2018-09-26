@@ -101,10 +101,10 @@ public:
     * @param blockStatement
     * @param bkptId breakpoint id if hit otherwise 0
     * @param statement current AbstractStatement of blockStatement being processed. Executed also when blockStatement is entered with value of NULL
-    * @param flow
-    * @param rs
-    * @param rts
-    * @param xsink
+    * @param flow loop flow
+    * @param rs run state
+    * @param rts "run to" statement
+    * @param xsink if an error occurs, the Qore-language exception information will be added here
     */
    DLLEXPORT virtual void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, const AbstractStatement* &rts, ExceptionSink* xsink);
 
