@@ -59,6 +59,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/include/qore )
 include(CheckIncludeFiles)
 include(GNUInstallDirs)
 
+# issue #2994: ensure that the arch-specific libdir is used on Debian/Ubuntu
+check_libdir_arch()
+
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${CMAKE_INSTALL_PREFIX})
 set(myprefix ${CMAKE_INSTALL_PREFIX})
