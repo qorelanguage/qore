@@ -46,8 +46,15 @@
       - @ref Qore::FtpClient::getDataPeerInfo() "FtpClient::getDataPeerInfo()"
       - @ref Qore::FtpClient::getDataSocketInfo() "FtpClient::getDataSocketInfo()"
       - @ref Qore::Program::getParseOptionStringList() "Program::getParseOptionStringList()"
-      - @ref Qore::Program::parse() "Program::parse()" 
-      - @ref Qore::Program::parsePending() "Program::parsePending()" 
+      - @ref Qore::Program::issueModuleCmd() "Program::issueModuleCmd()"
+      - @ref Qore::Program::parse() "Program::parse()"
+      - @ref Qore::Program::parsePending() "Program::parsePending()"
+      - @ref Qore::Program::parse() "Program::parse()"
+      - @ref Qore::Program::parsePending() "Program::parsePending()"
+      - @ref Qore::SSLCertificate::copy() "SSLCertificate::copy()"
+      - @ref Qore::SSLCertificate::getDER() "SSLCertificate::getDER()"
+      - @ref Qore::SSLPrivateKey::copy() "SSLPrivateKey::copy()"
+      - @ref Qore::SSLPrivateKey::getDER() "SSLPrivateKey::getDER()"
       - @ref Qore::StreamReader::getInputStream() "StreamReader::getInputStream()"
       - @ref Qore::StreamWriter::getOutputStream() "StreamWriter::getOutputStream()"
     - new functions:
@@ -79,9 +86,9 @@
       - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_dates "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
       - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
       - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
-    - @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" updates: 
+    - @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" updates:
       the \a format_label parameter is obsolete/ignored
-      (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)      
+      (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)
     - module updates
       - a new binary module: <a href="../../modules/reflection/html/index.html">reflection</a>
         providing a reflection API to %Qore
@@ -121,6 +128,7 @@
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
         - Swagger module does not accept multipart/form-data content-type and also does not work with list and hash parameters
           (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
+<<<<<<< Updated upstream
     - @ref relative_dates "relative date" changes
         - fraction seconds are accepted in the @ref single_reldates
         - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
@@ -132,6 +140,19 @@
         - <a href="../../modules/DebugHandler/html/index.html">DebugHandler</a> reimplemented to support multiple websocket handlers
         - program is not interrupted at bootstrap code
         - command line utils display source line code when interrupted
+=======
+    - @ref relative_dates "Relative date" changes
+      - Fractional seconds are accepted in the @ref single_reldates
+      - Fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
+    - Improved debugging support:
+      - @ref Qore::ProgramControl::getStatementIdInfo() "ProgramControl::getStatementIdInfo()" provides breakpoint info
+      - Command to resolve statement
+      - Interrupt notification provides call stack info
+      - \c "Run to statement" implementation
+      - <a href="../../modules/DebugHandler/html/index.html">DebugHandler</a> reimplemented to support multiple websocket handlers
+      - Programs are not interrupted in bootstrap code
+      - Command line utils display source line code when interrupted
+>>>>>>> Stashed changes
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
     - fixed a bug where rvalue references with complex subtypes could get modified during an assignment

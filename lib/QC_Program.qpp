@@ -2013,3 +2013,32 @@ list<int> Program::getThreadList() [flags=CONSTANT] {
 ProgramControl Program::getProgram() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
    return QoreProgram::getQoreObject(p);
 }
+
+//! issues a module command for the given module; the module is loaded into the current %Program object if it is not already present
+/** @par Example:
+    @code{.py}
+    @endcode
+
+    @param module the module name
+    @param cmd the command string to execute
+
+    @throw PARSE-COMMAND-ERROR the module does not support commands
+
+    @note command errors can result in other module- and command-specific exceptions being thrown; see
+    documentation for the module and command in question for more details
+
+    @since %Qore 0.9
+*/
+nothing Program::issueModuleCmd(string module, string cmd) {
+    TempEncodingHelper tmp_module(module, QCS_DEFAULT, xsink);
+    if (!tmp_module) {
+        return QoreValue();
+    }
+
+    TempEncodingHelper tmp_cmd(cmd, QCS_DEFAULT, xsink);
+    if (!tmp_cmd) {
+        return QoreValue();
+    }
+
+    QMM.issueRuntimeCmd(tmp_module->c_str(), p, **tmp_cmd, xsink);
+}
