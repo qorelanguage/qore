@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file HttpServerUtil.qm HTTP server base code
+#! @file HttpServerUtil.qm HTTP server base code
 
 /*  HttpServerUtil.qm Copyright (C) 2014 - 2018 Qore Technologies, s.r.o.
 
@@ -1222,7 +1222,7 @@ public class HttpServer::AbstractHttpSocketHandler inherits HttpServer::Abstract
         - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
         @param b message body, if any
 
-        @return to accept a dedicated connection, return a hash (ideally an @ref HttpServer::HttpRequestInfo hash) with the following key:
+        @return to accept a dedicated connection, return a hash (ideally an @ref HttpServer::HttpResponseInfo hash) with the following key:
         - \c "code": assign to 101 (ie \c "Switching Protocols"); if this is returned, then the start() method will be called with the @ref Qore::Socket "Socket object" for the new connection
         - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
         .

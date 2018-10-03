@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file HttpServer.qm HTTP multi-threaded server module definition
+#! @file HttpServer.qm HTTP multi-threaded server module definition
 
 /*  HttpServer.qm Copyright (C) 2012 - 2018 Qore Technologies, s.r.o.
 
@@ -141,7 +141,7 @@ log("started listener on %s", lh.desc);
         - first, handlers without regexp are considered - if there are some handler with their path matching the request, the one with the longest path is selected
         - otherwise, the first (in order of their registration) handler with regexp that matches the request URI is chosen
       - if no path matches the request, the same logic as before applies
-    - added @ref HttpServer::HttpServer::addListeners(string, hash, *code, *code, *code, *string, int)
+    - added @ref HttpServer::HttpServer::addListeners() "HttpServer::addListeners(string, hash, *code, *code, *code, *string, int)"
     - fixed a bug in @ref HttpServer::HttpServer::addListener() with an integer argument; a UNIX socket was opened instead of a wildcard listener on the given port
     - added the @ref HttpServer::HttpServer::listenerStarted() method to allow for reporting when listeners are actually running since they are started asynchronously
     - added the \c "ssl" key to the listener socket info hash
@@ -1268,7 +1268,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     /** @param bind the bind address; if for any reason there is a path in the bind address, it will be ignored
         @param host the hostname to use in case the bind string is only a port number; if none is passed or the value passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
 
-        @note reexported from @ref HttpServerUtil::get_url_from_bind()
+        @note reexported from @ref HttpServer::http_get_url_from_bind()
      */
     static string getURLFromBind(softstring bind, *string host) {
         return HttpServer::http_get_url_from_bind(bind, host);

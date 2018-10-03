@@ -251,7 +251,13 @@ struct qore_list_private {
         else // set last entry to 0
             entry[end - 1] = QoreValue();
 
-        resize(length - 1);
+        if (length > 0) {
+            /* it is always greater than one but we need get rid with realloc's warning
+             * "....exceeds maximum object size 9223372036854775807" when optimizer somehow
+             * testing probably length bounds. Casting to size_t i.e. long unsigned int does not help
+             */
+            resize(length - 1);
+        }
 
         return rv;
     }

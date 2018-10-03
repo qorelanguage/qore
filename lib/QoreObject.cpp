@@ -81,10 +81,10 @@ QoreHashNode* qore_object_private::getSlice(const QoreListNode* l, ExceptionSink
     // local class only used in this function
     class SliceKeyMap : public slicekeymap_t {
     public:
-        DLLLOCAL SliceKeyMap() {
+        SliceKeyMap() {
         }
 
-        DLLLOCAL ~SliceKeyMap() {
+        ~SliceKeyMap() {
             for (auto& i : *this) {
                 i.second->deref(nullptr);
             }

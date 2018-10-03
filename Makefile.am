@@ -916,13 +916,13 @@ $(QPP): dummy
 	cd lib; make $(QPP_PGM)
 
 doxygen/lib/Doxyfile: doxygen/lib/Doxyfile.tmpl configure.ac
-	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen/" > $@
+	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen" "$(top_srcdir)/getrev.sh" > $@
 
 lang-dox-src: dummy
 	cd lib; make dox-src
 
 doxygen/lang/Doxyfile: doxygen/lang/Doxyfile.tmpl configure.ac
-	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen/" > $@
+	doxygen/dpp "$(VERSION)" $< "$(top_srcdir)/doxygen" "$(top_srcdir)/getrev.sh" > $@
 
 $(LANG_TMP_DOXYFILES_SRC): doxygen/lang/%.dox: doxygen/lang/%.dox.tmpl lib $(QPP) lang-dox-src
 	$(QPP) -t $< -o $@
@@ -934,52 +934,52 @@ QDX_MTAG_ARGS = $(foreach m,$(basename $(notdir $(DOX_SRC_MODULES))),-t$(m).tag=
 
 # explicit Doxyfile rules for modules providing tags for other modules
 doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/Mime.qm:doxygen/qlib/Mime.qm.dox.h $< $@
+	$(QDX) -M=qlib/Mime.qm:doxygen/qlib/Mime.qm $< $@
 
 doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm.dox.h $< $@
+	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm $< $@
 
 doxygen/qlib/Doxyfile.HttpServerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/HttpServerUtil.qm:doxygen/qlib/HttpServerUtil.qm.dox.h -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
+	$(QDX) -M=qlib/HttpServerUtil.qm:doxygen/qlib/HttpServerUtil.qm -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
 
 doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm.dox.h -tHttpServerUtil.tag=../../HttpServerUtil/html -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
+	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm -tHttpServerUtil.tag=../../HttpServerUtil/html -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
 
 doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm.dox.h -tMime.tag=../../Mime/html $< $@
+	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm.dox.h -tUtil.tag=../../Util/html $< $@
+	$(QDX) -M=qlib/SqlUtil.qm:doxygen/qlib/SqlUtil.qm -tUtil.tag=../../Util/html $< $@
 
 doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm.dox.h $< $@
+	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm $< $@
 
 doxygen/qlib/Doxyfile.Mapper: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm.dox.h $< $@
+	$(QDX) -M=qlib/Mapper.qm:doxygen/qlib/Mapper.qm $< $@
 
 doxygen/qlib/Doxyfile.ConnectionProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/ConnectionProvider.qm:doxygen/qlib/ConnectionProvider.qm.dox.h -tMime.tag=../../Mime/html $< $@
+	$(QDX) -M=qlib/ConnectionProvider.qm:doxygen/qlib/ConnectionProvider.qm -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/Doxyfile.RestSchemaValidator: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/RestSchemaValidator.qm:doxygen/qlib/RestSchemaValidator.qm.dox.h -tHttpServerUtil.tag=../../HttpServerUtil/html $< $@
+	$(QDX) -M=qlib/RestSchemaValidator.qm:doxygen/qlib/RestSchemaValidator.qm -tHttpServerUtil.tag=../../HttpServerUtil/html $< $@
 
 doxygen/qlib/Doxyfile.Swagger: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/Swagger.qm:doxygen/qlib/Swagger.qm.dox.h -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html -tHttpServerUtil.tag=../../HttpServerUtil/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html $< $@
+	$(QDX) -M=qlib/Swagger.qm:doxygen/qlib/Swagger.qm -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html -tHttpServerUtil.tag=../../HttpServerUtil/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html $< $@
 
 doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm.dox.h -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html -tSwagger.tag=../../Swagger/html $< $@
+	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html -tSwagger.tag=../../Swagger/html $< $@
 
 doxygen/qlib/Doxyfile.DebugUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/DebugUtil.qm:doxygen/qlib/DebugUtil.qm.dox.h $< $@
+	$(QDX) -M=qlib/DebugUtil.qm:doxygen/qlib/DebugUtil.qm $< $@
 
 doxygen/qlib/Doxyfile.DebugProgramControl: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/DebugProgramControl.qm:doxygen/qlib/DebugProgramControl.qm.dox.h -tDebugUtil.tag=../../DebugUtil/html $< $@
+	$(QDX) -M=qlib/DebugProgramControl.qm:doxygen/qlib/DebugProgramControl.qm -tDebugUtil.tag=../../DebugUtil/html $< $@
 
 doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm.dox.h -tUtil.tag=../../Util/html -tConnectionProvider.tag=../../ConnectionProvider/html -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
+	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm -tUtil.tag=../../Util/html -tConnectionProvider.tag=../../ConnectionProvider/html -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
 
 doxygen/qlib/Doxyfile.WebSocketHandler: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/WebSocketHandler.qm:doxygen/qlib/WebSocketHandler.qm.dox.h -tHttpServerUtil.tag=../../HttpServerUtil/html -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
+	$(QDX) -M=qlib/WebSocketHandler.qm:doxygen/qlib/WebSocketHandler.qm -tHttpServerUtil.tag=../../HttpServerUtil/html -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
 
 doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
 	sed -e s/@QORE_MOD_NAME@/astparser/ \
@@ -1001,10 +1001,10 @@ doxygen/modules/Doxyfile.reflection: doxygen/modules/Doxyfile.in
 
 DOXYFILE_TARG = $(addprefix doxygen/qlib/Doxyfile.,$(DOX_USER_MODS))
 $(DOXYFILE_TARG): doxygen/qlib/Doxyfile.%: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm.dox.h $(QDX_MTAG_ARGS) $< $@
+	$(QDX) -M=qlib/$*.qm:doxygen/qlib/$*.qm $(QDX_MTAG_ARGS) $< $@
 
-TMP_MOD_TARG = $(addprefix doxygen/qlib/,$(addsuffix .qm.dox.h,$(USER_MODS)))
-$(TMP_MOD_TARG): doxygen/qlib/%.qm.dox.h: qlib/%.qm $(QDX_DEP)
+TMP_MOD_TARG = $(addprefix doxygen/qlib/,$(addsuffix .qm,$(USER_MODS)))
+$(TMP_MOD_TARG): doxygen/qlib/%.qm: qlib/%.qm $(QDX_DEP)
 	$(QDX) $< $@
 
 QLIB_TMP_DOXYFILES = $(TMP_MOD_TARG) $(addsuffix .tag,$(USER_MODS))
@@ -1022,7 +1022,7 @@ docs/lang/html: $(LANG_DOXYFILES) $(LANG_QPP_SRC)
 	$(top_srcdir)/doxygen/pdox -t docs/lang/latex
 
 TMP_MOD_HTML_TARG = $(addsuffix /html,$(addprefix docs/modules/,$(USER_MODS)))
-$(TMP_MOD_HTML_TARG): docs/modules/%/html: doxygen/qlib/%.qm.dox.h doxygen/qlib/Doxyfile.% #docs/lang/html
+$(TMP_MOD_HTML_TARG): docs/modules/%/html: doxygen/qlib/%.qm doxygen/qlib/Doxyfile.% #docs/lang/html
 	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.$*
 	$(top_srcdir)/doxygen/pdox $@ $@/search

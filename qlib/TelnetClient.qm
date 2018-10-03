@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file TelnetClient.qm Telnet module definition
+#! @file TelnetClient.qm Telnet module definition
 
 /*  TelnetClient.qm Copyright 2012 - 2018 Qore Technologies s.r.o.
 

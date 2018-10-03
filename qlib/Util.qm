@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Util.qm Qore user module for generally useful routines
+#! @file Util.qm Qore user module for generally useful routines
 
 /*  Util.qm Copyright 2014 - 2017 Qore Technologies, s.r.o.
 

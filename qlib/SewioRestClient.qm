@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file SewioRestClient.qm Qore user module for calling Sewio.net REST services
+#! @file SewioRestClient.qm Qore user module for calling Sewio.net REST services
 
 /*  SewioRestClient.qm Copyright (C) 2017 - 2018 Qore Technologies, s.r.o.
 
@@ -88,7 +88,7 @@ printf("%N\n", ans.body);
     @section Sewiorestclientrelnotes Release Notes
 
     @subsection Sewiorestclientv1_1 SewioRestClient v1.1
-    - added the @ref SewioRestClient::SewioConnection::getConstructorInfo() "SewioConnection::getConstructorInfo()"
+    - added the @ref SewioRestClient::SewioRestConnection::getConstructorInfoImpl() "SewioConnection::getConstructorInfoImpl()"
       method to allow connections to be created dynamically, potentially in another process from a network
       call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 

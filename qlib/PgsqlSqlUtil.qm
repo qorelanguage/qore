@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
+#! @file PgsqlSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
 /*  PgsqlSqlUtil.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
 

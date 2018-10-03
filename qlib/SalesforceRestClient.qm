@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file SalesforceRestClient.qm Qore user module for calling Salesforce.com REST services
+#! @file SalesforceRestClient.qm Qore user module for calling Salesforce.com REST services
 
 /*  SalesforceRestClient.qm Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
 
