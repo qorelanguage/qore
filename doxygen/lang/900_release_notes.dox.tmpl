@@ -67,6 +67,9 @@
       - @ref Qore::FtpClient::getDataPeerInfo() "FtpClient::getDataPeerInfo()"
       - @ref Qore::FtpClient::getDataSocketInfo() "FtpClient::getDataSocketInfo()"
       - @ref Qore::Program::getParseOptionStringList() "Program::getParseOptionStringList()"
+      - @ref Qore::Program::issueModuleCmd() "Program::issueModuleCmd()"
+      - @ref Qore::Program::parse() "Program::parse()"
+      - @ref Qore::Program::parsePending() "Program::parsePending()"
       - @ref Qore::Program::parse() "Program::parse()"
       - @ref Qore::Program::parsePending() "Program::parsePending()"
       - @ref Qore::SSLCertificate::copy() "SSLCertificate::copy()"
@@ -107,6 +110,7 @@
         dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
       - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
       - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
+<<<<<<< HEAD
     - New parse directives:
       - @ref no-reflection "%no-reflection"
       - @ref no-transient "%no-transient"
@@ -116,6 +120,14 @@
     - Module updates
       - <a href="../../modules/reflection/html/index.html">reflection</a>: a new binary module providing a
         reflection API to %Qore
+=======
+    - @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" updates:
+      the \a format_label parameter is obsolete/ignored
+      (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)
+    - module updates
+      - a new binary module: <a href="../../modules/reflection/html/index.html">reflection</a>
+        providing a reflection API to %Qore
+>>>>>>> feature/3021_module_cmds
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module changes:
         - The \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
           connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
@@ -158,6 +170,7 @@
         - Swagger module does not accept multipart/form-data content-type and also does not work with list and hash parameters
           (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
 <<<<<<< HEAD
+<<<<<<< HEAD
     - @ref relative_dates "Relative date" changes
       - Fractional seconds are accepted in the @ref single_reldates
       - Fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
@@ -170,6 +183,9 @@
       - Programs are not interrupted in bootstrap code
       - Command line utils display source line code when interrupted
 =======
+=======
+<<<<<<< Updated upstream
+>>>>>>> feature/3021_module_cmds
     - @ref relative_dates "relative date" changes
         - fraction seconds are accepted in the @ref single_reldates
         - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
@@ -181,7 +197,23 @@
         - <a href="../../modules/DebugHandler/html/index.html">DebugHandler</a> reimplemented to support multiple websocket handlers
         - program is not interrupted at bootstrap code
         - command line utils display source line code when interrupted
+<<<<<<< HEAD
 >>>>>>> origin/develop
+=======
+=======
+    - @ref relative_dates "Relative date" changes
+      - Fractional seconds are accepted in the @ref single_reldates
+      - Fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
+    - Improved debugging support:
+      - @ref Qore::ProgramControl::getStatementIdInfo() "ProgramControl::getStatementIdInfo()" provides breakpoint info
+      - Command to resolve statement
+      - Interrupt notification provides call stack info
+      - \c "Run to statement" implementation
+      - <a href="../../modules/DebugHandler/html/index.html">DebugHandler</a> reimplemented to support multiple websocket handlers
+      - Programs are not interrupted in bootstrap code
+      - Command line utils display source line code when interrupted
+>>>>>>> Stashed changes
+>>>>>>> feature/3021_module_cmds
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
     - Fixed a bug where rvalue references with complex subtypes could get modified during an assignment

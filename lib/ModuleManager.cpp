@@ -398,18 +398,20 @@ void QoreUserModule::addToProgramImpl(QoreProgram* tpgm, ExceptionSink& xsink) c
     QMM.trySetUserModuleDependency(this);
 }
 
-void QoreBuiltinModule::issueParseCmd(const QoreProgramLocation* loc, QoreString& cmd) {
+void QoreBuiltinModule::issueModuleCmd(const QoreProgramLocation* loc, const QoreString& cmd, ExceptionSink* xsink) {
     if (!module_parse_cmd) {
-        parseException(*loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' has not registered a parse command handler", name.getBuffer(), filename.getBuffer());
+        if (xsink) {
+            xsink->raiseException(*loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' has not registered a parse command handler", name.getBuffer(), filename.getBuffer());
+        }
         return;
     }
 
-    ExceptionSink* pxsink = getProgram()->getParseExceptionSink();
     // if parse exceptions have been disabled, then skip issuing the command
-    if (!pxsink)
+    if (!xsink) {
         return;
+    }
 
-    module_parse_cmd(cmd, pxsink);
+    module_parse_cmd(cmd, xsink);
 }
 
 ModuleManager::ModuleManager() {
@@ -1400,7 +1402,7 @@ void QoreModuleManager::cleanup() {
    assert(modset.empty());
 }
 
-void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char* mname, QoreProgram* pgm, QoreString& cmd) {
+void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char* mname, QoreProgram* pgm, const QoreString& cmd) {
     ExceptionSink xsink;
 
     AutoLocker al(mutex); // make sure checking and loading are atomic
@@ -1414,7 +1416,24 @@ void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char
     QoreAbstractModule* mi = findModule(mname);
     assert(mi);
 
-    mi->issueParseCmd(loc, cmd);
+    mi->issueModuleCmd(loc, cmd, getProgram()->getParseExceptionSink());
+}
+
+void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd, ExceptionSink* xsink) {
+    AutoLocker al(mutex); // make sure checking and loading are atomic
+    loadModuleIntern(*xsink, mname, pgm);
+    if (*xsink) {
+        return;
+    }
+
+    QoreAbstractModule* mi = findModule(mname);
+    assert(mi);
+    mi->issueModuleCmd(&loc_builtin, cmd, xsink);
+
+    // enrich exception deescription if present
+    if (*xsink) {
+        xsink->appendLastDescription(": module command error from command '%s'", cmd.c_str());
+    }
 }
 
 QoreHashNode* ModuleManager::getModuleHash() {

@@ -243,7 +243,7 @@ public:
     DLLLOCAL virtual bool isBuiltin() const = 0;
     DLLLOCAL virtual bool isUser() const = 0;
     DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const = 0;
-    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation* loc, QoreString &cmd) = 0;
+    DLLLOCAL virtual void issueModuleCmd(const QoreProgramLocation* loc, const QoreString& cmd, ExceptionSink* xsink) = 0;
 };
 
 // list/dequeue of strings
@@ -391,178 +391,181 @@ public:
 };
 
 class QoreModuleManager {
-   friend class QoreAbstractModule;
+    friend class QoreAbstractModule;
 
 private:
-   // not implemented
-   DLLLOCAL QoreModuleManager(const QoreModuleManager&);
-   // not implemented
-   DLLLOCAL QoreModuleManager& operator=(const QoreModuleManager&);
+    // not implemented
+    DLLLOCAL QoreModuleManager(const QoreModuleManager&);
+    // not implemented
+    DLLLOCAL QoreModuleManager& operator=(const QoreModuleManager&);
 
 protected:
-   // recursive mutex; initialized in init()
-   QoreThreadLock* mutex;
+    // recursive mutex; initialized in init()
+    QoreThreadLock* mutex;
 
-   // user module dependency map: module -> dependents
-   ModMap md_map;
-   // user module dependent map: dependent -> module
-   ModMap rmd_map;
+    // user module dependency map: module -> dependents
+    ModMap md_map;
+    // user module dependent map: dependent -> module
+    ModMap rmd_map;
 
-   // module blacklist
-   typedef std::map<const char*, const char*, ltstr> bl_map_t;
-   bl_map_t mod_blacklist;
+    // module blacklist
+    typedef std::map<const char*, const char*, ltstr> bl_map_t;
+    bl_map_t mod_blacklist;
 
-   // module hash
-   typedef std::map<const char*, QoreAbstractModule*, ltstr> module_map_t;
-   module_map_t map;
+    // module hash
+    typedef std::map<const char*, QoreAbstractModule*, ltstr> module_map_t;
+    module_map_t map;
 
-   // set of user modules with no dependencies
-   strset_t umset;
+    // set of user modules with no dependencies
+    strset_t umset;
 
-   // list of module directories
-   UniqueDirectoryList moduleDirList;
+    // list of module directories
+    UniqueDirectoryList moduleDirList;
 
-   DLLLOCAL QoreAbstractModule* findModuleUnlocked(const char* name) {
-      module_map_t::iterator i = map.find(name);
-      return i == map.end() ? 0 : i->second;
-   }
+    DLLLOCAL QoreAbstractModule* findModuleUnlocked(const char* name) {
+        module_map_t::iterator i = map.find(name);
+        return i == map.end() ? 0 : i->second;
+    }
 
-   DLLLOCAL void loadModuleIntern(const char* name, QoreProgram* pgm, ExceptionSink& xsink) {
-      AutoLocker sl(mutex); // make sure checking and loading are atomic
+    DLLLOCAL void loadModuleIntern(const char* name, QoreProgram* pgm, ExceptionSink& xsink) {
+        AutoLocker sl(mutex); // make sure checking and loading are atomic
 
-      loadModuleIntern(xsink, name, pgm);
-   }
+        loadModuleIntern(xsink, name, pgm);
+    }
 
-   DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0, const char* src = 0, QoreProgram* mpgm = 0, unsigned load_opt = QMLO_NONE);
+    DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0, const char* src = 0, QoreProgram* mpgm = 0, unsigned load_opt = QMLO_NONE);
 
-   DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
-   DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* tpgm = 0, bool reexport = false, QoreProgram* pgm = 0, QoreProgram* path_pgm = 0, unsigned load_opt = QMLO_NONE);
-   DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = 0);
-   DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt = QMLO_NONE);
+    DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
+    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* tpgm = 0, bool reexport = false, QoreProgram* pgm = 0, QoreProgram* path_pgm = 0, unsigned load_opt = QMLO_NONE);
+    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = 0);
+    DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule>& mi, QoreUserModuleDefContextHelper& qmd, unsigned load_opt = QMLO_NONE);
 
-   DLLLOCAL void reinjectModule(QoreAbstractModule* mi);
-   DLLLOCAL void delOrig(QoreAbstractModule* mi);
-   DLLLOCAL void getUniqueName(QoreString& nname, const char* name, const char* prefix);
+    DLLLOCAL void reinjectModule(QoreAbstractModule* mi);
+    DLLLOCAL void delOrig(QoreAbstractModule* mi);
+    DLLLOCAL void getUniqueName(QoreString& nname, const char* name, const char* prefix);
 
 public:
-   DLLLOCAL QoreModuleManager() : mutex(0) {
-   }
+    DLLLOCAL QoreModuleManager() : mutex(0) {
+    }
 
-   DLLLOCAL ~QoreModuleManager() {
-      delete mutex;
-   }
+    DLLLOCAL ~QoreModuleManager() {
+        delete mutex;
+    }
 
-   DLLLOCAL void init(bool se);
-   DLLLOCAL void delUser();
-   DLLLOCAL void cleanup();
-   DLLLOCAL void issueParseCmd(const QoreProgramLocation* loc, const char* mname, QoreProgram* pgm, QoreString &cmd);
+    DLLLOCAL void init(bool se);
+    DLLLOCAL void delUser();
+    DLLLOCAL void cleanup();
 
-   DLLLOCAL void addModule(QoreAbstractModule* m) {
-      assert(map.find(m->getName()) == map.end());
-      map.insert(module_map_t::value_type(m->getName(), m));
-   }
+    DLLLOCAL void issueParseCmd(const QoreProgramLocation* loc, const char* mname, QoreProgram* pgm, const QoreString& cmd);
 
-   DLLLOCAL QoreAbstractModule* findModule(const char* name) {
-      AutoLocker al(mutex);
-      return findModuleUnlocked(name);
-   }
+    DLLLOCAL void issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd, ExceptionSink* xsink);
 
-   DLLLOCAL void parseLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false);
-   DLLLOCAL int runTimeLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, QoreProgram* mpgm = 0, unsigned load_opt = QMLO_NONE);
+    DLLLOCAL void addModule(QoreAbstractModule* m) {
+        assert(map.find(m->getName()) == map.end());
+        map.insert(module_map_t::value_type(m->getName(), m));
+    }
 
-   DLLLOCAL QoreHashNode* getModuleHash();
-   DLLLOCAL QoreListNode* getModuleList();
+    DLLLOCAL QoreAbstractModule* findModule(const char* name) {
+        AutoLocker al(mutex);
+        return findModuleUnlocked(name);
+    }
 
-   DLLLOCAL void addModuleDir(const char* dir) {
-      OptLocker al(mutex);
-      moduleDirList.push_back(dir);
-   }
+    DLLLOCAL void parseLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false);
+    DLLLOCAL int runTimeLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, QoreProgram* mpgm = 0, unsigned load_opt = QMLO_NONE);
 
-   DLLLOCAL void addModuleDirList(const char* strlist) {
-      OptLocker al(mutex);
-      moduleDirList.addDirList(strlist);
-   }
+    DLLLOCAL QoreHashNode* getModuleHash();
+    DLLLOCAL QoreListNode* getModuleList();
 
-   DLLLOCAL void addStandardModulePaths();
+    DLLLOCAL void addModuleDir(const char* dir) {
+        OptLocker al(mutex);
+        moduleDirList.push_back(dir);
+    }
 
-   DLLLOCAL void registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink& xsink);
+    DLLLOCAL void addModuleDirList(const char* strlist) {
+        OptLocker al(mutex);
+        moduleDirList.addDirList(strlist);
+    }
 
-   DLLLOCAL void trySetUserModuleDependency(const QoreAbstractModule* mi) {
-      if (!mi->isUser())
-         return;
+    DLLLOCAL void addStandardModulePaths();
 
-      const char* old_name = get_user_module_context_name();
-      if (old_name)
-         setUserModuleDependency(mi->getName(), old_name);
-      trySetUserModule(mi->getName());
-   }
+    DLLLOCAL void registerUserModuleFromSource(const char* name, const char* src, QoreProgram *pgm, ExceptionSink& xsink);
 
-   DLLLOCAL void trySetUserModule(const char* name) {
-      md_map_t::iterator i = md_map.find(name);
-      if (i == md_map.end()) {
-         umset.insert(name);
-         //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET SET: rmd_map: empty\n", name);
-      }
+    DLLLOCAL void trySetUserModuleDependency(const QoreAbstractModule* mi) {
+        if (!mi->isUser())
+            return;
+
+        const char* old_name = get_user_module_context_name();
+        if (old_name)
+            setUserModuleDependency(mi->getName(), old_name);
+        trySetUserModule(mi->getName());
+    }
+
+    DLLLOCAL void trySetUserModule(const char* name) {
+        md_map_t::iterator i = md_map.find(name);
+        if (i == md_map.end()) {
+            umset.insert(name);
+            //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET SET: rmd_map: empty\n", name);
+        }
 #ifdef DEBUG
-      /*
-      else {
-         QoreString str("[");
-         for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
-            str.sprintf("'%s',", (*si).c_str());
-         str.concat("]");
-         //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET NOT SET: md_map: %s\n", name, str.getBuffer());
-      }
-      */
+        /*
+        else {
+            QoreString str("[");
+            for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si)
+                str.sprintf("'%s',", (*si).c_str());
+            str.concat("]");
+            //printd(5, "QoreModuleManager::trySetUserModule('%s') UMSET NOT SET: md_map: %s\n", name, str.getBuffer());
+        }
+        */
 #endif
-   }
+    }
 
-   DLLLOCAL void setUserModuleDependency(const char* name, const char* dep) {
-      //printd(5, "QoreModuleManager::setUserModuleDependency('%s' -> '%s')\n", name, dep);
-      if (md_map.addDep(name, dep))
-         return;
-      rmd_map.addDep(dep, name);
+    DLLLOCAL void setUserModuleDependency(const char* name, const char* dep) {
+        //printd(5, "QoreModuleManager::setUserModuleDependency('%s' -> '%s')\n", name, dep);
+        if (md_map.addDep(name, dep))
+            return;
+        rmd_map.addDep(dep, name);
 
-      strset_t::iterator ui = umset.find(name);
-      if (ui != umset.end()) {
-         umset.erase(ui);
-         //printd(5, "QoreModuleManager::setUserModuleDependency('%s' -> '%s') REMOVED '%s' FROM UMMSET\n", name, dep, name);
-      }
-   }
+        strset_t::iterator ui = umset.find(name);
+        if (ui != umset.end()) {
+            umset.erase(ui);
+            //printd(5, "QoreModuleManager::setUserModuleDependency('%s' -> '%s') REMOVED '%s' FROM UMMSET\n", name, dep, name);
+        }
+    }
 
-   DLLLOCAL void removeUserModuleDependency(const char* name, const char* orig_name = 0) {
-      //printd(5, "QoreModuleManager::removeUserModuleDependency() name: '%s' orig: '%s'\n", name, orig_name ? orig_name : "n/a");
-      md_map_t::iterator i = rmd_map.find(name);
-      if (i == rmd_map.end() && orig_name)
-         i = rmd_map.find(orig_name);
-      if (i != rmd_map.end()) {
-         // remove dependents
-         for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si) {
-            md_map_t::iterator di = md_map.find(*si);
-            assert(di != md_map.end());
+    DLLLOCAL void removeUserModuleDependency(const char* name, const char* orig_name = 0) {
+        //printd(5, "QoreModuleManager::removeUserModuleDependency() name: '%s' orig: '%s'\n", name, orig_name ? orig_name : "n/a");
+        md_map_t::iterator i = rmd_map.find(name);
+        if (i == rmd_map.end() && orig_name)
+            i = rmd_map.find(orig_name);
+        if (i != rmd_map.end()) {
+            // remove dependents
+            for (strset_t::iterator si = i->second.begin(), se = i->second.end(); si != se; ++si) {
+                md_map_t::iterator di = md_map.find(*si);
+                assert(di != md_map.end());
 
-            strset_t::iterator dsi = di->second.find(i->first);
-            assert(dsi != di->second.end());
-            di->second.erase(dsi);
-            if (di->second.empty()) {
-               //printd(5, "QoreModuleManager::removeUserModuleDependency('%s') '%s' now empty, ADDING TO UMMSET: '%s'\n", name, i->first.c_str(), (*si).c_str());
-               //md_map.erase(di);
-               assert(umset.find(*si) == umset.end());
-               umset.insert(*si);
+                strset_t::iterator dsi = di->second.find(i->first);
+                assert(dsi != di->second.end());
+                di->second.erase(dsi);
+                if (di->second.empty()) {
+                    //printd(5, "QoreModuleManager::removeUserModuleDependency('%s') '%s' now empty, ADDING TO UMMSET: '%s'\n", name, i->first.c_str(), (*si).c_str());
+                    //md_map.erase(di);
+                    assert(umset.find(*si) == umset.end());
+                    umset.insert(*si);
+                }
             }
-         }
-         // remove from dep map
-         rmd_map.erase(i);
-      }
+            // remove from dep map
+            rmd_map.erase(i);
+        }
 
-      i = md_map.find(name);
-      if (i != md_map.end())
-         md_map.erase(i);
-      if (orig_name) {
-         i = md_map.find(orig_name);
-         if (i != md_map.end())
+        i = md_map.find(name);
+        if (i != md_map.end())
             md_map.erase(i);
-      }
-   }
+        if (orig_name) {
+            i = md_map.find(orig_name);
+            if (i != md_map.end())
+                md_map.erase(i);
+        }
+    }
 };
 
 DLLLOCAL extern QoreModuleManager QMM;
@@ -611,7 +614,7 @@ public:
         return dlptr;
     }
 
-    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation* loc, QoreString &cmd);
+    DLLLOCAL virtual void issueModuleCmd(const QoreProgramLocation* loc, const QoreString& cmd, ExceptionSink* xsink);
 };
 
 class QoreUserModule : public QoreAbstractModule {
@@ -648,8 +651,11 @@ public:
         return getHashIntern(with_filename);
     }
 
-    DLLLOCAL virtual void issueParseCmd(const QoreProgramLocation* loc, QoreString &cmd) {
-        parseException(*loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' is a user module; only builtin modules can support parse commands", name.getBuffer(), filename.getBuffer());
+    DLLLOCAL virtual void issueModuleCmd(const QoreProgramLocation* loc, const QoreString& cmd, ExceptionSink* xsink) {
+        if (xsink) {
+            xsink->raiseException(*loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' is a user module; only builtin modules can support parse commands",
+                name.c_str(), filename.c_str());
+        }
     }
 };
 
