@@ -4799,81 +4799,6 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         };
     }
 
-<<<<<<< HEAD
-=======
-    #! hash used for deserializing objects
-    public hashdecl SqlUtilDeserialization {
-        #! the class name
-        string className;
-        #! an optional module name
-        *string mod;
-        #! serialized member data
-        hash<auto> members;
-    }
-
-    #! private base class for serializable objects
-    public class Serializable {
-        #! for classes that inherit multiple Serializable classes
-        private constructor() {
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) {
-            if (h.mod) {
-                load_module(h.mod);
-            }
-
-            deserialize(h.members);
-        }
-
-        #! serializes the object's data to a hash
-        hash<SqlUtilDeserialization> serialize() {
-            return new hash<SqlUtilDeserialization>({
-                "members": (map {$1: serializeValue($1, self{$1})}, keys self, exists self{$1}),
-                "className": self.className(),
-            });
-        }
-
-        # used to deserialize data from a hash
-        private deserialize(hash<auto> members) {
-            map self{$1.key} = deserializeValue($1.key, $1.value), members.pairIterator();
-        }
-
-        # returns a serialized value or throws an exception if the value cannot be serialized
-        private auto serializeValue(string key, auto val) {
-            switch (val.typeCode()) {
-                case NT_OBJECT:
-                    return val.serialize();
-                case NT_HASH:
-                    return val ? map {$1.key: serializeValue($1.key, $1.value)}, val.pairIterator() : {};
-                case NT_LIST:
-                    return val ? map serializeValue(key, $1), val : ();
-                case NT_CLOSURE:
-                case NT_CALLREF:
-                    throw "SERIALIZATION-ERROR", sprintf("cannot serialize object of class %y with value of type %y in key %y", self.className(), val.type(), key);
-            }
-
-            return val;
-        }
-
-        # returns a deserialized value for the serialized representation
-        private auto deserializeValue(string key, auto val) {
-            switch (val.typeCode()) {
-                case NT_HASH:
-                    if (val.className && val.hasKey("members")) {
-                        return create_object(val.className, cast<hash<SqlUtilDeserialization>>(val));
-                    }
-                    return val ? map {$1.key: deserializeValue($1.key, $1.value)}, val.pairIterator() : {};
-
-                case NT_LIST:
-                    return val ? map deserializeValue(key, $1), val : ();
-            }
-
-            return val;
-        }
-    }
-
->>>>>>> origin/develop
     #! abstract container class that throws an exception if an unknown key is accessed
     public class AbstractHashContainer inherits Serializable {
         public {}
@@ -15045,23 +14970,6 @@ any res = t.selectRows(sh, \sql);
             m_customCopMap{name} = operator;
         }
 
-<<<<<<< HEAD
-=======
-        #! returns an AbstractTable object corresponding to the hash argument which must have been produced by a compatible version of an SqlUtil module using the @ref Serializable::serialize() method
-        /** @return an AbstractTable object corresponding to the hash argument which must have been produced by a compatible version of an SqlUtil module using the @ref Serializable::serialize() method
-
-            @see serialize()
-
-            @since SqlUtil 1.5
-        */
-        static AbstractTable deserialize(hash h) {
-            if (h.mod) {
-                load_module(h.mod);
-            }
-            return create_object(h.className, cast<hash<SqlUtilDeserialization>>(h));
-        }
-
->>>>>>> origin/develop
         #! returns the insert operator map for this object
         /** override in subclasses to return driver-specific options
         */
