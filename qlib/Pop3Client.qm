@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Pop3Client.qm POP3 client module definition
+#! @file Pop3Client.qm POP3 client module definition
 
 /*  Pop3Client.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 

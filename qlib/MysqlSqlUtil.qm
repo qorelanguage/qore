@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
+#! @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
 
 /*  MysqlSqlUtil.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 

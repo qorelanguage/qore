@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
+#! @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
 
 /*  OracleSqlUtil.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 
@@ -362,6 +362,7 @@ my list $l = $col.getModifySql($t, $newcol);
 
             @param t the AbstractTable object to modify
             @param col the new column definition
+            @param opt ignored
          */
         list getModifySqlImpl(AbstractTable t, AbstractColumn col, *hash opt) {
             list l = ();
@@ -999,7 +1000,7 @@ auto v = c.name;
                 ;
 
             #! oracle-specific schema description keys
-            /** This constant extends @ref SqlUtil::AbstractDatabase::SchemaDescriptionOptions as returned by @ref OracleSqlUtil::OracleTable::getSchemaDescriptionOptions with the following Oracle-specific keys:
+            /** This constant extends @ref SqlUtil::AbstractDatabase::SchemaDescriptionOptions as returned by @ref OracleSqlUtil::OracleDatabase::getSchemaDescriptionOptions with the following Oracle-specific keys:
                 - \c types: for Oracle type definitions
                 - \c type_map: to automatically renaming Oracle types during schema alignment
                 - \c packages: for Oracle package descriptions
@@ -1806,19 +1807,19 @@ auto v = c.name;
                 );
 
             #! Oracle-specific column options
-            /** this constant extends @ref SqlUtil::AbstractTable::ColumnOptions as returned by @ref OracleSqlUtil::OracleTable::getColumnOptions() with the following keys:
+            /** this constant extends @ref SqlUtil::AbstractTable::ColumnOptions as returned by \c OracleSqlUtil::OracleTable::getColumnOptions() with the following keys:
                 - \c character_semantics: adds "char" to the column type name for applicable character columns to use character semantics for the column
             */
             const OraColumnOptions = AbstractTable::ColumnOptions + OraColumnOpts;
 
             #! Oracle-specific column options
-            /** this constant extends @ref SqlUtil::AbstractTable::ColumnDescOptions as returned by @ref OracleSqlUtil::OracleTable::getColumnDescOptions() with the following keys:
+            /** this constant extends @ref SqlUtil::AbstractTable::ColumnDescOptions as returned by \c OracleSqlUtil::OracleTable::getColumnDescOptions() with the following keys:
                 - \c character_semantics: to specify that applicable character columns use character semantics in the column definition
             */
             const OraColumnDescOptions = AbstractTable::ColumnDescOptions + OraColumnOpts;
 
             #! Oracle-specific index options
-            /** this constant extends @ref SqlUtil::AbstractTable::IndexOptions as returned by @ref OracleSqlUtil::OracleTable::getIndexOptions() with the following keys:
+            /** this constant extends @ref SqlUtil::AbstractTable::IndexOptions as returned by \c OracleSqlUtil::OracleTable::getIndexOptions() with the following keys:
                 - \c compute_statistics: adds "compute statistics" to index creation strings
             */
             const OracleIndexOptions = AbstractTable::IndexOptions + (
@@ -1826,7 +1827,7 @@ auto v = c.name;
                 );
 
             #! Oracle-specific constraint options
-            /** this constant extends @ref OracleIndexOptions as returned by @ref OracleSqlUtil::OracleTable::getConstraintOptions() with the following keys:
+            /** this constant extends @ref OracleIndexOptions as returned by \c OracleSqlUtil::OracleTable::getConstraintOptions() with the following keys:
                 - \c index: adds "using index <indexname>" to the constraint creation string
             */
             const OracleConstraintOptions = OracleIndexOptions + (

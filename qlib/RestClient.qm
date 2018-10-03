@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file RestClient.qm Qore user module for calling REST services
+#! @file RestClient.qm Qore user module for calling REST services
 
 /*  RestClient.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
 

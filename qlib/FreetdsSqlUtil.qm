@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
+#! @file FreetdsSqlUtil.qm Qore user module for working with PostgreSQL SQL data
 
 /*  FreetdsSqlUtil.qm Copyright (C) 2015 - 2018 Qore Technologies, s.r.o.
 

@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file SqlUtil.qm Qore user module for working with SQL data
+#! @file SqlUtil.qm Qore user module for working with SQL data
 
 /*  SqlUtil.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
 
@@ -106,7 +106,7 @@ module SqlUtil {
     - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
     - deprecated @ref SqlUtil::AbstractTable::getRowIterator() "AbstractTable::getRowIterator()" for @ref SqlUtil::AbstractTable::getStatement() "AbstractTable::getStatement()" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
 
-    @subsection sqlutilv1_4_3 SqlUtil v1.4.4
+    @subsection sqlutilv1_4_4 SqlUtil v1.4.4
     - implemented the @ref SqlUtil::AbstractTable::getRowIteratorNoExec() "AbstractTable::getRowIteratorNoExec()" method (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
 
     @subsection sqlutilv1_4_3 SqlUtil v1.4.3
@@ -142,7 +142,7 @@ module SqlUtil {
     - implemented the @ref SqlUtil::cop_length() column function (<a href="https://github.com/qorelanguage/qore/issues/1395">issue 1395</a>)
 
     @subsection sqlutilv1_3 SqlUtil v1.3
-    - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
+    - implemented insert option support (see @ref SqlUtil::AbstractTable::InsertOptions "AbstractTable::InsertOptions") with the \c "returning" clause in supported drivers
     - implemented support for late table resolution in joins to support executing SQL from serialized parameters
     - improved error messages for common errors such as join errors
     - implemented support for DBA actions (see @ref dba_management)
@@ -238,7 +238,7 @@ module SqlUtil {
     @subsection find_single_row Retrieving a Single Row
 
     @par From the Primary Key
-    To retrieve a single row based on a single primary key value, use @ref SqlUtil::AbstractTable::find(any):
+    To retrieve a single row based on a single primary key value, use @ref SqlUtil::AbstractTable::find(auto):
     @code{.py}
 *hash row = table.find(id);
     @endcode
@@ -1676,6 +1676,7 @@ code error_callback = sub (int ac, string type, string name, *string table, *str
         ds.exec("begin execute immediate 'drop table %s'; exception when others then if sqlcode != 942 then raise; end if; end;", name);
     }
 };
+    @endcode
 
     @subsection info_callback SQL Info CallBack Closure or Call Ceference
 
@@ -1996,7 +1997,7 @@ public namespace SqlUtil {
         *hash opt;            #!< optional join options (for example, to specify a partition for the join if supported)
     }
 
-    /* @defgroup DBFeaturesConstants DB Features Constants
+    /** @defgroup DBFeaturesConstants DB Features Constants
         These constants can be used as a lookup values in AbstractDatabase::features() method.
     */
     #@{
@@ -4798,6 +4799,81 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         };
     }
 
+<<<<<<< HEAD
+=======
+    #! hash used for deserializing objects
+    public hashdecl SqlUtilDeserialization {
+        #! the class name
+        string className;
+        #! an optional module name
+        *string mod;
+        #! serialized member data
+        hash<auto> members;
+    }
+
+    #! private base class for serializable objects
+    public class Serializable {
+        #! for classes that inherit multiple Serializable classes
+        private constructor() {
+        }
+
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) {
+            if (h.mod) {
+                load_module(h.mod);
+            }
+
+            deserialize(h.members);
+        }
+
+        #! serializes the object's data to a hash
+        hash<SqlUtilDeserialization> serialize() {
+            return new hash<SqlUtilDeserialization>({
+                "members": (map {$1: serializeValue($1, self{$1})}, keys self, exists self{$1}),
+                "className": self.className(),
+            });
+        }
+
+        # used to deserialize data from a hash
+        private deserialize(hash<auto> members) {
+            map self{$1.key} = deserializeValue($1.key, $1.value), members.pairIterator();
+        }
+
+        # returns a serialized value or throws an exception if the value cannot be serialized
+        private auto serializeValue(string key, auto val) {
+            switch (val.typeCode()) {
+                case NT_OBJECT:
+                    return val.serialize();
+                case NT_HASH:
+                    return val ? map {$1.key: serializeValue($1.key, $1.value)}, val.pairIterator() : {};
+                case NT_LIST:
+                    return val ? map serializeValue(key, $1), val : ();
+                case NT_CLOSURE:
+                case NT_CALLREF:
+                    throw "SERIALIZATION-ERROR", sprintf("cannot serialize object of class %y with value of type %y in key %y", self.className(), val.type(), key);
+            }
+
+            return val;
+        }
+
+        # returns a deserialized value for the serialized representation
+        private auto deserializeValue(string key, auto val) {
+            switch (val.typeCode()) {
+                case NT_HASH:
+                    if (val.className && val.hasKey("members")) {
+                        return create_object(val.className, cast<hash<SqlUtilDeserialization>>(val));
+                    }
+                    return val ? map {$1.key: deserializeValue($1.key, $1.value)}, val.pairIterator() : {};
+
+                case NT_LIST:
+                    return val ? map deserializeValue(key, $1), val : ();
+            }
+
+            return val;
+        }
+    }
+
+>>>>>>> origin/develop
     #! abstract container class that throws an exception if an unknown key is accessed
     public class AbstractHashContainer inherits Serializable {
         public {}
@@ -8672,8 +8748,8 @@ Table table("pgsql:user/pass@db%host", "table");
             #! generic SQL insert options
             /** In addition to any @ref SqlDataCallbackOptions, the following keys can be set for this option:
                 - \c returning: a list having elements of one of the two following types:
-                  - @ref type_string "string": column names to return the value inserted
-                  - @ref type_hash "hash": a hash having the following keys:
+                  - @ref string_type "string": column names to return the value inserted
+                  - @ref hash_type "hash": a hash having the following keys:
                     - \c "key": (required) the column name to return
                     - \c "type": (optional) the data type for the output placeholder buffer (ex: @ref Qore::Type::Number "Type::Number")
 
@@ -11235,8 +11311,6 @@ table.insertCommit(row);
             @endcode
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
-            @param sql an optional reference to a string to return the SQL generated for the insert statement
-            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
 
             @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
@@ -11250,6 +11324,10 @@ table.insertCommit(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insertCommit() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
+         */
         *hash insertCommit(hash row, reference<string> sql) {
             on_success ds.commit();
             on_error ds.rollback();
@@ -11258,6 +11336,10 @@ table.insertCommit(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insertCommit() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+         */
         *hash insertCommit(hash row, hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
@@ -11266,6 +11348,11 @@ table.insertCommit(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insertCommit() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+         */
         *hash insertCommit(hash row, reference<string> sql, hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
@@ -11281,8 +11368,6 @@ table.insert(row);
             @endcode
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
-            @param sql an optional reference to a string to return the SQL generated for the insert statement
-            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
 
             @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
@@ -11293,16 +11378,29 @@ table.insert(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insert() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
+         */
         *hash insert(hash row, reference<string> sql) {
             return insertIntern(row, \sql);
         }
 
         #! @ref SqlUtil::AbstractTable::insert() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+         */
         *hash insert(hash row, hash opt) {
             return insertIntern(row, NOTHING, opt);
         }
 
         #! @ref SqlUtil::AbstractTable::insert() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+         */
         *hash insert(hash row, reference<string> sql, hash opt) {
             return insertIntern(row, \sql, opt);
         }
@@ -14947,6 +15045,23 @@ any res = t.selectRows(sh, \sql);
             m_customCopMap{name} = operator;
         }
 
+<<<<<<< HEAD
+=======
+        #! returns an AbstractTable object corresponding to the hash argument which must have been produced by a compatible version of an SqlUtil module using the @ref Serializable::serialize() method
+        /** @return an AbstractTable object corresponding to the hash argument which must have been produced by a compatible version of an SqlUtil module using the @ref Serializable::serialize() method
+
+            @see serialize()
+
+            @since SqlUtil 1.5
+        */
+        static AbstractTable deserialize(hash h) {
+            if (h.mod) {
+                load_module(h.mod);
+            }
+            return create_object(h.className, cast<hash<SqlUtilDeserialization>>(h));
+        }
+
+>>>>>>> origin/develop
         #! returns the insert operator map for this object
         /** override in subclasses to return driver-specific options
         */

@@ -112,7 +112,7 @@ public:
 
     //! adds a hashdecl to a namespace
     /**
-        @param hd the hashdecl to add to the namespace
+        @param hashdecl the hashdecl to add to the namespace
 
         @since %Qore 0.8.13
     */

@@ -507,7 +507,7 @@ public:
 
         @return the object created
     */
-    DLLEXPORT QoreObject* execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *arsg, ExceptionSink* xsink) const;
+    DLLEXPORT QoreObject* execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *args, ExceptionSink* xsink) const;
 
     //! creates a new "system" object for use as the value of a constant, executes the system constructor on it and returns the new object
     /** if a Qore-language exception occurs, 0 is returned
