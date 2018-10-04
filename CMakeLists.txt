@@ -59,6 +59,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/include/qore )
 include(CheckIncludeFiles)
 include(GNUInstallDirs)
 
+# issue #2994: ensure that the arch-specific libdir is used on Debian/Ubuntu
+check_libdir_arch()
+
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${CMAKE_INSTALL_PREFIX})
 set(myprefix ${CMAKE_INSTALL_PREFIX})
@@ -431,6 +434,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreStandardException.cpp
     lib/QoreClass.cpp
     lib/TypedHashDecl.cpp
+    lib/QoreReflection.cpp
     lib/Context.cpp
     lib/FindNode.cpp
     lib/charset.cpp
@@ -760,6 +764,8 @@ add_dependencies(install-docs docs)
 
 # astparser module
 add_subdirectory(modules/astparser)
+# reflection module
+add_subdirectory(modules/reflection)
 
 # HACK: we need to simulate QORE_USER_MODULES_DIR as the versioned one
 #       for qore core qlib modules.
@@ -788,51 +794,49 @@ qore_user_module("qlib/CsvUtil.qm" "Util")
 qore_user_module("qlib/Diff.qm" "Util")
 qore_user_module("qlib/FilePoller.qm" "Util")
 qore_user_module("qlib/FixedLengthUtil.qm" "Util")
+qore_user_module("qlib/Logger.qm" "Util")
 qore_user_module("qlib/Mime.qm" "Util")
 qore_user_module("qlib/QUnit.qm" "Util")
 qore_user_module("qlib/SqlUtil.qm" "Util")
 qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
-qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil")
+qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/DebugProgramControl.qm" "DebugUtil")
+qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
 qore_user_module("qlib/MailMessage.qm" "Mime")
+qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")
+qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
+qore_user_module("qlib/TableMapper.qm" "Mapper;SqlUtil")
+qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
 qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil")
 
 # base 4 modules
+qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil;DebugProgramControl")
+qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
+qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")
 qore_user_module("qlib/RestSchemaValidator.qm" "HttpServerUtil")
-qore_user_module("qlib/DebugLinenoiseCmdLine.qm" "DebugUtil;DebugCmdLine")
+qore_user_module("qlib/SchemaReverse.qm" "Qorize;Schema;SqlUtil;Util")
+qore_user_module("qlib/SewioWebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil;WebSocketClient")
+qore_user_module("qlib/SmtpClient.qm" "ConnectionProvider;MailMessage;Mime")
+qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
+qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
 
 # base 5 modules
+qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServer;HttpServerUtil;WebSocketHandler;WebSocketUtil")
+qore_user_module("qlib/DebugLinenoiseCmdLine.qm" "DebugUtil;DebugCmdLine")
+qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;HttpServer;Mime;Util;RestSchemaValidator")
 qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator")
 
 # base 6 modules
 qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator;Swagger")
 
 # base 7 modules
-qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
-qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
-qore_user_module("qlib/Logger.qm" "Logger")
-qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
-qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
-qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")
-qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil")
-qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")
-qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util;RestSchemaValidator")
 qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/SewioRestClient.qm" "ConnectionProvider;Mime;RestClient")
-qore_user_module("qlib/SewioWebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil;WebSocketClient")
-qore_user_module("qlib/SchemaReverse.qm" "Qorize;Schema;SqlUtil;Util")
-qore_user_module("qlib/SmtpClient.qm" "ConnectionProvider;MailMessage;Mime")
-qore_user_module("qlib/TableMapper.qm" "Mapper;SqlUtil")
-qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
-qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
-qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
-
-# base 7 modules
-qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServerUtil;WebSocketHandler;WebSocketUtil")
 
 # print info
 message(STATUS "")

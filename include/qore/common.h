@@ -91,9 +91,10 @@ enum qore_license_t {
 
 // class access values
 enum ClassAccess : unsigned char {
-    Public = 0,   // publicly accessible
-    Private = 1,  // accessible only in the class hierarchy (like c++'s 'protected')
-    Internal = 2  // accessible only in the class itself
+    Public = 0,        // publicly accessible
+    Private = 1,       // accessible only in the class hierarchy (like c++'s 'protected')
+    Internal = 2,      // accessible only in the class itself
+    Inaccessible = 3,  // not accessible from the class (status used only internally)
 };
 
 #if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
@@ -147,8 +148,20 @@ class AbstractPrivateData;
 class QoreMethod;
 class QoreBuiltinMethod;
 class QoreClass;
+class TypedHashDecl;
+class QoreExternalFunction;
+class QoreExternalGlobalVar;
+class QoreExternalConstant;
+class QoreNamespace;
+
 struct QoreValue;
-typedef QoreListNode QoreListNode;
+
+typedef std::vector<const QoreClass*> class_vec_t;
+typedef std::vector<std::pair<const TypedHashDecl*, const QoreNamespace*>> hashdecl_vec_t;
+typedef std::vector<const QoreExternalFunction*> func_vec_t;
+typedef std::vector<const QoreNamespace*> ns_vec_t;
+typedef std::vector<std::pair<const QoreExternalGlobalVar*, const QoreNamespace*>> gvar_vec_t;
+typedef std::vector<std::pair<const QoreExternalConstant*, const QoreNamespace*>> const_vec_t;
 
 //! functor template for calling free() on pointers
 template <typename T> struct free_ptr : std::unary_function <T*, void> {
@@ -379,6 +392,12 @@ typedef bool (*q_delete_blocker_t)(QoreObject* self, AbstractPrivateData* privat
  */
 typedef unsigned q_trid_t;
 
+//! returns an integer value for a string
 DLLEXPORT long long q_atoll(const char* str);
+
+//! returns the type name for an opaqua QoreTypeInfo ptr
+/** @since %Qore 0.9
+*/
+DLLEXPORT const char* type_get_name(const QoreTypeInfo* t);
 
 #endif // _QORE_COMMON_H

@@ -43,7 +43,7 @@
 #define DBI_CAP_LOB_SUPPORT              (1 << 4)  //!< supports large objects in binding and retrieving
 #define DBI_CAP_BIND_BY_VALUE            (1 << 5)  //!< supports bind by value
 #define DBI_CAP_BIND_BY_PLACEHOLDER      (1 << 6)  //!< supports or requires placeholder buffer specifications for output variables
-#define DBI_CAP_HAS_EXECRAW              (1 << 7)  //!< provides the Datasource*::execRaw() method (set automatically by the Qore library)
+#define DBI_CAP_HAS_EXECRAW              (1 << 7)  //!< provides the Datasource::execRaw() method (set automatically by the Qore library)
 #define DBI_CAP_HAS_STATEMENT            (1 << 8)  //!< supports the SQLStatement class (set automatically by the Qore library)
 #define DBI_CAP_HAS_SELECT_ROW           (1 << 9)  //!< provides a native selectRow() method (set automatically by the Qore library)
 #define DBI_CAP_HAS_NUMBER_SUPPORT       (1 << 10) //!< supports arbitrary-precision numeric support for binding and retrieving values; if this is not true then any QoreNumberNode bind arguments will be converted to floats before binding

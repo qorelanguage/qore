@@ -1192,7 +1192,7 @@ public namespace DebugCmdLine {
         # to implement print to terminal
         abstract public printfImpl(string fmt);
 
-        #! To be implemented to execute remote (via websocket) or local command (via @ref DebugProgramControl)
+        #! To be implemented to execute remote (via websocket) or local command (via @ref DebugProgramControl::DebugProgramControl "DebugProgramControl")
         abstract public *hash doCommandImpl(hash data);
 
         public *hash doCommand(hash data, bool print) {

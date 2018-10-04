@@ -150,39 +150,43 @@ public:
 };
 
 class QoreModuleContext {
-protected:
-   const char* name;
-   qore_root_ns_private* rns;
-   QoreStringNode* err = nullptr;
-   ExceptionSink& xsink;
-
 public:
-   ModuleContextNamespaceList mcnl;
-   ModuleContextFunctionList mcfl;
+    ModuleContextNamespaceList mcnl;
+    ModuleContextFunctionList mcfl;
 
-   DLLLOCAL QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs) : name(n), rns(n_rns), xsink(xs) {
-   }
+    DLLLOCAL QoreModuleContext(const char* n, qore_root_ns_private* n_rns, ExceptionSink& xs) : name(n), rns(n_rns), xsink(xs) {
+    }
 
-   DLLLOCAL ~QoreModuleContext() {
-      assert(!err);
-   }
+    DLLLOCAL ~QoreModuleContext() {
+        assert(!err);
+    }
 
-   DLLLOCAL void error(const char* fmt, ...);
+    DLLLOCAL void error(const char* fmt, ...);
 
-   DLLLOCAL bool hasError() const {
-      return xsink;
-   }
+    DLLLOCAL bool hasError() const {
+        return xsink;
+    }
 
-   DLLLOCAL void commit();
+    DLLLOCAL void commit();
 
-   DLLLOCAL void rollback() {
-      mcnl.clear();
-      mcfl.clear();
-   }
+    DLLLOCAL void rollback() {
+        mcnl.clear();
+        mcfl.clear();
+    }
 
-   DLLLOCAL qore_root_ns_private* getRootNS() {
-      return rns;
-   }
+    DLLLOCAL qore_root_ns_private* getRootNS() const {
+        return rns;
+    }
+
+    DLLLOCAL const char* getName() const {
+        return name;
+    }
+
+protected:
+    const char* name;
+    qore_root_ns_private* rns;
+    QoreStringNode* err = nullptr;
+    ExceptionSink& xsink;
 };
 
 class QoreModuleDefContext {
@@ -295,6 +299,7 @@ DLLLOCAL QoreModuleDefContext* get_module_def_context();
 DLLLOCAL void parse_set_module_def_context_name(const char* name);
 DLLLOCAL const char* set_user_module_context_name(const char* n);
 DLLLOCAL const char* get_user_module_context_name();
+DLLLOCAL const char* get_module_context_name();
 
 DLLLOCAL void parse_set_try_reexport(bool tr);
 DLLLOCAL bool parse_get_try_reexport();
@@ -625,29 +630,30 @@ public:
 struct ThreadLocalProgramData;
 
 class QoreProgramBlockParseOptionHelper {
-protected:
-   int64 po;
-
 public:
-   DLLLOCAL QoreProgramBlockParseOptionHelper(int64 n_po);
-   DLLLOCAL ~QoreProgramBlockParseOptionHelper();
+    DLLLOCAL QoreProgramBlockParseOptionHelper(int64 n_po);
+    DLLLOCAL ~QoreProgramBlockParseOptionHelper();
+
+protected:
+    int64 po;
 };
 
 class ProgramThreadCountContextHelper {
 public:
-   DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
-   DLLLOCAL ~ProgramThreadCountContextHelper();
-   static ThreadLocalProgramData* getContextFrame(int& frame, ExceptionSink* xsink);
-   bool isFirstThreadLocalProgramData(const ThreadLocalProgramData* tlpd) const;
+    DLLLOCAL ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime);
+    DLLLOCAL ~ProgramThreadCountContextHelper();
+    static ThreadLocalProgramData* getContextFrame(int& frame, ExceptionSink* xsink);
+    bool isFirstThreadLocalProgramData(const ThreadLocalProgramData* tlpd) const;
+
 protected:
-   QoreProgram* old_pgm = nullptr;
-   ThreadLocalProgramData* old_tlpd = nullptr;
-   ProgramThreadCountContextHelper* old_ctx = nullptr;
-   // frame count of tlpd when context is started
-   int save_frameCount = 0;
-   int old_frameCount;
-   bool restore = false;
-   bool init_tlpd = false;
+    QoreProgram* old_pgm = nullptr;
+    ThreadLocalProgramData* old_tlpd = nullptr;
+    ProgramThreadCountContextHelper* old_ctx = nullptr;
+    // frame count of tlpd when context is started
+    int save_frameCount = 0;
+    int old_frameCount;
+    bool restore = false;
+    bool init_tlpd = false;
 };
 
 class ProgramRuntimeParseContextHelper {

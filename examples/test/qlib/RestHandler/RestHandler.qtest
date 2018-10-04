@@ -35,6 +35,10 @@ class TestRestClass inherits AbstractRestClass {
         return "test";
     }
 
+    hash getAction(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, exists ah.action);
+    }
+
     hash getEcho(hash cx, *hash ah) {
         return RestHandler::makeResponse(200, cx.body);
     }
@@ -68,6 +72,14 @@ class B2893RestClass inherits AbstractRestClass {
 class MyRestHandler inherits RestHandler {
     constructor() {
         addClass(new TestRestClass());
+    }
+
+    hash putEcho(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, cx.body);
+    }
+
+    hash getAction(hash cx, *hash ah) {
+        return RestHandler::makeResponse(200, exists ah.action);
     }
 }
 
@@ -280,6 +292,30 @@ public class RestHandlerTest inherits QUnit::Test {
         assertEq(HashValue, val);
         val = mHandler.handleExternalRequest("PUT", "test?action=echo", HashValue);
         assertEq(HashValue, val);
+        val = mHandler.handleExternalRequest("GET", "test?action=action");
+        assertEq(False, val);
+
+        # issue #2994: test URI path access to actions
+        val = mHandler.handleExternalRequest("GET", "test/echo", LargerHashValue);
+        assertEq(LargerHashValue, val);
+        val = mHandler.handleExternalRequest("PUT", "test/echo", LargerHashValue);
+        assertEq(LargerHashValue, val);
+        val = mHandler.handleExternalRequest("GET", "test/echo", HashValue);
+        assertEq(HashValue, val);
+        val = mHandler.handleExternalRequest("PUT", "test/echo", HashValue);
+        assertEq(HashValue, val);
+        val = mHandler.handleExternalRequest("GET", "test/action");
+        assertEq(False, val);
+
+        # issue #2994: tests on the root
+        val = mHandler.handleExternalRequest("GET", "?action=action");
+        assertEq(False, val);
+
+        val = mHandler.handleExternalRequest("GET", "action");
+        assertEq(False, val);
+
+        # invalid subclass
+        assertThrows("REST-CLASS-ERROR", "action.*test", \mHandler.handleExternalRequest(), ("GET", "invalid"));
     }
 
     serializationTest() {

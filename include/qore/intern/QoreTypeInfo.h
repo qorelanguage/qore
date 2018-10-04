@@ -69,7 +69,6 @@ DLLLOCAL const QoreTypeInfo* getTypeInfoForType(qore_type_t t);
 DLLLOCAL const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n);
 // returns an "or nothing" type for the given non-or-nothing type or nullptr if not possible
 DLLLOCAL const QoreTypeInfo* get_or_nothing_type(const QoreTypeInfo* typeInfo);
-DLLLOCAL const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo);
 
 class QoreTypeSpec {
 public:
@@ -654,9 +653,14 @@ public:
 
     // check for a common type
     DLLLOCAL static bool matchCommonType(const QoreTypeInfo*& ctype, const QoreTypeInfo* ntype) {
-        assert(ctype && ctype != anyTypeInfo);
-        if (ctype == ntype)
+        // issue #3005: if the first element had no type, then there is no common type
+        if (!ctype || ctype == anyTypeInfo) {
+            ctype = nullptr;
+            return false;
+        }
+        if (ctype == ntype) {
             return true;
+        }
         if (!QoreTypeInfo::hasType(ntype)) {
             // issue #2791: when performing type folding, do not set to type "any" but rather use "auto"
             ctype = ntype == anyTypeInfo ? nullptr : ntype;
@@ -1262,166 +1266,186 @@ protected:
 
 class QoreHashDeclTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreHashDeclTypeInfo(const TypedHashDecl* hd, const char* name) : QoreTypeInfo(q_accept_vec_t {{hd, nullptr, true}}, q_return_vec_t {{hd, true}}) {
-       tname.sprintf("hash<%s>", name);
-   }
+    DLLLOCAL QoreHashDeclTypeInfo(const TypedHashDecl* hd, const char* name) : QoreTypeInfo(q_accept_vec_t {{hd, nullptr, true}}, q_return_vec_t {{hd, true}}) {
+        tname.sprintf("hash<%s>", name);
+    }
 
 protected:
-   DLLLOCAL QoreHashDeclTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreHashDeclTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    }
 
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-      str.concat(&tname);
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.concat(&tname);
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-      return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
 
-   DLLLOCAL virtual bool hasDefaultValueImpl() const {
-      return true;
-   }
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
 
-   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const;
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const;
 };
 
 class QoreHashDeclOrNothingTypeInfo : public QoreHashDeclTypeInfo {
 public:
-   DLLLOCAL QoreHashDeclOrNothingTypeInfo(const TypedHashDecl* hd, const char* name) : QoreHashDeclTypeInfo(q_accept_vec_t {
-         {hd, nullptr},
-         {NT_NOTHING, nullptr},
-         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-      }, q_return_vec_t {{hd}, {NT_NOTHING}}) {
-       tname.sprintf("*hash<%s>", name);
-   }
+    DLLLOCAL QoreHashDeclOrNothingTypeInfo(const TypedHashDecl* hd, const char* name) : QoreHashDeclTypeInfo(q_accept_vec_t {
+            {hd, nullptr},
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+        }, q_return_vec_t {{hd}, {NT_NOTHING}}) {
+        tname.sprintf("*hash<%s>", name);
+    }
 
 protected:
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-       str.sprintf("hash<%s> or no value (NOTHING)", accept_vec[0].spec.getHashDecl()->getName());
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.sprintf("hash<%s> or no value (NOTHING)", accept_vec[0].spec.getHashDecl()->getName());
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-       return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return QoreValue();
+    }
 };
 
 class QoreComplexHashTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreComplexHashTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexHashTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexHashTypeSpec(vti), true}}) {
-       if (vti == autoTypeInfo) {
-           tname = "hash<auto>";
-       }
-       else {
-           tname.sprintf("hash<string, %s>", QoreTypeInfo::getName(vti));
-       }
-   }
+    DLLLOCAL QoreComplexHashTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexHashTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexHashTypeSpec(vti), true}}) {
+        if (vti == autoTypeInfo) {
+            tname = "hash<auto>";
+        }
+        else {
+            tname.sprintf("hash<string, %s>", QoreTypeInfo::getName(vti));
+        }
+    }
 
 protected:
-   DLLLOCAL QoreComplexHashTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreComplexHashTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    }
 
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-       str.concat(&tname);
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.concat(&tname);
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-       return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
 
-   DLLLOCAL virtual bool hasDefaultValueImpl() const {
-      return true;
-   }
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
 
-   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
-      return new QoreHashNode(accept_vec[0].spec.getComplexHash());
-   }
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return new QoreHashNode(accept_vec[0].spec.getComplexHash());
+    }
 };
 
 class QoreComplexHashOrNothingTypeInfo : public QoreComplexHashTypeInfo {
 public:
-   DLLLOCAL QoreComplexHashOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexHashTypeInfo(q_accept_vec_t {
-         {QoreComplexHashTypeSpec(vti), nullptr, true},
-         {NT_NOTHING, nullptr},
-         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-         }, q_return_vec_t {{QoreComplexHashTypeSpec(vti)}, {NT_NOTHING}}) {
-       tname.sprintf("*hash<string, %s>", QoreTypeInfo::getName(vti));
-   }
+    DLLLOCAL QoreComplexHashOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexHashTypeInfo(q_accept_vec_t {
+            {QoreComplexHashTypeSpec(vti), nullptr, true},
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+            }, q_return_vec_t {{QoreComplexHashTypeSpec(vti)}, {NT_NOTHING}}) {
+        tname.sprintf("*hash<string, %s>", QoreTypeInfo::getName(vti));
+    }
 
 protected:
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-       str.sprintf("hash<string, %s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexHash()));
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.sprintf("hash<string, %s> or no value (NOTHING)", QoreTypeInfo::getName(accept_vec[0].spec.getComplexHash()));
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-       return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return QoreValue();
+    }
 };
 
 class QoreComplexListTypeInfo : public QoreTypeInfo {
 public:
-   DLLLOCAL QoreComplexListTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexListTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}) {
-       assert(vti);
-       tname.sprintf("list<%s>", QoreTypeInfo::getName(vti));
-   }
+    DLLLOCAL QoreComplexListTypeInfo(const QoreTypeInfo* vti) : QoreTypeInfo(q_accept_vec_t {{QoreComplexListTypeSpec(vti), nullptr, true}}, q_return_vec_t {{QoreComplexListTypeSpec(vti), true}}) {
+        assert(vti);
+        tname.sprintf("list<%s>", QoreTypeInfo::getName(vti));
+    }
 
 protected:
-   DLLLOCAL QoreComplexListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreComplexListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    }
 
-   DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
-       str.concat(&tname);
-   }
+    DLLLOCAL virtual void getThisTypeImpl(QoreString& str) const {
+        str.concat(&tname);
+    }
 
-   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
-   DLLLOCAL virtual bool canConvertToScalarImpl() const {
-       return false;
-   }
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return false;
+    }
 
-   DLLLOCAL virtual bool hasDefaultValueImpl() const {
-      return true;
-   }
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
 
-   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
-      return new QoreListNode(accept_vec[0].spec.getComplexList());
-   }
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return new QoreListNode(accept_vec[0].spec.getComplexList());
+    }
 };
 
 class QoreComplexListOrNothingTypeInfo : public QoreComplexListTypeInfo {
 public:
-   DLLLOCAL QoreComplexListOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexListTypeInfo(q_accept_vec_t {
-         {QoreComplexListTypeSpec(vti), nullptr},
-         {NT_NOTHING, nullptr},
-         {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
-         }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}}) {
-       assert(vti);
-       tname.sprintf("*list<%s>", QoreTypeInfo::getName(vti));
-   }
+    DLLLOCAL QoreComplexListOrNothingTypeInfo(const QoreTypeInfo* vti) : QoreComplexListTypeInfo(q_accept_vec_t {
+            {QoreComplexListTypeSpec(vti), nullptr},
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+            }, q_return_vec_t {{QoreComplexListTypeSpec(vti)}, {NT_NOTHING}}) {
+        assert(vti);
+        tname.sprintf("*list<%s>", QoreTypeInfo::getName(vti));
+    }
 
 protected:
-   DLLLOCAL QoreComplexListOrNothingTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreComplexListOrNothingTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    }
 
-   DLLLOCAL virtual bool hasDefaultValueImpl() const {
-      return false;
-   }
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return QoreValue();
+    }
 };
 
 class QoreComplexSoftListTypeInfo : public QoreComplexListTypeInfo {
 public:
-   DLLLOCAL QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti);
+    DLLLOCAL QoreComplexSoftListTypeInfo(const QoreTypeInfo* vti);
 
 protected:
-   DLLLOCAL QoreComplexSoftListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec)) {
-   }
+    DLLLOCAL QoreComplexSoftListTypeInfo(const q_accept_vec_t&& a_vec, const q_return_vec_t&& r_vec) : QoreComplexListTypeInfo(std::move(a_vec), std::move(r_vec)) {
+    }
 };
 
 class QoreComplexSoftListOrNothingTypeInfo : public QoreComplexListOrNothingTypeInfo {
 public:
-   DLLLOCAL QoreComplexSoftListOrNothingTypeInfo(const QoreTypeInfo* vti);
+    DLLLOCAL QoreComplexSoftListOrNothingTypeInfo(const QoreTypeInfo* vti);
 };
 
 class QoreComplexReferenceTypeInfo : public QoreTypeInfo {

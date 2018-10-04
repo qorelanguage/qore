@@ -102,7 +102,7 @@ void QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int
                 m->parseSetClassAndMethod(qc, meth);
 
                 // check parameters, if any
-                lvids += m->parseArgs(oflag, pflag, meth->getFunction(), nullptr, returnTypeInfo);
+                lvids += m->parseArgs(oflag, pflag, qore_method_private::get(*meth)->getFunction(), nullptr, returnTypeInfo);
                 expTypeInfo = returnTypeInfo;
 
                 return;
@@ -171,7 +171,7 @@ void QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int
     m->parseSetClassAndMethod(qc, meth);
 
     // check parameters, if any
-    lvids += m->parseArgs(oflag, pflag, meth->getFunction(), nullptr ,returnTypeInfo);
+    lvids += m->parseArgs(oflag, pflag, qore_method_private::get(*meth)->getFunction(), nullptr ,returnTypeInfo);
     expTypeInfo = returnTypeInfo;
 
     printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method=%p (%s::%s()) (private=%s, static=%s) rv=%s\n", qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", mname, meth && (qore_method_private::getAccess(*meth) > Public) ? "true" : "false", meth->isStatic() ? "true" : "false", QoreTypeInfo::getName(returnTypeInfo));

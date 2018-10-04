@@ -1,0 +1,218 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractClassMember.cpp AbstractClassMember class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_reflection.h"
+#include "QC_AbstractClassMember.h"
+#include "QC_AbstractClass.h"
+
+//! This class provides information about %Qore class members
+/** @since %Qore 0.9.0
+ */
+qclass AbstractClassMember [ns=Qore::Reflection; arg=QoreReflectionClassMember* m; vparent=AbstractMember; dom=REFLECTION];
+
+//! Throws an exception; this class cannot be created directly or used in a user class hierarchy
+/** @throw ABSTRACTCLASSMEMBER-CONSTRUCTOR-ERROR the AbstractClassMember class cannot be constructed directly or inherited directly by a user-defined class
+ */
+AbstractClassMember::constructor() {
+    xsink->raiseException("ABSTRACTCLASSMEMBER-CONSTRUCTOR-ERROR", "this class cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! returns a bitfield of @ref modifier_constants "modifiers" describing the member
+/** @par Example:
+    @code{.py}
+int i = mem.getModifiers();
+    @endcode
+
+    @return a bitfield of @ref modifier_constants "modifiers" describing the member; possible values are:
+    - @ref Qore::Reflection::MC_PRIVATE "MC_PRIVATE": gives the accessibility of the member
+    - @ref Qore::Reflection::MC_PRIVATEINTERNAL "MC_PRIVATEINTERNAL": gives the accessibility of the member
+    - @ref Qore::Reflection::MC_PUBLIC "MC_PUBLIC": gives the accessibility of the member
+    - @ref Qore::Reflection::MC_STATIC "MC_STATIC": the member is static
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see
+    - @ref getModifierList()
+    - @ref getAccessModifierString()
+*/
+int AbstractClassMember::getModifiers() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    int64 rc = 0;
+    if (m->is_static) {
+        rc |= MC_STATIC;
+    }
+
+    rc |= get_access(m->getAccess());
+
+    return rc;
+}
+
+//! returns a list of strings of modifiers describing the member
+/** @par Example:
+    @code{.py}
+list<string> l = m.getModifierList();
+    @endcode
+
+    @return list of strings of modifiers describing the member; possible values are:
+    - \c "private": gives the accessibility of the member
+    - \c "private:internal": gives the accessibility of the member
+    - \c "public": gives the accessibility of the member
+    - \c "static": the member is static
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see @ref getModifiers()
+*/
+list<string> AbstractClassMember::getModifierList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+    if (m->is_static) {
+        rv->push(new QoreStringNode("static"), xsink);
+    }
+
+    rv->push(new QoreStringNode(m->getAccessString()), xsink);
+
+    return rv.release();
+}
+
+//! returns a string for the access modifier for the member
+/** @par Example:
+    @code{.py}
+string str = m.getAccessModifierString();
+    @endcode
+
+    @return a string for the access modifier for the member; possible values are:
+    - \c "private": gives the accessibility of the member
+    - \c "private:internal": gives the accessibility of the member
+    - \c "public": gives the accessibility of the member
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see
+    - @ref getModifierList()
+    - @ref getModifiers()
+*/
+string AbstractClassMember::getAccessModifierString() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return new QoreStringNode(m->getAccessString());
+}
+
+//! returns @ref True if the class defining the member is a builtin class
+/** @par Example:
+    @code{.py}
+bool b = m.isBuiltin();
+    @endcode
+
+    @return @ref True if the class defining the member is a builtin class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClassMember::isBuiltin() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return m->cls->isSystem();
+}
+
+//! returns @ref True if the class defining the member is a user class
+/** @par Example:
+    @code{.py}
+bool b = m.isUser();
+    @endcode
+
+    @return @ref True if the class defining the member is a user class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClassMember::isUser() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return !m->cls->isSystem();
+}
+
+//! returns @ref True if the member is static
+/** @par Example:
+    @code{.py}
+bool b = m.isStatic();
+    @endcode
+
+    @return @ref True if the member is static
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClassMember::isStatic() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return m->is_static;
+}
+
+//! Returns the class for the member
+/** @par Example:
+    @code{.py}
+AbstractClass cls = m.getClass();
+    @endcode
+
+    @return the class for the member
+ */
+AbstractClass AbstractClassMember::getClass() [flags=CONSTANT] {
+    return get_class_object(m->pgm, m->cls);
+}

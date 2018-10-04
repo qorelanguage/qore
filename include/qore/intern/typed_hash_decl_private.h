@@ -55,11 +55,20 @@ public:
 typedef QoreMemberMapBase<HashDeclMemberInfo> HashDeclMemberMap;
 
 class typed_hash_decl_private {
+friend class typed_hash_decl_member_iterator;
+friend class TypedHashDecl;
 public:
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc), orig(this) {
+        const char* mod_name = get_module_context_name();
+        if (mod_name) {
+            from_module = mod_name;
+        }
     }
 
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, TypedHashDecl* thd) : loc(loc), name(n), thd(thd), typeInfo(new QoreHashDeclTypeInfo(thd, n)), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, TypedHashDecl* thd) :
+        loc(loc), name(n), thd(thd), orig(this),
+        typeInfo(new QoreHashDeclTypeInfo(thd, n)),
+        orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
     }
 
     DLLLOCAL typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd);
@@ -83,13 +92,15 @@ public:
         if (name != other.name || members.size() != other.members.size())
             return false;
 
-        for (HashDeclMemberMap::DeclOrderIterator ti = members.beginDeclOrder(), oi = other.members.beginDeclOrder(), te = members.endDeclOrder(); ti != te; ++ti, ++oi) {
+        for (HashDeclMemberMap::const_iterator ti = members.member_list.begin(), oi = other.members.member_list.begin(), te = members.member_list.end(); ti != te; ++ti, ++oi) {
             // if the member's name is different, return false
-            if (strcmp(oi->first, ti->first))
+            if (strcmp(oi->first, ti->first)) {
                return false;
+            }
             // if the member's type is different, return false
-            if (!ti->second->equal(*oi->second))
+            if (!ti->second->equal(*oi->second)) {
                return false;
+            }
         }
 
         return true;
@@ -139,11 +150,12 @@ public:
         parse_init_done = true;
 
         // initialize new members
-        for (HashDeclMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
-            if (i->second)
-                i->second->parseInit(i->first, true);
+        for (auto& i : members.member_list) {
+            if (i.second) {
+                i.second->parseInit(i.first, true);
+            }
             // check new members for conflicts in base hashdecls
-            //parseCheckMemberInBaseHashDecl(i->first, i->second);
+            //parseCheckMemberInBaseHashDecl(i.first, i.second);
         }
     }
 
@@ -198,6 +210,10 @@ public:
         return name.c_str();
     }
 
+    DLLLOCAL const std::string& getNameStr() const {
+        return name;
+    }
+
     DLLLOCAL const QoreProgramLocation* getParseLocation() const {
         return loc;
     }
@@ -219,12 +235,39 @@ public:
         name = n;
     }
 
+    DLLLOCAL const HashDeclMemberMap& getMembers() const {
+        return members;
+    }
+
+    DLLLOCAL const HashDeclMemberInfo* findLocalMember(const char* name) const {
+        return members.find(name);
+    }
+
+    DLLLOCAL void setNamespace(qore_ns_private* n) {
+        ns = n;
+    }
+
+    DLLLOCAL const qore_ns_private* getNamespace() const {
+        return ns;
+    }
+
+    DLLLOCAL const char* getModuleName() const {
+        return from_module.empty() ? nullptr : from_module.c_str();
+    }
+
 protected:
     // references
     mutable QoreReferenceCounter refs;
     const QoreProgramLocation* loc;
     std::string name;
     TypedHashDecl* thd = nullptr;
+    // parent namespace
+    qore_ns_private* ns = nullptr;
+    // the module that defined this class, if any
+    std::string from_module;
+
+    // original declaration
+    const typed_hash_decl_private* orig;
 
     // type information
     QoreHashDeclTypeInfo* typeInfo = nullptr;

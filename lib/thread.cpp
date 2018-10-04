@@ -1159,7 +1159,10 @@ bool is_valid_qore_thread() {
 }
 
 int gettid() {
-   return (thread_data.get())->tid;
+    // when destroying objects in the static namespace, this function is called after thread data is destroyed
+    // to grab locks; therefore in such cases we return TID 0
+    ThreadData* td = thread_data.get();
+    return td ? td->tid : 0;
 }
 
 VLock* getVLock() {
@@ -1172,7 +1175,7 @@ Context* get_context_stack() {
 }
 
 void update_context_stack(Context* cstack) {
-   ThreadData* td    = thread_data.get();
+   ThreadData* td = thread_data.get();
    td->context_stack = cstack;
 }
 
@@ -1377,14 +1380,19 @@ void parse_set_module_def_context_name(const char* name) {
 }
 
 const char* set_user_module_context_name(const char* n) {
-   ThreadData* td = thread_data.get();
-   const char* rv = td->user_module_context_name;
-   td->user_module_context_name = n;
-   return rv;
+    ThreadData* td = thread_data.get();
+    const char* rv = td->user_module_context_name;
+    td->user_module_context_name = n;
+    return rv;
 }
 
 const char* get_user_module_context_name() {
-   return thread_data.get()->user_module_context_name;
+    return thread_data.get()->user_module_context_name;
+}
+
+const char* get_module_context_name() {
+    ThreadData* td = thread_data.get();
+    return td->qmc ? td->qmc->getName() : td->user_module_context_name;
 }
 
 void ModuleContextNamespaceList::clear() {

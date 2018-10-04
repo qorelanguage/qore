@@ -115,7 +115,7 @@ public namespace SewioWebSocketClient {
 
         To stop listening for web socket events, call @ref WebSocketClient::WebSocketClient::disconnect() "WebSocketClient::disconnect()".
 
-        To send data to the Sewio RTLS Studio server, use the @ref SewioWebSocketClient::send() method; this method will serialize the data
+        To send data to the Sewio RTLS Studio server, use the @ref SewioWebSocketClient::SewioWebSocketClient::send() "SewioWebSocketClient::send()" method; this method will serialize the data
         to JSON and send the JSON string to the server.
 
         When websocket messages are received from the server, they are deserialized and the resulting data is used as the argument to the
@@ -153,7 +153,7 @@ sub event(*data msg) {
 SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
             @endcode
 
-            @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages; this callback must accept a @ref hash_or_nothing "*hash" argument as it will only be called with deserialized data until the connection is closed, at which time it will be called with @ref nothing
+            @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages; this callback must accept a @ref hash_or_nothing_type "*hash" argument as it will only be called with deserialized data until the connection is closed, at which time it will be called with @ref nothing
             @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash) "HTTPClient constructor" plus the following keys:
             - \c apikey: (required) a string giving the Sewio RTLS Studio API key
             - \c log: (optional) @ref closure "closure" or @ref call_reference "call reference" for informational logging
@@ -248,7 +248,7 @@ SewioWebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
         }
 
         #! returns a @ref SewioWebSocketClient object
-        /** @param connect if @ref Qore::True "True", then @ref WebSocketClient::connect() is called
+        /** @param connect if @ref Qore::True "True", then @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()" is called
             @param rtopts supports the following runtime options in getImpl() for connection logging:
             - \c "log": a closure accepting a single string for logging
             - \c "errlog": a closure accepting a single string for error logging
