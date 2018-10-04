@@ -45,7 +45,7 @@ public class CopyFileTest inherits QUnit::Test {
 
         string content = "Hello World!";
 
-        hash original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> original = make_tmp_file(NOTHING, NOTHING, tmp_path);
         original.file.write(content);
         original.file.close();
         assert_file_contains(original.path, content);
@@ -84,7 +84,7 @@ public class CopyFileTest inherits QUnit::Test {
         }
 
         # same file
-        hash file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
         string content = "Hello World!";
         file1.file.write(content);
         file1.file.close();
@@ -107,7 +107,7 @@ public class CopyFileTest inherits QUnit::Test {
         assertThrows("FILE-STAT-ERROR", \copy_file(), (non_existent, file1.path, False, False));
 
         # existing destination
-        hash file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
         file1.file.close();
         assertThrows("FILE-EXISTS-ERROR", \copy_file(), (file2.path, file1.path, True, False));
         assertThrows("FILE-EXISTS-ERROR", \copy_file(), (file2.path, file1.path, False, False));
@@ -140,7 +140,7 @@ public class CopyFileTest inherits QUnit::Test {
         string content = "Hello World!";
 
         # get a file
-        hash original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> original = make_tmp_file(NOTHING, NOTHING, tmp_path);
         original.file.write(content);
         original.file.close();
         assert_file_contains(original.path, content);
@@ -206,7 +206,7 @@ public class CopyFileTest inherits QUnit::Test {
         string content = "Hello World!";
 
         # get a file
-        hash original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> original = make_tmp_file(NOTHING, NOTHING, tmp_path);
         original.file.write(content);
         original.file.close();
         assert_file_contains(original.path, content);
@@ -272,7 +272,7 @@ public class CopyFileTest inherits QUnit::Test {
         string content = "Qore is great.";
 
         # get a file
-        hash original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> original = make_tmp_file(NOTHING, NOTHING, tmp_path);
         original.file.write(content);
         original.file.close();
         assert_file_contains(original.path, content);
@@ -284,7 +284,7 @@ public class CopyFileTest inherits QUnit::Test {
         assertEq(original.path, readlink(link_original));
 
         # create a target file
-        hash copy = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> copy = make_tmp_file(NOTHING, NOTHING, tmp_path);
         copy.file.close();
         assertTrue(is_file(copy.path));
 

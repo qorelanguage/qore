@@ -1,0 +1,83 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class TmpFileTest
+
+public class TmpFileTest inherits QUnit::Test {
+
+    private {
+        list params = (
+            # (prefix, suffix)
+            (NOTHING, NOTHING),
+            ("FOO", NOTHING),
+            (NOTHING, "BAR"),
+            ("", ""),
+            ("FOO", ""),
+            ("", "BAR"),
+            ("FOO", "BAR"),
+        );
+    }
+
+    constructor() : Test ("TmpFileTest", "1.0") {
+        addTestCase("tmp_file test - standard temp location", \test_tmp_file_std());
+        addTestCase("tmp_file test - custom temp location", \test_tmp_file_custom());
+        set_return_value(main());
+    }
+
+    test_tmp_file_std() {
+        string tmp_path = tmp_location();
+
+        foreach list p in (params) {
+            string path = "";
+
+            {
+                TmpFile tmp_file = new TmpFile(p[0], p[1]);
+                path = tmp_file.path;   # to check that it's removed automatically outside of this block later
+                assertTrue(is_file(tmp_file.path));
+                assertTrue(is_writable(tmp_file.path));
+                assertEq(0, tmp_file.file.close());
+
+                assertTrue(string_starts_with(tmp_file.path, tmp_path));
+                assertTrue(string_starts_with(tmp_file.path, join_paths(tmp_path, p[0])));
+                assertTrue(string_ends_with(tmp_file.path, p[1] ?? ""));
+            }
+
+            assertNeq("", path);
+            assertFalse(path_exists(path));
+        }
+    }
+
+    test_tmp_file_custom() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmdir(tmp_path);
+        }
+
+        foreach list p in (params) {
+            string path = "";
+
+            {
+                TmpFile tmp_file = new TmpFile(p[0], p[1], tmp_path);
+                path = tmp_file.path;   # to check that it's removed automatically outside of this block later
+                assertTrue(is_file(tmp_file.path));
+                assertTrue(is_writable(tmp_file.path));
+                assertEq(0, tmp_file.file.close());
+
+                assertTrue(string_starts_with(tmp_file.path, tmp_path));
+                assertTrue(string_starts_with(tmp_file.path, join_paths(tmp_path, p[0])));
+                assertTrue(string_ends_with(tmp_file.path, p[1] ?? ""));
+            }
+
+            assertNeq("", path);
+            assertFalse(path_exists(path));
+        }
+    }
+}
