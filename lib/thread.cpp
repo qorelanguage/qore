@@ -1408,14 +1408,22 @@ void ModuleContextFunctionList::clear() {
 }
 
 QoreProgramContextHelper::QoreProgramContextHelper(QoreProgram* pgm) {
-   ThreadData* td  = thread_data.get();
-   old_pgm = td->current_pgm;
-   td->current_pgm = pgm;
+    // allow the program context to be skipped with a nullptr arg
+    if (!pgm) {
+        old_pgm = reinterpret_cast<QoreProgram*>(-1);
+        return;
+    }
+    ThreadData* td  = thread_data.get();
+    old_pgm = td->current_pgm;
+    td->current_pgm = pgm;
 }
 
 QoreProgramContextHelper::~QoreProgramContextHelper() {
-   ThreadData* td  = thread_data.get();
-   td->current_pgm = old_pgm;
+    if (old_pgm == reinterpret_cast<QoreProgram*>(-1)) {
+        return;
+    }
+    ThreadData* td  = thread_data.get();
+    td->current_pgm = old_pgm;
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject* obj, const qore_class_private* c) {

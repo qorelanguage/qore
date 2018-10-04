@@ -46,8 +46,8 @@
       - @ref Qore::FtpClient::getDataPeerInfo() "FtpClient::getDataPeerInfo()"
       - @ref Qore::FtpClient::getDataSocketInfo() "FtpClient::getDataSocketInfo()"
       - @ref Qore::Program::getParseOptionStringList() "Program::getParseOptionStringList()"
-      - @ref Qore::Program::parse() "Program::parse()" 
-      - @ref Qore::Program::parsePending() "Program::parsePending()" 
+      - @ref Qore::Program::parse() "Program::parse()"
+      - @ref Qore::Program::parsePending() "Program::parsePending()"
       - @ref Qore::StreamReader::getInputStream() "StreamReader::getInputStream()"
       - @ref Qore::StreamWriter::getOutputStream() "StreamWriter::getOutputStream()"
     - new functions:
@@ -79,9 +79,9 @@
       - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_dates "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
       - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
       - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
-    - @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" updates: 
+    - @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" updates:
       the \a format_label parameter is obsolete/ignored
-      (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)      
+      (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)
     - module updates
       - a new binary module: <a href="../../modules/reflection/html/index.html">reflection</a>
         providing a reflection API to %Qore
@@ -134,6 +134,10 @@
         - command line utils display source line code when interrupted
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
+    - fixed a bug where call references did not set the execution context with builtin functions
+      and therefore calls to builtin functions in modules (such as @ref jniintro "jni") with
+      per-program private data would fail
+      (<a href="https://github.com/qorelanguage/qore/issues/3024">issue 3024</a>)
     - fixed a bug where rvalue references with complex subtypes could get modified during an assignment
       (<a href="https://github.com/qorelanguage/qore/issues/2891">issue 2891</a>)
     - fixed a bug where class members could be initialized multiple times in a class with multiple
