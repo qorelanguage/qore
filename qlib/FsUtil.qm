@@ -351,14 +351,19 @@ public namespace FsUtil {
         throw "DIR-WRITE-ERROR", "Impossible to find a unique name.";
     }
 
+    public hashdecl TmpFileHash {
+        string path = "";
+        File file = new File();
+    }
+
     #! Creates and opens a unique temporary file and returns its absolute path as well as its File object
     /** @param prefix prefix to be used in the newly created file name
         @param suffix suffix to be used in the newly created file name
         @param path path to a dir in which the caller wants to create the new file; if not provided, standard temp
                     location will be used
 
-        @return hash with absolute path to the newly created file and its File object
-                (keys "path" and "file" recpectively)
+        @return hash<TmpFileHash> with absolute path to the newly created file and its File object
+                (keys "path" and "file" respectively)
 
         @throws FILE-WRITE-ERROR The file couldn't be created.
 
@@ -366,7 +371,7 @@ public namespace FsUtil {
         The caller is responsible for removing the temporary file once it's needed no more.
 
     */
-    public hash sub make_tmp_file(*string prefix, *string suffix, *string path) {
+    public hash<TmpFileHash> sub make_tmp_file(*string prefix, *string suffix, *string path) {
         if (exists path) {
             if (!is_writable(path)) {
                 throw "FILE-WRITE-ERROR", sprintf("'%s' is not a writable directory.", path);
@@ -378,16 +383,15 @@ public namespace FsUtil {
 
         # O_CREAT and O_EXCL are important to ensure that we only open a new file
         int flags = O_CREAT | O_EXCL | O_RDWR;
-        File tmp_file = new File();
+        hash<TmpFileHash> tmp_file();
 
         for (int i = 0; i < TMP_MAX_ATTEMPTS; i++) {
             string tmp_fn = prefix + get_random_string() + suffix;
-            string tmp_path = join_paths(path, tmp_fn);
+            tmp_file.path = join_paths(path, tmp_fn);
 
-            if (tmp_file.open(tmp_path, flags, 0600) == 0) {
+            if (tmp_file.file.open(tmp_file.path, flags, 0600) == 0) {
                 # success
-                return {"path": tmp_path,
-                        "file": tmp_file};
+                return tmp_file;
             } else {
                 # unable to create the file
                 int err = errno();
@@ -396,7 +400,8 @@ public namespace FsUtil {
                     continue;
                 } else {
                     # another (unexpected) error
-                    throw "FILE-WRITE-ERROR", sprintf("File '%s' couldn't be created: %s", tmp_path, strerror(err));
+                    throw "FILE-WRITE-ERROR", sprintf("File '%s' couldn't be created: %s",
+                                                      tmp_file.path, strerror(err));
                 }
             }
         }
@@ -442,7 +447,7 @@ public namespace FsUtil {
                         location will be used
         */
         public constructor(*string prefix, *string suffix, *string path) {
-            hash f = make_tmp_file(prefix, suffix, path);
+            hash<TmpFileHash> f = make_tmp_file(prefix, suffix, path);
             self.path = f.path;
             self.file = f.file;
         }

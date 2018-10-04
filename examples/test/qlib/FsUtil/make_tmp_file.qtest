@@ -37,7 +37,7 @@ public class MakeTmpFileTest inherits QUnit::Test {
         string tmp_path = tmp_location();
 
         foreach list p in (params) {
-            hash tmp_file = make_tmp_file(p[0], p[1]);
+            hash<TmpFileHash> tmp_file = make_tmp_file(p[0], p[1]);
             assertTrue(is_file(tmp_file.path));
             assertTrue(is_writable(tmp_file.path));
             assertEq(0, tmp_file.file.close());
@@ -56,7 +56,7 @@ public class MakeTmpFileTest inherits QUnit::Test {
         }
 
         foreach list p in (params) {
-            hash tmp_file = make_tmp_file(p[0], p[1], tmp_path);
+            hash<TmpFileHash> tmp_file = make_tmp_file(p[0], p[1], tmp_path);
             assertTrue(is_file(tmp_file.path));
             assertTrue(is_writable(tmp_file.path));
             assertEq(0, tmp_file.file.close());
