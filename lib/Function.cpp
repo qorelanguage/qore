@@ -1380,8 +1380,8 @@ QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant,
     const char* fname = getName();
     CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
     if (*xsink) return QoreValue();
-    // issue #3024
-    QoreProgramContextHelper pch(pgm);
+    // issue #3024: make the caller's call context available
+    ProgramCallContextHelper pcch(pgm);
 
     return variant->evalFunction(fname, ceh, xsink);
 }
@@ -1391,8 +1391,8 @@ QoreValue QoreFunction::evalFunctionTmpArgs(const AbstractQoreFunctionVariant* v
     const char* fname = getName();
     CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
     if (*xsink) return QoreValue();
-    // issue #3024
-    QoreProgramContextHelper pch(pgm);
+    // issue #3024: make the caller's call context available
+    ProgramCallContextHelper pcch(pgm);
 
     return variant->evalFunction(fname, ceh, xsink);
 }

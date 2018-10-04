@@ -2664,3 +2664,7 @@ QoreHashNode* get_source_location(const QoreProgramLocation* loc) {
 const char* type_get_name(const QoreTypeInfo* t) {
     return QoreTypeInfo::getName(t);
 }
+
+QoreProgram* qore_get_call_program_context() {
+    return get_program_call_context();
+}

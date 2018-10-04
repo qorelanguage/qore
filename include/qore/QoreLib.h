@@ -673,4 +673,10 @@ DLLEXPORT const QoreClass* qore_pseudo_get_class(qore_type_t t);
 /** @since %Qore 0.9
 */
 DLLEXPORT const QoreClass* qore_pseudo_get_class(const QoreTypeInfo* t);
+
+//! returns the caller's Program context, if any
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreProgram* qore_get_call_program_context();
+
 #endif // _QORE_QORELIB_H
