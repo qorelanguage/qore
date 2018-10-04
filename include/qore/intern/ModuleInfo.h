@@ -614,7 +614,7 @@ public:
         return dlptr;
     }
 
-    DLLLOCAL virtual void issueModuleCmd(const QoreProgramLocation* loc, const QoreString& cmd, ExceptionSink* xsink);
+    DLLLOCAL virtual void issueModuleCmd(const QoreProgramLocation* loc, const QoreString& cmd, ExceptionSink* xsink) override;
 };
 
 class QoreUserModule : public QoreAbstractModule {
@@ -651,7 +651,7 @@ public:
         return getHashIntern(with_filename);
     }
 
-    DLLLOCAL virtual void issueModuleCmd(const QoreProgramLocation* loc, const QoreString& cmd, ExceptionSink* xsink) {
+    DLLLOCAL virtual void issueModuleCmd(const QoreProgramLocation* loc, const QoreString& cmd, ExceptionSink* xsink) override {
         if (xsink) {
             xsink->raiseException(*loc, "PARSE-COMMAND-ERROR", "module '%s' loaded from '%s' is a user module; only builtin modules can support parse commands",
                 name.c_str(), filename.c_str());
