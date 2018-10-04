@@ -128,19 +128,6 @@
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
         - Swagger module does not accept multipart/form-data content-type and also does not work with list and hash parameters
           (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
-<<<<<<< Updated upstream
-    - @ref relative_dates "relative date" changes
-        - fraction seconds are accepted in the @ref single_reldates
-        - fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
-    - improved debugging support:
-        - @ref Qore::ProgramControl::getStatementIdInfo() "ProgramControl::getStatementIdInfo()" provides breakpoint info
-        - command to resolve statement
-        - interrupt notification provides call stack info
-        - \c "Run to statement" implementation
-        - <a href="../../modules/DebugHandler/html/index.html">DebugHandler</a> reimplemented to support multiple websocket handlers
-        - program is not interrupted at bootstrap code
-        - command line utils display source line code when interrupted
-=======
     - @ref relative_dates "Relative date" changes
       - Fractional seconds are accepted in the @ref single_reldates
       - Fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
@@ -152,7 +139,6 @@
       - <a href="../../modules/DebugHandler/html/index.html">DebugHandler</a> reimplemented to support multiple websocket handlers
       - Programs are not interrupted in bootstrap code
       - Command line utils display source line code when interrupted
->>>>>>> Stashed changes
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
     - fixed a bug where rvalue references with complex subtypes could get modified during an assignment
