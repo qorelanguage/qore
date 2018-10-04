@@ -1435,7 +1435,7 @@ void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, con
     QoreProgramContextHelper pch(pgm);
     mi->issueModuleCmd(&loc_builtin, cmd, xsink);
 
-    // enrich exception deescription if present
+    // enrich exception description if present
     if (*xsink) {
         xsink->appendLastDescription(": module command error from command '%s'", cmd.c_str());
     }
