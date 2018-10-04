@@ -1402,8 +1402,10 @@ void QoreModuleManager::cleanup() {
    assert(modset.empty());
 }
 
-void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char* mname, QoreProgram* pgm, const QoreString& cmd) {
+void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char* mname, const QoreString& cmd) {
     ExceptionSink xsink;
+
+    QoreProgram* pgm = getProgram();
 
     AutoLocker al(mutex); // make sure checking and loading are atomic
     loadModuleIntern(xsink, mname, pgm);
@@ -1416,7 +1418,7 @@ void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char
     QoreAbstractModule* mi = findModule(mname);
     assert(mi);
 
-    mi->issueModuleCmd(loc, cmd, getProgram()->getParseExceptionSink());
+    mi->issueModuleCmd(loc, cmd, pgm->getParseExceptionSink());
 }
 
 void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd, ExceptionSink* xsink) {
@@ -1428,6 +1430,9 @@ void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, con
 
     QoreAbstractModule* mi = findModule(mname);
     assert(mi);
+
+    // ensure the program is in context
+    QoreProgramContextHelper pch(pgm);
     mi->issueModuleCmd(&loc_builtin, cmd, xsink);
 
     // enrich exception deescription if present

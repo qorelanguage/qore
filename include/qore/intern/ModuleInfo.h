@@ -456,7 +456,7 @@ public:
     DLLLOCAL void delUser();
     DLLLOCAL void cleanup();
 
-    DLLLOCAL void issueParseCmd(const QoreProgramLocation* loc, const char* mname, QoreProgram* pgm, const QoreString& cmd);
+    DLLLOCAL void issueParseCmd(const QoreProgramLocation* loc, const char* mname, const QoreString& cmd);
 
     DLLLOCAL void issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd, ExceptionSink* xsink);
 
