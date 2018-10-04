@@ -30,7 +30,7 @@ public class RemovePathTest inherits QUnit::Test {
         assertTrue(is_writable(tmp_path));
 
         # create a temporary file and try and remove it
-        hash f = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> f = make_tmp_file(NOTHING, NOTHING, tmp_path);
         f.file.close();
         assertTrue(is_file(f.path));
         assertTrue(is_writable(f.path));
@@ -73,7 +73,7 @@ public class RemovePathTest inherits QUnit::Test {
         tmp_path = make_tmp_dir();
         assertTrue(is_dir(tmp_path));
         assertTrue(is_writable(tmp_path));
-        hash f = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> f = make_tmp_file(NOTHING, NOTHING, tmp_path);
         f.file.close();
         assertTrue(is_file(f.path));
         assertTrue(is_writable(f.path));

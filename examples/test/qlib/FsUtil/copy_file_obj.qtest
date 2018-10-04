@@ -31,9 +31,9 @@ public class CopyFileObjTest inherits QUnit::Test {
         on_exit {
             remove_tree(tmp_path);
         }
-        hash file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
         add_content_to_file(file1.file);
-        hash file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
 
         assertTrue(file1.file.isOpen());
         assertTrue(file2.file.isOpen());
@@ -54,9 +54,9 @@ public class CopyFileObjTest inherits QUnit::Test {
         on_exit {
             remove_tree(tmp_path);
         }
-        hash file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
         add_content_to_file(file1.file);
-        hash file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
 
         assertTrue(file1.file.isOpen());
         assertTrue(file2.file.isOpen());
@@ -76,9 +76,9 @@ public class CopyFileObjTest inherits QUnit::Test {
         on_exit {
             remove_tree(tmp_path);
         }
-        hash file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
         add_content_to_file(file1.file);
-        hash file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        hash<TmpFileHash> file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
 
         assertTrue(file1.file.isOpen());
         assertTrue(file2.file.isOpen());
