@@ -1045,7 +1045,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                                  if (str.empty())
                                                     parse_error(*loc, "%%module-cmd not in format %%module-cmd(<module-name>) <command>; missing command; text given: '%%module-cmd %s'", str.getBuffer());
                                                  else {
-                                                    QMM.issueParseCmd(loc, module.getBuffer(), 0, str);
+                                                    QMM.issueParseCmd(loc, module.getBuffer(), str);
                                                  }
                                               }
                                            }
