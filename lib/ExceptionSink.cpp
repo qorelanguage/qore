@@ -123,6 +123,29 @@ const QoreValue ExceptionSink::getExceptionArg() {
     return priv->head ? priv->head->arg : QoreValue();
 }
 
+int ExceptionSink::appendLastDescription(const char* fmt, ...) {
+    if (!priv->head || priv->head->desc.getType() != NT_STRING) {
+        return -1;
+    }
+
+    SimpleRefHolder<QoreStringNode> new_desc(new QoreStringNode);
+
+    va_list args;
+
+    while (true) {
+        va_start(args, fmt);
+        int rc = new_desc->vsprintf(fmt, args);
+        va_end(args);
+        if (!rc) {
+            break;
+        }
+    }
+
+    QoreStringNode* old_desc = priv->head->desc.get<QoreStringNode>();
+    old_desc->concat(new_desc->c_str(), new_desc->size());
+    return 0;
+}
+
 AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...) {
     QoreStringNode *desc = new QoreStringNode;
 
