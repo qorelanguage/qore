@@ -439,9 +439,8 @@ public:
             thr_init(nullptr), pgm(n_pgm) {
         printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
 
-#ifdef DEBUG
+        // must set priv before calling setParent()
         pgm->priv = (qore_program_private*)this;
-#endif
 
         if (p_pgm)
             setParent(p_pgm, n_parse_options);
