@@ -813,7 +813,9 @@ void set_program_call_context(QoreProgram* new_pgm) {
 }
 
 // returns the current call context if set, otherwise the current program context
-QoreProgram* get_program_call_context() {
+/* this function is exported in the public Qore API
+*/
+QoreProgram* qore_get_call_program_context() {
     ThreadData* td = thread_data.get();
     assert(td);
     QoreProgram* rv = td->call_program_context;

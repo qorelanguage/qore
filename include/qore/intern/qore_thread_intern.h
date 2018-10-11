@@ -351,7 +351,6 @@ DLLLOCAL const QoreTypeInfo* parse_get_return_type_info();
 
 DLLLOCAL QoreProgram* get_set_program_call_context(QoreProgram* new_pgm);
 DLLLOCAL void set_program_call_context(QoreProgram* new_pgm);
-DLLLOCAL QoreProgram* get_program_call_context();
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 DLLLOCAL void pushCall(CallNode* cn);
