@@ -19,6 +19,16 @@
 %requires ../../directory/Module.qm
     @endcode \n
 
+    Module implementation could be separated to multiple files and stored as a directory named with the same name as the module. To require them use @ref requires "%requires ModuleName" without ".qm" extension. All files inside the directory will be automatically included at program parse time.
+
+    Examlpe of such separated module:
+    @code{.py}
+ModuleName/
+    |-ModuleName.qm         # typical "qore" module file with the exception that implementation of classes and functions that it is used is stored separately
+    |-SomeModuleClass.qc
+    |-SomeModuleFunction.ql
+    @endcode \n
+
     Use the load_module() function to load %Qore modules at run-time; however, note that any module providing parse support (classes, constants, functions, etc) must be loaded at parse time using the @ref requires "%requires" or @ref try-module "%try-module" parse directive.
 
     From %Qore 0.7.1 onwards, you can specify a comparison operator (one of < <=, =, >=, or >) and version information after the module name as well. Version numbers are compared via integer comparisons of each element, where elements are separated by a '.'. If one of the versions does not have as many elements as another, the missing elements are assumed to be '0' (i.e. version \c "1.0" compared with version \c "1.0.1" will be extended to \c "1.0.0").
@@ -112,7 +122,7 @@
 
     @section user_modules User Modules
 
-    User modules are written in %Qore and delivered in source form.  They must have the extension \c "*.qm".
+    User modules are written in %Qore and delivered in source form. They must have the extension \c "*.qm".
 
     User modules will have their own dedicated @ref Qore::Program "Program" object; the @ref Qore::Program "Program" object is created automatically when the module is loaded and initialized.  The module's @ref Qore::Program "Program" object is created with locked parse options as follows:
     - @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS "PO_NO_TOP_LEVEL_STATEMENTS": modules provide API services and are not designed to be executed at the top-level.  Put any initialization code in the module's \c init closure
@@ -248,6 +258,8 @@ public namespace Bar {
 }@endcode
 
     @since %Qore 0.8.4 user modules are supported
+
+    @since %Qore 0.9.0 user modules implementation could be separated to multiple files
 
     @subsection user_module_program_scope Program Scope in Object-Oriented Programs Using User Modules Providing Their Own Threads
 
