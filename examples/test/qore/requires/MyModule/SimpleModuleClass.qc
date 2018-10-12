@@ -2,6 +2,9 @@
 # Qorus SimpleModuleClass class definition
 
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 public namespace EXAMPLE_C;
 

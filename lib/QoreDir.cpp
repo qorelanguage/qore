@@ -45,8 +45,9 @@ const QoreEncoding *QoreDir::getEncoding() const {
 /* static */
 bool QoreDir::file_exists(const QoreString& filePath) {
     struct stat buffer;
-    if (::stat(filePath.c_str(), &buffer) == 0)
+    if (::stat(filePath.c_str(), &buffer) == 0) {
         return S_ISREG(buffer.st_mode);
+    }
     return false;
 }
 
@@ -59,8 +60,9 @@ bool QoreDir::folder_exists(const QoreString& folderPath, ExceptionSink& xsink, 
 
 /* static */
 std::string QoreDir::get_file_content(const QoreString& fullPath) {
-    if (!file_exists(fullPath.c_str()))
+    if (!file_exists(fullPath.c_str())) {
       return "";
+    }
 
     std::ifstream file(fullPath.c_str());
     std::stringstream buffer;

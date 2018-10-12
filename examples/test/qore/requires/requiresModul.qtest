@@ -19,21 +19,21 @@ class IncludeModuleTest inherits QUnit::Test {
 
     testIncludeWholeModule() {
         Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
-        p.parse("
-#!/usr/bin/env /home/tpetr/devel_release/bin/qore
-# -*- mode: qore; indent-tabs-mode: nil -*-
+        p.parse(
+            "#!/usr/bin/env /home/tpetr/devel_release/bin/qore\n"
+            "# -*- mode: qore; indent-tabs-mode: nil -*-\n"
 
-# TODO: change to some relative path
-# examples path is for Jenkins; '.' is for manual runs
-%append-module-path examples/test/qore/requires:.
-%requires MyModule
+            "# examples path is for Jenkins; '.' is for manual runs\n"
+            "%append-module-path examples/test/qore/requires:.\n"
+            "%requires MyModule\n"
 
-MyModule::mfunc(\"\");
-", "");
+            "MyModule::mfunc(\"\");\n"
+        , "");
 
-        assertEq("MyModule::mfunc::EXAMPLE_C::SomeClass::cfunc
-MyModule::mfunc::EXAMPLE_C::func
-MyModule::mfunc::EXAMPLE_F::func
-", p.callFunctionArgs("mfunc", ""));
+        assertEq(
+            "MyModule::mfunc::EXAMPLE_C::SomeClass::cfunc\n"
+            "MyModule::mfunc::EXAMPLE_C::func\n"
+            "MyModule::mfunc::EXAMPLE_F::func\n"
+        , p.callFunctionArgs("mfunc", ""));
     }
 }

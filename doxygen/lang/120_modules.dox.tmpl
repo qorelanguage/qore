@@ -19,7 +19,7 @@
 %requires ../../directory/Module.qm
     @endcode \n
 
-    Module implementation could be separated to multiple files and stored as a directory named with the same name as the module. To require them use @ref requires "%requires ModuleName" without ".qm" extension. All files inside the directory will be automatically included at program parse time.
+    Module implementation could be separated to multiple files and stored as a directory named with the same name as the module. To require them use @ref requires "%requires ModuleName" without ".qm" extension. All files with the extenstion *qc, *ql (e.g. functions and classes) inside the directory will be automatically included at program parse time.
 
     Examlpe of such separated module:
     @code{.py}

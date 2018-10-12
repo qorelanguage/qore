@@ -2,6 +2,9 @@
 #! @file SimpleModuleFunctions.ql consists functions definitions
 
 %new-style
+%enable-all-warnings
+%require-types
+%strict-args
 
 public namespace EXAMPLE_F;
 
