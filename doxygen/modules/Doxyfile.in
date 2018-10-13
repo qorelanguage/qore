@@ -665,7 +665,6 @@ WARN_LOGFILE           =
 # with spaces.
 
 # we cannot specify more directories with similar content as @file warning are raised
-#INPUT                  = @_dox_src@ @CMAKE_CURRENT_BINARY_DIR@
 INPUT                  = @CMAKE_CURRENT_BINARY_DIR@
 
 # This tag can be used to specify the character encoding of the source files
