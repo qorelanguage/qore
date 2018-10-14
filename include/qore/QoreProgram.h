@@ -765,6 +765,13 @@ public:
     */
     DLLEXPORT void depDeref();
 
+    //! returns the thread-local data for the current thread and the Program object
+    /** will always be non-nullptr if the thread is registered
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT QoreHashNode* getThreadData();
+
     DLLLOCAL QoreProgram(QoreProgram* pgm, int64 po, bool ec = false, const char* ecn = nullptr);
 
     DLLLOCAL LocalVar *createLocalVar(const char* name, const QoreTypeInfo *typeInfo);
@@ -772,7 +779,6 @@ public:
     // returns 0 if a "requires" exception has already occurred
     DLLLOCAL ExceptionSink* getParseExceptionSink();
 
-    DLLLOCAL QoreHashNode* getThreadData();
     DLLLOCAL void addFile(char* f);
     DLLLOCAL QoreListNode* getVarList();
     DLLLOCAL void parseSetIncludePath(const char* path);
