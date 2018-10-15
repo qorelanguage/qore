@@ -73,11 +73,17 @@ namespace TestNs {
 
 class ReflectionTest inherits QUnit::Test {
     constructor() : QUnit::Test("ReflectionTest", "1.0") {
+        addTestCase("issue 3035", \issue3035Test());
         addTestCase("reflection tests", \reflectionTests());
         addTestCase("sandbox tests", \sandboxTests());
         addTestCase("pseudo-class tests", \pseudoClassTests());
         addTestCase("program tests", \programTests());
         set_return_value(main());
+    }
+
+    issue3035Test() {
+        string name = `qore -lreflection -ne 'printf("%s", Class::forName("Mutex").getPathName());'`;
+        assertEq("Qore::Thread::Mutex", name);
     }
 
     reflectionTests() {
