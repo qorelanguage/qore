@@ -572,18 +572,18 @@ bool LocalFunctionCallReferenceNode::is_equal_hard(const AbstractQoreNode* v, Ex
 }
 
 bool FunctionCallReferenceNode::derefImpl(ExceptionSink* xsink) {
-   //printd(5, "FunctionCallReferenceNode::deref() this: %p pgm: %p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
-   pgm->depDeref();
-   return true;
+    //printd(5, "FunctionCallReferenceNode::deref() this: %p pgm: %p refs: %d -> %d\n", this, pgm, reference_count(), reference_count() - 1);
+    pgm->depDeref();
+    return true;
 }
 
 QoreValue FunctionCallReferenceNode::execValue(const QoreListNode* args, ExceptionSink* xsink) const {
-   return uf->evalFunction(0, args, pgm, xsink);
+    return uf->evalFunction(0, args, pgm, xsink);
 }
 
 ResolvedCallReferenceNode::ResolvedCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractCallReferenceNode(n_needs_eval, n_type) {
 }
 
 QoreProgram* ResolvedCallReferenceNode::getProgram() const {
-   return 0;
+    return 0;
 }

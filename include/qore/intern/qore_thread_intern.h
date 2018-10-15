@@ -349,6 +349,9 @@ DLLLOCAL const QoreTypeInfo* getReturnTypeInfo();
 
 DLLLOCAL const QoreTypeInfo* parse_get_return_type_info();
 
+DLLLOCAL QoreProgram* get_set_program_call_context(QoreProgram* new_pgm);
+DLLLOCAL void set_program_call_context(QoreProgram* new_pgm);
+
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
 DLLLOCAL void pushCall(CallNode* cn);
 DLLLOCAL void popCall(ExceptionSink* xsink);
@@ -362,6 +365,22 @@ DLLLOCAL QoreListNode* getCallStackList();
 #endif
 #define popCall(x)
 #endif
+
+class ProgramCallContextHelper {
+public:
+    DLLLOCAL ProgramCallContextHelper(QoreProgram* new_pgm)
+        : pgm(new_pgm ? get_set_program_call_context(new_pgm) : reinterpret_cast<QoreProgram*>(-1)) {
+    }
+
+    DLLLOCAL ~ProgramCallContextHelper() {
+        if (pgm != reinterpret_cast<QoreProgram*>(-1)) {
+            set_program_call_context(pgm);
+        }
+    }
+
+private:
+    QoreProgram* pgm;
+};
 
 class ModuleReExportHelper {
 protected:

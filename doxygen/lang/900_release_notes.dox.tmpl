@@ -49,8 +49,6 @@
       - @ref Qore::Program::issueModuleCmd() "Program::issueModuleCmd()"
       - @ref Qore::Program::parse() "Program::parse()"
       - @ref Qore::Program::parsePending() "Program::parsePending()"
-      - @ref Qore::Program::parse() "Program::parse()"
-      - @ref Qore::Program::parsePending() "Program::parsePending()"
       - @ref Qore::SSLCertificate::copy() "SSLCertificate::copy()"
       - @ref Qore::SSLCertificate::getDER() "SSLCertificate::getDER()"
       - @ref Qore::SSLPrivateKey::copy() "SSLPrivateKey::copy()"
@@ -141,6 +139,10 @@
       - Command line utils display source line code when interrupted
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
+    - fixed a bug where call references did not set the execution context with builtin functions
+      and therefore calls to builtin functions in modules (such as @ref jniintro "jni") with
+      per-program private data would fail
+      (<a href="https://github.com/qorelanguage/qore/issues/3024">issue 3024</a>)
     - fixed a bug where rvalue references with complex subtypes could get modified during an assignment
       (<a href="https://github.com/qorelanguage/qore/issues/2891">issue 2891</a>)
     - fixed a bug where class members could be initialized multiple times in a class with multiple

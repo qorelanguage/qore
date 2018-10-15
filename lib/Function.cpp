@@ -1377,31 +1377,35 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL, then it is identified at run time
 QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return QoreValue();
+    const char* fname = getName();
+    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
+    if (*xsink) return QoreValue();
+    // issue #3024: make the caller's call context available
+    ProgramCallContextHelper pcch(pgm);
 
-   return variant->evalFunction(fname, ceh, xsink);
+    return variant->evalFunction(fname, ceh, xsink);
 }
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL, then it is identified at run time
 QoreValue QoreFunction::evalFunctionTmpArgs(const AbstractQoreFunctionVariant* variant, QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return QoreValue();
+    const char* fname = getName();
+    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
+    if (*xsink) return QoreValue();
+    // issue #3024: make the caller's call context available
+    ProgramCallContextHelper pcch(pgm);
 
-   return variant->evalFunction(fname, ceh, xsink);
+    return variant->evalFunction(fname, ceh, xsink);
 }
 
 // finds a variant and checks variant capabilities against current
 // program parse options
 QoreValue QoreFunction::evalDynamic(const QoreListNode* args, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   const AbstractQoreFunctionVariant* variant = 0;
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return QoreValue();
+    const char* fname = getName();
+    const AbstractQoreFunctionVariant* variant = 0;
+    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
+    if (*xsink) return QoreValue();
 
-   return variant->evalFunction(fname, ceh, xsink);
+    return variant->evalFunction(fname, ceh, xsink);
 }
 
 void QoreFunction::addBuiltinVariant(AbstractQoreFunctionVariant* variant) {
