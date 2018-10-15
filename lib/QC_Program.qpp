@@ -2017,10 +2017,11 @@ ProgramControl Program::getProgram() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
 //! issues a module command for the given module; the module is loaded into the current %Program object if it is not already present
 /** @par Example:
     @code{.py}
+pgm.issueModuleCmd("jni", "define-class " + java_class_path_name + " " + byte_code.toBase64());
     @endcode
 
     @param module the module name
-    @param cmd the command string to execute
+    @param cmd the command string to execute to be parsed by the module
 
     @throw PARSE-COMMAND-ERROR the module does not support commands
 
