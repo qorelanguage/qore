@@ -398,6 +398,16 @@ private:
     DLLLOCAL QoreModuleManager(const QoreModuleManager&);
     // not implemented
     DLLLOCAL QoreModuleManager& operator=(const QoreModuleManager&);
+    //! loads separated module. see #2966
+    DLLLOCAL QoreAbstractModule* loadSeparatedModule(
+        ExceptionSink& xsink,
+        const QoreString& path,
+        const char* feature,
+        QoreProgram* tpgm,
+        bool reexport = false,
+        QoreProgram* pgm = nullptr,
+        QoreProgram* path_pgm = nullptr,
+        unsigned load_opt = QMLO_NONE);
 
 protected:
     // recursive mutex; initialized in init()
