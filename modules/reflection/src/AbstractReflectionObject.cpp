@@ -44,7 +44,9 @@ int get_access(ClassAccess access) {
 }
 
 AbstractReflectionObject::AbstractReflectionObject(QoreProgram* pgm) : pgm(pgm) {
-    pgm->depRef();
+    if (pgm) {
+        pgm->depRef();
+    }
 }
 
 AbstractReflectionObject::~AbstractReflectionObject() {
