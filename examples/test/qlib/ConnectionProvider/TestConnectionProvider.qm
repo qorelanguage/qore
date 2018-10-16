@@ -30,7 +30,7 @@
 %new-style
 %strict-args
 
-%requires ../../../../qlib/ConnectionProvider.qm
+%requires ../../../../qlib/ConnectionProvider
 
 module TestConnectionProvider {
     version = "1.0";

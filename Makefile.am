@@ -21,7 +21,7 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/WebSocketUtil.qm \
 	qlib/SqlUtil.qm \
 	qlib/Mapper.qm \
-	qlib/ConnectionProvider.qm \
+	qlib/ConnectionProvider/ConnectionProvider.qm \
 	qlib/RestSchemaValidator.qm \
 	qlib/Swagger.qm \
 	qlib/RestClient.qm \
@@ -30,8 +30,8 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/WebSocketHandler.qm \
 	qlib/WebSocketClient.qm
 
-DOX_MODULES = qlib/BulkSqlUtil.qm \
-	qlib/CsvUtil.qm \
+DOX_MODULES = qlib/BulkSqlUtil/BulkSqlUtil.qm \
+	qlib/CsvUtil/CsvUtil.qm \
 	qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
 	qlib/DebugLinenoiseCmdLine.qm \
