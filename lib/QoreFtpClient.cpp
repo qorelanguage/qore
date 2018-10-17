@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreFtpClient.cpp
+    QoreFtpClient.cpp
 
-  thread-safe QoreFtpClient object
+    thread-safe QoreFtpClient object
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -492,9 +492,12 @@ public:
 
    // unlocked
    DLLLOCAL int acceptDataConnection(ExceptionSink* xsink) {
-      if (data.acceptAndReplace(0)) {
+      // issue #3031: make sure and use a timeout!
+      if (data.acceptAndReplace(timeout_ms, xsink)) {
          data.close();
-         xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "error accepting data connection");
+         if (!*xsink) {
+            xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "error accepting data connection");
+         }
          return -1;
       }
 #ifdef DEBUG
@@ -1006,7 +1009,8 @@ int QoreFtpClient::put(InputStream *is, const char* remotename, ExceptionSink* x
       return -1;
    }
 
-   priv->data.priv->sendFromInputStream(is, -1, 01, xsink, &priv->m);
+   // issue #3032: use the correct timeout with the input stream
+   priv->data.priv->sendFromInputStream(is, -1, priv->timeout_ms, xsink, &priv->m);
    priv->data.close();
 
    if (*xsink) {
