@@ -287,10 +287,16 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
         endforeach(i)
 
         # prepare QDX arguments
-        #set(QORE_QMOD_FNAME ${f}) # used for configure_file line below   done by qdx other way for each module
-        configure_file(${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.qlib.in @ONLY)
-        set(QDX_DOXYFILE_ARGS -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm ${MOD_DEPS} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.qlib.in ${MOD_DOXYFILE})
-        set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm)
+        if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
+            file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc")
+            message(STATUS "_mod_targets ${_mod_targets}")
+            set(QDX_DOXYFILE_ARGS -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.tmpl ${MOD_DOXYFILE})
+            set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
+        else()
+            set(_mod_targets ${_module_file})
+            set(QDX_DOXYFILE_ARGS -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.tmpl ${MOD_DOXYFILE})
+            set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
+        endif()
 
         # add CMake target for the documentation
         if (WIN32 AND (NOT MINGW) AND (NOT MSYS))
@@ -349,7 +355,7 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
     endif (DOXYGEN_FOUND)
 
     # install qm file
-    install(FILES ${_module_file} DESTINATION ${QORE_USER_MODULES_DIR})
+    install(FILES ${_mod_targets} DESTINATION ${QORE_USER_MODULES_DIR})
 ENDMACRO (QORE_USER_MODULE)
 
 # Install qore native/user modules (qm files) into proper location.
