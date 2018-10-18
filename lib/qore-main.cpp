@@ -207,6 +207,9 @@ void qore_cleanup() {
     // delete all loadable modules
     QMM.cleanup();
 
+    // issue #3045: clear module options
+    qore_delete_module_options();
+
     // delete thread-local data
     delete_thread_local_data();
 

@@ -45,6 +45,8 @@
 #include <sstream>
 #include <locale>
 #include <atomic>
+#include <map>
+#include <string>
 
 #include <string.h>
 #ifdef HAVE_PWD_H
@@ -102,6 +104,12 @@ const QoreProgramLocation loc_builtin;
 QoreString random_salt;
 
 DLLLOCAL bool q_disable_gc = false;
+
+// issue #3045: module options
+DLLLOCAL QoreThreadLock mod_opt_lock;
+typedef std::map<std::string, QoreValue> mod_opt_val_map_t;
+typedef std::map<std::string, mod_opt_val_map_t> mod_opt_map_t;
+DLLLOCAL mod_opt_map_t mod_opt_map;
 
 #ifndef HAVE_LOCALTIME_R
 DLLLOCAL QoreThreadLock lck_localtime;
@@ -2663,4 +2671,58 @@ QoreHashNode* get_source_location(const QoreProgramLocation* loc) {
 
 const char* type_get_name(const QoreTypeInfo* t) {
     return QoreTypeInfo::getName(t);
+}
+
+void qore_delete_module_options() {
+    if (mod_opt_map.empty()) {
+        return;
+    }
+    ExceptionSink xsink;
+    for (auto& i : mod_opt_map) {
+        for (auto& vi : i.second) {
+            vi.second.discard(&xsink);
+        }
+    }
+}
+
+void qore_set_module_option(std::string mod, std::string opt, QoreValue val) {
+    AutoLocker al(mod_opt_lock);
+    mod_opt_val_map_t::iterator vi;
+    mod_opt_map_t::iterator i = mod_opt_map.lower_bound(mod);
+    if (i == mod_opt_map.end() || i->first != mod) {
+        i = mod_opt_map.insert(i, mod_opt_map_t::value_type(std::move(mod), mod_opt_val_map_t()));
+        vi = i->second.end();
+    } else {
+        vi = i->second.lower_bound(opt);
+    }
+
+    if (vi == i->second.end() || vi->first != opt) {
+        if (!val) {
+            // do nothing; deleting a value that's not set
+        } else {
+            // set the new option value
+            vi = i->second.insert(vi, mod_opt_val_map_t::value_type(std::move(opt), val));
+        }
+    } else {
+        // first dereference the existing value
+        ExceptionSink xsink;
+        vi->second.discard(&xsink);
+        if (!val) {
+            // delete the option
+            i->second.erase(vi);
+        } else {
+            // set the new value
+            vi->second = val;
+        }
+    }
+}
+
+QoreValue qore_get_module_option(std::string mod, std::string opt) {
+    AutoLocker al(mod_opt_lock);
+    mod_opt_map_t::const_iterator i = mod_opt_map.find(mod);
+    if (i == mod_opt_map.end()) {
+        return QoreValue();
+    }
+    mod_opt_val_map_t::const_iterator vi = i->second.find(opt);
+    return vi == i->second.end() ? QoreValue() : vi->second.refSelf();
 }
