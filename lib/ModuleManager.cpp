@@ -896,6 +896,9 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
 
     std::string moduleCode = QoreDir::get_file_content(modulePath.c_str());
     userModule->getProgram()->parsePending(moduleCode.c_str(), feature, &xsink, &xsink, QP_WARN_MODULES);
+    if (xsink) {
+        return nullptr;
+    }
 
     QoreString regexClassesFunc(".+\\.(qc|ql)$");
     QoreDir moduleDir(&xsink, QCS_DEFAULT, path.c_str());
