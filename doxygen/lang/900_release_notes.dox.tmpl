@@ -178,6 +178,13 @@
       - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
         - fixed schema alignment when there are functions to be dropped
           (<a href="https://github.com/qorelanguage/qore/issues/2963">issue 2963</a>)
+    - fixed a deadlock in @ref Qore::FtpClient::put() "FtpClient::put()" with zero-length files
+      (<a href="https://github.com/qorelanguage/qore/issues/3033">issue 3033</a>)
+    - fixed an error respecting the I/O timeout in @ref Qore::FtpClient::put() "FtpClient::put()"
+      with @ref Qore::InputStream "InputStream" argugments
+      (<a href="https://github.com/qorelanguage/qore/issues/3032">issue 3032</a>)
+    - fixed an error where @ref Qore::FtpClient "FtpClient" \c PORT operations would not time out
+      (<a href="https://github.com/qorelanguage/qore/issues/3031">issue 3031</a>)
     - fixed a race condition in @ref Qore::Thread::ThreadPool "ThreadPool" destruction that could
       cause a crash
       (<a href="https://github.com/qorelanguage/qore/issues/2906">issue 2906</a>)
