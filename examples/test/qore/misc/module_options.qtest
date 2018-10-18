@@ -1,0 +1,45 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class ModuleOptionsTest
+
+class ModuleOptionsTest inherits QUnit::Test {
+    constructor() : QUnit::Test("ModuleOptionsTest", "1.0") {
+        addTestCase("test module options", \testModuleOptions());
+
+        set_return_value(main());
+    }
+
+    testModuleOptions() {
+        set_module_option("TEST1", "TEST1", 1);
+        on_exit {
+            set_module_option("TEST1", "TEST1");
+            assertNothing(get_module_option("TEST1", "TEST1"));
+        }
+        assertEq(1, get_module_option("TEST1", "TEST1"));
+
+        set_module_option("TEST2", "TEST2", 1);
+        on_exit {
+            set_module_option("TEST2", "TEST2");
+            assertNothing(get_module_option("TEST2", "TEST2"));
+        }
+        assertEq(1, get_module_option("TEST2", "TEST2"));
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_PROCESS_CONTROL);
+            assertThrows("PARSE-EXCEPTION", "builtin function.*set_module_option", \p.parse(), ("sub test() { set_module_option('x', 'x', 1); }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_PROCESS_CONTROL);
+            assertThrows("PARSE-EXCEPTION", "builtin function.*get_module_option", \p.parse(), ("sub test() { get_module_option('x', 'x'); }", ""));
+        }
+    }
+}
