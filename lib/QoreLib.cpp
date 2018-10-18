@@ -2690,7 +2690,7 @@ void qore_set_module_option(std::string mod, std::string opt, QoreValue val) {
     mod_opt_val_map_t::iterator vi;
     mod_opt_map_t::iterator i = mod_opt_map.lower_bound(mod);
     if (i == mod_opt_map.end() || i->first != mod) {
-        i = mod_opt_map.insert(i, mod_opt_map_t::value_type(mod, mod_opt_val_map_t()));
+        i = mod_opt_map.insert(i, mod_opt_map_t::value_type(std::move(mod), mod_opt_val_map_t()));
         vi = i->second.end();
     } else {
         vi = i->second.lower_bound(opt);
