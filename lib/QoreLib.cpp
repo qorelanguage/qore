@@ -2685,7 +2685,7 @@ void qore_delete_module_options() {
     }
 }
 
-void qore_set_module_option(const char* mod, const char* opt, QoreValue val) {
+void qore_set_module_option(const std::string mod, const std::string opt, QoreValue val) {
     AutoLocker al(mod_opt_lock);
     mod_opt_val_map_t::iterator vi;
     mod_opt_map_t::iterator i = mod_opt_map.lower_bound(mod);
@@ -2717,7 +2717,7 @@ void qore_set_module_option(const char* mod, const char* opt, QoreValue val) {
     }
 }
 
-QoreValue qore_get_module_option(const char* mod, const char* opt) {
+QoreValue qore_get_module_option(const std::string mod, const std::string opt) {
     AutoLocker al(mod_opt_lock);
     mod_opt_map_t::const_iterator i = mod_opt_map.find(mod);
     if (i == mod_opt_map.end()) {
