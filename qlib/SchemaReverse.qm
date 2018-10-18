@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file SchemaReverse.qm Qore user module for reverse engineering of database SQL schemas
+#! @file SchemaReverse.qm Qore user module for reverse engineering of database SQL schemas
 
 /*  SchemaReverse.qm Copyright 2016 - 2017 Qore Technologies, s.r.o.
 
@@ -822,8 +822,6 @@ class <X_SCHEMA_NAME> inherits AbstractSchema {
 
     #! An universal wrapper to get any of SchemaReverse::AbstractReverseObject instance
     /** @param object_type a string with object type. See keys in SchemaReverse::TYPE_TO_CLASS and SchemaReverse::MULTI_TO_MULTI
-        @param ds an Qore::AbstractDatasource instance
-        @param name a string with exact object name or a regex mask
 
         Parameters \c ds and \c name are passed as \c argv into class constructor.
         See appropriate class for constructor reference.

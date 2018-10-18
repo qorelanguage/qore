@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreQueueIntern.h
+    QoreQueueIntern.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QOREQUEUEINTERN_H
@@ -40,10 +40,10 @@
 
 class QoreQueueNode {
 public:
-   AbstractQoreNode* node;
+   QoreValue node;
    QoreQueueNode* prev,
                 * next;
-   DLLLOCAL QoreQueueNode(AbstractQoreNode* n, QoreQueueNode* p, QoreQueueNode* nx) : node(n), prev(p), next(nx) {
+   DLLLOCAL QoreQueueNode(QoreValue n, QoreQueueNode* p, QoreQueueNode* nx) : node(n), prev(p), next(nx) {
    }
 
 #ifdef DEBUG
@@ -53,19 +53,18 @@ public:
 #endif
 
    DLLLOCAL void del(ExceptionSink* xsink) {
-      if (node)
-         node->deref(xsink);
+      node.discard(xsink);
 
 #ifdef DEBUG
-      node = 0;
+      node = QoreValue();
 #endif
       delete this;
    }
 
-   DLLLOCAL AbstractQoreNode* takeAndDel() {
-      AbstractQoreNode* rv = node;
+   DLLLOCAL QoreValue takeAndDel() {
+      QoreValue rv = node;
 #ifdef DEBUG
-      node = 0;
+      node = QoreValue();
 #endif
       delete this;
       return rv;
@@ -95,9 +94,9 @@ private:
    DLLLOCAL int waitReadIntern(ExceptionSink *xsink, int timeout_ms);
    DLLLOCAL int waitWriteIntern(ExceptionSink *xsink, int timeout_ms);
 
-   DLLLOCAL void pushNode(AbstractQoreNode* v);
-   DLLLOCAL void pushIntern(AbstractQoreNode* v);
-   DLLLOCAL void insertIntern(AbstractQoreNode* v);
+   DLLLOCAL void pushNode(QoreValue v);
+   DLLLOCAL void pushIntern(QoreValue v);
+   DLLLOCAL void insertIntern(QoreValue v);
 
    DLLLOCAL void clearIntern(ExceptionSink* xsink);
 
@@ -117,7 +116,7 @@ public:
 
       QoreQueueNode* w = orig.head;
       while (w) {
-         pushIntern(w->node ? w->node->refSelf() : 0);
+         pushIntern(w->node.refSelf());
          w = w->next;
       }
 
@@ -136,16 +135,16 @@ public:
    }
 
    // push at the end of the queue and take the reference - can only be used when len == -1
-   DLLLOCAL void pushAndTakeRef(AbstractQoreNode* n);
+   DLLLOCAL void pushAndTakeRef(QoreValue n);
 
    // push at the end of the queue
-   DLLLOCAL void push(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool& to);
+   DLLLOCAL void push(ExceptionSink* xsink, QoreValue n, int timeout_ms, bool& to);
 
    // insert at the beginning of the queue
-   DLLLOCAL void insert(ExceptionSink* xsink, AbstractQoreNode* n, int timeout_ms, bool& to);
+   DLLLOCAL void insert(ExceptionSink* xsink, QoreValue n, int timeout_ms, bool& to);
 
-   DLLLOCAL AbstractQoreNode* shift(ExceptionSink* xsink, int timeout_ms, bool& to);
-   DLLLOCAL AbstractQoreNode* pop(ExceptionSink* xsink, int timeout_ms, bool& to);
+   DLLLOCAL QoreValue shift(ExceptionSink* xsink, int timeout_ms, bool& to);
+   DLLLOCAL QoreValue pop(ExceptionSink* xsink, int timeout_ms, bool& to);
 
    DLLLOCAL bool empty() const {
       return !len;

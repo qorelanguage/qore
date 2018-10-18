@@ -4,7 +4,7 @@
 
   Qore AST Parser
 
-  Copyright (C) 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2017 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -43,8 +43,8 @@ QoreHashNode* GetNodesInfoQuery::getDeclaration(ASTTree* tree, ASTDeclaration* d
     if (*xsink)
         return nullptr;
 
-    nodeInfo->setValueKeyValue("nodetype", static_cast<int64>(ANT_Declaration), xsink);
-    nodeInfo->setValueKeyValue("kind", static_cast<int64>(decl->getKind()), xsink);
+    nodeInfo->setKeyValue("nodetype", static_cast<int64>(ANT_Declaration), xsink);
+    nodeInfo->setKeyValue("kind", static_cast<int64>(decl->getKind()), xsink);
     nodeInfo->setKeyValue("loc", getLocation(decl->loc, xsink), xsink);
     switch (decl->getKind()) {
         case ASTDeclarationKind::ADK_Class: {
@@ -56,9 +56,9 @@ QoreHashNode* GetNodesInfoQuery::getDeclaration(ASTTree* tree, ASTDeclaration* d
             if (*xsink)
                 return nullptr;
             for (size_t i = 0, count = d->inherits.size(); i < count; i++)
-                inherits->push(getDeclaration(tree, d->inherits[i], xsink));
+                inherits->push(getDeclaration(tree, d->inherits[i], xsink), xsink);
             for (size_t i = 0, count = d->declarations.size(); i < count; i++)
-                declarations->push(getDeclaration(tree, d->declarations[i], xsink));
+                declarations->push(getDeclaration(tree, d->declarations[i], xsink), xsink);
             nodeInfo->setKeyValue("inherits", inherits.release(), xsink);
             nodeInfo->setKeyValue("declarations", declarations.release(), xsink);
             break;
@@ -82,10 +82,10 @@ QoreHashNode* GetNodesInfoQuery::getDeclaration(ASTTree* tree, ASTDeclaration* d
             ASTFunctionDeclaration* d = static_cast<ASTFunctionDeclaration*>(decl);
             ASTSymbolInfo si(ASYK_Function, ASUK_FuncDeclName, d->name.loc, d->name.name);
             SymbolInfoFixes::fixFunctionInfo(tree, si, true);
-            nodeInfo->setValueKeyValue("siKind", static_cast<int64>(si.kind), xsink);
+            nodeInfo->setKeyValue("siKind", static_cast<int64>(si.kind), xsink);
             nodeInfo->setKeyValue("modifiers", getModifiers(d->modifiers), xsink);
             nodeInfo->setKeyValue("name", getName(tree, d->name, xsink), xsink);
-            nodeInfo->setKeyValue("afdKind", new QoreBigIntNode(static_cast<int64>(d->afdKind)), xsink);
+            nodeInfo->setKeyValue("afdKind", static_cast<int64>(d->afdKind), xsink);
             nodeInfo->setKeyValue("returnType", getExpression(tree, d->returnType.get(), xsink), xsink);
             nodeInfo->setKeyValue("params", getExpression(tree, d->params.get(), xsink), xsink);
             nodeInfo->setKeyValue("inits", getExpression(tree, d->inits.get(), xsink), xsink);
@@ -100,7 +100,7 @@ QoreHashNode* GetNodesInfoQuery::getDeclaration(ASTTree* tree, ASTDeclaration* d
             if (*xsink)
                 return nullptr;
             for (size_t i = 0, count = d->declarations.size(); i < count; i++)
-                declarations->push(getDeclaration(tree, d->declarations[i], xsink));
+                declarations->push(getDeclaration(tree, d->declarations[i], xsink), xsink);
             nodeInfo->setKeyValue("declarations", declarations.release(), xsink);
             break;
         }
@@ -109,7 +109,7 @@ QoreHashNode* GetNodesInfoQuery::getDeclaration(ASTTree* tree, ASTDeclaration* d
             nodeInfo->setKeyValue("name", getName(tree, d->name, xsink), xsink);
             nodeInfo->setKeyValue("typeName", getName(tree, d->typeName, xsink), xsink);
             nodeInfo->setKeyValue("init", getExpression(tree, d->init.get(), xsink), xsink);
-            nodeInfo->setKeyValue("constr", get_bool_node(d->constr), xsink);
+            nodeInfo->setKeyValue("constr", d->constr, xsink);
             break;
         }
         case ASTDeclarationKind::ADK_MemberGroup: {
@@ -119,7 +119,7 @@ QoreHashNode* GetNodesInfoQuery::getDeclaration(ASTTree* tree, ASTDeclaration* d
             if (*xsink)
                 return nullptr;
             for (size_t i = 0, count = d->members.size(); i < count; i++)
-                members->push(getExpression(tree, d->members[i], xsink));
+                members->push(getExpression(tree, d->members[i], xsink), xsink);
             nodeInfo->setKeyValue("members", members.release(), xsink);
             break;
         }
@@ -131,7 +131,7 @@ QoreHashNode* GetNodesInfoQuery::getDeclaration(ASTTree* tree, ASTDeclaration* d
             if (*xsink)
                 return nullptr;
             for (size_t i = 0, count = d->declarations.size(); i < count; i++)
-                declarations->push(getDeclaration(tree, d->declarations[i], xsink));
+                declarations->push(getDeclaration(tree, d->declarations[i], xsink), xsink);
             nodeInfo->setKeyValue("declarations", declarations.release(), xsink);
             break;
         }
@@ -170,8 +170,8 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
     if (*xsink)
         return nullptr;
 
-    nodeInfo->setValueKeyValue("nodetype", static_cast<int64>(ANT_Expression), xsink);
-    nodeInfo->setValueKeyValue("kind", static_cast<int64>(expr->getKind()), xsink);
+    nodeInfo->setKeyValue("nodetype", static_cast<int64>(ANT_Expression), xsink);
+    nodeInfo->setKeyValue("kind", static_cast<int64>(expr->getKind()), xsink);
     nodeInfo->setKeyValue("loc", getLocation(expr->loc, xsink), xsink);
     switch (expr->getKind()) {
         case ASTExpressionKind::AEK_Access: {
@@ -209,7 +209,7 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
             nodeInfo->setKeyValue("op", getOperator(e->op), xsink);
             nodeInfo->setKeyValue("caseExpr", getExpression(tree, e->caseExpr.get(), xsink), xsink);
             nodeInfo->setKeyValue("statements", getStatement(tree, e->statements.get(), xsink), xsink);
-            nodeInfo->setKeyValue("defaultCase", get_bool_node(e->defaultCase), xsink);
+            nodeInfo->setKeyValue("defaultCase", e->defaultCase, xsink);
             break;
         }
         case ASTExpressionKind::AEK_Cast: {
@@ -229,13 +229,13 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
             if (*xsink)
                 return nullptr;
             for (size_t i = 0, count = e->inits.size(); i < count; i++)
-                inits->push(getExpression(tree, e->inits[i], xsink));
+                inits->push(getExpression(tree, e->inits[i], xsink), xsink);
             nodeInfo->setKeyValue("inits", inits.release(), xsink);
             break;
         }
         case ASTExpressionKind::AEK_ContextMod: {
             ASTContextModExpression* e = static_cast<ASTContextModExpression*>(expr);
-            nodeInfo->setKeyValue("acmeKind", new QoreBigIntNode(static_cast<int64>(e->acmeKind)), xsink);
+            nodeInfo->setKeyValue("acmeKind", static_cast<int64>(e->acmeKind), xsink);
             nodeInfo->setKeyValue("expression", getExpression(tree, e->expression.get(), xsink), xsink);
             break;
         }
@@ -259,7 +259,7 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
             if (*xsink)
                 return nullptr;
             for (size_t i = 0, count = e->elements.size(); i < count; i++)
-                elements->push(getExpression(tree, e->elements[i], xsink));
+                elements->push(getExpression(tree, e->elements[i], xsink), xsink);
             nodeInfo->setKeyValue("elements", elements.release(), xsink);
             break;
         }
@@ -277,7 +277,7 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
         }
         case ASTExpressionKind::AEK_ImplicitArg: {
             ASTImplicitArgExpression* e = static_cast<ASTImplicitArgExpression*>(expr);
-            nodeInfo->setKeyValue("offset", new QoreBigIntNode(static_cast<int64>(e->offset)), xsink);
+            nodeInfo->setKeyValue("offset", static_cast<int64>(e->offset), xsink);
             break;
         }
         case ASTExpressionKind::AEK_ImplicitElem:
@@ -286,7 +286,7 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
             ASTIndexExpression* e = static_cast<ASTIndexExpression*>(expr);
             nodeInfo->setKeyValue("variable", getExpression(tree, e->variable.get(), xsink), xsink);
             nodeInfo->setKeyValue("index", getExpression(tree, e->index.get(), xsink), xsink);
-            nodeInfo->setKeyValue("indexKind", new QoreBigIntNode(static_cast<int64>(e->indexKind)), xsink);
+            nodeInfo->setKeyValue("indexKind", static_cast<int64>(e->indexKind), xsink);
             break;
         }
         case ASTExpressionKind::AEK_List: {
@@ -295,7 +295,7 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
             if (*xsink)
                 return nullptr;
             for (size_t i = 0, count = e->elements.size(); i < count; i++)
-                elements->push(getExpression(tree, e->elements[i], xsink));
+                elements->push(getExpression(tree, e->elements[i], xsink), xsink);
             nodeInfo->setKeyValue("elements", elements.release(), xsink);
             break;
         }
@@ -312,11 +312,11 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
                     break;
                 case ALEK_Float:
                     nodeInfo->setKeyValue("literalKind", new QoreStringNode("float"), xsink);
-                    nodeInfo->setKeyValue("value", new QoreFloatNode(e->value.d), xsink);
+                    nodeInfo->setKeyValue("value", e->value.d, xsink);
                     break;
                 case ALEK_Int:
                     nodeInfo->setKeyValue("literalKind", new QoreStringNode("int"), xsink);
-                    nodeInfo->setKeyValue("value", new QoreBigIntNode(e->value.i), xsink);
+                    nodeInfo->setKeyValue("value", e->value.i, xsink);
                     break;
                 case ALEK_Number:
                     nodeInfo->setKeyValue("literalKind", new QoreStringNode("number"), xsink);
@@ -345,23 +345,23 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
         case ASTExpressionKind::AEK_Regex: {
             ASTRegexExpression* e = static_cast<ASTRegexExpression*>(expr);
             nodeInfo->setKeyValue("str", new QoreStringNode(e->str), xsink);
-            nodeInfo->setKeyValue("extractRegex", get_bool_node(e->extractRegex), xsink);
-            nodeInfo->setKeyValue("caseSensitive", get_bool_node(e->caseSensitive), xsink);
-            nodeInfo->setKeyValue("extended", get_bool_node(e->extended), xsink);
-            nodeInfo->setKeyValue("dotAll", get_bool_node(e->dotAll), xsink);
-            nodeInfo->setKeyValue("multiline", get_bool_node(e->multiline), xsink);
-            nodeInfo->setKeyValue("global", get_bool_node(e->global), xsink);
+            nodeInfo->setKeyValue("extractRegex", e->extractRegex, xsink);
+            nodeInfo->setKeyValue("caseSensitive", e->caseSensitive, xsink);
+            nodeInfo->setKeyValue("extended", e->extended, xsink);
+            nodeInfo->setKeyValue("dotAll", e->dotAll, xsink);
+            nodeInfo->setKeyValue("multiline", e->multiline, xsink);
+            nodeInfo->setKeyValue("global", e->global, xsink);
             break;
         }
         case ASTExpressionKind::AEK_RegexSubst: {
             ASTRegexSubstExpression* e = static_cast<ASTRegexSubstExpression*>(expr);
             nodeInfo->setKeyValue("source", new QoreStringNode(e->source), xsink);
             nodeInfo->setKeyValue("target", new QoreStringNode(e->target), xsink);
-            nodeInfo->setKeyValue("caseSensitive", get_bool_node(e->caseSensitive), xsink);
-            nodeInfo->setKeyValue("extended", get_bool_node(e->extended), xsink);
-            nodeInfo->setKeyValue("dotAll", get_bool_node(e->dotAll), xsink);
-            nodeInfo->setKeyValue("multiline", get_bool_node(e->multiline), xsink);
-            nodeInfo->setKeyValue("global", get_bool_node(e->global), xsink);
+            nodeInfo->setKeyValue("caseSensitive", e->caseSensitive, xsink);
+            nodeInfo->setKeyValue("extended", e->extended, xsink);
+            nodeInfo->setKeyValue("dotAll", e->dotAll, xsink);
+            nodeInfo->setKeyValue("multiline", e->multiline, xsink);
+            nodeInfo->setKeyValue("global", e->global, xsink);
             break;
         }
         case ASTExpressionKind::AEK_RegexTrans: {
@@ -381,7 +381,7 @@ QoreHashNode* GetNodesInfoQuery::getExpression(ASTTree* tree, ASTExpression* exp
             if (*xsink)
                 return nullptr;
             for (size_t i = 0, count = e->cases.size(); i < count; i++)
-                cases->push(getExpression(tree, e->cases[i], xsink));
+                cases->push(getExpression(tree, e->cases[i], xsink), xsink);
             nodeInfo->setKeyValue("cases", cases.release(), xsink);
             break;
         }
@@ -411,10 +411,10 @@ QoreHashNode* GetNodesInfoQuery::getLocation(const ASTParseLocation& loc, Except
     if (*xsink)
         return nullptr;
 
-    nodeInfo->setKeyValue("start_line", new QoreBigIntNode(static_cast<int64>(loc.firstLine)), xsink);
-    nodeInfo->setKeyValue("start_column", new QoreBigIntNode(static_cast<int64>(loc.firstCol)), xsink);
-    nodeInfo->setKeyValue("end_line", new QoreBigIntNode(static_cast<int64>(loc.lastLine)), xsink);
-    nodeInfo->setKeyValue("end_column", new QoreBigIntNode(static_cast<int64>(loc.lastCol)), xsink);
+    nodeInfo->setKeyValue("start_line", static_cast<int64>(loc.firstLine), xsink);
+    nodeInfo->setKeyValue("start_column", static_cast<int64>(loc.firstCol), xsink);
+    nodeInfo->setKeyValue("end_line", static_cast<int64>(loc.lastLine), xsink);
+    nodeInfo->setKeyValue("end_column", static_cast<int64>(loc.lastCol), xsink);
     if (*xsink)
         return nullptr;
     return nodeInfo.release();
@@ -431,7 +431,7 @@ QoreHashNode* GetNodesInfoQuery::getName(ASTTree* tree, ASTName& name, Exception
     if (*xsink)
         return nullptr;
 
-    nodeInfo->setValueKeyValue("nodetype", static_cast<int64>(ANT_Name), xsink);
+    nodeInfo->setKeyValue("nodetype", static_cast<int64>(ANT_Name), xsink);
     nodeInfo->setKeyValue("loc", getLocation(name.loc, xsink), xsink);
     nodeInfo->setKeyValue("name", new QoreStringNode(name.name), xsink);
     if (*xsink)
@@ -459,7 +459,7 @@ QoreHashNode* GetNodesInfoQuery::getParseOption(ASTTree* tree, ASTParseOption* p
     if (*xsink)
         return nullptr;
 
-    nodeInfo->setValueKeyValue("nodetype", static_cast<int64>(ANT_ParseOption), xsink);
+    nodeInfo->setKeyValue("nodetype", static_cast<int64>(ANT_ParseOption), xsink);
     nodeInfo->setKeyValue("loc", getLocation(po->loc, xsink), xsink);
     std::ostringstream oss;
     AstTreePrinter::printParseOptionString(oss, po);
@@ -477,15 +477,15 @@ QoreHashNode* GetNodesInfoQuery::getStatement(ASTTree* tree, ASTStatement* stmt,
     if (*xsink)
         return nullptr;
 
-    nodeInfo->setValueKeyValue("nodetype", static_cast<int64>(ANT_Statement), xsink);
-    nodeInfo->setValueKeyValue("kind", static_cast<int64>(stmt->getKind()), xsink);
+    nodeInfo->setKeyValue("nodetype", static_cast<int64>(ANT_Statement), xsink);
+    nodeInfo->setKeyValue("kind", static_cast<int64>(stmt->getKind()), xsink);
     nodeInfo->setKeyValue("loc", getLocation(stmt->loc, xsink), xsink);
     switch (stmt->getKind()) {
         case ASTStatementKind::ASK_Block: {
             ASTStatementBlock* s = static_cast<ASTStatementBlock*>(stmt);
             ReferenceHolder<QoreListNode> statements(new QoreListNode, xsink);
             for (size_t i = 0, count = s->statements.size(); i < count; i++)
-                statements->push(getStatement(tree, s->statements[i], xsink));
+                statements->push(getStatement(tree, s->statements[i], xsink), xsink);
             nodeInfo->setKeyValue("statements", statements.release(), xsink);
             break;
         }
@@ -504,10 +504,10 @@ QoreHashNode* GetNodesInfoQuery::getStatement(ASTTree* tree, ASTStatement* stmt,
             if (*xsink)
                 return nullptr;
             for (size_t i = 0, count = s->contextMods.size(); i < count; i++)
-                contextMods->push(getExpression(tree, s->contextMods[i], xsink));
+                contextMods->push(getExpression(tree, s->contextMods[i], xsink), xsink);
             nodeInfo->setKeyValue("contextMods", contextMods.release(), xsink);
             nodeInfo->setKeyValue("statements", getStatement(tree, s->statements.get(), xsink), xsink);
-            nodeInfo->setKeyValue("subcontext", get_bool_node(s->subcontext), xsink);
+            nodeInfo->setKeyValue("subcontext", s->subcontext, xsink);
             break;
         }
         case ASTStatementKind::ASK_Continue:
@@ -572,7 +572,7 @@ QoreHashNode* GetNodesInfoQuery::getStatement(ASTTree* tree, ASTStatement* stmt,
             if (*xsink)
                 return nullptr;
             for (size_t i = 0, count = s->contextMods.size(); i < count; i++)
-                contextMods->push(getExpression(tree, s->contextMods[i], xsink));
+                contextMods->push(getExpression(tree, s->contextMods[i], xsink), xsink);
             nodeInfo->setKeyValue("contextMods", contextMods.release(), xsink);
             nodeInfo->setKeyValue("statements", getStatement(tree, s->statements.get(), xsink), xsink);
             break;
@@ -662,7 +662,7 @@ QoreListNode* GetNodesInfoQuery::get(ASTTree* tree) {
             return nullptr;
         }
         if (nodeInfo) {
-            lst->push(nodeInfo.release());
+            lst->push(nodeInfo.release(), &xsink);
             if (xsink) {
                 lst = nullptr;
                 xsink.clear();

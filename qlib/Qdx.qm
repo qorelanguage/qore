@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Qdx.qm Qore user module for documentation generation with doxygen
+#! @file Qdx.qm Qore user module for documentation generation with doxygen
 
 /*  Qdx.qm Copyright 2016 - 2017 Qore Technologies, s.r.o.
 

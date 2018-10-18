@@ -69,7 +69,7 @@ workflow/technical order management system (the system is called Qorus
 Integration Engine).
 
 The initial requirements for the language were: clean threading model, SMP
-scalability, efficient resource sharing, safe embedding of logic in automomous
+scalability, efficient resource sharing, safe embedding of logic in autonomous
 objects with restricted capabilities, good networking and lightweight (ex
 xml-rpc, json-rpc) web-service and other common protocol support, system
 stability and memory cleanliness.
