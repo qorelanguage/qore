@@ -2701,7 +2701,7 @@ void qore_set_module_option(std::string mod, std::string opt, QoreValue val) {
             // do nothing; deleting a value that's not set
         } else {
             // set the new option value
-            vi = i->second.insert(vi, mod_opt_val_map_t::value_type(opt, val));
+            vi = i->second.insert(vi, mod_opt_val_map_t::value_type(std::move(opt), val));
         }
     } else {
         // first dereference the existing value
