@@ -515,9 +515,12 @@ struct qore_ftp_private {
 
    // unlocked
    DLLLOCAL int acceptDataConnection(ExceptionSink* xsink) {
-      if (data.acceptAndReplace(0)) {
+      // issue #3031: make sure and use a timeout!
+      if (data.acceptAndReplace(timeout_ms, xsink)) {
          data.close();
-         xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "error accepting data connection");
+         if (!*xsink) {
+            xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "error accepting data connection");
+         }
          return -1;
       }
 #ifdef DEBUG
@@ -631,8 +634,9 @@ struct qore_ftp_private {
         }
 
         FtpResp resp(mr);
-        if ((code / 100) != 2)
+        if ((code / 100) != 2) {
             return -1;
+        }
 
         // reply ex: 227 Entering passive mode (127,0,0,1,28,46)
         // get port for data connection
@@ -656,15 +660,19 @@ struct qore_ftp_private {
         int dataport = (num[4] << 8) + atoi(s);
         QoreStringMaker ip("%d.%d.%d.%d", num[0], num[1], num[2], num[3]);
         printd(FTPDEBUG,"qore_ftp_private::connectPassive() address: %s:%d\n", ip.getBuffer(), dataport);
+        QoreStringMaker port("%d", dataport);
 
-        if (data.connectINET2(ip.c_str(), s, q_get_raf(family), Q_SOCK_STREAM, 0, timeout_ms, xsink)) {
-            if (!*xsink)
+        // issue #3031: PASV is only supported with IPv4
+        if (data.connectINET2(ip.c_str(), port.c_str(), Q_AF_INET, Q_SOCK_STREAM, 0, timeout_ms, xsink)) {
+            if (!*xsink) {
                 xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "could not connect to passive data port (%s:%d)", ip.getBuffer(), dataport);
+            }
             return -1;
         }
 
-        if (secure_data && data.upgradeClientToSSL(0, 0, timeout_ms, xsink))
+        if (secure_data && data.upgradeClientToSSL(0, 0, timeout_ms, xsink)) {
             return -1;
+        }
 
         mode = FTP_MODE_PASV;
         return 0;
@@ -681,7 +689,8 @@ struct qore_ftp_private {
             return -1;
         }
         // bind to any port on local interface
-        add.sin_family = family;
+        // issue #3031: PORT is only supported with IPv4
+        add.sin_family = AF_INET;
         add.sin_port = 0;
         if (data.bind((struct sockaddr *)&add, sizeof (struct sockaddr_in))) {
             xsink->raiseErrnoException("FTP-CONNECT-ERROR", errno, "could not bind to any port on local interface");
@@ -1029,7 +1038,8 @@ int QoreFtpClient::put(InputStream *is, const char* remotename, ExceptionSink* x
       return -1;
    }
 
-   priv->data.priv->sendFromInputStream(is, -1, 01, xsink, &priv->m);
+   // issue #3032: use the correct timeout with the input stream
+   priv->data.priv->sendFromInputStream(is, -1, priv->timeout_ms, xsink, &priv->m);
    priv->data.close();
 
    if (*xsink) {
