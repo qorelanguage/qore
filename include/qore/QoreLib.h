@@ -686,7 +686,7 @@ DLLEXPORT QoreProgram* qore_get_call_program_context();
 
     @since %Qore 0.9
 */
-DLLEXPORT void qore_set_module_option(const std::string mod, const std::string opt, QoreValue val);
+DLLEXPORT void qore_set_module_option(std::string mod, std::string opt, QoreValue val);
 
 //! get module option for the given module
 /** @param mod the module name
@@ -696,6 +696,6 @@ DLLEXPORT void qore_set_module_option(const std::string mod, const std::string o
 
     @since %Qore 0.9
 */
-DLLEXPORT QoreValue qore_get_module_option(const std::string mod, const std::string opt);
+DLLEXPORT QoreValue qore_get_module_option(std::string mod, std::string opt);
 
 #endif // _QORE_QORELIB_H
