@@ -744,7 +744,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
         size_t len = strlen(name);
         QoreString modulePath(name);
 
-        QoreProgram* p = pgm ? pgm : (load_opt & QMLO_REINJECT ? (mpgm ? mpgm : nullptr) : pholder.release());
+        QoreProgram* p = pgm ? pgm : (load_opt & (QMLO_REINJECT | QMLO_PRIVATE) && mpgm ? mpgm : nullptr);
         if (!p) {
             p = getProgram();
         }
