@@ -931,4 +931,6 @@ DLLLOCAL size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink);
 
 DLLLOCAL QoreHashNode* get_source_location(const QoreProgramLocation* loc);
 
+DLLLOCAL void qore_delete_module_options();
+
 #endif

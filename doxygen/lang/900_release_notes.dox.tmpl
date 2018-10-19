@@ -58,10 +58,12 @@
       - @ref Qore::StreamWriter::getOutputStream() "StreamWriter::getOutputStream()"
     - new functions:
       - @ref Qore::get_default_thread_stack_size() "get_default_thread_stack_size()"
+      - @ref Qore::get_module_option() "get_module_option()"
       - @ref Qore::get_netif_list() "get_netif_list()"
       - @ref Qore::get_stack_size() "get_stack_size()"
       - @ref Qore::get_thread_name() "get_thread_name()"
       - @ref Qore::set_default_thread_stack_size() "set_default_thread_stack_size()"
+      - @ref Qore::set_module_option() "set_module_option()"
       - @ref Qore::set_thread_name() "set_thread_name()"
     - new modules:
       - <a href="../../modules/Logger/html/index.html">Logger</a>
@@ -178,6 +180,13 @@
       - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
         - fixed schema alignment when there are functions to be dropped
           (<a href="https://github.com/qorelanguage/qore/issues/2963">issue 2963</a>)
+    - fixed a deadlock in @ref Qore::FtpClient::put() "FtpClient::put()" with zero-length files
+      (<a href="https://github.com/qorelanguage/qore/issues/3033">issue 3033</a>)
+    - fixed an error respecting the I/O timeout in @ref Qore::FtpClient::put() "FtpClient::put()"
+      with @ref Qore::InputStream "InputStream" argugments
+      (<a href="https://github.com/qorelanguage/qore/issues/3032">issue 3032</a>)
+    - fixed an error where @ref Qore::FtpClient "FtpClient" \c PORT operations would not time out
+      (<a href="https://github.com/qorelanguage/qore/issues/3031">issue 3031</a>)
     - fixed a race condition in @ref Qore::Thread::ThreadPool "ThreadPool" destruction that could
       cause a crash
       (<a href="https://github.com/qorelanguage/qore/issues/2906">issue 2906</a>)
