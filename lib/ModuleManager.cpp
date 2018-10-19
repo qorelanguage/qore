@@ -896,10 +896,16 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
 
     std::string moduleCode = QoreDir::get_file_content(modulePath.c_str());
     userModule->getProgram()->parsePending(moduleCode.c_str(), feature, &xsink, &xsink, QP_WARN_MODULES);
+    if (xsink) {
+        return nullptr;
+    }
 
     QoreString regexClassesFunc(".+\\.(qc|ql)$");
     QoreDir moduleDir(&xsink, QCS_DEFAULT, path.c_str());
     ReferenceHolder<QoreListNode> fileList(moduleDir.list(&xsink, S_IFREG, &regexClassesFunc), &xsink);
+    if (xsink) {
+        return nullptr;
+    }
     for (size_t i = 0; i < fileList->size(); ++i) {
         QoreString filePath(path);
         filePath += QORE_DIR_SEP_STR;
@@ -907,8 +913,14 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
 
         std::string fileCode = QoreDir::get_file_content(filePath);
         userModule->getProgram()->parsePending(fileCode.c_str(), feature, &xsink, &xsink);
+        if (xsink) {
+            return nullptr;
+        }
     }
     userModule->getProgram()->parseCommit(&xsink);
+    if (xsink) {
+        return nullptr;
+    }
 
     return setupUserModule(xsink, userModule, qmd, load_opt);
 }
