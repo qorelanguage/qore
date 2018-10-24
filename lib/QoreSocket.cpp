@@ -344,8 +344,6 @@ int SSLSocketHelper::setClient(const char* mname, const char* sni_target_host, i
     int rc = setIntern(mname, sd, cert, pk, xsink);
     if (!rc && sni_target_host) {
         // issue #3053 set TLS server name for servers that require SNI
-        // we cannot do this in thse same way for the server, as it's a more complicated
-        // operation for the server
         assert(ssl);
         if (!SSL_set_tlsext_host_name(ssl, sni_target_host)) {
             sslError(xsink, mname, "SSL_set_tlsext_host_name");
