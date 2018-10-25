@@ -339,9 +339,19 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
    return 0;
 }
 
-int SSLSocketHelper::setClient(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink) {
-   meth = SSLv23_client_method();
-   return setIntern(mname, sd, cert, pk, xsink);
+int SSLSocketHelper::setClient(const char* mname, const char* sni_target_host, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink) {
+    meth = SSLv23_client_method();
+    int rc = setIntern(mname, sd, cert, pk, xsink);
+    if (!rc && sni_target_host) {
+        // issue #3053 set TLS server name for servers that require SNI
+        assert(ssl);
+        if (!SSL_set_tlsext_host_name(ssl, sni_target_host)) {
+            sslError(xsink, mname, "SSL_set_tlsext_host_name");
+            assert(*xsink);
+            return -1;
+        }
+    }
+    return rc;
 }
 
 int SSLSocketHelper::setServer(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink) {
@@ -1116,7 +1126,7 @@ int QoreSocket::connectINETSSL(const char* host, int prt, int timeout_ms, X509* 
    int rc = priv->connectINET(host, service.getBuffer(), timeout_ms, xsink);
    if (rc)
       return rc;
-   return priv->upgradeClientToSSLIntern("connectINETSSL", cert, pkey, timeout_ms, xsink);
+   return priv->upgradeClientToSSLIntern("connectINETSSL", host, cert, pkey, timeout_ms, xsink);
 }
 
 int QoreSocket::connectINETSSL(const char* host, int prt, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
@@ -1127,14 +1137,14 @@ int QoreSocket::connectINET2SSL(const char* name, const char* service, int famil
    int rc = connectINET2(name, service, family, sock_type, protocol, timeout_ms, xsink);
    if (rc)
       return rc;
-   return priv->upgradeClientToSSLIntern("connectINET2SSL", cert, pkey, timeout_ms, xsink);
+   return priv->upgradeClientToSSLIntern("connectINET2SSL", name, cert, pkey, timeout_ms, xsink);
 }
 
 int QoreSocket::connectUNIXSSL(const char* p, int sock_type, int protocol, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {
    int rc = connectUNIX(p, sock_type, protocol, xsink);
    if (rc)
       return rc;
-   return priv->upgradeClientToSSLIntern("connectUNIXSSL", cert, pkey, -1, xsink);
+   return priv->upgradeClientToSSLIntern("connectUNIXSSL", nullptr, cert, pkey, -1, xsink);
 }
 
 int QoreSocket::sendi1(char i) {
@@ -1744,7 +1754,7 @@ int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xs
    }
    if (priv->ssl)
       return 0;
-   return priv->upgradeClientToSSLIntern("upgradeClientToSSL", cert, pkey, -1, xsink);
+   return priv->upgradeClientToSSLIntern("upgradeClientToSSL", nullptr, cert, pkey, -1, xsink);
 }
 
 int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
@@ -1754,7 +1764,7 @@ int QoreSocket::upgradeClientToSSL(X509* cert, EVP_PKEY* pkey, int timeout_ms, E
    }
    if (priv->ssl)
       return 0;
-   return priv->upgradeClientToSSLIntern("upgradeClientToSSL", cert, pkey, timeout_ms, xsink);
+   return priv->upgradeClientToSSLIntern("upgradeClientToSSL", nullptr, cert, pkey, timeout_ms, xsink);
 }
 
 int QoreSocket::upgradeServerToSSL(X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink) {

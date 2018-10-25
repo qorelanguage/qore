@@ -229,11 +229,18 @@ iOoM95849mZNSaYpIsF41wsZ5aQm1HhZmrKo1W8SvHhbQEOg8T+VWSUYdi8IL02k
     }
 
     constructor() : Test("HttpClientTest", "1.0") {
+        addTestCase("issue 3053", \issue3053());
         addTestCase("HttpClient Test", \testClient());
         addTestCase("SSL read test", \sslReadTest());
         addTestCase("issue 2610", \issue2610());
 
         set_return_value(main());
+    }
+
+    issue3053() {
+        HTTPClient httpclient({"url":"https://api.exchangeratesapi.io/latest"});
+        hash<auto> h = httpclient.send("", "GET", "https://api.exchangeratesapi.io/latest");
+        assertEq(200, h.status_code);
     }
 
     testClient() {
