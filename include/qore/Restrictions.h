@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  Restrictions.h
+    Restrictions.h
 
-  QORE programming language
+    QORE programming language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_RESTRICTIONS_H
@@ -89,6 +89,8 @@
 #define PO_NO_INHERIT_SYSTEM_HASHDECLS      (1LL << 49)  //!< do not inherit system hashdecls from the parent into the new program's space
 #define PO_ALLOW_WEAK_REFERENCES            (1LL << 50)  //!< allow the use of the weak reference assignment operator ':='
 #define PO_ALLOW_DEBUGGER                   (1LL << 51)  //!< allow the use debugger stuff
+#define PO_ALLOW_STATEMENT_NO_EFFECT        (1LL << 52)  //!< allow for old pre-%Qore 0.9 top-level statements having no effect
+#define PO_NO_REFLECTION                    (1LL << 53)  //!< disallow the use of reflection
 
 // aliases for old defines
 #define PO_NO_SYSTEM_FUNC_VARIANTS          PO_NO_INHERIT_SYSTEM_FUNC_VARIANTS
@@ -113,8 +115,8 @@
 //! prohibits all terminal and file I/O and GUI operations
 #define PO_NO_IO                      (PO_NO_GUI|PO_NO_TERMINAL_IO|PO_NO_FILESYSTEM|PO_NO_NETWORK|PO_NO_DATABASE|PO_NO_UNCONTROLLED_APIS)
 
-//! most restrictive access - can just execute logic, no I/O, no threading, no external access
-#define PO_LOCKDOWN                   (PO_NO_EXTERNAL_ACCESS|PO_NO_THREADS|PO_NO_IO)
+//! most restrictive access - can just execute logic, no I/O, no threading, no external access, no reflection
+#define PO_LOCKDOWN                   (PO_NO_EXTERNAL_ACCESS|PO_NO_THREADS|PO_NO_IO|PO_NO_REFLECTION)
 
 //! new Qore style: no more '$' and with assumed variable scope
 #define PO_NEW_STYLE                  (PO_ALLOW_BARE_REFS|PO_ASSUME_LOCAL)
@@ -161,6 +163,7 @@
 #define QDOM_EMBEDDED_LOGIC     PO_NO_EMBEDDED_LOGIC      //!< provides dynamic parsing functionality
 #define QDOM_INJECTION          PO_ALLOW_INJECTION        //!< provides functionality related to code / dependency injection
 #define QDOM_UNCONTROLLED_API   PO_NO_UNCONTROLLED_APIS   //!< provides unchecked access to system functionality that could bypass Qore's sandboxing controls
-#define QDOM_DEBUGGER           PO_ALLOW_DEBUGGER         //!< allow the use debugger stuff
+#define QDOM_DEBUGGER           PO_ALLOW_DEBUGGER         //!< provides debugger functionality
+#define QDOM_REFLECTION         PO_NO_REFLECTION          //!< provides reflection functionality
 
 #endif //_QORE_DOMAIN_H

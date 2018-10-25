@@ -1,4 +1,4 @@
-/** @page dbi_drivers Implementing Qore DBI Drivers
+/** @page dbi_drivers_page Implementing Qore DBI Drivers
 
     @section dbi_drivers Implementing Qore DBI Drivers
 
@@ -255,7 +255,9 @@
 
    @subsection dbi_abort_transaction_start DBI AbortTransactionStart Method
 
-   Function signature: \ref q_dbi_abort_transaction_start_t
+   \b "This is not implemented in Qore in 0.9"
+
+   Function signature: \c q_dbi_abort_transaction_start_t
 
    This function is required for datasources that implement the \ref dbi_begin_transaction "begin_transaction" method, and if an error occurs as the first statement of after the  \ref dbi_begin_transaction "begin_transaction" method is implictly executed, a \ref dbi_rollback "rollback" call must immediately be made in order to continue to use the connection.
 

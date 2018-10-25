@@ -1,32 +1,32 @@
 /* -*- indent-tabs-mode: nil -*- */
 /*
-  QoreNumberNode.cpp
+    QoreNumberNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2016 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -349,64 +349,32 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
 QoreNumberNode::QoreNumberNode(struct qore_number_private* p) : SimpleValueQoreNode(NT_NUMBER), priv(p) {
 }
 
-QoreNumberNode::QoreNumberNode(const QoreValue& n) : SimpleValueQoreNode(NT_NUMBER), priv(0) {
-   qore_type_t t = n.getType();
-   if (t == NT_NUMBER) {
-      priv = new qore_number_private(*(n.get<const QoreNumberNode>()->priv));
-      return;
-   }
+QoreNumberNode::QoreNumberNode(const QoreValue n) : SimpleValueQoreNode(NT_NUMBER), priv(nullptr) {
+    qore_type_t t = n.getType();
+    if (t == NT_NUMBER) {
+        priv = new qore_number_private(*(n.get<const QoreNumberNode>()->priv));
+        return;
+    }
 
-   if (t == NT_STRING) {
-      priv = new qore_number_private(n.get<const QoreStringNode>()->getBuffer());
-      return;
-   }
+    if (t == NT_STRING) {
+        priv = new qore_number_private(n.get<const QoreStringNode>()->getBuffer());
+        return;
+    }
 
-   if (t == NT_INT) {
-      priv = new qore_number_private(n.getAsBigInt());
-      return;
-   }
+    if (t == NT_INT) {
+        priv = new qore_number_private(n.getAsBigInt());
+        return;
+    }
 
-   if (t != NT_BOOLEAN
-       && t != NT_DATE
-       && t != NT_NULL
-       && t != NT_FLOAT) {
-      priv = new qore_number_private(0ll);
-      return;
-   }
+    if (t != NT_BOOLEAN
+        && t != NT_DATE
+        && t != NT_NULL
+        && t != NT_FLOAT) {
+        priv = new qore_number_private(0ll);
+        return;
+    }
 
-   priv = new qore_number_private(n.getAsFloat());
-}
-
-QoreNumberNode::QoreNumberNode(const AbstractQoreNode* n) : SimpleValueQoreNode(NT_NUMBER), priv(0) {
-   qore_type_t t = get_node_type(n);
-   if (t == NT_NUMBER) {
-      priv = new qore_number_private(*reinterpret_cast<const QoreNumberNode*>(n)->priv);
-      return;
-   }
-
-   if (t == NT_FLOAT) {
-      priv = new qore_number_private(reinterpret_cast<const QoreFloatNode*>(n)->f);
-      return;
-   }
-
-   if (t == NT_STRING) {
-      priv = new qore_number_private(reinterpret_cast<const QoreStringNode*>(n)->getBuffer());
-      return;
-   }
-
-   if (t == NT_INT || (t > QORE_NUM_TYPES && dynamic_cast<const QoreBigIntNode*>(n))) {
-      priv = new qore_number_private(reinterpret_cast<const QoreBigIntNode*>(n)->val);
-      return;
-   }
-
-   if (t != NT_BOOLEAN
-       && t != NT_DATE
-       && t != NT_NULL) {
-      priv = new qore_number_private(0ll);
-      return;
-   }
-
-   priv = new qore_number_private(n->getAsFloat());
+    priv = new qore_number_private(n.getAsFloat());
 }
 
 QoreNumberNode::QoreNumberNode(double f) : SimpleValueQoreNode(NT_NUMBER), priv(new qore_number_private(f)) {
@@ -493,8 +461,6 @@ AbstractQoreNode* QoreNumberNode::realCopy() const {
 bool QoreNumberNode::is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
    if (v->getType() == NT_NUMBER)
       return equals(*reinterpret_cast<const QoreNumberNode*>(v));
-   if (v->getType() == NT_INT || dynamic_cast<const QoreBigIntNode*>(v))
-      return equals(reinterpret_cast<const QoreBigIntNode*>(v)->val);
 
    return equals(v->getAsFloat());
 }
@@ -511,9 +477,8 @@ const char* QoreNumberNode::getTypeName() const {
    return getStaticTypeName();
 }
 
-AbstractQoreNode* QoreNumberNode::parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   typeInfo = numberTypeInfo;
-   return this;
+void QoreNumberNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    typeInfo = numberTypeInfo;
 }
 
 bool QoreNumberNode::zero() const {
