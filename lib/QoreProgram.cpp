@@ -2165,6 +2165,14 @@ const TypedHashDecl* QoreProgram::findHashDecl(const char* path, const QoreNames
     return th;
 }
 
+// issue #1796: include a non-const variant for binary modules
+QoreNamespace* QoreProgram::findNamespace(const QoreString& path) {
+    if (path == "::") {
+        return priv->RootNS;
+    }
+    return qore_root_ns_private::get(*priv->RootNS)->runtimeFindNamespace(path);
+}
+
 const QoreNamespace* QoreProgram::findNamespace(const QoreString& path) const {
     if (path == "::") {
         return priv->RootNS;
