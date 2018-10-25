@@ -73,6 +73,10 @@ module FsUtil {
     @ref FsUtil::same_file()
     @ref FsUtil::same_file_stat()
 
+    And the following multiplatform classes:
+    @ref FsUtil::TmpDir
+    @ref FsUtil::TmpFile
+
     Also classes for platform specific operations are available:
     @ref FsUtil::PosixPathHandler
     @ref FsUtil::WinPathHandler
