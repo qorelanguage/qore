@@ -73,6 +73,10 @@ module FsUtil {
     @ref FsUtil::same_file()
     @ref FsUtil::same_file_stat()
 
+    And the following multiplatform classes:
+    @ref FsUtil::TmpDir
+    @ref FsUtil::TmpFile
+
     Also classes for platform specific operations are available:
     @ref FsUtil::PosixPathHandler
     @ref FsUtil::WinPathHandler
@@ -467,7 +471,7 @@ public namespace FsUtil {
     */
     public sub remove_file(string path) {
         if (unlink(path) != 0) {
-            throw "REMOVE-FILE-ERROR", sprintf("Unable to remove %s: %s\n", path, strerror());
+            throw "REMOVE-FILE-ERROR", sprintf("Unable to remove %s: %s", path, strerror());
         }
     }
 
