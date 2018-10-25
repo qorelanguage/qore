@@ -1,4 +1,4 @@
-/** @page builtin_functions Qore Builtin Functions
+/** @page builtin_functions_page Qore Builtin Functions
     @section builtin_functions Qore Builtin Functions
 
     To add a builtin function to the library, you have to call BuiltinFunctionList::add().  The BuiltinFunctionList class only contains static functions, but it can also be accessed through the global \c builtinFunctions object.

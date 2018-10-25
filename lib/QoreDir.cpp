@@ -33,11 +33,41 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QoreDir.h"
+#include <sstream>
+#include <fstream>
 
 #include "qore/intern/qore_qd_private.h"
 
 const QoreEncoding *QoreDir::getEncoding() const {
    return priv->getEncoding();
+}
+
+/* static */
+bool QoreDir::file_exists(const QoreString& filePath) {
+    struct stat buffer;
+    if (::stat(filePath.c_str(), &buffer) == 0) {
+        return S_ISREG(buffer.st_mode);
+    }
+    return false;
+}
+
+/* static */
+bool QoreDir::folder_exists(const QoreString& folderPath, ExceptionSink& xsink, const QoreEncoding* cs) {
+    QoreDir dir(&xsink, cs, folderPath.c_str());
+    assert(!xsink);
+    return !xsink && !dir.checkPath();
+}
+
+/* static */
+std::string QoreDir::get_file_content(const QoreString& fullPath) {
+    if (!file_exists(fullPath.c_str())) {
+      return "";
+    }
+
+    std::ifstream file(fullPath.c_str());
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
 }
 
 QoreDir::QoreDir(ExceptionSink *xsink, const QoreEncoding *cs, const char *dir) : priv(new qore_qd_private(xsink, cs, dir)) {}
