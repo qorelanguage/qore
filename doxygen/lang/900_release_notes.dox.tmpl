@@ -180,6 +180,9 @@
       - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
         - fixed schema alignment when there are functions to be dropped
           (<a href="https://github.com/qorelanguage/qore/issues/2963">issue 2963</a>)
+    - fixed a bug in secure socket TLS communication making it impossible to talk to servers
+      that require <a href="https://en.wikipedia.org/wiki/Server_Name_Indication">SNI</a>
+      (<a href="https://github.com/qorelanguage/qore/issues/3053">issue 3053</a>)
     - fixed a deadlock in @ref Qore::FtpClient::put() "FtpClient::put()" with zero-length files
       (<a href="https://github.com/qorelanguage/qore/issues/3033">issue 3033</a>)
     - fixed an error respecting the I/O timeout in @ref Qore::FtpClient::put() "FtpClient::put()"
