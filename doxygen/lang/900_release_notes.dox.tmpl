@@ -2,6 +2,23 @@
 
     @tableofcontents
 
+    @section qore_08138 Qore 0.8.13.8
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08138_bug_fixes Bug Fixes in Qore
+    - fixed a bug in secure socket TLS communication making it impossible to talk to servers
+      that require <a href="https://en.wikipedia.org/wiki/Server_Name_Indication">SNI</a>
+      (<a href="https://github.com/qorelanguage/qore/issues/3053">issue 3053</a>)
+    - fixed a deadlock in @ref Qore::FtpClient::put() "FtpClient::put()" with zero-length files
+      (<a href="https://github.com/qorelanguage/qore/issues/3038">issue 3038</a>)
+    - fixed an error respecting the I/O timeout in @ref Qore::FtpClient::put() "FtpClient::put()"
+      with @ref Qore::InputStream "InputStream" argugments
+      (<a href="https://github.com/qorelanguage/qore/issues/3032">issue 3032</a>)
+    - fixed an error where @ref Qore::FtpClient "FtpClient" \c PORT operations would not time out
+      (<a href="https://github.com/qorelanguage/qore/issues/3031">issue 3031</a>)
+
     @section qore_08137 Qore 0.8.13.7
 
     @par Release Summary
@@ -15,16 +32,6 @@
       - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
         - fixed schema alignment when there are functions to be dropped
           (<a href="https://github.com/qorelanguage/qore/issues/2963">issue 2963</a>)
-    - fixed a bug in secure socket TLS communication making it impossible to talk to servers
-      that require <a href="https://en.wikipedia.org/wiki/Server_Name_Indication">SNI</a>
-      (<a href="https://github.com/qorelanguage/qore/issues/3053">issue 3053</a>)
-    - fixed a deadlock in @ref Qore::FtpClient::put() "FtpClient::put()" with zero-length files
-      (<a href="https://github.com/qorelanguage/qore/issues/3033">issue 3033</a>)
-    - fixed an error respecting the I/O timeout in @ref Qore::FtpClient::put() "FtpClient::put()"
-      with @ref Qore::InputStream "InputStream" argugments
-      (<a href="https://github.com/qorelanguage/qore/issues/3032">issue 3032</a>)
-    - fixed an error where @ref Qore::FtpClient "FtpClient" \c PORT operations would not time out
-      (<a href="https://github.com/qorelanguage/qore/issues/3031">issue 3031</a>)
     - fixed a race condition in @ref Qore::Thread::ThreadPool "ThreadPool" destruction that could
       cause a crash
       (<a href="https://github.com/qorelanguage/qore/issues/2906">issue 2906</a>)
