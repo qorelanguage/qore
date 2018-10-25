@@ -467,7 +467,7 @@ public namespace FsUtil {
     */
     public sub remove_file(string path) {
         if (unlink(path) != 0) {
-            throw "REMOVE-FILE-ERROR", sprintf("Unable to remove %s: %s\n", path, strerror());
+            throw "REMOVE-FILE-ERROR", sprintf("Unable to remove %s: %s", path, strerror());
         }
     }
 
