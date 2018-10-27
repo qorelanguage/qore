@@ -15,7 +15,7 @@ class FileTest inherits QUnit::Test {
     public {
         const Data = "äsdfaä";
 
-        const Script = "printf(\"%s\\n\", stdin.readBinary(1).toHex());";
+        const Script = "printf(\"%s\", stdin.readBinary(10).toHex());";
     }
 
     constructor() : QUnit::Test("File", "1.0") {
@@ -51,13 +51,13 @@ class FileTest inherits QUnit::Test {
         string fn = sprintf("%s/%s", tmp_location(), get_random_string());
         {
             File f();
-            f.open2(fn);
+            f.open2(fn, O_CREAT|O_WRONLY|O_TRUNC);
             f.write(Script);
         }
         on_exit unlink(fn);
 
         # this test works on all platforms but was made for Windows
-        string hex = backquote("qore -ne \"printf(\\\"a\\r\\n\\\");\" | qore " + fn);
+        string hex = backquote('qore -ne "printf(\"a\r\n\");" | qore ' + fn);
         assertEq("610d0a", hex);
     }
 }
