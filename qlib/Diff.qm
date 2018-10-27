@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Diff.qm Qore user module for generally useful routines
+#! @file Diff.qm Qore user module for generally useful routines
 
 /*  Diff.qm Copyright 2014 - 2015 Qore Technologies, sro
 

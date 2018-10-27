@@ -11,9 +11,15 @@ option(QORE_RUNTIME_THREAD_STACK_TRACE
        ON)
 
 set(VERSION_MAJOR 0)
-set(VERSION_MINOR 8)
-set(VERSION_SUB 13)
-set(VERSION_PATCH 8)
+set(VERSION_MINOR 9)
+set(VERSION_SUB 0)
+
+STRING(LENGTH ${VERSION_SUB} SUB_LEN)
+if (${SUB_LEN} EQUAL 1)
+    set(VERSION_FORMATTED_SUB 0${VERSION_SUB})
+else()
+    set(VERSION_FORMATTED_SUB ${VERSION_SUB})
+endif()
 
 if(DEFINED VERSION_PATCH)
     set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_SUB}.${VERSION_PATCH})
@@ -52,6 +58,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/include/qore )
 
 include(CheckIncludeFiles)
 include(GNUInstallDirs)
+
+# issue #2994: ensure that the arch-specific libdir is used on Debian/Ubuntu
+check_libdir_arch()
 
 set(prefix ${CMAKE_INSTALL_PREFIX})
 set(exec_prefix ${CMAKE_INSTALL_PREFIX})
@@ -103,6 +112,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_InputStreamLineIterator.qpp
     lib/QC_SingleValueIterator.qpp
     lib/QC_AbstractDatasource.qpp
+    lib/QC_AbstractSQLStatement.qpp
     lib/QC_RangeIterator.qpp
     lib/QC_Datasource.qpp
     lib/QC_DatasourcePool.qpp
@@ -129,6 +139,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_SSLCertificate.qpp
     lib/QC_SSLPrivateKey.qpp
     lib/QC_ThreadPool.qpp
+    lib/QC_StreamBase.qpp
     lib/QC_InputStream.qpp
     lib/QC_BinaryInputStream.qpp
     lib/QC_StringInputStream.qpp
@@ -301,9 +312,11 @@ qore_search_libs(LIBQORE_LIBS gethostbyname nsl)
 qore_search_libs(LIBQORE_LIBS clock_gettime rt)
 
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${LIBQORE_LIBS})
-qore_check_funcs(access alarm atoll bzero chown clock_gettime doprnt exp2 floor fork fsync getaddrinfo getegid geteuid getgid getgrgid_r getgrnam_r getgroups gethostbyaddr gethostbyname gethostname getnameinfo getppid getpwnam_r getpwuid_r getsockopt gettimeofday getuid glob gmtime_r inet_ntop inet_pton isblank kill lchown localtime_r lstat memmem memmove memset mkfifo mkfifo nanosleep poll pthread_attr_getstacksize putenv random readlink realloc realpath regcomp round select setegid setegid setenv seteuid seteuid setgid setgroups setsid setsockopt setuid setuid sleep socket strcasecmp strcasestr strchr strdup strerror strncasecmp strspn strstr strtoll strtol symlink system tbbmalloc timegm unsetenv usleep vfork vprintf)
+qore_check_funcs(access alarm atoll bzero chown clock_gettime doprnt exp2 floor fork fsync getaddrinfo getegid geteuid getgid getgrgid_r getgrnam_r getgroups gethostbyaddr gethostbyname gethostname getifaddrs getnameinfo getppid getpwnam_r getpwuid_r getsockopt gettimeofday getuid glob gmtime_r inet_ntop inet_pton isblank kill lchown localtime_r lstat memmem memmove memset mkfifo mkfifo nanosleep poll pthread_attr_getstacksize putenv random readlink realloc realpath regcomp round select setegid setegid setenv seteuid seteuid setgid setgroups setsid setsockopt setuid setuid sleep socket strcasecmp strcasestr strchr strdup strerror strncasecmp strspn strstr strtoll strtol symlink system tbbmalloc timegm unsetenv usleep vfork vprintf)
 qore_func_strerror_r()
 qore_gethost_checks()
+qore_find_pthread_setname_np()
+qore_find_pthread_getattr_np()
 unset(CMAKE_REQUIRED_LIBRARIES)
 
 qore_other_checks()
@@ -383,9 +396,6 @@ set(LIBQORE_CPP_SRC
     lib/qore_date_private.cpp
     lib/QoreHashNode.cpp
     lib/BinaryNode.cpp
-    lib/QoreBigIntNode.cpp
-    lib/QoreBoolNode.cpp
-    lib/QoreFloatNode.cpp
     lib/QoreNumberNode.cpp
     lib/QoreNullNode.cpp
     lib/QoreNothingNode.cpp
@@ -398,7 +408,6 @@ set(LIBQORE_CPP_SRC
     lib/QoreImplicitArgumentNode.cpp
     lib/QoreImplicitElementNode.cpp
     lib/Function.cpp
-    lib/BuiltinFunctionList.cpp
     lib/GlobalVariableList.cpp
     lib/FunctionList.cpp
     lib/AbstractStatement.cpp
@@ -425,6 +434,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreStandardException.cpp
     lib/QoreClass.cpp
     lib/TypedHashDecl.cpp
+    lib/QoreReflection.cpp
     lib/Context.cpp
     lib/FindNode.cpp
     lib/charset.cpp
@@ -632,12 +642,12 @@ endif (WIN32 AND MINGW AND MSYS)
 
 set_target_properties(libqore PROPERTIES OUTPUT_NAME qore)
 if (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 5)
-    set_target_properties(libqore PROPERTIES SOVERSION 5)
+    set_target_properties(libqore PROPERTIES VERSION 6)
+    set_target_properties(libqore PROPERTIES SOVERSION 6)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 5.14.2)
-    set_target_properties(libqore PROPERTIES SOVERSION 5)
+    set_target_properties(libqore PROPERTIES VERSION 6.0.0)
+    set_target_properties(libqore PROPERTIES SOVERSION 6)
 endif (APPLE)
 
 # prepare qore target
@@ -647,7 +657,7 @@ target_link_libraries(qore libqore)
 #target_link_libraries(qr libqore)
 
 #set_target_properties(qore qr PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
-set_target_properties(qore PROPERTIES INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+set_target_properties(qore PROPERTIES INSTALL_RPATH_USE_LINK_PATH ${CMAKE_INSTALL_FULL_LIBDIR})
 
 # configuration files
 message(STATUS "Generating unix-config.h")
@@ -754,6 +764,8 @@ add_dependencies(install-docs docs)
 
 # astparser module
 add_subdirectory(modules/astparser)
+# reflection module
+add_subdirectory(modules/reflection)
 
 # HACK: we need to simulate QORE_USER_MODULES_DIR as the versioned one
 #       for qore core qlib modules.
@@ -769,6 +781,7 @@ set(QORE_USER_MODULES_DIR ${USER_MODULE_VER_DIR})
 # base modules
 qore_user_module("qlib/DatasourceProvider.qm" "")
 qore_user_module("qlib/DebugUtil.qm" "")
+qore_user_module("qlib/FsUtil.qm" "")
 qore_user_module("qlib/Mapper.qm" "")
 qore_user_module("qlib/Qdx.qm" "")
 qore_user_module("qlib/Qorize.qm" "")
@@ -781,50 +794,49 @@ qore_user_module("qlib/CsvUtil.qm" "Util")
 qore_user_module("qlib/Diff.qm" "Util")
 qore_user_module("qlib/FilePoller.qm" "Util")
 qore_user_module("qlib/FixedLengthUtil.qm" "Util")
+qore_user_module("qlib/Logger.qm" "Util")
 qore_user_module("qlib/Mime.qm" "Util")
 qore_user_module("qlib/QUnit.qm" "Util")
 qore_user_module("qlib/SqlUtil.qm" "Util")
 qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
-qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil")
+qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/DebugProgramControl.qm" "DebugUtil")
+qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
 qore_user_module("qlib/MailMessage.qm" "Mime")
+qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
+qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")
+qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
+qore_user_module("qlib/TableMapper.qm" "Mapper;SqlUtil")
+qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
 qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil")
 
 # base 4 modules
+qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil;DebugProgramControl")
+qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
+qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")
 qore_user_module("qlib/RestSchemaValidator.qm" "HttpServerUtil")
-qore_user_module("qlib/DebugLinenoiseCmdLine.qm" "DebugUtil;DebugCmdLine")
+qore_user_module("qlib/SchemaReverse.qm" "Qorize;Schema;SqlUtil;Util")
+qore_user_module("qlib/SewioWebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil;WebSocketClient")
+qore_user_module("qlib/SmtpClient.qm" "ConnectionProvider;MailMessage;Mime")
+qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
+qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
 
 # base 5 modules
+qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServer;HttpServerUtil;WebSocketHandler;WebSocketUtil")
+qore_user_module("qlib/DebugLinenoiseCmdLine.qm" "DebugUtil;DebugCmdLine")
+qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;HttpServer;Mime;Util;RestSchemaValidator")
 qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator")
 
 # base 6 modules
 qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator;Swagger")
 
 # base 7 modules
-qore_user_module("qlib/BulkSqlUtil.qm" "SqlUtil")
-qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil")
-qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
-qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil")
-qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util")
-qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil")
-qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")
-qore_user_module("qlib/RestHandler.qm" "HttpServerUtil;Mime;Util;RestSchemaValidator")
 qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/SewioRestClient.qm" "ConnectionProvider;Mime;RestClient")
-qore_user_module("qlib/SewioWebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil;WebSocketClient")
-qore_user_module("qlib/SchemaReverse.qm" "Qorize;Schema;SqlUtil;Util")
-qore_user_module("qlib/SmtpClient.qm" "ConnectionProvider;MailMessage;Mime")
-qore_user_module("qlib/TableMapper.qm" "Mapper;SqlUtil")
-qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
-qore_user_module("qlib/WebSocketHandler.qm" "HttpServerUtil;WebSocketUtil")
-qore_user_module("qlib/WebUtil.qm" "HttpServerUtil;Mime;Util")
-
-# base 7 modules
-qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServerUtil;WebSocketHandler;WebSocketUtil")
 
 # print info
 message(STATUS "")

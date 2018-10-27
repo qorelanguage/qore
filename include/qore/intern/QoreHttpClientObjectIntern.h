@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreHttpClientObjectIntern.h
+    QoreHttpClientObjectIntern.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2006 - 2015 Qore Technologies, sro
-  
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Copyright (C) 2006 - 2018 Qore Technologies, s.r.o.
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef QORE_HTTP_CLIENT_OBJECT_INTERN_H_
@@ -38,7 +38,7 @@
 // ssl-enabled protocols are stored as negative numbers, non-ssl as positive
 #define make_protocol(a, b) ((a) * ((b) ? -1 : 1))
 #define get_port(a) ((a) * (((a) < 0) ? -1 : 1))
-#define get_ssl(a) ((a) * (((a) < 0) ? true : false))
+#define get_ssl(a) (((a) < 0) ? true : false)
 
 // protocol map class to recognize user-defined protocols (mostly useful for derived classes)
 typedef std::map<std::string, int> prot_map_t;
@@ -61,23 +61,23 @@ struct con_info {
    DLLLOCAL int set_url(QoreURL &url, bool &port_set, ExceptionSink *xsink) {
       port = 0;
       if (url.getPort()) {
-	 port = url.getPort();
-	 port_set = true;
+         port = url.getPort();
+         port_set = true;
       }
-   
+
       host = url.getHost() ? url.getHost()->getBuffer() : "";
 
       // check if hostname is really a local port number (for a URL string like: "8080")
       if (!url.getPort() && !host.empty()) {
-	 char *aux;
-	 int val = strtol(host.c_str(), &aux, 10);
-	 if (aux == (host.c_str() + host.size())) {
-	    host = HTTPCLIENT_DEFAULT_HOST;
-	    port = val;
-	    port_set = true;
-	 }
+         char *aux;
+         int val = strtol(host.c_str(), &aux, 10);
+         if (aux == (host.c_str() + host.size())) {
+            host = HTTPCLIENT_DEFAULT_HOST;
+            port = val;
+            port_set = true;
+         }
       }
-   
+
       const QoreString *tmp = url.getPath();
       path = tmp ? tmp->getBuffer() : "";
       tmp = url.getUserName();
@@ -86,17 +86,17 @@ struct con_info {
       password = tmp ? tmp->getBuffer() : "";
 
       if (username.empty() && !password.empty()) {
-	 xsink->raiseException("HTTP-CLIENT-URL-ERROR", "invalid authorization credentials: password set without username");
-	 return -1;
+         xsink->raiseException("HTTP-CLIENT-URL-ERROR", "invalid authorization credentials: password set without username");
+         return -1;
       }
 
       if (!username.empty() && password.empty()) {
-	 xsink->raiseException("HTTP-CLIENT-URL-ERROR", "invalid authorization credentials: username set without password");
-	 return -1;
+         xsink->raiseException("HTTP-CLIENT-URL-ERROR", "invalid authorization credentials: username set without password");
+         return -1;
       }
 
       if (!port && !host.empty() && host.c_str()[0] == '/')
-	 is_unix = true;
+         is_unix = true;
 
       return 0;
    }
@@ -104,28 +104,28 @@ struct con_info {
    DLLLOCAL QoreStringNode *get_url() const {
       QoreStringNode *pstr = new QoreStringNode("http");
       if (ssl)
-	 pstr->concat("s://");
+         pstr->concat("s://");
       else
-	 pstr->concat("://");
+         pstr->concat("://");
       if (!username.empty())
-	 pstr->sprintf("%s:%s@", username.c_str(), password.c_str());
+         pstr->sprintf("%s:%s@", username.c_str(), password.c_str());
 
       if (!port) {
-	 // concat and encode "host" when using a UNIX domain socket
-	 pstr->concat("socket=");
-	 for (unsigned i = 0; i < host.size(); ++i) {
-	    char c = host[i];
-	    switch (c) {
-	       case ' ': pstr->concat("%20"); break;
-	       case '/': pstr->concat("%2f"); break;
-	       default: pstr->concat(c); break;
-	    }
-	 }
+         // concat and encode "host" when using a UNIX domain socket
+         pstr->concat("socket=");
+         for (unsigned i = 0; i < host.size(); ++i) {
+            char c = host[i];
+            switch (c) {
+               case ' ': pstr->concat("%20"); break;
+               case '/': pstr->concat("%2f"); break;
+               default: pstr->concat(c); break;
+            }
+         }
       }
       else
-	 pstr->concat(host.c_str());
+         pstr->concat(host.c_str());
       if (port && port != 80)
-	 pstr->sprintf(":%d", port);
+         pstr->sprintf(":%d", port);
       if (!path.empty()) {
          if (path[0] != '/')
             pstr->concat('/');

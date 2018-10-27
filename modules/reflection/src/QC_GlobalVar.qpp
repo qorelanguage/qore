@@ -1,0 +1,339 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_GlobalVar.cpp global variable class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_reflection.h"
+#include "QC_GlobalVar.h"
+#include "QC_Class.h"
+#include "QC_Type.h"
+#include "QC_Namespace.h"
+
+QoreReflectionGlobalVar::QoreReflectionGlobalVar(const char* path, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
+    var = getProgram()->findGlobalVar(path, ns);
+    if (!var) {
+        xsink->raiseException("UNKNOWN-GLOBAL-VAR", "cannot resolve global variable '%s'", path);
+        return;
+    }
+}
+
+QoreObject* QoreReflectionGlobalVar::getVarObject() const {
+    return new QoreObject(QC_GLOBALVAR, pgm, const_cast<QoreReflectionGlobalVar*>(this));
+}
+
+//! The abstract base class for %Qore global variables
+/**
+    @since %Qore 0.9.0
+ */
+qclass GlobalVar [ns=Qore::Reflection; arg=QoreReflectionGlobalVar* v; dom=REFLECTION];
+
+//! Creates the object from the global variable name or namespace-justified path as a string
+/** @par Example:
+    @code{.py}
+GlobalVar var("::ARGV");
+    @endcode
+
+    @param path the global variable name or namespace-justified path as a string
+
+    @throw UNKNOWN-GLOBAL-VAR cannot find a global variable with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see forName()
+ */
+GlobalVar::constructor(string path) {
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    ReferenceHolder<QoreReflectionGlobalVar> var(new QoreReflectionGlobalVar(npath->c_str(), xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+    self->setPrivate(CID_GLOBALVAR, var.release());
+}
+
+//! Returns @ref True if the global variable passed as an argument is equal to the current object; @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = var1.isEqual(var2);
+    @endcode
+
+    @param var the global variable to check with the current object for equality
+
+    @return @ref True if the object passed as an argument is equal to the current object; @ref False if not
+
+    @note if this method is called on user global variables created from the same source code but in different
+    @ref Qore::Program "Program" containers, it will return @ref False
+*/
+bool GlobalVar::isEqual(GlobalVar[QoreReflectionGlobalVar] var) [flags=CONSTANT] {
+    ReferenceHolder<QoreReflectionGlobalVar> holder(var, xsink);
+
+    return v->var == var->var;
+}
+
+//! returns the global variable name
+/** @par Example:
+    @code{.py}
+string name = var.getName();
+    @endcode
+
+    @return the global variable name
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the global variable has been destroyed
+ */
+string GlobalVar::getName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the global variable ptr must be valid
+    return new QoreStringNode(v->var->getName());
+}
+
+//! returns @ref True if the global variable is a builtin global variable
+/** @par Example:
+    @code{.py}
+bool b = var.isBuiltin();
+    @endcode
+
+    @return @ref True if the global variable is a builtin global variable
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the global variable has been destroyed
+
+    @note complementary to @ref isUser()
+*/
+bool GlobalVar::isBuiltin() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the global variable ptr must be valid
+    return v->var->isBuiltin();
+}
+
+//! returns @ref True if the global variable is a user global variable
+/** @par Example:
+    @code{.py}
+bool b = var.isUser();
+    @endcode
+
+    @return @ref True if the global variable is a user global variable
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the global variable has been destroyed
+
+    @note complementary to @ref isBuiltin()
+*/
+bool GlobalVar::isUser() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the global variable ptr must be valid
+    return !v->var->isBuiltin();
+}
+
+//! returns @ref True if the global variable has the @ref mod_public "module public" flag set
+/** @par Example:
+    @code{.py}
+bool b = var.isModulePublic();
+    @endcode
+
+    @return @ref True if the global variable has the @ref mod_public "module public" flag set
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the global variable has been destroyed
+*/
+bool GlobalVar::isModulePublic() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the global variable ptr must be valid
+    return v->var->isModulePublic();
+}
+
+//! Returns the source location of the global variable declaration
+/** @par Example:
+    @code{.py}
+hash<SourceLocationInfo> loc = var.getSourceLocation();
+    @endcode
+
+    @return the source location of the global variable declaration
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the global variable has been destroyed
+*/
+hash<SourceLocationInfo> GlobalVar::getSourceLocation() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the global variable ptr must be valid
+    return v->var->getSourceLocation()->getHash();
+}
+
+//! Returns the type object for this global variable
+/** @par Example:
+    @code{.py}
+Type t = var.getType();
+    @endcode
+
+    @return the type object for this global variable
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the global variable has been destroyed
+*/
+Type GlobalVar::getType() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the global variable ptr must be valid
+    return new QoreObject(QC_TYPE, v->pgm, new QoreType(v->var->getTypeInfo()));
+}
+
+//! Returns the namespace for the global variable
+/** @par Example:
+    @code{.py}
+Namespace ns = var.getNamespace();
+    @endcode
+
+    @return the namespace for the global variable
+ */
+Namespace GlobalVar::getNamespace() [flags=CONSTANT] {
+    return new QoreObject(QC_NAMESPACE, v->pgm, new QoreReflectionNamespace(v->pgm, v->ns));
+}
+
+//! Returns the value of the global variable
+/** @par Example:
+    @code{.py}
+auto val = var.getValue();
+    @endcode
+
+    @return the value of the global variable
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the global variable has been destroyed
+*/
+auto GlobalVar::getValue() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the global variable ptr must be valid
+    return v->var->getReferencedValue();
+}
+
+//! Sets the value of the global variable
+/** @par Example:
+    @code{.py}
+var.setValue(val);
+    @endcode
+
+    @param val the new value of the global variable
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the global variable has been destroyed
+    @throw RUNTIME-TYPE-ERROR value type is not compatible with the global variable's type
+*/
+nothing GlobalVar::setValue(auto val) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the global variable ptr must be valid
+    v->var->setValue(val, xsink);
+}
+
+//! Returns a global variable object corresponding to the name or namespace-justified path provided as an argument
+/** @par Example:
+    @code{.py}
+GlobalVar var = GlobalVar::forName("::ENV");
+    @endcode
+
+    @param path the global variable name or namespace-justified path as a string
+
+    @return a global variable object corresponding to the name or namespace-justified path provided as an argument
+
+    @throw UNKNOWN-GLOBAL-VAR cannot find a global variable with the given name or path
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character
+encoding" and an error occurs during encoding conversion
+ */
+static GlobalVar GlobalVar::forName(string path) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionGlobalVar> var(new QoreReflectionGlobalVar(npath->c_str(), xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the global variable ptr must be valid
+    return var.release()->getVarObject();
+}
+
+//! Returns a list of global variables matching the regular expression pattern argument or an empty list if no global variables match
+/** @par Example:
+    @code{.py}
+# return all accessible global variables that start with the letter "E"
+list<GlobalVar> l = GlobalVar::findAllRegex("^E");
+    @endcode
+
+    @param pattern the regular expression pattern to match
+    @param re_opts see @ref regex_constants for possible values
+
+    @return a list of global variables matching the regular expression pattern argument or an empty list if no global variables match
+*/
+static list<GlobalVar> GlobalVar::findAllRegex(string pattern, *int re_opts) [flags=RET_VALUE_ONLY] {
+    QoreProgram* pgm = getProgram();
+    gvar_vec_t gvar_vec = getProgram()->findAllGlobalVarsRegex(*pattern, re_opts, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_GLOBALVAR->getTypeInfo()), xsink);
+    for (auto& i : gvar_vec) {
+        l->push(new QoreObject(QC_GLOBALVAR, getProgram(), new QoreReflectionGlobalVar(pgm, i.first, i.second)), xsink);
+    }
+
+    return l.release();
+}

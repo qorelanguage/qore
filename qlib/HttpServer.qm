@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file HttpServer.qm HTTP multi-threaded server module definition
+#! @file HttpServer.qm HTTP multi-threaded server module definition
 
 /*  HttpServer.qm Copyright (C) 2012 - 2018 Qore Technologies, s.r.o.
 
@@ -31,7 +31,7 @@
 %new-style
 
 module HttpServer {
-    version = "0.3.12";
+    version = "0.3.13";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -112,6 +112,11 @@ log("started listener on %s", lh.desc);
 
     @section http_relnotes HttpServer Module Release Notes
 
+    @subsection http0313 HttpServer 0.3.13
+    - added support for adding new HTTP methods to the server with the
+      @ref HttpServer::HttpServer::addHttpMethod() "HttpServer::addHttpMethod()" method
+      (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
+
     @subsection http0312 HttpServer 0.3.12
     - added a minimal substring of string bodies received to the log message when logging HTTP requests
     - added logic to allow sensitive data to be masked in log messages (<a href="https://github.com/qorelanguage/qore/issues/1086">issue 1086</a>)
@@ -136,7 +141,7 @@ log("started listener on %s", lh.desc);
         - first, handlers without regexp are considered - if there are some handler with their path matching the request, the one with the longest path is selected
         - otherwise, the first (in order of their registration) handler with regexp that matches the request URI is chosen
       - if no path matches the request, the same logic as before applies
-    - added @ref HttpServer::HttpServer::addListeners(string, hash, *code, *code, *code, *string, int)
+    - added @ref HttpServer::HttpServer::addListeners() "HttpServer::addListeners(string, hash, *code, *code, *code, *string, int)"
     - fixed a bug in @ref HttpServer::HttpServer::addListener() with an integer argument; a UNIX socket was opened instead of a wildcard listener on the given port
     - added the @ref HttpServer::HttpServer::listenerStarted() method to allow for reporting when listeners are actually running since they are started asynchronously
     - added the \c "ssl" key to the listener socket info hash
@@ -621,6 +626,9 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         *string override_encoding;
 
         string http_server_string;
+
+        #! valid HTTP methods
+        hash http_methods = HttpMethods;
     }
     #! @endcond
 
@@ -646,6 +654,13 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
     #! calls stop() and destroys the object
     destructor() {
         stop();
+    }
+
+    #! add a new supported HTTP method
+    /** @param m the HTTP method to add; the string is converted to upper case if necessary
+    */
+    addHttpMethod(string m) {
+        http_methods{m.upr()} = True;
     }
 
     #! returns the HTTP server version string
@@ -1253,7 +1268,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     /** @param bind the bind address; if for any reason there is a path in the bind address, it will be ignored
         @param host the hostname to use in case the bind string is only a port number; if none is passed or the value passed is equal to the return value of @ref Qore::gethostname(), then \c "localhost" is used
 
-        @note reexported from @ref HttpServerUtil::get_url_from_bind()
+        @note reexported from @ref HttpServer::http_get_url_from_bind()
      */
     static string getURLFromBind(softstring bind, *string host) {
         return HttpServer::http_get_url_from_bind(bind, host);
@@ -1427,7 +1442,16 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
     # don't reimplement this method; fix/enhance it in the module
-    final handleRequest(HttpListener listener, Socket s, reference<hash> cx, hash hdr, hash hh, *data body, bool head = False, HttpPersistentHandlerInfo phi) {
+    final handleRequest(HttpListener listener, Socket s, reference<hash> cx, hash hdr, hash hh, *data body, bool head = False, HttpPersistentHandlerInfo phi, hash<auto> info) {
+        if (!http_methods{hdr.method}) {
+            string err = sprintf("unknown / unsupported HTTP method %n", hdr.method);
+            string str = sprintf("%s: received from %s via %s", err, info.address_desc, listener.getListenerSocketInfo().address_desc);
+            listener.logError(str);
+            cx.close = True;
+            sendHttpError(listener, cx, s, 501, err, NOTHING, cx."response-encoding");
+            return;
+        }
+
         foreach string enc in (hh."accept-encoding") {
             *string e = ContentEncodings{enc};
             if (!e)
@@ -1858,6 +1882,10 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         defaultHandler = handlers.handlers{name};
     }
 
+    hash getListenerSocketInfo() {
+        return socket_info;
+    }
+
     copy() {
         throw "COPY-ERROR", "this object cannot be copied";
     }
@@ -2246,17 +2274,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     log(lstr);
                 }
 
-                if (!HttpServer::HttpMethods.(hdr.method)) {
-                    string err = sprintf("unknown / unsupported HTTP method %n", hdr.method);
-                    string str = sprintf("%s: received from %s via %s", err, info.address_desc, socket_info.address_desc);
-                    logError(str);
-                    cx.close = True;
-                    serv.sendHttpError(self, cx, s, 501, err, NOTHING, cx."response-encoding");
-                }
-                else {
-                    cx.uctx = get_thread_data("uctx");
-                    serv.handleRequest(self, s, \cx, hdr, hi, body, hdr.method == "HEAD", phi);
-                }
+                cx.uctx = get_thread_data("uctx");
+                serv.handleRequest(self, s, \cx, hdr, hi, body, hdr.method == "HEAD", phi, info);
 
                 #log("DBG cid %d: cx.close: %y", cx.id, cx.close);
 
