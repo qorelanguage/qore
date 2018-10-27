@@ -8,6 +8,10 @@
     Bugfix release; see details below
 
     @subsection qore_08138_bug_fixes Bug Fixes in Qore
+    - fixed a bug where @ref Qore::stdout, @ref Qore::stdin, @ref Qore::stderr,
+      @ref Qore::stdout_stream, @ref Qore::stdin_stream, and @ref Qore::stderr_stream, would
+      perform automatic CRLF -> LF translations on Windows
+      (<a href="https://github.com/qorelanguage/qore/issues/3061">issue 3061</a>)
     - fixed a bug in secure socket TLS communication making it impossible to talk to servers
       that require <a href="https://en.wikipedia.org/wiki/Server_Name_Indication">SNI</a>
       (<a href="https://github.com/qorelanguage/qore/issues/3053">issue 3053</a>)
