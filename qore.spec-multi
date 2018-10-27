@@ -83,7 +83,7 @@ development but is also useful as a general purpose language.
 %if 0%{?rhel}
 %global libname libqore
 %else
-%global libname libqore5
+%global libname libqore6
 %endif
 %endif
 
@@ -92,8 +92,8 @@ Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.22
 %if %{libname} == "libqore"
-Provides: libqore5 = %{version}
-Obsoletes: libqore5 < 0.9
+Provides: libqore6 = %{version}
+Obsoletes: libqore6 < 0.9
 %endif
 %if 0%{?sles_version}
 BuildArch: %{_target_cpu}
@@ -109,8 +109,8 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.14.2
-%{_libdir}/libqore.so.5
+%{_libdir}/libqore.so.6.0.0
+%{_libdir}/libqore.so.6
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n %{libname}
@@ -265,7 +265,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Thu Oct 25 2018 David Nichols <david@qore.org> 0.9
+* Tue Oct 27 2018 David Nichols <david@qore.org> 0.9
 - updated version to 0.9
 
 * Thu Oct 25 2018 David Nichols <david@qore.org> 0.8.13.8

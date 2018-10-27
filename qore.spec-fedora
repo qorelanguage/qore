@@ -30,8 +30,8 @@ development but is also useful as a general purpose language.
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 0.22
-Provides: libqore5 = %{version}
-Obsoletes: libqore5 < 0.9
+Provides: libqore6 = %{version}
+Obsoletes: libqore6 < 0.9
 
 %description -n libqore
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -42,8 +42,8 @@ This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore
-%{_libdir}/libqore.so.5.14.2
-%{_libdir}/libqore.so.5
+%{_libdir}/libqore.so.6.0.0
+%{_libdir}/libqore.so.6
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n libqore -p /sbin/ldconfig
@@ -174,7 +174,7 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Thu Oct 20 2018 David Nichols <david@qore.org> 0.9-1
+* Tue Oct 27 2018 David Nichols <david@qore.org> 0.9-1
 - updated version to 0.9-1
 
 * Thu Oct 20 2018 David Nichols <david@qore.org> 0.8.13.8-1
