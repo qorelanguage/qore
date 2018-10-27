@@ -93,7 +93,12 @@ class Test inherits QUnit::Test {
         assertEq('test: 1, 2', lle.getMessage());
         assertEq(lle.getThreadId(), gettid());
         assertEq(lle.getTimeStamp(), ts);
-        assertEq(lle.getRelativeTime(), 1D);
+        # get the duration to the same time on the next day; due to DST changes we cannot just add "1D"
+        # as if we do, the test will fail twice a year, when the difference to the same time is 23 hours
+        # or 25 hours
+        date time_to_tomorrow = now();
+        time_to_tomorrow = time_to_tomorrow + 1D - time_to_tomorrow;
+        assertEq(lle.getRelativeTime(), time_to_tomorrow);
 
         Logger l('testLogger');
         lle = new LoggerEvent(l, LoggerLevel::getLevelError(), 'test: %d, %y, %d', (1, new LoggerEventParameter(\sprintf(), '%s:%s:%d:%y', 'A', 'B', 99, (3, 4)), 2));
