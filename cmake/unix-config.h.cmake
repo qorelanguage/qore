@@ -238,7 +238,3 @@
 /* to be set later */
 #define QORE_LIB_CFLAGS ""
 #define QORE_LIB_LDFLAGS ""
-#define MODULE_DIR "@MODULE_DIR@"
-#define MODULE_VER_DIR "@MODULE_VER_DIR@"
-#define USER_MODULE_DIR "@USER_MODULE_DIR@"
-#define USER_MODULE_VER_DIR "@USER_MODULE_VER_DIR@"
