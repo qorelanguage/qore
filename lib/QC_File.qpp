@@ -69,7 +69,7 @@ static void FILE_system_constructor(QoreObject* self, int fd, va_list args) {
     f->makeSpecial(fd);
     self->setPrivate(CID_FILE, f);
 #ifdef _Q_WINDOWS
-    // we have to set inary mode on stdin/stdout/stderr so that \r\n is not automatically
+    // we have to set binary mode on stdin/stdout/stderr so that \r\n is not automatically
     // translated to \n causing breakage on Windows
     // note that this only has to be done once per descriptor, meaning that the fix here
     // addresses stdin, stdout, stderr as well as stdin_stream, stdout_stream, and
