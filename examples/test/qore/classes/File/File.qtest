@@ -54,7 +54,7 @@ class FileTest inherits QUnit::Test {
             f.open2(fn);
             f.write(Script);
         }
-        on_exit unlink(f);
+        on_exit unlink(fn);
 
         # this test works on all platforms but was made for Windows
         string hex = backquote("qore -ne \"printf(\\\"a\\r\\n\\\");\" | qore " + fn);
