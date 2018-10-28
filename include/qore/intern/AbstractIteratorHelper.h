@@ -38,8 +38,10 @@
 class AbstractIteratorHelper {
 protected:
     DLLLOCAL static const QoreExternalMethodVariant* getCheckVariant(const char* op, const QoreMethod* m, ExceptionSink* xsink) {
-        const qore_class_private* class_ctx = runtime_get_class();
-        const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(qore_method_private::get(*m)->getFunction()->runtimeFindVariant(xsink, (QoreListNode*)0, false, class_ctx));
+        const qore_class_private* class_ctx;
+        QoreObject* obj;
+        runtime_get_object_and_class(obj, class_ctx);
+        const MethodVariantBase* variant = reinterpret_cast<const MethodVariantBase*>(qore_method_private::get(*m)->getFunction()->runtimeFindVariant(xsink, nullptr, false, class_ctx, obj ? qore_class_private::get(*obj->getClass()) : nullptr));
         // this could throw an exception if the variant is builtin and has functional flags not allowed in the current pgm, for example
         assert(xsink);
         if (*xsink)
