@@ -3190,56 +3190,40 @@ QoreValue QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreLis
     QORE_TRACE("QoreClass::evalMethod()");
     assert(self);
 
-    if (!strcmp(nme, "copy")) {
-        if (args) {
-            xsink->raiseException("COPY-ERROR", "while calling %s::copy(): it is illegal to pass arguments to copy methods", self->getClassName());
-            return QoreValue();
-        }
-        return execCopy(self, xsink);
-    }
-
-    const QoreMethod* w = priv->getMethodForEval(nme, self->getProgram(), xsink);
-    if (*xsink)
-        return QoreValue();
-
-    if (w)
-        return qore_method_private::eval(*w, xsink, self, args);
-
-    // first see if there is a pseudo-method for this
-    QoreClass* qc = nullptr;
-    w = pseudo_classes_find_method(NT_OBJECT, nme, qc);
-    if (w)
-        return qore_method_private::evalPseudoMethod(*w, xsink, 0, self, args);
-    else if (priv->methodGate && !priv->methodGate->inMethod(self)) // call methodGate with unknown method name and arguments
-        return evalMethodGate(self, nme, args, xsink);
-
-    xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method <object>::%s() is available", self->getClassName(), nme, nme);
-    return QoreValue();
+    return priv->evalMethod(self, nme, args, nullptr, xsink);
 }
 
 QoreValue QoreClass::evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
-    printd(5, "QoreClass::evalMethodGate() method: %s args: %p\n", nme, args);
+    return priv->evalMethodGate(self, nme, args, xsink);
+}
+
+QoreValue qore_class_private::evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
+    printd(5, "qore_class_private::evalMethodGate() method: %s args: %p\n", nme, args);
 
     ReferenceHolder<QoreListNode> args_holder(xsink);
 
     // build new argument list
     if (args) {
-        if (args->needs_eval())
+        if (args->needs_eval()) {
             args_holder = args->evalList(xsink);
-        else
+        } else {
             args_holder = args->copy();
-        if (*xsink)
+        }
+        if (*xsink) {
             return QoreValue();
+        }
     }
-    else
+    else {
         args_holder = new QoreListNode;
+    }
 
     args_holder->insert(new QoreStringNode(nme), nullptr);
 
-    if (priv->gate_access)
-        args_holder->insert(priv->runtimeCheckPrivateClassAccess() ? true : false, nullptr);
+    if (gate_access) {
+        args_holder->insert(runtimeCheckPrivateClassAccess() ? true : false, nullptr);
+    }
 
-    return self->evalMethod(*priv->methodGate, *args_holder, xsink);
+    return self->evalMethod(*methodGate, *args_holder, xsink);
 }
 
 bool QoreClass::isPrivateMember(const char* str) const {
@@ -3279,6 +3263,40 @@ QoreObject* QoreClass::execConstructor(const QoreListNode* args, ExceptionSink* 
 
 QoreObject* QoreClass::execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *args, ExceptionSink* xsink) const {
    return priv->execConstructor(reinterpret_cast<const ConstructorMethodVariant*>(mv), args, xsink);
+}
+
+QoreValue qore_class_private::evalMethod(QoreObject* self, const char* nme, const QoreListNode* args, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
+    QORE_TRACE("qore_class_private::evalMethod()");
+    assert(self);
+
+    if (!strcmp(nme, "copy")) {
+        if (args) {
+            xsink->raiseException("COPY-ERROR", "while calling %s::copy(): it is illegal to pass arguments to copy methods", self->getClassName());
+            return QoreValue();
+        }
+        return execCopy(self, xsink);
+    }
+
+    const QoreMethod* w = getMethodForEval(nme, self->getProgram(), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    if (w) {
+        return qore_method_private::eval(*w, xsink, self, args, class_ctx);
+    }
+
+    // first see if there is a pseudo-method for this
+    QoreClass* qc = nullptr;
+    w = pseudo_classes_find_method(NT_OBJECT, nme, qc);
+    if (w) {
+        return qore_method_private::evalPseudoMethod(*w, xsink, nullptr, self, args);
+    } else if (methodGate && !methodGate->inMethod(self)) { // call methodGate with unknown method name and arguments
+        return evalMethodGate(self, nme, args, xsink);
+    }
+
+    xsink->raiseException("METHOD-DOES-NOT-EXIST", "no method %s::%s() has been defined and no pseudo-method <object>::%s() is available", self->getClassName(), nme, nme);
+    return QoreValue();
 }
 
 QoreObject* qore_class_private::execSystemConstructor(QoreObject* self, int code, va_list args) const {
@@ -3714,6 +3732,7 @@ void qore_class_private::parseInitPartialIntern() {
         for (bclist_t::iterator i = scl->begin(), e = scl->end(); i != e; ++i) {
             if ((*i)->sclass) {
                 (*i)->sclass->priv->parseInit();
+
                 //printd(5, "qore_class_private::parseInitPartialIntern() this: %p '%s' merging base class abstract methods from %p '%s'\n", this, name.c_str(), (*i)->sclass, (*i)->sclass->getName());
 
                 // copy pending abstract changes from parent classes to the local class
@@ -4231,10 +4250,15 @@ void MethodFunctionBase::checkFinal() const {
 
 void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase* variant) {
     ClassAccess ma = variant->getAccess();
-    if (access > ma)
+    if (access > ma) {
         access = ma;
-    if (!has_final && variant->isFinal())
+    }
+    if (!has_final && variant->isFinal()) {
         has_final = true;
+    }
+    if (is_abstract && !variant->isAbstract()) {
+        is_abstract = false;
+    }
     addBuiltinVariant(variant);
 }
 
@@ -4242,10 +4266,15 @@ int MethodFunctionBase::parseAddUserMethodVariant(MethodVariantBase* variant) {
     int rc = addPendingVariant(variant);
     if (!rc) {
         ClassAccess ma = variant->getAccess();
-        if (access > ma)
+        if (access > ma) {
             access = ma;
-        if (!has_final && variant->isFinal())
+        }
+        if (!has_final && variant->isFinal()) {
             has_final = true;
+        }
+        if (is_abstract && !variant->isAbstract()) {
+            is_abstract = false;
+        }
     }
     return rc;
 }
@@ -4292,6 +4321,7 @@ void MethodFunctionBase::parseRollbackMethod() {
 }
 
 void MethodFunctionBase::replaceAbstractVariantIntern(MethodVariantBase* variant) {
+    assert(!variant->isAbstract());
     variant->ref();
     AbstractFunctionSignature& sig = *(variant->getSignature());
     for (vlist_t::iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
@@ -4306,6 +4336,9 @@ void MethodFunctionBase::replaceAbstractVariantIntern(MethodVariantBase* variant
     }
     //printd(5, "MethodFunctionBase::replaceAbstractVariantIntern() this: %p adding %p ::%s%s to vlist\n", this, variant, getName(), variant->getAbstractSignature());
     vlist.push_back(variant);
+    if (is_abstract) {
+        is_abstract = false;
+    }
 }
 
 void MethodFunctionBase::replaceAbstractVariant(MethodVariantBase* variant) {
