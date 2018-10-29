@@ -482,6 +482,11 @@ namespace Issue2744_A {
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+<<<<<<< Updated upstream
+=======
+        addTestCase("issue 3073", \issue3073());
+        addTestCase("issue 3070", \issue3070());
+>>>>>>> Stashed changes
         addTestCase("issue 2970", \issue2970());
         addTestCase("issue 2885", \issue2885());
         addTestCase("issue 2744", \issue2744());
@@ -500,6 +505,36 @@ public class ClassesTest inherits QUnit::Test {
         set_return_value(main());
     }
 
+<<<<<<< Updated upstream
+=======
+    issue3073() {
+        assertEq(Type::Hash, call_static_method("Serializable", "serializeToData", 1).type());
+        assertEq(Type::Hash, call_static_method("Qore::Serializable", "serializeToData", 1).type());
+        assertEq(Type::Hash, call_static_method_args("Serializable", "serializeToData", 1).type());
+        assertEq(Type::Hash, call_static_method_args("Qore::Serializable", "serializeToData", 1).type());
+
+        assertThrows("UNKNOWN-CLASS", \call_static_method(), ("XXX", "xxx"));
+        assertThrows("UNKNOWN-CLASS", \call_static_method(), ("XXX::Serializable", "xxx"));
+        assertThrows("UNKNOWN-METHOD", \call_static_method(), ("Serializable", "xxx"));
+        assertThrows("UNKNOWN-CLASS", \call_static_method_args(), ("XXX", "xxx"));
+        assertThrows("UNKNOWN-CLASS", \call_static_method_args(), ("XXX::Serializable", "xxx"));
+        assertThrows("UNKNOWN-METHOD", \call_static_method_args(), ("Serializable", "xxx"));
+    }
+
+    issue3070() {
+        Issue3070_G1 g1();
+        Issue3070_G2 g2();
+        assertEq(1, g1.test1());
+        assertEq(1, g1.get1());
+        assertEq(2, g1.test2());
+        assertEq(2, g1.get2());
+        assertEq(1, g2.test1());
+        assertEq(1, g2.get1());
+        assertEq(2, g2.test2());
+        assertEq(2, g2.get2());
+    }
+
+>>>>>>> Stashed changes
     issue2970() {
         Issue2970_Child c();
         assertEq(2, c.get());
