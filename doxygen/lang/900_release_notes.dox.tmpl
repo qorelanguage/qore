@@ -174,6 +174,8 @@
       - Command line utils display source line code when interrupted
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
+    - fixed a bug handling method calls in complex @ref abstract "abstract" class hierarchies
+      (<a href="https://github.com/qorelanguage/qore/issues/3070">issue 3070</a>)
     - fixed a bug where call references did not set the execution context with builtin functions
       and therefore calls to builtin functions in modules (such as @ref jniintro "jni") with
       per-program private data would fail
