@@ -1185,6 +1185,7 @@ i+ =4;
     - chdir()
     - exit()
     - fork()
+    - get_module_option()
     - load_module()
     - remove_signal_handler()
     - setegid()
@@ -1193,6 +1194,7 @@ i+ =4;
     - setgid()
     - setgroups()
     - setsid()
+    - set_module_option()
     - set_signal_handler()
     - setuid()
     - sleep()
@@ -1294,11 +1296,12 @@ i+ =4;
     - remove_thread_data()
     - remove_thread_resource()
     - save_thread_data()
+    - set_default_thread_stack_size()
+    - set_thread_name()
     - set_thread_resource()
     - throw_thread_resource_exceptions()
     - throw_thread_resource_exceptions_to_mark()
     The following deprecated functions are also unavailable:
-    - getAllThreadCallStacks()
     - throwThreadResourceExceptions()
 
     <hr>
@@ -1315,12 +1318,18 @@ i+ =4;
 
     @par Description:
     Disallows access to functionality that provides information about threading. The following features are unavailable with this option:
-    - get_all_thread_data() function
-    - get_thread_data() function
-    - gettid() function
-    - getAllThreadCallStacks() function
-    - num_threads() function
-    - thread_list() function
+    - get_all_thread_call_stacks()
+    - get_all_thread_data()
+    - get_default_thread_stack_size()
+    - get_stack_size()
+    - get_thread_call_stack()
+    - get_thread_data()
+    - get_thread_name()
+    - gettid()
+    - num_threads()
+    - thread_list()
+    The following deprecated functions are also unavailable:
+    - getAllThreadCallStacks()
 
     <hr>
     @section no-threads %no-threads

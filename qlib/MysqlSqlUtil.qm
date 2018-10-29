@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
+#! @file MysqlSqlUtil.qm Qore user module for working with MySQL SQL data
 
-/*  MysqlSqlUtil.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+/*  MysqlSqlUtil.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,10 +23,10 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.4.1
+%requires SqlUtil >= 1.5
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.2.1";
+    version = "1.3";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -90,6 +90,9 @@ module MysqlSqlUtil {
     constraint on the column.
 
     @section mysql_relnotes Release Notes
+
+    @subsection mysqlsqlutilv13 MysqlSqlUtil v1.3
+    - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
 
     @subsection mysqlsqlutilv121 MysqlSqlUtil v1.2.1
     - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
@@ -143,6 +146,10 @@ public namespace MysqlSqlUtil {
             string type;
         }
 
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractIndex(h) {
+        }
+
         #! creates the object from the arguments
         constructor(string n_name, bool n_unique, hash n_cols, string n_type = "BTREE") : AbstractIndex(n_name, n_unique, n_cols) {
             type = n_type;
@@ -171,6 +178,10 @@ public namespace MysqlSqlUtil {
 
     #! represents a MySQL-specific foreign constraint
     public class MysqlForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractForeignConstraint(h) {
+        }
+
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
         }
 
@@ -202,6 +213,14 @@ public namespace MysqlSqlUtil {
         public {
             #! byte size of the column
             int byte_size;
+        }
+
+        #! empty constructor for subclasses
+        private constructor() {
+        }
+
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractColumn(h) {
         }
 
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
@@ -293,10 +312,43 @@ my string $str = $col.getRenameSql($t, "new_name");
             bool pk = False;
         }
 
+        private {
+            # AUTO_INCREMENT applies only to integer and floating-point types
+            const AUTO_INCREMENT_VALID_TYPES = {
+                # int types
+                "tinyint": True,
+                "smallint": True,
+                "mediumint": True,
+                "int": True,
+                "bigint": True,
+                # float types
+                "float": True,
+                "real": True,
+                "double precision": True,
+            };
+        }
+
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) {
+            deserialize(h.members);
+
+            validateConstructor();
+        }
+
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned = False, bool n_auto_increment = False, bool n_pk = False) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
             unsigned = n_unsigned;
             auto_increment = n_auto_increment;
             pk = n_pk;
+
+            validateConstructor();
+        }
+
+        private validateConstructor() {
+            if (auto_increment && !AUTO_INCREMENT_VALID_TYPES.hasKey(native_type)) {
+                throw "MYSQL-COLUMN-ERROR",
+                      sprintf("AUTO_INCREMENT can be used only with a subset of types. Used: %s, valid types: %n",
+                              native_type, keys AUTO_INCREMENT_VALID_TYPES);
+            }
         }
 
         string getNativeTypeString() {
@@ -316,6 +368,10 @@ my string $str = $col.getRenameSql($t, "new_name");
     }
 
     public class MysqlUniqueConstraintCommon inherits SqlUtil::AbstractUniqueConstraint {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractUniqueConstraint(h) {
+        }
+
         constructor() {
         }
 
@@ -340,6 +396,11 @@ my string $str = $col.getRenameSql($t, "new_name");
     }
 
     public class MysqlUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint, MysqlUniqueConstraintCommon {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) {
+            deserialize(h.members);
+        }
+
         constructor(string n, hash n_cols) : AbstractUniqueConstraint(n, n_cols) {
         }
 
@@ -391,6 +452,11 @@ auto v = c.name;
 
     #! represents a MySQL-specific primary key constraint
     public class MysqlPrimaryKey inherits SqlUtil::AbstractPrimaryKey, MysqlUniqueConstraintCommon {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) {
+            deserialize(h.members);
+        }
+
         constructor() {
         }
 
@@ -443,6 +509,10 @@ auto v = c.name;
 
     #! represents a MySQL-specific trigger
     public class MysqlTrigger inherits SqlUtil::AbstractTrigger {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractTrigger(h) {
+        }
+
         #! creates the object and sets its name and the trigger source
         constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
         }
@@ -470,6 +540,10 @@ auto v = c.name;
 
     #! represents a MySQL-specific function
     public class MysqlFunction inherits SqlUtil::AbstractFunction {
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractFunction(h) {
+        }
+
         constructor(string n, string n_src) : AbstractFunction(n, "function", n_src) {
         }
 
@@ -503,6 +577,10 @@ auto v = c.name;
     public class MysqlSequence inherits SqlUtil::AbstractSequence {
         private {
             string table_name;
+        }
+
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractSequence(h) {
         }
 
         #! creates the object from the arguments
@@ -544,6 +622,10 @@ auto v = c.name;
             *string definer;
             #! security type value
             *string securitytype;
+        }
+
+        #! deserializes the hash to a replica of the original object
+        constructor(hash<SqlUtilDeserialization> h) : AbstractView(h) {
         }
 
         #! creates the object from the arguments
@@ -1868,6 +1950,10 @@ my string $str = $table.getSqlValue($date);
 
         #! db-specific copy actions
         private copyImpl(AbstractTable old) {
+        }
+
+        #! used to deserialize table data
+        constructor(hash<SqlUtilDeserialization> h) : AbstractTable(h) {
         }
     }
 }

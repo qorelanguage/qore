@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ql_object.qpp
+    ql_object.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -34,36 +34,39 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreClassIntern.h"
 
-static QoreObject* create_object_intern(const QoreStringNode* class_name, unsigned arg_offset, const QoreValueList* args, ExceptionSink* xsink) {
-   TempEncodingHelper tmp(class_name, QCS_DEFAULT, xsink);
-   if (!tmp) {
-      assert(*xsink);
-      return 0;
-   }
+static QoreObject* create_object_intern(const QoreStringNode* class_name, unsigned arg_offset, const QoreListNode* args, ExceptionSink* xsink) {
+    TempEncodingHelper tmp(class_name, QCS_DEFAULT, xsink);
+    if (!tmp) {
+        assert(*xsink);
+        return nullptr;
+    }
 
-   const QoreClass* qc = qore_program_private::runtimeFindClass(*getProgram(), tmp->getBuffer(), xsink);
-   if (!qc) {
-      if (!*xsink)
-         xsink->raiseException("CREATE-OBJECT-ERROR", "cannot resolve class '%s' for instantiation", tmp->getBuffer());
-      return 0;
-   }
+    const QoreClass* qc = qore_program_private::runtimeFindClass(*getProgram(), tmp->c_str(), xsink);
+    if (!qc) {
+        if (!*xsink)
+            xsink->raiseException("CREATE-OBJECT-ERROR", "cannot resolve class '%s' for instantiation", tmp->c_str());
+        return nullptr;
+    }
 
-   if (getProgram()->getParseOptions64() & qc->getDomain())
-      xsink->raiseException("CREATE-OBJECT-ERROR", "current Program sandboxing restrictions do not allow access to the '%s' class", qc->getName());
+    if (getProgram()->getParseOptions64() & qc->getDomain())
+        xsink->raiseException("CREATE-OBJECT-ERROR", "current Program sandboxing restrictions do not allow access to the '%s' class", qc->getName());
 
-   if (qore_class_private::runtimeCheckInstantiateClass(*qc, xsink))
-      return 0;
+    if (qore_class_private::runtimeCheckInstantiateClass(*qc, xsink)) {
+        return nullptr;
+    }
 
-   const QoreValueList* real_args;
-   ReferenceHolder<QoreValueList> tmp_args(xsink);
-   if (arg_offset) {
-      tmp_args = args->size() > arg_offset ? args->copyListFrom(arg_offset) : 0;
-      real_args = *tmp_args;
-   }
-   else
-      real_args = args;
+    const QoreListNode* real_args;
+    ReferenceHolder<QoreListNode> tmp_args(xsink);
+    if (arg_offset) {
+        tmp_args = args->size() > arg_offset ? args->copyListFrom(arg_offset) : nullptr;
+        real_args = *tmp_args;
+    }
+    else {
+        real_args = args;
+    }
 
-   return qc->execConstructor(real_args, xsink);
+    //printd(5, "create_object_intern() '%s' offset: %d size: %d (a: %d)\n", tmp->c_str(), arg_offset, real_args ? real_args->size() : 0, args ? args->size() : 0);
+    return qc->execConstructor(real_args, xsink);
 }
 
 /** @defgroup object_functions Object Functions
@@ -80,7 +83,7 @@ static QoreObject* create_object_intern(const QoreStringNode* class_name, unsign
     @deprecated use get_method_list(); camel-case function names were deprecated in %Qore 0.8.12
  */
 list getMethodList(object obj) [flags=CONSTANT,DEPRECATED] {
-   return obj->getClass()->getMethodList();
+    return obj->getClass()->getMethodList();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -103,7 +106,7 @@ list l = get_method_list(obj);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getMethodList()
  */
 list get_method_list(object obj) [flags=CONSTANT] {
-   return obj->getClass()->getMethodList();
+    return obj->getClass()->getMethodList();
 }
 
 //! Calls a method of an object, passing the remainder of the arguments to the function as arguments to the method
@@ -129,15 +132,15 @@ auto result = callObjectMethod(obj, "method", arg1, arg2);
     @deprecated use call_object_method(); camel-case function names were deprecated in %Qore 0.8.12
  */
 auto callObjectMethod(object obj, string method, ...) [flags=DEPRECATED] {
-   ReferenceHolder<QoreListNode> call_args(xsink);
+    ReferenceHolder<QoreListNode> call_args(xsink);
 
-   // if there are arguments to pass
-   if (num_args(args) > 2) {
-      // create argument list by copying current list
-      call_args = args->getOldList(2);
-   }
+    // if there are arguments to pass
+    if (num_args(args) > 2) {
+        // create argument list by copying current list
+        call_args = args->copyListFrom(2);
+    }
 
-   return obj->evalMethod(method, *call_args, xsink);
+    return obj->evalMethod(method, *call_args, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -169,15 +172,15 @@ auto result = call_object_method(obj, "method", arg1, arg2);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case callObjectMethod()
 */
 auto call_object_method(object obj, string method, ...) {
-   ReferenceHolder<QoreListNode> call_args(xsink);
+    ReferenceHolder<QoreListNode> call_args(xsink);
 
-   // if there are arguments to pass
-   if (num_args(args) > 2) {
-      // create argument list by copying current list
-      call_args = args->getOldList(2);
-   }
+    // if there are arguments to pass
+    if (num_args(args) > 2) {
+        // create argument list by copying current list
+        call_args = args->copyListFrom(2);
+    }
 
-   return obj->evalMethod(method, *call_args, xsink);
+    return obj->evalMethod(method, *call_args, xsink);
 }
 
 //! Calls a method of an object, using the optional third argument as the argument list to the method
@@ -198,7 +201,7 @@ auto call_object_method(object obj, string method, ...) {
     @deprecated use call_object_method_args(); camel-case function names were deprecated in %Qore 0.8.12
  */
 auto callObjectMethodArgs(object obj, string method, *softlist<auto> varg) [flags=DEPRECATED] {
-   return obj->evalMethod(method, varg, xsink);
+    return obj->evalMethod(method, varg, xsink);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -230,7 +233,7 @@ auto result = call_object_method_args(obj, "method", arglist);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case callObjectMethodArgs()
 */
 auto call_object_method_args(object obj, string method, *softlist<auto> varg) {
-   return obj->evalMethod(method, varg, xsink);
+    return obj->evalMethod(method, varg, xsink);
 }
 
 //! calls a pseudo-method on the given value
@@ -248,10 +251,10 @@ auto call_object_method_args(object obj, string method, *softlist<auto> varg) {
     @since %Qore 0.8.5
  */
  auto call_pseudo(any val, string meth, ...) {
-   ReferenceHolder<QoreListNode> nargs(xsink);
-   if (args->size() > 2)
-      nargs = args->getOldList(2);
-   return pseudo_classes_eval(val, meth->getBuffer(), *nargs, xsink).takeNode();
+    ReferenceHolder<QoreListNode> nargs(xsink);
+    if (args->size() > 2)
+        nargs = args->copyListFrom(2);
+    return pseudo_classes_eval(val, meth->getBuffer(), *nargs, xsink);
 }
 
 //! calls a pseudo-method on the given value with arguments given as a list
@@ -269,7 +272,7 @@ auto call_object_method_args(object obj, string method, *softlist<auto> varg) {
     @since %Qore 0.8.8
  */
 auto call_pseudo_args(any val, string meth, *softlist<auto> argv) {
-   return pseudo_classes_eval(val, meth->getBuffer(), argv, xsink).takeNode();
+    return pseudo_classes_eval(val, meth->getBuffer(), argv, xsink);
 }
 
 //! creates an object from the class name (which can include a namespace path) and optionally any arguments for the constructor
@@ -317,9 +320,6 @@ object obj = create_object_args(class_name, arg_list);
     @since %Qore 0.8.12
  */
 object create_object_args(string class_name, *softlist<auto> argv) {
-   ReferenceHolder<QoreValueList> arg_list(xsink);
-   if (argv)
-      arg_list = new QoreValueList(argv);
-   return create_object_intern(class_name, 0, *arg_list, xsink);
+    return create_object_intern(class_name, 0, argv, xsink);
 }
 //@}
