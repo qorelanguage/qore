@@ -390,6 +390,8 @@
         - made it possible for FileHandler subclasses to add headers to response (<a href="https://github.com/qorelanguage/qore/issues/2686">issue 2686</a>)
     - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>:
         - improved HTTP log masking to mask fewer false positives when attempting to mask sensitive data (<a href="https://github.com/qorelanguage/qore/issues/2621">issue 2621</a>)
+    - fixed a crashing bug initializing constants with recursive references to code
+      (<a href="https://github.com/qorelanguage/qore/issues/3027">issue 3027</a>)
     - fixed a crashing bug in the @ref plus_equals_operator "+= operator" with objects and hashes when @ref require-types "%require-types" is not in force (<a href="https://github.com/qorelanguage/qore/issues/2634">issue 2634</a>)
     - fixed a crashing bug in the @ref background "background operator" with non-constant hash expressions with local variable references (<a href="https://github.com/qorelanguage/qore/issues/2637">issue 2637</a>)
     - worked around an Oracle bug in materialized view creation in the <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module where when the schema user is missing the <tt>CREATE MATERIALIZED VIEW</tt> grant the table backing the view is created but the materialized view itself is not created causing future creation actions to fail (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
