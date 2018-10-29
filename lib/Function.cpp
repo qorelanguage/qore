@@ -1508,6 +1508,8 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL, then it is identified at run time
 QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
+    const char* fname = getName();
+
     // issue #3027: catch recursive references during parse initialization
     if (!parse_init_done) {
         SimpleRefHolder<QoreStringNode> desc(new QoreStringNode("recursive reference to "));
@@ -1526,7 +1528,6 @@ QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant,
         return QoreValue();
     }
 
-    const char* fname = getName();
     CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
     if (*xsink) return QoreValue();
 
