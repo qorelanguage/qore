@@ -555,17 +555,18 @@ public class ClassesTest inherits QUnit::Test {
     }
 
     issue3073() {
-        assertEq(Type::Hash, call_static_method("Serializable", "serializeToData", 1).type());
-        assertEq(Type::Hash, call_static_method("Qore::Serializable", "serializeToData", 1).type());
-        assertEq(Type::Hash, call_static_method_args("Serializable", "serializeToData", 1).type());
-        assertEq(Type::Hash, call_static_method_args("Qore::Serializable", "serializeToData", 1).type());
+        string fn = get_script_path();
+        assertEq(Type::Hash, call_static_method("ReadOnlyFile", "hstat", fn).type());
+        assertEq(Type::Hash, call_static_method("Qore::ReadOnlyFile", "hstat", fn).type());
+        assertEq(Type::Hash, call_static_method_args("ReadOnlyFile", "hstat", fn).type());
+        assertEq(Type::Hash, call_static_method_args("Qore::ReadOnlyFile", "hstat", fn).type());
 
         assertThrows("UNKNOWN-CLASS", \call_static_method(), ("XXX", "xxx"));
-        assertThrows("UNKNOWN-CLASS", \call_static_method(), ("XXX::Serializable", "xxx"));
-        assertThrows("UNKNOWN-METHOD", \call_static_method(), ("Serializable", "xxx"));
+        assertThrows("UNKNOWN-CLASS", \call_static_method(), ("XXX::ReadOnlyFile", "xxx"));
+        assertThrows("UNKNOWN-METHOD", \call_static_method(), ("ReadOnlyFile", "xxx"));
         assertThrows("UNKNOWN-CLASS", \call_static_method_args(), ("XXX", "xxx"));
-        assertThrows("UNKNOWN-CLASS", \call_static_method_args(), ("XXX::Serializable", "xxx"));
-        assertThrows("UNKNOWN-METHOD", \call_static_method_args(), ("Serializable", "xxx"));
+        assertThrows("UNKNOWN-CLASS", \call_static_method_args(), ("XXX::ReadOnlyFile", "xxx"));
+        assertThrows("UNKNOWN-METHOD", \call_static_method_args(), ("ReadOnlyFile", "xxx"));
     }
 
     issue2970() {
