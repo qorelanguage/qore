@@ -624,6 +624,7 @@ protected:
     bool nn_same_return_type : 1;
     bool parse_rt_done : 1;
     bool parse_init_done : 1;
+    bool parse_init_in_progress : 1;
     bool has_user : 1;                   // has at least 1 committed user variant
     bool has_builtin : 1;                // has at least 1 committed builtin variant
     bool has_pub : 1;                    // has at least 1 committed user variant with public visibility
@@ -714,6 +715,7 @@ public:
         nn_same_return_type(true),
         parse_rt_done(true),
         parse_init_done(true),
+        parse_init_in_progress(false),
         has_user(false),
         has_builtin(false),
         has_pub(false),
@@ -737,6 +739,7 @@ public:
             nn_same_return_type(old.nn_same_return_type),
             parse_rt_done(true),
             parse_init_done(true),
+            parse_init_in_progress(false),
             has_user(old.has_user),
             has_builtin(old.has_builtin),
             has_pub(false),
