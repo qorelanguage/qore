@@ -266,8 +266,6 @@ protected:
     ExceptionSink* xsink;
     // method class
     const qore_class_private* qc;
-    // object context
-    const qore_class_private* obj_ctx;
     const QoreProgramLocation* loc;
     QoreListNodeEvalOptionalRefHolder tmp;
     const QoreTypeInfo* returnTypeInfo; // saved return type info
@@ -599,8 +597,8 @@ struct INode {
 typedef std::vector<INode> ilist_t;
 
 struct IList : public ilist_t {
-    DLLLOCAL QoreFunction* getFunction(const qore_class_private* class_ctx, const qore_class_private* obj_ctx,
-        const qore_class_private*& last_class, const_iterator aqfi, bool& internal_access, bool& stop) const;
+    DLLLOCAL QoreFunction* getFunction(const qore_class_private* class_ctx, const qore_class_private*& last_class,
+        const_iterator aqfi, bool& internal_access, bool& stop) const;
 };
 
 class QoreFunction : protected QoreReferenceCounter {
@@ -964,9 +962,9 @@ public:
 
     // find variant at runtime
     // class_ctx is only for use in a class hierarchy and is only set if there is a current class context and it's reachable from the object being executed
-    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(ExceptionSink* xsink, const QoreListNode* args, bool only_user, const qore_class_private* class_ctx, const qore_class_private* obj_ctx) const;
+    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindVariant(ExceptionSink* xsink, const QoreListNode* args, bool only_user, const qore_class_private* class_ctx) const;
 
-    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindExactVariant(ExceptionSink* xsink, const type_vec_t& args, const qore_class_private* class_ctx, const qore_class_private* obj_ctx = nullptr) const;
+    DLLLOCAL const AbstractQoreFunctionVariant* runtimeFindExactVariant(ExceptionSink* xsink, const type_vec_t& args, const qore_class_private* class_ctx) const;
 
     DLLLOCAL void parseAssimilate(QoreFunction& other) {
         while (!other.vlist.empty()) {
