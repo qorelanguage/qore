@@ -1508,11 +1508,30 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL, then it is identified at run time
 QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
-   const char* fname = getName();
-   CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
-   if (*xsink) return QoreValue();
+    const char* fname = getName();
 
-   return variant->evalFunction(fname, ceh, xsink);
+    // issue #3027: catch recursive references during parse initialization
+    if (!parse_init_done) {
+        SimpleRefHolder<QoreStringNode> desc(new QoreStringNode("recursive reference to "));
+        const char* class_name = className();
+        if (class_name) {
+            desc->sprintf("method %s::", class_name);
+        } else {
+            desc->concat("function ");
+        }
+        desc->sprintf("%s(", fname);
+        if (variant) {
+            desc->concat(variant->getSignature()->getSignatureText());
+        }
+        desc->concat(") during parse initialization");
+        xsink->raiseException("PARSE-EXCEPTION", desc.release());
+        return QoreValue();
+    }
+
+    CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
+    if (*xsink) return QoreValue();
+
+    return variant->evalFunction(fname, ceh, xsink);
 }
 
 // finds a variant and checks variant capabilities against current
@@ -2025,18 +2044,20 @@ void QoreFunction::parseRollback() {
 }
 
 void QoreFunction::parseInit() {
-   if (parse_init_done)
-      return;
-   parse_init_done = true;
+    if (parse_init_done || parse_init_in_progress) {
+        return;
+    }
+    parse_init_in_progress = true;
 
-   if (parse_same_return_type)
-      parse_same_return_type = same_return_type;
+    if (parse_same_return_type)
+        parse_same_return_type = same_return_type;
 
-   OptionalNamespaceParseContextHelper pch(ns);
+    OptionalNamespaceParseContextHelper pch(ns);
 
-   for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-      (*i)->parseInit(this);
-   }
+    for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
+        (*i)->parseInit(this);
+    }
+    parse_init_done = true;
 }
 
 QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, const qore_class_private* class_ctx, ExceptionSink* xsink) const {

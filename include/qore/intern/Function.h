@@ -609,6 +609,7 @@ protected:
    int nn_count;
    bool parse_rt_done;
    bool parse_init_done;
+   bool parse_init_in_progress = false;
    bool has_user;                   // has at least 1 committed user variant
    bool has_builtin;                // has at least 1 committed builtin variant
    bool has_mod_pub;                // has at least 1 committed user variant with public visibility
