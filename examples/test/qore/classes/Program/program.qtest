@@ -220,7 +220,7 @@ class ProgramTest inherits QUnit::Test {
 
     issue3027Test() {
         Program p(PO_NEW_STYLE);
-        assertThrows("PARSE-EXCEPTION", \p.parse(), ('sub foo() { hash h = T{"foo"}; return h.a; } const T = { "foo": { "a": 1, "b": foo()},};', ""));
+        assertThrows("PARSE-EXCEPTION", \p.parse(), ('sub foo() { hash h = T{"foo"}; return h.a; } const T = { "foo": { "a": 1, "b": foo()},}; foo();', ""));
     }
 
     issueModuleCmdTest() {

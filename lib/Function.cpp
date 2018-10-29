@@ -1385,6 +1385,25 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL, then it is identified at run time
 QoreValue QoreFunction::evalFunction(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, QoreProgram *pgm, ExceptionSink* xsink) const {
     const char* fname = getName();
+
+    // issue #3027: catch recursive references during parse initialization
+    if (!parse_init_done) {
+        SimpleRefHolder<QoreStringNode> desc(new QoreStringNode("recursive reference to "));
+        const char* class_name = className();
+        if (class_name) {
+            desc->sprintf("method %s::", class_name);
+        } else {
+            desc->concat("function ");
+        }
+        desc->sprintf("%s(", fname);
+        if (variant) {
+            desc->concat(variant->getSignature()->getSignatureText());
+        }
+        desc->concat(") during parse initialization");
+        xsink->raiseException("PARSE-EXCEPTION", desc.release());
+        return QoreValue();
+    }
+
     CodeEvaluationHelper ceh(xsink, this, variant, fname, args);
     if (*xsink) return QoreValue();
     // issue #3024: make the caller's call context available
@@ -1902,9 +1921,10 @@ void QoreFunction::parseRollback() {
 }
 
 void QoreFunction::parseInit(qore_ns_private* ns) {
-    if (parse_init_done)
+    if (parse_init_done || parse_init_in_progress) {
         return;
-    parse_init_done = true;
+    }
+    parse_init_in_progress = true;
 
     if (check_parse) {
         OptionalNamespaceParseContextHelper pch(ns);
@@ -1913,6 +1933,7 @@ void QoreFunction::parseInit(qore_ns_private* ns) {
             (*i)->parseInit(this);
         }
     }
+    parse_init_done = true;
 }
 
 QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, QoreProgram* pgm, const QoreListNode* args, QoreObject *self, const qore_class_private* class_ctx, ExceptionSink* xsink) const {
