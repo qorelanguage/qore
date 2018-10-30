@@ -603,14 +603,24 @@ public:
 };
 
 class OptionalClassObjSubstitutionHelper {
-private:
-   QoreObject* old_obj;
-   const qore_class_private* old_class;
-   bool subst;
-
 public:
-   DLLLOCAL OptionalClassObjSubstitutionHelper(const qore_class_private* qc);
-   DLLLOCAL ~OptionalClassObjSubstitutionHelper();
+    DLLLOCAL OptionalClassObjSubstitutionHelper(const qore_class_private* qc);
+    DLLLOCAL ~OptionalClassObjSubstitutionHelper();
+
+private:
+    QoreObject* old_obj;
+    const qore_class_private* old_class;
+    bool subst;
+};
+
+class OptionalClassOnlySubstitutionHelper {
+public:
+    DLLLOCAL OptionalClassOnlySubstitutionHelper(const qore_class_private* qc);
+    DLLLOCAL ~OptionalClassOnlySubstitutionHelper();
+
+private:
+    const qore_class_private* old_class;
+    bool subst;
 };
 
 class ThreadSafeLocalVarRuntimeEnvironmentHelper {

@@ -146,8 +146,9 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
     }
 
     tmp.assignEval(args);
-    if (*xsink)
+    if (*xsink) {
         return;
+    }
 
     init(func, variant, is_copy, cctx);
 }
@@ -163,8 +164,9 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
     }
 
     tmp.assignEval(args);
-    if (*xsink)
+    if (*xsink) {
         return;
+    }
 
     init(func, variant, is_copy, cctx);
 }
@@ -176,9 +178,10 @@ CodeEvaluationHelper::~CodeEvaluationHelper() {
         qore_es_private::addStackInfo(*xsink, ct, qc ? qc->name.c_str() : nullptr, name, *loc);
 }
 
-void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy, const qore_class_private* cctx) {
+void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
+    const qore_class_private* cctx) {
     // issue #2145: set the call reference class context only after arguments are evaluated
-    OptionalClassObjSubstitutionHelper osh(cctx);
+    OptionalClassOnlySubstitutionHelper cosh(cctx);
 
     if (!variant) {
         const qore_class_private* class_ctx = qc ? (cctx ? cctx : runtime_get_class()) : nullptr;

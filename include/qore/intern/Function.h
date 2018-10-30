@@ -272,7 +272,8 @@ protected:
     QoreProgram* pgm; // program used when evaluated (to find stacks for references)
     q_rt_flags_t rtflags; // runtime flags
 
-    DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy, const qore_class_private* cctx);
+    DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
+        const qore_class_private* cctx);
 
 public:
     // saves current program location in case there's an exception
