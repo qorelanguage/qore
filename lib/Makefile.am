@@ -18,7 +18,7 @@ AM_YFLAGS = -d
 
 lib_LTLIBRARIES = libqore.la
 
-bin_PROGRAMS = qpp
+bin_PROGRAMS = qpp$(EXEEXT)
 
 qpp_SOURCES = qpp.cpp
 
@@ -92,7 +92,7 @@ QORE_ALL_SRC = $(QORE_GENERATED_SOURCES) $(QORE_PSEUDO_SRC)
 
 QORE_ALL_QPP_SRC = $(subst cpp,qpp,$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC))
 
-$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC): %.cpp: %.qpp qpp
+$(QORE_QPP_TARGETS) $(QORE_PSEUDO_SRC): %.cpp: %.qpp $(QPP)
 	$(QPP) -V $< -o $@
 
 CLEANFILES = $(QORE_ALL_SRC)
