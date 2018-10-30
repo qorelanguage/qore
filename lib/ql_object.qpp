@@ -34,6 +34,37 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreClassIntern.h"
 
+static QoreValue call_static_method_args_intern(const QoreStringNode* class_name, const QoreStringNode* method, const QoreListNode* args, ExceptionSink* xsink) {
+    TempEncodingHelper cls_path(class_name, QCS_DEFAULT, xsink);
+    if (!cls_path) {
+        assert(*xsink);
+        return QoreValue();
+    }
+    TempEncodingHelper method_name(method, QCS_DEFAULT, xsink);
+    if (!method_name) {
+        assert(*xsink);
+        return QoreValue();
+    }
+    QoreProgram* pgm = getProgram();
+    // we do not need to grab the thread lock, as we are already executing in the current Program object
+    const QoreClass* cls = pgm->findClass(cls_path->c_str(), xsink);
+    if (!cls) {
+        if (!*xsink) {
+            xsink->raiseException("UNKNOWN-CLASS", "cannot resolve class '%s'", cls_path->c_str());
+        }
+        return QoreValue();
+    }
+
+    const QoreMethod* m = cls->findLocalStaticMethod(method_name->c_str());
+    if (!m) {
+        xsink->raiseException("UNKNOWN-METHOD", "cannot resolve static method '%s::%s()'",
+            method_name->c_str(), cls_path->c_str());
+        return QoreValue();
+    }
+
+    return QoreObject::evalStaticMethod(*m, m->getClass(), args, xsink);
+}
+
 static QoreObject* create_object_intern(const QoreStringNode* class_name, unsigned arg_offset, const QoreListNode* args, ExceptionSink* xsink) {
     TempEncodingHelper tmp(class_name, QCS_DEFAULT, xsink);
     if (!tmp) {
@@ -170,6 +201,11 @@ auto result = call_object_method(obj, "method", arg1, arg2);
     @note the method called could cause additional exceptions to be thrown
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case callObjectMethod()
+
+    @see
+    - call_object_method_args()
+    - call_static_method()
+    - call_static_method_args()
 */
 auto call_object_method(object obj, string method, ...) {
     ReferenceHolder<QoreListNode> call_args(xsink);
@@ -231,9 +267,76 @@ auto result = call_object_method_args(obj, "method", arglist);
     @note the method called could cause additional exceptions to be thrown
 
     @since %Qore 0.8.12 as a replacement for deprecated camel-case callObjectMethodArgs()
+
+    @see
+    - call_object_method()
+    - call_static_method()
+    - call_static_method_args()
 */
 auto call_object_method_args(object obj, string method, *softlist<auto> varg) {
     return obj->evalMethod(method, varg, xsink);
+}
+
+//! Calls a static method of an object, passing the arguments to the function as arguments to the method
+/** @par Example:
+    @code{.py}
+auto result = call_static_method("Namespace::Class::method", arg1, arg2);
+    @endcode
+
+    @param class_name the with an optional namespace prefix
+    @param method the static method to call
+    @param ... any additional arguments to the method
+
+    @return the value returned by the method call
+
+    @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
+    @throw ILLEGAL-EXPLICIT-METHOD-CALL The named method may not be called explicitly
+    @throw METHOD-IS-PRIVATE The named method is private and therefore can only be called within the class
+    @throw BASE-CLASS-IS-PRIVATE The named method is a member of a privately inherited base class
+
+    @note the method called could cause additional exceptions to be thrown
+
+    @see
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
+*/
+auto call_static_method(string class_name, string method, ...) {
+    ReferenceHolder<QoreListNode> call_args(xsink);
+    // if there are arguments to pass
+    if (num_args(args) > 2) {
+        // create argument list by copying current list
+        call_args = args->copyListFrom(2);
+    }
+    return call_static_method_args_intern(class_name, method, *call_args, xsink);
+}
+
+//! Calls a static method of an object, passing the arguments to the function as arguments to the method
+/** @par Example:
+    @code{.py}
+auto result = call_static_method("Namespace::Class::method", arg1, arg2);
+    @endcode
+
+    @param class_name the with an optional namespace prefix
+    @param method the static method to call
+    @param call_args any additional arguments to the method
+
+    @return the value returned by the method call
+
+    @throw METHOD-DOES-NOT-EXIST The named method does not exist in this class
+    @throw ILLEGAL-EXPLICIT-METHOD-CALL The named method may not be called explicitly
+    @throw METHOD-IS-PRIVATE The named method is private and therefore can only be called within the class
+    @throw BASE-CLASS-IS-PRIVATE The named method is a member of a privately inherited base class
+
+    @note the method called could cause additional exceptions to be thrown
+
+    @see
+    - call_static_method()
+    - call_object_method()
+    - call_object_method_args()
+*/
+auto call_static_method_args(string class_name, string method, *softlist<auto> call_args) {
+    return call_static_method_args_intern(class_name, method, call_args, xsink);
 }
 
 //! calls a pseudo-method on the given value

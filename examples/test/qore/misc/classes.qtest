@@ -482,6 +482,7 @@ namespace Issue2744_A {
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 3073", \issue3073());
         addTestCase("issue 2970", \issue2970());
         addTestCase("issue 2885", \issue2885());
         addTestCase("issue 2744", \issue2744());
@@ -498,6 +499,21 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue3073() {
+        string fn = get_script_path();
+        assertEq(Type::Hash, call_static_method("ReadOnlyFile", "hstat", fn).type());
+        assertEq(Type::Hash, call_static_method("Qore::ReadOnlyFile", "hstat", fn).type());
+        assertEq(Type::Hash, call_static_method_args("ReadOnlyFile", "hstat", fn).type());
+        assertEq(Type::Hash, call_static_method_args("Qore::ReadOnlyFile", "hstat", fn).type());
+
+        assertThrows("UNKNOWN-CLASS", \call_static_method(), ("XXX", "xxx"));
+        assertThrows("UNKNOWN-CLASS", \call_static_method(), ("XXX::ReadOnlyFile", "xxx"));
+        assertThrows("UNKNOWN-METHOD", \call_static_method(), ("ReadOnlyFile", "xxx"));
+        assertThrows("UNKNOWN-CLASS", \call_static_method_args(), ("XXX", "xxx"));
+        assertThrows("UNKNOWN-CLASS", \call_static_method_args(), ("XXX::ReadOnlyFile", "xxx"));
+        assertThrows("UNKNOWN-METHOD", \call_static_method_args(), ("ReadOnlyFile", "xxx"));
     }
 
     issue2970() {
