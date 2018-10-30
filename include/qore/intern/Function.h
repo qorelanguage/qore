@@ -264,6 +264,7 @@ protected:
     qore_call_t ct;
     const char* name;
     ExceptionSink* xsink;
+    // method class
     const qore_class_private* qc;
     const QoreProgramLocation* loc;
     QoreListNodeEvalOptionalRefHolder tmp;
@@ -271,7 +272,8 @@ protected:
     QoreProgram* pgm; // program used when evaluated (to find stacks for references)
     q_rt_flags_t rtflags; // runtime flags
 
-    DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy, const qore_class_private* cctx);
+    DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
+        const qore_class_private* cctx);
 
 public:
     // saves current program location in case there's an exception
@@ -596,7 +598,8 @@ struct INode {
 typedef std::vector<INode> ilist_t;
 
 struct IList : public ilist_t {
-    DLLLOCAL QoreFunction* getFunction(const qore_class_private* class_ctx, const qore_class_private*& last_class, const_iterator aqfi, bool& internal_access, bool& stop) const;
+    DLLLOCAL QoreFunction* getFunction(const qore_class_private* class_ctx, const qore_class_private*& last_class,
+        const_iterator aqfi, bool& internal_access, bool& stop) const;
 };
 
 class QoreFunction : protected QoreReferenceCounter {
@@ -1050,7 +1053,8 @@ protected:
     mutable MethodFunctionBase* new_copy = nullptr;
 
     bool is_static,
-        has_final = false;
+        has_final = false,
+        is_abstract = true;
 
     ClassAccess access;
 
@@ -1068,6 +1072,7 @@ public:
             qc(n_qc),
             is_static(old.is_static),
             has_final(old.has_final),
+            is_abstract(old.is_abstract),
             access(old.access) {
         //printd(5, "MethodFunctionBase() copying old=%p -> new=%p %p %s::%s() %p %s::%s()\n",& old, this, old.qc, old.qc->getName(), old.getName(), qc, qc->getName(), old.getName());
 
@@ -1123,6 +1128,10 @@ public:
 
     DLLLOCAL bool isUniquelyPrivate() const {
         return access > Public;
+    }
+
+    DLLLOCAL bool isAbstract() const {
+        return is_abstract;
     }
 
     DLLLOCAL ClassAccess getAccess() const {

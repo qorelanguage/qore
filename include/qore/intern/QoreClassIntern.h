@@ -774,15 +774,15 @@ public:
 
 class BuiltinStaticMethod : public StaticMethodFunction {
 public:
-DLLLOCAL BuiltinStaticMethod(const QoreClass* n_qc, const char* mname) : StaticMethodFunction(mname, n_qc) {
-}
+    DLLLOCAL BuiltinStaticMethod(const QoreClass* n_qc, const char* mname) : StaticMethodFunction(mname, n_qc) {
+    }
 
-DLLLOCAL BuiltinStaticMethod(const BuiltinStaticMethod &old, const QoreClass* n_qc) : StaticMethodFunction(old, n_qc) {
-}
+    DLLLOCAL BuiltinStaticMethod(const BuiltinStaticMethod &old, const QoreClass* n_qc) : StaticMethodFunction(old, n_qc) {
+    }
 
-DLLLOCAL virtual MethodFunctionBase* copy(const QoreClass* n_qc) const {
-    return new BuiltinStaticMethod(*this, n_qc);
-}
+    DLLLOCAL virtual MethodFunctionBase* copy(const QoreClass* n_qc) const {
+        return new BuiltinStaticMethod(*this, n_qc);
+    }
 };
 
 // not visible to user code, does not follow abstract class pattern
@@ -2621,6 +2621,10 @@ public:
     DLLLOCAL void generateBuiltinSignature(const char* nspath);
     DLLLOCAL void initializeBuiltin();
 
+    DLLLOCAL QoreValue evalMethod(QoreObject* self, const char* nme, const QoreListNode* args, const qore_class_private* class_ctx, ExceptionSink* xsink) const;
+
+    DLLLOCAL QoreValue evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const;
+
     DLLLOCAL static const QoreMethod* doParseMethodAccess(const QoreMethod* m, const qore_class_private* class_ctx);
 
     DLLLOCAL static const QoreMethod* doMethodAccess(const QoreMethod* m, ClassAccess ma, const qore_class_private* class_ctx) {
@@ -3200,6 +3204,10 @@ public:
 
     DLLLOCAL bool isUniquelyUser() const {
         return all_user;
+    }
+
+    DLLLOCAL bool isAbstract() const {
+        return func->isAbstract();
     }
 
     DLLLOCAL int addUserVariant(MethodVariantBase* variant) {
