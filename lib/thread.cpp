@@ -1464,6 +1464,21 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper() {
    td->current_class = old_class;
 }
 
+OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
+    if (qc) {
+        ThreadData* td  = thread_data.get();
+        old_class = td->current_class;
+        td->current_class = qc;
+    }
+}
+
+OptionalClassOnlySubstitutionHelper::~OptionalClassOnlySubstitutionHelper() {
+    if (subst) {
+        ThreadData* td  = thread_data.get();
+        td->current_class = old_class;
+    }
+}
+
 OptionalClassObjSubstitutionHelper::OptionalClassObjSubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
    if (qc) {
       ThreadData* td  = thread_data.get();
