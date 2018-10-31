@@ -332,7 +332,7 @@ QoreExternalProgramLocationWrapper::~QoreExternalProgramLocationWrapper() {
 
 void QoreExternalProgramLocationWrapper::set(const char* file, int start_line, int end_line,
     const char* source, int offset) {
-    // we need to save strings in case the are epheremal on the caller's side
+    // we need to save strings in case they are epheremal when this object is created
     if (!file) {
         file_str.clear();
     } else {
