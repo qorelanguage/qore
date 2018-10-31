@@ -310,4 +310,8 @@ static inline void makeAccessDeletedObjectException(ExceptionSink *xsink, const 
     xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to access an already-deleted object of class '%s'", cname);
 }
 
+// returns a custom Qore program location for external modules to generate runtime exceptions with the source location
+DLLLOCAL QoreProgramLocation qore_get_program_location(const char* file, int start_line, int end_line,
+    const char* source = nullptr, int offset = 0);
+
 #endif
