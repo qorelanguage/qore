@@ -315,3 +315,8 @@ void ExceptionSink::outOfMemory() {
     _Exit(1);
 #endif
 }
+
+QoreProgramLocation qore_get_program_location(const char* file, int start_line, int end_line,
+    const char* source, int offset) {
+    return QoreProgramLocation(file, start_line, end_line, source, offset);
+}
