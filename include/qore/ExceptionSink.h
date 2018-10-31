@@ -161,6 +161,28 @@ public:
     */
     DLLEXPORT AbstractQoreNode* raiseException(QoreStringNode *err, QoreStringNode* desc);
 
+    //! appends a Qore-language exception to the list; takes owenership of the "desc" argument reference
+    /**
+        @param loc the source location for the exception
+        @param err the exception code string for the exception
+        @param arg the 'arg' member of the Qore-language exception object; will be dereferenced when the QoreException object is destroyed
+        @param desc the description string for the exception; the ExceptionSink object takes ownership of the reference count
+
+        @since %Qore 0.9.0
+    */
+    DLLEXPORT void raiseException(const QoreProgramLocation& loc, const char* err, QoreValue arg, QoreValue desc);
+
+    //! appends a Qore-language exception to the list; takes owenership of the "desc" argument reference
+    /**
+        @param loc the source location for the exception
+        @param err the exception code string for the exception
+        @param arg the 'arg' member of the Qore-language exception object; will be dereferenced when the QoreException object is destroyed
+        @param fmt the format string for the description for the exception
+
+        @since %Qore 0.9.0
+    */
+    DLLEXPORT void raiseException(const QoreProgramLocation& loc, const char* err, QoreValue arg, const char* fmt, ...);
+
     //! sets the "thread_exit" flag; will cause the current thread to terminate
     DLLEXPORT void raiseThreadExit();
 
@@ -194,8 +216,6 @@ public:
 
     DLLLOCAL void raiseException(QoreException* e);
     DLLLOCAL void raiseException(const QoreListNode* n);
-    DLLLOCAL void raiseException(const QoreProgramLocation& loc, const char* err, QoreValue arg, QoreValue desc);
-    DLLLOCAL void raiseException(const QoreProgramLocation& loc, const char* err, QoreValue arg, const char* fmt, ...);
     DLLLOCAL QoreException* catchException();
     DLLLOCAL QoreException* getException();
     DLLLOCAL void overrideLocation(const QoreProgramLocation& loc);
