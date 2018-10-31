@@ -92,7 +92,7 @@ public:
     /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
         @param err the exception code string
         @param fmt the format string for the description for the exception
-        @return always returns 0
+        @return always returns nullptr
     */
     DLLEXPORT AbstractQoreNode* raiseException(const char *err, const char *fmt, ...);
 
@@ -101,7 +101,7 @@ public:
         @param err the exception code string
         @param en the error number (normally "errno")
         @param fmt the format string for the description for the exception
-        @return always returns 0
+        @return always returns nullptr
     */
     DLLEXPORT AbstractQoreNode* raiseErrnoException(const char *err, int en, const char *fmt, ...);
 
@@ -110,7 +110,7 @@ public:
         @param err the exception code string
         @param en the error number (normally "errno")
         @param desc the error description (the ExceptionSink object takes over ownership of the reference count)
-        @return always returns 0
+        @return always returns nullptr
     */
     DLLEXPORT AbstractQoreNode* raiseErrnoException(const char *err, int en, QoreStringNode* desc);
 
@@ -119,7 +119,7 @@ public:
         @param err the exception code string
         @param arg the 'arg' member of the Qore-language exception object; will be dereferenced when the QoreException object is destroyed
         @param fmt the format string for the description for the exception
-        @return always returns 0
+        @return always returns nullptr
     */
     DLLEXPORT AbstractQoreNode* raiseExceptionArg(const char* err, QoreValue arg, const char* fmt, ...);
 
@@ -128,7 +128,7 @@ public:
         @param err the exception code string
         @param arg the 'arg' member of the Qore-language exception object; will be dereferenced when the QoreException object is destroyed
         @param desc the description string for the exception; the ExceptionSink object takes ownership of the reference count
-        @return always returns 0
+        @return always returns nullptr
     */
     DLLEXPORT AbstractQoreNode* raiseExceptionArg(const char* err, QoreValue arg, QoreStringNode* desc);
 
@@ -139,17 +139,31 @@ public:
         @param desc the description string for the exception; the ExceptionSink object takes ownership of the reference count
         @param stack a call stack to prepend to the Qore call stack
 
-        @return always returns 0
+        @return always returns nullptr
 
         @since %Qore 0.8.13
     */
     DLLEXPORT AbstractQoreNode* raiseExceptionArg(const char* err, QoreValue arg, QoreStringNode* desc, const QoreCallStack& stack);
 
+    //! appends a Qore-language exception to the list, and sets the 'arg' member (this object takes over the reference counts of 'arg' and 'desc')
+    /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
+        @param loc the source location for the exception
+        @param err the exception code string
+        @param arg the 'arg' member of the Qore-language exception object; will be dereferenced when the QoreException object is destroyed
+        @param desc the description string for the exception; the ExceptionSink object takes ownership of the reference count
+        @param stack a call stack to prepend to the Qore call stack
+
+        @return always returns nullptr
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT AbstractQoreNode* raiseExceptionArg(const QoreProgramLocation& loc, const char* err, QoreValue arg, QoreStringNode* desc, const QoreCallStack& stack);
+
     //! appends a Qore-language exception to the list; takes owenership of the "desc" argument reference
     /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
         @param err the exception code string
         @param desc the description string for the exception; the ExceptionSink object takes ownership of the reference count
-        @return always returns 0
+        @return always returns nullptr
     */
     DLLEXPORT AbstractQoreNode* raiseException(const char *err, QoreStringNode* desc);
 
@@ -157,7 +171,7 @@ public:
     /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
         @param err the exception code string for the exception; the ExceptionSink object takes ownership of the reference count
         @param desc the description string for the exception; the ExceptionSink object takes ownership of the reference count
-        @return always returns 0
+        @return always returns nullptr
     */
     DLLEXPORT AbstractQoreNode* raiseException(QoreStringNode *err, QoreStringNode* desc);
 
