@@ -316,7 +316,41 @@ void ExceptionSink::outOfMemory() {
 #endif
 }
 
-QoreProgramLocation qore_get_program_location(const char* file, int start_line, int end_line,
+QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper() :
+    loc(new QoreProgramLocation) {
+}
+
+QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper(const char* file, int start_line, int end_line,
+    const char* source, int offset) : file_str(file ? file : ""), source_str(source ? source : ""),
+    loc(new QoreProgramLocation(file_str.c_str(), start_line, end_line,
+        source_str.empty() ? nullptr : source_str.c_str(), offset)) {
+}
+
+QoreExternalProgramLocationWrapper::~QoreExternalProgramLocationWrapper() {
+    delete loc;
+}
+
+void QoreExternalProgramLocationWrapper::set(const char* file, int start_line, int end_line,
     const char* source, int offset) {
-    return QoreProgramLocation(file, start_line, end_line, source, offset);
+    // we need to save strings in case the are epheremal on the caller's side
+    if (!file) {
+        file_str.clear();
+    } else {
+        file_str = file;
+    }
+    if (!source) {
+        source_str.clear();
+    } else {
+        source_str = source;
+    }
+    loc->setFile(file_str.c_str());
+    // the internal storage for start_line is currently 16 bits
+    assert(start_line <= 0xffff);
+    loc->start_line = start_line;
+    // the internal storage for end_line is currently 16 bits
+    assert(end_line <= 0xffff);
+    loc->end_line = end_line;
+    loc->setSource(source_str.c_str());
+    assert(offset <= 0xffff);
+    loc->offset = offset;
 }
