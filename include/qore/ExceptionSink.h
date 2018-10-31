@@ -311,7 +311,29 @@ static inline void makeAccessDeletedObjectException(ExceptionSink *xsink, const 
 }
 
 // returns a custom Qore program location for external modules to generate runtime exceptions with the source location
-DLLLOCAL QoreProgramLocation qore_get_program_location(const char* file, int start_line, int end_line,
-    const char* source = nullptr, int offset = 0);
+class QoreExternalProgramLocationWrapper {
+public:
+    DLLEXPORT QoreExternalProgramLocationWrapper();
+
+    DLLEXPORT QoreExternalProgramLocationWrapper(const char* file, int start_line, int end_line,
+        const char* source = nullptr, int offset = 0);
+
+    DLLEXPORT ~QoreExternalProgramLocationWrapper();
+
+    DLLEXPORT void set(const char* file, int start_line, int end_line,
+        const char* source = nullptr, int offset = 0);
+
+    DLLEXPORT const QoreProgramLocation& get() const {
+        return *loc;
+    }
+
+private:
+    // save strings for exceptions in case they are epheremal when this object is created
+    std::string file_str;
+    std::string source_str;
+
+    // actual exception location
+    DLLLOCAL QoreProgramLocation* loc;
+};
 
 #endif
