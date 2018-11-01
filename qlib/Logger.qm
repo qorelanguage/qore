@@ -252,16 +252,6 @@ public namespace Logger {
                 'OFF':   OFF,
             };
 
-            #! Old qorus loging levels to currenct logger level
-            const OLD_QORUS_LEVEL_TO_LEVEL = {
-                666: ALL,
-                4:   TRACE,   # LogLevel::LL_DEBUG
-                3:   DEBUG,   # LogLevel::LL_DETAIL
-                2:   WARN,    # LogLevel::LL_INFO
-                1:   ERROR,   # LogLevel::LL_IMPORTANT
-                0:   FATAL,   # LogLevel::LL_CRITICAL
-            };
-
             #! Int to string hash
             const LEVEL_TO_LEVEL_STR = map {$1.value: $1.key}, LEVELSTR_TO_LEVEL.pairIterator();
         }
@@ -310,19 +300,6 @@ public namespace Logger {
             }
 
             return levelStr;
-        }
-
-        #! Transforms old Qorus logging level to new Logger logging level
-        /**
-            @param oldQorusLoggingLvl old Qorus logging level
-        */
-        public static int convertToNewLevel(int oldQorusLoggingLvl) {
-            *int loggerLvl = OLD_QORUS_LEVEL_TO_LEVEL{oldQorusLoggingLvl};
-            if (!loggerLvl) {
-                throw "LOGGER-ERROR", sprintf("Cannot get valid Level for old Qorus level: %d", oldQorusLoggingLvl);
-            }
-
-            return loggerLvl;
         }
 
         #! Gets level code value
