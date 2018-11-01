@@ -241,7 +241,7 @@ public namespace Logger {
             static hash<string, LoggerLevel> levelMap;
 
             #! String to int hash
-            const LEVELSTR_TO_LEVEL = (
+            const LEVELSTR_TO_LEVEL = {
                 'ALL':   ALL,
                 'TRACE': TRACE,
                 'DEBUG': DEBUG,
@@ -250,7 +250,17 @@ public namespace Logger {
                 'ERROR': ERROR,
                 'FATAL': FATAL,
                 'OFF':   OFF,
-            );
+            };
+
+            #! Old qorus loging levels to currenct logger level
+            const OLD_QORUS_LEVEL_TO_LEVEL = {
+                666: ALL,
+                4:   TRACE,   # LogLevel::LL_DEBUG
+                3:   DEBUG,   # LogLevel::LL_DETAIL
+                2:   WARN,    # LogLevel::LL_INFO
+                1:   ERROR,   # LogLevel::LL_IMPORTANT
+                0:   FATAL,   # LogLevel::LL_CRITICAL
+            };
 
             #! Int to string hash
             const LEVEL_TO_LEVEL_STR = map {$1.value: $1.key}, LEVELSTR_TO_LEVEL.pairIterator();
@@ -259,11 +269,39 @@ public namespace Logger {
         #! Creates a new object
         /**
             @param code integer value
+        */
+        constructor(int code) {
+            levelCode = code;
+            levelStr = LEVEL_TO_LEVEL_STR{code};
+
+            if (!levelStr)
+                throw "LOGGER-ERROR", sprintf("Cannot get valid Level for code: %d", code);
+        }
+
+        #! Creates a new object
+        /**
             @param str string representation
         */
-        constructor(int code, string str) {
-            levelCode = code;
+        constructor(string str) {
             levelStr = str;
+            levelCode = LEVELSTR_TO_LEVEL{str};
+
+            if (!levelCode) {
+                throw "LOGGER-ERROR", sprintf("Cannot get valid Level for string: %s", str);
+            }
+        }
+
+        #! Transforms old Qorus logging level to new Logger logging level
+        /**
+            @param oldQorusLoggingLvl old Qorus logging level
+        */
+        public static int convertToNewLevel(int oldQorusLoggingLvl) {
+            *int loggerLvl = OLD_QORUS_LEVEL_TO_LEVEL{oldQorusLoggingLvl};
+            if (!loggerLvl) {
+                throw "LOGGER-ERROR", sprintf("Cannot get valid Level for old Qorus level: %d", oldQorusLoggingLvl);
+            }
+
+            return loggerLvl;
         }
 
         #! Gets level code value
@@ -345,12 +383,12 @@ public namespace Logger {
         public static LoggerLevel getLevel(int level, *LoggerLevel default_level) {
             if (exists LEVEL_TO_LEVEL_STR{level}) {
                 if (!exists levelMap{level}) {
-                    levelMap{level} = new LoggerLevel(level, LEVEL_TO_LEVEL_STR{level});
+                    levelMap{level} = new LoggerLevel(level);
                 }
                 return levelMap{level};
             } else {
                 if (!exists default_level) {
-                    throw "LOGGER-ERROR", "Cannot get valid Level";
+                    throw "LOGGER-ERROR", sprintf("Cannot get valid Level for code: %d", level);
                 }
                 return default_level;
             }
@@ -365,19 +403,7 @@ public namespace Logger {
             @throw LOGGER-ERROR if default_level is nothing and level_str not found
         */
         public static LoggerLevel getLevel(string level_str, *LoggerLevel default_level) {
-            level_str = toupper(level_str);
-            if (exists LEVELSTR_TO_LEVEL{level_str}) {
-                int level = LEVELSTR_TO_LEVEL{level_str};
-                if (!exists levelMap{level}) {
-                    levelMap{level} = new LoggerLevel(level, level_str);
-                }
-                return levelMap{level};
-            } else {
-                if (!exists default_level) {
-                    throw "LOGGER-ERROR", "Cannot get valid Level";
-                }
-                return default_level;
-            }
+            return Logger::LoggerLevel::getLevel(LEVELSTR_TO_LEVEL{level_str}, default_level);
         }
     }
 
@@ -2558,6 +2584,19 @@ public namespace Logger {
         public removeAllAppenders() {
             AutoWriteLock awl(lock);
             splice appenders, 0;
+        }
+
+        #! Returns the appender. If there is more then one appender throws acception
+        /**
+            Note that the appender list may be manipulated in another thread as internal lock is released
+            when list is returned
+        */
+        public LoggerAppender getAppender() {
+            AutoReadLock awl(lock);
+            if (appenders.size() != 1) {
+                throw "LOGGER-ERROR", "More than one appender is assign to current logger";
+            }
+            return appenders.first();
         }
 
         #! Returns the appender list
