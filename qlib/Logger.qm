@@ -230,7 +230,7 @@ public namespace Logger {
             const ALL = MININT;
         }
 
-        private:internal {
+        private {
             #! Integer level value.
             int levelCode;
 
@@ -270,25 +270,46 @@ public namespace Logger {
         /**
             @param code integer value
         */
-        constructor(int code) {
-            levelCode = code;
-            levelStr = LEVEL_TO_LEVEL_STR{code};
-
-            if (!levelStr)
-                throw "LOGGER-ERROR", sprintf("Cannot get valid Level for code: %d", code);
+        constructor(int level) {
+            levelCode = level;
+            levelStr = levelIntToStr(level);
         }
 
         #! Creates a new object
         /**
             @param str string representation
         */
-        constructor(string str) {
-            levelStr = str;
-            levelCode = LEVELSTR_TO_LEVEL{str};
+        constructor(string level) {
+            levelStr = level;
+            levelCode = levelStrToInt(level);
+        }
+
+        #! Transforms string level to int level
+        /**
+            @param level string level needed to be converted
+        */
+        public static int levelStrToInt(string level) {
+            *int levelCode = LEVELSTR_TO_LEVEL{toupper(level)};
 
             if (!levelCode) {
-                throw "LOGGER-ERROR", sprintf("Cannot get valid Level for string: %s", str);
+                throw "LOGGER-ERROR", sprintf("Cannot get valid Level for string: %s", level);
             }
+
+            return levelCode;
+        }
+
+        #! Transforms int level to string level
+        /**
+            @param level int level needed to be converted
+        */
+        public static string levelIntToStr(int level) {
+            *string levelStr = LEVEL_TO_LEVEL_STR{level};
+
+            if (!levelStr) {
+                throw "LOGGER-ERROR", sprintf("Cannot get valid Level for int: %d", level);
+            }
+
+            return levelStr;
         }
 
         #! Transforms old Qorus logging level to new Logger logging level
@@ -381,15 +402,18 @@ public namespace Logger {
             @throw LOGGER-ERROR if defaultLevel is nothing and level not found
         */
         public static LoggerLevel getLevel(int level, *LoggerLevel default_level) {
-            if (exists LEVEL_TO_LEVEL_STR{level}) {
+            try {
+                Logger::LoggerLevel::levelIntToStr(level);
+
                 if (!exists levelMap{level}) {
                     levelMap{level} = new LoggerLevel(level);
                 }
                 return levelMap{level};
-            } else {
-                if (!exists default_level) {
-                    throw "LOGGER-ERROR", sprintf("Cannot get valid Level for code: %d", level);
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err != "LOGGER-ERROR" || !exists default_level) {
+                    rethrow;
                 }
+
                 return default_level;
             }
         }
@@ -403,7 +427,7 @@ public namespace Logger {
             @throw LOGGER-ERROR if default_level is nothing and level_str not found
         */
         public static LoggerLevel getLevel(string level_str, *LoggerLevel default_level) {
-            return Logger::LoggerLevel::getLevel(LEVELSTR_TO_LEVEL{level_str}, default_level);
+            return Logger::LoggerLevel::getLevel(Logger::LoggerLevel::levelStrToInt(level_str), default_level);
         }
     }
 
