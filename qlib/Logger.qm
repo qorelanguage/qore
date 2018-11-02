@@ -1711,7 +1711,7 @@ public namespace Logger {
 %endif
 
     #! Abstract class for appenders with rotation support
-    public class AbstractLoggerAppenderRottate inherits public LoggerAppenderFile, private LoggerPattern {
+    public class AbstractLoggerAppenderRotate inherits public LoggerAppenderFile, private LoggerPattern {
         constructor(string n_name, LoggerLayout n_layout, string n_filename, *string n_encoding): LoggerAppenderFile(n_name, n_layout, "", n_encoding), LoggerPattern(n_filename) {}
 
         #! Abstract rotate method
@@ -1727,7 +1727,7 @@ public namespace Logger {
         At that moment the current file is closed, archive chain is moved,
         new file is created and logging continues there.
     */
-    public class LoggerAppenderFileRotate inherits public AbstractLoggerAppenderRottate {
+    public class LoggerAppenderFileRotate inherits public AbstractLoggerAppenderRotate {
         public {
             #! rotate event
             const EVENT_ROTATE = 10;
@@ -1769,7 +1769,7 @@ public namespace Logger {
             For example, the archive pattern \c "%p%f.%i" rotates log file \c "/var/run/log/MyLogger.log" to:
             \c "/var/run/log/MyLogger.log.1" \c "/var/run/log/MyLogger.log.2" \c "/var/run/log/MyLogger.log.3".
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_filename, int n_count, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): AbstractLoggerAppenderRottate(n_name, n_layout, n_filename, n_encoding) { # do not split line not to confuse doxygen generator!!!
+        constructor(string n_name, LoggerLayout n_layout, string n_filename, int n_count, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): AbstractLoggerAppenderRotate(n_name, n_layout, n_filename, n_encoding) { # do not split line not to confuse doxygen generator!!!
             fileName = format(NOTHING);  # no dynamic vars as timestamp
             count = n_count;
             setPattern(n_archive);
@@ -1902,7 +1902,7 @@ public namespace Logger {
         At that moment the current file is closed, next file is created
         and logging continues to the new file.
     */
-    public class LoggerAppenderFileRing inherits public AbstractLoggerAppenderRottate {
+    public class LoggerAppenderFileRing inherits public AbstractLoggerAppenderRotate {
         public {
             #! rotate event
             const EVENT_ROTATE = 10;
@@ -1936,7 +1936,7 @@ public namespace Logger {
             For example, the pattern \c "/var/run/log/%c.log.%i{%03d}" creates the following file names:
             \c "/var/run/log/MyLogger.log.000", \c "/var/run/log/MyLogger.log.001" etc.
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_pattern, int n_count, *string n_encoding): AbstractLoggerAppenderRottate(n_name, n_layout, n_pattern, n_encoding) {
+        constructor(string n_name, LoggerLayout n_layout, string n_pattern, int n_count, *string n_encoding): AbstractLoggerAppenderRotate(n_name, n_layout, n_pattern, n_encoding) {
             # set a provisional filename, to be updated when file is opened
             patternData.timestamp = now_us();
             patternData.count = n_count;
