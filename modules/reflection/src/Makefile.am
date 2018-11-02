@@ -1,3 +1,6 @@
+# issue #3069: make sure to install correctly when cross compiling
+modexeclibdir=${pkglibdir}/${VERSION}
+
 MNAME=reflection
 
 if COND_MINGWCC
