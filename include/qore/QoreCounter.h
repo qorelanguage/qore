@@ -59,7 +59,11 @@ public:
    DLLEXPORT void destructor(ExceptionSink* xsink);
 
    //! increments the counter
-   DLLEXPORT void inc();
+   /** @return the current value after the increment
+
+       @since %Qore 0.8.13 the current value is returned
+    */
+   DLLEXPORT int inc();
 
    //! decrements the counter and wakes up any threads if the counter reaches 0
    /** a Qore-language exception will be raised here if QoreCounter::destructor() has already been run before calling this function.
