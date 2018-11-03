@@ -1178,10 +1178,51 @@ if (!cls.instanceOf(obj)) {
     @param obj the object to test
 
     @return an @ref access_constants "access value" giving the accessibility of the class in the object or \c 0 if the
-    object does not inherit the class at all
+    object does not inherit the class at all; see @ref access_constants for possible return values (plus \c 0 meaning
+    no inheritance)
 */
 int Class::instanceOf(object obj) [flags=CONSTANT] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
     return get_access(obj->getClassAccess(*c->cls));
+}
+
+//! Returns the accessibility of the class passed as an argument in the hierarchy of the current class as an @ref access_constants "access value" or \c 0 if the argument class is not present in the current class's hierarchy at all
+/** @par Example:
+    @code{.py}
+if (!cls.getInheritanceAccess(base_class)) {
+    printf("class %y does not inherit class %y\n", cls.getPathName(), base_class.getPathName());
+}
+    @endcode
+
+    @param base_class the class to try to find in the current class's hieerarchy
+
+    @return an @ref access_constants "access value" giving the accessibility of the base class in the current class's
+    hierarchy or \c 0 if the argument class is not present in the current class's hierarchy at all; see
+    @ref access_constants for possible return values (plus \c 0 meaning no inheritance)
+*/
+int Class::getInheritanceAccess(Class[QoreReflectionClass] base_class) [flags=CONSTANT] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch1(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch2(xsink, base_class->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ClassAccess rv;
+    if (!c->cls->inHierarchy(*base_class->cls, rv)) {
+        return 0;
+    }
+    return get_access(rv);
 }
 
 //! Returns a %Class object from the class name or namespace-justified path as a string
