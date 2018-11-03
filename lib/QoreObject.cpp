@@ -1094,6 +1094,14 @@ const QoreClass* QoreObject::getClass(qore_classid_t cid, bool& cpriv) const {
    return priv->theclass->getClass(cid, cpriv);
 }
 
+ClassAccess QoreObject::getClassAccess(const QoreClass& cls) const {
+    ClassAccess rv;
+    if (priv->theclass->inHierarchy(cls, rv)) {
+        return rv;
+    }
+    return ClassAccess::Inaccessible;
+}
+
 QoreValue QoreObject::evalMember(const QoreString* member, ExceptionSink* xsink) {
     // make sure to convert string encoding if necessary to default character set
     TempEncodingHelper tstr(member, QCS_DEFAULT, xsink);

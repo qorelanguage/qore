@@ -94,7 +94,7 @@ enum ClassAccess : unsigned char {
     Public = 0,        // publicly accessible
     Private = 1,       // accessible only in the class hierarchy (like c++'s 'protected')
     Internal = 2,      // accessible only in the class itself
-    Inaccessible = 3,  // not accessible from the class (status used only internally)
+    Inaccessible = 3,  // not accessible from the class
 };
 
 #if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
