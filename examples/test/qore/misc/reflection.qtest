@@ -110,6 +110,8 @@ class ReflectionTest inherits QUnit::Test {
             Class c1 = Class::getClass(v);
             assertEq(c1.getId(), c.getId());
             assertEq(c1.getHash(), c.getHash());
+            assertEq(AC_PUBLIC, c.instanceOf(v));
+            assertEq(0, c.instanceOf(new Condition()));
         }
 
         {
@@ -521,6 +523,7 @@ class ReflectionTest inherits QUnit::Test {
         {
             Class c1 = Class::forName("Test");
             ITest t();
+            assertEq(AC_PRIVATEINTERNAL, c1.instanceOf(t));
             NormalMember nm = c1.getMember("pi");
             assertEq(M_PIn, nm.getValue(t));
             nm.setValue(t, 0);

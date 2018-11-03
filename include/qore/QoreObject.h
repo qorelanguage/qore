@@ -372,6 +372,15 @@ protected:
     */
     DLLEXPORT const QoreClass* getClass(qore_classid_t cid, bool& priv) const;
 
+    //! returns the accessibility of the class in the object's hierachy or Inaccessible the object does not inherit the class at all
+    /** @param cls the class to check
+
+        @return the accessibility of the class in the object's hierachy or Inaccessible the object does not inherit the class at all
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT ClassAccess getClassAccess(const QoreClass& cls) const;
+
     //! returns a pointer to the QoreClass of this object
     /**
         @return a pointer to the QoreClass of this object

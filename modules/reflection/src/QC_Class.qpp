@@ -1167,6 +1167,23 @@ Namespace Class::getNamespace() [flags=CONSTANT] {
     return new QoreObject(QC_NAMESPACE, c->pgm, new QoreReflectionNamespace(c->pgm, c->cls->getNamespace()));
 }
 
+//! Returns the accessibility of the current class in the given object as an @ref access_constants "access value" or \c 0 if the object does not inherit the class at all
+/** @par Example:
+    @code{.py}
+if (!cls.instanceOf(obj)) {
+    printf("object of class %y does not inherit %y\n", obj.className(), cls.getPathName());
+}
+    @endcode
+
+    @param obj the object to test
+
+    @return an @ref access_constants "access value" giving the accessibility of the class in the object or \c 0 if the
+    object does not inherit the class at all
+*/
+int Class::instanceOf(object obj) [flags=CONSTANT] {
+    return get_access(obj->getClassAccess(*c->cls));
+}
+
 //! Returns a %Class object from the class name or namespace-justified path as a string
 /** @par Example:
     @code{.py}
