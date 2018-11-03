@@ -527,8 +527,9 @@ class ReflectionTest inherits QUnit::Test {
             assertEq(0.0n, nm.getValue(t));
             assertEq(AC_PUBLIC, c1.getInheritanceAccess(c1));
             Class c2 = Class::forName("ITest");
-            assertEq(AC_PRIVATEINTERNAL, c1.getInheritanceAccess(c2));
-            assertEq(0, c1.getInheritanceAccess(Class::forName("listIterator")));
+            assertEq(AC_PRIVATEINTERNAL, c2.getInheritanceAccess(c1));
+            assertEq(0, c1.getInheritanceAccess(c2));
+            assertEq(0, c1.getInheritanceAccess(Class::forName("ListIterator")));
             c1 = c2;
 
             list<AbstractMethod> l = c1.getMethods();
