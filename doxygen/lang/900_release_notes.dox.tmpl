@@ -68,8 +68,10 @@
       - @ref Qore::set_default_thread_stack_size() "set_default_thread_stack_size()"
       - @ref Qore::set_module_option() "set_module_option()"
       - @ref Qore::set_thread_name() "set_thread_name()"
-    - new modules:
+    - New modules:
+      - <a href="../../modules/FsUtil/html/index.html">FsUtil</a>
       - <a href="../../modules/Logger/html/index.html">Logger</a>
+      - <a href="../../modules/reflection/html/index.html">reflection</a>
     - new hashdecls:
       - @ref Qore::NetIfInfo "NetIfInfo"
     - new members:
@@ -146,7 +148,7 @@
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
     - fixed a bug where call references did not set the execution context with builtin functions
-      and therefore calls to builtin functions in modules (such as @ref jniintro "jni") with
+      and therefore calls to builtin functions in modules (such as \c jni) with
       per-program private data would fail
       (<a href="https://github.com/qorelanguage/qore/issues/3024">issue 3024</a>)
     - fixed a bug where rvalue references with complex subtypes could get modified during an assignment
