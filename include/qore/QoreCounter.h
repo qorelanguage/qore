@@ -61,7 +61,7 @@ public:
    //! increments the counter
    /** @return the current value after the increment
 
-       @since %Qore 0.8.13 the current value is returned
+       @since %Qore 0.9 the current value is returned
     */
    DLLEXPORT int inc();
 
