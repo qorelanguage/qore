@@ -19,8 +19,11 @@ class CounterTest inherits QUnit::Test {
 
     CounterTest() {
         Counter c();
-        assertEq(NOTHING, c.inc());
+        assertEq(0, c.getCount());
+        assertEq(1, c.inc());
+        assertEq(1, c.getCount());
         assertEq(0, c.dec());
+        assertEq(0, c.getCount());
         assertThrows("COUNTER-ERROR", \c.dec());
     }
 }
