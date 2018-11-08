@@ -2500,7 +2500,7 @@ public namespace Logger {
             @param level the logging level as a string
         */
         public setLevel(string level) {
-            setLevel(LoggerLevel::getLevel(level));;
+            setLevel(LoggerLevel::getLevel(level));
         }
 
         #! Sets the logging level
@@ -2508,7 +2508,7 @@ public namespace Logger {
             @param level the logging level to set
         */
         public setLevel(int level) {
-            setLevel(LoggerLevel::getLevel(level));;
+            setLevel(LoggerLevel::getLevel(level));
         }
 
         #! Sets the additivity flag; when additivity is active, events are passed to parent loggers.
