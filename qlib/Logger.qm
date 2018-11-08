@@ -2411,9 +2411,6 @@ public namespace Logger {
             #! Logger additivity. If set to true then child loggers will inherit the appenders of their ancestors by default.
             bool additivity = True;
 
-            #! The assigned Logger level. If @ref nothing, the parent level is used
-            *LoggerLevel currentLevel;
-
             #! The name of this Logger instance.
             string name;
 
@@ -2429,9 +2426,8 @@ public namespace Logger {
             @param n_name the name of the object
             @param n_level logger level
         */
-        constructor(string n_name, *LoggerLevel n_level) {
+        constructor(string n_name) {
             name = n_name;
-            currentLevel = n_level;
         }
 
         destructor() {
