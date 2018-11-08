@@ -379,20 +379,17 @@ public namespace Logger {
             @throw LOGGER-ERROR if defaultLevel is nothing and level not found
         */
         public static LoggerLevel getLevel(int level, *LoggerLevel default_level) {
-            try {
-                Logger::LoggerLevel::levelIntToStr(level);
-
-                if (!exists levelMap{level}) {
+            if (!exists levelMap{level}) {
+                try {
                     levelMap{level} = new LoggerLevel(level);
-                }
-                return levelMap{level};
-            } catch (hash<ExceptionInfo> ex) {
-                if (ex.err != "LOGGER-ERROR" || !exists default_level) {
+                } catch (hash<ExceptionInfo> ex) {
+                    if (default_level) {
+                        return default_level;
+                    }
                     rethrow;
                 }
-
-                return default_level;
             }
+            return levelMap{level};
         }
 
         #! Converts the input argument to a level.
@@ -404,7 +401,14 @@ public namespace Logger {
             @throw LOGGER-ERROR if default_level is nothing and level_str not found
         */
         public static LoggerLevel getLevel(string level_str, *LoggerLevel default_level) {
-            return Logger::LoggerLevel::getLevel(Logger::LoggerLevel::levelStrToInt(level_str), default_level);
+            if (default_level) {
+                *int levelCode = LEVELSTR_TO_LEVEL{toupper(level_str)};
+                if (levelCode) {
+                    return Logger::LoggerLevel::getLevel(levelCode);
+                }
+                return default_level;
+            }
+            return Logger::LoggerLevel::getLevel(Logger::LoggerLevel::levelStrToInt(level_str));
         }
     }
 
@@ -1778,7 +1782,6 @@ public namespace Logger {
             fileName = format(NOTHING);  # no dynamic vars as timestamp
             count = n_count;
             setPattern(n_archive);
-            open();
         }
 
         #! Returns a string for a format field for a pattern-based filename
@@ -1948,7 +1951,6 @@ public namespace Logger {
             patternData.count = n_count;
             patternData.index = 0;
             fileName = format(patternData);
-            open();
         }
 
         #! Returns a string for a format field for a pattern-based filename
