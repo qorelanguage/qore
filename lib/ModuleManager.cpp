@@ -494,7 +494,7 @@ void QoreModuleManager::init(bool se) {
 #include <windows.h>
 #endif
 #endif
-const char * module_dir_prefix(const char * path) {
+std::string module_dir_prefix(const char * path) {
 #ifdef MODULES_RELATIVE_PATH
 #ifdef _Q_WINDOWS
     // get windows qore.exe binary
@@ -511,7 +511,7 @@ const char * module_dir_prefix(const char * path) {
     std::string prefix_path(buff.data(), buff.size());
     size_t found_pos = prefix_path.rfind('\\');
 
-    return prefix_path.substr(0, found_pos).append("/../").append(path).c_str();
+    return prefix_path.substr(0, found_pos).append("/../").append(path);
 #else // _Q_WINDOWS
 #warning MODULES_RELATIVE_PATH has been set but the operating system is not supported yet
 #endif
