@@ -1,5 +1,7 @@
 # Qore
 
+![Qore logo](https://github.com/qorelanguage/qore/raw/develop/doxygen/qore-logo-55x200.png)
+
 [![Build Status](https://hq.qoretechnologies.com/jenkins/buildStatus/icon?job=qore)](https://hq.qoretechnologies.com/jenkins/job/qore/)
 
 ## Files
@@ -8,7 +10,7 @@ refer to the following files/locations for specific information:
 
 ### ABOUT:
   General description of the Qore programming language.
-  
+
 ### BUILDING:
   Information on how to build and install qore from sources - some quick
   information below.
