@@ -1712,6 +1712,11 @@ public namespace Logger {
 
     #! Abstract class for appenders with rotation support
     public class AbstractLoggerAppenderRotate inherits public LoggerAppenderFile, private LoggerPattern {
+        public {
+            #! default value for rotation chain
+            const DEFAULT_ROTATION_COUNT = 10;
+        }
+
         constructor(string n_name, LoggerLayout n_layout, string n_filename, *string n_encoding): LoggerAppenderFile(n_name, n_layout, "", n_encoding), LoggerPattern(n_filename) {}
 
         #! Abstract rotate method
@@ -1769,10 +1774,11 @@ public namespace Logger {
             For example, the archive pattern \c "%p%f.%i" rotates log file \c "/var/run/log/MyLogger.log" to:
             \c "/var/run/log/MyLogger.log.1" \c "/var/run/log/MyLogger.log.2" \c "/var/run/log/MyLogger.log.3".
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_filename, int n_count, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): AbstractLoggerAppenderRotate(n_name, n_layout, n_filename, n_encoding) { # do not split line not to confuse doxygen generator!!!
+        constructor(string n_name, LoggerLayout n_layout, string n_filename, int n_count = DEFAULT_ROTATION_COUNT, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): AbstractLoggerAppenderRotate(n_name, n_layout, n_filename, n_encoding) { # do not split line not to confuse doxygen generator!!!
             fileName = format(NOTHING);  # no dynamic vars as timestamp
             count = n_count;
             setPattern(n_archive);
+            open();
         }
 
         #! Returns a string for a format field for a pattern-based filename
@@ -1936,12 +1942,13 @@ public namespace Logger {
             For example, the pattern \c "/var/run/log/%c.log.%i{%03d}" creates the following file names:
             \c "/var/run/log/MyLogger.log.000", \c "/var/run/log/MyLogger.log.001" etc.
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_pattern, int n_count, *string n_encoding): AbstractLoggerAppenderRotate(n_name, n_layout, n_pattern, n_encoding) {
+        constructor(string n_name, LoggerLayout n_layout, string n_pattern, int n_count = DEFAULT_ROTATION_COUNT, *string n_encoding): AbstractLoggerAppenderRotate(n_name, n_layout, n_pattern, n_encoding) {
             # set a provisional filename, to be updated when file is opened
             patternData.timestamp = now_us();
             patternData.count = n_count;
             patternData.index = 0;
             fileName = format(patternData);
+            open();
         }
 
         #! Returns a string for a format field for a pattern-based filename
@@ -2449,9 +2456,11 @@ public namespace Logger {
         #! Creates the object
         /**
             @param n_name the name of the object
+            @param n_level logger level
         */
-        constructor(string n_name) {
+        constructor(string n_name, *LoggerLevel n_level) {
             name = n_name;
+            currentLevel = n_level;
         }
 
         destructor() {
