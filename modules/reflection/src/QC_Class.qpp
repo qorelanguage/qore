@@ -1206,6 +1206,8 @@ if (!cls.getInheritanceAccess(base_class)) {
     @ref access_constants for possible return values (plus \c 0 meaning no inheritance)
 */
 int Class::getInheritanceAccess(Class[QoreReflectionClass] base_class) [flags=CONSTANT] {
+    ReferenceHolder<QoreReflectionClass> base_cls_holder(base_class, xsink);
+
     // get read access to program object
     QoreExternalProgramContextHelper tch1(xsink, c->pgm);
     if (*xsink) {
