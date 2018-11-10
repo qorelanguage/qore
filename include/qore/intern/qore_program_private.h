@@ -527,7 +527,6 @@ public:
 };
 
 class QoreBreakpoint;
-typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 
 class qore_program_private : public qore_program_private_base {
 private:
