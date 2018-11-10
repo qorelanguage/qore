@@ -43,7 +43,7 @@
 #include <set>
 #include <vector>
 
-//#define _QORE_CYCLE_CHECK 0
+//#define _QORE_CYCLE_CHECK 1
 #ifdef _QORE_CYCLE_CHECK
 #define QORE_DEBUG_OBJ_REFS 0
 #define QRO_LVL 0
@@ -172,11 +172,11 @@ public:
     const QoreClass* theclass;
     int status = OS_OK;
 
-    KeyList* privateData = 0;
+    KeyList* privateData = nullptr;
     // member data
     QoreHashNode* data;
     QoreProgram* pgm;
-    cdmap_t* cdmap = 0;
+    cdmap_t* cdmap = nullptr;
 
     // used for garbage collection
     mutable unsigned obj_count = 0;
@@ -425,7 +425,7 @@ public:
             printd(5, "qore_object_private::cleanup() this: %p privateData: %p\n", this, privateData);
             delete privateData;
 #ifdef DEBUG
-            privateData = 0;
+            privateData = nullptr;
 #endif
         }
 
@@ -441,115 +441,123 @@ public:
         }
     }
 
-   // this method is called when there is an exception in a constructor and the object should be deleted
-   DLLLOCAL void obliterate(ExceptionSink* xsink) {
-      printd(5, "qore_object_private::obliterate() obj: %p class: %s %d->%d\n", obj, theclass->getName(), obj->references.load(), obj->references.load() - 1);
+    // this method is called when there is an exception in a constructor and the object should be deleted
+    DLLLOCAL void obliterate(ExceptionSink* xsink) {
+        printd(5, "qore_object_private::obliterate() obj: %p class: %s %d->%d\n", obj, theclass->getName(), obj->references.load(), obj->references.load() - 1);
 
 #ifdef QORE_DEBUG_OBJ_REFS
-      printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::obliterate() obj: %p class: %s: references %d->%d\n", obj, theclass->getName(), obj->references.load(), obj->references.load() - 1);
+        printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::obliterate() obj: %p class: %s: references %d->%d\n", obj, theclass->getName(), obj->references.load(), obj->references.load() - 1);
 #endif
 
-      {
-         AutoLocker slr(rlck);
-         if (--obj->references)
-            return;
-      }
+        {
+            AutoLocker slr(rlck);
+            if (--obj->references)
+                return;
+        }
 
-      {
-         QoreSafeVarRWWriteLocker sl(rml);
+        {
+            QoreSafeVarRWWriteLocker sl(rml);
 
-         if (in_destructor || status != OS_OK) {
-            printd(5, "qore_object_private::obliterate() obj: %p data: %p in_destructor: %d status: %d\n", obj, data, in_destructor, status);
+            if (in_destructor || status != OS_OK) {
+                printd(5, "qore_object_private::obliterate() obj: %p data: %p in_destructor: %d status: %d\n", obj, data, in_destructor, status);
+                //printd(5, "Object lock %p unlocked (safe)\n", &rml);
+                sl.unlock();
+                tDeref();
+                return;
+            }
+
+            //printd(5, "Object lock %p locked   (safe)\n", &rml);
+            printd(5, "qore_object_private::obliterate() obj: %p class: %s\n", obj, theclass->getName());
+
+            status = OS_DELETED;
+            cdmap_t* cdm = cdmap;
+            cdmap = 0;
+            QoreHashNode* td = data;
+            data = 0;
+
+            removeInvalidateRSetIntern();
+
             //printd(5, "Object lock %p unlocked (safe)\n", &rml);
             sl.unlock();
-            tDeref();
-            return;
-         }
 
-         //printd(5, "Object lock %p locked   (safe)\n", &rml);
-         printd(5, "qore_object_private::obliterate() obj: %p class: %s\n", obj, theclass->getName());
+            if (privateData)
+                privateData->derefAll(xsink);
 
-         status = OS_DELETED;
-         cdmap_t* cdm = cdmap;
-         cdmap = 0;
-         QoreHashNode* td = data;
-         data = 0;
+            cleanup(xsink, td, cdm);
+        }
+        tDeref();
+    }
 
-         removeInvalidateRSetIntern();
+    DLLLOCAL void doPrivateException(const char* mem, ExceptionSink* xsink) const {
+        xsink->raiseException("PRIVATE-MEMBER", "'%s' is a private member of class '%s'", mem, theclass->getName());
+    }
 
-         //printd(5, "Object lock %p unlocked (safe)\n", &rml);
-         sl.unlock();
+    DLLLOCAL void doPublicException(const char* mem, ExceptionSink* xsink) const {
+        xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of class '%s'", mem, theclass->getName());
+    }
 
-         if (privateData)
-            privateData->derefAll(xsink);
+    DLLLOCAL virtual const char* getName() const {
+        return theclass->getName();
+    }
 
-         cleanup(xsink, td, cdm);
-      }
-      tDeref();
-   }
+    DLLLOCAL virtual void deleteObject() {
+        delete obj;
+    }
 
-   DLLLOCAL void doPrivateException(const char* mem, ExceptionSink* xsink) const {
-      xsink->raiseException("PRIVATE-MEMBER", "'%s' is a private member of class '%s'", mem, theclass->getName());
-   }
+    DLLLOCAL virtual bool isValidImpl() const {
+        if (status != OS_OK || in_destructor) {
+            printd(QRO_LVL, "qore_object_intern::isValidImpl() this: %p cannot delete graph obj status: %d in_destructor: %d\n", this, status, in_destructor);
+            return false;
+        }
+        return true;
+    }
 
-   DLLLOCAL void doPublicException(const char* mem, ExceptionSink* xsink) const {
-      xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of class '%s'", mem, theclass->getName());
-   }
+    DLLLOCAL virtual bool scanMembersIntern(RSetHelper& rsh, QoreHashNode* odata);
 
-   DLLLOCAL virtual const char* getName() const {
-      return theclass->getName();
-   }
+    DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
 
-   DLLLOCAL virtual void deleteObject() {
-      delete obj;
-   }
+    // always called in the rsection lock
+    DLLLOCAL virtual bool needsScan(bool scan_now) {
+        assert(rml.hasRSectionLock());
+        printd(5, "qore_object_private::needsScan() scan_count: %d scan_private_data: %d scan_now: %d\n",
+            getScanCount(), scan_private_data, scan_now);
 
-   DLLLOCAL virtual bool isValidImpl() const {
-      if (status != OS_OK || in_destructor) {
-         printd(QRO_LVL, "qore_object_intern::isValidImpl() this: %p cannot delete graph obj status: %d in_destructor: %d\n", this, status, in_destructor);
-         return false;
-      }
-      return true;
-   }
+        // the status cannot change while this lock is held
+        if ((!getScanCount() && !scan_private_data) || status != OS_OK) {
+            return false;
+        }
 
-   DLLLOCAL virtual bool scanMembersIntern(RSetHelper& rsh, QoreHashNode* odata);
-
-   DLLLOCAL virtual bool scanMembers(RSetHelper& rsh);
-
-   // always called in the rsection lock
-   DLLLOCAL virtual bool needsScan(bool scan_now) {
-      assert(rml.hasRSectionLock());
-      // the status cannot change while this lock is held
-      if (!getScanCount() || status != OS_OK)
-         return false;
-      {
-         AutoLocker al(rlck);
-         if (deferred_scan) {
-            if (!rrefs && scan_now) {
-               deferred_scan = false;
-               return true;
+        {
+            AutoLocker al(rlck);
+            if (deferred_scan) {
+                if (!rrefs && scan_now) {
+                    deferred_scan = false;
+                    return true;
+                }
+                return false;
             }
-            return false;
-         }
-         if (!rrefs)
-            return true;
-         deferred_scan = true;
-         // if there is no rset, our job is done
-         if (!rset)
-            return false;
-         // if we have an rset, then we need to invalidate it and ensure that
-         // rrefs does not go to zero until this is done
-         rref_wait = true;
-      }
+            if (!rrefs) {
+                return true;
+            }
+            deferred_scan = true;
+            // if there is no rset, our job is done
+            if (!rset && !scan_private_data) {
+                return false;
+            }
+            // if we have an rset, then we need to invalidate it and ensure that
+            // rrefs does not go to zero until this is done
+            rref_wait = true;
+        }
 
-      removeInvalidateRSetIntern();
-      AutoLocker al(rlck);
-      rref_wait = false;
-      if (rref_waiting)
-         rcond.broadcast();
+        removeInvalidateRSetIntern();
+        AutoLocker al(rlck);
+        rref_wait = false;
+        if (rref_waiting) {
+            rcond.broadcast();
+        }
 
-      return false;
-   }
+        return false;
+    }
 
    DLLLOCAL void mergeDataToHash(QoreHashNode* hash, ExceptionSink* xsink) const;
 

@@ -92,10 +92,11 @@ Queue::copy() {
     @since %Qore 0.8.4 this method takes a timeout parameter
  */
 nothing Queue::push(auto arg, timeout timeout_ms = 0) {
-   bool to;
-   q->push(xsink, self, arg.refSelf(), timeout_ms, &to);
-   if (to)
-      xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    bool to;
+    q->push(xsink, self, arg.refSelf(), timeout_ms, &to);
+    if (to) {
+        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    }
 }
 
 //! Inserts a value at the beginning of the queue
@@ -111,10 +112,11 @@ nothing Queue::push(auto arg, timeout timeout_ms = 0) {
     @since %Qore 0.8.4 this method takes a timeout parameter
  */
 nothing Queue::insert(auto arg, timeout timeout_ms = 0) {
-   bool to;
-   q->insert(xsink, self, arg.refSelf(), timeout_ms, &to);
-   if (to)
-      xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    bool to;
+    q->insert(xsink, self, arg.refSelf(), timeout_ms, &to);
+    if (to) {
+        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    }
 }
 
 //! Blocks until at least one entry is available on the queue, then returns the first entry in the queue. If a timeout occurs, an exception is thrown. If the timeout value equal to zero, then the call does not timeout until data is available, while negative timeout values cause the call to timeout immediately if the call would otherwise block
@@ -133,14 +135,11 @@ nothing Queue::insert(auto arg, timeout timeout_ms = 0) {
 auto Queue::get(timeout timeout_ms = 0) {
     QoreValue rv;
 
-    if (timeout_ms) {
-        bool to;
-        rv = q->shift(xsink, timeout_ms, &to);
-        if (to)
-            xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    bool to;
+    rv = q->shift(xsink, self, timeout_ms, &to);
+    if (to) {
+        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
     }
-    else
-        rv = q->shift(xsink);
 
     return rv;
 }
@@ -161,14 +160,11 @@ auto Queue::get(timeout timeout_ms = 0) {
 auto Queue::pop(timeout timeout_ms = 0) {
     QoreValue rv;
 
-    if (timeout_ms) {
-        bool to;
-        rv = q->pop(xsink, timeout_ms, &to);
-        if (to)
-            xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    bool to;
+    rv = q->pop(xsink, self, timeout_ms, &to);
+    if (to) {
+        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
     }
-    else
-        rv = q->pop(xsink);
 
     return rv;
 }
@@ -180,7 +176,7 @@ auto Queue::pop(timeout timeout_ms = 0) {
     @note This method does not throw any exceptions, but exceptions could be thrown by in destructors of objects that go out of scope by being removed from the Queue
  */
 nothing Queue::clear() {
-    q->clear(xsink);
+    q->clear(xsink, self);
 }
 
 //! Returns the number of elements in the Queue
@@ -282,7 +278,7 @@ int Queue::getWriteWaiting() [flags=CONSTANT] {
     @since %Qore 0.8.12
 */
 Queue::setError(string err, string desc) {
-    q->setError(err->c_str(), desc, xsink);
+    q->setError(err->c_str(), desc, self, xsink);
 }
 
 //! clears the error setting from the Queue; if error information is set, then after this call, the Queue is usable again
