@@ -31,6 +31,7 @@
 
 #include <qore/Qore.h>
 #include "qore/intern/QoreObjectIntern.h"
+#include "qore/intern/QoreQueueIntern.h"
 
 RObject::~RObject() {
    assert(!rset);
@@ -284,11 +285,13 @@ bool RSetHelper::checkIntern(AbstractQoreNode* n) {
     if (!needs_scan(n))
         return false;
 
-    //printd(5, "RSetHelper::checkIntern() checking %p %s\n", n, get_type_name(n));
+    printd(0, "RSetHelper::checkIntern() checking %p %s\n", n, get_type_name(n));
 
     switch (get_node_type(n)) {
-        case NT_OBJECT:
-            return checkIntern(*qore_object_private::get(*reinterpret_cast<QoreObject*>(n)));
+        case NT_OBJECT: {
+            QoreObject* obj = reinterpret_cast<QoreObject*>(n);
+            return checkIntern(*qore_object_private::get(*obj), true);
+        }
 
         case NT_LIST: {
             QoreListNode* l = reinterpret_cast<QoreListNode*>(n);
@@ -514,7 +517,7 @@ bool RSetHelper::makeChain(int i, omap_t::iterator fi, int tid) {
 }
 
 // XXX RSectionScanHelper
-bool RSetHelper::checkIntern(RObject& obj) {
+bool RSetHelper::checkIntern(RObject& obj, bool scan_object) {
 #ifdef DEBUG
     bool hl = obj.rml.hasRSectionLock();
 #endif
@@ -640,7 +643,8 @@ bool RSetHelper::checkIntern(RObject& obj) {
         return false;
     }
     else {
-        printd(QRO_LVL, "RSetHelper::checkIntern() + adding new obj %p '%s' setting rcount = 0 (current: %d rset: %p)\n", &obj, obj.getName(), obj.rcount, obj.rset);
+       printd(QRO_LVL, "RSetHelper::checkIntern() + adding new obj %p '%s' setting rcount = 0 (current: %d rset: %p scan_obj: %d)\n", &obj, obj.getName(), obj.rcount, obj.rset, scan_object);
+       printd(0, "RSetHelper::checkIntern() + adding new obj %p '%s' setting rcount = 0 (current: %d rset: %p scan_obj: %d)\n", &obj, obj.getName(), obj.rcount, obj.rset, scan_object);
 
         // insert into total scanned object set
         fi = fomap.insert(fi, omap_t::value_type(&obj, RSetStat()));
@@ -664,8 +668,35 @@ bool RSetHelper::checkIntern(RObject& obj) {
     tr_out.erase(&obj);
 
     // recursively check data members
-    if (obj.scanMembers(*this))
+    if (obj.scanMembers(*this)) {
         return true;
+    }
+
+        if (scan_object) {
+            ExceptionSink xsink;
+            qore_object_private& qobj = static_cast<qore_object_private&>(obj);
+            printd(0, "RSetHelper::checkIntern() scanning internals of object of class '%s'\n", qobj.theclass->getName());
+            // issue #3101: check Queue entries for cycles
+            ReferenceHolder<Queue> q(reinterpret_cast<Queue*>(qobj.getReferencedPrivateData(CID_QUEUE, &xsink)), &xsink);
+            if (!xsink && *q) {
+                qore_queue_private* qpriv = qore_queue_private::get(**q);
+                AutoLocker al(&qpriv->l);
+
+                QoreQueueNode* w = qpriv->head;
+                while (w) {
+                    printd(0, "RSetHolder::checkIntern() scanning Queue value: '%s'\n", w->node.getFullTypeName());
+                    if (checkIntern(w->node.getInternalNode())) {
+                        return true;
+                    }
+                    w = w->next;
+                }
+            }
+            if (xsink) {
+               xsink.clear();
+            }
+        }
+
+
 
     // remove from current vector chain
     ovec.pop_back();
@@ -718,7 +749,7 @@ RSetHelper::RSetHelper(RObject& obj) {
    RScanHelper rsh(obj);
 
    while (true) {
-      if (checkIntern(obj)) {
+      if (checkIntern(obj, dynamic_cast<qore_object_private*>(&obj) ? true : false)) {
          rollback();
          // wait for foreign transaction to finish if necessary
          notifier.wait();

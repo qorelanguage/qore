@@ -93,7 +93,7 @@ Queue::copy() {
  */
 nothing Queue::push(auto arg, timeout timeout_ms = 0) {
    bool to;
-   q->push(xsink, arg.refSelf(), timeout_ms, &to);
+   q->push(xsink, self, arg.refSelf(), timeout_ms, &to);
    if (to)
       xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
 }
@@ -112,7 +112,7 @@ nothing Queue::push(auto arg, timeout timeout_ms = 0) {
  */
 nothing Queue::insert(auto arg, timeout timeout_ms = 0) {
    bool to;
-   q->insert(xsink, arg.refSelf(), timeout_ms, &to);
+   q->insert(xsink, self, arg.refSelf(), timeout_ms, &to);
    if (to)
       xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
 }

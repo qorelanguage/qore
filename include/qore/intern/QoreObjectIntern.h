@@ -183,6 +183,8 @@ public:
 
     mutable VRMutex gate;
 
+    int scan_private_data = 0;
+
     bool system_object, delete_blocker_run, in_destructor;
     bool recursive_ref_found;
 
@@ -191,6 +193,9 @@ public:
     DLLLOCAL qore_object_private(QoreObject* n_obj, const QoreClass *oc, QoreProgram* p, QoreHashNode* n_data);
 
     DLLLOCAL ~qore_object_private();
+
+    DLLLOCAL void incScanPrivateData();
+    DLLLOCAL void decScanPrivateData();
 
     DLLLOCAL void plusEquals(const AbstractQoreNode* v, AutoVLock& vl, ExceptionSink* xsink) {
         if (!v)

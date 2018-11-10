@@ -76,6 +76,8 @@ public:
 #define QW_ERROR   -3
 
 class qore_queue_private {
+   friend class RSetHelper;
+
 private:
    enum queue_status_e { Queue_Deleted = -1 };
 
@@ -175,6 +177,10 @@ public:
 
    DLLLOCAL static void destructor(QoreQueue& q, ExceptionSink* xsink) {
       q.priv->destructor(xsink);
+   }
+
+   DLLLOCAL static qore_queue_private* get(QoreQueue& q) {
+      return q.priv;
    }
 };
 

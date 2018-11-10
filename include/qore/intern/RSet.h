@@ -380,7 +380,7 @@ protected:
    DLLLOCAL void commit(RObject& obj);
 
    // returns true if a lock error has occurred, false if otherwise
-   DLLLOCAL bool checkIntern(RObject& obj);
+   DLLLOCAL bool checkIntern(RObject& obj, bool scan_object = false);
    // returns true if a lock error has occurred, false if otherwise
    DLLLOCAL bool checkIntern(AbstractQoreNode* n);
 

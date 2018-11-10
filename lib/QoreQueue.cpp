@@ -31,6 +31,7 @@
 #include <qore/Qore.h>
 #include <qore/QoreQueue.h>
 #include "qore/intern/QoreQueueIntern.h"
+#include "qore/intern/QoreObjectIntern.h"
 
 #include <sys/time.h>
 #include <errno.h>
@@ -400,6 +401,20 @@ void QoreQueue::insert(ExceptionSink* xsink, QoreValue n, int timeout_ms, bool* 
    priv->insert(xsink, n, timeout_ms, timeout);
    if (to)
       *to = timeout;
+}
+
+void QoreQueue::push(ExceptionSink* xsink, QoreObject* self, QoreValue n, int timeout_ms, bool* to) {
+    push(xsink, n, timeout_ms, to);
+    if (!*xsink && self) {
+        RSetHelper rsh(*qore_object_private::get(*self));
+    }
+}
+
+void QoreQueue::insert(ExceptionSink* xsink, QoreObject* self, QoreValue n, int timeout_ms, bool* to) {
+    insert(xsink, n, timeout_ms, to);
+    if (!*xsink && self) {
+        RSetHelper rsh(*qore_object_private::get(*self));
+    }
 }
 
 QoreValue QoreQueue::shift(ExceptionSink* xsink, int timeout_ms, bool* to) {
