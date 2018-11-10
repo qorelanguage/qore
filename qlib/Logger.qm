@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Logger.qm Logger library
+#! @file Logger.qm Logger library
 
 /*  Logger.qm Copyright 2018 Qore Technologies, s.r.o.
 

@@ -554,6 +554,13 @@ auto result = call_function("func_name", arg1, arg2);
     @throw NO-FUNCTION The function does not exist
 
     @note The function called could also throw other exceptions
+
+    @see
+    - call_function_args()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function(string name, ...) {
     ReferenceHolder<QoreListNode> vargs(xsink);
@@ -576,6 +583,13 @@ auto result = call_function(call_ref, arg1, arg2);
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
+
+    @see
+    - call_function_args()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function(code f, ...) {
     ReferenceHolder<QoreListNode> vargs(xsink);
@@ -603,6 +617,13 @@ auto result = call_function_args("func_name", (arg1, arg2));
     @throw NO-FUNCTION The function does not exist
 
     @note The function called could also throw other exceptions
+
+    @see
+    - call_function()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function_args(string name, *softlist<auto> vargs) {
    return getProgram()->callFunction(name->getBuffer(), vargs, xsink);
@@ -619,6 +640,13 @@ auto result = call_function_args(call_ref, (arg1, arg2));
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
+
+    @see
+    - call_function()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function_args(code f, *softlist<auto> vargs) {
    return f->execValue(vargs, xsink);
@@ -888,7 +916,7 @@ parse(code, filename);
     these changes were made to align the functionality of this function with the @ref Qore::Program::parse() "Program::parse()"
     and @ref Qore::Program::parsePending() "Program::parsePending()" methods
 */
-*hash<auto> parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC,IN_MODULE] {
+*hash<auto> parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC,IN_MODULE] {
 
    if (warning_mask) {
       ExceptionSink wsink;
@@ -2708,4 +2736,60 @@ set_global_var_value("a", 1);
 nothing set_global_var_value(string name, auto value) {
    getProgram()->setGlobalVarValue(name->c_str(), value.refSelf(), xsink);
 }
+
+//! returns the given global module option
+/** @par Example:
+    @code
+auto val = get_module_option(mod, opt);
+    @endcode
+
+    @param module the name of the module
+    @param option the name of the option
+
+    @return the value of the given module option
+
+    @see set_module_option()
+
+    @since %Qore 0.9
+*/
+auto get_module_option(string module, string option) [flags=CONSTANT;dom=PROCESS] {
+    TempEncodingHelper mod_str(module, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    TempEncodingHelper opt_str(option, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return qore_get_module_option(mod_str->c_str(), opt_str->c_str());
+}
+
+//! set the given module option
+/** @par Example:
+    @code
+set_module_option(mod, opt, val);
+    @endcode
+
+    @param module the name of the module
+    @param option the name of the option
+    @param value the value to assign; setting to @ref nothing removes the module option
+
+    @see get_module_option()
+
+    @since %Qore 0.0
+ */
+nothing set_module_option(string module, string option, auto value) [dom=PROCESS] {
+    TempEncodingHelper mod_str(module, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    TempEncodingHelper opt_str(option, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    qore_set_module_option(mod_str->c_str(), opt_str->c_str(), value.refSelf());
+}
+
 //@}

@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file FsUtil.qm Qore user module providing file system related functionality
+#! @file FsUtil.qm Qore user module providing file system related functionality
 
 /*  FsUtil.qm Copyright 2018 Qore Technologies, s.r.o.
 
@@ -72,6 +72,10 @@ module FsUtil {
     @ref FsUtil::remove_tree()
     @ref FsUtil::same_file()
     @ref FsUtil::same_file_stat()
+
+    And the following multiplatform classes:
+    @ref FsUtil::TmpDir
+    @ref FsUtil::TmpFile
 
     Also classes for platform specific operations are available:
     @ref FsUtil::PosixPathHandler
@@ -351,14 +355,19 @@ public namespace FsUtil {
         throw "DIR-WRITE-ERROR", "Impossible to find a unique name.";
     }
 
+    public hashdecl TmpFileHash {
+        string path = "";
+        File file = new File();
+    }
+
     #! Creates and opens a unique temporary file and returns its absolute path as well as its File object
     /** @param prefix prefix to be used in the newly created file name
         @param suffix suffix to be used in the newly created file name
         @param path path to a dir in which the caller wants to create the new file; if not provided, standard temp
                     location will be used
 
-        @return hash with absolute path to the newly created file and its File object
-                (keys "path" and "file" recpectively)
+        @return hash<TmpFileHash> with absolute path to the newly created file and its File object
+                (keys "path" and "file" respectively)
 
         @throws FILE-WRITE-ERROR The file couldn't be created.
 
@@ -366,7 +375,7 @@ public namespace FsUtil {
         The caller is responsible for removing the temporary file once it's needed no more.
 
     */
-    public hash sub make_tmp_file(*string prefix, *string suffix, *string path) {
+    public hash<TmpFileHash> sub make_tmp_file(*string prefix, *string suffix, *string path) {
         if (exists path) {
             if (!is_writable(path)) {
                 throw "FILE-WRITE-ERROR", sprintf("'%s' is not a writable directory.", path);
@@ -378,16 +387,15 @@ public namespace FsUtil {
 
         # O_CREAT and O_EXCL are important to ensure that we only open a new file
         int flags = O_CREAT | O_EXCL | O_RDWR;
-        File tmp_file = new File();
+        hash<TmpFileHash> tmp_file();
 
         for (int i = 0; i < TMP_MAX_ATTEMPTS; i++) {
             string tmp_fn = prefix + get_random_string() + suffix;
-            string tmp_path = join_paths(path, tmp_fn);
+            tmp_file.path = join_paths(path, tmp_fn);
 
-            if (tmp_file.open(tmp_path, flags, 0600) == 0) {
+            if (tmp_file.file.open(tmp_file.path, flags, 0600) == 0) {
                 # success
-                return {"path": tmp_path,
-                        "file": tmp_file};
+                return tmp_file;
             } else {
                 # unable to create the file
                 int err = errno();
@@ -396,13 +404,61 @@ public namespace FsUtil {
                     continue;
                 } else {
                     # another (unexpected) error
-                    throw "FILE-WRITE-ERROR", sprintf("File '%s' couldn't be created: %s", tmp_path, strerror(err));
+                    throw "FILE-WRITE-ERROR", sprintf("File '%s' couldn't be created: %s",
+                                                      tmp_file.path, strerror(err));
                 }
             }
         }
 
         # even after TMP_MAX_ATTEMPTS we didn't succeed in finding a unique name
         throw "FILE-WRITE-ERROR", "Impossible to find a unique name.";
+    }
+
+    #! Class implementing a user friendly temporary directory creation - users don't need to care about removing it
+    public class TmpDir {
+
+        public {
+            string path;
+        }
+
+        #! Creates a unique temporary directory and returns its absolute path
+        /** @param prefix prefix to be used in the newly created directory name
+            @param suffix suffix to be used in the newly created directory name
+            @param path path to a dir in which the caller wants to create the new directory; if not provided, standard temp
+                        location will be used
+        */
+        public constructor(*string prefix, *string suffix, *string path) {
+            self.path = make_tmp_dir(prefix, suffix, path);
+        }
+
+        public destructor() {
+            remove_tree(path);
+        }
+    }
+
+    #! Class implementing a user friendly temporary file creation - users don't need to care about removing it
+    public class TmpFile {
+
+        public {
+            string path;
+            File file;
+        }
+
+        #! Creates and opens a unique temporary file and returns its absolute path as well as its File object
+        /** @param prefix prefix to be used in the newly created file name
+            @param suffix suffix to be used in the newly created file name
+            @param path path to a dir in which the caller wants to create the new file; if not provided, standard temp
+                        location will be used
+        */
+        public constructor(*string prefix, *string suffix, *string path) {
+            hash<TmpFileHash> f = make_tmp_file(prefix, suffix, path);
+            self.path = f.path;
+            self.file = f.file;
+        }
+
+        public destructor() {
+            remove_file(path);
+        }
     }
 
     #! Removes a regular file or symlink specified by path
@@ -415,7 +471,7 @@ public namespace FsUtil {
     */
     public sub remove_file(string path) {
         if (unlink(path) != 0) {
-            throw "REMOVE-FILE-ERROR", sprintf("Unable to remove %s: %s\n", path, strerror());
+            throw "REMOVE-FILE-ERROR", sprintf("Unable to remove %s: %s", path, strerror());
         }
     }
 

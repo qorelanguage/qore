@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AstParser.qpp AstParser class definition */
+/** @file QC_AstParser.cpp AstParser class definition */
 /*
   Qore AST Parser
 

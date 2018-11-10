@@ -123,6 +123,29 @@ const QoreValue ExceptionSink::getExceptionArg() {
     return priv->head ? priv->head->arg : QoreValue();
 }
 
+int ExceptionSink::appendLastDescription(const char* fmt, ...) {
+    if (!priv->head || priv->head->desc.getType() != NT_STRING) {
+        return -1;
+    }
+
+    SimpleRefHolder<QoreStringNode> new_desc(new QoreStringNode);
+
+    va_list args;
+
+    while (true) {
+        va_start(args, fmt);
+        int rc = new_desc->vsprintf(fmt, args);
+        va_end(args);
+        if (!rc) {
+            break;
+        }
+    }
+
+    QoreStringNode* old_desc = priv->head->desc.get<QoreStringNode>();
+    old_desc->concat(new_desc->c_str(), new_desc->size());
+    return 0;
+}
+
 AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...) {
     QoreStringNode *desc = new QoreStringNode;
 
@@ -193,6 +216,13 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreValue ar
     QoreException* exc = new QoreException(err, desc);
     exc->arg = arg;
     priv->insert(exc);
+    priv->addStackInfo(stack);
+    return nullptr;
+}
+
+AbstractQoreNode* ExceptionSink::raiseExceptionArg(const QoreProgramLocation& loc, const char* err, QoreValue arg, QoreStringNode *desc, const QoreCallStack& stack) {
+    printd(5, "ExceptionSink::raiseExceptionArg(loc, %s, %s, %p)\n", err, desc->getBuffer(), &stack);
+    priv->insert(new QoreException(loc, err, desc, arg));
     priv->addStackInfo(stack);
     return nullptr;
 }
@@ -284,4 +314,43 @@ void ExceptionSink::outOfMemory() {
     printf("OUT OF MEMORY: aborting\n");
     _Exit(1);
 #endif
+}
+
+QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper() :
+    loc(new QoreProgramLocation) {
+}
+
+QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper(const char* file, int start_line, int end_line,
+    const char* source, int offset) : file_str(file ? file : ""), source_str(source ? source : ""),
+    loc(new QoreProgramLocation(file_str.c_str(), start_line, end_line,
+        source_str.empty() ? nullptr : source_str.c_str(), offset)) {
+}
+
+QoreExternalProgramLocationWrapper::~QoreExternalProgramLocationWrapper() {
+    delete loc;
+}
+
+void QoreExternalProgramLocationWrapper::set(const char* file, int start_line, int end_line,
+    const char* source, int offset) {
+    // we need to save strings in case they are epheremal when this object is created
+    if (!file) {
+        file_str.clear();
+    } else {
+        file_str = file;
+    }
+    if (!source) {
+        source_str.clear();
+    } else {
+        source_str = source;
+    }
+    loc->setFile(file_str.c_str());
+    // the internal storage for start_line is currently 16 bits
+    assert(start_line <= 0xffff);
+    loc->start_line = start_line;
+    // the internal storage for end_line is currently 16 bits
+    assert(end_line <= 0xffff);
+    loc->end_line = end_line;
+    loc->setSource(source_str.c_str());
+    assert(offset <= 0xffff);
+    loc->offset = offset;
 }

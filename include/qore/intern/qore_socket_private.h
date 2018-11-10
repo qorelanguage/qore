@@ -213,6 +213,8 @@ struct qore_socket_private {
    const QoreEncoding* enc;
 
    std::string socketname;
+   // issue #3053: client target for SNI
+   std::string client_target;
    SSLSocketHelper* ssl = nullptr;
    Queue* cb_queue = nullptr,
       * warn_queue = nullptr;
@@ -292,6 +294,8 @@ struct qore_socket_private {
          del = false;
       if (port != -1)
          port = -1;
+      // issue #3053: clear hostname for SNI
+      client_target.clear();
       return rc;
    }
 
@@ -1182,16 +1186,23 @@ struct qore_socket_private {
       //printd(5, "qore_socket_private::connectINETIntern(this: %p, host='%s', port: %d, timeout_ms: %d) success, rc: %d, sock: %d\n", this, host, port, timeout_ms, rc, sock);
 
       do_connected_event();
+
+      // issue #3053: save hostname for SNI
+      client_target = host;
       return 0;
    }
 
-   DLLLOCAL int upgradeClientToSSLIntern(const char* mname, X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
+   DLLLOCAL int upgradeClientToSSLIntern(const char* mname, const char* sni_target_host, X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
       assert(!ssl);
       SSLSocketHelperHelper sshh(this);
 
       int rc;
       do_start_ssl_event();
-      if ((rc = ssl->setClient(mname, sock, cert, pkey, xsink)) || ssl->connect(mname, timeout_ms, xsink)) {
+      // issue #3053: send target hostname to support SNI
+      if (!sni_target_host && !client_target.empty()) {
+         sni_target_host = client_target.c_str();
+      }
+      if ((rc = ssl->setClient(mname, sni_target_host, sock, cert, pkey, xsink)) || ssl->connect(mname, timeout_ms, xsink)) {
          sshh.error();
          return rc ? rc : -1;
       }

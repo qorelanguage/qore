@@ -200,6 +200,8 @@ class ProgramTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
+        addTestCase("issue 3027 test", \issue3027Test());
+        addTestCase("issueModuleCmd() test", \issueModuleCmdTest());
         addTestCase("issue 2807", \issue2807());
         addTestCase("issue 2735 test", \issue2735Test());
         addTestCase("Program test", \programTest());
@@ -214,6 +216,17 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("Program info test", \programInfoTest());
 	    addTestCase("Find runtime function test", \findRuntimeTest());
     	set_return_value(main());
+    }
+
+    issue3027Test() {
+        Program p(PO_NEW_STYLE);
+        assertThrows("PARSE-EXCEPTION", \p.parse(), ('sub foo() { hash h = T{"foo"}; return h.a; } const T = { "foo": { "a": 1, "b": foo()},}; foo();', ""));
+    }
+
+    issueModuleCmdTest() {
+        Program p(PO_NEW_STYLE);
+
+        assertThrows("PARSE-COMMAND-ERROR", \p.issueModuleCmd(), ("Util", "xxx"));
     }
 
     issue2807() {

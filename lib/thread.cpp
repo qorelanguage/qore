@@ -249,201 +249,204 @@ typedef std::set<const lvalue_ref*> ref_set_t;
 // this structure holds all thread-specific data
 class ThreadData {
 public:
-   int64 runtime_po = 0;
-   int tid;
+    int64 runtime_po = 0;
+    int tid;
 
-   VLock vlock;     // for deadlock detection
+    VLock vlock;     // for deadlock detection
 
-   Context* context_stack = nullptr;
-   ProgramParseContext* plStack = nullptr;
-   const QoreProgramLocation* runtime_loc = &loc_builtin;
-   const AbstractStatement* runtime_statement;
-   const char* parse_code = nullptr; // the current function, method, or closure being parsed
-   const char* parse_file = nullptr; // the current file or label being parsed
-   const char* parse_source = nullptr; // the current source being parsed
-   int parse_offset = 0; // the current offset in the source being parsed
-   void* parseState = nullptr;
-   VNode* vstack = nullptr;  // used during parsing (local variable stack)
-   CVNode* cvarstack = nullptr;
-   QoreClass* parseClass = nullptr; // current class being parsed
-   QoreException* catchException = nullptr;
+    Context* context_stack = nullptr;
+    ProgramParseContext* plStack = nullptr;
+    const QoreProgramLocation* runtime_loc = &loc_builtin;
+    const AbstractStatement* runtime_statement;
+    const char* parse_code = nullptr; // the current function, method, or closure being parsed
+    const char* parse_file = nullptr; // the current file or label being parsed
+    const char* parse_source = nullptr; // the current source being parsed
+    int parse_offset = 0; // the current offset in the source being parsed
+    void* parseState = nullptr;
+    VNode* vstack = nullptr;  // used during parsing (local variable stack)
+    CVNode* cvarstack = nullptr;
+    QoreClass* parseClass = nullptr; // current class being parsed
+    QoreException* catchException = nullptr;
 
-   std::list<block_list_t::iterator> on_block_exit_list;
+    std::list<block_list_t::iterator> on_block_exit_list;
 
-   ThreadResourceList* trlist = new ThreadResourceList;
+    ThreadResourceList* trlist = new ThreadResourceList;
 
-   // for detecting circular references at runtime
-   ref_set_t ref_set;
+    // for detecting circular references at runtime
+    ref_set_t ref_set;
 
-   // current function/method name
-   const char* current_code = nullptr;
+    // current function/method name
+    const char* current_code = nullptr;
 
-   // current object context
-   QoreObject* current_obj = nullptr;
+    // current object context
+    QoreObject* current_obj = nullptr;
 
-   // current class context
-   const qore_class_private* current_class = nullptr;
+    // current class context
+    const qore_class_private* current_class = nullptr;
 
-   // current program context
-   QoreProgram* current_pgm = nullptr;
+    // current program context
+    QoreProgram* current_pgm = nullptr;
 
-   // current program context helper
-   ProgramThreadCountContextHelper* current_pgm_ctx = nullptr;
+    // issue #3024: program context for calls prior to a call
+    QoreProgram* call_program_context = nullptr;
 
-   // current namespace context for parsing
-   qore_ns_private* current_ns = nullptr;
+    // current program context helper
+    ProgramThreadCountContextHelper* current_pgm_ctx = nullptr;
 
-   // current implicit argument
-   QoreListNode* current_implicit_arg = nullptr;
+    // current namespace context for parsing
+    qore_ns_private* current_ns = nullptr;
 
-   // this data structure is stored in the current Program object on a per-thread basis
-   ThreadLocalProgramData* tlpd = nullptr;
+    // current implicit argument
+    QoreListNode* current_implicit_arg = nullptr;
 
-   // this data structure contains the set of Program objects that this thread has data in
-   ThreadProgramData* tpd;
+    // this data structure is stored in the current Program object on a per-thread basis
+    ThreadLocalProgramData* tlpd = nullptr;
 
-   // current parsing closure environment
-   ClosureParseEnvironment* closure_parse_env = nullptr;
+    // this data structure contains the set of Program objects that this thread has data in
+    ThreadProgramData* tpd;
 
-   // current runtime closure environment
-   const QoreClosureBase* closure_rt_env = nullptr;
+    // current parsing closure environment
+    ClosureParseEnvironment* closure_parse_env = nullptr;
 
-   ArgvRefStack argv_refs;
+    // current runtime closure environment
+    const QoreClosureBase* closure_rt_env = nullptr;
+
+    ArgvRefStack argv_refs;
 
 #ifdef QORE_MANAGE_STACK
-   size_t stack_limit;
-   // this thread's stack size for error reporting
-   size_t stack_size;
+    size_t stack_limit;
+    // this thread's stack size for error reporting
+    size_t stack_size;
 #ifdef IA64_64
-   size_t rse_limit;
+    size_t rse_limit;
 #endif
 #endif
 
-   // used to detect output of recursive data structures at runtime
-   const_node_set_t node_set;
+    // used to detect output of recursive data structures at runtime
+    const_node_set_t node_set;
 
-   // currently-executing/parsing block's return type
-   const QoreTypeInfo* returnTypeInfo = nullptr;
+    // currently-executing/parsing block's return type
+    const QoreTypeInfo* returnTypeInfo = nullptr;
 
-   // parse-time block return type
-   const QoreTypeInfo* parse_return_type_info = nullptr;
+    // parse-time block return type
+    const QoreTypeInfo* parse_return_type_info = nullptr;
 
-   // parse-time implicit argument type
-   const QoreTypeInfo* implicit_arg_type_info = nullptr;
+    // parse-time implicit argument type
+    const QoreTypeInfo* implicit_arg_type_info = nullptr;
 
-   // current implicit element offset
-   int element = 0;
+    // current implicit element offset
+    int element = 0;
 
-   // start of global thread-local variables for the current thread and program being parsed
-   VNode* global_vnode = nullptr;
+    // start of global thread-local variables for the current thread and program being parsed
+    VNode* global_vnode = nullptr;
 
-   // Maintains the conditional parse block count for each file parsed
-   ParseConditionalStack* pcs = nullptr;
+    // Maintains the conditional parse block count for each file parsed
+    ParseConditionalStack* pcs = nullptr;
 
-   // Maintains the %try-module block count for each file
-   ParseCountHelper tm;
+    // Maintains the %try-module block count for each file
+    ParseCountHelper tm;
 
-   // for capturing namespace and class names while parsing
-   typedef std::vector<std::string> npvec_t;
-   npvec_t npvec;
+    // for capturing namespace and class names while parsing
+    typedef std::vector<std::string> npvec_t;
+    npvec_t npvec;
 
-   // used for error handling when merging module code into a Program object
-   QoreModuleContext* qmc = nullptr;
+    // used for error handling when merging module code into a Program object
+    QoreModuleContext* qmc = nullptr;
 
-   // used to capture the module definition in user modules
-   QoreModuleDefContext* qmd = nullptr;
+    // used to capture the module definition in user modules
+    QoreModuleDefContext* qmd = nullptr;
 
-   // user to track the current user module context
-   const char* user_module_context_name = nullptr;
+    // user to track the current user module context
+    const char* user_module_context_name = nullptr;
 
-   // AbstractQoreModule* with boolean ptr in bit 0
-   uintptr_t qmi = 0;
+    // AbstractQoreModule* with boolean ptr in bit 0
+    uintptr_t qmi = 0;
 
-   bool
-      foreign : 1, // true if the thread is a foreign thread
-      try_reexport : 1;
+    bool
+        foreign : 1, // true if the thread is a foreign thread
+        try_reexport : 1;
 
-   DLLLOCAL ThreadData(int ptid, QoreProgram* p, bool n_foreign = false) :
-      tid(ptid),
-      vlock(ptid),
-      current_pgm(p),
-      tpd(new ThreadProgramData(this)),
-      foreign(n_foreign),
-      try_reexport(false) {
+    DLLLOCAL ThreadData(int ptid, QoreProgram* p, bool n_foreign = false) :
+        tid(ptid),
+        vlock(ptid),
+        current_pgm(p),
+        tpd(new ThreadProgramData(this)),
+        foreign(n_foreign),
+        try_reexport(false) {
 
 #ifdef QORE_MANAGE_STACK
-      // save this thread's stack size as the default stack size can change
-      stack_size = qore_thread_stack_size;
+        // save this thread's stack size as the default stack size can change
+        stack_size = qore_thread_stack_size;
 #ifdef STACK_DIRECTION_DOWN
-      stack_limit = get_stack_pos() - qore_thread_stack_limit;
+        stack_limit = get_stack_pos() - qore_thread_stack_limit;
 #else
-      stack_limit = get_stack_pos() + qore_thread_stack_limit;
+        stack_limit = get_stack_pos() + qore_thread_stack_limit;
 #endif // #ifdef STACK_DIRECTION_DOWN
 
 #ifdef IA64_64
-      // RSE stack grows up
-      rse_limit = get_rse_bsp() + qore_thread_stack_limit;
+        // RSE stack grows up
+        rse_limit = get_rse_bsp() + qore_thread_stack_limit;
 #endif // #ifdef IA64_64
 
 #endif // #ifdef QORE_MANAGE_STACK
-   }
+    }
 
-   DLLLOCAL ~ThreadData() {
-      assert(on_block_exit_list.empty());
-      assert(!tpd);
-      assert(!trlist->prev);
-      delete pcs;
-      delete trlist;
-   }
+    DLLLOCAL ~ThreadData() {
+        assert(on_block_exit_list.empty());
+        assert(!tpd);
+        assert(!trlist->prev);
+        delete pcs;
+        delete trlist;
+    }
 
-   DLLLOCAL void endFileParsing() {
-      if (pcs) {
-         pcs->purge();
-         delete pcs;
-         pcs = 0;
-      }
-      tm.purge();
-   }
+    DLLLOCAL void endFileParsing() {
+        if (pcs) {
+            pcs->purge();
+            delete pcs;
+            pcs = 0;
+        }
+        tm.purge();
+    }
 
-   DLLLOCAL int getElement() {
-      return element;
-   }
+    DLLLOCAL int getElement() {
+        return element;
+    }
 
-   DLLLOCAL int saveElement(int n_element) {
-      int rc = element;
-      element = n_element;
-      return rc;
-   }
+    DLLLOCAL int saveElement(int n_element) {
+        int rc = element;
+        element = n_element;
+        return rc;
+    }
 
-   DLLLOCAL void del(ExceptionSink* xsink) {
-      tpd->del(xsink);
-      tpd->deref();
-      tpd = 0;
-   }
+    DLLLOCAL void del(ExceptionSink* xsink) {
+        tpd->del(xsink);
+        tpd->deref();
+        tpd = 0;
+    }
 
-   DLLLOCAL void pushName(const char* name) {
-      npvec.push_back(name);
-   }
+    DLLLOCAL void pushName(const char* name) {
+        npvec.push_back(name);
+    }
 
-   DLLLOCAL std::string popName() {
-      assert(!npvec.empty());
-      std::string rv = npvec.back();
-      npvec.pop_back();
-      return rv;
-   }
+    DLLLOCAL std::string popName() {
+        assert(!npvec.empty());
+        std::string rv = npvec.back();
+        npvec.pop_back();
+        return rv;
+    }
 
-   DLLLOCAL void parseRollback() {
-      npvec.clear();
-   }
+    DLLLOCAL void parseRollback() {
+        npvec.clear();
+    }
 
-   DLLLOCAL qore_ns_private* set_ns(qore_ns_private* ns) {
-      if (ns == current_ns)
-         return ns;
+    DLLLOCAL qore_ns_private* set_ns(qore_ns_private* ns) {
+        if (ns == current_ns)
+            return ns;
 
-      qore_ns_private* rv = current_ns;
-      current_ns = ns;
-      return rv;
-   }
+        qore_ns_private* rv = current_ns;
+        current_ns = ns;
+        return rv;
+    }
 };
 
 static QoreThreadLocalStorage<ThreadData> thread_data;
@@ -798,28 +801,49 @@ int check_stack(ExceptionSink* xsink) {
 }
 #endif
 
+QoreProgram* get_set_program_call_context(QoreProgram* new_pgm) {
+    ThreadData* td = thread_data.get();
+    QoreProgram* pgm = td->call_program_context;
+    td->call_program_context = new_pgm;
+    return pgm;
+}
+
+void set_program_call_context(QoreProgram* new_pgm) {
+    thread_data.get()->call_program_context = new_pgm;
+}
+
+// returns the current call context if set, otherwise the current program context
+/* this function is exported in the public Qore API
+*/
+QoreProgram* qore_get_call_program_context() {
+    ThreadData* td = thread_data.get();
+    assert(td);
+    QoreProgram* rv = td->call_program_context;
+    return rv ? rv : td->current_pgm;
+}
+
 QoreAbstractModule* set_reexport(QoreAbstractModule* m, bool current_reexport, bool& old_reexport) {
-   ThreadData* td = thread_data.get();
-   uintptr_t rv = td->qmi;
-   if (rv & 1) {
-      old_reexport = true;
-      rv ^= 1;
-   }
-   else
-      old_reexport = false;
+    ThreadData* td = thread_data.get();
+    uintptr_t rv = td->qmi;
+    if (rv & 1) {
+        old_reexport = true;
+        rv ^= 1;
+    }
+    else
+        old_reexport = false;
 
-   td->qmi = (uintptr_t)m;
-   if (current_reexport)
-      td->qmi |= 1;
+    td->qmi = (uintptr_t)m;
+    if (current_reexport)
+        td->qmi |= 1;
 
-   return (QoreAbstractModule*)rv;
+    return (QoreAbstractModule*)rv;
 }
 
 void set_reexport(QoreAbstractModule* m, bool reexport) {
-   ThreadData* td = thread_data.get();
-   td->qmi = (uintptr_t)m;
-   if (reexport)
-      td->qmi |= 1;
+    ThreadData* td = thread_data.get();
+    td->qmi = (uintptr_t)m;
+    if (reexport)
+        td->qmi |= 1;
 }
 
 // returns 1 if data structure is already on stack, 0 if not (=OK)
@@ -1408,14 +1432,22 @@ void ModuleContextFunctionList::clear() {
 }
 
 QoreProgramContextHelper::QoreProgramContextHelper(QoreProgram* pgm) {
-   ThreadData* td  = thread_data.get();
-   old_pgm = td->current_pgm;
-   td->current_pgm = pgm;
+    // allow the program context to be skipped with a nullptr arg
+    if (!pgm) {
+        old_pgm = reinterpret_cast<QoreProgram*>(-1);
+        return;
+    }
+    ThreadData* td  = thread_data.get();
+    old_pgm = td->current_pgm;
+    td->current_pgm = pgm;
 }
 
 QoreProgramContextHelper::~QoreProgramContextHelper() {
-   ThreadData* td  = thread_data.get();
-   td->current_pgm = old_pgm;
+    if (old_pgm == reinterpret_cast<QoreProgram*>(-1)) {
+        return;
+    }
+    ThreadData* td  = thread_data.get();
+    td->current_pgm = old_pgm;
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject* obj, const qore_class_private* c) {
@@ -1430,6 +1462,21 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper() {
    ThreadData* td  = thread_data.get();
    td->current_obj = old_obj;
    td->current_class = old_class;
+}
+
+OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
+    if (qc) {
+        ThreadData* td  = thread_data.get();
+        old_class = td->current_class;
+        td->current_class = qc;
+    }
+}
+
+OptionalClassOnlySubstitutionHelper::~OptionalClassOnlySubstitutionHelper() {
+    if (subst) {
+        ThreadData* td  = thread_data.get();
+        td->current_class = old_class;
+    }
 }
 
 OptionalClassObjSubstitutionHelper::OptionalClassObjSubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {

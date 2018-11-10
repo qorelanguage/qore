@@ -1167,8 +1167,6 @@ Namespace Class::getNamespace() [flags=CONSTANT] {
     return new QoreObject(QC_NAMESPACE, c->pgm, new QoreReflectionNamespace(c->pgm, c->cls->getNamespace()));
 }
 
-<<<<<<< Updated upstream
-=======
 //! Returns the accessibility of the current class in the given object as an @ref access_constants "access value" or \c 0 if the object does not inherit the class at all
 /** @par Example:
     @code{.py}
@@ -1229,7 +1227,6 @@ int Class::getInheritanceAccess(Class[QoreReflectionClass] base_class) [flags=CO
     return get_access(rv);
 }
 
->>>>>>> Stashed changes
 //! Returns a %Class object from the class name or namespace-justified path as a string
 /** @par Example:
     @code{.py}

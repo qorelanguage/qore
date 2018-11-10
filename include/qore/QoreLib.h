@@ -673,4 +673,29 @@ DLLEXPORT const QoreClass* qore_pseudo_get_class(qore_type_t t);
 /** @since %Qore 0.9
 */
 DLLEXPORT const QoreClass* qore_pseudo_get_class(const QoreTypeInfo* t);
+
+//! returns the caller's Program context, if any
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreProgram* qore_get_call_program_context();
+
+//! sets a module option for the given module
+/** @param mod the module name
+    @param opt the option name
+    @param value the option value; must be already referenced for the assignment
+
+    @since %Qore 0.9
+*/
+DLLEXPORT void qore_set_module_option(std::string mod, std::string opt, QoreValue val);
+
+//! get module option for the given module
+/** @param mod the module name
+    @param opt the option name
+
+    @return the referenced option value; if a value is returned here, it must be dereferenced
+
+    @since %Qore 0.9
+*/
+DLLEXPORT QoreValue qore_get_module_option(std::string mod, std::string opt);
+
 #endif // _QORE_QORELIB_H

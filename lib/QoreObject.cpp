@@ -81,10 +81,10 @@ QoreHashNode* qore_object_private::getSlice(const QoreListNode* l, ExceptionSink
     // local class only used in this function
     class SliceKeyMap : public slicekeymap_t {
     public:
-        DLLLOCAL SliceKeyMap() {
+        SliceKeyMap() {
         }
 
-        DLLLOCAL ~SliceKeyMap() {
+        ~SliceKeyMap() {
             for (auto& i : *this) {
                 i.second->deref(nullptr);
             }
@@ -1094,6 +1094,14 @@ const QoreClass* QoreObject::getClass(qore_classid_t cid) const {
 
 const QoreClass* QoreObject::getClass(qore_classid_t cid, bool& cpriv) const {
    return priv->theclass->getClass(cid, cpriv);
+}
+
+ClassAccess QoreObject::getClassAccess(const QoreClass& cls) const {
+    ClassAccess rv;
+    if (priv->theclass->inHierarchy(cls, rv)) {
+        return rv;
+    }
+    return ClassAccess::Inaccessible;
 }
 
 QoreValue QoreObject::evalMember(const QoreString* member, ExceptionSink* xsink) {

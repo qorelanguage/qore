@@ -948,7 +948,7 @@ while (wh) {
     - %Qore 0.9 parsing can only be executed once per %Program object
     - %Qore 0.9 the \a format_label is obsolete / ignored
  */
-*hash Program::parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
+*hash Program::parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC] {
 
    if (warning_mask) {
       ExceptionSink wsink;
@@ -1008,7 +1008,7 @@ pgm.parseCommit();
     - %Qore 0.9 parsing can only be executed once per %Program object
     - %Qore 0.9 the \a format_label is obsolete / ignored
  */
-*hash Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool format_label = True) [dom=EMBEDDED_LOGIC] {
+*hash Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC] {
 
    if (warning_mask) {
       ExceptionSink wsink;
@@ -2012,4 +2012,34 @@ list<int> Program::getThreadList() [flags=CONSTANT] {
  */
 ProgramControl Program::getProgram() [flags=RET_VALUE_ONLY; dom=DEBUGGER] {
    return QoreProgram::getQoreObject(p);
+}
+
+//! issues a module command for the given module; the module is loaded into the current %Program object if it is not already present
+/** @par Example:
+    @code{.py}
+pgm.issueModuleCmd("jni", "define-class " + java_class_path_name + " " + byte_code.toBase64());
+    @endcode
+
+    @param module the module name
+    @param cmd the command string to execute to be parsed by the module
+
+    @throw PARSE-COMMAND-ERROR the module does not support commands
+
+    @note command errors can result in other module- and command-specific exceptions being thrown; see
+    documentation for the module and command in question for more details
+
+    @since %Qore 0.9
+*/
+nothing Program::issueModuleCmd(string module, string cmd) {
+    TempEncodingHelper tmp_module(module, QCS_DEFAULT, xsink);
+    if (!tmp_module) {
+        return QoreValue();
+    }
+
+    TempEncodingHelper tmp_cmd(cmd, QCS_DEFAULT, xsink);
+    if (!tmp_cmd) {
+        return QoreValue();
+    }
+
+    QMM.issueRuntimeCmd(tmp_module->c_str(), p, **tmp_cmd, xsink);
 }

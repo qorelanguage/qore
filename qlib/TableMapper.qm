@@ -219,7 +219,7 @@ on_error table1.rollback();
 
     @subsection tablemapperv1_3 TableMapper v1.3
     - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement"
-    - deprecated @ref TableMapper::AbstractSqlStatementOutboundMapper::getRowIterator() "AbstractSqlStatementOutboundMapper::getRowIterator()" for @ref AbstractSqlStatementOutboundMapper::getStatement() "AbstractSqlStatementOutboundMapper::getStatement()"
+    - deprecated @ref TableMapper::AbstractSqlStatementOutboundMapper::getRowIterator() "AbstractSqlStatementOutboundMapper::getRowIterator()" for @ref TableMapper::AbstractSqlStatementOutboundMapper::getStatement() "AbstractSqlStatementOutboundMapper::getStatement()"
 
     @subsection tablemapperv1_2_2 TableMapper v1.2.2
     - updated to use the new SQL statement DBI method for efficient execution of queries only for describing

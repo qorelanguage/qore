@@ -287,15 +287,17 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
         endforeach(i)
 
         # prepare QDX arguments
-        set(QDX_DOXYFILE_ARGS -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.tmpl ${MOD_DOXYFILE})
-        set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
+        #set(QORE_QMOD_FNAME ${f}) # used for configure_file line below   done by qdx other way for each module
+        configure_file(${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.in ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.qlib.in @ONLY)
+        set(QDX_DOXYFILE_ARGS -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm ${MOD_DEPS} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.qlib.in ${MOD_DOXYFILE})
+        set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm)
 
         # add CMake target for the documentation
         if (WIN32 AND (NOT MINGW) AND (NOT MSYS))
             add_custom_target(docs-${f}
                 COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/docs/modules/${f}
                 COMMAND set QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib
-                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib $${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
+                COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_DOXYFILE_ARGS}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} ${QDX_QMDOXH_ARGS}
                 COMMAND ${DOXYGEN_EXECUTABLE} ${MOD_DOXYFILE}
                 COMMAND QORE_MODULE_DIR=${CMAKE_SOURCE_DIR}/qlib ${QORE_QDX_EXECUTABLE} --post ${CMAKE_BINARY_DIR}/docs/modules/${f}/html/*.html
