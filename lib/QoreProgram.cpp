@@ -2198,7 +2198,7 @@ const QoreExternalConstant* QoreProgram::findNamespaceConstant(const char* path,
 }
 
 QoreRWLock QoreBreakpoint::lck_breakpoint;
-QoreBreakpoint::QoreBreakpointList_t QoreBreakpoint::breakpointList;
+QoreBreakpointList_t QoreBreakpoint::breakpointList;
 volatile unsigned QoreBreakpoint::breakpointIdCounter = 1;
 
 void QoreBreakpoint::unassignAllStatements() {
