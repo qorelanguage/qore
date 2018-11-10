@@ -34,6 +34,16 @@
 
 #include <typeinfo>
 
+QoreBreakpointList_t::QoreBreakpointList_t() {
+}
+
+QoreBreakpointList_t::~QoreBreakpointList_t() {
+    for (auto& i : *this) {
+        i->deref();
+    }
+    clear();
+}
+
 AbstractStatement::AbstractStatement(qore_program_private_base* p) : breakpointFlag(false), breakpoints(0), loc(p->getLocation(-1, -1)) {
     pwo = p->pwo;
 }
