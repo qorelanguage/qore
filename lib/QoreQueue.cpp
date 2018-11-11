@@ -483,10 +483,10 @@ void qore_queue_private::clearError() {
 }
 
 bool qore_queue_private::scanMembers(RObject& obj, RSetHelper& rsh) {
-    // if we cannot lock the lock, then return true to retry
-    // blocking here could cause a deadlock
+    // if we cannot lock the lock, then return false to ignore
+    // blocking here or returning true could cause a deadlock
     if (l.trylock()) {
-        return true;
+        return false;
     }
     AutoLocker al(l, true);
 
