@@ -260,7 +260,9 @@ bool qore_object_private::scanMembers(RSetHelper& rsh) {
             // issue #3101: check Queue entries for cycles
             ReferenceHolder<Queue> q(reinterpret_cast<Queue*>(getReferencedPrivateData(CID_QUEUE, &xsink)), &xsink);
             if (!xsink && *q) {
-                qore_queue_private::get(**q)->scanMembers(*this, rsh);
+                if (qore_queue_private::get(**q)->scanMembers(*this, rsh)) {
+                    return true;
+                }
             }
         }
         if (xsink) {
