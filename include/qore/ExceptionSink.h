@@ -333,7 +333,7 @@ private:
     std::string source_str;
 
     // actual exception location
-    DLLLOCAL QoreProgramLocation* loc;
+    QoreProgramLocation* loc;
 };
 
 #endif
