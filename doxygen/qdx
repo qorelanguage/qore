@@ -176,8 +176,8 @@ class qdx {
 
         FileInputStream inf(ifn);
         InputStreamLineIterator ins = tex
-            ? new QorePostProcessingInputStreamLineIterator(inf)
-            : new QorePostProcessingTexInputStreamLineIterator(inf);
+            ? new QorePostProcessingTexInputStreamLineIterator(inf)
+            : new QorePostProcessingInputStreamLineIterator(inf);
 
         string ofn = ifn + ".new";
 
@@ -222,7 +222,8 @@ class qdx {
                 break;
             }
 
-            # remove <!--% ... %--> comments to allow for invisible spacing, to allow for "*/" to be output in particular places, for example
+            # remove <!--% ... %--> comments to allow for invisible spacing, to allow for "*/" to be output in
+            # particular places, for example
             line =~ s/<!--%.*%-->//g;
 
             comment += line;
