@@ -253,6 +253,10 @@ public namespace Qdx {
             line =~ s/'zzz8([a-z]+)zzz9'/'$1'/g;
             line =~ s/([^a-zA-Z0-9_])[Ss]truct /$1hashdecl /g;
 
+            # remove <%-- ... --%> comments to allow for invisible spacing, to allow for "*/" to be output in
+            # particular places, for example
+            line =~ s/&lt;%--.*--%&gt;//g;
+
             return line;
         }
     }
