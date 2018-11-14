@@ -60,7 +60,7 @@ public class CryptoStreamTest inherits QUnit::Test {
 
         # issue #3111
         const LongDesKey = "ThisIsAK";
-    	const LongDesData = strmul("XDDFSD", 200);
+        const LongDesData = strmul("XDDFSD", 200);
         const EncDesLong = encrypt(CRYPTO_ALG_DES, LongDesData, LongDesKey);
     }
 
@@ -74,7 +74,7 @@ public class CryptoStreamTest inherits QUnit::Test {
 
     issue3111Test() {
         BinaryInputStream is(EncDesLong);
-    	TransformInputStream t(is, get_decryptor(CRYPTO_ALG_DES, LongDesKey));
+        TransformInputStream t(is, get_decryptor(CRYPTO_ALG_DES, LongDesKey));
         StreamReader sr(t);
         string str;
         while (*string data = sr.readString(1)) {

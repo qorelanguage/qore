@@ -135,7 +135,6 @@ private:
         } else {
             outBufOffset += toCopy;
         }
-        //memmove(outBuf, outBuf + toCopy, outBufCount - toCopy); // Shift out buffer.
         return toCopy;
     }
 };
