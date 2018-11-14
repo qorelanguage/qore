@@ -241,7 +241,7 @@ public namespace Logger {
             static hash<string, LoggerLevel> levelMap;
 
             #! String to int hash
-            const LEVELSTR_TO_LEVEL = (
+            const LEVELSTR_TO_LEVEL = {
                 'ALL':   ALL,
                 'TRACE': TRACE,
                 'DEBUG': DEBUG,
@@ -250,7 +250,7 @@ public namespace Logger {
                 'ERROR': ERROR,
                 'FATAL': FATAL,
                 'OFF':   OFF,
-            );
+            };
 
             #! Int to string hash
             const LEVEL_TO_LEVEL_STR = map {$1.value: $1.key}, LEVELSTR_TO_LEVEL.pairIterator();
@@ -1683,16 +1683,44 @@ public namespace Logger {
     }
 %endif
 
+    #! Abstract class for file appenders with rotation support
+    public class AbstractLoggerAppenderFileRotate inherits public LoggerAppenderFile {
+        public {
+            #! rotate event
+            const EVENT_ROTATE = 10001;
+            #! default value for rotation chain
+            const DEFAULT_ROTATION_COUNT = 10;
+        }
+
+        constructor(string n_name, LoggerLayout n_layout, *string n_encoding): LoggerAppenderFile(n_name, n_layout, "", n_encoding) {}
+
+        #! Pushes rotate event
+        /**
+            The current log file will be closed and opened. If the file exists, then it is ovewritten
+
+            @throw LOGGER-ERROR if rotation is disabled
+        */
+        public rotate() {
+            if (isOpen()) {
+                if (getCount() <= 0) {
+                    throw "LOGGER-ERROR", "Rotation is disabled";
+                }
+                pushEvent(EVENT_ROTATE, NOTHING);
+            }
+        }
+
+        #! Abstract method to get count of rotation objects
+        public abstract int getCount();
+    }
+
     #! Implements appender writing to a file with file rotation support
     /**
         The events will be logged to a file until rotation occurs.
         At that moment the current file is closed, archive chain is moved,
         new file is created and logging continues there.
     */
-    public class LoggerAppenderFileRotate inherits public LoggerAppenderFile, private LoggerPattern {
+    public class LoggerAppenderFileRotate inherits public AbstractLoggerAppenderFileRotate, private LoggerPattern {
         public {
-            #! rotate event
-            const EVENT_ROTATE = 10;
             #! default archive pattern
             const DEFAULT_ARCHIVE_PATTERN = "%p%f.%i";
         }
@@ -1731,7 +1759,7 @@ public namespace Logger {
             For example, the archive pattern \c "%p%f.%i" rotates log file \c "/var/run/log/MyLogger.log" to:
             \c "/var/run/log/MyLogger.log.1" \c "/var/run/log/MyLogger.log.2" \c "/var/run/log/MyLogger.log.3".
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_filename, int n_count, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): LoggerAppenderFile(n_name, n_layout, '', n_encoding), LoggerPattern(n_filename) { # do not split line not to confuse doxygen generator!!!
+        constructor(string n_name, LoggerLayout n_layout, string n_filename, int n_count = DEFAULT_ROTATION_COUNT, string n_archive = DEFAULT_ARCHIVE_PATTERN, *string n_encoding): AbstractLoggerAppenderFileRotate(n_name, n_layout, n_encoding), LoggerPattern(n_filename) { # do not split line not to confuse doxygen generator!!!
             fileName = format(NOTHING);  # no dynamic vars as timestamp
             count = n_count;
             setPattern(n_archive);
@@ -1823,21 +1851,6 @@ public namespace Logger {
             }
         }
 
-        #! Pushes rotate event
-        /**
-            The current log file will be closed and opened. If the file exists, then it is ovewritten
-
-            @throw LOGGER-ERROR if rotation is disabled
-        */
-        public rotate() {
-            if (isOpen()) {
-                if (count <= 0) {
-                    throw "LOGGER-ERROR", "Rotation is disabled";
-                }
-                pushEvent(EVENT_ROTATE, NOTHING);
-            }
-        }
-
         #! Returns the archive filename
         /**
             @param idx the index of file (1..count)
@@ -1864,10 +1877,8 @@ public namespace Logger {
         At that moment the current file is closed, next file is created
         and logging continues to the new file.
     */
-    public class LoggerAppenderFileRing inherits public LoggerAppenderFile, private LoggerPattern {
+    public class LoggerAppenderFileRing inherits public AbstractLoggerAppenderFileRotate, private LoggerPattern {
         public {
-            #! rotate event
-            const EVENT_ROTATE = 10;
             #! default date format
             const DEFAULT_DATE_FORMAT = "YYYYMMDDHHmmSS";
         }
@@ -1898,7 +1909,7 @@ public namespace Logger {
             For example, the pattern \c "/var/run/log/%c.log.%i{%03d}" creates the following file names:
             \c "/var/run/log/MyLogger.log.000", \c "/var/run/log/MyLogger.log.001" etc.
         */
-        constructor(string n_name, LoggerLayout n_layout, string n_pattern, int n_count, *string n_encoding): LoggerAppenderFile(n_name, n_layout, "", n_encoding), LoggerPattern(n_pattern) {
+        constructor(string n_name, LoggerLayout n_layout, string n_pattern, int n_count = DEFAULT_ROTATION_COUNT, *string n_encoding): AbstractLoggerAppenderFileRotate(n_name, n_layout, n_encoding), LoggerPattern(n_pattern) {
             # set a provisional filename, to be updated when file is opened
             patternData.timestamp = now_us();
             patternData.count = n_count;
@@ -1984,21 +1995,6 @@ public namespace Logger {
                     break;
                 default:
                     LoggerAppenderFile::processEventImpl(type, params);
-            }
-        }
-
-        #! Pushes rotate event
-        /**
-            The current log file will be closed and opened. If the file exists, then it is ovewritten
-
-            @throw LOGGER-ERROR if rotation is disabled
-        */
-        public rotate() {
-            if (isOpen()) {
-                if (patternData.count <= 0) {
-                    throw "LOGGER-ERROR", "Rotation is disabled";
-                }
-                pushEvent(EVENT_ROTATE, NOTHING);
             }
         }
 
@@ -2484,7 +2480,7 @@ public namespace Logger {
             @param level the logging level as a string
         */
         public setLevel(string level) {
-            setLevel(LoggerLevel::getLevel(level));;
+            setLevel(LoggerLevel::getLevel(level));
         }
 
         #! Sets the logging level
@@ -2492,7 +2488,7 @@ public namespace Logger {
             @param level the logging level to set
         */
         public setLevel(int level) {
-            setLevel(LoggerLevel::getLevel(level));;
+            setLevel(LoggerLevel::getLevel(level));
         }
 
         #! Sets the additivity flag; when additivity is active, events are passed to parent loggers.
