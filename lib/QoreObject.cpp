@@ -97,9 +97,6 @@ QoreHashNode* qore_object_private::getSlice(const QoreListNode* l, ExceptionSink
     // local class only used in this function
     class SliceKeyMap : public slicekeymap_t {
     public:
-        SliceKeyMap() {
-        }
-
         ~SliceKeyMap() {
             for (auto& i : *this) {
                 i.second->deref(nullptr);
@@ -686,6 +683,7 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
         m = odata->priv->findCreateMember(key);
 
     lvh.setValue(m->val, mti);
+    lvh.setObjectContext(this);
 
     return 0;
 }

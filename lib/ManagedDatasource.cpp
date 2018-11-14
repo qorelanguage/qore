@@ -227,16 +227,18 @@ void ManagedDatasource::setAutoCommit(bool ac, ExceptionSink *xsink) {
 
 QoreHashNode* ManagedDatasource::getConfigHash(ExceptionSink* xsink) {
     DatasourceActionHelper dbah(*this, xsink);
-    if (!dbah)
+    if (!dbah) {
         return nullptr;
+    }
 
     return Datasource::getConfigHash();
 }
 
 QoreStringNode* ManagedDatasource::getConfigString(ExceptionSink* xsink) {
     DatasourceActionHelper dbah(*this, xsink);
-    if (!dbah)
+    if (!dbah) {
         return nullptr;
+    }
 
     return Datasource::getConfigString();
 }

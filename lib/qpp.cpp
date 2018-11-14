@@ -358,13 +358,21 @@ static void get_string_list(strlist_t& l, const std::string& str, char separator
     size_t start = 0;
     while (true) {
         size_t sep = str.find(separator, start);
-        if (sep == std::string::npos)
+        if (sep == std::string::npos) {
             break;
-        l.push_back(std::string(str, start, sep - start));
+        }
+        std::string element(str, start, sep - start);
+
+        // remove leading whitespace from strings
+        element.erase(element.begin(), std::find_if(element.begin(), element.end(), std::bind1st(std::not_equal_to<char>(), ' ')));
+        l.push_back(element);
         start = sep + 1;
     }
-    l.push_back(std::string(str, start));
 
+    // remove leading whitespace from strings
+    std::string element(str, start);
+    element.erase(element.begin(), std::find_if(element.begin(), element.end(), std::bind1st(std::not_equal_to<char>(), ' ')));
+    l.push_back(element);
     //for (unsigned i = 0; i < l.size(); ++i)
     //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
 }
@@ -3250,27 +3258,30 @@ class ClassElement : public AbstractElement {
 protected:
     typedef std::multimap<std::string, Method*> mmap_t;
 
-    std::string fileName,       // file name
-        name,                   // class name
-        doc,                    // doc string
-        arg,                    // argument for non-static methods
-        defbase,                // default builtin base class
-        scons,                  // system constructor
-        ns;                     // namespace name
+    std::string fileName,          // file name
+        name,                      // class name
+        doc,                       // doc string
+        arg,                       // argument for non-static methods
+        defbase,                   // default builtin base class
+        scons,                     // system constructor
+        ns,                        // namespace name
+        serializer,                // class serializer function
+        deserializer;              // class deserializer function
 
-    strlist_t vparents;         // builtin virtual base/parent classes
+    strlist_t vparents;            // builtin virtual base/parent classes
 
-    paramlist_t public_members; // public members
-    paramlist_t private_members;        // private members
-    paramlist_t internal_members;       // internal members
+    paramlist_t public_members;    // public members
+    paramlist_t private_members;   // private members
+    paramlist_t internal_members;  // internal members
 
-    strlist_t dom;              // functional domains
+    strlist_t dom;                 // functional domains
 
-    mmap_t normal_mmap,         // normal method map
-        static_mmap;            // static method map
+    mmap_t normal_mmap,            // normal method map
+        static_mmap;               // static method map
 
-    bool valid, upm,            // unset public member flag
-    is_pseudo, is_final;
+    bool valid,
+        upm,                       // unset public member flag
+        is_pseudo, is_final;
 
     void addElement(strlist_t& l, const std::string& str, size_t start, size_t end = std::string::npos) {
         std::string se(str, start, end);
@@ -3397,6 +3408,18 @@ public:
             if (i->first == "default_base") {
                 defbase = i->second;
                 log(LL_DEBUG, "+ default builtin base class: %s\n", defbase.c_str());
+                continue;
+            }
+
+            if (i->first == "serializer") {
+                serializer = i->second;
+                log(LL_DEBUG, "+ serializer function: %s\n", serializer.c_str());
+                continue;
+            }
+
+            if (i->first == "deserializer") {
+                deserializer = i->second;
+                log(LL_DEBUG, "+ deserializer function: %s\n", deserializer.c_str());
                 continue;
             }
 
@@ -3540,8 +3563,17 @@ public:
             fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace& ns) {\n", lname.c_str());
         fprintf(fp, "    if (!QC_%s)\n        preinit%sClass();\n", UC.c_str(), lname.c_str());
 
-        if (!defbase.empty())
-            fprintf(fp, "\n    // set default builtin base class\n    assert(%s);\n  QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
+        if (!defbase.empty()) {
+            fprintf(fp, "\n    // set default builtin base class\n    assert(%s);\n    QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
+        }
+
+        if (!serializer.empty()) {
+            fprintf(fp, "\n    // set serializer function\n    QC_%s->setSerializer(%s);\n", UC.c_str(), serializer.c_str());
+        }
+
+        if (!deserializer.empty()) {
+            fprintf(fp, "\n    // set deserializer function\n    QC_%s->setDeserializer(%s);\n", UC.c_str(), deserializer.c_str());
+        }
 
         for (unsigned i = 0; i < vparents.size(); ++i) {
             std::string vp;

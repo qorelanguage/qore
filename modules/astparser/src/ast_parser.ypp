@@ -173,6 +173,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %token TOK_FINAL "final"
 %token TOK_ABSTRACT "abstract"
 %token TOK_HASHDECL "hashdecl"
+%token TOK_TRANSIENT "transient"
 
 // currently unused tokens
 %token TOK_UNREFERENCE "unreference"
@@ -360,8 +361,10 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %type <list>           list_n
 %type <expression>     member
 %type <expression>     member2
-%type <exprlist>       member_list2
+%type <expression>     transient_member
+%type <expression>     transient_member2
 %type <exprlist>       member_list
+%type <exprlist>       member_list2
 %type <ui4>            method_modifier
 %type <ui4>            method_modifiers
 %type <expression>     myexp
@@ -395,7 +398,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %type <constdecl>      unscoped_const_decl
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; $$ = nullptr; } DOT_KW_IDENTIFIER PARSE_OPTION_END PARSE_OPTION_FULL QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element hashdecl_def hashdecl_member immediate_typed_hash inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef parse_option private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl try_statement uncqtypedef unscoped_const_decl
+%destructor { delete $$; $$ = nullptr; } DOT_KW_IDENTIFIER PARSE_OPTION_END PARSE_OPTION_FULL QUOTED_WORD REGEX REGEX_EXTRACT REGEX_SUBST REGEX_TRANS alt_hash base_constructor base_constructor_list block case_block case_code classvardecl class_def context_mod exp exp_c exp_n gvardecl hash hash_element hashdecl_def hashdecl_member immediate_typed_hash inline_methoddef internal_member_list list list_n member member2 myexp namespace_decl optname outofline_methoddef parse_option private_member_list public_member_list qtypedef return_statement return_value scalar scoped_const_decl scoped_sub_def statement statements statement_or_block string sub_def superclass switch_statement top_level_command top_namespace_decl transient_member transient_member2 try_statement uncqtypedef unscoped_const_decl
 %destructor { free($$); $$ = nullptr; } ANGLE_IDENTIFIER BACKQUOTE BASE_CLASS_CALL BINARY CLASS_SCOPED_REF CLASS_STRING COMPLEX_CONTEXT_REF CONTEXT_REF DATETIME HASHDECL_IDENTIFIER_OPENCURLY IDENTIFIER KW_IDENTIFIER_OPENPAREN NAMESPACE NUMBER QORE_CAST SCOPED_REF SCOPED_VREF SELF_REF VAR_REF ident_openparen
 %destructor { if ($$) { for (int i = 0, count = $$->size(); i < count; i++) {delete (*$$)[i];} delete $$; } $$ = nullptr; } base_constructors class_attributes context_mods hashdecl_attributes inheritance_list member_list member_list2 namespace_decls superclass_list
 
@@ -1562,7 +1565,9 @@ member2:
             name.loc = @1;
             free($1);
 
-            $$ = new ASTNameExpression(std::move(name));
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(name)));
+            vd->loc = @1;
+            $$ = new ASTDeclExpression(vd.release());
             /*if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
                 parse_error("member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);*/
         }
@@ -1571,7 +1576,9 @@ member2:
             name.loc = @1;
             free($1);
 
-            $$ = new ASTAssignmentExpression(new ASTNameExpression(std::move(name)), $3);
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(name)));
+            vd->loc = @1;
+            $$ = new ASTAssignmentExpression(new ASTDeclExpression(vd.release()), $3);
             /*if (!parse_check_parse_option(PO_ALLOW_BARE_REFS))
                 parse_error("member '%s' declared without '$.' prefix, but parse option 'allow-bare-refs' is not set", $1);*/
         }
@@ -1588,7 +1595,10 @@ member:
             ASTName name($1, ASTNameKind::ANK_SelfRef);
             name.loc = @1;
             free($1);
-            $$ = new ASTNameExpression(std::move(name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(name)));
+            vd->loc = @1;
+            $$ = new ASTDeclExpression(vd.release());
         }
         | SELF_REF SCOPED_REF {
             ASTName name($1, ASTNameKind::ANK_SelfAndScopedRef);
@@ -1596,7 +1606,70 @@ member:
             name.loc.set(@1, @2);
             free($1);
             free($2);
-            $$ = new ASTNameExpression(std::move(name));
+
+            ASTVariableDeclaration::Ptr vd(new ASTVariableDeclaration(std::move(name)));
+            vd->loc.set(@1, @2);
+            $$ = new ASTDeclExpression(vd.release());
+        }
+        ;
+
+transient_member2:
+        TOK_TRANSIENT member2 {
+            switch ($2->getKind()) {
+                case ASTExpressionKind::AEK_Assignment: {
+                    ASTAssignmentExpression* e = static_cast<ASTAssignmentExpression*>($2);
+                    e->loc.setFirst(@1);
+                    ASTDeclExpression* de = static_cast<ASTDeclExpression*>(e->left.get());
+                    de->loc.setFirst(@1);
+                    ASTVariableDeclaration* d = static_cast<ASTVariableDeclaration*>(de->declaration.get());
+                    d->loc.setFirst(@1);
+                    d->modifiers.add(AM_Transient);
+                    break;
+                }
+                case ASTExpressionKind::AEK_Call: {
+                    ASTCallExpression* e = static_cast<ASTCallExpression*>($2);
+                    e->loc.setFirst(@1);
+                    ASTDeclExpression* de = static_cast<ASTDeclExpression*>(e->target.get());
+                    de->loc.setFirst(@1);
+                    ASTVariableDeclaration* d = static_cast<ASTVariableDeclaration*>(de->declaration.get());
+                    d->loc.setFirst(@1);
+                    d->modifiers.add(AM_Transient);
+                    break;
+                }
+                case ASTExpressionKind::AEK_Decl: {
+                    ASTDeclExpression* e = static_cast<ASTDeclExpression*>($2);
+                    e->loc.setFirst(@1);
+                    ASTVariableDeclaration* d = static_cast<ASTVariableDeclaration*>(e->declaration.get());
+                    d->loc.setFirst(@1);
+                    d->modifiers.add(AM_Transient);
+                    break;
+                }
+                default: {
+                    yyerror(&@2, yyscanner, errorLog, parseTree, "invalid member expression");
+                    YYERROR;
+                }
+            }
+            $$ = $2;
+        }
+        ;
+
+transient_member:
+        TOK_TRANSIENT member {
+            switch ($2->getKind()) {
+                case ASTExpressionKind::AEK_Decl: {
+                    ASTDeclExpression* e = static_cast<ASTDeclExpression*>($2);
+                    e->loc.setFirst(@1);
+                    ASTVariableDeclaration* d = static_cast<ASTVariableDeclaration*>(e->declaration.get());
+                    d->loc.setFirst(@1);
+                    d->modifiers.add(AM_Transient);
+                    break;
+                }
+                default: {
+                    yyerror(&@2, yyscanner, errorLog, parseTree, "invalid member expression");
+                    YYERROR;
+                }
+            }
+            $$ = $2;
         }
         ;
 
@@ -1605,7 +1678,15 @@ member_list:
             $$ = new std::vector<ASTExpression*>;
             $$->push_back($1);
         }
+        | transient_member {
+            $$ = new std::vector<ASTExpression*>;
+            $$->push_back($1);
+        }
         | member_list ',' member {
+            $1->push_back($3);
+            $$ = $1;
+        }
+        | member_list ',' transient_member {
             $1->push_back($3);
             $$ = $1;
         }
@@ -1616,7 +1697,15 @@ member_list2:
             $$ = new std::vector<ASTExpression*>;
             $$->push_back($1);
         }
+        | transient_member2 {
+            $$ = new std::vector<ASTExpression*>;
+            $$->push_back($1);
+        }
         | member_list2 member2 {
+            $1->push_back($2);
+            $$ = $1;
+        }
+        | member_list2 transient_member2 {
             $1->push_back($2);
             $$ = $1;
         }
