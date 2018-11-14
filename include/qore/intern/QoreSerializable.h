@@ -50,6 +50,30 @@ typedef std::map<std::string, std::string> imap_t;
 // set of modules to load
 typedef std::set<std::string> mset_t;
 
+namespace {
+// qore serialization stream data type constants
+enum qore_stream_type : unsigned char {
+    HASH = 0,
+    HASHDECL = 1,
+    STRING = 2,
+    UTF8_STRING = 3,
+    LIST = 4,
+    BOOLEAN_TRUE = 5,
+    BOOLEAN_FALSE = 6,
+    INT1 = 7,
+    INT2 = 8,
+    INT4 = 9,
+    INT8 = 10,
+    FLOAT = 11,
+    QORENUMBER = 12,
+    QOREBINARY = 13,
+    ABSDATE = 14,
+    RELDATE = 15,
+    SQLNULL = 16,
+    NOTHING = 17,
+};
+}
+
 class ObjectIndexMap : public oimap_t {
 public:
     DLLLOCAL ObjectIndexMap(ExceptionSink* xs) : xs(xs) {
@@ -122,11 +146,11 @@ protected:
 
     DLLLOCAL static QoreValue deserializeValueFromStream(StreamReader& reader, ExceptionSink* xsink);
 
-    DLLLOCAL static QoreHashNode* deserializeHashFromStream(StreamReader& reader, int64 code, ExceptionSink* xsink);
+    DLLLOCAL static QoreHashNode* deserializeHashFromStream(StreamReader& reader, qore_stream_type code, ExceptionSink* xsink);
 
-    DLLLOCAL static QoreStringNode* deserializeStringFromStream(StreamReader& reader, int64 code, ExceptionSink* xsink);
+    DLLLOCAL static QoreStringNode* deserializeStringFromStream(StreamReader& reader, qore_stream_type code, ExceptionSink* xsink);
 
-    DLLLOCAL static int64 deserializeIntFromStream(StreamReader& reader, int64 code, ExceptionSink* xsink);
+    DLLLOCAL static int64 deserializeIntFromStream(StreamReader& reader, qore_stream_type code, ExceptionSink* xsink);
 
     DLLLOCAL static QoreListNode* deserializeListFromStream(StreamReader& reader, ExceptionSink* xsink);
 
