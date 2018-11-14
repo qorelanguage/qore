@@ -640,10 +640,11 @@ int kill(softint pid, softint sig = SIGHUP) [dom=EXTERNAL_PROCESS] {
 nothing kill() [flags=RUNTIME_NOOP;dom=EXTERNAL_PROCESS] {
 }
 
-//! Returns a random 64-bit integer number
-/** This function uses the C library function \c random() to generate the number if available on the current platform, otherwise uses \c %rand().
+//! Returns a random non-negative 64-bit integer number
+/** This function uses the C library function \c random() to generate the number if available on the current platform,
+    otherwise uses \c %rand().
 
-    @return a random 64-bit integer number
+    @return a random non-negative 64-bit integer number
 
     @par Example:
     @code{.py}

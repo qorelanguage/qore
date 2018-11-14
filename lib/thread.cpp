@@ -257,7 +257,7 @@ public:
     Context* context_stack = nullptr;
     ProgramParseContext* plStack = nullptr;
     const QoreProgramLocation* runtime_loc = &loc_builtin;
-    const AbstractStatement* runtime_statement;
+    const AbstractStatement* runtime_statement = nullptr;
     const char* parse_code = nullptr; // the current function, method, or closure being parsed
     const char* parse_file = nullptr; // the current file or label being parsed
     const char* parse_source = nullptr; // the current source being parsed
