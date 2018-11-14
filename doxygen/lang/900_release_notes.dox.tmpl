@@ -147,6 +147,9 @@
       - Command line utils display source line code when interrupted
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
+    - fixed a bug in deterministic garbage collection where @ref Qore::Thread::Queue "Queue" objects were not scanned
+      and therefore cycles due to @ref Qore::Thread::Queue "Queue" elements would cause a memory and reference leak
+      (<a href="https://github.com/qorelanguage/qore/issues/3101">issue 3101</a>)
     - fixed a bug where call references did not set the execution context with builtin functions
       and therefore calls to builtin functions in modules (such as \c jni) with
       per-program private data would fail
