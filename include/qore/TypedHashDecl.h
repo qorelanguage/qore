@@ -181,4 +181,24 @@ DLLEXPORT extern const TypedHashDecl* hashdeclNetIfInfo;
 //! SourceLocationInfo hashdecl
 DLLEXPORT extern const TypedHashDecl* hashdeclSourceLocationInfo;
 
+//! SerializationInfo hashdecl
+/** @since %Qore 0.9
+*/
+DLLEXPORT extern const TypedHashDecl* hashdeclSerializationInfo;
+
+//! ObjectSerializationInfo hashdecl
+/** @since %Qore 0.9
+*/
+DLLEXPORT extern const TypedHashDecl* hashdeclObjectSerializationInfo;
+
+//! IndexedObjectSerializationInfo hashdecl
+/** @since %Qore 0.9
+*/
+DLLEXPORT extern const TypedHashDecl* hashdeclIndexedObjectSerializationInfo;
+
+//! HashSerializationInfo hashdecl
+/** @since %Qore 0.9
+*/
+DLLEXPORT extern const TypedHashDecl* hashdeclHashSerializationInfo;
+
 #endif

@@ -785,6 +785,8 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 ^%broken-references{WS}*$               parse_set_parse_options(yylloc, PO_BROKEN_REFERENCES);
 ^%correct-references{WS}*$              parse_disable_parse_options(yylloc, PO_BROKEN_REFERENCES);
 ^%allow-statement-no-effect{WS}*$       parse_set_parse_options(yylloc, PO_ALLOW_STATEMENT_NO_EFFECT);
+^%no-reflection{WS}*$                   parse_set_parse_options(yylloc, PO_NO_REFLECTION);
+^%no-transient{WS}*$                    parse_set_parse_options(yylloc, PO_NO_TRANSIENT);
 ^%push-parse-options{WS}*$              push_parse_options();
 ^%append-include-path{WS}*$             { parse_error(*get_loc(yylloc), "missing argument to %%append-include-path"); }
 ^%append-include-path{WS}+              BEGIN(append_path_state);
@@ -1507,6 +1509,12 @@ on_exit                                 return TOK_ON_EXIT;
 on_success                              return TOK_ON_SUCCESS;
 on_error                                return TOK_ON_ERROR;
 hashdecl                                return TOK_HASHDECL;
+transient                               {
+                                            if (getProgram()->getParseOptions64() & PO_NO_TRANSIENT) {
+                                                yylval->string = strdup("transient"); return IDENTIFIER;
+                                            }
+                                            return TOK_TRANSIENT;
+                                        }
 map                                     { push_ignore_numeric_argv_ref(); return TOK_MAP; }
 foldr                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDR; }
 foldl                                   { push_ignore_numeric_argv_ref(); return TOK_FOLDL; }

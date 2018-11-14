@@ -206,6 +206,11 @@ public:
     //! frees any managed memory and sets the size to 0
     DLLEXPORT void clear();
 
+    // references the object and returns itself
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT BinaryNode* binRefSelf() const;
+
     //! returns the type name (useful in templates)
     DLLLOCAL static const char *getStaticTypeName() {
         return "binary";

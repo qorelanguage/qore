@@ -60,7 +60,13 @@ QoreHashNode* CallNode::getInfo() const {
    ph->setKeyValueIntern("line",     loc->start_line);
    ph->setKeyValueIntern("endline",  loc->end_line);
    ph->setKeyValueIntern("file",     new QoreStringNode(loc->getFile()));
-   ph->setKeyValueIntern("source",   loc->getSource() ? new QoreStringNode(loc->getSource()) : QoreValue());
+   // do not set "source" to NOTHING as it must be set to a value according to the hashdecl
+   {
+       const char* src = loc->getSource();
+       if (src) {
+           ph->setKeyValueIntern("source", new QoreStringNode(src));
+       }
+   }
    ph->setKeyValueIntern("offset",   loc->offset);
    ph->setKeyValueIntern("typecode", type);
    // CT_RETHROW is only aded manually

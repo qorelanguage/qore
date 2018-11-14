@@ -532,6 +532,8 @@ public:
         return checkType(NT_NOTHING);
     }
 
+    DLLLOCAL void setObjectContext(qore_object_private* obj);
+
     DLLLOCAL QoreValue getReferencedValue() const;
 
     // only call if there is a reference-counted AbstractQoreNode value in place

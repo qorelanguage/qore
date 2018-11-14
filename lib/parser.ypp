@@ -853,6 +853,11 @@ public:
         u.exp.clear();
         return rv;
     }
+
+    DLLLOCAL void setTransient() {
+        assert(type == MI_Member);
+        u.memberInfo->setTransient();
+    }
 };
 
 struct ClassVarInfo : public MemberInfo {
@@ -1622,6 +1627,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token TOK_FINAL "final"
 %token TOK_ABSTRACT "abstract"
 %token TOK_HASHDECL "hashdecl"
+%token TOK_TRANSIENT "transient"
 
 // currently unused tokens
 %token TOK_UNREFERENCE "unreference"
@@ -1770,8 +1776,10 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %type <memberlist>     public_member_list
 %type <memberlist>     member_list
 %type <memberinfo>     member
+%type <memberinfo>     transient_member
 %type <memberlist>     member_list2
 %type <memberinfo>     member2
+%type <memberinfo>     transient_member2
 %type <memberinfo>     hashdecl_member
 %type <classvarinfo>   classvardecl
 %type <qoreclass>      class_attributes
@@ -1807,7 +1815,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %type <methoddef>      outofline_methoddef
 
  // destructor actions for elements that need deleting when parse errors occur
-%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def hashdecl_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 hashdecl_member superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
+%destructor { delete $$; } TRY_MODULE_ERROR REGEX REGEX_SUBST REGEX_EXTRACT REGEX_TRANS BASE_CLASS_CALL CLASS_SCOPED_REF block statement_or_block statements statement return_statement try_statement hash_element context_mods context_mod inline_methoddef class_def hashdecl_def top_namespace_decl scoped_const_decl unscoped_const_decl switch_statement case_block case_code superclass base_constructor internal_member_list private_member_list public_member_list member_list member_list2 base_constructor_list base_constructors return_value member member2 transient_member transient_member2 hashdecl_member superclass_list inheritance_list qtypedef uncqtypedef classvardecl sub_def scoped_sub_def gvardecl outofline_methoddef hash alt_hash
 %destructor { qore_class_private::get(*$$)->deref(true, true); } class_attributes
 %destructor { free($$); } IDENTIFIER ANGLE_IDENTIFIER VAR_REF SELF_REF CONTEXT_REF COMPLEX_CONTEXT_REF BACKQUOTE SCOPED_REF SCOPED_VREF KW_IDENTIFIER_OPENPAREN QORE_CAST CLASS_STRING optname ident_openparen HASHDECL_IDENTIFIER_OPENCURLY
 %destructor { if ($$) $$->deref(); } namespace_decl namespace_decls string QUOTED_WORD DATETIME BINARY IMPLICIT_ARG_REF DOT_KW_IDENTIFIER hashdecl_attrs list list_n
@@ -2863,6 +2871,13 @@ member2:
         }
         ;
 
+transient_member2:
+        TOK_TRANSIENT member2 {
+            $$ = $2;
+            $$->setTransient();
+        }
+        ;
+
 member:
         SELF_REF {
             const QoreProgramLocation* loc = qore_program_private::get(*getProgram())->getLocation(@1.first_line, @1.last_line);
@@ -2878,11 +2893,25 @@ member:
         }
         ;
 
+transient_member:
+        TOK_TRANSIENT member {
+            $$ = $2;
+            $$->setTransient();
+        }
+        ;
+
 member_list:
         member {
            $$ = new MemberList($1);
         }
+        | transient_member {
+           $$ = new MemberList($1);
+        }
         | member_list ',' member {
+           $1->add($3);
+           $$ = $1;
+        }
+        | member_list ',' transient_member {
            $1->add($3);
            $$ = $1;
         }
@@ -2892,7 +2921,14 @@ member_list2:
         member2 {
            $$ = new MemberList($1);
         }
+        | transient_member2 {
+           $$ = new MemberList($1);
+        }
         | member_list2 member2 {
+           $1->add($2);
+           $$ = $1;
+        }
+        | member_list2 transient_member2 {
            $1->add($2);
            $$ = $1;
         }

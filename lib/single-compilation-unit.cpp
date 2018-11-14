@@ -247,6 +247,7 @@
 #include "CompressionTransforms.cpp"
 #include "EncryptionTransforms.cpp"
 #include "Transform.cpp"
+#include "QoreSerializable.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"
@@ -351,6 +352,7 @@
 #include "QC_TransformOutputStream.cpp"
 #include "QC_StdoutOutputStream.cpp"
 #include "QC_StderrOutputStream.cpp"
+#include "QC_Serializable.cpp"
 
 #include "QorePseudoMethods.cpp"
 

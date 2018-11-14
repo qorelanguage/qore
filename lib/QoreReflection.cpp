@@ -193,6 +193,10 @@ int QoreExternalStaticMember::setValue(const QoreValue val, ExceptionSink* xsink
     return *xsink ? -1 : 0;
 }
 
+bool QoreExternalNormalMember::isTransient() const {
+    return reinterpret_cast<const QoreMemberInfo*>(this)->getTransient();
+}
+
 QoreHashNode* QoreExternalProgramLocation::getHash() const {
     return get_source_location(reinterpret_cast<const QoreProgramLocation*>(this));
 }
