@@ -100,7 +100,7 @@ public:
 
     DLLLOCAL int64 peek(ExceptionSink* xsink) override {
         if (outBufCount > 0)
-            return outBuf[0];
+            return outBuf[outBufOffset];
         int64 rc = read(outBuf, outBufSize, xsink);
         if (*xsink)
             return -2;
