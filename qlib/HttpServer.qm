@@ -26,12 +26,12 @@
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
-%requires(reexport) HttpServerUtil >= 0.3.11.1
+%requires(reexport) HttpServerUtil >= 0.3.12.1
 
 %new-style
 
 module HttpServer {
-    version = "0.3.12";
+    version = "0.3.12.1";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -111,6 +111,10 @@ log("started listener on %s", lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http0312 HttpServer 0.3.12.1
+    - fixed \c HEAD and other responses that cannot have a message body
+      (<a href="https://github.com/qorelanguage/qore/issues/3116">bug 3116</a>)
 
     @subsection http0312 HttpServer 0.3.12
     - added a minimal substring of string bodies received to the log message when logging HTTP requests
@@ -1175,16 +1179,29 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! sends an HTTP error message on the socket
-    sendHttpError(HttpListener listener, hash cx, Socket s, int code, string msg, *hash extra_hdrs, *string encoding) {
+    sendHttpError(HttpListener listener, hash cx, Socket s, int code, string msg, *hash extra_hdrs, *string encoding, bool head) {
         if (!s.isOpen()) {
             listener.log("cid %d: connection closed by peer", cx.id);
             return;
         }
 
-        string str = !extra_hdrs."Content-Type"
-            ? sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1><pre>%s</pre><p><hr><address>%s on %s</address></body></html>",
-                      code, HttpServer::HttpCodes{code}, HttpServer::HttpCodes{code}, html_encode(msg), http_server_string, gethostname())
-            : msg;
+        string str;
+        # issue #3116: do not send a reply body if the response code does not allow it
+        /** http://tools.ietf.org/html/rfc2616#section-4.4
+            1.Any response message which "MUST NOT" include a message-body (such
+            as the 1xx, 204, and 304 responses and any response to a HEAD
+            request) is always terminated by the first empty line after the
+            header fields, regardless of the entity-header fields present in
+            the message.
+        */
+        if (!head && (code >= 200) && (code != 204) && (code != 304)) {
+            str = !extra_hdrs."Content-Type"
+                ? sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1><pre>%s</pre><p><hr><address>%s on "
+                    "%s</address></body></html>",
+                        code, HttpServer::HttpCodes{code}, HttpServer::HttpCodes{code}, html_encode(msg),
+                        http_server_string, gethostname())
+                : msg;
+        }
 
         # restore encoding on exit
         string old_encoding = s.getEncoding();
@@ -1215,8 +1232,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         try {
             s.sendHTTPResponse(code, HttpServer::HttpCodes{code}, "1.1", v_hdr, str);
             listener.logResponse(cx, code, str, v_hdr);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (ex.err != "SOCKET-SEND-ERROR") {
                 string estr = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
                 logError(estr);
@@ -1473,7 +1489,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     if (listener.defaultHandler)
                         hi = listener.defaultHandler;
                     else {
-                        sendHttpError(listener, cx, s, 404, "Not found", NOTHING, cx."response-encoding");
+                        sendHttpError(listener, cx, s, 404, "Not found", NOTHING, cx."response-encoding", head);
                         return;
                     }
                 }
@@ -1527,16 +1543,15 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                             if (!ah.body)
                                 ah.body = "Authentication is required to access this server";
                             cx.close = True;
-                            sendHttpError(listener, cx, s, ah.code, ah.body, ah.hdr, cx."response-encoding");
+                            sendHttpError(listener, cx, s, ah.code, ah.body, ah.hdr, cx."response-encoding", head);
                             return;
                         }
-                    }
-                    catch (hash<ExceptionInfo> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                         # log the error
                         string str = sprintf("%s: %s: %s: received from %s", get_ex_pos(ex), ex.err, ex.desc, cx."peer-info".address_desc);
                         listener.logError(str);
                         cx.close = True;
-                        sendHttpError(listener, cx, s, 501, "Server Authentication Error");
+                        sendHttpError(listener, cx, s, 501, "Server Authentication Error", NOTHING, NOTHING, head);
                         return;
                     }
                     #listener.log("authenticated with user %y", cx.user);
@@ -1564,8 +1579,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             }
 
             sendReply(listener, s, handler, rv, \cx, hdr, head);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             string desc = !debug
                 ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                 : get_exception_string(ex);
@@ -1583,7 +1597,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             on_exit if (s.pendingHttpChunkedBody())
                 s.readHTTPChunkedBodyBinary(HttpServer::ReadTimeout);
 
-            sendHttpError(listener, cx, s, 500, str, NOTHING, cx."response-encoding");
+            sendHttpError(listener, cx, s, 500, str, NOTHING, cx."response-encoding", head);
             logError(str);
         }
     }
@@ -1604,7 +1618,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             string str = sprintf("%s handler returned an invalid response rv: %y", cx.handler_name, rv);
             cx.close = True;
 
-            sendHttpError(listener, cx, s, 500, str, NOTHING, cx."response-encoding");
+            sendHttpError(listener, cx, s, 500, str, NOTHING, cx."response-encoding", head);
             return;
         }
 
@@ -1617,39 +1631,44 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         # message-body, although it MAY be of zero length.
 
         rv.hdr = self.hdr + rv.hdr;
+
+        if (exists rv.body
+            && (head
+                || (rv.code < 200
+                    || (rv.code == 204
+                    || rv.code == 304)))) {
+            remove rv.body;
+        }
+
         if (rv.code >= 300 && rv.code < 400) {
             # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
             s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, rv.body);
             listener.logResponse(cx, rv);
-        }
-        else if (rv.code >= 400) {
-            if (!rv.body)
+        } else if (rv.code >= 400) {
+            if (!rv.body) {
                 rv.body = sprintf("unknown error in %s handler", cx.handler_name);
+            }
 
-            sendHttpError(listener, cx, s, rv.code, rv.body, rv.hdr, cx."response-encoding");
-        }
-        else {
+            sendHttpError(listener, cx, s, rv.code, rv.body, rv.hdr, cx."response-encoding", head);
+        } else {
             HttpServer::http_set_reply_headers(s, cx, \rv);
             #printf("\n**** RESPONSE: %d ct: %s encoding: %y: %N\n", rv.code, rv.hdr."Content-Type", cx.encoding, rv.body);
 
-            if (head)
-                s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr);
-            else if (rv.body && rv.body.size() > CompressionThreshold) {
+            # compress body if eligible for compression
+            if (rv.body && rv.body.size() > CompressionThreshold) {
                 if (cx.encoding == "deflate") {
                     rv.hdr."Content-Encoding" = "deflate";
                     rv.body = compress(rv.body);
-                }
-                else if (cx.encoding == "gzip") {
+                } else if (cx.encoding == "gzip") {
                     rv.hdr."Content-Encoding" = "gzip";
                     rv.body = gzip(rv.body);
-                }
-                else if (cx.encoding == "bzip2") {
+                } else if (cx.encoding == "bzip2") {
                     rv.hdr."Content-Encoding" = "bzip2";
                     rv.body = bzip2(rv.body);
                 }
             }
-
             s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, rv.body);
+
             listener.logResponse(cx, rv);
         }
 
@@ -2065,11 +2084,10 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             try {
                 # use the thread pool to start the connection
                 serv.startConnection(sub () { connectionThread(r); });
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 cThreads.dec();
                 string err = sprintf("failed to start connection thread: %s: %s", ex.err, ex.desc);
-                serv.sendHttpError(self, ("id": -1, "close": True), r, 500, err);
+                serv.sendHttpError(self, ("id": -1, "close": True), r, 500, err, NOTHING, NOTHING, True);
             }
         }
 
@@ -2135,8 +2153,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 hash hi;
                 try {
                     hdr = s.readHTTPHeader(HttpServer::ReadTimeout, \hi);
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     # according to RFC 2616 sec 8.1.2.1 (http://tools.ietf.org/html/rfc2616#section-8.1.2), clients claiming http 1.1
                     # protocol compatibility SHOULD only close the connection after
                     # sending a "connection: close" header, but in
@@ -2144,14 +2161,13 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     if (ex.err == "SOCKET-CLOSED") {
                         #printf("HTTP DEBUG: socket closed id=%d source=%n\n", cx.id, info.address_desc);
                         break;
-                    }
-                    else if (ex.err == "SOCKET-TIMEOUT") {
+                    } else if (ex.err == "SOCKET-TIMEOUT") {
                         # log error and close connection on timeout
                         string err = sprintf("timed out reading HTTP header after %d ms", HttpServer::ReadTimeout);
                         string str = sprintf("%s from %s via %s", err, info.address_desc, socket_info.address_desc);
                         logError(str);
                         cx.close = True;
-                        serv.sendHttpError(self, cx, s, 400, err);
+                        serv.sendHttpError(self, cx, s, 400, err, NOTHING, NOTHING, False);
                         break;
                     }
                     string etxt = sprintf("ERROR reading HTTP header: %s: %s", ex.err, ex.desc);
@@ -2160,7 +2176,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     string str = sprintf("%s: received from %s via %s", etxt, info.address_desc, socket_info.address_desc);
                     logError(str);
                     cx.close = True;
-                    serv.sendHttpError(self, cx, s, 400, etxt);
+                    serv.sendHttpError(self, cx, s, 400, etxt, NOTHING, NOTHING, False);
                     break;
                 }
 
@@ -2211,7 +2227,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                         string str = sprintf("%s: received from %s via %s (header=%n)", etxt, info.address_desc, socket_info.address_desc, hdr);
                         logError(str);
                         cx.close = True;
-                        serv.sendHttpError(self, cx, s, 400, etxt, NOTHING, cx."response-encoding");
+                        serv.sendHttpError(self, cx, s, 400, etxt, NOTHING, cx."response-encoding", hdr.method == "HEAD");
                         break;
                     }
                 }
@@ -2251,7 +2267,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     string str = sprintf("%s: received from %s via %s", err, info.address_desc, socket_info.address_desc);
                     logError(str);
                     cx.close = True;
-                    serv.sendHttpError(self, cx, s, 501, err, NOTHING, cx."response-encoding");
+                    serv.sendHttpError(self, cx, s, 501, err, NOTHING, cx."response-encoding", hdr.method == "HEAD");
                 }
                 else {
                     cx.uctx = get_thread_data("uctx");
@@ -2273,7 +2289,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             logError(sprintf("hdr=%y", hdr));
             #logError(sprintf("msg=%y", body));
             cx.close = True;
-            serv.sendHttpError(self, cx, s, 500, etxt, NOTHING, cx."response-encoding");
+            serv.sendHttpError(self, cx, s, 500, etxt, NOTHING, cx."response-encoding", False);
         }
 
         #log("cid %d: closing connection (status: %s)", cx.id, s.isOpen() ? "open" : "closed");

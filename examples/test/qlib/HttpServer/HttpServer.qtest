@@ -37,18 +37,23 @@ class ReqHandler inherits AbstractHttpRequestHandler {
         string rpath = hdr.path;
         if (rpath =~ /^test400\//) {
             return make400("test400");
-        }
-        else if (rpath =~ /^test501\//) {
+        } else if (rpath =~ /^test501\//) {
             return make501("test501");
-        }
-        else if (rpath =~ /^nonexistingcode/) {
+        } else if (rpath =~ /^nonexistingcode/) {
             return makeResponse(723, "test");
+        } else if (rpath =~ /^test102\//) {
+            return makeResponse(102, "test");
+        } else if (rpath =~ /^test204\//) {
+            return makeResponse(204, "test");
+        } else if (rpath =~ /^test304\//) {
+            return makeResponse(304, "test");
         }
 
-        if (hdr.method == "POST")
+        if (hdr.method == "POST") {
             return makeResponse(200, "POST, " + body + ", " + rpath + ", " + cx.raw_path);
-        else
+        } else {
             return makeResponse(200, hdr.method + ", " + rpath + ", " + cx.raw_path);
+        }
     }
 }
 
@@ -61,11 +66,12 @@ public class HttpServerTest inherits QUnit::Test {
     }
 
     constructor() : Test("HttpServerTest", "1.0") {
+        addTestCase("issue 3116", \issue3116());
         addTestCase("Test basics", \basicTest());
         addTestCase("Test routing", \routingTest());
         addTestCase("Test status codes", \testStatusCodes());
         addTestCase("misc", \misc());
-        addTestCase("2nd wilcard listener", \secondWildcardListener());
+        addTestCase("2nd wildcard listener", \secondWildcardListener());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -97,6 +103,14 @@ public class HttpServerTest inherits QUnit::Test {
     tearDown() {
         mClient.disconnect();
         delete mClient;
+    }
+
+    issue3116() {
+        assertThrows("HTTP-CLIENT-RECEIVE-ERROR", "501", \mClient.head(), "/test501/xyz");
+        assertNothing(mClient.get("/test102/xyz"));
+        assertNothing(mClient.get("/test204/xyz"));
+        assertThrows("HTTP-CLIENT-RECEIVE-ERROR", "304", \mClient.head(), "/test304/xyz");
+        assertEq("GET, abc, /abc", mClient.get("/abc"));
     }
 
     secondWildcardListener() {

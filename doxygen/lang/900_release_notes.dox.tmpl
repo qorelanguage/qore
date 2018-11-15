@@ -8,8 +8,14 @@
     Bugfix release; see details below
 
     @subsection qore_08139_bug_fixes Bug Fixes in Qore
+    - fixed handling <tt>304 Not Modified</tt> responses in the @ref Qore::HTTPClient "HTTPClient" class
+      (<a href="https://github.com/qorelanguage/qore/issues/3116">issue 3116</a>)
     - fixed a crashing bug in the @ref Qore::Transform "Transform" class when used with encryption algorithms
       (<a href="https://github.com/qorelanguage/qore/issues/3111">issue 3111</a>)
+    - module fixes:
+      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a>:
+        - fixed responses that cannot have a message body (ex: \c HEAD requests and others)
+          (<a href="https://github.com/qorelanguage/qore/issues/3116">issue 3116</a>)
 
     @section qore_08138 Qore 0.8.13.8
 
