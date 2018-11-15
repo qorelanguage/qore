@@ -174,6 +174,7 @@ syn match qoreParseDirective "^%set-time-zone\>"
 syn match qoreParseDirective "^%strict-args\>"
 syn match qoreParseDirective "^%strict-bool-eval\>"
 syn match qoreParseDirective "^%strong-encapsulation\>"
+syn match qoreParseDirective "^%allow-statement-no-effect\>"
 
 " Qore supplied modules
 syn keyword qoreModule BulkSqlUtil

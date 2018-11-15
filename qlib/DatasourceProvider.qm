@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file DatasourceProvider.qm Qore user module providing an API for returning datasource connection strings from identifiers
+#! @file DatasourceProvider.qm Qore user module providing an API for returning datasource connection strings from identifiers
 
 /*  DatasourceProvider.qm Copyright 2016 - 2017 Qore Technologies, s.r.o.
 

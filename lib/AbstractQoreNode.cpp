@@ -1,31 +1,31 @@
 /*
-  AbstractQoreNode.cpp
+    AbstractQoreNode.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -45,13 +45,13 @@
 #define REF_LVL (type!=NT_HASH)
 #endif
 
-AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one, bool n_custom_reference_handlers) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), custom_reference_handlers(n_custom_reference_handlers), has_value_api(false) {
+AbstractQoreNode::AbstractQoreNode(qore_type_t t, bool n_value, bool n_needs_eval, bool n_there_can_be_only_one, bool n_custom_reference_handlers) : type(t), value(n_value), needs_eval_flag(n_needs_eval), there_can_be_only_one(n_there_can_be_only_one), custom_reference_handlers(n_custom_reference_handlers) {
 #if TRACK_REFS
    printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d (0->1)\n", this, type);
 #endif
 }
 
-AbstractQoreNode::AbstractQoreNode(const AbstractQoreNode& v) : type(v.type), value(v.value), needs_eval_flag(v.needs_eval_flag), there_can_be_only_one(v.there_can_be_only_one), custom_reference_handlers(v.custom_reference_handlers), has_value_api(v.has_value_api) {
+AbstractQoreNode::AbstractQoreNode(const AbstractQoreNode& v) : type(v.type), value(v.value), needs_eval_flag(v.needs_eval_flag), there_can_be_only_one(v.there_can_be_only_one), custom_reference_handlers(v.custom_reference_handlers) {
 #if TRACK_REFS
    printd(REF_LVL, "AbstractQoreNode::ref() %p type: %d (0->1)\n", this, type);
 #endif
@@ -65,20 +65,20 @@ AbstractQoreNode::~AbstractQoreNode() {
 
 /*
 bool test(const AbstractQoreNode* n) {
-   return n->getType() == NT_HASH;
+   return n->getType() == NT_RTCONSTREF;
 }
 static void break_ref() {}
+static void break_deref() {}
 */
 
 void AbstractQoreNode::ref() const {
 #ifdef DEBUG
-   /*
+/*
    if (test(this)) {
-      printd(0, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references + 1);
+      printd(0, "AbstractQoreNode::ref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), reference_count(), reference_count() + 1);
       break_ref();
    }
-   */
-
+*/
 #if TRACK_REFS
    if (type == NT_OBJECT) {
       const QoreObject *o = reinterpret_cast<const QoreObject*>(this);
@@ -113,16 +113,15 @@ void AbstractQoreNode::customDeref(ExceptionSink* xsink) {
    assert(false);
 }
 
-//static void break_deref() {}
 void AbstractQoreNode::deref(ExceptionSink* xsink) {
    //QORE_TRACE("AbstractQoreNode::deref()");
 #ifdef DEBUG
-   /*
+/*
    if (test(this)) {
-      printd(0, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), references, references - 1);
+      printd(0, "AbstractQoreNode::deref() %p type: %d %s (%d->%d)\n", this, type, getTypeName(), reference_count(), reference_count() - 1);
       break_deref();
    }
-   */
+*/
 #if TRACK_REFS
    if (type == NT_OBJECT)
       printd(REF_LVL, "QoreObject::deref() %p class: %s (%d->%d) %d\n", this, ((QoreObject*)this)->getClassName(), references.load(), references.load() - 1, custom_reference_handlers);
@@ -155,143 +154,56 @@ void AbstractQoreNode::deref(ExceptionSink* xsink) {
    }
 }
 
-QoreValue AbstractQoreNode::evalValue(ExceptionSink* xsink) const {
-   if (!needs_eval_flag)
-      return refSelf();
+QoreValue AbstractQoreNode::eval(ExceptionSink* xsink) const {
+    if (!needs_eval_flag)
+        return refSelf();
 
-   if (has_value_api) {
-      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
-      ValueEvalRefHolder v(pn, xsink);
-      return v.takeReferencedValue();
-   }
-
-   return evalImpl(xsink);
+    bool needs_deref = true;
+    QoreValue rv = evalImpl(needs_deref, xsink);
+    return !needs_deref ? rv.refSelf() : rv;
 }
 
-QoreValue AbstractQoreNode::evalValue(bool& needs_deref, ExceptionSink* xsink) const {
-   if (!needs_eval_flag) {
-      needs_deref = false;
-      return const_cast<AbstractQoreNode*>(this);
-   }
+QoreValue AbstractQoreNode::eval(bool& needs_deref, ExceptionSink* xsink) const {
+    if (!needs_eval_flag) {
+        needs_deref = false;
+        return this;
+    }
 
-   if (has_value_api) {
-      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
-      ValueEvalRefHolder v(pn, xsink);
-      return v.takeValue(needs_deref);
-   }
+    needs_deref = true;
+    QoreValue rv = evalImpl(needs_deref, xsink);
 
-   return evalImpl(needs_deref, xsink);
-}
+    if (rv.getType() == NT_WEAKREF) {
+        QoreObject* o = rv.get<WeakReferenceNode>()->get();
+        if (needs_deref) {
+            o->ref();
+            rv.discard(xsink);
+        }
+        rv = o;
+    }
 
-// AbstractQoreNode::eval(): return value requires a dereference
-AbstractQoreNode* AbstractQoreNode::eval(ExceptionSink* xsink) const {
-   if (!needs_eval_flag)
-      return refSelf();
-   return evalImpl(xsink);
-}
-
-// AbstractQoreNode::eval(): return value requires a dereference if needs_deref is true
-AbstractQoreNode* AbstractQoreNode::eval(bool& needs_deref, ExceptionSink* xsink) const {
-   if (!needs_eval_flag) {
-      needs_deref = false;
-      return const_cast<AbstractQoreNode*>(this);
-   }
-
-   return evalImpl(needs_deref, xsink);
-}
-
-int64 AbstractQoreNode::bigIntEvalImpl(ExceptionSink* xsink) const {
-   if (has_value_api) {
-      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
-      ValueEvalRefHolder v(pn, xsink);
-      return v->getAsBigInt();
-   }
-   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-   return rv ? rv->getAsBigInt() : 0;
-}
-
-int AbstractQoreNode::integerEvalImpl(ExceptionSink* xsink) const {
-   if (has_value_api) {
-      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
-      ValueEvalRefHolder v(pn, xsink);
-      return v->getAsBigInt();
-   }
-   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-   return rv ? rv->getAsInt() : 0;
-}
-
-bool AbstractQoreNode::boolEvalImpl(ExceptionSink* xsink) const {
-   if (has_value_api) {
-      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
-      ValueEvalRefHolder v(pn, xsink);
-      return v->getAsBool();
-   }
-   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-   return rv ? rv->getAsBool() : false;
-}
-
-double AbstractQoreNode::floatEvalImpl(ExceptionSink* xsink) const {
-   if (has_value_api) {
-      const ParseNode* pn = reinterpret_cast<const ParseNode*>(this);
-      ValueEvalRefHolder v(pn, xsink);
-      return v->getAsFloat();
-   }
-   ReferenceHolder<AbstractQoreNode> rv(eval(xsink), xsink);
-   return rv ? rv->getAsFloat() : 0.0;
-}
-
-int64 AbstractQoreNode::bigIntEval(ExceptionSink* xsink) const {
-   if (needs_eval_flag)
-      return bigIntEvalImpl(xsink);
-   return getAsBigInt();
-}
-
-int AbstractQoreNode::integerEval(ExceptionSink* xsink) const {
-   if (needs_eval_flag)
-      return integerEvalImpl(xsink);
-   return getAsInt();
-}
-
-bool AbstractQoreNode::boolEval(ExceptionSink* xsink) const {
-   if (needs_eval_flag)
-      return boolEvalImpl(xsink);
-   return getAsBool();
-}
-
-double AbstractQoreNode::floatEval(ExceptionSink* xsink) const {
-   if (needs_eval_flag)
-      return floatEvalImpl(xsink);
-   return getAsFloat();
+    return rv;
 }
 
 bool AbstractQoreNode::getAsBool() const {
-   if (type == NT_BOOLEAN)
-      return reinterpret_cast<const QoreBoolNode*>(this)->getValue();
-   return getAsBoolImpl();
+    return getAsBoolImpl();
 }
 
 int AbstractQoreNode::getAsInt() const {
-   if (type == NT_INT)
-      return (int)(reinterpret_cast<const QoreBigIntNode*>(this)->val);
-   return getAsIntImpl();
+    return getAsIntImpl();
 }
 
 int64 AbstractQoreNode::getAsBigInt() const {
-   if (type == NT_INT)
-      return reinterpret_cast<const QoreBigIntNode*>(this)->val;
-   return getAsBigIntImpl();
+    return getAsBigIntImpl();
 }
 
 double AbstractQoreNode::getAsFloat() const {
-   if (type == NT_FLOAT)
-      return reinterpret_cast<const QoreFloatNode*>(this)->f;
-   return getAsFloatImpl();
+    return getAsFloatImpl();
 }
 
 // get the value of the type in a string context, empty string for complex types (default implementation)
-QoreString *AbstractQoreNode::getStringRepresentation(bool& del) const {
-   del = false;
-   return NullString;
+QoreString* AbstractQoreNode::getStringRepresentation(bool& del) const {
+    del = false;
+    return NullString;
 }
 
 // empty default implementation
@@ -300,8 +212,8 @@ void AbstractQoreNode::getStringRepresentation(QoreString& str) const {
 
 // if del is true, then the returned DateTime * should be deleted, if false, then it should not
 DateTime *AbstractQoreNode::getDateTimeRepresentation(bool& del) const {
-   del = false;
-   return ZeroDate;
+    del = false;
+    return ZeroDate;
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
@@ -309,126 +221,123 @@ void AbstractQoreNode::getDateTimeRepresentation(DateTime& dt) const {
    dt.setDate(0LL);
 }
 
-AbstractQoreNode* AbstractQoreNode::parseInit(LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-   return this;
-}
-
-bool AbstractQoreNode::hasValueApi() const {
-   return has_value_api;
+void AbstractQoreNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
+    // no action taken by default
 }
 
 // for getting relative time values or integer values
-int getSecZeroInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
+int getSecZeroInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
 
-   if (a->getType() == NT_DATE)
-      return (int)(reinterpret_cast<const DateTimeNode*>(a)->getRelativeSeconds());
+    if (a.getType() == NT_DATE)
+        return (int)(a.get<const DateTimeNode>()->getRelativeSeconds());
 
-   return a->getAsInt();
+    return (int)a.getAsBigInt();
 }
 
-int64 getSecZeroBigInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
+int64 getSecZeroBigInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
 
-   if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode*>(a)->getRelativeSeconds();
+    if (a.getType() == NT_DATE)
+        return a.get<const DateTimeNode>()->getRelativeSeconds();
 
-   return a->getAsBigInt();
-}
-
-// for getting relative time values or integer values
-int getSecMinusOneInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return -1;
-
-   if (a->getType() == NT_DATE)
-      return (int)(reinterpret_cast<const DateTimeNode*>(a)->getRelativeSeconds());
-
-   return a->getAsInt();
-}
-
-int64 getSecMinusOneBigInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return -1;
-
-   if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode*>(a)->getRelativeSeconds();
-
-   return a->getAsBigInt();
-}
-
-int getMsZeroInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
-
-   if (a->getType() == NT_DATE)
-      return (int)(reinterpret_cast<const DateTimeNode*>(a)->getRelativeMilliseconds());
-
-   return a->getAsInt();
-}
-
-int64 getMsZeroBigInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
-
-   if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode*>(a)->getRelativeMilliseconds();
-
-   return a->getAsBigInt();
+    return a.getAsBigInt();
 }
 
 // for getting relative time values or integer values
-int getMsMinusOneInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return -1;
+int getSecMinusOneInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return -1;
 
-   if (a->getType() == NT_DATE)
-      return (int)(reinterpret_cast<const DateTimeNode*>(a)->getRelativeMilliseconds());
+    if (a.getType() == NT_DATE)
+        return (int)(a.get<const DateTimeNode>()->getRelativeSeconds());
 
-   return a->getAsInt();
+    return (int)a.getAsBigInt();
 }
 
-int64 getMsMinusOneBigInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return -1;
+int64 getSecMinusOneBigInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return -1;
 
-   if (a->getType() == NT_DATE)
-      return reinterpret_cast<const DateTimeNode*>(a)->getRelativeMilliseconds();
+    if (a.getType() == NT_DATE)
+        return a.get<const DateTimeNode>()->getRelativeSeconds();
 
-   return a->getAsBigInt();
+    return a.getAsBigInt();
 }
 
-int getMicroSecZeroInt(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
+int getMsZeroInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
 
-   if (a->getType() == NT_DATE)
-      return (int)(reinterpret_cast<const DateTimeNode*>(a)->getRelativeMicroseconds());
+    if (a.getType() == NT_DATE)
+        return (int)(a.get<const DateTimeNode>()->getRelativeMilliseconds());
 
-   return a->getAsInt();
+    return (int)a.getAsBigInt();
 }
 
-int64 getMicroSecZeroInt64(const AbstractQoreNode* a) {
-   if (is_nothing(a))
-      return 0;
+int64 getMsZeroBigInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
 
-   if (a->getType() == NT_DATE)
-      return (reinterpret_cast<const DateTimeNode*>(a)->getRelativeMicroseconds());
+    if (a.getType() == NT_DATE)
+        return a.get<const DateTimeNode>()->getRelativeMilliseconds();
 
-   return a->getAsBigInt();
+    return a.getAsBigInt();
+}
+
+// for getting relative time values or integer values
+int getMsMinusOneInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return -1;
+
+    if (a.getType() == NT_DATE)
+        return (int)(a.get<const DateTimeNode>()->getRelativeMilliseconds());
+
+    return (int)a.getAsBigInt();
+}
+
+int64 getMsMinusOneBigInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return -1;
+
+    if (a.getType() == NT_DATE)
+        return a.get<const DateTimeNode>()->getRelativeMilliseconds();
+
+    return a.getAsBigInt();
+}
+
+int getMicroSecZeroInt(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
+
+    if (a.getType() == NT_DATE)
+        return (int)(a.get<const DateTimeNode>()->getRelativeMicroseconds());
+
+    return (int)a.getAsBigInt();
+}
+
+int64 getMicroSecZeroInt64(QoreValue a) {
+    if (a.isNullOrNothing())
+        return 0;
+
+    if (a.getType() == NT_DATE)
+        return (a.get<const DateTimeNode>()->getRelativeMicroseconds());
+
+    return a.getAsBigInt();
 }
 
 static QoreListNode* crlr_list_copy(const QoreListNode* n, ExceptionSink* xsink) {
-   assert(xsink);
-   ReferenceHolder<QoreListNode> l(new QoreListNode(true), xsink);
-   for (unsigned i = 0; i < n->size(); i++) {
-      l->push(copy_and_resolve_lvar_refs(n->retrieve_entry(i), xsink));
-      if (*xsink)
-         return 0;
-   }
-   return l.release();
+    assert(xsink);
+    ReferenceHolder<QoreListNode> l(qore_list_private::get(*n)->getEmptyCopy(n->is_value()), xsink);
+    for (unsigned i = 0; i < n->size(); i++) {
+        l->push(copy_value_and_resolve_lvar_refs(n->retrieveEntry(i), xsink), nullptr);
+        if (*xsink) {
+            return 0;
+        }
+    }
+    return l.release();
 }
 
 static QoreParseListNode* crlr_list_copy(const QoreParseListNode* n, ExceptionSink* xsink) {
@@ -437,27 +346,16 @@ static QoreParseListNode* crlr_list_copy(const QoreParseListNode* n, ExceptionSi
    return *xsink ? nullptr : l.release();
 }
 
-static QoreValueList* crlr_list_copy(const QoreValueList* n, ExceptionSink* xsink) {
-   assert(xsink);
-   ReferenceHolder<QoreValueList> l(new QoreValueList, xsink);
-   for (unsigned i = 0; i < n->size(); i++) {
-      l->push(copy_value_and_resolve_lvar_refs(n->retrieveEntry(i), xsink));
-      if (*xsink)
-         return 0;
-   }
-   return l.release();
-}
-
 static AbstractQoreNode* crlr_hash_copy(const QoreHashNode* n, ExceptionSink* xsink) {
-   assert(xsink);
-   ReferenceHolder<QoreHashNode> h(new QoreHashNode(true), xsink);
-   ConstHashIterator hi(n);
-   while (hi.next()) {
-      h->setKeyValue(hi.getKey(), copy_and_resolve_lvar_refs(hi.getValue(), xsink), xsink);
-      if (*xsink)
-         return 0;
-   }
-   return h.release();
+    assert(xsink);
+    ReferenceHolder<QoreHashNode> h(qore_hash_private::get(*n)->getEmptyCopy(n->is_value()), xsink);
+    ConstHashIterator hi(n);
+    while (hi.next()) {
+        h->setKeyValue(hi.getKey(), copy_value_and_resolve_lvar_refs(hi.get(), xsink), xsink);
+        if (*xsink)
+            return nullptr;
+    }
+    return h.release();
 }
 
 static AbstractQoreNode* crlr_hash_copy(const QoreParseHashNode* n, ExceptionSink* xsink) {
@@ -514,131 +412,97 @@ static AbstractQoreNode* crlr_smcall_copy(const StaticMethodCallNode* m, Excepti
 }
 
 static AbstractQoreNode* call_ref_call_copy(const CallReferenceCallNode* n, ExceptionSink* xsink) {
-   assert(xsink);
-   ReferenceHolder<AbstractQoreNode> exp(copy_and_resolve_lvar_refs(n->getExp(), xsink), xsink);
-   if (*xsink)
-      return 0;
+    assert(xsink);
+    ValueHolder exp(copy_value_and_resolve_lvar_refs(n->getExp(), xsink), xsink);
+    if (*xsink)
+        return 0;
 
-   QoreListNode* args = const_cast<QoreListNode*>(n->getArgs());
-   if (args) {
-      ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
-      if (*xsink)
-         return 0;
+    QoreListNode* args = const_cast<QoreListNode*>(n->getArgs());
+    if (args) {
+        ReferenceHolder<QoreListNode> args_holder(crlr_list_copy(args, xsink), xsink);
+        if (*xsink)
+            return 0;
 
-      args = args_holder.release();
-   }
+        args = args_holder.release();
+    }
 
-   return new CallReferenceCallNode(n->loc, exp.release(), args);
-}
-
-static AbstractQoreNode* eval_notnull(const AbstractQoreNode* n, ExceptionSink* xsink) {
-   assert(xsink);
-   ReferenceHolder<AbstractQoreNode> exp(n->eval(xsink), xsink);
-   if (*xsink)
-      return 0;
-
-   return exp ? exp.release() : nothing();
+    return new CallReferenceCallNode(n->loc, exp.release(), args);
 }
 
 QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink) {
-   if (!n.hasNode())
-      return const_cast<QoreValue&>(n);
-   return copy_and_resolve_lvar_refs(n.getInternalNode(), xsink);
-}
+    if (!n.hasNode()) {
+        return const_cast<QoreValue&>(n);
+    }
 
-AbstractQoreNode* copy_and_resolve_lvar_refs(const AbstractQoreNode* n, ExceptionSink* xsink) {
-   if (!n) return 0;
+    switch (n.getType()) {
+        case NT_LIST:
+            return crlr_list_copy(n.get<const QoreListNode>(), xsink);
 
-   qore_type_t ntype = n->getType();
+        case NT_PARSE_LIST:
+            return crlr_list_copy(n.get<const QoreParseListNode>(), xsink);
 
-   if (ntype == NT_LIST)
-      return crlr_list_copy(reinterpret_cast<const QoreListNode*>(n), xsink);
+        case NT_HASH:
+            return crlr_hash_copy(n.get<const QoreHashNode>(), xsink);
 
-   if (ntype == NT_PARSE_LIST)
-      return crlr_list_copy(reinterpret_cast<const QoreParseListNode*>(n), xsink);
+        case NT_PARSE_HASH:
+            return crlr_hash_copy(n.get<const QoreParseHashNode>(), xsink);
 
-   if (ntype == NT_HASH)
-      return crlr_hash_copy(reinterpret_cast<const QoreHashNode*>(n), xsink);
+        case NT_OPERATOR:
+            return n.get<const QoreOperatorNode>()->copyBackground(xsink);
 
-   if (ntype == NT_PARSE_HASH)
-      return crlr_hash_copy(reinterpret_cast<const QoreParseHashNode*>(n), xsink);
+        case NT_SELF_CALL:
+            return crlr_selfcall_copy(n.get<const SelfFunctionCallNode>(), xsink);
 
-   if (ntype == NT_OPERATOR)
-      return reinterpret_cast<const QoreOperatorNode*>(n)->copyBackground(xsink);
+        case NT_SELF_VARREF:
+            return n.eval(xsink);
 
-   if (ntype == NT_SELF_CALL)
-      return crlr_selfcall_copy(reinterpret_cast<const SelfFunctionCallNode*>(n), xsink);
+        case NT_FUNCTION_CALL:
+        case NT_PROGRAM_FUNC_CALL:
+            return crlr_fcall_copy(n.get<const FunctionCallNode>(), xsink);
 
-   if (ntype == NT_FUNCTION_CALL || ntype == NT_PROGRAM_FUNC_CALL)
-      return crlr_fcall_copy(reinterpret_cast<const FunctionCallNode*>(n), xsink);
+        case NT_FIND:
+            return n.eval(xsink);
 
-   // must make sure to return a value here or it could cause a segfault - parse expressions expect non-NULL values for the operands
-   if (ntype == NT_FIND)
-      return eval_notnull(n, xsink);
+        case NT_VARREF:
+            if (n.get<const VarRefNode>()->getType() != VT_GLOBAL) {
+                return n.eval(xsink);
+            }
+            break;
 
-   if (ntype == NT_VARREF && reinterpret_cast<const VarRefNode*>(n)->getType() != VT_GLOBAL)
-      return eval_notnull(n, xsink);
+        case NT_FUNCREFCALL:
+            return call_ref_call_copy(n.get<const CallReferenceCallNode>(), xsink);
 
-   if (ntype == NT_FUNCREFCALL)
-      return call_ref_call_copy(reinterpret_cast<const CallReferenceCallNode*>(n), xsink);
+        case NT_METHOD_CALL:
+            return crlr_mcall_copy(n.get<const MethodCallNode>(), xsink);
 
-   if (ntype == NT_METHOD_CALL)
-      return crlr_mcall_copy(reinterpret_cast<const MethodCallNode*>(n), xsink);
+        case NT_STATIC_METHOD_CALL:
+            return crlr_smcall_copy(n.get<const StaticMethodCallNode>(), xsink);
 
-   if (ntype == NT_STATIC_METHOD_CALL)
-      return crlr_smcall_copy(reinterpret_cast<const StaticMethodCallNode*>(n), xsink);
+        case NT_PARSEREFERENCE:
+            return n.get<const ParseReferenceNode>()->evalToIntermediate(xsink);
 
-   if (ntype == NT_PARSEREFERENCE)
-      return reinterpret_cast<const ParseReferenceNode*>(n)->evalToIntermediate(xsink);
+        // ensure closures are evaluated in the parent thread so closure-bound local vars can be found and bound before
+        // launching the background thread (fixes https://github.com/qorelanguage/qore/issues/12)
+        case NT_CLOSURE:
+            return n.get<const QoreClosureParseNode>()->evalBackground(xsink);
+    }
 
-   // ensure closures are evaluated in the parent thread so closure-bound local vars can be found and bound before
-   // launching the background thread (fixes https://github.com/qorelanguage/qore/issues/12)
-   if (ntype == NT_CLOSURE)
-      return reinterpret_cast<const QoreClosureParseNode*>(n)->evalBackground(xsink);
-
-   assert(ntype != NT_VALUE_LIST);
-
-   return n->refSelf();
+    return n.refSelf();
 }
 
 void SimpleQoreNode::deref() {
-   if (there_can_be_only_one) {
-      assert(is_unique());
-      return;
-   }
+    if (there_can_be_only_one) {
+        assert(is_unique());
+        return;
+    }
 
-   if (ROdereference())
-      delete this;
+    if (ROdereference())
+        delete this;
 }
 
-AbstractQoreNode* SimpleValueQoreNode::evalImpl(ExceptionSink* xsink) const {
+QoreValue SimpleValueQoreNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
    assert(false);
-   return 0;
-}
-
-AbstractQoreNode* SimpleValueQoreNode::evalImpl(bool &needs_deref, ExceptionSink* xsink) const {
-   assert(false);
-   return 0;
-}
-
-int64 SimpleValueQoreNode::bigIntEvalImpl(ExceptionSink* xsink) const {
-   assert(false);
-   return 0;
-}
-
-int SimpleValueQoreNode::integerEvalImpl(ExceptionSink* xsink) const {
-   assert(false);
-   return 0;
-}
-
-bool SimpleValueQoreNode::boolEvalImpl(ExceptionSink* xsink) const {
-   assert(false);
-   return false;
-}
-
-double SimpleValueQoreNode::floatEvalImpl(ExceptionSink* xsink) const {
-   assert(false);
-   return 0.0;
+   return QoreValue();
 }
 
 AbstractQoreNode* UniqueValueQoreNode::realCopy() const {
@@ -646,38 +510,40 @@ AbstractQoreNode* UniqueValueQoreNode::realCopy() const {
 }
 
 int64 get_ms_zero(const QoreValue& n) {
-   if (n.isNothing())
-      return -1;
-   if (n.getType() == NT_DATE)
-      return n.get<const DateTimeNode>()->getRelativeMilliseconds();
-   return n.getAsBigInt();
+    if (n.isNothing())
+        return -1;
+    if (n.getType() == NT_DATE)
+        return n.get<const DateTimeNode>()->getRelativeMilliseconds();
+    return n.getAsBigInt();
 }
 
 bool needs_scan(const AbstractQoreNode* n) {
-   if (!n)
-      return false;
+    if (!n)
+        return false;
 
-   switch (n->getType()) {
-      case NT_LIST: return qore_list_private::getScanCount(*static_cast<const QoreListNode*>(n)) ? true : false;
-      case NT_HASH: return qore_hash_private::getScanCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
-      case NT_OBJECT: return true;
-      case NT_VALUE_LIST: /*assert(false);*/ return qore_value_list_private::getScanCount(*static_cast<const QoreValueList*>(n)) ? true : false;
-      case NT_RUNTIME_CLOSURE: return static_cast<const QoreClosureBase*>(n)->needsScan();
-      case NT_REFERENCE: return lvalue_ref::get(static_cast<const ReferenceNode*>(n))->needsScan();
-   }
+    switch (n->getType()) {
+        case NT_LIST: return qore_list_private::getScanCount(*static_cast<const QoreListNode*>(n)) ? true : false;
+        case NT_HASH: return qore_hash_private::getScanCount(*static_cast<const QoreHashNode*>(n)) ? true : false;
+        case NT_OBJECT: return true;
+        case NT_RUNTIME_CLOSURE: return static_cast<const QoreClosureBase*>(n)->needsScan();
+        case NT_REFERENCE: return lvalue_ref::get(static_cast<const ReferenceNode*>(n))->needsScan();
+    }
 
-   return false;
+    return false;
+}
+
+bool needs_scan(const QoreValue& v) {
+    return needs_scan(v.getInternalNode());
 }
 
 void inc_container_obj(const AbstractQoreNode* n, int dt) {
-   assert(n);
-   switch (n->getType()) {
-      case NT_LIST: qore_list_private::incScanCount(*static_cast<const QoreListNode*>(n), dt); break;
-      case NT_HASH: qore_hash_private::incScanCount(*static_cast<const QoreHashNode*>(n), dt); break;
-      case NT_OBJECT: qore_object_private::incScanCount(*static_cast<const QoreObject*>(n), dt); break;
-      case NT_VALUE_LIST: /*assert(false);*/ qore_value_list_private::incScanCount(*static_cast<const QoreValueList*>(n), dt); break;
-      default: assert(false);
-   }
+    assert(n);
+    switch (n->getType()) {
+        case NT_LIST: qore_list_private::incScanCount(*static_cast<const QoreListNode*>(n), dt); break;
+        case NT_HASH: qore_hash_private::incScanCount(*static_cast<const QoreHashNode*>(n), dt); break;
+        case NT_OBJECT: qore_object_private::incScanCount(*static_cast<const QoreObject*>(n), dt); break;
+        default: assert(false);
+    }
 }
 
 bool has_complex_type(const AbstractQoreNode* n) {
@@ -707,9 +573,10 @@ static QoreHashNode* do_copy_strip(const QoreHashNode* h) {
         return h->hashRefSelf();
     }
     ReferenceHolder<QoreHashNode> nh(new QoreHashNode, nullptr);
+    qore_hash_private* nhp = qore_hash_private::get(**nh);
     ConstHashIterator i(h);
     while (i.next()) {
-        nh->setKeyValue(i.getKey(), copy_strip_complex_types(i.getValue()), nullptr);
+        nhp->setKeyValueIntern(i.getKey(), copy_strip_complex_types(i.get()));
     }
     return nh.release();
 }
@@ -722,23 +589,33 @@ static QoreListNode* do_copy_strip(const QoreListNode* l) {
     ReferenceHolder<QoreListNode> nl(new QoreListNode, nullptr);
     ConstListIterator i(l);
     while (i.next()) {
-        nl->push(copy_strip_complex_types(i.getValue()));
+        nl->push(copy_strip_complex_types(i.getValue()), nullptr);
     }
     return nl.release();
 }
 
 AbstractQoreNode* copy_strip_complex_types(const AbstractQoreNode* n) {
-   if (!n)
-      return nullptr;
-   if (!has_complex_type(n))
-      return n->refSelf();
-   switch (get_node_type(n)) {
-      case NT_LIST:
-         return do_copy_strip(static_cast<const QoreListNode*>(n));
-      case NT_HASH:
-         return do_copy_strip(static_cast<const QoreHashNode*>(n));
-      default:
-         break;
-   }
-   return n->refSelf();
+    if (!n)
+        return nullptr;
+    if (!has_complex_type(n))
+        return n->refSelf();
+    switch (get_node_type(n)) {
+        case NT_LIST:
+            return do_copy_strip(static_cast<const QoreListNode*>(n));
+        case NT_HASH:
+            return do_copy_strip(static_cast<const QoreHashNode*>(n));
+        default:
+            break;
+    }
+    return n->refSelf();
+}
+
+DLLLOCAL QoreValue copy_strip_complex_types(const QoreValue& n) {
+    if (n.isNothing()) {
+        return QoreValue();
+    }
+    if (!n.hasNode()) {
+        return const_cast<QoreValue&>(n);
+    }
+    return QoreValue(copy_strip_complex_types(n.getInternalNode()));
 }

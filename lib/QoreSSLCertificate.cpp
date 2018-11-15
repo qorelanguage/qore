@@ -1,31 +1,31 @@
 /*
-  QoreSSLCertificate.cpp
+    QoreSSLCertificate.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -140,15 +140,15 @@ QoreSSLCertificate::QoreSSLCertificate(const QoreString* str, ExceptionSink* xsi
 
 QoreSSLCertificate::operator bool() const { return (bool)priv->cert; }
 
-AbstractQoreNode* QoreSSLCertificate::doPurposeValue(int id, int ca) const {
+QoreValue QoreSSLCertificate::doPurposeValue(int id, int ca) const {
    int rc = X509_check_purpose(priv->cert, id, ca);
    if (rc == 1)
-      return boolean_true();
+      return true;
 
    if (!rc)
-      return boolean_false();
+      return false;
 
-   return new QoreBigIntNode(rc);
+   return rc;
 }
 
 X509* QoreSSLCertificate::getData() const {
@@ -156,17 +156,23 @@ X509* QoreSSLCertificate::getData() const {
 }
 
 QoreStringNode* QoreSSLCertificate::getPEM(ExceptionSink* xsink) const {
-   QoreMemBIO b;
+    QoreMemBIO b;
 
-   if (!b.writePEMX509(priv->cert)) {
-      xsink->raiseException("X509-ERROR", "could not create PEM string from X509 certificate data");
-      return 0;
-   }
+    if (!b.writePEMX509(priv->cert)) {
+        xsink->raiseException("X509-ERROR", "could not create PEM string from X.509 certificate data");
+        return nullptr;
+    }
 
-   char* buf;
-   long len = b.getMemData(&buf);
+    return b.getAsString();
+}
 
-   return new QoreStringNode(buf, (int)len);
+BinaryNode* QoreSSLCertificate::getDER(ExceptionSink* xsink) const {
+    QoreMemBIO bio;
+    if (i2d_X509_bio(*bio, priv->cert) <= 0) {
+        xsink->raiseException("X509-ERROR", "could not create DER binary from X.509 certificate data");
+        return nullptr;
+    }
+    return bio.getAsBinary();
 }
 
 QoreHashNode* QoreSSLCertificate::getSubjectHash() const {
@@ -282,9 +288,9 @@ QoreHashNode* QoreSSLCertificate::getPurposeHash() const {
 QoreHashNode* QoreSSLCertificate::getInfo() const {
    QoreHashNode* h = new QoreHashNode();
    // get version
-   h->setKeyValue("version", new QoreBigIntNode(getVersion()), 0);
+   h->setKeyValue("version", getVersion(), 0);
    // get serial number
-   h->setKeyValue("serialNumber", new QoreBigIntNode(getSerialNumber()), 0);
+   h->setKeyValue("serialNumber", getSerialNumber(), 0);
    // do subject
    h->setKeyValue("subject", getSubjectHash(), 0);
    // do issuer

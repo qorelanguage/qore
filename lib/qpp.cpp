@@ -1,34 +1,34 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  qpp.cpp
+    qpp.cpp
 
-  Qore Pre-Processor
+    Qore Pre-Processor
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 // cannot include Qore.h with the Oracle Sun Studio compiler
@@ -129,6 +129,8 @@ static strmap_t mtmap;
 
 // qore value to c++ value map
 static strmap_t valmap;
+// qore value to c++ QoreSinpleValue map
+static strmap_t simple_valmap;
 
 // set of types indicating objects
 static strset_t oset;
@@ -158,15 +160,22 @@ struct Param {
 typedef std::vector<Param> paramlist_t;
 
 // code attribute bitfield defines
-#define QCA_NONE            0
-#define QCA_PUBLIC          (1 << 0)
-#define QCA_PRIVATE         (1 << 1)
-#define QCA_STATIC          (1 << 2)
-#define QCA_SYNCHRONIZED    (1 << 3)
-#define QCA_USES_EXTRA_ARGS (1 << 4)
-#define QCA_ABSTRACT        (1 << 5)
+#define QCA_NONE             0
+#define QCA_PUBLIC           (1 << 0)
+#define QCA_PRIVATE          (1 << 1)
+#define QCA_PRIVATE_INTERNAL (1 << 2)
+#define QCA_STATIC           (1 << 3)
+#define QCA_SYNCHRONIZED     (1 << 4)
+#define QCA_USES_EXTRA_ARGS  (1 << 5)
+#define QCA_ABSTRACT         (1 << 6)
 
 #define BUFSIZE 1024
+
+static inline const char* get_access(int mods) {
+    if (mods & QCA_PRIVATE) return "Private";
+    if (mods & QCA_PRIVATE_INTERNAL) return "Internal";
+    return "Public";
+}
 
 /*
 static char* strchrs(const char* str, const char* chars) {
@@ -349,13 +358,21 @@ static void get_string_list(strlist_t& l, const std::string& str, char separator
     size_t start = 0;
     while (true) {
         size_t sep = str.find(separator, start);
-        if (sep == std::string::npos)
+        if (sep == std::string::npos) {
             break;
-        l.push_back(std::string(str, start, sep - start));
+        }
+        std::string element(str, start, sep - start);
+
+        // remove leading whitespace from strings
+        element.erase(element.begin(), std::find_if(element.begin(), element.end(), std::bind1st(std::not_equal_to<char>(), ' ')));
+        l.push_back(element);
         start = sep + 1;
     }
-    l.push_back(std::string(str, start));
 
+    // remove leading whitespace from strings
+    std::string element(str, start);
+    element.erase(element.begin(), std::find_if(element.begin(), element.end(), std::bind1st(std::not_equal_to<char>(), ' ')));
+    l.push_back(element);
     //for (unsigned i = 0; i < l.size(); ++i)
     //   printf("DBG: list %u/%lu: %s\n", i, l.size(), l[i].c_str());
 }
@@ -415,8 +432,13 @@ int parse_attributes(const char* fileName, unsigned &lineNumber, attr_t& attr, s
             attr |= ai->second;
     }
 
-    if ((attr & QCA_PUBLIC) && (attr & QCA_PRIVATE)) {
-        error("%s:%d: declared both public and private\n", fileName, lineNumber);
+    int pcnt = 0;
+    if (attr & QCA_PUBLIC) ++pcnt;
+    if (attr & QCA_PRIVATE) ++pcnt;
+    if (attr & QCA_PRIVATE_INTERNAL) ++pcnt;
+
+    if (pcnt > 1) {
+        error("%s:%d: declared with contradictory access specifiers\n", fileName, lineNumber);
         return -1;
     }
 
@@ -842,11 +864,6 @@ int read_until_close(const char* fileName, unsigned& lineNumber, std::string& st
         if (line_comment)
             continue;
 
-        if (c == '/' && last == '/') {
-            line_comment = true;
-            continue;
-        }
-
         if (c == '"' || c == '\'') {
             log(LL_DEBUG, "found %c on line %d (quote: %c %d)\n", c, lineNumber, quote ? quote : 'x', quote);
             if (quote == c)
@@ -859,6 +876,11 @@ int read_until_close(const char* fileName, unsigned& lineNumber, std::string& st
         if (quote) {
             if (c == '\\')
                 backquote = true;
+            continue;
+        }
+
+        if (c == '/' && last == '/') {
+            line_comment = true;
             continue;
         }
 
@@ -982,7 +1004,7 @@ static int get_dox_value(const std::string& qv, std::string& v) {
     return 0;
 }
 
-static int get_qore_value(const std::string& qv, std::string& v, const char* cname = nullptr, const char** prefix = nullptr) {
+static int get_qore_value(const std::string& qv, std::string& v, const char* cname = nullptr, const char** prefix = nullptr, bool force_node = false) {
     if (qv[0] == '{') {
         size_t i = qv.find('}', 1);
         if (i == std::string::npos) {
@@ -991,12 +1013,13 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
         }
 
         std::string tmp(qv, i + 1);
-        return get_qore_value(tmp, v, cname, prefix);
+        return get_qore_value(tmp, v, cname, prefix, force_node);
     }
 
     {
-        strmap_t::iterator i = valmap.find(qv);
-        if (i != valmap.end()) {
+        strmap_t& vmap = force_node ? simple_valmap : valmap;
+        strmap_t::iterator i = vmap.find(qv);
+        if (i != vmap.end()) {
             v = i->second;
             return 0;
         }
@@ -1008,7 +1031,10 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
             int val = atoi(qv.c_str());
             size_t len = qv.size();
             char lc = qv[len - 1];
-            v = "DateTimeNode::makeRelative(0, 0, 0, 0, ";
+            if (force_node) {
+                v = "QoreSimpleValue().assign(";
+            }
+            v += "DateTimeNode::makeRelative(0, 0, 0, 0, ";
             if (qv[len - 2] == 'm' && lc == 's') {
                 v += "0, 0, ";
                 char buf[20];
@@ -1031,47 +1057,78 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
                     error("cannot interpret relative date/time value '%s'\n", qv.c_str());
             }
             v += ")";
+            if (force_node) {
+                v += ")";
+            }
 
             return 0;
         }
 
         case T_INT: {
-            v = "new QoreBigIntNode(";
+            if (force_node) {
+                v = "QoreSimpleValue().assign";
+            }
+            v += "((int64)";
             v += qv;
             v += ")";
             return 0;
         }
 
         case T_FLOAT: {
-            v = "new QoreFloatNode(";
+            if (force_node) {
+                v = "QoreSimpleValue().assign";
+            }
+            v += "((double)";
             v += qv;
             v += ")";
             return 0;
         }
 
         case T_STRING: {
-            v = "new QoreStringNode(";
+            if (force_node) {
+                v = "QoreSimpleValue().assign(";
+            }
+            v += "new QoreStringNode(";
             v += qv;
             v += ")";
+            if (force_node) {
+                v += ")";
+            }
             return 0;
         }
 
         case T_CSTRING: {
-            v = "new QoreStringNode(";
+            if (force_node) {
+                v = "QoreSimpleValue().assign(";
+            }
+            v += "new QoreStringNode(";
             v.append(qv, 4, qv.size() - 5);
             v += ")";
+            if (force_node) {
+                v += ")";
+            }
             return 0;
         }
 
         case T_BOOL: {
-            v = "get_bool_node(";
+            if (force_node) {
+                v = "QoreSimpleValue().assign";
+            }
+            v = "((bool)";
             v.append(qv, 5, qv.size() - 6);
             v += ")";
             return 0;
         }
 
         case T_QORE: {
-            v.assign(qv, 4, qv.size() - 4);
+            if (force_node) {
+                v = "QoreSimpleValue().assign(";
+                v.append(qv, 4, qv.size() - 4);
+                v += ")";
+            }
+            else {
+                v.assign(qv, 4, qv.size() - 4);
+            }
             return 0;
         }
 
@@ -1080,7 +1137,7 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
                 error("cannot create a binary object for a non-constant value\n");
                 return -1;
             }
-
+            assert(!force_node);
             assert(prefix);
             (*prefix) = "bin";
 
@@ -1108,6 +1165,7 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
                 error("cannot create a hash for a non-constant value\n");
                 return -1;
             }
+            assert(!force_node);
             assert(prefix);
             (*prefix) = "hash";
 
@@ -1165,7 +1223,13 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
     {
         strmap_t::iterator i = qppval.find(qv);
         if (i != qppval.end()) {
-            v = i->second;
+            if (force_node) {
+                v = "QoreSimpleValue().assign(";
+            }
+            v += i->second;
+            if (force_node) {
+                v += ")";
+            }
             return 0;
         }
     }
@@ -1204,7 +1268,7 @@ int flags_get(strlist_t& flags, const std::string& str) {
     for (strlist_t::iterator fi = flags.begin(), e = flags.end(); fi != e; ++fi) {
         toupper(*fi);
         if (fset.find(*fi) == fset.end()) {
-            error("unknown code flag: '%s'; code flags must be listed separated by commas and without the QC_ prefix\n", (*fi).c_str());
+            error("unknown code flag: '%s'; code flags must be listed separated by commas and without the QCF_ prefix\n", (*fi).c_str());
             return -1;
         }
     }
@@ -1213,17 +1277,17 @@ int flags_get(strlist_t& flags, const std::string& str) {
 
 static void flags_output_cpp(FILE* fp, const strlist_t& flags, bool uses_extra_args) {
     if (flags.empty()) {
-        fputs(uses_extra_args ? "QC_USES_EXTRA_ARGS" : "QC_NO_FLAGS", fp);
+        fputs(uses_extra_args ? "QCF_USES_EXTRA_ARGS" : "QCF_NO_FLAGS", fp);
         return;
     }
 
     for (strlist_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
         if (i != flags.begin())
             fputc('|', fp);
-        fprintf(fp, "QC_%s", (*i).c_str());
+        fprintf(fp, "QCF_%s", (*i).c_str());
     }
     if (uses_extra_args)
-        fputs("|QC_USES_EXTRA_ARGS", fp);
+        fputs("|QCF_USES_EXTRA_ARGS", fp);
 }
 
 static void doRow(strlist_t& sl, std::string& tstr) {
@@ -1542,42 +1606,23 @@ protected:
                 toupper(cid);
 
                 if (p.type[0] == '!') {
-                    if (use_value)
-                        fprintf(fp,
-                                "    TAKE_HARD_QORE_VALUE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n    if (*xsink)\n        return%s;\n",
-                                p.name.c_str(), p.qore.c_str(), i,
-                                cid.c_str(), cname ? cname : "",
-                                cname ? "::" : "", name.c_str(), p.type.c_str() + 1, rv ? " 0" : "");
-                    else
-                        fprintf(fp,
-                                "    TAKE_HARD_QORE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n   if (*xsink)\n        return%s;\n",
-                                p.name.c_str(), p.qore.c_str(), i,
-                                cid.c_str(), cname ? cname : "",
-                                cname ? "::" : "", name.c_str(), p.type.c_str() + 1, rv ? " 0" : "");
+                    fprintf(fp,
+                            "    TAKE_HARD_QORE_VALUE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n    if (*xsink)\n        return%s;\n",
+                            p.name.c_str(), p.qore.c_str(), i,
+                            cid.c_str(), cname ? cname : "",
+                            cname ? "::" : "", name.c_str(), p.type.c_str() + 1, rv ? " 0" : "");
                 }
                 else if (p.type[0] != '*') {
-                    if (use_value)
-                        fprintf(fp,
-                                "    HARD_QORE_VALUE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n    if (*xsink)\n        return%s;\n",
-                                p.name.c_str(), p.qore.c_str(), i,
-                                cid.c_str(), cname ? cname : "",
-                                cname ? "::" : "", name.c_str(), p.type.c_str(), rv ? " 0" : "");
-                    else
-                        fprintf(fp,
-                                "    HARD_QORE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n    if (*xsink)\n        return%s;\n",
-                                p.name.c_str(), p.qore.c_str(), i,
-                                cid.c_str(), cname ? cname : "",
-                                cname ? "::" : "", name.c_str(), p.type.c_str(), rv ? " 0" : "");
+                    fprintf(fp,
+                            "    HARD_QORE_VALUE_OBJ_DATA(%s, %s, args, %d, CID_%s, \"%s%s%s()\", \"%s\", xsink);\n    if (*xsink)\n        return%s;\n",
+                            p.name.c_str(), p.qore.c_str(), i,
+                            cid.c_str(), cname ? cname : "",
+                            cname ? "::" : "", name.c_str(), p.type.c_str(), rv ? " 0" : "");
                 }
                 else {
-                    if (use_value)
-                        fprintf(fp,
-                                "    HARD_QORE_VALUE_OBJ_OR_NOTHING_DATA(%s, %s, args, %d, CID_%s, xsink);\n    if (*xsink)\n        return%s;\n",
-                                p.name.c_str(), p.qore.c_str(), i, cid.c_str(), rv ? " 0" : "");
-                    else
-                        fprintf(fp,
-                                "    HARD_QORE_OBJ_OR_NOTHING_DATA(%s, %s, args, %d, CID_%s, xsink);\n    if (*xsink)\n       return%s;\n",
-                                p.name.c_str(), p.qore.c_str(), i, cid.c_str(), rv ? " 0" : "");
+                    fprintf(fp,
+                            "    HARD_QORE_VALUE_OBJ_OR_NOTHING_DATA(%s, %s, args, %d, CID_%s, xsink);\n    if (*xsink)\n        return%s;\n",
+                            p.name.c_str(), p.qore.c_str(), i, cid.c_str(), rv ? " 0" : "");
                 }
 
                 continue;
@@ -1594,221 +1639,115 @@ protected:
             }
 
             if (ptype == "int" || ptype == "softint" || ptype == "timeout") {
-                if (use_value)
-                    fprintf(fp, "    int64 %s = HARD_QORE_VALUE_INT(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    int64 %s = HARD_QORE_INT(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    int64 %s = HARD_QORE_VALUE_INT(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "*int" || ptype == "*softint" || ptype == "*timeout") {
-                if (use_value)
-                    fprintf(fp, "    int64 %s = HARD_QORE_VALUE_INT(args, %d);\n", p.name.c_str(), i);
-                else {
-                    fprintf(fp,
-                            "    const QoreBigIntNode* tmp_%s = reinterpret_cast<const QoreBigIntNode*>(get_param(args, %d));\n",
-                            p.name.c_str(), i);
-                    fprintf(fp,
-                            "    int64 %s = tmp_%s ? tmp_%s->val : 0;\n",
-                            p.name.c_str(), p.name.c_str(), p.name.c_str());
-                }
+                fprintf(fp, "    int64 %s = HARD_QORE_VALUE_INT(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "float" || ptype == "softfloat") {
-                if (use_value)
-                    fprintf(fp, "    double %s = HARD_QORE_VALUE_FLOAT(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    double %s = HARD_QORE_FLOAT(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    double %s = HARD_QORE_VALUE_FLOAT(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "*float" || ptype == "*softfloat") {
-                if (use_value)
-                    fprintf(fp, "    double %s = HARD_QORE_VALUE_FLOAT(args, %d);\n", p.name.c_str(), i);
-                else {
-                    fprintf(fp,
-                            "    const QoreFloatNode* tmp_%s = reinterpret_cast<const QoreFloatNode*>(get_param(args, %d));\n",
-                            p.name.c_str(), i);
-                    fprintf(fp,
-                            "    double %s = tmp_%s ? tmp_%s->f : 0.0;\n",
-                            p.name.c_str(), p.name.c_str(), p.name.c_str());
-                }
+                fprintf(fp, "    double %s = HARD_QORE_VALUE_FLOAT(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "number" || ptype == "softnumber") {
-                if (use_value)
-                    fprintf(fp, "    const QoreNumberNode* %s = HARD_QORE_VALUE_NUMBER(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    const QoreNumberNode* %s = HARD_QORE_NUMBER(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    const QoreNumberNode* %s = HARD_QORE_VALUE_NUMBER(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "bool" || ptype == "softbool") {
-                if (use_value)
-                    fprintf(fp, "    bool %s = HARD_QORE_VALUE_BOOL(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    bool %s = HARD_QORE_BOOL(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    bool %s = HARD_QORE_VALUE_BOOL(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "*bool" || ptype == "*softbool") {
-                if (use_value)
-                    fprintf(fp, "    bool %s = HARD_QORE_VALUE_BOOL(args, %d);\n", p.name.c_str(), i);
-                else {
-                    fprintf(fp,
-                            "    const QoreBoolNode* tmp_%s = reinterpret_cast<const QoreBoolNode*>(get_param(args, %d));\n",
-                            p.name.c_str(), i);
-                    fprintf(fp,
-                            "    bool %s = tmp_%s ? tmp_%s->getValue() : false;\n",
-                            p.name.c_str(), p.name.c_str(), p.name.c_str());
-                }
+                fprintf(fp, "    bool %s = HARD_QORE_VALUE_BOOL(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "string" || ptype == "softstring") {
-                if (use_value)
-                    fprintf(fp, "    const QoreStringNode* %s = HARD_QORE_VALUE_STRING(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    const QoreStringNode* %s = HARD_QORE_STRING(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    const QoreStringNode* %s = HARD_QORE_VALUE_STRING(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "*string" || ptype == "*softstring") {
-                if (use_value)
-                    fprintf(fp,
-                            "    const QoreStringNode* %s = get_param_value(args, %d).get<const QoreStringNode>();\n",
-                            p.name.c_str(), i);
-                else
-                    fprintf(fp,
-                            "    const QoreStringNode* %s = reinterpret_cast<const QoreStringNode*>(get_param(args, %d));\n",
-                            p.name.c_str(), i);
+                fprintf(fp,
+                        "    const QoreStringNode* %s = get_param_value(args, %d).get<const QoreStringNode>();\n",
+                        p.name.c_str(), i);
                 continue;
             }
             if (ptype == "date" || ptype == "softdate") {
-                if (use_value)
-                    fprintf(fp, "    const DateTimeNode* %s = HARD_QORE_VALUE_DATE(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    const DateTimeNode* %s = HARD_QORE_DATE(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    const DateTimeNode* %s = HARD_QORE_VALUE_DATE(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "*date" || ptype == "*softdate") {
-                if (use_value)
-                    fprintf(fp,
-                            "    const DateTimeNode* %s = get_param_value(args, %d).get<const DateTimeNode>();\n",
-                            p.name.c_str(), i);
-                else
-                    fprintf(fp,
-                            "    const DateTimeNode* %s = reinterpret_cast<const DateTimeNode*>(get_param(args, %d));\n",
-                            p.name.c_str(), i);
+                fprintf(fp,
+                        "    const DateTimeNode* %s = get_param_value(args, %d).get<const DateTimeNode>();\n",
+                        p.name.c_str(), i);
                 continue;
             }
             if (ptype == "binary") {
-                if (use_value)
-                    fprintf(fp, "    const BinaryNode* %s = HARD_QORE_VALUE_BINARY(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    const BinaryNode* %s = HARD_QORE_BINARY(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    const BinaryNode* %s = HARD_QORE_VALUE_BINARY(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "*binary") {
-                if (use_value)
-                    fprintf(fp,
-                            "    const BinaryNode* %s = get_param_value(args, %d).get<const BinaryNode>();\n",
-                            p.name.c_str(), i);
-                else
-                    fprintf(fp,
-                            "    const BinaryNode* %s = reinterpret_cast<const BinaryNode*>(get_param(args, %d));\n",
-                            p.name.c_str(), i);
+                fprintf(fp,
+                        "    const BinaryNode* %s = get_param_value(args, %d).get<const BinaryNode>();\n",
+                        p.name.c_str(), i);
                 continue;
             }
             if (ptype == "list" || ptype == "softlist") {
-                if (use_value)
-                    fprintf(fp, "    const QoreListNode* %s = HARD_QORE_VALUE_LIST(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    const QoreListNode* %s = HARD_QORE_LIST(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    const QoreListNode* %s = HARD_QORE_VALUE_LIST(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "*list" || ptype == "*softlist") {
-                if (use_value)
-                    fprintf(fp,
-                            "    const QoreListNode* %s = get_param_value(args, %d).get<const QoreListNode>();\n",
-                            p.name.c_str(), i);
-                else
-                    fprintf(fp,
-                            "    const QoreListNode* %s = reinterpret_cast<const QoreListNode*>(get_param(args, %d));\n",
-                            p.name.c_str(), i);
+                fprintf(fp,
+                        "    const QoreListNode* %s = get_param_value(args, %d).get<const QoreListNode>();\n",
+                        p.name.c_str(), i);
                 continue;
             }
             if (ptype == "hash") {
-                if (use_value)
-                    fprintf(fp, "    const QoreHashNode* %s = HARD_QORE_VALUE_HASH(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    const QoreHashNode* %s = HARD_QORE_HASH(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    const QoreHashNode* %s = HARD_QORE_VALUE_HASH(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "*hash") {
-                if (use_value)
-                    fprintf(fp,
-                            "    const QoreHashNode* %s = get_param_value(args, %d).get<const QoreHashNode>();\n",
-                            p.name.c_str(), i);
-                else
-                    fprintf(fp,
-                            "    const QoreHashNode* %s = reinterpret_cast<const QoreHashNode*>(get_param(args, %d));\n",
-                            p.name.c_str(), i);
+                fprintf(fp,
+                        "    const QoreHashNode* %s = get_param_value(args, %d).get<const QoreHashNode>();\n",
+                        p.name.c_str(), i);
                 continue;
             }
             if (ptype == "reference") {
-                if (use_value)
-                    fprintf(fp, "    const ReferenceNode* %s = HARD_QORE_VALUE_REF(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    const ReferenceNode* %s = HARD_QORE_REF(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    const ReferenceNode* %s = HARD_QORE_VALUE_REF(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "*reference") {
-                if (use_value)
-                    fprintf(fp,
-                            "    const ReferenceNode* %s = get_param_value(args, %d).get<const ReferenceNode>();\n",
-                            p.name.c_str(), i);
-                else
-                    fprintf(fp,
-                            "    const ReferenceNode* %s = reinterpret_cast<const ReferenceNode*>(get_param(args, %d));\n",
-                            p.name.c_str(), i);
+                fprintf(fp,
+                        "    const ReferenceNode* %s = get_param_value(args, %d).get<const ReferenceNode>();\n",
+                        p.name.c_str(), i);
                 continue;
             }
             if (ptype == "object") {
-                if (use_value)
-                    fprintf(fp, "    QoreObject* %s = HARD_QORE_VALUE_OBJECT(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    QoreObject* %s = HARD_QORE_OBJECT(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    QoreObject* %s = HARD_QORE_VALUE_OBJECT(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "*object") {
-                if (use_value)
-                    fprintf(fp,
-                            "    QoreObject* %s = get_param_value(args, %d).get<QoreObject>();\n", p.name.c_str(), i);
-                else
-                    fprintf(fp,
-                            "    QoreObject* %s = const_cast<QoreObject*>(reinterpret_cast<const QoreObject*>(get_param(args, %d)));\n",
-                            p.name.c_str(), i);
+                fprintf(fp,
+                        "    QoreObject* %s = get_param_value(args, %d).get<QoreObject>();\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "code" || ptype == "*code") {
-                if (use_value)
-                    fprintf(fp,
-                            "    const ResolvedCallReferenceNode* %s = get_param_value(args, %d).get<const ResolvedCallReferenceNode>();\n",
-                            p.name.c_str(), i);
-                else
-                    fprintf(fp,
-                            "    const ResolvedCallReferenceNode* %s = reinterpret_cast<const ResolvedCallReferenceNode*>(get_param(args, %d));\n",
-                            p.name.c_str(), i);
+                fprintf(fp,
+                        "    const ResolvedCallReferenceNode* %s = get_param_value(args, %d).get<const ResolvedCallReferenceNode>();\n",
+                        p.name.c_str(), i);
                 continue;
             }
 
             if (ptype == "any" || ptype == "data" || ptype == "auto") {
-                if (use_value)
-                    fprintf(fp, "    QoreValue %s = get_param_value(args, %d);\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    const AbstractQoreNode* %s = get_param(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    QoreValue %s = get_param_value(args, %d);\n", p.name.c_str(), i);
                 continue;
             }
             if (ptype == "*data") {
-                if (use_value)
-                    fprintf(fp, "    const AbstractQoreNode* %s = get_param_value(args, %d).get<const AbstractQoreNode>();\n", p.name.c_str(), i);
-                else
-                    fprintf(fp, "    const AbstractQoreNode* %s = get_param(args, %d);\n", p.name.c_str(), i);
+                fprintf(fp, "    const AbstractQoreNode* %s = get_param_value(args, %d).get<const AbstractQoreNode>();\n", p.name.c_str(), i);
                 continue;
             }
             // skip "..." arg which is just for documentation
@@ -1859,10 +1798,10 @@ protected:
                     return -1;
                 fprintf(fp, ", %s, ", str.c_str());
                 if (params[i].val.empty())
-                    fputs("NULL", fp);
+                    fputs("QORE_PARAM_NO_ARG", fp);
                 else {
                     std::string vs;
-                    if (get_qore_value(params[i].val, vs))
+                    if (get_qore_value(params[i].val, vs, nullptr, nullptr, true))
                         return -1;
                     fputs(vs.c_str(), fp);
                 }
@@ -1883,24 +1822,12 @@ protected:
             fputs("static ", fp);
         if (attr & QCA_PRIVATE)
             fputs("private ", fp);
+        if (attr & QCA_PRIVATE_INTERNAL)
+            fputs("private:internal ", fp);
     }
 
     const char* getReturnType() const {
-        if (use_value)
-            return "QoreValue";
-
-        switch (rt) {
-            case RT_OBJ:
-                return "QoreObject*";
-            case RT_INT:
-                return "int64";
-            case RT_BOOL:
-                return "bool";
-            case RT_FLOAT:
-                return "double";
-            default:
-                return "AbstractQoreNode*";
-        }
+        return "QoreValue";
     }
 
     static void serializeQoreCppType(FILE* fp, const std::string& tstr) {
@@ -1924,18 +1851,7 @@ protected:
     }
 
     const char* getFunctionType() const {
-        if (use_value)
-            return "q_func_n_t";
-        switch (rt) {
-            case RT_INT:
-                return "q_func_int64_t";
-            case RT_BOOL:
-                return "q_func_bool_t";
-            case RT_FLOAT:
-                return "q_func_double_t";
-            default:
-                return "q_func_t";
-        }
+        return "q_func_n_t";
     }
 
     int appendMangledParamCodes() {
@@ -2050,16 +1966,13 @@ public:
 
         serializeQorePrototypeComment(fp);
 
-        if (use_value)
-            fprintf(fp, "static %s f_%s(const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), vname.c_str());
-        else
-            fprintf(fp, "static %s f_%s(const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), vname.c_str());
+        fprintf(fp, "static %s f_%s(const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), vname.c_str());
         serializeArgs(fp);
         fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
         output_file(fp, code);
 
         if (!has_return)
-            fprintf(fp, "\n    return %s;", use_value ? "QoreValue()" : "0");
+            fprintf(fp, "\n    return QoreValue();");
 
         fputs("\n}\n\n", fp);
         return 0;
@@ -3019,10 +2932,7 @@ protected:
 
     void serializeCppConstructor(FILE* fp, const char* cname) const {
         serializeQoreConstructorPrototypeComment(fp, cname);
-        if (use_value)
-            fprintf(fp, "static void %s_%s(QoreObject* self, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", cname, vname.c_str());
-        else
-            fprintf(fp, "static void %s_%s(QoreObject* self, const QoreListNode* args, ExceptionSink* xsink) {\n", cname, vname.c_str());
+        fprintf(fp, "static void %s_%s(QoreObject* self, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", cname, vname.c_str());
         serializeArgs(fp, cname, false);
         fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
         output_file(fp, code);
@@ -3049,7 +2959,7 @@ protected:
         fputc('\n', fp);
         serializeQoreConstructorPrototypeComment(fp, cname, 4);
 
-        fprintf(fp, "    QC_%s->%s(%s_%s, %s, ", UC, use_value ? "addConstructor" : "setConstructorExtended3", cname, vname.c_str(), attr & QCA_PRIVATE ? "true" : "false");
+        fprintf(fp, "    QC_%s->%s(%s_%s, %s, ", UC, "addConstructor", cname, vname.c_str(), get_access(attr));
         flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
         fputs(", ", fp);
         dom_output_cpp(fp, dom);
@@ -3101,16 +3011,7 @@ protected:
     }
 
     const char* getMethodType() const {
-        if (use_value)
-            return "q_method_n_t";
-
-        switch (rt) {
-        case RT_INT:
-            return "q_method_int64_t";
-            case RT_BOOL:return "q_method_bool_t";
-            case RT_FLOAT:return "q_method_double_t";
-            default:return "q_method_t";
-        }
+        return "q_method_n_t";
     }
 
 public:
@@ -3189,10 +3090,7 @@ public:
 
         serializeQorePrototypeComment(fp, cname);
 
-        if (use_value)
-            fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
-        else
-            fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
+        fprintf(fp, "static %s %s_%s(QoreObject* self, %s, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str(), arg);
 
         serializeArgs(fp, cname);
         if (!pseudo_arg.empty()) {
@@ -3221,7 +3119,7 @@ public:
         output_file(fp, code);
 
         if (!has_return)
-            fprintf(fp, "\n    return %s;", use_value ? "QoreValue()" : "0");
+            fprintf(fp, "\n    return QoreValue();");
 
         fputs("\n}\n\n", fp);
     }
@@ -3249,11 +3147,10 @@ public:
 
         fprintf(fp, "    QC_%s->", UC);
         if (attr & QCA_ABSTRACT)
-            fprintf(fp, "addAbstractMethodVariantExtended3(\"%s\", %s, ", name.c_str(), attr & QCA_PRIVATE ? "true" : "false");
+            fprintf(fp, "addAbstractMethod(\"%s\", %s, ", name.c_str(), get_access(attr));
         else
-            fprintf(fp, "%s(\"%s\", (%s)%s_%s, %s, ",
-                    use_value ? "addMethod" : "addMethodExtended3",
-                    name.c_str(), getMethodType(), cname, vname.c_str(), attr & QCA_PRIVATE ? "true" : "false");
+            fprintf(fp, "%s(\"%s\", (%s)%s_%s, %s, ", "addMethod",
+                    name.c_str(), getMethodType(), cname, vname.c_str(), get_access(attr));
 
         flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
         fputs(", ", fp);
@@ -3279,16 +3176,13 @@ public:
 
         serializeQorePrototypeComment(fp, cname);
 
-        if (use_value)
-            fprintf(fp, "static %s static_%s_%s(const QoreValueList* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str());
-        else
-            fprintf(fp, "static %s static_%s_%s(const QoreListNode* args, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str());
+        fprintf(fp, "static %s static_%s_%s(const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {\n", getReturnType(), cname, vname.c_str());
         serializeArgs(fp, cname);
         fprintf(fp, "# %d \"%s\"\n", line, fileName.c_str());
         output_file(fp, code);
 
         if (!has_return)
-            fprintf(fp, "\n    return %s;", use_value ? "QoreValue()" : "0");
+            fprintf(fp, "\n    return QoreValue();");
 
         fputs("\n}\n\n", fp);
     }
@@ -3307,7 +3201,7 @@ public:
         if (get_qore_type(return_type, cppt))
             return -1;
 
-        fprintf(fp, "    QC_%s->addStaticMethod%s(\"%s\", (%s)static_%s_%s, %s, ", UC, use_value ? "" : "Extended3", name.c_str(), getFunctionType(), cname, vname.c_str(), attr & QCA_PRIVATE ? "true" : "false");
+        fprintf(fp, "    QC_%s->addStaticMethod(\"%s\", (%s)static_%s_%s, %s, ", UC, name.c_str(), getFunctionType(), cname, vname.c_str(), get_access(attr));
         flags_output_cpp(fp, flags, attr & QCA_USES_EXTRA_ARGS);
         fputs(", ", fp);
         dom_output_cpp(fp, dom);
@@ -3323,6 +3217,8 @@ public:
 
     int serializeDox(FILE* fp) {
         if (attr & QCA_PRIVATE)
+            fputs("\nprotected:\n", fp);
+        else if (attr & QCA_PRIVATE_INTERNAL)
             fputs("\nprivate:\n", fp);
         else
             fputs("\npublic:\n", fp);
@@ -3362,27 +3258,30 @@ class ClassElement : public AbstractElement {
 protected:
     typedef std::multimap<std::string, Method*> mmap_t;
 
-    std::string fileName,       // file name
-        name,                   // class name
-        doc,                    // doc string
-        arg,                    // argument for non-static methods
-        defbase,                // default builtin base class
-        scons,                  // system constructor
-        ns;                     // namespace name
+    std::string fileName,          // file name
+        name,                      // class name
+        doc,                       // doc string
+        arg,                       // argument for non-static methods
+        defbase,                   // default builtin base class
+        scons,                     // system constructor
+        ns,                        // namespace name
+        serializer,                // class serializer function
+        deserializer;              // class deserializer function
 
-    strlist_t vparents;         // builtin virtual base/parent classes
+    strlist_t vparents;            // builtin virtual base/parent classes
 
-    paramlist_t public_members; // public members
-    paramlist_t private_members;        // private members
-    paramlist_t internal_members;       // internal members
+    paramlist_t public_members;    // public members
+    paramlist_t private_members;   // private members
+    paramlist_t internal_members;  // internal members
 
-    strlist_t dom;              // functional domains
+    strlist_t dom;                 // functional domains
 
-    mmap_t normal_mmap,         // normal method map
-        static_mmap;            // static method map
+    mmap_t normal_mmap,            // normal method map
+        static_mmap;               // static method map
 
-    bool valid, upm,            // unset public member flag
-    is_pseudo, is_final;
+    bool valid,
+        upm,                       // unset public member flag
+        is_pseudo, is_final;
 
     void addElement(strlist_t& l, const std::string& str, size_t start, size_t end = std::string::npos) {
         std::string se(str, start, end);
@@ -3509,6 +3408,18 @@ public:
             if (i->first == "default_base") {
                 defbase = i->second;
                 log(LL_DEBUG, "+ default builtin base class: %s\n", defbase.c_str());
+                continue;
+            }
+
+            if (i->first == "serializer") {
+                serializer = i->second;
+                log(LL_DEBUG, "+ serializer function: %s\n", serializer.c_str());
+                continue;
+            }
+
+            if (i->first == "deserializer") {
+                deserializer = i->second;
+                log(LL_DEBUG, "+ deserializer function: %s\n", deserializer.c_str());
                 continue;
             }
 
@@ -3652,8 +3563,17 @@ public:
             fprintf(fp, "DLLLOCAL QoreClass* init%sClass(QoreNamespace& ns) {\n", lname.c_str());
         fprintf(fp, "    if (!QC_%s)\n        preinit%sClass();\n", UC.c_str(), lname.c_str());
 
-        if (!defbase.empty())
-            fprintf(fp, "\n    // set default builtin base class\n    assert(%s);\n  QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
+        if (!defbase.empty()) {
+            fprintf(fp, "\n    // set default builtin base class\n    assert(%s);\n    QC_%s->addDefaultBuiltinBaseClass(%s);\n", defbase.c_str(), UC.c_str(), defbase.c_str());
+        }
+
+        if (!serializer.empty()) {
+            fprintf(fp, "\n    // set serializer function\n    QC_%s->setSerializer(%s);\n", UC.c_str(), serializer.c_str());
+        }
+
+        if (!deserializer.empty()) {
+            fprintf(fp, "\n    // set deserializer function\n    QC_%s->setDeserializer(%s);\n", UC.c_str(), deserializer.c_str());
+        }
 
         for (unsigned i = 0; i < vparents.size(); ++i) {
             std::string vp;
@@ -4248,6 +4168,7 @@ void init() {
     // initialize attribute map
     amap["public"] = QCA_PUBLIC;
     amap["private"] = QCA_PRIVATE;
+    amap["private:internal"] = QCA_PRIVATE_INTERNAL;
     amap["static"] = QCA_STATIC;
     amap["synchronized"] = QCA_SYNCHRONIZED;
     amap["abstract"] = QCA_ABSTRACT;
@@ -4397,12 +4318,19 @@ void init() {
     mtmap["..."] = "VV";
 
     // initialize qore value to c++ value map
-    valmap["0"] = "zero()";
-    valmap["0.0"] = "zero_float()";
+    valmap["0"] = "0";
+    valmap["0.0"] = "(double)0.0";
     valmap["binary()"] = "new BinaryNode";
     valmap["QCS_DEFAULT->getCode()"] = "QCS_DEFAULT->getCode()";
-    valmap["True"] = "&True";
-    valmap["False"] = "&False";
+    valmap["True"] = "true";
+    valmap["False"] = "false";
+
+    // initialize qore value to QoreSimpleValue map
+    simple_valmap["0"] = "QoreSimpleValue().assign((int64)0)";
+    simple_valmap["0.0"] = "QoreSimpleValue().assign((double)0.0)";
+    simple_valmap["binary()"] = "QoreSimpleValue().assign(new BinaryNode)";
+    simple_valmap["True"] = "QoreSimpleValue().assign(true)";
+    simple_valmap["False"] = "QoreSimpleValue().assign(false)";
 
     // initialize domain maps
     dmap["DEFAULT"] = "PO_DEFAULT";
@@ -4421,6 +4349,7 @@ void init() {
     dmap["MODULES"] = "PO_NO_MODULES";
     dmap["IN_MODULE"] = "PO_IN_MODULE";
     dmap["EMBEDDED_LOGIC"] = "PO_NO_EMBEDDED_LOGIC";
+    dmap["REFLECTION"] = "PO_NO_REFLECTION";
 
     dnmap["INJECTION"] = "PO_ALLOW_INJECTION";
     dnmap["DEBUGGER"] = "PO_ALLOW_DEBUGGER";
@@ -4445,40 +4374,40 @@ void process_command_line(int& argc, char**& argv) {
     pn = basename(argv[0]);
 
     int ch;
-    while ((ch = getopt_long(argc, argv, "d:ho:t:v:V", pgm_opts, NULL)) != -1) {
+    while ((ch = getopt_long(argc, argv, "d:ho:t:v:V", pgm_opts, nullptr)) != -1) {
         //log(LL_INFO, "ch=%c optarg=%p (%s)\n", ch, optarg, optarg ? optarg : "(null)");
 
         switch (ch) {
-        case 'h':
-            usage();
-            break;
+            case 'h':
+                usage();
+                break;
 
-        case 'd':
-            opts.dox_fn = optarg;
-            break;
+            case 'd':
+                opts.dox_fn = optarg;
+                break;
 
-        case 'o':
-            opts.output_fn = optarg;
-            break;
+            case 'o':
+                opts.output_fn = optarg;
+                break;
 
-        case 'u':
-            opts.unit_test_fn = optarg;
-            break;
+            case 'u':
+                opts.unit_test_fn = optarg;
+                break;
 
-        case 't':
-            opts.table_fn = optarg;
-            break;
+            case 't':
+                opts.table_fn = optarg;
+                break;
 
-        case 'v':
-            if (optarg)
-                opts.verbose = strtoll(optarg, NULL, 10);
-            else
-                ++opts.verbose;
-            break;
+            case 'v':
+                if (optarg)
+                    opts.verbose = strtoll(optarg, nullptr, 10);
+                else
+                    ++opts.verbose;
+                break;
 
-        case 'V':
-            use_value = true;
-            break;
+            case 'V':
+                use_value = true;
+                break;
         }
     }
 
@@ -4497,6 +4426,11 @@ void process_command_line(int& argc, char**& argv) {
     }
     else if (!opts.table_fn.empty()) {
         error("table file name must not be given along with an input file list\n");
+        usage();
+    }
+
+    if (!use_value && opts.table_fn.find("qpp") != std::string::npos) {
+        error("only supports operation with the -V option targeting the Qore 0.9+ API\n");
         usage();
     }
 }

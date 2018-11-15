@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 0.8.13.8
+Version: 0.9
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -83,35 +83,17 @@ development but is also useful as a general purpose language.
 %if 0%{?rhel}
 %global libname libqore
 %else
-%global libname libqore5
+%global libname libqore6
 %endif
 %endif
 
 %package -n %{libname}
 Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
-Provides: qore-module(abi)%{?_isa} = 0.21
-Provides: qore-module(abi)%{?_isa} = 0.20
-Provides: qore-module(abi)%{?_isa} = 0.19
-Provides: qore-module(abi)%{?_isa} = 0.18
-# provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
-Provides: qore-module-api-0.18
-Provides: qore-module-api-0.17
-Provides: qore-module-api-0.16
-Provides: qore-module-api-0.15
-Provides: qore-module-api-0.14
-Provides: qore-module-api-0.13
-Provides: qore-module-api-0.12
-Provides: qore-module-api-0.11
-Provides: qore-module-api-0.10
-Provides: qore-module-api-0.9
-Provides: qore-module-api-0.8
-Provides: qore-module-api-0.7
-Provides: qore-module-api-0.6
-Provides: qore-module-api-0.5
+Provides: qore-module(abi)%{?_isa} = 0.22
 %if %{libname} == "libqore"
-Provides: libqore5 = %{version}
-Obsoletes: libqore5 < 0.8.13.8
+Provides: libqore6 = %{version}
+Obsoletes: libqore6 < 0.9
 %endif
 %if 0%{?sles_version}
 BuildArch: %{_target_cpu}
@@ -127,8 +109,8 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.14.2
-%{_libdir}/libqore.so.5
+%{_libdir}/libqore.so.6.0.0
+%{_libdir}/libqore.so.6
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
 %post -n %{libname}
@@ -141,7 +123,7 @@ ldconfig %{_libdir}
 Summary: Standard library modules
 Group: System Environment/Libraries
 Requires: %{libname} = %{version}-%{release}
-Requires: qore-module(abi)%{?_isa} = 0.21
+Requires: qore-module(abi)%{?_isa} = 0.22
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -283,6 +265,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Tue Oct 27 2018 David Nichols <david@qore.org> 0.9
+- updated version to 0.9
+
 * Thu Oct 25 2018 David Nichols <david@qore.org> 0.8.13.8
 - updated version to 0.8.13.8
 
