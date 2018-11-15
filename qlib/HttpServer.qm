@@ -26,12 +26,12 @@
 # need mime definitions
 %requires Mime >= 1.0
 %requires Util >= 1.0
-%requires(reexport) HttpServerUtil >= 0.3.11.1
+%requires(reexport) HttpServerUtil >= 0.3.12.1
 
 %new-style
 
 module HttpServer {
-    version = "0.3.12";
+    version = "0.3.12.1";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -111,6 +111,10 @@ log("started listener on %s", lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http0312 HttpServer 0.3.12.1
+    - fixed \c HEAD and other responses that cannot have a message body
+      (<a href="https://github.com/qorelanguage/qore/issues/3116">bug 3116</a>)
 
     @subsection http0312 HttpServer 0.3.12
     - added a minimal substring of string bodies received to the log message when logging HTTP requests
@@ -1181,10 +1185,23 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             return;
         }
 
-        string str = !extra_hdrs."Content-Type"
-            ? sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1><pre>%s</pre><p><hr><address>%s on %s</address></body></html>",
-                      code, HttpServer::HttpCodes{code}, HttpServer::HttpCodes{code}, html_encode(msg), http_server_string, gethostname())
-            : msg;
+        string str;
+        # issue #3116: do not send a reply body if the response code does not allow it
+        /** http://tools.ietf.org/html/rfc2616#section-4.4
+            1.Any response message which "MUST NOT" include a message-body (such
+            as the 1xx, 204, and 304 responses and any response to a HEAD
+            request) is always terminated by the first empty line after the
+            header fields, regardless of the entity-header fields present in
+            the message.
+        */
+        if (hdr.method == "HEAD" || (code >= 100 && code < 200) || (code == 204) || (code == 304)) {
+            str = !extra_hdrs."Content-Type"
+                ? sprintf("<html><head><title>%s %s</title></head><body><h1>%s</h1><pre>%s</pre><p><hr><address>%s on "
+                    "%s</address></body></html>",
+                        code, HttpServer::HttpCodes{code}, HttpServer::HttpCodes{code}, html_encode(msg),
+                        http_server_string, gethostname())
+                : msg;
+        }
 
         # restore encoding on exit
         string old_encoding = s.getEncoding();
@@ -1215,8 +1232,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         try {
             s.sendHTTPResponse(code, HttpServer::HttpCodes{code}, "1.1", v_hdr, str);
             listener.logResponse(cx, code, str, v_hdr);
-        }
-        catch (hash<ExceptionInfo> ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (ex.err != "SOCKET-SEND-ERROR") {
                 string estr = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
                 logError(estr);
@@ -1617,39 +1633,44 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         # message-body, although it MAY be of zero length.
 
         rv.hdr = self.hdr + rv.hdr;
+
+        if (exists rv.body
+            && (head
+                || (rv.code < 200
+                    || (rv.code == 204
+                    || rv.code == 304)))) {
+            remove rv.body;
+        }
+
         if (rv.code >= 300 && rv.code < 400) {
             # handle redirect msgs (RFC 2616 section 10.3 http://tools.ietf.org/html/rfc2616#section-10.3)
             s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, rv.body);
             listener.logResponse(cx, rv);
-        }
-        else if (rv.code >= 400) {
-            if (!rv.body)
+        } else if (rv.code >= 400) {
+            if (!rv.body) {
                 rv.body = sprintf("unknown error in %s handler", cx.handler_name);
+            }
 
             sendHttpError(listener, cx, s, rv.code, rv.body, rv.hdr, cx."response-encoding");
-        }
-        else {
+        } else {
             HttpServer::http_set_reply_headers(s, cx, \rv);
             #printf("\n**** RESPONSE: %d ct: %s encoding: %y: %N\n", rv.code, rv.hdr."Content-Type", cx.encoding, rv.body);
 
-            if (head)
-                s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr);
-            else if (rv.body && rv.body.size() > CompressionThreshold) {
+            # compress body if eligible for compression
+            if (rv.body && rv.body.size() > CompressionThreshold) {
                 if (cx.encoding == "deflate") {
                     rv.hdr."Content-Encoding" = "deflate";
                     rv.body = compress(rv.body);
-                }
-                else if (cx.encoding == "gzip") {
+                } else if (cx.encoding == "gzip") {
                     rv.hdr."Content-Encoding" = "gzip";
                     rv.body = gzip(rv.body);
-                }
-                else if (cx.encoding == "bzip2") {
+                } else if (cx.encoding == "bzip2") {
                     rv.hdr."Content-Encoding" = "bzip2";
                     rv.body = bzip2(rv.body);
                 }
             }
-
             s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, rv.body);
+
             listener.logResponse(cx, rv);
         }
 
