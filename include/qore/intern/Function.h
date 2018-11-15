@@ -606,59 +606,6 @@ class QoreFunction : protected QoreReferenceCounter {
 friend class QoreFunctionIterator;
 friend class qore_external_function_iterator_private;
 protected:
-<<<<<<< HEAD
-   std::string name;
-   qore_ns_private* ns;
-
-   // list of function variants
-   VList vlist;
-
-   // list of pending user-code function variants
-   VList pending_vlist;
-
-   // list of inherited methods for variant matching; the first pointer is always a pointer to "this"
-   IList ilist;
-
-   // if true means all variants have the same return value
-   bool same_return_type, parse_same_return_type;
-   int64 unique_functionality;
-   int64 unique_flags;
-
-   // same as above but for variants without QC_RUNTIME_NOOP
-   bool nn_same_return_type;
-   int64 nn_unique_functionality;
-   int64 nn_unique_flags;
-   int nn_count;
-   bool parse_rt_done;
-   bool parse_init_done;
-   bool parse_init_in_progress = false;
-   bool has_user;                   // has at least 1 committed user variant
-   bool has_builtin;                // has at least 1 committed builtin variant
-   bool has_mod_pub;                // has at least 1 committed user variant with public visibility
-   bool inject;
-
-   const QoreTypeInfo* nn_uniqueReturnType;
-
-   DLLLOCAL void parseCheckReturnType() {
-      if (parse_rt_done)
-         return;
-
-      parse_rt_done = true;
-
-      if (!same_return_type || pending_vlist.empty())
-         return;
-
-      for (vlist_t::iterator i = pending_vlist.begin(), e = pending_vlist.end(); i != e; ++i) {
-         reinterpret_cast<UserSignature*>((*i)->getUserVariantBase()->getUserSignature())->resolve();
-         const QoreTypeInfo* rti = (*i)->getReturnTypeInfo();
-
-         if (i == pending_vlist.begin()) {
-            if (!vlist.empty()) {
-               if (!QoreTypeInfo::isOutputIdentical(rti, first()->getReturnTypeInfo())) {
-                  parse_same_return_type = false;
-                  break;
-               }
-=======
     std::string name;
 
     // list of function variants
@@ -755,7 +702,6 @@ protected:
                 if (nn_uniqueReturnType && !QoreTypeInfo::isOutputIdentical(rti, nn_uniqueReturnType))
                 nn_uniqueReturnType = 0;
                 ++nn_count;
->>>>>>> develop
             }
         }
 
