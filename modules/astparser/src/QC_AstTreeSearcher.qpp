@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_AstTreeSearcher.qpp AstTreeSearcher class definition */
+/** @file QC_AstTreeSearcher.cpp AstTreeSearcher class definition */
 /*
   Qore AST Parser
 
@@ -86,6 +86,7 @@ AstTreeSearcher::constructor() {
 
 //! Hover info.
 /**
+    @param tree AST tree structure
     @param kind symbol kind
     @param line on what line lies the symbol we want to get info about
     @param col on what column lies the symbol we want to get info about
@@ -145,6 +146,7 @@ AstTreeSearcher::constructor() {
 
 //! Find symbol info.
 /**
+    @param tree AST tree structure
     @param line on what line lies the symbol we want to get info about
     @param col on what column lies the symbol we want to get info about
 
@@ -168,12 +170,12 @@ AstTreeSearcher::constructor() {
     if (!start || !end || !range || !hoverInfo)
         return QoreValue();
 
-    start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
-    start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
+    start->setKeyValue("line", si.loc.firstLine-1, xsink);
+    start->setKeyValue("character", si.loc.firstCol-1, xsink);
     if (xsink && *xsink)
         return QoreValue();
-    end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
-    end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
+    end->setKeyValue("line", si.loc.lastLine-1, xsink);
+    end->setKeyValue("character", si.loc.lastCol-1, xsink);
     if (xsink && *xsink)
         return QoreValue();
     range->setKeyValue("start", start.release(), xsink);
@@ -181,8 +183,8 @@ AstTreeSearcher::constructor() {
     if (xsink && *xsink)
         return QoreValue();
 
-    hoverInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
-    hoverInfo->setKeyValue("usage", new QoreBigIntNode(static_cast<int64_t>(si.usage)), xsink);
+    hoverInfo->setKeyValue("kind", static_cast<int64_t>(si.kind), xsink);
+    hoverInfo->setKeyValue("usage", static_cast<int64_t>(si.usage), xsink);
     hoverInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
     hoverInfo->setKeyValue("range", range.release(), xsink);
     if (xsink && *xsink)
@@ -193,6 +195,7 @@ AstTreeSearcher::constructor() {
 
 //! Find symbol references
 /**
+    @param tree AST tree structure
     @param uri document's uri
     @param line line on which the symbol lies
     @param col column at which the symbol lies
@@ -217,12 +220,12 @@ AstTreeSearcher::constructor() {
         if (!start || !end || !range || !location)
             return QoreValue();
 
-        start->setKeyValue("line", new QoreBigIntNode(node->loc.firstLine-1), xsink);
-        start->setKeyValue("character", new QoreBigIntNode(node->loc.firstCol-1), xsink);
+        start->setKeyValue("line", node->loc.firstLine-1, xsink);
+        start->setKeyValue("character", node->loc.firstCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
-        end->setKeyValue("line", new QoreBigIntNode(node->loc.lastLine-1), xsink);
-        end->setKeyValue("character", new QoreBigIntNode(node->loc.lastCol-1), xsink);
+        end->setKeyValue("line", node->loc.lastLine-1, xsink);
+        end->setKeyValue("character", node->loc.lastCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
         range->setKeyValue("start", start.release(), xsink);
@@ -233,7 +236,7 @@ AstTreeSearcher::constructor() {
         location->setKeyValue("range", range.release(), xsink);
         if (xsink && *xsink)
             return QoreValue();
-        lst->push(location.release());
+        lst->push(location.release(), xsink);
     }
 
     return lst.release();
@@ -241,6 +244,7 @@ AstTreeSearcher::constructor() {
 
 //! Find all symbols in a document.
 /**
+    @param tree AST tree structure
     @param uri document's uri
     @param fixSymbols whether to fix symbol infos
     @param bareNames whether to return bare symbol names (without namespace and class prefixes)
@@ -265,12 +269,12 @@ AstTreeSearcher::constructor() {
         if (!start || !end || !range || !location || !symbolInfo)
             return QoreValue();
 
-        start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
-        start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
+        start->setKeyValue("line", si.loc.firstLine-1, xsink);
+        start->setKeyValue("character", si.loc.firstCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
-        end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
-        end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
+        end->setKeyValue("line", si.loc.lastLine-1, xsink);
+        end->setKeyValue("character", si.loc.lastCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
         range->setKeyValue("start", start.release(), xsink);
@@ -282,11 +286,11 @@ AstTreeSearcher::constructor() {
         if (xsink && *xsink)
             return QoreValue();
         symbolInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
-        symbolInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
+        symbolInfo->setKeyValue("kind", static_cast<int64_t>(si.kind), xsink);
         symbolInfo->setKeyValue("location", location.release(), xsink);
         if (xsink && *xsink)
             return QoreValue();
-        lst->push(symbolInfo.release());
+        lst->push(symbolInfo.release(), xsink);
     }
 
     return lst.release();
@@ -294,6 +298,7 @@ AstTreeSearcher::constructor() {
 
 //! Find matching symbols in a document.
 /**
+    @param tree AST tree structure
     @param uri document's uri
     @param query search query
     @param exactMatch whether to only find exact matches
@@ -321,12 +326,12 @@ AstTreeSearcher::constructor() {
         if (!start || !end || !range || !location || !symbolInfo)
             return QoreValue();
 
-        start->setKeyValue("line", new QoreBigIntNode(si.loc.firstLine-1), xsink);
-        start->setKeyValue("character", new QoreBigIntNode(si.loc.firstCol-1), xsink);
+        start->setKeyValue("line", si.loc.firstLine-1, xsink);
+        start->setKeyValue("character", si.loc.firstCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
-        end->setKeyValue("line", new QoreBigIntNode(si.loc.lastLine-1), xsink);
-        end->setKeyValue("character", new QoreBigIntNode(si.loc.lastCol-1), xsink);
+        end->setKeyValue("line", si.loc.lastLine-1, xsink);
+        end->setKeyValue("character", si.loc.lastCol-1, xsink);
         if (xsink && *xsink)
             return QoreValue();
         range->setKeyValue("start", start.release(), xsink);
@@ -338,11 +343,11 @@ AstTreeSearcher::constructor() {
         if (xsink && *xsink)
             return QoreValue();
         symbolInfo->setKeyValue("name", new QoreStringNode(si.name), xsink);
-        symbolInfo->setKeyValue("kind", new QoreBigIntNode(static_cast<int64_t>(si.kind)), xsink);
+        symbolInfo->setKeyValue("kind", static_cast<int64_t>(si.kind), xsink);
         symbolInfo->setKeyValue("location", location.release(), xsink);
         if (xsink && *xsink)
             return QoreValue();
-        lst->push(symbolInfo.release());
+        lst->push(symbolInfo.release(), xsink);
     }
 
     return lst.release();

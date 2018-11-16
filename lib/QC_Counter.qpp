@@ -89,9 +89,13 @@ Counter::copy() {
     @code{.py}
 counter.inc();
     @endcode
+
+    @return the current value after the increment is returned
+
+    @since %Qore 0.9 this method returns the current value after the increment
  */
-nothing Counter::inc() {
-   c->inc();
+int Counter::inc() {
+   return c->inc();
 }
 
 //! Atomically decrements the counter value

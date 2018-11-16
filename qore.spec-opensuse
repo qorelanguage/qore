@@ -19,7 +19,7 @@
 
 %define module_dir %{_libdir}/qore-modules
 Name:           qore
-Version:        0.8.13.9
+Version:        0.9
 Release:        0
 Summary:        Multithreaded Programming Language
 License:        LGPL-2.1+ or GPL-2.0+ or MIT
@@ -52,32 +52,13 @@ Qore is a scripting language supporting threading and embedded logic, designed
 for applying a flexible scripting-based approach to enterprise interface
 development but is also useful as a general purpose language.
 
-%package -n libqore5
+%package -n libqore6
 Summary:        The libraries for the qore runtime and qore clients
 License:        LGPL-2.0+ or GPL-2.0+ or MIT
 Group:          Development/Languages/Other
-Provides:       qore-module(abi)%{?_isa} = 0.18
-Provides:       qore-module(abi)%{?_isa} = 0.19
-Provides:       qore-module(abi)%{?_isa} = 0.20
-Provides:       qore-module(abi)%{?_isa} = 0.21
-# provided for backwards-compatibility with unversioned capabilities and will be removed when the ABI drops backwards-compatibility
-Provides:       qore-module-api-0.10
-Provides:       qore-module-api-0.11
-Provides:       qore-module-api-0.12
-Provides:       qore-module-api-0.13
-Provides:       qore-module-api-0.14
-Provides:       qore-module-api-0.15
-Provides:       qore-module-api-0.16
-Provides:       qore-module-api-0.17
-Provides:       qore-module-api-0.18
-Provides:       qore-module-api-0.19
-Provides:       qore-module-api-0.5
-Provides:       qore-module-api-0.5
-Provides:       qore-module-api-0.7
-Provides:       qore-module-api-0.8
-Provides:       qore-module-api-0.9
+Provides:       qore-module(abi)%{?_isa} = 0.22
 
-%description -n libqore5
+%description -n libqore6
 Qore is a scripting language supporting threading and embedded logic, designed
 for applying a flexible scripting-based approach to enterprise interface
 development but is also useful as a general purpose language.
@@ -85,14 +66,14 @@ development but is also useful as a general purpose language.
 This package provides the qore library required for all clients using qore
 functionality.
 
-%files -n libqore5
+%files -n libqore6
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.5.14.2
-%{_libdir}/libqore.so.5
+%{_libdir}/libqore.so.6.0.0
+%{_libdir}/libqore.so.6
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
-%post -n libqore5 -p /sbin/ldconfig
-%postun -n libqore5 -p /sbin/ldconfig
+%post -n libqore6 -p /sbin/ldconfig
+%postun -n libqore6 -p /sbin/ldconfig
 
 %package doc
 Summary:        API documentation, programming language reference, and Qore example programs
@@ -115,7 +96,7 @@ and also for user modules delivered with Qore and also example programs.
 Summary:        The header files needed to compile programs using the qore library
 License:        LGPL-2.0+ or GPL-2.0+ or MIT
 Group:          Development/Languages/C and C++
-Requires:       libqore5 = %{version}-%{release}
+Requires:       libqore6 = %{version}-%{release}
 
 %description devel
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -140,7 +121,7 @@ Qore library.
 Summary:        C++ API documentation for the qore library
 License:        LGPL-2.0+ or GPL-2.0+ or MIT
 Group:          Documentation/HTML
-Requires:       libqore5 = %{version}-%{release}
+Requires:       libqore6 = %{version}-%{release}
 
 %description devel-doc
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -208,7 +189,7 @@ cp addon/freedesktop/qore.xml %{buildroot}/%{_datadir}/mime/packages
 %{_bindir}/qdbg*
 %{module_dir}
 %dir %{_datadir}/qore-modules
-%{_datadir}/qore-modules/0.8.13
+%{_datadir}/qore-modules/0.9.0
 %{_datadir}/mime/packages/qore.xml
 %{_mandir}/man1/qore.1.*
 

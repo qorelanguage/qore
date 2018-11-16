@@ -1,0 +1,251 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractMethod.cpp AbstractMethod class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_reflection.h"
+#include "QC_AbstractClass.h"
+#include "QC_AbstractMethod.h"
+#include "QC_AbstractVariant.h"
+#include "QC_AbstractMethodVariant.h"
+#include "QC_Type.h"
+#include "QC_AbstractClass.h"
+
+int check_call(QoreObject* obj, const QoreMethod& m, ExceptionSink* xsink) {
+    if (!obj->validInstanceOf(*m.getClass())) {
+        xsink->raiseException("METHOD-ERROR", "object is of class '%s' which is not compatible with method '%s()' of class '%s'", obj->getClassName(), m.getName(), m.getClassName());
+        return -1;
+    }
+    return 0;
+}
+
+QoreReflectionMethod::QoreReflectionMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type) : QoreReflectionFunction(getProgram()) {
+    setMethod(cls, name, xsink, type);
+}
+
+QoreReflectionMethod::QoreReflectionMethod(const char* cls_path, const char* name, ExceptionSink* xsink, method_type_e type) : QoreReflectionFunction(getProgram()) {
+    const QoreClass* cls = pgm->findClass(cls_path, xsink);
+    if (!cls) {
+        if (!*xsink) {
+            xsink->raiseException("UNKNOWN-CLASS", "cannot resolve class '%s'", cls_path);
+        }
+        return;
+    }
+
+    setMethod(cls, name, xsink, type);
+}
+
+QoreReflectionMethod::QoreReflectionMethod(QoreProgram* pgm, const QoreMethod* m) : QoreReflectionFunction(pgm, m->getFunction()), m(m) {
+    setType();
+}
+
+void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type) {
+    if (type == MT_None || type == MT_Normal) {
+        m = cls->findLocalMethod(name);
+    }
+    if (!m && (type == MT_None || type == MT_Static)) {
+        m = cls->findLocalStaticMethod(name);
+    }
+    if (!m) {
+        const char* typestr;
+        switch (type) {
+            case MT_Normal: typestr = "normal "; break;
+            case MT_Static: typestr = "static "; break;
+            case MT_None: typestr = ""; break;
+            default: assert(false); break;
+        }
+        xsink->raiseException("UNKNOWN-METHOD", "cannot resolve %smethod '%s' in class '%s'", typestr, name, cls->getName());
+    }
+    else {
+        f = m->getFunction();
+        setType();
+    }
+}
+
+void QoreReflectionMethod::setType() {
+    // set type
+    mtype = m->getMethodType();
+    if (mtype == MT_Normal && m->getClass()->getName()[0] == '<') {
+        mtype = MT_Pseudo;
+    }
+}
+
+//! The abstract base class for %Qore class methods
+/**
+    This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
+
+    @see @ref Qore::Reflection::AbstractMethodVariant "AbstractMethodVariant"
+
+    @since %Qore 0.9.0
+ */
+qclass AbstractMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractReflectionFunction; dom=REFLECTION];
+
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** @throw ABSTRACTMETHOD-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+AbstractMethod::constructor() {
+    xsink->raiseException("ABSTRACTMETHOD-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! returns @ref True if the method is a static method
+/** @par Example:
+    @code{.py}
+bool b = m.isStatic();
+    @endcode
+
+    @return @ref True if the method is a static method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+*/
+bool AbstractMethod::isStatic() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    return m->m->isStatic();
+}
+
+//! returns the type of method as a string; one of \c "normal", \c "static", \c "constructor", \c "destructor", \c "copy"
+/** @par Example:
+    @code{.py}
+string type = m.getMethodTypeName();
+    @endcode
+
+    @return the type of method as a string; one of \c "normal", \c "static", \c "constructor", \c "destructor", \c "copy"
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+*/
+string AbstractMethod::getMethodTypeName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    return new QoreStringNode(m->getType());
+}
+
+//! Returns the given direct child method variant declared in this method or throws an exception if the method variant is not defined
+/** @par Example:
+    @code{.py}
+AbstractMethodVariant v = n.getVariant(IntType, StringType);
+    @endcode
+
+    @param ... type arguments for the variant; types must be compatible for the search to be successful
+
+    @return given method variant or throws an exception if the method variant is not defined in this method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and the method has been destroyed
+    @throw RUNTIME-OVERLOAD-ERROR thrown if the variant cannot be matched to the given arguments
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getVariantArgs()
+    - getExactVariant()
+    - getExactVariantArgs()
+*/
+AbstractMethodVariant AbstractMethod::getVariant(...) [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    return find_function_variant(m->pgm, m->f, args, 0, m->mtype, xsink);
+}
+
+//! Returns the given direct child method variant declared in this method or throws an exception if the method variant is not defined
+/** @par Example:
+    @code{.py}
+AbstractMethodVariant v = n.getVariantArgs((IntType, StringType));
+    @endcode
+
+    @param argv type arguments for the variant; types must be compatible for the search to be successful
+
+    @return given method variant or throws an exception if the method variant is not defined in this method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and the method has been destroyed
+    @throw RUNTIME-OVERLOAD-ERROR thrown if the variant cannot be matched to the given arguments
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getVariant()
+    - getExactVariant()
+    - getExactVariantArgs()
+*/
+AbstractMethodVariant AbstractMethod::getVariantArgs(softlist<Type> argv) [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    return find_function_variant(m->pgm, m->f, argv, 0, m->mtype, xsink);
+}
+
+//! returns the variants implemented by the method
+/** @par Example:
+    @code{.py}
+list<AbstractMethodVariant> l = f.getVariants();
+    @endcode
+
+    @return the variants implemented by the method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and the method has been destroyed
+*/
+list<AbstractMethodVariant> AbstractMethod::getVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_ABSTRACTMETHODVARIANT->getTypeInfo()), xsink);
+    append_variant_objects(**rv, m->pgm, m->f, m->mtype, xsink);
+    return rv.release();
+}
+
+//! Returns the class for the method
+/** @par Example:
+    @code{.py}
+AbstractClass cls = m.getClass();
+    @endcode
+
+    @return the class for the method
+ */
+AbstractClass AbstractMethod::getClass() [flags=CONSTANT] {
+    return get_class_object(m->pgm, m->m->getClass());
+}
+

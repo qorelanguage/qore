@@ -1,7 +1,7 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QC_SSLCertificate.h
-  
+
   Qore Programming Language
 
   Copyright (C) 2003 - 2015 David Nichols
@@ -34,7 +34,7 @@
 #define _QORE_CLASS_SSLCERTIFICATE_H
 
 DLLEXPORT extern qore_classid_t CID_SSLCERTIFICATE;
-DLLLOCAL extern QoreClass *QC_SSLCERTIFICATE;
+DLLEXPORT extern QoreClass *QC_SSLCERTIFICATE;
 DLLLOCAL QoreClass *initSSLCertificateClass(QoreNamespace& ns);
 
 #include <qore/QoreSSLCertificate.h>

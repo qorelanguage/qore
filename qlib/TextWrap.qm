@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file TextWrap.qm Text wrapping and filling
+#! @file TextWrap.qm Text wrapping and filling
 
 /*  TextWrap.qm Copyright 2017 Qore Technologies, s.r.o.
 

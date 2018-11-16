@@ -1,0 +1,68 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class BasenameTest
+
+public class BasenameTest inherits QUnit::Test {
+
+    private {
+        list results_win = (
+            ('C:\path\to\file.txt', "", "file.txt"),
+            ("D:/path/to/file.txt", "", "file.txt"),
+            ('E:\path/to\file.txt', "", "file.txt"),
+            ("//path/to/file.txt", "", "file.txt"),
+            ('\path\to\file.txt', "", "file.txt"),
+            ('\\path\to\file.txt', "", "file.txt"),
+            ('\\path/to/file.txt', "", "file.txt"),
+            ('path\to\file.txt', "", "file.txt"),
+            ('e:path\to\file.txt', "", "file.txt"),
+            ("F:../file.txt", "", "file.txt"),
+            ('..\file.txt', "", "file.txt"),
+            ("../../file.txt", "", "file.txt"),
+            ("d:/path/to/", "", ""),
+            ('..\', "", ""),
+            ('c:\', "", ""),
+            ("c:file.txt", "", "file.txt"),
+            ('c:\file.txt', "", "file.txt"),
+            ('c:..\file.txt', "", "file.txt"),
+            ("f:/path/to/dir", "", "dir"),
+            ("file.txt", "", "file.txt")
+        );
+
+        list results_posix = (
+            ("/path/to/file.txt", "", "file.txt"),
+            ("path/to/file.txt", "", "file.txt"),
+            ('C:\path\to\file.txt', "", 'C:\path\to\file.txt'),
+            ('path\to\file.txt', "", 'path\to\file.txt'),
+            ("/file.txt", "", "file.txt"),
+            ("../file.txt", "", "file.txt"),
+            ("/path/to/", "", ""),
+            ("../", "", ""),
+            ("./", "", ""),
+            ("/", "", ""),
+            ("/path/to/dir", "", "dir"),
+            ("file.txt", "", "file.txt")
+        );
+    }
+
+    constructor() : Test ("BasenameTest", "1.0") {
+        addTestCase ("Basename test", \test_basename());
+        set_return_value(main());
+    }
+
+    test_basename() {
+        list results;
+        if (Platform.Windows)
+            results = results_win;
+        else
+            results = results_posix;
+
+        foreach list res in (results)
+            assertEq(res[2], basename(res[0]));
+    }
+}

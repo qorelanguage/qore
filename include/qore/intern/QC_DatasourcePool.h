@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
 
   The Datasource class provides the low-level interface to Qore DBI drivers.
 
@@ -51,6 +51,7 @@
 DLLEXPORT extern qore_classid_t CID_DATASOURCEPOOL;
 DLLLOCAL extern QoreClass* QC_DATASOURCEPOOL;
 DLLLOCAL extern QoreClass* QC_ABSTRACTDATASOURCE;
+DLLLOCAL extern QoreClass* QC_ABSTRACTSQLSTATEMENT;
 
 QoreClass *initDatasourcePoolClass(QoreNamespace& ns);
 
