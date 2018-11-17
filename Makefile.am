@@ -174,6 +174,7 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_TransformOutputStream.qpp \
 	lib/QC_StdoutOutputStream.qpp \
 	lib/QC_StderrOutputStream.qpp \
+	lib/QC_Serializable.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -728,6 +729,7 @@ noinst_HEADERS = \
 	include/qore/intern/DataLineIterator.h \
 	include/qore/intern/EncodingConvertor.h \
 	include/qore/intern/QoreListNodeEvalOptionalRefHolder.h \
+	include/qore/intern/QoreSerializable.h \
 	include/qore/intern/ql_string.h \
 	include/qore/intern/ql_list.h \
 	include/qore/intern/ql_misc.h \
@@ -774,6 +776,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_TimeZone.h \
 	include/qore/intern/QC_TreeMap.h \
 	include/qore/intern/QC_AbstractThreadResource.h \
+	include/qore/intern/QC_Serializable.h \
 	lib/getopt_long.h \
 	command-line.h
 

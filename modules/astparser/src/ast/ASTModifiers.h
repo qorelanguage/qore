@@ -46,6 +46,7 @@ enum ASTModifier {
     AM_Private             = 1 << 8,   //!< The `private` modifier.
     AM_PrivateHierarchy    = 1 << 9,   //!< The `private:hierarchy` modifier.
     AM_PrivateInternal     = 1 << 10,   //!< The `private:internal` modifier.
+    AM_Transient           = 1 << 11,   //!< The `transient` modifier.
 };
 
 class ASTModifiers : public ASTNode {

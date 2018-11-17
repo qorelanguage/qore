@@ -1117,7 +1117,8 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         if (!ans->is_unique())
             ans = ans->copy();
 
-        if (code >= 300 && code < 400) {
+        // issue #3116: pass a 304 Not Modified message back to the caller without processing
+        if (code >= 300 && code < 400 && code != 304) {
             disconnect_unlocked();
 
             host_override = false;
@@ -1188,7 +1189,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         break;
     }
 
-    if (code >= 300 && code < 400) {
+    if (code >= 300 && code < 400 && code != 304) {
         sl.unlock();
         const char* mess = get_string_header(xsink, **ans, "status_message");
         if (!mess)

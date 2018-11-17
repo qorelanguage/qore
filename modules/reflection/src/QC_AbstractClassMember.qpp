@@ -55,6 +55,7 @@ int i = mem.getModifiers();
     - @ref Qore::Reflection::MC_PRIVATEINTERNAL "MC_PRIVATEINTERNAL": gives the accessibility of the member
     - @ref Qore::Reflection::MC_PUBLIC "MC_PUBLIC": gives the accessibility of the member
     - @ref Qore::Reflection::MC_STATIC "MC_STATIC": the member is static
+    - @ref Qore::Reflection::MC_TRANSIENT "MC_TRANSIENT": the member is @ref transient "transient"
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 
@@ -74,6 +75,11 @@ int AbstractClassMember::getModifiers() [flags=RET_VALUE_ONLY] {
     if (m->is_static) {
         rc |= MC_STATIC;
     }
+    else {
+        if (static_cast<const QoreExternalNormalMember*>(m->mem)->isTransient()) {
+            rc |= MC_TRANSIENT;
+        }
+    }
 
     rc |= get_access(m->getAccess());
 
@@ -91,6 +97,7 @@ list<string> l = m.getModifierList();
     - \c "private:internal": gives the accessibility of the member
     - \c "public": gives the accessibility of the member
     - \c "static": the member is static
+    - \c "transient": the member is @ref transient "transient"
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
 
@@ -107,6 +114,11 @@ list<string> AbstractClassMember::getModifierList() [flags=RET_VALUE_ONLY] {
     ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
     if (m->is_static) {
         rv->push(new QoreStringNode("static"), xsink);
+    }
+    else {
+        if (static_cast<const QoreExternalNormalMember*>(m->mem)->isTransient()) {
+            rv->push(new QoreStringNode("transient"), xsink);
+        }
     }
 
     rv->push(new QoreStringNode(m->getAccessString()), xsink);
@@ -203,6 +215,27 @@ bool AbstractClassMember::isStatic() [flags=RET_VALUE_ONLY] {
 
     // the class ptr must be valid
     return m->is_static;
+}
+
+//! returns @ref True if the member is @ref transient "transient"
+/** @par Example:
+    @code{.py}
+bool b = m.isTransient();
+    @endcode
+
+    @return @ref True if the member is @ref transient "transient"
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClassMember::isTransient() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return !m->is_static && static_cast<const QoreExternalNormalMember*>(m->mem)->isTransient();
 }
 
 //! Returns the class for the member

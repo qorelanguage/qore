@@ -57,13 +57,30 @@ public class CryptoStreamTest inherits QUnit::Test {
         const EncAes128 = <aefb3da77fa1f1333a33f5b6269ef2551829382b2627d661f1017407f380f24fa2240e0ea2406d>;
         const EncAes192 = <25be4e7154c04b8ba236dbaf757eb8eef14e74569d763d0e7a8e391a85abc0aaabdcd002203b66>;
         const EncAes256 = <e7c61fd4a94c05612229acb5af8364e53ea93a1fa32fb83013817a94cc5b49b9b9aa0f87c4cbe0>;
+
+        # issue #3111
+        const LongDesKey = "ThisIsAK";
+        const LongDesData = strmul("XDDFSD", 200);
+        const EncDesLong = encrypt(CRYPTO_ALG_DES, LongDesData, LongDesKey);
     }
 
     constructor() : Test("CryptoStreamTest", "1.0") {
+        addTestCase("issue 3111 test", \issue3111Test());
         addTestCase("crypto test", \cryptoTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue3111Test() {
+        BinaryInputStream is(EncDesLong);
+        TransformInputStream t(is, get_decryptor(CRYPTO_ALG_DES, LongDesKey));
+        StreamReader sr(t);
+        string str;
+        while (*string data = sr.readString(1)) {
+            str += data;
+        }
+        assertEq(LongDesData, str);
     }
 
     cryptoTest() {
