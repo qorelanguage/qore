@@ -116,6 +116,7 @@ Qore library.
 %{_libdir}/cmake/Qore
 %{_includedir}/*
 %{_datadir}/qore
+%{_datadir}/qore/*
 
 %package devel-doc
 Summary:        C++ API documentation for the qore library
