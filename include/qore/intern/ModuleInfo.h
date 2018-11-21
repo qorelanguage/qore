@@ -670,33 +670,33 @@ public:
 };
 
 class QoreUserModuleDefContextHelper : public QoreModuleDefContextHelper {
-protected:
-   const char* old_name;
-
-   qore_program_private* pgm;
-   int64 po;
-
-   ExceptionSink& xsink;
-   bool dup;
-
 public:
-   DLLLOCAL QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs);
+    DLLLOCAL QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs);
 
-   DLLLOCAL ~QoreUserModuleDefContextHelper() {
-      const char* name = set_user_module_context_name(old_name);
+    DLLLOCAL ~QoreUserModuleDefContextHelper() {
+        const char* name = set_user_module_context_name(old_name);
 
-      if (xsink && !dup)
-         QMM.removeUserModuleDependency(name);
-   }
+        if (xsink && !dup)
+            QMM.removeUserModuleDependency(name);
+    }
 
-   DLLLOCAL void setDuplicate() {
-      assert(!dup);
-      dup = true;
-   }
+    DLLLOCAL void setDuplicate() {
+        assert(!dup);
+        dup = true;
+    }
 
-   DLLLOCAL void setNameInit(const char* name);
+    DLLLOCAL void setNameInit(const char* name);
 
-   DLLLOCAL void close();
+    DLLLOCAL void close();
+
+protected:
+    const char* old_name;
+
+    qore_program_private* pgm;
+    int64 po;
+
+    ExceptionSink& xsink;
+    bool dup;
 };
 
 #endif

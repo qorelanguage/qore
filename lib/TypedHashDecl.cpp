@@ -70,7 +70,16 @@ void HashDeclMemberInfo::parseInit(const char* name, bool priv) {
     }
 }
 
-typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd) : loc(old.loc), name(old.name), thd(thd), orig(old.orig), typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str())), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str())), pub(old.pub), sys(old.sys), parse_init_done(old.parse_init_done) {
+// NOTE: the new namespace will be set manually after this call
+typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd) :
+    loc(old.loc),
+    name(old.name),
+    thd(thd),
+    from_module(old.from_module),
+    orig(old.orig),
+    typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str())),
+    orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str())), pub(old.pub), sys(old.sys),
+        parse_init_done(old.parse_init_done) {
     // copy member list
     for (auto& i : old.members.member_list) {
         members.addNoCheck(strdup(i.first), i.second ? new HashDeclMemberInfo(*i.second) : nullptr);

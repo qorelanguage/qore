@@ -995,6 +995,17 @@ public:
     // initializes the member
     DLLLOCAL void parseInit(const char* name);
 
+    // sets the transient flag
+    DLLLOCAL void setTransient() {
+        assert(!is_transient);
+        is_transient = true;
+    }
+
+    // returns the transient flag
+    DLLLOCAL bool getTransient() const {
+        return is_transient;
+    }
+
 private:
     // the classes where this member is accessible; the first class is the class where the member was defined
     cls_vec_t cls_vec;
@@ -1004,7 +1015,9 @@ private:
     member_info_list_t* member_info_list = nullptr;
 
     // local flag
-    bool is_local;
+    bool is_local,
+        // transient flag
+        is_transient = false;
 
     /**
         @param old the old object
@@ -1724,6 +1737,9 @@ public:
         * deleteBlocker = nullptr,
         * memberNotification = nullptr;
 
+    q_serializer_t serializer = nullptr;
+    q_deserializer_t deserializer = nullptr;
+
     qore_classid_t classID,          // class ID
         methodID;                    // for subclasses of builtin classes that will not have their own private data,
                                      // instead they will get the private data from this class
@@ -1747,7 +1763,8 @@ public:
         gate_access : 1,                  // if the methodGate and memberGate methods should be called with a class access boolean
         committed : 1,                    // can only parse to a class once
         parse_resolve_hierarchy : 1,      // class hierarchy resolved
-        parse_resolve_abstract : 1        // abstract methods resolved
+        parse_resolve_abstract : 1,       // abstract methods resolved
+        has_transient_member : 1          // has at least one transient member
         ;
 
     int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
@@ -2227,6 +2244,9 @@ public:
                 has_sig_changes = true;
             }
             memberInfo->setDeclaringClass(this);
+            if (!has_transient_member && memberInfo->getTransient()) {
+                has_transient_member = true;
+            }
             //printd(5, "qore_class_private::parseAddMember() this: %p %s adding %s %p %s\n", this, name.c_str(), privpub(access), mem, mem);
             members.addNoCheck(mem, memberInfo);
             return;
@@ -2951,6 +2971,16 @@ public:
 
     DLLLOCAL char* getHash() const {
         return hash.getHash();
+    }
+
+    DLLLOCAL void setSerializer(q_serializer_t m) {
+        assert(!serializer);
+        serializer = m;
+    }
+
+    DLLLOCAL void setDeserializer(q_deserializer_t m) {
+        assert(!deserializer);
+        deserializer = m;
     }
 
     // static methods

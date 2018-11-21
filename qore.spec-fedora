@@ -107,6 +107,7 @@ Qore library.
 %{_libdir}/cmake/Qore
 %{_includedir}/*
 %{_datarootdir}/qore/Doxyfile.in
+%{_datarootdir}/qore/qore-logo-55x200.png
 
 %package devel-doc
 Summary: C++ API documentation for the qore library
@@ -174,8 +175,11 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Tue Oct 27 2018 David Nichols <david@qore.org> 0.9-1
+* Fri Nov 16 2018 David Nichols <david@qore.org> 0.9-1
 - updated version to 0.9-1
+
+* Wed Nov 14 2018 David Nichols <david@qore.org> 0.8.13.9-1
+- updated version to 0.8.13.9-1
 
 * Thu Oct 20 2018 David Nichols <david@qore.org> 0.8.13.8-1
 - updated version to 0.8.13.8-1

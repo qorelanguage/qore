@@ -418,13 +418,16 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
         if (!class_ctx)
             vl.addMemberNotification(o, mem->getBuffer()); // add member notification for external updates
     }
-    if (*vl.xsink)
+    if (*vl.xsink) {
         return -1;
-
-    robj = qore_object_private::get(*o);
-    ocvec.push_back(ObjCountRec(o));
+    }
 
     return 0;
+}
+
+void LValueHelper::setObjectContext(qore_object_private* obj) {
+    robj = obj;
+    ocvec.push_back(ObjCountRec(obj->obj));
 }
 
 int LValueHelper::doLValue(const ReferenceNode* ref, bool for_remove) {

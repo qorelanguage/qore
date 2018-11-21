@@ -570,6 +570,12 @@ void AstTreePrinter::printModifiers(std::ostream& os, ASTModifiers mods, int ind
         os << "modifiers: ";
 
     bool notFirst = false;
+    if (mods.contains(AM_Transient)) {
+        if (notFirst)
+            os << " ";
+        os << "transient";
+        notFirst = true;
+    }
     if (mods.contains(AM_Abstract)) {
         if (notFirst)
             os << " ";
@@ -791,6 +797,7 @@ void AstTreePrinter::printParseOptionString(std::ostream& os, ASTParseOption* po
         case APOK_ALLOW_BARE_REFS: os << "ALLOW_BARE_REFS"; break;
         case APOK_ALLOW_DEBUGGER: os << "ALLOW_DEBUGGER"; break;
         case APOK_ALLOW_INJECTION: os << "ALLOW_INJECTION"; break;
+        case APOK_ALLOW_STATEMENT_NO_EFFECT: os << "ALLOW_STATEMENT_NO_EFFECT"; break;
         case APOK_APPEND_INCLUDE_PATH: os << "APPEND_INCLUDE_PATH"; break;
         case APOK_APPEND_MODULE_PATH: os << "APPEND_MODULE_PATH"; break;
         case APOK_ASSUME_GLOBAL: os << "ASSUME_GLOBAL"; break;
@@ -832,6 +839,7 @@ void AstTreePrinter::printParseOptionString(std::ostream& os, ASTParseOption* po
         case APOK_NO_NETWORK: os << "NO_NETWORK"; break;
         case APOK_NO_NEW: os << "NO_NEW"; break;
         case APOK_NO_PROCESS_CONTROL: os << "NO_PROCESS_CONTROL"; break;
+        case APOK_NO_REFLECTION: os << "NO_REFLECTION"; break;
         case APOK_NO_SUBROUTINE_DEFS: os << "NO_SUBROUTINE_DEFS"; break;
         case APOK_NO_TERMINAL_IO: os << "NO_TERMINAL_IO"; break;
         case APOK_NO_THREADS: os << "NO_THREADS"; break;
@@ -839,6 +847,7 @@ void AstTreePrinter::printParseOptionString(std::ostream& os, ASTParseOption* po
         case APOK_NO_THREAD_CONTROL: os << "NO_THREAD_CONTROL"; break;
         case APOK_NO_THREAD_INFO: os << "NO_THREAD_INFO"; break;
         case APOK_NO_TOP_LEVEL_STATEMENTS: os << "NO_TOP_LEVEL_STATEMENTS"; break;
+        case APOK_NO_TRANSIENT: os << "NO_TRANSIENT"; break;
         case APOK_NO_UNCONTROLLED_APIS: os << "NO_UNCONTROLLED_APIS"; break;
         case APOK_OLD_STYLE: os << "OLD_STYLE"; break;
         case APOK_PERL_BOOLEAN_EVAL: os << "PERL_BOOLEAN_EVAL"; break;

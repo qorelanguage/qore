@@ -459,6 +459,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
      committed(false),
      parse_resolve_hierarchy(false),
      parse_resolve_abstract(false),
+     has_transient_member(false),
      domain(dom),
      num_methods(0),
      num_user_methods(0),
@@ -484,6 +485,8 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
      ns(ns),
      ahm(old.ahm),
      constlist(old.constlist, 0, this),    // committed constants
+     serializer(old.serializer),
+     deserializer(old.deserializer),
      classID(old.classID),
      methodID(old.methodID),
      sys(old.sys),
@@ -505,6 +508,7 @@ qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_pr
      committed(true),
      parse_resolve_hierarchy(true),
      parse_resolve_abstract(true),
+     has_transient_member(old.has_transient_member),
      domain(old.domain),
      num_methods(old.num_methods),
      num_user_methods(old.num_user_methods),
@@ -2531,8 +2535,9 @@ const QoreMethod* qore_class_private::parseFindAnyMethodStaticFirst(const char* 
 
     m = parseFindNormalMethodIntern(nme, class_ctx);
 
-    if (m && (!strcmp(nme, "constructor") || !strcmp(nme, "destructor") || !strcmp(nme, "copy")))
-        m = 0;
+    if (m && (!strcmp(nme, "constructor") || !strcmp(nme, "destructor") || !strcmp(nme, "copy"))) {
+        m = nullptr;
+    }
 
     return m && ((qore_method_private::getAccess(*m) == Public) || class_ctx) ? m : 0;
 }
@@ -3079,6 +3084,10 @@ const QoreClass* QoreClass::getClass(const QoreClass& qc, bool& cpriv) const {
 bool QoreClass::inHierarchy(const QoreClass& cls, ClassAccess& n_access) const {
     n_access = Public;
     return priv->inHierarchy(*cls.priv, n_access);
+}
+
+bool QoreClass::hasTransientMember() const {
+    return priv->has_transient_member;
 }
 
 const char* QoreClass::getModuleName() const {
@@ -3659,6 +3668,22 @@ void QoreClass::setDeleteBlocker(q_delete_blocker_t m) {
 // sets the final flag
 void QoreClass::setFinal() {
     qore_class_private::setFinal(*this);
+}
+
+void QoreClass::setSerializer(q_serializer_t m) {
+    priv->setSerializer(m);
+}
+
+void QoreClass::setDeserializer(q_deserializer_t m) {
+    priv->setDeserializer(m);
+}
+
+q_serializer_t QoreClass::getSerializer() const {
+    return priv->serializer;
+}
+
+q_deserializer_t QoreClass::getDeserializer() const {
+    return priv->deserializer;
 }
 
 void QoreClass::setSystemConstructor(q_system_constructor_t m) {

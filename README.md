@@ -2,7 +2,7 @@
 
 ![Qore logo](https://github.com/qorelanguage/qore/raw/develop/doxygen/qore-logo-55x200.png)
 
-[![Build Status](https://hq.qoretechnologies.com/jenkins/buildStatus/icon?job=qore)](https://hq.qoretechnologies.com/jenkins/job/qore/)
+[![Build Status](https://jenkins.qoretechnologies.com/buildStatus/icon?job=qore)](https://jenkins.qoretechnologies.com/job/qore/)
 
 ## Files
 This document contains some general information on the Qore language.  Please

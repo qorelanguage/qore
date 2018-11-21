@@ -324,3 +324,8 @@ int BinaryNode::substr(BinaryNode& b, qore_offset_t offset, qore_offset_t length
     b.append((char*)ptr + offset, length);
     return 0;
 }
+
+BinaryNode* BinaryNode::binRefSelf() const {
+    ref();
+    return const_cast<BinaryNode*>(this);
+}
