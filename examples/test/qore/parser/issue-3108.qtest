@@ -20,6 +20,5 @@ class Issue3108Test inherits QUnit::Test {
     issue3108() {
         Program p(PO_NEW_STYLE);
         assertThrows("PARSE-EXCEPTION", \p.parse(), ("sprintf('%N\n', (softlist l = map {'a': 1, 'b': 2}, (1, 2)));", ""));
-        #sprintf('%N\n', (softlist l = map {'a': 1, 'b': 2}, (1, 2)));
     }
 }
