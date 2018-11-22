@@ -3426,28 +3426,31 @@ exp_c:
            }
         }
         | TOK_MAP exp {
-           QoreProgramLocation loc(@1.first_line, @2.last_line);
-           pop_ignore_numeric_argv_ref();
-           QoreParseListNode* l = $2 && $2->getType() == NT_PARSE_LIST ? reinterpret_cast<QoreParseListNode*>($2) : nullptr;
-           int len = l ? (int)l->size() : 0;
-           if (!l || len < 2 || len > 3) {
-              parse_error(loc, "invalid arguments to map operator, expected: 2 or 3 element list (code expression, list argument, [select expression]), got: '%s'", get_type_name($2));
-              $$ = makeErrorTree($2, 0);
-           }
-           else {
-              // get first expression from list
-              AbstractQoreNode* exp = l->shift();
-              qore_type_t t = get_node_type(exp);
-              $$ = 0;
-              if (t == NT_PARSE_HASH) {
-                 QoreParseHashNode* phn = reinterpret_cast<QoreParseHashNode*>(exp);
-                 if (phn->isCurly())
-                    $$ = parse_hash_map(loc, phn, l);
-              }
+            QoreProgramLocation loc(@1.first_line, @2.last_line);
+            pop_ignore_numeric_argv_ref();
+            QoreParseListNode* l = $2 && $2->getType() == NT_PARSE_LIST ? reinterpret_cast<QoreParseListNode*>($2) : nullptr;
+            int len = l ? (int)l->size() : 0;
+            if (!l || len < 2 || len > 3) {
+                parse_error(loc, "invalid arguments to map operator, expected: 2 or 3 element list (code expression, list argument, [select expression]), got: '%s'", get_type_name($2));
+                $$ = makeErrorTree($2, 0);
+            } else {
+                // get first expression from list
+                AbstractQoreNode* exp = l->shift();
+                qore_type_t t = get_node_type(exp);
+                $$ = nullptr;
+                bool is_curly = false;
+                if (t == NT_PARSE_HASH) {
+                    QoreParseHashNode* phn = reinterpret_cast<QoreParseHashNode*>(exp);
+                    if (phn->isCurly()) {
+                        is_curly = true;
+                        $$ = parse_hash_map(loc, phn, l);
+                    }
+                }
 
-              if (!$$)
-                 $$ = parse_map(loc, exp, l);
-           }
+                if (!$$ && !is_curly) {
+                    $$ = parse_map(loc, exp, l);
+                }
+            }
         }
         | TOK_FOLDR exp {
            pop_ignore_numeric_argv_ref();
