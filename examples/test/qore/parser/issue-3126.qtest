@@ -1,0 +1,52 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Main
+
+const CODE_CONSTRUCTOR = "%new-style
+class C {
+    abstract constructor();
+}
+";
+
+const CODE_DESTRUCTOR = "%new-style
+class C {
+    abstract destructor();
+}
+";
+
+const CODE_COPY = "%new-style
+class C {
+    abstract copy();
+}
+";
+
+const CODE_WITH_ERROR = (
+    CODE_CONSTRUCTOR,
+    CODE_DESTRUCTOR,
+    CODE_COPY,
+);
+
+
+class Main inherits QUnit::Test {
+    constructor() : QUnit::Test("Issue3126 test", "1.0") {
+        addTestCase("Test", \issue3126());
+        set_return_value(main());
+    }
+
+    issue3126() {
+        foreach string c in (CODE_WITH_ERROR) {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), (c, ""));
+        }
+    }
+}
