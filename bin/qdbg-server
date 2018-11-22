@@ -16,7 +16,7 @@ class WebSocketDebugProgramControlHost inherits WebSocketDebugProgramControl {
     public {
         DebugWrapper dw;
     }
-    constructor(*HttpServer::AbstractAuthenticator auth, DebugWrapper n_dw) : WebSocketDebugProgramControl("qdb-server v1.0", auth) {
+    constructor(DebugWrapper n_dw) : WebSocketDebugProgramControl("qdb-server v1.0") {
         dw = n_dw;
     }
 }
@@ -66,15 +66,15 @@ class DebugWrapper {
         logger.verbose = opt.verbose + 1;
         try {
             logger.log(DUV_DEBUG, "create DebugProgram");
-            dpc = new WebSocketDebugProgramControlHost(NOTHING, self);
+            dpc = new WebSocketDebugProgramControlHost(self);
             dpc.logger = logger;
             logger.log(DUV_DEBUG, "create WebSocketDebugHandler");
-            wsHandler = dpc.getHandler();
+            AbstractWebSocketDebugHandler wsHandler = new WebSocketDebugHandler(dpc);
             wsHandler.logger = logger;
 
             logger.log(DUV_DEBUG, "create HttpServer");
-            mServer = new HttpServer(\httplog(), \httperr(), logger.verbose>=DUV_DEBUG);
-            mServer.setHandler("ws-handler", opt.path ?? "", dpc.getContentType(), wsHandler);
+            mServer = new HttpServer(\httplog(), \httperr(), logger.verbose >= DUV_DEBUG);
+            mServer.setHandler("ws-handler", opt.path ?? "", wsHandler.getContentType(), wsHandler);
             mServer.setDefaultHandler("ws-handler", wsHandler);
             if (opt.listen) {
                 foreach string l in (opt.listen) {

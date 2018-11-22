@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Pop3Client.qm POP3 client module definition
+#! @file Pop3Client.qm POP3 client module definition
 
-/*  Pop3Client.qm Copyright 2013 - 2017 Qore Technologies, s.r.o.
+/*  Pop3Client.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 # need mime definitions
 %requires Mime >= 1.0
@@ -32,7 +32,7 @@
 %requires MailMessage >= 1.0
 
 # requires the ConnectionProvider module
-%requires(reexport) ConnectionProvider >= 1.0
+%requires(reexport) ConnectionProvider >= 1.1
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module Pop3Client {
-    version = "1.5";
+    version = "1.6";
     desc = "POP3 client support module";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -93,6 +93,11 @@ if (!h)
     @note based on http://tools.ietf.org/html/rfc1939 (POP3)
 
     @section pop3client_relnotes Pop3Client Module Release Notes
+
+    @subsection pop3client_v1_6 Pop3Client 1.6
+    - added the @ref Pop3Client::Pop3Connection::getConstructorInfo() "Pop3Connection::getConstructorInfo()"
+      method to allow connections to be created dynamically, potentially in another process from a network
+      call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
     @subsection pop3client_v1_5 Pop3Client 1.5
     - added the @ref Pop3Client::Pop3Connection "Pop3Connection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
@@ -196,10 +201,10 @@ public namespace Pop3Client {
             const POP3SPort = 995;
 
             #! accepted protocols
-            const Protocols = (
-                "pop3": ("tls": False, "port": POP3Port),
-                "pop3s": ("tls": True, "port": POP3SPort),
-                );
+            const Protocols = {
+                "pop3": {"tls": False, "port": POP3Port},
+                "pop3s": {"tls": True, "port": POP3SPort},
+            };
         }
 
         #! creates the Pop3Client object
@@ -227,16 +232,19 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
             hash hurl = parse_url(url, True);
 
             if (!hurl.protocol.val()) {
-                if (!hurl.port)
+                if (!hurl.port && hurl.host[0] != "/") {
                     hurl.port = POP3Port;
+                }
             }
             else {
                 *hash conf = Protocols.(hurl.protocol.lwr());
-                if (!exists conf)
-                    throw "POP3-URL-ERROR", sprintf("unknown protocol %y in %y; known protocols: %y", hurl.protocol, url, keys Protocols);
+                if (!exists conf) {
+                    throw "POP3-URL-ERROR", sprintf("unknown scheme %y in %y; known schemes: %y", hurl.protocol, url, keys Protocols);
+                }
                 tls = conf.tls;
-                if (!hurl.port)
+                if (!hurl.port && hurl.host[0] != "/") {
                     hurl.port = conf.port;
+                }
             }
 
             if (!hurl.host.val())
@@ -244,19 +252,27 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
 
             # if the hostname is an integer, then assume the given port on localhost
             if (hurl.host.val()) {
-                if (string(int(hurl.host)) == hurl.host)
+                if (string(int(hurl.host)) == hurl.host) {
                     connect = sprintf("localhost:%d", hurl.host);
-                else
+                }
+                else if (hurl.host[0] != "/") {
                     connect = sprintf("%s:%d", hurl.host, hurl.port);
+                }
+                else {
+                    connect = hurl.host;
+                }
             }
-            else # here hurl.path must be set
+            else { # here hurl.path must be set
                 connect = hurl.path;
+            }
 
-            if (!exists hurl.username)
+            if (!exists hurl.username) {
                 throw "POP3-URL-ERROR", sprintf("missing username in POP3 URL: %y", url);
+            }
 
-            if (!exists hurl.password)
+            if (!exists hurl.password) {
                 throw "POP3-URL-ERROR", sprintf("missing password in POP3 URL: %y", url);
+            }
 
             user = hurl.username;
             pass = hurl.password;
@@ -274,6 +290,13 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
             catch (hash<ExceptionInfo> ex) {
                 logDbg("Pop3Client disconnect: %s: %s", ex.err, ex.desc);
             }
+        }
+
+        #! Returns the connection target string
+        /** @since %Pop3Client 1.6
+        */
+        string getTarget() {
+            return connect;
         }
 
         #! log password
@@ -992,6 +1015,19 @@ pop3.clearStats();
             if (connect)
                 sc.connect();
             return sc;
+        }
+
+        #! returns a hash that can be used to contruct the object dynamically
+        /** @since %Pop3Client 1.6
+        */
+        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
+            return new hash<ConnectionConstructorInfo>({
+                "module": "Pop3Client",
+                "class_name": "Pop3Client",
+                "args": url,
+                "pre_processing": "args += (rtopts.log, rtopts.dbglog);",
+                "post_processing": "if (connect) obj.connect();",
+            });
         }
 
         #! static constructor

@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file FixedLengthUtil.qm Qore user module for working with files with fixed lines length
+#! @file FixedLengthUtil.qm Qore user module for working with files with fixed lines length
 
 /*  FixedLengthUtil.qm Copyright 2015 - 2017 Qore Technologies, s.r.o.
 

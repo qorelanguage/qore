@@ -58,10 +58,10 @@ struct qore_counter_private {
          }
       }
 
-      DLLLOCAL void inc() {
+      DLLLOCAL int inc() {
          AutoLocker al(&l);
          if (cnt >= 0)
-            ++cnt;
+            return ++cnt;
       }
 
       DLLLOCAL int dec(ExceptionSink* xsink) {
@@ -129,8 +129,8 @@ void QoreCounter::destructor(ExceptionSink* xsink) {
    priv->destructor(xsink);
 }
 
-void QoreCounter::inc() {
-   priv->inc();
+int QoreCounter::inc() {
+   return priv->inc();
 }
 
 int QoreCounter::dec(ExceptionSink* xsink) {

@@ -1,0 +1,146 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractMember.cpp AbstractMember class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_reflection.h"
+#include "QC_Class.h"
+#include "QC_AbstractMember.h"
+#include "QC_Type.h"
+
+//! This class provides information about %Qore class and @ref hashdecl "typed hash (hashdecl)" members
+/** @since %Qore 0.9.0
+ */
+qclass AbstractMember [ns=Qore::Reflection; arg=QoreReflectionMember* m; dom=REFLECTION];
+
+//! Throws an exception; this class cannot be created directly or used in a user class hierarchy
+/** @throw ABSTRACTMEMBER-CONSTRUCTOR-ERROR the AbstractMember class cannot be constructed directly or inherited directly by a user-defined class
+ */
+AbstractMember::constructor() {
+    xsink->raiseException("ABSTRACTMEMBER-CONSTRUCTOR-ERROR", "this class cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! returns the member's name
+/** @par Example:
+    @code{.py}
+string name = mem.getName();
+    @endcode
+
+    @return the member's name
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class or @ref hashdecl "typed hash (hashdecl)" has been destroyed
+ */
+string AbstractMember::getName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return new QoreStringNode(m->name);
+}
+
+//! Returns @ref True if the AbstractMember object passed as an argument is equal to the current object; @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = m1.isEqual(m2);
+    @endcode
+
+    @param mem the member to check with the current object for equality
+
+    @return @ref True if the AbstractMember object passed as an argument is equal to the current object; @ref False if not
+*/
+bool AbstractMember::isEqual(AbstractMember[QoreReflectionMember] mem) [flags=CONSTANT] {
+    ReferenceHolder<QoreReflectionMember> holder(mem, xsink);
+
+    return mem->mem == m->mem;
+}
+
+//! Returns the type object for this member
+/** @par Example:
+    @code{.py}
+Type t = m.getType();
+    @endcode
+
+    @return the type object for this member
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+Type AbstractMember::getType() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return new QoreObject(QC_TYPE, m->pgm, new QoreType(m->mem->getTypeInfo()));
+}
+
+//! Returns the default value for the member or @ref nothing if the member has no default value
+/** @par Example:
+    @code{.py}
+auto v = m.getDefaultValue();
+    @endcode
+
+    @return the default value for the member or @ref nothing if the member has no default value
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+auto AbstractMember::getDefaultValue() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return m->mem->getDefaultValue(xsink);
+}
+
+//! Returns the source location of the member declaration
+/** @par Example:
+    @code{.py}
+hash<SourceLocationInfo> loc = mem.getSourceLocation();
+    @endcode
+
+    @return the source location of the member declaration
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+hash<SourceLocationInfo> AbstractMember::getSourceLocation() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the constant ptr must be valid
+    return m->mem->getSourceLocation()->getHash();
+}

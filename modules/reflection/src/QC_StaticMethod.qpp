@@ -1,0 +1,166 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_StaticMethod.cpp StaticMethod class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_reflection.h"
+#include "QC_StaticMethod.h"
+#include "QC_Class.h"
+
+//! This class provides information about %Qore static class methods
+/**
+    @see @ref Qore::Reflection::StaticMethodVariant "StaticMethodVariant"
+
+    @since %Qore 0.9.0
+ */
+qclass StaticMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod; dom=REFLECTION];
+
+//! Creates the object from the class and static method name
+/** @par Example:
+    @code{.py}
+StaticMethod m(cls, name);
+    @endcode
+
+    @param cls the class for the method
+    @param method the static method name
+
+    @throw UNKOWN-METHOD cannot find a static method with the given name
+ */
+StaticMethod::constructor(Class[QoreReflectionClass] cls, string method) {
+    ReferenceHolder<QoreReflectionClass> holder(cls, xsink);
+
+    TempEncodingHelper nmethod(method, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    // get exclusive access to program object
+    QoreExternalProgramContextHelper pch(xsink, cls->pgm);
+    if (*xsink) {
+        return;
+    }
+
+    // the class pointer must be valid here
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(cls->cls, nmethod->c_str(), xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+
+    if (m->mtype != MT_Static) {
+        xsink->raiseException("METHOD-ERROR", "method '%s()' in class '%s' has type '%s'; expecting 'static'", nmethod->c_str(), cls->cls->getName(), m->getType());
+        return;
+    }
+
+    self->setPrivate(CID_STATICMETHOD, m.release());
+}
+
+//! Creates the object from the class name or namespace path and static method name
+/** @par Example:
+    @code{.py}
+StaticMethod m(class_name, method_name);
+    @endcode
+
+    @param class_name the class name or namespace path for the method
+    @param method the static method name
+
+    @throw UNKNOWN-CLASS cannot find a class with the given name or path
+    @throw UNKOWN-METHOD cannot find a static method with the given name
+ */
+StaticMethod::constructor(string class_name, string method) {
+    TempEncodingHelper npath(class_name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    TempEncodingHelper nmethod(method, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(npath->c_str(), nmethod->c_str(), xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+
+    if (m->mtype != MT_Static) {
+        xsink->raiseException("METHOD-ERROR", "method '%s()' in class '%s' has type '%s'; expecting 'static'", nmethod->c_str(), npath->c_str(), m->getType());
+        return;
+    }
+
+    self->setPrivate(CID_STATICMETHOD, m.release());
+}
+
+//! calls the given method with the given arguments
+/** @par Example:
+    @code{.py}
+auto v = m.call(arg1, arg2);
+    @endcode
+
+    @param ... optional arguments to the method
+
+    @return the return value of the method call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+
+    @see callArgs()
+*/
+auto StaticMethod::call(...) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    return QoreObject::evalStaticMethod(*m->m, m->m->getClass(), args, xsink);
+}
+
+//! calls the given method with the given arguments as a list
+/** @par Example:
+    @code{.py}
+auto v = m.callArgs(argv);
+    @endcode
+
+    @param argv optional arguments to the method
+
+    @return the return value of the method call
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+
+    @see call()
+*/
+auto StaticMethod::callArgs(*softlist<auto> argv) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    return QoreObject::evalStaticMethod(*m->m, m->m->getClass(), argv, xsink);
+}

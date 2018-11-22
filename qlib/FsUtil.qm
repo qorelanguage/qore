@@ -1,0 +1,806 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file FsUtil.qm Qore user module providing file system related functionality
+
+/*  FsUtil.qm Copyright 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 0.8.13
+
+%requires Util
+
+# assume local var scope, do not use "$" for vars, members, and method calls
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+module FsUtil {
+    version = "1.0";
+    desc = "user module providing file system related functionality";
+    author = "Tomas Heger";
+    url = "http://qore.org";
+    license = "MIT";
+    init    = sub () { init(); };
+}
+
+/* see release notes below for version history
+*/
+
+/** @mainpage FsUtil Module
+
+    @tableofcontents
+
+    @section fsutilintro Introduction to the FsUtil Module
+
+    The %FsUtil module provides functionality for file system operations.
+
+    To use this module, use \c "%requires FsUtil" in your code.
+
+    All the public symbols in the module are defined in the FsUtil namespace
+
+    Currently the module provides the following multiplatform functions:
+    @ref FsUtil::basename_ext()
+    @ref FsUtil::copy_file()
+    @ref FsUtil::copy_file_obj()
+    @ref FsUtil::copy_path()
+    @ref FsUtil::copy_tree()
+    @ref FsUtil::join_paths()
+    @ref FsUtil::make_tmp_dir()
+    @ref FsUtil::make_tmp_file()
+    @ref FsUtil::path_exists()
+    @ref FsUtil::remove_file()
+    @ref FsUtil::remove_path()
+    @ref FsUtil::remove_tree()
+    @ref FsUtil::same_file()
+    @ref FsUtil::same_file_stat()
+
+    And the following multiplatform classes:
+    @ref FsUtil::TmpDir
+    @ref FsUtil::TmpFile
+
+    Also classes for platform specific operations are available:
+    @ref FsUtil::PosixPathHandler
+    @ref FsUtil::WinPathHandler
+
+    @section fsutil_relnotes Release Notes
+
+    @subsection fsutil_v1_0 Version 1.0
+    - initial version of module
+*/
+
+namespace Init {
+
+    sub init() {
+        #! handler for the current platform
+        our FsUtil::PathHandler local_handler;
+        if (Platform.Windows)
+            local_handler = new FsUtil::WinPathHandler();
+        else if (Platform.Unix)
+            local_handler = new FsUtil::PosixPathHandler();
+        else
+            throw "UNKNOWN-PLATFORM-ERROR",
+                  sprintf("Unknown platform: %s.\n", PlatformOS);
+    }
+}
+
+#! the FsUtil namespace contains all the objects in the FsUtil module
+public namespace FsUtil {
+
+    #! generic path handler implementing functionality common for both platforms
+    class PathHandler {
+        public {
+            #! path delimiters - to be set by platform specific path handlers
+            list<string> delimiters;
+        }
+
+
+        public string joinPaths(list<string> paths) {
+            if (!paths) {
+                # NOTHING or an empty list
+                throw "MISSING-PARAMETER-ERROR", "No paths to join";
+            }
+
+            if (paths.size() == 1) {
+                # nothing to join, return the only path part given
+                return paths[0];
+            }
+
+            return self.joinPaths(paths[0], paths[1..]);
+        }
+
+        # to be implemented by platform-specific classes
+        public abstract string joinPaths(string path1, softlist<string> paths);
+    }
+
+    #! path handler implementing Windows specific functionality
+    public class WinPathHandler inherits PathHandler {
+
+        #! creates the object and sets the delimiter
+        constructor() {
+            # both slashes can be used as path delimiters on Windows
+            delimiters = ("\\", "/");
+        }
+
+        #! separates and returns the drive and the rest of the path
+        /** @param path the path to be processed
+
+            @return list<string> of two items - drive and the rest of the path, either can be empty and concatenation of
+            both parts always gives the original path back.
+        */
+        public list<string> splitDrive(string path) {
+            if (regex(path, '^[a-zA-Z]:'))
+                return (path.substr(0,2), path.substr(2));
+            return ("", path);
+        }
+
+        #! Returns path resulting from joining the given paths
+        /** @param path1 the first part of the path
+            @param paths the other parts of the path
+
+            @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except for cases
+            when one of the paths (in the list) is an absolute path or if each path is on different drive - in such
+            cases that path is considered a new start of the resulting path. The resulting path is not normalized
+            (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
+            Since the second parameter is a softlist, this variant also works for joining two string paths.
+        */
+        public string joinPaths(string path1, softlist<string> paths) {
+            string result = path1;
+
+            foreach string path2 in (paths) {
+                if (path2 == "") {
+                    continue;
+                }
+
+                # extract drive (if present)
+                list<string> result_split = splitDrive(result);
+                list<string> path2_split = splitDrive(path2);
+
+                if (result == "" ||
+                    absolute_path_windows(path2) ||
+                    (path2_split[0] != "" && toupper(result_split[0]) != toupper(path2_split[0]))) {
+                    # if the first path is empty or
+                    # if the second path is absolute or
+                    # if both paths contain drive and the drives differ,
+                    # then use path2 only
+                    result = path2;
+                    continue;
+                }
+
+                # otherwise let's join both parts and return
+                if (result_split[1] != "" && !inlist(result[-1], self.delimiters)) {
+                    result += self.delimiters[0];
+                }
+                result = result + path2_split[1];
+            }
+
+            return result;
+        }
+    }
+
+    #! path handler implementing POSIX specific functionality
+    public class PosixPathHandler inherits PathHandler {
+
+        #! creates the object and sets the delimiter
+        constructor() {
+            delimiters = ("/",);
+        }
+
+        #! Returns path resulting from joining the given paths
+        /** @param path1 the first part of the path
+            @param paths the other parts of the path
+
+            @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except
+            for cases when one of the paths (in the list) is an absolute path - in such cases that path is considered
+            a new start of the resulting path. The resulting path is not normalized (i.e. "/path/to/../../file.txt" is
+            a correct result of join("/path/to", "../../file.txt");).
+            Since the second parameter is a softlist, this variant also works for joining two string paths.
+        */
+        public string joinPaths(string path1, softlist<string> paths) {
+            string result = path1;
+
+            foreach string path2 in (paths) {
+                if (path2 == "") {
+                    continue;
+                }
+
+                # if the second path is absolute, use path2 only
+                if (absolute_path_unix(path2)) {
+                    result = path2;
+                    continue;
+                }
+
+                if (result != "" && result[-1] != self.delimiters[0]) {
+                    result += self.delimiters[0];
+                }
+                result = result + path2;
+            }
+
+            return result;
+        }
+    }
+
+    #! this function returns the segment of given path after the last delimiter
+    /** @param path      the path to be processed
+        @param extension the extension to cut from basename
+
+        @return everything after the last delimiter except for the extension if present
+
+        @throws EXTENSION-NOT-FOUND if the extension is not a part of the path
+
+        Delimiters for the current platform are used.
+    */
+    public string sub basename_ext(string path, *string extension) {
+        string bn = basename(path);
+
+        if (!extension) {
+            return bn;
+        }
+
+        if (!string_ends_with(bn, extension)) {
+            throw "EXTENSION-NOT-FOUND", sprintf("Extension '%s' not found in basename '%s'.", extension, bn);
+        }
+
+        # return everything without the extension
+        int ext_start = bn.length() - extension.length();
+        return bn[..ext_start - 1];
+
+    }
+
+    #! Returns path resulting from joining the given paths
+    /** @param path1 the first part of the path
+        @param paths the other parts of the path
+
+        @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except for cases when
+        one of the paths (in the list) is an absolute path or if each path is on different drive (Windows only) - in
+        such cases that path is considered a new start of the resulting path. The resulting path is not normalized
+        (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
+        Since the second parameter is a softlist, this variant also works for joining two string paths.
+    */
+    public string sub join_paths(string path1, softlist<string> paths) {
+        return local_handler.joinPaths(path1, paths);
+    }
+
+    #! Returns path resulting from joining the given paths
+    /** @param paths the parts of the path to be joined into one
+
+        @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except for cases when
+        one of the paths is an absolute path or if each path is on different drive (Windows only) - in such cases that
+        path is considered a new start of the resulting path. The resulting path is not normalized
+        (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
+
+        @throws MISSING-PARAMETER-ERROR if the list is empty
+    */
+    public string sub join_paths(list<string> paths) {
+        return local_handler.joinPaths(paths);
+    }
+
+    #! Check whether the given path exists or not
+    /** @param path the path to be checked
+        @param follow_symlinks flag indicating whether target of a symlink should be checked instead
+
+        @return True if the given path exists, False otherwise. If follow_symlinks is True and path points to a symlink,
+        the link's target is checked instead of the link itself
+    */
+    public bool sub path_exists(string path, bool follow_symlinks=False) {
+        *hash<StatInfo> s = follow_symlinks ? hstat(path) : hlstat(path);
+        return (exists s || errno() != Err::ENOENT);
+    }
+
+    const TMP_MAX_ATTEMPTS = 10000;
+
+    #! Creates a unique temporary directory and returns its absolute path
+    /** @param prefix prefix to be used in the newly created directory name
+        @param suffix suffix to be used in the newly created directory name
+        @param path path to a dir in which the caller wants to create the new directory; if not provided, standard temp
+                    location will be used
+
+        @return absolute path to the newly created directory
+
+        @throws DIR-WRITE-ERROR The directory couldn't be created.
+
+        The directory is created in a secure way and is readable and writable only by the current user.
+        The caller is responsible for removing the temporary directory once it's needed no more.
+
+    */
+    public string sub make_tmp_dir(*string prefix, *string suffix, *string path) {
+        if (exists path) {
+            if (!is_writable(path)) {
+                throw "DIR-WRITE-ERROR", sprintf("'%s' is not a writable directory.", path);
+            }
+        } else {
+            # get standard tmp location (and check that it's writable)
+            path = tmp_location();
+        }
+
+        for (int i = 0; i < TMP_MAX_ATTEMPTS; i++) {
+            string tmp_dir = prefix + get_random_string() + suffix;
+            string tmp_path = join_paths(path, tmp_dir);
+
+            if (mkdir(tmp_path, 0700) == 0) {
+                # success
+                return tmp_path;
+            } else {
+                # unable to create the file
+                int err = errno();
+                if (err == Err::EEXIST) {
+                    # directory already exists -> let's try again with another name
+                    continue;
+                } else {
+                    # another (unexpected) error
+                    throw "DIR-WRITE-ERROR", sprintf("Directory '%s' couldn't be created: %s", tmp_path, strerror(err));
+                }
+            }
+        }
+
+        # even after TMP_MAX_ATTEMPTS we didn't succeed in finding a unique name
+        throw "DIR-WRITE-ERROR", "Impossible to find a unique name.";
+    }
+
+    public hashdecl TmpFileHash {
+        string path = "";
+        File file = new File();
+    }
+
+    #! Creates and opens a unique temporary file and returns its absolute path as well as its File object
+    /** @param prefix prefix to be used in the newly created file name
+        @param suffix suffix to be used in the newly created file name
+        @param path path to a dir in which the caller wants to create the new file; if not provided, standard temp
+                    location will be used
+
+        @return hash<TmpFileHash> with absolute path to the newly created file and its File object
+                (keys "path" and "file" respectively)
+
+        @throws FILE-WRITE-ERROR The file couldn't be created.
+
+        The file is created in a secure way and is readable and writable only by the current user.
+        The caller is responsible for removing the temporary file once it's needed no more.
+
+    */
+    public hash<TmpFileHash> sub make_tmp_file(*string prefix, *string suffix, *string path) {
+        if (exists path) {
+            if (!is_writable(path)) {
+                throw "FILE-WRITE-ERROR", sprintf("'%s' is not a writable directory.", path);
+            }
+        } else {
+            # get standard tmp location (and check that it's writable)
+            path = tmp_location();
+        }
+
+        # O_CREAT and O_EXCL are important to ensure that we only open a new file
+        int flags = O_CREAT | O_EXCL | O_RDWR;
+        hash<TmpFileHash> tmp_file();
+
+        for (int i = 0; i < TMP_MAX_ATTEMPTS; i++) {
+            string tmp_fn = prefix + get_random_string() + suffix;
+            tmp_file.path = join_paths(path, tmp_fn);
+
+            if (tmp_file.file.open(tmp_file.path, flags, 0600) == 0) {
+                # success
+                return tmp_file;
+            } else {
+                # unable to create the file
+                int err = errno();
+                if (err == Err::EEXIST) {
+                    # file already exists -> let's try again with another name
+                    continue;
+                } else {
+                    # another (unexpected) error
+                    throw "FILE-WRITE-ERROR", sprintf("File '%s' couldn't be created: %s",
+                                                      tmp_file.path, strerror(err));
+                }
+            }
+        }
+
+        # even after TMP_MAX_ATTEMPTS we didn't succeed in finding a unique name
+        throw "FILE-WRITE-ERROR", "Impossible to find a unique name.";
+    }
+
+    #! Class implementing a user friendly temporary directory creation - users don't need to care about removing it
+    public class TmpDir {
+
+        public {
+            string path;
+        }
+
+        #! Creates a unique temporary directory and returns its absolute path
+        /** @param prefix prefix to be used in the newly created directory name
+            @param suffix suffix to be used in the newly created directory name
+            @param path path to a dir in which the caller wants to create the new directory; if not provided, standard temp
+                        location will be used
+        */
+        public constructor(*string prefix, *string suffix, *string path) {
+            self.path = make_tmp_dir(prefix, suffix, path);
+        }
+
+        public destructor() {
+            remove_tree(path);
+        }
+    }
+
+    #! Class implementing a user friendly temporary file creation - users don't need to care about removing it
+    public class TmpFile {
+
+        public {
+            string path;
+            File file;
+        }
+
+        #! Creates and opens a unique temporary file and returns its absolute path as well as its File object
+        /** @param prefix prefix to be used in the newly created file name
+            @param suffix suffix to be used in the newly created file name
+            @param path path to a dir in which the caller wants to create the new file; if not provided, standard temp
+                        location will be used
+        */
+        public constructor(*string prefix, *string suffix, *string path) {
+            hash<TmpFileHash> f = make_tmp_file(prefix, suffix, path);
+            self.path = f.path;
+            self.file = f.file;
+        }
+
+        public destructor() {
+            remove_file(path);
+        }
+    }
+
+    #! Removes a regular file or symlink specified by path
+    /** @param path path to a filesystem tree root which should be removed
+
+        @throws REMOVE-FILE-ERROR If something goes wrong with the removal. The description contains error message.
+
+        This function doesn't follow symlinks and it's merely a wrapper aroung unlink() call to ensure consistently
+        named remove/copy/move functions in this module.
+    */
+    public sub remove_file(string path) {
+        if (unlink(path) != 0) {
+            throw "REMOVE-FILE-ERROR", sprintf("Unable to remove %s: %s", path, strerror());
+        }
+    }
+
+    #! Removes the filesystem tree specified by path
+    /** @param path path to a filesystem tree root which should be removed
+        @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
+                                on the first error instead of accumulating all exceptions
+
+        @throws REMOVE-TREE-ERROR If something goes wrong in the recursive calls. In such case the rest of the tree is
+                                  removed anyway and this exception's description contains a list of exceptions thrown
+                                  in the recursive calls unless fail_immediately flag is True.
+
+        This function will only remove a directory (i.e. path can't point to a regular file, symlink, etc.).
+        This doesn't hold true for the path's contents though of course. That will be removed anyway.
+        This function doesn't follow symlinks. As mentioned in description of REMOVE-TREE-ERROR exception, if only some
+        parts of the tree can't be removed (e.g. due to permissions) and if fail_immediately is False, the tree is
+        partially removed anyway and REMOVE-TREE-ERROR is thrown and describes what exactly went wrong for each error.
+    */
+    public sub remove_tree(string path, bool fail_immediately=True) {
+        Dir dir();
+        dir.chdir(path);
+
+        # remove the directory's contents
+        list errors = ();
+        foreach string name in (dir.list()) {
+            string sub_path = join_paths(path, name);
+            try {
+                if (is_dir(sub_path)) {
+                    remove_tree(sub_path);
+                } else {
+                    remove_file(sub_path);
+                }
+            } catch (err) {
+                if (fail_immediately) {
+                    rethrow;
+                }
+
+                if (err.err == "REMOVE-TREE-ERROR") {
+                    errors += err.desc;
+                } else {
+                    errors += err;
+                }
+            }
+        }
+
+        if (errors) {
+            throw "REMOVE-TREE-ERROR", errors;
+        }
+
+        # directory specified by path should be empty now
+        rmdir(path);
+    }
+
+    #! Universal remove function
+    /** @param path path to be removed
+
+        This wrapper function exists for convenience. Path can be a regular file, symlink or a directory,
+        the respective functions for removing files/links or directories will be called.
+    */
+    public sub remove_path(string path) {
+        if (is_dir(path)) {
+            remove_tree(path);
+        } else {
+            remove_file(path);
+        }
+    }
+
+    #! Checks whether two stat hashes point to the same file or not
+    /** @param stat1 first stat hash
+        @param stat2 second stat hash
+        @param ignore_errors flag indicating that errors should be ignored (True by default)
+
+        @return True if the two stat hashes point to the same file, False otherwise.
+
+        @throws STAT-HASH-MISSING If parameters don't both contain stat hashes.
+
+        Device and inode IDs are compared.
+        If a stat hash does not exist and ignore_errors is True, then the function returns False. This is for
+        convenience of the caller who thus may just call a stat function to a path and pass the result to this function
+        without taking care of possible NOTHINGs. In that case the paths can probably be considered not pointing to
+        the same file.
+    */
+    public bool sub same_file_stat(*hash<StatInfo> stat1, *hash<StatInfo> stat2, bool ignore_errors=True) {
+        # handle special case when one of the stat hashes doesn't exist (or both)
+        if (!exists stat1 || !exists stat2) {
+            if (ignore_errors) {
+                # the caller doesn't mind
+                return False;
+            } else {
+                throw "STAT-HASH-MISSING", "Stat hash is missing which is not allowed without ignore_errors flag";
+            }
+        }
+
+        # the usual case
+        return (stat1.inode == stat2.inode &&
+                stat1.dev == stat2.dev);
+    }
+
+    #! Checks whether two paths point to the same file/directory or not
+    /** @param path1 first path
+        @param path2 second path
+        @param follow_symlinks flag indicating whether symlinks should be followed (True by default)
+        @param ignore_errors flag indicating that errors should be ignored (True by default)
+
+        @return True if the two paths point to the same file or directory, False otherwise.
+
+        @throws FILE-STAT-ERROR If stat call for a path fails unless errors are ignored.
+
+        Stat is retrieved for each of the paths and device and inode IDs are compared. By default if one of the paths is
+        a symlink pointing to the other, this function will return True but this can be changed using
+        the follow_symlinks parameter.
+        If stat can't be retrieved for a path and ignore_errors is True, then the function returns False. This is
+        because the most common error here is that one of the paths doesn't exist (or both). In that case the paths
+        indeed don't point to the same file.
+    */
+    public bool sub same_file(string path1, string path2, bool follow_symlinks=True, bool ignore_errors=True) {
+        hash<StatInfo> stat1;
+        hash<StatInfo> stat2;
+
+        try {
+            if (follow_symlinks) {
+                stat1 = hstat(path1);
+                stat2 = hstat(path2);
+            } else {
+                stat1 = hlstat(path1);
+                stat2 = hlstat(path2);
+            }
+        } catch (hash ex) {
+            if (ignore_errors) {
+                return False;
+            }
+
+            throw "FILE-STAT-ERROR", sprintf("Couldn't stat path: %s", strerror());
+        }
+
+        return (stat1.inode == stat2.inode &&
+                stat1.dev == stat2.dev);
+    }
+
+    #! Copies a file object data from source to destination.
+    /** @param source an open file object to be copied from
+        @param destination an open file object to be copied to
+        @param close flag indicating whether the file objects should be closed afterwards
+        @param buf_size size of the buffer used to copy the file
+
+        By default this function does not close the file objects after the copy is made. This can be changed using
+        the close parameter.
+    */
+    public sub copy_file_obj(File source, File destination, bool close=False, int buf_size=4*1024) {
+        *binary buf;
+        while (True) {
+            buf = source.readBinary(buf_size);
+            if (!exists buf) {
+                break;
+            }
+            destination.write(buf);
+        }
+
+        if (close) {
+            source.close();
+            destination.close();
+        }
+    }
+
+    #! Copies a file (regular or symlink) from source to destination.
+    /** @param source path to the file to be copied
+        @param destination path where the copy should be created
+        @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
+        @param overwrite flag indicating whether destination should be overwritten if exists (True by default)
+
+        @throws SAME-FILE-ERROR If both paths point to the same file.
+        @throws FILE-STAT-ERROR If stat call for the source path fails.
+        @throws FILE-EXISTS-ERROR If destination path exists and overwrite flag is False
+        @throws UNSUPPORTED-TYPE-ERROR If a given file is not a regular path or a symbolic link.
+
+        Destination can be a directory. If that's the case, this function will attempt to create a copy of source using
+        the same filename in the destination directory. Symlinks in destination are always followed (even dangling
+        links). Mode (permissions) bits are preserved but UID/GID, access time and modification time are not.
+        If the file is copied correctly, the function returns path to the new copy.
+    */
+    public string sub copy_file(string source, string destination, bool follow_symlinks=False, bool overwrite=True) {
+        # prepare the source
+        *hash<StatInfo> src_stat = follow_symlinks ? hstat(source) : hlstat(source);
+        if (!exists src_stat) {
+            throw "FILE-STAT-ERROR", sprintf("Couldn't stat source path '%s': %s", source, strerror());
+        }
+
+        # prepare the destination
+        if (is_dir(destination)) {  # works even for symlinks pointing to directories
+            destination = join_paths(destination, basename(source));
+        }
+        *hash<StatInfo> dst_stat = hstat(destination);
+        if (!overwrite && exists dst_stat) {
+            throw "FILE-EXISTS-ERROR", sprintf("Destination path '%s' already exists and overwriting is forbidden.",
+                                               destination);
+        }
+
+        if (same_file(source, destination, follow_symlinks, True)) {
+            throw "SAME-FILE-ERROR", sprintf("'%s' and '%s' point to the same file.", source, destination);
+        }
+
+        foreach *hash<StatInfo> stat in (src_stat, dst_stat) {
+            if (exists stat && stat.type != "REGULAR" && stat.type != "SYMBOLIC-LINK") {
+                throw "UNSUPPORTED-TYPE-ERROR", sprintf("Unsupported file type: '%s'.", stat.type);
+            }
+        }
+
+        if (src_stat.type == "SYMBOLIC-LINK" && !follow_symlinks) {
+            if (overwrite && path_exists(destination)) {
+                # creating symlink at an existing path is not allowed but we want to overwrite whatever there is
+                # -> clean the destination first
+                unlink(destination);
+            }
+            symlink(readlink(source), destination);
+        } else {
+            File src_obj();
+            File dst_obj();
+            src_obj.open2(source, O_RDONLY);
+            dst_obj.open2(destination, O_CREAT | O_TRUNC | O_WRONLY, 0600);
+            copy_file_obj(src_obj, dst_obj);
+            src_obj.close();
+            dst_obj.close();
+            chmod(destination, src_stat.mode);
+        }
+
+        return destination;
+    }
+
+    #! Copies a directory tree from source to destination.
+    /** @param source path to be copied (must be a directory or a symlink pointing to one if follow_symlinks is set)
+        @param destination path where the copy should be created (must be a directory or must not exist)
+        @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
+        @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
+                                on the first error instead of accumulating all exceptions
+
+        @throws SAME-DIR-ERROR If both paths point to the same file.
+        @throws DIR-STAT-ERROR If stat call for the source path fails.
+        @throws COPY-TREE-ERROR If something goes wrong in the recursive calls. In such case the rest of the tree is
+                                copied anyway and this exception's description contains a list of exceptions thrown
+                                in the recursive calls unless fail_immediately flag is True.
+
+        Source must be a directory (or a symlink pointing to a directory if follow_symlinks is True). Destination can be
+        an existing directory. If that's the case, this function will attempt to create a copy of source directory using
+        the same name in the destination directory. Otherwise the destination directory will be created.
+        Mode (permissions) bits are preserved but UID/GID, access time and modification time are not. As mentioned in
+        description of COPY-TREE-ERROR exception, if only some parts of the tree can't be copied (e.g. due to
+        permissions) and if fail_immediately is False, the tree is partially copied anyway and COPY-TREE-ERROR is thrown
+        and describes what exactly went wrong for each error. If the whole tree is copied correctly, the function
+        returns path to the new copy.
+    */
+    public string sub copy_tree(string source, string destination, bool follow_symlinks=False,
+                                bool fail_immediately=False) {
+        if (same_file(source, destination, follow_symlinks, True)) {
+            throw "SAME-DIR-ERROR", sprintf("'%s' and '%s' point to the same directory.", source, destination);
+        }
+
+        list errors = ();
+
+        # prepare the source
+        Dir src_dir();
+        src_dir.chdir(source);
+        *hash<StatInfo> src_stat = follow_symlinks ? hstat(source) : hlstat(source);
+        if (!exists src_stat) {
+            throw "DIR-STAT-ERROR", sprintf("Couldn't stat source path '%s': %s", source, strerror());
+        }
+
+        # create destination directory
+        if (path_exists(destination)) {
+            destination = join_paths(destination, basename(source));
+        }
+        mkdir(destination, 0700);
+
+        foreach string name in (src_dir.list()) {
+            string src_path = join_paths(source, name);
+            string dst_path = join_paths(destination, name);
+
+            # dereference symlinks in source if needed
+            while (follow_symlinks && is_link(src_path)) {
+                src_path = readlink(src_path);
+            }
+
+            try {
+                if (is_dir(src_path)) {
+                    copy_tree(src_path, dst_path, follow_symlinks, fail_immediately);
+                } else {
+                    # this will throw an exception for unsupported file types
+                    # (only file and symlink are supported)
+                    copy_file(src_path, dst_path, follow_symlinks, False);
+                }
+            } catch (err) {
+                if (fail_immediately) {
+                    rethrow;
+                }
+
+                if (err.err == "COPY-TREE-ERROR") {
+                    errors += err.desc;
+                } else {
+                    errors += err;
+                }
+            }
+        }
+
+        chmod(destination, src_stat.mode);
+
+        if (errors) {
+            throw "COPY-TREE-ERROR", errors;
+        }
+
+        return destination;
+    }
+
+    #! Universal copy function
+    /** @param source path to be copied
+        @param destination path where the copy should be created
+        @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
+
+        This wrapper function exists for convenience. Source can be a regular file, symlink or a directory,
+        the respective functions for copying files/links or directories will be called. Destination can either be a path
+        that doesn't exist on the filesystem yet (and then it will be created as a copy of source) or it can be a path
+        of a directory in which the copy will be created. Overwriting of an existing path is not possible with this
+        wrapper function. Mode (permissions) bits are preserved but UID/GID, access time and modification time are not.
+        If the source is copied correctly, the function returns path to the new copy.
+    */
+    public string sub copy_path(string source, string destination, bool follow_symlinks=False) {
+        if (is_dir(source)) {
+            return copy_tree(source, destination, follow_symlinks);
+        } else {
+            return copy_file(source, destination, follow_symlinks, False);
+        }
+    }
+
+} # FsUtil namespace

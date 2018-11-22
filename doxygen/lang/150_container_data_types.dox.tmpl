@@ -157,7 +157,13 @@ printf("%y\n", l1.fullType());
     @section hash Hash
 
     @par Description:
-    Hashes are containers that associate values to a string key and also preserve key order for consistent data serialization/deserialization.  Hash key lookups are case-sensitive and use a hashing algorithm that in the worst case should provide <i>O(ln(n))</i> complexity to execute; in the best case finding a particular key in a hash is executed in constant time (ie <i>O(1)</i> complexity).\n\n
+    Hashes are containers that associate values to a string key and also preserve key order for consistent data
+    serialization/deserialization. If anything else than a string is used as a key, the value is one-way converted to
+    a string and the string value is used as a key. This can sometimes have unexpected results and therefore only string
+    keys are recommended. Hash key lookups are case-sensitive and use a hashing algorithm that in the worst case should
+    provide <i>O(ln(n))</i> complexity to execute; in the best case finding a particular key in a hash is executed in
+    constant time (ie <i>O(1)</i> complexity).\n\n
+
     Hashes are specified using the following syntax:\n
     @code{.py}
 hash h = {

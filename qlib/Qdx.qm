@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file Qdx.qm Qore user module for documentation generation with doxygen
+#! @file Qdx.qm Qore user module for documentation generation with doxygen
 
 /*  Qdx.qm Copyright 2016 - 2017 Qore Technologies, s.r.o.
 
@@ -252,6 +252,10 @@ public namespace Qdx {
             line =~ s/'Qore::zzz8([a-z]+)zzz9::([^']+)\(([^\)]*)\)'/'Qore::&lt;$1&gt;::$2($3)'/g;
             line =~ s/'zzz8([a-z]+)zzz9'/'$1'/g;
             line =~ s/([^a-zA-Z0-9_])[Ss]truct /$1hashdecl /g;
+
+            # remove <%-- ... --%> comments to allow for invisible spacing, to allow for "*/" to be output in
+            # particular places, for example
+            line =~ s/&lt;%--.*--%&gt;//g;
 
             return line;
         }
