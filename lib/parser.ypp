@@ -3437,7 +3437,7 @@ exp_c:
                 // get first expression from list
                 AbstractQoreNode* exp = l->shift();
                 qore_type_t t = get_node_type(exp);
-                $$ = 0;
+                $$ = nullptr;
                 bool is_curly = false;
                 if (t == NT_PARSE_HASH) {
                     QoreParseHashNode* phn = reinterpret_cast<QoreParseHashNode*>(exp);
@@ -3448,7 +3448,7 @@ exp_c:
                 }
 
                 if (!$$ && !is_curly) {
-                    $$.set(parse_map(loc, exp, l));
+                    $$ = parse_map(loc, exp, l);
                 }
             }
         }
