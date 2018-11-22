@@ -3487,7 +3487,7 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
         methGate = memGate = hasMemberNotification = false;
         // issue #3126: cannot add abstract variants of special methods
         if (f->isAbstract() && (con || dst || cpy)) {
-            parseException(static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "in class %s: %s() methods cannot be abstract", tname, mname);
+            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "in class %s: %s() methods cannot be abstract", tname, mname);
             return -1;
         }
     } else {
