@@ -1,31 +1,31 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/* @file QC_Queue.qpp Queue class definition
+/*** @file QC_Queue.qpp Queue class definition
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -92,10 +92,11 @@ Queue::copy() {
     @since %Qore 0.8.4 this method takes a timeout parameter
  */
 nothing Queue::push(auto arg, timeout timeout_ms = 0) {
-   bool to;
-   q->push(xsink, arg.getReferencedValue(), timeout_ms, &to);
-   if (to)
-      xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    bool to;
+    q->push(xsink, self, arg.refSelf(), timeout_ms, &to);
+    if (to) {
+        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    }
 }
 
 //! Inserts a value at the beginning of the queue
@@ -111,10 +112,11 @@ nothing Queue::push(auto arg, timeout timeout_ms = 0) {
     @since %Qore 0.8.4 this method takes a timeout parameter
  */
 nothing Queue::insert(auto arg, timeout timeout_ms = 0) {
-   bool to;
-   q->insert(xsink, arg.getReferencedValue(), timeout_ms, &to);
-   if (to)
-      xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    bool to;
+    q->insert(xsink, self, arg.refSelf(), timeout_ms, &to);
+    if (to) {
+        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    }
 }
 
 //! Blocks until at least one entry is available on the queue, then returns the first entry in the queue. If a timeout occurs, an exception is thrown. If the timeout value equal to zero, then the call does not timeout until data is available, while negative timeout values cause the call to timeout immediately if the call would otherwise block
@@ -131,18 +133,15 @@ nothing Queue::insert(auto arg, timeout timeout_ms = 0) {
     @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
  */
 auto Queue::get(timeout timeout_ms = 0) {
-   AbstractQoreNode *rv;
+    QoreValue rv;
 
-   if (timeout_ms) {
-      bool to;
-      rv = q->shift(xsink, timeout_ms, &to);
-      if (to)
-	 xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
-   }
-   else
-      rv = q->shift(xsink);
+    bool to;
+    rv = q->shift(xsink, self, timeout_ms, &to);
+    if (to) {
+        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    }
 
-   return rv;
+    return rv;
 }
 
 //! Blocks until at least one entry is available on the queue, then returns the last entry in the queue. If a timeout occurs, an exception is thrown. If the timeout is less than or equal to zero, then the call does not timeout until data is available
@@ -159,18 +158,15 @@ auto Queue::get(timeout timeout_ms = 0) {
     @throw QUEUE-ERROR The queue was deleted while at least one thread was blocked on it
  */
 auto Queue::pop(timeout timeout_ms = 0) {
-   AbstractQoreNode *rv;
+    QoreValue rv;
 
-   if (timeout_ms) {
-      bool to;
-      rv = q->pop(xsink, timeout_ms, &to);
-      if (to)
-	 xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
-   }
-   else
-      rv = q->pop(xsink);
+    bool to;
+    rv = q->pop(xsink, self, timeout_ms, &to);
+    if (to) {
+        xsink->raiseException("QUEUE-TIMEOUT", "timed out after %d ms", timeout_ms);
+    }
 
-   return rv;
+    return rv;
 }
 
 //! Clears the Queue of all data
@@ -180,7 +176,7 @@ auto Queue::pop(timeout timeout_ms = 0) {
     @note This method does not throw any exceptions, but exceptions could be thrown by in destructors of objects that go out of scope by being removed from the Queue
  */
 nothing Queue::clear() {
-   q->clear(xsink);
+    q->clear(xsink, self);
 }
 
 //! Returns the number of elements in the Queue
@@ -192,7 +188,7 @@ nothing Queue::clear() {
     @see Queue::max()
  */
 int Queue::size() [flags=CONSTANT] {
-   return q->size();
+    return q->size();
 }
 
 //! Returns @ref Qore::True "True" if the Queue is empty, @ref Qore::False "False" if not
@@ -206,7 +202,7 @@ int Queue::size() [flags=CONSTANT] {
     @since %Qore 0.8.8
  */
 bool Queue::empty() [flags=CONSTANT] {
-   return q->empty();
+    return q->empty();
 }
 
 //! Returns the upper limit of the number of elements in the Queue
@@ -218,7 +214,7 @@ bool Queue::empty() [flags=CONSTANT] {
     @see Queue::size()
  */
 int Queue::max() [flags=CONSTANT] {
-   return q->getMax();
+    return q->getMax();
 }
 
 //! Returns the number of threads currently blocked on this queue for reading
@@ -232,7 +228,7 @@ int Queue::max() [flags=CONSTANT] {
     @see Queue::getWriteWaiting()
  */
 int Queue::getWaiting() [flags=CONSTANT] {
-   return q->getReadWaiting();
+    return q->getReadWaiting();
 }
 
 //! Returns the number of threads currently blocked on this queue for reading
@@ -248,7 +244,7 @@ int Queue::getWaiting() [flags=CONSTANT] {
     @since %Qore 0.8.4
  */
 int Queue::getReadWaiting() [flags=CONSTANT] {
-   return q->getReadWaiting();
+    return q->getReadWaiting();
 }
 
 //! Returns the number of threads currently blocked on this queue for writing
@@ -262,7 +258,7 @@ int Queue::getReadWaiting() [flags=CONSTANT] {
     @since %Qore 0.8.4
  */
 int Queue::getWriteWaiting() [flags=CONSTANT] {
-   return q->getWriteWaiting();
+    return q->getWriteWaiting();
 }
 
 //! sets an error status on the Queue and clears the Queue; while a Queue object has an error status, any write operations to the queue will fail and cause an exception to be raised with the information provided to this method
@@ -282,7 +278,7 @@ int Queue::getWriteWaiting() [flags=CONSTANT] {
     @since %Qore 0.8.12
 */
 Queue::setError(string err, string desc) {
-   q->setError(err->c_str(), desc, xsink);
+    q->setError(err->c_str(), desc, self, xsink);
 }
 
 //! clears the error setting from the Queue; if error information is set, then after this call, the Queue is usable again
@@ -295,5 +291,5 @@ Queue::setError(string err, string desc) {
     @since %Qore 0.8.12
 */
 Queue::clearError() {
-   q->clearError();
+    q->clearError();
 }

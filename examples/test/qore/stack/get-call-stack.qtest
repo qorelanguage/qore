@@ -39,6 +39,8 @@ class GetCallThreadTest inherits QUnit::Test {
         remove l[2].line;
         remove h{gettid()}[2].endline;
         remove l[2].endline;
+        remove h{gettid()}[2].statementid;
+        remove l[2].statementid;
         testAssertionValue("stack comparison", h{gettid()}, l);
     }
 

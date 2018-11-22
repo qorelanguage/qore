@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_ReadOnlyFile.qpp
+    QC_ReadOnlyFile.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <errno.h>
@@ -351,7 +351,7 @@ int ReadOnlyFile::close() {
    unsigned char c;
    if (f->readu1(&c, xsink))
       return QoreValue();
-   return new QoreBigIntNode(c);
+   return c;
 }
 
 //! Reads a 2-byte (16 bit) unsigned integer from the %ReadOnlyFile in binary big-endian format or @ref nothing if no data can be read
@@ -375,7 +375,7 @@ int ReadOnlyFile::close() {
    unsigned short s;
    if (f->readu2(&s, xsink))
       return QoreValue();
-   return new QoreBigIntNode(s);
+   return s;
 }
 
 //! Reads a 4-byte (32 bit) unsigned integer from the file in big-endian format or @ref nothing if no data can be read
@@ -399,7 +399,7 @@ int ReadOnlyFile::close() {
    unsigned int i;
    if (f->readu4(&i, xsink))
       return QoreValue();
-   return new QoreBigIntNode(i);
+   return i;
 }
 
 //! Reads a 2-byte (16 bit) unsigned integer from the file in binary little-endian format or @ref nothing if no data can be read
@@ -424,7 +424,7 @@ int ReadOnlyFile::close() {
    if (f->readu2LSB(&s, xsink))
       return QoreValue();
 
-   return new QoreBigIntNode(s);
+   return s;
 }
 
 //! Reads a 4-byte (32 bit) unsigned integer from the file in binary little-endian format or @ref nothing if no data can be read
@@ -449,7 +449,7 @@ int ReadOnlyFile::close() {
    if (f->readu4LSB(&i, xsink))
       return QoreValue();
 
-   return new QoreBigIntNode(i);
+   return i;
 }
 
 //! Reads a 1-byte signed integer from the file in binary format or @ref nothing if no data can be read
@@ -473,7 +473,7 @@ int ReadOnlyFile::close() {
    char c;
    if (f->readi1(&c, xsink))
       return QoreValue();
-   return new QoreBigIntNode(c);
+   return c;
 }
 
 //! Reads a 2-byte (16 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
@@ -497,7 +497,7 @@ int ReadOnlyFile::close() {
    short s;
    if (f->readi2(&s, xsink))
       return QoreValue();
-   return new QoreBigIntNode(s);
+   return s;
 }
 
 //! Reads a 4-byte (32 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
@@ -521,7 +521,7 @@ int ReadOnlyFile::close() {
    int i;
    if (f->readi4(&i, xsink))
       return QoreValue();
-   return new QoreBigIntNode(i);
+   return i;
 }
 
 //! Reads an 8-byte (64 bit) signed integer from the file in binary big-endian format or @ref nothing if no data can be read
@@ -546,7 +546,7 @@ int ReadOnlyFile::close() {
    if (f->readi8(&i, xsink))
       return QoreValue();
 
-   return new QoreBigIntNode(i);
+   return i;
 }
 
 //! Reads a 2-byte (16 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
@@ -571,7 +571,7 @@ int ReadOnlyFile::close() {
    if (f->readi2LSB(&s, xsink))
       return QoreValue();
 
-   return new QoreBigIntNode(s);
+   return s;
 }
 
 //! Reads a 4-byte (32 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
@@ -595,7 +595,7 @@ int ReadOnlyFile::close() {
    int i;
    if (f->readi4LSB(&i, xsink))
       return QoreValue();
-   return new QoreBigIntNode(i);
+   return i;
 }
 
 //! Reads an 8-byte (64 bit) signed integer from the file in binary little-endian format or @ref nothing if no data can be read
@@ -619,7 +619,7 @@ int ReadOnlyFile::close() {
    int64 i;
    if (f->readi8LSB(&i, xsink))
       return QoreValue();
-   return new QoreBigIntNode(i);
+   return i;
 }
 
 //! Reads a certain number of bytes from the file within an optional timeout period and returns a binary object of the data read or @ref nothing if no data can be read

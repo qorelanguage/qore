@@ -1,0 +1,756 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractVariant.cpp AbstractVariant class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_reflection.h"
+#include "QC_AbstractVariant.h"
+#include "QC_AbstractReflectionFunction.h"
+#include "QC_Type.h"
+#include "QC_Class.h"
+
+//! The abstract base class for %Qore class variants
+/**
+    This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
+
+    @see @ref Qore::Reflection::AbstractMethod "AbstractMethod"
+
+    @since %Qore 0.9.0
+ */
+qclass AbstractVariant [ns=Qore::Reflection; arg=QoreReflectionVariant* v; dom=REFLECTION];
+
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** @throw ABSTRACTVARIANT-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+AbstractVariant::constructor() {
+    xsink->raiseException("ABSTRACTVARIANT-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! Returns @ref True if the variant passed as an argument is equal to the current object; @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = v1.isEqual(v2);
+    @endcode
+
+    @param variant the variant to check with the current object for equality
+
+    @return @ref True if the variant object passed as an argument is equal to the current object; @ref False if not
+
+    @note if this method is called on variants from user classes created from the same source code but in different
+    @ref Qore::Program "Program" containers, it will return @ref False
+*/
+bool AbstractVariant::isEqual(AbstractVariant[QoreReflectionVariant] variant) [flags=CONSTANT] {
+    ReferenceHolder<QoreReflectionVariant> holder(variant, xsink);
+
+    return variant->variant == v->variant;
+}
+
+//! returns a bitfield of @ref code_flag_constants "code flags" describing the variant
+/** @par Example:
+    @code{.py}
+int i = v.getCodeFlags();
+    @endcode
+
+    @return a bitfield of @ref code_flag_constants "code flags" describing the variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @see getCodeFlagList()
+*/
+int AbstractVariant::getCodeFlags() [flags=CONSTANT] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return v->variant->getCodeFlags();
+}
+
+//! returns a list of strings of code flags describing the variant
+/** @par Example:
+    @code{.py}
+list<string> l = v.getCodeFlagList();
+    @endcode
+
+    @return list of strings of code flags describing the variant; possible values are:
+    - \c "NOOP": the variant has the @ref Qore::Reflection::CF_NOOP "CF_NOOP" flag set
+    - \c "USES_EXTRA_ARGS": the variant has the @ref Qore::Reflection::CF_USES_EXTRA_ARGS "CF_USES_EXTRA_ARGS" flag set
+    - \c "CONSTANT": the variant has the @ref Qore::Reflection::CF_CONSTANT "CF_CONSTANT" flag set
+    - \c "DEPRECATED": the variant has the @ref Qore::Reflection::CF_DEPRECATED "CF_DEPRECATED" flag set
+    - \c "RET_VALUE_ONLY": the variant has the @ref Qore::Reflection::CF_RET_VALUE_ONLY "CF_RET_VALUE_ONLY" flag set
+    - \c "RUNTIME_NOOP": the variant has the @ref Qore::Reflection::CF_RUNTIME_NOOP "CF_RUNTIME_NOOP" flag set
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @see getCodeFlags()
+*/
+list<string> AbstractVariant::getCodeFlagList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    int64 c = v->variant->getCodeFlags();
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+
+    if (c & QCF_NOOP) {
+        rv->push(new QoreStringNode("NOOP"), xsink);
+    }
+
+    if (c & QCF_USES_EXTRA_ARGS) {
+        rv->push(new QoreStringNode("USES_EXTRA_ARGS"), xsink);
+    }
+
+    if (c & QCF_CONSTANT_INTERN) {
+        rv->push(new QoreStringNode("CONSTANT"), xsink);
+    }
+
+    if (c & QCF_DEPRECATED) {
+        rv->push(new QoreStringNode("DEPRECATED"), xsink);
+    }
+
+    if (c & QCF_RET_VALUE_ONLY) {
+        rv->push(new QoreStringNode("RET_VALUE_ONLY"), xsink);
+    }
+
+    if (c & QCF_RUNTIME_NOOP) {
+        rv->push(new QoreStringNode("RUNTIME_NOOP"), xsink);
+    }
+
+    return rv.release();
+}
+
+//! returns a bitfield of @ref modifier_constants "modifiers" describing the variant
+/** @par Example:
+    @code{.py}
+int i = v.getModifiers();
+    @endcode
+
+    @return a bitfield of @ref modifier_constants "modifiers" describing the variant; possible values are:
+    - @ref Qore::Reflection::MC_ABSTRACT "MC_ABSTRACT": the variant is @ref abstract
+    - @ref Qore::Reflection::MC_FINAL "MC_FINAL": the variant has the @ref final_classes "final flag" set
+    - @ref Qore::Reflection::MC_PRIVATE "MC_PRIVATE": (only returned for method variants) gives the accessibility of the variant
+    - @ref Qore::Reflection::MC_PRIVATEINTERNAL "MC_PRIVATEINTERNAL": (only returned for method variants) gives the accessibility of the variant
+    - @ref Qore::Reflection::MC_PUBLIC "MC_PUBLIC": for functions, the variant has the @ref mod_public "module public" flag set on the class or the function (not related to any inheritance properties in a class hierarchy), for method variants, this gives the accessibility of the variant
+    - @ref Qore::Reflection::MC_STATIC "MC_STATIC": the variant is a static method variant
+    - @ref Qore::Reflection::MC_SYNCHRONIZED "MC_SYNCHRONIZED": the variant is synchronized
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @see getModifierList()
+*/
+int AbstractVariant::getModifiers() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    int64 rc = 0;
+    if (v->variant->getClass()) {
+        const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+        if (mv->isAbstract()) {
+            rc |= MC_ABSTRACT;
+        }
+        if (mv->isFinal()) {
+            rc |= MC_FINAL;
+        }
+        rc |= get_access(mv->getAccess());
+        if (mv->isStatic()) {
+            rc |= MC_STATIC;
+        }
+    }
+    else {
+        if (v->variant->isModulePublic()) {
+            rc |= MC_PUBLIC;
+        }
+    }
+
+    if (v->variant->isSynchronized()) {
+        rc |= MC_SYNCHRONIZED;
+    }
+
+    return rc;
+}
+
+//! returns a list of strings of modifiers describing the variant
+/** @par Example:
+    @code{.py}
+list<string> l = v.getModifierList();
+    @endcode
+
+    @return list of strings of modifiers describing the variant; possible values are:
+    - \c "abstract": the variant is @ref abstract
+    - \c "final": (only returned for method variants) the variant has the @ref final_classes "final flag" set
+    - \c "private": (only returned for method variants) gives the accessibility of the variant
+    - \c "private:internal": (only returned for method variants) gives the accessibility of the variant
+    - \c "public": for function variants, the variant has the @ref mod_public "module public" flag set on the function, for method variants, this gives the accessibility of the variant
+    - \c "static": (only returned for method variants) the variant is a static method variant
+    - \c "synchronized": the variant is synchronized
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @see getModifiers()
+*/
+list<string> AbstractVariant::getModifierList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+    if (v->variant->getClass()) {
+        const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+        if (mv->isAbstract()) {
+            rv->push(new QoreStringNode("abstract"), xsink);
+        }
+        if (mv->isFinal()) {
+            rv->push(new QoreStringNode("final"), xsink);
+        }
+        rv->push(new QoreStringNode(mv->getAccessString()), xsink);
+        if (mv->isStatic()) {
+            rv->push(new QoreStringNode("static"), xsink);
+        }
+    }
+    else {
+        if (v->variant->isModulePublic()) {
+            rv->push(new QoreStringNode("public"), xsink);
+        }
+    }
+
+    if (v->variant->isSynchronized()) {
+        rv->push(new QoreStringNode("synchronized"), xsink);
+    }
+
+    return rv.release();
+}
+
+//! Returns the abstract function object that contains the variant
+/** @par Example:
+    @code{.py}
+AbstractReflectionFunction f = v.getFunction();
+    @endcode
+
+    @return the abstract function object that contains the variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+AbstractReflectionFunction AbstractVariant::getFunction() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return v->getFunctionObject(xsink);
+}
+
+//! returns the functional domain of the variant (for builtin variants only) as a bitfield of @ref functional_domain_constants
+/** @par Example:
+    @code{.py}
+int i = v.getDomain();
+    @endcode
+
+    @return the functional domain of the variant (for builtin variants only) as a bitfield of @ref functional_domain_constants
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note user variants always return 0 here; a value is only returned by builtin variants
+*/
+int AbstractVariant::getDomain() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return v->variant->getDomain();
+}
+
+//! returns a list of functional domain strings for the variant (for builtin variants only); an empty list is returned for user variants
+/** @par Example:
+    @code{.py}
+list<string> l = v.getDomainStringList();
+    @endcode
+
+    @return a list of functional domain strings for the variant (for builtin variants only)
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note user variants always return an empty list here
+*/
+list<string> AbstractVariant::getDomainStringList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return domain_bitfield_to_string_list(v->variant->getDomain(), xsink);
+}
+
+//! returns @ref True if the variant is a builtin variant
+/** @par Example:
+    @code{.py}
+bool b = v.isBuiltin();
+    @endcode
+
+    @return @ref True if the variant is a builtin variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note complementary to @ref isUser()
+*/
+bool AbstractVariant::isBuiltin() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return v->variant->isBuiltin();
+}
+
+//! returns @ref True if the variant is a user variant
+/** @par Example:
+    @code{.py}
+bool b = v.isUser();
+    @endcode
+
+    @return @ref True if the variant is a user variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note complementary to @ref isBuiltin()
+*/
+bool AbstractVariant::isUser() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return !v->variant->isBuiltin();
+}
+
+//! returns @ref True if the function or method that the variant belongs to (and therefore the variant itself) has been injected as a dependency injection
+/** @par Example:
+    @code{.py}
+bool b = v.isInjected();
+    @endcode
+
+    @return @ref True if the function or method that the variant belongs to (and therefore the variant itself) has been injected as a dependency injection
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+bool AbstractVariant::isInjected() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    return v->f->isInjected();
+}
+
+//! returns @ref True if the variant has a code implementation; @ref False if not (i.e. it is empty)
+/** @par Example:
+    @code{.py}
+bool b = v.hasBody();
+    @endcode
+
+    @return @ref True if the variant has a code implementation; @ref False if not (i.e. it is empty)
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note
+    - complementary to @ref empty()
+    - abstract method variants will return @ref False here
+*/
+bool AbstractVariant::hasBody() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // we have to check for abstract methods here and return False, because QoreExternalVariant::hasBody()
+    // returns True for builtin abstract variants
+    if (v->variant->getClass() && static_cast<const QoreExternalMethodVariant*>(v->variant)->isAbstract()) {
+        return false;
+    }
+
+    // the variant ptr must be valid
+    return v->variant->hasBody();
+}
+
+//! returns @ref True if the variant has no code implementation; @ref False if it does
+/** @par Example:
+    @code{.py}
+bool b = v.isEmpty();
+    @endcode
+
+    @return @ref True if the variant has no code implementation; @ref False if it does
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+
+    @note
+    - complementary to @ref hasBody()
+    - abstract method variants will return @ref True here
+*/
+bool AbstractVariant::empty() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    // we have to check for abstract methods here and return True, because QoreExternalVariant::hasBody()
+    // returns True for builtin abstract variants
+    if (v->variant->getClass() && static_cast<const QoreExternalMethodVariant*>(v->variant)->isAbstract()) {
+        return true;
+    }
+
+    // the variant ptr must be valid
+    return !v->variant->hasBody();
+}
+
+//! returns @ref True if the variant is a method variant but not a pseudo-method variant
+/** @par Example:
+    @code{.py}
+bool b = v.isMethodVariant();
+    @endcode
+
+    @return @ref True if the variant is a method variant but not a pseudo-method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+bool AbstractVariant::isMethodVariant() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    const QoreClass* cls = v->variant->getClass();
+    return (bool)(cls && !cls->isPseudoClass());
+}
+
+//! returns @ref True if the object is a pseudo-method variant
+/** @par Example:
+    @code{.py}
+bool b = f.isPseudoMethodVariant();
+    @endcode
+
+    @return @ref True if the object is a pseudo-method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+bool AbstractVariant::isPseudoMethodVariant() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the function ptr must be valid
+    const QoreClass* cls = v->variant->getClass();
+    return (bool)(cls && cls->isPseudoClass());
+}
+
+//! returns the number of parameters in the signature
+/** @par Example:
+    @code{.py}
+int n = v.numParams();
+    @endcode
+
+    @return the number of parameters in the signature
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+int AbstractVariant::numParams() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return v->variant->numParams();
+}
+
+//! returns a string giving a list of the parameters of the variant, including types, variable names, and default values
+/** @par Example:
+    @code{.py}
+string str = v.getParamString();
+# ex: "int num = 0, *string label"
+    @endcode
+
+    @return a string giving a list of the parameters of the variant, including types, variable names, and default values; an empty string is returned if the variant does not have any parameters
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+string AbstractVariant::getParamString() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return new QoreStringNode(v->variant->getSignatureText());
+}
+
+//! returns a string for the return type
+/** @par Example:
+    @code{.py}
+string str = v.getReturnTypeString();
+# ex: "int"
+    @endcode
+
+    @return a string for the return type
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+string AbstractVariant::getReturnTypeString() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return new QoreStringNode(type_get_name(v->variant->getReturnTypeInfo()));
+}
+
+//! returns a string for the variant's signature including any modifiers (\c "synchronized", \c "private", etc), the return type, the class name (if any, without a namespace prefix and followed by \c "::"), and the function or method name followed by parameter types in parentheses
+/** @par Example:
+    @code{.py}
+string str = v.toString();
+    @endcode
+
+    @return a string for the variant's signature including any modifiers, the return type, the class name (if any, without a namespace prefix and followed by \c "::"), and the function or method name followed by parameter types in parentheses
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+string AbstractVariant::toString() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
+
+    const QoreClass* cls = v->variant->getClass();
+    if (cls) {
+        const QoreExternalMethodVariant* mv = reinterpret_cast<const QoreExternalMethodVariant*>(v->variant);
+        if (mv->isFinal()) {
+            rv->concat("final ");
+        }
+
+        if (mv->isStatic()) {
+            rv->concat("static ");
+        }
+
+        if (mv->isAbstract()) {
+            rv->concat("abstract ");
+        }
+
+        rv->concat(mv->getAccessString());
+        rv->concat(' ');
+    }
+    else {
+        // it is a function variant
+        if (v->variant->isModulePublic()) {
+            rv->concat("public ");
+        }
+    }
+
+    // check for synchronized variants
+    if (v->variant->isSynchronized()) {
+        rv->concat("synchronized ");
+    }
+
+    // add return type
+    rv->concat(type_get_name(v->variant->getReturnTypeInfo()));
+
+    rv->concat(' ');
+
+    if (cls) {
+        rv->concat(cls->getName());
+        rv->concat("::");
+    }
+
+    rv->concat(v->f->getName());
+    // add parameters
+    rv->concat('(');
+    rv->concat(v->variant->getSignatureText());
+    rv->concat(')');
+
+    return rv.release();
+}
+
+//! returns the return type of the variant
+/** @par Example:
+    @code{.py}
+Type t = v.getReturnType();
+    @endcode
+
+    @return the return type of the variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+Type AbstractVariant::getReturnType() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return new QoreObject(QC_TYPE, v->pgm, new QoreType(v->variant->getReturnTypeInfo()));
+}
+
+//! returns a list of parameter types for the variant; if the variant has no parameters, an empty list is returned
+/** @par Example:
+    @code{.py}
+list<Type> l = v.getParamTypes();
+    @endcode
+
+    @return a list of parameter types for the variant; if the variant has no parameters, an empty list is returned
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+list<Type> AbstractVariant::getParamTypes() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_TYPE->getTypeInfo()), xsink);
+
+    for (auto& i : v->variant->getParamTypeList()) {
+        rv->push(new QoreObject(QC_TYPE, v->pgm, new QoreType(i)), xsink);
+    }
+
+    return rv.release();
+}
+
+//! returns a list of default arguments for parameters for the variant; if the variant has no parameters, an empty list is returned
+/** @par Example:
+    @code{.py}
+list<auto> l = v.getDefaultArgs();
+    @endcode
+
+    @return a list of default arguments for parameters for the variant; if the variant has no parameters, an empty list is returned
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+list<auto> AbstractVariant::getDefaultArgs() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(autoTypeInfo), xsink);
+
+    for (auto& i : v->variant->getDefaultArgList()) {
+        rv->push(i.refSelf(), xsink);
+    }
+
+    return rv.release();
+}
+
+//! returns a list of parameter variable name for the variant; if the variant has no parameters, an empty list is returned
+/** @par Example:
+    @code{.py}
+list<string> l = v.getParamNames();
+    @endcode
+
+    @return a list of parameter variable name for the variant; if the variant has no parameters, an empty list is returned
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+list<string> AbstractVariant::getParamNames() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+
+    for (auto& i : v->variant->getParamNames()) {
+        rv->push(i.empty() ? QoreValue() : QoreValue(new QoreStringNode(i)), xsink);
+    }
+
+    return rv.release();
+}
+
+//! Returns the source location of the variant declaration
+/** @par Example:
+    @code{.py}
+hash<SourceLocationInfo> loc = v.getSourceLocation();
+    @endcode
+
+    @return the source location of the variant declaration
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the function or method has been destroyed
+*/
+hash<SourceLocationInfo> AbstractVariant::getSourceLocation() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, v->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the variant ptr must be valid
+    return v->variant->getSourceLocation()->getHash();
+}

@@ -1,41 +1,77 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_SSLCertificate.qpp
+    QC_SSLCertificate.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/QC_SSLCertificate.h"
+#include "qore/intern/QC_Serializable.h"
+
+static QoreHashNode* SSLCertificate_serializer(const QoreObject& self, const QoreSSLCertificate& cert, QoreSerializationContext& context, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    // we serialize with DER format as it's approx 2/3 the size of a PEM string
+    SimpleRefHolder<BinaryNode> der(cert.getDER(xsink));
+    if (*xsink) {
+        return nullptr;
+    }
+    rv->setKeyValue("der", der.release(), xsink);
+    return *xsink ? nullptr : rv.release();
+}
+
+static void SSLCertificate_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
+    if (sdata) {
+        // we serialize with DER format as it's approx 2/3 the size of a PEM string
+        QoreValue val = sdata->getKeyValue("der");
+        if (val) {
+            if (val.getType() != NT_BINARY) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "SSLCertificate serialization key 'der' has type '%s'; expecting 'binary'", val.getTypeName());
+                return;
+            }
+            const BinaryNode* der = val.get<const BinaryNode>();
+            SimpleRefHolder<QoreSSLCertificate> qcert(new QoreSSLCertificate(der, xsink));
+            if (!*xsink) {
+                self.setPrivate(CID_SSLCERTIFICATE, qcert.release());
+            }
+            return;
+        }
+    }
+
+    xsink->raiseException("DESERIALIZATION-ERROR", "missing serialization data for the SSLCertificate class");
+}
 
 //! SSLCertificate objects allow %Qore code to work with X.509 certificate data
-/** 
- */
-qclass SSLCertificate [arg=QoreSSLCertificate* s];
+/** The SSLCertificate class supports @ref Serializable "data serialization"; note that the
+    serialized data is a representation of the data that does not require a password, so
+    for source data that requires a password to use, the serialized representation of the
+    private key should be protected carefully (transmitted only in an encrypted stream)
+*/
+qclass SSLCertificate [arg=QoreSSLCertificate* s; vparent=Serializable; serializer=reinterpret_cast<q_serializer_t>(SSLCertificate_serializer); deserializer=SSLCertificate_deserializer];
 
 //! Creates the SSLCertificate object from the PEM-encoded version of the X.509 certificate
 /** @param pem the PEM representation of the X.509 certificate
@@ -50,10 +86,11 @@ SSLCertificate cert(pem_cert_string);
     @since 0.8.4: the deprecated functionality where the if the string passed was less than 200 bytes long, it was assumed to be a file name has been removed; the string is assumed to be the PEM-encoded X.509 Certificate itself
  */
 SSLCertificate::constructor(string pem) {
-   // create assuming a certificate in PEM format
-   SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(pem, xsink));
-   if (!*xsink)
-      self->setPrivate(CID_SSLCERTIFICATE, qc.release());
+    // create assuming a certificate in PEM format
+    SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(pem, xsink));
+    if (!*xsink) {
+        self->setPrivate(CID_SSLCERTIFICATE, qc.release());
+    }
 }
 
 //! Creates the SSLCertificate object from the DER-encoded version of the X.509 certificate
@@ -67,17 +104,25 @@ SSLCertificate cert(der_cert);
     @throw SSLCERTIFICATE-CONSTRUCTOR-ERROR invalid X.509 certificate data
  */
 SSLCertificate::constructor(binary der) {
-   SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(der, xsink));
-   if (!*xsink)
-      self->setPrivate(CID_SSLCERTIFICATE, qc.release());	    
+    SimpleRefHolder<QoreSSLCertificate> qc(new QoreSSLCertificate(der, xsink));
+    if (!*xsink) {
+        self->setPrivate(CID_SSLCERTIFICATE, qc.release());
+    }
 }
 
-//! Copying objects of this class is not supported, an exception will be thrown
-/** 
-    @throw SSLCERTIFICATE-COPY-ERROR SSLCertificate objects cannot be copied
+//! Returns a copy of the certificate object
+/**
+    @since %Qore 0.9
  */
 SSLCertificate::copy() {
-   xsink->raiseException("SSLCERTIFICATE-COPY-ERROR", "SSLCertificate objects cannot be copied");
+    SimpleRefHolder<BinaryNode> der(s->getDER(xsink));
+    if (*xsink) {
+        return;
+    }
+    SimpleRefHolder<QoreSSLCertificate> qcert(new QoreSSLCertificate(*der, xsink));
+    if (!*xsink) {
+        self->setPrivate(CID_SSLCERTIFICATE, qcert.release());
+    }
 }
 
 //! Returns a string in PEM format representing the certificate
@@ -91,7 +136,23 @@ string pem_str = cert.getPEM();
     @throw X509-ERROR could not create PEM string from X509 certificate data
  */
 string SSLCertificate::getPEM() {
-   return s->getPEM(xsink);
+    return s->getPEM(xsink);
+}
+
+//! Returns a binary object in DER format representing the certificate
+/** @par Example:
+    @code{.py}
+binary der = cert.getDER();
+    @endcode
+
+    @return a binary object in DER format representing the certificate
+
+    @throw SSLPRIVATEKEY-ERROR could not create DER data from certificate data
+
+    @since %Qore 0.9
+*/
+binary SSLCertificate::getDER() [flags=RET_VALUE_ONLY] {
+    return s->getDER(xsink);
 }
 
 //! Returns a hash of all information for the certificate
@@ -109,11 +170,11 @@ string SSLCertificate::getPEM() {
 
     @par Example:
     @code{.py}
-hash hash = cert.getInfo();
+hash<auto> h = cert.getInfo();
     @endcode
  */
-hash SSLCertificate::getInfo() [flags=CONSTANT] {
-   return s->getInfo();
+hash<auto> SSLCertificate::getInfo() [flags=CONSTANT] {
+    return s->getInfo();
 }
 
 //! Returns a binary object representing the signature of the certificate
@@ -125,7 +186,7 @@ binary bin = cert.getSignature();
     @endcode
  */
 binary SSLCertificate::getSignature() [flags=CONSTANT] {
-   return s->getSignature();
+    return s->getSignature();
 }
 
 //! Returns the signature type of the certificate
@@ -137,7 +198,7 @@ string str = cert.getSignatureType();
     @endcode
  */
 string SSLCertificate::getSignatureType() [flags=CONSTANT] {
-   return s->getSignatureType();
+    return s->getSignatureType();
 }
 
 //! Returns a binary object representing the public key of the certificate in DER (Distinguished Encoding Rules) format or @ref nothing if no public key is present in the certificate
@@ -149,7 +210,7 @@ string SSLCertificate::getSignatureType() [flags=CONSTANT] {
     @endcode
  */
 *binary SSLCertificate::getPublicKey() [flags=CONSTANT] {
-   return s->getPublicKey();
+    return s->getPublicKey();
 }
 
 //! Returns the name of the public key algorithm of the certificate
@@ -161,7 +222,7 @@ string str = cert.getPublicKeyAlgorithm();
     @endcode
  */
 string SSLCertificate::getPublicKeyAlgorithm() [flags=CONSTANT] {
-   return s->getPublicKeyAlgorithm();
+    return s->getPublicKeyAlgorithm();
 }
 
 //! Returns a hash of strings representing the subject information of the certificate
@@ -173,7 +234,7 @@ hash h = cert.getSubjectHash();
     @endcode
  */
 hash SSLCertificate::getSubjectHash() [flags=CONSTANT] {
-   return s->getSubjectHash();
+    return s->getSubjectHash();
 }
 
 //! Returns a hash of strings representing the issuer information of the certificate
@@ -185,7 +246,7 @@ hash h = cert.getIssuerHash();
     @endcode
  */
 hash SSLCertificate::getIssuerHash() [flags=CONSTANT] {
-   return s->getIssuerHash();
+    return s->getIssuerHash();
 }
 
 //! Returns the integer serial number of the certificate
@@ -197,7 +258,7 @@ int sn = cert.getSerialNumber();
     @endcode
  */
 int SSLCertificate::getSerialNumber() [flags=CONSTANT] {
-   return s->getSerialNumber();
+    return s->getSerialNumber();
 }
 
 //! Returns the version of the certificate as an integer
@@ -209,7 +270,7 @@ int ver = cert.getVersion();
     @endcode
  */
 int SSLCertificate::getVersion() [flags=CONSTANT] {
-   return s->getVersion();
+    return s->getVersion();
 }
 
 //! Returns a hash of booleans representing the allowed purposes of the certificate
@@ -221,7 +282,7 @@ hash h = cert.getPurposeHash();
     @endcode
  */
 hash SSLCertificate::getPurposeHash() [flags=CONSTANT] {
-   return s->getPurposeHash();
+    return s->getPurposeHash();
 }
 
 //! Returns a date/time value representing the start date of the certificate
@@ -233,7 +294,7 @@ date start = cert.getNotBeforeDate();
     @endcode
  */
 date SSLCertificate::getNotBeforeDate() [flags=CONSTANT] {
-   return s->getNotBeforeDate();
+    return s->getNotBeforeDate();
 }
 
 //! Returns a date/time value representing the end date of the certificate
@@ -245,5 +306,5 @@ date end = cert.getNotAfterDate();
     @endcode
  */
 date SSLCertificate::getNotAfterDate() [flags=CONSTANT] {
-   return s->getNotAfterDate();
+    return s->getNotAfterDate();
 }
