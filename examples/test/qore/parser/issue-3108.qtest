@@ -1,0 +1,25 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Issue3108Test
+
+class Issue3108Test inherits QUnit::Test {
+    constructor() : QUnit::Test("Issue3108 test", "1.0") {
+        addTestCase("Test", \issue3108());
+        set_return_value(main());
+    }
+
+    issue3108() {
+        Program p(PO_NEW_STYLE);
+        assertThrows("PARSE-EXCEPTION", \p.parse(), ("sprintf('%N\n', (softlist l = map {'a': 1, 'b': 2}, (1, 2)));", ""));
+    }
+}
