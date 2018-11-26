@@ -63,11 +63,34 @@ public:
     DLLLOCAL static method_type_e getMethodType(const QoreMethod* m);
 
 protected:
+    //! constructor for child classes
+    DLLLOCAL QoreReflectionMethod() : QoreReflectionFunction(getProgram()) {
+    }
+
     //! also sets the method type if set successfully
     DLLLOCAL void setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type);
 
+    //! sets the type or throws an exception if there is no method
+    DLLLOCAL void setType(const QoreClass* cls, const char* name, method_type_e type, ExceptionSink* xsink);
+
     //! set the method type
     DLLLOCAL void setType();
+};
+
+class QoreReflectionHierarchyMethod : public QoreReflectionMethod {
+public:
+    DLLLOCAL QoreReflectionHierarchyMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type = MT_None);
+
+    DLLLOCAL ClassAccess getClassAccess() const {
+        return class_access;
+    }
+
+protected:
+    //! access modifier for the class declaring the method
+    ClassAccess class_access;
+
+    //! also sets the method type if set successfully
+    DLLLOCAL void setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type);
 };
 
 DLLEXPORT extern qore_classid_t CID_ABSTRACTMETHOD;

@@ -21,6 +21,14 @@ class Base {
 
         const BC_I = 3;
     }
+
+    int a() {
+        return 1;
+    }
+
+    static int b() {
+        return 2;
+    }
 }
 
 class Test inherits Base {
@@ -73,12 +81,24 @@ namespace TestNs {
 
 class ReflectionTest inherits QUnit::Test {
     constructor() : QUnit::Test("ReflectionTest", "1.0") {
+        addTestCase("issue 3141", \issue3141Test());
         addTestCase("issue 3035", \issue3035Test());
         addTestCase("reflection tests", \reflectionTests());
         addTestCase("sandbox tests", \sandboxTests());
         addTestCase("pseudo-class tests", \pseudoClassTests());
         addTestCase("program tests", \programTests());
         set_return_value(main());
+    }
+
+    issue3141Test() {
+        Class c("Test");
+        hash<MethodAccessInfo> i = c.findMethod("a");
+        assertEq(AC_PUBLIC, i.access);
+        assertEq("public", i.access_string);
+        assertEq("a", i.method.getName());
+        assertEq("Base", i.method.getClass().getName());
+
+        assertThrows("UNKNOWN-METHOD", \c.findMethod(), "invalid");
     }
 
     issue3035Test() {

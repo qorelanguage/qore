@@ -59,6 +59,24 @@ int check_constructor(const QoreClass* cls, ExceptionSink* xsink) {
     return 0;
 }
 
+//! methhod and inheritance access information
+/** The access information in this hash is the access of the class containing the method; to get the access modifier
+    of any method variant, the maximum of the access value provided here and the access value of the variant must be
+    taken.
+
+    @since %Qore 0.9
+*/
+hashdecl MethodAccessInfo {
+    //! the inherited method
+    AbstractMethod method;
+
+    //! access code for the class containing the method; see @ref access_constants for valid values
+    int access;
+
+    //! access string for the class containing the method; one of \c "public", \c "private", or \c "private:internal"
+    string access_string;
+}
+
 //! This class provides information about %Qore classes
 /** @since %Qore 0.9
  */
@@ -113,6 +131,177 @@ string Class::getPathName() [flags=RET_VALUE_ONLY] {
 
     SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
     rv->concat(c->cls->getNamespacePath());
+    return rv.release();
+}
+
+//! Returns information about the given method if it's accessible in the class hierarchy or throws an exception if the method does not exist
+/** @par Example:
+    @code{.py}
+MethodAccessInfo info = cls.getMethod(name);
+printf("find('%s::%s()': found '%s::%s()'; class access %y, variants: %d\n", cls.getName(), name,
+    info.method.getClass().getName(), info.access_string, info.method.getVariants().size());
+    @endcode
+
+    Searches the class hierarchy for normal methods (including special methods) and then static methods for the given
+    method name
+
+    @param name the name of the method
+
+    @return information about the given method; the access information in the hash is the access of the class
+    containing the method; to get the access modifier of any method variant, the maximum of the access value provided
+    here and the access value of the variant must be taken.
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR unknown method
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the
+    @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @note Methods group variants with the same name; see
+    @ref Qore::Reflection::AbstractMethod::getVariant() "AbstractMethod::getVariant()" for a method to retrieve a
+    specific variant from a method.
+
+    @see
+    - findNormalMethod()
+    - findStaticMethod()
+    - @ref AbstractClass::getMethod()
+*/
+hash<MethodAccessInfo> Class::findMethod(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    QoreReflectionHierarchyMethod* method;
+    ReferenceHolder<QoreReflectionMethod> m(method = new QoreReflectionHierarchyMethod(c->cls, nname->c_str(), xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclMethodAccessInfo, xsink), xsink);
+    rv->setKeyValue("method", get_method_object(m, xsink), xsink);
+    rv->setKeyValue("access", get_access(method->getClassAccess()), xsink);
+    rv->setKeyValue("access_string", new QoreStringNode(get_access_string(method->getClassAccess())), xsink);
+
+    return rv.release();
+}
+
+//! Returns information about the given normal (non-static) method if it's accessible in the class hierarchy or throws an exception if the method does not exist
+/** @par Example:
+    @code{.py}
+MethodAccessInfo info = cls.getNormalMethod(name);
+printf("find('%s::%s()': found '%s::%s()'; class access %y, variants: %d\n", cls.getName(), name,
+    info.method.getClass().getName(), info.access_string, info.method.getVariants().size());
+    @endcode
+
+    Searches the class hierarchy for normal methods for the given method name
+
+    @param name the name of the method
+
+    @return information about the given method; the access information in the hash is the access of the class
+    containing the method; to get the access modifier of any method variant, the maximum of the access value provided
+    here and the access value of the variant must be taken.
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR unknown method
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the
+    @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @note Methods group variants with the same name; see
+    @ref Qore::Reflection::AbstractMethod::getVariant() "AbstractMethod::getVariant()" for a method to retrieve a
+    specific variant from a method.
+
+    @see
+    - findMethod()
+    - findStaticMethod()
+    - @ref AbstractClass::getMethod()
+*/
+hash<MethodAccessInfo> Class::findNormalMethod(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    QoreReflectionHierarchyMethod* method;
+    ReferenceHolder<QoreReflectionMethod> m(method = new QoreReflectionHierarchyMethod(c->cls, nname->c_str(), xsink,
+        MT_Normal), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclMethodAccessInfo, xsink), xsink);
+    rv->setKeyValue("method", get_method_object(m, xsink), xsink);
+    rv->setKeyValue("access", get_access(method->getClassAccess()), xsink);
+    rv->setKeyValue("access_string", new QoreStringNode(get_access_string(method->getClassAccess())), xsink);
+
+    return rv.release();
+}
+
+//! Returns information about the given static method if it's accessible in the class hierarchy or throws an exception if the method does not exist
+/** @par Example:
+    @code{.py}
+MethodAccessInfo info = cls.getStaticMethod(name);
+printf("find('%s::%s()': found '%s::%s()'; class access %y, variants: %d\n", cls.getName(), name,
+    info.method.getClass().getName(), info.access_string, info.method.getVariants().size());
+    @endcode
+
+    Searches the class hierarchy for static methods for the given method name
+
+    @param name the name of the method
+
+    @return information about the given method; the access information in the hash is the access of the class
+    containing the method; to get the access modifier of any method variant, the maximum of the access value provided
+    here and the access value of the variant must be taken.
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR unknown method
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the
+    @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @note Methods group variants with the same name; see
+    @ref Qore::Reflection::AbstractMethod::getVariant() "AbstractMethod::getVariant()" for a method to retrieve a
+    specific variant from a method.
+
+    @see
+    - findMethod()
+    - findNormalMethod()
+    - @ref AbstractClass::getMethod()
+*/
+hash<MethodAccessInfo> Class::findStaticMethod(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    QoreReflectionHierarchyMethod* method;
+    ReferenceHolder<QoreReflectionMethod> m(method = new QoreReflectionHierarchyMethod(c->cls, nname->c_str(), xsink,
+        MT_Static), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclMethodAccessInfo, xsink), xsink);
+    rv->setKeyValue("method", get_method_object(m, xsink), xsink);
+    rv->setKeyValue("access", get_access(method->getClassAccess()), xsink);
+    rv->setKeyValue("access_string", new QoreStringNode(get_access_string(method->getClassAccess())), xsink);
+
     return rv.release();
 }
 
