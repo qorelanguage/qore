@@ -65,5 +65,6 @@ DLLLOCAL void preinitAbstractClassClass();
 DLLLOCAL QoreClass* initAbstractClassClass(QoreNamespace& ns);
 
 DLLLOCAL TypedHashDecl* init_hashdecl_ClassAccessInfo(QoreNamespace& ns);
+DLLLOCAL TypedHashDecl* init_hashdecl_MethodAccessInfo(QoreNamespace& ns);
 
 #endif
