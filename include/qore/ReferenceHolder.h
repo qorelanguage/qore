@@ -36,6 +36,7 @@
 #define QORE_REFERENCE_HOLDER_H_
 
 #include <stdlib.h>
+#include <utility>
 
 //! a templated class to manage a reference count of an object that can throw a Qore-language exception when dereferenced
 /** the destructor will call deref(ExceptionSink *)
@@ -125,6 +126,14 @@ private:
 public:
    DLLLOCAL SimpleRefHolder() : p(0) {}
    DLLLOCAL SimpleRefHolder(T* p_) : p(p_) {}
+
+   //! move constructor
+   /** @since %Qore 0.9
+   */
+   DLLLOCAL SimpleRefHolder(SimpleRefHolder&& old) : p(std::move(old.p)) {
+       old.p = nullptr;
+   }
+
    DLLLOCAL ~SimpleRefHolder() { if (p) p->deref(); }
 
    DLLLOCAL T* operator->() { return p; }
