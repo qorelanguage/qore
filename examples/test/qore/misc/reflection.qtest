@@ -85,6 +85,7 @@ namespace TestNs {
 
 class ReflectionTest inherits QUnit::Test {
     constructor() : QUnit::Test("ReflectionTest", "1.0") {
+        addTestCase("issue 3145", \issue3145Test());
         addTestCase("issue 3141", \issue3141Test());
         addTestCase("issue 3035", \issue3035Test());
         addTestCase("reflection tests", \reflectionTests());
@@ -92,6 +93,13 @@ class ReflectionTest inherits QUnit::Test {
         addTestCase("pseudo-class tests", \pseudoClassTests());
         addTestCase("program tests", \programTests());
         set_return_value(main());
+    }
+
+    issue3145Test() {
+        Class c("Test");
+        assertNothing(c.getModuleName());
+        c = Class::forName("QUnit::Test");
+        assertEq("QUnit", c.getModuleName());
     }
 
     issue3141Test() {

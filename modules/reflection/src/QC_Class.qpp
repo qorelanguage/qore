@@ -156,10 +156,29 @@ string Class::getPathName() [flags=RET_VALUE_ONLY] {
     }
 
     // the class ptr must be valid
-
     SimpleRefHolder<QoreStringNode> rv(new QoreStringNode);
     rv->concat(c->cls->getNamespacePath());
     return rv.release();
+}
+
+//! Returns the module name providing the class or @ref nothing if the class was not provided by a module
+/** @par Example:
+    @code{.py}
+*string str = cls.getModuleName();
+    @endcode
+
+    @return the module name providing the class or @ref nothing if the class was not provided by a module
+*/
+*string Class::getModuleName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    const char* mod = c->cls->getModuleName();
+    return mod ? new QoreStringNode(mod) : QoreValue();
 }
 
 //! Returns information about the given method if it's accessible in the class hierarchy or throws an exception if the method does not exist
