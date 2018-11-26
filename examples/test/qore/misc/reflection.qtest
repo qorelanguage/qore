@@ -55,6 +55,10 @@ class Test inherits Base {
 
         const C_PI = M_PI * M_PI * M_PI;
     }
+
+    int c() {
+        return 3;
+    }
 }
 
 class ITest inherits private:internal Test {
@@ -97,6 +101,12 @@ class ReflectionTest inherits QUnit::Test {
         assertEq("public", i.access_string);
         assertEq("a", i.method.getName());
         assertEq("Base", i.method.getClass().getName());
+
+        i = c.findMethod("c");
+        assertEq(AC_PUBLIC, i.access);
+        assertEq("public", i.access_string);
+        assertEq("c", i.method.getName());
+        assertEq("Test", i.method.getClass().getName());
 
         assertThrows("UNKNOWN-METHOD", \c.findMethod(), "invalid");
     }

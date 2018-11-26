@@ -87,7 +87,7 @@ public:
 
 protected:
     //! access modifier for the class declaring the method
-    ClassAccess class_access;
+    ClassAccess class_access = Public;
 
     //! also sets the method type if set successfully
     DLLLOCAL void setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type);
