@@ -59,6 +59,33 @@ int check_constructor(const QoreClass* cls, ExceptionSink* xsink) {
     return 0;
 }
 
+static QoreHashNode* find_method_intern(const QoreStringNode* name, QoreReflectionClass* c, method_type_e type, ExceptionSink* xsink) {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    QoreReflectionHierarchyMethod* method;
+    ReferenceHolder<QoreReflectionMethod> m(method = new QoreReflectionHierarchyMethod(c->cls, nname->c_str(), xsink,
+        type), xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclMethodAccessInfo, xsink), xsink);
+    rv->setKeyValue("method", get_method_object(m, xsink), xsink);
+    rv->setKeyValue("access", get_access(method->getClassAccess()), xsink);
+    rv->setKeyValue("access_string", new QoreStringNode(get_access_string(method->getClassAccess())), xsink);
+
+    return rv.release();
+}
+
 //! methhod and inheritance access information
 /** The access information in this hash is the access of the class containing the method; to get the access modifier
     of any method variant, the maximum of the access value provided here and the access value of the variant must be
@@ -166,29 +193,7 @@ printf("find('%s::%s()': found '%s::%s()'; class access %y, variants: %d\n", cls
     - @ref AbstractClass::getMethod()
 */
 hash<MethodAccessInfo> Class::findMethod(string name) [flags=RET_VALUE_ONLY] {
-    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // get read access to program object
-    QoreExternalProgramContextHelper tch(xsink, c->pgm);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    QoreReflectionHierarchyMethod* method;
-    ReferenceHolder<QoreReflectionMethod> m(method = new QoreReflectionHierarchyMethod(c->cls, nname->c_str(), xsink), xsink);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclMethodAccessInfo, xsink), xsink);
-    rv->setKeyValue("method", get_method_object(m, xsink), xsink);
-    rv->setKeyValue("access", get_access(method->getClassAccess()), xsink);
-    rv->setKeyValue("access_string", new QoreStringNode(get_access_string(method->getClassAccess())), xsink);
-
-    return rv.release();
+    return find_method_intern(name, c, MT_None, xsink);
 }
 
 //! Returns information about the given normal (non-static) method if it's accessible in the class hierarchy or throws an exception if the method does not exist
@@ -222,30 +227,7 @@ printf("find('%s::%s()': found '%s::%s()'; class access %y, variants: %d\n", cls
     - @ref AbstractClass::getMethod()
 */
 hash<MethodAccessInfo> Class::findNormalMethod(string name) [flags=RET_VALUE_ONLY] {
-    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // get read access to program object
-    QoreExternalProgramContextHelper tch(xsink, c->pgm);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    QoreReflectionHierarchyMethod* method;
-    ReferenceHolder<QoreReflectionMethod> m(method = new QoreReflectionHierarchyMethod(c->cls, nname->c_str(), xsink,
-        MT_Normal), xsink);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclMethodAccessInfo, xsink), xsink);
-    rv->setKeyValue("method", get_method_object(m, xsink), xsink);
-    rv->setKeyValue("access", get_access(method->getClassAccess()), xsink);
-    rv->setKeyValue("access_string", new QoreStringNode(get_access_string(method->getClassAccess())), xsink);
-
-    return rv.release();
+    return find_method_intern(name, c, MT_Normal, xsink);
 }
 
 //! Returns information about the given static method if it's accessible in the class hierarchy or throws an exception if the method does not exist
@@ -279,30 +261,7 @@ printf("find('%s::%s()': found '%s::%s()'; class access %y, variants: %d\n", cls
     - @ref AbstractClass::getMethod()
 */
 hash<MethodAccessInfo> Class::findStaticMethod(string name) [flags=RET_VALUE_ONLY] {
-    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    // get read access to program object
-    QoreExternalProgramContextHelper tch(xsink, c->pgm);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    QoreReflectionHierarchyMethod* method;
-    ReferenceHolder<QoreReflectionMethod> m(method = new QoreReflectionHierarchyMethod(c->cls, nname->c_str(), xsink,
-        MT_Static), xsink);
-    if (*xsink) {
-        return QoreValue();
-    }
-
-    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclMethodAccessInfo, xsink), xsink);
-    rv->setKeyValue("method", get_method_object(m, xsink), xsink);
-    rv->setKeyValue("access", get_access(method->getClassAccess()), xsink);
-    rv->setKeyValue("access_string", new QoreStringNode(get_access_string(method->getClassAccess())), xsink);
-
-    return rv.release();
+    return find_method_intern(name, c, MT_Static, xsink);
 }
 
 //! returns @ref True if the class has at least one constructor method variant
