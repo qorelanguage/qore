@@ -131,6 +131,7 @@ public:
    /** @since %Qore 0.9
    */
    DLLLOCAL SimpleRefHolder(SimpleRefHolder&& old) : p(std::move(old.p)) {
+       old.p = nullptr;
    }
 
    DLLLOCAL ~SimpleRefHolder() { if (p) p->deref(); }
