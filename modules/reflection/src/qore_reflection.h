@@ -38,4 +38,7 @@
 //! ClassAccessInfo hashdecl
 DLLLOCAL extern const TypedHashDecl* hashdeclClassAccessInfo;
 
+//! MethodAccessInfo hashdecl
+DLLLOCAL extern const TypedHashDecl* hashdeclMethodAccessInfo;
+
 #endif
