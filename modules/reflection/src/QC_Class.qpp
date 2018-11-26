@@ -59,7 +59,8 @@ int check_constructor(const QoreClass* cls, ExceptionSink* xsink) {
     return 0;
 }
 
-static QoreHashNode* find_method_intern(const QoreStringNode* name, QoreReflectionClass* c, method_type_e type, ExceptionSink* xsink) {
+static QoreHashNode* find_method_intern(const QoreStringNode* name, QoreReflectionClass* c, method_type_e type,
+    ExceptionSink* xsink) {
     TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
     if (*xsink) {
         return nullptr;

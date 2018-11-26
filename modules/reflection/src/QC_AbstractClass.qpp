@@ -70,7 +70,7 @@ QoreObject* get_class_object(QoreProgram* pgm, const QoreClass* cls) {
     return new QoreObject(cls->isPseudoClass() ? QC_PSEUDOCLASS : QC_CLASS, pgm, new QoreReflectionClass(pgm, cls));
 }
 
-QoreObject* get_method_object(const QoreReflectionMethod& m, ExceptionSink* xsink) {
+QoreObject* get_method_object(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink) {
     switch (m->mtype) {
         case MT_Normal: return new QoreObject(QC_NORMALMETHOD, m->pgm, m.release());
         case MT_Static: return new QoreObject(QC_STATICMETHOD, m->pgm, m.release());
