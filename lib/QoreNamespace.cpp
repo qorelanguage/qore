@@ -627,7 +627,7 @@ qore_ns_private* QoreNamespaceList::runtimeAdd(QoreNamespace* ns, qore_ns_privat
 }
 
 void QoreNamespace::clear(ExceptionSink* xsink) {
-    ReferenceHolder<QoreListNode> l(new QoreListNode, xsink);
+    ReferenceHolder<QoreListNode> l(new QoreListNode(autoTypeInfo), xsink);
     priv->clearConstants(**l);
     priv->clearData(xsink);
     priv->deleteData(true, xsink);
