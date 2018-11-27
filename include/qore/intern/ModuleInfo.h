@@ -263,14 +263,14 @@ protected:
 public:
    DLLLOCAL void addDirList(const char* str);
 
-   DLLLOCAL bool push_back(const char* str) {
-      if (dset.find(str) != dset.end())
-         return false;
-
-      dlist.push_back(str);
-      dset.insert(str);
-      return true;
-   }
+    DLLLOCAL bool push_back(const std::string &str) {
+        if (dset.find(str) != dset.end()) {
+	    return false;
+	}
+	dlist.push_back(str);
+	dset.insert(str);
+	return true;
+    }
 
    DLLLOCAL bool empty() const {
       return dlist.empty();
