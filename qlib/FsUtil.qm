@@ -803,4 +803,54 @@ public namespace FsUtil {
         }
     }
 
+    #! Copies a structure of directories, files are ignored
+    /** @param source path to be copied (must be a directory or a symlink pointing to one if follow_symlinks is set)
+        @param destination path where the copy should be created (must be a directory or must not exist)
+        @param depth determines how many levels of subdirectories should be copied
+
+        @throws DIR-STAT-ERROR If stat call for the source path fails.
+        @throws PATH-EXISTS-ERROR If destination path exists
+        @throws NOT-DIRECTORY-ERROR If source is not a directory
+
+        Source must be a directory, destination must not exist.
+
+        Mode (permissions) bits are preserved but UID/GID, access time and modification time are not. If the whole tree
+        (to the specified depth) is copied correctly, the function returns path to the new copy.
+    */
+    public string sub copy_dir_structure(string source, string destination, *int depth) {
+        # prepare the source
+        Dir src_dir();
+        if (!src_dir.chdir(source)) {
+            throw "NOT-DIRECTORY-ERROR", sprintf("Source path '%s' is not a directory.", source);
+        } else if (is_link(source)) {
+            throw "NOT-DIRECTORY-ERROR", sprintf("Source path '%s' is not a directory but a link.", source);
+        }
+        *hash<StatInfo> src_stat = hlstat(source);
+        if (!exists src_stat) {
+            throw "DIR-STAT-ERROR", sprintf("Couldn't stat source path '%s': %s", source, strerror());
+        }
+
+        # create destination directory
+        if (path_exists(destination)) {
+            throw "PATH-EXISTS-ERROR", sprintf("Destination path '%s' already exists.", destination);
+        }
+        mkdir(destination, 0700);
+
+        if (!exists depth || depth > 0) {
+            *int next_depth = exists depth ? depth - 1 : NOTHING;
+            foreach string name in (src_dir.listDirs()) {
+                string src_path = join_paths(source, name);
+                # ignore symlinks
+                if (is_link(src_path)) {
+                    continue;
+                }
+
+                copy_dir_structure(src_path, join_paths(destination, name), next_depth);
+            }
+        }
+
+        chmod(destination, src_stat.mode);
+        return destination;
+    }
+
 } # FsUtil namespace
