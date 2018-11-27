@@ -640,7 +640,7 @@ public namespace FsUtil {
     /** @param source path to the file to be copied
         @param destination path where the copy should be created
         @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
-        @param overwrite flag indicating whether destination should be overwritten if exists (True by default)
+        @param overwrite flag indicating whether destination should be overwritten if exists (False by default)
 
         @throws SAME-FILE-ERROR If both paths point to the same file.
         @throws FILE-STAT-ERROR If stat call for the source path fails.
@@ -652,7 +652,11 @@ public namespace FsUtil {
         links). Mode (permissions) bits are preserved but UID/GID, access time and modification time are not.
         If the file is copied correctly, the function returns path to the new copy.
     */
-    public string sub copy_file(string source, string destination, bool follow_symlinks=False, bool overwrite=True) {
+    public string sub copy_file(string source, string destination, bool follow_symlinks=False, bool overwrite=False) {
+        if (same_file(source, destination, follow_symlinks, True)) {
+            throw "SAME-FILE-ERROR", sprintf("'%s' and '%s' point to the same file.", source, destination);
+        }
+
         # prepare the source
         *hash<StatInfo> src_stat = follow_symlinks ? hstat(source) : hlstat(source);
         if (!exists src_stat) {
@@ -667,10 +671,6 @@ public namespace FsUtil {
         if (!overwrite && exists dst_stat) {
             throw "FILE-EXISTS-ERROR", sprintf("Destination path '%s' already exists and overwriting is forbidden.",
                                                destination);
-        }
-
-        if (same_file(source, destination, follow_symlinks, True)) {
-            throw "SAME-FILE-ERROR", sprintf("'%s' and '%s' point to the same file.", source, destination);
         }
 
         foreach *hash<StatInfo> stat in (src_stat, dst_stat) {
