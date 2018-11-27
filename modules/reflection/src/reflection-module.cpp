@@ -81,7 +81,8 @@ DLLEXPORT char qore_module_license_str[] = "MIT";
 
 QoreNamespace ReflectionNS("Reflection");
 
-const TypedHashDecl* hashdeclClassAccessInfo;
+const TypedHashDecl* hashdeclClassAccessInfo,
+    * hashdeclMethodAccessInfo;
 
 QoreStringNode* reflection_module_init() {
     // pre-initialize reflection classes
@@ -121,6 +122,7 @@ QoreStringNode* reflection_module_init() {
 
     // now add hashdecls
     hashdeclClassAccessInfo = init_hashdecl_ClassAccessInfo(ReflectionNS);
+    hashdeclMethodAccessInfo = init_hashdecl_MethodAccessInfo(ReflectionNS);
 
     // set up Reflection namespace
     ReflectionNS.addSystemClass(initAbstractVariantClass(ReflectionNS));

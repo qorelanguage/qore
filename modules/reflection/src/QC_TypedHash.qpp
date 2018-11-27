@@ -148,6 +148,26 @@ string TypedHash::getPathName() [flags=RET_VALUE_ONLY] {
     return rv.release();
 }
 
+//! Returns the module name providing the typed hash or @ref nothing if the typed hash was not provided by a module
+/** @par Example:
+    @code{.py}
+*string str = th.getModuleName();
+    @endcode
+
+    @return the module name providing the typed hash or @ref nothing if the typed hash was not provided by a module
+*/
+*string TypedHash::getModuleName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, thd->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    const char* mod = thd->th->getModuleName();
+    return mod ? new QoreStringNode(mod) : QoreValue();
+}
+
 //! returns @ref True if the @ref hashdecl "typed hash (hashdecl)" is a builtin typed hash
 /** @par Example:
     @code{.py}

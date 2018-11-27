@@ -3483,9 +3483,14 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
 
     // set flags for other special methods
     bool methGate, memGate, hasMemberNotification;
-    if (dst || con || cpy)
+    if (dst || con || cpy) {
         methGate = memGate = hasMemberNotification = false;
-    else {
+        // issue #3126: cannot add abstract variants of special methods
+        if (f->isAbstract() && (con || dst || cpy)) {
+            parseException(*static_cast<UserSignature*>(f->getSignature())->getParseLocation(), "ILLEGAL-ABSTRACT-METHOD", "in class %s: %s() methods cannot be abstract", tname, mname);
+            return -1;
+        }
+    } else {
         methGate = !strcmp(mname, "methodGate");
         memGate = methGate ? false : !strcmp(mname, "memberGate");
         hasMemberNotification = methGate || memGate ? false : !strcmp(mname, "memberNotification");
@@ -3500,10 +3505,12 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
 
     // now we add the new variant to a method, creating the method if necessary
 
-    if (!has_new_user_changes)
+    if (!has_new_user_changes) {
         has_new_user_changes = true;
-    if (!has_sig_changes)
+    }
+    if (!has_sig_changes) {
         has_sig_changes = true;
+    }
 
     bool is_new = false;
     // if the method does not exist, then create it
@@ -3514,15 +3521,18 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
             mfb = new ConstructorMethodFunction(cls);
             // set selfid immediately if adding a constructor variant
             reinterpret_cast<UserConstructorVariant*>(f)->getUserSignature()->setSelfId(&selfid);
-        }
-        else if (dst)
+            assert(!f->isAbstract());
+        } else if (dst) {
             mfb = new DestructorMethodFunction(cls);
-        else if (cpy)
+            assert(!f->isAbstract());
+        } else if (cpy) {
             mfb = new CopyMethodFunction(cls);
-        else if (n_static)
+            assert(!f->isAbstract());
+        } else if (n_static) {
             mfb = new StaticUserMethod(cls, mname);
-        else
+        } else {
             mfb = new NormalUserMethod(cls, mname);
+        }
 
         m = new QoreMethod(cls, mfb, n_static);
     }
