@@ -97,11 +97,11 @@ public class CopyPathTest inherits QUnit::Test {
         # existing destination
         hash<TmpFileHash> file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
         file1.file.close();
-        assertThrows("FILE-EXISTS-ERROR", \copy_path(), (file2.path, file1.path, True));
-        assertThrows("FILE-EXISTS-ERROR", \copy_path(), (file2.path, file1.path, False));
+        assertThrows("PATH-EXISTS-ERROR", \copy_path(), (file2.path, file1.path, True));
+        assertThrows("PATH-EXISTS-ERROR", \copy_path(), (file2.path, file1.path, False));
 
         # existing destination via a link
-        assertThrows("FILE-EXISTS-ERROR", \copy_path(), (file2.path, link_file1, True));
+        assertThrows("PATH-EXISTS-ERROR", \copy_path(), (file2.path, link_file1, True));
 
         # it's possible to copy to a directory though
         string copy0_path = join_paths(subdir, basename(file1.path));
@@ -287,7 +287,7 @@ public class CopyPathTest inherits QUnit::Test {
         assert_file_contains(copy, content);
 
         # copy original via symlink and without follow_symlinks should fail (no overwrite)
-        assertThrows("FILE-EXISTS-ERROR", \copy_path(), (link_original, copy, False));
+        assertThrows("PATH-EXISTS-ERROR", \copy_path(), (link_original, copy, False));
 
         # copy original via symlink (dst doesn't exist this time) without follow_symlinks
         unlink(copy);

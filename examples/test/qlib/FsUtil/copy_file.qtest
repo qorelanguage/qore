@@ -64,7 +64,7 @@ public class CopyFileTest inherits QUnit::Test {
         assert_file_contains(original.path, content2);
         assert_file_contains(copy_path, content);
         # first without the overwrite flag
-        assertThrows("FILE-EXISTS-ERROR", \copy_file(), (original.path, copy_path));
+        assertThrows("PATH-EXISTS-ERROR", \copy_file(), (original.path, copy_path));
         # now with overwrite
         dest_path = copy_file(original.path, copy_path, NOTHING, True);
         assertEq(copy_path, dest_path);
@@ -76,7 +76,7 @@ public class CopyFileTest inherits QUnit::Test {
         chmod(original.path, 0640);
         assertEq(0100640, hstat(original.path).mode);
         # first without the overwrite flag
-        assertThrows("FILE-EXISTS-ERROR", \copy_file(), (original.path, copy_path));
+        assertThrows("PATH-EXISTS-ERROR", \copy_file(), (original.path, copy_path));
         # now with overwrite
         dest_path = copy_file(original.path, copy_path, NOTHING, True);
         assertEq(copy_path, dest_path);
@@ -121,11 +121,11 @@ public class CopyFileTest inherits QUnit::Test {
         # existing destination
         hash<TmpFileHash> file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
         file1.file.close();
-        assertThrows("FILE-EXISTS-ERROR", \copy_file(), (file2.path, file1.path, True, False));
-        assertThrows("FILE-EXISTS-ERROR", \copy_file(), (file2.path, file1.path, False, False));
+        assertThrows("PATH-EXISTS-ERROR", \copy_file(), (file2.path, file1.path, True, False));
+        assertThrows("PATH-EXISTS-ERROR", \copy_file(), (file2.path, file1.path, False, False));
 
         # existing destination via a link
-        assertThrows("FILE-EXISTS-ERROR", \copy_file(), (file2.path, link_file1, True, False));
+        assertThrows("PATH-EXISTS-ERROR", \copy_file(), (file2.path, link_file1, True, False));
 
         # can't copy a directory (source)
         string subdir = make_tmp_dir(NOTHING, NOTHING, tmp_path);
@@ -323,7 +323,7 @@ public class CopyFileTest inherits QUnit::Test {
         assert_file_contains(copy.path, content2);
 
         # copy original via symlink without overwrite and without follow_symlinks should fail
-        assertThrows("FILE-EXISTS-ERROR", \copy_file(), (link_original, copy.path, False, False));
+        assertThrows("PATH-EXISTS-ERROR", \copy_file(), (link_original, copy.path, False, False));
 
         # copy original via symlink (dst doesn't exist this time -> no overwrite) without follow_symlinks
         unlink(copy.path);

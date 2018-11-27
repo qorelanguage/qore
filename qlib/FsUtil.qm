@@ -644,7 +644,7 @@ public namespace FsUtil {
 
         @throws SAME-FILE-ERROR If both paths point to the same file.
         @throws FILE-STAT-ERROR If stat call for the source path fails.
-        @throws FILE-EXISTS-ERROR If destination path exists and overwrite flag is False
+        @throws PATH-EXISTS-ERROR If destination path exists and overwrite flag is False
         @throws UNSUPPORTED-TYPE-ERROR If a given file is not a regular path or a symbolic link.
 
         Destination can be a directory. If that's the case, this function will attempt to create a copy of source using
@@ -669,7 +669,7 @@ public namespace FsUtil {
         }
         *hash<StatInfo> dst_stat = hstat(destination);
         if (!overwrite && exists dst_stat) {
-            throw "FILE-EXISTS-ERROR", sprintf("Destination path '%s' already exists and overwriting is forbidden.",
+            throw "PATH-EXISTS-ERROR", sprintf("Destination path '%s' already exists and overwriting is forbidden.",
                                                destination);
         }
 
