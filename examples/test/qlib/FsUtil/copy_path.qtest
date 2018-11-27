@@ -357,13 +357,10 @@ public class CopyPathTest inherits QUnit::Test {
 
         # let's try again but this time use an existing directory as destination
         mkdir(dst_path);
-        string dst_root_path = dst_path;
-        cp_dest_path = copy_path(source_path, dst_path);
-        # this will also change the paths because src will be copied into it
-        dst_path = join_paths((tmp_root, "dst", "src"));
-        dst_dir_path = join_paths(dst_path, "dir");
-        dst_file_path = join_paths(dst_path, "file");
-        dst_link_path = join_paths(dst_dir_path, "link");
+        # first without overwrite parameter
+        assertThrows("PATH-EXISTS-ERROR", \copy_path(), (source_path, dst_path));
+        # and then properly with overwrite flag
+        cp_dest_path = copy_path(source_path, dst_path, NOTHING, True);
         assertEq(dst_path, cp_dest_path);
         assertTrue(path_exists(dst_path));
         assertTrue(is_dir(dst_path));
@@ -380,7 +377,10 @@ public class CopyPathTest inherits QUnit::Test {
 
         # let's try again with follow_symlinks=True
         mkdir(dst_path);
-        cp_dest_path = copy_path(source_path, dst_root_path, True);
+        # first without overwrite parameter
+        assertThrows("PATH-EXISTS-ERROR", \copy_path(), (source_path, dst_path));
+        # and then properly with overwrite flag
+        cp_dest_path = copy_path(source_path, dst_path, True, True);
         assertEq(dst_path, cp_dest_path);
         assertTrue(path_exists(dst_path));
         assertTrue(is_dir(dst_path));
@@ -396,13 +396,12 @@ public class CopyPathTest inherits QUnit::Test {
 
         # now let's copy it via a link to the source
         # let's try again with follow_symlinks=True
-        mkdir(dst_path);
         string src_link_path = join_paths(tmp_root, "src_link");
         assertFalse(path_exists(src_link_path));
         symlink(source_path, src_link_path);
         assertTrue(path_exists(src_link_path));
         assertTrue(is_link(src_link_path));
-        cp_dest_path = copy_path(source_path, dst_root_path, True);
+        cp_dest_path = copy_path(source_path, dst_path, True);
         assertEq(dst_path, cp_dest_path);
         assertTrue(path_exists(dst_path));
         assertTrue(is_dir(dst_path));
@@ -462,9 +461,12 @@ public class CopyPathTest inherits QUnit::Test {
 
         # now let's make tmp_root/src/file unreadable -> copying it should fail
         chmod(file_path, 0000);
+        # without overwrite it will complain about destination path existing
+        assertThrows("PATH-EXISTS-ERROR", \copy_path(), (source_path, dest_dir));
+        # with overwrite it will fail because of the permissions and COPY-TREE-ERROR will be thrown
         bool exception_thrown = False;
         try {
-            copy_path(source_path, dest_dir);
+            copy_path(source_path, dest_dir, NOTHING, True);
         } catch (err) {
             exception_thrown = True;
             assertEq("COPY-TREE-ERROR", err.err);
@@ -491,13 +493,14 @@ public class CopyPathTest inherits QUnit::Test {
         assertTrue(exception_thrown);
         remove_tree(dest_dir);
 
-        # let's repeat the last two tests with fail_immediately flag
-        assertThrows("FILE-OPEN2-ERROR", \copy_tree(),
-                     (source_path, dest_dir, NOTHING, True));
-        remove_tree(dest_dir);
+        # The following tests need a separate code change first - see issue #3147
+        ## let's repeat the last two tests with fail_immediately flag
+        #assertThrows("FILE-OPEN2-ERROR", \copy_path(),
+        #             (source_path, dest_dir, NOTHING, NOTHING, True));
+        #remove_tree(dest_dir);
 
-        assertThrows("FILE-OPEN2-ERROR", \copy_tree(),
-                     (source_path, dest_dir, True, True));
-        remove_tree(dest_dir);
+        #assertThrows("FILE-OPEN2-ERROR", \copy_path(),
+        #             (source_path, dest_dir, True, NOTHING, True));
+        #remove_tree(dest_dir);
     }
 }

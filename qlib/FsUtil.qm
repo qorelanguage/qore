@@ -791,19 +791,20 @@ public namespace FsUtil {
     /** @param source path to be copied
         @param destination path where the copy should be created
         @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
+        @param overwrite flag indicating whether destination should be overwritten if exists (False by default)
 
         This wrapper function exists for convenience. Source can be a regular file, symlink or a directory,
         the respective functions for copying files/links or directories will be called. Destination can either be a path
-        that doesn't exist on the filesystem yet (and then it will be created as a copy of source) or it can be a path
-        of a directory in which the copy will be created. Overwriting of an existing path is not possible with this
-        wrapper function. Mode (permissions) bits are preserved but UID/GID, access time and modification time are not.
-        If the source is copied correctly, the function returns path to the new copy.
+        that doesn't exist on the filesystem yet (and then it will be created as a copy of source) or it can be
+        an existing path if overwrite flag is set (and then the original contents will be replaced by a copy of source).
+        Mode (permissions) bits are preserved but UID/GID, access time and modification time are not. If the source is
+        copied correctly, the function returns path to the new copy.
     */
-    public string sub copy_path(string source, string destination, bool follow_symlinks=False) {
+    public string sub copy_path(string source, string destination, bool follow_symlinks=False, bool overwrite=False) {
         if (is_dir(source)) {
-            return copy_tree(source, destination, follow_symlinks);
+            return copy_tree(source, destination, follow_symlinks, overwrite);
         } else {
-            return copy_file(source, destination, follow_symlinks, False);
+            return copy_file(source, destination, follow_symlinks, overwrite);
         }
     }
 
