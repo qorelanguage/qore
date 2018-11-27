@@ -519,8 +519,12 @@ static inline MethodVariantBase* new_method_variant(const QoreProgramLocation* l
         return new UserDestructorVariant(b, n_sig_first_line, n_sig_last_line);
     }
     if (!strcmp(name, "copy")) {
-        if (mod & OFM_FINAL)
+        if (mod & OFM_FINAL) {
             parse_error(*loc, "%s() methods cannot be declared final; declare the class final instead", name);
+        }
+        if (mod & OFM_ABSTRACT) {
+            parse_error(*loc, "%s() methods cannot be declared abstract", name);
+        }
         return new UserCopyVariant(access, b, n_sig_first_line, n_sig_last_line, params, returnTypeInfo, mod & OFM_SYNCED);
     }
 
@@ -3573,19 +3577,21 @@ exp_c:
                 parse_error(*loc, "invalid arguments to map operator, expected: 2 or 3 element list (code expression, list argument, [select expression]), got: '%s'", $2.getTypeName());
                 $2.discard(nullptr);
                 $$.set(nullptr);
-            }
-            else {
+            } else {
                 // get first expression from list
                 QoreValue exp = l->shift();
                 qore_type_t t = exp.getType();
                 $$.set(nullptr);
+                bool is_curly = false;
                 if (t == NT_PARSE_HASH) {
                     QoreParseHashNode* phn = exp.get<QoreParseHashNode>();
-                    if (phn->isCurly())
+                    if (phn->isCurly()) {
+                        is_curly = true;
                         $$.set(parse_hash_map(loc, phn, l));
+                    }
                 }
 
-                if (!$$) {
+                if (!$$ && !is_curly) {
                     $$.set(parse_map(loc, exp, l));
                 }
             }
