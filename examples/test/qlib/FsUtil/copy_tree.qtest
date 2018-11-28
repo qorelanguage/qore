@@ -294,7 +294,7 @@ public class CopyTreeTest inherits QUnit::Test {
         # with overwrite it will fail because of the permissions and COPY-TREE-ERROR will be thrown
         try {
             copy_tree(source_path, dest_dir, NOTHING, True);
-        } catch (err) {
+        } catch (hash<ExceptionInfo> err) {
             exception_thrown = True;
             assertEq("COPY-TREE-ERROR", err.err);
             assertEq(1, err.desc.size());
@@ -308,7 +308,7 @@ public class CopyTreeTest inherits QUnit::Test {
         exception_thrown = False;
         try {
             copy_tree(source_path, dest_dir, True);
-        } catch (err) {
+        } catch (hash<ExceptionInfo> err) {
             exception_thrown = True;
             assertEq("COPY-TREE-ERROR", err.err);
             assertEq(2, err.desc.size());
