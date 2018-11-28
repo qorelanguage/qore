@@ -595,7 +595,7 @@ public class CopyPathTest inherits QUnit::Test {
         bool exception_thrown = False;
         try {
             copy_path(source_path, dest_dir, NOTHING, True);
-        } catch (err) {
+        } catch (hash<ExceptionInfo> err) {
             exception_thrown = True;
             assertEq("COPY-TREE-ERROR", err.err);
             assertEq(1, err.desc.size());
@@ -609,7 +609,7 @@ public class CopyPathTest inherits QUnit::Test {
         exception_thrown = False;
         try {
             copy_path(source_path, dest_dir, True);
-        } catch (err) {
+        } catch (hash<ExceptionInfo> err) {
             exception_thrown = True;
             assertEq("COPY-TREE-ERROR", err.err);
             assertEq(2, err.desc.size());

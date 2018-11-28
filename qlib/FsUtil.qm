@@ -504,7 +504,7 @@ public namespace FsUtil {
                 } else {
                     remove_file(sub_path);
                 }
-            } catch (err) {
+            } catch (hash<ExceptionInfo> err) {
                 if (fail_immediately) {
                     rethrow;
                 }
@@ -599,7 +599,7 @@ public namespace FsUtil {
                 stat1 = hlstat(path1);
                 stat2 = hlstat(path2);
             }
-        } catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (ignore_errors) {
                 return False;
             }
@@ -765,7 +765,7 @@ public namespace FsUtil {
                     # (only file and symlink are supported)
                     copy_file(src_path, dst_path, follow_symlinks, False);
                 }
-            } catch (err) {
+            } catch (hash<ExceptionInfo> err) {
                 if (fail_immediately) {
                     rethrow;
                 }
