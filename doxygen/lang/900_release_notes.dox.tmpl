@@ -181,6 +181,10 @@
       - Command line utils display source line code when interrupted
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
+    - fixed a bug with simple additional and subtraction with mixed @ref timeout_type "timeout" and
+      @ref date_type "date" values; updated docs that arithmetic operations with timeout values are not recommended
+      and can return unexpected values in some situations
+      (<a href="https://github.com/qorelanguage/qore/issues/3157">issue 3157</a>)
     - fixed a bug in deterministic garbage collection where @ref Qore::Thread::Queue "Queue" objects were not scanned
       and therefore cycles due to @ref Qore::Thread::Queue "Queue" elements would cause a memory and reference leak
       (<a href="https://github.com/qorelanguage/qore/issues/3101">issue 3101</a>)
