@@ -35,7 +35,7 @@
 
 #include "qore/intern/QoreListIterator.h"
 
-#include <assert.h>
+#include <cassert>
 
 extern QoreClass* QC_LISTHASHITERATOR;
 

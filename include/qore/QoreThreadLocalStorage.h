@@ -33,8 +33,8 @@
 
 #define _QORE_QORETHREADLOCALSTORAGE_H
 
+#include <cassert>
 #include <pthread.h>
-#include <assert.h>
 
 //! provides access to thread-local storage
 /** This class is just a simple wrapper for pthread_key_t.  It does not provide

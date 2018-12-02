@@ -38,14 +38,13 @@
 #include <qore/qore_bitopts.h>
 #include <qore/safe_dslist>
 
-#include <time.h>
-#include <string.h>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <strings.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
 #include <sys/types.h>
-
 #include <vector>
 
 //! signal vector

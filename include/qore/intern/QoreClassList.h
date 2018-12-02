@@ -37,8 +37,8 @@
 
 #include <qore/QoreClass.h>
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 
 struct cl_rec_t {
     QoreClass* cls = nullptr;

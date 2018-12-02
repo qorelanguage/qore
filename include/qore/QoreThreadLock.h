@@ -33,14 +33,12 @@
 
 #define _QORE_QORETHREADLOCK_H
 
+#include <cassert>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <pthread.h>
-
-#include <assert.h>
-
-#include <string.h>
-#include <stdio.h>
-#include <signal.h>
-#include <stdlib.h>
 
 //! provides a mutually-exclusive thread lock
 /** This class is just a simple wrapper for pthread_mutex_t.  It does not provide any special

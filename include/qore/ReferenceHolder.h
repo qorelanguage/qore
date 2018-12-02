@@ -35,7 +35,7 @@
 #ifndef QORE_REFERENCE_HOLDER_H_
 #define QORE_REFERENCE_HOLDER_H_
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <utility>
 
 //! a templated class to manage a reference count of an object that can throw a Qore-language exception when dereferenced

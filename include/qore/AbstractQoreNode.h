@@ -39,7 +39,7 @@
 
 #include <string>
 
-#include <assert.h>
+#include <cassert>
 
 #define FMT_YAML_SHORT -2
 #define FMT_NONE       -1

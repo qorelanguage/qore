@@ -45,8 +45,8 @@
 #include <qore/AbstractPrivateData.h>
 #include "qore/intern/DatasourcePool.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 DLLEXPORT extern qore_classid_t CID_DATASOURCEPOOL;
 DLLLOCAL extern QoreClass* QC_DATASOURCEPOOL;
