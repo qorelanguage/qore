@@ -35,8 +35,8 @@
 #include "qore/intern/qore_date_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
-#include <stdio.h>
-#include <time.h>
+#include <cstdio>
+#include <ctime>
 #include <sys/time.h>
 
 static int qd_get_digit(unsigned& rv, const char*& p, unsigned factor) {

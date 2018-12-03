@@ -34,7 +34,7 @@
 
 #include <qore/safe_dslist>
 
-#include <assert.h>
+#include <cassert>
 
 #define Q_MAX_EXCEPTIONS 10
 

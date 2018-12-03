@@ -33,19 +33,18 @@
 #include "qore/intern/ql_file.h"
 #include "qore/intern/QoreDir.h"
 
-#include <sys/types.h>
+#include <cerrno>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <errno.h>
-
 
 #ifdef _Q_WINDOWS
-#include <io.h>
 #include <direct.h>
+#include <io.h>
 #else
+#include <climits>
+#include <cstdlib>
 #include <sys/param.h>
-#include <limits.h>
-#include <stdlib.h>
 #endif
 
 #ifdef HAVE_GLOB_H

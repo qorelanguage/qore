@@ -33,9 +33,9 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/qore_list_private.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 QoreGetOpt::~QoreGetOpt() {
    getopt_node_list_t::iterator i;

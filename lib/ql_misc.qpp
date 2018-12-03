@@ -38,9 +38,9 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
-#include <string.h>
-#include <time.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstring>
+#include <ctime>
 
 static const QoreFunction* get_builtin_func(const QoreStringNode* str, ExceptionSink* xsink) {
    const qore_ns_private* ns;

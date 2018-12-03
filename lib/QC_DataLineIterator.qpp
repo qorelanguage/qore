@@ -28,8 +28,8 @@
   information.
 */
 
-#include <string.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstring>
 
 #include "qore/Qore.h"
 #include "qore/intern/DataLineIterator.h"

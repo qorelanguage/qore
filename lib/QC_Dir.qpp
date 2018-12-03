@@ -35,8 +35,8 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/qore_qd_private.h"
 
+#include <cerrno>
 #include <sys/types.h>
-#include <errno.h>
 
 QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const QoreString *regex, int regex_options, bool full) const {
     AutoLocker al(m);

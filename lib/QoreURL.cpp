@@ -32,10 +32,9 @@
 #include <qore/Qore.h>
 #include <qore/QoreURL.h>
 
-#include <string.h>
-#include <ctype.h>
-#include <stdlib.h>
-
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
 #include <string>
 
 struct qore_url_private {

@@ -36,7 +36,7 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include <qore/minitest.hpp>
 
-#include <assert.h>
+#include <cassert>
 
 #ifdef DEBUG_TESTS
 #  include "tests/QoreClassList_tests.cpp"
