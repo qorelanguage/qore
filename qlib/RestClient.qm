@@ -37,7 +37,7 @@
 %enable-all-warnings
 
 %requires Mime >= 1.3
-%requires(reexport) ConnectionProvider >= 1.1
+%requires(reexport) ConnectionProvider >= 1.2
 %requires(reexport) RestSchemaValidator >= 1.0
 %requires Swagger >= 0.1
 
@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.5";
+    version = "1.6";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -123,6 +123,9 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_6 RestClient v1.6
+    - all connection clases have unified constructor
 
     @subsection restclientv1_5 RestClient v1.5
     - added the @ref RestClient::RestConnection::getConstructorInfo() "RestConnection::getConstructorInfo()"
@@ -946,16 +949,37 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             const OptionList = Options.keys();
         }
 
-        #! creates the RestConnection object
+        #! DEPRECATED: creates the RestConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL (potentially with password info)
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : HttpBasedConnection(name, desc, url, monitor, opts, urlh) {
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : HttpBasedConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
             real_opts = {"url": real_url} + opts;
+        }
+
+        #! creates the RestConnection connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+
+            @par Additional Attributes
+
+                - \c error a custom error string
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : HttpBasedConnection(name, description, url, attributes, options) {
+            real_opts = {"url": real_url} + options;
         }
 
         #! returns a @ref RestClient::RestClient "RestClient" object
@@ -1009,9 +1033,15 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             return "rest";
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static RestConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new RestConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+            return new RestConnection(name, desc, url, attributes, opts ?? {});
         }
     }
 }
