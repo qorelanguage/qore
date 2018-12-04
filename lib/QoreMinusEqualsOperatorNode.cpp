@@ -52,13 +52,12 @@ void QoreMinusEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar *oflag,
         // case it takes the value of the right side, or if it's anything else it's
         // converted to an integer, so we just check if it can be assigned an
         // integer value below, this is enough
-        if (QoreTypeInfo::returnsSingle(ti)) {
+        if (QoreTypeInfo::returnsSingle(ti) && !QoreTypeInfo::equal(ti, timeoutTypeInfo)) {
             check_lvalue_int(loc, ti, "-=");
             ti = bigIntTypeInfo;
             val = makeSpecialization<QoreIntMinusEqualsOperatorNode>();
             return;
-        }
-        else {
+        } else {
             ti = nullptr;
         }
     }
@@ -114,14 +113,12 @@ QoreValue QoreMinusEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink
         return v.minusEqualsFloat(new_right->getAsFloat());
     else if (vtype == NT_NUMBER) {
         v.minusEqualsNumber(*new_right, "<-= operator>");
-    }
-    else if (vtype == NT_DATE) {
+    } else if (vtype == NT_DATE) {
         // get a relative date-time value
         DateTime date(*new_right);
         //DateTimeValueHelper date(*new_right);
         v.assign(v.getValue().get<DateTimeNode>()->subtractBy(date));
-    }
-    else if (vtype == NT_HASH) {
+    } else if (vtype == NT_HASH) {
         if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {
             v.ensureUnique();
             QoreHashNode* vh = v.getValue().get<QoreHashNode>();
@@ -137,14 +134,12 @@ QoreValue QoreMinusEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink
                     if (*xsink)
                         return QoreValue();
                 }
-            }
-            else {
+            } else {
                 QoreStringValueHelper str(*new_right);
                 vh->removeKey(*str, xsink);
             }
         }
-    }
-    else if (vtype == NT_OBJECT) {
+    } else if (vtype == NT_OBJECT) {
         if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {
             QoreObject *o = v.getValue().get<QoreObject>();
 
@@ -159,18 +154,26 @@ QoreValue QoreMinusEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink
                     if (*xsink)
                         return QoreValue();
                 }
-            }
-            else {
+            } else {
                 QoreStringValueHelper str(*new_right);
                 o->removeMember(*str, xsink);
             }
         }
-    }
-    else // do integer minus-equals
-        return v.minusEqualsBigInt(new_right->getAsBigInt());
+    } else {
+        // issue #3157: if the lvalue is a timeout, then convert any date/time value as if it were a timeout too
+        if (new_right->getType() == NT_DATE && QoreTypeInfo::equal(v.getTypeInfo(), timeoutTypeInfo)) {
+            int64 ms = new_right->get<const DateTimeNode>()->getRelativeMilliseconds();
+            // do minus-equals with milliseconds
+            return v.minusEqualsBigInt(ms);
+        }
 
-    if (*xsink)
+        // do integer minus-equals
+        return v.minusEqualsBigInt(new_right->getAsBigInt());
+    }
+
+    if (*xsink) {
         return QoreValue();
+    }
 
     // here we know that v has a value
     // reference return value and return

@@ -34,15 +34,6 @@
 #define _QORE_QOREPLUSOPERATORNODE_H
 
 class QorePlusOperatorNode : public QoreBinaryOperatorNode<> {
-protected:
-    const QoreTypeInfo* returnTypeInfo;
-
-    DLLLOCAL static QoreString plus_str;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo);
-
 public:
     DLLLOCAL QorePlusOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBinaryOperatorNode<>(loc, left, right), returnTypeInfo(nullptr) {
     }
@@ -69,6 +60,17 @@ public:
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
         return copyBackgroundExplicit<QorePlusOperatorNode>(xsink);
     }
+
+protected:
+    const QoreTypeInfo* returnTypeInfo;
+    bool check_timeout_date_variant = false;
+    bool check_date_timeout_variant = false;
+
+    DLLLOCAL static QoreString plus_str;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual void parseInitImpl(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo);
 };
 
 #endif

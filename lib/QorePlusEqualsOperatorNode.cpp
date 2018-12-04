@@ -65,14 +65,14 @@ void QorePlusEqualsOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, 
         // case it takes the value of the right side, or if it's anything else it's
         // converted to an integer, so we just check if it can be assigned an
         // integer value below, this is enough
-        if (QoreTypeInfo::returnsSingle(ti)) {
+        if (QoreTypeInfo::returnsSingle(ti) && !QoreTypeInfo::equal(ti, timeoutTypeInfo)) {
             check_lvalue_int(loc, ti, "+=");
             ti = bigIntTypeInfo;
             val = makeSpecialization<QoreIntPlusEqualsOperatorNode>();
             return;
-        }
-        else
+        } else {
             ti = nullptr;
+        }
     }
     typeInfo = ti;
 }
@@ -104,8 +104,7 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
             if (v.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo)))
                 return QoreValue();
             vtype = v.getType();
-        }
-        else {
+        } else {
             if (!new_right->isNothing()) {
                 // assign rhs to lhs (take reference for plusequals)
                 if (v.assign(new_right.takeReferencedValue()))
@@ -149,21 +148,17 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
             QoreStringNode* vs = v.getValue().get<QoreStringNode>();
             vs->concat(*str, xsink);
         }
-    }
-    else if (vtype == NT_NUMBER) {
+    } else if (vtype == NT_NUMBER) {
         v.plusEqualsNumber(*new_right, "<+= operator>");
-    }
-    else if (vtype == NT_FLOAT) {
+    } else if (vtype == NT_FLOAT) {
         v.plusEqualsFloat(new_right->getAsFloat());
-    }
-    else if (vtype == NT_DATE) {
+    } else if (vtype == NT_DATE) {
         if (!new_right->isNullOrNothing()) {
             // gets a relative date/time value from the value
             DateTime date(*new_right);
             v.assign(v.getValue().get<DateTimeNode>()->add(date));
         }
-    }
-    else if (vtype == NT_BINARY) {
+    } else if (vtype == NT_BINARY) {
         if (!new_right->isNullOrNothing()) {
             v.ensureUnique();
             BinaryNode *b = v.getValue().get<BinaryNode>();
@@ -177,8 +172,15 @@ QoreValue QorePlusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink*
                 b->append(str->getBuffer(), str->strlen());
             }
         }
-    }
-    else { // do integer plus-equals
+    } else {
+        // issue #3157: if the lvalue is a timeout, then convert any date/time value as if it were a timeout too
+        if (new_right->getType() == NT_DATE && QoreTypeInfo::equal(v.getTypeInfo(), timeoutTypeInfo)) {
+            int64 ms = new_right->get<const DateTimeNode>()->getRelativeMilliseconds();
+            // do minus-equals with milliseconds
+            return v.plusEqualsBigInt(ms);
+        }
+
+        // do integer plus-equals
         v.plusEqualsBigInt(new_right->getAsBigInt());
     }
     if (*xsink)
