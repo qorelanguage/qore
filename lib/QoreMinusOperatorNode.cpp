@@ -43,6 +43,22 @@ QoreValue QoreMinusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsin
     qore_type_t lt = lh->getType();
     qore_type_t rt = rh->getType();
 
+    // issue #3157: try to handle timeout - date and vice-versa specially
+    if (check_timeout_date_variant && lt == NT_INT && rt == NT_DATE) {
+        int64 secs = lh->getAsBigInt() / 1000;
+        int64 ms = lh->getAsBigInt() - (secs * 1000);
+        SimpleRefHolder<DateTimeNode> l(DateTimeNode::makeRelativeFromSeconds(secs, static_cast<int>(ms)));
+        return l->subtractBy(rh->get<DateTimeNode>());
+    }
+
+    if (check_date_timeout_variant && lt == NT_DATE && rt == NT_INT) {
+        int64 secs = rh->getAsBigInt() / 1000;
+        int64 ms = rh->getAsBigInt() - (secs * 1000);
+        DateTime r;
+        r.setRelativeDateSeconds(secs, static_cast<int>(ms));
+        return lh->get<DateTimeNode>()->subtractBy(r);
+    }
+
     if (lt == NT_DATE || rt == NT_DATE) {
         DateTimeNodeValueHelper l(*lh);
         DateTimeValueHelper r(*rh);
@@ -107,6 +123,15 @@ void QoreMinusOperatorNode::parseInitImpl(QoreValue& val, LocalVar* oflag, int p
         val = rv.takeReferencedValue();
         parseTypeInfo = val.getTypeInfo();
         return;
+    }
+
+    // issue #3157: try to handle timeout + date specially
+    if (QoreTypeInfo::equal(leftTypeInfo, timeoutTypeInfo)
+        && QoreTypeInfo::parseReturns(rightTypeInfo, NT_DATE)) {
+        check_timeout_date_variant = true;
+    } else if (QoreTypeInfo::equal(rightTypeInfo, timeoutTypeInfo)
+        && QoreTypeInfo::parseReturns(leftTypeInfo, NT_DATE)) {
+        check_date_timeout_variant = true;
     }
 
     // if either side is a date, then the return type is date (highest priority)

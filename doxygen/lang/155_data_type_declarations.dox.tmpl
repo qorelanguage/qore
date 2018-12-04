@@ -460,6 +460,13 @@ timeout sub foo(timeout to = 1250ms) {
 }
     @endcode
 
+    @note Assigned variables of this type return integers where a single unit equals one millisecond; when an integer
+    is converted to a date/time value, it is converted with a single unit equalling one second, therefore unexpected
+    values can result when performing arithmetic operations with these values.  %Qore handles simple addition and
+    subtraction correctly with mixed date/time values and timeout variables when the variable is used directly in the
+    operation, but other operations will most likely not produce the expected results.  It's recommended to avoid doing
+    direct arithmetic with timeout values for this reason.
+
     <hr>
     @section softint_type softint
 
@@ -916,6 +923,13 @@ sub foo(*code c) {
 sub foo(*timeout c) {
 }
     @endcode
+
+    @note Assigned variables of this type return integers where a single unit equals one millisecond; when an integer
+    is converted to a date/time value, it is converted with a single unit equalling one second, therefore unexpected
+    values can result when performing arithmetic operations with these values.  %Qore handles simple addition and
+    subtraction correctly with mixed date/time values and timeout variables when the variable is used directly in the
+    operation, but other operations will most likely not produce the expected results.  It's recommended to avoid doing
+    direct arithmetic with timeout values for this reason.
 
     <hr>
     @section reference_or_nothing_type *reference
