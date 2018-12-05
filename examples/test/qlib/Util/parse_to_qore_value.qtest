@@ -12,8 +12,18 @@
 
 public class ParseToQoreValueTest inherits QUnit::Test {
     constructor() : Test ("ParseToQoreValueTest", "1.0") {
-        addTestCase ("Tests for parse_to_qore_value()", \parseToQoreValueTest());
+        addTestCase("issue 3138", \issue3138());
+        addTestCase("Tests for parse_to_qore_value()", \parseToQoreValueTest());
         set_return_value(main());
+    }
+
+    issue3138() {
+        assertEq((), parse_to_qore_value("()"));
+        assertEq({}, parse_to_qore_value("{}"));
+        assertEq((1,), parse_to_qore_value("(1,)"));
+        assertEq({"a": NOTHING}, parse_to_qore_value("a="));
+        assertEq({"a": ("x",)}, parse_to_qore_value("a=(x,)"));
+        assertThrows("PARSE-ERROR", \parse_to_qore_value(), "a,=x");
     }
 
     parseToQoreValueTest() {
