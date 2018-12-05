@@ -34,10 +34,10 @@
 #include "qore/intern/QoreClosureNode.h"
 #include "qore/intern/QoreParseHashNode.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #define TRACK_REFS 0
 

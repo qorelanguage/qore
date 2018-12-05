@@ -32,8 +32,8 @@
 #ifndef _QORE_INPUTSTREAMLINEITERATOR_H
 #define _QORE_INPUTSTREAMLINEITERATOR_H
 
-#include <string.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstring>
 
 #include "qore/InputStream.h"
 #include "qore/intern/BufferedStreamReader.h"

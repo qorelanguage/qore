@@ -38,9 +38,6 @@
 #include "qore/intern/QoreDir.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
-#include <errno.h>
-#include <string.h>
-
 // dlopen() flags
 #define QORE_DLOPEN_FLAGS RTLD_LAZY|RTLD_GLOBAL
 
@@ -50,17 +47,18 @@
 #include "qore/intern/glob.h"
 #endif
 
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdarg.h>
-
-#include <string>
+#include <cctype>
+#include <cerrno>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <map>
-#include <vector>
 #include <set>
+#include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <vector>
 
 static const qore_mod_api_compat_s qore_mod_api_list_l[] = {{0, 22}};
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))

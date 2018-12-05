@@ -36,14 +36,16 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include <qore/minitest.hpp>
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cerrno>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include <fcntl.h>
-#include <signal.h>
-#include <sys/types.h>
 #include <sys/param.h>
+#include <sys/types.h>
 #include <unistd.h>
+
 #ifdef HAVE_GRP_H
 #include <grp.h>
 #endif
@@ -51,8 +53,6 @@
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
-
-#include <time.h>
 
 #ifdef HAVE_GLOB_H
 #include <glob.h>
@@ -64,9 +64,9 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <ifaddrs.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #ifdef AF_LINK
 #include <net/if_dl.h>
 #endif

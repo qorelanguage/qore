@@ -35,10 +35,9 @@
 
 #include "qore/intern/VRMutex.h"
 
-#include <stdlib.h>
-#include <assert.h>
-#include <string.h>
-
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
 #include <map>
 #include <set>
 #include <vector>

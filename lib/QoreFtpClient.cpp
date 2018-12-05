@@ -39,13 +39,13 @@
 #include "qore/intern/QC_Queue.h"
 #include "qore/intern/qore_socket_private.h"
 
-#include <errno.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define FTPDEBUG 5
 

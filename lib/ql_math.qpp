@@ -33,11 +33,12 @@
 #include "qore/intern/ql_math.h"
 #include "qore/intern/qore_number_private.h"
 
+#include <climits>
 #include <cmath>
-#include <stdlib.h>
-#include <stdio.h>
-#include <limits.h>
+#include <cstdio>
+#include <cstdlib>
 #include <string>
+
 using namespace std;
 
 static double minus_infinity() {

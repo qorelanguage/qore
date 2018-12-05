@@ -38,8 +38,8 @@
 #include "qore/intern/QoreSQLStatement.h"
 #include "qore/intern/QC_SQLStatement.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 void qore_ds_private::statementExecuted(int rc) {
    // we always assume we are in a transaction after executing a transaction-relevant statement

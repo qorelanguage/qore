@@ -48,9 +48,8 @@ extern QoreHashNode* ENV;
 #include "qore/vector_map"
 #include "qore/vector_set"
 
-#include <stdarg.h>
-#include <errno.h>
-
+#include <cerrno>
+#include <cstdarg>
 #include <map>
 #include <vector>
 

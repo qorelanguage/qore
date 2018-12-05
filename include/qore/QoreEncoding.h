@@ -41,12 +41,10 @@
 #include <qore/common.h>
 #include <qore/QoreThreadLock.h>
 
-#include <strings.h>
-#include <string.h>
-
+#include <cstring>
 #include <map>
-
 #include <string>
+#include <strings.h>
 
 //! for multi-byte character set encodings: gives the length of the string in characters
 typedef qore_size_t (*mbcs_length_t)(const char* str, const char* end, bool &invalid);

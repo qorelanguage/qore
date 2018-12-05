@@ -34,9 +34,9 @@
 #include "qore/intern/QoreRegexSubst.h"
 #include "qore/intern/qore_program_private.h"
 
-#include <stdlib.h>
+#include <cctype>
+#include <cstdlib>
 #include <strings.h>
-#include <ctype.h>
 
 void QoreRegexSubst::init() {
    p = 0;

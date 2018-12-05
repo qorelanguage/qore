@@ -33,8 +33,8 @@
 #include "qore/intern/QoreQueueIntern.h"
 #include "qore/intern/QoreObjectIntern.h"
 
+#include <cerrno>
 #include <sys/time.h>
-#include <errno.h>
 
 void Queue::deref(ExceptionSink* xsink) {
     if (ROdereference()) {

@@ -38,11 +38,9 @@
 #include <qore/AbstractPrivateData.h>
 
 #include <fcntl.h>
-
+#include <string>
 #include <sys/file.h>
 #include <unistd.h>
-
-#include <string>
 
 /*
   getchar from stdio.h(included via string on some platforms)
