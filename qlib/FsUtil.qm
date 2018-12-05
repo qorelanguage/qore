@@ -478,7 +478,7 @@ public namespace FsUtil {
     #! Removes the filesystem tree specified by path
     /** @param path path to a filesystem tree root which should be removed
         @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
-                                on the first error instead of accumulating all exceptions
+                                on the first error instead of accumulating all exceptions (True by default)
 
         @throws REMOVE-TREE-ERROR If something goes wrong in the recursive calls. In such case the rest of the tree is
                                   removed anyway and this exception's description contains a list of exceptions thrown
@@ -619,7 +619,7 @@ public namespace FsUtil {
         @param merge flag indicating whether source should be merged into destination if the latter exists
                      (False by default)
         @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
-                                on the first error instead of accumulating all exceptions (False by default)
+                                on the first error instead of accumulating all exceptions (True by default)
         @param depth determines how many levels of subdirectories and files should be copied
 
         @throws SAME-DIR-ERROR If both paths point to the same file.
@@ -645,7 +645,7 @@ public namespace FsUtil {
         returns path to the new copy.
     */
     string sub copy_tree_internal(string source, string destination, bool follow_symlinks=False, bool overwrite=False,
-                                  bool merge=False, bool fail_immediately=False, *int depth) {
+                                  bool merge=False, bool fail_immediately=True, *int depth) {
 
         if (same_file(source, destination, follow_symlinks, True)) {
             throw "SAME-DIR-ERROR", sprintf("'%s' and '%s' point to the same directory.", source, destination);
@@ -818,7 +818,7 @@ public namespace FsUtil {
         @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
         @param overwrite flag indicating whether destination should be overwritten if exists (False by default)
         @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
-                                on the first error instead of accumulating all exceptions (False by default)
+                                on the first error instead of accumulating all exceptions (True by default)
         @param depth determines how many levels of subdirectories and files should be copied
 
         @throws SAME-DIR-ERROR If both paths point to the same file.
@@ -836,7 +836,7 @@ public namespace FsUtil {
         If the whole tree is copied correctly, the function returns path to the new copy.
     */
     public string sub copy_tree(string source, string destination, bool follow_symlinks=False, bool overwrite=False,
-                                bool fail_immediately=False) {
+                                bool fail_immediately=True) {
         return copy_tree_internal(source, destination, follow_symlinks, overwrite, False, fail_immediately);
     }
 
@@ -868,7 +868,7 @@ public namespace FsUtil {
         @param destination path the copy should be merged into (must be a directory or must not exist)
         @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
         @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
-                                on the first error instead of accumulating all exceptions (False by default)
+                                on the first error instead of accumulating all exceptions (True by default)
         @param depth determines how many levels of subdirectories and files should be copied
 
         @throws SAME-DIR-ERROR If both paths point to the same file.
@@ -895,7 +895,7 @@ public namespace FsUtil {
         @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
         @param overwrite flag indicating whether destination should be overwritten if exists (False by default)
         @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
-                                on the first error instead of accumulating all exceptions (False by default)
+                                on the first error instead of accumulating all exceptions (True by default)
         @param depth determines how many levels of subdirectories and files should be copied
 
         This wrapper function exists for convenience. Source can be a regular file, symlink or a directory,
