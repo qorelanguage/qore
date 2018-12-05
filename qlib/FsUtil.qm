@@ -855,9 +855,9 @@ public namespace FsUtil {
         copied correctly, the function returns path to the new copy.
     */
     public string sub copy_path(string source, string destination, bool follow_symlinks=False, bool overwrite=False,
-                                bool merge=False, *int depth) {
+                                bool fail_immediately=True, *int depth) {
         if (is_dir(source)) {
-            return copy_tree(source, destination, follow_symlinks, overwrite);
+            return copy_tree(source, destination, follow_symlinks, overwrite, fail_immediately);
         } else {
             return copy_file(source, destination, follow_symlinks, overwrite);
         }
