@@ -1030,7 +1030,7 @@ sfrest.logout();
         */
         deprecated
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
-            : RestConnection(name, desc, url, monitor, opts, urlh) {
+            : RestConnection(name, desc, url, {"monitor": monitor}, opts) {
             real_opts = ("url": real_url) + urlh.("username", "password") + opts;
         }
 

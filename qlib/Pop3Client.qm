@@ -987,6 +987,7 @@ pop3.clearStats();
 
             @deprecated since Qore 0.9
         */
+        deprecated
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
             : AbstractConnection(name, desc, url, {"monitor": monitor}, opts) {
         }

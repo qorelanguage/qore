@@ -179,7 +179,7 @@ public namespace ConnectionProvider {
         bool up = False;  #!< a boolean vaue indicating the connection is known to be up (will be @ref Qore::False "False" if not checked)
         *date updated;    #!< the date/time value of the update (or @ref nothing if not updated)
         string url;       #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref Qore::True "True")
-        hash url_hash;    #!< a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
+        hash url_hash;    #!< a hash of URL information as returned by AbstractConnection::parseUrl()
         bool enabled;     #!< a boolean value indicating if the connection should be enabled or not. This flag does not affect anything by default, it is for user re-implementations
     }
 
@@ -338,7 +338,7 @@ string connstr = get_connection(str);
             #! connection options
             *hash opts;
 
-            #! broken down URL hash (as returned by @ref Qore::parse_url())
+            #! broken down URL hash (as returned by AbstractConnection::parseUrl())
             hash urlh;
 
             #! date/time of last check/ping
@@ -382,7 +382,7 @@ string connstr = get_connection(str);
         constructor(string n_name, string n_desc, string n_url, bool n_monitor, *hash n_opts, hash n_urlh, *string n_safe_url,
                     *bool n_enabled) {
             hash attributes = {
-                "monitor": n_monitor ?? True,
+                "monitor": n_monitor,
                 "enabled": n_enabled ?? True,
             };
             constructorInit(n_name, n_desc, n_url, attributes, n_opts ?? {});
@@ -402,22 +402,6 @@ string connstr = get_connection(str);
             For now there are:
                 - \c enabled, default \c True
                 - \c monitor, default \c True
-
-            @par Safe URL
-
-            Public attribute \c safe_url is created from the \c url calling
-            AbstractConnection::getSafeUrl(). Reimplement this method if your
-            connection does not follow standard URL in form:
-            @code
-            schema://user:pass@hostname:port/path
-            @endcode
-
-            @par URL parsing
-
-            The \c url argument is parsed by AbstractConnection::parseUrl().
-            @ref Qore::parse_url() is called in the base implementation.
-            Reimplement \c parseUrl() if your connection uses different URL schema.
-            Like eg. Qore::Datasource connection string.
          */
         constructor(string name, string description, string url, hash attributes = {}, hash options = {}) {
             constructorInit(name, description, url, attributes, options);
@@ -450,15 +434,32 @@ string connstr = get_connection(str);
             self.opts = options;
         }
 
+        #! Parse the URL to a hash
+        /** @param url a string with url
+            @return hash untyped, depends on the parsing method
+
+            The base implementation calls @ref Qore::parse_url().
+
+            Reimplement \c parseUrl() if your connection uses different URL schema.
+            Like eg. Qore::Datasource connection string.
+         */
         private hash parseUrl(string url) {
             return Qore::parse_url(url);
         }
 
         #! creates a "safe" URL string with password information removed
-        /** This base/default implementation expects the \c urlh
+        /** @param urlh a parsed hash (as returned from parseUrl()
+            @return string with safe URL
+
+            This base/default implementation expects the \c urlh
             as returned by @ref Qore::parse_url())
 
-            @return a "safe" URL string with password information removed
+            Public attribute \c safe_url is created from the \c url calling
+            AbstractConnection::getSafeUrl(). Reimplement this method if your
+            connection does not follow standard URL in form:
+            @code
+schema://user:pass@hostname:port/path
+            @endcode
          */
         private string getSafeUrl(hash urlh) {
             string url = urlh.protocol + "://";
@@ -927,6 +928,7 @@ string connstr = get_connection(str);
         #! DEPRECATED: static constructor
         /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
          */
+        deprecated
         static HttpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
             hash attributes = {
                 "monitor": monitor,

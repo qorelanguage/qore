@@ -959,6 +959,7 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
 
             @deprecated since Qore 0.9
         */
+        deprecated
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
             : HttpBasedConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
             real_opts = {"url": real_url} + opts;

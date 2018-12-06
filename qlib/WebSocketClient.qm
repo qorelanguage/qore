@@ -624,11 +624,12 @@ ws.clearStats();
 
             @deprecated since Qore 0.9
         */
+        deprecated
         constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
             : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
         }
 
-        #! creates the RestConnection connection object
+        #! creates the WebSocketConnectionObject connection object
         /** @param name the name of the connection
             @param description connection description
             @param url connection URL (potentially with password info)
