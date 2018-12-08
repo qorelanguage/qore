@@ -241,7 +241,7 @@ QoreHashNode* qore_hash_private::newComplexHashFromHash(const QoreTypeInfo* type
             // check types
             HashAssignmentHelper hah(i);
             QoreValue qv(hash_assignment_priv::get(hah)->swap(QoreValue()));
-            QoreTypeInfo::acceptInputMember(vti, i.getKey(), qv, xsink);
+            QoreTypeInfo::acceptInputKey(vti, i.getKey(), qv, xsink);
             hash_assignment_priv::get(hah)->swap(qv);
             if (*xsink)
                 return nullptr;
@@ -982,10 +982,10 @@ QoreValue hash_assignment_priv::swapImpl(QoreValue v) {
 void hash_assignment_priv::assign(QoreValue v, ExceptionSink* xsink) {
     ValueHolder val(v, xsink);
     if (h.hashdecl) {
-        if (typed_hash_decl_private::get(*h.hashdecl)->runtimeAssignKey(om->key.c_str(), val, xsink))
+        if (typed_hash_decl_private::get(*h.hashdecl)->runtimeAssignKey(om->key.c_str(), val, xsink)) {
             return;
-    }
-    else if (h.complexTypeInfo) {
+        }
+    } else if (h.complexTypeInfo) {
         QoreTypeInfo::acceptInputKey(QoreTypeInfo::getUniqueReturnComplexHash(h.complexTypeInfo), om->key.c_str(), *val, xsink);
         // allow this function to be called with xsink = nullptr, otherwise the *xsink will assert
         // anyway if there is an exception it would dump core when the exception is raised
