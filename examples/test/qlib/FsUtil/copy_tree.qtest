@@ -291,9 +291,13 @@ public class CopyTreeTest inherits QUnit::Test {
         bool exception_thrown = False;
         # without overwrite it will complain about destination path existing
         assertThrows("PATH-EXISTS-ERROR", \copy_tree(), (source_path, dest_dir));
-        # with overwrite it will fail because of the permissions and COPY-TREE-ERROR will be thrown
+
+        # with overwrite it will fail because of the permissions
+        assertThrows("FILE-OPEN2-ERROR", \copy_tree(), (source_path, dest_dir, NOTHING, True));
+
+        # and now with fail_immediately=False COPY-TREE-ERROR will be thrown
         try {
-            copy_tree(source_path, dest_dir, NOTHING, True);
+            copy_tree(source_path, dest_dir, NOTHING, True, False);
         } catch (hash<ExceptionInfo> err) {
             exception_thrown = True;
             assertEq("COPY-TREE-ERROR", err.err);
@@ -305,9 +309,13 @@ public class CopyTreeTest inherits QUnit::Test {
         remove_tree(dest_dir);
 
         # try that again with follow_symlinks (i.e. the link will also be unreadable)
+        assertThrows("FILE-OPEN2-ERROR", \copy_tree(), (source_path, dest_dir, True));
+        remove_tree(dest_dir);
+
+        # and now with fail_immediately=False COPY-TREE-ERROR will be thrown
         exception_thrown = False;
         try {
-            copy_tree(source_path, dest_dir, True);
+            copy_tree(source_path, dest_dir, True, NOTHING, False);
         } catch (hash<ExceptionInfo> err) {
             exception_thrown = True;
             assertEq("COPY-TREE-ERROR", err.err);
