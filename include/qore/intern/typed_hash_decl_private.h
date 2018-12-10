@@ -180,7 +180,11 @@ public:
             return -1;
         }
         QoreTypeInfo::acceptInputKey(mem->getTypeInfo(), key, *val, xsink);
-        return *xsink ? -1 : 0;
+        if (*xsink) {
+            xsink->appendLastDescription(" (while assigning to hashdecl '%s')", name.c_str());
+            return -1;
+        }
+        return 0;
     }
 
     DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation* loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const;
@@ -285,6 +289,8 @@ protected:
             from_module = mod_name;
         }
     }
+
+    DLLLOCAL int initHashIntern(QoreHashNode* h, const QoreHashNode* init, ExceptionSink* xsink) const;
 };
 
 #endif

@@ -49,11 +49,17 @@
 
 #include "ast_parser.hpp"
 
+// issue #3166: for DLLEXPORT for Qore symbols; Qore headers cannot be included directly here
+#include "qore/common.h"
+
 #define YYLTYPE ASTParseLocation
 
 #define YY_USER_ACTION { yylloc->update(yylineno, yyleng, yytext); }
 
 #define isoctaldigit(x) (x >= '0' && x <= '7')
+
+// issue #3166: use q_strtod() from Qore and avoid warnings
+DLLEXPORT double q_strtod(const char* str);
 
 static int ascii_to_octal(char c) {
     return c - '0';
@@ -109,14 +115,6 @@ static char* trim_inplace(const char* str) {
 static char* remove_quotes(char* str) {
     str[strlen(str) - 1] = '\0';
     return str + 1;
-}
-
-double q_strtod(const char* str) {
-    std::istringstream istr(str);
-    istr.imbue(std::locale::classic());
-    double rv;
-    istr >> rv;
-    return rv;
 }
 
 static int64_t parse_get_integer(const char* str, bool& err) {
