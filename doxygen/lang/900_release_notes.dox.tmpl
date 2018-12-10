@@ -128,6 +128,7 @@
         - The \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
           connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
         - The \c AbstractConnection has new public flag \c enabled. Also constructors are updated. (<a href="https://github.com/qorelanguage/qore/issues/3001">issue 3001</a>)
+        - The \c AbstractConnection has new constructors, old ones are obsolete. Custom URL/URI parsing is possible (<a href="https://github.com/qorelanguage/qore/issues/3162">issue 3162</a>)
       - <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> module changes:
         - Added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module changes:
@@ -163,6 +164,9 @@
       - <a href="../../modules/Util/html/index.html">Util</a> module updates:
         - Added public function \c parse_ranges() (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
         - Added public function \c check_ip_address() (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
+        - Updated \c parse_to_qore_value() to support single-element lists and hashes with curly brackets including
+          empty hashes
+          (<a href="https://github.com/qorelanguage/qore/issues/3138">issue 3138</a>)
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
         - Added public methods \c AbstractCsvIterator::getRawLine() and \c AbstractCsvIterator::getRawLineValues() (<a href="https://github.com/qorelanguage/qore/issues/2739">issue 2739</a>)
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
@@ -181,6 +185,10 @@
       - Command line utils display source line code when interrupted
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
+    - fixed a bug with simple additional and subtraction with mixed @ref timeout_type "timeout" and
+      @ref date_type "date" values; updated docs that arithmetic operations with timeout values are not recommended
+      and can return unexpected values in some situations
+      (<a href="https://github.com/qorelanguage/qore/issues/3157">issue 3157</a>)
     - fixed a bug in deterministic garbage collection where @ref Qore::Thread::Queue "Queue" objects were not scanned
       and therefore cycles due to @ref Qore::Thread::Queue "Queue" elements would cause a memory and reference leak
       (<a href="https://github.com/qorelanguage/qore/issues/3101">issue 3101</a>)

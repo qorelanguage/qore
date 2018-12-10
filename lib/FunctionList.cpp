@@ -32,7 +32,7 @@
 #include "qore/intern/FunctionList.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 
-#include <string.h>
+#include <cstring>
 
 ResolvedCallReferenceNode* FunctionEntry::makeCallReference(const QoreProgramLocation* loc) const {
    return new LocalFunctionCallReferenceNode(loc, func);

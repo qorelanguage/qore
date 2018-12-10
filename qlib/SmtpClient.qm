@@ -827,17 +827,34 @@ smtp.clearStats();
         @since %SmtpClient 1.6
     */
     public class SmtpConnection inherits ConnectionProvider::AbstractConnection {
-        #! creates the SmtpConnection object
+        #! DEPRECATED: creates the SmtpConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts) {
             #code log = sub (string fmt) { vprintf(fmt + "\n", argv); };
             #opts.dbglog = opts.log = log;
+        }
+
+        #! creates the SmtpConnection connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
         }
 
         #! returns \c "smtp"
@@ -885,9 +902,15 @@ smtp.clearStats();
             });
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static SmtpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new SmtpConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+            return new SmtpConnection(name, desc, url, attributes, opts ?? {});
         }
     }
 }

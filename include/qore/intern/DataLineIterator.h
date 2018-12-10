@@ -32,8 +32,8 @@
 #ifndef _QORE_DATALINEITERATOR_H
 #define _QORE_DATALINEITERATOR_H
 
-#include <string.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstring>
 
 #include "qore/intern/StringInputStream.h"
 #include "qore/intern/InputStreamLineIterator.h"

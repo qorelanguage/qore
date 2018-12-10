@@ -29,16 +29,15 @@
     information.
 */
 
-#include <zlib.h>
-#include <bzlib.h>
-#include <errno.h>
-
 #include "qore/Qore.h"
 #include "qore/intern/EncryptionTransforms.h"
 #include "qore/intern/ql_crypto.h"
 
+#include <bzlib.h>
+#include <cerrno>
 #include <map>
 #include <string>
+#include <zlib.h>
 
 #include <openssl/evp.h>
 #include <openssl/des.h>

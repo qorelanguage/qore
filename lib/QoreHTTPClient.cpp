@@ -43,11 +43,10 @@
 
 #include <qore/minitest.hpp>
 
-#include <string>
+#include <cctype>
 #include <map>
 #include <set>
-
-#include <ctype.h>
+#include <string>
 
 #ifdef DEBUG_TESTS
 #  include "tests/QoreHTTPClient_tests.cpp"

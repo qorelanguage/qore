@@ -32,9 +32,9 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_date_private.h"
 
+#include <cerrno>
+#include <cstring>
 #include <sys/time.h>
-#include <errno.h>
-#include <string.h>
 
 const char *STATIC_UTC = "UTC";
 

@@ -32,7 +32,7 @@
 #ifndef _QORE_QOREOPERATORNODE_H
 #define _QORE_QOREOPERATORNODE_H
 
-#include <stdarg.h>
+#include <cstdarg>
 
 DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink);
 

@@ -41,16 +41,15 @@
 #include "qore/vector_map"
 #include "qore/vector_set"
 
-#include <string.h>
-
+#include <algorithm>
+#include <cstring>
+#include <deque>
 #include <list>
 #include <map>
-#include <string>
-#include <set>
-#include <vector>
-#include <deque>
-#include <algorithm>
 #include <memory>
+#include <set>
+#include <string>
+#include <vector>
 
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN

@@ -83,13 +83,15 @@ You can contact the author at :
 #include <qore/Qore.h>
 #include "qore/intern/xxhash.h"
 
+#include <cstdlib>
+#include <cstring>
+
 // Modify the local functions below should you wish to use some other memory routines
 // for malloc(), free()
-#include <stdlib.h>
 static void* XXH_malloc(size_t s) { return malloc(s); }
 static void  XXH_free  (void* p)  { free(p); }
+
 // for memcpy()
-#include <string.h>
 static void* XXH_memcpy(void* dest, const void* src, size_t size)
 {
     return memcpy(dest,src,size);
@@ -100,7 +102,7 @@ static void* XXH_memcpy(void* dest, const void* src, size_t size)
 // Basic Types
 //**************************************
 #if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L   // C99
-# include <stdint.h>
+# include <cstdint>
 typedef uint8_t  BYTE;
 typedef uint16_t U16;
 typedef uint32_t U32;

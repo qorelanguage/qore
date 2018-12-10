@@ -34,17 +34,16 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreListNodeEvalOptionalRefHolder.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <assert.h>
+#include <algorithm>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include <qore/minitest.hpp>
 #ifdef DEBUG_TESTS
 #  include "tests/List_tests.cpp"
 #endif
-
-#include <algorithm>
 
 #define LIST_BLOCK 20
 #define LIST_PAD   15

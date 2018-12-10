@@ -37,10 +37,10 @@
 #include "qore/intern/QoreNamespaceIntern.h"
 #include <qore/minitest.hpp>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #ifdef DEBUG_TESTS
 #  include "tests/Statement_tests.cpp"

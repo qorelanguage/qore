@@ -36,8 +36,7 @@
 #include "qore/intern/config.h"
 
 #include <atomic>
-
-#include <stdarg.h>
+#include <cstdarg>
 #include <sys/types.h>
 
 #ifdef HAVE_SYS_STATVFS_H
@@ -90,7 +89,7 @@
 #include <stdint.h>
 #endif
 #ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
+#include <cinttypes>
 #endif
 
 #ifndef HAVE_STRCASESTR
@@ -313,7 +312,7 @@ static inline long long atoll(const char* str) {
 #endif
 
 #if !defined(HAVE_STRTOLL) && defined(HAVE_STRTOIMAX)
-#include <inttypes.h>
+#include <cinttypes>
 #define strtoll strtoimax
 #endif
 

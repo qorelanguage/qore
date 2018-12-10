@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 
+%requires ../../../../qlib/ConnectionProvider.qm
 %requires ../../../../qlib/TelnetClient.qm
 %requires ../../../../qlib/QUnit.qm
 
@@ -37,6 +38,10 @@ public class TelnetClientTest inherits QUnit::Test {
         string url = "telnet://localhost:8099";
         TelnetConnection conn("test", "test", url, False, NOTHING, parse_url(url));
         TelnetClient client = conn.get(False);
+        assertEq("localhost:8099", client.getTarget());
+
+        conn = new TelnetConnection("test", "test", url, {"monitor": False});
+        client = conn.get(False);
         assertEq("localhost:8099", client.getTarget());
 
         hash<ConnectionConstructorInfo> info = conn.getConstructorInfo();

@@ -45,11 +45,10 @@
 
 #include "qore/intern/qore_socket_private.h"
 
-#include <string>
+#include <cctype>
 #include <map>
 #include <set>
-
-#include <ctype.h>
+#include <string>
 
 method_map_t method_map;
 strcase_set_t header_ignore;

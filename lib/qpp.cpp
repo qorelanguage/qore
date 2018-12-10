@@ -37,28 +37,27 @@
 #include "../include/qore/common.h"
 #include "../include/qore/intern/config.h"
 
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-#include <assert.h>
+#include <algorithm>
+#include <cassert>
+#include <cctype>
+#include <cerrno>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <libgen.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include <map>
+#include <set>
+#include <string>
 #include <sys/stat.h>
+#include <utility>
+#include <vector>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #else
 #include "getopt_long.h"
 #endif
-
-#include <string>
-#include <vector>
-#include <map>
-#include <set>
-#include <utility>
-#include <algorithm>
 
 const char usage_str[] = "usage: %s [options] <input file(s)...>\n"
     " -d, --dox-output=arg   doxygen output file name\n"

@@ -38,7 +38,7 @@
 #define HE_TAG_CONST        1
 #define HE_TAG_SCOPED_CONST 2
 
-#include <string.h>
+#include <cstring>
 
 class QoreParserLocation {
 public:

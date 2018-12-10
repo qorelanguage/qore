@@ -4,6 +4,7 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/ConnectionProvider.qm
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/SalesforceRestClient.qm
 
@@ -116,7 +117,9 @@ class SalesforceTest inherits QUnit::Test {
         SalesforceRestConnection swsc("test", "test", url, True, sfopts, parse_url(url));
         assertEq(True, swsc instanceof SalesforceRestConnection);
 
-        assertThrows("CONNECTION-ERROR", sub () { SalesforceRestConnection swsc1("test", "test", url, True, ("x": 1), parse_url(url)); });
+        assertThrows("CONNECTION-ERROR", sub () {
+            SalesforceRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
+            });
 
         hash<ConnectionConstructorInfo> info = swsc.getConstructorInfo();
         assertEq("SalesforceRestClient", info.module);

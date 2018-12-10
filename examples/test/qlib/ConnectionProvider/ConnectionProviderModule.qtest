@@ -71,7 +71,7 @@ public class ConnectionProviderModuleTest inherits QUnit::Test {
         p.parse("FilesystemConnection sub get_conn() {
     string dir = tmp_location() + '/' + get_random_string() + '/' + get_random_string();
     string url = 'file://' + dir;
-    return new FilesystemConnection('test', 'desc', url, False, NOTHING, parse_url(url));
+    return new FilesystemConnection('test', 'desc', url);
 }", "");
 
         object o = p.callFunction("get_conn");

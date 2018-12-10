@@ -38,7 +38,7 @@
     Provides definitions relative to threading in Qore.
  */
 
-#include <stdio.h>
+#include <cstdio>
 #include <pthread.h>
 
 class QoreProgram;

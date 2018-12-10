@@ -36,13 +36,12 @@
 #define _QORE_QOREDIR_H
 
 #include <dirent.h>
-
 #include <string>
 #include <vector>
 
 #ifndef HAVE_DIRENT_D_TYPE
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #endif

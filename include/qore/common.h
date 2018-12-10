@@ -37,20 +37,19 @@
     provides type and other definitions for the Qore library
  */
 
-#include <string.h>
-#include <strings.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <inttypes.h>
-
-#include <string>
+#include <algorithm>
+#include <cinttypes>
+#include <cstdarg>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 #include <functional>
 #include <list>
 #include <set>
-#include <vector>
-#include <algorithm>
 #include <set>
+#include <string>
+#include <strings.h>
+#include <vector>
 
 //! Qore's base type info class
 class QoreTypeInfo;

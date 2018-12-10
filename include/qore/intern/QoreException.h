@@ -33,8 +33,7 @@
 
 #define _QORE_QOREEXCEPTION_H
 
-#include <stdarg.h>
-
+#include <cstdarg>
 #include <string>
 
 // exception/callstack entry types
