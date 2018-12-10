@@ -233,6 +233,9 @@ const MC_DEPRECATED = MC_DEPRECATED;
 
 //! describes the final flag
 const MC_FINAL = MC_FINAL;
+
+//! describes the @ref transient "transient" flag
+const MC_TRANSIENT = MC_TRANSIENT;
 //@}
 
 /** @defgroup code_flag_constants Code Flag Constants
@@ -757,7 +760,7 @@ AbstractMethodVariant AbstractClass::getVariantArgs(string name, *softlist<Type>
     return find_variant(c, name, FV_ALL, argv, 0, xsink);
 }
 
-//! returns the given method or throws an exception if the method does not exist
+//! returns the given method or throws an exception if the method does not exist in the local class
 /** @par Example:
     @code{.py}
 AbstractMethod m = cls.getMethod(name);
@@ -771,17 +774,14 @@ AbstractMethod m = cls.getMethod(name);
 
     @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
     @throw METHOD-ERROR unknown method
-    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the
+    @ref default_encoding "default character encoding" and an error occurs during encoding conversion
 
     @note Methods group variants with the same name; see @ref getVariant() for a method that will return a method
     variant given the method name and the method variant arguments
 
-    @see
-    - getNormalMethod()
-    - getStaticMethod()
-    - getConstructorMethod()
-    - getDestructorMethod()
-    - getCopyMethd()
+    @see @ref Qore::Reflection::Class::findMethod() "Class::findMethod()" for a similar method that searches theh class
+    hierarchy instead of just the local class
 */
 AbstractMethod AbstractClass::getMethod(string name) [flags=RET_VALUE_ONLY] {
     TempEncodingHelper nname(name, QCS_DEFAULT, xsink);

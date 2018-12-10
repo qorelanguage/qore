@@ -43,9 +43,8 @@
 
 #define _QORE_QORENAMESPACE_H
 
-#include <string.h>
-#include <stdlib.h>
-
+#include <cstdlib>
+#include <cstring>
 #include <string>
 
 // forward declarations

@@ -41,16 +41,15 @@
 #include "qore/vector_map"
 #include "qore/vector_set"
 
-#include <string.h>
-
+#include <algorithm>
+#include <cstring>
+#include <deque>
 #include <list>
 #include <map>
-#include <string>
-#include <set>
-#include <vector>
-#include <deque>
-#include <algorithm>
 #include <memory>
+#include <set>
+#include <string>
+#include <vector>
 
 #define OTF_USER    CT_USER
 #define OTF_BUILTIN CT_BUILTIN
@@ -774,15 +773,15 @@ public:
 
 class BuiltinStaticMethod : public StaticMethodFunction {
 public:
-DLLLOCAL BuiltinStaticMethod(const QoreClass* n_qc, const char* mname) : StaticMethodFunction(mname, n_qc) {
-}
+    DLLLOCAL BuiltinStaticMethod(const QoreClass* n_qc, const char* mname) : StaticMethodFunction(mname, n_qc) {
+    }
 
-DLLLOCAL BuiltinStaticMethod(const BuiltinStaticMethod &old, const QoreClass* n_qc) : StaticMethodFunction(old, n_qc) {
-}
+    DLLLOCAL BuiltinStaticMethod(const BuiltinStaticMethod &old, const QoreClass* n_qc) : StaticMethodFunction(old, n_qc) {
+    }
 
-DLLLOCAL virtual MethodFunctionBase* copy(const QoreClass* n_qc) const {
-    return new BuiltinStaticMethod(*this, n_qc);
-}
+    DLLLOCAL virtual MethodFunctionBase* copy(const QoreClass* n_qc) const {
+        return new BuiltinStaticMethod(*this, n_qc);
+    }
 };
 
 // not visible to user code, does not follow abstract class pattern
@@ -995,6 +994,17 @@ public:
     // initializes the member
     DLLLOCAL void parseInit(const char* name);
 
+    // sets the transient flag
+    DLLLOCAL void setTransient() {
+        assert(!is_transient);
+        is_transient = true;
+    }
+
+    // returns the transient flag
+    DLLLOCAL bool getTransient() const {
+        return is_transient;
+    }
+
 private:
     // the classes where this member is accessible; the first class is the class where the member was defined
     cls_vec_t cls_vec;
@@ -1004,7 +1014,9 @@ private:
     member_info_list_t* member_info_list = nullptr;
 
     // local flag
-    bool is_local;
+    bool is_local,
+        // transient flag
+        is_transient = false;
 
     /**
         @param old the old object
@@ -1724,6 +1736,9 @@ public:
         * deleteBlocker = nullptr,
         * memberNotification = nullptr;
 
+    q_serializer_t serializer = nullptr;
+    q_deserializer_t deserializer = nullptr;
+
     qore_classid_t classID,          // class ID
         methodID;                    // for subclasses of builtin classes that will not have their own private data,
                                      // instead they will get the private data from this class
@@ -1747,7 +1762,8 @@ public:
         gate_access : 1,                  // if the methodGate and memberGate methods should be called with a class access boolean
         committed : 1,                    // can only parse to a class once
         parse_resolve_hierarchy : 1,      // class hierarchy resolved
-        parse_resolve_abstract : 1        // abstract methods resolved
+        parse_resolve_abstract : 1,       // abstract methods resolved
+        has_transient_member : 1          // has at least one transient member
         ;
 
     int64 domain;                    // capabilities of builtin class to use in the context of parse restrictions
@@ -2227,6 +2243,9 @@ public:
                 has_sig_changes = true;
             }
             memberInfo->setDeclaringClass(this);
+            if (!has_transient_member && memberInfo->getTransient()) {
+                has_transient_member = true;
+            }
             //printd(5, "qore_class_private::parseAddMember() this: %p %s adding %s %p %s\n", this, name.c_str(), privpub(access), mem, mem);
             members.addNoCheck(mem, memberInfo);
             return;
@@ -2621,6 +2640,10 @@ public:
     DLLLOCAL void generateBuiltinSignature(const char* nspath);
     DLLLOCAL void initializeBuiltin();
 
+    DLLLOCAL QoreValue evalMethod(QoreObject* self, const char* nme, const QoreListNode* args, const qore_class_private* class_ctx, ExceptionSink* xsink) const;
+
+    DLLLOCAL QoreValue evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const;
+
     DLLLOCAL static const QoreMethod* doParseMethodAccess(const QoreMethod* m, const qore_class_private* class_ctx);
 
     DLLLOCAL static const QoreMethod* doMethodAccess(const QoreMethod* m, ClassAccess ma, const qore_class_private* class_ctx) {
@@ -2949,6 +2972,16 @@ public:
         return hash.getHash();
     }
 
+    DLLLOCAL void setSerializer(q_serializer_t m) {
+        assert(!serializer);
+        serializer = m;
+    }
+
+    DLLLOCAL void setDeserializer(q_deserializer_t m) {
+        assert(!deserializer);
+        deserializer = m;
+    }
+
     // static methods
     //DLLLOCAL static
 
@@ -3200,6 +3233,10 @@ public:
 
     DLLLOCAL bool isUniquelyUser() const {
         return all_user;
+    }
+
+    DLLLOCAL bool isAbstract() const {
+        return func->isAbstract();
     }
 
     DLLLOCAL int addUserVariant(MethodVariantBase* variant) {

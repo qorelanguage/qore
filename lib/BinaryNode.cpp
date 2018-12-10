@@ -30,8 +30,8 @@
 
 #include <qore/Qore.h>
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 
 BinaryNode::BinaryNode(void* p, qore_size_t size) : SimpleValueQoreNode(NT_BINARY) {
     ptr = p;
@@ -323,4 +323,9 @@ int BinaryNode::substr(BinaryNode& b, qore_offset_t offset, qore_offset_t length
 
     b.append((char*)ptr + offset, length);
     return 0;
+}
+
+BinaryNode* BinaryNode::binRefSelf() const {
+    ref();
+    return const_cast<BinaryNode*>(this);
 }

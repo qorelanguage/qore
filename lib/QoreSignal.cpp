@@ -32,10 +32,10 @@
 #include "qore/intern/QoreSignal.h"
 #include "qore/intern/qore_program_private.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 QoreSignalManager QSM;
 

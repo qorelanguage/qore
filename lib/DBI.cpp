@@ -34,11 +34,11 @@
 
 #include "qore/intern/qore_dbi_private.h"
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <ctype.h>
+#include <cassert>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 typedef safe_dslist<DBIDriver* > dbi_list_t;
 

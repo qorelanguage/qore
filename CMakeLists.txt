@@ -68,10 +68,18 @@ set(myprefix ${CMAKE_INSTALL_PREFIX})
 set(includedir ${CMAKE_INSTALL_FULL_INCLUDEDIR})
 set(libdir ${CMAKE_INSTALL_FULL_LIBDIR})
 
-set(MODULE_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules)
-set(MODULE_VER_DIR ${MODULE_DIR}/${VERSION})
-set(USER_MODULE_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules/)
-set(USER_MODULE_VER_DIR ${USER_MODULE_DIR}${VERSION})
+if (WIN32 OR MSYS OR MINGW)
+    set(MODULE_DIR lib/qore-modules)
+    set(MODULE_VER_DIR ${MODULE_DIR}/${VERSION})
+    set(USER_MODULE_DIR share/qore-modules)
+    set(USER_MODULE_VER_DIR ${USER_MODULE_DIR}/${VERSION})
+    add_definitions(-DMODULES_RELATIVE_PATH)
+else (WIN32 OR MSYS or MINGW)
+    set(MODULE_DIR ${CMAKE_INSTALL_FULL_LIBDIR}/qore-modules)
+    set(MODULE_VER_DIR ${MODULE_DIR}/${VERSION})
+    set(USER_MODULE_DIR ${CMAKE_INSTALL_FULL_DATADIR}/qore-modules/)
+    set(USER_MODULE_VER_DIR ${USER_MODULE_DIR}${VERSION})
+endif (WIN32 OR MSYS OR MINGW)
 
 get_module_api_versions()
 
@@ -161,6 +169,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_TransformOutputStream.qpp
     lib/QC_StdoutOutputStream.qpp
     lib/QC_StderrOutputStream.qpp
+    lib/QC_Serializable.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp
     lib/ql_thread.qpp
@@ -268,21 +277,21 @@ find_package(MPFR REQUIRED)
 find_package(BZip2 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PCRE REQUIRED libpcre)
-if (NOT (WIN32 AND MINGW AND MSYS))
+if (NOT (WIN32 OR MINGW OR MSYS))
     find_package(Backtrace)
     if (Backtrace_FOUND)
         list(APPEND LIBQORE_OPTIONAL_INCLUDES ${Backtrace_INCLUDE_DIRS})
         list(APPEND LIBQORE_OPTIONAL_LIBS ${Backtrace_LIBRARIES})
     endif (Backtrace_FOUND)
-endif (NOT (WIN32 AND MINGW AND MSYS))
+endif (NOT (WIN32 OR MINGW OR MSYS))
 
-if (WIN32 AND MINGW AND MSYS)
+if (WIN32 OR MINGW OR MSYS)
     SET(CMAKE_DL_LIBS dl)
     SET(MPFR_LIBRARIES mpfr gmp)
     SET(OPENSSL_LIBRARIES ssl crypto)
     SET(WINSOCKET_LIBRARIES ws2_32)
     SET(NO_SIGNAL_HANDLING ON)
-endif (WIN32 AND MINGW AND MSYS)
+endif (WIN32 OR MINGW OR MSYS)
 
 create_git_revision()
 
@@ -596,6 +605,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreSelectOperatorNode.cpp
     lib/QoreRangeOperatorNode.cpp
     lib/QoreSquareBracketsRangeOperatorNode.cpp
+    lib/QoreSerializable.cpp
 )
 
 if (HAVE_SIGNAL_HANDLING)
@@ -629,16 +639,16 @@ target_compile_definitions(libqore PRIVATE MODULE_DIR="${MODULE_DIR}")
 target_compile_definitions(libqore PRIVATE MODULE_VER_DIR="${MODULE_VER_DIR}")
 target_compile_definitions(libqore PRIVATE USER_MODULE_DIR="${USER_MODULE_DIR}")
 target_compile_definitions(libqore PRIVATE USER_MODULE_VER_DIR="${USER_MODULE_VER_DIR}")
-if (WIN32 AND MINGW AND MSYS)
+if (WIN32 OR MINGW OR MSYS)
     target_compile_definitions(libqore PUBLIC BUILDING_DLL)
-endif (WIN32 AND MINGW AND MSYS)
+endif (WIN32 OR MINGW OR MSYS)
 
 target_include_directories(libqore PUBLIC ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIRS} ${LIBQORE_OPTIONAL_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
 
 target_link_libraries(libqore ${BZIP2_LIBRARIES} ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${ICONV_LIBRARY} ${LIBQORE_LIBS} ${LIBQORE_OPTIONAL_LIBS} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
-if (WIN32 AND MINGW AND MSYS)
+if (WIN32 OR MINGW OR MSYS)
     target_link_libraries(libqore ${WINSOCKET_LIBRARIES})
-endif (WIN32 AND MINGW AND MSYS)
+endif (WIN32 OR MINGW OR MSYS)
 
 set_target_properties(libqore PROPERTIES OUTPUT_NAME qore)
 if (APPLE)
@@ -705,7 +715,7 @@ install(FILES ${CMAKE_BINARY_DIR}/include/qore/qore-version.h
         DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/qore)
 install(FILES qore.1
         DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1)
-install(FILES doxygen/Doxyfile.in
+install(FILES doxygen/Doxyfile.in doxygen/qore-logo-55x200.png
         DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/qore)
 
 # prepare documentation targets

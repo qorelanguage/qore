@@ -38,9 +38,6 @@
 #include "qore/intern/QoreDir.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
-#include <errno.h>
-#include <string.h>
-
 // dlopen() flags
 #define QORE_DLOPEN_FLAGS RTLD_LAZY|RTLD_GLOBAL
 
@@ -50,17 +47,18 @@
 #include "qore/intern/glob.h"
 #endif
 
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdarg.h>
-
-#include <string>
+#include <cctype>
+#include <cerrno>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <map>
-#include <vector>
 #include <set>
+#include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <vector>
 
 static const qore_mod_api_compat_s qore_mod_api_list_l[] = {{0, 22}};
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
@@ -466,22 +464,80 @@ void QoreModuleManager::init(bool se) {
       QoreModuleManager::addStandardModulePaths();
 }
 
+/* this internal helper function solves an issue with modules
+   on MS Windows (or maybe OSX later).
+
+   The problem with Windows is that we are distributing zip
+   files which can be extracted anywhere. But these binaries
+   had hardcoded paths for modules (/z/something/something or
+   C:/msys64/home/pvanek/src/qore/RELEASE/share/qore-modules
+   for example). These hardcoded paths are fine on Linux because
+   the language should be distributed in a form of system packages
+   (rpm, deb). But on Windows the user decides where to put
+   (extract) the zip archive content. It can be anywhere.
+
+   Of course there is QORE_MODULE_DIR env variable. But it
+   requires logout/login on Windows to be in action. Also
+   user has to set 4 paths there. And unfortunately 2 of
+   them must contain qore version in the path. So it
+   required to change env variable (and re-login) after any
+   qore upgrade. It was annoying.
+
+   So for now - if there is MODULES_RELATIVE_PATH defined
+   from cmake (WIN builds only for now) the location of
+   module(s) is constructed from the location of qore binary.
+ */
+#ifdef MODULES_RELATIVE_PATH
+#ifdef _Q_WINDOWS
+#include <windows.h>
+#endif
+#endif
+std::string module_dir_prefix(const char * path) {
+#ifdef MODULES_RELATIVE_PATH
+#ifdef _Q_WINDOWS
+    // get windows qore.exe binary
+    // Full path may be longer than MAX_PATH
+    // Let's expand it until it fits
+    std::vector<char> buff;
+    DWORD copied = 0;
+    do {
+        buff.resize(buff.size() + MAX_PATH);
+        copied = GetModuleFileName(0, &buff.at(0), buff.size());
+    } while (copied >= buff.size());
+
+    buff.resize(copied);
+    std::string prefix_path(buff.data(), buff.size());
+    size_t found_pos = prefix_path.rfind('\\');
+
+    return prefix_path.substr(0, found_pos).append("/../").append(path);
+#else // _Q_WINDOWS
+#warning MODULES_RELATIVE_PATH has been set but the operating system is not supported yet
+#endif
+    // this can be used for OSX maybe (regarding Qt5)
+    //QCFType<CFURLRef> bundleURL(CFBundleCopyExecutableURL(CFBundleGetMainBundle()));
+    //if(bundleURL) {
+    //    QCFString cfPath(CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle));
+#else // MODULES_RELATIVE_PATH
+    return path;
+#endif // MODULES_RELATIVE_PATH
+}
+
 void QoreModuleManager::addStandardModulePaths() {
    moduleDirList.addDirList(getenv("QORE_MODULE_DIR"));
 
    // append version-specifc user module directory
-   moduleDirList.push_back(USER_MODULE_VER_DIR);
+   moduleDirList.push_back(module_dir_prefix(USER_MODULE_VER_DIR));
 
    // append version-specifc module directory
    if (strcmp(MODULE_VER_DIR, USER_MODULE_VER_DIR))
-      moduleDirList.push_back(MODULE_VER_DIR);
+      moduleDirList.push_back(module_dir_prefix(MODULE_VER_DIR));
 
    // append user-module directory
-   moduleDirList.push_back(USER_MODULE_DIR);
+   moduleDirList.push_back(module_dir_prefix(USER_MODULE_DIR));
 
    // append qore module directory
    if (strcmp(MODULE_DIR, USER_MODULE_DIR))
-      moduleDirList.push_back(MODULE_DIR);
+      moduleDirList.push_back(module_dir_prefix(MODULE_DIR));
 }
 
 void ModuleManager::addStandardModulePaths() {
@@ -744,7 +800,7 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
         size_t len = strlen(name);
         QoreString modulePath(name);
 
-        QoreProgram* p = pgm ? pgm : (load_opt & QMLO_REINJECT ? (mpgm ? mpgm : nullptr) : pholder.release());
+        QoreProgram* p = pgm ? pgm : (load_opt & (QMLO_REINJECT | QMLO_PRIVATE) && mpgm ? mpgm : nullptr);
         if (!p) {
             p = getProgram();
         }

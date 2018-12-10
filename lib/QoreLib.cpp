@@ -42,29 +42,27 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/qore_list_private.h"
 
-#include <sstream>
-#include <locale>
 #include <atomic>
+#include <cctype>
+#include <cerrno>
+#include <climits>
+#include <cstring>
+#include <ctime>
+#include <locale>
 #include <map>
+#include <sstream>
 #include <string>
-
-#include <string.h>
-#ifdef HAVE_PWD_H
-#include <pwd.h>
-#include <grp.h>
-#include <dirent.h>
-#endif
-#include <errno.h>
-#include <time.h>
-#include <sys/time.h>
-#include <string.h>
 #include <strings.h>
-#include <errno.h>
 #include <sys/param.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <limits.h>
-#include <ctype.h>
+#include <sys/time.h>
+#include <sys/types.h>
+
+#ifdef HAVE_PWD_H
+#include <dirent.h>
+#include <grp.h>
+#include <pwd.h>
+#endif
 
 FeatureList qoreFeatureList;
 

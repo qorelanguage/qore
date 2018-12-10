@@ -174,6 +174,17 @@ public:
     DLLLOCAL DatasourcePool(const DatasourcePool& old, ExceptionSink* xsink);
 
     DLLLOCAL virtual ~DatasourcePool();
+
+    using AbstractPrivateData::deref;
+    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
+        // if the object is obliterated (due to a constructor error in a child class or a serialization error), make sure
+        // it's destroyed properly
+        if (ROdereference()) {
+            config.del(xsink);
+            delete this;
+        }
+    }
+
     DLLLOCAL void destructor(ExceptionSink* xsink);
     DLLLOCAL virtual void cleanup(ExceptionSink* xsink);
     DLLLOCAL QoreValue select(const QoreString* sql, const QoreListNode* args, ExceptionSink* xsink);

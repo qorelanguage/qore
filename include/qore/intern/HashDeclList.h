@@ -33,8 +33,8 @@
 
 #define _QORE_INTERN_HASHDECLLIST_H
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 
 // we use a vector map as the number of hashdecls is generally relatively small
 #include <qore/vector_map>

@@ -324,10 +324,6 @@ public namespace OracleSqlUtil {
         private constructor() {
         }
 
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractColumn(h) {
-        }
-
         constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm, bool is_char = False, bool cu = False, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
             # only set "char_used" if we are dealing with a char column
             char_used = is_char && cu;
@@ -424,11 +420,6 @@ my string $str = $col.getRenameSql($t, "new_name");
 
     #! represents an Oracle number column
     public class OracleNumberColumn inherits OracleColumn, SqlUtil::NumericColumnInfo {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) {
-            deserialize(h.members);
-        }
-
         constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm, softint bs, softint n_scale = 0) : OracleColumn(n, nt, qt, sz, nul, dv, cm, False, False, bs), NumericColumnInfo(n_scale) {
         }
 
@@ -445,10 +436,6 @@ my string $str = $col.getRenameSql($t, "new_name");
 
             #! the tablespace name of the index (if supported)
             *string tablespace;
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractIndex(h) {
         }
 
         #! creates the object from the arguments
@@ -489,10 +476,6 @@ my string $str = $col.getRenameSql($t, "new_name");
             bool enabled;
         }
 
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractForeignConstraint(h) {
-        }
-
         constructor(string n, Columns c, ForeignConstraintTarget t, bool e) : AbstractForeignConstraint(n, c, t) {
             enabled = e;
         }
@@ -521,10 +504,6 @@ my string $str = $col.getRenameSql($t, "new_name");
         public {
             #! @ref Qore::True "True" if the constraint is enabled, @ref Qore::False "False" if not
             bool enabled;
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractCheckConstraint(h) {
         }
 
         constructor(string n, string n_src, bool e = True) : AbstractCheckConstraint(n, n_src) {
@@ -558,10 +537,6 @@ my string $str = $col.getRenameSql($t, "new_name");
 
             #! any tablespace for the unique key index
             *string tablespace;
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractUniqueConstraint(h) {
         }
 
         constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols) {
@@ -653,10 +628,6 @@ auto v = c.name;
             *string tablespace;
         }
 
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractPrimaryKey(h) {
-        }
-
         constructor() {
         }
 
@@ -740,10 +711,6 @@ auto v = c.name;
 
     #! represents an Oracle sequence
     public class OracleSequence inherits SqlUtil::AbstractSequence {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractSequence(h) {
-        }
-
         #! creates the object from the arguments
         constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
         }
@@ -780,10 +747,6 @@ auto v = c.name;
             *string superview_name;
             #! Indicates whether the view contains container-specific data
             bool container_data;
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractView(h) {
         }
 
         #! creates the object from the arguments
@@ -830,10 +793,6 @@ auto v = c.name;
             bool enabled;
         }
 
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractTrigger(h) {
-        }
-
         constructor(string n, string n_src, bool en = True) : AbstractTrigger(n, n_src) {
             enabled = en;
         }
@@ -860,10 +819,6 @@ auto v = c.name;
 
     #! the base class for Oracle code objects
     public class OracleCodeBase inherits SqlUtil::AbstractFunction {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : AbstractFunction(h) {
-        }
-
         #! creates the object from the arguments passed
         /** @param n the name of the object
             @param n_type the type of object
@@ -896,10 +851,6 @@ auto v = c.name;
 
     #! the base class for Oracle code objects that cannot be renamed in place
     public class OracleCodeBaseNoRename inherits OracleCodeBase {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : OracleCodeBase(h) {
-        }
-
         #! creates the object from the arguments passed
         /** @param n the name of the object
             @param n_type the type of object
@@ -924,10 +875,6 @@ auto v = c.name;
 
     #! represents an Oracle type
     public class OracleType inherits OracleCodeBaseNoRename {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : OracleCodeBaseNoRename(h) {
-        }
-
         constructor(string n_name, string n_src) : OracleCodeBaseNoRename(n_name, "type", n_src) {
         }
 
@@ -941,10 +888,6 @@ auto v = c.name;
 
     #! represents an Oracle function
     public class OracleFunction inherits OracleCodeBase {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : OracleCodeBase(h) {
-        }
-
         #! creates the object from the arguments passed
         /** @param n the name of the function
             @param n_src the source of the function
@@ -955,10 +898,6 @@ auto v = c.name;
 
     #! represents an Oracle procedure
     public class OracleProcedure inherits OracleCodeBase {
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : OracleCodeBase(h) {
-        }
-
         #! creates the object from the arguments passed
         /** @param n the name of the function
             @param n_src the source of the function
@@ -972,10 +911,6 @@ auto v = c.name;
         public {
             #! package body source
             *string body_src;
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : OracleCodeBaseNoRename(h) {
         }
 
         #! creates the object from the arguments passed
@@ -1013,10 +948,6 @@ auto v = c.name;
             bool use_index;
             #! Name of the potential tablespace
             *string tablespace;
-        }
-
-        #! deserializes the hash to a replica of the original object
-        constructor(hash<SqlUtilDeserialization> h) : OracleCodeBaseNoRename(h) {
         }
 
         #! creates the object from the arguments passed
@@ -3143,10 +3074,6 @@ auto v = c.name;
 
         #! db-specific copy actions
         private copyImpl(AbstractTable old) {
-        }
-
-        #! used to deserialize table data
-        constructor(hash<SqlUtilDeserialization> h) : AbstractTable(h) {
         }
     }
 }

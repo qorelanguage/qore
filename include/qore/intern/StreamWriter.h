@@ -42,99 +42,104 @@
  */
 class StreamWriter : public AbstractPrivateData {
 public:
-   DLLLOCAL StreamWriter(ExceptionSink* xsink, OutputStream* os, const QoreEncoding* enc = QCS_DEFAULT) :
-      out(os, xsink),
-      encoding(enc) {
-   }
+    DLLLOCAL StreamWriter(ExceptionSink* xsink, OutputStream* os, const QoreEncoding* enc = QCS_DEFAULT) :
+        out(os, xsink),
+        encoding(enc) {
+    }
 
-   DLLLOCAL const QoreEncoding* getEncoding() const {
-      return encoding;
-   }
+    DLLLOCAL const QoreEncoding* getEncoding() const {
+        return encoding;
+    }
 
-   DLLLOCAL const OutputStream* getOutputStream() const {
-	   return *out;
-   }
+    DLLLOCAL const OutputStream* getOutputStream() const {
+        return *out;
+    }
 
-   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) {
-	   // OutputStream uses assertion but we need rather raise exception not to coredump
-	   if (!out->check(xsink)) {
-		   return;
-	   }
-	   out->write(ptr, count, xsink);
-   }
+    DLLLOCAL int write(const void *ptr, int64 count, ExceptionSink *xsink) {
+        // OutputStream uses assertion but we need rather raise exception not to coredump
+        if (!out->check(xsink)) {
+            return -1;
+        }
+        out->write(ptr, count, xsink);
+        return *xsink ? -1 : 0;
+    }
 
-   DLLLOCAL void print(const QoreStringNode* str, ExceptionSink* xsink) {
-      TempEncodingHelper stmp(str, encoding, xsink);
-      write(stmp->getBuffer(), stmp->size(), xsink);
-   }
+    DLLLOCAL int print(const QoreStringNode* str, ExceptionSink* xsink) {
+        TempEncodingHelper stmp(str, encoding, xsink);
+        return write(stmp->getBuffer(), stmp->size(), xsink);
+    }
 
-   DLLLOCAL void printf(const QoreListNode* args, ExceptionSink* xsink) {
-      SimpleRefHolder<QoreStringNode> str(q_sprintf(args, 0, 0, xsink));
-      if (str)
-         print(*str, xsink);
-   }
+    DLLLOCAL int printf(const QoreListNode* args, ExceptionSink* xsink) {
+        SimpleRefHolder<QoreStringNode> str(q_sprintf(args, 0, 0, xsink));
+        return str ? print(*str, xsink) : 0;
+    }
 
-   DLLLOCAL void vprintf(const QoreListNode* args, ExceptionSink* xsink) {
-      SimpleRefHolder<QoreStringNode> str(q_vsprintf(args, 0, 0, xsink));
-      if (str)
-         print(*str, xsink);
-   }
+    DLLLOCAL int vprintf(const QoreListNode* args, ExceptionSink* xsink) {
+        SimpleRefHolder<QoreStringNode> str(q_vsprintf(args, 0, 0, xsink));
+        return str ? print(*str, xsink) : 0;
+    }
 
-   DLLLOCAL void f_printf(const QoreListNode* args, ExceptionSink* xsink) {
-      SimpleRefHolder<QoreStringNode> str(q_sprintf(args, 1, 0, xsink));
-      if (str)
-         print(*str, xsink);
-   }
+    DLLLOCAL int f_printf(const QoreListNode* args, ExceptionSink* xsink) {
+        SimpleRefHolder<QoreStringNode> str(q_sprintf(args, 1, 0, xsink));
+        return str ? print(*str, xsink) : 0;
+    }
 
-   DLLLOCAL void f_vprintf(const QoreListNode* args, ExceptionSink* xsink) {
-      SimpleRefHolder<QoreStringNode> str(q_vsprintf(args, 1, 0, xsink));
-      if (str)
-         print(*str, xsink);
-   }
+    DLLLOCAL int f_vprintf(const QoreListNode* args, ExceptionSink* xsink) {
+        SimpleRefHolder<QoreStringNode> str(q_vsprintf(args, 1, 0, xsink));
+        return str ? print(*str, xsink) : 0;
+    }
 
-   DLLLOCAL void write(const BinaryNode* b, ExceptionSink* xsink) {
-      write(b->getPtr(), b->size(), xsink);
-   }
+    DLLLOCAL int write(const BinaryNode* b, ExceptionSink* xsink) {
+        write(b->getPtr(), b->size(), xsink);
+        return *xsink ? -1 : 0;
+    }
 
-   DLLLOCAL void writei1(char i, ExceptionSink* xsink) {
-      write(&i, 1, xsink);
-   }
+    DLLLOCAL int writei1(signed char i, ExceptionSink* xsink) {
+        write(&i, 1, xsink);
+        return *xsink ? -1 : 0;
+    }
 
-   DLLLOCAL void writei2(int16_t i, ExceptionSink* xsink) {
-      i = htons(i);
-      write(&i, 2, xsink);
-   }
+    DLLLOCAL int writei2(int16_t i, ExceptionSink* xsink) {
+        i = htons(i);
+        write(&i, 2, xsink);
+        return *xsink ? -1 : 0;
+    }
 
-   DLLLOCAL void writei4(int32_t i, ExceptionSink* xsink) {
-      i = htonl(i);
-      write(&i, 4, xsink);
-   }
+    DLLLOCAL int writei4(int32_t i, ExceptionSink* xsink) {
+        i = htonl(i);
+        write(&i, 4, xsink);
+        return *xsink ? -1 : 0;
+    }
 
-   DLLLOCAL void writei8(int64 i, ExceptionSink* xsink) {
-      i = i8MSB(i);
-      write(&i, 8, xsink);
-   }
+    DLLLOCAL int writei8(int64 i, ExceptionSink* xsink) {
+        i = i8MSB(i);
+        write(&i, 8, xsink);
+        return *xsink ? -1 : 0;
+    }
 
-   DLLLOCAL void writei2LSB(int16_t i, ExceptionSink* xsink) {
-      i = i2LSB(i);
-      write(&i, 2, xsink);
-   }
+    DLLLOCAL int writei2LSB(int16_t i, ExceptionSink* xsink) {
+        i = i2LSB(i);
+        write(&i, 2, xsink);
+        return *xsink ? -1 : 0;
+    }
 
-   DLLLOCAL void writei4LSB(int32_t i, ExceptionSink* xsink) {
-      i = i4LSB(i);
-      write(&i, 4, xsink);
-   }
+    DLLLOCAL int writei4LSB(int32_t i, ExceptionSink* xsink) {
+        i = i4LSB(i);
+        write(&i, 4, xsink);
+        return *xsink ? -1 : 0;
+    }
 
-   DLLLOCAL void writei8LSB(int64 i, ExceptionSink* xsink) {
-      i = i8LSB(i);
-      write(&i, 8, xsink);
-   }
+    DLLLOCAL int writei8LSB(int64 i, ExceptionSink* xsink) {
+        i = i8LSB(i);
+        write(&i, 8, xsink);
+        return *xsink ? -1 : 0;
+    }
 
-   DLLLOCAL virtual const char* getName() const { return "StreamWriter"; }
+    DLLLOCAL virtual const char* getName() const { return "StreamWriter"; }
 
 private:
-   ReferenceHolder<OutputStream> out;
-   const QoreEncoding* encoding;
+    ReferenceHolder<OutputStream> out;
+    const QoreEncoding* encoding;
 };
 
 #endif // _QORE_STREAMWRITER_H

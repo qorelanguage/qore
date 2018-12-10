@@ -107,7 +107,13 @@ class QoreExternalFunction;
 class QoreExternalGlobalVar;
 class QoreExternalConstant;
 
-typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
+typedef std::list<QoreBreakpoint*> bkp_list_t;
+
+struct QoreBreakpointList_t : public bkp_list_t {
+    DLLEXPORT QoreBreakpointList_t();
+    // dereferences all breakpoints and clears the list
+    DLLEXPORT ~QoreBreakpointList_t();
+};
 
 //! supports parsing and executing Qore-language code, reference counted, dynamically-allocated only
 /** This class implements a transaction and thread-safe container for qore-language code
@@ -741,6 +747,14 @@ public:
     DLLEXPORT const TypedHashDecl* findHashDecl(const char* path, const QoreNamespace*& pns) const;
 
     //! search for the given namespace in the program; can be a simple namespace name or a namespace-prefixed path (ex: "NamespaceName::Namespace")
+    /** @note this function is safe to call during module initialization for the current Program (as returned by
+        getProgram())
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT QoreNamespace* findNamespace(const QoreString& path);
+
+    //! search for the given namespace in the program; can be a simple namespace name or a namespace-prefixed path (ex: "NamespaceName::Namespace")
     /** @since %Qore 0.9
     */
     DLLEXPORT const QoreNamespace* findNamespace(const QoreString& path) const;
@@ -984,7 +998,6 @@ public:
    virtual void doDeref() = 0;
 };
 
-typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
 typedef std::list<AbstractStatement*> AbstractStatementList_t;
 typedef std::list<int> TidList_t;
 
@@ -1000,7 +1013,6 @@ private:
    typedef std::map<int/*tid*/, int/*count*/> TidMap_t;
    TidMap_t tidMap;
    QoreObject* qo; // reference to Qore script object, it's private object but we cannot
-   typedef std::list<QoreBreakpoint*> QoreBreakpointList_t;
    static QoreRWLock lck_breakpoint; // to protect breakpoint manipulation
    static QoreBreakpointList_t breakpointList;
    static volatile unsigned breakpointIdCounter;   // to generate breakpointId

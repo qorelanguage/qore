@@ -197,6 +197,12 @@ public class Main inherits QUnit::Test {
         RestClient client = conn.get(False);
         assertEq(url, client.getURL());
 
+        conn = new RestConnection("test", "test", url, {"monitor": False}, {});
+        client = conn.get(False);
+        assertEq(url, client.getURL());
+        assertEq(False, conn.monitor);
+        assertEq(True, conn.enabled);
+
         hash<ConnectionConstructorInfo> info = conn.getConstructorInfo();
         assertEq("RestClient", info.module);
         assertEq("RestClient", info.class_name);

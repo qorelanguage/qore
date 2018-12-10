@@ -67,11 +67,35 @@ public:
    //! insert at the beginning of the queue
    DLLEXPORT void insert(ExceptionSink* xsink, QoreValue n, int timeout_ms = 0, bool* to = 0);
 
+   //! push at the end of the queue and scan for recursive references
+   /**
+       @since %Qore 0.9
+   */
+   DLLEXPORT void push(ExceptionSink* xsink, QoreObject* self, QoreValue n, int timeout_ms = 0, bool* to = nullptr);
+
+   //! insert at the beginning of the queue and scan for recursive references
+   /**
+       @since %Qore 0.9
+   */
+   DLLEXPORT void insert(ExceptionSink* xsink, QoreObject* self, QoreValue n, int timeout_ms = 0, bool* to = nullptr);
+
    //! remove a node from the beginning of the queue
-   DLLEXPORT QoreValue shift(ExceptionSink* xsink, int timeout_ms = 0, bool* to = 0);
+   DLLEXPORT QoreValue shift(ExceptionSink* xsink, int timeout_ms = 0, bool* to = nullptr);
 
    //! remove a node from the end of the queue
-   DLLEXPORT QoreValue pop(ExceptionSink* xsink, int timeout_ms = 0, bool* to = 0);
+   DLLEXPORT QoreValue pop(ExceptionSink* xsink, int timeout_ms = 0, bool* to = nullptr);
+
+   //! remove a node from the beginning of the queue and manage recursive references
+   /**
+       @since %Qore 0.9
+   */
+   DLLEXPORT QoreValue shift(ExceptionSink* xsink, QoreObject* self, int timeout_ms = 0, bool* to = nullptr);
+
+   //! remove a node from the end of the queue and manage recursive references
+   /**
+       @since %Qore 0.9
+   */
+   DLLEXPORT QoreValue pop(ExceptionSink* xsink, QoreObject* self, int timeout_ms = 0, bool* to = nullptr);
 
    //! returns true if the queue is empty
    DLLEXPORT bool empty() const;
@@ -91,12 +115,25 @@ public:
    //! clears the queue
    DLLEXPORT void clear(ExceptionSink* xsink);
 
+   //! clears the queue
+   /**
+       @since %Qore 0.9
+   */
+   DLLEXPORT void clear(ExceptionSink* xsink, QoreObject* self);
+
    //! sets a queue error status and provides exception information to throw if queue operations are attempted; the queue is also cleared and can no longer be written to after this operation
    /** if called more than once, subsequent calls replace the data in the object
 
        @since Qore 0.8.12
     */
    DLLEXPORT void setError(const char* err, const QoreStringNode* desc, ExceptionSink* xsink);
+
+   //! sets a queue error status and provides exception information to throw if queue operations are attempted; the queue is also cleared and can no longer be written to after this operation
+   /** if called more than once, subsequent calls replace the data in the object
+
+       @since Qore 0.9
+    */
+   DLLEXPORT void setError(const char* err, const QoreStringNode* desc, QoreObject* self, ExceptionSink* xsink);
 
    //! clears any queue error status to make the object usable again
    /**

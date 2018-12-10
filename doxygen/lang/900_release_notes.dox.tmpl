@@ -12,8 +12,8 @@
     to support the new API and ABI.
 
     @subsection qore_09_compatibility Changes That Can Affect Backwards-Compatibility
-    - Qore classes and functions can no longer be modified after creation; any attempt to add a new user
-      variant to an existing function or to add new declarations to an existing class will result in a
+    - Qore classes and functions are now immutable once created; any attempt to add a new user
+      variant to an existing function or method or to add new declarations to an existing class will result in a
       parse error.
     - @ref Qore::Program "Program" objects now only support a single complete parse action
       (@ref Qore::Program::parse() "Program::parse()" or @ref Qore::Program::parseCommit() "Program::parseCommit()");
@@ -23,19 +23,40 @@
     - @ref Qore::Program::parseRollback() "Program::parseRollback()" is now deprecated; this action removes all user
       code and most builtin code from the @ref Qore::Program "Program" object; delete the object instead of using
       this method
+    - the @ref transient "transient" keyword has been introduced to support control over
+      @ref Qore::Serializable "object serialization"; see also @ref no-transient "%no-transient"
 
     @subsection qore_09_new_features New Features in Qore
-    - Added support for importing splitted user module represented as directory (<a href="https://github.com/qorelanguage/qore/issues/2562">issue 2562</a>)
-    - extensive memory optimizations have resulted in a much smaller memory footprint for %Qore programs
-    - the elimination of heap-allocated, atomic-reference-counted integer and floating-point values results
-      in reduced memory usage as well as faster program execution
-    - the default thread stack size was changed from 8MB to 512KB resulting in a large reduction in the total
-      memory used in programs with many threads (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
-    - a new reflection API module: <a href="../../modules/reflection/html/index.html">reflection</a>
-    - new classes:
-      - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
-      - @ref Qore::StreamBase "StreamBase": a base class for stream classes allowing for a controlled handoff of the stream to another thread
-    - new and updated methods in existing classes:
+    - Up to 70% reduced memory usage in %Qore programs through:
+      - Extensive memory optimizations
+      - Changing the default thread stack size from 8 MB to 512 KB
+        (<a href="https://github.com/qorelanguage/qore/issues/2701">issue 2701</a>)
+      - Eliminating heap-allocated, atomic-reference-counted integer and floating-point values resulted in
+        reduced memory usage as well as faster runtime execution
+    - <a href="../../modules/reflection/html/index.html">Reflection API</a>
+    - @ref Qore::Serializable "Data and object serialization" support:
+      - All data types except @ref closure "closures", @ref call_reference "call references",
+        @ref lvalue_references "references", and non-serializable objects can be serializeed
+      - All objects from classes inheriting @ref Qore::Serializable "Serializable" can be serialized
+      - Class members declared with the @ref transient "transient" keyword (new in this release) will not be serialized
+        but instead will get their default values when deserialized
+      - Classes can define their own local serialization and deserialization logic by defining the
+        @ref Qore::Serializable::serializeMembers() "serializeMembers()" and
+        @ref Qore::Serializable::deserializeMembers() "deserializeMembers()" methods, respectively
+      - The following builtin classes support serialization:
+        - @ref Qore::SQL::Datasource "Datasource"
+        - @ref Qore::SQL::DatasourcePool "DatasourcePool"
+        - @ref Qore::SSLCertificate "SSLCertificate"
+        - @ref Qore::SSLPrivateKey "SSLPrivateKey"
+        - @ref Qore::TimeZone "TimeZone"
+    - New classes:
+      - @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement": has been added as the parent class
+        defining an abstract API for @ref Qore::SQL::SQLStatement "SQLStatement"
+      - @ref Qore::Serializable "Serializable": a new class supporting data and object serialization
+      - @ref Qore::StreamBase "StreamBase": a base class for stream classes allowing for a controlled
+        handoff of a stream to another thread
+    - Added support for importing a split user module represented as directory (<a href="https://github.com/qorelanguage/qore/issues/2562">issue 2562</a>)
+    - New and updated methods in existing classes:
       - @ref Qore::SQL::AbstractDatasource::getSQLStatement() "AbstractDatasource::getSQLStatement()"
       - @ref Qore::SQL::Datasource::getSQLStatement() "Datasource::getSQLStatement()"
       - @ref Qore::SQL::DatasourcePool::getSQLStatement() "DatasourcePool::getSQLStatement()"
@@ -56,7 +77,10 @@
       - @ref Qore::SSLPrivateKey::getDER() "SSLPrivateKey::getDER()"
       - @ref Qore::StreamReader::getInputStream() "StreamReader::getInputStream()"
       - @ref Qore::StreamWriter::getOutputStream() "StreamWriter::getOutputStream()"
-    - new functions:
+      - @ref Qore::Thread::Counter::inc() "Counter::inc()"
+    - New functions:
+      - @ref Qore::call_static_method() "call_static_method()"
+      - @ref Qore::call_static_method_args() "call_static_method_args()"
       - @ref Qore::get_default_thread_stack_size() "get_default_thread_stack_size()"
       - @ref Qore::get_module_option() "get_module_option()"
       - @ref Qore::get_netif_list() "get_netif_list()"
@@ -65,13 +89,14 @@
       - @ref Qore::set_default_thread_stack_size() "set_default_thread_stack_size()"
       - @ref Qore::set_module_option() "set_module_option()"
       - @ref Qore::set_thread_name() "set_thread_name()"
-    - new modules:
+    - New modules:
+      - <a href="../../modules/FsUtil/html/index.html">FsUtil</a>
       - <a href="../../modules/Logger/html/index.html">Logger</a>
-    - new hashdecls:
-      - @ref Qore::NetIfInfo "NetIfInfo"
-    - new members:
-        - @ref Qore::CallStackInfo "CallStackInfo" new memebers \c programid and \c statementid
-    - new constants:
+      - <a href="../../modules/reflection/html/index.html">reflection</a>
+    - New and updated hashdecls:
+      - @ref Qore::NetIfInfo "NetIfInfo": new @ref hashdecl "hashdecl" for the @ref Qore::get_netif_list() "get_netif_list()" function
+      - @ref Qore::CallStackInfo "CallStackInfo": updated with new members: \c programid and \c statementid
+    - New constants:
       - @ref Qore::DomainCodeMap "DomainCodeMap"
       - @ref Qore::DomainStringMap "DomainStringMap"
       - @ref Qore::Option::HAVE_GET_NETIF_LIST "HAVE_GET_NETIF_LIST"
@@ -79,53 +104,75 @@
       - @ref Qore::Option::HAVE_MANAGE_STACK "HAVE_MANAGE_STACK"
       - @ref Qore::Option::HAVE_THREAD_NAME "HAVE_THREAD_NAME"
       - @ref Qore::PO_NO_REFLECTION "PO_NO_REFLECTION"
+      - @ref Qore::PO_NO_TRANSIENT "PO_NO_TRANSIENT"
       - @ref functional_domain_constants
-    - new @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
+    - New @ref date_formatting "date formatting" codes for <date>::format() and @ref Qore::format_date() "format_date()":
       - \c "Dn" and \c "DN": the ordinal day number in the year
       - \c "I": ISO-8601 week string
       - \c "Id" and \c "ID": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> day number
-      - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both @ref relative_dates "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute" dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
+      - \c "IF": the value in <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO-8601</a> format for both
+        @ref relative_dates "relative" (ex: \c "P2Y1M3DT5H7M9.002S") and @ref absolute_dates "absolute"
+        dates (ex: \c "2018-03-23T10:43:12.067628+01:00")
       - \c "Iw" and \c "IW": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> number
       - \c "Iy" and \c "IY": <a href="http://en.wikipedia.org/wiki/ISO_week_date">ISO-8601 week</a> year
+    - New parse directives:
+      - @ref no-reflection "%no-reflection"
+      - @ref no-transient "%no-transient"
     - @ref Qore::Program::parse() "Program::parse()" and @ref Qore::Program::parsePending() "Program::parsePending()" updates:
       the \a format_label parameter is obsolete/ignored
       (<a href="https://github.com/qorelanguage/qore/issues/2903">issue 2903</a>)
-    - module updates
-      - a new binary module: <a href="../../modules/reflection/html/index.html">reflection</a>
-        providing a reflection API to %Qore
+    - Module updates
+      - <a href="../../modules/reflection/html/index.html">reflection</a>: a new binary module providing a
+        reflection API to %Qore
       - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module changes:
-        - the \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
+        - The \c AbstractConnection::getConstructorInfo() method (and supporting declarations) was added to allow
           connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
-        - the \c AbstractConnection has new public flag \c enabled. Also constructors are updated. (<a href="https://github.com/qorelanguage/qore/issues/3001">issue 3001</a>)
+        - The \c AbstractConnection has new public flag \c enabled. Also constructors are updated. (<a href="https://github.com/qorelanguage/qore/issues/3001">issue 3001</a>)
+        - The \c AbstractConnection has new constructors, old ones are obsolete. Custom URL/URI parsing is possible (<a href="https://github.com/qorelanguage/qore/issues/3162">issue 3162</a>)
       - <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> module changes:
-        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+        - Added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module changes:
-        - added support for adding new HTTP methods to the server with the \c HttpServer::addHttpMethod() method
+        - Added support for adding new HTTP methods to the server with the \c HttpServer::addHttpMethod() method
           (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
       - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module changes:
-        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+        - Added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes:
-        - implemented a check for allowed types when is the AUTO_INCREMENT flag used (<a href="https://github.com/qorelanguage/qore/issues/2978">issue 2978</a>)
-        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+        - Implemented a check for allowed types when is the AUTO_INCREMENT flag used
+          (<a href="https://github.com/qorelanguage/qore/issues/2978">issue 2978</a>)
+        - Added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module changes:
-        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+        - Added support for serializing and deserializing \c AbstractTable objects
+          (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/QUnit/html/index.html">QUnit</a> module changes:
+        - updated @ref QUnit::Test::testSkip() "Test::testSkip()" to use the reason argument a format string with
+          @ref Qore::vsprintf() "vsprintf()"
+          (<a href="https://github.com/qorelanguage/qore/issues/3172">issue 3172</a>)
       - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module changes:
         - Updated to support alternative URI paths for actions so that an "action=xxx" argument is not needed; instead
           the action can be added to the end of the URI path so that \c "PUT path/xxx" can be used instead of
           \c "PUT path?action=xxx"
           (<a href="https://github.com/qorelanguage/qore/issues/2994">issue 2994</a>)
       - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module changes:
-        - updated the default validator to try all serialization methods if multiple methods are available and one fails
+        - Updated the default validator to try all serialization methods if multiple methods are available and one fails
           (<a href="https://github.com/qorelanguage/qore/issues/2831">issue 2831</a>)
+      - <a href="../../modules/Schema/html/index.html">Schema</a> module changes:
+        - improved logging output when aligning schemas
+          (<a href="https://github.com/qorelanguage/qore/issues/3114">issue 3114</a>)
       - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module changes:
-        - deprecated \c AbstractTable::getRowIterator() for \c AbstractTable::getStatement() (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
-        - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
-        - added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+        - Deprecated \c AbstractTable::getRowIterator() for \c AbstractTable::getStatement()
+          (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
+        - Updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the
+          @ref Qore::SQL::SQLStatement "SQLStatement"
+          (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
+        - Added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/Util/html/index.html">Util</a> module updates:
-        - added public function \c parse_ranges() (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
-        - added public function \c check_ip_address() (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
+        - Added public function \c parse_ranges() (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
+        - Added public function \c check_ip_address() (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
+        - Updated \c parse_to_qore_value() to support single-element lists and hashes with curly brackets including
+          empty hashes
+          (<a href="https://github.com/qorelanguage/qore/issues/3138">issue 3138</a>)
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
-        - added public methods \c AbstractCsvIterator::getRawLine() and \c AbstractCsvIterator::getRawLineValues() (<a href="https://github.com/qorelanguage/qore/issues/2739">issue 2739</a>)
+        - Added public methods \c AbstractCsvIterator::getRawLine() and \c AbstractCsvIterator::getRawLineValues() (<a href="https://github.com/qorelanguage/qore/issues/2739">issue 2739</a>)
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
         - Swagger module does not accept multipart/form-data content-type and also does not work with list and hash parameters
           (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
@@ -142,30 +189,81 @@
       - Command line utils display source line code when interrupted
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
+    - fixed a bug with simple additional and subtraction with mixed @ref timeout_type "timeout" and
+      @ref date_type "date" values; updated docs that arithmetic operations with timeout values are not recommended
+      and can return unexpected values in some situations
+      (<a href="https://github.com/qorelanguage/qore/issues/3157">issue 3157</a>)
+    - fixed a bug in deterministic garbage collection where @ref Qore::Thread::Queue "Queue" objects were not scanned
+      and therefore cycles due to @ref Qore::Thread::Queue "Queue" elements would cause a memory and reference leak
+      (<a href="https://github.com/qorelanguage/qore/issues/3101">issue 3101</a>)
     - fixed a bug where call references did not set the execution context with builtin functions
-      and therefore calls to builtin functions in modules (such as @ref jniintro "jni") with
+      and therefore calls to builtin functions in modules (such as \c jni) with
       per-program private data would fail
       (<a href="https://github.com/qorelanguage/qore/issues/3024">issue 3024</a>)
     - fixed a bug where rvalue references with complex subtypes could get modified during an assignment
       (<a href="https://github.com/qorelanguage/qore/issues/2891">issue 2891</a>)
-    - fixed a bug where class members could be initialized multiple times in a class with multiple
+    - Fixed a bug where class members could be initialized multiple times in a class with multiple
       inheritance where the same class is inherited multiple times in the hierarchy
       (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
-    - fixed bugs handling @ref abstract "abstract" methods in complex hierarchies with multiple inheritance (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
-    - fixed bugs handling object scope in @ref background "background" expressions (<a href="https://github.com/qorelanguage/qore/issues/2653">issue 2653</a>)
-    - fixed bug: @ref Qore::hash(list) "hash(list)" where l has an odd number of elements never returns (<a href="https://github.com/qorelanguage/qore/issues/2860">issue 2860</a>)
-    - fixed bug where no error is issued when an expression does not have meaning as a top-level statement (<a href="https://github.com/qorelanguage/qore/issues/2826">issue 2826</a>),
+    - Fixed bugs handling @ref abstract "abstract" methods in complex hierarchies with multiple inheritance
+      (<a href="https://github.com/qorelanguage/qore/issues/2741">issue 2741</a>)
+    - Fixed bugs handling object scope in @ref background "background" expressions
+      (<a href="https://github.com/qorelanguage/qore/issues/2653">issue 2653</a>)
+    - Fixed a bug: @ref Qore::hash(list) "hash(list)" where l has an odd number of elements never returns
+      (<a href="https://github.com/qorelanguage/qore/issues/2860">issue 2860</a>)
+    - Fixed a bug where no error is issued when an expression does not have meaning as a top-level statement
+      (<a href="https://github.com/qorelanguage/qore/issues/2826">issue 2826</a>),
       and also where such expression is an argument to the @ref background "background" operator (<a href="https://github.com/qorelanguage/qore/issues/2747">issue 2747</a>)
-    - fixed bug where the parser does not recognize that a return value of a function call is not ignored if it
+    - Fixed a bug where the parser does not recognize that a return value of a function call is not ignored if it
       is an object and its method is immediately called
       (<a href="https://github.com/qorelanguage/qore/issues/2863">issue 2863</a>),
-    - fixed bug where \c public and \c private members of classes inherited with \c private:internal inheritance
+    - Fixed a bug where \c public and \c private members of classes inherited with \c private:internal inheritance
       were not initialized when objects were created
       (<a href="https://github.com/qorelanguage/qore/issues/2970">issue 2970</a>),
-    - module fixes:
+    - Module fixes:
       - <a href="../../modules/QUnit/html/index.html">QUnit</a>:
         - fixed error reporting with type errors with number values
           (<a href="https://github.com/qorelanguage/qore/issues/2984">issue 2984</a>)
+
+    @section qore_08139 Qore 0.8.13.9
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08139_bug_fixes Bug Fixes in Qore
+    - fixed a bug handling illegal abstract method definitions of special class methods
+      (<a href="https://github.com/qorelanguage/qore/issues/3126">issue 3126</a>)
+    - fixed handling <tt>304 Not Modified</tt> responses in the @ref Qore::HTTPClient "HTTPClient" class
+      (<a href="https://github.com/qorelanguage/qore/issues/3116">issue 3116</a>)
+    - fixed a crashing bug in the @ref Qore::Transform "Transform" class when used with encryption algorithms
+      (<a href="https://github.com/qorelanguage/qore/issues/3111">issue 3111</a>)
+    - fixed a crash with multiple hash keys when parsing the @ref hmap "hash map operator"
+      (<a href="https://github.com/qorelanguage/qore/issues/31">issue 3108</a>)
+    - module fixes:
+      - <a href="../../modules/HttpServer/html/index.html">HttpServer</a>:
+        - fixed responses that cannot have a message body (ex: \c HEAD requests and others)
+          (<a href="https://github.com/qorelanguage/qore/issues/3116">issue 3116</a>)
+
+    @section qore_08138 Qore 0.8.13.8
+
+    @par Release Summary
+    Bugfix release; see details below
+
+    @subsection qore_08138_bug_fixes Bug Fixes in Qore
+    - fixed a bug where @ref Qore::stdout, @ref Qore::stdin, @ref Qore::stderr,
+      @ref Qore::stdout_stream, @ref Qore::stdin_stream, and @ref Qore::stderr_stream, would
+      perform automatic CRLF -> LF translations on Windows
+      (<a href="https://github.com/qorelanguage/qore/issues/3061">issue 3061</a>)
+    - fixed a bug in secure socket TLS communication making it impossible to talk to servers
+      that require <a href="https://en.wikipedia.org/wiki/Server_Name_Indication">SNI</a>
+      (<a href="https://github.com/qorelanguage/qore/issues/3053">issue 3053</a>)
+    - fixed a deadlock in @ref Qore::FtpClient::put() "FtpClient::put()" with zero-length files
+      (<a href="https://github.com/qorelanguage/qore/issues/3038">issue 3038</a>)
+    - fixed an error respecting the I/O timeout in @ref Qore::FtpClient::put() "FtpClient::put()"
+      with @ref Qore::InputStream "InputStream" argugments
+      (<a href="https://github.com/qorelanguage/qore/issues/3032">issue 3032</a>)
+    - fixed an error where @ref Qore::FtpClient "FtpClient" \c PORT operations would not time out
+      (<a href="https://github.com/qorelanguage/qore/issues/3031">issue 3031</a>)
 
     @section qore_08137 Qore 0.8.13.7
 
@@ -180,13 +278,6 @@
       - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>
         - fixed schema alignment when there are functions to be dropped
           (<a href="https://github.com/qorelanguage/qore/issues/2963">issue 2963</a>)
-    - fixed a deadlock in @ref Qore::FtpClient::put() "FtpClient::put()" with zero-length files
-      (<a href="https://github.com/qorelanguage/qore/issues/3033">issue 3033</a>)
-    - fixed an error respecting the I/O timeout in @ref Qore::FtpClient::put() "FtpClient::put()"
-      with @ref Qore::InputStream "InputStream" argugments
-      (<a href="https://github.com/qorelanguage/qore/issues/3032">issue 3032</a>)
-    - fixed an error where @ref Qore::FtpClient "FtpClient" \c PORT operations would not time out
-      (<a href="https://github.com/qorelanguage/qore/issues/3031">issue 3031</a>)
     - fixed a race condition in @ref Qore::Thread::ThreadPool "ThreadPool" destruction that could
       cause a crash
       (<a href="https://github.com/qorelanguage/qore/issues/2906">issue 2906</a>)
@@ -336,6 +427,8 @@
         - made it possible for FileHandler subclasses to add headers to response (<a href="https://github.com/qorelanguage/qore/issues/2686">issue 2686</a>)
     - <a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>:
         - improved HTTP log masking to mask fewer false positives when attempting to mask sensitive data (<a href="https://github.com/qorelanguage/qore/issues/2621">issue 2621</a>)
+    - fixed a crashing bug initializing constants with recursive references to code
+      (<a href="https://github.com/qorelanguage/qore/issues/3027">issue 3027</a>)
     - fixed a crashing bug in the @ref plus_equals_operator "+= operator" with objects and hashes when @ref require-types "%require-types" is not in force (<a href="https://github.com/qorelanguage/qore/issues/2634">issue 2634</a>)
     - fixed a crashing bug in the @ref background "background operator" with non-constant hash expressions with local variable references (<a href="https://github.com/qorelanguage/qore/issues/2637">issue 2637</a>)
     - worked around an Oracle bug in materialized view creation in the <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module where when the schema user is missing the <tt>CREATE MATERIALIZED VIEW</tt> grant the table backing the view is created but the materialized view itself is not created causing future creation actions to fail (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)

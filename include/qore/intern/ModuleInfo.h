@@ -263,14 +263,14 @@ protected:
 public:
    DLLLOCAL void addDirList(const char* str);
 
-   DLLLOCAL bool push_back(const char* str) {
-      if (dset.find(str) != dset.end())
-         return false;
-
-      dlist.push_back(str);
-      dset.insert(str);
-      return true;
-   }
+    DLLLOCAL bool push_back(const std::string &str) {
+        if (dset.find(str) != dset.end()) {
+	    return false;
+	}
+	dlist.push_back(str);
+	dset.insert(str);
+	return true;
+    }
 
    DLLLOCAL bool empty() const {
       return dlist.empty();
@@ -589,7 +589,7 @@ protected:
     qore_module_parse_cmd_t module_parse_cmd;
     const void* dlptr;
 
-    DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const;
+    DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const override;
 
 public:
     DLLLOCAL QoreBuiltinModule(const char* cwd, const char* fn, const char* n, const char* d, const char* v, const char* a, const char* u, const QoreString& l, unsigned major, unsigned minor, qore_module_init_t init, qore_module_ns_init_t ns_init, qore_module_delete_t del, qore_module_parse_cmd_t pcmd, const void* p) : QoreAbstractModule(cwd, fn, n, d, v, a, u, l), api_major(major), api_minor(minor), module_init(init), module_ns_init(ns_init), module_delete(del), module_parse_cmd(pcmd), dlptr(p) {
@@ -610,15 +610,15 @@ public:
         return api_minor;
     }
 
-    DLLLOCAL virtual bool isBuiltin() const {
+    DLLLOCAL virtual bool isBuiltin() const override {
         return true;
     }
 
-    DLLLOCAL virtual bool isUser() const {
+    DLLLOCAL virtual bool isUser() const override {
         return false;
     }
 
-    DLLLOCAL QoreHashNode* getHash(bool with_filename = true) const;
+    DLLLOCAL QoreHashNode* getHash(bool with_filename = true) const override;
 
     DLLLOCAL const void* getPtr() const {
         return dlptr;
@@ -632,7 +632,7 @@ protected:
     QoreProgram* pgm;
     AbstractQoreNode* del = nullptr; // deletion closure / call reference
 
-    DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const;
+    DLLLOCAL virtual void addToProgramImpl(QoreProgram* pgm, ExceptionSink& xsink) const override;
 
 public:
     DLLLOCAL QoreUserModule(const char* cwd, const char* fn, const char* n, QoreProgram* p, unsigned load_opt) : QoreAbstractModule(cwd, fn, n, load_opt), pgm(p) {
@@ -649,15 +649,15 @@ public:
 
     DLLLOCAL virtual ~QoreUserModule();
 
-    DLLLOCAL virtual bool isBuiltin() const {
+    DLLLOCAL virtual bool isBuiltin() const override {
         return false;
     }
 
-    DLLLOCAL virtual bool isUser() const {
+    DLLLOCAL virtual bool isUser() const override {
         return true;
     }
 
-    DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const {
+    DLLLOCAL virtual QoreHashNode* getHash(bool with_filename = true) const override {
         return getHashIntern(with_filename);
     }
 
@@ -670,33 +670,33 @@ public:
 };
 
 class QoreUserModuleDefContextHelper : public QoreModuleDefContextHelper {
-protected:
-   const char* old_name;
-
-   qore_program_private* pgm;
-   int64 po;
-
-   ExceptionSink& xsink;
-   bool dup;
-
 public:
-   DLLLOCAL QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs);
+    DLLLOCAL QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs);
 
-   DLLLOCAL ~QoreUserModuleDefContextHelper() {
-      const char* name = set_user_module_context_name(old_name);
+    DLLLOCAL ~QoreUserModuleDefContextHelper() {
+        const char* name = set_user_module_context_name(old_name);
 
-      if (xsink && !dup)
-         QMM.removeUserModuleDependency(name);
-   }
+        if (xsink && !dup)
+            QMM.removeUserModuleDependency(name);
+    }
 
-   DLLLOCAL void setDuplicate() {
-      assert(!dup);
-      dup = true;
-   }
+    DLLLOCAL void setDuplicate() {
+        assert(!dup);
+        dup = true;
+    }
 
-   DLLLOCAL void setNameInit(const char* name);
+    DLLLOCAL void setNameInit(const char* name);
 
-   DLLLOCAL void close();
+    DLLLOCAL void close();
+
+protected:
+    const char* old_name;
+
+    qore_program_private* pgm;
+    int64 po;
+
+    ExceptionSink& xsink;
+    bool dup;
 };
 
 #endif

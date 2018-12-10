@@ -1,7 +1,7 @@
 # Doxyfile 1.7.1
 
 # Doxygen template for qlib documentation via cmake
-# Currently is used qdx instaad of cmake macro substitutions @QORE_QMOD_FNAME@ 
+# Currently is used qdx instaad of cmake macro substitutions @QORE_QMOD_FNAME@
 # which are commented out
 
 MARKDOWN_SUPPORT=NO
@@ -31,22 +31,26 @@ DOXYFILE_ENCODING      = UTF-8
 # The PROJECT_NAME tag is a single word (or a sequence of words surrounded
 # by quotes) that should identify the project.
 
-#PROJECT_NAME           = "Qore @QORE_QMOD_FNAME@ Module Reference"
 PROJECT_NAME           = "Qore {module} Module Reference"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number.
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-#PROJECT_NUMBER         = @version@
 PROJECT_NUMBER         = {version}
+
+# With the PROJECT_LOGO tag one can specify an logo or icon that is
+# included in the documentation. The maximum height of the logo should not
+# exceed 55 pixels and the maximum width should not exceed 200 pixels.
+# Doxygen will copy the logo to the output directory.
+
+PROJECT_LOGO           = @CMAKE_SOURCE_DIR@/doxygen/qore-logo-55x200.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-#OUTPUT_DIRECTORY       = @CMAKE_BINARY_DIR@/docs/@QORE_QMOD_FNAME@/
 OUTPUT_DIRECTORY       = @CMAKE_BINARY_DIR@/docs/modules/{module}
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
@@ -1495,7 +1499,7 @@ DOT_NUM_THREADS        = 0
 # DOTFONTPATH environment variable or by setting DOT_FONTPATH to the directory
 # containing the font.
 
-DOT_FONTNAME           = 
+#DOT_FONTNAME           = FreeSans
 
 # The DOT_FONTSIZE tag can be used to set the size of the font of dot graphs.
 # The default size is 10pt.

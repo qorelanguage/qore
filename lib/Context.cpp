@@ -31,11 +31,10 @@
 #include <qore/Qore.h>
 #include "qore/intern/QoreHashNodeIntern.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-
 #include <algorithm>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
 
 class Templist {
 public:

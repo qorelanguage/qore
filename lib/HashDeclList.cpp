@@ -35,7 +35,7 @@
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 
-#include <assert.h>
+#include <cassert>
 
 void HashDeclList::remove(hm_qth_t::iterator i) {
     TypedHashDecl* thd = i->second;

@@ -32,8 +32,8 @@
 #include "qore/intern/ManagedDatasource.h"
 #include "qore/intern/qore_ds_private.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 DatasourceActionHelper::~DatasourceActionHelper() {
    if (ok) {
@@ -227,16 +227,18 @@ void ManagedDatasource::setAutoCommit(bool ac, ExceptionSink *xsink) {
 
 QoreHashNode* ManagedDatasource::getConfigHash(ExceptionSink* xsink) {
     DatasourceActionHelper dbah(*this, xsink);
-    if (!dbah)
+    if (!dbah) {
         return nullptr;
+    }
 
     return Datasource::getConfigHash();
 }
 
 QoreStringNode* ManagedDatasource::getConfigString(ExceptionSink* xsink) {
     DatasourceActionHelper dbah(*this, xsink);
-    if (!dbah)
+    if (!dbah) {
         return nullptr;
+    }
 
     return Datasource::getConfigString();
 }

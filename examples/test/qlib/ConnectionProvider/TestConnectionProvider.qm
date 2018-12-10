@@ -47,7 +47,7 @@ class TestConnection inherits AbstractConnection {
         const Url = "test://user:pass@x";
     }
 
-    constructor() : AbstractConnection("test", "test", Url, False, NOTHING, parse_url(Url)) {
+    constructor() : AbstractConnection("test", "test", Url) {
     }
 
     string getType() {

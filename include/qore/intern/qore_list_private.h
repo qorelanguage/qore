@@ -32,7 +32,7 @@
 #ifndef _QORE_QORELISTPRIVATE_H
 #define _QORE_QORELISTPRIVATE_H
 
-#include <string.h>
+#include <cstring>
 
 typedef ReferenceHolder<QoreListNode> safe_qorelist_t;
 
@@ -161,7 +161,7 @@ struct qore_list_private {
     DLLLOCAL int checkVal(ValueHolder& holder, ExceptionSink* xsink) {
         if (complexTypeInfo) {
             const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo);
-            if (!QoreTypeInfo::superSetOf(vti, holder->getTypeInfo()) && QoreTypeInfo::hasType(complexTypeInfo)) {
+            if (QoreTypeInfo::hasType(vti) && !QoreTypeInfo::superSetOf(vti, holder->getTypeInfo())) {
                 QoreValue v(holder.release());
                 QoreTypeInfo::acceptInputParam(vti, -1, nullptr, v, xsink);
                 holder = v;

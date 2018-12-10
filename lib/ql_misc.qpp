@@ -38,9 +38,9 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
-#include <string.h>
-#include <time.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstring>
+#include <ctime>
 
 static const QoreFunction* get_builtin_func(const QoreStringNode* str, ExceptionSink* xsink) {
    const qore_ns_private* ns;
@@ -554,6 +554,13 @@ auto result = call_function("func_name", arg1, arg2);
     @throw NO-FUNCTION The function does not exist
 
     @note The function called could also throw other exceptions
+
+    @see
+    - call_function_args()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function(string name, ...) {
     ReferenceHolder<QoreListNode> vargs(xsink);
@@ -576,6 +583,13 @@ auto result = call_function(call_ref, arg1, arg2);
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
+
+    @see
+    - call_function_args()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function(code f, ...) {
     ReferenceHolder<QoreListNode> vargs(xsink);
@@ -603,6 +617,13 @@ auto result = call_function_args("func_name", (arg1, arg2));
     @throw NO-FUNCTION The function does not exist
 
     @note The function called could also throw other exceptions
+
+    @see
+    - call_function()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function_args(string name, *softlist<auto> vargs) {
    return getProgram()->callFunction(name->getBuffer(), vargs, xsink);
@@ -619,6 +640,13 @@ auto result = call_function_args(call_ref, (arg1, arg2));
     @endcode
 
     @note The @ref call_reference "call reference" or @ref closure "closure" called could also throw other exceptions
+
+    @see
+    - call_function()
+    - call_static_method()
+    - call_static_method_args()
+    - call_object_method()
+    - call_object_method_args()
 */
 auto call_function_args(code f, *softlist<auto> vargs) {
    return f->execValue(vargs, xsink);

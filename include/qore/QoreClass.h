@@ -33,9 +33,9 @@
 
 #define _QORE_QORECLASS_H
 
-#include <stdarg.h>
-#include <string>
+#include <cstdarg>
 #include <memory>
+#include <string>
 
 // all qore class IDs
 DLLEXPORT extern qore_classid_t CID_AUTOGATE;
@@ -447,6 +447,30 @@ public:
         @note delete blocker methods are called with the object's status lock held, therefore be very careful what you call from within the deleteBlocker function
     */
     DLLEXPORT void setDeleteBlocker(q_delete_blocker_t m);
+
+    //! sets the serializer method for builtin classes
+    /** @param m the serializer method
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT void setSerializer(q_serializer_t m);
+
+    //! sets the deserializer method for builtin classes
+    /** @param m the deserializer method
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT void setDeserializer(q_deserializer_t m);
+
+    //! returns the serializer method or nullptr if not present
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT q_serializer_t getSerializer() const;
+
+    //! returns the deserializer method or nullptr if not present
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT q_deserializer_t getDeserializer() const;
 
     //! sets the final flag of the class
     DLLEXPORT void setFinal();
@@ -877,6 +901,11 @@ public:
     /** @since %Qore 0.9
     */
     DLLEXPORT bool inHierarchy(const QoreClass& cls, ClassAccess& n_access) const;
+
+    //! Returns true if the class has at least one locally-declared transient member
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT bool hasTransientMember() const;
 
     //! Returns the module name the class was loaded from or nullptr if it is a builtin class
     /** @since %Qore 0.9

@@ -37,6 +37,7 @@ int get_access(ClassAccess access) {
         case Public: return MC_PUBLIC;
         case Private: return MC_PRIVATE;
         case Internal: return MC_PRIVATEINTERNAL;
+        case Inaccessible: return 0;
         default: break;
     }
     assert(false);

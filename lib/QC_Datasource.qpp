@@ -31,6 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/QC_Datasource.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/QC_Serializable.h"
 
 DLLLOCAL extern QoreClass* QC_ABSTRACTDATASOURCE;
 DLLLOCAL extern QoreClass* QC_ABSTRACTSQLSTATEMENT;
@@ -117,6 +118,53 @@ static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queu
       ds->setEventQueue(q.release(), arg.refSelf(), xsink);
 
    self->setPrivate(CID_DATASOURCE, ds.release());
+}
+
+static void create_datasource_from_conf(const QoreString& conf, QoreObject& self, Queue* queue, QoreValue arg, ExceptionSink* xsink) {
+    ReferenceHolder<Queue> holder(queue, xsink);
+
+    qore_offset_t colon = conf.find(':');
+    qore_offset_t atsign = conf.find('@');
+    if (colon < 0 || (atsign < colon)) {
+        // do not report the string here to avoid leaking password info in case present
+        xsink->raiseException("DATASOURCE-PARSE-ERROR", "driver is missing from the datasource string");
+        return;
+    }
+
+    ReferenceHolder<QoreHashNode> h(parseDatasource(conf.c_str(), xsink), xsink);
+    if (!h) {
+        assert(*xsink);
+        return;
+    }
+
+    ds_constructor_hash(*h, &self, holder.release(), arg, xsink);
+}
+
+static QoreHashNode* Datasource_serializer(const QoreObject& self, const ManagedDatasource& ds, QoreSerializationContext& context, ExceptionSink* xsink) {
+    SimpleRefHolder<QoreStringNode> str(const_cast<ManagedDatasource&>(ds).getConfigString(xsink));
+    if (*xsink) {
+        return nullptr;
+    }
+
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    rv->setKeyValue("conf", str.release(), xsink);
+    return rv.release();
+}
+
+static void Datasource_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
+    if (sdata) {
+        QoreValue val = sdata->getKeyValue("conf");
+        if (val) {
+            if (val.getType() != NT_STRING) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "Datasource serialization key 'conf' has type '%s'; expecting 'string'", val.getTypeName());
+                return;
+            }
+            create_datasource_from_conf(*val.get<QoreStringNode>(), self, nullptr, QoreValue(), xsink);
+            return;
+        }
+    }
+
+    xsink->raiseException("DESERIALIZATION-ERROR", "missing serialization data for the Datasource class");
 }
 
 /** @defgroup database_driver_constants Database Driver Constants
@@ -285,11 +333,18 @@ int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, num
     and the internal @ref Qore::Thread::AbstractThreadResource::cleanup() "AbstractThreadResource::cleanup()" method
     cannot be overridden or suppressed.
 
+    @par Data Serialization
+    The Datasource class supports @ref Serializable "data serialization"; deserialization can fail if the database is not
+    supported on or reachable from the target machine.
+
+    When deserializing, any datasource event queue is lost; only the connection information is propagated in the
+    deserialized copy.
+
     @note This class is not available with the @ref PO_NO_DATABASE parse option
 
     @see <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> for a high level database-independent API
  */
-qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=Qore::SQL; vparent=AbstractDatasource];
+qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=Qore::SQL; vparent=AbstractDatasource, Serializable; serializer=reinterpret_cast<q_serializer_t>(Datasource_serializer); deserializer=Datasource_deserializer];
 
 //! Creates the Datasource object; attempts to load a DBI driver if the driver is not already present in %Qore
 /** @param driver The name of the DBI driver for the Datasource. See @ref sql_constants for builtin constants for DBI drivers shipped with %Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
@@ -390,25 +445,14 @@ Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
     @since %Qore 0.8.6
  */
 Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, auto arg) {
-   ReferenceHolder<Queue> q(queue, xsink);
+    ReferenceHolder<Queue> q(queue, xsink);
 
-   TempEncodingHelper tstr(desc, QCS_UTF8, xsink);
-   if (*xsink)
-      return;
-   qore_offset_t colon = tstr->find(':');
-   qore_offset_t atsign = tstr->find('@');
-   if (colon < 0 || (atsign < colon)) {
-      xsink->raiseException("DATASOURCE-PARSE-ERROR", "driver is missing from the datasource string");
-      return;
-   }
+    TempEncodingHelper tstr(desc, QCS_UTF8, xsink);
+    if (*xsink) {
+        return;
+    }
 
-   ReferenceHolder<QoreHashNode> h(parseDatasource(desc->getBuffer(), xsink), xsink);
-   if (!h) {
-      assert(*xsink);
-      return;
-   }
-   ds_constructor_hash(*h, self, q.release(), arg, xsink);
-   return;
+    create_datasource_from_conf(**tstr, *self, q.release(), arg, xsink);
 }
 
 //! Creates a Datasource object from a hash argument giving parameters for the constructor

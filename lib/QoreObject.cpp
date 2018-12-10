@@ -36,6 +36,7 @@
 #include "qore/intern/QoreObjectIntern.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/QoreClosureNode.h"
+#include "qore/intern/QoreQueueIntern.h"
 
 qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc, QoreProgram* p, QoreHashNode* n_data) :
    RObject(n_obj->references, true),
@@ -64,15 +65,30 @@ qore_object_private::qore_object_private(QoreObject* n_obj, const QoreClass* oc,
 }
 
 qore_object_private::~qore_object_private() {
-   //printd(5, "qore_object_private::~qore_object_private() this: %p obj: %p '%s' pgm: %p\n", this, obj, theclass ? theclass->getName() : "<n/a>", pgm);
-   assert(!cdmap);
-   assert(!data);
-   assert(!privateData);
-   assert(!rset);
-   qore_class_private::get(*const_cast<QoreClass*>(theclass))->deref(false, false);
-   // release weak reference
-   if (pgm)
-      pgm->depDeref();
+    //printd(5, "qore_object_private::~qore_object_private() this: %p obj: %p '%s' pgm: %p\n", this, obj, theclass ? theclass->getName() : "<n/a>", pgm);
+    assert(!cdmap);
+    assert(!data);
+    assert(!privateData);
+    assert(!rset);
+    qore_class_private::get(*const_cast<QoreClass*>(theclass))->deref(false, false);
+    // release weak reference
+    if (pgm) {
+        pgm->depDeref();
+    }
+}
+
+void qore_object_private::incScanPrivateData() {
+    AutoLocker lck(rlck);
+    ++scan_private_data;
+    if (scan_private_data && !deferred_scan) {
+        deferred_scan = true;
+    }
+}
+
+void qore_object_private::decScanPrivateData() {
+    AutoLocker lck(rlck);
+    assert(scan_private_data > 0);
+    --scan_private_data;
 }
 
 typedef vector_map_t<const qore_class_private*, QoreListNode*> slicekeymap_t;
@@ -81,9 +97,6 @@ QoreHashNode* qore_object_private::getSlice(const QoreListNode* l, ExceptionSink
     // local class only used in this function
     class SliceKeyMap : public slicekeymap_t {
     public:
-        SliceKeyMap() {
-        }
-
         ~SliceKeyMap() {
             for (auto& i : *this) {
                 i.second->deref(nullptr);
@@ -198,8 +211,9 @@ bool qore_object_private::scanMembersIntern(RSetHelper& rsh, QoreHashNode* odata
             AutoLocker al(rlck);
             if (rrefs) {
                 invalidate = true;
-                if (!deferred_scan)
-                deferred_scan = true;
+                if (!deferred_scan) {
+                    deferred_scan = true;
+                }
             }
         }
         if (invalidate) {
@@ -225,17 +239,38 @@ bool qore_object_private::scanMembersIntern(RSetHelper& rsh, QoreHashNode* odata
 
 // returns true if a lock error has occurred and the transaction should be aborted or restarted; the rsection lock is held when this function is called
 bool qore_object_private::scanMembers(RSetHelper& rsh) {
-   if (scanMembersIntern(rsh, data))
-      return true;
-   // scan internal members
-   if (cdmap) {
-      for (cdmap_t::iterator i = cdmap->begin(), e = cdmap->end(); i != e; ++i) {
-         if (scanMembersIntern(rsh, i->second))
+    if (getScanCount()) {
+        if (scanMembersIntern(rsh, data)) {
             return true;
-      }
-   }
+        }
+        // scan internal members
+        if (cdmap) {
+            for (cdmap_t::iterator i = cdmap->begin(), e = cdmap->end(); i != e; ++i) {
+                if (scanMembersIntern(rsh, i->second)) {
+                    return true;
+                }
+            }
+        }
+    }
 
-   return false;
+    if (scan_private_data) {
+        ExceptionSink xsink;
+        printd(5, "qore_object_private::checkIntern() scanning internals of object of class '%s'\n", theclass->getName());
+        {
+            // issue #3101: check Queue entries for cycles
+            ReferenceHolder<Queue> q(reinterpret_cast<Queue*>(getReferencedPrivateData(CID_QUEUE, &xsink)), &xsink);
+            if (!xsink && *q) {
+                if (qore_queue_private::get(**q)->scanMembers(*this, rsh)) {
+                    return true;
+                }
+            }
+        }
+        if (xsink) {
+            xsink.clear();
+        }
+    }
+
+    return false;
 }
 
 QoreHashNode* qore_object_private::copyData(ExceptionSink* xsink) const {
@@ -648,6 +683,7 @@ int qore_object_private::getLValue(const char* key, LValueHelper& lvh, const qor
         m = odata->priv->findCreateMember(key);
 
     lvh.setValue(m->val, mti);
+    lvh.setObjectContext(this);
 
     return 0;
 }
@@ -826,13 +862,11 @@ void qore_object_private::customDeref(bool real, ExceptionSink* xsink) {
                             // this must be true if we really are dealing with an object with no more valid (non-recursive) references
                             assert(references.load() == ref_copy);
                             rc = 1;
-                        }
-                        else {
+                        } else {
                             if (qodh.deferredScan()) {
                                 printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' deferred scan set; rescanning\n", this, getClassName());
                                 rc = -1;
-                            }
-                            else {
+                            } else {
                                 printd(QRO_LVL, "qore_object_private::customDeref() this: %p '%s' no deferred scan\n", this, getClassName());
                                 return;
                             }
@@ -1094,6 +1128,14 @@ const QoreClass* QoreObject::getClass(qore_classid_t cid) const {
 
 const QoreClass* QoreObject::getClass(qore_classid_t cid, bool& cpriv) const {
    return priv->theclass->getClass(cid, cpriv);
+}
+
+ClassAccess QoreObject::getClassAccess(const QoreClass& cls) const {
+    ClassAccess rv;
+    if (priv->theclass->inHierarchy(cls, rv)) {
+        return rv;
+    }
+    return ClassAccess::Inaccessible;
 }
 
 QoreValue QoreObject::evalMember(const QoreString* member, ExceptionSink* xsink) {

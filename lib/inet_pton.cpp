@@ -16,9 +16,9 @@
  
 #include <qore/Qore.h>
  
-#include <string.h>
-#include <stdio.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
  
 /*
  * WARNING: Don't even consider trying to compile this on a system where

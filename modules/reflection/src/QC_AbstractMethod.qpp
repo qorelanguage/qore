@@ -71,6 +71,10 @@ void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, Exc
     if (!m && (type == MT_None || type == MT_Static)) {
         m = cls->findLocalStaticMethod(name);
     }
+    setType(cls, name, type, xsink);
+}
+
+void QoreReflectionMethod::setType(const QoreClass* cls, const char* name, method_type_e type, ExceptionSink* xsink) {
     if (!m) {
         const char* typestr;
         switch (type) {
@@ -80,8 +84,7 @@ void QoreReflectionMethod::setMethod(const QoreClass* cls, const char* name, Exc
             default: assert(false); break;
         }
         xsink->raiseException("UNKNOWN-METHOD", "cannot resolve %smethod '%s' in class '%s'", typestr, name, cls->getName());
-    }
-    else {
+    } else {
         f = m->getFunction();
         setType();
     }
@@ -93,6 +96,20 @@ void QoreReflectionMethod::setType() {
     if (mtype == MT_Normal && m->getClass()->getName()[0] == '<') {
         mtype = MT_Pseudo;
     }
+}
+
+QoreReflectionHierarchyMethod::QoreReflectionHierarchyMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type) : QoreReflectionMethod() {
+    setMethod(cls, name, xsink, type);
+}
+
+void QoreReflectionHierarchyMethod::setMethod(const QoreClass* cls, const char* name, ExceptionSink* xsink, method_type_e type) {
+    if (type == MT_None || type == MT_Normal) {
+        m = cls->findMethod(name, class_access);
+    }
+    if (!m && (type == MT_None || type == MT_Static)) {
+        m = cls->findStaticMethod(name, class_access);
+    }
+    setType(cls, name, type, xsink);
 }
 
 //! The abstract base class for %Qore class methods

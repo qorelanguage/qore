@@ -41,12 +41,11 @@
 #include <qore/InputStream.h>
 #include <qore/OutputStream.h>
 
-#include <sys/types.h>
-#include <unistd.h>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
 #include <strings.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <openssl/ssl.h>

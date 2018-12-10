@@ -156,17 +156,23 @@ X509* QoreSSLCertificate::getData() const {
 }
 
 QoreStringNode* QoreSSLCertificate::getPEM(ExceptionSink* xsink) const {
-   QoreMemBIO b;
+    QoreMemBIO b;
 
-   if (!b.writePEMX509(priv->cert)) {
-      xsink->raiseException("X509-ERROR", "could not create PEM string from X509 certificate data");
-      return 0;
-   }
+    if (!b.writePEMX509(priv->cert)) {
+        xsink->raiseException("X509-ERROR", "could not create PEM string from X.509 certificate data");
+        return nullptr;
+    }
 
-   char* buf;
-   long len = b.getMemData(&buf);
+    return b.getAsString();
+}
 
-   return new QoreStringNode(buf, (int)len);
+BinaryNode* QoreSSLCertificate::getDER(ExceptionSink* xsink) const {
+    QoreMemBIO bio;
+    if (i2d_X509_bio(*bio, priv->cert) <= 0) {
+        xsink->raiseException("X509-ERROR", "could not create DER binary from X.509 certificate data");
+        return nullptr;
+    }
+    return bio.getAsBinary();
 }
 
 QoreHashNode* QoreSSLCertificate::getSubjectHash() const {

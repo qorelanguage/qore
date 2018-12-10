@@ -172,6 +172,10 @@ private:
 /** @since %Qore 0.9
 */
 class QoreExternalNormalMember : public QoreExternalMemberVarBase {
+public:
+    //! returns true if the member is transient (i.e. will not be serialized)
+    DLLEXPORT bool isTransient() const;
+
 private:
     //! not implemented
     DLLLOCAL QoreExternalNormalMember();

@@ -56,14 +56,13 @@
 #include "qore/intern/QC_AbstractSmartLock.h"
 #include "qore/intern/QC_AbstractThreadResource.h"
 
-#include <pthread.h>
-#include <sys/time.h>
-#include <assert.h>
-
-#include <vector>
+#include <cassert>
 #include <map>
+#include <pthread.h>
 #include <set>
 #include <string>
+#include <sys/time.h>
+#include <vector>
 
 #if defined(__ia64) && defined(__LP64__)
 #define IA64_64
@@ -257,7 +256,7 @@ public:
     Context* context_stack = nullptr;
     ProgramParseContext* plStack = nullptr;
     const QoreProgramLocation* runtime_loc = &loc_builtin;
-    const AbstractStatement* runtime_statement;
+    const AbstractStatement* runtime_statement = nullptr;
     const char* parse_code = nullptr; // the current function, method, or closure being parsed
     const char* parse_file = nullptr; // the current file or label being parsed
     const char* parse_source = nullptr; // the current source being parsed
@@ -1462,6 +1461,21 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper() {
    ThreadData* td  = thread_data.get();
    td->current_obj = old_obj;
    td->current_class = old_class;
+}
+
+OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
+    if (qc) {
+        ThreadData* td  = thread_data.get();
+        old_class = td->current_class;
+        td->current_class = qc;
+    }
+}
+
+OptionalClassOnlySubstitutionHelper::~OptionalClassOnlySubstitutionHelper() {
+    if (subst) {
+        ThreadData* td  = thread_data.get();
+        td->current_class = old_class;
+    }
 }
 
 OptionalClassObjSubstitutionHelper::OptionalClassObjSubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {

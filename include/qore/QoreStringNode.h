@@ -38,7 +38,7 @@
 #include <qore/AbstractQoreNode.h>
 #include <qore/QoreString.h>
 
-#include <string.h>
+#include <cstring>
 
 //! Qore's string value type, reference counted, dynamically-allocated only
 /** for a version that can be used on the stack, use QoreString

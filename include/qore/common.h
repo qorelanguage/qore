@@ -37,20 +37,19 @@
     provides type and other definitions for the Qore library
  */
 
-#include <string.h>
-#include <strings.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <inttypes.h>
-
-#include <string>
+#include <algorithm>
+#include <cinttypes>
+#include <cstdarg>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
 #include <functional>
 #include <list>
 #include <set>
-#include <vector>
-#include <algorithm>
 #include <set>
+#include <string>
+#include <strings.h>
+#include <vector>
 
 //! Qore's base type info class
 class QoreTypeInfo;
@@ -94,7 +93,7 @@ enum ClassAccess : unsigned char {
     Public = 0,        // publicly accessible
     Private = 1,       // accessible only in the class hierarchy (like c++'s 'protected')
     Internal = 2,      // accessible only in the class itself
-    Inaccessible = 3,  // not accessible from the class (status used only internally)
+    Inaccessible = 3,  // not accessible from the class
 };
 
 #if defined _MSC_VER || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
@@ -140,6 +139,7 @@ enum ClassAccess : unsigned char {
 #define _Q_MAKE_STRING(x) #x
 #define MAKE_STRING_FROM_SYMBOL(x) _Q_MAKE_STRING(x)
 
+// forward references
 class AbstractQoreNode;
 class QoreListNode;
 class ExceptionSink;
@@ -153,6 +153,7 @@ class QoreExternalFunction;
 class QoreExternalGlobalVar;
 class QoreExternalConstant;
 class QoreNamespace;
+class QoreHashNode;
 
 struct QoreValue;
 
@@ -260,6 +261,41 @@ typedef long long int64;
 
 //! runtime code execution flags
 typedef uint64_t q_rt_flags_t;
+
+//! serialization context object used in builtin serializer methods
+/** @since %Qore 0.9
+*/
+class QoreSerializationContext {
+public:
+    //! serializes the given object and return the serialization index, throws a Qore-language exception if there is an error serializing the object
+    DLLLOCAL int serializeObject(const QoreObject& obj, std::string& index, ExceptionSink* xsink);
+
+    //! serializes the given value and returns a serialized value representing the value to be serialized, throws a Qore-language exception if there is an error deserializing the object
+    DLLLOCAL QoreValue serializeValue(const QoreValue val, ExceptionSink* xsink);
+
+    //! adds a module to be loaded when the data is deserialized
+    DLLLOCAL void addModule(const char* module);
+
+private:
+    //! this class is a wrapper class that cannot be constructed
+    DLLLOCAL QoreSerializationContext();
+};
+
+//! deserialization context object used in builtin deserializer methods
+/** @since %Qore 0.9
+*/
+class QoreDeserializationContext {
+public:
+    //! returns the object corresponding to the given object serialization index, throws a Qore-language exception if there is an error deserializing the object
+    DLLLOCAL QoreObject* deserializeObject(const char* index, ExceptionSink* xsink);
+
+    //! deserializes the given data value and returns the deserialized value, throws a Qore-language exception if there is an error deserializing the object
+    DLLLOCAL QoreValue deserializeValue(const QoreValue val, ExceptionSink* xsink);
+
+private:
+    //! this class is a wrapper class that cannot be constructed
+    DLLLOCAL QoreDeserializationContext();
+};
 
 //! the type used for builtin function signatures
 /** @param args the list of arguments to the function (could be 0), use inline functions in params.h to access
@@ -386,6 +422,28 @@ typedef void (*q_external_copy_t)(const QoreClass& thisclass, const void* ptr, Q
     @return false if the object may be deleted normally, true if the deletion should be suppressed
  */
 typedef bool (*q_delete_blocker_t)(QoreObject* self, AbstractPrivateData* private_data);
+
+//! the type used for builtin QoreClass serializer method signatures
+/** @param self the QoreObject that the function is being executed on
+    @param data the private data for the builtin class
+    @param context the serialization context object
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+
+    @return the serialized private data hash for the object to be deserialized to object state and/or members in the deserialization method (may be nullptr)
+ */
+typedef QoreHashNode* (*q_serializer_t)(const QoreObject& self, const AbstractPrivateData& data, QoreSerializationContext& context, ExceptionSink* xsink);
+
+//! the type used for builtin QoreClass deserializer method signatures
+/** @param self the QoreObject that the function is being executed on
+    @param sdata the data that was returned by the serializer containing the object state and/or any members
+    @param context the deserialization context object
+    @param xsink Qore-language exception information should be stored here by calling ExceptionSink::raiseException()
+
+    @return the hash to be written to the class as members (may be nullptr)
+
+    This method must also set any private data against the object
+ */
+typedef void (*q_deserializer_t)(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink);
 
 //! type for thread resource IDs (unique within a single running qore library process)
 /** @see qore_get_trid()
