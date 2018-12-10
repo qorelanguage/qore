@@ -84,7 +84,8 @@ void AbstractStatement::finalizeBlock(int sline, int eline) {
 
 int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
     printd(1, "AbstractStatement::exec() this: %p file: %s line: %d\n", this, loc->getFile(), loc->start_line);
-    QoreProgramLocationHelper l(loc, this);
+    QoreInternalStatementLocationHelper stack_lock(this);
+    //QoreProgramLocationHelper l(loc, this);
 
 #ifdef QORE_MANAGE_STACK
     if (check_stack(xsink))
@@ -105,35 +106,35 @@ int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
 }
 
 QoreBreakpoint* AbstractStatement::getBreakpoint() const {
-   if (breakpointFlag) {
-      for (std::list<QoreBreakpoint*>::iterator it = breakpoints->begin(); it != breakpoints->end(); ++it) {
-         if ((*it)->checkBreak()) {
-            return *it;
-         }
-      }
-   }
-   return 0;
+    if (breakpointFlag) {
+        for (std::list<QoreBreakpoint*>::iterator it = breakpoints->begin(); it != breakpoints->end(); ++it) {
+            if ((*it)->checkBreak()) {
+                return *it;
+            }
+        }
+    }
+    return 0;
 }
 
 void AbstractStatement::assignBreakpoint(QoreBreakpoint *bkpt) {
-   if (!breakpoints) {
-      breakpoints = new QoreBreakpointList_t();
-      breakpoints->push_front(bkpt);
-   } else {
-      if (std::find(breakpoints->begin(), breakpoints->end(), bkpt) == breakpoints->end()) {
-         breakpoints->push_front(bkpt);
-      }
-   }
-   breakpointFlag = !breakpoints->empty();
+    if (!breakpoints) {
+        breakpoints = new QoreBreakpointList_t();
+        breakpoints->push_front(bkpt);
+    } else {
+        if (std::find(breakpoints->begin(), breakpoints->end(), bkpt) == breakpoints->end()) {
+            breakpoints->push_front(bkpt);
+        }
+    }
+    breakpointFlag = !breakpoints->empty();
 }
 
 void AbstractStatement::unassignBreakpoint(QoreBreakpoint *bkpt) {
-   if (breakpoints) {
-      breakpoints->remove(bkpt);
-      breakpointFlag = !breakpoints->empty();
-   }
+    if (breakpoints) {
+        breakpoints->remove(bkpt);
+        breakpointFlag = !breakpoints->empty();
+    }
 }
 
 void AbstractStatement::parseCommit(QoreProgram* pgm) {
-   qore_program_private::registerStatement(pgm, this, true);
+    qore_program_private::registerStatement(pgm, this, true);
 }

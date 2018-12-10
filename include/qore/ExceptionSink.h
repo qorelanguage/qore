@@ -239,7 +239,7 @@ public:
 };
 
 //! call stack element type
-enum qore_call_t {
+enum qore_call_t : signed char {
     CT_UNUSED     = -1,
     CT_USER       =  0,
     CT_BUILTIN    =  1,
@@ -309,19 +309,24 @@ static inline void makeAccessDeletedObjectException(ExceptionSink *xsink, const 
     xsink->raiseException("OBJECT-ALREADY-DELETED", "attempt to access an already-deleted object of class '%s'", cname);
 }
 
-// returns a custom Qore program location for external modules to generate runtime exceptions with the source location
+//! returns a custom Qore program location for external modules to generate runtime exceptions with the source location
 class QoreExternalProgramLocationWrapper {
 public:
+    //! empty constructor; use set() to set the location
     DLLEXPORT QoreExternalProgramLocationWrapper();
 
+    //! constructor setting the source location
     DLLEXPORT QoreExternalProgramLocationWrapper(const char* file, int start_line, int end_line,
         const char* source = nullptr, int offset = 0);
 
+    //! destructor; frees memory
     DLLEXPORT ~QoreExternalProgramLocationWrapper();
 
+    //! sets the program source location
     DLLEXPORT void set(const char* file, int start_line, int end_line,
         const char* source = nullptr, int offset = 0);
 
+    //! returns the source location
     DLLEXPORT const QoreProgramLocation& get() const {
         return *loc;
     }
@@ -334,5 +339,63 @@ private:
     // actual exception location
     QoreProgramLocation* loc;
 };
+
+//! Stack location element abstract class
+/** @since %Qore 0.9
+*/
+class QoreStackLocation {
+public:
+    //! virtual destructor
+    DLLLOCAL virtual ~QoreStackLocation() = default;
+
+    //! called when pushed on the stack to set the next location
+    DLLLOCAL void setNext(const QoreStackLocation* next) {
+        stack_next = next;
+    }
+
+    //! returns a pointer to the current Qore statement; internal use only
+    DLLLOCAL virtual const AbstractStatement* getStatement() const {
+        return nullptr;
+    }
+
+    //! returns the next location in the stack or nullptr if there is none
+    DLLLOCAL virtual const QoreStackLocation* getNext() const {
+        return stack_next;
+    }
+
+    //! returns the name of the function or method call
+    DLLLOCAL virtual const char* getCallName() const {
+        return stack_next ? stack_next->getCallName() : "<top level>";
+    }
+
+    //! returns the call type
+    DLLLOCAL virtual qore_call_t getCallType() const {
+        return stack_next ? stack_next->getCallType() : qore_call_t::CT_BUILTIN;
+    }
+
+    //! returns the source location of the element
+    DLLLOCAL virtual const QoreProgramLocation& getLocation() const = 0;
+
+protected:
+    const QoreStackLocation* stack_next = nullptr;
+};
+
+/*
+//! Sets the current runtime location and restores the old location on exit
+class QoreExternalRuntimeLocationHelper {
+public:
+    //! Sets the current runtime location
+    DLLEXPORT QoreExternalRuntimeLocationHelper(const QoreProgramLocation& loc);
+
+    //! Sets the current runtime location
+    DLLEXPORT QoreExternalRuntimeLocationHelper(const QoreExternalProgramLocationWrapper& loc);
+
+    //! Restores the old runtime location
+    DLLEXPORT ~QoreExternalRuntimeLocationHelper();
+
+private:
+    const QoreProgramLocation* loc;
+};
+*/
 
 #endif

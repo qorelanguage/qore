@@ -218,6 +218,14 @@ public:
         return source ? source : "";
     }
 
+    DLLLOCAL const char* getLanguage() const {
+        return lang;
+    }
+
+    DLLLOCAL const char* getLanguageValue() const {
+        return lang ? lang : "";
+    }
+
     DLLLOCAL void setFile(const char* f) {
         file = f;
     }
@@ -231,7 +239,8 @@ public:
             || end_line < loc.end_line
             || file < loc.file
             || source < loc.source
-            || offset < loc.offset;
+            || offset < loc.offset
+            || lang < loc.lang;
     }
 
     DLLLOCAL bool operator==(const QoreProgramLocation& loc) const {
@@ -239,7 +248,8 @@ public:
             && end_line == loc.end_line
             && file == loc.file
             && source == loc.source
-            && offset == loc.offset;
+            && offset == loc.offset
+            && lang == loc.lang;
     }
 
     DLLLOCAL bool operator!=(const QoreProgramLocation& loc) const {
@@ -249,6 +259,7 @@ public:
 protected:
     const char* file = nullptr;
     const char* source = nullptr;
+    const char* lang = "Qore";
 
 public:
     int16_t offset = 0;
@@ -275,7 +286,7 @@ struct QoreCommandLineLocation : public QoreProgramLocation {
 // parse location for objects parsed on the command-line
 DLLLOCAL extern QoreCommandLineLocation qoreCommandLineLocation;
 
-// the following functions are implemented in support.cc
+// the following functions are implemented in support.cpp
 DLLLOCAL void parse_error(const QoreProgramLocation& loc, const char* fmt, ...);
 DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, const char* fmt, ...);
 DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* err, QoreStringNode* desc);
@@ -397,31 +408,31 @@ DLLLOCAL QoreStringNode* q_fix_decimal(QoreStringNode* str, size_t offset = 0);
 #define Q_SVF_BSIZE 4096
 #define Q_HAVE_STATVFS
 struct statvfs {
-   unsigned long   f_bsize;        /* File system block size */
-   unsigned long   f_frsize;       /* Fundamental file system block size */
-   unsigned int    f_blocks;       /* Blocks on FS in units of f_frsize */
-   unsigned int    f_bfree;        /* Free blocks */
-   unsigned int    f_bavail;       /* Blocks available to non-root */
-   unsigned int    f_files;        /* Total inodes */
-   unsigned int    f_ffree;        /* Free inodes */
-   unsigned int    f_favail;       /* Free inodes for non-root */
-   unsigned long   f_fsid;         /* Filesystem ID */
-   unsigned long   f_flag;         /* Bit mask of values */
-   unsigned long   f_namemax;      /* Max file name length */
+    unsigned long   f_bsize;        /* File system block size */
+    unsigned long   f_frsize;       /* Fundamental file system block size */
+    unsigned int    f_blocks;       /* Blocks on FS in units of f_frsize */
+    unsigned int    f_bfree;        /* Free blocks */
+    unsigned int    f_bavail;       /* Blocks available to non-root */
+    unsigned int    f_files;        /* Total inodes */
+    unsigned int    f_ffree;        /* Free inodes */
+    unsigned int    f_favail;       /* Free inodes for non-root */
+    unsigned long   f_fsid;         /* Filesystem ID */
+    unsigned long   f_flag;         /* Bit mask of values */
+    unsigned long   f_namemax;      /* Max file name length */
 
-   DLLLOCAL void set(int64 avail, int64 total, int64 free) {
-      f_frsize = f_bsize = Q_SVF_BSIZE;
-      f_blocks = total / Q_SVF_BSIZE;
-      f_bfree = free / Q_SVF_BSIZE;
-      f_bavail = avail / Q_SVF_BSIZE;
-      // simulate inodes
-      f_files = f_blocks / 8;
-      f_ffree = f_bfree / 8;
-      f_favail = f_bavail / 8;
-      f_fsid = 0;
-      f_flag = 0;
-      f_namemax = 256;
-   }
+    DLLLOCAL void set(int64 avail, int64 total, int64 free) {
+        f_frsize = f_bsize = Q_SVF_BSIZE;
+        f_blocks = total / Q_SVF_BSIZE;
+        f_bfree = free / Q_SVF_BSIZE;
+        f_bavail = avail / Q_SVF_BSIZE;
+        // simulate inodes
+        f_files = f_blocks / 8;
+        f_ffree = f_bfree / 8;
+        f_favail = f_bavail / 8;
+        f_fsid = 0;
+        f_flag = 0;
+        f_namemax = 256;
+    }
 };
 DLLLOCAL int statvfs(const char* path, struct statvfs* buf);
 DLLLOCAL int q_fstatvfs(const char* filepath, struct statvfs* buf);

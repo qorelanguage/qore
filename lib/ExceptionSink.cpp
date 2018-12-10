@@ -155,8 +155,9 @@ AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt
         va_start(args, fmt);
         int rc = desc->vsprintf(fmt, args);
         va_end(args);
-        if (!rc)
-        break;
+        if (!rc) {
+            break;
+        }
     }
     printd(5, "ExceptionSink::raiseException(%s, %s)\n", err, desc->getBuffer());
     priv->insert(new QoreException(err, desc));
@@ -182,8 +183,9 @@ AbstractQoreNode* ExceptionSink::raiseErrnoException(const char *err, int en, co
         va_start(args, fmt);
         int rc = desc->vsprintf(fmt, args);
         va_end(args);
-        if (!rc)
-        break;
+        if (!rc) {
+            break;
+        }
     }
 
     return raiseErrnoException(err, en, desc);
@@ -211,7 +213,8 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreValue ar
     return nullptr;
 }
 
-AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreValue arg, QoreStringNode *desc, const QoreCallStack& stack) {
+AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreValue arg, QoreStringNode *desc,
+    const QoreCallStack& stack) {
     printd(5, "ExceptionSink::raiseExceptionArg(%s, %s, %p)\n", err, desc->getBuffer(), &stack);
     QoreException* exc = new QoreException(err, desc);
     exc->arg = arg;
@@ -220,7 +223,8 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreValue ar
     return nullptr;
 }
 
-AbstractQoreNode* ExceptionSink::raiseExceptionArg(const QoreProgramLocation& loc, const char* err, QoreValue arg, QoreStringNode *desc, const QoreCallStack& stack) {
+AbstractQoreNode* ExceptionSink::raiseExceptionArg(const QoreProgramLocation& loc, const char* err, QoreValue arg,
+    QoreStringNode *desc, const QoreCallStack& stack) {
     printd(5, "ExceptionSink::raiseExceptionArg(loc, %s, %s, %p)\n", err, desc->getBuffer(), &stack);
     priv->insert(new QoreException(loc, err, desc, arg));
     priv->addStackInfo(stack);
@@ -236,8 +240,9 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreValue ar
         va_start(args, fmt);
         int rc = desc->vsprintf(fmt, args);
         va_end(args);
-        if (!rc)
+        if (!rc) {
             break;
+        }
     }
     printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err, desc->getBuffer());
     QoreException* exc = new QoreException(err, desc);
@@ -255,11 +260,13 @@ void ExceptionSink::raiseException(const QoreListNode* n) {
 }
 
 void ExceptionSink::raiseException(const QoreProgramLocation& loc, const char* err, QoreValue arg, QoreValue desc) {
-    printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err, desc.getType() == NT_STRING ? desc.get<QoreStringNode>()->c_str() : desc.getTypeName());
+    printd(5, "ExceptionSink::raiseExceptionArg(%s, %s)\n", err,
+        desc.getType() == NT_STRING ? desc.get<QoreStringNode>()->c_str() : desc.getTypeName());
     priv->insert(new QoreException(loc, err, desc, arg));
 }
 
-void ExceptionSink::raiseException(const QoreProgramLocation &loc, const char *err, QoreValue arg, const char *fmt, ...) {
+void ExceptionSink::raiseException(const QoreProgramLocation &loc, const char *err, QoreValue arg,
+    const char *fmt, ...) {
     QoreStringNode *desc = new QoreStringNode;
 
     va_list args;
@@ -268,8 +275,9 @@ void ExceptionSink::raiseException(const QoreProgramLocation &loc, const char *e
         va_start(args, fmt);
         int rc = desc->vsprintf(fmt, args);
         va_end(args);
-        if (!rc)
+        if (!rc) {
             break;
+        }
     }
 
     raiseException(loc, err, arg, desc);
@@ -290,10 +298,11 @@ void ExceptionSink::assimilate(ExceptionSink& xs) {
         xs.priv->thread_exit = false;
     }
     if (xs.priv->tail) {
-        if (priv->tail)
-        priv->tail->next = xs.priv->head;
-        else
-        priv->head = xs.priv->head;
+        if (priv->tail) {
+            priv->tail->next = xs.priv->head;
+        } else {
+            priv->head = xs.priv->head;
+        }
         priv->tail = xs.priv->tail;
     }
     xs.priv->head = xs.priv->tail = nullptr;
@@ -314,6 +323,269 @@ void ExceptionSink::outOfMemory() {
     printf("OUT OF MEMORY: aborting\n");
     _Exit(1);
 #endif
+}
+
+// static member function
+void ExceptionSink::defaultExceptionHandler(QoreException* e) {
+    ExceptionSink xsink;
+
+    QoreString nstr;
+    {
+        DateTime now;
+        now.setNow();
+        now.format(nstr, "YYYY-MM-DD HH:mm:SS.xx Dy Z (z)");
+    }
+
+    unsigned ecnt = 0;
+
+    while (e) {
+        //printd(5, "ExceptionSink::defaultExceptionHandler() cs size=%d\n", cs->size());
+        printe("unhandled QORE %s exception thrown in TID %d at %s",
+            e->type == CT_USER ? "User" : "System", gettid(), nstr.getBuffer());
+
+        QoreListNode* cs = e->callStack;
+        bool found = false;
+        if (cs->size()) {
+            // find first non-rethrow element
+            unsigned i = 0;
+
+            QoreHashNode *h;
+            while (true) {
+                h = cs->retrieveEntry(i).get<QoreHashNode>();
+                assert(h);
+                if (h->getKeyValue("typecode").getAsBigInt() != CT_RETHROW)
+                    break;
+                i++;
+                if (i == cs->size())
+                    break;
+            }
+
+            if (i < cs->size()) {
+                found = true;
+                QoreStringNode *func = h->getKeyValue("function").get<QoreStringNode>();
+                QoreStringNode *type = h->getKeyValue("type").get<QoreStringNode>();
+
+                printe(" in %s() (%s:%d", func->getBuffer(), e->file.c_str(), e->start_line);
+
+                if (e->start_line == e->end_line) {
+                    if (!e->source.empty())
+                        printe(", source %s:%d", e->source.c_str(), e->start_line + e->offset);
+                }
+                else {
+                    printe("-%d", e->end_line);
+                    if (!e->source.empty())
+                        printe(", source %s:%d-%d", e->source.c_str(), e->start_line + e->offset,
+                            e->end_line + e->offset);
+                }
+                printe(", %s code)\n", type->getBuffer());
+            }
+        }
+
+        if (!found) {
+            if (!e->file.empty()) {
+                printe(" at %s:", e->file.c_str());
+                if (e->start_line == e->end_line) {
+                    if (!e->start_line) {
+                        printe("<init>");
+                        if (!e->source.empty())
+                            printe(" (source %s)", e->source.c_str());
+                    }
+                    else {
+                        printe("%d", e->start_line);
+                        if (!e->source.empty())
+                            printe(" (source %s:%d)", e->source.c_str(), e->start_line + e->offset);
+                    }
+                }
+                else {
+                    printe("%d-%d", e->start_line, e->end_line);
+                    if (!e->source.empty())
+                        printe(" (source %s:%d-%d)", e->source.c_str(), e->start_line + e->offset,
+                            e->end_line + e->offset);
+                }
+            }
+            else if (e->start_line) {
+                if (e->start_line == e->end_line) {
+                if (!e->start_line)
+                    printe(" at <init>");
+                else
+                    printe(" on line %d", e->start_line);
+                }
+                else
+                printe(" on lines %d through %d", e->start_line, e->end_line);
+            }
+            printe("\n");
+        }
+
+        if (e->type == CT_BUILTIN) {
+            QoreStringNode* err = e->err.get<QoreStringNode>();
+            QoreStringNode* desc = e->desc.get<QoreStringNode>();
+            printe("%s: %s\n", err->c_str(), desc->c_str());
+        } else {
+            bool hdr = false;
+            if (!e->err.isNothing()) {
+                if (e->err.getType() == NT_STRING) {
+                    QoreStringNode *err = e->err.get<QoreStringNode>();
+                    printe("%s", err->c_str());
+                }
+                else {
+                    QoreNodeAsStringHelper str(e->err, FMT_NORMAL, &xsink);
+                    printe("EXCEPTION: %s", str->c_str());
+                    hdr = true;
+                }
+            }
+            else
+                printe("EXCEPTION");
+
+            if (!e->desc.isNothing()) {
+                if (e->desc.getType() == NT_STRING) {
+                    QoreStringNode *desc = e->desc.get<QoreStringNode>();
+                    printe("%s%s", hdr ? ", desc: " : ": ", desc->c_str());
+                }
+                else {
+                    QoreNodeAsStringHelper str(e->desc, FMT_NORMAL, &xsink);
+                    printe(", desc: %s", str->c_str());
+                    if (!hdr)
+                        hdr = true;
+                }
+            }
+
+            if (!e->arg.isNothing()) {
+                if (e->arg.getType() == NT_STRING) {
+                    QoreStringNode *arg = e->arg.get<QoreStringNode>();
+                    printe("%s%s", hdr ? ", arg: " : ": ", arg->c_str());
+                }
+                else {
+                    QoreNodeAsStringHelper str(e->arg, FMT_NORMAL, &xsink);
+                    printe(", arg: %s", str->c_str());
+                }
+            }
+            printe("\n");
+        }
+
+        if (cs->size()) {
+            printe("call stack:\n");
+            for (unsigned i = 0; i < cs->size(); i++) {
+                int pos = cs->size() - i;
+                QoreHashNode* h = cs->retrieveEntry(i).get<QoreHashNode>();
+                QoreStringNode* strtype = h->getKeyValue("type").get<QoreStringNode>();
+                const char* type = strtype->getBuffer();
+                int typecode = (int)h->getKeyValue("typecode").getAsBigInt();
+                if (!strcmp(type, "new-thread"))
+                    printe(" %2d: *thread start*\n", pos);
+                else {
+                    QoreStringNode* fn = h->getKeyValue("file").get<QoreStringNode>();
+                    const char* fns = fn && !fn->empty() ? fn->getBuffer() : 0;
+                    int start_line = (int)h->getKeyValue("line").getAsBigInt();
+                    int end_line = (int)h->getKeyValue("endline").getAsBigInt();
+
+                    QoreStringNode* src = h->getKeyValue("source").get<QoreStringNode>();
+                    const char* srcs = src && !src->empty() ? src->getBuffer() : 0;
+                    int offset = (int)h->getKeyValue("offset").getAsBigInt();
+
+                    printe(" %2d: ", pos);
+
+                    if (typecode == CT_RETHROW) {
+                        printe("RETHROW at ");
+                        if (fn) {
+                            printe("%s:", fn->getBuffer());
+                        }
+                        else
+                            printe("line");
+                        printe("%d", start_line);
+                        if (srcs)
+                            printe(" (source %s:%d)", srcs, offset + start_line);
+                    }
+                    else {
+                        QoreStringNode* fs = h->getKeyValue("function").get<QoreStringNode>();
+                        printe("%s() (", fs->getBuffer());
+                        if (fns) {
+                            if (start_line == end_line) {
+                                if (!start_line)
+                                    printe("%s:<init>", fns);
+                                else {
+                                    printe("%s:%d", fns, start_line);
+                                    if (srcs)
+                                        printe(" (source %s:%d)", srcs, start_line + offset);
+                                }
+                            }
+                            else {
+                                printe("%s:%d-%d", fns, start_line, end_line);
+                                if (srcs)
+                                    printe(" (source %s:%d-%d)", srcs, start_line + offset, end_line + offset);
+                            }
+                        }
+                        else {
+                            if (start_line == end_line) {
+                                if (!start_line)
+                                    printe("<init>");
+                                else
+                                    printe("line %d", start_line);
+                            }
+                            else
+                                printe("line %d - %d", start_line, end_line);
+                        }
+                        printe(", %s code)", type);
+                    }
+                    printe("\n");
+                }
+            }
+        }
+        e = e->next;
+        if (e) {
+            ++ecnt;
+            if (ecnt == Q_MAX_EXCEPTIONS) {
+                printe("*** maximum exception count reached (%d); suppressing further output\n", ecnt);
+                break;
+            }
+            printe("chained exception:\n");
+        }
+    }
+}
+
+// static member function
+void ExceptionSink::defaultWarningHandler(QoreException *e) {
+    ExceptionSink xsink;
+
+    while (e) {
+        printe("warning encountered ");
+
+        if (!e->file.empty()) {
+            printe("at %s:", e->file.c_str());
+            if (e->start_line == e->end_line) {
+                if (!e->start_line) {
+                    printe("<init>");
+                    if (!e->source.empty())
+                        printe(" (source %s)", e->source.c_str());
+                } else {
+                    printe("%d", e->start_line);
+                    if (!e->source.empty())
+                        printe(" (source %s:%d)", e->source.c_str(), e->start_line + e->offset);
+                }
+            } else {
+                printe("%d-%d", e->start_line, e->end_line);
+                if (!e->source.empty())
+                printe(" (source %s:%d-%d)", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
+            }
+        } else if (e->start_line) {
+            if (e->start_line == e->end_line) {
+                if (!e->start_line)
+                    printe("at <init>");
+                else
+                    printe("on line %d", e->start_line);
+            } else
+                printe("on line %d-%d", e->start_line, e->end_line);
+        }
+        printe("\n");
+
+        QoreStringNode* err  = e->err.get<QoreStringNode>();
+        QoreStringNode* desc = e->desc.get<QoreStringNode>();
+
+        printe("%s: %s\n", err->c_str(), desc->c_str());
+
+        e = e->next;
+        if (e)
+            printe("next warning:\n");
+    }
 }
 
 QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper() :

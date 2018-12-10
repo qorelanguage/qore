@@ -267,6 +267,9 @@ public:
     QoreClass* parseClass = nullptr; // current class being parsed
     QoreException* catchException = nullptr;
 
+    // current runtime stack location
+    const QoreStackLocation* current_stack_location = nullptr;
+
     std::list<block_list_t::iterator> on_block_exit_list;
 
     ThreadResourceList* trlist = new ThreadResourceList;
@@ -686,7 +689,7 @@ public:
         // create thread-local data in the program object
         qore_program_private::startThread(*pgm, xsink);
         // set program counter for new thread
-        update_runtime_location(loc);
+        //update_runtime_location(loc);
         started = true;
         //printd(5, "BGThreadParams::startThread() this: %p pgm: %p\n", this, pgm);
         pgm->depRef();
@@ -1198,10 +1201,39 @@ Context* get_context_stack() {
 }
 
 void update_context_stack(Context* cstack) {
-   ThreadData* td = thread_data.get();
-   td->context_stack = cstack;
+    ThreadData* td = thread_data.get();
+    td->context_stack = cstack;
 }
 
+const QoreStackLocation* get_runtime_stack_location() {
+    return thread_data.get()->current_stack_location;
+}
+
+// called when pushing a new location on the stack
+const QoreStackLocation* update_get_runtime_stack_location(QoreStackLocation* stack_loc) {
+    ThreadData* td = thread_data.get();
+    const QoreStackLocation* rv = td->current_stack_location;
+    td->current_stack_location = stack_loc;
+    stack_loc->setNext(rv);
+    return rv;
+}
+
+// called when restoring the previous location
+void update_runtime_stack_location(const QoreStackLocation* stack_loc) {
+    thread_data.get()->current_stack_location = stack_loc;
+}
+
+const AbstractStatement* get_runtime_statement() {
+    const QoreStackLocation* stack_loc = thread_data.get()->current_stack_location;
+    return stack_loc ? stack_loc->getStatement() : nullptr;
+}
+
+const QoreProgramLocation* get_runtime_location() {
+   const QoreStackLocation* stack_loc = get_runtime_stack_location();
+   return stack_loc ? &stack_loc->getLocation() : &loc_builtin;
+}
+
+/*
 const QoreProgramLocation* get_runtime_location() {
    return thread_data.get()->runtime_loc;
 }
@@ -1215,7 +1247,9 @@ const QoreProgramLocation* update_get_runtime_location(const QoreProgramLocation
 void update_runtime_location(const QoreProgramLocation* loc) {
    thread_data.get()->runtime_loc = loc;
 }
+*/
 
+/*
 const AbstractStatement* get_runtime_statement() {
    return thread_data.get()->runtime_statement;
 }
@@ -1225,6 +1259,7 @@ const AbstractStatement* update_get_runtime_statement(const AbstractStatement* s
    thread_data.get()->runtime_statement = s;
    return rv;
 }
+*/
 
 void set_parse_file_info(QoreProgramLocation& loc) {
    ThreadData* td = thread_data.get();
@@ -2214,6 +2249,7 @@ namespace {
                 QoreValue rv;
                 {
                     CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getContextObject(), btp->class_ctx);
+                    QoreInternalCallStackLocationHelper stack_loc(*btp->loc, "<background operator>", CT_NEWTHREAD);
 
                     // dereference call object if present
                     btp->derefCallObj();
@@ -2574,63 +2610,63 @@ extern QoreRWLock thread_stack_lock;
 #endif
 
 QoreHashNode* getAllCallStacks() {
-   return thread_list.getAllCallStacks();
+    return thread_list.getAllCallStacks();
 }
 
 QoreHashNode* QoreThreadList::getAllCallStacks() {
-   QoreHashNode* h = new QoreHashNode(qore_get_complex_list_type(hashdeclCallStackInfo->getTypeInfo()));
-   QoreString str;
+    QoreHashNode* h = new QoreHashNode(qore_get_complex_list_type(hashdeclCallStackInfo->getTypeInfo()));
+    QoreString str;
 
-   // grab the call stack write lock
-   QoreAutoRWWriteLocker wl(thread_stack_lock);
+    // grab the call stack write lock
+    QoreAutoRWWriteLocker wl(thread_stack_lock);
 
-   QoreThreadListIterator i;
-   if (exiting)
-      return h;
+    QoreThreadListIterator i;
+    if (exiting)
+        return h;
 
-   auto ph = qore_hash_private::get(*h);
+    auto ph = qore_hash_private::get(*h);
 
-   while (i.next()) {
-      // get call stack
-      if (entry[*i].callStack) {
-         QoreListNode* l = entry[*i].callStack->getCallStack();
-         if (!l->empty()) {
-            // make hash entry
-            str.clear();
-            str.sprintf("%d", *i);
-            ph->setKeyValueIntern(str.getBuffer(), l);
-         }
-         else
-            l->deref(nullptr);
-      }
-   }
+    while (i.next()) {
+        // get call stack
+        if (entry[*i].callStack) {
+            QoreListNode* l = entry[*i].callStack->getCallStack();
+            if (!l->empty()) {
+                // make hash entry
+                str.clear();
+                str.sprintf("%d", *i);
+                ph->setKeyValueIntern(str.getBuffer(), l);
+            }
+            else
+                l->deref(nullptr);
+        }
+    }
 
-   return h;
+    return h;
 }
 #endif
 
 void ThreadEntry::cleanup() {
-   //printf("ThreadEntry::cleanup() TID %d\n", tidnode ? tidnode->tid : 0);
-   assert(status != QTS_AVAIL);
-   // delete tidnode from tid_list
-   delete tidnode;
+    //printf("ThreadEntry::cleanup() TID %d\n", tidnode ? tidnode->tid : 0);
+    assert(status != QTS_AVAIL);
+    // delete tidnode from tid_list
+    delete tidnode;
 
 #ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-   // delete call stack
-   delete callStack;
+    // delete call stack
+    delete callStack;
 #ifdef DEBUG
-   callStack = 0;
+    callStack = 0;
 #endif
 #endif
 #ifdef DEBUG
-   assert(!thread_data);
+    assert(!thread_data);
 #endif
 
-   if (status != QTS_NA && status != QTS_RESERVED) {
-      if (!joined)
-         pthread_detach(ptid);
-   }
-   status = QTS_AVAIL;
+    if (status != QTS_NA && status != QTS_RESERVED) {
+        if (!joined)
+            pthread_detach(ptid);
+    }
+    status = QTS_AVAIL;
 }
 
 void QoreThreadList::deleteData(int tid) {

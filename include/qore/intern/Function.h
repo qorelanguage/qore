@@ -258,22 +258,7 @@ public:
 
 class AbstractQoreFunctionVariant;
 
-class CodeEvaluationHelper {
-protected:
-    qore_call_t ct;
-    const char* name;
-    ExceptionSink* xsink;
-    // method class
-    const qore_class_private* qc;
-    const QoreProgramLocation* loc;
-    QoreListNodeEvalOptionalRefHolder tmp;
-    const QoreTypeInfo* returnTypeInfo; // saved return type info
-    QoreProgram* pgm; // program used when evaluated (to find stacks for references)
-    q_rt_flags_t rtflags; // runtime flags
-
-    DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
-        const qore_class_private* cctx);
-
+class CodeEvaluationHelper : public QoreStackLocation {
 public:
     // saves current program location in case there's an exception
     DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
@@ -313,9 +298,9 @@ public:
         return pgm;
     }
 
-    DLLLOCAL void restorePosition() const {
-        update_runtime_location(loc);
-    }
+    //DLLLOCAL void restorePosition() const {
+    //    update_runtime_location(loc);
+    //}
 
     DLLLOCAL q_rt_flags_t getRuntimeFlags() const {
         return rtflags;
@@ -324,6 +309,40 @@ public:
     DLLLOCAL const qore_class_private* getClass() const {
         return qc;
     }
+
+    //! returns the source location of the element
+    DLLLOCAL virtual const QoreProgramLocation& getLocation() const {
+        return *loc;
+    }
+
+    //! returns the name of the function or method call
+    DLLLOCAL virtual const char* getCallName() const {
+        return callName.c_str();
+    }
+
+    DLLLOCAL virtual qore_call_t getCallType() const {
+        return ct;
+    }
+
+protected:
+    qore_call_t ct;
+    const char* name;
+    ExceptionSink* xsink;
+    // method class
+    const qore_class_private* qc;
+    const QoreProgramLocation* loc;
+    QoreListNodeEvalOptionalRefHolder tmp;
+    const QoreTypeInfo* returnTypeInfo; // saved return type info
+    QoreProgram* pgm = getProgram(); // program used when evaluated (to find stacks for references)
+    q_rt_flags_t rtflags = 0; // runtime flags
+    QoreString callName;
+    const QoreStackLocation* stack_loc = nullptr;
+    bool restore_stack = false;
+
+    DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
+        const qore_class_private* cctx);
+
+    DLLLOCAL void setCallName(const QoreFunction* func);
 };
 
 class UserVariantBase;

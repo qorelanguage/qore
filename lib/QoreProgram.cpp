@@ -652,7 +652,7 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
         del(xsink);
 
         // clear program location
-        update_runtime_location(&loc_builtin);
+        //update_runtime_location(&loc_builtin);
     }
 }
 
