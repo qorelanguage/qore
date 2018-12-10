@@ -611,6 +611,118 @@ public namespace FsUtil {
                 stat1.dev == stat2.dev);
     }
 
+    #! Private internal copy tree function implementation
+    /** @param source path to be copied (must be a directory or a symlink pointing to one if follow_symlinks is set)
+        @param destination path where the copy should be created (must not exist, except with overwrite)
+        @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
+        @param overwrite flag indicating whether destination should be overwritten if exists (False by default)
+        @param merge flag indicating whether source should be merged into destination if the latter exists
+                     (False by default)
+        @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
+                                on the first error instead of accumulating all exceptions (False by default)
+        @param depth determines how many levels of subdirectories and files should be copied
+
+        @throws SAME-DIR-ERROR If both paths point to the same file.
+        @throws DIR-STAT-ERROR If stat call for the source path fails.
+        @throws PATH-EXISTS-ERROR If destination path exists and overwrite flag is not set.
+        @throws COPY-TREE-ERROR If something goes wrong in the recursive calls. In such case the rest of the tree is
+                                copied anyway and this exception's description contains a list of exceptions thrown
+                                in the recursive calls unless fail_immediately flag is True.
+
+        This is an internal implementation only and is not intended to be called from outside of FsUtil module.
+        Source must be a directory (or a symlink pointing to a directory if follow_symlinks is True). Destination must
+        not exist unless the function is called with the overwrite or the merge flag. The difference between them is
+        that with overwrite (and merge=False) the destination is removed first and then the source is copied
+        (so the result contains just a copy of source) while with merge the original contents of destination is kept and
+        the source is copied into it (so the result is a merge between source and the original destination). If both
+        overwrite and merge are set to True, then the original destination is not removed but if there are files with
+        the same (sub)paths somewhere in the source and destination trees, the file from source tree replaces
+        the original file in the destination tree.
+        Mode (permissions) bits are preserved but UID/GID, access time and modification time are not. As mentioned in
+        description of COPY-TREE-ERROR exception, if only some parts of the tree can't be copied (e.g. due to
+        permissions) and if fail_immediately is False, the tree is partially copied anyway and COPY-TREE-ERROR is thrown
+        and describes what exactly went wrong for each error. If the whole tree is copied correctly, the function
+        returns path to the new copy.
+    */
+    string sub copy_tree_internal(string source, string destination, bool follow_symlinks=False, bool overwrite=False,
+                                  bool merge=False, bool fail_immediately=False, *int depth) {
+
+        if (same_file(source, destination, follow_symlinks, True)) {
+            throw "SAME-DIR-ERROR", sprintf("'%s' and '%s' point to the same directory.", source, destination);
+        }
+
+        list errors = ();
+
+        # prepare the source
+        Dir src_dir();
+        src_dir.chdir(source);
+        *hash<StatInfo> src_stat = follow_symlinks ? hstat(source) : hlstat(source);
+        if (!exists src_stat) {
+            throw "DIR-STAT-ERROR", sprintf("Couldn't stat source path '%s': %s", source, strerror());
+        }
+
+        # check and prepare the destination directory
+        if (path_exists(destination)) {
+            if (overwrite && !merge) {
+                remove_path(destination);
+                mkdir(destination, 0700);
+            } else {
+                if (!merge) {
+                    throw "PATH-EXISTS-ERROR", sprintf("Destination already '%s' exists.", destination);
+                }
+            }
+        } else {
+            mkdir(destination, 0700);
+        }
+
+        if (!exists depth || depth > 0) {
+            *int next_depth = exists depth ? depth - 1 : NOTHING;
+            foreach string name in (src_dir.list()) {
+                string src_path = join_paths(source, name);
+                string dst_path = join_paths(destination, name);
+
+                # dereference symlinks in source if needed
+                while (follow_symlinks && is_link(src_path)) {
+                    src_path = readlink(src_path);
+                }
+
+                try {
+                    if (is_dir(src_path)) {
+                        copy_tree_internal(src_path, dst_path, follow_symlinks, overwrite, merge, fail_immediately,
+                                           next_depth);
+                    } else {
+
+                        if (merge && !overwrite && path_exists(dst_path)) {
+                            # do nothing - we're merging without overwrite and the file already exists
+                        } else {
+                            # this will throw an exception for unsupported file types
+                            # (only file and symlink are supported)
+                            copy_file(src_path, dst_path, follow_symlinks, overwrite);
+                        }
+                    }
+                } catch (hash<ExceptionInfo> err) {
+                    if (fail_immediately) {
+                        rethrow;
+                    }
+
+                    if (err.err == "COPY-TREE-ERROR") {
+                        errors += err.desc;
+                    } else {
+                        errors += err;
+                    }
+                }
+            }
+        }
+
+        chmod(destination, src_stat.mode);
+
+        if (errors) {
+            throw "COPY-TREE-ERROR", errors;
+        }
+
+        return destination;
+    }
+
     #! Copies a file object data from source to destination.
     /** @param source an open file object to be copied from
         @param destination an open file object to be copied to
@@ -707,6 +819,7 @@ public namespace FsUtil {
         @param overwrite flag indicating whether destination should be overwritten if exists (False by default)
         @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
                                 on the first error instead of accumulating all exceptions (False by default)
+        @param depth determines how many levels of subdirectories and files should be copied
 
         @throws SAME-DIR-ERROR If both paths point to the same file.
         @throws DIR-STAT-ERROR If stat call for the source path fails.
@@ -724,67 +837,7 @@ public namespace FsUtil {
     */
     public string sub copy_tree(string source, string destination, bool follow_symlinks=False, bool overwrite=False,
                                 bool fail_immediately=False) {
-        if (same_file(source, destination, follow_symlinks, True)) {
-            throw "SAME-DIR-ERROR", sprintf("'%s' and '%s' point to the same directory.", source, destination);
-        }
-
-        list errors = ();
-
-        # prepare the source
-        Dir src_dir();
-        src_dir.chdir(source);
-        *hash<StatInfo> src_stat = follow_symlinks ? hstat(source) : hlstat(source);
-        if (!exists src_stat) {
-            throw "DIR-STAT-ERROR", sprintf("Couldn't stat source path '%s': %s", source, strerror());
-        }
-
-        # check and prepare the destination directory
-        if (path_exists(destination)) {
-            if (overwrite) {
-                remove_path(destination);
-            } else {
-                throw "PATH-EXISTS-ERROR", sprintf("Destination '%s' exists and overwrite is not set.", destination);
-            }
-        }
-        mkdir(destination, 0700);
-
-        foreach string name in (src_dir.list()) {
-            string src_path = join_paths(source, name);
-            string dst_path = join_paths(destination, name);
-
-            # dereference symlinks in source if needed
-            while (follow_symlinks && is_link(src_path)) {
-                src_path = readlink(src_path);
-            }
-
-            try {
-                if (is_dir(src_path)) {
-                    copy_tree(src_path, dst_path, follow_symlinks, overwrite, fail_immediately);
-                } else {
-                    # this will throw an exception for unsupported file types
-                    # (only file and symlink are supported)
-                    copy_file(src_path, dst_path, follow_symlinks, False);
-                }
-            } catch (hash<ExceptionInfo> err) {
-                if (fail_immediately) {
-                    rethrow;
-                }
-
-                if (err.err == "COPY-TREE-ERROR") {
-                    errors += err.desc;
-                } else {
-                    errors += err;
-                }
-            }
-        }
-
-        chmod(destination, src_stat.mode);
-
-        if (errors) {
-            throw "COPY-TREE-ERROR", errors;
-        }
-
-        return destination;
+        return copy_tree_internal(source, destination, follow_symlinks, overwrite, False, fail_immediately);
     }
 
     #! Universal copy function
@@ -792,6 +845,7 @@ public namespace FsUtil {
         @param destination path where the copy should be created
         @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
         @param overwrite flag indicating whether destination should be overwritten if exists (False by default)
+        @param depth determines how many levels of subdirectories and files should be copied
 
         This wrapper function exists for convenience. Source can be a regular file, symlink or a directory,
         the respective functions for copying files/links or directories will be called. Destination can either be a path
@@ -800,10 +854,65 @@ public namespace FsUtil {
         Mode (permissions) bits are preserved but UID/GID, access time and modification time are not. If the source is
         copied correctly, the function returns path to the new copy.
     */
-    public string sub copy_path(string source, string destination, bool follow_symlinks=False, bool overwrite=False) {
+    public string sub copy_path(string source, string destination, bool follow_symlinks=False, bool overwrite=False,
+                                bool merge=False, *int depth) {
         if (is_dir(source)) {
             return copy_tree(source, destination, follow_symlinks, overwrite);
         } else {
+            return copy_file(source, destination, follow_symlinks, overwrite);
+        }
+    }
+
+    #! Merges a copy of the source directory tree to the destination directory tree.
+    /** @param source path to be copied (must be a directory or a symlink pointing to one if follow_symlinks is set)
+        @param destination path the copy should be merged into (must be a directory or must not exist)
+        @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
+        @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
+                                on the first error instead of accumulating all exceptions (False by default)
+        @param depth determines how many levels of subdirectories and files should be copied
+
+        @throws SAME-DIR-ERROR If both paths point to the same file.
+        @throws DIR-STAT-ERROR If stat call for the source path fails.
+        @throws COPY-TREE-ERROR If something goes wrong in the recursive calls. In such case the rest of the tree is
+                                copied anyway and this exception's description contains a list of exceptions thrown
+                                in the recursive calls unless fail_immediately flag is True.
+
+        Source must be a directory (or a symlink pointing to a directory if follow_symlinks is True). Destination must
+        be a directory or must not exist. Mode (permissions) bits are preserved but UID/GID, access time and
+        modification time are not. As mentioned in description of COPY-TREE-ERROR exception, if only some parts of
+        the tree can't be copied and merged (e.g. due to permissions) and if fail_immediately is False, the tree
+        is partially copied anyway and COPY-TREE-ERROR is thrown and describes what exactly went wrong for each error.
+        If the whole tree is copied correctly, the function returns path to the new copy.
+    */
+    public string sub merge_tree(string source, string destination, bool follow_symlinks=False, bool overwrite=False,
+                                bool fail_immediately=True, *int depth) {
+        return copy_tree_internal(source, destination, follow_symlinks, overwrite, True, fail_immediately, depth);
+    }
+
+    #! Universal merge function
+    /** @param source path to be copied
+        @param destination path the copy should be merged into
+        @param follow_symlinks flag indicating whether symlink should be followed in source (False by default)
+        @param overwrite flag indicating whether destination should be overwritten if exists (False by default)
+        @param fail_immediately flag indicating whether the function is supposed to fail with an exception immediately
+                                on the first error instead of accumulating all exceptions (False by default)
+        @param depth determines how many levels of subdirectories and files should be copied
+
+        This wrapper function exists for convenience. Source can be a regular file, symlink or a directory,
+        the respective functions for merging files/links or directories will be called. Destination can either be a path
+        that doesn't exist on the filesystem yet (and then it will be created as a copy of source) or it can be
+        an existing path (and then a copy of the source will be merged into the original contents). If overwrite flag is
+        set, then common parts of the subtree will be replaced by the parts from source, otherwise the original contents
+        will be kept there.
+        Mode (permissions) bits are preserved but UID/GID, access time and modification time are not. If the source is
+        copied correctly, the function returns path to the new copy.
+    */
+    public string sub merge_path(string source, string destination, bool follow_symlinks=False, bool overwrite=False,
+                                bool fail_immediately=True, *int depth) {
+        if (is_dir(source)) {
+            return merge_tree(source, destination, follow_symlinks, overwrite, fail_immediately, depth);
+        } else {
+            # merge doesn't make sense with files and there is no merge_file() function, copy_file() is what we want
             return copy_file(source, destination, follow_symlinks, overwrite);
         }
     }
