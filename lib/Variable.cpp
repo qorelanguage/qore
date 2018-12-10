@@ -620,19 +620,20 @@ int LValueHelper::makeInt(const char* desc) {
         }
 
         if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
-            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(bigIntTypeInfo), vl.xsink);
+            // the 4th arg to doTypeException() is needed only for the type
+            typeInfo->doTypeException("lvalue", 0, desc, QoreValue(1), vl.xsink);
             return -1;
         }
 
         saveTemp(val->makeInt());
-    }
-    else {
+    } else {
         if (!qv->hasNode() && qv->getType() == NT_INT) {
            return 0;
         }
 
         if (typeInfo && qv->getType() != NT_INT && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
-            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(bigIntTypeInfo), vl.xsink);
+            // the 4th arg to doTypeException() is needed only for the type
+            typeInfo->doTypeException("lvalue", 0, desc, QoreValue(1), vl.xsink);
             return -1;
         }
 
@@ -650,19 +651,20 @@ int LValueHelper::makeFloat(const char* desc) {
         }
 
         if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, floatTypeInfo)) {
-            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(floatTypeInfo), vl.xsink);
+            // the 4th arg to doTypeException() is needed only for the type
+            typeInfo->doTypeException("lvalue", 0, desc, QoreValue(1.0), vl.xsink);
             return -1;
         }
 
         saveTemp(val->makeFloat());
-    }
-    else {
+    } else {
         if (!qv->hasNode() && qv->getType() == NT_FLOAT) {
            return 0;
         }
 
         if (typeInfo && qv->getType() != NT_FLOAT && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
-            typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(bigIntTypeInfo), vl.xsink);
+            // the 4th arg to doTypeException() is needed only for the type
+            typeInfo->doTypeException("lvalue", 0, desc, QoreValue(1.0), vl.xsink);
             return -1;
         }
 
@@ -679,7 +681,8 @@ int LValueHelper::makeNumber(const char* desc) {
     }
 
     if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, numberTypeInfo)) {
-        typeInfo->doTypeException(0, desc, QoreTypeInfo::getName(numberTypeInfo), vl.xsink);
+            // the 4th arg to doTypeException() is needed only for the type
+        typeInfo->doTypeException("lvalue", 0, desc, QoreValue(ZeroNumber), vl.xsink);
         return -1;
     }
 

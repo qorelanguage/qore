@@ -33,10 +33,31 @@ public hashdecl R1 {
     hash<R1> r();
 }
 
+*string sub str_test() {}
+
 class HashDeclTest inherits QUnit::Test {
     constructor() : QUnit::Test("HashDecl test", "1.0") {
+        addTestCase("issue 3167", \issue3167());
         addTestCase("Test HashDecl", \testHashDecl());
         set_return_value(main());
+    }
+
+    issue3167() {
+        assertThrows("RUNTIME-TYPE-ERROR", "key.*Container",
+            sub () {
+                hash<Container> h();
+                h += {"str": str_test()};
+                delete h;
+            }
+        );
+        assertThrows("RUNTIME-TYPE-ERROR", "key.*Container",
+            sub () {
+                hash<Container> h({
+                    "str": str_test(),
+                });
+                delete h;
+            }
+        );
     }
 
     testHashDecl() {

@@ -683,7 +683,7 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
     return QTI_NOT_EQUAL;
 }
 
-bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper) const {
+bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper) const {
     bool priv_error = false;
     bool ok = false;
 
@@ -746,7 +746,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                 while (i.next()) {
                     hash_assignment_priv ha(*qore_hash_private::get(*h), *qhi_priv::get(i)->i);
                     QoreValue hn(ha.swap(QoreValue()));
-                    u.ti->acceptInputIntern(xsink, obj, param_num, param_name, hn, lvhelper);
+                    u.ti->acceptInputIntern(xsink, arg_type, obj, param_num, param_name, hn, lvhelper);
                     ha.swap(hn);
                     if (*xsink)
                         return true;
@@ -789,7 +789,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                 // now we have to fold the value types into our type
                 for (size_t i = 0; i < l->size(); ++i) {
                     QoreValue ln(lp->takeExists(i));
-                    u.ti->acceptInputIntern(xsink, obj, param_num, param_name, ln, lvhelper);
+                    u.ti->acceptInputIntern(xsink, arg_type, obj, param_num, param_name, ln, lvhelper);
                     lp->swap(i, ln);
                     if (*xsink)
                         return true;
@@ -852,7 +852,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
     }
 
     if (priv_error) {
-        typeInfo.doAcceptError(true, obj, param_num, param_name, n, xsink);
+        typeInfo.doAcceptError(true, arg_type, obj, param_num, param_name, n, xsink);
         return true;
     }
     return false;
