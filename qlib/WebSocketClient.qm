@@ -33,12 +33,12 @@
 
 %requires WebSocketUtil >= 1.0
 %requires Util >= 1.0
-%requires(reexport) ConnectionProvider >= 1.1
+%requires(reexport) ConnectionProvider >= 1.2
 
 %new-style
 
 module WebSocketClient {
-    version = "1.7";
+    version = "1.8";
     desc = "user module for providing client support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -86,6 +86,9 @@ c.waitForZero();
     @endcode
 
     @section websocketclient_relnotes WebSocketClient Module Release History
+
+    @subsection wsc_v1_8 v1.8
+    - all connection clases have unified constructor
 
     @subsection wsc_v1_7 v1.7
     - added the @ref WebSocketClient::WebSocketConnectionObject::getConstructorInfo() "WebSocketConnectionObject::getConstructorInfo()"
@@ -611,15 +614,32 @@ ws.clearStats();
         - \c "yield": a closure to yield current thread execution
     */
     public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConnection {
-        #! creates the WebSocketConnectionObject object
+        #! DEPRECATED: creates the WebSocketConnectionObject object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+        }
+
+        #! creates the WebSocketConnectionObject connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
         }
 
         #! returns \c "websocket"
@@ -702,9 +722,15 @@ ws.clearStats();
                 );
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static WebSocketConnectionObject make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new WebSocketConnectionObject(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+            return new WebSocketConnectionObject(name, desc, url, attributes, opts ?? {});
         }
     }
 }

@@ -33,9 +33,8 @@
 
 #define _QORE_EXCEPTIONSINK_H
 
-#include <stdarg.h>
-#include <stdio.h>
-
+#include <cstdarg>
+#include <cstdio>
 #include <string>
 #include <vector>
 

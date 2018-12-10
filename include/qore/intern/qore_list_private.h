@@ -32,7 +32,7 @@
 #ifndef _QORE_QORELISTPRIVATE_H
 #define _QORE_QORELISTPRIVATE_H
 
-#include <string.h>
+#include <cstring>
 
 typedef ReferenceHolder<QoreListNode> safe_qorelist_t;
 

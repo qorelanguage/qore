@@ -31,7 +31,7 @@
 #include "qore/intern/inline_printf.h"
 #include <qore/minitest.hpp>
 
-#include <stdio.h>
+#include <cstdio>
 
 //------------------------------------------------------------------------------
 namespace {

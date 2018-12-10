@@ -37,9 +37,9 @@
 #include "qore/intern/ql_crypto.h"
 #include "qore/intern/QoreObjectIntern.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
 
 // global class ID sequence
 DLLLOCAL Sequence classIDSeq(1);

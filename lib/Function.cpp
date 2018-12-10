@@ -37,10 +37,10 @@
 #include "qore/intern/StatementBlock.h"
 #include "qore/intern/QoreListNodeEvalOptionalRefHolder.h"
 
-#include <stdio.h>
-#include <ctype.h>
-#include <assert.h>
+#include <cassert>
+#include <cctype>
 #include <cmath>
+#include <cstdio>
 
 static void duplicateSignatureException(const char* cname, const char* name, const UserSignature* sig) {
    parseException(*sig->getParseLocation(), "DUPLICATE-SIGNATURE", "%s%s%s(%s) has already been declared", cname ? cname : "", cname ? "::" : "", name, sig->getSignatureText());

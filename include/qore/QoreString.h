@@ -35,8 +35,7 @@
 
 #define _QORE_QORESTRING_H
 
-#include <stdarg.h>
-
+#include <cstdarg>
 #include <string>
 
 class DateTime;

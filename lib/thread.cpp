@@ -56,14 +56,13 @@
 #include "qore/intern/QC_AbstractSmartLock.h"
 #include "qore/intern/QC_AbstractThreadResource.h"
 
-#include <pthread.h>
-#include <sys/time.h>
-#include <assert.h>
-
-#include <vector>
+#include <cassert>
 #include <map>
+#include <pthread.h>
 #include <set>
 #include <string>
+#include <sys/time.h>
+#include <vector>
 
 #if defined(__ia64) && defined(__LP64__)
 #define IA64_64

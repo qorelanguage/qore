@@ -36,16 +36,15 @@
 #include "qore/intern/StringReaderHelper.h"
 #include "qore/minitest.hpp"
 
-#include <errno.h>
-#include <string.h>
-#include <stdio.h>
+#include <cctype>
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
 #include <iconv.h>
-#include <ctype.h>
-
-#include <set>
-#include <memory>
-#include <string>
 #include <map>
+#include <memory>
+#include <set>
+#include <string>
 
 #ifdef DEBUG_TESTS
 #  include "tests/QoreString_tests.cpp"

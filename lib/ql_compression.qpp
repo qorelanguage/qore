@@ -30,9 +30,10 @@
 */
 
 #include <bzlib.h>
+#include <cerrno>
+#include <climits>
 #include <zlib.h>
-#include <errno.h>
-#include <limits.h>
+
 #include "qore/Qore.h"
 #include "qore/intern/ql_compression.h"
 #include "qore/intern/CompressionTransforms.h"

@@ -30,7 +30,7 @@
 
 #include <qore/Qore.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 
 // check if "this" is valid in class member functions (cannot check "this" directly in g++ 4.9+ for example with optimization enabled)
 static bool qore_check_this(const void* p) {

@@ -39,13 +39,14 @@
 
 #include "qore/intern/StringReaderHelper.h"
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
 #include <sys/file.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #if defined HAVE_POLL
 #include <poll.h>
@@ -56,8 +57,6 @@
 #else
 #error no async I/O APIs available
 #endif
-
-#include <string>
 
 #ifndef DEFAULT_FILE_BUFSIZE
 #define DEFAULT_FILE_BUFSIZE 16384

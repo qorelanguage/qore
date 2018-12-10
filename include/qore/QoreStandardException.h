@@ -37,8 +37,7 @@
     Defines the abstract base class for c++ exceptions in the %Qore library
 */
 
-#include <stdarg.h>
-
+#include <cstdarg>
 #include <string>
 
 // forward references

@@ -31,11 +31,15 @@
 
 #include <qore/Qore.h>
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <assert.h>
+#include <cassert>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <functional>
+#include <memory>
+#include <set>
+#include <utility>
 
 #include <qore/QoreType.h>
 #include "qore/intern/ParserSupport.h"
@@ -46,11 +50,6 @@
 #include "qore/intern/qore_list_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/qore_program_private.h"
-
-#include <memory>
-#include <utility>
-#include <set>
-#include <functional>
 
 typedef std::set<int64, std::greater<int64>> ind_set_t;
 

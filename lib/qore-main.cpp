@@ -36,15 +36,14 @@
 #include "qore/intern/QoreSignal.h"
 #include "qore/intern/ModuleInfo.h"
 
-#include <vector>
-
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <signal.h>
+#include <cerrno>
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <unistd.h>
-#include <time.h>
-#include <stdlib.h>
+#include <vector>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>

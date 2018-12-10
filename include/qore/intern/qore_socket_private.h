@@ -36,12 +36,12 @@
 
 #include "qore/intern/QC_Queue.h"
 
-#include <ctype.h>
-#include <stdlib.h>
+#include <cctype>
+#include <cctype>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 #include <strings.h>
-#include <string.h>
-#include <errno.h>
-#include <ctype.h>
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>

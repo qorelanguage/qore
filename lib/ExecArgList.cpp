@@ -31,8 +31,8 @@
 #include <qore/Qore.h>
 #include "qore/intern/ExecArgList.h"
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 
 #define ARG_BLOCK 10
 

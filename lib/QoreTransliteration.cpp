@@ -33,9 +33,9 @@
 #include <qore/Qore.h>
 #include "qore/intern/QoreTransliteration.h"
 
-#include <stdlib.h>
+#include <cctype>
+#include <cstdlib>
 #include <strings.h>
-#include <ctype.h>
 
 // constructor used when parsing
 QoreTransliteration::QoreTransliteration(const QoreProgramLocation* loc) : loc(loc) {

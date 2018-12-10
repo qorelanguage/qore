@@ -33,9 +33,9 @@
 
 #define _QORE_QORECLASS_H
 
-#include <stdarg.h>
-#include <string>
+#include <cstdarg>
 #include <memory>
+#include <string>
 
 // all qore class IDs
 DLLEXPORT extern qore_classid_t CID_AUTOGATE;

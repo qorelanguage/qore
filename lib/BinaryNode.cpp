@@ -30,8 +30,8 @@
 
 #include <qore/Qore.h>
 
-#include <string.h>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstring>
 
 BinaryNode::BinaryNode(void* p, qore_size_t size) : SimpleValueQoreNode(NT_BINARY) {
     ptr = p;

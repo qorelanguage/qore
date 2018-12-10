@@ -85,10 +85,9 @@
 #include "qore/intern/ql_debug.h"
 #endif // DEBUG
 
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
 #include <memory>
 
 #ifdef DEBUG_TESTS

@@ -34,7 +34,7 @@
 
 #include "qore/intern/qore_string_private.h"
 
-#include <stdarg.h>
+#include <cstdarg>
 
 QoreStringNodeMaker::QoreStringNodeMaker(const char* fmt, ...) {
    va_list args;

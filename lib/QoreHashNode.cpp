@@ -39,13 +39,12 @@
 #include "qore/intern/typed_hash_decl_private.h"
 #include "qore/intern/qore_list_private.h"
 
-#include <string.h>
-#include <strings.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <stdio.h>
-
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <map>
+#include <strings.h>
 
 #ifdef DEBUG_TESTS
 #  include "tests/Hash_tests.cpp"
