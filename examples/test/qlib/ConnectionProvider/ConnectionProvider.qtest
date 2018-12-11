@@ -50,7 +50,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         hash urlh = parse_url(url);
         FtpConnection fc("name", "desc", url, True, NOTHING, urlh);
         assertEq(True, fc.enabled, "connection is enabled by default");
-        assertEq(False, fc.locked, "connection is unlocked by defaul");
+        assertEq(False, fc.locked, "connection is unlocked by default");
 
         hash<ConnectionConstructorInfo> info = fc.getConstructorInfo();
         assertEq("FtpClient", info.class_name);
