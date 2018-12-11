@@ -127,7 +127,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         string url = "http://127.0.0.1";
         HttpConnection hc("name", "desc", url, True, NOTHING, Qore::parse_url(url));
         assertEq(True, hc.enabled, "connection is enabled by default");
-        assertEq(False, hc.locked, "connection is unlocked by defaul");
+        assertEq(False, hc.locked, "connection is unlocked by default");
     }
 
     fsConnectionTest() {
