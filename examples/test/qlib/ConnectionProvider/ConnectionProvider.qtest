@@ -152,7 +152,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         string url = Util::tmp_location();
         FilesystemConnection fs("name", "desc", url, True, NOTHING, Qore::parse_url(url));
         assertEq(True, fs.enabled, "connection is enabled by default");
-        assertEq(False, fs.locked, "connection is unlocked by defaul");
+        assertEq(False, fs.locked, "connection is unlocked by default");
 
         Dir d = fs.get();
         assertEq(Util::tmp_location(), d.path(), "Path equality");
