@@ -358,20 +358,6 @@ DLLLOCAL const QoreTypeInfo* parse_get_return_type_info();
 DLLLOCAL QoreProgram* get_set_program_call_context(QoreProgram* new_pgm);
 DLLLOCAL void set_program_call_context(QoreProgram* new_pgm);
 
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-DLLLOCAL void pushCall(CallNode* cn);
-DLLLOCAL void popCall(ExceptionSink* xsink);
-DLLLOCAL CallStack* getCallStack();
-DLLLOCAL QoreListNode* getCallStackList();
-#else
-#ifdef __GNUC__
-#define pushCall(args...)
-#else
-#define pushCall(args, ...)
-#endif
-#define popCall(x)
-#endif
-
 class ProgramCallContextHelper {
 public:
     DLLLOCAL ProgramCallContextHelper(QoreProgram* new_pgm)
@@ -859,75 +845,19 @@ public:
    }
 };
 
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-class CallNode {
-public:
-    const char* func;
-    const QoreProgramLocation* loc;
-    int type;
-
-    QoreObject* obj;
-    const qore_class_private* cls;
-    const QoreProgram* pgm;
-    const AbstractStatement* statement;
-    CallNode* next, *prev;
-
-    DLLLOCAL CallNode(const char* f, int t, QoreObject* o, const qore_class_private* c, const QoreProgram* p=nullptr, const AbstractStatement* s=nullptr);
-    DLLLOCAL QoreHashNode* getInfo() const;
-};
-
-class CallStack {
-private:
-    CallNode* tail;
-
-public:
-    DLLLOCAL CallStack();
-    DLLLOCAL ~CallStack();
-    DLLLOCAL QoreListNode* getCallStack() const;
-    DLLLOCAL void push(CallNode* cn);
-    DLLLOCAL void pop(ExceptionSink* xsink);
-};
-
-class CallStackHelper : public CallNode {
-    ExceptionSink* xsink;
-
-    // not implemented
-    DLLLOCAL CallStackHelper(const CallStackHelper&);
-    DLLLOCAL CallStackHelper& operator=(const CallStackHelper&);
-    DLLLOCAL void* operator new(size_t);
-
-public:
-    DLLLOCAL CallStackHelper(const char* f, int t, QoreObject* o, const qore_class_private* c, ExceptionSink* n_xsink)
-        : CallNode(f, t, o, c, getProgram(), get_runtime_statement()), xsink(n_xsink) {
-        pushCall(this);
-    }
-    DLLLOCAL ~CallStackHelper() {
-        popCall(xsink);
-    }
-};
-
-class CodeContextHelper : public CodeContextHelperBase, public CallStackHelper {
-public:
-   DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = nullptr, const qore_class_private* cls = nullptr, bool ref_obj = true) :
-      CodeContextHelperBase(c, obj, cls, xs, ref_obj),
-      CallStackHelper(c, t, obj, cls, xs) {
-   }
-};
-
-#else
 class CodeContextHelper : public CodeContextHelperBase {
 public:
    DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = nullptr, const qore_class_private* cls = nullptr, bool ref_obj = true) :
       CodeContextHelperBase(c, obj, cls, xs, ref_obj) {
    }
 };
-#endif
 
 DLLLOCAL void init_qore_threads();
 DLLLOCAL QoreNamespace* get_thread_ns(QoreNamespace& qorens);
 DLLLOCAL void delete_qore_threads();
 DLLLOCAL QoreListNode* get_thread_list();
 DLLLOCAL QoreHashNode* getAllCallStacks();
+DLLLOCAL QoreListNode* qore_get_thread_call_stack();
 
 #if defined(QORE_HAVE_PTHREAD_GETATTR_NP) && defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE)
 #define QORE_HAVE_GET_STACK_SIZE

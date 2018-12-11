@@ -55,12 +55,6 @@
 #define QORE_CONST_DEBUG 0
 #endif
 
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-#define QORE_CONST_QORE_RUNTIME_THREAD_STACK_TRACE 1
-#else
-#define QORE_CONST_QORE_RUNTIME_THREAD_STACK_TRACE 0
-#endif
-
 #ifdef HAVE_ROUND
 #define QORE_CONST_HAVE_ROUND 1
 #else
@@ -248,8 +242,10 @@ const HAVE_SIGNAL_HANDLING = qore((bool)(QORE_CONST_HAVE_SIGNAL_HANDLING && !(qo
 //! Indicates if the %Qore library has been built with debugging enabled
 const HAVE_LIBRARY_DEBUGGING = bool(QORE_CONST_DEBUG);
 
-//! Indicates if active thread stack tracing has been enabled as a debugging option and if the getAllThreadCallStacks() function is available
-const HAVE_RUNTIME_THREAD_STACK_TRACE = bool(QORE_CONST_QORE_RUNTIME_THREAD_STACK_TRACE);
+//! Indicates if active thread stack tracing has been enabled as a debugging option and if the get_alT_thread_call_stacks() function is available
+/** @since %Qore 0.9 always @ref True
+*/
+const HAVE_RUNTIME_THREAD_STACK_TRACE = bool(true);
 
 //! Indicates if the round() function is available; the availability of this function depends on the presence of the C-library's %round() function
 const HAVE_ROUND = bool(QORE_CONST_HAVE_ROUND);

@@ -183,6 +183,10 @@
       - <a href="../../modules/DebugHandler/html/index.html">DebugHandler</a> reimplemented to support multiple websocket handlers
       - Programs are not interrupted in bootstrap code
       - Command line utils display source line code when interrupted
+    - Runtime thread stack traces are available in all builds and the
+      @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE "HAVE_RUNTIME_THREAD_STACK_TRACE" constant is always
+      @ref True "True".  Furthermore, the %Qore library has been extended to support stack tracing when embeddingg
+      or integrating code in other programming languages
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
     - fixed a bug with simple additional and subtraction with mixed @ref timeout_type "timeout" and

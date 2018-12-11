@@ -459,10 +459,6 @@ void ThreadEntry::allocate(tid_node* tn, int stat) {
     assert(status == QTS_AVAIL);
     status = stat;
     tidnode = tn;
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-    assert(!callStack);
-    callStack = new CallStack;
-#endif
     joined = false;
     assert(!thread_data);
 }
@@ -470,9 +466,6 @@ void ThreadEntry::allocate(tid_node* tn, int stat) {
 void ThreadEntry::activate(int tid, pthread_t n_ptid, QoreProgram* p, bool foreign) {
     assert(status == QTS_NA || status == QTS_RESERVED);
     ptid = n_ptid;
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-    assert(callStack);
-#endif
     assert(!thread_data);
     thread_data = new ThreadData(tid, p, foreign);
     ::thread_data.set(thread_data);
@@ -489,14 +482,6 @@ void ThreadEntry::cleanup() {
     // delete tidnode from tid_list
     delete tidnode;
 
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-// XXX DELETEME
-    // delete call stack
-    delete callStack;
-#ifdef DEBUG
-    callStack = nullptr;
-#endif
-#endif
 #ifdef DEBUG
     assert(!thread_data);
 #endif
@@ -1643,16 +1628,6 @@ const QoreListNode* thread_get_implicit_args() {
    return thread_data.get()->current_implicit_arg;
 }
 
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-void pushCall(CallNode* cn) {
-   thread_list.pushCall(cn);
-}
-
-void popCall(ExceptionSink* xsink) {
-   thread_list.popCall(xsink);
-}
-#endif
-
 bool runtime_in_object_method(const char* name, const QoreObject* o) {
    ThreadData* td = thread_data.get();
    return (td->current_obj == o && td->current_code == name) ? true : false;
@@ -2627,12 +2602,9 @@ QoreHashNode* getAllCallStacks() {
     return thread_list.getAllCallStacks();
 }
 
-QoreListNode* getCallStackList() {
-   return thread_list.getCallStackList();
-}
-
-CallStack* getCallStack() {
-   return thread_list.getCallStack();
+QoreListNode* qore_get_thread_call_stack() {
+    ThreadData* td = thread_data.get();
+    return thread_list.getCallStack(td->current_stack_location);
 }
 
 QoreHashNode* QoreThreadList::getAllCallStacks() {
@@ -2804,18 +2776,3 @@ unsigned QoreThreadList::cancelAllActiveThreads() {
 
     return tcc;
 }
-
-QoreListNode* QoreThreadList::getCallStackList() {
-   return entry[gettid()].callStack->getCallStack();
-}
-
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-void QoreThreadList::pushCall(CallNode* cn) {
-   entry[gettid()].callStack->push(cn);
-}
-
-void QoreThreadList::popCall(ExceptionSink* xsink) {
-   entry[gettid()].callStack->pop(xsink);
-}
-
-#endif

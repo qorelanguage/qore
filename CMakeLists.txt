@@ -6,10 +6,6 @@ option(ICONV_TRANSLIT
        "Force //Translit to iconv encoding to do transliteration, if OFF it is tested for"
        OFF)
 
-option(QORE_RUNTIME_THREAD_STACK_TRACE
-       "enable runtime thread stack trace (turning off breaks compatibility)"
-       ON)
-
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 9)
 set(VERSION_SUB 0)
@@ -36,10 +32,6 @@ if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
 else ()
     add_definitions(-DNDEBUG)
 endif ()
-
-#if ((NOT ${QORE_BUILD_TYPE_LWR} MATCHES "debug") AND QORE_RUNTIME_THREAD_STACK_TRACE)
-#    message(FATAL_ERROR "QORE_RUNTIME_THREAD_STACK_TRACE only available on debug builds")
-#endif()
 
 # simulate QoreConfig
 set(QORE_QDX_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qdx")
@@ -491,7 +483,6 @@ set(LIBQORE_CPP_SRC
     lib/QoreSQLStatement.cpp
     lib/ExecArgList.cpp
     lib/CallReferenceNode.cpp
-    lib/CallStack.cpp
     lib/NamedScope.cpp
     lib/RWLock.cpp
     lib/QoreSSLBase.cpp

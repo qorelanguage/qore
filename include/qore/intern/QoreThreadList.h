@@ -42,10 +42,6 @@
 #endif
 
 class ThreadData;
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-class CallStack;
-class CallNode;
-#endif
 
 #define QTS_AVAIL    0
 #define QTS_NA       1
@@ -77,9 +73,6 @@ class ThreadEntry {
 public:
     pthread_t ptid;
     tid_node* tidnode;
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-    CallStack* callStack;
-#endif
     ThreadData* thread_data;
     unsigned char status;
     bool joined; // if set to true then pthread_detach should not be called on exit
@@ -197,22 +190,12 @@ finish:
 
     DLLLOCAL QoreHashNode* getAllCallStacks();
 
-    DLLLOCAL QoreListNode* getCallStackList();
-
-    DLLLOCAL CallStack* getCallStack() {
-        return entry[gettid()].callStack;
-    }
-
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-    DLLLOCAL void pushCall(CallNode* cn);
-
-    DLLLOCAL void popCall(ExceptionSink* xsink);
-#endif
-
     DLLLOCAL static QoreHashNode* getCallStackHash(const QoreStackLocation& loc);
 
     DLLLOCAL static QoreHashNode* getCallStackHash(qore_call_t type, const char *code,
         const QoreProgramLocation& loc);
+
+    DLLLOCAL QoreListNode* getCallStack(const QoreStackLocation* stack_location) const;
 
 protected:
     // lock for reading the thread list
@@ -236,8 +219,6 @@ protected:
             --num_threads;
         }
     }
-
-    DLLLOCAL QoreListNode* getCallStack(const QoreStackLocation* stack_location) const;
 };
 
 DLLLOCAL extern QoreThreadList thread_list;
