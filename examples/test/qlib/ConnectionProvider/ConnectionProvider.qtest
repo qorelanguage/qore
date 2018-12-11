@@ -93,7 +93,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         };
         HttpConnection hc("name", "desc", url, attributes, opts);
         assertEq(True, hc.enabled, "connection is enabled by default");
-        assertEq(False, hc.locked, "connection is unlocked by defaul");
+        assertEq(False, hc.locked, "connection is unlocked by default");
 
         HTTPClient client = hc.get();
         assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
