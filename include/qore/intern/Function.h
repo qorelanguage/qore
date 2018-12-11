@@ -261,11 +261,17 @@ class AbstractQoreFunctionVariant;
 class CodeEvaluationHelper : public QoreStackLocation {
 public:
     // saves current program location in case there's an exception
-    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
+    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
+        const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr,
+        QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
+        bool is_copy = false, const qore_class_private* cctx = nullptr);
 
     // saves current program location in case there's an exception
     // performs destructive evaluation of "args"
-    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED, bool is_copy = false, const qore_class_private* cctx = nullptr);
+    DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
+        const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args,
+        QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
+        bool is_copy = false, const qore_class_private* cctx = nullptr);
 
     DLLLOCAL ~CodeEvaluationHelper();
 
@@ -278,7 +284,8 @@ public:
         ct = n_ct;
     }
 
-    DLLLOCAL int processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy = false);
+    DLLLOCAL int processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant,
+        bool check_args, bool is_copy = false);
 
     DLLLOCAL void setArgs(QoreListNode* n_args) {
         assert(!*tmp);
@@ -324,6 +331,11 @@ public:
         return ct;
     }
 
+    //! returns the QoreProgram container
+    DLLLOCAL virtual QoreProgram* getProgram() const {
+        return pgm;
+    }
+
 protected:
     qore_call_t ct;
     const char* name;
@@ -333,7 +345,8 @@ protected:
     const QoreProgramLocation* loc;
     QoreListNodeEvalOptionalRefHolder tmp;
     const QoreTypeInfo* returnTypeInfo; // saved return type info
-    QoreProgram* pgm = getProgram(); // program used when evaluated (to find stacks for references)
+    QoreProgram* pgm = nullptr; // program used when evaluated (to find stacks for references)
+    const AbstractStatement* stmt = nullptr; // the current statement for the call stack entry
     q_rt_flags_t rtflags = 0; // runtime flags
     QoreString callName;
     const QoreStackLocation* stack_loc = nullptr;

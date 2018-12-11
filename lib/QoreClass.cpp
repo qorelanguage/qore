@@ -973,8 +973,7 @@ int qore_class_private::initMember(QoreObject& o, bool& need_scan, const char* m
     assert(v.isNothing());
     if (!info.exp.isNothing()) {
         // set runtime location
-        QoreInternalStackLocationHelper l(*info.loc);
-        //QoreProgramLocationHelper l(info.loc);
+        QoreProgramLocationHelper l(info.loc);
         ValueEvalRefHolder val(info.exp, xsink);
         if (*xsink) {
             return -1;
@@ -1020,8 +1019,7 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bc
     const QoreProgramLocation* aloc = nullptr;
     QoreListNode* args = bceal->findArgs(cls->getID(), &already_executed, variant, aloc);
     if (!already_executed) {
-        QoreInternalStackOptionalLocationHelper plh(aloc);
-        //QoreProgramOptionalLocationHelper plh(aloc);
+        QoreProgramOptionalLocationHelper plh(aloc);
         constructor->priv->evalConstructor(variant, self, args, bceal, xsink);
     }
 }

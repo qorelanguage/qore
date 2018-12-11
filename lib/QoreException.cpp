@@ -31,6 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/QoreThreadList.h"
 
 #include <qore/safe_dslist>
 
@@ -42,23 +43,14 @@ QoreExceptionBase::QoreExceptionBase(QoreValue n_err, QoreValue n_desc, QoreValu
     : type(n_type), err(n_err), desc(n_desc), arg(n_arg) {
     // populate call stack
     const QoreStackLocation* w = get_runtime_stack_location();
-    qore_call_t last_call_type;
-    const char* last_call_name = nullptr;
-    const QoreProgramLocation* last_loc = nullptr;
     while (w) {
+        /*
         qore_call_t call_type = w->getCallType();
         const char* call_name = w->getCallName();
         const QoreProgramLocation& loc = w->getLocation();
-        // only push if the location is not equal to the last one
-        if (!last_loc || call_type != last_call_type || *last_loc != loc || strcmp(call_name, last_call_name)) {
-            callStack->push(
-                QoreException::getStackHash(call_type, nullptr, call_name, loc),
-                nullptr
-            );
-        }
-        last_call_type = call_type;
-        last_call_name = call_name;
-        last_loc = &loc;
+        callStack->push(QoreException::getStackHash(call_type, nullptr, call_name, loc), nullptr);
+        */
+        callStack->push(QoreThreadList::getCallStackHash(*w), nullptr);
         w = w->getNext();
     }
 }
@@ -79,6 +71,45 @@ void QoreException::del(ExceptionSink* xsink) {
     }
 
     delete this;
+}
+
+class QoreExceptionHolder {
+public:
+    DLLLOCAL QoreExceptionHolder(QoreException* e) : e(e) {
+    }
+
+    DLLLOCAL ~QoreExceptionHolder() {
+        if (e) {
+            e->del(nullptr);
+        }
+    }
+
+    DLLLOCAL QoreException* release() {
+        QoreException* rv = e;
+        e = nullptr;
+        return rv;
+    }
+
+    DLLLOCAL QoreException* operator->() {
+        return e;
+    }
+
+private:
+    QoreException * e;
+};
+
+QoreException* QoreException::rethrow() {
+    QoreExceptionHolder e(new QoreException(*this));
+
+    // insert current position as a rethrow entry in the new callstack
+    QoreListNode* l = e->callStack;
+    const char *fn = nullptr;
+    QoreHashNode* n = l->retrieveEntry(0).get<QoreHashNode>();
+    // get function name
+    fn = !n ? "<unknown>" : n->getKeyValue("function").get<QoreStringNode>()->c_str();
+
+    l->insert(QoreThreadList::getCallStackHash(CT_RETHROW, fn, *get_runtime_location()), nullptr);
+    return e.release();
 }
 
 QoreHashNode* QoreException::makeExceptionObject() {
@@ -132,6 +163,8 @@ const char* QoreException::getType(qore_call_t type) {
             return "builtin";
         case CT_RETHROW:
             return "rethrow";
+        case CT_NEWTHREAD:
+            return "new-thread";
         default:
             break;
     }
@@ -158,34 +191,29 @@ QoreHashNode* QoreException::getStackHash(const QoreCallStackElement& cse) {
     return h;
 }
 
-// static function
-QoreHashNode* QoreException::getStackHash(qore_call_t type, const char* class_name, const char* code,
-    const QoreProgramLocation& loc) {
-    QoreHashNode* h = new QoreHashNode;
-
-    qore_hash_private* ph = qore_hash_private::get(*h);
-
-    QoreStringNode *str = new QoreStringNode;
-    if (class_name)
-        str->sprintf("%s::", class_name);
-    str->concat(code);
-
-    //printd(5, "QoreException::getStackHash() %s at %s:%d-%d src: %s+%d\n", str->getBuffer(), loc.getFile() ? loc.getFile() : "n/a", loc.start_line, loc.end_line, loc.getSource() ? loc.getSource() : "n/a", loc.offset);
-
-    ph->setKeyValueIntern("function", str);
-    ph->setKeyValueIntern("line",     loc.start_line);
-    ph->setKeyValueIntern("endline",  loc.end_line);
-    ph->setKeyValueIntern("file",     loc.getFile() ? new QoreStringNode(loc.getFile()) : QoreValue());
-    ph->setKeyValueIntern("source",   loc.getSource() ? new QoreStringNode(loc.getSource()) : QoreValue());
-    ph->setKeyValueIntern("offset",   loc.offset);
-    ph->setKeyValueIntern("typecode", type);
-    ph->setKeyValueIntern("type",     new QoreStringNode(getType((qore_call_t)type)));
-
-    return h;
-}
-
 DLLLOCAL ParseExceptionSink::~ParseExceptionSink() {
     if (xsink) {
         qore_program_private::addParseException(getProgram(), xsink);
+    }
+}
+
+// creates a stack trace node and adds it to all exceptions in this sink
+void qore_es_private::addStackInfo(qore_call_t type, const char *class_name, const char *code,
+    const QoreProgramLocation& loc) {
+    assert(head);
+    QoreString str;
+    if (class_name) {
+        str.sprintf("%s::", class_name);
+    }
+    str.concat(code);
+    QoreHashNode* n = QoreThreadList::getCallStackHash(type, str.c_str(), loc);
+
+    assert(head);
+    QoreException* w = head;
+    while (w) {
+        w->addStackInfo(n);
+        w = w->next;
+        if (w)
+            n->ref();
     }
 }

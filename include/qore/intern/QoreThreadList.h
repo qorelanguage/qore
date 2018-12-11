@@ -33,6 +33,8 @@
 
 #define _QORE_QORETHREADLIST_H
 
+#include <qore/QoreRWLock.h>
+
 // FIXME: move to config.h or something like that
 // not more than this number of threads can be running at the same time
 #ifndef MAX_QORE_THREADS
@@ -101,27 +103,34 @@ class QoreThreadList {
 friend class QoreThreadListIterator;
 friend class tid_node;
 public:
+    // lock for reading / writing call stacks externally
+    /** if both lck and stack_lck are grabbed concurrently (for example, when all threads stacks are read externally),
+        then first lck must be acquired, and then stack_lck
+    */
+    mutable QoreRWLock stack_lck;
+
     DLLLOCAL QoreThreadList() {
     }
 
     DLLLOCAL int get(int status = QTS_NA) {
         int tid = -1;
-        AutoLocker al(l);
+        AutoLocker al(lck);
 
         if (current_tid == MAX_QORE_THREADS) {
             int i;
             // scan thread_list for free entry
             for (i = 1; i < MAX_QORE_THREADS; i++) {
                 if (entry[i].available()) {
-                tid = i;
-                goto finish;
+                    tid = i;
+                    goto finish;
                 }
             }
-            if (i == MAX_QORE_THREADS)
+            if (i == MAX_QORE_THREADS) {
                 return -1;
-        }
-        else
+            }
+        } else {
             tid = current_tid++;
+        }
 
 finish:
         entry[tid].allocate(new tid_node(tid), status);
@@ -132,32 +141,33 @@ finish:
     }
 
     DLLLOCAL int getSignalThreadEntry() {
-        AutoLocker al(l);
+        AutoLocker al(lck);
         entry[0].allocate(0);
         return 0;
     }
 
     DLLLOCAL void release(int tid) {
-        AutoLocker al(l);
+        AutoLocker al(lck);
         releaseIntern(tid);
     }
 
     DLLLOCAL int releaseReserved(int tid) {
-        AutoLocker al(l);
-        if (entry[tid].status != QTS_RESERVED)
+        AutoLocker al(lck);
+        if (entry[tid].status != QTS_RESERVED) {
             return -1;
+        }
 
         releaseIntern(tid);
         return 0;
     }
 
     DLLLOCAL void activate(int tid, pthread_t ptid = pthread_self(), QoreProgram* p = 0, bool foreign = false) {
-        AutoLocker al(l);
+        AutoLocker al(lck);
         entry[tid].activate(tid, ptid, p, foreign);
     }
 
     DLLLOCAL void setStatus(int tid, int status) {
-        AutoLocker al(l);
+        AutoLocker al(lck);
         assert(entry[tid].status != status);
         entry[tid].status = status;
     }
@@ -169,10 +179,11 @@ finish:
     DLLLOCAL void deleteDataReleaseSignalThread();
 
     DLLLOCAL int activateReserved(int tid) {
-        AutoLocker al(l);
+        AutoLocker al(lck);
 
-        if (entry[tid].status != QTS_RESERVED)
+        if (entry[tid].status != QTS_RESERVED) {
             return -1;
+        }
 
         entry[tid].activate(tid, pthread_self(), 0, true);
         return 0;
@@ -184,22 +195,28 @@ finish:
 
     DLLLOCAL unsigned cancelAllActiveThreads();
 
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
     DLLLOCAL QoreHashNode* getAllCallStacks();
-
-    DLLLOCAL void pushCall(CallNode* cn);
-
-    DLLLOCAL void popCall(ExceptionSink* xsink);
 
     DLLLOCAL QoreListNode* getCallStackList();
 
     DLLLOCAL CallStack* getCallStack() {
         return entry[gettid()].callStack;
     }
+
+#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
+    DLLLOCAL void pushCall(CallNode* cn);
+
+    DLLLOCAL void popCall(ExceptionSink* xsink);
 #endif
 
+    DLLLOCAL static QoreHashNode* getCallStackHash(const QoreStackLocation& loc);
+
+    DLLLOCAL static QoreHashNode* getCallStackHash(qore_call_t type, const char *code,
+        const QoreProgramLocation& loc);
+
 protected:
-    mutable QoreThreadLock l;
+    // lock for reading the thread list
+    mutable QoreThreadLock lck;
     unsigned num_threads = 0;
     ThreadEntry entry[MAX_QORE_THREADS];
 
@@ -215,19 +232,22 @@ protected:
         // NOTE: cannot safely call printd here, because normally the thread_data has been deleted
         //printf("DEBUG: ThreadList.releaseIntern() TID %d terminated\n", tid);
         entry[tid].cleanup();
-        if (tid)
+        if (tid) {
             --num_threads;
+        }
     }
+
+    DLLLOCAL QoreListNode* getCallStack(const QoreStackLocation* stack_location) const;
 };
 
 DLLLOCAL extern QoreThreadList thread_list;
 
 class QoreThreadListIterator : public AutoLocker {
 protected:
-    tid_node* w;
+    tid_node* w = nullptr;
 
 public:
-    DLLLOCAL QoreThreadListIterator() : AutoLocker(thread_list.l), w(0) {
+    DLLLOCAL QoreThreadListIterator() : AutoLocker(thread_list.lck) {
     }
 
     DLLLOCAL bool next() {

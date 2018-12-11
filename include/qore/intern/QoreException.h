@@ -122,24 +122,7 @@ public:
 
     DLLLOCAL void del(ExceptionSink *xsink);
 
-    DLLLOCAL QoreException* rethrow() {
-        QoreException *e = new QoreException(*this);
-
-        // insert current position as a rethrow entry in the new callstack
-        QoreListNode* l = e->callStack;
-        const char *fn = nullptr;
-        QoreHashNode* n = l->retrieveEntry(0).get<QoreHashNode>();
-        // get function name
-        fn = !n ? "<unknown>" : n->getKeyValue("function").get<QoreStringNode>()->c_str();
-
-        QoreHashNode* h = getStackHash(CT_RETHROW, 0, fn, *get_runtime_location());
-        l->insert(h, nullptr);
-
-        return e;
-    }
-
-    DLLLOCAL static QoreHashNode* getStackHash(qore_call_t type, const char *class_name, const char *code,
-        const QoreProgramLocation& loc);
+    DLLLOCAL QoreException* rethrow();
 
 protected:
     DLLLOCAL ~QoreException() {
@@ -219,19 +202,7 @@ struct qore_es_private {
 
     // creates a stack trace node and adds it to all exceptions in this sink
     DLLLOCAL void addStackInfo(qore_call_t type, const char *class_name, const char *code,
-        const QoreProgramLocation& loc) {
-        assert(head);
-        QoreHashNode* n = QoreException::getStackHash(type, class_name, code, loc);
-
-        assert(head);
-        QoreException* w = head;
-        while (w) {
-            w->addStackInfo(n);
-            w = w->next;
-            if (w)
-                n->ref();
-        }
-    }
+        const QoreProgramLocation& loc);
 
     DLLLOCAL void addStackInfo(const QoreCallStackElement& cse) {
         assert(head);

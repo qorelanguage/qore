@@ -244,12 +244,14 @@ DLLLOCAL Context* get_context_stack();
 DLLLOCAL void update_context_stack(Context* cstack);
 
 DLLLOCAL const QoreStackLocation* get_runtime_stack_location();
-DLLLOCAL const QoreStackLocation* update_get_runtime_stack_location(QoreStackLocation* stack_loc);
+DLLLOCAL const QoreStackLocation* update_get_runtime_stack_location(QoreStackLocation* stack_loc,
+    const AbstractStatement*& current_stmt, QoreProgram*& current_pgm);
 DLLLOCAL void update_runtime_stack_location(const QoreStackLocation* stack_loc);
 
 DLLLOCAL const QoreProgramLocation* get_runtime_location();
-//DLLLOCAL const QoreProgramLocation* update_get_runtime_location(const QoreProgramLocation* loc);
-//DLLLOCAL void update_runtime_location(const QoreProgramLocation* loc);
+DLLLOCAL void update_get_runtime_statement_location(const AbstractStatement* stmt,
+    const QoreProgramLocation* loc, const AbstractStatement*& old_stmt, const QoreProgramLocation*& old_loc);
+DLLLOCAL void update_runtime_statement_location(const AbstractStatement* stmt, const QoreProgramLocation* loc);
 
 DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
 DLLLOCAL const char* get_parse_code();
@@ -424,8 +426,9 @@ public:
 
 class QoreProgramStackLocationHelper {
 public:
-    DLLLOCAL QoreProgramStackLocationHelper(QoreStackLocation* stack_loc) :
-        stack_loc(update_get_runtime_stack_location(stack_loc)) {
+    DLLLOCAL QoreProgramStackLocationHelper(QoreStackLocation* stack_loc, const AbstractStatement*& current_stmt,
+        QoreProgram*& current_pgm) :
+        stack_loc(update_get_runtime_stack_location(stack_loc, current_stmt, current_pgm)) {
     }
 
     DLLLOCAL ~QoreProgramStackLocationHelper() {
@@ -436,39 +439,7 @@ protected:
     const QoreStackLocation* stack_loc;
 };
 
-class QoreProgramStackOptionalLocationHelper {
-public:
-    DLLLOCAL QoreProgramStackOptionalLocationHelper(QoreStackLocation* stack_loc) :
-        stack_loc(stack_loc ? update_get_runtime_stack_location(stack_loc) : nullptr),
-        restore(stack_loc ? true : false) {
-    }
-
-    DLLLOCAL ~QoreProgramStackOptionalLocationHelper() {
-        if (restore) {
-            update_runtime_stack_location(stack_loc);
-        }
-    }
-
-protected:
-    const QoreStackLocation* stack_loc;
-    bool restore;
-};
-
-class QoreInternalStackLocationHelper : public QoreStackLocation, public QoreProgramStackLocationHelper {
-public:
-    DLLLOCAL QoreInternalStackLocationHelper(const QoreProgramLocation& loc) : QoreProgramStackLocationHelper(this),
-        loc(loc) {
-    }
-
-    //! returns the source location of the element
-    DLLLOCAL virtual const QoreProgramLocation& getLocation() const {
-        return loc;
-    }
-
-protected:
-    const QoreProgramLocation& loc;
-};
-
+/*
 class QoreInternalStackOptionalLocationHelper : public QoreStackLocation, public QoreProgramStackOptionalLocationHelper {
 public:
     DLLLOCAL QoreInternalStackOptionalLocationHelper(const QoreProgramLocation* loc) : QoreProgramStackOptionalLocationHelper(loc ? this : nullptr),
@@ -484,11 +455,12 @@ public:
 protected:
     const QoreProgramLocation* loc;
 };
+*/
 
 class QoreInternalCallStackLocationHelper : public QoreStackLocation, public QoreProgramStackLocationHelper {
 public:
     DLLLOCAL QoreInternalCallStackLocationHelper(const QoreProgramLocation& loc, const char* call, qore_call_t call_type) :
-        QoreProgramStackLocationHelper(this), loc(loc), call(call), call_type(call_type) {
+        QoreProgramStackLocationHelper(this, stmt, pgm), loc(loc), call(call), call_type(call_type) {
     }
 
     //! returns the source location of the element
@@ -505,21 +477,26 @@ public:
         return call_type;
     }
 
+    DLLLOCAL virtual QoreProgram* getProgram() const {
+        return pgm;
+    }
+
 protected:
     const QoreProgramLocation& loc;
     const char* call;
     qore_call_t call_type;
+    const AbstractStatement* stmt;
+    QoreProgram* pgm;
 };
 
-/*
 class QoreProgramLocationHelper {
 public:
-    DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation* n_loc, const AbstractStatement* n_stat = nullptr) : loc(update_get_runtime_location(n_loc)), statement(update_get_runtime_statement(n_stat)) {
+    DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation* n_loc, const AbstractStatement* n_stat = nullptr) {
+        update_get_runtime_statement_location(n_stat, n_loc, statement, loc);
     }
 
     DLLLOCAL ~QoreProgramLocationHelper() {
-        update_runtime_location(loc);
-        update_get_runtime_statement(statement);
+        update_runtime_statement_location(statement, loc);
     }
 
 protected:
@@ -531,15 +508,13 @@ class QoreProgramOptionalLocationHelper {
 public:
     DLLLOCAL QoreProgramOptionalLocationHelper(const QoreProgramLocation* n_loc, const AbstractStatement* n_stat = nullptr) : restore((bool)n_loc) {
         if (n_loc) {
-            loc = update_get_runtime_location(n_loc);
-            statement = update_get_runtime_statement(n_stat);
+            update_get_runtime_statement_location(n_stat, n_loc, statement, loc);
         }
     }
 
     DLLLOCAL ~QoreProgramOptionalLocationHelper() {
         if (restore) {
-            update_runtime_location(loc);
-            update_get_runtime_statement(statement);
+            update_runtime_statement_location(statement, loc);
         }
     }
 
@@ -548,7 +523,6 @@ protected:
     const AbstractStatement* statement;
     bool restore;
 };
-*/
 
 // allows for the parse lock for the current program to be acquired by binary modules
 class CurrentProgramRuntimeParseContextHelper {

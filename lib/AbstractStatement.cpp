@@ -84,12 +84,13 @@ void AbstractStatement::finalizeBlock(int sline, int eline) {
 
 int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
     printd(1, "AbstractStatement::exec() this: %p file: %s line: %d\n", this, loc->getFile(), loc->start_line);
-    QoreInternalStatementLocationHelper stack_lock(this);
+    QoreProgramLocationHelper stack_loc(loc, this);
     //QoreProgramLocationHelper l(loc, this);
 
 #ifdef QORE_MANAGE_STACK
-    if (check_stack(xsink))
+    if (check_stack(xsink)) {
         return 0;
+    }
 #endif
     pthread_testcancel();
 
@@ -98,11 +99,12 @@ int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
 }
 
 int AbstractStatement::parseInit(LocalVar *oflag, int pflag) {
-   printd(2, "AbstractStatement::parseInit() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(), loc->getFile(), loc->start_line);
-   // set parse options and warning mask for this statement
-   ParseWarnHelper pwh(pwo);
+    printd(2, "AbstractStatement::parseInit() this: %p type: %s file: %s line: %d\n", this, typeid(this).name(),
+        loc->getFile(), loc->start_line);
+    // set parse options and warning mask for this statement
+    ParseWarnHelper pwh(pwo);
 
-   return parseInitImpl(oflag, pflag);
+    return parseInitImpl(oflag, pflag);
 }
 
 QoreBreakpoint* AbstractStatement::getBreakpoint() const {

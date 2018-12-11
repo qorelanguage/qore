@@ -196,6 +196,9 @@ void CodeEvaluationHelper::setCallName(const QoreFunction* func) {
 
 void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
     const qore_class_private* cctx) {
+    //printd(5, "CodeEvaluationHelper::init() this: %p '%s()' file: %s line: %d\n", this, func->getName(),
+    //    loc->getFile(), loc->start_line);
+
     // issue #2145: set the call reference class context only after arguments are evaluated
     OptionalClassOnlySubstitutionHelper cosh(cctx);
 
@@ -222,14 +225,15 @@ void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunc
         }
     }
 
-    if (processDefaultArgs(func, variant, true, is_copy))
+    if (processDefaultArgs(func, variant, true, is_copy)) {
         return;
+    }
 
     setCallType(variant->getCallType());
     setReturnTypeInfo(variant->getReturnTypeInfo());
 
     // add call to call stack
-    stack_loc = update_get_runtime_stack_location(this);
+    stack_loc = update_get_runtime_stack_location(this, stmt, pgm);
     restore_stack = true;
 }
 

@@ -353,11 +353,6 @@ public:
         stack_next = next;
     }
 
-    //! returns a pointer to the current Qore statement; internal use only
-    DLLLOCAL virtual const AbstractStatement* getStatement() const {
-        return nullptr;
-    }
-
     //! returns the next location in the stack or nullptr if there is none
     DLLLOCAL virtual const QoreStackLocation* getNext() const {
         return stack_next;
@@ -372,6 +367,14 @@ public:
     DLLLOCAL virtual qore_call_t getCallType() const {
         return stack_next ? stack_next->getCallType() : qore_call_t::CT_BUILTIN;
     }
+
+    //! returns the statement for internal Qore code
+    DLLLOCAL virtual const AbstractStatement* getStatement() const {
+        return nullptr;
+    }
+
+    //! returns the QoreProgram container
+    DLLLOCAL virtual QoreProgram* getProgram() const = 0;
 
     //! returns the source location of the element
     DLLLOCAL virtual const QoreProgramLocation& getLocation() const = 0;

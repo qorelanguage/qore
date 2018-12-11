@@ -116,26 +116,6 @@ public:
     DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 };
 
-class QoreInternalStatementLocationHelper : public QoreStackLocation, public QoreProgramStackLocationHelper {
-public:
-    DLLLOCAL QoreInternalStatementLocationHelper(const AbstractStatement* stmt) :
-        QoreProgramStackLocationHelper(this), stmt(stmt) {
-    }
-
-    //! returns a pointer to the current Qore statement; internal use only
-    DLLLOCAL virtual const AbstractStatement* getStatement() const {
-        return stmt;
-    }
-
-    //! returns the source location of the element
-    DLLLOCAL virtual const QoreProgramLocation& getLocation() const {
-        return *stmt->loc;
-    }
-
-protected:
-    const AbstractStatement* stmt;
-};
-
 DLLLOCAL void push_cvar(const char* name);
 DLLLOCAL void pop_cvar();
 DLLLOCAL LocalVar* pop_local_var(bool set_unassigned = false);
