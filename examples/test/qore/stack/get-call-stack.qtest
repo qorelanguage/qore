@@ -16,14 +16,16 @@ class GetCallThreadTest inherits QUnit::Test {
         set_return_value(main());
     }
 
-    any f2(bool all) {
+    auto f2(bool all) {
         return all ? get_all_thread_call_stacks() : get_thread_call_stack();
     }
-    any f1(bool all) {
+
+    auto f1(bool all) {
         return f2(all);
     }
+
     testGetCallThread() {
-        hash h = f1(True);
+        hash<auto> h = f1(True);
         testAssertionValue("get_all_thread_call_stacks-0", h{gettid()}[0].function, "get_all_thread_call_stacks");
         testAssertionValue("get_all_thread_call_stacks-1", h{gettid()}[1].function, "GetCallThreadTest::f2");
         testAssertionValue("get_all_thread_call_stacks-2", h{gettid()}[2].function, "GetCallThreadTest::f1");

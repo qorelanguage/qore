@@ -2611,12 +2611,6 @@ QoreHashNode* QoreThreadList::getAllCallStacks() {
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(
         qore_get_complex_list_type(hashdeclCallStackInfo->getTypeInfo())), nullptr);
 
-    // grab the thread lock to ensure that threads do not get released while running this call
-    AutoLocker al(lck);
-
-    // grab the call stack write lock to get exclusive access to all thread stacks
-    QoreAutoRWWriteLocker wl(stack_lck);
-
     if (exiting) {
         return h.release();
     }
@@ -2625,7 +2619,7 @@ QoreHashNode* QoreThreadList::getAllCallStacks() {
 
     QoreString str;
 
-    QoreThreadListIterator i;
+    QoreThreadListIterator i(true);
     while (i.next()) {
         // get call stack
         ThreadData* td = entry[*i].thread_data;

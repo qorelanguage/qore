@@ -224,11 +224,20 @@ protected:
 DLLLOCAL extern QoreThreadList thread_list;
 
 class QoreThreadListIterator : public AutoLocker {
-protected:
-    tid_node* w = nullptr;
-
 public:
-    DLLLOCAL QoreThreadListIterator() : AutoLocker(thread_list.lck) {
+    DLLLOCAL QoreThreadListIterator(bool access_stack = false) : AutoLocker(thread_list.lck),
+        access_stack(access_stack) {
+        if (access_stack) {
+            // grab the call stack write lock to get exclusive access to all thread stacks
+            thread_list.stack_lck.wrlock();
+        }
+    }
+
+    DLLLOCAL ~QoreThreadListIterator() {
+        if (access_stack) {
+            // release the call stack write lock
+            thread_list.stack_lck.unlock();
+        }
     }
 
     DLLLOCAL bool next() {
@@ -243,6 +252,10 @@ public:
         assert(w);
         return w->tid;
     }
+
+protected:
+    tid_node* w = nullptr;
+    bool access_stack;
 };
 
 #endif
