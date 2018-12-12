@@ -181,6 +181,7 @@ public namespace ConnectionProvider {
         string url;       #!< the URL for the connection including the password (if any present and the \a with_password argument is @ref Qore::True "True")
         hash url_hash;    #!< a hash of URL information as returned by AbstractConnection::parseUrl()
         bool enabled;     #!< a boolean value indicating if the connection should be enabled or not. This flag does not affect anything by default, it is for user re-implementations
+        bool locked;      #!< a boolean value indicating whether the connection is locked or not. This flag does not affect anything by default, it is for user re-implementations
     }
 
     #! config informaton as returned by @ref ConnectionProvider::AbstractConnection::getConfigHash() "AbstractConnection::getConfigHash()"
@@ -364,6 +365,9 @@ string connstr = get_connection(str);
 
             #! enabled/disabled indicator flag
             bool enabled = True;
+
+            #! locked/unlocked flag
+            bool locked = False;
         }
 
         #! DEPRECATED: creates the AbstractConnection object
@@ -402,6 +406,7 @@ string connstr = get_connection(str);
             For now there are:
                 - \c enabled, default \c True
                 - \c monitor, default \c True
+                - \c locked, default \c False
          */
         constructor(string name, string description, string url, hash attributes = {}, hash options = {}) {
             constructorInit(name, description, url, attributes, options);
@@ -420,6 +425,7 @@ string connstr = get_connection(str);
             # attributes to flags
             self.monitor = attributes.monitor ?? True;
             self.enabled = attributes.enabled ?? True;
+            self.locked = attributes.locked ?? False;
 
             self.orig_opts = options;
 
@@ -515,7 +521,7 @@ schema://user:pass@hostname:port/path
             @return a @ref ConnectionInfo hash of information about the connection
          */
         hash<ConnectionInfo> getInfo(bool with_password = False) {
-            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled") + ("type": getType(), "url_hash": urlh));
+            hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self.("name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled", "locked") + ("type": getType(), "url_hash": urlh));
             if (!with_password) {
                 h.url = safe_url;
                 delete h.url_hash.password;

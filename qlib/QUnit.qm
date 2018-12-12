@@ -131,6 +131,9 @@ public class MyTestClass inherits QUnit::DependencyInjectedTest {
     @section unittest_relnotes Release Notes
 
     @subsection qunit_v0_4 Version 0.4
+    - updated @ref QUnit::Test::testSkip() "Test::testSkip()" to use the reason argument a format string with
+      @ref Qore::vsprintf() "vsprintf()"
+      (<a href="https://github.com/qorelanguage/qore/issues/3172">issue 3172</a>)
     - fixed error reporting with type errors with number values
       (<a href="https://github.com/qorelanguage/qore/issues/2984">issue 2984</a>)
 
@@ -1900,10 +1903,11 @@ fail("Unexpected code executed");
 
     #! Skips a given test, eg. because it may be missing some dependencies.
     /**
-     * @param reason The reason for the test skip
+     * @param reason The reason for the test skip; used as the format argument with @ref Qore::vsprintf() "vsprintf()"
+     * with any remaining arguments
      */
     public testSkip(string reason) {
-        throw "TEST-SKIPPED-EXCEPTION", reason;
+        throw "TEST-SKIPPED-EXCEPTION", vsprintf(reason, argv);
     }
 
 ######### Test conditions passable to test assertions
