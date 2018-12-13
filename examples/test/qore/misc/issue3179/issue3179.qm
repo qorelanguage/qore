@@ -1,0 +1,18 @@
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
+
+module issue3179 {
+    version = "1.0";
+    desc = "issue 3179 test";
+    author = "Qore Technologies, s.r.o.";
+    url = "https://qore.org";
+    license = "MIT";
+}
+
+public class Disappear {
+    static string get() {
+        return "str";
+    }
+}
