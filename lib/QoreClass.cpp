@@ -481,7 +481,7 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, int6
 
 // only called while the parse lock for the QoreProgram owning "old" is held
 qore_class_private::qore_class_private(const qore_class_private& old, qore_ns_private* ns, QoreProgram* spgm, const char* new_name, bool inject, const qore_class_private* injectedClass)
-   : name(new_name ? new_name : old.name),
+   : name(new_name ? new_name : old.name.c_str()),
      ns(ns),
      ahm(old.ahm),
      constlist(old.constlist, 0, this),    // committed constants
