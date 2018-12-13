@@ -4416,7 +4416,6 @@ int ConstructorMethodVariant::constructorPrelude(const QoreClass& thisclass, Cod
         }
     }
 
-    //ceh.restorePosition();
     return 0;
 }
 
@@ -4519,7 +4518,6 @@ void UserCopyVariant::evalCopy(const QoreClass& thisclass, QoreObject* self, Qor
         if (*xsink) {
             return;
         }
-        //ceh.restorePosition();
     }
 
     evalIntern(uveh.getArgv(), self, xsink).discard(xsink);
@@ -4573,7 +4571,6 @@ void BuiltinCopyVariantBase::evalCopy(const QoreClass& thisclass, QoreObject* se
         if (*xsink) {
             return;
         }
-        //ceh.restorePosition();
     }
 
     old->evalCopyMethodWithPrivateData(thisclass, this, self, xsink);

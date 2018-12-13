@@ -305,10 +305,6 @@ public:
         return pgm;
     }
 
-    //DLLLOCAL void restorePosition() const {
-    //    update_runtime_location(loc);
-    //}
-
     DLLLOCAL q_rt_flags_t getRuntimeFlags() const {
         return rtflags;
     }
@@ -334,6 +330,10 @@ public:
     //! returns the QoreProgram container
     DLLLOCAL virtual QoreProgram* getProgram() const {
         return pgm;
+    }
+
+    DLLLOCAL virtual const AbstractStatement* getStatement() const {
+        return stmt;
     }
 
 protected:

@@ -257,7 +257,6 @@ DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
 DLLLOCAL const char* get_parse_code();
 
 DLLLOCAL const AbstractStatement* get_runtime_statement();
-//DLLLOCAL const AbstractStatement* update_get_runtime_statement(const AbstractStatement* s);
 
 DLLLOCAL const QoreTypeInfo* parse_set_implicit_arg_type_info(const QoreTypeInfo* ti);
 DLLLOCAL const QoreTypeInfo* parse_get_implicit_arg_type_info();
@@ -425,28 +424,28 @@ protected:
     const QoreStackLocation* stack_loc;
 };
 
-/*
-class QoreInternalStackOptionalLocationHelper : public QoreStackLocation, public QoreProgramStackOptionalLocationHelper {
+class QoreInternalCallStackLocationHelperBase : public QoreStackLocation, public QoreProgramStackLocationHelper {
 public:
-    DLLLOCAL QoreInternalStackOptionalLocationHelper(const QoreProgramLocation* loc) : QoreProgramStackOptionalLocationHelper(loc ? this : nullptr),
-        loc(loc) {
+    DLLLOCAL QoreInternalCallStackLocationHelperBase() : QoreProgramStackLocationHelper(this, stmt, pgm) {
     }
 
-    //! returns the source location of the element
-    DLLLOCAL virtual const QoreProgramLocation& getLocation() const {
-        assert(loc);
-        return *loc;
+    DLLLOCAL virtual QoreProgram* getProgram() const {
+        return pgm;
+    }
+
+    DLLLOCAL virtual const AbstractStatement* getStatement() const {
+        return stmt;
     }
 
 protected:
-    const QoreProgramLocation* loc;
+    const AbstractStatement* stmt;
+    QoreProgram* pgm;
 };
-*/
 
-class QoreInternalCallStackLocationHelper : public QoreStackLocation, public QoreProgramStackLocationHelper {
+class QoreInternalCallStackLocationHelper : public QoreInternalCallStackLocationHelperBase {
 public:
-    DLLLOCAL QoreInternalCallStackLocationHelper(const QoreProgramLocation& loc, const char* call, qore_call_t call_type) :
-        QoreProgramStackLocationHelper(this, stmt, pgm), loc(loc), call(call), call_type(call_type) {
+    DLLLOCAL QoreInternalCallStackLocationHelper(const QoreProgramLocation& loc, const char* call,
+        qore_call_t call_type) : loc(loc), call(call), call_type(call_type) {
     }
 
     //! returns the source location of the element
@@ -463,16 +462,10 @@ public:
         return call_type;
     }
 
-    DLLLOCAL virtual QoreProgram* getProgram() const {
-        return pgm;
-    }
-
 protected:
     const QoreProgramLocation& loc;
     const char* call;
     qore_call_t call_type;
-    const AbstractStatement* stmt;
-    QoreProgram* pgm;
 };
 
 class QoreProgramLocationHelper {

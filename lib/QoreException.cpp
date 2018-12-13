@@ -37,8 +37,6 @@
 
 #include <cassert>
 
-#define Q_MAX_EXCEPTIONS 10
-
 QoreExceptionBase::QoreExceptionBase(QoreValue n_err, QoreValue n_desc, QoreValue n_arg, qore_call_t n_type)
     : type(n_type), err(n_err), desc(n_desc), arg(n_arg) {
     // populate call stack

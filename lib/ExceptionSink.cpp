@@ -32,6 +32,8 @@
 
 #include <cstdlib>
 
+#define Q_MAX_EXCEPTIONS 10
+
 // check if "this" is valid in class member functions (cannot check "this" directly in g++ 4.9+ for example with optimization enabled)
 static bool qore_check_this(const void* p) {
     assert(p);
@@ -625,4 +627,40 @@ void QoreExternalProgramLocationWrapper::set(const char* file, int start_line, i
     loc->setSource(source_str.c_str());
     assert(offset <= 0xffff);
     loc->offset = offset;
+}
+
+class qore_external_stack_location_priv {
+public:
+    const AbstractStatement* stmt = nullptr;
+    QoreProgram* pgm = nullptr;
+};
+
+QoreExternalStackLocation::QoreExternalStackLocation() : priv(new qore_external_stack_location_priv) {
+}
+
+QoreExternalStackLocation::~QoreExternalStackLocation() {
+    delete priv;
+}
+
+QoreProgram* QoreExternalStackLocation::getProgram() const {
+    return priv->pgm;
+}
+
+const AbstractStatement* QoreExternalStackLocation::getStatement() const {
+    return priv->stmt;
+}
+
+class qore_external_runtime_stack_location_helper_priv : public QoreProgramStackLocationHelper {
+public:
+    DLLLOCAL qore_external_runtime_stack_location_helper_priv(QoreExternalStackLocation& stack_loc)
+        : QoreProgramStackLocationHelper(&stack_loc, stack_loc.priv->stmt, stack_loc.priv->pgm) {
+    }
+};
+
+QoreExternalRuntimeStackLocationHelper::QoreExternalRuntimeStackLocationHelper(QoreExternalStackLocation& stack_loc)
+    : priv(new qore_external_runtime_stack_location_helper_priv(stack_loc)) {
+}
+
+QoreExternalRuntimeStackLocationHelper::~QoreExternalRuntimeStackLocationHelper() {
+    delete priv;
 }

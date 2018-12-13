@@ -705,8 +705,6 @@ public:
         qore_program_private::registerNewThread(*pgm, tid);
         // create thread-local data in the program object
         qore_program_private::startThread(*pgm, xsink);
-        // set program counter for new thread
-        //update_runtime_location(loc);
         started = true;
         //printd(5, "BGThreadParams::startThread() this: %p pgm: %p\n", this, pgm);
         pgm->depRef();
@@ -2268,6 +2266,7 @@ namespace {
                 {
                     CodeContextHelper cch(&xsink, CT_NEWTHREAD, "background operator", btp->getContextObject(), btp->class_ctx);
                     QoreInternalCallStackLocationHelper stack_loc(*btp->loc, "<background operator>", CT_NEWTHREAD);
+                    // save runtime location of thread creation call
                     td->runtime_loc = btp->loc;
 
                     // dereference call object if present

@@ -358,23 +358,17 @@ public:
         return stack_next;
     }
 
-    //! returns the name of the function or method call
-    DLLLOCAL virtual const char* getCallName() const {
-        return stack_next ? stack_next->getCallName() : "<top level>";
-    }
-
-    //! returns the call type
-    DLLLOCAL virtual qore_call_t getCallType() const {
-        return stack_next ? stack_next->getCallType() : qore_call_t::CT_BUILTIN;
-    }
-
-    //! returns the statement for internal Qore code
-    DLLLOCAL virtual const AbstractStatement* getStatement() const {
-        return nullptr;
-    }
-
     //! returns the QoreProgram container
     DLLLOCAL virtual QoreProgram* getProgram() const = 0;
+
+    //! returns the statement for the call for internal Qore code
+    DLLLOCAL virtual const AbstractStatement* getStatement() const = 0;
+
+    //! returns the name of the function or method call
+    DLLLOCAL virtual const char* getCallName() const = 0;
+
+    //! returns the call type
+    DLLLOCAL virtual qore_call_t getCallType() const = 0;
 
     //! returns the source location of the element
     DLLLOCAL virtual const QoreProgramLocation& getLocation() const = 0;
@@ -383,22 +377,41 @@ protected:
     const QoreStackLocation* stack_next = nullptr;
 };
 
-/*
-//! Sets the current runtime location and restores the old location on exit
-class QoreExternalRuntimeLocationHelper {
+//! Stack location element abstract class for external binary modules
+/** @since %Qore 0.9
+*/
+class QoreExternalStackLocation : public QoreStackLocation {
+    friend class qore_external_runtime_stack_location_helper_priv;
 public:
-    //! Sets the current runtime location
-    DLLEXPORT QoreExternalRuntimeLocationHelper(const QoreProgramLocation& loc);
+    //! create the object
+    DLLEXPORT QoreExternalStackLocation();
 
-    //! Sets the current runtime location
-    DLLEXPORT QoreExternalRuntimeLocationHelper(const QoreExternalProgramLocationWrapper& loc);
+    //! destroys the object
+    DLLEXPORT virtual ~QoreExternalStackLocation();
 
-    //! Restores the old runtime location
-    DLLEXPORT ~QoreExternalRuntimeLocationHelper();
+    //! returns the QoreProgram container
+    DLLLOCAL virtual QoreProgram* getProgram() const;
+
+    //! returns the statement for the call for internal Qore code
+    DLLLOCAL virtual const AbstractStatement* getStatement() const;
 
 private:
-    const QoreProgramLocation* loc;
+    class qore_external_stack_location_priv* priv;
 };
+
+//! Sets the current runtime location and restores the old location on exit
+/** @since %Qore 0.9
 */
+class QoreExternalRuntimeStackLocationHelper {
+public:
+    //! Sets the current runtime location
+    DLLEXPORT QoreExternalRuntimeStackLocationHelper(QoreExternalStackLocation& stack_loc);
+
+    //! Restores the old runtime location
+    DLLEXPORT ~QoreExternalRuntimeStackLocationHelper();
+
+private:
+    class qore_external_runtime_stack_location_helper_priv* priv;
+};
 
 #endif
