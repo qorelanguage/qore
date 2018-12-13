@@ -315,26 +315,54 @@ public:
     //! empty constructor; use set() to set the location
     DLLEXPORT QoreExternalProgramLocationWrapper();
 
+    //! copy ctor
+    DLLEXPORT QoreExternalProgramLocationWrapper(const QoreExternalProgramLocationWrapper&);
+
+    //! move ctor
+    DLLEXPORT QoreExternalProgramLocationWrapper(QoreExternalProgramLocationWrapper&&);
+
     //! constructor setting the source location
     DLLEXPORT QoreExternalProgramLocationWrapper(const char* file, int start_line, int end_line,
-        const char* source = nullptr, int offset = 0);
+        const char* source = nullptr, int offset = 0, const char* lang = nullptr);
 
     //! destructor; frees memory
     DLLEXPORT ~QoreExternalProgramLocationWrapper();
 
     //! sets the program source location
     DLLEXPORT void set(const char* file, int start_line, int end_line,
-        const char* source = nullptr, int offset = 0);
+        const char* source = nullptr, int offset = 0, const char* lang = nullptr);
 
     //! returns the source location
     DLLEXPORT const QoreProgramLocation& get() const {
         return *loc;
     }
 
+    //! returns the file name
+    DLLEXPORT const char* getFile() const {
+        return file_str.c_str();
+    }
+
+    //! returns the source
+    DLLEXPORT const char* getSource() const {
+        return source_str.c_str();
+    }
+
+    //! returns the language
+    DLLEXPORT const char* getLanguage() const {
+        return lang_str.c_str();
+    }
+
+    //! returns the start line
+    DLLEXPORT int getStartLine() const;
+
+    //! returns the start line
+    DLLEXPORT int getEndLine() const;
+
 private:
     // save strings for exceptions in case they are epheremal when this object is created
     std::string file_str;
     std::string source_str;
+    std::string lang_str;
 
     // actual exception location
     QoreProgramLocation* loc;
@@ -345,8 +373,23 @@ private:
 */
 class QoreStackLocation {
 public:
+    //! constructor
+    DLLLOCAL QoreStackLocation();
+
+    //! copy ctor
+    DLLLOCAL QoreStackLocation(const QoreStackLocation&) = default;
+
+    //! move ctor
+    DLLLOCAL QoreStackLocation(QoreStackLocation&&) = default;
+
     //! virtual destructor
     DLLLOCAL virtual ~QoreStackLocation() = default;
+
+    //! no assignment operator
+    DLLLOCAL QoreStackLocation& operator=(const QoreStackLocation&) = delete;
+
+    //! no move assignment operator
+    DLLLOCAL QoreStackLocation& operator=(QoreStackLocation&&) = delete;
 
     //! called when pushed on the stack to set the next location
     DLLLOCAL void setNext(const QoreStackLocation* next) {
@@ -386,29 +429,53 @@ public:
     //! create the object
     DLLEXPORT QoreExternalStackLocation();
 
+    //! copy ctor
+    DLLEXPORT QoreExternalStackLocation(const QoreExternalStackLocation&);
+
+    //! move ctor
+    DLLEXPORT QoreExternalStackLocation(QoreExternalStackLocation&&);
+
     //! destroys the object
     DLLEXPORT virtual ~QoreExternalStackLocation();
 
+    //! no assignment operator
+    DLLLOCAL QoreExternalStackLocation& operator=(const QoreExternalStackLocation&) = delete;
+
+    //! no move assignment operator
+    DLLLOCAL QoreExternalStackLocation& operator=(QoreExternalStackLocation&&) = delete;
+
     //! returns the QoreProgram container
-    DLLLOCAL virtual QoreProgram* getProgram() const;
+    DLLEXPORT virtual QoreProgram* getProgram() const;
 
     //! returns the statement for the call for internal Qore code
-    DLLLOCAL virtual const AbstractStatement* getStatement() const;
+    DLLEXPORT virtual const AbstractStatement* getStatement() const;
 
 private:
     class qore_external_stack_location_priv* priv;
 };
 
-//! Sets the current runtime location and restores the old location on exit
+//! Sets the stack location for external modules providing language support
 /** @since %Qore 0.9
 */
-class QoreExternalRuntimeStackLocationHelper {
+class QoreExternalRuntimeStackLocationHelper : public QoreExternalStackLocation {
 public:
     //! Sets the current runtime location
-    DLLEXPORT QoreExternalRuntimeStackLocationHelper(QoreExternalStackLocation& stack_loc);
+    DLLEXPORT QoreExternalRuntimeStackLocationHelper();
+
+    //! copy ctor
+    DLLEXPORT QoreExternalRuntimeStackLocationHelper(const QoreExternalRuntimeStackLocationHelper&);
+
+    //! move ctor
+    DLLEXPORT QoreExternalRuntimeStackLocationHelper(QoreExternalRuntimeStackLocationHelper&&);
 
     //! Restores the old runtime location
     DLLEXPORT ~QoreExternalRuntimeStackLocationHelper();
+
+    //! no assignment operator
+    DLLLOCAL QoreExternalRuntimeStackLocationHelper& operator=(const QoreExternalRuntimeStackLocationHelper&) = delete;
+
+    //! no move assignment operator
+    DLLLOCAL QoreExternalRuntimeStackLocationHelper& operator=(QoreExternalRuntimeStackLocationHelper&&) = delete;
 
 private:
     class qore_external_runtime_stack_location_helper_priv* priv;

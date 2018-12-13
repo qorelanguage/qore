@@ -177,8 +177,9 @@ struct QoreProgramLineLocation {
     DLLLOCAL QoreProgramLineLocation() : start_line(-1), end_line(-1) {
     }
 
-    DLLLOCAL QoreProgramLineLocation(const QoreProgramLineLocation& old) : start_line(old.start_line), end_line(old.end_line) {
-    }
+    DLLLOCAL QoreProgramLineLocation(const QoreProgramLineLocation& old) = default;
+
+    DLLLOCAL QoreProgramLineLocation(QoreProgramLineLocation&& old) = default;
 };
 
 struct QoreProgramLocation : public QoreProgramLineLocation {
@@ -187,11 +188,18 @@ public:
     DLLLOCAL QoreProgramLocation() {
     }
 
+    DLLLOCAL explicit QoreProgramLocation(const char* f, int sline, int eline, const char* source, int offset,
+        const char* lang = "Qore") :
+        QoreProgramLineLocation(sline, eline), file(f), source(source), offset(offset), lang(lang) {
+        assert(offset <= 0xffff);
+    }
+
     // sets file position info from thread-local parse information
     DLLLOCAL QoreProgramLocation(int sline, int eline);
 
-    DLLLOCAL QoreProgramLocation(const QoreProgramLocation& old) : QoreProgramLineLocation(old), file(old.file), source(old.source), offset(old.offset) {
-    }
+    DLLLOCAL QoreProgramLocation(const QoreProgramLocation& old) = default;
+
+    DLLLOCAL QoreProgramLocation(QoreProgramLocation&& old) = default;
 
     DLLLOCAL void clear() {
         start_line = end_line = -1;
@@ -234,6 +242,10 @@ public:
         source = s;
     }
 
+    DLLLOCAL void setLanguage(const char* l) {
+        lang = l;
+    }
+
     DLLLOCAL bool operator<(const QoreProgramLocation& loc) const {
         return start_line < loc.start_line
             || end_line < loc.end_line
@@ -267,12 +279,6 @@ public:
 protected:
     DLLLOCAL explicit QoreProgramLocation(const char* f, int sline = 0, int eline = 0) :
         QoreProgramLineLocation(sline, eline), file(f) {
-    }
-
-public:
-    DLLLOCAL explicit QoreProgramLocation(const char* f, int sline, int eline, const char* source, int offset) :
-        QoreProgramLineLocation(sline, eline), file(f), source(source), offset(offset) {
-        assert(offset <= 0xffff);
     }
 };
 

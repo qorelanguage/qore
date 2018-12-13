@@ -119,6 +119,9 @@ hashdecl CallStackInfo {
     //! a type string; either \c "user", \c "builtin", \c "new-thread" or \c "rethrow" (for rethrown exceptions)
     string type;
 
+    //! the language of the source code; normally \c "Qore"
+    string lang;
+
     //! related program id (since 0.8.13.7)
     *int programid;
 

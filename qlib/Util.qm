@@ -896,12 +896,13 @@ string pass = get_random_string();
 
             if (ex.callstack) {
                 foreach hash l in (ex.callstack) {
-                    if (l.type == "new-thread")
+                    if (l.type == "new-thread") {
                         str += sprintf("\n  *** thread started by background operator ***");
-                    else if (l.type == "rethrow")
+                    } else if (l.type == "rethrow") {
                         str += sprintf("\n  *** RETHROW at %s", get_ex_pos(l));
-                    else
-                        str += sprintf("\n  %s() called at %s (%s function)", l.function, get_ex_pos(l), l.type);
+                    } else {
+                        str += sprintf("\n  %s() called at %s (%s %s code)", l.function, get_ex_pos(l), l.lang, l.type);
+                    }
                 }
             }
 

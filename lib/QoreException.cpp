@@ -42,12 +42,6 @@ QoreExceptionBase::QoreExceptionBase(QoreValue n_err, QoreValue n_desc, QoreValu
     // populate call stack
     const QoreStackLocation* w = get_runtime_stack_location();
     while (w) {
-        /*
-        qore_call_t call_type = w->getCallType();
-        const char* call_name = w->getCallName();
-        const QoreProgramLocation& loc = w->getLocation();
-        callStack->push(QoreException::getStackHash(call_type, nullptr, call_name, loc), nullptr);
-        */
         callStack->push(QoreThreadList::getCallStackHash(*w), nullptr);
         w = w->getNext();
     }

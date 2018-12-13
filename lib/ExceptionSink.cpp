@@ -386,23 +386,42 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
         if (!found) {
             if (!e->file.empty()) {
                 printe(" at %s:", e->file.c_str());
+                bool openparen = false;
                 if (e->start_line == e->end_line) {
                     if (!e->start_line) {
                         printe("<init>");
-                        if (!e->source.empty())
-                            printe(" (source %s)", e->source.c_str());
+                        if (!e->source.empty()) {
+                            printe(" (source %s", e->source.c_str());
+                            openparen = true;
+                        }
                     }
                     else {
                         printe("%d", e->start_line);
-                        if (!e->source.empty())
+                        if (!e->source.empty()) {
                             printe(" (source %s:%d)", e->source.c_str(), e->start_line + e->offset);
+                            openparen = true;
+                        }
                     }
                 }
                 else {
                     printe("%d-%d", e->start_line, e->end_line);
-                    if (!e->source.empty())
+                    if (!e->source.empty()) {
                         printe(" (source %s:%d-%d)", e->source.c_str(), e->start_line + e->offset,
                             e->end_line + e->offset);
+                        openparen = true;
+                    }
+                }
+                if (e->lang != "Qore") {
+                    if (!openparen) {
+                        printe("(lang ");
+                        openparen = true;
+                    } else {
+                        printe(" lang ");
+                    }
+                    printe(e->lang.c_str());
+                }
+                if (openparen) {
+                    printe(")");
                 }
             }
             else if (e->start_line) {
@@ -501,30 +520,47 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
                         QoreStringNode* fs = h->getKeyValue("function").get<QoreStringNode>();
                         printe("%s() (", fs->getBuffer());
                         if (fns) {
+                            QoreStringNode* lang = h->getKeyValue("lang").get<QoreStringNode>();
+                            bool openparen = false;
                             if (start_line == end_line) {
-                                if (!start_line)
+                                if (!start_line) {
                                     printe("%s:<init>", fns);
-                                else {
+                                } else {
                                     printe("%s:%d", fns, start_line);
-                                    if (srcs)
-                                        printe(" (source %s:%d)", srcs, start_line + offset);
+                                    if (srcs) {
+                                        printe(" (source %s:%d", srcs, start_line + offset);
+                                        openparen = true;
+                                    }
+                                }
+                            } else {
+                                printe("%s:%d-%d", fns, start_line, end_line);
+                                if (srcs) {
+                                    printe(" (source %s:%d-%d", srcs, start_line + offset, end_line + offset);
+                                    openparen = true;
                                 }
                             }
-                            else {
-                                printe("%s:%d-%d", fns, start_line, end_line);
-                                if (srcs)
-                                    printe(" (source %s:%d-%d)", srcs, start_line + offset, end_line + offset);
+                            if (lang && *lang != "Qore") {
+                                if (!openparen) {
+                                    printe("(lang ");
+                                    openparen = true;
+                                } else {
+                                    printe(" lang ");
+                                }
+                                printe(lang->c_str());
                             }
-                        }
-                        else {
+                            if (openparen) {
+                                printe(")");
+                            }
+                        } else {
                             if (start_line == end_line) {
-                                if (!start_line)
+                                if (!start_line) {
                                     printe("<init>");
-                                else
+                                } else {
                                     printe("line %d", start_line);
-                            }
-                            else
+                                }
+                            } else {
                                 printe("line %d - %d", start_line, end_line);
+                            }
                         }
                         printe(", %s code)", type);
                     }
@@ -553,20 +589,39 @@ void ExceptionSink::defaultWarningHandler(QoreException *e) {
 
         if (!e->file.empty()) {
             printe("at %s:", e->file.c_str());
+            bool openparen = false;
             if (e->start_line == e->end_line) {
                 if (!e->start_line) {
                     printe("<init>");
-                    if (!e->source.empty())
-                        printe(" (source %s)", e->source.c_str());
+                    if (!e->source.empty()) {
+                        openparen = true;
+                        printe(" (source %s", e->source.c_str());
+                    }
                 } else {
                     printe("%d", e->start_line);
-                    if (!e->source.empty())
-                        printe(" (source %s:%d)", e->source.c_str(), e->start_line + e->offset);
+                    if (!e->source.empty()) {
+                        openparen = true;
+                        printe(" (source %s:%d", e->source.c_str(), e->start_line + e->offset);
+                    }
                 }
             } else {
                 printe("%d-%d", e->start_line, e->end_line);
-                if (!e->source.empty())
-                printe(" (source %s:%d-%d)", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
+                if (!e->source.empty()) {
+                    openparen = true;
+                    printe(" (source %s:%d-%d", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
+                }
+            }
+            if (e->lang != "Qore") {
+                if (!openparen) {
+                    printe("(lang ");
+                    openparen = true;
+                } else {
+                    printe(" lang ");
+                }
+                printe(e->lang.c_str());
+            }
+            if (openparen) {
+                printe(")");
             }
         } else if (e->start_line) {
             if (e->start_line == e->end_line) {
@@ -590,14 +645,29 @@ void ExceptionSink::defaultWarningHandler(QoreException *e) {
     }
 }
 
-QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper() :
-    loc(new QoreProgramLocation) {
+QoreStackLocation::QoreStackLocation() {
+}
+
+QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper() : loc(new QoreProgramLocation) {
+}
+
+QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper(const QoreExternalProgramLocationWrapper& old)
+    : file_str(old.file_str), source_str(old.source_str), lang_str(old.lang_str),
+      loc(new QoreProgramLocation(file_str.c_str(), old.loc->start_line, old.loc->end_line,
+        source_str.empty() ? nullptr : source_str.c_str(), old.loc->offset,
+        lang_str.empty() ? nullptr : lang_str.c_str())) {
+}
+
+QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper(QoreExternalProgramLocationWrapper&& old)
+    : loc(old.loc) {
+    old.loc = nullptr;
 }
 
 QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper(const char* file, int start_line, int end_line,
-    const char* source, int offset) : file_str(file ? file : ""), source_str(source ? source : ""),
-    loc(new QoreProgramLocation(file_str.c_str(), start_line, end_line,
-        source_str.empty() ? nullptr : source_str.c_str(), offset)) {
+    const char* source, int offset, const char* lang) : file_str(file ? file : ""), source_str(source ? source : ""),
+    lang_str(lang ? lang : ""), loc(new QoreProgramLocation(file_str.c_str(), start_line, end_line,
+        source_str.empty() ? nullptr : source_str.c_str(), offset, lang_str.empty() ? nullptr : lang_str.c_str())) {
+    assert(file);
 }
 
 QoreExternalProgramLocationWrapper::~QoreExternalProgramLocationWrapper() {
@@ -605,37 +675,65 @@ QoreExternalProgramLocationWrapper::~QoreExternalProgramLocationWrapper() {
 }
 
 void QoreExternalProgramLocationWrapper::set(const char* file, int start_line, int end_line,
-    const char* source, int offset) {
+    const char* source, int offset, const char* lang) {
     // we need to save strings in case they are epheremal when this object is created
     if (!file) {
         file_str.clear();
     } else {
         file_str = file;
     }
+    loc->setFile(file_str.c_str());
     if (!source) {
         source_str.clear();
     } else {
         source_str = source;
     }
-    loc->setFile(file_str.c_str());
+    loc->setSource(source_str.c_str());
+    if (!lang) {
+        lang_str.clear();
+    } else {
+        lang_str = lang;
+    }
+    loc->setLanguage(lang_str.c_str());
     // the internal storage for start_line is currently 16 bits
     assert(start_line <= 0xffff);
     loc->start_line = start_line;
     // the internal storage for end_line is currently 16 bits
     assert(end_line <= 0xffff);
     loc->end_line = end_line;
-    loc->setSource(source_str.c_str());
     assert(offset <= 0xffff);
     loc->offset = offset;
+}
+
+int QoreExternalProgramLocationWrapper::getStartLine() const {
+    return loc->start_line;
+}
+
+int QoreExternalProgramLocationWrapper::getEndLine() const {
+    return loc->end_line;
 }
 
 class qore_external_stack_location_priv {
 public:
     const AbstractStatement* stmt = nullptr;
     QoreProgram* pgm = nullptr;
+
+    DLLLOCAL qore_external_stack_location_priv() = default;
+
+    DLLLOCAL qore_external_stack_location_priv(const qore_external_stack_location_priv& old) = default;
+
+    DLLLOCAL qore_external_stack_location_priv(qore_external_stack_location_priv&& old) = default;
 };
 
 QoreExternalStackLocation::QoreExternalStackLocation() : priv(new qore_external_stack_location_priv) {
+}
+
+QoreExternalStackLocation::QoreExternalStackLocation(const QoreExternalStackLocation& old)
+    : priv(new qore_external_stack_location_priv(*old.priv)) {
+}
+
+QoreExternalStackLocation::QoreExternalStackLocation(QoreExternalStackLocation&& old) : priv(old.priv) {
+    old.priv = nullptr;
 }
 
 QoreExternalStackLocation::~QoreExternalStackLocation() {
@@ -655,10 +753,20 @@ public:
     DLLLOCAL qore_external_runtime_stack_location_helper_priv(QoreExternalStackLocation& stack_loc)
         : QoreProgramStackLocationHelper(&stack_loc, stack_loc.priv->stmt, stack_loc.priv->pgm) {
     }
+
+    DLLLOCAL qore_external_runtime_stack_location_helper_priv(const qore_external_runtime_stack_location_helper_priv& old) = default;
 };
 
-QoreExternalRuntimeStackLocationHelper::QoreExternalRuntimeStackLocationHelper(QoreExternalStackLocation& stack_loc)
-    : priv(new qore_external_runtime_stack_location_helper_priv(stack_loc)) {
+QoreExternalRuntimeStackLocationHelper::QoreExternalRuntimeStackLocationHelper()
+    : priv(new qore_external_runtime_stack_location_helper_priv(*this)) {
+}
+
+QoreExternalRuntimeStackLocationHelper::QoreExternalRuntimeStackLocationHelper(const QoreExternalRuntimeStackLocationHelper& old)
+    : priv(new qore_external_runtime_stack_location_helper_priv(*old.priv)) {
+}
+
+QoreExternalRuntimeStackLocationHelper::QoreExternalRuntimeStackLocationHelper(QoreExternalRuntimeStackLocationHelper&& old) : priv(old.priv) {
+    old.priv = nullptr;
 }
 
 QoreExternalRuntimeStackLocationHelper::~QoreExternalRuntimeStackLocationHelper() {

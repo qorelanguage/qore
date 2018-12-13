@@ -2642,13 +2642,6 @@ QoreListNode* QoreThreadList::getCallStack(const QoreStackLocation* stack_locati
     const QoreStackLocation* w = stack_location;
     while (w) {
         stack->push(getCallStackHash(*w), nullptr);
-        /*
-        qore_call_t call_type = w->getCallType();
-        const char* call_name = w->getCallName();
-        const QoreProgramLocation& loc = w->getLocation();
-
-        stack->push(QoreException::getStackHash(call_type, nullptr, call_name, loc), nullptr);
-        */
         w = w->getNext();
     }
 
@@ -2664,7 +2657,7 @@ QoreHashNode* QoreThreadList::getCallStackHash(qore_call_t call_type, const char
     ph->setKeyValueIntern("function", new QoreStringNode(code));
     ph->setKeyValueIntern("line",     loc.start_line);
     ph->setKeyValueIntern("endline",  loc.end_line);
-    ph->setKeyValueIntern("file",     new QoreStringNode(loc.getFile()));
+    ph->setKeyValueIntern("file",     new QoreStringNode(loc.getFileValue()));
     // do not set "source" to NOTHING as it must be set to a value according to the hashdecl
     {
         const char* src = loc.getSource();
@@ -2673,6 +2666,7 @@ QoreHashNode* QoreThreadList::getCallStackHash(qore_call_t call_type, const char
         }
     }
     ph->setKeyValueIntern("offset",   loc.offset);
+    ph->setKeyValueIntern("lang",     new QoreStringNode(loc.getLanguageValue()));
     ph->setKeyValueIntern("typecode", call_type);
     // CT_RETHROW is only aded manually
     switch (call_type) {
