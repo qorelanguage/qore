@@ -193,6 +193,8 @@
       or integrating code in other programming languages at runtime
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
+    - worked around a potential COW bug in \c std::string in GNU libdstdc++ 6+
+      (<a href="https://github.com/qorelanguage/qore/issues/3179">issue 3179</a>)
     - fixed a bug with simple additional and subtraction with mixed @ref timeout_type "timeout" and
       @ref date_type "date" values; updated docs that arithmetic operations with timeout values are not recommended
       and can return unexpected values in some situations
