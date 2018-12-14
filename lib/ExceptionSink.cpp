@@ -227,7 +227,7 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreValue ar
 
 AbstractQoreNode* ExceptionSink::raiseExceptionArg(const QoreProgramLocation& loc, const char* err, QoreValue arg,
     QoreStringNode *desc) {
-    printd(5, "ExceptionSink::raiseExceptionArg(loc, %s, %s, %p)\n", err, desc->getBuffer(), &stack);
+    printd(5, "ExceptionSink::raiseExceptionArg(loc, %s, %s)\n", err, desc->getBuffer());
     priv->insert(new QoreException(loc, err, desc, arg));
     return nullptr;
 }
