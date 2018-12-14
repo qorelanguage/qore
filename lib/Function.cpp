@@ -193,9 +193,10 @@ CodeEvaluationHelper::~CodeEvaluationHelper() {
 
 void CodeEvaluationHelper::setCallName(const QoreFunction* func) {
     if (qc) {
-        callName.sprintf("%s::", qc->name.c_str());
+        callName = qc->name.c_str();
+        callName += "::";
     }
-    callName.concat(func->getName());
+    callName += func->getName();
 }
 
 void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,

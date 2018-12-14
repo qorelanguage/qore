@@ -2678,7 +2678,7 @@ QoreListNode* QoreThreadList::getCallStack(const QoreStackLocation* stack_locati
 }
 
 // static
-QoreHashNode* QoreThreadList::getCallStackHash(qore_call_t call_type, const char* code, const QoreProgramLocation& loc) {
+QoreHashNode* QoreThreadList::getCallStackHash(qore_call_t call_type, const std::string& code, const QoreProgramLocation& loc) {
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclCallStackInfo, nullptr), nullptr);
 
     qore_hash_private* ph = qore_hash_private::get(**h);

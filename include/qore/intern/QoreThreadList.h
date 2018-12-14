@@ -192,7 +192,7 @@ finish:
 
     DLLLOCAL static QoreHashNode* getCallStackHash(const QoreStackLocation& loc);
 
-    DLLLOCAL static QoreHashNode* getCallStackHash(qore_call_t type, const char *code,
+    DLLLOCAL static QoreHashNode* getCallStackHash(qore_call_t type, const std::string& code,
         const QoreProgramLocation& loc);
 
     DLLLOCAL QoreListNode* getCallStack(const QoreStackLocation* stack_location) const;

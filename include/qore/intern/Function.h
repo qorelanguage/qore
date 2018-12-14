@@ -320,8 +320,8 @@ public:
     }
 
     //! returns the name of the function or method call
-    DLLLOCAL virtual const char* getCallName() const {
-        return callName.c_str();
+    DLLLOCAL virtual const std::string& getCallName() const {
+        return callName;
     }
 
     DLLLOCAL virtual qore_call_t getCallType() const {
@@ -349,7 +349,7 @@ protected:
     QoreProgram* pgm = nullptr; // program used when evaluated (to find stacks for references)
     const AbstractStatement* stmt = nullptr; // the current statement for the call stack entry
     q_rt_flags_t rtflags = 0; // runtime flags
-    QoreString callName;
+    std::string callName;
     const QoreStackLocation* stack_loc = nullptr;
     const QoreProgramLocation* old_runtime_loc = nullptr;
     bool restore_stack = false;

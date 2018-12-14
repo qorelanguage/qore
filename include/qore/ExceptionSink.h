@@ -360,18 +360,18 @@ public:
     }
 
     //! returns the file name
-    DLLEXPORT const char* getFile() const {
-        return file_str.c_str();
+    DLLEXPORT const std::string& getFile() const {
+        return file_str;
     }
 
     //! returns the source
-    DLLEXPORT const char* getSource() const {
-        return source_str.c_str();
+    DLLEXPORT const std::string& getSource() const {
+        return source_str;
     }
 
     //! returns the language
-    DLLEXPORT const char* getLanguage() const {
-        return lang_str.c_str();
+    DLLEXPORT const std::string& getLanguage() const {
+        return lang_str;
     }
 
     //! returns the start line
@@ -407,11 +407,11 @@ public:
     //! virtual destructor
     DLLLOCAL virtual ~QoreStackLocation() = default;
 
-    //! no assignment operator
-    DLLLOCAL QoreStackLocation& operator=(const QoreStackLocation&) = delete;
+    //! default assignment operator
+    DLLLOCAL QoreStackLocation& operator=(const QoreStackLocation&) = default;
 
-    //! no move assignment operator
-    DLLLOCAL QoreStackLocation& operator=(QoreStackLocation&&) = delete;
+    //! default move assignment operator
+    DLLLOCAL QoreStackLocation& operator=(QoreStackLocation&&) = default;
 
     //! called when pushed on the stack to set the next location
     DLLLOCAL void setNext(const QoreStackLocation* next) {
@@ -430,7 +430,7 @@ public:
     DLLLOCAL virtual const AbstractStatement* getStatement() const = 0;
 
     //! returns the name of the function or method call
-    DLLLOCAL virtual const char* getCallName() const = 0;
+    DLLLOCAL virtual const std::string& getCallName() const = 0;
 
     //! returns the call type
     DLLLOCAL virtual qore_call_t getCallType() const = 0;

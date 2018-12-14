@@ -447,7 +447,7 @@ protected:
 
 class QoreInternalCallStackLocationHelper : public QoreInternalCallStackLocationHelperBase {
 public:
-    DLLLOCAL QoreInternalCallStackLocationHelper(const QoreProgramLocation& loc, const char* call,
+    DLLLOCAL QoreInternalCallStackLocationHelper(const QoreProgramLocation& loc, const std::string call,
         qore_call_t call_type) : loc(loc), call(call), call_type(call_type) {
     }
 
@@ -457,7 +457,7 @@ public:
     }
 
     //! returns the name of the function or method call
-    DLLLOCAL virtual const char* getCallName() const {
+    DLLLOCAL virtual const std::string& getCallName() const {
         return call;
     }
 
@@ -467,7 +467,7 @@ public:
 
 protected:
     const QoreProgramLocation& loc;
-    const char* call;
+    const std::string call;
     qore_call_t call_type;
 };
 
