@@ -2665,7 +2665,6 @@ string get_ex_pos(hash<auto> ex) [flags=CONSTANT] {
             str->sprintf("source \"%s\":%d", sstr->c_str(), ln + offset);
         }
     }
-
     if (openparen) {
         str->concat(')');
     }

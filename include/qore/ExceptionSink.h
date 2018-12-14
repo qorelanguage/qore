@@ -158,6 +158,19 @@ public:
     */
     DLLEXPORT AbstractQoreNode* raiseExceptionArg(const QoreProgramLocation& loc, const char* err, QoreValue arg, QoreStringNode* desc, const QoreCallStack& stack);
 
+    //! appends a Qore-language exception to the list, and sets the 'arg' member (this object takes over the reference counts of 'arg' and 'desc')
+    /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
+        @param loc the source location for the exception
+        @param err the exception code string
+        @param arg the 'arg' member of the Qore-language exception object; will be dereferenced when the QoreException object is destroyed
+        @param desc the description string for the exception; the ExceptionSink object takes ownership of the reference count
+
+        @return always returns nullptr
+
+        @since %Qore 0.9
+    */
+    DLLEXPORT AbstractQoreNode* raiseExceptionArg(const QoreProgramLocation& loc, const char* err, QoreValue arg, QoreStringNode* desc);
+
     //! appends a Qore-language exception to the list; takes owenership of the "desc" argument reference
     /** The AbstractQoreNode pointer returned is always 0; used to simplify error handling code.
         @param err the exception code string
@@ -260,28 +273,32 @@ struct QoreSourceLocation {
     std::string source;    //!< optional additional source file
     unsigned offset = 0;   //!< offset in source file (only used if source is not empty)
     std::string code;      //!< the function or method call name; method calls in format class::name
+    std::string lang;      //!< the source language
 
-    DLLLOCAL QoreSourceLocation(const char* n_label, int start, int end, const char* n_code) :
-        label(n_label), start_line(start), end_line(end), code(n_code) {
+    DLLLOCAL QoreSourceLocation(const char* label, int start, int end, const char* code, const char* lang = "Qore") :
+        label(label), start_line(start), end_line(end), code(code), lang(lang) {
     }
 
-    DLLLOCAL QoreSourceLocation(const char* n_label, int start, int end, const char* n_source, unsigned n_offset, const char* n_code) :
-        label(n_label), start_line(start), end_line(end), source(n_source), offset(n_offset), code(n_code) {
+    DLLLOCAL QoreSourceLocation(const char* label, int start, int end, const char* source, unsigned offset,
+        const char* code, const char* lang = "Qore") :
+        label(label), start_line(start), end_line(end), source(source), offset(offset), code(code), lang(lang) {
     }
 };
 
 //! call stack element; strings must be in the default encoding for the Qore process
 /** @since %Qore 0.8.13
  */
-struct QoreCallStackElement : QoreSourceLocation {
+struct QoreCallStackElement : public QoreSourceLocation {
     qore_call_t type;        //!< the call stack element type
 
-    DLLLOCAL QoreCallStackElement(qore_call_t n_type, const char* n_label, int start, int end, const char* n_code) :
-        QoreSourceLocation(n_label, start, end, n_code), type(n_type) {
+    DLLLOCAL QoreCallStackElement(qore_call_t type, const char* label, int start, int end, const char* code,
+        const char* lang = "Qore") :
+        QoreSourceLocation(label, start, end, code, lang), type(type) {
     }
 
-    DLLLOCAL QoreCallStackElement(qore_call_t n_type, const char* n_label, int start, int end, const char* n_source, unsigned n_offset, const char* n_code) :
-        QoreSourceLocation(n_label, start, end, n_source, n_offset, n_code), type(n_type) {
+    DLLLOCAL QoreCallStackElement(qore_call_t type, const char* label, int start, int end, const char* source,
+        unsigned offset, const char* code, const char* lang = "Qore") :
+        QoreSourceLocation(label, start, end, source, offset, code, lang), type(type) {
     }
 };
 
@@ -291,12 +308,14 @@ typedef std::vector<QoreCallStackElement> callstack_vec_t;
 /** @since %Qore 0.8.13
  */
 struct QoreCallStack : public callstack_vec_t {
-    DLLLOCAL void add(qore_call_t n_type, const char* n_label, int start, int end, const char* n_code) {
-        push_back(QoreCallStackElement(n_type, n_label, start, end, n_code));
+    DLLLOCAL void add(qore_call_t type, const char* label, int start, int end, const char* code,
+        const char* lang = "Qore") {
+        push_back(QoreCallStackElement(type, label, start, end, code, lang));
     }
 
-    DLLLOCAL void add(qore_call_t n_type, const char* n_label, int start, int end, const char* n_source, unsigned n_offset, const char* n_code) {
-        push_back(QoreCallStackElement(n_type, n_label, start, end, n_source, n_offset, n_code));
+    DLLLOCAL void add(qore_call_t type, const char* label, int start, int end, const char* source,
+        unsigned offset, const char* code, const char* lang = "Qore") {
+        push_back(QoreCallStackElement(type, label, start, end, source, offset, code, lang));
     }
 };
 

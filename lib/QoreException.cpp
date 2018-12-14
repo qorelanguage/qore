@@ -145,7 +145,7 @@ QoreHashNode *QoreException::makeExceptionObjectAndDelete(ExceptionSink *xsink) 
 
 void QoreException::addStackInfo(QoreHashNode* n) {
     //printd(5, "QoreException::addStackInfo() this: %p callStack: %p (r: %d) n: %p (nr: %d)\n", this, callStack, callStack->reference_count(), n, n->reference_count());
-    callStack->push(n, nullptr);
+    callStack->insert(n, nullptr);
 }
 
 const char* QoreException::getType(qore_call_t type) {
@@ -167,21 +167,25 @@ const char* QoreException::getType(qore_call_t type) {
 
 // static function
 QoreHashNode* QoreException::getStackHash(const QoreCallStackElement& cse) {
-    QoreHashNode* h = new QoreHashNode;
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclCallStackInfo, nullptr), nullptr);
 
-    qore_hash_private* ph = qore_hash_private::get(*h);
+    qore_hash_private* ph = qore_hash_private::get(**h);
 
     assert(!cse.code.empty());
     ph->setKeyValueIntern("function", new QoreStringNode(cse.code));
     ph->setKeyValueIntern("line",     cse.start_line);
     ph->setKeyValueIntern("endline",  cse.end_line);
-    ph->setKeyValueIntern("file",     !cse.label.empty() ? new QoreStringNode(cse.label) : QoreValue());
-    ph->setKeyValueIntern("source",   !cse.source.empty() ? new QoreStringNode(cse.source) : QoreValue());
+    ph->setKeyValueIntern("file",     new QoreStringNode(cse.label));
+    // do not set "source" to NOTHING, as it must have a value according to the CallStackInfo hashdecl
+    if (!cse.source.empty()) {
+        ph->setKeyValueIntern("source", new QoreStringNode(cse.source));
+    }
     ph->setKeyValueIntern("offset",   cse.offset);
+    ph->setKeyValueIntern("lang",     new QoreStringNode(cse.lang));
     ph->setKeyValueIntern("typecode", cse.type);
     ph->setKeyValueIntern("type",     new QoreStringNode(getType(cse.type)));
 
-    return h;
+    return h.release();
 }
 
 DLLLOCAL ParseExceptionSink::~ParseExceptionSink() {

@@ -900,10 +900,18 @@ string pass = get_random_string();
                 foreach hash<auto> l in (ex.callstack) {
                     if (l.type == "new-thread") {
                         str += sprintf("\n  *** thread started by background operator ***");
-                    } else if (l.type == "rethrow") {
-                        str += sprintf("\n  *** RETHROW at %s", get_ex_pos(l));
                     } else {
-                        str += sprintf("\n  %s() called at %s (%s code)", l.function, get_ex_pos(l), l.type);
+                        string pos = get_ex_pos(l);
+                        if (l.type == "rethrow") {
+                            str += sprintf("\n  *** RETHROW at %s", pos);
+                        } else {
+                            if (pos =~ /\)$/) {
+                                splice pos, -1, 1, sprintf(" %s code)", l.type);
+                            } else {
+                                pos += sprintf(" (%s code)", l.type);
+                            }
+                            str += sprintf("\n  %s() called at %s", l.function, pos);
+                        }
                     }
                 }
             }
