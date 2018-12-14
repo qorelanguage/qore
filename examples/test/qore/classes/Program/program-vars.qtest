@@ -58,6 +58,7 @@ class ProgramVarsTest inherits QUnit::Test {
                         "endline": 1,
                         "source": "",
                         "offset": 0,
+                        "lang": "Qore",
                         "err": 1,
                     )),
                 ),
