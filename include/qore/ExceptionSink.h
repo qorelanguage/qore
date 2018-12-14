@@ -236,6 +236,9 @@ public:
 
     DLLLOCAL static void defaultExceptionHandler(QoreException* e);
     DLLLOCAL static void defaultWarningHandler(QoreException* e);
+
+    DLLLOCAL static void outputExceptionLocation(const char* fns, int start_line, int end_line, const char* srcs,
+        int offset, const char* langs, const char* types);
 };
 
 //! call stack element type

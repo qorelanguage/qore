@@ -89,6 +89,8 @@
       - @ref Qore::set_default_thread_stack_size() "set_default_thread_stack_size()"
       - @ref Qore::set_module_option() "set_module_option()"
       - @ref Qore::set_thread_name() "set_thread_name()"
+    - Updated functions:
+      - @ref Qore::get_ex_pos() "get_ex_pos()": \c lang info was added to the result string if available
     - New modules:
       - <a href="../../modules/FsUtil/html/index.html">FsUtil</a>
       - <a href="../../modules/Logger/html/index.html">Logger</a>
@@ -99,6 +101,8 @@
         - \c lang
         - \c programid
         - \c statementid
+      - @ref Qore::ExceptionInfo "ExceptionInfo": updated with a new member:
+        - \c lang
     - New constants:
       - @ref Qore::DomainCodeMap "DomainCodeMap"
       - @ref Qore::DomainStringMap "DomainStringMap"
@@ -174,6 +178,8 @@
         - Updated \c parse_to_qore_value() to support single-element lists and hashes with curly brackets including
           empty hashes
           (<a href="https://github.com/qorelanguage/qore/issues/3138">issue 3138</a>)
+        - updated @ref Util::get_exception_string() "get_exception_string()" to show the \c lang value
+          (<a href="https://github.com/qorelanguage/qore/issues/3182">issue 3182</a>)
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
         - Added public methods \c AbstractCsvIterator::getRawLine() and \c AbstractCsvIterator::getRawLineValues() (<a href="https://github.com/qorelanguage/qore/issues/2739">issue 2739</a>)
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>:

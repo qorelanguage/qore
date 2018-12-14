@@ -190,7 +190,7 @@ public:
 
     DLLLOCAL explicit QoreProgramLocation(const char* f, int sline, int eline, const char* source, int offset,
         const char* lang = "Qore") :
-        QoreProgramLineLocation(sline, eline), file(f), source(source), offset(offset), lang(lang) {
+        QoreProgramLineLocation(sline, eline), file(f), source(source), lang(lang), offset(offset) {
         assert(offset <= 0xffff);
     }
 

@@ -116,6 +116,7 @@ QoreHashNode* QoreException::makeExceptionObject() {
     ph->setKeyValueIntern("endline", end_line);
     ph->setKeyValueIntern("source", new QoreStringNode(source));
     ph->setKeyValueIntern("offset", offset);
+    ph->setKeyValueIntern("lang", new QoreStringNode(lang));
     ph->setKeyValueIntern("callstack", callStack->refSelf());
     if (err) {
         ph->setKeyValueIntern("err", err.refSelf());

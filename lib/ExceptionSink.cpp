@@ -355,91 +355,45 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
             while (true) {
                 h = cs->retrieveEntry(i).get<QoreHashNode>();
                 assert(h);
-                if (h->getKeyValue("typecode").getAsBigInt() != CT_RETHROW)
+                if (h->getKeyValue("typecode").getAsBigInt() != CT_RETHROW) {
                     break;
+                }
                 i++;
-                if (i == cs->size())
+                if (i == cs->size()) {
                     break;
+                }
             }
 
             if (i < cs->size()) {
                 found = true;
-                QoreStringNode *func = h->getKeyValue("function").get<QoreStringNode>();
-                QoreStringNode *type = h->getKeyValue("type").get<QoreStringNode>();
+                QoreStringNode* func = h->getKeyValue("function").get<QoreStringNode>();
+                QoreStringNode* type = h->getKeyValue("type").get<QoreStringNode>();
 
-                printe(" in %s() (%s:%d", func->getBuffer(), e->file.c_str(), e->start_line);
-
-                if (e->start_line == e->end_line) {
-                    if (!e->source.empty())
-                        printe(", source %s:%d", e->source.c_str(), e->start_line + e->offset);
-                }
-                else {
-                    printe("-%d", e->end_line);
-                    if (!e->source.empty())
-                        printe(", source %s:%d-%d", e->source.c_str(), e->start_line + e->offset,
-                            e->end_line + e->offset);
-                }
-                printe(", %s code)\n", type->getBuffer());
+                printe(" in %s() (", func->c_str());
+                const char* fns = !e->file.empty() ? e->file.c_str() : nullptr;
+                const char* srcs = !e->source.empty() ? e->source.c_str() : nullptr;
+                const char* langs = !e->lang.empty() ? e->lang.c_str() : nullptr;
+                outputExceptionLocation(fns, e->start_line, e->end_line, srcs, e->offset, langs, type->c_str());
+                printe(")\n");
             }
         }
 
         if (!found) {
-            if (!e->file.empty()) {
-                printe(" at %s:", e->file.c_str());
-                bool openparen = false;
-                if (e->start_line == e->end_line) {
-                    if (!e->start_line) {
-                        printe("<init>");
-                        if (!e->source.empty()) {
-                            printe(" (source %s", e->source.c_str());
-                            openparen = true;
-                        }
-                    }
-                    else {
-                        printe("%d", e->start_line);
-                        if (!e->source.empty()) {
-                            printe(" (source %s:%d)", e->source.c_str(), e->start_line + e->offset);
-                            openparen = true;
-                        }
-                    }
-                }
-                else {
-                    printe("%d-%d", e->start_line, e->end_line);
-                    if (!e->source.empty()) {
-                        printe(" (source %s:%d-%d)", e->source.c_str(), e->start_line + e->offset,
-                            e->end_line + e->offset);
-                        openparen = true;
-                    }
-                }
-                if (e->lang != "Qore") {
-                    if (!openparen) {
-                        printe("(lang ");
-                        openparen = true;
-                    } else {
-                        printe(" lang ");
-                    }
-                    printe(e->lang.c_str());
-                }
-                if (openparen) {
-                    printe(")");
-                }
-            }
-            else if (e->start_line) {
-                if (e->start_line == e->end_line) {
-                if (!e->start_line)
-                    printe(" at <init>");
-                else
-                    printe(" on line %d", e->start_line);
-                }
-                else
-                printe(" on lines %d through %d", e->start_line, e->end_line);
-            }
+            printe(" at ");
+
+            const char* fns = !e->file.empty() ? e->file.c_str() : nullptr;
+            const char* srcs = !e->source.empty() ? e->source.c_str() : nullptr;
+            const char* langs = !e->lang.empty() ? e->lang.c_str() : nullptr;
+            outputExceptionLocation(fns, e->start_line, e->end_line, srcs, e->offset, langs,
+                e->type == CT_USER ? "user" : "builtin");
             printe("\n");
         }
 
         if (e->type == CT_BUILTIN) {
             QoreStringNode* err = e->err.get<QoreStringNode>();
+            assert(!err->empty());
             QoreStringNode* desc = e->desc.get<QoreStringNode>();
+            assert(!desc->empty());
             printe("%s: %s\n", err->c_str(), desc->c_str());
         } else {
             bool hdr = false;
@@ -447,26 +401,25 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
                 if (e->err.getType() == NT_STRING) {
                     QoreStringNode *err = e->err.get<QoreStringNode>();
                     printe("%s", err->c_str());
-                }
-                else {
+                } else {
                     QoreNodeAsStringHelper str(e->err, FMT_NORMAL, &xsink);
                     printe("EXCEPTION: %s", str->c_str());
                     hdr = true;
                 }
-            }
-            else
+            } else {
                 printe("EXCEPTION");
+            }
 
             if (!e->desc.isNothing()) {
                 if (e->desc.getType() == NT_STRING) {
                     QoreStringNode *desc = e->desc.get<QoreStringNode>();
                     printe("%s%s", hdr ? ", desc: " : ": ", desc->c_str());
-                }
-                else {
+                } else {
                     QoreNodeAsStringHelper str(e->desc, FMT_NORMAL, &xsink);
                     printe(", desc: %s", str->c_str());
-                    if (!hdr)
+                    if (!hdr) {
                         hdr = true;
+                    }
                 }
             }
 
@@ -474,8 +427,7 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
                 if (e->arg.getType() == NT_STRING) {
                     QoreStringNode *arg = e->arg.get<QoreStringNode>();
                     printe("%s%s", hdr ? ", arg: " : ": ", arg->c_str());
-                }
-                else {
+                } else {
                     QoreNodeAsStringHelper str(e->arg, FMT_NORMAL, &xsink);
                     printe(", arg: %s", str->c_str());
                 }
@@ -489,19 +441,22 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
                 int pos = cs->size() - i;
                 QoreHashNode* h = cs->retrieveEntry(i).get<QoreHashNode>();
                 QoreStringNode* strtype = h->getKeyValue("type").get<QoreStringNode>();
-                const char* type = strtype->getBuffer();
+                const char* type = strtype->c_str();
                 int typecode = (int)h->getKeyValue("typecode").getAsBigInt();
                 if (!strcmp(type, "new-thread"))
                     printe(" %2d: *thread start*\n", pos);
                 else {
                     QoreStringNode* fn = h->getKeyValue("file").get<QoreStringNode>();
-                    const char* fns = fn && !fn->empty() ? fn->getBuffer() : 0;
+                    const char* fns = fn && !fn->empty() ? fn->c_str() : nullptr;
                     int start_line = (int)h->getKeyValue("line").getAsBigInt();
                     int end_line = (int)h->getKeyValue("endline").getAsBigInt();
 
                     QoreStringNode* src = h->getKeyValue("source").get<QoreStringNode>();
-                    const char* srcs = src && !src->empty() ? src->getBuffer() : 0;
+                    const char* srcs = src && !src->empty() ? src->c_str() : nullptr;
                     int offset = (int)h->getKeyValue("offset").getAsBigInt();
+
+                    QoreStringNode* lang = h->getKeyValue("lang").get<QoreStringNode>();
+                    const char* langs = lang && !lang->empty() ? lang->c_str() : nullptr;
 
                     printe(" %2d: ", pos);
 
@@ -509,62 +464,19 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
                         printe("RETHROW at ");
                         if (fn) {
                             printe("%s:", fn->getBuffer());
-                        }
-                        else
+                        } else {
                             printe("line");
+                        }
                         printe("%d", start_line);
-                        if (srcs)
+                        if (srcs) {
                             printe(" (source %s:%d)", srcs, offset + start_line);
-                    }
-                    else {
+                        }
+                    } else {
                         QoreStringNode* fs = h->getKeyValue("function").get<QoreStringNode>();
                         printe("%s() (", fs->getBuffer());
-                        if (fns) {
-                            QoreStringNode* lang = h->getKeyValue("lang").get<QoreStringNode>();
-                            bool openparen = false;
-                            if (start_line == end_line) {
-                                if (!start_line) {
-                                    printe("%s:<init>", fns);
-                                } else {
-                                    printe("%s:%d", fns, start_line);
-                                    if (srcs) {
-                                        printe(" (source %s:%d", srcs, start_line + offset);
-                                        openparen = true;
-                                    }
-                                }
-                            } else {
-                                printe("%s:%d-%d", fns, start_line, end_line);
-                                if (srcs) {
-                                    printe(" (source %s:%d-%d", srcs, start_line + offset, end_line + offset);
-                                    openparen = true;
-                                }
-                            }
-                            if (lang && *lang != "Qore") {
-                                if (!openparen) {
-                                    printe("(lang ");
-                                    openparen = true;
-                                } else {
-                                    printe(" lang ");
-                                }
-                                printe(lang->c_str());
-                            }
-                            if (openparen) {
-                                printe(")");
-                            }
-                        } else {
-                            if (start_line == end_line) {
-                                if (!start_line) {
-                                    printe("<init>");
-                                } else {
-                                    printe("line %d", start_line);
-                                }
-                            } else {
-                                printe("line %d - %d", start_line, end_line);
-                            }
-                        }
-                        printe(", %s code)", type);
+                        outputExceptionLocation(fns, start_line, end_line, srcs, offset, langs, type);
                     }
-                    printe("\n");
+                    printe(")\n");
                 }
             }
         }
@@ -580,58 +492,71 @@ void ExceptionSink::defaultExceptionHandler(QoreException* e) {
     }
 }
 
+// static
+void ExceptionSink::outputExceptionLocation(const char* fns, int start_line, int end_line, const char* srcs, int offset,
+    const char* langs, const char* types) {
+    if (fns) {
+        printe("%s:", fns);
+        if (!start_line) {
+            printe("<init>");
+        } else if (start_line == end_line) {
+            printe("%d", start_line);
+        } else {
+            printe("%d-%d", start_line, end_line);
+        }
+    } else {
+        if (!start_line) {
+            printe("<init>");
+        } else if (start_line == end_line) {
+            printe("line %d", start_line);
+        } else {
+            printe("line %d - %d", start_line, end_line);
+        }
+    }
+
+    bool openparen = false;
+    if (langs) {
+        printe(" (%s", langs);
+        openparen = true;
+    }
+    if (srcs) {
+        printe(" ");
+        if (!openparen) {
+            printe("(");
+            openparen = true;
+        }
+        if (!start_line) {
+            printe("source %s", srcs);
+        } else if (start_line == end_line) {
+            printe("source %s:%d", srcs, start_line + offset);
+        } else {
+            printe("source %s:%d-%d", srcs, start_line + offset, end_line + offset);
+        }
+    }
+    if (types) {
+        printe(" ");
+        if (!openparen) {
+            printe("(");
+            openparen = true;
+        }
+        printe("%s code", types);
+    }
+    if (openparen) {
+        printe(")");
+    }
+}
+
 // static member function
 void ExceptionSink::defaultWarningHandler(QoreException *e) {
     ExceptionSink xsink;
 
     while (e) {
-        printe("warning encountered ");
-
-        if (!e->file.empty()) {
-            printe("at %s:", e->file.c_str());
-            bool openparen = false;
-            if (e->start_line == e->end_line) {
-                if (!e->start_line) {
-                    printe("<init>");
-                    if (!e->source.empty()) {
-                        openparen = true;
-                        printe(" (source %s", e->source.c_str());
-                    }
-                } else {
-                    printe("%d", e->start_line);
-                    if (!e->source.empty()) {
-                        openparen = true;
-                        printe(" (source %s:%d", e->source.c_str(), e->start_line + e->offset);
-                    }
-                }
-            } else {
-                printe("%d-%d", e->start_line, e->end_line);
-                if (!e->source.empty()) {
-                    openparen = true;
-                    printe(" (source %s:%d-%d", e->source.c_str(), e->start_line + e->offset, e->end_line + e->offset);
-                }
-            }
-            if (e->lang != "Qore") {
-                if (!openparen) {
-                    printe("(lang ");
-                    openparen = true;
-                } else {
-                    printe(" lang ");
-                }
-                printe(e->lang.c_str());
-            }
-            if (openparen) {
-                printe(")");
-            }
-        } else if (e->start_line) {
-            if (e->start_line == e->end_line) {
-                if (!e->start_line)
-                    printe("at <init>");
-                else
-                    printe("on line %d", e->start_line);
-            } else
-                printe("on line %d-%d", e->start_line, e->end_line);
-        }
+        printe("warning encountered at ");
+        const char* fns = !e->file.empty() ? e->file.c_str() : nullptr;
+        const char* srcs = !e->source.empty() ? e->source.c_str() : nullptr;
+        const char* langs = !e->lang.empty() ? e->lang.c_str() : nullptr;
+        outputExceptionLocation(fns, e->start_line, e->end_line, srcs, e->offset, langs,
+            e->type == CT_USER ? "user" : "builtin");
         printe("\n");
 
         QoreStringNode* err  = e->err.get<QoreStringNode>();
@@ -640,8 +565,9 @@ void ExceptionSink::defaultWarningHandler(QoreException *e) {
         printe("%s: %s\n", err->c_str(), desc->c_str());
 
         e = e->next;
-        if (e)
+        if (e) {
             printe("next warning:\n");
+        }
     }
 }
 

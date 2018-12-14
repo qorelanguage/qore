@@ -264,8 +264,9 @@ int typed_hash_decl_private::initHash(QoreHashNode* h, const QoreHashNode* init,
 
 int typed_hash_decl_private::initHashIntern(QoreHashNode* h, const QoreHashNode* init, ExceptionSink* xsink) const {
 #ifdef QORE_MANAGE_STACK
-    if (check_stack(xsink))
+    if (xsink && check_stack(xsink)) {
         return -1;
+    }
 #endif
 
     for (auto& i : members.member_list) {
