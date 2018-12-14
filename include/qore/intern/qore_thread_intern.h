@@ -447,7 +447,7 @@ protected:
 
 class QoreInternalCallStackLocationHelper : public QoreInternalCallStackLocationHelperBase {
 public:
-    DLLLOCAL QoreInternalCallStackLocationHelper(const QoreProgramLocation& loc, const std::string call,
+    DLLLOCAL QoreInternalCallStackLocationHelper(const QoreProgramLocation& loc, const std::string& call,
         qore_call_t call_type) : loc(loc), call(call), call_type(call_type) {
     }
 

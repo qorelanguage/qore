@@ -414,6 +414,13 @@ public:
     DLLLOCAL QoreStackLocation& operator=(QoreStackLocation&&) = default;
 
     //! called when pushed on the stack to set the next location
+    /** @param next a pointer to the existing next stack element that must exist and must stay on the stack while
+        this object exists or nullptr in case this is the first element on the stack
+
+        @note it is an error and will cause a segfault if the next object is destroyed before this object is
+        destroyed.  Under no circumstances, and under the very real threat of at least 700 lashings with a wet noodle,
+        should the next object be deleted before this object.
+    */
     DLLLOCAL void setNext(const QoreStackLocation* next) {
         stack_next = next;
     }
