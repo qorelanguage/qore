@@ -127,9 +127,6 @@
 #include "QoreRWLock.cpp"
 #include "AbstractSmartLock.cpp"
 #include "SmartMutex.cpp"
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
-#include "CallStack.cpp"
-#endif
 #include "Datasource.cpp"
 #include "DatasourcePool.cpp"
 #include "ManagedDatasource.cpp"

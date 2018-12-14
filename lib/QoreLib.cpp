@@ -97,7 +97,8 @@ int qore_min_mod_api_minor = QORE_MODULE_COMPAT_API_MINOR;
 DLLLOCAL QoreListNode* ARGV = nullptr;
 DLLLOCAL QoreListNode* QORE_ARGV = nullptr;
 
-const QoreProgramLocation loc_builtin;
+// default location for Qore builtin C++ code
+const QoreProgramLocation loc_builtin("<builtin>", -1, -1);
 
 QoreString random_salt;
 
@@ -229,11 +230,7 @@ const qore_option_s qore_option_list_l[] = {
    { QORE_OPT_RUNTIME_STACK_TRACE,
      "HAVE_RUNTIME_THREAD_STACK_TRACE",
      QO_OPTION,
-#ifdef QORE_RUNTIME_THREAD_STACK_TRACE
      true
-#else
-     false
-#endif
    },
    { QORE_OPT_TERMIOS,
      "HAVE_TERMIOS",

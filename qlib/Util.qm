@@ -93,6 +93,8 @@ module Util {
     - updated @ref Util::parse_to_qore_value() "parse_to_qore_value()" to support single-element lists and hashes with
       curly brackets including empty hashes
       (<a href="https://github.com/qorelanguage/qore/issues/3138">issue 3138</a>)
+    - updated @ref Util::get_exception_string() "get_exception_string()" to show the \c lang value
+      (<a href="https://github.com/qorelanguage/qore/issues/3182">issue 3182</a>)
 
     @subsection util_1_3 Util 1.3
     - updated for complex types
@@ -886,7 +888,7 @@ string pass = get_random_string();
 
         @return a multi-line string from the exception hash argument suitable for logging or output on the console
      */
-    public string sub get_exception_string(hash ex) {
+    public string sub get_exception_string(hash<auto> ex) {
         string str;
 
         while (True) {
@@ -895,13 +897,22 @@ string pass = get_random_string();
                             ex.arg ? sprintf(" (arg: %y)", ex.arg) : "");
 
             if (ex.callstack) {
-                foreach hash l in (ex.callstack) {
-                    if (l.type == "new-thread")
+                foreach hash<auto> l in (ex.callstack) {
+                    if (l.type == "new-thread") {
                         str += sprintf("\n  *** thread started by background operator ***");
-                    else if (l.type == "rethrow")
-                        str += sprintf("\n  *** RETHROW at %s", get_ex_pos(l));
-                    else
-                        str += sprintf("\n  %s() called at %s (%s function)", l.function, get_ex_pos(l), l.type);
+                    } else {
+                        string pos = get_ex_pos(l);
+                        if (l.type == "rethrow") {
+                            str += sprintf("\n  *** RETHROW at %s", pos);
+                        } else {
+                            if (pos =~ /\)$/) {
+                                splice pos, -1, 1, sprintf(" %s code)", l.type);
+                            } else {
+                                pos += sprintf(" (%s code)", l.type);
+                            }
+                            str += sprintf("\n  %s() called at %s", l.function, pos);
+                        }
+                    }
                 }
             }
 

@@ -339,9 +339,6 @@ endif
 if COND_DEBUG
 libqore_la_SOURCES += ql_debug.cpp
 endif
-if COND_STACK_TRACE
-libqore_la_SOURCES += CallStack.cpp
-endif
 if COND_NEED_GLOB
 libqore_la_SOURCES += glob.cpp
 endif

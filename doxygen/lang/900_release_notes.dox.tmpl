@@ -89,13 +89,20 @@
       - @ref Qore::set_default_thread_stack_size() "set_default_thread_stack_size()"
       - @ref Qore::set_module_option() "set_module_option()"
       - @ref Qore::set_thread_name() "set_thread_name()"
+    - Updated functions:
+      - @ref Qore::get_ex_pos() "get_ex_pos()": \c lang info was added to the result string if available
     - New modules:
       - <a href="../../modules/FsUtil/html/index.html">FsUtil</a>
       - <a href="../../modules/Logger/html/index.html">Logger</a>
       - <a href="../../modules/reflection/html/index.html">reflection</a>
     - New and updated hashdecls:
       - @ref Qore::NetIfInfo "NetIfInfo": new @ref hashdecl "hashdecl" for the @ref Qore::get_netif_list() "get_netif_list()" function
-      - @ref Qore::CallStackInfo "CallStackInfo": updated with new members: \c programid and \c statementid
+      - @ref Qore::CallStackInfo "CallStackInfo": updated with new members:
+        - \c lang
+        - \c programid
+        - \c statementid
+      - @ref Qore::ExceptionInfo "ExceptionInfo": updated with a new member:
+        - \c lang
     - New constants:
       - @ref Qore::DomainCodeMap "DomainCodeMap"
       - @ref Qore::DomainStringMap "DomainStringMap"
@@ -171,6 +178,8 @@
         - Updated \c parse_to_qore_value() to support single-element lists and hashes with curly brackets including
           empty hashes
           (<a href="https://github.com/qorelanguage/qore/issues/3138">issue 3138</a>)
+        - updated @ref Util::get_exception_string() "get_exception_string()" to show the \c lang value
+          (<a href="https://github.com/qorelanguage/qore/issues/3182">issue 3182</a>)
       - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
         - Added public methods \c AbstractCsvIterator::getRawLine() and \c AbstractCsvIterator::getRawLineValues() (<a href="https://github.com/qorelanguage/qore/issues/2739">issue 2739</a>)
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
@@ -187,6 +196,10 @@
       - <a href="../../modules/DebugHandler/html/index.html">DebugHandler</a> reimplemented to support multiple websocket handlers
       - Programs are not interrupted in bootstrap code
       - Command line utils display source line code when interrupted
+    - Runtime thread stack traces are available in all builds and the
+      @ref Qore::Option::HAVE_RUNTIME_THREAD_STACK_TRACE "HAVE_RUNTIME_THREAD_STACK_TRACE" constant is always
+      @ref True "True".  Furthermore, the %Qore library has been extended to support stack tracing when embedding
+      or integrating code in other programming languages at runtime
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
     - worked around a potential COW bug in \c std::string in GNU libdstdc++ 6+

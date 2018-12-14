@@ -136,15 +136,19 @@ static void add_args(QoreStringNode &desc, const QoreListNode* args) {
    }
 }
 
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
+    const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args, QoreObject* self,
+    const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
     : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc),
-        loc(get_runtime_location()), tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1), pgm(getProgram()), rtflags(0) {
+        loc(get_runtime_location()),
+        tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1) {
     if (self && !self->isValid()) {
         assert(n_qc);
         xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
         return;
     }
 
+    setCallName(func);
     tmp.assignEval(args);
     if (*xsink) {
         return;
@@ -153,16 +157,19 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
     init(func, variant, is_copy, cctx);
 }
 
-CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self, const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
+CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
+    const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args, QoreObject* self,
+    const qore_class_private* n_qc, qore_call_t n_ct, bool is_copy, const qore_class_private* cctx)
     : ct(n_ct), name(n_name), xsink(n_xsink), qc(n_qc),
         loc(get_runtime_location()),
-        tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1), pgm(getProgram()), rtflags(0) {
+        tmp(n_xsink), returnTypeInfo((const QoreTypeInfo*)-1) {
     if (self && !self->isValid()) {
         assert(n_qc);
         xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has already been deleted", qc->name.c_str(), func->getName());
         return;
     }
 
+    setCallName(func);
     tmp.assignEval(args);
     if (*xsink) {
         return;
@@ -172,14 +179,31 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
 }
 
 CodeEvaluationHelper::~CodeEvaluationHelper() {
-    if (returnTypeInfo != (const QoreTypeInfo*)-1)
+    if (restore_stack) {
+        if (ct == CT_BUILTIN) {
+            update_runtime_stack_location(stack_loc, old_runtime_loc);
+        } else {
+            update_runtime_stack_location(stack_loc);
+        }
+    }
+    if (returnTypeInfo != (const QoreTypeInfo*)-1) {
         saveReturnTypeInfo(returnTypeInfo);
-    if (ct != CT_UNUSED && xsink->isException())
-        qore_es_private::addStackInfo(*xsink, ct, qc ? qc->name.c_str() : nullptr, name, *loc);
+    }
+}
+
+void CodeEvaluationHelper::setCallName(const QoreFunction* func) {
+    if (qc) {
+        callName = qc->name.c_str();
+        callName += "::";
+    }
+    callName += func->getName();
 }
 
 void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
     const qore_class_private* cctx) {
+    //printd(5, "CodeEvaluationHelper::init() this: %p '%s()' file: %s line: %d\n", this, func->getName(),
+    //    loc->getFile(), loc->start_line);
+
     // issue #2145: set the call reference class context only after arguments are evaluated
     OptionalClassOnlySubstitutionHelper cosh(cctx);
 
@@ -206,11 +230,20 @@ void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunc
         }
     }
 
-    if (processDefaultArgs(func, variant, true, is_copy))
+    if (processDefaultArgs(func, variant, true, is_copy)) {
         return;
+    }
 
     setCallType(variant->getCallType());
     setReturnTypeInfo(variant->getReturnTypeInfo());
+
+    // add call to call stack; push builtin location on the stack if executing builtin c++ code
+    if (ct == CT_BUILTIN) {
+        stack_loc = update_get_runtime_stack_builtin_location(this, stmt, pgm, old_runtime_loc);
+    } else {
+        stack_loc = update_get_runtime_stack_location(this, stmt, pgm);
+    }
+    restore_stack = true;
 }
 
 int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy) {

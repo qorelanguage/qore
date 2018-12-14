@@ -1005,23 +1005,24 @@ int qore_class_private::initMember(QoreObject& o, bool& need_scan, const char* m
 }
 
 void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bceal, ExceptionSink* xsink) const {
-   //printd(5, "qore_class_private::execBaseClassConstructor() '%s' constructor: %p\n", name.c_str(), constructor);
-   // if there is no constructor, execute the superclass constructors directly
-   if (!constructor){
-      if (scl) // execute base class constructors if any
-         scl->execConstructors(self, bceal, xsink);
+    //printd(5, "qore_class_private::execBaseClassConstructor() '%s' constructor: %p\n", name.c_str(), constructor);
+    // if there is no constructor, execute the superclass constructors directly
+    if (!constructor){
+        if (scl) { // execute base class constructors if any
+            scl->execConstructors(self, bceal, xsink);
+        }
 
-      return;
-   }
-   // no lock is sent with constructor, because no variable has been assigned yet
-   bool already_executed;
-   const AbstractQoreFunctionVariant* variant;
-   const QoreProgramLocation* aloc = nullptr;
-   QoreListNode* args = bceal->findArgs(cls->getID(), &already_executed, variant, aloc);
-   if (!already_executed) {
-      QoreProgramOptionalLocationHelper plh(aloc);
-      constructor->priv->evalConstructor(variant, self, args, bceal, xsink);
-   }
+        return;
+    }
+    // no lock is sent with constructor, because no variable has been assigned yet
+    bool already_executed;
+    const AbstractQoreFunctionVariant* variant;
+    const QoreProgramLocation* aloc = nullptr;
+    QoreListNode* args = bceal->findArgs(cls->getID(), &already_executed, variant, aloc);
+    if (!already_executed) {
+        QoreProgramOptionalLocationHelper plh(aloc);
+        constructor->priv->evalConstructor(variant, self, args, bceal, xsink);
+    }
 }
 
 QoreObject* qore_class_private::execConstructor(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -4406,15 +4407,16 @@ int ConstructorMethodVariant::constructorPrelude(const QoreClass& thisclass, Cod
         const BCAList* bcal = getBaseClassArgumentList();
         if (bcal) {
             bcal->execBaseClassConstructorArgs(bceal, xsink);
-            if (*xsink)
+            if (*xsink) {
                 return -1;
+            }
         }
         bcl->execConstructors(self, bceal, xsink);
-        if (*xsink)
+        if (*xsink) {
             return -1;
+        }
     }
 
-    ceh.restorePosition();
     return 0;
 }
 
@@ -4498,27 +4500,28 @@ void BuiltinExternalDestructorVariant::evalDestructor(const QoreClass &thisclass
 }
 
 void UserCopyVariant::evalCopy(const QoreClass& thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const {
-   // there can only be max 1 param
-   assert(signature.numParams() <= 1);
+    // there can only be max 1 param
+    assert(signature.numParams() <= 1);
 
-   QoreListNode* args = new QoreListNode;
-   args->push(self->refSelf(), nullptr);
-   ceh.setArgs(args);
+    QoreListNode* args = new QoreListNode;
+    args->push(self->refSelf(), nullptr);
+    ceh.setArgs(args);
 
-   UserVariantExecHelper uveh(this, &ceh, xsink);
-   if (!uveh)
-      return;
+    UserVariantExecHelper uveh(this, &ceh, xsink);
+    if (!uveh) {
+        return;
+    }
 
-   CodeContextHelper cch(xsink, CT_USER, "copy", self, qore_class_private::get(thisclass));
+    CodeContextHelper cch(xsink, CT_USER, "copy", self, qore_class_private::get(thisclass));
 
-   if (scl) {
-      scl->sml.execCopyMethods(self, old, xsink);
-      if (*xsink)
-         return;
-      ceh.restorePosition();
-   }
+    if (scl) {
+        scl->sml.execCopyMethods(self, old, xsink);
+        if (*xsink) {
+            return;
+        }
+    }
 
-   evalIntern(uveh.getArgv(), self, xsink).discard(xsink);
+    evalIntern(uveh.getArgv(), self, xsink).discard(xsink);
 }
 
 void UserCopyVariant::parseInit(QoreFunction* f) {
@@ -4562,16 +4565,16 @@ void UserCopyVariant::parseInit(QoreFunction* f) {
 }
 
 void BuiltinCopyVariantBase::evalCopy(const QoreClass& thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const {
-   CodeContextHelper cch(xsink, CT_BUILTIN, "copy", self, qore_class_private::get(thisclass));
+    CodeContextHelper cch(xsink, CT_BUILTIN, "copy", self, qore_class_private::get(thisclass));
 
-   if (scl) {
-      scl->sml.execCopyMethods(self, old, xsink);
-      if (*xsink)
-         return;
-      ceh.restorePosition();
-   }
+    if (scl) {
+        scl->sml.execCopyMethods(self, old, xsink);
+        if (*xsink) {
+            return;
+        }
+    }
 
-   old->evalCopyMethodWithPrivateData(thisclass, this, self, xsink);
+    old->evalCopyMethodWithPrivateData(thisclass, this, self, xsink);
 }
 
 void ConstructorMethodFunction::evalConstructor(const AbstractQoreFunctionVariant* variant, const QoreClass& thisclass, QoreObject* self, const QoreListNode* args, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
