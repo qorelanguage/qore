@@ -166,7 +166,8 @@ struct ParseWarnOptions {
 };
 
 struct QoreProgramLineLocation {
-    int16_t start_line, end_line;
+    int16_t start_line = -1,
+        end_line = -1;
 
     // if sline is 0 and eline is > 0 then set sline to 1
     DLLLOCAL QoreProgramLineLocation(int sline, int eline) : start_line(sline ? sline : (eline ? 1 : 0)), end_line(eline) {
@@ -174,7 +175,7 @@ struct QoreProgramLineLocation {
         assert(eline <= 0xffff);
     }
 
-    DLLLOCAL QoreProgramLineLocation() : start_line(-1), end_line(-1) {
+    DLLLOCAL QoreProgramLineLocation() {
     }
 
     DLLLOCAL QoreProgramLineLocation(const QoreProgramLineLocation& old) = default;
@@ -192,6 +193,10 @@ public:
         const char* lang = "Qore") :
         QoreProgramLineLocation(sline, eline), file(f), source(source), lang(lang), offset(offset) {
         assert(offset <= 0xffff);
+    }
+
+    DLLLOCAL explicit QoreProgramLocation(const char* f, int sline = 0, int eline = 0) :
+        QoreProgramLineLocation(sline, eline), file(f) {
     }
 
     // sets file position info from thread-local parse information
@@ -275,11 +280,6 @@ protected:
 
 public:
     int16_t offset = 0;
-
-protected:
-    DLLLOCAL explicit QoreProgramLocation(const char* f, int sline = 0, int eline = 0) :
-        QoreProgramLineLocation(sline, eline), file(f) {
-    }
 };
 
 DLLLOCAL extern const QoreProgramLocation loc_builtin;

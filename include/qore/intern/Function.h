@@ -315,6 +315,7 @@ public:
 
     //! returns the source location of the element
     DLLLOCAL virtual const QoreProgramLocation& getLocation() const {
+        // return loc_builtin for Qore builtin calls
         return *loc;
     }
 
@@ -350,6 +351,7 @@ protected:
     q_rt_flags_t rtflags = 0; // runtime flags
     QoreString callName;
     const QoreStackLocation* stack_loc = nullptr;
+    const QoreProgramLocation* old_runtime_loc = nullptr;
     bool restore_stack = false;
 
     DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,

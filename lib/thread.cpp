@@ -1243,6 +1243,25 @@ const QoreStackLocation* update_get_runtime_stack_location(QoreStackLocation* st
     return rv;
 }
 
+ const QoreStackLocation* update_get_runtime_stack_builtin_location(QoreStackLocation* stack_loc,
+    const AbstractStatement*& current_stmt, QoreProgram*& current_pgm, const QoreProgramLocation*& old_runtime_loc) {
+    ThreadData* td = thread_data.get();
+
+    current_pgm = td->current_pgm;
+    current_stmt = td->runtime_statement;
+
+    const QoreStackLocation* rv = td->current_stack_location;
+
+    // get read access to the stack lock to write to the local thread stack location
+    // locking is necessary due to the fact that thread stacks can be read from other threads
+    QoreAutoRWReadLocker l(thread_list.stack_lck);
+    td->current_stack_location = stack_loc;
+    stack_loc->setNext(rv);
+    old_runtime_loc = td->runtime_loc;
+    td->runtime_loc = &loc_builtin;
+    return rv;
+}
+
 // called when restoring the previous location
 void update_runtime_stack_location(const QoreStackLocation* stack_loc) {
     ThreadData* td = thread_data.get();
@@ -1251,6 +1270,16 @@ void update_runtime_stack_location(const QoreStackLocation* stack_loc) {
     // locking is necessary due to the fact that thread stacks can be read from other threads
     QoreAutoRWReadLocker l(thread_list.stack_lck);
     td->current_stack_location = stack_loc;
+}
+
+void update_runtime_stack_location(const QoreStackLocation* stack_loc, const QoreProgramLocation* runtime_loc) {
+    ThreadData* td = thread_data.get();
+
+    // get read access to the stack lock to write to the local thread stack location
+    // locking is necessary due to the fact that thread stacks can be read from other threads
+    QoreAutoRWReadLocker l(thread_list.stack_lck);
+    td->current_stack_location = stack_loc;
+    td->runtime_loc = runtime_loc;
 }
 
 const AbstractStatement* get_runtime_statement() {

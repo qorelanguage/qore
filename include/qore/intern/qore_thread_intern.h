@@ -246,7 +246,10 @@ DLLLOCAL void update_context_stack(Context* cstack);
 DLLLOCAL const QoreStackLocation* get_runtime_stack_location();
 DLLLOCAL const QoreStackLocation* update_get_runtime_stack_location(QoreStackLocation* stack_loc,
     const AbstractStatement*& current_stmt, QoreProgram*& current_pgm);
+DLLLOCAL const QoreStackLocation* update_get_runtime_stack_builtin_location(QoreStackLocation* stack_loc,
+    const AbstractStatement*& current_stmt, QoreProgram*& current_pgm, const QoreProgramLocation*& old_runtime_loc);
 DLLLOCAL void update_runtime_stack_location(const QoreStackLocation* stack_loc);
+DLLLOCAL void update_runtime_stack_location(const QoreStackLocation* stack_loc, const QoreProgramLocation* runtime_loc);
 
 DLLLOCAL const QoreProgramLocation* get_runtime_location();
 DLLLOCAL void update_get_runtime_statement_location(const AbstractStatement* stmt,

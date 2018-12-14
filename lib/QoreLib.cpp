@@ -97,7 +97,8 @@ int qore_min_mod_api_minor = QORE_MODULE_COMPAT_API_MINOR;
 DLLLOCAL QoreListNode* ARGV = nullptr;
 DLLLOCAL QoreListNode* QORE_ARGV = nullptr;
 
-const QoreProgramLocation loc_builtin;
+// default location for Qore builtin C++ code
+const QoreProgramLocation loc_builtin("<builtin>", -1, -1);
 
 QoreString random_salt;
 

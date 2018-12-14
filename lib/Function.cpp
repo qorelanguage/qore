@@ -180,7 +180,11 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
 
 CodeEvaluationHelper::~CodeEvaluationHelper() {
     if (restore_stack) {
-        update_runtime_stack_location(stack_loc);
+        if (ct == CT_BUILTIN) {
+            update_runtime_stack_location(stack_loc, old_runtime_loc);
+        } else {
+            update_runtime_stack_location(stack_loc);
+        }
     }
     if (returnTypeInfo != (const QoreTypeInfo*)-1) {
         saveReturnTypeInfo(returnTypeInfo);
@@ -232,8 +236,12 @@ void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunc
     setCallType(variant->getCallType());
     setReturnTypeInfo(variant->getReturnTypeInfo());
 
-    // add call to call stack
-    stack_loc = update_get_runtime_stack_location(this, stmt, pgm);
+    // add call to call stack; push builtin location on the stack if executing builtin c++ code
+    if (ct == CT_BUILTIN) {
+        stack_loc = update_get_runtime_stack_builtin_location(this, stmt, pgm, old_runtime_loc);
+    } else {
+        stack_loc = update_get_runtime_stack_location(this, stmt, pgm);
+    }
     restore_stack = true;
 }
 
