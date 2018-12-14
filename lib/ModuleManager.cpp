@@ -951,7 +951,7 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
     QoreUserModuleDefContextHelper qmd(feature, mpgm, xsink);
 
     std::string moduleCode = QoreDir::get_file_content(modulePath.c_str());
-    userModule->getProgram()->parsePending(moduleCode.c_str(), feature, &xsink, &xsink, QP_WARN_MODULES);
+    userModule->getProgram()->parsePending(moduleCode.c_str(), path.c_str(), &xsink, &xsink, QP_WARN_MODULES);
     if (xsink) {
         return nullptr;
     }
@@ -968,7 +968,7 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
         filePath += fileList->retrieveEntry(i).get<const QoreStringNode>()->c_str();
 
         std::string fileCode = QoreDir::get_file_content(filePath);
-        userModule->getProgram()->parsePending(fileCode.c_str(), feature, &xsink, &xsink);
+        userModule->getProgram()->parsePending(fileCode.c_str(), filePath.c_str(), &xsink, &xsink);
         if (xsink) {
             return nullptr;
         }
