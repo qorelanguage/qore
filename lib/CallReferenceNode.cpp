@@ -594,8 +594,8 @@ QoreProgram* ResolvedCallReferenceNode::getProgram() const {
     return 0;
 }
 
-void ResolvedCallReferenceNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& returnTypeInfo) {
-    assert(false);
+void ResolvedCallReferenceNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids,
+    const QoreTypeInfo*& returnTypeInfo) {
 }
 
 bool ResolvedCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {

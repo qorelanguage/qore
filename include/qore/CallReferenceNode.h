@@ -145,8 +145,11 @@ public:
     //! returns this with the ref count inmcremented; not a real copy
     DLLEXPORT virtual AbstractQoreNode* realCopy() const;
 
-    // the following functions must be defined, but are never called
-    DLLEXPORT virtual void parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids, const QoreTypeInfo *&returnTypeInfo);
+    // must be defined but performs no action
+    DLLEXPORT virtual void parseInit(QoreValue& val, LocalVar *oflag, int pflag, int &lvids,
+        const QoreTypeInfo *&returnTypeInfo);
+
+    // the following function must be defined, but is never called
     DLLEXPORT virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };
 
