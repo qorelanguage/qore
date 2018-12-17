@@ -581,9 +581,36 @@ QoreValue FunctionCallReferenceNode::execValue(const QoreListNode* args, Excepti
     return uf->evalFunction(0, args, pgm, xsink);
 }
 
+ResolvedCallReferenceNode::ResolvedCallReferenceNode() : AbstractCallReferenceNode(false, NT_FUNCREF) {
+}
+
 ResolvedCallReferenceNode::ResolvedCallReferenceNode(bool n_needs_eval, qore_type_t n_type) : AbstractCallReferenceNode(n_needs_eval, n_type) {
+}
+
+ResolvedCallReferenceNode::~ResolvedCallReferenceNode() {
 }
 
 QoreProgram* ResolvedCallReferenceNode::getProgram() const {
     return 0;
+}
+
+void ResolvedCallReferenceNode::parseInit(QoreValue& val, LocalVar* oflag, int pflag, int& lvids,
+    const QoreTypeInfo*& returnTypeInfo) {
+}
+
+bool ResolvedCallReferenceNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+    return this == v;
+}
+
+bool ResolvedCallReferenceNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+    return this == v;
+}
+
+QoreValue ResolvedCallReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    needs_deref = false;
+    return this;
+}
+
+AbstractQoreNode* ResolvedCallReferenceNode::realCopy() const {
+    return refRefSelf();
 }
