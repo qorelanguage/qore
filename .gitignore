@@ -97,6 +97,9 @@ modules/astparser/src/ast_scanner.cpp
 modules/astparser/src/QC_*.cpp
 modules/astparser/src/ql_ast.cpp
 
+# module-reflection
+modules/reflection/src/QC_*.cpp
+
 # Doxygen generated files
 docs
 *.dox.*
