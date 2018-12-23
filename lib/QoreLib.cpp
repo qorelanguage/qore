@@ -561,423 +561,442 @@ FeatureList::~FeatureList() {
 }
 
 // if type = 0 then field widths are soft limits, otherwise they are hard
-static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, int *taken, ExceptionSink* xsink) {
-   char* str = param;
-   int opts = 0;
-   int width = -1;
-   int decimals = -1;
-   int length;
-   char fmt[20], *f;
-   QoreString tbuf(cstr->getEncoding());
+static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, bool& arg_used, ExceptionSink* xsink) {
+    assert(arg_used == true);
+    char* str = param;
+    int opts = 0;
+    int width = -1;
+    int decimals = -1;
+    int length;
+    char fmt[20], *f;
+    QoreString tbuf(cstr->getEncoding());
 
-   printd(5, "process_opt(): param: %s type: %d qv->getType(): %s refs: %d\n",
-          param, type, qv.getTypeName(), qv.hasNode() ? qv.getInternalNode()->reference_count() : -1);
-   qore_type_t t = qv.getType();
+    printd(5, "process_opt(): param: %s type: %d qv->getType(): %s refs: %d\n",
+            param, type, qv.getTypeName(), qv.hasNode() ? qv.getInternalNode()->reference_count() : -1);
+    qore_type_t t = qv.getType();
 #ifdef DEBUG
-   if (t == NT_STRING) {
-      const QoreStringNode* nstr = qv.get<const QoreStringNode>();
-      printd(5, "process_opt() %p (%d) \"%s\"\n", nstr->getBuffer(), nstr->strlen(), nstr->getBuffer());
-   }
+    if (t == NT_STRING) {
+        const QoreStringNode* nstr = qv.get<const QoreStringNode>();
+        printd(5, "process_opt() %p (%d) \"%s\"\n", nstr->getBuffer(), nstr->strlen(), nstr->getBuffer());
+    }
 #endif
 
-   // if it's just '%%' then output a single '%' and do not process arguments
-   if (param[1] == '%') {
-      cstr->concat('%');
-      *taken = 0;
-      return 1;
-   }
+    // if it's just '%%' then output a single '%' and do not process arguments
+    if (param[1] == '%') {
+        cstr->concat('%');
+        arg_used = false;
+        return 1;
+    }
 
-  loop:
-   switch (*(++param)) {
-      case '-': opts |= P_JUSTIFY_LEFT; goto loop;
-      case '+': opts |= P_INCLUDE_PLUS; goto loop;
-      case ' ': opts |= P_SPACE_FILL; opts &= ~P_ZERO_FILL; goto loop;
-      case '0': opts |= P_ZERO_FILL; opts &= ~P_SPACE_FILL; goto loop;
-   }
-   if (isdigit(*param))
-      width = get_number(&param);
-   if ((*param) == '.') {
-      param++;
-      decimals = get_number(&param);
-   }
-   if (decimals < 0)
-      decimals = -1;
+    loop:
+    switch (*(++param)) {
+        case '-': opts |= P_JUSTIFY_LEFT; goto loop;
+        case '+': opts |= P_INCLUDE_PLUS; goto loop;
+        case ' ': opts |= P_SPACE_FILL; opts &= ~P_ZERO_FILL; goto loop;
+        case '0': opts |= P_ZERO_FILL; opts &= ~P_SPACE_FILL; goto loop;
+    }
+    if (isdigit(*param)) {
+        width = get_number(&param);
+    }
+    if ((*param) == '.') {
+        param++;
+        decimals = get_number(&param);
+    }
+    if (decimals < 0) {
+        decimals = -1;
+    }
 
-   char p = *param;
-   switch (*param) {
-      case 's': {
-         QoreStringValueHelper astr(qv);
-         length = astr->strlen();
-         if ((width != -1) && (length > width) && !type)
-            width = length;
-         if ((width != -1) && (length > width)) {
-            tbuf.concat(*astr, (size_t)width, xsink); // string encodings are converted here if necessary
-         }
-         else {
-            if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
-               tbuf.concat(*astr, xsink);
-               while (width > length) {
-                  tbuf.concat(' ');
-                  width--;
-               }
+    char p = *param;
+    switch (*param) {
+        case 's': {
+            QoreStringValueHelper astr(qv);
+            length = astr->strlen();
+            if ((width != -1) && (length > width) && !type)
+                width = length;
+            if ((width != -1) && (length > width)) {
+                tbuf.concat(*astr, (size_t)width, xsink); // string encodings are converted here if necessary
             }
             else {
-               while (width > length) {
-                  tbuf.concat(' ');
-                  width--;
-               }
-               tbuf.concat(*astr, xsink);
+                if ((width != -1) && (opts & P_JUSTIFY_LEFT)) {
+                    tbuf.concat(*astr, xsink);
+                    while (width > length) {
+                        tbuf.concat(' ');
+                        width--;
+                    }
+                }
+                else {
+                    while (width > length) {
+                        tbuf.concat(' ');
+                        width--;
+                    }
+                    tbuf.concat(*astr, xsink);
+                }
             }
-         }
-         break;
-      }
-      case 'p':
-         p = 'x';
-      case 'd':
-      case 'o':
-      case 'x':
-      case 'X': {
-         // recreate the sprintf format argument
-         f = fmt;
-         *(f++) = '%';
-         if (opts & P_JUSTIFY_LEFT)
-            *(f++) = '-';
-         if (opts & P_INCLUDE_PLUS)
-            *(f++) = '+';
-         if (width != -1) {
-            if (opts & P_SPACE_FILL)
-               *(f++) = ' ';
-            else if (opts & P_ZERO_FILL)
-               *(f++) = '0';
-            f += sprintf(f, "%d", width);
-         }
+            break;
+        }
+        case 'p':
+            p = 'x';
+        case 'd':
+        case 'o':
+        case 'x':
+        case 'X': {
+            // recreate the sprintf format argument
+            f = fmt;
+            *(f++) = '%';
+            if (opts & P_JUSTIFY_LEFT) {
+                *(f++) = '-';
+            }
+            if (opts & P_INCLUDE_PLUS) {
+                *(f++) = '+';
+            }
+            if (width != -1) {
+                if (opts & P_SPACE_FILL) {
+                    *(f++) = ' ';
+                } else if (opts & P_ZERO_FILL) {
+                    *(f++) = '0';
+                }
+                f += sprintf(f, "%d", width);
+            }
 #ifdef _Q_WINDOWS
-         *(f++) = 'I';
-         *(f++) = '6';
-         *(f++) = '4';
+            *(f++) = 'I';
+            *(f++) = '6';
+            *(f++) = '4';
 #else
-         *(f++) = 'l';
-         *(f++) = 'l';
+            *(f++) = 'l';
+            *(f++) = 'l';
 #endif
-         *(f++) = p; // 'd', etc;
-         *f = '\0';
-         int64 val = qv.getAsBigInt();
-         tbuf.sprintf(fmt, val);
-         if (type && (width != -1))
-            tbuf.terminate(width);
-         break;
-      }
-      case 'A':
-      case 'a':
-      case 'G':
-      case 'g':
-      case 'F':
-      case 'f':
-      case 'E':
-      case 'e': {
-         // recreate the sprintf format argument
-         f = fmt;
-         *(f++) = '%';
-         if (opts & P_JUSTIFY_LEFT)
-            *(f++) = '-';
-         if (opts & P_INCLUDE_PLUS)
-            *(f++) = '+';
-         if (width != -1) {
-            if (opts & P_SPACE_FILL)
-               *(f++) = ' ';
-            else if (opts & P_ZERO_FILL)
-               *(f++) = '0';
-            f += sprintf(f, "%d", width);
-         }
-         if (decimals != -1) {
-            *(f++) = '.';
-            f += sprintf(f, "%d", decimals);
-         }
-         if (t == NT_NUMBER) {
-            *(f++) = QORE_MPFR_SPRINTF_ARG;
-            *(f++) = *param; // a|A|e|E|f|F|g|G
+            *(f++) = p; // 'd', etc;
             *f = '\0';
-            qore_number_private::sprintf(*qv.get<const QoreNumberNode>(), tbuf, fmt);
-         }
-         else {
-            *(f++) = *param; // a|A|e|E|f|F|g|G
-            *f = '\0';
-            double val = qv.getAsFloat();
+            int64 val = qv.getAsBigInt();
             tbuf.sprintf(fmt, val);
-            // issue 1556: external modules that call setlocale() can change
-            // the decimal point character used here from '.' to ','
-            q_fix_decimal(&tbuf);
-            //printd(5, "fmt: '%s' val: %f tbuf: '%s'\n", fmt, val, tbuf.c_str());
-         }
-         if (type && (width != -1))
-            tbuf.terminate(width);
-         break;
-      }
-      case 'n':
-      case 'N': {
-         QoreNodeAsStringHelper t(qv, *param == 'N'
-                                  ? (width == -1 ? FMT_NORMAL : width)
-                                  : FMT_NONE, xsink);
-         tbuf.concat(*t, xsink);
-         break;
-      }
-      case 'y': {
-         QoreNodeAsStringHelper t(qv, FMT_YAML_SHORT, xsink);
-         tbuf.concat(*t, xsink);
-         break;
-      }
-      default:
-         // if the format argument is not understood, then make sure and just consume the '%' char
-         tbuf.concat('%');
-         param = str;
-         *taken = 0;
-   }
+            if (type && (width != -1)) {
+                tbuf.terminate(width);
+            }
+            break;
+        }
+        case 'A':
+        case 'a':
+        case 'G':
+        case 'g':
+        case 'F':
+        case 'f':
+        case 'E':
+        case 'e': {
+            // recreate the sprintf format argument
+            f = fmt;
+            *(f++) = '%';
+            if (opts & P_JUSTIFY_LEFT) {
+                *(f++) = '-';
+            }
+            if (opts & P_INCLUDE_PLUS) {
+                *(f++) = '+';
+            }
+            if (width != -1) {
+                if (opts & P_SPACE_FILL) {
+                    *(f++) = ' ';
+                } else if (opts & P_ZERO_FILL) {
+                    *(f++) = '0';
+                }
+                f += sprintf(f, "%d", width);
+            }
+            if (decimals != -1) {
+                *(f++) = '.';
+                f += sprintf(f, "%d", decimals);
+            }
+            if (t == NT_NUMBER) {
+                *(f++) = QORE_MPFR_SPRINTF_ARG;
+                *(f++) = *param; // a|A|e|E|f|F|g|G
+                *f = '\0';
+                qore_number_private::sprintf(*qv.get<const QoreNumberNode>(), tbuf, fmt);
+            } else {
+                *(f++) = *param; // a|A|e|E|f|F|g|G
+                *f = '\0';
+                double val = qv.getAsFloat();
+                tbuf.sprintf(fmt, val);
+                // issue 1556: external modules that call setlocale() can change
+                // the decimal point character used here from '.' to ','
+                q_fix_decimal(&tbuf);
+                //printd(5, "fmt: '%s' val: %f tbuf: '%s'\n", fmt, val, tbuf.c_str());
+            }
+            if (type && (width != -1)) {
+                tbuf.terminate(width);
+            }
+            break;
+        }
+        case 'n':
+        case 'N': {
+            QoreNodeAsStringHelper t(qv, *param == 'N'
+                                    ? (width == -1 ? FMT_NORMAL : width)
+                                    : FMT_NONE, xsink);
+            tbuf.concat(*t, xsink);
+            break;
+        }
+        case 'y': {
+            QoreNodeAsStringHelper t(qv, FMT_YAML_SHORT, xsink);
+            tbuf.concat(*t, xsink);
+            break;
+        }
+        default:
+            // if the format argument is not understood, then make sure and just consume the '%' char
+            tbuf.concat('%');
+            param = str;
+            arg_used = false;
+    }
 
-   cstr->concat(&tbuf, xsink);
-   return (int)(param - str);
+    cstr->concat(&tbuf, xsink);
+    return (int)(param - str);
+}
+
+static QoreStringNode* qore_sprintf_intern(ExceptionSink* xsink, const QoreStringNode* fmt,
+    const QoreListNode* arg_list, int arg_offset, int field, int last_arg = -1) {
+    SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
+
+    const char* pstr = fmt->c_str();
+    size_t l = fmt->strlen();
+    size_t arg_size = last_arg == -1
+        ? (arg_list ? arg_list->size() : 0)
+        : static_cast<size_t>(last_arg);
+    for (size_t i = 0; i < l; ++i) {
+        if (pstr[i] == '%') {
+            bool arg_used = true;
+            bool use_arg;
+            QoreValue param_value;
+            if (arg_offset < arg_size) {
+                param_value = get_param_value(arg_list, arg_offset++);
+                use_arg = true;
+            } else {
+                use_arg = false;
+            }
+            i += process_opt(*buf, (char*)&pstr[i], param_value, field, arg_used, xsink);
+            if (*xsink) {
+                return nullptr;
+            }
+            if (use_arg && !arg_used) {
+                --arg_offset;
+            }
+        } else {
+            buf->concat(pstr[i]);
+            if (pstr[i] == '%' && pstr[i+1] == '%') {
+                ++i;
+            }
+        }
+    }
+
+    return buf.release();
 }
 
 QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
-   assert(xsink);
-   unsigned i, j, l;
+    assert(xsink);
 
-   QoreValue pv = get_param_value(params, offset);
-   if (pv.getType() != NT_STRING)
-      return new QoreStringNode;
+    QoreValue pv = get_param_value(params, offset);
+    if (pv.getType() != NT_STRING) {
+        return new QoreStringNode;
+    }
 
-   const QoreStringNode* p = pv.get<QoreStringNode>();
-
-   SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(p->getEncoding()));
-
-   j = 1 + offset;
-
-   const char* pstr = p->getBuffer();
-   l = p->strlen();
-   for (i = 0; i < l; i++) {
-      int taken = 1;
-      if ((pstr[i] == '%') && (j < params->size())) {
-         pv = get_param_value(params, j++);
-         i += process_opt(*buf, (char*)&pstr[i], pv, field, &taken, xsink);
-         if (*xsink)
-            return 0;
-         if (!taken)
-            j--;
-      }
-      else {
-         buf->concat(pstr[i]);
-         if (pstr[i] == '%' && pstr[i+1] == '%')
-             ++i;
-      }
-   }
-
-   return buf.release();
+    return qore_sprintf_intern(xsink, pv.get<const QoreStringNode>(), params, offset + 1, field);
 }
 
 QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink) {
     assert(xsink);
     QoreValue pv = get_param_value(params, offset);
-    if (pv.getType() != NT_STRING)
+    if (pv.getType() != NT_STRING) {
         return new QoreStringNode;
+    }
 
     const QoreStringNode* fmt = pv.get<QoreStringNode>();
 
     pv = get_param_value(params, offset + 1);
-    const QoreListNode* arg_list = pv.getType() == NT_LIST ? pv.get<const QoreListNode>() : 0;
-
-    SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
-    unsigned j = 0;
-
-    const char* pstr = fmt->getBuffer();
-    size_t l = fmt->strlen();
-    for (unsigned i = 0; i < l; i++) {
-        int taken = 1;
-        bool havearg = false;
-
-        QoreValue cv;
-
-        if ((pstr[i] == '%')) {
-            if (!pv.isNothing()) {
-                havearg = true;
-                if (arg_list && j < arg_list->size())
-                    cv = get_param_value(arg_list, j);
-                else if (!j)
-                    cv = pv;
-            }
-        }
-        if (havearg) {
-            ++j;
-            i += process_opt(*buf, (char*)&pstr[i], cv, field, &taken, xsink);
-            if (*xsink)
-                return nullptr;
-            if (!taken)
-                --j;
-        }
-        else {
-            buf->concat(pstr[i]);
-            if (pstr[i] == '%' && pstr[i+1] == '%')
-                ++i;
-        }
+    int arg_offset;
+    int last_arg;
+    const QoreListNode* arg_list;
+    if (pv.getType() == NT_LIST) {
+        arg_list = pv.get<const QoreListNode>();
+        arg_offset = 0;
+        last_arg = -1;
+    } else {
+        // only process the single argument from the top-level arg list
+        arg_list = params;
+        arg_offset = offset + 1;
+        last_arg = offset + 2;
     }
-    return buf.release();
+
+    return qore_sprintf_intern(xsink, fmt, arg_list, arg_offset, field, last_arg);
 }
 
 static void concatASCII(QoreString &str, unsigned char c) {
-   str.sprintf("ascii %03d", c);
-   if (c >= 32 || c < 127)
-      str.sprintf(" ('%c')", c);
+    str.sprintf("ascii %03d", c);
+    if (c >= 32 || c < 127) {
+        str.sprintf(" ('%c')", c);
+    }
 }
 
 static char getBase64Value(const char* buf, qore_size_t &offset, bool end_ok, ExceptionSink* xsink) {
-   while (buf[offset] == '\n' || buf[offset] == '\r')
-      ++offset;
+    while (buf[offset] == '\n' || buf[offset] == '\r') {
+        ++offset;
+    }
 
-   char c = buf[offset];
+    char c = buf[offset];
 
-   if (c >= 'A' && c <= 'Z')
-      return c - 'A';
-   if (c >= 'a' && c <= 'z')
-      return c - 'a' + 26;
-   if (c >= '0' && c <= '9')
-      return c - '0' + 52;
-   if (c == '+')
-      return 62;
-   if (c == '/')
-      return 63;
+    if (c >= 'A' && c <= 'Z') {
+        return c - 'A';
+    }
+    if (c >= 'a' && c <= 'z') {
+        return c - 'a' + 26;
+    }
+    if (c >= '0' && c <= '9') {
+        return c - '0' + 52;
+    }
+    if (c == '+') {
+        return 62;
+    }
+    if (c == '/') {
+        return 63;
+    }
 
-   if (!c) {
-      if (!end_ok)
-         xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string at string byte offset %d", offset);
-   }
-   else {
-      QoreStringNode* desc = new QoreStringNode;
-      concatASCII(*desc, c);
-      desc->concat(" is an invalid base64 character");
-      xsink->raiseException("BASE64-PARSE-ERROR", desc);
-   }
-   return -1;
+    if (!c) {
+        if (!end_ok) {
+            xsink->raiseException("BASE64-PARSE-ERROR", "premature end of base64 string at string byte offset %d", offset);
+        }
+    } else {
+        QoreStringNode* desc = new QoreStringNode;
+        concatASCII(*desc, c);
+        desc->concat(" is an invalid base64 character");
+        xsink->raiseException("BASE64-PARSE-ERROR", desc);
+    }
+    return -1;
 }
 
 // see: RFC-1421: http://www.ietf.org/rfc/rfc1421.txt and RFC-2045: http://www.ietf.org/rfc/rfc2045.txt
 BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
-   if (!len)
-      return new BinaryNode;
+    if (!len) {
+        return new BinaryNode;
+    }
 
-   char* binbuf = (char* )malloc(sizeof(char) * (len + 3));
-   int blen = 0;
+    char* binbuf = (char*)malloc(sizeof(char) * (len + 3));
+    int blen = 0;
 
-   qore_size_t pos = 0;
-   while (pos < (qore_size_t)len) {
-      // add first 6 bits
-      char b = getBase64Value(buf, pos, true, xsink);
-      if (xsink->isEvent()) {
-         free(binbuf);
-         return 0;
-      }
-      // if we've reached the end of the string here, then exit the loop
-      if (!buf[pos])
-         break;
+    qore_size_t pos = 0;
+    while (pos < (qore_size_t)len) {
+        // add first 6 bits
+        char b = getBase64Value(buf, pos, true, xsink);
+        if (xsink->isEvent()) {
+            free(binbuf);
+            return nullptr;
+        }
+        // if we've reached the end of the string here, then exit the loop
+        if (!buf[pos])
+            break;
 
-      // get second 6 bits
-      ++pos;
-      char c = getBase64Value(buf, pos, false, xsink);
-      if (xsink->isEvent()) {
-         free(binbuf);
-         return 0;
-      }
-      // do first byte (1st char=upper 6 bits, 2nd char=lower 2)
-      binbuf[blen++] = (b << 2) | (c >> 4);
+        // get second 6 bits
+        ++pos;
+        char c = getBase64Value(buf, pos, false, xsink);
+        if (xsink->isEvent()) {
+            free(binbuf);
+            return nullptr;
+        }
+        // do first byte (1st char=upper 6 bits, 2nd char=lower 2)
+        binbuf[blen++] = (b << 2) | (c >> 4);
 
-      // check special cases
-      ++pos;
-      if (buf[pos] == '=')
-         break;
+        // check special cases
+        ++pos;
+        if (buf[pos] == '=') {
+            break;
+        }
 
-      // low 4 bits from 2nd char become high 4 bits of next value
-      b = (c & 15) << 4;
+        // low 4 bits from 2nd char become high 4 bits of next value
+        b = (c & 15) << 4;
 
-      // get third 6 bits
-      c = getBase64Value(buf, pos, false, xsink);
-      if (xsink->isEvent()) {
-         free(binbuf);
-         return 0;
-      }
-      // do second byte (2nd char=upper 4 bits, 3rd char=lower 4 bits)
-      binbuf[blen++] = b | (c >> 2);
+        // get third 6 bits
+        c = getBase64Value(buf, pos, false, xsink);
+        if (xsink->isEvent()) {
+            free(binbuf);
+            return nullptr;
+        }
+        // do second byte (2nd char=upper 4 bits, 3rd char=lower 4 bits)
+        binbuf[blen++] = b | (c >> 2);
 
-      // check special cases
-      ++pos;
-      if (buf[pos] == '=')
-         break;
+        // check special cases
+        ++pos;
+        if (buf[pos] == '=') {
+            break;
+        }
 
-      // low 2 bits from 3rd char become high 2 bits of next value
-      b = (c & 3) << 6;
+        // low 2 bits from 3rd char become high 2 bits of next value
+        b = (c & 3) << 6;
 
-      // get fourth 6 bits
-      c = getBase64Value(buf, pos, false, xsink);
-      if (xsink->isEvent()) {
-         free(binbuf);
-         return 0;
-      }
+        // get fourth 6 bits
+        c = getBase64Value(buf, pos, false, xsink);
+        if (xsink->isEvent()) {
+            free(binbuf);
+            return nullptr;
+        }
 
-      binbuf[blen++] = b | c;
-      ++pos;
-   }
-   return new BinaryNode(binbuf, blen);
+        binbuf[blen++] = b | c;
+        ++pos;
+    }
+    return new BinaryNode(binbuf, blen);
 }
 
 int get_nibble(char c, ExceptionSink* xsink) {
-   if (isdigit(c))
-      return c - 48;
-   if (c >= 'A' && c <= 'F')
-      return c - 55;
-   if (c >= 'a' && c <= 'f')
-      return c - 87;
+    if (isdigit(c)) {
+        return c - 48;
+    }
+    if (c >= 'A' && c <= 'F') {
+        return c - 55;
+    }
+    if (c >= 'a' && c <= 'f') {
+        return c - 87;
+    }
 
-   xsink->raiseException("PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
-   return -1;
+    xsink->raiseException("PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
+    return -1;
 }
 
 BinaryNode* parseHex(const char* buf, int len, ExceptionSink* xsink) {
-   if (!len)
-      return new BinaryNode();
+    if (!len) {
+        return new BinaryNode();
+    }
 
-   if ((len / 2) * 2 != len) {
-      xsink->raiseException("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
-      return 0;
-   }
+    if ((len / 2) * 2 != len) {
+        xsink->raiseException("PARSE-HEX-ERROR", "cannot parse an odd number of hex digits (%d digit%s)", len, len == 1 ? "" : "s");
+        return nullptr;
+    }
 
-   char* binbuf = (char* )malloc(sizeof(char) * (len / 2));
-   int blen = 0;
+    char* binbuf = (char* )malloc(sizeof(char) * (len / 2));
+    int blen = 0;
 
-   const char* end = buf + len;
-   while (buf < end) {
-      int b = get_nibble(*buf, xsink);
-      if (b < 0) {
-         free(binbuf);
-         return 0;
-      }
-      buf++;
-      int l = get_nibble(*buf, xsink);
-      if (l < 0) {
-         free(binbuf);
-         return 0;
-      }
-      buf++;
-      binbuf[blen++] = b << 4 | l;
-   }
-   return new BinaryNode(binbuf, blen);
+    const char* end = buf + len;
+    while (buf < end) {
+        int b = get_nibble(*buf, xsink);
+        if (b < 0) {
+            free(binbuf);
+            return nullptr;
+        }
+        buf++;
+        int l = get_nibble(*buf, xsink);
+        if (l < 0) {
+            free(binbuf);
+            return nullptr;
+        }
+        buf++;
+        binbuf[blen++] = b << 4 | l;
+    }
+    return new BinaryNode(binbuf, blen);
 }
 
 static int parse_get_nibble(const QoreProgramLocation* loc, char c) {
-   if (isdigit(c))
-      return c - 48;
-   if (c >= 'A' && c <= 'F')
-      return c - 55;
-   if (c >= 'a' && c <= 'f')
-      return c - 87;
+    if (isdigit(c)) {
+        return c - 48;
+    }
+    if (c >= 'A' && c <= 'F') {
+        return c - 55;
+    }
+    if (c >= 'a' && c <= 'f') {
+        return c - 87;
+    }
 
-   parseException(*loc, "PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
-   return -1;
+    parseException(*loc, "PARSE-HEX-ERROR", "invalid hex digit found '%c'", c);
+    return -1;
 }
 
 // for use while parsing - parses a null-terminated string and raises parse exceptions for errors

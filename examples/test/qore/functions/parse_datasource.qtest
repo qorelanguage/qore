@@ -6,6 +6,9 @@
 %require-types
 %strict-args
 
+# assert tests with no return value
+%disable-warning return-value-ignored
+
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class ParseDatasourceTest

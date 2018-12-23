@@ -202,6 +202,9 @@
       or integrating code in other programming languages at runtime
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
+    - fixed bugs in @ref Qore::sprintf() "sprintf()", @ref Qore::vsprintf() "vsprintf()", and all variants where
+      @ref nothing was not treated the same as no value
+      (<a href="https://github.com/qorelanguage/qore/issues/3184">issue 3184</a>)
     - worked around a potential COW bug in \c std::string in GNU libdstdc++ 6+
       (<a href="https://github.com/qorelanguage/qore/issues/3179">issue 3179</a>)
     - fixed a bug with simple additional and subtraction with mixed @ref timeout_type "timeout" and
