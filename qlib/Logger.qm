@@ -2731,7 +2731,7 @@ public namespace Logger {
             @param value the value of the variable
         */
         public traceVar(string var_name, auto value) {
-            logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %y", var_name), (value, ), getLocation(), False);
+            logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
         }
 
         #! Logs the variable name and value using DEBUG level
@@ -2742,7 +2742,7 @@ public namespace Logger {
             @param value the value of the variable
         */
         public debugVar(string var_name, auto value) {
-            logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %y", var_name), (value, ), getLocation(), False);
+            logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
         }
 
         #! Checks whether this Logger is enabled for a given Level passed as parameter.
