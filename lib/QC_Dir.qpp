@@ -65,7 +65,6 @@ QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const
     ON_BLOCK_EXIT(closedir, dptr);
 
     struct dirent *de;
-    ExceptionSink tempSink;
     while ((de = readdir(dptr))) {
         if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
             continue;
@@ -87,9 +86,8 @@ QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const
             fname.concat(de->d_name);
             struct stat buf;
             if (!full) {
-                if (stat(fname.getBuffer(), buf, &tempSink)) {
+                if (::stat(fname.getBuffer(), &buf)) {
                     // ignore the file if we cannot stat it, instead of returning
-                    tempSink.clear();
                     continue;
                 }
 
@@ -100,9 +98,8 @@ QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const
                 continue;
             }
 #ifdef HAVE_LSTAT
-            if (lstat(fname.getBuffer(), buf, &tempSink)) {
+            if (::lstat(fname.getBuffer(), &buf)) {
                 // ignore the file if we cannot stat it, instead of returning
-                tempSink.clear();
                 continue;
             }
 
@@ -121,16 +118,14 @@ QoreListNode* qore_qd_private::list(ExceptionSink *xsink, int stat_filter, const
                     lpath = new QoreStringNode(lbuf);
                 }
 
-                if (stat(fname.getBuffer(), buf, &tempSink)) {
+                if (::stat(fname.getBuffer(), &buf)) {
                     // ignore the file if we cannot stat it, instead of returning
-                    tempSink.clear();
                     continue;
                 }
             }
 #else
-            if (stat(fname.getBuffer(), buf, &tempSink)) {
+            if (::stat(fname.getBuffer(), &buf)) {
                 // ignore the file if we cannot stat it, instead of returning
-                tempSink.clear();
                 continue;
             }
 #endif
