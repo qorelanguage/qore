@@ -632,18 +632,18 @@ hash: (1 member)
             # get the value
             auto val;
             switch (l[i+2].type) {
-                case ET_BracketString:
-                case ET_CurlyBracketString: val = parse_to_qore_value(l[i+2].val); break;
+                case ET_BracketString: val = !l[i+2].val.empty() ? parse_to_qore_value(l[i+2].val) : (); break;
+                case ET_CurlyBracketString: val = !l[i+2].val.empty() ? parse_to_qore_value(l[i+2].val) : {}; break;
                 case ET_RawString: val = parse_to_basic_value(l[i+2].val); break;
                 case ET_QuotedString: val = l[i+2].val; break;
                 case ET_Comma: --i; break;
                 case ET_Eq: throw "PARSE-ERROR", sprintf("cannot parse %y after %y", EtMap{ET_Eq}, EtMap{ET_Eq});
             }
+            #printf("do_eq() i: %d key: %y v: %y val: %y\n", i, key, v, val);
             if (!exists v) {
                 v{key} = val;
                 in_hash = True;
-            }
-            else switch (v.typeCode()) {
+            } else switch (v.typeCode()) {
                 case NT_HASH: {
                     if (do_break)
                         v = (v, (key: val));

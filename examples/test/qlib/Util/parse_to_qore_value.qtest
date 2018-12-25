@@ -19,7 +19,9 @@ public class ParseToQoreValueTest inherits QUnit::Test {
 
     issue3138() {
         assertEq((), parse_to_qore_value("()"));
+        assertEq({"a": ()}, parse_to_qore_value("a=()"));
         assertEq({}, parse_to_qore_value("{}"));
+        assertEq({"a": {}}, parse_to_qore_value("a={}"));
         assertEq((1,), parse_to_qore_value("(1,)"));
         assertEq({"a": NOTHING}, parse_to_qore_value("a="));
         assertEq({"a": ("x",)}, parse_to_qore_value("a=(x,)"));
