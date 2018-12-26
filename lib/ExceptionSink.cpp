@@ -592,7 +592,7 @@ QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper(const Qor
 }
 
 QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper(QoreExternalProgramLocationWrapper&& old)
-    : loc(old.loc) {
+    : file_str(old.file_str), source_str(old.source_str), lang_str(old.lang_str), loc(old.loc) {
     old.loc = nullptr;
 }
 
