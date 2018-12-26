@@ -249,6 +249,8 @@
     Bugfix release; see details below
 
     @subsection qore_08139_bug_fixes Bug Fixes in Qore
+    - fixed calls to Dir::list*() methods which failed whenever there was a symlink with a non-existent target in a directory
+      (<a href="https://github.com/qorelanguage/qore/issues/3192">issue 3192</a>)
     - fixed a bug handling illegal abstract method definitions of special class methods
       (<a href="https://github.com/qorelanguage/qore/issues/3126">issue 3126</a>)
     - fixed handling <tt>304 Not Modified</tt> responses in the @ref Qore::HTTPClient "HTTPClient" class
@@ -256,7 +258,7 @@
     - fixed a crashing bug in the @ref Qore::Transform "Transform" class when used with encryption algorithms
       (<a href="https://github.com/qorelanguage/qore/issues/3111">issue 3111</a>)
     - fixed a crash with multiple hash keys when parsing the @ref hmap "hash map operator"
-      (<a href="https://github.com/qorelanguage/qore/issues/31">issue 3108</a>)
+      (<a href="https://github.com/qorelanguage/qore/issues/3108">issue 3108</a>)
     - module fixes:
       - <a href="../../modules/HttpServer/html/index.html">HttpServer</a>:
         - fixed responses that cannot have a message body (ex: \c HEAD requests and others)

@@ -103,6 +103,9 @@ modules/astparser/src/*.qtest
 modules/reflection/src/QC_*.cpp
 modules/reflection/src/QC_*.qtest
 
+# module-reflection
+modules/reflection/src/QC_*.cpp
+
 # Doxygen generated files
 docs
 *.dox.h
