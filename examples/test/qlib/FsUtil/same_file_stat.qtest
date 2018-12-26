@@ -1,0 +1,89 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class SamefilestatTest
+
+public class SamefilestatTest inherits QUnit::Test {
+
+    constructor() : Test ("SamefilestatTest", "1.0") {
+        addTestCase("same_file_stat test", \test_same_file_stat());
+        addTestCase("same_file_stat test - exception", \test_same_file_stat_exception());
+        set_return_value(main());
+    }
+
+    test_same_file_stat() {
+        # get some paths
+        string tmp_path = make_tmp_dir();
+        hash<StatInfo> tmp_path_stat = hstat(tmp_path);
+        string file1 = make_tmp_file(NOTHING, NOTHING, tmp_path).path;
+        hash<StatInfo> file1_stat = hstat(file1);
+        string file2 = make_tmp_file(NOTHING, NOTHING, tmp_path).path;
+        hash<StatInfo> file2_stat = hstat(file2);
+        string file3 = make_tmp_file().path;
+        hash<StatInfo> file3_stat = hstat(file3);
+        string subdir = make_tmp_dir(NOTHING, NOTHING, tmp_path);
+        hash<StatInfo> subdir_stat = hstat(subdir);
+        on_exit {
+            remove_tree(tmp_path);
+            # file1 and file2 will be removed with tmp_path but file3 won't
+            unlink(file3);
+        }
+
+        # the same files
+        assertTrue(same_file_stat(tmp_path_stat, tmp_path_stat, True));
+        assertTrue(same_file_stat(tmp_path_stat, tmp_path_stat, False));
+        assertTrue(same_file_stat(file1_stat, file1_stat, True));
+        assertTrue(same_file_stat(file1_stat, file1_stat, False));
+        assertTrue(same_file_stat(file2_stat, file2_stat, True));
+        assertTrue(same_file_stat(file2_stat, file2_stat, False));
+        assertTrue(same_file_stat(file3_stat, file3_stat, True));
+        assertTrue(same_file_stat(file3_stat, file3_stat, False));
+        assertTrue(same_file_stat(subdir_stat, subdir_stat, True));
+        assertTrue(same_file_stat(subdir_stat, subdir_stat, False));
+
+        # different files
+        assertFalse(same_file_stat(tmp_path_stat, file1_stat, True));
+        assertFalse(same_file_stat(tmp_path_stat, file2_stat, True));
+        assertFalse(same_file_stat(tmp_path_stat, file3_stat, True));
+        assertFalse(same_file_stat(tmp_path_stat, subdir_stat, True));
+        assertFalse(same_file_stat(file1_stat, file2_stat, True));
+        assertFalse(same_file_stat(file1_stat, file3_stat, True));
+        assertFalse(same_file_stat(file1_stat, subdir_stat, True));
+        assertFalse(same_file_stat(file2_stat, file3_stat, True));
+        assertFalse(same_file_stat(file2_stat, subdir_stat, True));
+        assertFalse(same_file_stat(file3_stat, subdir_stat, True));
+        assertFalse(same_file_stat(tmp_path_stat, file1_stat, False));
+        assertFalse(same_file_stat(tmp_path_stat, file2_stat, False));
+        assertFalse(same_file_stat(tmp_path_stat, file3_stat, False));
+        assertFalse(same_file_stat(tmp_path_stat, subdir_stat, False));
+        assertFalse(same_file_stat(file1_stat, file2_stat, False));
+        assertFalse(same_file_stat(file1_stat, file3_stat, False));
+        assertFalse(same_file_stat(file1_stat, subdir_stat, False));
+        assertFalse(same_file_stat(file2_stat, file3_stat, False));
+        assertFalse(same_file_stat(file2_stat, subdir_stat, False));
+        assertFalse(same_file_stat(file3_stat, subdir_stat, False));
+    }
+
+    test_same_file_stat_exception() {
+        string tmp_path = make_tmp_dir();
+        hash<StatInfo> tmp_path_stat = hstat(tmp_path);
+        on_exit {
+            remove_tree(tmp_path);
+        }
+
+        *hash<StatInfo> non_file_stat = NOTHING; # file does not exist
+
+        # test that we get an exception if non-existent stat hash is passed to the function
+        assertThrows("STAT-HASH-MISSING", \same_file_stat(), (tmp_path_stat, non_file_stat, False));
+        assertThrows("STAT-HASH-MISSING", \same_file_stat(), (non_file_stat, tmp_path_stat, False));
+        assertThrows("STAT-HASH-MISSING", \same_file_stat(), (non_file_stat, non_file_stat, False));
+    }
+}

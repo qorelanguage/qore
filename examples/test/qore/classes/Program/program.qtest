@@ -66,7 +66,6 @@ nothing sub funcParamTypeTest(
     ) {
 }
 
-
 namespace NS {
     list sub funcNSTest() {
         return list();
@@ -201,8 +200,11 @@ class ProgramTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
-        addTestCase("issue 3027", \issue3027Test());
+        addTestCase("issue 3136", \issue3136());
+        addTestCase("issue 3027 test", \issue3027Test());
+        addTestCase("issueModuleCmd() test", \issueModuleCmdTest());
         addTestCase("issue 2807", \issue2807());
+        addTestCase("issue 2735 test", \issue2735Test());
         addTestCase("Program test", \programTest());
         addTestCase("Combine test", \combineTest());
         addTestCase("Int assignments test", \intAssignmentsTest());
@@ -217,15 +219,53 @@ class ProgramTest inherits QUnit::Test {
     	set_return_value(main());
     }
 
+    issue3136() {
+        Program p(PO_NO_INHERIT_USER_HASHDECLS|PO_NO_INHERIT_SYSTEM_HASHDECLS|PO_ALLOW_WEAK_REFERENCES);
+        assertEq((
+            "PO_NO_INHERIT_USER_HASHDECLS",
+            "PO_NO_INHERIT_SYSTEM_HASHDECLS",
+            "PO_ALLOW_WEAK_REFERENCES",
+        ), p.getParseOptionStringList());
+    }
+
     issue3027Test() {
         Program p(PO_NEW_STYLE);
         assertThrows("PARSE-EXCEPTION", \p.parse(), ('sub foo() { hash h = T{"foo"}; return h.a; } const T = { "foo": { "a": 1, "b": foo()},}; foo();', ""));
+    }
+
+    issueModuleCmdTest() {
+        Program p(PO_NEW_STYLE);
+
+        assertThrows("PARSE-COMMAND-ERROR", \p.issueModuleCmd(), ("Util", "xxx"));
     }
 
     issue2807() {
         Program p(PO_NO_GLOBAL_VARS);
         p.loadModule("CsvUtil");
         assertTrue(True);
+    }
+
+    issue2735Test() {
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("DUPLICATE-SIGNATURE", \p.parse(), ("namespace T {sub t() {}} namespace T {sub t() {}}", "issue 2735"));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("namespace T {const A = 1;} namespace T {const A = 1;}", "issue 2735"));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("namespace T {class A;} namespace T {class A;}", "issue 2735"));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("namespace T {hashdecl A {int i;}} namespace T {hashdecl A {int i;}}", "issue 2735"));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ("namespace T {our int a;} namespace T {our int a;}", "issue 2735"));
+        }
     }
 
     programTest() {
@@ -238,9 +278,11 @@ class ProgramTest inherits QUnit::Test {
         string nf = "bool sub newfunc() { return True; }";
 
         Program a(PO_NEW_STYLE);
+        assertEq(PO_NEW_STYLE, a.getParseOptions());
+        # PO_NEW_STYLE is made up of the following two parse options
+        assertEq(("PO_ALLOW_BARE_REFS", "PO_ASSUME_LOCAL"), a.getParseOptionStringList());
         a.parsePending(pf, "pending test part1", 0);
         a.parsePending(nf, "pending test part2", 0);
-        a.parseCommit();
         a.importFunction("t");
         a.importGlobalVariable("to");
         a.importGlobalVariable("ro", True);
@@ -289,12 +331,12 @@ class ProgramTest inherits QUnit::Test {
 
         # test for incorrect parse location when processing constants after a commit
         a = new Program(PO_NEW_STYLE);
-        a.parse("sub x() {}", "lib");
-        *hash h = a.parse("const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
-        assertEq("<run-time-loaded: warn>", h.file);
+        *hash h = a.parse("sub x() {} const X1 = 'a'; const X2 = 'a'; const h = (X1: 1, X2: 2);", "warn", WARN_ALL);
+        assertEq("warn", h.file);
 
         # make sure recursive constant definitions are handled
         try {
+            a = new Program(PO_NEW_STYLE);
             a.parse("const A = B; const B = A;", "rec");
         }
         catch (hash<ExceptionInfo> ex) {
@@ -336,6 +378,13 @@ class ProgramTest inherits QUnit::Test {
             assertThrows("PARSE-EXCEPTION", \p5.parse(), ("#", ""));
             # issue #2175: the following code will crash without the fix
             assertThrows("PARSE-EXCEPTION", \p5.parse(), ("/*", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            # ensure that programs cannot be accessed while parsing
+            p.parsePending("class T { int t() { int a = 1; return a; }} T t();", "");
+            assertThrows("PROGRAM-ERROR", \p.run());
         }
     }
 
@@ -574,7 +623,7 @@ class ProgramTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
-            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; set_local_var_value(0, 'i', 2); set_local_var_value(0, 'str', 'bye'); sub () { i = 3; }; return get_local_vars(frame); }", "");
+            p.parse("hash sub test(int frame) { int i = 1; string str = 'hi'; set_local_var_value(0, 'i', 2); set_local_var_value(0, 'str', 'bye'); code f = sub() {i = 3;}; return get_local_vars(frame); }", "");
 
             hash vh = (
                 "frame": ("type": "local", "value": 0),
@@ -583,7 +632,7 @@ class ProgramTest inherits QUnit::Test {
                 "argv": ("type": "local", "value": NOTHING),
                 );
 
-            assertEq(vh, p.callFunction("test", 0));
+            assertEq(vh, p.callFunction("test", 0) - "f");
             assertEq(p, p.callFunction("test", 1).p.value);
         }
 
@@ -595,13 +644,13 @@ class ProgramTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
-            p.parse("sub test() { int i = 1; set_local_var_value(0, 'x', 2); sub () { i = 3; };}", "");
+            p.parse("sub test() { int i = 1; set_local_var_value(0, 'x', 2); code f = sub() {i = 3;};}", "");
             assertThrows("UNKNOWN-VARIABLE", \p.callFunction(), "test");
         }
 
         {
             Program p(PO_NEW_STYLE|PO_STRICT_ARGS|PO_REQUIRE_TYPES|PO_ALLOW_DEBUGGER);
-            p.parse("sub test() { int i = 1; set_local_var_value(0, 'i', 'hi'); sub () { i = 3; };}", "");
+            p.parse("sub test() { int i = 1; set_local_var_value(0, 'i', 'hi'); code f = sub() {i = 3;};}", "");
             assertThrows("RUNTIME-TYPE-ERROR", \p.callFunction(), "test");
         }
 

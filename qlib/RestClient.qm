@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file RestClient.qm Qore user module for calling REST services
+#! @file RestClient.qm Qore user module for calling REST services
 
 /*  RestClient.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
 
@@ -23,7 +23,7 @@
 */
 
 # this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 # require type definitions everywhere
 %require-types
@@ -37,7 +37,7 @@
 %enable-all-warnings
 
 %requires Mime >= 1.3
-%requires(reexport) ConnectionProvider >= 1.0
+%requires(reexport) ConnectionProvider >= 1.2
 %requires(reexport) RestSchemaValidator >= 1.0
 %requires Swagger >= 0.1
 
@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.4.1";
+    version = "1.6";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -123,6 +123,14 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_6 RestClient v1.6
+    - all connection clases have unified constructor
+
+    @subsection restclientv1_5 RestClient v1.5
+    - added the @ref RestClient::RestConnection::getConstructorInfo() "RestConnection::getConstructorInfo()"
+      method to allow connections to be created dynamically, potentially in another process from a network
+      call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
     @subsection restclientv1_4_1 RestClient v1.4.1
     - added support for REST requests with binary message bodies; added the \c "bin" serialization method
@@ -941,19 +949,41 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             const OptionList = Options.keys();
         }
 
-        #! creates the RestConnection object
+        #! DEPRECATED: creates the RestConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL (potentially with password info)
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : HttpBasedConnection(name, desc, url, monitor, opts, urlh) {
-            real_opts = ("url": real_url) + opts;
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : HttpBasedConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+            real_opts = {"url": real_url} + opts;
         }
 
-        #! returns a @ref RestClient::RestClient object
+        #! creates the RestConnection connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+
+            @par Additional Attributes
+
+                - \c error a custom error string
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : HttpBasedConnection(name, description, url, attributes, options) {
+            real_opts = {"url": real_url} + options;
+        }
+
+        #! returns a @ref RestClient::RestClient "RestClient" object
         /** @param connect if @ref Qore::True "True", then the connection is returned already connected
             @param rtopts supports the following runtime option in getImpl():
             - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object for REST message validation (if present, overrides any REST schema validation option provided as a connection option)
@@ -962,6 +992,18 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
         */
         private RestClient getImpl(bool connect = True, *hash rtopts) {
             return new RestClient(real_opts + (rtopts.validator ? ("validator": rtopts.validator) : NOTHING), !connect);
+        }
+
+        #! returns a hash that can be used to contruct the object dynamically
+        /** @since %RestClient 1.5
+        */
+        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
+            return new hash<ConnectionConstructorInfo>({
+                "module": "RestClient",
+                "class_name": "RestClient",
+                "args": real_opts,
+                "pre_processing": "if (rtopts.validator) {args[0] += (\"validator\": rtopts.validator);} args[1] = !connect;",
+            });
         }
 
         #! gets options
@@ -992,9 +1034,15 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             return "rest";
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static RestConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new RestConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+            return new RestConnection(name, desc, url, attributes, opts ?? {});
         }
     }
 }

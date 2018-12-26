@@ -1,0 +1,89 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class TmpDirTest
+
+public class TmpDirTest inherits QUnit::Test {
+
+    private {
+        list params = (
+            # (prefix, suffix)
+            (NOTHING, NOTHING),
+            ("FOO", NOTHING),
+            (NOTHING, "BAR"),
+            ("", ""),
+            ("FOO", ""),
+            ("", "BAR"),
+            ("FOO", "BAR"),
+        );
+    }
+
+    constructor() : Test ("TmpDirTest", "1.0") {
+        addTestCase("tmp_dir test - standard temp location", \test_tmp_dir_std());
+        addTestCase("tmp_dir test - custom temp location", \test_tmp_dir_custom());
+        set_return_value(main());
+    }
+
+    test_tmp_dir_std() {
+        string tmp_path = tmp_location();
+
+        foreach list p in (params) {
+            string path = "";
+
+            {
+                TmpDir tmp_dir = new TmpDir(p[0], p[1]);
+                path = tmp_dir.path;   # to check that it's removed automatically outside of this block later
+                assertTrue(is_dir(tmp_dir.path));
+                assertTrue(is_writable(tmp_dir.path));
+
+                assertTrue(string_starts_with(tmp_dir.path, tmp_path));
+                assertTrue(string_starts_with(tmp_dir.path, join_paths(tmp_path, p[0])));
+                assertTrue(string_ends_with(tmp_dir.path, p[1] ?? ""));
+            }
+
+            assertNeq("", path);
+            assertFalse(path_exists(path));
+        }
+    }
+
+    test_tmp_dir_custom() {
+        string tmp_location;
+        if (Platform.Windows)
+            tmp_location = 'c:\temp';
+        else
+            tmp_location = "/tmp";
+
+        # create a custom temp location
+        string tmp_path = join_paths(tmp_location, get_random_string());
+        assertEq(0, mkdir(tmp_path));
+        on_exit {
+            rmdir(tmp_path);
+        }
+
+        foreach list p in (params) {
+            string path = "";
+
+            {
+                TmpDir tmp_dir = new TmpDir(p[0], p[1], tmp_path);
+                path = tmp_dir.path;   # to check that it's removed automatically outside of this block later
+                assertTrue(is_dir(tmp_dir.path));
+                assertTrue(is_writable(tmp_dir.path));
+
+                assertTrue(string_starts_with(tmp_dir.path, tmp_path));
+                assertTrue(string_starts_with(tmp_dir.path, join_paths(tmp_path, p[0])));
+                assertTrue(string_ends_with(tmp_dir.path, p[1] ?? ""));
+            }
+
+            assertNeq("", path);
+            assertFalse(path_exists(path));
+        }
+    }
+}

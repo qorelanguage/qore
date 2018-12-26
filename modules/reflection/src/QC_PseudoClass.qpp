@@ -1,0 +1,202 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_PseudoClass.cpp PseudoClass class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include <qore_reflection.h>
+#include <QC_PseudoClass.h>
+#include <QC_Type.h>
+
+QoreObject* get_pseudo_class_object(qore_type_t t) {
+    QoreProgram* pgm = getProgram();
+    const QoreClass* cls = qore_pseudo_get_class(t);
+    assert(cls);
+    return new QoreObject(QC_PSEUDOCLASS, pgm, new QoreReflectionClass(pgm, cls));
+}
+
+/** @defgroup pseudo_class_constants Pseudo Class Constants
+
+    @since %Qore 0.9.0
+*/
+//@{
+//! the base (default) pseudo-class
+/**
+*/
+const ValuePseudoClass = qore(get_pseudo_class_object(-1));
+
+//! pseudo-class for binary objects
+/**
+*/
+const BinaryPseudoClass = qore(get_pseudo_class_object(NT_BINARY));
+
+//! pseudo-class for boolean values
+/**
+*/
+const BoolPseudoClass = qore(get_pseudo_class_object(NT_BOOLEAN));
+
+//! pseudo-class for callable types
+/**
+*/
+const CallablePseudoClass = qore(get_pseudo_class_object(NT_FUNCREF));
+
+//! pseudo-class for closures
+/**
+*/
+const ClosurePseudoClass = qore(get_pseudo_class_object(NT_RUNTIME_CLOSURE));
+
+//! pseudo-class for date-time values
+/**
+*/
+const DatePseudoClass = qore(get_pseudo_class_object(NT_DATE));
+
+//! pseudo-class for floating-point values
+/**
+*/
+const FloatPseudoClass = qore(get_pseudo_class_object(NT_FLOAT));
+
+//! pseudo-class for hashes
+/**
+*/
+const HashPseudoClass = qore(get_pseudo_class_object(NT_HASH));
+
+//! pseudo-class for integers
+/**
+*/
+const IntPseudoClass = qore(get_pseudo_class_object(NT_INT));
+
+//! pseudo-class for lists
+/**
+*/
+const ListPseudoClass = qore(get_pseudo_class_object(NT_LIST));
+
+//! pseudo-class for nothing (no value)
+/**
+*/
+const NothingPseudoClass = qore(get_pseudo_class_object(NT_NOTHING));
+
+//! pseudo-class for arbitrary-percision numeric values
+/**
+*/
+const NumberPseudoClass = qore(get_pseudo_class_object(NT_NUMBER));
+
+//! pseudo-class for objects
+/**
+*/
+const ObjectPseudoClass = qore(get_pseudo_class_object(NT_OBJECT));
+
+//! pseudo-class for strings
+/**
+*/
+const StringPseudoClass = qore(get_pseudo_class_object(NT_STRING));
+//@}
+
+//! This class provides information about %Qore pseudo classes
+/** Pseudo classes have pseudo methods and variants that operate on normal %Qore values.
+
+    @ref Qore::Reflection::AbstractClass "AbstractClass" methods behave as follows:
+    - @ref Qore::Reflection::AbstractClass::getMethod() "AbstractClass::getMethod()": returns
+      @ref Qore::Reflection::PseudoMethod "PseudoMethod" objects
+    - @ref Qore::Reflection::AbstractClass::getMethods() "AbstractClass::getMethods()": returns a list of
+      @ref Qore::Reflection::PseudoMethod "PseudoMethod" objects
+    - @ref Qore::Reflection::AbstractClass::getVariant() "AbstractClass::getVariant()" and
+      @ref Qore::Reflection::AbstractClass::getVariantArgs() "AbstractClass::getVariantArgs()": return
+      @ref Qore::Reflection::PseudoMethodVariant "PseudoMethodVariant" objects
+    - @ref Qore::Reflection::AbstractClass::getVariants() "AbstractClass::getVariant()": returns a list of
+      @ref Qore::Reflection::PseudoMethodVariant "PseudoMethodVariant" objects
+    - @ref Qore::Reflection::AbstractClass::getParentClasses() "AbstractClass::getParentClasses()": returns a list of
+      @ref Qore::Reflection::PseudoClass "PseudoClass" objects
+
+    @see
+    - @ref Qore::Reflection::PseudoMethod "PseudoMethod"
+    - @ref Qore::Reflection::PseudoMethodVariant "PseudoMethodVariant"
+
+    @since %Qore 0.9
+ */
+qclass PseudoClass [ns=Qore::Reflection; arg=QoreReflectionClass* c; dom=REFLECTION; vparent=AbstractClass];
+
+//! Creates a %PseudoClass object for the given value's type
+/** @par Example:
+    @code{.py}
+PseudoClass cls(val);
+    @endcode
+
+    @param val the value for the pseudo-class
+
+    @see forValue()
+ */
+PseudoClass::constructor(auto val) {
+    self->setPrivate(CID_PSEUDOCLASS, new QoreReflectionClass(getProgram(), qore_pseudo_get_class(val.getType())));
+}
+
+//! Creates a %PseudoClass object for the given type
+/** @par Example:
+    @code{.py}
+PseudoClass cls(type);
+    @endcode
+
+    @param type the type to return the pseudo-class for
+
+    @see forType()
+ */
+PseudoClass::constructor(Type[QoreType] type) {
+    ReferenceHolder<QoreType> holder(type, xsink);
+    self->setPrivate(CID_PSEUDOCLASS, new QoreReflectionClass(getProgram(), qore_pseudo_get_class(type->typeInfo)));
+}
+
+//! Returns a %PseudoClass object for the given value's type
+/** @par Example:
+    @code{.py}
+PseudoClass cls = PseudoClass::forValue(val);
+    @endcode
+
+    @param val the value to return the pseudo-class for
+
+    @return a %PseudoClass object representing the pseudo-class for the given value's type; if no exact
+    match can be found, a %PseudoClass object for @ref Qore::zzz8valuezzz9 "<value>" is returned
+*/
+static PseudoClass PseudoClass::forValue(auto val) [flags=CONSTANT] {
+    QoreProgram* pgm = getProgram();
+    return new QoreObject(QC_PSEUDOCLASS, pgm, new QoreReflectionClass(pgm, qore_pseudo_get_class(val.getType())));
+}
+
+//! Returns a %PseudoClass object for the given type
+/** @par Example:
+    @code{.py}
+PseudoClass cls = PseudoClass::forType(type);
+    @endcode
+
+    @param type the type to return the pseudo-class for
+
+    @return a %PseudoClass object representing the pseudo-class for the given type; if no exact
+    match can be found, a %PseudoClass object for @ref Qore::zzz8valuezzz9 "<value>" is returned
+*/
+static PseudoClass PseudoClass::forType(Type[QoreType] type) [flags=CONSTANT] {
+    ReferenceHolder<QoreType> holder(type, xsink);
+    QoreProgram* pgm = getProgram();
+    return new QoreObject(QC_PSEUDOCLASS, pgm, new QoreReflectionClass(pgm, qore_pseudo_get_class(type->typeInfo)));
+}

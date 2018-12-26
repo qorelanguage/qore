@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file SmtpClient.qm SmtpClient module definition
+#! @file SmtpClient.qm SmtpClient module definition
 
-/*  SmtpClient.qm Copyright 2012 - 2017 Qore Technologies, s.r.o.
+/*  SmtpClient.qm Copyright 2012 - 2018 Qore Technologies, s.r.o.
 
     Original Authors: Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok
 
@@ -25,7 +25,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 # need mime definitions
 %requires Mime >= 1.4
@@ -33,13 +33,13 @@
 # need MailMessage classes
 %requires MailMessage >= 1.3
 
-%requires(reexport) ConnectionProvider
+%requires(reexport) ConnectionProvider >= 1.1
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
 
 module SmtpClient {
-    version = "1.6";
+    version = "1.7";
     desc = "SMTP client support module";
     author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
@@ -108,6 +108,11 @@ smtp.sendMessage(msg);@endcode
     - http://tools.ietf.org/html/rfc2822: message structure, headers, body, etc
 
     @section smtpclient_relnotes SmtpClient Release Notes
+
+    @subsection smtpclient_v1_7 SmtpClient 1.7
+    - added the @ref SmtpClient::SmtpConnection::getConstructorInfo() "SmtpConnection::getConstructorInfo()"
+      method to allow connections to be created dynamically, potentially in another process from a network
+      call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
     @subsection smtpclient_v1_6 SmtpClient 1.6
     - added the @ref SmtpClient::SmtpConnection "SmtpConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
@@ -296,18 +301,21 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
 
             if (uh.protocol) {
                 *hash ph = Protocols.(uh.protocol);
-                if (!ph)
-                    throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported protocol %y in %y", uh.protocol, url);
+                if (!ph) {
+                    throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported scheme %y in %y; known schemes: %y", uh.protocol, url, keys Protocols);
+                }
 
-                if (!uh.port)
+                if (!uh.port && uh.host[0] != "/") {
                     uh.port = ph.port;
+                }
 
                 self += ph.("tls", "ssl");
             }
-            else if (!uh.port)
+            else if (!uh.port && uh.host[0] != "/") {
                 uh.port = SmtpPort;
+            }
 
-            connect = sprintf("%s:%d", uh.host, uh.port);
+            connect = uh.port ? sprintf("%s:%d", uh.host, uh.port) : uh.host;
             logDbg("SmtpClient server: %y", connect);
 
             if (uh.username) {
@@ -332,6 +340,13 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
             catch (hash<ExceptionInfo> ex) {
                 logDbg("SmtpClient disconnect: %s: %s", ex.err, ex.desc);
             }
+        }
+
+        #! Returns the connection target string
+        /** @since %SmtpClient 1.7
+        */
+        string getTarget() {
+            return connect;
         }
 
         #! sets the TLS/SSL flag
@@ -812,17 +827,34 @@ smtp.clearStats();
         @since %SmtpClient 1.6
     */
     public class SmtpConnection inherits ConnectionProvider::AbstractConnection {
-        #! creates the SmtpConnection object
+        #! DEPRECATED: creates the SmtpConnection object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts) {
             #code log = sub (string fmt) { vprintf(fmt + "\n", argv); };
             #opts.dbglog = opts.log = log;
+        }
+
+        #! creates the SmtpConnection connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
         }
 
         #! returns \c "smtp"
@@ -857,9 +889,28 @@ smtp.clearStats();
             return sc;
         }
 
-        #! static constructor
+        #! returns a hash that can be used to contruct the object dynamically
+        /** @since %SmtoClient 1.7
+        */
+        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
+            return new hash<ConnectionConstructorInfo>({
+                "module": "SmtpClient",
+                "class_name": "SmtpClient",
+                "args": url,
+                "pre_processing": "args += (rtopts.log, rtopts.dbglog);",
+                "post_processing": "if (connect) obj.connect();",
+            });
+        }
+
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static SmtpConnection make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new SmtpConnection(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+            return new SmtpConnection(name, desc, url, attributes, opts ?? {});
         }
     }
 }

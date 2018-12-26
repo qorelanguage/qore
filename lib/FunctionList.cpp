@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -32,160 +32,175 @@
 #include "qore/intern/FunctionList.h"
 #include "qore/intern/QoreNamespaceIntern.h"
 
-#include <string.h>
+#include <cstring>
 
-qore_ns_private* FunctionEntry::getNamespace() const {
-   return func->getNamespace();
-}
-
-ResolvedCallReferenceNode* FunctionEntry::makeCallReference(const QoreProgramLocation& loc) const {
+ResolvedCallReferenceNode* FunctionEntry::makeCallReference(const QoreProgramLocation* loc) const {
    return new LocalFunctionCallReferenceNode(loc, func);
 }
 
-void FunctionEntry::updateNs(qore_ns_private* ns) {
-   func->updateNs(ns);
-}
-
-ModuleImportedFunctionEntry::ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(*(old.getFunction()), PO_NO_SYSTEM_FUNC_VARIANTS, ns)) {
+ModuleImportedFunctionEntry::ModuleImportedFunctionEntry(const FunctionEntry& old, qore_ns_private* ns) : FunctionEntry(old.getName(), new QoreFunction(*(old.getFunction()), PO_NO_SYSTEM_FUNC_VARIANTS), ns) {
 }
 
 FunctionList::FunctionList(const FunctionList& old, qore_ns_private* ns, int64 po) {
-   bool no_user = po & PO_NO_INHERIT_USER_FUNC_VARIANTS;
-   bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
-   for (fl_map_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
-      QoreFunction* f = i->second->getFunction();
-      if (!f->hasBuiltin()) {
-         if (no_user || !f->hasUserPublic())
+    bool no_user = po & PO_NO_INHERIT_USER_FUNC_VARIANTS;
+    bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
+    for (fl_map_t::const_iterator i = old.begin(), e = old.end(); i != e; ++i) {
+        QoreFunction* f = i->second->getFunction();
+        if (f->allPrivate()) {
             continue;
-      }
-      else if (no_builtin && !f->hasUserPublic())
-         continue;
+        }
+        if (!f->hasBuiltin()) {
+            if (no_user || !f->hasUserPublic())
+                continue;
+        }
+        else if (no_builtin && !f->hasUserPublic())
+            continue;
 
-      FunctionEntry* fe = new FunctionEntry(i->first, new QoreFunction(*f, po, ns));
-      insert(std::make_pair(fe->getName(), fe));
-      //if (!strcmp(i->first, "make_select_list2"))
-      //if (f->hasUser())  printd(0, "FunctionList::FunctionList() this: %p copying fe: %p %s user: %d builtin: %d public: %d\n", this, i->second, i->first, f->hasUser(), f->hasBuiltin(), f->hasUserPublic());
-   }
+        // copy by reference if possible
+        FunctionEntry* fe;
+        if (!f->hasPrivate() && (!no_user || !f->hasUser()) && (!no_builtin || !f->hasBuiltin())) {
+            QoreFunction* func = i->second->getFunction();
+            func->ref();
+            fe = new FunctionEntry(i->first, func, ns);;
+        }
+        else {
+            // otherwise we have to make a new function object with only the desired visible variants
+            fe = new FunctionEntry(i->first, new QoreFunction(*f, po), ns);
+        }
+        insert(std::make_pair(fe->getName(), fe));
+        //if (!strcmp(i->first, "make_select_list2"))
+        //if (f->hasUser())  printd(0, "FunctionList::FunctionList() this: %p copying fe: %p %s user: %d builtin: %d public: %d\n", this, i->second, i->first, f->hasUser(), f->hasBuiltin(), f->hasUserPublic());
+    }
 }
 
 void FunctionList::del() {
-   for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
-      delete i->second;
-   clear();
-   assert(empty());
+    for (auto& i : *this) {
+        i.second->deref();
+    }
+    /*
+    for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
+        delete i->second;
+    */
+    clear();
+    assert(empty());
 }
 
-FunctionEntry* FunctionList::add(QoreFunction* func) {
-   QORE_TRACE("FunctionList::add()");
-   assert(!findNode(func->getName()));
-   assert(func->getNamespace());
+FunctionEntry* FunctionList::add(QoreFunction* func, qore_ns_private* ns) {
+    QORE_TRACE("FunctionList::add()");
+    assert(!findNode(func->getName()));
 
-   FunctionEntry* n = new FunctionEntry(func);
-   insert(std::make_pair(func->getName(), n));
-   return n;
+    FunctionEntry* n = new FunctionEntry(func, ns);
+    insert(std::make_pair(func->getName(), n));
+    return n;
 }
 
 FunctionEntry* FunctionList::import(QoreFunction* func, qore_ns_private* ns) {
-   QORE_TRACE("FunctionList::import()");
-   assert(!findNode(func->getName()));
-   assert(func->getNamespace());
+    QORE_TRACE("FunctionList::import()");
+    assert(!findNode(func->getName()));
 
-   // copy function entry for import and insert into map
-   FunctionEntry* fe = new FunctionEntry(new QoreFunction(*func, 0, ns));
-   insert(fl_map_t::value_type(fe->getName(), fe));
-   return fe;
+    // copy function entry for import and insert into map
+    FunctionEntry* fe = new FunctionEntry(new QoreFunction(*func, 0), ns);
+    insert(fl_map_t::value_type(fe->getName(), fe));
+    return fe;
 }
 
 FunctionEntry* FunctionList::import(const char* new_name, QoreFunction* func, qore_ns_private* ns, bool inject) {
-   QORE_TRACE("FunctionList::import()");
+    QORE_TRACE("FunctionList::import()");
 
-   assert(!findNode(new_name));
+    assert(!findNode(new_name));
 
-   // copy function entry for import and insert into map
-   FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func, 0, ns, true, inject));
-   insert(std::make_pair(fe->getName(), fe));
-   return fe;
+    // copy function entry for import and insert into map
+    FunctionEntry* fe = new FunctionEntry(new_name, new QoreFunction(*func, 0, true, inject), ns);
+    insert(std::make_pair(fe->getName(), fe));
+    return fe;
 }
 
-FunctionEntry* FunctionList::findNode(const char* name) const {
-   printd(5, "FunctionList::findNode(%s)\n", name);
+FunctionEntry* FunctionList::findNode(const char* name, bool runtime) const {
+    printd(5, "FunctionList::findNode(%s)\n", name);
 
-   fl_map_t::const_iterator i = fl_map_t::find(name);
-   return i != end() ? i->second : 0;
+    fl_map_t::const_iterator i = fl_map_t::find(name);
+    if (i != end()) {
+        if (runtime && i->second->getFunction()->committedEmpty()) {
+            return nullptr;
+        }
+
+        return i->second;
+    }
+    return nullptr;
 }
 
 QoreFunction* FunctionList::find(const char* name, bool runtime) const {
-   printd(5, "FunctionList::findFunction(%s) (QoreFunction)\n", name);
+    printd(5, "FunctionList::findFunction(%s) (QoreFunction)\n", name);
 
-   fl_map_t::const_iterator i = fl_map_t::find(name);
-   if (i != end())
-      return i->second->getFunction(runtime);
+    fl_map_t::const_iterator i = fl_map_t::find(name);
+    if (i != end())
+        return i->second->getFunction(runtime);
 
-   return 0;
+    return nullptr;
 }
 
 QoreListNode* FunctionList::getList() {
-   QoreListNode* l = new QoreListNode;
+    QoreListNode* l = new QoreListNode;
 
-   for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
-      l->push(new QoreStringNode(i->first));
+    for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
+        l->push(new QoreStringNode(i->first), nullptr);
 
-   return l;
+    return l;
 }
 
 void FunctionList::parseInit() {
-   for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
-      i->second->parseInit();
+    for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
+        i->second->parseInit();
 }
 
 void FunctionList::parseCommit() {
-   // commit pending variants in all functions
-   for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
-      i->second->parseCommit();
+    // commit pending variants in all functions
+    for (fl_map_t::iterator i = begin(), e = end(); i != e; ++i)
+        i->second->parseCommit();
 }
 
 void FunctionList::parseRollback() {
-   for (fl_map_t::iterator i = begin(), e = end(); i != e;) {
-      if (i->second->parseRollback()) {
-	 delete i->second;
-	 erase(i++);
-	 continue;
-      }
+    for (fl_map_t::iterator i = begin(), e = end(); i != e;) {
+        if (i->second->parseRollback()) {
+            i->second->deref();
+            erase(i++);
+            continue;
+        }
 
-      ++i;
-   }
+        ++i;
+    }
 }
 
 void FunctionList::assimilate(FunctionList& fl, qore_ns_private* ns) {
-   for (fl_map_t::iterator i = fl.begin(), e = fl.end(); i != e;) {
-      fl_map_t::const_iterator li = fl_map_t::find(i->first);
-      if (li == end()) {
-	 insert(fl_map_t::value_type(i->first, i->second));
-	 i->second->updateNs(ns);
-      }
-      else {
-	 li->second->getFunction()->parseAssimilate(*(i->second->getFunction()));
-	 delete i->second;
-      }
+    for (fl_map_t::iterator i = fl.begin(), e = fl.end(); i != e;) {
+        fl_map_t::const_iterator li = fl_map_t::find(i->first);
+        if (li == end()) {
+            insert(fl_map_t::value_type(i->first, i->second));
+            i->second->updateNs(ns);
+        }
+        else {
+            li->second->getFunction()->parseAssimilate(*(i->second->getFunction()));
+            i->second->deref();
+        }
 
-      fl.erase(i++);
-   }
+        fl.erase(i++);
+    }
 }
 
 int FunctionList::importSystemFunctions(const FunctionList& src, qore_ns_private* ns, ExceptionSink* xsink) {
-   int cnt = 0;
-   for (fl_map_t::const_iterator i = src.begin(), e = src.end(); i != e; ++i) {
-      if (i->second->hasBuiltin()) {
-	 fl_map_t::const_iterator ci = fl_map_t::find(i->second->getName());
-	 if (ci != fl_map_t::end() && !ci->second->getFunction()->injected()) {
-	    xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system function %s::%s() due to an existing function without the injection flag set", ns->name.c_str(), ci->second->getName());
-	    break;
-	 }
+    int cnt = 0;
+    for (fl_map_t::const_iterator i = src.begin(), e = src.end(); i != e; ++i) {
+        if (i->second->hasBuiltin()) {
+            fl_map_t::const_iterator ci = fl_map_t::find(i->second->getName());
+            if (ci != fl_map_t::end() && !ci->second->getFunction()->injected()) {
+                xsink->raiseException("IMPORT-SYSTEM-API-ERROR", "cannot import system function %s::%s() due to an existing function without the injection flag set", ns->name.c_str(), ci->second->getName());
+                break;
+            }
 
-	 import(i->second->getFunction(), ns);
-	 ++cnt;
-      }
-   }
-   return cnt;
+            import(i->second->getFunction(), ns);
+            ++cnt;
+        }
+    }
+    return cnt;
 }
 

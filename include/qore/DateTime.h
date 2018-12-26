@@ -33,7 +33,7 @@
 
 #define QORE_DATETIME_H
 
-#include <time.h>
+#include <ctime>
 
 class AbstractQoreZoneInfo;
 
