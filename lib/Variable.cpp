@@ -570,8 +570,9 @@ double LValueHelper::getAsFloat() const {
 
 int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool weak_assignment) {
     assert(!*vl.xsink);
-    if (n.type == QV_Node && n.v.n == &Nothing)
+    if (n.type == QV_Node && n.v.n == &Nothing) {
         n.v.n = nullptr;
+    }
 
     //printd(5, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' (%d) val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getFullTypeName(), n.getType(), val, qv);
     if (check_types) {
