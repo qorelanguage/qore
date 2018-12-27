@@ -14,6 +14,7 @@
 class DirTest inherits QUnit::Test {
     constructor() : QUnit::Test("Dir", "1.0") {
         addTestCase("DirTest", \dirTest());
+        addTestCase("issue3192 test", \issue3192Test());
         set_return_value(main());
     }
 
@@ -44,5 +45,43 @@ class DirTest inherits QUnit::Test {
         assertEq(2, rc);
         assertEq("DIRECTORY", hstat(path3).type);
         assertEq("DIRECTORY", hstat(path2).type);
+    }
+
+    issue3192Test() {
+%ifdef Windows
+        testSkip("skipping because the test is being run on Windows");
+%endif
+
+        # create temp dir
+        string tmpdirPath = sprintf(tmp_location() + DirSep + "qoretest" + get_random_string());
+        Dir d();
+        bool b = d.chdir(tmpdirPath);
+        assertEq(False, b);
+        int rc = d.create();
+        on_exit system("rm -rf --preserve-root " + tmpdirPath);
+
+        # create random file
+        string fileA = get_random_string() + "A";
+        string aPath = tmpdirPath + DirSep + fileA;
+        {
+            File f();
+            f.open2(aPath, O_CREAT | O_WRONLY | O_TRUNC);
+            f.write("abc\n");
+            f.close();
+        }
+        on_exit system("rm -f " + aPath);
+
+        # create symlink with non-existent target
+        string linkName = get_random_string() + "_link";
+        string linkPath = tmpdirPath + DirSep + linkName;
+        string targetName = "sdjfksdfjksf";
+        rc = system("ln -s " + targetName + " " + linkPath);
+        if (rc)
+            fail();
+        on_exit system("rm -f " + linkPath);
+
+        assertEq(sort((fileA, linkName)), sort(d.list()));
+        assertEq((fileA,), d.listFiles());
+        assertEq(list(), d.listDirs());
     }
 }
