@@ -495,6 +495,8 @@ const QoreTypeInfo* getTypeInfoForValue(const AbstractQoreNode* n) {
    switch (t) {
       case NT_OBJECT:
          return static_cast<const QoreObject*>(n)->getClass()->getTypeInfo();
+      case NT_WEAKREF:
+         return static_cast<const WeakReferenceNode*>(n)->get()->getClass()->getTypeInfo();
       case NT_HASH:
          return static_cast<const QoreHashNode*>(n)->getTypeInfo();
       case NT_LIST:
@@ -683,26 +685,36 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
     return QTI_NOT_EQUAL;
 }
 
-bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map, const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper) const {
+static bool type_spec_accept_object(const QoreClass& type_class, const QoreClass& object_class, bool& priv_error) {
+    assert(!priv_error);
+
+    bool priv;
+    if (!object_class.getClass(type_class, priv)) {
+        return false;
+    }
+    if (!priv) {
+        return true;
+    }
+    // check access
+    if (qore_class_private::runtimeCheckPrivateClassAccess(type_class)) {
+        return true;
+    }
+    priv_error = true;
+    return false;
+}
+
+bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInfo, q_type_map_t map,
+    const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n,
+    LValueHelper* lvhelper) const {
     bool priv_error = false;
     bool ok = false;
 
     switch (typespec) {
         case QTS_CLASS: {
             if (n.getType() == NT_OBJECT) {
-                bool priv;
-                if (!n.get<const QoreObject>()->getClass()->getClass(*u.qc, priv))
-                    break;
-                if (!priv) {
-                    ok = true;
-                    break;
-                }
-                // check access
-                if (qore_class_private::runtimeCheckPrivateClassAccess(*u.qc)) {
-                    ok = true;
-                    break;
-                }
-                priv_error = true;
+                ok = type_spec_accept_object(*u.qc, *n.get<const QoreObject>()->getClass(), priv_error);
+            } else if (n.getType() == NT_WEAKREF) {
+                ok = type_spec_accept_object(*u.qc, *n.get<const WeakReferenceNode>()->get()->getClass(), priv_error);
             }
             break;
         }
@@ -731,15 +743,15 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     AbstractQoreNode* p = n.assign(h = qore_hash_private::get(*h)->copy(&typeInfo));
                     if (lvhelper) {
                         lvhelper->saveTemp(p);
-                    }
-                    else {
+                    } else {
                         discard(p, xsink);
-                        if (*xsink)
+                        if (*xsink) {
                             return true;
+                        }
                     }
-                }
-                else
+                } else {
                     qore_hash_private::get(*h)->complexTypeInfo = &typeInfo;
+                }
 
                 // now we have to fold the value types into our type
                 HashIterator i(h);
@@ -748,8 +760,9 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     QoreValue hn(ha.swap(QoreValue()));
                     u.ti->acceptInputIntern(xsink, arg_type, obj, param_num, param_name, hn, lvhelper);
                     ha.swap(hn);
-                    if (*xsink)
+                    if (*xsink) {
                         return true;
+                    }
                 }
 
                 ok = true;
@@ -773,15 +786,13 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     AbstractQoreNode* p = n.assign(l = qore_list_private::get(*l)->copy(&typeInfo));
                     if (lvhelper) {
                         lvhelper->saveTemp(p);
-                    }
-                    else {
+                    } else {
                         discard(p, xsink);
                         if (*xsink)
                             return true;
                     }
                     lp = qore_list_private::get(*l);
-                }
-                else {
+                } else {
                     lp = qore_list_private::get(*l);
                     lp->complexTypeInfo = &typeInfo;
                 }
@@ -889,9 +900,18 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
     switch (typespec) {
         case QTS_CLASS:
             if (ot == NT_OBJECT) {
-                qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc, *n.get<const QoreObject>()->getClass());
-                if (rv == QTI_NOT_EQUAL)
+                qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc,
+                    *n.get<const QoreObject>()->getClass());
+                if (rv == QTI_NOT_EQUAL) {
                     return rv;
+                }
+                return (rv == QTI_IDENT && exact) ? QTI_IDENT : QTI_AMBIGUOUS;
+            } else if (ot == NT_WEAKREF) {
+                qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc,
+                    *n.get<const WeakReferenceNode>()->get()->getClass());
+                if (rv == QTI_NOT_EQUAL) {
+                    return rv;
+                }
                 return (rv == QTI_IDENT && exact) ? QTI_IDENT : QTI_AMBIGUOUS;
             }
             return QTI_NOT_EQUAL;
