@@ -29,9 +29,10 @@
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
-#include <string.h>
-#include <errno.h>
-#include <stdio.h>
+
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
  
 #ifndef IN6ADDRSZ
 #define IN6ADDRSZ   16   /* IPv6 T_AAAA */                 

@@ -1,0 +1,84 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class MakeTmpExamplesTest
+
+public class MakeTmpExamplesTest inherits QUnit::Test {
+
+    constructor() : Test ("MakeTmpExamplesTest", "1.0") {
+        addTestCase("make_tmp_examples test", \test_make_tmp_examples());
+        addTestCase("make_tmp_examples exception test", \test_make_tmp_examples_exception());
+        set_return_value(main());
+    }
+
+    #! series of examples that sort of emulate a real use case one could have with make_tmp_file() and make_tmp_dir()
+    test_make_tmp_examples() {
+
+        # create a temporary directory
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            # remove the dir (and it's contents) once we're done with it
+            remove_tree(tmp_path);
+        }
+
+        # check that the directory exists and is writable
+        assertTrue(is_dir(tmp_path));
+        assertTrue(is_writable(tmp_path));
+
+        # adds "my_file.txt" in a safe way, making sure the delimiters are correct etc.
+        string my_file = join_paths(tmp_path, "my_file.txt");
+
+        # verify and show what basename_ext() does
+        assertEq("my_file.txt", basename(my_file));
+        assertEq("my_file", basename_ext(my_file, ".txt"));
+
+        # create a temporary file with a specified prefix and suffix
+        hash<auto> f1 = make_tmp_file("my_file_", ".txt");
+        on_exit {
+            # make_tmp_file() returns a hash<TmpFileHash> with an open File object and path...
+
+            # close the file on exit
+            f1.file.close();
+
+            # and it's a temporary file -> remove it as well
+            unlink(f1.path);
+        }
+
+        # check that the file exists and is writable
+        assertTrue(is_file(f1.path));
+        assertTrue(is_writable(f1.path));
+
+        # check that the name is as we asked for
+        string f1_bn = basename(f1.path);
+        assertTrue(string_starts_with(f1_bn, "my_file_"));
+        assertTrue(string_ends_with(f1_bn, ".txt"));
+
+        # create a temporary file in a specified path
+        hash<TmpFileHash> f2 = make_tmp_file(NOTHING, "", tmp_path);
+        on_exit {
+            # this time we'll only close the file but not remove it -> let's leave it up to remove_tree(tmp_path) above
+            f2.file.close();
+        }
+
+        # check that the file is in our specified path
+        assertTrue(string_starts_with(f2.path, tmp_path));
+
+        # check that the file exists and is writable
+        assertTrue(is_file(f2.path));
+        assertTrue(is_writable(f2.path));
+    }
+
+    test_make_tmp_examples_exception() {
+        # I'm not able to create temporary files and directories in root
+        assertThrows("FILE-WRITE-ERROR", \make_tmp_file(), (NOTHING, NOTHING, "/"));
+        assertThrows("DIR-WRITE-ERROR", \make_tmp_dir(), (NOTHING, NOTHING, "/"));
+    }
+}

@@ -10,6 +10,309 @@
 
 %exec-class ClassesTest
 
+class Issue3070_AB {
+    abstract int get1();
+    abstract int get2();
+}
+
+class Issue3070_C1 inherits Issue3070_AB {
+    int get1() {
+        return 1;
+    }
+
+    int test1() {
+        return get1();
+    }
+
+    int test2() {
+        return get2();
+    }
+}
+
+class Issue3070_C2 inherits Issue3070_AB {
+    int get2() {
+        return 2;
+    }
+
+    int test1() {
+        return get1();
+    }
+
+    int test2() {
+        return get2();
+    }
+}
+
+class Issue3070_G1 inherits Issue3070_C1, Issue3070_C2 {
+}
+
+class Issue3070_G2 inherits Issue3070_C2, Issue3070_C1 {
+}
+
+class Issue2970_F0 {
+    public {
+        int c0 = 0;
+        int c1 = 0;
+        int c2 = 0;
+    }
+
+    int get0b() {
+        return c0;
+    }
+}
+
+class Issue2970_B0 inherits private:internal Issue2970_F0 {
+    public {
+        int i = 1;
+    }
+
+    private:internal {
+        int c0 = 1;
+    }
+
+    int get0a() {
+        return c0;
+    }
+
+    int get0a1() {
+        return c1;
+    }
+
+    int get0b() {
+        return Issue2970_F0::get0b();
+    }
+
+    int get2() {
+        return c2;
+    }
+}
+
+class Issue2970_F1 {
+    public {
+        int c0 = 10;
+        int c1 = 10;
+        int c2 = 10;
+    }
+
+    int get1b() {
+        return c0;
+    }
+}
+
+class Issue2970_B1 inherits private:internal Issue2970_F1 {
+    private:internal {
+        int c0 = 11;
+    }
+
+    int get1a() {
+        return c0;
+    }
+
+    int get1a1() {
+        return c1;
+    }
+
+    int get1b() {
+        return Issue2970_F1::get1b();
+    }
+
+    int get2() {
+        return c2;
+    }
+}
+
+class Issue2970_A inherits private:internal Issue2970_B0, private:internal Issue2970_B1 {
+    public {
+        int c0 = 2;
+    }
+
+    constructor() {
+    }
+
+    int get0a() {
+        return Issue2970_B0::get0a();
+    }
+
+    int get0a1() {
+        return Issue2970_B0::get0a1();
+    }
+
+    int get0b() {
+        return Issue2970_B0::get0b();
+    }
+
+    int get1a() {
+        return Issue2970_B1::get1a();
+    }
+
+    int get1a1() {
+        return Issue2970_B1::get1a1();
+    }
+
+    int get1b() {
+        return Issue2970_B1::get1b();
+    }
+
+    int get2a() {
+        return Issue2970_B0::get2();
+    }
+
+    int get2b() {
+        return Issue2970_B1::get2();
+    }
+}
+
+class Issue2970_Foundation {
+    private:internal {
+        int i = 3;
+        static int si = 3;
+
+        int x1 = 3;
+        static int sx1 = 3;
+    }
+
+    private {
+        string str = "test1";
+        static string sstr = "test1";
+    }
+
+    public {
+        int ia = 0;
+    }
+
+    int get6() {
+        return ia;
+    }
+}
+
+class Issue2970_Base inherits private:internal Issue2970_Foundation {
+    public {
+        int x1 = 2;
+        static int sx1 = 2;
+    }
+
+    private {
+        int x2 = 2;
+        static int sx2 = 2;
+    }
+
+    private:internal {
+        int i = 2;
+        static int si = 2;
+    }
+
+    int get() {
+        return x1;
+    }
+
+    int get2(int i0) {
+        return i0 + i;
+    }
+
+    string get3() {
+        return str;
+    }
+
+    int get6() {
+        return ia;
+    }
+
+    int get6a() {
+        return Issue2970_Foundation::get6();
+    }
+}
+
+class Issue2970_Child inherits private:internal Issue2970_Base {
+    public {
+        int i = 1;
+        static int si = 1;
+        int ia = 2;
+    }
+
+    private {
+        string str = "test";
+        static string sstr = "test";
+    }
+
+    private:internal {
+        bool flag = False;
+    }
+
+    int get() {
+        return Issue2970_Base::get();
+    }
+
+    int get2() {
+        return get2(1);
+    }
+
+    string get3() {
+        return Issue2970_Base::get3();
+    }
+
+    bool get4() {
+        return get5(self);
+    }
+
+    static bool get5(Issue2970_Child self) {
+        return self.flag;
+    }
+
+    int get6() {
+        return Issue2970_Base::get6();
+    }
+
+    int get6a() {
+        return Issue2970_Base::get6a();
+    }
+
+    int get6bis() {
+        return ia;
+    }
+}
+
+class Issue2741_B {
+    int t(int i) {
+        return t1(i);
+    }
+    abstract int t0(int i);
+    abstract int t1(int i);
+}
+
+class Issue2741_N inherits Issue2741_B {
+}
+
+class Issue2741_C1 inherits Issue2741_B {
+    private:internal {
+        int cv = 1;
+    }
+    int t0(int i) {
+        return i;
+    }
+    int t1(int i) {
+        return i + cv;
+    }
+    abstract int t2(int i);
+}
+
+class Issue2741_C2 inherits Issue2741_C1 {
+    int ta() {
+        return t1(2);
+    }
+}
+
+class Issue2741_C3 inherits Issue2741_N, Issue2741_C1, Issue2741_C2 {
+    int t2(int i) {
+        return i + 2;
+    }
+}
+
+class Issue2885 {
+    public {
+        static Mutex m();
+    }
+}
+
 class Test1 inherits Socket {
     private {
         int a;
@@ -209,8 +512,21 @@ class Issue2380Child inherits Issue2380 {
     }
 }
 
+namespace Issue2744_A {
+    namespace Issue2744_B {
+        our int v;
+    }
+}
+
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
+        v = 1;
+        addTestCase("issue 3070", \issue3070());
+        addTestCase("issue 3073", \issue3073());
+        addTestCase("issue 2970", \issue2970());
+        addTestCase("issue 2885", \issue2885());
+        addTestCase("issue 2744", \issue2744());
+        addTestCase("issue 2741", \issue2741());
         addTestCase("Class library test", \classLibraryTest());
         addTestCase("Deprecated method test", \deprecatedMethodTest());
         addTestCase("Deletion test", \deletionTest());
@@ -223,6 +539,90 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue3070() {
+        Issue3070_G1 g1();
+        Issue3070_G2 g2();
+        assertEq(1, g1.test1());
+        assertEq(1, g1.get1());
+        assertEq(2, g1.test2());
+        assertEq(2, g1.get2());
+        assertEq(1, g2.test1());
+        assertEq(1, g2.get1());
+        assertEq(2, g2.test2());
+        assertEq(2, g2.get2());
+    }
+
+    issue3073() {
+        string fn = get_script_path();
+        assertEq(Type::Hash, call_static_method("ReadOnlyFile", "hstat", fn).type());
+        assertEq(Type::Hash, call_static_method("Qore::ReadOnlyFile", "hstat", fn).type());
+        assertEq(Type::Hash, call_static_method_args("ReadOnlyFile", "hstat", fn).type());
+        assertEq(Type::Hash, call_static_method_args("Qore::ReadOnlyFile", "hstat", fn).type());
+
+        assertThrows("UNKNOWN-CLASS", \call_static_method(), ("XXX", "xxx"));
+        assertThrows("UNKNOWN-CLASS", \call_static_method(), ("XXX::ReadOnlyFile", "xxx"));
+        assertThrows("UNKNOWN-METHOD", \call_static_method(), ("ReadOnlyFile", "xxx"));
+        assertThrows("UNKNOWN-CLASS", \call_static_method_args(), ("XXX", "xxx"));
+        assertThrows("UNKNOWN-CLASS", \call_static_method_args(), ("XXX::ReadOnlyFile", "xxx"));
+        assertThrows("UNKNOWN-METHOD", \call_static_method_args(), ("ReadOnlyFile", "xxx"));
+    }
+
+    issue2970() {
+        Issue2970_Child c();
+        assertEq(2, c.get());
+        assertEq(3, c.get2());
+        assertEq("test1", c.get3());
+        assertFalse(c.get4());
+        assertEq(0, c.get6());
+        assertEq(0, c.get6a());
+        assertEq(2, c.get6bis());
+
+        Issue2970_A a();
+        assertEq(2, a.c0);
+        assertEq(1, a.get0a());
+        assertEq(0, a.get0a1());
+        assertEq(0, a.get0b());
+        assertEq(11, a.get1a());
+        assertEq(10, a.get1a1());
+        assertEq(10, a.get1b());
+        assertEq(0, a.get2a());
+        assertEq(10, a.get2b());
+    }
+
+    issue2885() {
+        Program p(PO_NEW_STYLE);
+        p.importClass("Issue2885");
+        # this call will abort in debug builds
+        p.parse("Issue2885 sub t() { return new Issue2885(); }", "");
+        Issue2885 i = p.callFunction("t");
+        assertEq(True, i instanceof Issue2885);
+    }
+
+    issue2744() {
+        assertEq(1, v);
+        assertEq(1, Issue2744_B::v);
+        assertEq(1, Issue2744_A::Issue2744_B::v);
+    }
+
+    issue2741() {
+        Issue2741_C3 c();
+        assertEq(3, c.t2(1));
+        assertEq(3, c.ta());
+        assertEq(2, c.t(1));
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.importClass("Issue2741_N");
+            assertThrows("ABSTRACT-CLASS-ERROR", \p.parse(), ("sub t() {new Issue2741_N();}", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE);
+            p.importClass("Issue2741_B");
+            assertThrows("ABSTRACT-CLASS-ERROR", \p.parse(), ("sub t() {new Issue2741_B();}", ""));
+        }
     }
 
     issue2380() {
@@ -312,7 +712,7 @@ public class ClassesTest inherits QUnit::Test {
         catch (hash nex) {
             ex = nex;
         }
-        assertEq(120, ex.callstack[0].line);
+        assertEq(423, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);
@@ -398,70 +798,151 @@ public class ClassesTest inherits QUnit::Test {
             Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that private methods cannot be directly accessed
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{private:internal m(){}}class C inherits B{code t(){return\\m();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that private methods cannot be directly accessed
             assertThrows("PARSE-ERROR", \p.parse(), ("class B{private m(){}}class C inherits B{}code sub t(){C c();return\\c.m();}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that private methods cannot be directly accessed
             assertThrows("PARSE-ERROR", \p.parse(), ("class B{private:internal m(){}}class C inherits B{}code sub t(){C c();return\\c.m();}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that special methods cannot be directly accessed
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return\\constructor();}}", ""));
-
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of constructors
             assertThrows("PARSE-ERROR", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}}sub t(){C c();code cd=\\c.constructor();cd();}", ""));
-
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of constructors
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return \\constructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of constructors
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return \\C::constructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of constructors
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{constructor(){}}class C inherits B{constructor(){}code t(){return \\B::constructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of constructors
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{}class C inherits B{code t(){return \\constructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of constructors
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\C::constructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of constructors
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\B::constructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of constructors
             assertThrows("PARSE-ERROR", \p.parse(), ("class B{}class C inherits B{}sub t(){C c();code cd=\\c.constructor();cd();}", ""));
-
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of destructors
             assertThrows("PARSE-ERROR", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}}sub t(){C c();code cd=\\c.destructor();cd();}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of destructors
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}code t(){return \\destructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of destructors
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}code t(){return \\C::destructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of destructors
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{destructor(){}}class C inherits B{destructor(){}code t(){return \\B::destructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of destructors
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{}class C inherits B{code t(){return \\destructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of destructors
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\C::destructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of destructors
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\B::destructor();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of destructors
             assertThrows("PARSE-ERROR", \p.parse(), ("class B{}class C inherits B{}sub t(){C c();code cd=\\c.destructor();cd();}", ""));
-
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of copy methods
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}}sub t(){C c();code cd=\\c.copy();cd();}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of copy methods
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}code t(){return \\copy();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of copy methods
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}code t(){return \\C::copy();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of copy methods
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}code t(){return \\B::copy();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of copy methods
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{}class C inherits B{code t(){return \\copy();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of copy methods
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\C::copy();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of copy methods
             assertThrows("INVALID-METHOD", \p.parse(), ("class B{}class C inherits B{code t(){return \\B::copy();}}", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that call references cannot be taken of copy methods
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B{copy(){}}class C inherits B{copy(){}}sub t(){C c();code cd=\\c.copy();cd();}", ""));
-
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             # ensure that circular references in class hierarchies are found
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B inherits A; class C inherits B; class A inherits C;", ""));
+        }
+        {
+            Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);
             assertThrows("PARSE-EXCEPTION", \p.parse(), ("class B inherits A; class C inherits B, A; class A inherits C;", ""));
         }
-
         {
             # ensure that multiple inheritance allows the case when a single class is inherited more than once
             Program p(PO_NEW_STYLE|PO_REQUIRE_TYPES);

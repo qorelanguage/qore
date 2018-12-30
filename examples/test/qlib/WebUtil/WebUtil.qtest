@@ -39,8 +39,15 @@ public class WebUtilTest inherits QUnit::Test {
     }
 
     constructor() : Test("WebUtilTest", "1.0") {
+        addTestCase("StaticTemplateManager test", \staticTemplateManagerTest());
         addTestCase("FileHandler test", \fileHandlerTest());
         set_return_value(main());
+    }
+
+    staticTemplateManagerTest() {
+        StaticTemplateManager stm();
+        stm.add("t1", "<p>text</p>");
+        stm.add("t2", "<p>text</p>");
     }
 
     fileHandlerTest() {

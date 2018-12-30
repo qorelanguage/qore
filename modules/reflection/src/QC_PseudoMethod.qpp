@@ -1,0 +1,119 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_PseudoMethod.cpp PseudoMethod class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include <qore_reflection.h>
+#include "QC_PseudoMethod.h"
+#include "QC_Class.h"
+
+int check_pseudo_call(QoreValue& val, const QoreMethod& m, ExceptionSink* xsink) {
+    const QoreClass* cls = m.getClass();
+    assert(cls->isPseudoClass());
+    qore_type_t t = cls->getPseudoClassType();
+    if (t == -1 || t == val.getType()) {
+        return 0;
+    }
+    xsink->raiseException("METHOD-ERROR", "value has type '%s' which is not compatible with method '%s()' of pseudo-class '%s'", val.getTypeName(), m.getName(), m.getClassName());
+    return -1;
+}
+
+//! This class provides information about %Qore pseudo class methods
+/**
+    @see @ref Qore::Reflection::PseudoMethodVariant "PseudoMethodVariant"
+
+    @since %Qore 0.9.0
+ */
+qclass PseudoMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod; dom=REFLECTION];
+
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** @throw PSEUDOMETHOD-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+PseudoMethod::constructor() {
+    xsink->raiseException("PSEUDOMETHOD-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! calls the given pseudo-method with the given value; the value must be compatible with the pseudo-class's type
+/** @par Example:
+    @code{.py}
+auto v = m.call(val, arg1, arg2);
+    @endcode
+
+    @param val the value to make the call on; must be compatible with the pseudo-class's type or a \c METHOD-ERROR exception is thrown
+    @param ... optional arguments to the method
+
+    @return the return value of the method call
+
+    @throw METHOD-ERROR the value is not compatible with the class implementing this method
+
+    @see callArgs()
+*/
+auto PseudoMethod::call(auto val, ...) {
+    // we have to explictly test value compatibility here, otherwise QoreClass::evalPseudoMethod() will throw
+    // a confusing exception
+    if (check_pseudo_call(val, *m->m, xsink)) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> call_args(xsink);
+
+    // if there are arguments to pass
+    if (num_args(args) > 1) {
+        // create argument list by copying current list
+        call_args = args->copyListFrom(1);
+    }
+
+    // pseudo-classes and pseudo-methods are always valid
+    return m->m->getClass()->evalPseudoMethod(m->m, nullptr, val, *call_args, xsink);
+}
+
+//! calls the given pseudo-method with the given value; the value must be compatible with the pseudo-class's type
+/** @par Example:
+    @code{.py}
+auto v = m.callArgs(val, (arg1, arg2));
+    @endcode
+
+    @param val the value to make the call on; must be compatible with the pseudo-class's type or a \c METHOD-ERROR exception is thrown
+    @param argv optional arguments to the method
+
+    @return the return value of the method call
+
+    @throw METHOD-ERROR the value is not compatible with the class implementing this method
+
+    @see call()
+*/
+auto PseudoMethod::callArgs(auto val, *softlist<auto> argv) {
+    // we have to explictly test value compatibility here, otherwise QoreClass::evalPseudoMethod() will throw
+    // a confusing exception
+    if (check_pseudo_call(val, *m->m, xsink)) {
+        return QoreValue();
+    }
+
+    // pseudo-classes and pseudo-methods are always valid
+    return m->m->getClass()->evalPseudoMethod(m->m, nullptr, val, argv, xsink);
+}

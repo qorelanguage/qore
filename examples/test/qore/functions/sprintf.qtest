@@ -32,5 +32,29 @@ public class SprintfTest inherits QUnit::Test {
         assertEq("7f 1C FFFF", sprintf("%x %X %X", 127, 28, 65535));
         assertEq("class A: <NO MEMBERS>", sprintf("%n", new A()));
         assertEq("niñ", f_sprintf("%3s", "niña"), "UTF-8 f_sprintf()");
+        assertEq("0", sprintf("% d", NOTHING));
+        assertEq("0", sprintf("% d"));
+        assertEq("0", vsprintf("% d", (NOTHING,)));
+        assertEq("0", vsprintf("% d", ()));
+        assertEq("% 0", sprintf("%% % d", NOTHING));
+        assertEq("% 0", sprintf("%% % d"));
+        assertEq("% 0", vsprintf("%% % d", (NOTHING,)));
+        assertEq("% 0", vsprintf("%% % d", ()));
+        assertEq("0.000000", sprintf("% f", NOTHING));
+        assertEq("0.000000", sprintf("% f"));
+        assertEq("0.000000", vsprintf("% f", (NOTHING,)));
+        assertEq("0.000000", vsprintf("% f", ()));
+        assertEq("% 0.000000", sprintf("%% % f", NOTHING));
+        assertEq("% 0.000000", sprintf("%% % f"));
+        assertEq("% 0.000000", vsprintf("%% % f", (NOTHING,)));
+        assertEq("% 0.000000", vsprintf("%% % f", ()));
+        assertEq("", sprintf("% s", NOTHING));
+        assertEq("", sprintf("% s"));
+        assertEq("", vsprintf("% s", (NOTHING,)));
+        assertEq("", vsprintf("% s", ()));
+        assertEq("%", sprintf("%%% s", NOTHING));
+        assertEq("%", sprintf("%%% s"));
+        assertEq("%", vsprintf("%%% s", (NOTHING,)));
+        assertEq("%", vsprintf("%%% s", ()));
     }
 }

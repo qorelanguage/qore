@@ -32,11 +32,10 @@
 #ifndef _QORE_INTERN_GLOB_H
 #define _QORE_INTERN_GLOB_H
 
-#include <assert.h>
-
+#include <algorithm>
+#include <cassert>
 #include <string>
 #include <vector>
-#include <algorithm>
 
 #include "qore/intern/QoreRegex.h"
 

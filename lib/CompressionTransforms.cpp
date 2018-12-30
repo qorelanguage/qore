@@ -29,9 +29,9 @@
   information.
 */
 
-#include <zlib.h>
 #include <bzlib.h>
-#include <errno.h>
+#include <cerrno>
+#include <zlib.h>
 
 #include "qore/Qore.h"
 #include "qore/intern/CompressionTransforms.h"

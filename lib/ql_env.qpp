@@ -32,8 +32,8 @@
 #include <qore/Qore.h>
 #include "qore/intern/ql_env.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 /** @defgroup env_functions Environment Functions
     Environment functions

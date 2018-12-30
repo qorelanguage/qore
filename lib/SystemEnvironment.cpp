@@ -30,9 +30,9 @@
 
 #include <qore/Qore.h>
 
-#include <string.h>
-#include <string>
+#include <cstring>
 #include <memory>
+#include <string>
 
 SystemEnvironment SysEnv;
 

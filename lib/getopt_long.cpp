@@ -53,11 +53,11 @@
 
 //__FBSDID("$FreeBSD: releng/10.0/lib/libc/stdlib/getopt_long.c 236936 2012-06-11 22:25:20Z delphij $");
 
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 #include <err.h>
-#include <errno.h>
 #include <getopt.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define GNU_COMPATIBLE		/* Be more compatible, configure's use us! */
 

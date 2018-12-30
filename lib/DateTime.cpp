@@ -31,9 +31,9 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_date_private.h"
 
-#include <time.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
 DateTime::DateTime(qore_date_private* n_priv) : priv(n_priv) {
 }

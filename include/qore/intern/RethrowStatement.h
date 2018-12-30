@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -37,31 +37,31 @@
 
 class RethrowStatement : public AbstractStatement {
 private:
-   DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink *xsink) {
-      xsink->rethrow(catchGetException());
-      return 0;
-   }
-   DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) {
-      if (!(pflag & PF_RETHROW_OK))
-         parseException(loc, "RETHROW-NOT-IN-CATCH-BLOCK", "rethrow statements are only allowed in catch blocks");
-      return 0;
-   }
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink *xsink) {
+        xsink->rethrow(catchGetException());
+        return 0;
+    }
+    DLLLOCAL virtual int parseInitImpl(LocalVar *oflag, int pflag = 0) {
+        if (!(pflag & PF_RETHROW_OK))
+            parseException(*loc, "RETHROW-NOT-IN-CATCH-BLOCK", "rethrow statements are only allowed in catch blocks");
+        return 0;
+    }
 
 public:
-   DLLLOCAL RethrowStatement(int start_line, int end_line) : AbstractStatement(start_line, end_line) {
-   }
+    DLLLOCAL RethrowStatement(int start_line, int end_line) : AbstractStatement(start_line, end_line) {
+    }
 
-   DLLLOCAL virtual ~RethrowStatement() {
-   }
+    DLLLOCAL virtual ~RethrowStatement() {
+    }
 
-   DLLLOCAL virtual bool endsBlock() const {
-      return true;
-   }
+    DLLLOCAL virtual bool endsBlock() const {
+        return true;
+    }
 
-   DLLLOCAL virtual bool hasFinalReturn() const {
-      // throwing an exception trumps any return statement
-      return true;
-   }
+    DLLLOCAL virtual bool hasFinalReturn() const {
+        // throwing an exception trumps any return statement
+        return true;
+    }
 };
 
 #endif
