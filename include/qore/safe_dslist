@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  safe_dslist
+    safe_dslist
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_SAFE_DSLIST
@@ -41,294 +41,301 @@
 
 //! defines a node in a safe_dslist
 template<typename T> struct _qore_list_node {
-   typedef _qore_list_node self_t;
-   self_t* next;
-   T data;
-   
-   DLLLOCAL _qore_list_node(T d, self_t* n) { 
-      next = n; 
-      data = d; 
-   }
-   DLLLOCAL _qore_list_node(T d) {
-      next = 0; 
-      data = d; 
-   }
+    typedef _qore_list_node self_t;
+    self_t* next;
+    T data;
+
+    DLLLOCAL _qore_list_node(T d, self_t* n) {
+        next = n;
+        data = d;
+    }
+    DLLLOCAL _qore_list_node(T d) {
+        next = 0;
+        data = d;
+    }
 };
 
 //! defines an iterator for a safe_dslist
 template<typename T> struct _qore_list_iterator {
-   typedef _qore_list_node<T> node_t;
-   typedef _qore_list_iterator<T> self_t;
-   
-   // data for the node
-   node_t* node;
+    typedef _qore_list_node<T> node_t;
+    typedef _qore_list_iterator<T> self_t;
 
-   DLLLOCAL _qore_list_iterator(node_t* n) { 
-      node = n; 
-   }
-   DLLLOCAL _qore_list_iterator() { 
-      node = 0; 
-   }
-   DLLLOCAL self_t operator++(int) {
-      self_t _tmp = *this;
-      node = node->next; 
-      return _tmp;
-   }
-   DLLLOCAL self_t operator++() { 
-      node = node->next; 
-      return *this;
-   }
-   DLLLOCAL T operator*() { 
-      return node->data; 
-   }
-   DLLLOCAL bool operator!=(const self_t& n) { 
-      return n.node != node; 
-   }
-   DLLLOCAL bool operator==(const self_t& n) {
-      return n.node == node; 
-   }
+    // data for the node
+    node_t* node;
+
+    DLLLOCAL _qore_list_iterator(node_t* n) {
+        node = n;
+    }
+    DLLLOCAL _qore_list_iterator() {
+        node = nullptr;
+    }
+    DLLLOCAL self_t operator++(int) {
+        self_t _tmp = *this;
+        node = node->next;
+        return _tmp;
+    }
+    DLLLOCAL self_t operator++() {
+        node = node->next;
+        return *this;
+    }
+    DLLLOCAL T operator*() {
+        return node->data;
+    }
+    DLLLOCAL bool operator!=(const self_t& n) {
+        return n.node != node;
+    }
+    DLLLOCAL bool operator==(const self_t& n) {
+        return n.node == node;
+    }
 };
 
 //! defines a const iterator for a safe_dslist
 template<typename T> struct _qore_list_const_iterator {
-   typedef _qore_list_node<T> node_t;
-   typedef _qore_list_const_iterator<T> self_t;
-   
-   // data for the node
-   const node_t* node;
+    typedef _qore_list_node<T> node_t;
+    typedef _qore_list_const_iterator<T> self_t;
 
-   DLLLOCAL _qore_list_const_iterator(_qore_list_iterator<T> i) {
-      node = i.node;
-   }
-   DLLLOCAL _qore_list_const_iterator(const node_t* n) { 
-      node = n; 
-   }
-   DLLLOCAL _qore_list_const_iterator() { 
-      node = 0; 
-   }
-   DLLLOCAL self_t operator++(int) { 
-      self_t _tmp = *this;
-      node = node->next; 
-      return _tmp;
-   }
-   DLLLOCAL self_t operator++() { 
-      node = node->next; 
-      return *this;
-   }
-   DLLLOCAL T operator*() const { 
-      return node->data; 
-   }
-   DLLLOCAL bool operator!=(const self_t& n) { 
-      return n.node != node; 
-   }
-   DLLLOCAL bool operator==(const self_t& n) { 
-      return n.node == node; 
-   }
+    // data for the node
+    const node_t* node;
+
+    DLLLOCAL _qore_list_const_iterator(_qore_list_iterator<T> i) {
+        node = i.node;
+    }
+    DLLLOCAL _qore_list_const_iterator(const node_t* n) {
+        node = n;
+    }
+    DLLLOCAL _qore_list_const_iterator() {
+        node = nullptr;
+    }
+    DLLLOCAL self_t operator++(int) {
+        self_t _tmp = *this;
+        node = node->next;
+        return _tmp;
+    }
+    DLLLOCAL self_t operator++() {
+        node = node->next;
+        return *this;
+    }
+    DLLLOCAL T operator*() const {
+        return node->data;
+    }
+    DLLLOCAL bool operator!=(const self_t& n) {
+        return n.node != node;
+    }
+    DLLLOCAL bool operator==(const self_t& n) {
+        return n.node == node;
+    }
 };
 
 //! templated class for a double-ended singly-linked list that can be safely read from multiple threads without locking as long as writes are locked
 /**
-   Reading in multiple threads is safe as long as writes (appends at the end or beginning) are locked.  
+   Reading in multiple threads is safe as long as writes (appends at the end or beginning) are locked.
    Implements a singly-linked list with constant-time inserts at the beginning and end that
    can be read in a multi-threaded context without locking.  Writes must be performed in a lock; however
-   this class does not provide any locking; locking must be provided and performed externally to the 
+   this class does not provide any locking; locking must be provided and performed externally to the
    class.  Provides an STL-like interface.
 */
-template<typename T> class safe_dslist {  
+template<typename T> class safe_dslist {
 public:
-   typedef _qore_list_iterator<T> iterator;
-   typedef _qore_list_const_iterator<T> const_iterator;
-   typedef _qore_list_node<T> node_t;
-   typedef safe_dslist<T> self_t;
+    typedef _qore_list_iterator<T> iterator;
+    typedef _qore_list_const_iterator<T> const_iterator;
+    typedef _qore_list_node<T> node_t;
+    typedef safe_dslist<T> self_t;
 
 protected:
-   DLLLOCAL void clear_intern() {
-      node_t* w = head;
-      while (w) {
-	 node_t* n = w->next;
-	 delete w;
-	 w = n;
-      }
-   }
-      
+    DLLLOCAL void clear_intern() {
+        node_t* w = head;
+        while (w) {
+            node_t* n = w->next;
+            delete w;
+            w = n;
+        }
+    }
+
 private:
-   node_t* head, * tail;
+    node_t* head = nullptr,
+        * tail = nullptr;
 
-public: 
-   DLLLOCAL safe_dslist() : head(0), tail(0) {
-   }
-   DLLLOCAL ~safe_dslist() {
-      clear_intern();
-   }
-   //! empties the list
-   DLLLOCAL void clear() {
-      clear_intern();
-      head = tail = 0;
-   }
+public:
+    DLLLOCAL safe_dslist() {
+    }
 
-   //! returns an iterator pointing to the first element of the list
-   DLLLOCAL iterator begin() {
-      return head;
-   }
+    DLLLOCAL ~safe_dslist() {
+        clear_intern();
+    }
 
-   //! returns an iterator pointing one element from the end of the list
-   DLLLOCAL iterator end() {
-      return 0;
-   }
+    //! empties the list
+    DLLLOCAL void clear() {
+        clear_intern();
+        head = tail = nullptr;
+    }
 
-   //! returns an iterator pointing to the first element of the list
-   DLLLOCAL const_iterator begin() const {
-      return head;
-   }
+    //! returns an iterator pointing to the first element of the list
+    DLLLOCAL iterator begin() {
+        return head;
+    }
 
-   //! returns an iterator pointing one element from the end of the list
-   DLLLOCAL const_iterator end() const {
-      return 0;
-   }
+    //! returns an iterator pointing one element from the end of the list
+    DLLLOCAL iterator end() {
+        return nullptr;
+    }
 
-   //! returns an iterator pointing to the last element in the list
-   DLLLOCAL iterator last() {
-      return tail;
-   }
+    //! returns an iterator pointing to the first element of the list
+    DLLLOCAL const_iterator begin() const {
+        return head;
+    }
 
-   //! returns an iterator pointing to the last element in the list
-   DLLLOCAL const_iterator last() const {
-      return tail;
-   }
+    //! returns an iterator pointing one element from the end of the list
+    DLLLOCAL const_iterator end() const {
+        return nullptr;
+    }
 
-   //! returns an iterator either pointing to the element given if present in the list or pointing to one element from the end of the list if not
-   DLLLOCAL iterator find(T data) {
-      node_t* w = head;
-      while (w) {
-	 if (w->data == data)
-	    return w;
-	 w = w->next;
-      }
-      return 0;
-   }
+    //! returns an iterator pointing to the last element in the list
+    DLLLOCAL iterator last() {
+        return tail;
+    }
 
-   //! returns an iterator either pointing to the element given if present in the list or pointing to one element from the end of the list if not
-   DLLLOCAL const_iterator find(T data) const {
-      node_t* w = head;
-      while (w) {
-	 if (w->data == data)
-	    return w;
-	 w = w->next;
-      }
-      return 0;
-   }
+    //! returns an iterator pointing to the last element in the list
+    DLLLOCAL const_iterator last() const {
+        return tail;
+    }
 
-   //! adds an element to the beginning of the list (constant time)
-   DLLLOCAL void push_front(T data) {
-      node_t* n = new node_t(data, head);
-      if (!tail)
-	 tail = n;
-      head = n;
-   }
+    //! returns an iterator either pointing to the element given if present in the list or pointing to one element from the end of the list if not
+    DLLLOCAL iterator find(T data) {
+        node_t* w = head;
+        while (w) {
+            if (w->data == data)
+                return w;
+            w = w->next;
+        }
+        return nullptr;
+    }
 
-   //! adds an element to the end of the list (constant time)
-   DLLLOCAL void push_back(T data) {
-      node_t* n = new node_t(data);
-      if (tail)
-	 tail->next = n;
-      else
-	 head = n;
-      tail = n;
-   }
+    //! returns an iterator either pointing to the element given if present in the list or pointing to one element from the end of the list if not
+    DLLLOCAL const_iterator find(T data) const {
+        node_t* w = head;
+        while (w) {
+            if (w->data == data)
+                return w;
+            w = w->next;
+        }
+        return nullptr;
+    }
 
-   //! removes an element from the beginning of the list
-   DLLLOCAL void pop_front() {
-      if (!tail)
-         return;
-      node_t* n = head;
-      head = head->next;
-      delete n;
-      if (!head)
-         tail = 0;
-   }
+    //! adds an element to the beginning of the list (constant time)
+    DLLLOCAL void push_front(T data) {
+        node_t* n = new node_t(data, head);
+        if (!tail)
+            tail = n;
+        head = n;
+    }
 
-   //! concatenates all elements of this list to the end of the list passed
-   DLLLOCAL void populate(self_t& other) {
-      iterator i = begin();
-      while (i != end()) {
-	 other.push_back(*i);
-	 i++;
-      }
-   }
+    //! adds an element to the end of the list (constant time)
+    DLLLOCAL void push_back(T data) {
+        node_t* n = new node_t(data);
+        if (tail)
+            tail->next = n;
+        else
+            head = n;
+        tail = n;
+    }
 
-   //! concatenates all elements of this list to the end of the list passed
-   DLLLOCAL void populate(self_t* other) {
-      iterator i = begin();
-      while (i != end()) {
-	 other->push_back(*i);
-	 i++;
-      }
-   }
+    //! removes an element from the beginning of the list
+    DLLLOCAL void pop_front() {
+        if (!tail)
+            return;
+        node_t* n = head;
+        head = head->next;
+        delete n;
+        if (!head)
+            tail = nullptr;
+    }
 
-   //! returns true if the list is empty
-   DLLLOCAL bool empty() const {
-      return !head;
-   }
+    //! concatenates all elements of this list to the end of the list passed
+    DLLLOCAL void populate(self_t& other) {
+        iterator i = begin();
+        while (i != end()) {
+            other.push_back(*i);
+            ++i;
+        }
+    }
 
-   //! returns true if the list contains only one element (constant time)
-   DLLLOCAL bool singular() const {
-      return head && head == tail;
-   }
+    //! concatenates all elements of this list to the end of the list passed
+    DLLLOCAL void populate(self_t* other) {
+        iterator i = begin();
+        while (i != end()) {
+            other->push_back(*i);
+            ++i;
+        }
+    }
 
-   //! returns true if the list contains more than one element (constant time)
-   DLLLOCAL bool plural() const {
-      return head != tail;
-   }
+    //! returns true if the list is empty
+    DLLLOCAL bool empty() const {
+        return !head;
+    }
 
-   //! deletes the list element after the iterator argument and all other elements to the end of the list
-   /** O(n) where n=length of list after the element given
-       @note does not erase the element given by the iterator argument
-   */
-   DLLLOCAL void erase_to_end(iterator i) {         
-      if (!i.node) {
-         clear();
-         return;
-      }
+    //! returns true if the list contains only one element (constant time)
+    DLLLOCAL bool singular() const {
+        return head && head == tail;
+    }
 
-      node_t* w = i.node->next;
-      i.node->next = 0;
-      tail = i.node;
+    //! returns true if the list contains more than one element (constant time)
+    DLLLOCAL bool plural() const {
+        return head != tail;
+    }
 
-      while (w) {
-         node_t* n = w->next;
-         delete w;
-         w = n;
-      }
-   }
-
-   //! deletes the list element given by the iterator argument
-   /** only constant time for the first element in the list, otherwise is O(n), linear with the length of the list
+    //! deletes the list element after the iterator argument and all other elements to the end of the list
+    /** O(n) where n=length of list after the element given
+        @note does not erase the element given by the iterator argument
     */
-   DLLLOCAL void erase(iterator i) {
-      if (i.node == head) {
-	 head = i.node->next;
-	 if (!head)
-	    tail = 0;
-      }
-      else {
-	 // find previous entry
-	 node_t* n = head;
-	 while (n->next != i.node)
-	    n = n->next;
-	 n->next = i.node->next;
-      }
-      delete i.node;
-   }
+    DLLLOCAL void erase_to_end(iterator i) {
+        if (!i.node) {
+            clear();
+            return;
+        }
 
-   DLLLOCAL size_t size() const {
-      size_t i = 0;
-      node_t* n = head;
-      while (n) {
-	 ++i;
-	 n = n->next;
-      }
-      return i;
-   }
+        node_t* w = i.node->next;
+        i.node->next = nullptr;
+        tail = i.node;
+
+        while (w) {
+            node_t* n = w->next;
+            delete w;
+            w = n;
+        }
+    }
+
+    //! deletes the list element given by the iterator argument
+    /** only constant time for the first element in the list, otherwise is O(n), linear with the length of the list
+    */
+    DLLLOCAL void erase(iterator i) {
+        if (i.node == head) {
+            head = i.node->next;
+            if (!head) {
+                tail = nullptr;
+            }
+        } else {
+            // find previous entry
+            node_t* n = head;
+            while (n->next != i.node) {
+                n = n->next;
+            }
+            n->next = i.node->next;
+            if (i.node == tail) {
+                tail = n;
+            }
+        }
+        delete i.node;
+    }
+
+    DLLLOCAL size_t size() const {
+        size_t i = 0;
+        node_t* n = head;
+        while (n) {
+            ++i;
+            n = n->next;
+        }
+        return i;
+    }
 };
 
 #endif
