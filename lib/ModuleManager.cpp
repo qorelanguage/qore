@@ -556,15 +556,16 @@ int ModuleManager::runTimeLoadModule(const char* name, QoreProgram* pgm, Excepti
    return QMM.runTimeLoadModule(*xsink, name, pgm);
 }
 
-int QoreModuleManager::runTimeLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, QoreProgram* mpgm, unsigned load_opt) {
-   // grab the parse lock
-   ProgramRuntimeParseContextHelper pah(&xsink, pgm);
-   if (xsink)
-      return -1;
+int QoreModuleManager::runTimeLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, QoreProgram* mpgm,
+    unsigned load_opt) {
+    // grab the parse lock
+    ProgramRuntimeParseContextHelper pah(&xsink, pgm);
+    if (xsink)
+        return -1;
 
-   AutoLocker al2(mutex);               // grab global module lock
-   loadModuleIntern(xsink, name, pgm, false, MOD_OP_NONE, 0, 0, mpgm, load_opt);
-   return xsink ? -1 : 0;
+    AutoLocker al2(mutex);               // grab global module lock
+    loadModuleIntern(xsink, name, pgm, false, MOD_OP_NONE, 0, 0, mpgm, load_opt);
+    return xsink ? -1 : 0;
 }
 
 static const char* get_op_string(mod_op_e op) {
@@ -683,7 +684,8 @@ void QoreModuleManager::reinjectModule(QoreAbstractModule* mi) {
    addModule(mi);
 }
 
-void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport, mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm, unsigned load_opt) {
+void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport,
+    mod_op_e op, version_list_t* version, const char* src, QoreProgram* mpgm, unsigned load_opt) {
     assert(!version || (version && op != MOD_OP_NONE));
 
     //printd(5, "QoreModuleManager::loadModuleIntern() '%s' reexport: %d pgm: %p\n", name, reexport, pgm);
@@ -914,7 +916,9 @@ void QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, const char* name,
     xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(name), desc);
 }
 
-QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink, const QoreString& path, const char* feature, QoreProgram* pgm, bool reexport, QoreProgram* mpgm, QoreProgram* path_pgm, unsigned load_opt) {
+QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink, const QoreString& path,
+    const char* feature, QoreProgram* pgm, bool reexport, QoreProgram* mpgm, QoreProgram* path_pgm,
+    unsigned load_opt) {
     assert(feature);
     printd(5, "QoreModuleManager::loadSeparatedModule() path: %s, feature: %s, pgm: %p, reexport: %d, mpgm: %p, path_pgm: %p, load_opt: %d\n", path.c_str(), feature, pgm, reexport, mpgm, path_pgm, load_opt);
     QoreParseCountContextHelper pcch;
@@ -951,7 +955,10 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
     QoreUserModuleDefContextHelper qmd(feature, mpgm, xsink);
 
     std::string moduleCode = QoreDir::get_file_content(modulePath.c_str());
-    userModule->getProgram()->parsePending(moduleCode.c_str(), path.c_str(), &xsink, &xsink, QP_WARN_MODULES);
+
+    // issue #3212: warning sink
+    ExceptionSink* wsink = load_opt & QMLO_IGNORE_WARNINGS ? nullptr : &xsink;
+    userModule->getProgram()->parsePending(moduleCode.c_str(), path.c_str(), &xsink, wsink, QP_WARN_MODULES);
     if (xsink) {
         return nullptr;
     }
@@ -968,7 +975,7 @@ QoreAbstractModule* QoreModuleManager::loadSeparatedModule(ExceptionSink& xsink,
         filePath += fileList->retrieveEntry(i).get<const QoreStringNode>()->c_str();
 
         std::string fileCode = QoreDir::get_file_content(filePath);
-        userModule->getProgram()->parsePending(fileCode.c_str(), filePath.c_str(), &xsink, &xsink);
+        userModule->getProgram()->parsePending(fileCode.c_str(), filePath.c_str(), &xsink, wsink);
         if (xsink) {
             return nullptr;
         }
@@ -1158,55 +1165,59 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
    return omi;
 }
 
-QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, bool reexport, QoreProgram* pgm, QoreProgram* path_pgm, unsigned load_opt) {
-   assert(feature);
-   //printd(5, "QoreModuleManager::loadUserModuleFromPath() path: '%s' feature: '%s' tpgm: %p ('%s') path_pgm: %p ('%s')\n", path, feature, tpgm, tpgm && tpgm->parseGetScriptDir() ? tpgm->parseGetScriptDir() : "n/a", path_pgm, path_pgm && path_pgm->parseGetScriptDir() ? path_pgm->parseGetScriptDir() : "n/a");
+QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsink, const char* path,
+    const char* feature, QoreProgram* tpgm, bool reexport, QoreProgram* pgm, QoreProgram* path_pgm,
+    unsigned load_opt) {
+    assert(feature);
+    //printd(5, "QoreModuleManager::loadUserModuleFromPath() path: '%s' feature: '%s' tpgm: %p ('%s') path_pgm: %p ('%s')\n", path, feature, tpgm, tpgm && tpgm->parseGetScriptDir() ? tpgm->parseGetScriptDir() : "n/a", path_pgm, path_pgm && path_pgm->parseGetScriptDir() ? path_pgm->parseGetScriptDir() : "n/a");
 
-   QoreParseCountContextHelper pcch;
+    QoreParseCountContextHelper pcch;
 
-   // parse options for the module
-   int64 po = USER_MOD_PO;
-   // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
-   if (tpgm)
-      po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_REQUIRE_TYPES|PO_NO_GLOBAL_VARS));
+    // parse options for the module
+    int64 po = USER_MOD_PO;
+    // add in parse options from the current program, if any, disabling style and types options already set with USER_MOD_PO
+    if (tpgm)
+        po |= (tpgm->getParseOptions64() & ~(PO_FREE_OPTIONS|PO_REQUIRE_TYPES|PO_NO_GLOBAL_VARS));
 
-   QoreProgram* p = tpgm ? tpgm : path_pgm;
-   if (!p) {
-      p = pgm;
-      if (!p)
-         p = getProgram();
-   }
-   const char* td = p ? p->parseGetScriptDir() : nullptr;
+    QoreProgram* p = tpgm ? tpgm : path_pgm;
+    if (!p) {
+        p = pgm;
+        if (!p)
+            p = getProgram();
+    }
+    const char* td = p ? p->parseGetScriptDir() : nullptr;
 
-   if (pgm)
-      qore_program_private::forceReplaceParseOptions(*pgm, po);
-   else
-      pgm = new QoreProgram(po);
+    if (pgm)
+        qore_program_private::forceReplaceParseOptions(*pgm, po);
+    else
+        pgm = new QoreProgram(po);
 
-   //printd(5, "QoreModuleManager::loadUserModuleFromPath(path: '%s') cwd: '%s' tpgm: %p po: " QLLD " allow-injection: %s tpgm allow-injection: %s pgm allow-injection: %s\n", path, td ? td : "n/a", tpgm, po, po & PO_ALLOW_INJECTION ? "true" : "false", (tpgm ? tpgm->getParseOptions64() & PO_ALLOW_INJECTION : 0) ? "true" : "false", pgm->getParseOptions64() & PO_ALLOW_INJECTION ? "true" : "false");
+    //printd(5, "QoreModuleManager::loadUserModuleFromPath(path: '%s') cwd: '%s' tpgm: %p po: " QLLD " allow-injection: %s tpgm allow-injection: %s pgm allow-injection: %s\n", path, td ? td : "n/a", tpgm, po, po & PO_ALLOW_INJECTION ? "true" : "false", (tpgm ? tpgm->getParseOptions64() & PO_ALLOW_INJECTION : 0) ? "true" : "false", pgm->getParseOptions64() & PO_ALLOW_INJECTION ? "true" : "false");
 
-   // note: the module will contain a normalized path which will be used for parsing
-   std::unique_ptr<QoreUserModule> mi(new QoreUserModule(td, path, feature, pgm, load_opt));
+    // note: the module will contain a normalized path which will be used for parsing
+    std::unique_ptr<QoreUserModule> mi(new QoreUserModule(td, path, feature, pgm, load_opt));
 
-   td = mi->getFileName();
-   //printd(5, "QoreModuleManager::loadUserModuleFromPath() normalized path: '%s'\n", td);
+    td = mi->getFileName();
+    //printd(5, "QoreModuleManager::loadUserModuleFromPath() normalized path: '%s'\n", td);
 
-   if (!QoreDir::file_exists(td)) {
-      xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; the module doesn't exist", td);
-      return nullptr;
-   }
+    if (!QoreDir::file_exists(td)) {
+        xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; the module doesn't exist", td);
+        return nullptr;
+    }
 
-   if (module_load_check(td)) {
-      xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; recursive module dependency detected", td);
-      return nullptr;
-   }
-   ON_BLOCK_EXIT(module_load_clear, td);
+    if (module_load_check(td)) {
+        xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; recursive module dependency detected", td);
+        return nullptr;
+    }
+    ON_BLOCK_EXIT(module_load_clear, td);
 
-   ModuleReExportHelper mrh(mi.get(), reexport);
-   QoreUserModuleDefContextHelper qmd(feature, pgm, xsink);
-   mi->getProgram()->parseFile(td, &xsink, &xsink, QP_WARN_MODULES);
+    ModuleReExportHelper mrh(mi.get(), reexport);
+    QoreUserModuleDefContextHelper qmd(feature, pgm, xsink);
+    // issue #3212: warning sink
+    ExceptionSink* wsink = load_opt & QMLO_IGNORE_WARNINGS ? nullptr : &xsink;
+    mi->getProgram()->parseFile(td, &xsink, wsink, QP_WARN_MODULES);
 
-   return setupUserModule(xsink, mi, qmd, load_opt);
+    return setupUserModule(xsink, mi, qmd, load_opt);
 }
 
 QoreAbstractModule* QoreModuleManager::loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm) {

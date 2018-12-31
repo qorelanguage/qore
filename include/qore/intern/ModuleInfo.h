@@ -54,11 +54,12 @@ extern "C" {
 #define USER_MOD_PO (PO_NO_TOP_LEVEL_STATEMENTS | PO_REQUIRE_PROTOTYPES | PO_REQUIRE_OUR | PO_IN_MODULE)
 
 // module load options
-#define QMLO_NONE     0
-#define QMLO_INJECT   (1 << 0)
-#define QMLO_REINJECT (1 << 1)
-#define QMLO_PRIVATE  (1 << 2)
-#define QMLO_RELOAD   (1 << 3)
+#define QMLO_NONE            0
+#define QMLO_INJECT          (1 << 0)
+#define QMLO_REINJECT        (1 << 1)
+#define QMLO_PRIVATE         (1 << 2)
+#define QMLO_RELOAD          (1 << 3)
+#define QMLO_IGNORE_WARNINGS (1 << 4)  // ignore warnings in user modules
 
 //! list of version numbers in order of importance (i.e. 1.2.3 = 1, 2, 3)
 struct version_list_t : public std::vector<int> {
@@ -443,7 +444,9 @@ protected:
         loadModuleIntern(xsink, name, pgm);
     }
 
-    DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = 0, const char* src = 0, QoreProgram* mpgm = 0, unsigned load_opt = QMLO_NONE);
+    DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false,
+        mod_op_e op = MOD_OP_NONE, version_list_t* version = nullptr, const char* src = nullptr,
+        QoreProgram* mpgm = nullptr, unsigned load_opt = QMLO_NONE);
 
     DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
     DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* tpgm = 0, bool reexport = false, QoreProgram* pgm = 0, QoreProgram* path_pgm = 0, unsigned load_opt = QMLO_NONE);
