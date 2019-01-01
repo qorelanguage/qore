@@ -745,7 +745,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                         lvhelper->saveTemp(p);
                     } else {
                         discard(p, xsink);
-                        if (*xsink) {
+                        if (xsink && *xsink) {
                             return true;
                         }
                     }
@@ -760,7 +760,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     QoreValue hn(ha.swap(QoreValue()));
                     u.ti->acceptInputIntern(xsink, arg_type, obj, param_num, param_name, hn, lvhelper);
                     ha.swap(hn);
-                    if (*xsink) {
+                    if (xsink && *xsink) {
                         return true;
                     }
                 }
@@ -788,8 +788,9 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                         lvhelper->saveTemp(p);
                     } else {
                         discard(p, xsink);
-                        if (*xsink)
+                        if (xsink && *xsink) {
                             return true;
+                        }
                     }
                     lp = qore_list_private::get(*l);
                 } else {
@@ -802,13 +803,13 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     QoreValue ln(lp->takeExists(i));
                     u.ti->acceptInputIntern(xsink, arg_type, obj, param_num, param_name, ln, lvhelper);
                     lp->swap(i, ln);
-                    if (*xsink)
+                    if (xsink && *xsink) {
                         return true;
+                    }
                 }
 
                 ok = true;
-            }
-            else if (typespec == QTS_COMPLEXSOFTLIST) {
+            } else if (typespec == QTS_COMPLEXSOFTLIST) {
                 QoreValue val = n;
                 n.swap(val);
                 n.assign(qore_list_private::newComplexListFromValue(&typeInfo, val, xsink));
@@ -838,8 +839,7 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                         }
                         // we set ok unconditionally here, because any exception thrown above is enough if there is an error
                         ok = true;
-                    }
-                    else if (!*xsink) {
+                    } else if (!xsink || !*xsink) {
                         // issue #2891 the lvalue may not exist, but we can still perform the assignment
                         ok = true;
                     }
@@ -857,8 +857,13 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
 
     if (ok) {
         assert(!priv_error);
-        if (map)
+        if (map) {
             map(n, xsink);
+            if (xsink && *xsink) {
+                xsink->appendLastDescription(" (while converting types for type '%s')",
+                    QoreTypeInfo::getName(&typeInfo));
+            }
+        }
         return true;
     }
 
