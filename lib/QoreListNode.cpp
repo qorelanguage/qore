@@ -219,10 +219,9 @@ QoreListNode* qore_list_private::newComplexListFromValue(const QoreTypeInfo* typ
     }
     else if (init.getType() == NT_NOTHING) {
         holder = init = l = new QoreListNode;
-    }
-    else {
+    } else {
         const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
-        QoreTypeInfo::acceptInputParam(vti, 0, nullptr, init, xsink);
+        QoreTypeInfo::acceptAssignment(vti, "<list assignment>", init, xsink);
         holder.release();
         holder = init;
         if (*xsink) {

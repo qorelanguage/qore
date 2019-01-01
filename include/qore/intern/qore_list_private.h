@@ -163,9 +163,14 @@ struct qore_list_private {
             const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo);
             if (QoreTypeInfo::hasType(vti) && !QoreTypeInfo::superSetOf(vti, holder->getTypeInfo())) {
                 QoreValue v(holder.release());
-                QoreTypeInfo::acceptInputParam(vti, -1, nullptr, v, xsink);
+                QoreTypeInfo::acceptAssignment(vti, "<list element assignment>", v, xsink);
                 holder = v;
-                return xsink && *xsink ? -1 : 0;
+                if (xsink && *xsink) {
+                    xsink->appendLastDescription(" (while converting types for list<%s> subtype)",
+                        QoreTypeInfo::getName(vti));
+                    return -1;
+                }
+                return 0;
             }
             return 0;
         }
