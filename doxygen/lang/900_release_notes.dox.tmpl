@@ -251,6 +251,8 @@
     Bugfix release; see details below
 
     @subsection qore_08139_bug_fixes Bug Fixes in Qore
+    - fixed a memory error in internal list handling that could lead to memory corruption and crashes
+      (<a href="https://github.com/qorelanguage/qore/issues/3206">issue 3206</a>)
     - fixed calls to Dir::list*() methods which failed whenever there was a symlink with a non-existent target in a directory
       (<a href="https://github.com/qorelanguage/qore/issues/3192">issue 3192</a>)
     - fixed a bug handling illegal abstract method definitions of special class methods
