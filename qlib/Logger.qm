@@ -1597,14 +1597,7 @@ public namespace Logger {
         public processEventImpl(int type, auto params) {
             switch (type) {
                 case EVENT_OPEN:
-                    if (file.open(fileName, O_APPEND | O_WRONLY) == -1) {
-                        if (errno() == Qore::Err::ENOENT) {
-                            # No such file or directory
-                            file.open2(fileName, O_CREAT | O_WRONLY);
-                        } else {
-                            throw "FILE-OPEN2-ERROR", sprintf("%s (arg: %d)", strerror(), errno());
-                        }
-                    }
+                    file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY);
                     break;
                 case EVENT_CLOSE:
                     try {
@@ -1843,7 +1836,7 @@ public namespace Logger {
                         }
                         file.close();
                         rename(fileName, fn[0]);
-                        file.open2(fileName, O_CREAT | O_WRONLY);
+                        file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY | O_TRUNC);
                     }
                     break;
                 default:
@@ -1990,7 +1983,7 @@ public namespace Logger {
                         patternData.index = (patternData.index + 1) % patternData.count;
                         patternData.timestamp = now_us();
                         fileName = format(patternData);
-                        file.open2(fileName, O_CREAT | O_WRONLY);
+                        file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY | O_TRUNC);
                     }
                     break;
                 default:
