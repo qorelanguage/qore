@@ -31,7 +31,21 @@
 
 %exec-class RestHandlerTest
 
+class MyStaticRestClass inherits AbstractRestClass {
+    string name() {
+        return "static";
+    }
+
+    hash get(hash<auto> cx, *hash<auto> ah) {
+        return RestHandler::makeResponse(200, "static");
+    }
+}
+
 class TestRestClass inherits AbstractRestClass {
+    constructor() {
+        addClass(new MyStaticRestClass());
+    }
+
     string name() {
         return "test";
     }
@@ -317,6 +331,15 @@ public class RestHandlerTest inherits QUnit::Test {
 
         # invalid subclass
         assertThrows("REST-CLASS-ERROR", "action.*test", \mHandler.handleExternalRequest(), ("GET", "invalid"));
+
+        try {
+            mHandler.handleExternalRequest("PUT", "test/echo1");
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+            assertRegex("known subclasses: \"static\", \"echo\"", ex.desc);
+        }
+
+        assertEq("static", mHandler.handleExternalRequest("GET", "test/static"));
     }
 
     serializationTest() {
