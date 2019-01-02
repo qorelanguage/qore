@@ -667,6 +667,11 @@ public namespace RestHandler {
             - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
             - \c body: the deserialized message body
             - \c aih: a hash of \c "Accept" values
+            @param args the holds URI and / or message body arguments for the REST call; if a request has both URI
+            query arguments and message body arguments, then this value will be a combination of URI query arguments
+            and deserialized message body arguments with URI query arguments taking precedence over the message body
+            arguments
+
             @param args any arguments in the request (URI argument combined with deserialized message body arguments)
 
             @return an object corresponding to the \c name argument or @ref nothing if none can be matched
@@ -774,7 +779,10 @@ public namespace RestHandler {
         #! this method is called to dispatch requests on the given object
         /** @param rh the RestHandler object
             @param mn the method name
-            @param ah the holds URI and / or message body arguments for the REST call
+            @param ah the holds URI and / or message body arguments for the REST call; if a request has both URI
+            query arguments and message body arguments, then this value will be a combination of URI query arguments
+            and deserialized message body arguments with URI query arguments taking precedence over the message body
+            arguments
             @param cx call context hash; this hash will have the following keys:
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
@@ -1252,7 +1260,7 @@ public namespace RestHandler {
             #logDebug("REST DBG: aih: %y", aih);
 
             # set up context hash
-            cx += ("hdr": hdr, "body": body, "aih": aih);
+            cx += {"hdr": hdr, "body": body, "aih": aih};
 
             # handle call with class
             hash<HttpHandlerResponseInfo> rv;
