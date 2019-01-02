@@ -649,7 +649,7 @@ public namespace RestHandler {
         addClass(AbstractRestClass cls) {
             string name = cls.name();
             if (class_hash{name}) {
-                throw "RETSHANDLER-ERROR", sprintf("class %y has already been registered with this handler", name);
+                throw "RESTHANDLER-ERROR", sprintf("class %y has already been registered with this handler", name);
             }
             class_hash{name} = cls;
         }
