@@ -54,6 +54,7 @@ public class HasEffectTest inherits QUnit::Test {
         if (testBackground) {
             Program p2(PO_NEW_STYLE);
             parse_result = p2.parse("background " + statements, "", WARN_RETURN_VALUE_IGNORED){"err", "desc"};
+            if (!parse_result) printf("%s\n", statements);
             assertEq("RETURN-VALUE-IGNORED", parse_result.err);
             assertRegex(warning, parse_result.desc);
             assertRegex("background call to", parse_result.desc);

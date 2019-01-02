@@ -118,8 +118,7 @@ static void check_flags(const QoreProgramLocation* loc, QoreFunction* func, int6
         bool is_bg_call = (pflag & PF_BACKGROUND);
         if ((flags & QCF_CONSTANT) == QCF_CONSTANT) {
             warn_retval_ignored(loc, func, is_bg_call);
-        }
-        else if (flags & QCF_RET_VALUE_ONLY) {
+        } else if (flags & QCF_RET_VALUE_ONLY && (pflag & PF_RETURN_VALUE_IGNORED)) {
             warn_only_may_throw_and_retval_ignored(loc, func, is_bg_call);
         }
     }
@@ -140,7 +139,8 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
 
     // initialize arguments and setup argument type list (argTypeInfo)
     if (num_args) {
-        lvids += parse_args->initArgs(oflag, pflag, argTypeInfo, args);
+        // issue #2993: do not initialize args with the "return value ignored" parse flag set
+        lvids += parse_args->initArgs(oflag, pflag & ~PF_RETURN_VALUE_IGNORED, argTypeInfo, args);
         parse_args = nullptr;
     }
 
