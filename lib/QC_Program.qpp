@@ -929,7 +929,7 @@ Program::destructor() {
 
     @par Example:
     @code{.py}
-*hash wh = pgm.parse(code, "label", WARN_DEFAULT);
+*hash<ExceptionInfo> wh = pgm.parse(code, "label", WARN_DEFAULT);
 while (wh) {
     printf("warning: %s:%d: %s: %s\n", wh.file, wh.line, wh.err, wh.desc);
     wh = wh.next;
@@ -954,7 +954,7 @@ while (wh) {
     - %Qore 0.9 parsing can only be executed once per %Program object
     - %Qore 0.9 the \a format_label is obsolete / ignored
  */
-*hash Program::parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC] {
+*hash<ExceptionInfo> Program::parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC] {
 
    if (warning_mask) {
       ExceptionSink wsink;
@@ -987,7 +987,7 @@ while (wh) {
 
     @par Example:
     @code{.py}
-*hash wh = pgm.parsePending(code, "label", WARN_DEFAULT);
+*hash<ExceptionInfo> wh = pgm.parsePending(code, "label", WARN_DEFAULT);
 while (wh) {
     printf("warning: %s:%d: %s: %s\n", wh.file, wh.line, wh.err, wh.desc);
     wh = wh.next;
@@ -1014,7 +1014,7 @@ pgm.parseCommit();
     - %Qore 0.9 parsing can only be executed once per %Program object
     - %Qore 0.9 the \a format_label is obsolete / ignored
  */
-*hash Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC] {
+*hash<ExceptionInfo> Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC] {
 
    if (warning_mask) {
       ExceptionSink wsink;
@@ -1062,7 +1062,7 @@ nothing Program::parseCommit() {
 
     @par Example:
     @code{.py}
-*hash wh = pgm.parseCommit(WARN_DEFAULT);
+*hash<ExceptionInfo> wh = pgm.parseCommit(WARN_DEFAULT);
 while (exists wh) {
     printf("warning: %s:%d: %s: %s\n", wh.file, wh.line, wh.err, wh.desc);
     wh = wh.next;
@@ -1085,7 +1085,7 @@ while (exists wh) {
 
     @since %Qore 0.9 parsing can only be executed once per %Program object
  */
-*hash Program::parseCommit(int warning_mask) {
+*hash<ExceptionInfo> Program::parseCommit(int warning_mask) {
    ExceptionSink wsink;
    p->parseCommit(xsink, &wsink, warning_mask);
    if (!wsink.isException())
