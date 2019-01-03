@@ -672,8 +672,6 @@ public namespace RestHandler {
             and deserialized message body arguments with URI query arguments taking precedence over the message body
             arguments
 
-            @param args any arguments in the request (URI argument combined with deserialized message body arguments)
-
             @return an object corresponding to the \c name argument or @ref nothing if none can be matched
 
             This method first looks for a static subclass in the \a class_hash member (as populated by @ref addClass()
@@ -699,7 +697,10 @@ public namespace RestHandler {
             - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
             - \c body: the deserialized message body
             - \c aih: a hash of \c "Accept" values
-            @param args any arguments in the request (URI argument combined with deserialized message body arguments)
+            @param args the holds URI and / or message body arguments for the REST call; if a request has both URI
+            query arguments and message body arguments, then this value will be a combination of URI query arguments
+            and deserialized message body arguments with URI query arguments taking precedence over the message body
+            arguments
 
             @return an object corresponding to the \c name argument or @ref nothing if none can be matched; this base
             class method returns @ref nothing by default; override in subclasses to provide programmatic support for
@@ -883,11 +884,6 @@ public namespace RestHandler {
                 }
             }
             return name_set;
-        }
-
-        #! default get handler
-        hash<auto> get(hash<auto> cx, *hash<auto> ah) {
-            return RestHandler::makeResponse(200, keys class_hash);
         }
     }
 
@@ -1334,6 +1330,11 @@ public namespace RestHandler {
             #logDebug("REST DBG: rv: %N", rv);
 
             return cast<hash<HttpResponseInfo>>(rv);
+        }
+
+        #! default get handler for the base handler class
+        hash<auto> get(hash<auto> cx, *hash<auto> ah) {
+            return RestHandler::makeResponse(200, keys class_hash);
         }
 
         #! default implementation is empty
