@@ -748,16 +748,24 @@ static int process_opt(QoreString *cstr, char* param, QoreValue qv, int type, bo
 }
 
 static QoreStringNode* qore_sprintf_intern(ExceptionSink* xsink, const QoreStringNode* fmt,
-    const QoreListNode* arg_list, int arg_offset, int field, int last_arg = -1) {
+    const QoreListNode* arg_list, size_t arg_offset, int field, int last_arg = -1,
+    bool ignore_broken_sprintf = false) {
     SimpleRefHolder<QoreStringNode> buf(new QoreStringNode(fmt->getEncoding()));
+
+    bool broken_sprintf = ignore_broken_sprintf
+        ? false
+        : getProgram()->getParseOptions64() & PO_BROKEN_SPRINTF;
 
     const char* pstr = fmt->c_str();
     size_t l = fmt->strlen();
     size_t arg_size = last_arg == -1
         ? (arg_list ? arg_list->size() : 0)
         : static_cast<size_t>(last_arg);
+
+    //printd(5, "qore_sprintf_intern() bs: %d arg_offset: %zd arg_size: %zd fmt: '%s'\n", broken_sprintf, arg_offset,
+    //    arg_size, fmt->c_str());
     for (size_t i = 0; i < l; ++i) {
-        if (pstr[i] == '%') {
+        if (pstr[i] == '%' && (!broken_sprintf || arg_offset < arg_size)) {
             bool arg_used = true;
             bool use_arg;
             QoreValue param_value;
@@ -809,18 +817,21 @@ QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, Ex
     int arg_offset;
     int last_arg;
     const QoreListNode* arg_list;
+    // issue #3184: vsprintf(fmt, ()) resulted in non-broken behavior as a corner case
+    bool ignore_broken_sprintf = false;
     if (pv.getType() == NT_LIST) {
         arg_list = pv.get<const QoreListNode>();
         arg_offset = 0;
         last_arg = -1;
+        ignore_broken_sprintf = arg_list->empty();
     } else {
         // only process the single argument from the top-level arg list
         arg_list = params;
         arg_offset = offset + 1;
-        last_arg = offset + 2;
+        last_arg = offset + 1;
     }
 
-    return qore_sprintf_intern(xsink, fmt, arg_list, arg_offset, field, last_arg);
+    return qore_sprintf_intern(xsink, fmt, arg_list, arg_offset, field, last_arg, ignore_broken_sprintf);
 }
 
 static void concatASCII(QoreString &str, unsigned char c) {

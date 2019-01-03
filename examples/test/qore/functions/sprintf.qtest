@@ -15,10 +15,28 @@ public class A {
 
 public class SprintfTest inherits QUnit::Test {
     constructor() : Test("Sprintf test", "1.0") {
+        addTestCase("broken sprintf test", \brokenSprintf());
         addTestCase("Test 1", \test(), NOTHING);
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    brokenSprintf() {
+        Program p(PO_NEW_STYLE | PO_BROKEN_SPRINTF);
+        p.parse("
+auto sub test0(string fmt) { return vsprintf(fmt, argv); }
+auto sub test1(string fmt, auto arg) { return vsprintf(fmt, arg); }
+auto sub test2(string fmt) { softlist<auto> args = fmt; if (argv) args += argv; return call_function_args('sprintf', args); }
+", "");
+        assertEq("% d", p.callFunction("test0", "% d"));
+        assertEq("0", p.callFunction("test0", "% d", NOTHING));
+        # corner cases verified with the old implementation
+        assertEq("0", p.callFunction("test1", "% d", ()));
+        assertEq("% d", p.callFunction("test1", "% d", NOTHING));
+        assertEq("% d", p.callFunction("test1", "% d"));
+        assertEq("0 %d", p.callFunction("test2", "%d %d", NOTHING));
+        assertEq("%d %d", p.callFunction("test2", "%d %d"));
     }
 
     test() {
