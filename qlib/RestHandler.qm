@@ -885,11 +885,6 @@ public namespace RestHandler {
             }
             return name_set;
         }
-
-        #! default get handler
-        hash<auto> get(hash<auto> cx, *hash<auto> ah) {
-            return RestHandler::makeResponse(200, keys class_hash);
-        }
     }
 
     #! this is the main handler class to be registered with the HttpServer
@@ -1335,6 +1330,11 @@ public namespace RestHandler {
             #logDebug("REST DBG: rv: %N", rv);
 
             return cast<hash<HttpResponseInfo>>(rv);
+        }
+
+        #! default get handler for the base handler class
+        hash<auto> get(hash<auto> cx, *hash<auto> ah) {
+            return RestHandler::makeResponse(200, keys class_hash);
         }
 
         #! default implementation is empty
