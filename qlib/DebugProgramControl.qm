@@ -151,6 +151,26 @@ public namespace DebugProgramControl {
             # if (!ctxConnection)  run stopped programs ?
         }
 
+        #! unregister all connections
+        public unregisterAllConnections() {
+            rwlConnection.writeLock();
+            on_exit rwlConnection.writeUnlock();
+            foreach string id in (keys ctxConnection) {
+                map removeProgram($1), ctxConnection{id}.program.iterator();
+                delete ctxConnection{id};
+            }
+        }
+
+        #! get list of connection ids
+        /**
+            Note: Calling party should consider threads calling class register/unregister methods
+        */
+        public list getConnectionIds() {
+            rwlConnection.readLock();
+            on_exit rwlConnection.readUnlock();
+            return (keys ctxConnection) ?? ();
+        }
+
         private updateConnectionContext(hash cx, auto cx_data) {
         }
 
