@@ -1,10 +1,10 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
   QC_Program.h
-  
+
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 #define _QORE_CLASS_PROGRAM_H
 
 DLLEXPORT extern qore_classid_t CID_PROGRAM;
-DLLLOCAL extern QoreClass* QC_PROGRAM;
+DLLEXPORT extern QoreClass* QC_PROGRAM;
 DLLLOCAL QoreClass *initProgramClass(QoreNamespace& ns);
 
 #include <qore/QoreProgram.h>

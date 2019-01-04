@@ -3,7 +3,7 @@
 /*
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -38,7 +38,7 @@ class QoreReflectionNamespace : public AbstractReflectionObject {
 public:
     const QoreNamespace* ns;
 
-    DLLLOCAL QoreReflectionNamespace(const QoreString& name, ExceptionSink* xsink);
+    DLLLOCAL QoreReflectionNamespace(ExceptionSink* xsink, const QoreString& name, QoreProgram* pgm = getProgram());
 
     DLLLOCAL QoreReflectionNamespace(QoreProgram* pgm, const QoreNamespace* ns);
 };
