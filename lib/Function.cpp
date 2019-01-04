@@ -1559,11 +1559,10 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 
     for (unsigned i = 0; i < num_params; ++i) {
         QoreValue np;
-        if (args) {
+        if (args && *args) {
             if (args->canEdit()) {
                 signature.lv[i]->instantiate(qore_list_private::get(***args)->takeExists(i));
-            }
-            else {
+            } else {
                 signature.lv[i]->instantiate((*args)->retrieveEntry(i).refSelf());
             }
             continue;
@@ -1584,8 +1583,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
             // here we try to take the reference from args if possible
             if (args->canEdit()) {
                 argv->push(qore_list_private::get(***args)->takeExists(i + num_params), nullptr);
-            }
-            else {
+            } else {
                 QoreValue n;
                 if (args)
                     n = (*args)->retrieveEntry(i + num_params);
