@@ -446,9 +446,10 @@ class TypeTest inherits QUnit::Test {
             h0.a = 2;
             assertEq(2, h0.a);
             assertThrows("INVALID-MEMBER", sub () { reference r = \h; r.a = "a"; });
+            # verify that a failed reference assignment does not strip complex type information from the lvalue
             hash ih = testAnyArg(h);
-            assertEq(False, ih.complex);
-            assertEq("hash", ih.type);
+            assertEq(True, ih.complex);
+            assertEq("hash<MyHash>", ih.type);
         }
 
         {
@@ -460,9 +461,10 @@ class TypeTest inherits QUnit::Test {
             h0.a = "a";
             assertEq("a", h0.a);
             assertThrows("RUNTIME-TYPE-ERROR", sub () { reference r = \h; r.a = "a"; });
+            # verify that a failed reference assignment does not strip complex type information from the lvalue
             hash ih = testAnyArg(h);
-            assertEq(False, ih.complex);
-            assertEq("hash", ih.type);
+            assertEq(True, ih.complex);
+            assertEq("hash<string, int>", ih.type);
         }
 
         {
@@ -474,9 +476,10 @@ class TypeTest inherits QUnit::Test {
             l0 += "a";
             assertEq("a", l0[0]);
             assertThrows("RUNTIME-TYPE-ERROR", sub () { reference r = \l; r += "a"; });
+            # verify that a failed reference assignment does not strip complex type information from the lvalue
             hash ih = testAnyArg(l);
-            assertEq(False, ih.complex);
-            assertEq("list", ih.type);
+            assertEq(True, ih.complex);
+            assertEq("list<int>", ih.type);
         }
 
         {
@@ -488,9 +491,10 @@ class TypeTest inherits QUnit::Test {
             l0 += "a";
             assertEq("a", l0[0]);
             assertThrows("RUNTIME-TYPE-ERROR", sub () { reference r = \l; r += "a"; });
+            # verify that a failed reference assignment does not strip complex type information from the lvalue
             hash ih = testAnyArg(l);
-            assertEq(False, ih.complex);
-            assertEq("list", ih.type);
+            assertEq(True, ih.complex);
+            assertEq("softlist<int>", ih.type);
         }
 
         {
@@ -503,8 +507,8 @@ class TypeTest inherits QUnit::Test {
             l0 += "a";
             assertEq("a", l0[1]);
             hash ih = testAnyArg(l);
-            assertEq(False, ih.complex);
-            assertEq("list", ih.type);
+            assertEq(True, ih.complex);
+            assertEq("list<softint>", ih.type);
             l += "2";
             assertEq(2, l[1]);
         }
@@ -5439,10 +5443,10 @@ class TypeTest inherits QUnit::Test {
         }
     }
 
-    static hash testAnyArg(any v) {
-        return (
+    static hash testAnyArg(auto v) {
+        return {
             "type": v.fullType(),
             "complex": v.complexType(),
-        );
+        };
     }
 }

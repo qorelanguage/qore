@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -224,6 +224,8 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, LocalVar*
     else
         returnTypeInfo = nullptr;
 
+    //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %s variant: %p args: %p (%zd)\n", this, func ? func->getName() : "n/a", variant, args, args ? args->size() : 0);
+
     return lvids;
 }
 
@@ -355,7 +357,7 @@ QoreString* FunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xs
 // eval(): return value requires a deref(xsink)
 QoreValue FunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     QoreFunction* func = fe->getFunction();
-    //printd(5, "FunctionCallNode::evalImpl() this: %p '%s' tmp_args: %d args: %p '%s'\n", this, func->getName(), tmp_args, args, args ? get_full_type_name(args) : "n/a");
+    //printd(5, "FunctionCallNode::evalImpl() this: %p '%s' tmp_args: %d args: %p '%s' (%zd)\n", this, func->getName(), tmp_args, args, args ? get_full_type_name(args) : "n/a", args ? args->size() : 0);
     return tmp_args
         ? func->evalFunctionTmpArgs(variant, args, pgm, xsink)
         : func->evalFunction(variant, args, pgm, xsink);

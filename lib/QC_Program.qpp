@@ -691,6 +691,13 @@ const PO_NO_REFLECTION = PO_NO_REFLECTION;
     @since %Qore 0.9
 */
 const PO_NO_TRANSIENT = PO_NO_TRANSIENT;
+
+//! Enables broken @ref Qore::sprintf() "sprintf()" handling where no argument is treated diffferently than @ref nothing
+/** Also applies to all other functions and methods using format strings for formatted output
+
+    @since %Qore 0.9
+*/
+const PO_BROKEN_SPRINTF = PO_BROKEN_SPRINTF;
 //@}
 
 /** @defgroup warning_constants Warning Constants
