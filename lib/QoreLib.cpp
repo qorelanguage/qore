@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -760,10 +760,9 @@ static QoreStringNode* qore_sprintf_intern(ExceptionSink* xsink, const QoreStrin
     size_t l = fmt->strlen();
     size_t arg_size = last_arg == -1
         ? (arg_list ? arg_list->size() : 0)
-        : static_cast<size_t>(last_arg);
+        : QORE_MIN(static_cast<size_t>(last_arg), arg_list ? arg_list->size() : 0);
 
-    //printd(5, "qore_sprintf_intern() bs: %d arg_offset: %zd arg_size: %zd fmt: '%s'\n", broken_sprintf, arg_offset,
-    //    arg_size, fmt->c_str());
+    //printd(5, "qore_sprintf_intern() bs: %d arg_offset: %zd arg_size: %zd last_arg: %d arg_list: %p (%zd) fmt: '%s'\n", broken_sprintf, arg_offset, arg_size, last_arg, arg_list, arg_list ? arg_list->size() : 0, fmt->c_str());
     for (size_t i = 0; i < l; ++i) {
         if (pstr[i] == '%' && (!broken_sprintf || arg_offset < arg_size)) {
             bool arg_used = true;
@@ -826,9 +825,15 @@ QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, Ex
         ignore_broken_sprintf = arg_list->empty();
     } else {
         // only process the single argument from the top-level arg list
-        arg_list = params;
-        arg_offset = offset + 1;
-        last_arg = offset + 1;
+        if (pv.isNothing()) {
+            arg_list = nullptr;
+            arg_offset = 0;
+            last_arg = 0;
+        } else {
+            arg_list = params;
+            arg_offset = offset + 1;
+            last_arg = offset + 2;
+        }
     }
 
     return qore_sprintf_intern(xsink, fmt, arg_list, arg_offset, field, last_arg, ignore_broken_sprintf);

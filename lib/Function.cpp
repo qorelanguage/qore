@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -267,8 +267,7 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
                 if (*xsink)
                     return -1;
             }
-        }
-        else if (i < typeList.size()) {
+        } else if (i < typeList.size()) {
             QoreValue n;
             if (tmp)
                 n = tmp->retrieveEntry(i);
@@ -280,6 +279,11 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
             if (!paramTypeInfo)
                 continue;
 
+            // issue #3184: do not create a NOTHING argument if none is needed
+            if (!QoreTypeInfo::hasType(paramTypeInfo)
+                || (tmp.size() < i && QoreTypeInfo::parseAcceptsReturns(paramTypeInfo, NT_NOTHING))) {
+                continue;
+            }
             // test for change or incompatibility
             if (check_args || QoreTypeInfo::mayRequireFilter(paramTypeInfo, n)) {
                 QoreValue& p = tmp.getEntryReference(i);
