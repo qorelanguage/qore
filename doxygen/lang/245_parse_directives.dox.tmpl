@@ -28,12 +28,14 @@
     |@ref broken-loop-statement "%broken-loop-statement"|Accept @ref break "break" and @ref continue "continue" outside of loops as with pre-0.8.13
     |@ref broken-operators "%broken-operators"|Accept spaces in multi-character operators as with pre-0.8.12
     |@ref broken-references "%broken-references"|Do not enforce @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions as with pre-0.8.13
-    |@ref correct-int-assignments "%correct-int-assignments"|revert the effect of the @ref broken-int-assignments "%broken-int-assignments" parse options
-    |@ref correct-list-parsing "%correct-list-parsing"|revert the effect of the @ref broken-list-parsing "%broken-list-parsing" parse options
-    |@ref correct-logic-precedence "%correct-logic-precedence"|revert the effect of the @ref broken-logic-precedence "%broken-logic-precedence" parse options
-    |@ref correct-loop-statement "%correct-loop-statement"|revert the effect of the @ref broken-loop-statement "%broken-loop-statement" parse options
-    |@ref correct-operators "%correct-operators"|revert the effect of the @ref broken-operators "%broken-operators" parse options
-    |@ref correct-references "%correct-references"|revert the effect of the @ref broken-references "%broken-references" parse options
+    |@ref broken-sprintf "%broken-sprintf"|Use pre-0.9 sprintf format handling where no argument is handled differently than @ref nothing
+    |@ref correct-int-assignments "%correct-int-assignments"|revert the effect of the @ref broken-int-assignments "%broken-int-assignments" parse option
+    |@ref correct-list-parsing "%correct-list-parsing"|revert the effect of the @ref broken-list-parsing "%broken-list-parsing" parse option
+    |@ref correct-logic-precedence "%correct-logic-precedence"|revert the effect of the @ref broken-logic-precedence "%broken-logic-precedence" parse option
+    |@ref correct-loop-statement "%correct-loop-statement"|revert the effect of the @ref broken-loop-statement "%broken-loop-statement" parse option
+    |@ref correct-operators "%correct-operators"|revert the effect of the @ref broken-operators "%broken-operators" parse option
+    |@ref correct-references "%correct-references"|revert the effect of the @ref broken-references "%broken-references" parse option
+    |@ref correct-sprintf "%correct-sprintf"|revert the effect of the @ref broken-sprintf "%broken-sprintf" parse option
     |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
     |@ref disable-all-warnings "%disable-all-warnings"|Turns off all @ref warnings "warnings"
     |@ref disable-warning "%disable-warning" <em>@ref warnings "warning-code"</em>|Disables the named @ref warnings "warning" until @ref enable-warning "%enable-warning" is encountered with the same code or @ref enable-all-warnings "%enable-all-warnings" is encountered
@@ -417,6 +419,25 @@ i+ =4;
     @since %Qore 0.8.3
 
     <hr>
+    @section broken-sprintf %broken-sprintf
+
+    @par Parse Directive:
+    <tt>%%broken-sprintf</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-pbroken-sprintf</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_SPRINTF
+
+    @par Description:
+    Use pre-0.9 sprintf format handling where no argument is handled differently than @ref nothing
+
+    @see @ref correct-sprintf "%correct-sprintf"
+
+    @since %Qore 0.9
+
+    <hr>
     @section correct-int-assignments %broken-int-assignments
 
     @par Parse Directive:
@@ -529,6 +550,25 @@ i+ =4;
     @see @ref broken-operators "%broken-references"
 
     @since %Qore 0.8.13
+
+    <hr>
+    @section correct-sprintf %correct-sprintf
+
+    @par Parse Directive:
+    <tt>%%correct-sprintf</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-sprintf "%broken-sprintf" parse option.
+
+    @see @ref broken-sprintf "%broken-sprintf"
+
+    @since %Qore 0.9
 
     <hr>
     @section define %define

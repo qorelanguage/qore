@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -148,7 +148,7 @@ QoreValue QoreParseListNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) c
     const QoreTypeInfo* ti = qore_get_complex_list_type(vtype);
     ll->complexTypeInfo = ti;
 
-    //printd(5, "QoreParseListNode::evalImpl() this: %p size: %d typeInfo: %p '%s' (vtype: '%s')\n", this, size(), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::getName(vtype));
+    //printd(5, "QoreParseListNode::evalImpl() this: %p size: %zd typeInfo: %p '%s' (vtype: '%s')\n", this, size(), ti, QoreTypeInfo::getName(ti), QoreTypeInfo::getName(vtype));
 
     return rv.release();
 }

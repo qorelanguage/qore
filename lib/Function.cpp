@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -267,8 +267,7 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
                 if (*xsink)
                     return -1;
             }
-        }
-        else if (i < typeList.size()) {
+        } else if (i < typeList.size()) {
             QoreValue n;
             if (tmp)
                 n = tmp->retrieveEntry(i);
@@ -280,6 +279,11 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
             if (!paramTypeInfo)
                 continue;
 
+            // issue #3184: do not create a NOTHING argument if none is needed
+            if (!QoreTypeInfo::hasType(paramTypeInfo)
+                || (tmp.size() < i && QoreTypeInfo::parseAcceptsReturns(paramTypeInfo, NT_NOTHING))) {
+                continue;
+            }
             // test for change or incompatibility
             if (check_args || QoreTypeInfo::mayRequireFilter(paramTypeInfo, n)) {
                 QoreValue& p = tmp.getEntryReference(i);
@@ -1555,11 +1559,10 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 
     for (unsigned i = 0; i < num_params; ++i) {
         QoreValue np;
-        if (args) {
+        if (args && *args) {
             if (args->canEdit()) {
                 signature.lv[i]->instantiate(qore_list_private::get(***args)->takeExists(i));
-            }
-            else {
+            } else {
                 signature.lv[i]->instantiate((*args)->retrieveEntry(i).refSelf());
             }
             continue;
@@ -1580,8 +1583,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
             // here we try to take the reference from args if possible
             if (args->canEdit()) {
                 argv->push(qore_list_private::get(***args)->takeExists(i + num_params), nullptr);
-            }
-            else {
+            } else {
                 QoreValue n;
                 if (args)
                     n = (*args)->retrieveEntry(i + num_params);

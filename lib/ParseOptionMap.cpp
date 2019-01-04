@@ -3,7 +3,7 @@
 
     Qore Programming language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -96,6 +96,7 @@ void ParseOptionMap::static_init() {
    DO_MAP("allow-statement-no-effect",PO_ALLOW_STATEMENT_NO_EFFECT);
    DO_MAP("no-reflection",            PO_NO_REFLECTION);
    DO_MAP("no-transient",             PO_NO_TRANSIENT);
+   DO_MAP("broken-sprintf",           PO_BROKEN_SPRINTF);
 
    // the following are not useful from the command-line
    //DO_MAP("no-user-constants",        PO_NO_INHERIT_USER_CONSTANTS);
