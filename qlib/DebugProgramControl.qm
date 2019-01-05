@@ -171,9 +171,6 @@ public namespace DebugProgramControl {
             return (keys ctxConnection) ?? ();
         }
 
-        private updateConnectionContext(hash cx, auto cx_data) {
-        }
-
         #! send data to particular client
         abstract public sendDataImpl(hash cx, auto data);
         #! send data to all clients
