@@ -274,6 +274,12 @@
       - <a href="../../modules/HttpServer/html/index.html">HttpServer</a>:
         - fixed responses that cannot have a message body (ex: \c HEAD requests and others)
           (<a href="https://github.com/qorelanguage/qore/issues/3116">issue 3116</a>)
+      - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a>:
+        - added missing exception handling in the connection close callback
+          (<a href="https://github.com/qorelanguage/qore/issues/3225">issue 3225</a>)
+      - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a>:
+        - added missing exception handling to connection registration code
+          (<a href="https://github.com/qorelanguage/qore/issues/3215">issue 3215</a>)
 
     @section qore_08138 Qore 0.8.13.8
 
