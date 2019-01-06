@@ -661,10 +661,12 @@ public:
         qore_type_t fctype = fc.getType();
         if (fctype == NT_SELF_CALL) {
             SelfFunctionCallNode* sfcn = fc.get<SelfFunctionCallNode>();
-            {
+            // issue #3223: do not override local class context if available
+            if (!class_ctx) {
                 const QoreClass* qc = sfcn->getClass();
-                if (qc)
+                if (qc) {
                     class_ctx = qore_class_private::get(*qc);
+                }
             }
 
             //printd(5, "BGThreadParams::BGThreadParams() sfcn: %p class: '%s' method: '%s' static: %d\n", sfcn, class_ctx->name.c_str(), sfcn->getMethod()->getName(), sfcn->getMethod()->isStatic());

@@ -322,11 +322,25 @@ class Issue3223Base {
     private int testImpl() {
         return myFunc();
     }
+
+    private int testImpl2() {
+        Queue q();
+        background myFunc2(q);
+        return q.get();
+    }
+
+    private:internal myFunc2(Queue q) {
+        q.push(1);
+    }
 }
 
 class Issue3223Child inherits private:internal Issue3223Base {
     int test() {
         return testImpl();
+    }
+
+    int test2() {
+        return testImpl2();
     }
 }
 
@@ -420,6 +434,7 @@ class TestInheritB {
     issue3223() {
         Issue3223Child c();
         assertEq(1, c.test());
+        assertEq(1, c.test2());
     }
 
     accessTestMethod() {
