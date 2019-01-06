@@ -314,6 +314,36 @@ class Base1 {
 
 class Child1 inherits Base1;
 
+class Issue3223Base {
+    private:internal int myFunc() {
+        return 1;
+    }
+
+    private int testImpl() {
+        return myFunc();
+    }
+
+    private int testImpl2() {
+        Queue q();
+        background myFunc2(q);
+        return q.get();
+    }
+
+    private:internal myFunc2(Queue q) {
+        q.push(1);
+    }
+}
+
+class Issue3223Child inherits private:internal Issue3223Base {
+    int test() {
+        return testImpl();
+    }
+
+    int test2() {
+        return testImpl2();
+    }
+}
+
 public class AccessTest inherits QUnit::Test {
     private {
         const Code = "
@@ -393,11 +423,18 @@ class TestInheritB {
     }
 
     constructor() : Test("AccessTest", "1.0") {
+        addTestCase("issue 3223", \issue3223());
         addTestCase("Test class access", \accessTestMethod());
         addTestCase("Test inheritance", \inheritanceTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue3223() {
+        Issue3223Child c();
+        assertEq(1, c.test());
+        assertEq(1, c.test2());
     }
 
     accessTestMethod() {

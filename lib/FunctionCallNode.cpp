@@ -239,7 +239,9 @@ QoreValue SelfFunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
     }
 
     if (ns.size() == 1) {
-        return exec(self, ns.ostr, class_ctx, xsink);
+        // must have a class context here
+        assert(class_ctx || runtime_get_class());
+        return exec(self, ns.ostr, class_ctx ? class_ctx : runtime_get_class(), xsink);
     }
 
     assert(method);
