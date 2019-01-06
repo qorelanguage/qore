@@ -2719,27 +2719,11 @@ public:
         return scl->runtimeFindCommittedMethod(nme, access, class_ctx, class_ctx == this);
     }
 
-    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
-        access = Public;
-        if (class_ctx && class_ctx != this) {
-            const QoreMethod* m = class_ctx->findLocalCommittedStaticMethod(nme);
-            if (m) {
-                return m;
-            }
-        }
-        return runtimeFindCommittedStaticMethodIntern(nme, access, class_ctx);
-    }
+    DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* nme, ClassAccess& access,
+        const qore_class_private* class_ctx) const;
 
-    DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
-        access = Public;
-        if (class_ctx && class_ctx != this) {
-            const QoreMethod* m = class_ctx->findLocalCommittedMethod(nme);
-            if (m) {
-                return m;
-            }
-        }
-        return runtimeFindCommittedMethodIntern(nme, access, class_ctx);
-    }
+    DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* nme, ClassAccess& access,
+        const qore_class_private* class_ctx) const;
 
     DLLLOCAL const QoreMethod* runtimeFindCommittedMethodForEval(const char* nme, ClassAccess& access,
         const qore_class_private* class_ctx) const;

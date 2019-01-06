@@ -3141,12 +3141,40 @@ bool qore_class_private::runtimeHasCallableMethod(const char* m, int mask) const
     return !w || (!class_ctx && (access > Public)) ? false : true;
 }
 
+const QoreMethod* qore_class_private::runtimeFindCommittedStaticMethod(const char* nme, ClassAccess& access,
+    const qore_class_private* class_ctx) const {
+    access = Public;
+    if (class_ctx && class_ctx != this) {
+        const QoreMethod* m = class_ctx->findLocalCommittedStaticMethod(nme);
+        if (m && qore_method_private::get(*m)->getFunction()->hasPrivateInternalVariants()) {
+            return m;
+        }
+    }
+    return runtimeFindCommittedStaticMethodIntern(nme, access, class_ctx);
+}
+
+const QoreMethod* qore_class_private::runtimeFindCommittedMethod(const char* nme, ClassAccess& access,
+    const qore_class_private* class_ctx) const {
+    access = Public;
+    if (class_ctx && class_ctx != this) {
+        const QoreMethod* m = class_ctx->findLocalCommittedMethod(nme);
+        if (m && qore_method_private::get(*m)->getFunction()->hasPrivateInternalVariants()) {
+            return m;
+        }
+    }
+    return runtimeFindCommittedMethodIntern(nme, access, class_ctx);
+}
+
 const QoreMethod* qore_class_private::runtimeFindCommittedMethodForEval(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
     access = Public;
     if (class_ctx && class_ctx != this) {
         const QoreMethod* m = class_ctx->findLocalCommittedMethod(nme);
-        if (m && !qore_method_private::get(*m)->isAbstract()) {
-            return m;
+        if (m) {
+            const qore_method_private* meth = qore_method_private::get(*m);
+            //printd(5, "qore_class_private::runtimeFindCommittedMethodForEval() '%s::%s': %p (pi: %d a: %d)\n", name.c_str(), nme, meth, meth->getFunction()->hasPrivateInternalVariants(), meth->isAbstract());
+            if (meth->getFunction()->hasPrivateInternalVariants() && !meth->isAbstract()) {
+                return m;
+            }
         }
     }
     return runtimeFindCommittedMethodIntern(nme, access, class_ctx);
@@ -4285,6 +4313,9 @@ void MethodFunctionBase::addBuiltinMethodVariant(MethodVariantBase* variant) {
     if (is_abstract && !variant->isAbstract()) {
         is_abstract = false;
     }
+    if (!has_private_internal_variants && ma == Internal) {
+        has_private_internal_variants = true;
+    }
     addBuiltinVariant(variant);
 }
 
@@ -4300,6 +4331,9 @@ int MethodFunctionBase::parseAddUserMethodVariant(MethodVariantBase* variant) {
         }
         if (is_abstract && !variant->isAbstract()) {
             is_abstract = false;
+        }
+        if (!has_private_internal_variants && ma == Internal) {
+            has_private_internal_variants = true;
         }
     }
     return rc;
@@ -4371,11 +4405,16 @@ void MethodFunctionBase::replaceAbstractVariant(MethodVariantBase* variant) {
     replaceAbstractVariantIntern(variant);
 
     ClassAccess ma = variant->getAccess();
-    if (access > ma)
+    if (access > ma) {
         access = ma;
+    }
 
-    if (!has_final && variant->isFinal())
+    if (!has_final && variant->isFinal()) {
         has_final = true;
+    }
+    if (!has_private_internal_variants && ma == Internal) {
+        has_private_internal_variants = true;
+    }
 }
 
 // if an identical signature is found to the passed variant, then it is removed from the abstract list
