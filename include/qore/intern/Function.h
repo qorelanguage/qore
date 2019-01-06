@@ -1087,7 +1087,8 @@ protected:
 
     bool is_static,
         has_final = false,
-        is_abstract = true;
+        is_abstract = true,
+        has_private_internal_variants = false;
 
     ClassAccess access;
 
@@ -1096,7 +1097,8 @@ protected:
     DLLLOCAL void replaceAbstractVariantIntern(MethodVariantBase* variant);
 
 public:
-    DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme), qc(n_qc), is_static(n_is_static), has_final(false), access(Internal) {
+    DLLLOCAL MethodFunctionBase(const char* nme, const QoreClass* n_qc, bool n_is_static) : QoreFunction(nme),
+        qc(n_qc), is_static(n_is_static), has_final(false), access(Internal) {
     }
 
     // copy constructor, only copies committed variants
@@ -1106,6 +1108,7 @@ public:
             is_static(old.is_static),
             has_final(old.has_final),
             is_abstract(old.is_abstract),
+            has_private_internal_variants(old.has_private_internal_variants),
             access(old.access) {
         //printd(5, "MethodFunctionBase() copying old=%p -> new=%p %p %s::%s() %p %s::%s()\n",& old, this, old.qc, old.qc->getName(), old.getName(), qc, qc->getName(), old.getName());
 
@@ -1116,8 +1119,9 @@ public:
         ilist.reserve(old.ilist.size());
         ilist_t::const_iterator i = old.ilist.begin(), e = old.ilist.end();
         ++i;
-        for (; i != e; ++i)
+        for (; i != e; ++i) {
             ilist.push_back(*i);
+        }
     }
 
     DLLLOCAL void resolveCopy() {
@@ -1181,6 +1185,10 @@ public:
 
     DLLLOCAL bool isStatic() const {
         return is_static;
+    }
+
+    DLLLOCAL bool hasPrivateInternalVariants() const {
+        return has_private_internal_variants;
     }
 
     DLLLOCAL void checkFinal() const;
