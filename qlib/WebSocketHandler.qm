@@ -340,7 +340,7 @@ public namespace WebSocketHandler {
         #! get list of socket connection ids
         /**
         */
-        *list<string> getConnectionIds() {
+        *list getConnectionIds() {
             rwl.readLock();
             on_exit rwl.readUnlock();
             return keys ch;
