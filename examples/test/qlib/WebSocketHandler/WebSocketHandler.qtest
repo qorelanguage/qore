@@ -17,6 +17,19 @@
 
 %exec-class WebSocketHandlerTest
 
+class MyBadWsConnection inherits WebSocketConnection {
+    constructor(WebSocketHandler handler) : WebSocketConnection(handler) {
+    }
+
+    gotMessage(string msg) {
+        send("RESPONSE:"+msg);
+    }
+
+    registered() {
+        throw "ERROR", "error";
+    }
+}
+
 class MyWsConnection inherits WebSocketConnection {
     constructor(WebSocketHandler handler) : WebSocketConnection(handler) {
     }
@@ -28,11 +41,19 @@ class MyWsConnection inherits WebSocketConnection {
 }
 
 class MyWsHandler inherits WebSocketHandler {
-    constructor(*hash opts) : WebSocketHandler(NOTHING, opts) {
+    public {
+        list<string> errs();
     }
 
-    WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
-        return new MyWsConnection(self);
+    constructor(*hash<auto> opts) : WebSocketHandler(NOTHING, opts) {
+    }
+
+    WebSocketConnection getConnectionImpl(hash<auto> cx, hash<auto> hdr, string cid) {
+        return hdr.bad ? new MyBadWsConnection(self) : new MyWsConnection(self);
+    }
+
+    logError(string fmt) {
+        errs += vsprintf(fmt, argv);
     }
 }
 
@@ -41,7 +62,7 @@ class MyWsClient inherits WebSocketClient {
         Counter cnt;
     }
 
-    constructor(code cb, hash opts, Counter c) : WebSocketClient(cb, opts) {
+    constructor(code cb, hash<auto> opts, Counter c) : WebSocketClient(cb, opts) {
         cnt = c;
     }
 
@@ -85,10 +106,20 @@ class WebSocketHandlerTest inherits QUnit::Test {
         assertEq("test", wsHandler.getHeartbeatMessage());
 
         Counter c(1);
-        MyWsClient wsc(sub (*data msg) {}, ("url": "ws://localhost:" + port), c);
-        wsc.connect();
-        c.waitForZero();
-        assertTrue(True);
+        {
+            MyWsClient wsc(sub (*data msg) {}, {"url": "ws://localhost:" + port}, c);
+            wsc.connect();
+            c.waitForZero();
+            assertTrue(True);
+        }
+
+        # check bad handler
+        {
+            WebSocketClient wsc(sub (*data msg) {}, {"url": "ws://localhost:" + port});
+            wsc.connect({"hdr": {"Bad": 1}});
+            wsc.disconnect();
+        }
+        assertEq(1, wsHandler.errs.size());
     }
 
     private log(string str) {
