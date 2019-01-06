@@ -42,7 +42,7 @@ class MyWsConnection inherits WebSocketConnection {
 
 class MyWsHandler inherits WebSocketHandler {
     public {
-        list<string> errs();
+        Queue errs();
     }
 
     constructor(*hash<auto> opts) : WebSocketHandler(NOTHING, opts) {
@@ -53,7 +53,7 @@ class MyWsHandler inherits WebSocketHandler {
     }
 
     logError(string fmt) {
-        errs += vsprintf(fmt, argv);
+        errs.push(vsprintf(fmt, argv));
     }
 }
 
@@ -119,7 +119,8 @@ class WebSocketHandlerTest inherits QUnit::Test {
             wsc.connect({"hdr": {"Bad": 1}});
             wsc.disconnect();
         }
-        assertEq(1, wsHandler.errs.size());
+        wsHandler.errs.get(10s);
+        assertEq(0, wsHandler.errs.size());
     }
 
     private log(string str) {
