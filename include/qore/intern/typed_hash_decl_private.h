@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  typed_hash_decl_private.h
+    typed_hash_decl_private.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_INTERN_TYPED_HASH_DECL_PRIVATE_H
@@ -41,25 +41,32 @@ class typed_hash_decl_private;
 
 class HashDeclMemberInfo : public QoreMemberInfoBase {
 public:
-   DLLLOCAL HashDeclMemberInfo(const QoreProgramLocation& loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, AbstractQoreNode* e = nullptr) : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e) {
-   }
+    DLLLOCAL HashDeclMemberInfo(const QoreProgramLocation* loc, const QoreTypeInfo* n_typeInfo = nullptr, QoreParseTypeInfo* n_parseTypeInfo = nullptr, QoreValue e = QoreValue()) : QoreMemberInfoBase(loc, n_typeInfo, n_parseTypeInfo, e) {
+    }
 
-   DLLLOCAL HashDeclMemberInfo(const HashDeclMemberInfo& old) : QoreMemberInfoBase(old) {
-   }
+    DLLLOCAL HashDeclMemberInfo(const HashDeclMemberInfo& old) : QoreMemberInfoBase(old) {
+    }
 
-   DLLLOCAL bool equal(const HashDeclMemberInfo& other) const;
+    DLLLOCAL bool equal(const HashDeclMemberInfo& other) const;
 
-   DLLLOCAL void parseInit(const char* name, bool priv);
+    DLLLOCAL void parseInit(const char* name, bool priv);
 };
 
 typedef QoreMemberMapBase<HashDeclMemberInfo> HashDeclMemberMap;
 
 class typed_hash_decl_private {
+friend class typed_hash_decl_member_iterator;
+friend class TypedHashDecl;
 public:
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation& loc) : loc(loc) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc) : loc(loc), orig(this) {
+        assignModule();
     }
 
-    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation& loc, const char* n, TypedHashDecl* thd) : loc(loc), name(n), thd(thd), typeInfo(new QoreHashDeclTypeInfo(thd, n)), orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
+    DLLLOCAL typed_hash_decl_private(const QoreProgramLocation* loc, const char* n, TypedHashDecl* thd) :
+        loc(loc), name(n), thd(thd), orig(this),
+        typeInfo(new QoreHashDeclTypeInfo(thd, n)),
+        orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, n)) {
+        assignModule();
     }
 
     DLLLOCAL typed_hash_decl_private(const typed_hash_decl_private& old, TypedHashDecl* thd);
@@ -83,13 +90,15 @@ public:
         if (name != other.name || members.size() != other.members.size())
             return false;
 
-        for (HashDeclMemberMap::DeclOrderIterator ti = members.beginDeclOrder(), oi = other.members.beginDeclOrder(), te = members.endDeclOrder(); ti != te; ++ti, ++oi) {
+        for (HashDeclMemberMap::const_iterator ti = members.member_list.begin(), oi = other.members.member_list.begin(), te = members.member_list.end(); ti != te; ++ti, ++oi) {
             // if the member's name is different, return false
-            if (strcmp(oi->first, ti->first))
+            if (strcmp(oi->first, ti->first)) {
                return false;
+            }
             // if the member's type is different, return false
-            if (!ti->second->equal(*oi->second))
+            if (!ti->second->equal(*oi->second)) {
                return false;
+            }
         }
 
         return true;
@@ -134,28 +143,29 @@ public:
     }
 
     DLLLOCAL void parseInit() {
-        if (parse_init_done)
+        if (parse_init_done || sys)
             return;
         parse_init_done = true;
 
         // initialize new members
-        for (HashDeclMemberMap::DeclOrderIterator i = members.beginDeclOrder(), e = members.endDeclOrder(); i != e; ++i) {
-            if (i->second)
-                i->second->parseInit(i->first, true);
+        for (auto& i : members.member_list) {
+            if (i.second) {
+                i.second->parseInit(i.first, true);
+            }
             // check new members for conflicts in base hashdecls
-            //parseCheckMemberInBaseHashDecl(i->first, i->second);
+            //parseCheckMemberInBaseHashDecl(i.first, i.second);
         }
     }
 
-    DLLLOCAL int parseInitHashDeclInitialization(const QoreProgramLocation& loc, LocalVar *oflag, int pflag, QoreParseListNode* args, bool& runtime_check) const;
+    DLLLOCAL int parseInitHashDeclInitialization(const QoreProgramLocation* loc, LocalVar *oflag, int pflag, QoreParseListNode* args, bool& runtime_check) const;
 
-    DLLLOCAL void parseCheckHashDeclInitialization(const QoreProgramLocation& loc, const QoreTypeInfo* expTypeInfo, const AbstractQoreNode* exp, const char* context_action, bool& runtime_check, bool strict_check = true) const;
+    DLLLOCAL void parseCheckHashDeclInitialization(const QoreProgramLocation* loc, const QoreTypeInfo* expTypeInfo, QoreValue exp, const char* context_action, bool& runtime_check, bool strict_check = true) const;
 
-    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation& loc, const typed_hash_decl_private& hd, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
+    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation* loc, const typed_hash_decl_private& hd, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
 
-    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation& loc, const AbstractQoreNode* n, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
+    DLLLOCAL void parseCheckHashDeclAssignment(const QoreProgramLocation* loc, QoreValue n, const char* context, bool& needs_runtime_check, bool strict_check = true) const;
 
-    DLLLOCAL void parseCheckComplexHashAssignment(const QoreProgramLocation& loc, const QoreTypeInfo* vti) const;
+    DLLLOCAL void parseCheckComplexHashAssignment(const QoreProgramLocation* loc, const QoreTypeInfo* vti) const;
 
     DLLLOCAL QoreHashNode* newHash(const QoreParseListNode* args, bool runtime_check, ExceptionSink* xsink) const;
 
@@ -163,19 +173,21 @@ public:
 
     DLLLOCAL int initHash(QoreHashNode* h, const QoreHashNode* init, ExceptionSink* xsink) const;
 
-    DLLLOCAL int runtimeAssignKey(const char* key, ReferenceHolder<>& val, ExceptionSink* xsink) const {
+    DLLLOCAL int runtimeAssignKey(const char* key, ValueHolder& val, ExceptionSink* xsink) const {
         const HashDeclMemberInfo* mem = members.find(key);
         if (!mem) {
             xsink->raiseException("HASHDECL-KEY-ERROR", "cannot assign unknown key '%s' to hashdecl '%s'", key, name.c_str());
             return -1;
         }
-        QoreValue v(val.release());
-        QoreTypeInfo::acceptInputKey(mem->getTypeInfo(), key, v, xsink);
-        val = v.takeNode();
-        return *xsink ? -1 : 0;
+        QoreTypeInfo::acceptInputKey(mem->getTypeInfo(), key, *val, xsink);
+        if (*xsink) {
+            xsink->appendLastDescription(" (while assigning to hashdecl '%s')", name.c_str());
+            return -1;
+        }
+        return 0;
     }
 
-    DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation& loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const;
+    DLLLOCAL int parseCheckMemberAccess(const QoreProgramLocation* loc, const char* mem, const QoreTypeInfo*& memberTypeInfo, int pflag) const;
 
     DLLLOCAL const HashDeclMemberInfo* findMember(const char* m) const {
         return members.find(m);
@@ -200,7 +212,11 @@ public:
         return name.c_str();
     }
 
-    DLLLOCAL const QoreProgramLocation& getParseLocation() const {
+    DLLLOCAL const std::string& getNameStr() const {
+        return name;
+    }
+
+    DLLLOCAL const QoreProgramLocation* getParseLocation() const {
         return loc;
     }
 
@@ -214,19 +230,46 @@ public:
 
     DLLLOCAL void addMember(const char* name, const QoreTypeInfo* memberTypeInfo, QoreValue init_val) {
         assert(!members.find(name));
-        members.addNoCheck(std::make_pair(strdup(name), new HashDeclMemberInfo(QoreProgramLocation(RunTimeLocation), memberTypeInfo, nullptr, init_val.takeNode())));
+        members.addNoCheck(std::make_pair(strdup(name), new HashDeclMemberInfo(&loc_builtin, memberTypeInfo, nullptr, init_val)));
     }
 
     DLLLOCAL void setName(const char* n) {
         name = n;
     }
 
+    DLLLOCAL const HashDeclMemberMap& getMembers() const {
+        return members;
+    }
+
+    DLLLOCAL const HashDeclMemberInfo* findLocalMember(const char* name) const {
+        return members.find(name);
+    }
+
+    DLLLOCAL void setNamespace(qore_ns_private* n) {
+        ns = n;
+    }
+
+    DLLLOCAL const qore_ns_private* getNamespace() const {
+        return ns;
+    }
+
+    DLLLOCAL const char* getModuleName() const {
+        return from_module.empty() ? nullptr : from_module.c_str();
+    }
+
 protected:
     // references
     mutable QoreReferenceCounter refs;
-    QoreProgramLocation loc;
+    const QoreProgramLocation* loc;
     std::string name;
     TypedHashDecl* thd = nullptr;
+    // parent namespace
+    qore_ns_private* ns = nullptr;
+    // the module that defined this class, if any
+    std::string from_module;
+
+    // original declaration
+    const typed_hash_decl_private* orig;
 
     // type information
     QoreHashDeclTypeInfo* typeInfo = nullptr;
@@ -239,6 +282,15 @@ protected:
     bool sys = false;
 
     bool parse_init_done = false;
+
+    DLLLOCAL void assignModule() {
+        const char* mod_name = get_module_context_name();
+        if (mod_name) {
+            from_module = mod_name;
+        }
+    }
+
+    DLLLOCAL int initHashIntern(QoreHashNode* h, const QoreHashNode* init, ExceptionSink* xsink) const;
 };
 
 #endif

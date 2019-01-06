@@ -31,7 +31,7 @@
 #include <qore/Qore.h>
 #include "qore/intern/SmartMutex.h"
 
-#include <assert.h>
+#include <cassert>
 
 #ifdef DEBUG
 SmartMutex::~SmartMutex() {

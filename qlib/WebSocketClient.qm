@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 # require type definitions everywhere
 %require-types
@@ -33,12 +33,12 @@
 
 %requires WebSocketUtil >= 1.0
 %requires Util >= 1.0
-%requires(reexport) ConnectionProvider >= 1.0
+%requires(reexport) ConnectionProvider >= 1.2
 
 %new-style
 
 module WebSocketClient {
-    version = "1.6.3";
+    version = "1.7";
     desc = "user module for providing client support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -87,6 +87,12 @@ c.waitForZero();
 
     @section websocketclient_relnotes WebSocketClient Module Release History
 
+    @subsection wsc_v1_7 v1.7
+    - all connection clases have unified constructor
+    - added the @ref WebSocketClient::WebSocketConnectionObject::getConstructorInfo() "WebSocketConnectionObject::getConstructorInfo()"
+      method to allow connections to be created dynamically, potentially in another process from a network
+      call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+
     @subsection wsc_v1_6_3 v1.6.3
     - added missing exception handling in the connection close callback
       (<a href="https://github.com/qorelanguage/qore/issues/3225">issue 3225</a>)
@@ -128,14 +134,14 @@ c.waitForZero();
 #! the WebSocketClient namespace contains all the definitions in the WebSocketClient module
 public namespace WebSocketClient {
     #! known websocket schemes
-    public const WsSchemes = (
-        "ws": (
+    public const WsSchemes = {
+        "ws": {
             "ssl": False,
-        ),
-        "wss": (
+        },
+        "wss": {
             "ssl": True,
-        ),
-        );
+        },
+    };
 
     #! default port for connections
     public const WsDefaultPort = 80;
@@ -165,6 +171,8 @@ public namespace WebSocketClient {
             int cid = -1;
             #! callable object to yield the current thread's execution
             *code yield;
+            #! URL string
+            string url;
 
             static Sequence seq();
         }
@@ -206,6 +214,7 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
         constructor(code cb, hash opts) {
             if (opts.url.typeCode() != NT_STRING)
                 throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'url' key giving the connection target");
+            url = opts.url;
 
             if (opts.hasKey("yield")) {
                 if (!opts.yield.callp())
@@ -244,6 +253,11 @@ WebSocketClient ws(\event(), ("url": "ws://example.com:8080/path"));
         #! disconnects the connection and stops the event thread if connected
         destructor() {
             disconnect();
+        }
+
+        #! returns the URL given in the constructor
+        string getUrl() {
+            return url;
         }
 
         #! returns the unique connection ID
@@ -608,15 +622,32 @@ ws.clearStats();
         - \c "yield": a closure to yield current thread execution
     */
     public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConnection {
-        #! creates the WebSocketConnectionObject object
+        #! DEPRECATED: creates the WebSocketConnectionObject object
         /** @param name the name of the connection
             @param desc connection description
             @param url connection URL
             @param monitor monitoring flag
             @param opts connection options
             @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+
+            @deprecated since Qore 0.9
         */
-        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh) : AbstractConnection(name, desc, url, monitor, opts, urlh) {
+        deprecated
+        constructor(string name, string desc, string url, bool monitor, *hash opts, hash urlh)
+            : AbstractConnection(name, desc, url, {"monitor": monitor}, opts ?? {}) {
+        }
+
+        #! creates the WebSocketConnectionObject connection object
+        /** @param name the name of the connection
+            @param description connection description
+            @param url connection URL (potentially with password info)
+            @param attributes various attributes. See below
+            @param options connection options
+
+            See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+         */
+        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+            : AbstractConnection(name, description, url, attributes, options) {
         }
 
         #! returns \c "websocket"
@@ -665,6 +696,19 @@ ws.clearStats();
             return ws;
         }
 
+        #! returns a hash that can be used to contruct the object dynamically
+        /** @since %WebSocketClient 1.7
+        */
+        private hash<ConnectionConstructorInfo> getConstructorInfoImpl() {
+            return new hash<ConnectionConstructorInfo>({
+                "module": "WebSocketClient",
+                "class_name": "WebSocketClient",
+                "args": ("url": url) + opts,
+                "pre_processing": "if (!rtopts.callback) rtopts.callback = sub (*data msg) {}; unshift args, rtopts.callback; if (rtopts.dbglog) rtopts.debuglog = remove rtopts.dbglog; args[1] = rtopts.(\"log\", \"errlog\", \"debuglog\") + args[1];",
+                "post_processing": "if (connect) obj.connect();",
+            });
+        }
+
         #! gets options
         hash getOptions() {
             return HttpConnection::Options;
@@ -686,9 +730,15 @@ ws.clearStats();
             };
         }
 
-        #! static constructor
+        #! DEPRECATED: static constructor
+        /** @deprecated since Qore 0.9 in favor of new constructor and Qore::Reflection
+         */
+        deprecated
         static WebSocketConnectionObject make(string name, string desc, string url, bool monitor, *hash opts, hash urlh) {
-            return new WebSocketConnectionObject(name, desc, url, monitor, opts, urlh);
+            hash attributes = {
+                "monitor": monitor,
+            };
+            return new WebSocketConnectionObject(name, desc, url, attributes, opts ?? {});
         }
     }
 }

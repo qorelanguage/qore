@@ -1,0 +1,908 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+%no-child-restrictions
+
+%requires ../../../../qlib/QUnit.qm
+
+%requires reflection
+
+%exec-class ReflectionTest
+
+class Base {
+    public {
+        int bi = 1;
+
+        static int bsi = 2;
+
+        const BC_I = 3;
+    }
+
+    int a() {
+        return 1;
+    }
+
+    static int b() {
+        return 2;
+    }
+}
+
+class Test inherits Base {
+    public {
+        int i = 1;
+
+        static int si = 2;
+
+        const C_I = 3;
+    }
+
+    private {
+        string str = "string";
+
+        static string sstr = "string2";
+
+        const C_STR = "string3";
+    }
+
+    private:internal {
+        number pi = M_PIn;
+
+        static number spi = M_PI * M_PI;
+
+        const C_PI = M_PI * M_PI * M_PI;
+    }
+
+    int c() {
+        return 3;
+    }
+}
+
+class ITest inherits private:internal Test {
+    public {
+        number pi = 0n;
+    }
+
+    private:internal int get() {
+        return 1;
+    }
+
+    private:internal static int get() {
+        return 2;
+    }
+}
+
+namespace TestNs {
+    our int global_i;
+
+    hashdecl T {
+        int i = 0;
+    }
+}
+
+class ReflectionTest inherits QUnit::Test {
+    constructor() : QUnit::Test("ReflectionTest", "1.0") {
+        addTestCase("pgm tests", \pgmTests());
+        addTestCase("issue 3145", \issue3145Test());
+        addTestCase("issue 3141", \issue3141Test());
+        addTestCase("issue 3035", \issue3035Test());
+        addTestCase("reflection tests", \reflectionTests());
+        addTestCase("sandbox tests", \sandboxTests());
+        addTestCase("pseudo-class tests", \pseudoClassTests());
+        addTestCase("program tests", \programTests());
+        set_return_value(main());
+    }
+
+    pgmTests() {
+        Program p(PO_NEW_STYLE);
+        p.parse("class Test {} const Test = 1; sub test() {} our int test; namespace Test1 {} hashdecl Test2 { int i; }", "");
+
+        {
+            Class c = Class::forName(p, "Test");
+            assertEq("Test", c.getName());
+            c = Class::findAllRegex(p, "^Tes[tuv]")[0];
+            assertEq("Test", c.getName());
+        }
+
+        {
+            Constant c = Constant::forName(p, "Test");
+            assertEq("Test", c.getName());
+            c = Constant::findAllRegex(p, "^Tes[tuv]")[0];
+            assertEq("Test", c.getName());
+        }
+
+        {
+            Function f = Function::forName(p, "test");
+            assertEq("test", f.getName());
+            f = Function::findAllRegex(p, "^tes[tuv]")[0];
+            assertEq("test", f.getName());
+        }
+
+        {
+            GlobalVar g = GlobalVar::forName(p, "test");
+            assertEq("test", g.getName());
+            g = GlobalVar::findAllRegex(p, "^tes[tuv]")[0];
+            assertEq("test", g.getName());
+        }
+
+        {
+            Namespace n = Namespace::forName(p, "Test1");
+            assertEq("Test1", n.getName());
+            n = Namespace::findAllRegex(p, "^Tes[tuv]1")[0];
+            assertEq("Test1", n.getName());
+        }
+
+        {
+            TypedHash n = TypedHash::forName(p, "Test2");
+            assertEq("Test2", n.getName());
+            n = TypedHash::findAllRegex(p, "^Tes[tuv]2")[0];
+            assertEq("Test2", n.getName());
+        }
+    }
+
+    issue3145Test() {
+        Class c("Test");
+        assertNothing(c.getModuleName());
+        c = Class::forName("QUnit::Test");
+        assertEq("QUnit", c.getModuleName());
+    }
+
+    issue3141Test() {
+        Class c("Test");
+        hash<MethodAccessInfo> i = c.findMethod("a");
+        assertEq(AC_PUBLIC, i.access);
+        assertEq("public", i.access_string);
+        assertEq("a", i.method.getName());
+        assertEq("Base", i.method.getClass().getName());
+
+        i = c.findMethod("c");
+        assertEq(AC_PUBLIC, i.access);
+        assertEq("public", i.access_string);
+        assertEq("c", i.method.getName());
+        assertEq("Test", i.method.getClass().getName());
+
+        assertThrows("UNKNOWN-METHOD", \c.findMethod(), "invalid");
+    }
+
+    issue3035Test() {
+        string name = `qore -lreflection -ne 'printf("%s", Class::forName("Mutex").getPathName());'`;
+        assertEq("Qore::Thread::Mutex", name);
+    }
+
+    reflectionTests() {
+        Class c("Mutex");
+
+        assertTrue(c.isBuiltin());
+        assertFalse(c.isUser());
+        assertFalse(c.isAbstract());
+        assertEq("Mutex", c.getName());
+        assertEq("Qore::Thread::Mutex", c.getPathName());
+        assertGt(0, c.getId());
+        assertEq(20, c.getHash().size());
+        assertFalse(c.hasMemberGate());
+        assertFalse(c.hasMethodGate());
+        assertFalse(c.hasMemberNotification());
+        assertEq(0, c.getModifiers());
+        assertEq((), c.getModifierList());
+        assertEq(DOM_THREAD_CLASS, c.getDomain());
+        assertEq(("THREAD_CLASS",), c.getDomainStringList());
+
+        {
+            auto v = c.newObject();
+            assertTrue(v instanceof Mutex);
+            Class c1 = Class::getClass(v);
+            assertEq(c1.getId(), c.getId());
+            assertEq(c1.getHash(), c.getHash());
+        }
+
+        {
+            auto v = c.newObjectArgs();
+            assertTrue(v instanceof Mutex);
+            Class c1 = Class::getClass(v);
+            assertEq(c1.getId(), c.getId());
+            assertEq(c1.getHash(), c.getHash());
+        }
+
+        NormalMethod m = c.getMethod("lock");
+        assertTrue(m.isBuiltin());
+        assertFalse(m.isUser());
+        assertEq("lock", m.getName());
+        assertFalse(m.isInjected());
+
+        m = c.getNormalMethod("lock");
+        assertEq("normal", m.getMethodTypeName());
+        assertTrue(m.isBuiltin());
+        assertFalse(m.isUser());
+        assertEq("lock", m.getName());
+
+        assertThrows("UNKNOWN-METHOD", \c.getStaticMethod(), "lock");
+
+        Mutex mtx = c.newObject();
+        m.call(mtx);
+        assertTrue(mtx.lockOwner());
+        mtx.unlock();
+
+        m.callArgs(mtx);
+        assertTrue(mtx.lockOwner());
+        mtx.unlock();
+
+        assertThrows("METHOD-ERROR", \m.call(), new Condition());
+
+        {
+            ConstructorMethod con = c.getMethod("constructor");
+            assertEq("constructor", con.getMethodTypeName());
+            assertTrue(con.isBuiltin());
+            assertFalse(con.isUser());
+            assertEq("constructor", con.getName());
+            {
+                object o = con.call();
+                assertTrue(o instanceof Mutex);
+            }
+
+            DestructorMethod des = c.getMethod("destructor");
+            assertEq("destructor", des.getMethodTypeName());
+            assertTrue(des.isBuiltin());
+            assertFalse(des.isUser());
+            assertEq("destructor", des.getName());
+            {
+                object o = con.call();
+                assertTrue(o instanceof Mutex);
+                assertEq("Mutex", o.className());
+                des.call(o);
+                assertThrows("OBJECT-ALREADY-DELETED", \o.lock());
+            }
+
+            {
+                Class c1 = Class::forName("Mutex");
+                assertEq("Mutex", c1.getName());
+                assertEq(c1.getId(), c.getId());
+                assertEq(c1.getHash(), c.getHash());
+            }
+
+            CopyMethod copy = c.getMethod("copy");
+            assertEq("copy", copy.getMethodTypeName());
+            assertTrue(copy.isBuiltin());
+            assertFalse(copy.isUser());
+            assertEq("copy", copy.getName());
+            {
+                object o = con.call();
+                assertTrue(o instanceof Mutex);
+                assertEq("Mutex", o.className());
+                Mutex o2 = copy.call(o);
+                assertTrue(o2 instanceof Mutex);
+                assertEq("Mutex", o2.className());
+                assertThrows("METHOD-ERROR", \copy.call(), new Condition());
+            }
+        }
+
+        {
+            list<AbstractMethod> l = c.getMethods();
+            assertEq(6, l.size());
+        }
+
+        {
+            list<hash<ClassAccessInfo>> l = c.getParentClasses();
+            assertEq(1, l.size());
+            hash<ClassAccessInfo> h = l[0];
+            assertEq("AbstractSmartLock", h.cls.getName());
+            assertEq(AC_PUBLIC, h.access);
+            assertEq("public", h.access_string);
+        }
+
+        {
+            Class c1 = Class::forName("HashIterator");
+            list<hash<ClassAccessInfo>> l = c1.getParentClasses();
+            assertEq(1, l.size());
+            hash<ClassAccessInfo> h = l[0];
+            assertEq("AbstractQuantifiedBidirectionalIterator", h.cls.getName());
+            assertEq(AC_PUBLIC, h.access);
+            assertEq("public", h.access_string);
+        }
+
+        {
+            Class c1 = Class::forName("AbstractQuantifiedBidirectionalIterator");
+            list<hash<ClassAccessInfo>> l = c1.getParentClasses();
+            assertEq(2, l.size());
+            hash<ClassAccessInfo> h = l[0];
+            assertEq("AbstractBidirectionalIterator", h.cls.getName());
+            assertEq(AC_PUBLIC, h.access);
+            assertEq("public", h.access_string);
+            h = l[1];
+            assertEq("AbstractQuantifiedIterator", h.cls.getName());
+            assertEq(AC_PUBLIC, h.access);
+            assertEq("public", h.access_string);
+
+            assertThrows("ABSTRACT-CLASS-ERROR", \c1.newObject());
+        }
+
+        NormalMethodVariant v = m.getVariants()[0];
+        assertEq(MC_PUBLIC, v.getModifiers());
+        assertEq(("public",), v.getModifierList());
+        assertEq("", v.getParamString());
+        assertEq("nothing", v.getReturnTypeString());
+        assertEq(DOM_THREAD_CLASS, v.getDomain());
+        assertEq(("THREAD_CLASS",), v.getDomainStringList());
+        assertFalse(v.isFinal());
+
+        {
+            mtx = new Mutex();
+            assertNothing(v.call(mtx));
+            assertTrue(mtx.lockOwner());
+            mtx.unlock();
+            assertThrows("CALL-WITH-TYPE-ERRORS", \v.call(), (mtx, 1));
+
+            Condition cond();
+            NormalMethodVariant v1 = Class::getClass(cond).getMethod("wait").getVariants()[0];
+            assertThrows("RUNTIME-TYPE-ERROR", \v1.call(), (cond, 1));
+        }
+
+        {
+            Class c1 = Class::forName("Qore::TimeZone");
+            StaticMethodVariant v1 = c1.getStaticMethod("set").getVariants()[0];
+            assertThrows("RUNTIME-TYPE-ERROR", \v1.call(), (1));
+        }
+
+        {
+            AbstractReflectionFunction f = v.getFunction();
+            assertEq(m.getName(), f.getName());
+        }
+
+        {
+            Class c1 = Class::forName("AbstractIterator");
+            assertEq(MC_ABSTRACT, c1.getModifiers() & MC_ABSTRACT);
+            NormalMethodVariant v1 = c1.getMethod("getValue").getVariants()[0];
+            assertTrue(v1.isAbstract());
+            assertTrue(v1.empty());
+            assertFalse(v1.hasBody());
+            assertThrows("ABSTRACT-VARIANT-ERROR", \v1.call(), (new ListIterator()));
+        }
+
+        c = Class::forName("Condition");
+
+        v = c.getVariant("wait", Class::forName("AbstractSmartLock").getType(), TimeoutType);
+
+        v = c.getVariant("wait", Class::forName("AbstractSmartLock").getType(), TimeoutType);
+        assertEq("int", v.getReturnType().getName());
+        assertEq((NOTHING, 0), v.getDefaultArgs());
+        assertEq(("lock", "timeout_ms"), v.getParamNames());
+        assertEq("object<AbstractSmartLock> lock, timeout timeout_ms = 0", v.getParamString());
+        assertEq("public int Condition::wait(object<AbstractSmartLock> lock, timeout timeout_ms = 0)", v.toString());
+        assertEq(0, v.getCodeFlags());
+        assertEq((), v.getCodeFlagList());
+
+        v = Class::forName("File").getMethod("printf").getVariants()[0];
+        assertEq(CF_USES_EXTRA_ARGS, v.getCodeFlags());
+        assertEq(("USES_EXTRA_ARGS",), v.getCodeFlagList());
+
+        {
+            ConstructorMethodVariant conv = c.getConstructorVariant();
+            Condition cond = conv.call();
+            assertEq("Condition", cond.className());
+            assertEq("public", conv.getAccessModifierString());
+
+            assertThrows("CALL-WITH-TYPE-ERRORS", \conv.call(), 1);
+
+            assertThrows("METHOD-ERROR", \c.getDestructorVariant());
+            assertNothing(c.getIfDestructorVariant());
+
+            Class c1 = Class::forName("Queue");
+            conv = c1.getConstructorVariant(IntType);
+            Queue q = conv.call();
+            assertEq("Queue", q.className());
+
+            CopyMethodVariant copyv = c1.getCopyVariant();
+            assertThrows("METHOD-ERROR", \copyv.call(), cond);
+            Queue q2 = copyv.call(q);
+            assertEq("Queue", q2.className());
+
+            DestructorMethodVariant destrv = c1.getDestructorVariant();
+            assertThrows("METHOD-ERROR", \destrv.call(), cond);
+            destrv.call(q);
+            assertFalse(q.val());
+            assertTrue(c1.isEqual(destrv.getClass()));
+            assertTrue(c1.getDestructorMethod().isEqual(destrv.getMethod()));
+        }
+
+        {
+            Test t();
+            Class c1 = Class::getClass(t);
+            list<AbstractMember> l = c1.getMembers();
+            hash<auto> mh = map {$1.getName(): $1}, l;
+            assertTrue(mh.si instanceof StaticMember);
+            NormalMember nm = l[0];
+            assertEq("i", nm.getName());
+            assertTrue(IntType.isEqual(Type::getType(nm.getValue(t))));
+            assertEq(MC_PUBLIC, nm.getModifiers());
+            assertEq("public", nm.getAccessModifierString());
+            assertTrue(c1.isEqual(nm.getClass()));
+            assertThrows("UNKNOWN-MEMBER", \c1.getMember(), "x");
+            assertEq(t.i, nm.getValue(t));
+            assertThrows("RUNTIME-TYPE-ERROR", \nm.setValue(), (t, "str"));
+            assertEq(t.i, nm.getValue(t));
+            nm.setValue(t, 4);
+            assertEq(4, nm.getValue(t));
+            assertEq(4, t.i);
+            assertTrue(nm.isEqual(c1.getMember("i")));
+
+            assertThrows("UNKNOWN-NORMAL-MEMBER", \c1.getNormalMember(), "si");
+            assertThrows("UNKNOWN-STATIC-MEMBER", \c1.getStaticMember(), "i");
+
+            StaticMember sm = c1.getStaticMember("si");
+            assertEq(MC_PUBLIC | MC_STATIC, sm.getModifiers());
+            assertEq(2, sm.getValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \sm.setValue(), "str");
+            assertEq(2, sm.getValue());
+            sm.setValue(3);
+            assertEq(3, sm.getValue());
+
+            list<ClassConstant> cl = c1.getConstants();
+            ClassConstant con = cl[0];
+            assertEq("C_I", con.getName());
+            assertEq(MC_PUBLIC, con.getModifiers());
+            assertFalse(con.getSourceLocation().builtin);
+
+            assertThrows("UNKNOWN-CONSTANT", \c1.getConstant(), "x");
+            ClassConstant con2 = c1.getConstant("C_I");
+            assertTrue(con2.isEqual(con));
+            #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getSourceLocation()), cl;
+        }
+
+        {
+            Namespace n = Namespace::forName("Thread");
+            assertFalse(n.isRoot());
+            assertFalse(n.isImported());
+            assertTrue(n.isBuiltin());
+            assertFalse(n.isUser());
+            assertEq("Thread", n.getName());
+            assertEq("Qore::Thread", n.getPathName());
+
+            assertThrows("UNKNOWN-CONSTANT", \n.getConstant(), "x");
+
+            n = Namespace::forName("Option");
+            Constant c1 = n.getConstant("HAVE_ROUND");
+            assertTrue(c1.getValue());
+            #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getSourceLocation()), n.getConstants();
+
+            assertEq((), n.getClasses());
+            assertThrows("UNKNOWN-CLASS", \n.getClass(), "x");
+
+            assertEq((), n.getNamespaces());
+            assertThrows("UNKNOWN-NAMESPACE", \n.getNamespace(), "x");
+
+            n = Namespace::forName("Qore");
+            assertTrue(Class::forName("File").isEqual(n.getClass("File")));
+            assertFalse(Class::forName("File").isEqual(n.getClass("ReadOnlyFile")));
+            assertTrue(Namespace::forName("Thread").isEqual(n.getNamespace("Thread")));
+            assertFalse(Namespace::forName("Thread").isEqual(n.getNamespace("Option")));
+
+            #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getPathName()), n.getClasses();
+            #map printf("%y %s: %y\n", $1.getModifierList(), $1.getName(), $1.getPathName()), n.getNamespaces();
+
+            assertThrows("UNKNOWN-FUNCTION", \n.getFunction(), "xxx");
+
+            Function f = n.getFunction("sprintf");
+            assertEq("sprintf", f.getName());
+
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \f.getVariant(), IntType);
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \f.getVariantArgs(), IntType);
+
+            FunctionVariant v1 = f.getVariant(StringType);
+            assertEq(0, v1.getModifiers());
+            assertEq((), v1.getModifierList());
+             v1 = f.getVariantArgs(StringType);
+            assertEq(0, v1.getModifiers());
+            assertEq((), v1.getModifierList());
+
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \n.getVariant(), ("sprintf", IntType));
+            assertThrows("RUNTIME-OVERLOAD-ERROR", \n.getVariantArgs(), ("sprintf", IntType));
+
+            FunctionVariant v2 = n.getVariant("sprintf", StringType);
+            assertTrue(v1.isEqual(v2));
+            v2 = n.getVariantArgs("sprintf", StringType);
+            assertTrue(v1.isEqual(v2));
+
+            {
+                string str = v1.call("test %d", 1);
+                assertEq("test 1", str);
+            }
+
+            assertThrows("RUNTIME-TYPE-ERROR", \v1.call(), 1);
+            #map printf("%s\n", $1.toString()), n.getVariants();
+
+            n = Namespace::forName("::TestNs");
+            assertThrows("UNKNOWN-GLOBAL-VAR", \n.getGlobalVar(), "xxx");
+            GlobalVar gv = n.getGlobalVar("global_i");
+            assertEq("global_i", gv.getName());
+            assertTrue(gv.isUser());
+            assertFalse(gv.isBuiltin());
+            assertNothing(gv.getValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \gv.setValue(), "string");
+            gv.setValue(1);
+            assertEq(1, gv.getValue());
+            GlobalVar gv2 = n.getGlobalVars()[0];
+            assertTrue(gv.isEqual(gv2));
+            gv2 = GlobalVar::forName("ARGV");
+            assertFalse(gv.isEqual(gv2));
+            assertFalse(gv2.isUser());
+            assertTrue(gv2.isBuiltin());
+            assertTrue(IntType.isEqual(Type::getType(gv.getValue())));
+
+            assertThrows("UNKNOWN-TYPED-HASH", \n.getTypedHash(), "xxx");
+            TypedHash th = n.getTypedHash("T");
+            assertEq("T", th.getName());
+            assertTrue(th.isUser());
+            assertFalse(th.isBuiltin());
+            TypedHash th2 = n.getTypedHashes()[0];
+            assertTrue(th.isEqual(th2));
+
+            assertThrows("UNKNOWN-MEMBER", \th.getMember(), "xxx");
+            TypedHashMember mem = th.getMember("i");
+            assertEq("i", mem.getName());
+            assertTrue(mem.isUser());
+            assertFalse(mem.isBuiltin());
+            assertTrue(Type::getType(mem.getValue(new hash<T>())).isEqual(IntType));
+            hash<T> h();
+            assertEq(0, mem.getValue(h));
+            assertThrows("MEMBER-ERROR", \mem.getValue(), {});
+            list<TypedHashMember> tml = th.getMembers();
+            assertEq(1, tml.size());
+            assertEq("list<object<TypedHashMember>>", tml.fullType());
+            TypedHashMember mem2 = tml[0];
+            assertTrue(mem.isEqual(mem2));
+
+            th = TypedHash::forName("StatInfo");
+            assertFalse(th.isEqual(th2));
+            assertFalse(th.isUser());
+            assertTrue(th.isBuiltin());
+            mem = th.getMember("size");
+            assertFalse(mem.isUser());
+            assertTrue(mem.isBuiltin());
+            assertFalse(mem.isEqual(mem2));
+            assertEq("Qore::StatInfo", th.getPathName());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_REFLECTION);
+            assertThrows("INVALID-METHOD", "class.*capabilities", \p.parse(), ("Class c = Class::forName(\"Thread\");", ""));
+        }
+
+        {
+            Namespace ns = Namespace::forName("::");
+            assertTrue(ns.isRoot());
+            assertTrue(ns.isBuiltin());
+            assertFalse(ns.isUser());
+            ns = Namespace::forName("");
+            assertTrue(ns.isRoot());
+            assertTrue(ns.isBuiltin());
+            assertFalse(ns.isUser());
+            ns = Namespace::forName("::Qore");
+            assertFalse(ns.isRoot());
+            assertTrue(ns.isBuiltin());
+            assertFalse(ns.isUser());
+        }
+
+        {
+            Constant con = Constant::forName("Qore::CT_User");
+            assertEq("CT_User", con.getName());
+            assertEq(0, con.getValue());
+            assertEq("Qore", con.getNamespace().getName());
+            assertTrue(Namespace::forName("Qore").isEqual(con.getNamespace()));
+            assertFalse(con.isEqual(Constant::forName("Compiler")));
+        }
+
+        {
+            Class c1 = Class::forName("ListIterator");
+            list<Class> l = c1.getClassHierarchy();
+            #map printf("%y %s\n", $1.getModifierList(), $1.getName()), l;
+            assertTrue(l.last().isEqual(c1));
+            c1 = Class::forName("Test");
+            l = c1.getClassHierarchy();
+            assertEq(2, l.size());
+            assertTrue(l.last().isEqual(c1));
+        }
+
+        {
+            Class c1 = Class::forName("Test");
+            ITest t();
+            NormalMember nm = c1.getMember("pi");
+            assertEq(M_PIn, nm.getValue(t));
+            nm.setValue(t, 0);
+            assertEq(0.0n, nm.getValue(t));
+            assertEq(AC_PUBLIC, c1.getInheritanceAccess(c1));
+            Class c2 = Class::forName("ITest");
+            assertEq(AC_PRIVATEINTERNAL, c1.instanceOf(t));
+            assertEq(AC_PUBLIC, c2.instanceOf(t));
+            Class list_iterator = Class::forName("ListIterator");
+            assertEq(0, list_iterator.instanceOf(t));
+            assertEq(AC_PRIVATEINTERNAL, c2.getInheritanceAccess(c1));
+            assertEq(0, c1.getInheritanceAccess(c2));
+            assertEq(0, c1.getInheritanceAccess(list_iterator));
+            c1 = c2;
+
+            list<AbstractMethod> l = c1.getMethods();
+            #map printf("%s %s()\n", $1.getMethodTypeName(), $1.getName()), l;
+            assertEq(2, l.size());
+
+            NormalMethod nmeth = c1.getNormalMethod("get");
+            assertEq(1, nmeth.call(t));
+            StaticMethod smeth = c1.getStaticMethod("get");
+            assertEq(2, smeth.call());
+
+            NormalMethodVariant nmv = c1.getNormalVariant("get");
+            assertEq(1, nmv.call(t));
+            StaticMethodVariant smv = c1.getStaticVariant("get");
+            assertEq(2, smv.call());
+        }
+
+        {
+            list<Class> l = Class::findAllRegex("^Type$");
+            assertEq(1, l.size());
+            assertTrue(l[0].isEqual(Class::forName("Type")));
+            assertFalse(l[0].isEqual(Class::forName("TypedHash")));
+            #map printf("%y %s\n", $1.getModifierList(), $1.getName()), l;
+        }
+
+        {
+            list<Function> l = Function::findAllRegex("^get_ex_pos$");
+            assertEq(1, l.size());
+            assertTrue(l[0].isEqual(Function::forName("get_ex_pos")));
+            assertFalse(l[0].isEqual(Function::forName("get_seconds")));
+            #map printf("%s\n", $1.getName()), l;
+        }
+
+        {
+            list<TypedHash> l = TypedHash::findAllRegex("^SourceLocationInfo$");
+            assertEq(1, l.size());
+            assertTrue(l[0].isEqual(TypedHash::forName("SourceLocationInfo")));
+            assertFalse(l[0].isEqual(TypedHash::forName("ClassAccessInfo")));
+            #map printf("%s\n", $1.getName()), l;
+        }
+
+        {
+            list<Namespace> l = Namespace::findAllRegex("^Option$");
+            assertEq(1, l.size());
+            assertTrue(l[0].isEqual(Namespace::forName("Qore::Option")));
+            assertFalse(l[0].isEqual(Namespace::forName("Qore::Thread")));
+            #map printf("%s\n", $1.getName()), l;
+        }
+
+        {
+            list<GlobalVar> l = GlobalVar::findAllRegex("^g");
+            assertEq(1, l.size());
+            assertTrue(l[0].isEqual(GlobalVar::forName("global_i")));
+            assertFalse(l[0].isEqual(GlobalVar::forName("ARGV")));
+            #map printf("%s\n", $1.getName()), l;
+        }
+
+        {
+            list<Constant> l = Constant::findAllRegex("^Compiler$");
+            assertEq(1, l.size());
+            assertTrue(l[0].isEqual(Constant::forName("Compiler")));
+            assertFalse(l[0].isEqual(Constant::forName("CodeType")));
+            #map printf("%s\n", $1.getName()), l;
+        }
+    }
+
+    sandboxTests() {
+        # make sure we can't use reflection to escape the sandbox
+        {
+            Program p(PO_NEW_STYLE | PO_NO_THREAD_CLASSES);
+            p.parse("object o = Class::forName(\"Mutex\").newObject();", "");
+            assertThrows("CREATE-OBJECT-ERROR", "restrictions.*access", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_THREAD_CLASSES);
+            p.parse("(Class::forName(\"Mutex\")).getConstructorMethod().call();", "");
+            assertThrows("CREATE-OBJECT-ERROR", "restrictions.*access", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_THREAD_CLASSES);
+            p.parse("(Class::forName(\"Mutex\")).getConstructorMethod().callArgs();", "");
+            assertThrows("CREATE-OBJECT-ERROR", "restrictions.*access", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_THREAD_CLASSES);
+            p.parse("(Class::forName(\"Mutex\")).getConstructorVariant().call();", "");
+            assertThrows("CREATE-OBJECT-ERROR", "restrictions.*access", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_THREAD_CLASSES);
+            p.parse("(Class::forName(\"Mutex\")).getConstructorVariant().callArgs();", "");
+            assertThrows("CREATE-OBJECT-ERROR", "restrictions.*access", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_THREAD_CONTROL);
+            p.parse("(Function::forName(\"set_default_thread_stack_size\")).call(100);", "");
+            assertThrows("INVALID-FUNCTION-ACCESS", "access.*function", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_THREAD_CONTROL);
+            p.parse("(Function::forName(\"set_default_thread_stack_size\")).callArgs(100);", "");
+            assertThrows("INVALID-FUNCTION-ACCESS", "access.*function", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_THREAD_CONTROL);
+            p.parse("(Function::forName(\"set_default_thread_stack_size\")).getVariant(IntType).call(100);", "");
+            assertThrows("INVALID-FUNCTION-ACCESS", "access.*function", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_THREAD_CONTROL);
+            p.parse("(Function::forName(\"set_default_thread_stack_size\")).getVariant(IntType).callArgs(100);", "");
+            assertThrows("INVALID-FUNCTION-ACCESS", "access.*function", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_LOCALE_CONTROL);
+            p.parse("(Class::forName(\"TimeZone\")).getStaticMethod(\"setRegion\").call(\"xxx\");", "");
+            assertThrows("INVALID-FUNCTION-ACCESS", "access.*method", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_LOCALE_CONTROL);
+            p.parse("(Class::forName(\"TimeZone\")).getStaticMethod(\"setRegion\").callArgs(\"xxx\");", "");
+            assertThrows("INVALID-FUNCTION-ACCESS", "access.*method", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_LOCALE_CONTROL);
+            p.parse("(Class::forName(\"TimeZone\")).getStaticMethod(\"setRegion\").getVariant(StringType).call(\"xxx\");", "");
+            assertThrows("INVALID-FUNCTION-ACCESS", "access.*method", \p.run());
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_NO_LOCALE_CONTROL);
+            p.parse("(Class::forName(\"TimeZone\")).getStaticMethod(\"setRegion\").getVariant(StringType).callArgs(\"xxx\");", "");
+            assertThrows("INVALID-FUNCTION-ACCESS", "access.*method", \p.run());
+        }
+    }
+
+    pseudoClassTests() {
+        assertThrows("UNKNOWN-CLASS", \Class::forName(), "<int>");
+        assertThrows("UNKNOWN-CLASS", \Class::forName(), "int");
+        PseudoClass c = PseudoClass::forValue(1);
+        assertEq("<int>", c.getName());
+        assertTrue(IntPseudoClass.isEqual(c));
+        assertFalse(IntPseudoClass.isEqual(Class::forName("Mutex")));
+        PseudoMethod m = c.getMethod("format");
+        assertEq("1.00", m.call(1));
+        assertThrows("METHOD-ERROR", \m.call(), "str");
+        assertTrue(m.getClass() instanceof PseudoClass);
+        assertTrue(m.getClass().isEqual(c));
+
+        list<AbstractMethod> l = ValuePseudoClass.getMethods();
+        #map printf("%s\n", $1.getName()), l;
+        assertTrue(l[0] instanceof PseudoMethod);
+
+        c = PseudoClass::forType(StringType);
+        assertTrue(c.isEqual(StringPseudoClass));
+        assertFalse(c.isEqual(IntPseudoClass));
+
+        assertTrue(ValuePseudoClass.isEqual(PseudoClass::forType(StringType.getOrNothingType())));
+
+        # "or nothing" types must return the <value> pseudo-class
+        assertTrue(ValuePseudoClass.isEqual(PseudoClass::forType(Type::getOrNothingType(new hash<ClassAccessInfo>()))));
+
+        list<AbstractMethodVariant> vl = m.getVariants();
+        assertEq(2, vl.size());
+        #map printf("%s\n", $1.toString()), vl;
+
+        {
+            # get the following variant:
+            # public string <int>::format(int prec = 2, string decimal_sep = ".", string thousands_sep = "")
+            AbstractVariant v = m.getVariant(IntType, StringType, StringType);
+            assertTrue(v instanceof PseudoMethodVariant);
+            AbstractReflectionFunction f = v.getFunction();
+            assertTrue(f instanceof PseudoMethod);
+            assertTrue(v.isEqual(vl[1]));
+
+            assertEq((2, ".", ""), v.getDefaultArgs());
+
+            PseudoMethodVariant pv = v;
+            assertEq("1.00", pv.call(1));
+            assertThrows("METHOD-ERROR", \pv.call("str", 1n));
+        }
+    }
+
+    programTests() {
+        {
+            Class c;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("Class sub get() { return Class::forName('Mutex'); }", "");
+                c = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \c.getName());
+        }
+
+        {
+            AbstractMethod m;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("AbstractMethod sub get() { return Class::forName('Mutex').getMethod('lock'); }", "");
+                m = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \m.getName());
+        }
+
+        {
+            AbstractMethodVariant v;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("AbstractMethodVariant sub get() { return Class::forName('Mutex').getVariant('lock'); }", "");
+                v = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \v.getReturnType());
+        }
+
+        {
+            Constant c;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("Constant sub get() { return Constant::forName('Compiler'); }", "");
+                c = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \c.getName());
+        }
+
+        {
+            TypedHash h;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("TypedHash sub get() { return TypedHash::forName('StatInfo'); }", "");
+                h = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \h.getName());
+        }
+
+        {
+            GlobalVar g;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("GlobalVar sub get() { return GlobalVar::forName('ARGV'); }", "");
+                g = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \g.getName());
+        }
+
+        {
+            Namespace n;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("Namespace sub get() { return Namespace::forName('Option'); }", "");
+                n = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \n.getName());
+        }
+
+        {
+            Function f;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("Function sub get() { return Function::forName('get_ex_pos'); }", "");
+                f = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \f.getName());
+        }
+
+        {
+            AbstractVariant v;
+            {
+                Program p(PO_NEW_STYLE);
+                p.parse("AbstractVariant sub get() { return Function::forName('get_ex_pos').getVariants()[0]; }", "");
+                v = p.callFunction("get");
+            }
+            assertThrows("PROGRAM-ERROR", \v.getReturnType());
+        }
+    }
+}

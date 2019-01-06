@@ -33,13 +33,12 @@
 #include <qore/intern/qore_encoding_private.h>
 #include <qore/intern/qore_string_private.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strings.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <iconv.h>
-
 #include <map>
+#include <strings.h>
 
 const QoreEncoding* QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8,
    *QCS_UTF16, *QCS_UTF16BE, *QCS_UTF16LE,

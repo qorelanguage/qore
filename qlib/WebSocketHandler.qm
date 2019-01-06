@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum Qore version
+%requires qore >= 0.9
 
 # require type definitions everywhere
 %require-types
@@ -299,7 +299,7 @@ public namespace WebSocketHandler {
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parseURL())
             - \c id: the unique HTTP connection ID; this ID is also used to identify the websocket client connection in @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()"
-            - \c listener-id: the HTTP server listener ID (see @ref HttpServer::HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo() )
             - \c user: the current RBAC username (if any)
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
@@ -340,7 +340,7 @@ public namespace WebSocketHandler {
         #! get list of socket connection ids
         /**
         */
-        *list getConnectionIds() {
+        *list<string> getConnectionIds() {
             rwl.readLock();
             on_exit rwl.readUnlock();
             return keys ch;
@@ -356,7 +356,7 @@ public namespace WebSocketHandler {
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parseURL())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see @ref HttpServer::HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param hdr a hash of headers in the request
             @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client

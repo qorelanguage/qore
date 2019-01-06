@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-# @file SqlUtil.qm Qore user module for working with SQL data
+#! @file SqlUtil.qm Qore user module for working with SQL data
 
 /*  SqlUtil.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
 
@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum required Qore version
+%requires qore >= 0.9
 
 # requires the Util module
 %requires Util >= 1.0
@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.4.4";
+    version = "1.5";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -100,7 +100,13 @@ module SqlUtil {
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
-    @subsection sqlutilv1_4_3 SqlUtil v1.4.4
+    @subsection sqlutilv1_5 SqlUtil v1.5
+    - implemented the @ref SqlUtil::AbstractTable::getStatementNoExec() "AbstractTable::getStatementNoExec()" method (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
+    - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+    - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
+    - deprecated @ref SqlUtil::AbstractTable::getRowIterator() "AbstractTable::getRowIterator()" for @ref SqlUtil::AbstractTable::getStatement() "AbstractTable::getStatement()" (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
+
+    @subsection sqlutilv1_4_4 SqlUtil v1.4.4
     - implemented the @ref SqlUtil::AbstractTable::getRowIteratorNoExec() "AbstractTable::getRowIteratorNoExec()" method (<a href="https://github.com/qorelanguage/qore/issues/2773">issue 2773</a>)
 
     @subsection sqlutilv1_4_3 SqlUtil v1.4.3
@@ -136,7 +142,7 @@ module SqlUtil {
     - implemented the @ref SqlUtil::cop_length() column function (<a href="https://github.com/qorelanguage/qore/issues/1395">issue 1395</a>)
 
     @subsection sqlutilv1_3 SqlUtil v1.3
-    - implemented insert option support (see @ref AbstractTable::InsertOptions) with the \c "returning" clause in supported drivers
+    - implemented insert option support (see @ref SqlUtil::AbstractTable::InsertOptions "AbstractTable::InsertOptions") with the \c "returning" clause in supported drivers
     - implemented support for late table resolution in joins to support executing SQL from serialized parameters
     - improved error messages for common errors such as join errors
     - implemented support for DBA actions (see @ref dba_management)
@@ -223,7 +229,7 @@ module SqlUtil {
     - @ref SqlUtil::AbstractTable::find(hash): find a row corresponding to the given hash of column name/value pairs, which must at least reference all columns of the table's primary key; if no row matches, @ref nothing is returned
     - @ref SqlUtil::AbstractTable::findSingle(): finds the first (of possibly many) rows that match the @ref where_clauses "where clause hash argument" or returns @ref nothing if no row matches
     - @ref SqlUtil::AbstractTable::findAll(): returns all rows that match the @ref where_clauses "where clause hash argument" or returns @ref nothing if no row matches
-    - @ref SqlUtil::AbstractTable::getRowIterator(): returns an @ref Qore::SQL::SQLStatement "SQLStatement" object iterating rows that match the @ref select_option_hash "select option hash" argument
+    - @ref SqlUtil::AbstractTable::getStatement(): returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object iterating rows that match the @ref select_option_hash "select option hash" argument
     - @ref SqlUtil::AbstractTable::getSelectSql(): returns an SQL string and bind arguments for the @ref select_option_hash "select option hash" argument
     - @ref SqlUtil::AbstractTable::select(): returns a hash keyed by column name of lists (row values) corresponding to the @ref select_option_hash "select option hash" argument
     - @ref SqlUtil::AbstractTable::selectRow(): return a hash repersenting a single row corresponding to the @ref select_option_hash "select option hash" argument; if the query returns more than one row an exception will be raised
@@ -232,7 +238,7 @@ module SqlUtil {
     @subsection find_single_row Retrieving a Single Row
 
     @par From the Primary Key
-    To retrieve a single row based on a single primary key value, use @ref SqlUtil::AbstractTable::find(any):
+    To retrieve a single row based on a single primary key value, use @ref SqlUtil::AbstractTable::find(auto):
     @code{.py}
 *hash row = table.find(id);
     @endcode
@@ -301,10 +307,10 @@ hash sh = (
 
     @subsection get_row_iterator Acquiring a Row Iterator for Query Results
     @par From Complex Select Criteria
-    To get an iterator for the row values corresponding to a select statement, use @ref SqlUtil::AbstractTable::getRowIterator():
+    To get an iterator for the row values corresponding to a select statement, use @ref SqlUtil::AbstractTable::getStatement():
     @code{.py}
 Table t(ds, "table_name");
-SQLStatement i = table.getRowIterator(sh);
+AbstractSQLStatement i = table.getStatement(sh);
 on_exit table.commit();
 map printf("row: %y\n", $1), i;
     @endcode
@@ -313,10 +319,10 @@ map printf("row: %y\n", $1), i;
 
     @subsection get_rows_in_batches Retrieving Multiple Rows in Batches
     @par From Complex Select Criteria
-    Multiple rows can be retrieved from a single call to an @ref Qore::SQL::SQLStatement object as returned by @ref SqlUtil::AbstractTable::getRowIterator():
+    Multiple rows can be retrieved from a single call to an @ref Qore::SQL::AbstractSQLStatement object as returned by @ref SqlUtil::AbstractTable::getStatement():
     @code{.py}
 Table t(ds, "table_name");
-SQLStatement i = table.getRowIterator(sh);
+AbstractSQLStatement i = table.getStatement(sh);
 on_exit table.commit();
 while (True) {
     list l = i.fetchRows(1000);
@@ -339,7 +345,7 @@ while (True) {
     @subsection select_option_hash Complex Select Criteria
 
     Selecting data is performed by passing a select option hash argument to a suitable method that will build and execute a DB-specific SQL command based on this value; the following methods take a select option hash argument:
-    - @ref SqlUtil::AbstractTable::getRowIterator()
+    - @ref SqlUtil::AbstractTable::getStatement()
     - @ref SqlUtil::AbstractTable::getSelectSql()
     - @ref SqlUtil::AbstractTable::insertFromSelect()
     - @ref SqlUtil::AbstractTable::insertFromSelectCommit()
@@ -644,7 +650,7 @@ hash sh = (
     @subsection sql_paging Select With Paging
 
     There is support for paging query results in the following methods:
-    - @ref SqlUtil::AbstractTable::getRowIterator()
+    - @ref SqlUtil::AbstractTable::getStatement()
     - @ref SqlUtil::AbstractTable::getSelectSql()
     - @ref SqlUtil::AbstractTable::select()
     - @ref SqlUtil::AbstractTable::selectRows()
@@ -814,7 +820,7 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
     - @ref SqlUtil::AbstractTable::delCommit()
     - @ref SqlUtil::AbstractTable::findAll()
     - @ref SqlUtil::AbstractTable::findSingle()
-    - @ref SqlUtil::AbstractTable::getRowIterator()
+    - @ref SqlUtil::AbstractTable::getStatement()
     - @ref SqlUtil::AbstractTable::getSelectSql()
     - @ref SqlUtil::AbstractTable::insertFromSelect()
     - @ref SqlUtil::AbstractTable::insertFromSelectCommit()
@@ -1670,6 +1676,7 @@ code error_callback = sub (int ac, string type, string name, *string table, *str
         ds.exec("begin execute immediate 'drop table %s'; exception when others then if sqlcode != 942 then raise; end if; end;", name);
     }
 };
+    @endcode
 
     @subsection info_callback SQL Info CallBack Closure or Call Ceference
 
@@ -1990,7 +1997,7 @@ public namespace SqlUtil {
         *hash opt;            #!< optional join options (for example, to specify a partition for the join if supported)
     }
 
-    /* @defgroup DBFeaturesConstants DB Features Constants
+    /** @defgroup DBFeaturesConstants DB Features Constants
         These constants can be used as a lookup values in AbstractDatabase::features() method.
     */
     #@{
@@ -2599,7 +2606,7 @@ public namespace SqlUtil {
 
         SQL literals can be useful in some cases - as dummy values for select
         statements where there is exact columns required, unions, expected values
-        for \c arc.insertFromIterator(src.getRowIterator(sh))
+        for \c arc.insertFromIterator(src.getStatement(sh))
         "insert as select", etc.
 
         The term literal refers to a fixed data value. For example, 123, 'foobar' etc.
@@ -4746,13 +4753,58 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
         "mysql",
         "freetds",
         "sybase",
-        );
+    );
+
+    # private variable to store the closure used to deserialize datasources (if any)
+    our code ds_get;
+
+    # private variable to store the closure used to serialize datasources (if any)
+    our code ds_do;
+
+    #! registers a closure or call reference taking a string type and string datasource configuration that will return an AbstractDatasource
+    public sub sqlutil_register_ds_deserializer(*code new_ds_get) {
+        ds_get = new_ds_get;
+    }
+
+    #! registers a closure or call reference taking a string type and string datasource configuration that will return an AbstractDatasource
+    public sub sqlutil_register_ds_serializer(*code new_ds_do) {
+        ds_do = new_ds_do;
+    }
+
+    # private function used to deserialize datasources
+    AbstractDatasource sub sqlutil_get_ds(string type, string config) {
+        if (ds_get) {
+            return ds_get(type, config);
+        }
+
+        switch (type) {
+            case "DatasourcePool":
+                return new DatasourcePool(config);
+            case "Datasource":
+                return new Datasource(config);
+            default:
+                throw "DATASOURCE-DESERIALIZATION-ERROR", sprintf("cannot deserialize datasource of unknown type %y with config %y", type, config);
+        }
+    }
+
+    # private function used to serialize datasources
+    hash<auto> sub sqlutil_ds(AbstractDatasource ds) {
+        if (ds_do) {
+            return ds_do(ds);
+        }
+
+        return {
+            "ds_type": ds.className(),
+            "ds": ds.getConfigString(),
+        };
+    }
 
     #! abstract container class that throws an exception if an unknown key is accessed
-    public class AbstractHashContainer {
+    public class AbstractHashContainer inherits Serializable {
         public {}
 
         private {
+            #! the data to be contained
             *hash h;
         }
 
@@ -5088,7 +5140,7 @@ bool b = h.hasKeyValue(key);
     }
 
     #! abstract container class that throws an exception if an unknown key is accessed
-    public class AbstractListContainer {
+    public class AbstractListContainer inherits Serializable {
         public {}
 
         private {
@@ -5635,7 +5687,7 @@ AbstractColumn c = cols.id;
     }
 
     #! the base class for column information
-    public class AbstractColumn {
+    public class AbstractColumn inherits Serializable {
         public {
             #! the name of the column
             string name;
@@ -5657,6 +5709,10 @@ AbstractColumn c = cols.id;
 
             #! comment on the column
             *string comment;
+        }
+
+        #! empty constructor for subclasses
+        private constructor() {
         }
 
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string c) {
@@ -5782,7 +5838,7 @@ list l = col.getModifySql(t, newcol);
     }
 
     #! the base class to use to extend AbstractColumn to implement numeric columns
-    public class NumericColumnInfo {
+    public class NumericColumnInfo inherits Serializable {
         public {
             #! the scale for numeric columns
             int scale;
@@ -5859,7 +5915,7 @@ AbstractIndex ix = indexes.pk_jobs;
     }
 
     #! the abstract base class for index information
-    public class AbstractIndex {
+    public class AbstractIndex inherits Serializable {
         public {
             #! the name of the index
             string name;
@@ -6021,7 +6077,7 @@ AbstractConstraint ix = constraints.uk_jobs;
     }
 
     #! abstract base class for constraints
-    public class AbstractConstraint {
+    public class AbstractConstraint inherits Serializable {
         public {}
 
         private {
@@ -6340,7 +6396,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! a class describing a foreign constraint target
-    public class ForeignConstraintTarget {
+    public class ForeignConstraintTarget inherits Serializable {
         public {
             #! the name of the target table
             string table;
@@ -6382,7 +6438,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for sequences
-    public class AbstractSequence {
+    public class AbstractSequence inherits Serializable {
         public {
             #! the name of the sequence
             string name;
@@ -6431,7 +6487,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for views
-    public class AbstractView {
+    public class AbstractView inherits Serializable {
         public {
             # ! potential object schema
             *string schema;
@@ -6470,7 +6526,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for function or objects with code
-    public class AbstractFunctionBase {
+    public class AbstractFunctionBase inherits Serializable {
         public {
             #! the name of the object
             string name;
@@ -6733,16 +6789,39 @@ AbstractDatabase db("pgsql:user/pass@db%host");
     }
 
     #! base class for abstract SqlUtil classes
-    public class AbstractSqlUtilBase {
+    public class AbstractSqlUtilBase inherits Serializable {
         private {
-            #! the connection to the database server
-            AbstractDatasource ds;
             #! datasource description
             string dsdesc;
-            #! mutex for atomic actions
-            Mutex l();
             #! option hash
             *hash opts;
+            #! the connection to the database server
+            transient AbstractDatasource ds;
+            #! mutex for atomic actions
+            transient Mutex l();
+        }
+
+        # assigs the object's members after deserialization
+        private:internal deserializeMembers(hash<auto> members) {
+            # load any dependent module
+            load_module(remove members.mod);
+            # create datasource
+            hash<auto> dsh = remove members.ds;
+            # must initialize transient members explicitly when "deserializeMembers()" is defined
+            ds = sqlutil_get_ds(dsh.ds_type, dsh.ds);
+            l = new Mutex();
+
+            self += members;
+        }
+
+        # serializes the object's data to a hash
+        private:internal hash<auto> serializeMembers(hash<auto> members) {
+            string mod = ds.getDriverName();
+            mod = mod[0].upr() + mod.substr(1) + "SqlUtil";
+            return members + {
+                "mod": mod,
+                "ds": sqlutil_ds(ds),
+            };
         }
 
         #! creates the object; private constructor
@@ -8143,7 +8222,7 @@ string sql = t.getSqlFromList(list);
          */
         computeStatistics(*hash options) {
             validateOptionsIntern("COMPUTE-STATISTICS-ERROR", getComputeStatisticsOptions(), \options);
-            return computeStatisticsImpl(options);
+            computeStatisticsImpl(options);
         }
 
         #! Reclaim taken but unused space in the DB
@@ -8156,7 +8235,7 @@ string sql = t.getSqlFromList(list);
          */
         reclaimSpace(*hash options) {
             validateOptionsIntern("RECLAIM-SPACE-ERROR", getReclaimSpaceOptions(), \options);
-            return reclaimSpaceImpl(options);
+            reclaimSpaceImpl(options);
         }
 
         private validateOptionsIntern(string err, hash ropt, reference<hash> opt) {
@@ -8431,20 +8510,20 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c native_case: (@ref bool_type) if @ref Qore::True "True" then objects will be returned in the case the database server returns them in even if the database server uses case-insensitive names; normally in this case %SqlUtil will convert the names to lower-case
                 - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
             */
-            const TableOptions = (
+            const TableOptions = {
                 "native_case": Type::Boolean,
                 "table_cache": "Tables",
-                );
+            };
 
             #! default index options
             /**
                 - \c index_tablespace: (@ref string_type) a string giving the index tablespace to use for indexes
                 - \c replace: (@ref bool_type) if @ref Qore::True "True" and supported by the underlying db driver "create or replace" text is used when creating objects
             */
-            const IndexOptions = (
+            const IndexOptions = {
                 "index_tablespace": Type::String,
                 "replace": Type::Boolean,
-                );
+            };
 
             #! default constraint options
             /** currently this option is identical to @ref SqlUtil::AbstractTable::IndexOptions
@@ -8452,17 +8531,17 @@ Table table("pgsql:user/pass@db%host", "table");
             const ConstraintOptions = IndexOptions;
 
             #! default cache options
-            const CacheOptions = (
+            const CacheOptions = {
                 "table_cache": "Tables",
-                );
+            };
 
             #! default foreign constraint options
             /** The following keys can be set for this option:
                 - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
             */
-            const ForeignConstraintOptions = ConstraintOptions + (
+            const ForeignConstraintOptions = ConstraintOptions + {
                 "table_cache": "Tables",
-                );
+            };
 
             #! default trigger options
             /** currently this option is identical to @ref AbstractDatabase::CreationOptions
@@ -8472,7 +8551,7 @@ Table table("pgsql:user/pass@db%host", "table");
             #! default possible select options; can be extended by driver-specific modules
             /** @see @ref select_option_hash for more information on the default possible select options; see driver-specific information for any additional select options supported by the driver-specific module
              */
-            const SelectOptions = (
+            const SelectOptions = {
                 "alias": Type::String,
                 "comment": Type::String,
                 "hint": Type::String,
@@ -8487,22 +8566,22 @@ Table table("pgsql:user/pass@db%host", "table");
                 "having": Type::Hash,
                 "superquery": Type::Hash,
                 "forupdate": Type::Boolean,
-                );
+            };
 
             #! alignment omission options
-            const TableOmissionOptions = (
+            const TableOmissionOptions = {
                 "indexes": True,
                 "foreign_constraints": True,
                 "triggers": True,
-                );
+            };
 
             #! table creation options
             /** currently this option is a combination of @ref SqlUtil::AbstractTable::IndexOptions and @ref AbstractDatabase::CreationOptions plus the following:
                 - \c omit: a list pf attributes to omit; possible values are: \c indexes, \c foreign_constraints, \c triggers (see @ref TableOmissionOptions)
             */
-            const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions + (
+            const TableCreationOptions = IndexOptions + AbstractDatabase::CreationOptions + {
                 "omit": "softstringlist",
-                );
+            };
 
             #! table alignment options
             /** currently this option is a combination of @ref SqlUtil::AbstractTable::TableCreationOptions and the following options:
@@ -8513,14 +8592,14 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c db_table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining tables in the database and foreign key relationships between tables
                 - \c force: (@ref bool_type) if @ref Qore::True "True" and supported by the driver and object, any objects dropped will be dropped with \c FORCE or \c CASCADE options
             */
-            const AlignTableOptions = TableCreationOptions + (
+            const AlignTableOptions = TableCreationOptions + {
                 "column_map": Type::Hash,
                 "index_map": Type::Hash,
                 "constraint_map": Type::Hash,
                 "trigger_map": Type::Hash,
                 "db_table_cache": "Tables",
                 "force": Type::Boolean,
-                );
+            };
 
             #! Table description options
             /** this option is made up of the following keys:
@@ -8534,7 +8613,7 @@ Table table("pgsql:user/pass@db%host", "table");
 
                 @see @ref table_desc_hash
             */
-            const TableDescriptionHashOptions = (
+            const TableDescriptionHashOptions = {
                 "columns": Type::Hash,
                 "primary_key": Type::Hash,
                 "indexes": Type::Hash,
@@ -8543,7 +8622,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 "unique_constraints": Type::Hash,
                 #"check_constraints": Type::Hash,
                 "table_cache": "Tables",
-                );
+            };
 
             #! Column description options
             /** this option is made up of the following keys:
@@ -8558,7 +8637,7 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
                 @see @ref column_desc_hash
             */
-            const ColumnDescOptions = (
+            const ColumnDescOptions = {
                 "qore_type": Type::String,
                 "native_type": Type::String,
                 "size": Type::Int,
@@ -8568,15 +8647,15 @@ Table table("pgsql:user/pass@db%host", "table");
                 "comment": Type::String,
                 "notnull": Type::Boolean,
                 "driver": Type::Hash,
-                );
+            };
 
             #! additional column description keys valid when describing columns in a @ref table_desc_hash "table description hash"
             /** the following keys are valid in a @ref table_desc_hash "table description hash" in addition to any @ref SqlUtil::AbstractTable::ColumnDescOptions "AbstractTable::ColumnDescOptions":
                 - \c notnull: (@ref bool_type) if @ref Qore::True "True" then the column will have a not null constraint
             */
-            const AdditionalColumnDescOptions = (
+            const AdditionalColumnDescOptions = {
                 "notnull": Type::Boolean,
-                );
+            };
 
             #! Column options; this is currently empty and can be extended in database-specific modules
             const ColumnOptions = {};
@@ -8586,24 +8665,24 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c sqlarg_callback: see @ref sqlarg_callback
                 - \c tablecode: a closure taking a string table name and returning an AbstractTable object for late resolution of table names in joins
             */
-            const SqlDataCallbackOptions = (
+            const SqlDataCallbackOptions = {
                 "sqlarg_callback": "code",
                 "tablecode": "code",
-                );
+            };
 
             #! generic SQL insert options
             /** In addition to any @ref SqlDataCallbackOptions, the following keys can be set for this option:
                 - \c returning: a list having elements of one of the two following types:
-                  - @ref type_string "string": column names to return the value inserted
-                  - @ref type_hash "hash": a hash having the following keys:
+                  - @ref string_type "string": column names to return the value inserted
+                  - @ref hash_type "hash": a hash having the following keys:
                     - \c "key": (required) the column name to return
                     - \c "type": (optional) the data type for the output placeholder buffer (ex: @ref Qore::Type::Number "Type::Number")
 
                 @note using \c "returning" with a database that does not support this clause will cause an exception to be thrown; see @ref SqlUtil::AbstractTable::hasReturning()
             */
-            const InsertOptions = SqlDataCallbackOptions + (
+            const InsertOptions = SqlDataCallbackOptions + {
                 "returning": "stringhashlist",
-            );
+            };
 
             #! default upsert option keys
             /** The following keys can be set for this option:
@@ -8612,22 +8691,22 @@ Table table("pgsql:user/pass@db%host", "table");
                 - \c info_callback: see @ref upsert_info_callback
                 - \c omit_update: allows for an asymmetrical upsert where a set of column values is inserted, but a smaller set is updated in case the unique key values are present in the target table; the value of this key should be set to the columns to omit in the update clause
             */
-            const UpsertOptions = (
+            const UpsertOptions = {
                 "info_callback": "code",
                 "commit_block": Type::Int,
                 "delete_others": Type::Boolean,
                 "omit_update": "softstringlist",
-                );
+            };
 
             #! default insert option keys
             /** In addition to any @ref SqlDataCallbackOptions, the following keys can be set for this option:
                 - \c info_callback: see @ref insert_info_callback
                 - \c commit_block: the number of changes made before an automatic commit is made for insert methods that perform commits
             */
-            const InsertFromIteratorOptions = SqlDataCallbackOptions + (
+            const InsertFromIteratorOptions = SqlDataCallbackOptions + {
                 "info_callback": "code",
                 "commit_block": Type::Int,
-                );
+            };
 
             /** @defgroup upsert_options Upsert Strategy Codes
                 These options are used with:
@@ -8693,26 +8772,26 @@ Table table("pgsql:user/pass@db%host", "table");
             #! hash mapping upsert strategy codes to a text description
             /** @see @ref UpsertStrategyDescriptionMap for a reverse mapping
             */
-            const UpsertStrategyMap = (
+            const UpsertStrategyMap = {
                 UpsertInsertFirst: "UpsertInsertFirst",
                 UpsertUpdateFirst: "UpsertUpdateFirst",
                 UpsertSelectFirst: "UpsertSelectFirst",
                 UpsertAuto: "UpsertAuto",
                 UpsertInsertOnly: "UpsertInsertOnly",
                 UpsertUpdateOnly: "UpsertUpdateOnly",
-            );
+            };
 
             #! hash mapping upsert strategy descriptions to upsert strategy codes
             /** @see @ref UpsertStrategyMap for a reverse mapping
             */
-            const UpsertStrategyDescriptionMap = (
+            const UpsertStrategyDescriptionMap = {
                 "UpsertInsertFirst": UpsertInsertFirst,
                 "UpsertUpdateFirst": UpsertUpdateFirst,
                 "UpsertSelectFirst": UpsertSelectFirst,
                 "UpsertAuto": UpsertAuto,
                 "UpsertInsertOnly": UpsertInsertOnly,
                 "UpsertUpdateOnly": UpsertUpdateOnly,
-            );
+            };
             #@}
 
             /** @defgroup upsert_results Upsert Result Codes
@@ -8738,33 +8817,33 @@ Table table("pgsql:user/pass@db%host", "table");
             #! hash mapping upsert results to a description
             /** @see @ref UpsertResultDescriptionMap for a reverse mapping
             */
-            const UpsertResultMap = (
+            const UpsertResultMap = {
                 UR_Inserted: "inserted",
                 UR_Verified: "verified",
                 UR_Updated: "updated",
                 UR_Unchanged: "unchanged",
                 UR_Deleted: "deleted",
-                );
+            };
 
             #! hash mapping upsert descriptions to codes
             /** @see @ref UpsertResultMap for a reverse mapping
             */
-            const UpsertResultDescriptionMap = (
+            const UpsertResultDescriptionMap = {
                 "inserted": UR_Inserted,
                 "verified": UR_Verified,
                 "updated": UR_Updated,
                 "unchanged": UR_Unchanged,
                 "deleted": UR_Deleted,
-                );
+            };
 
             #! maps upsert result codes to single letter symbols
-            const UpsertResultLetterMap = (
+            const UpsertResultLetterMap = {
                 UR_Inserted: "I",
                 UR_Verified: "V",
                 UR_Updated: "U",
                 UR_Unchanged: ".",
                 UR_Deleted: "X",
-                );
+            };
         }
 
         private {
@@ -11157,8 +11236,6 @@ table.insertCommit(row);
             @endcode
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
-            @param sql an optional reference to a string to return the SQL generated for the insert statement
-            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
 
             @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
@@ -11172,6 +11249,10 @@ table.insertCommit(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insertCommit() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
+         */
         *hash insertCommit(hash row, reference<string> sql) {
             on_success ds.commit();
             on_error ds.rollback();
@@ -11180,6 +11261,10 @@ table.insertCommit(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insertCommit() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+         */
         *hash insertCommit(hash row, hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
@@ -11188,6 +11273,11 @@ table.insertCommit(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insertCommit() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+         */
         *hash insertCommit(hash row, reference<string> sql, hash opt) {
             on_success ds.commit();
             on_error ds.rollback();
@@ -11203,8 +11293,6 @@ table.insert(row);
             @endcode
 
             @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
-            @param sql an optional reference to a string to return the SQL generated for the insert statement
-            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
 
             @return in case the \c "returning" @ref AbstractTable::InsertOptions "insert option" is used, a hash of return values is returned, otherwise @ref nothing is returned
 
@@ -11215,16 +11303,29 @@ table.insert(row);
         }
 
         #! @ref SqlUtil::AbstractTable::insert() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
+         */
         *hash insert(hash row, reference<string> sql) {
             return insertIntern(row, \sql);
         }
 
         #! @ref SqlUtil::AbstractTable::insert() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+         */
         *hash insert(hash row, hash opt) {
             return insertIntern(row, NOTHING, opt);
         }
 
         #! @ref SqlUtil::AbstractTable::insert() variant
+        /**
+            @param row a hash representing the row to insert; hash values can also be set with @ref sql_iop_funcs to insert values based on SQL operations to be used directly in the insert statement
+            @param sql an optional reference to a string to return the SQL generated for the insert statement
+            @param opt optional insert options; see @ref AbstractTable::InsertOptions for more info
+         */
         *hash insert(hash row, reference<string> sql, hash opt) {
             return insertIntern(row, \sql, opt);
         }
@@ -11498,7 +11599,7 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
 int rows = table.insertFromIteratorCommit(i);
             @endcode
 
-            @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in every element
+            @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::AbstractSQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in every element
             @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertFromIteratorOptions for common options; each driver can support additional driver-specific options
 
             @return the number of rows inserted
@@ -11524,7 +11625,7 @@ int rows = table.insertFromIteratorCommit(i);
 int rows = table.insertFromIterator(i);
             @endcode
 
-            @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::SQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
+            @param i the @ref Qore::AbstractIterator argument that will provide the data to insert into the current table; the @ref Qore::AbstractIterator::getValue() "getValue()" method of this object must return a hash giving row values (for example, the @ref Qore::SQL::AbstractSQLStatement class is well-suited to be used here); note that the iterator is assumed to return the same columns in the same order in every element
             @param opt a hash of options for the insert operation; see @ref SqlUtil::AbstractTable::InsertFromIteratorOptions for common options; each driver can support additional driver-specific options; note that this method ignores any \c "commit_block" option
 
             @return the number of rows inserted
@@ -11559,7 +11660,7 @@ int rows = table.insertFromIterator(i);
             # make insert statement template
             string sql = sprintf("insert into %s (%s) values (%s)", getSqlName(), (foldl $1 + "," + $2, (map getColumnSqlName($1), row.keyIterator())),
                                  (foldl $1 + "," + $2, (map "%v", row.keyIterator())));
-            SQLStatement stmt(ds);
+            AbstractSQLStatement stmt = ds.getSQLStatement();
             stmt.prepare(sql);
 
             opt.change_count = 0;
@@ -11883,7 +11984,7 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
 
             # iterate through the table to find rows that do not belong and delete them
             list pkl = primaryKey.keys();
-            foreach hash row in (getRowIterator()) {
+            foreach hash row in (getStatement()) {
                 string k = foldl $1 + "-" + $2, (map row.$1.toString(), pkl);
                 if (pkh{k})
                     continue;
@@ -11933,7 +12034,7 @@ hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOM
 
             @note
             - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
-            - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::SQLStatement "SQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelect() to do manual transaction management instead
+            - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelect() to do manual transaction management instead
             - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
             @see
@@ -11956,7 +12057,7 @@ hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOM
             on_success { ds.commit(); t.commit(); }
             on_error { ds.rollback(); t.rollback(); }
 
-            return upsertFromIteratorIntern(t.getRowIterator(sh), upsert_strategy, opt);
+            return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt);
         }
 
         #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; no transaction management is performed with this method
@@ -11989,7 +12090,7 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
 
             @note
             - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref Qore::True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref Qore::True "True" and is expensive for large data sets.
-           - this method uses an @ref Qore::SQL::SQLStatement "SQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::SQLStatement "SQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
+           - this method uses an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object to pipeline the select data to the upsert code; to release the transaction lock acquired by the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object, a commit() or rollback() action must be executed on the underlying datasource object as in the example above
             - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
             @see
@@ -12001,22 +12102,22 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
             - getUpsertClosure()
         */
         *hash upsertFromSelect(AbstractTable t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
-            return upsertFromIteratorIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
+            return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
         }
 
         #! A legacy @ref SqlUtil::AbstractTable::upsertFromSelect() wrapper
         deprecated *hash upsertFromSelectNoCommit(AbstractTable t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
-            return upsertFromIteratorIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
+            return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
         }
 
         #! @ref SqlUtil::AbstractTable::upsertFromSelect() variant
         deprecated *hash upsertFromSelect(Table t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
-            return upsertFromIteratorIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
+            return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
         }
 
         #! A legacy @ref SqlUtil::AbstractTable::upsertFromSelect() wrapper
         deprecated *hash upsertFromSelectNoCommit(Table t, *hash sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash opt) {
-            return upsertFromIteratorIntern(t.getRowIterator(sh), upsert_strategy, opt - "commit_block");
+            return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
         }
 
         #! returns the number of rows in the table
@@ -12054,10 +12155,11 @@ SQLStatement i = table.getRowIterator(sh);
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
 
-            @see getRowIteratorNoExec()
+            @deprecated for getStatement(); if the underlying database connection object returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" instead of an
+            @ref Qore::SQL::SQLStatement "SQLStatement", then an exception will be raised; use getStatement() instead
          */
         Qore::SQL::SQLStatement getRowIterator(*hash sh, *reference<string> sql, *hash opt) {
-            return getRowIteratorIntern(sh, \sql, opt);
+            return cast<SQLStatement>(getStatementIntern(sh, \sql, opt));
         }
 
         #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments without executing the statement itself; the statement is only prepared
@@ -12080,29 +12182,12 @@ SQLStatement i = table.getRowIteratorNoExec(sh);
             - no transaction thread resources / locks are acquired with this method as the SQL statement is not executed
 
             @see getRowIterator()
+
+            @deprecated for getStatementNoExec(); if the underlying database connection object returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" instead of an
+            @ref Qore::SQL::SQLStatement "SQLStatement", then an exception will be raised; use getStatementNoExec() instead
          */
         Qore::SQL::SQLStatement getRowIteratorNoExec(*hash sh, *reference<string> sql, *hash opt) {
-            return getRowIteratorIntern(sh, \sql, opt, True);
-        }
-
-        private Qore::SQL::SQLStatement getRowIteratorIntern(*hash sh, *reference<string> sql, *hash opt, *bool no_exec) {
-            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
-
-            list args;
-            sql = getSelectSqlIntern(sh, \args, opt);
-
-            SQLStatement stmt(ds);
-            stmt.prepare(sql);
-            if (no_exec) {
-                if (args) {
-                    stmt.bindArgs(args);
-                }
-            }
-            else {
-                execData(stmt, opt, args);
-            }
-
-            return stmt;
+            return getStatementIntern(sh, \sql, opt, True);
         }
 
         #! returns an @ref Qore::SQL::SQLStatement "SQLStatement" object that will iterate the results of a select statement matching the arguments
@@ -12122,9 +12207,138 @@ SQLStatement i = table.getRowIterator();
             @note
             - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
             - the @ref Qore::SQL::SQLStatement "SQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+
+            @deprecated for getStatement(); if the underlying database connection object returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" instead of an
+            @ref Qore::SQL::SQLStatement "SQLStatement", then an exception will be raised; use getStatement() instead
          */
         Qore::SQL::SQLStatement getRowIterator(*hash sh, *hash opt) {
-            return getRowIteratorIntern(sh, NOTHING, opt);
+            return cast<SQLStatement>(getStatementIntern(sh, NOTHING, opt));
+        }
+
+        #! returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+        /** @par Example:
+            @code{.py}
+AbstractSQLStatement i = table.getStatement(sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+
+            @see getStatementNoExec()
+
+            @since %SqlUtil 1.5
+         */
+        Qore::SQL::AbstractSQLStatement getStatement(*hash sh, *reference<string> sql, *hash opt) {
+            return getStatementIntern(sh, \sql, opt);
+        }
+
+        #! returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+        /** @par Example:
+            @code{.py}
+AbstractSQLStatement i = table.getStatement();
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object created by a successful call to this method acquires a thread resource for the underlying @ref Qore::SQL::AbstractDatasource "AbstractDatasource" object that must be released by calling @ref Qore::SQL::AbstractDatasource::commit() "commit()" or @ref Qore::SQL::AbstractDatasource::rollback() "rollback()", even if the statement does not acquire any database locks
+
+            @see getStatementNoExec()
+
+            @since %SqlUtil 1.5
+         */
+        Qore::SQL::AbstractSQLStatement getStatement(*hash sh, *hash opt) {
+            return getStatementIntern(sh, NOTHING, opt);
+        }
+
+        #! returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments without executing the statement itself; the statement is only prepared
+        /** @par Example:
+            @code{.py}
+AbstractSQLStatement i = table.getStatementNoExec(sh);
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param sql an optional reference to a string to return the SQL generated for the select statement
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - no transaction thread resources / locks are acquired with this method as the SQL statement is not executed
+
+            @see getStatement()
+
+            @since %SqlUtil 1.5
+         */
+        Qore::SQL::AbstractSQLStatement getStatementNoExec(*hash sh, *reference<string> sql, *hash opt) {
+            return getStatementIntern(sh, \sql, opt, True);
+        }
+
+        #! returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments without executing the statement itself; the statement is only prepared
+        /** @par Example:
+            @code{.py}
+AbstractSQLStatement i = table.getStatement();
+            @endcode
+
+            @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+            @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+
+            @return an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object that will iterate the results of a select statement matching the arguments
+
+            @throw OPTION-ERROR invalid or unsupported select option
+            @throw SELECT-ERROR \c 'offset' supplied without \c 'orderby' or \c 'limit', \c 'orderby' with \c 'limit' and \c 'offset' does not match any unique constraint
+
+            @note
+            - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
+            - no transaction thread resources / locks are acquired with this method as the SQL statement is not executed
+
+            @see getStatement()
+
+            @since %SqlUtil 1.5
+         */
+        Qore::SQL::AbstractSQLStatement getStatementNoExec(*hash sh, *hash opt) {
+            return getStatementIntern(sh, NOTHING, opt, True);
+        }
+
+        private Qore::SQL::AbstractSQLStatement getStatementIntern(*hash sh, *reference<string> sql, *hash opt, *bool no_exec) {
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+
+            list args;
+            sql = getSelectSqlIntern(sh, \args, opt);
+
+            AbstractSQLStatement stmt = ds.getSQLStatement();
+            stmt.prepare(sql);
+            if (no_exec) {
+                if (args) {
+                    stmt.bindArgs(args);
+                }
+            }
+            else {
+                execData(stmt, opt, args);
+            }
+
+            return stmt;
         }
 
         #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
@@ -14750,7 +14964,7 @@ any res = t.selectRows(sh, \sql);
                     )
             {
                 throw "CUSTOM-OPERATOR-ERROR",
-                      sprintf("Operator hash must contain key 'code' wit value of type 'closure' or 'callref', got: %s", operator."code".type());
+                      sprintf("Operator hash must contain key 'code' with a value of type 'closure' or 'callref', got: %s", operator."code".type());
             }
 
             m_customCopMap{name} = operator;
@@ -14885,7 +15099,7 @@ any res = t.selectRows(sh, \sql);
             return ds.vexec(sql, args);
         }
 
-        private execData(SQLStatement stmt, *hash opt, *list args) {
+        private execData(AbstractSQLStatement stmt, *hash opt, *list args) {
             if (opt.sqlarg_callback)
                 opt.sqlarg_callback(stmt.getSQL(), args);
             stmt.execArgs(args);

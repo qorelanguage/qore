@@ -1,0 +1,910 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_AbstractClass.cpp AbstractClass class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include <qore_reflection.h>
+#include <QC_AbstractClass.h>
+#include <QC_Class.h>
+#include <QC_PseudoClass.h>
+#include <QC_AbstractMethod.h>
+#include <QC_NormalMethod.h>
+#include <QC_StaticMethod.h>
+#include <QC_ConstructorMethod.h>
+#include <QC_DestructorMethod.h>
+#include <QC_CopyMethod.h>
+#include <QC_PseudoMethod.h>
+#include <QC_AbstractReflectionFunction.h>
+#include <QC_AbstractMethodVariant.h>
+#include <QC_NormalMethodVariant.h>
+#include <QC_StaticMethodVariant.h>
+#include <QC_ConstructorMethodVariant.h>
+#include <QC_DestructorMethodVariant.h>
+#include <QC_CopyMethodVariant.h>
+#include <QC_AbstractClassMember.h>
+#include <QC_NormalMember.h>
+#include <QC_StaticMember.h>
+#include <QC_ClassConstant.h>
+#include <QC_Type.h>
+#include <QC_Namespace.h>
+
+QoreReflectionClass::QoreReflectionClass(const char* name, ExceptionSink* xsink) : AbstractReflectionObject(getProgram()) {
+    cls = pgm->findClass(name, xsink);
+    if (!cls) {
+        if (!*xsink) {
+            xsink->raiseException("UNKNOWN-CLASS", "cannot resolve class '%s'", name);
+        }
+        return;
+    }
+}
+
+QoreReflectionClass::QoreReflectionClass(QoreProgram* pgm, const QoreClass* cls) : AbstractReflectionObject(pgm), cls(cls) {
+}
+
+QoreObject* get_class_object(QoreProgram* pgm, const QoreClass* cls) {
+    return new QoreObject(cls->isPseudoClass() ? QC_PSEUDOCLASS : QC_CLASS, pgm, new QoreReflectionClass(pgm, cls));
+}
+
+QoreObject* get_method_object(ReferenceHolder<QoreReflectionMethod>& m, ExceptionSink* xsink) {
+    switch (m->mtype) {
+        case MT_Normal: return new QoreObject(QC_NORMALMETHOD, m->pgm, m.release());
+        case MT_Static: return new QoreObject(QC_STATICMETHOD, m->pgm, m.release());
+        case MT_Constructor: return new QoreObject(QC_CONSTRUCTORMETHOD, m->pgm, m.release());
+        case MT_Destructor: return new QoreObject(QC_DESTRUCTORMETHOD, m->pgm, m.release());
+        case MT_Copy: return new QoreObject(QC_COPYMETHOD, m->pgm, m.release());
+        case MT_Pseudo: return new QoreObject(QC_PSEUDOMETHOD, m->pgm, m.release());
+        default:
+            break;
+    }
+
+    assert(false);
+    return nullptr;
+}
+
+QoreObject* find_variant(const QoreReflectionClass* c, const char* name, unsigned which, const QoreListNode* args, size_t offset, ExceptionSink* xsink) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    // the class ptr must be valid
+    // first find the method
+    const QoreMethod* m = nullptr;
+    method_type_e mtype = MT_None;
+    if (which & (FV_NORMAL | FV_CONSTRUCTOR | FV_DESTRUCTOR | FV_COPY | FV_PSEUDO)) {
+        m = c->cls->findLocalMethod(name);
+        if (m) {
+            mtype = m->getMethodType();
+            switch (mtype) {
+                case MT_Normal:
+                    if (!(which & FV_NORMAL)) {
+                        m = nullptr;
+                    }
+                    break;
+                case MT_Constructor:
+                    if (!(which & FV_CONSTRUCTOR)) {
+                        m = nullptr;
+                    }
+                    break;
+                case MT_Destructor:
+                    if (!(which & FV_DESTRUCTOR)) {
+                        m = nullptr;
+                    }
+                    break;
+                case MT_Copy:
+                    if (!(which & FV_COPY)) {
+                        m = nullptr;
+                    }
+                    break;
+                case MT_Pseudo:
+                    if (!(which & FV_PSEUDO)) {
+                        m = nullptr;
+                    }
+                    break;
+                default:
+                    assert(false);
+                    break;
+            }
+        }
+    }
+    if (!m && (which & FV_STATIC)) {
+        m = c->cls->findLocalStaticMethod(name);
+        if (m) {
+            mtype = MT_Static;
+        }
+    }
+    if (!m) {
+        const char* ms;
+        switch (which) {
+            case FV_ALL: ms = "any"; break;
+            case FV_STATIC: ms = "static"; break;
+            case FV_NORMAL: ms = "normal (non-static, non-special)"; break;
+            case FV_CONSTRUCTOR: ms = "constructor"; break;
+            case FV_DESTRUCTOR: ms = "destructor"; break;
+            case FV_COPY: ms = "copy"; break;
+            case FV_PSEUDO: ms = "pseudo"; break;
+            default: assert(false); break;
+        }
+
+        if (which == FV_DESTRUCTOR || which == FV_COPY) {
+            xsink->raiseException("METHOD-ERROR", "cannot resolve %s method in class '%s'", ms,
+                c->cls->getName());
+        }
+        else {
+            xsink->raiseException("METHOD-ERROR", "cannot resolve %s method '%s' in class '%s'", ms, name,
+                c->cls->getName());
+        }
+        return nullptr;
+    }
+
+    const QoreExternalFunction* func = m->getFunction();
+    return find_function_variant(c->pgm, func, args, offset, mtype, xsink);
+}
+
+QoreObject* find_variant(const QoreReflectionClass* c, const QoreStringNode* name, unsigned which, const QoreListNode* args, size_t offset, ExceptionSink* xsink) {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+
+    return find_variant(c, nname->c_str(), which, args, offset, xsink);
+}
+
+/** @defgroup access_constants Access Constants
+    Constants giving access information
+
+    @since %Qore 0.9
+*/
+//@{
+//! describes public access
+/** Equivalent to @ref Qore::Reflection::MC_PUBLIC
+*/
+const AC_PUBLIC = MC_PUBLIC;
+
+//! describes private access; accessible from anywhere in a class hierarchy (similar to \c protected in C++ and Java)
+/** Equivalent to @ref Qore::Reflection::MC_PRIVATE
+*/
+const AC_PRIVATE = MC_PRIVATE;
+
+//! describes internal private access; only accessible from the same class where the definition is made (similar to \c private in C++ and Java)
+/** Equivalent to @ref Qore::Reflection::MC_PRIVATEINTERNAL
+*/
+const AC_PRIVATEINTERNAL = MC_PRIVATEINTERNAL;
+//@}
+
+/** @defgroup modifier_constants Modifier Constants
+    Constants giving modifier information; each constant is a unique element of a bitfield
+
+    @since %Qore 0.9
+*/
+//@{
+//! describes public access
+/** Equivalent to @ref Qore::Reflection::AC_PUBLIC
+*/
+const MC_PUBLIC = MC_PUBLIC;
+
+//! describes private access; accessible from anywhere in a class hierarchy (similar to \c protected in C++ and Java)
+/** Equivalent to @ref Qore::Reflection::AC_PRIVATE
+*/
+const MC_PRIVATE = MC_PRIVATE;
+
+//! describes internal private access; only accessible from the same class where the definition is made (similar to \c private in C++ and Java)
+/** Equivalent to @ref Qore::Reflection::AC_PRIVATEINTERNAL
+*/
+const MC_PRIVATEINTERNAL = MC_PRIVATEINTERNAL;
+
+//! describes abstract classes and method variants
+const MC_ABSTRACT = MC_ABSTRACT;
+
+//! describes static methods and method variants
+const MC_STATIC = MC_STATIC;
+
+//! describes synchronized variants
+const MC_SYNCHRONIZED = MC_SYNCHRONIZED;
+
+//! describes deprecated functionality
+const MC_DEPRECATED = MC_DEPRECATED;
+
+//! describes the final flag
+const MC_FINAL = MC_FINAL;
+
+//! describes the @ref transient "transient" flag
+const MC_TRANSIENT = MC_TRANSIENT;
+//@}
+
+/** @defgroup code_flag_constants Code Flag Constants
+    Constants providing information about code variants
+
+    @since %Qore 0.9
+*/
+//@{
+//! Set on variants that are present for backwards-compatibility that always return a constant value (normally @ref nothing) due to argument errors
+/** Variants with this flag set are not accessible at parse time when @ref strict-args or @ref require-types are set and
+    therefore should be considered deprecated
+*/
+const CF_NOOP = QCF_NOOP;
+
+//! Set on variants that accept extra arguments after their parameter arguments
+/**
+*/
+const CF_USES_EXTRA_ARGS = QCF_USES_EXTRA_ARGS;
+
+//! Set on variants that cannot throw an exception
+/**
+*/
+const CF_CONSTANT = QCF_CONSTANT_INTERN;
+
+//! Set on deprecated variants
+/**
+*/
+const CF_DEPRECATED = QCF_DEPRECATED;
+
+//! Set on variants that only return a value depending on any arguments and have no side effects
+/**
+*/
+const CF_RET_VALUE_ONLY = QCF_RET_VALUE_ONLY;
+
+//! Like @ref Qore::Reflection::CF_NOOP "CF_NOOP" but makes variants unavailable at both parse time and run time when either @ref strict-args or @ref require-types or both are set
+/** as with @ref Qore::Reflection::CF_NOOP "CF_NOOP", variants with this flag set should be considered deprecated
+*/
+const CF_RUNTIME_NOOP = QCF_RUNTIME_NOOP;
+//@}
+
+//! class and inheritance access information
+/**
+    @since %Qore 0.9
+*/
+hashdecl ClassAccessInfo {
+    //! the inherited class
+    AbstractClass cls;
+
+    //! access code; see @ref access_constants for valid values
+    int access;
+
+    //! access string; one of \c "public", \c "private", or \c "private:internal"
+    string access_string;
+}
+
+//! The abstract base class for %Qore classes
+/** This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
+
+    @since %Qore 0.9
+ */
+qclass AbstractClass [ns=Qore::Reflection; arg=QoreReflectionClass* c; dom=REFLECTION];
+
+//! Throws an exception if called directly; this class can only be instantiated by builtin subclasses
+/** @throw ABSTRACTCLASS-CONSTRUCTOR-ERROR this exception is thrown if this class is constructed directly (also if directly inherited by user classes)
+ */
+AbstractClass::constructor() {
+    xsink->raiseException("ABSTRACTCLASS-CONSTRUCTOR-ERROR", "this class is an abstract class and cannot be constructed directly or inherited directly by a user-defined class");
+}
+
+//! returns the class's name
+/** @par Example:
+    @code{.py}
+string name = cls.getName();
+    @endcode
+
+    @return the class's name
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see getPathName()
+ */
+string AbstractClass::getName() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+    // the class ptr must be valid
+    return new QoreStringNode(c->cls->getName());
+}
+
+//! Returns @ref True if the Class object passed as an argument is equal to the current object; @ref False if not
+/** @par Example:
+    @code{.py}
+bool b = c1.isEqual(c2);
+    @endcode
+
+    @param cls the class to check with the current object for equality
+
+    @return @ref True if the Class object passed as an argument is equal to the current object; @ref False if not
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClass::isEqual(AbstractClass[QoreReflectionClass] cls) [flags=RET_VALUE_ONLY] {
+    ReferenceHolder<QoreReflectionClass> holder(cls, xsink);
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch1(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch2(xsink, cls->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return c->cls->isEqual(*cls->cls);
+}
+
+//! returns a bitfield of @ref modifier_constants "modifiers" describing the class
+/** @par Example:
+    @code{.py}
+int i = cls.getModifiers();
+    @endcode
+
+    @return a bitfield of @ref modifier_constants "modifiers" describing the class; possible values are:
+    - @ref Qore::Reflection::MC_ABSTRACT "MC_ABSTRACT": the class is @ref abstract
+    - @ref Qore::Reflection::MC_FINAL "MC_FINAL": the class has the @ref final_classes "final flag" set
+    - @ref Qore::Reflection::MC_PUBLIC "MC_PUBLIC": the class has the @ref mod_public "module public" flag set (not related to any inheritance properties in a class hierarchy)
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see @ref getModifierList()
+*/
+int AbstractClass::getModifiers() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    int64 rc = 0;
+    if (c->cls->isAbstract()) {
+        rc |= MC_ABSTRACT;
+    }
+    if (c->cls->isModulePublic()) {
+        rc |= MC_PUBLIC;
+    }
+    if (c->cls->isFinal()) {
+        rc |= MC_FINAL;
+    }
+
+    return rc;
+}
+
+//! returns a list of strings of modifiers describing the class
+/** @par Example:
+    @code{.py}
+list<string> l = cls.getModifierList();
+    @endcode
+
+    @return list of strings of modifiers describing the class; possible values are:
+    - \c "abstract": the class is @ref abstract
+    - \c "final": the class has the @ref final_classes "final flag" set
+    - \c "public": the class has the @ref mod_public "module public" flag set (not related to any inheritance properties in a class hierarchy)
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see @ref getModifiers()
+*/
+list<string> AbstractClass::getModifierList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(stringTypeInfo), xsink);
+    if (c->cls->isAbstract()) {
+        rv->push(new QoreStringNode("abstract"), xsink);
+    }
+    if (c->cls->isModulePublic()) {
+        rv->push(new QoreStringNode("public"), xsink);
+    }
+    if (c->cls->isFinal()) {
+        rv->push(new QoreStringNode("final"), xsink);
+    }
+
+    return rv.release();
+}
+
+//! returns @ref True if the class is a builtin class
+/** @par Example:
+    @code{.py}
+bool b = cls.isBuiltin();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClass::isBuiltin() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->isSystem();
+}
+
+//! returns @ref True if the class is a user class
+/** @par Example:
+    @code{.py}
+bool b = cls.isUser();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClass::isUser() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return !c->cls->isSystem();
+}
+
+//! returns @ref True if the class has at least one abstract method
+/** @par Example:
+    @code{.py}
+bool b = cls.isAbstract();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClass::isAbstract() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->isAbstract();
+}
+
+//! returns @ref True if the class was injected as a dependency injection
+/** @par Example:
+    @code{.py}
+bool b = cls.isInjected();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClass::isInjected() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->isInjected();
+}
+
+//! returns @ref True if the class has the @ref mod_public "module public" flag set
+/** @par Example:
+    @code{.py}
+bool b = cls.isModulePublic();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClass::isModulePublic() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->isModulePublic();
+}
+
+//! returns @ref True if the class is a pseudo-class
+/** @par Example:
+    @code{.py}
+bool b = cls.isPseudoClass();
+    @endcode
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClass::isPseudoClass() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->isPseudoClass();
+}
+
+//! returns the internal ID of the class which is only valid for the current execution session
+/** @par Example:
+    @code{.py}
+if (cls1.getId() == cls2.getId()) {
+    printf("classes are the same\n");
+}
+    @endcode
+
+    @return the internal ID of the class which is only valid for the current execution session
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+int AbstractClass::getId() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return (int64)c->cls->getID();
+}
+
+//! returns a unique binary hash for the class
+/** @par Example:
+    @code{.py}
+binary b = cls.getHash();
+    @endcode
+
+    @return a unique binary hash for the class
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+binary AbstractClass::getHash() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->getBinaryHash();
+}
+
+//! returns @ref True if the class implements a "memberGate" method
+/** @par Example:
+    @code{.py}
+bool b = cls.hasMemberGate();
+    @endcode
+
+    @return @ref True if the class implements a "memberGate" method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClass::hasMemberGate() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->hasMemberGate();
+}
+
+//! returns @ref True if the class implements a "methodGate" method
+/** @par Example:
+    @code{.py}
+bool b = cls.hasMethodGate();
+    @endcode
+
+    @return @ref True if the class implements a "methodGate" method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClass::hasMethodGate() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->hasMethodGate();
+}
+
+//! returns @ref True if the class implements a "memberNotification" method
+/** @par Example:
+    @code{.py}
+bool b = cls.hasMemberNotification();
+    @endcode
+
+    @return @ref True if the class implements a "memberNotification" method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+bool AbstractClass::hasMemberNotification() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->hasMemberNotification();
+}
+
+//! returns the functional domain of the class (for builtin classes only) as a bitfield of @ref functional_domain_constants
+/** @par Example:
+    @code{.py}
+int i = cls.getDomain();
+    @endcode
+
+    @return the functional domain of the class (for builtin classes only) as a bitfield of @ref functional_domain_constants
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see getDomainStringList()
+
+    @note user classes always return 0 here; a value is only returned by builtin classes
+*/
+int AbstractClass::getDomain() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return c->cls->getDomain();
+}
+
+//! returns a list of functional domain strings for the class (for builtin classes only); an empty list is returned for user classes
+/** @par Example:
+    @code{.py}
+list<string> l = cls.getDomainStringList();
+    @endcode
+
+    @return a list of functional domain strings for the class (for builtin classes only)
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+
+    @see getDomain()
+
+    @note user classes always return an empty list here
+*/
+list<string> AbstractClass::getDomainStringList() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    return domain_bitfield_to_string_list(c->cls->getDomain(), xsink);
+}
+
+//! returns the given method variant, otherwise throws an exception if no method variant can be matched
+/** @par Example:
+    @code{.py}
+AbstractMethodVariant m = cls.getVariant(name, TypeInt, TypeString);
+    @endcode
+
+    Searches normal methods (including special methods) and then static methods for the given method name and
+    and then matches the arguments by type to return the variant
+
+    @param name the name of the method
+    @param ... @ref Qore::Type "Type" arguments giving parameter types
+
+    @return the given method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw GETVARIANT-ERROR invalid argument to method
+    @throw METHOD-ERROR unknown method
+    @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getVariantArgs()
+    - getExactVariant()
+    - getExactVariantArgs()
+*/
+AbstractMethodVariant AbstractClass::getVariant(string name, ...) [flags=RET_VALUE_ONLY] {
+    return find_variant(c, name, FV_ALL, args, 1, xsink);
+}
+
+//! returns the given method variant, otherwise throws an exception if no method variant can be matched
+/** @par Example:
+    @code{.py}
+AbstractMethodVariant m = cls.getVariantArgs(name, (TypeInt, TypeString));
+    @endcode
+
+    Searches normal methods (including special methods) and then static methods for the given method name and
+    and then matches the arguments by type
+
+    @param name the name of the method
+    @param argv @ref Qore::Type "Type" arguments giving parameter types
+
+    @return the given method variant
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw GETVARIANT-ERROR invalid argument to method
+    @throw METHOD-ERROR unknown method
+    @throw RUNTIME-OVERLOAD-ERROR no variant van be found matching the given argument types
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @see
+    - getVariant()
+    - getExactVariant()
+    - getExactVariantArgs()
+*/
+AbstractMethodVariant AbstractClass::getVariantArgs(string name, *softlist<Type> argv) [flags=RET_VALUE_ONLY] {
+    return find_variant(c, name, FV_ALL, argv, 0, xsink);
+}
+
+//! returns the given method or throws an exception if the method does not exist in the local class
+/** @par Example:
+    @code{.py}
+AbstractMethod m = cls.getMethod(name);
+    @endcode
+
+    Searches normal methods (including special methods) and then static methods for the given method name
+
+    @param name the name of the method
+
+    @return the given method
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+    @throw METHOD-ERROR unknown method
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string argument is not in the
+    @ref default_encoding "default character encoding" and an error occurs during encoding conversion
+
+    @note Methods group variants with the same name; see @ref getVariant() for a method that will return a method
+    variant given the method name and the method variant arguments
+
+    @see @ref Qore::Reflection::Class::findMethod() "Class::findMethod()" for a similar method that searches theh class
+    hierarchy instead of just the local class
+*/
+AbstractMethod AbstractClass::getMethod(string name) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper nname(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->cls, nname->c_str(), xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return get_method_object(m, xsink);
+}
+
+//! returns a list of all class methods including special and static methods
+/** @par Example:
+    @code{.py}
+list<AbstractMethod> l = cls.getMethods();
+    @endcode
+
+    @return a list of all class methods including special and static methods
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<AbstractMethod> AbstractClass::getMethods() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreListNode> l(new QoreListNode(QC_ABSTRACTMETHOD->getTypeInfo()), xsink);
+
+    {
+        QoreMethodIterator i(*c->cls);
+        while (i.next()) {
+            ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->pgm, i.getMethod()), xsink);
+            l->push(get_method_object(m, xsink), xsink);
+            if (*xsink) {
+                return QoreValue();
+            }
+        }
+    }
+
+    {
+        QoreStaticMethodIterator i(*c->cls);
+        while (i.next()) {
+            ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(c->pgm, i.getMethod()), xsink);
+            l->push(get_method_object(m, xsink), xsink);
+            if (*xsink) {
+                return QoreValue();
+            }
+        }
+    }
+
+    return l.release();
+}
+
+//! returns a list of all class method variants including variants for special and static methods
+/** @par Example:
+    @code{.py}
+list<AbstractMethodVariant> l = cls.getVariants();
+    @endcode
+
+    @return a list of all class method variants including variants for special and static methods
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<AbstractMethodVariant> AbstractClass::getVariants() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> rv(new QoreListNode(QC_ABSTRACTMETHODVARIANT->getTypeInfo()), xsink);
+
+    QoreMethodIterator i(*c->cls);
+    while (i.next()) {
+        const QoreMethod* m = i.getMethod();
+        append_variant_objects(**rv, c->pgm, m->getFunction(), m->getMethodType(), xsink);
+    }
+
+    return rv.release();
+}
+
+//! Returns a list of immediate parent classes and access information; if the %Class has no parent classes, then an empty list is returned
+/** @par Example:
+    @code{.py}
+list<hash<ClassAccessInfo>> l = cls.getParentClasses();
+    @endcode
+
+    @return a list of immediate parent classes and access information; if the %Class has no parent classes, then an empty list is returned
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class has been destroyed
+*/
+list<hash<ClassAccessInfo>> AbstractClass::getParentClasses() [flags=RET_VALUE_ONLY] {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, c->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the class ptr must be valid
+    ReferenceHolder<QoreListNode> l(new QoreListNode(hashdeclClassAccessInfo->getTypeInfo()), xsink);
+
+    QoreParentClassIterator i(*c->cls);
+    while (i.next()) {
+        ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclClassAccessInfo, nullptr), xsink);
+        h->setKeyValue("cls", get_class_object(c->pgm, &i.getParentClass()), xsink);
+        h->setKeyValue("access", get_access(i.getAccess()), xsink);
+        h->setKeyValue("access_string", new QoreStringNode(get_access_string(i.getAccess())), xsink);
+
+        l->push(h.release(), xsink);
+    }
+
+    return l.release();
+}

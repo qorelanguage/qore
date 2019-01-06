@@ -33,11 +33,10 @@
 
 #define QORE_TIMEZONEMANAGER_H
 
-#include <inttypes.h>
-
+#include <cinttypes>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #ifndef LOCALTIME_LOCATION
 #define LOCALTIME_LOCATION "/etc/localtime"

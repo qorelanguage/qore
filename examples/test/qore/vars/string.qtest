@@ -6,6 +6,9 @@
 %require-types
 %strict-args
 
+# tests are made where the return value is ignored
+%disable-warning return-value-ignored
+
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class StringTest

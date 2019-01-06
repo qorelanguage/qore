@@ -1,0 +1,85 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class RemoveFileTest
+
+public class RemoveFileTest inherits QUnit::Test {
+
+    constructor() : Test ("RemoveFileTest", "1.0") {
+        addTestCase("remove_file test", \test_remove_file());
+        addTestCase("remove_file exception test", \test_remove_file_exception());
+        set_return_value(main());
+    }
+
+    test_remove_file() {
+        # create a temporary directory and check it's created and writable
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_path);
+        }
+        assertTrue(is_dir(tmp_path));
+        assertTrue(is_writable(tmp_path));
+
+        # create a temporary file and try and remove it
+        hash<TmpFileHash> f = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        f.file.close();
+        assertTrue(is_file(f.path));
+        assertTrue(is_writable(f.path));
+        remove_file(f.path);
+        assertFalse(path_exists(f.path));
+
+        # now try the same with symlinks - first a dangling one
+        string link = join_paths(tmp_path, "link1");
+        string non_existing = join_paths(tmp_path, "non_existing_file");
+        symlink(non_existing, link);
+        assertTrue(path_exists(link));
+        assertTrue(is_link(link));
+        assertFalse(path_exists(non_existing));
+        remove_file(link);
+        assertFalse(path_exists(link));
+
+        # now try the same with a symlink actually pointing to a file
+        f = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        f.file.close();
+        assertTrue(is_file(f.path));
+        link = join_paths(tmp_path, "link2");
+        symlink(f.path, link);
+        assertTrue(path_exists(link));
+        assertTrue(is_link(link));
+        remove_file(link);
+        assertFalse(path_exists(link));
+        assertTrue(path_exists(f.path));
+    }
+
+    test_remove_file_exception() {
+        # create a temporary directory and check it's created and writable
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_path);
+        }
+        assertTrue(is_dir(tmp_path));
+        assertTrue(is_writable(tmp_path));
+
+        # invent a path to a file which should not exist (the tmp dir is empty)
+        string path = join_paths(tmp_path, "non-existent");
+
+        # this call should throw an exception
+        assertThrows("REMOVE-FILE-ERROR", \remove_file(), (path));
+
+        # now let's create a directory (not a file)...
+        string dir_path = make_tmp_dir();
+        assertTrue(is_dir(dir_path));
+
+        # ...and try and remove it with remove_file which only removes files and symlinks
+        assertThrows("REMOVE-FILE-ERROR", \remove_file(), (dir_path));
+        assertTrue(is_dir(dir_path));
+    }
+}

@@ -1,3 +1,6 @@
+# issue #3069: make sure to install correctly when cross compiling
+modexeclibdir=${libdir}/${mypkglibdir}/${VERSION}
+
 MNAME=astparser
 
 if COND_MINGWCC

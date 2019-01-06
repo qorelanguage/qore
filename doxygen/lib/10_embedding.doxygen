@@ -1,4 +1,4 @@
-/** @page embedding Embedding Qore Code
+/** @page embedding_page Embedding Qore Code
     @section embedding Embedding Qore Code
 
     @subsection initializing_and_closing_library Initializing and Closing the Qore Library

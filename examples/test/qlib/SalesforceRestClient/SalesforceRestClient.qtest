@@ -4,10 +4,11 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/ConnectionProvider.qm
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/SalesforceRestClient.qm
 
-%requires qore >= 0.8.12
+%requires qore >= 0.9
 
 %new-style
 %require-types
@@ -22,14 +23,17 @@ class SalesforceTest inherits QUnit::Test {
     private {
         SalesforceRestClient rc;
 
+        # salesforce.com connection options
+        hash sfopts;
+
         # command-line options
-        const MyOpts = Opts + (
+        const MyOpts = Opts + {
             "client_id":      "i,client_id=s",
             "client_secret":  "s,client_secret=s",
             "user":           "u,username=s",
             "pass":           "p,password=s",
             "timeout":        "t,timeout=i",
-            );
+        };
 
         const OptionColumn = 22;
 
@@ -41,6 +45,7 @@ class SalesforceTest inherits QUnit::Test {
 
     constructor() : Test("SalesforceTest", "1.0", \ARGV, MyOpts) {
         addTestCase("Salesforce.com REST", \salesForceRestTests());
+        addTestCase("connection tests", \connectionTest());
 
         try {
             setupConnection();
@@ -63,23 +68,22 @@ class SalesforceTest inherits QUnit::Test {
     }
 
     setupConnection() {
-        hash opt;
-        opt.client_id = m_options.client_id ?? ENV.SALESFORCE_CONSUMER_KEY;
-        if (!opt.client_id)
+        sfopts.client_id = m_options.client_id ?? ENV.SALESFORCE_CONSUMER_KEY;
+        if (!sfopts.client_id)
             error("missing --client_id option or SALESFORCE_CONSUMER_KEY environment variable");
-        opt.client_secret = m_options.client_secret ?? ENV.SALESFORCE_CONSUMER_SECRET;
-        if (!opt.client_secret)
+        sfopts.client_secret = m_options.client_secret ?? ENV.SALESFORCE_CONSUMER_SECRET;
+        if (!sfopts.client_secret)
             error("missing --client_secret option or SALESFORCE_CONSUMER_SECRET environment variable");
-        opt.username = m_options.user ?? ENV.SALESFORCE_USER;
-        if (!opt.username)
+        sfopts.username = m_options.user ?? ENV.SALESFORCE_USER;
+        if (!sfopts.username)
             error("missing --username option or SALESFORCE_USER environment variable");
-        opt.password = m_options.pass ?? ENV.SALESFORCE_PASS;
-        if (!opt.password)
+        sfopts.password = m_options.pass ?? ENV.SALESFORCE_PASS;
+        if (!sfopts.password)
             error("missing --password option or SALESFORCE_PASS environment variable");
-        if (opt.timeout)
-            opt.connect_timeout = opt.timeout;
+        if (sfopts.timeout)
+            sfopts.connect_timeout = sfopts.timeout;
 
-        rc = new SalesforceRestClient(opt);
+        rc = new SalesforceRestClient(sfopts);
     }
 
     error(string fmt) {
@@ -105,5 +109,40 @@ class SalesforceTest inherits QUnit::Test {
 
         rc.logout();
         assertEq(NOTHING, rc.getToken());
+    }
+
+    connectionTest() {
+        string url = sprintf("http://%s:%s@localhost:8080", sfopts.username, sfopts.password);
+        remove sfopts.("username", "password");
+        SalesforceRestConnection swsc("test", "test", url, True, sfopts, parse_url(url));
+        assertEq(True, swsc instanceof SalesforceRestConnection);
+
+        assertThrows("CONNECTION-ERROR", sub () {
+            SalesforceRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
+            });
+
+        hash<ConnectionConstructorInfo> info = swsc.getConstructorInfo();
+        assertEq("SalesforceRestClient", info.module);
+        assertEq("SalesforceRestClient", info.class_name);
+        assertEq(url, info.args[0].url);
+        checkPreAndPostProcessing(info);
+    }
+
+    private checkPreAndPostProcessing(hash<ConnectionConstructorInfo> info) {
+        Program p(PO_NEW_STYLE | PO_STRICT_ARGS | PO_REQUIRE_TYPES);
+        if (info.module)
+            p.loadModule(info.module);
+        if (info.pre_processing) {
+            string pre_processing = sprintf("sub pre_processing(reference<*softlist<auto>> args, bool connect, *hash rtopts) { %s }", info.pre_processing);
+            # ensure that the pre processing code can be parsed
+            p.parse(pre_processing, "pre processing");
+            assertTrue(True, "pre processing: " + info.class_name);
+        }
+        if (info.post_processing) {
+            string post_processing = sprintf("sub post_processing(%s obj, bool connect, *hash rtopts) { %s }", info.class_name, info.post_processing);
+            # ensure that the post processing code can be parsed
+            p.parse(post_processing, "post processing");
+            assertTrue(True, "post processing: " + info.class_name);
+        }
     }
 }

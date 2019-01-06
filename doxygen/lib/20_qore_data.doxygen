@@ -61,7 +61,7 @@
 
     QoreBoolNode (\ref NT_BOOLEAN), QoreNullNode (\ref NT_NULL), and QoreNothingNode (\ref NT_NOTHING, but also equivalent to a 0 pointer, see the note below) are special classes in that they may not be directly instantiated with the new operator.  They are all represented by single non-reference-counted objects managed directly by the Qore library.  Each of these classes represents a type that has only one value, therefore as a memory and performance optimization, reference counting is disabled for their objects.  Actually in the case of QoreBoolNode the subclasses QoreBoolTrueNode and QoreBoolFalseNode have actual instantiations.
 
-    For the QoreBoolNode class, you can use these objects by referring to the global \ref True and \ref False objects, or by calling get_bool_node() as follows in the example function:
+    For the QoreBoolNode class, you can use these objects by referring to the global \c True and \c False objects, or by calling get_bool_node() as follows in the example function:
 
     @code
     static AbstractQoreNode *f_convert_first_argument_to_bool(const QoreListNode *params, ExceptionSink *xsink)

@@ -1,0 +1,160 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_ConstructorMethod.cpp ConstructorMethod class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_reflection.h"
+#include "QC_ConstructorMethod.h"
+#include "QC_Class.h"
+
+//! This class provides information about %Qore constructor methods
+/**
+    @see @ref Qore::Reflection::ConstructorMethodVariant "ConstructorMethodVariant"
+
+    @since %Qore 0.9.0
+ */
+qclass ConstructorMethod [ns=Qore::Reflection; arg=QoreReflectionMethod* m; vparent=AbstractMethod; dom=REFLECTION];
+
+//! Creates the object from the class
+/** @par Example:
+    @code{.py}
+ConstructorMethod m(cls);
+    @endcode
+
+    @param cls the class for the method
+
+    @throw UNKOWN-METHOD cannot find a constructor method for the given class
+ */
+ConstructorMethod::constructor(Class[QoreReflectionClass] cls) {
+    ReferenceHolder<QoreReflectionClass> holder(cls, xsink);
+
+    // get exclusive access to program object
+    QoreExternalProgramContextHelper pch(xsink, cls->pgm);
+    if (*xsink) {
+        return;
+    }
+
+    // the class pointer must be valid here
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(cls->cls, "constructor", xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+
+    assert(m->mtype == MT_Constructor);
+
+    self->setPrivate(CID_CONSTRUCTORMETHOD, m.release());
+}
+
+//! Creates the object from the class name or namespace path
+/** @par Example:
+    @code{.py}
+ConstructorMethod m(class_name);
+    @endcode
+
+    @param class_name the class name or namespace path for the method
+
+    @throw UNKNOWN-CLASS cannot find a class with the given name or path
+    @throw UNKOWN-METHOD cannot find a constructor method for the given class
+ */
+ConstructorMethod::constructor(string class_name) {
+    TempEncodingHelper npath(class_name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+
+    ReferenceHolder<QoreReflectionMethod> m(new QoreReflectionMethod(npath->c_str(), "constructor", xsink), xsink);
+    if (*xsink) {
+        return;
+    }
+
+    assert(m->mtype == MT_Constructor);
+
+    self->setPrivate(CID_CONSTRUCTORMETHOD, m.release());
+}
+
+//! calls the constructor with the given arguments
+/** @par Example:
+    @code{.py}
+auto v = m.call(arg1, arg2);
+    @endcode
+
+    @param ... optional arguments to the method
+
+    @return the object created by the constructor
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+    @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
+
+    @see callArgs()
+*/
+auto ConstructorMethod::call(...) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    const QoreClass* cls = m->m->getClass();
+    if (check_constructor(cls, xsink)) {
+        return QoreValue();
+    }
+
+    return cls->execConstructor(args, xsink);
+}
+
+//! calls the construcrtor with the given arguments as a list
+/** @par Example:
+    @code{.py}
+auto v = m.callArgs(argv);
+    @endcode
+
+    @param argv optional arguments to the method
+
+    @return the object created by the constructor
+
+    @throw PROGRAM-ERROR thrown if the @ref Qore::Program "Program" object holding the class and method has been destroyed
+    @throw CREATE-OBJECT-ERROR class implements features restricted by current parse options / sandboxing restrictions
+
+    @see call()
+*/
+auto ConstructorMethod::callArgs(*softlist<auto> argv) {
+    // get read access to program object
+    QoreExternalProgramContextHelper tch(xsink, m->pgm);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    // the method ptr must be valid
+    const QoreClass* cls = m->m->getClass();
+    if (check_constructor(cls, xsink)) {
+        return QoreValue();
+    }
+
+    return cls->execConstructor(argv, xsink);
+}
