@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebSocketHandler.qm Qore handler definition for the HttpServer module for providing WebSocket server services
 
-/*  WebSocketHandler.qm Copyright 2013 - 2018 Qore Technologies, s.r.o.
+/*  WebSocketHandler.qm Copyright 2013 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@
 %new-style
 
 module WebSocketHandler {
-    version = "1.4.2";
+    version = "1.4.3";
     desc = "user module for providing WebSocket server services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -62,6 +62,10 @@ module WebSocketHandler {
     - @ref WebSocketHandler::WebSocketHandler
 
     @section websockethandler_relnotes WebSocketHandler Release History
+
+    @subsection websockethandler_v1_4_3 Version 1.4.3
+    - added missing exception handling to connection registration code
+      (<a href="https://github.com/qorelanguage/qore/issues/3215">issue 3215</a>)
 
     @subsection websockethandler_v1_4_2 Version 1.4.2
     - added support for heartbeat messages
@@ -207,7 +211,7 @@ public namespace WebSocketHandler {
             RWLock rwl();
 
             #! connection hash
-            hash ch;
+            hash<string, WebSocketConnection> ch;
 
             #! heartbeat interval in seconds
             softint heartbeat = DefaultHeartbeatInterval;
@@ -224,7 +228,7 @@ public namespace WebSocketHandler {
 
             @throw WEBSOCKETHANDLER-OPTION-ERROR unknown or invalid option
         */
-        constructor(*HttpServer::AbstractAuthenticator auth, *hash opts) : HttpServer::AbstractHttpSocketHandler(auth) {
+        constructor(*HttpServer::AbstractAuthenticator auth, *hash<auto> opts) : HttpServer::AbstractHttpSocketHandler(auth) {
             foreach hash<auto> h in (opts.pairIterator()) {
                 switch (h.key) {
                     case "heartbeat": {
@@ -311,7 +315,7 @@ public namespace WebSocketHandler {
 
             Websocket connections are identified by their HTTP connection ID as passed in \c "cx.id"
          */
-        hash handleRequest(hash cx, hash hdr, *data b) {
+        hash<auto> handleRequest(hash<auto> cx, hash<auto> hdr, *data b) {
             #logDebug("websocket request: cx: %N", cx);
             #logDebug("websocket request: hdr: %N", hdr);
             if (!hdr."sec-websocket-key") {
@@ -321,7 +325,7 @@ public namespace WebSocketHandler {
                 };
             }
 
-            hash rhdr = {
+            hash<auto> rhdr = {
                 "Upgrade": "websocket",
                 "Connection": "Upgrade",
                 "Sec-WebSocket-Accept": ws_get_response_key(hdr."sec-websocket-key"),
@@ -336,7 +340,7 @@ public namespace WebSocketHandler {
         #! get list of socket connection ids
         /**
         */
-        *list getConnectionIds() {
+        *list<string> getConnectionIds() {
             rwl.readLock();
             on_exit rwl.readUnlock();
             return keys ch;
@@ -357,7 +361,7 @@ public namespace WebSocketHandler {
             @param hdr a hash of headers in the request
             @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
          */
-        startImpl(softstring lid, hash cx, hash hdr, Qore::Socket sock) {
+        startImpl(softstring lid, hash<auto> cx, hash<auto> hdr, Qore::Socket sock) {
             logDebug("WebSocketHandler::startImpl() cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
 
             softstring cid = cx.id;
@@ -371,7 +375,16 @@ public namespace WebSocketHandler {
                 on_exit rwl.writeUnlock();
                 ch{cid} = wsc;
             }
-            wsc.registered();
+            try {
+                # issue #3225: handle exceptions in WebSocketHandler and remove the connection
+                wsc.registered();
+            } catch (hash<ExceptionInfo> ex) {
+                logError("exception registering WebSocket connection: %s", get_exception_string(ex));
+                rwl.writeLock();
+                on_exit rwl.writeUnlock();
+                remove ch{cid};
+                rethrow;
+            }
 
             on_exit {
                 #logDebug("WebSocketHandler::startImpl(): close connection: cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc, cx."peer-info".port);
@@ -423,7 +436,7 @@ public namespace WebSocketHandler {
                         continue;
                     }
 
-                    hash h = ws_read_message(sock);
+                    hash<auto> h = ws_read_message(sock);
 
                     if (h.op == WSOP_Close) {
                         if (!h.close) {
@@ -464,8 +477,7 @@ public namespace WebSocketHandler {
                     # unrecognized opcode - close the connection
                     sendClose(sock, WSCC_UnsupportedData);
                     break;
-                }
-                catch (hash<ExceptionInfo> ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     # error in websocket handler server, log and close the connection
                     string err = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
                     logError(err);
@@ -478,7 +490,7 @@ public namespace WebSocketHandler {
         }
 
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
-        WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
+        WebSocketConnection getConnectionImpl(hash<auto> cx, hash<auto> hdr, string cid) {
             return new WebSocketConnection(self);
         }
 
