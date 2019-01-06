@@ -20,6 +20,7 @@ class ModulesTest inherits QUnit::Test {
 
     warningTest() {
         Program p();
+        p.setScriptPath(get_script_path());
         assertThrows("DEPRECATED", \p.loadModule(), ("./Issue3212.qm", WARN_MODULES | WARN_DEPRECATED));
         p.loadModule("./Issue3212.qm");
         p.parse("int sub test0() { return test(); } int sub test1() { return deprecated_test(); }", "");

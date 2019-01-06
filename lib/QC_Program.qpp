@@ -1476,7 +1476,7 @@ pgm.setScriptPath("/users/test/test.q");
     @endcode
  */
 nothing Program::setScriptPath(*string path) {
-   p->setScriptPath(path ? path->getBuffer() : 0);
+   p->setScriptPath(path ? path->c_str() : nullptr);
 }
 
 //! Returns the current script directory as a string or @ref nothing if not set
@@ -1750,7 +1750,7 @@ pgm.loadModule("mysql");
     - %Qore 0.9 added the \c warning_mask parameter
 */
 Program::loadModule(string name, int warning_mask = WARN_MODULES) [dom=MODULES] {
-   QMM.runTimeLoadModule(*xsink, name->c_str(), p, nullptr, 0, warning_mask);
+   QMM.runTimeLoadModule(*xsink, name->c_str(), p, nullptr, QMLO_NONE, warning_mask);
 }
 
 //! Loads a %Qore user module into the Program object at run-time using the given @ref Qore::Program "Program" object as the container for the user module code
@@ -1782,7 +1782,7 @@ pgm.loadUserModuleWithProgram("MyModule", p);
     - %Qore 0.9 added the \c warning_mask parameter
 */
 Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm, int warning_mask = WARN_MODULES) [dom=MODULES,INJECTION] {
-    QMM.runTimeLoadModule(*xsink, name->getBuffer(), p, pgm, 0, warning_mask);
+    QMM.runTimeLoadModule(*xsink, name->getBuffer(), p, pgm, QMLO_INJECT, warning_mask);
 }
 
 //! Loads a %Qore user module into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
@@ -1818,7 +1818,8 @@ Program::loadApplyToUserModule(string name, *softbool reinject, int warning_mask
     assert(pgm == p);
 #endif
     if (!*xsink) {
-        QMM.runTimeLoadModule(*xsink, name->c_str(), 0, p, 0, warning_mask);
+        QMM.runTimeLoadModule(*xsink, name->c_str(), 0, p, QMLO_INJECT | (reinject ? QMLO_REINJECT : 0),
+            warning_mask);
         // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
         //p->unregisterQoreObject(self, xsink);
         self->doDelete(xsink);
@@ -1857,7 +1858,7 @@ Program::loadApplyToPrivateUserModule(string name, int warning_mask = WARN_MODUL
     assert(pgm == p);
 #endif
     if (!*xsink) {
-        QMM.runTimeLoadModule(*xsink, name->c_str(), 0, p, 0, warning_mask);
+        QMM.runTimeLoadModule(*xsink, name->c_str(), 0, p, QMLO_INJECT | QMLO_PRIVATE, warning_mask);
         // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
         //p->unregisterQoreObject(self, xsink);
         self->doDelete(xsink);
