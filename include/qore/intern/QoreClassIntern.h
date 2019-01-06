@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -2571,7 +2571,8 @@ public:
     }
     */
 
-    DLLLOCAL const QoreMethod* getMethodForEval(const char* nme, QoreProgram* pgm, ExceptionSink* xsink) const;
+    DLLLOCAL const QoreMethod* getMethodForEval(const char* nme, QoreProgram* pgm,
+        const qore_class_private* class_ctx, ExceptionSink* xsink) const;
 
     DLLLOCAL QoreObject* execConstructor(const AbstractQoreFunctionVariant* variant, const QoreListNode* args, ExceptionSink* xsink) const;
 
@@ -2691,10 +2692,13 @@ public:
     // class_ctx is only set if it is present and accessible, so we only need to check for internal access here
     DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethodIntern(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
         const QoreMethod* m = findLocalCommittedStaticMethod(nme);
-        if (m && doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx))
+        if (m &&
+            (class_ctx == this || doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx))) {
             return m;
-        if (!scl)
+        }
+        if (!scl) {
             return nullptr;
+        }
         // access already checked in subclasses, do not need to check again
         return scl->runtimeFindCommittedStaticMethod(nme, access, class_ctx, class_ctx == this);
     }
@@ -2704,23 +2708,41 @@ public:
     DLLLOCAL const QoreMethod* runtimeFindCommittedMethodIntern(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
         const QoreMethod* m = findLocalCommittedMethod(nme);
         //printd(5, "qore_class_private::runtimeFindCommittedMethodIntern(%s) '%s' class_ctx: %p '%s' FIRST m: %p\n", nme, name.c_str(), class_ctx, class_ctx ? class_ctx.name.c_str() : "n/a", m);
-        if (m && doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx))
+        if (m &&
+            (class_ctx == this || doRuntimeMethodAccess(m, access, m->getAccess(), class_ctx))) {
             return m;
-        if (!scl)
+        }
+        if (!scl) {
             return nullptr;
+        }
         // access already checked in subclasses, do not need to check again
         return scl->runtimeFindCommittedMethod(nme, access, class_ctx, class_ctx == this);
     }
 
     DLLLOCAL const QoreMethod* runtimeFindCommittedStaticMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
         access = Public;
+        if (class_ctx && class_ctx != this) {
+            const QoreMethod* m = class_ctx->findLocalCommittedStaticMethod(nme);
+            if (m) {
+                return m;
+            }
+        }
         return runtimeFindCommittedStaticMethodIntern(nme, access, class_ctx);
     }
 
     DLLLOCAL const QoreMethod* runtimeFindCommittedMethod(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
         access = Public;
+        if (class_ctx && class_ctx != this) {
+            const QoreMethod* m = class_ctx->findLocalCommittedMethod(nme);
+            if (m) {
+                return m;
+            }
+        }
         return runtimeFindCommittedMethodIntern(nme, access, class_ctx);
     }
+
+    DLLLOCAL const QoreMethod* runtimeFindCommittedMethodForEval(const char* nme, ClassAccess& access,
+        const qore_class_private* class_ctx) const;
 
     DLLLOCAL const QoreMethod* runtimeFindAnyCommittedMethod(const char* nme) const {
         ClassAccess access = Public;

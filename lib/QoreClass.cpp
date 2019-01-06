@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -3121,61 +3121,75 @@ const QoreClass* qore_class_private::parseGetClass(const qore_class_private& qc,
 }
 
 bool qore_class_private::runtimeHasCallableMethod(const char* m, int mask) const {
-   const qore_class_private* class_ctx = runtime_get_class();
-   if (class_ctx && !runtimeCheckPrivateClassAccess(class_ctx))
-      class_ctx = 0;
+    const qore_class_private* class_ctx = runtime_get_class();
+    if (class_ctx && !runtimeCheckPrivateClassAccess(class_ctx)) {
+        class_ctx = nullptr;
+    }
 
-   const QoreMethod* w = 0;
-   ClassAccess access;
-   CurrentProgramRuntimeParseContextHelper pch;
+    const QoreMethod* w = nullptr;
+    ClassAccess access;
+    CurrentProgramRuntimeParseContextHelper pch;
 
-   if (mask & QCCM_NORMAL)
-      w = runtimeFindCommittedMethod(m, access, class_ctx);
+    if (mask & QCCM_NORMAL) {
+        w = runtimeFindCommittedMethod(m, access, class_ctx);
+    }
 
-   if (!w && (mask & QCCM_STATIC))
-      w = runtimeFindCommittedStaticMethod(m, access, class_ctx);
+    if (!w && (mask & QCCM_STATIC)) {
+        w = runtimeFindCommittedStaticMethod(m, access, class_ctx);
+    }
 
-   return !w || (!class_ctx && (access > Public)) ? false : true;
+    return !w || (!class_ctx && (access > Public)) ? false : true;
 }
 
-const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProgram* pgm, ExceptionSink* xsink) const {
-   //printd(5, "qore_class_private::getMethodForEval() %s::%s() %s call attempted\n", name.c_str(), nme, runtimeCheckPrivateClassAccess() ? "external" : "internal" );
+const QoreMethod* qore_class_private::runtimeFindCommittedMethodForEval(const char* nme, ClassAccess& access, const qore_class_private* class_ctx) const {
+    access = Public;
+    if (class_ctx && class_ctx != this) {
+        const QoreMethod* m = class_ctx->findLocalCommittedMethod(nme);
+        if (m && !qore_method_private::get(*m)->isAbstract()) {
+            return m;
+        }
+    }
+    return runtimeFindCommittedMethodIntern(nme, access, class_ctx);
+}
 
-   const QoreMethod* w;
-   ClassAccess access;
+const QoreMethod* qore_class_private::getMethodForEval(const char* nme, QoreProgram* pgm,
+    const qore_class_private* class_ctx, ExceptionSink* xsink) const {
+    //printd(5, "qore_class_private::getMethodForEval() %s::%s() %s call attempted\n", name.c_str(), nme, runtimeCheckPrivateClassAccess() ? "external" : "internal" );
 
-   const qore_class_private* class_ctx = runtime_get_class();
-   if (class_ctx && !runtimeCheckPrivateClassAccess(class_ctx))
-      class_ctx = 0;
-   //printd(5, "qore_class_private::getMethodForEval() %s::%s() class_ctx: %p %s\n", name.c_str(), nme, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
+    const QoreMethod* w;
+    ClassAccess access;
 
-   {
-      ProgramRuntimeParseContextHelper pch(xsink, pgm);
-      if (*xsink)
-         return 0;
+    //printd(5, "qore_class_private::getMethodForEval() %s::%s() class_ctx: %p %s\n", name.c_str(), nme, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
 
-      if (!(w = runtimeFindCommittedMethod(nme, access, class_ctx)) && !(w = runtimeFindCommittedStaticMethod(nme, access, class_ctx)))
-         return 0;
-   }
+    {
+        ProgramRuntimeParseContextHelper pch(xsink, pgm);
+        if (*xsink) {
+            return nullptr;
+        }
 
-   //printd(5, "QoreClass::getMethodForEval() %s::%s() found method %p class %s\n", name.c_str(), nme, w, w->getClassName());
+        if (!(w = runtimeFindCommittedMethodForEval(nme, access, class_ctx))
+            && !(w = runtimeFindCommittedStaticMethod(nme, access, class_ctx))) {
+            return nullptr;
+        }
+    }
 
-   // check for illegal explicit call
-   if (w == constructor || w == destructor || w == deleteBlocker) {
-      xsink->raiseException("ILLEGAL-EXPLICIT-METHOD-CALL", "explicit calls to ::%s() methods are not allowed", nme);
-      return 0;
-   }
+    //printd(5, "QoreClass::getMethodForEval() %s::%s() found method %p class %s\n", name.c_str(), nme, w, w->getClassName());
 
-   if (w->isPrivate() && !class_ctx) {
-      xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s() is private and cannot be accessed externally", name.c_str(), nme);
-      return 0;
-   }
-   else if ((access > Public) && !class_ctx) {
-      xsink->raiseException("BASE-CLASS-IS-PRIVATE", "%s() is a method of a privately-inherited class %s", nme, name.c_str());
-      return 0;
-   }
+    // check for illegal explicit call
+    if (w == constructor || w == destructor || w == deleteBlocker) {
+        xsink->raiseException("ILLEGAL-EXPLICIT-METHOD-CALL", "explicit calls to ::%s() methods are not allowed", nme);
+        return nullptr;
+    }
 
-   return w;
+    if (w->isPrivate() && !class_ctx) {
+        xsink->raiseException("METHOD-IS-PRIVATE", "%s::%s() is private and cannot be accessed externally", name.c_str(), nme);
+        return nullptr;
+    } else if ((access > Public) && !class_ctx) {
+        xsink->raiseException("BASE-CLASS-IS-PRIVATE", "%s() is a method of a privately-inherited class %s", nme, name.c_str());
+        return nullptr;
+    }
+
+    return w;
 }
 
 bool qore_class_private::runtimeIsPrivateMemberIntern(const char* str, bool toplevel) const {
@@ -3192,7 +3206,7 @@ QoreValue QoreClass::evalMethod(QoreObject* self, const char* nme, const QoreLis
     QORE_TRACE("QoreClass::evalMethod()");
     assert(self);
 
-    return priv->evalMethod(self, nme, args, nullptr, xsink);
+    return priv->evalMethod(self, nme, args, runtime_get_class(), xsink);
 }
 
 QoreValue QoreClass::evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const {
@@ -3279,7 +3293,7 @@ QoreValue qore_class_private::evalMethod(QoreObject* self, const char* nme, cons
         return execCopy(self, xsink);
     }
 
-    const QoreMethod* w = getMethodForEval(nme, self->getProgram(), xsink);
+    const QoreMethod* w = getMethodForEval(nme, self->getProgram(), class_ctx, xsink);
     if (*xsink) {
         return QoreValue();
     }

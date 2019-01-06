@@ -521,12 +521,15 @@ namespace Issue2744_A {
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        /*
         addTestCase("issue 3070", \issue3070());
         addTestCase("issue 3073", \issue3073());
         addTestCase("issue 2970", \issue2970());
         addTestCase("issue 2885", \issue2885());
         addTestCase("issue 2744", \issue2744());
+        */
         addTestCase("issue 2741", \issue2741());
+        /*
         addTestCase("Class library test", \classLibraryTest());
         addTestCase("Deprecated method test", \deprecatedMethodTest());
         addTestCase("Deletion test", \deletionTest());
@@ -536,6 +539,7 @@ public class ClassesTest inherits QUnit::Test {
         addTestCase("misc tests", \miscTests());
         addTestCase("issue 2380", \issue2380());
         addTestCase("issue 2657", \issue2657());
+        */
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
