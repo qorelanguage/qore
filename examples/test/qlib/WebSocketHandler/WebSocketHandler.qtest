@@ -42,19 +42,6 @@ class MyWsConnection inherits WebSocketConnection {
         }
         #printf("GOT MSG: %y\n", msg);
     }
-    /*
-    logError(string fmt) {
-        vprintf(fmt+"\n", argv);
-    }
-
-    logInfo(string fmt) {
-        vprintf(fmt+"\n", argv);
-    }
-
-    logDebug(string fmt) {
-        vprintf(fmt+"\n", argv);
-    }
-    */
 }
 
 class MyWsHandler inherits WebSocketHandler {
@@ -86,24 +73,11 @@ class MyWsClient inherits WebSocketClient {
 
     private handlePing(hash<auto> h) {
         WebSocketClient::handlePing(h);
-        if (cnt.getCount()) {  # should not happen
+        # in case of a race condition; only decrement once
+        if (cnt.getCount()) {
             cnt.dec();
         }
     }
-
-    /*
-    logError(string fmt) {
-        vprintf(fmt+"\n", argv);
-    }
-
-    logInfo(string fmt) {
-        vprintf(fmt+"\n", argv);
-    }
-
-    logDebug(string fmt) {
-        vprintf(fmt+"\n", argv);
-    }
-    */
 }
 
 class WebSocketHandlerTest inherits QUnit::Test {
