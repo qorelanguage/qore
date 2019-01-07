@@ -147,8 +147,13 @@ public namespace DebugHandler {
         }
 
         log(int verbosity, string fmt) {
+            log2(verbosity, fmt, argv);
+        }
+
+        log2(int verbosity, string fmt, *list args) {
+
             if (logger) {
-                logger.log2(verbosity, fmt, argv);
+                logger.log2(verbosity, fmt, args);
             }
         }
 
@@ -198,15 +203,15 @@ public namespace DebugHandler {
         }
 
         logInfo(string fmt) {
-            log(DUV_INFO, fmt, argv);
+            log2(DUV_INFO, fmt, argv);
         }
 
         logDebug(string fmt) {
-            log(DUV_DEBUG, fmt, argv);
+            log2(DUV_DEBUG, fmt, argv);
         }
 
         logError(string fmt) {
-            log(DUV_INFO, "ERROR: " + fmt, argv);
+            log2(DUV_INFO, "ERROR: " + fmt, argv);
         }
     }
 

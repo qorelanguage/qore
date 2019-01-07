@@ -35,9 +35,26 @@ class MyWsConnection inherits WebSocketConnection {
     }
 
     gotMessage(string msg) {
-        send("RESPONSE:"+msg);
+        if (msg == "STOP") {
+            stop();
+        } else {
+            send("RESPONSE:"+msg);
+        }
         #printf("GOT MSG: %y\n", msg);
     }
+    /*
+    logError(string fmt) {
+        vprintf(fmt+"\n", argv);
+    }
+
+    logInfo(string fmt) {
+        vprintf(fmt+"\n", argv);
+    }
+
+    logDebug(string fmt) {
+        vprintf(fmt+"\n", argv);
+    }
+    */
 }
 
 class MyWsHandler inherits WebSocketHandler {
@@ -55,6 +72,7 @@ class MyWsHandler inherits WebSocketHandler {
     logError(string fmt) {
         errs.push(vsprintf(fmt, argv));
     }
+
 }
 
 class MyWsClient inherits WebSocketClient {
@@ -68,8 +86,24 @@ class MyWsClient inherits WebSocketClient {
 
     private handlePing(hash<auto> h) {
         WebSocketClient::handlePing(h);
-        cnt.dec();
+        if (cnt.getCount()) {  # should not happen
+            cnt.dec();
+        }
     }
+
+    /*
+    logError(string fmt) {
+        vprintf(fmt+"\n", argv);
+    }
+
+    logInfo(string fmt) {
+        vprintf(fmt+"\n", argv);
+    }
+
+    logDebug(string fmt) {
+        vprintf(fmt+"\n", argv);
+    }
+    */
 }
 
 class WebSocketHandlerTest inherits QUnit::Test {
@@ -105,11 +139,12 @@ class WebSocketHandlerTest inherits QUnit::Test {
         assertEq(1, wsHandler.getHeartbeat());
         assertEq("test", wsHandler.getHeartbeatMessage());
 
-        Counter c(1);
         {
+            Counter c(1);
             MyWsClient wsc(sub (*data msg) {}, {"url": "ws://localhost:" + port}, c);
             wsc.connect();
             c.waitForZero();
+            assertTrue(wsc.isOpen());
             assertTrue(True);
         }
 
@@ -118,6 +153,19 @@ class WebSocketHandlerTest inherits QUnit::Test {
             WebSocketClient wsc(sub (*data msg) {}, {"url": "ws://localhost:" + port});
             wsc.connect({"hdr": {"Bad": 1}});
             wsc.disconnect();
+        }
+
+        # check close connection from server side
+        {
+            Counter c(1);
+            wsHandler.setHeartbeat(20);  # to not decrement counter
+            MyWsClient wsc(sub (*data msg) {c.dec(); }, {"url": "ws://localhost:" + port}, c);
+            wsc.connect();
+            assertTrue(wsc.isOpen());
+            wsc.send("STOP");
+            c.waitForZero();
+            assertFalse(wsc.isOpen());
+            #wsc.send("sending to closed socket");
         }
         wsHandler.errs.get(10s);
         assertEq(0, wsHandler.errs.size());
