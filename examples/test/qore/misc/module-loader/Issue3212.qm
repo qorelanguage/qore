@@ -1,0 +1,23 @@
+
+%new-style
+%strict-args
+%require-types
+
+module Issue3212 {
+    version = "0.1";
+    desc = "test module";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+public namespace Issue3212 {
+    # deliberately use deprecated functionality
+    public int sub test() {
+        return deprecated_test();
+    }
+
+    deprecated public int sub deprecated_test() {
+        return 1;
+    }
+}
