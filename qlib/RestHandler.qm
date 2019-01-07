@@ -347,6 +347,9 @@ Content-Length: 16
     @section resthandler_relnotes RestHandler Release Notes
 
     @subsection rh_1_3 RestHandler v1.3
+    - added the @ref RestHandler::RestHandler::returnRestException() "RestHandler::returnRestException()" method that
+      allows subclasses to determine how exceptions are handled
+      (<a href="https://github.com/qorelanguage/qore/issues/3235">issue 3235</a>)
     - updated to support alternative URI paths for actions so that an "action=xxx" argument is not needed; instead
       the action can be added to the end of the URI path so that \c "PUT path/xxx" can be used instead of
       \c "PUT path?action=xxx".  Additionally, support for fast static REST subclass lookups was added by moving the
@@ -1294,12 +1297,8 @@ public namespace RestHandler {
                     ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
                     : get_exception_string(ex);
 
-                # if there is an exception, return a 409 Conflict error to the client with the exception information
                 logError(desc);
-                rv = new hash<HttpHandlerResponseInfo>((
-                    "code": 409,
-                    "body": ex,
-                ));
+                rv = returnRestException(ex);
             }
 
             #logDebug("DBG: rv: %y", rv);
@@ -1330,6 +1329,18 @@ public namespace RestHandler {
             #logDebug("REST DBG: rv: %N", rv);
 
             return cast<hash<HttpResponseInfo>>(rv);
+        }
+
+        #! method that determines how exceptions handling REST requests are returned
+        /** by default a <tt>409 Conflict</tt> response is returned with the serialized exception information in the
+            message body
+        */
+        private hash<HttpHandlerResponseInfo> returnRestException(hash<ExceptionInfo> ex) {
+            # if there is an exception, by default return a 409 Conflict error to the client with the exception information
+            return <HttpHandlerResponseInfo>{
+                "code": 409,
+                "body": ex,
+            };
         }
 
         #! default get handler for the base handler class
