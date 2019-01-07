@@ -143,7 +143,7 @@ Class::constructor(string path) {
         return;
     }
 
-    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(npath->c_str(), xsink), xsink);
+    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(xsink, npath->c_str()), xsink);
     if (*xsink) {
         return;
     }
@@ -1428,7 +1428,7 @@ static Class Class::forName(string path) [flags=RET_VALUE_ONLY] {
         return QoreValue();
     }
 
-    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(npath->c_str(), xsink), xsink);
+    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(xsink, npath->c_str()), xsink);
     if (*xsink) {
         return QoreValue();
     }
@@ -1457,7 +1457,7 @@ static Class Class::forName(Program[QoreProgram] pgm, string path) [flags=RET_VA
         return QoreValue();
     }
 
-    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(npath->c_str(), xsink), xsink);
+    ReferenceHolder<QoreReflectionClass> cls(new QoreReflectionClass(xsink, npath->c_str(), pgm), xsink);
     if (*xsink) {
         return QoreValue();
     }

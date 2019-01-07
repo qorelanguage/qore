@@ -98,13 +98,13 @@ class ReflectionTest inherits QUnit::Test {
 
     pgmTests() {
         Program p(PO_NEW_STYLE);
-        p.parse("class Test {} const Test = 1; sub test() {} our int test; namespace Test1 {} hashdecl Test2 { int i; }", "");
+        p.parse("class TestClass {} const Test = 1; sub test() {} our int test; namespace Test1 {} hashdecl Test2 { int i; }", "");
 
         {
-            Class c = Class::forName(p, "Test");
-            assertEq("Test", c.getName());
-            c = Class::findAllRegex(p, "^Tes[tuv]")[0];
-            assertEq("Test", c.getName());
+            Class c = Class::forName(p, "TestClass");
+            assertEq("TestClass", c.getName());
+            c = Class::findAllRegex(p, "^Tes[tuv]Class")[0];
+            assertEq("TestClass", c.getName());
         }
 
         {
