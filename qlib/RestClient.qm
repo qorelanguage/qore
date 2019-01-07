@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file RestClient.qm Qore user module for calling REST services
 
-/*  RestClient.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
+/*  RestClient.qm Copyright (C) 2013 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -125,6 +125,8 @@ printf("%N\n", ans.body);
     @section restclientrelnotes Release Notes
 
     @subsection restclientv1_6 RestClient v1.6
+    - fixed a bug where the \c "response-code" key of the info output hash could be missing in some clases
+      (<a href="https://github.com/qorelanguage/qore/issues/3237">issue 3237</a>)
     - all connection clases have unified constructor
 
     @subsection restclientv1_5 RestClient v1.5
@@ -850,10 +852,9 @@ hash ans = rest.doRequest("DELETE", "/orders/1");
             try {
                 h = send(body, m, path, hdr, False, \info);
                 info."response-code" = h.status_code;
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
+                info."response-code" = info."response-headers".status_code;
                 if (ex.arg) {
-                    info."response-code" = ex.arg.status_code;
                     if (decode_errors && ex.arg.body)
                         decodeError(ex.arg, \info);
                 }

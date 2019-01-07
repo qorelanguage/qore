@@ -1995,6 +1995,9 @@
     - the @ref include "%include" parse directive now supports environment variable substitution at the beginning of the file path
 
     @subsection qore_089_bug_fixes Bug Fixes in Qore
+    - fixed a bug in the <a href="../../modules/RestClient/html/index.html">RestClient</a> module where the
+      \c "response-code" key of the info output hash could be missing in some clases
+      (<a href="https://github.com/qorelanguage/qore/issues/3237">issue 3237</a>)
     - fixed a crashing bug when HTTP messages with duplicate \c Connection, \c Content-Encoding, \c Transfer-Encoding, \c Location, or \c Content-Type headers is received
     - fixed a bug parsing octal character constants in the lexer when octal digits followed the octal constant (ex: \c "\0441" where the \c "1" would cause an error)
     - allow escaping "$" character in regular expression substitution target strings, previously it was impossible to output a literal "$" + a digit, since this would be interpreted as a numbered input pattern expression
