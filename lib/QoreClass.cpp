@@ -812,7 +812,7 @@ int qore_class_private::initializeIntern() {
 
             // initialize new members
             //printd(5, "qore_class_private::initializeIntern() this: %p '%s' initialing members: %p\n", this, name.c_str(), &members);
-            members.parseInit();
+            members.parseInit(selfid);
         }
     }
 
@@ -2658,7 +2658,7 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
     assert(qc.name != name || qc.cls->priv->ns->name != cls->priv->ns->name);
     //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' members: %p init qc: %p '%s' qc.members: %p\n", this, name.c_str(), &members, &qc, qc.name.c_str(), &qc.members);
     // issue #2657: ensure that parent class members are initialied before merging
-    qc.members.parseInit();
+    qc.members.parseInit(qc.selfid);
     for (auto& i : qc.members.member_list) {
         QoreMemberInfo* mi = members.find(i.first);
         if (mi) {
@@ -2678,7 +2678,7 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
             }
             continue;
         }
-        i.second->parseInit(i.first);
+        i.second->parseInit(i.first, selfid);
         QoreMemberInfo* nmi = new QoreMemberInfo(*i.second, this, access);
         //printd(5, "qore_class_private::parseImportMembers() this: %p '%s' importing <- '%s::%s' ('%s') new access: '%s' old: '%s'\n", this, name.c_str(), qc.name.c_str(), i->first, i->second->exp.getTypeName(), privpub(nmi->access), privpub(i->second->access));
         members.addInheritedNoCheck(strdup(i.first), nmi);
@@ -3563,8 +3563,9 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
         MethodFunctionBase* mfb;
         if (con) {
             mfb = new ConstructorMethodFunction(cls);
+            // selfid is set below for all non-static methods
             // set selfid immediately if adding a constructor variant
-            reinterpret_cast<UserConstructorVariant*>(f)->getUserSignature()->setSelfId(&selfid);
+            //reinterpret_cast<UserConstructorVariant*>(f)->getUserSignature()->setSelfId(&selfid);
             assert(!f->isAbstract());
         } else if (dst) {
             mfb = new DestructorMethodFunction(cls);
@@ -3591,7 +3592,11 @@ int qore_class_private::addUserMethod(const char* mname, MethodVariantBase* f, b
     //printd(5, "qore_class_private::addUserMethod() %s %s::%s(%s) f: %p (%d) new: %d\n", privpub(f->getAccess()), tname, mname, f->getSignature()->getSignatureText(), f, ((QoreReferenceCounter*)f)->reference_count(), is_new);
 
     // set the pointer from the variant back to the owning method
-    f->setMethod(m);
+    if (n_static) {
+        f->setMethod(m);
+    } else {
+        f->setNormalUserMethod(m, &selfid);
+    }
 
     // add the new method to the class if it's a new method
     if (is_new) {
@@ -4912,7 +4917,7 @@ void QoreMemberInfo::addContextAccess(const QoreMemberInfo& mi, const qore_class
 #endif
 }
 
-void QoreMemberInfo::parseInit(const char* name) {
+void QoreMemberInfo::parseInit(const char* name, LocalVar& selfid) {
     if (init)
         return;
     init = true;
@@ -4926,10 +4931,10 @@ void QoreMemberInfo::parseInit(const char* name) {
 #endif
 
     if (exp) {
-        const QoreTypeInfo* argTypeInfo = 0;
+        const QoreTypeInfo* argTypeInfo = nullptr;
         int lvids = 0;
         //printd(5, "QoreMemberInfo::parseInit() this: %p '%s' %p '%s' %d\n", this, name, exp, get_type_name(exp), get_node_type(exp));
-        parse_init_value(exp, 0, 0, lvids, argTypeInfo);
+        parse_init_value(exp, &selfid, 0, lvids, argTypeInfo);
         if (lvids) {
             parse_error(*loc, "illegal local variable declaration in member initialization expression");
             while (lvids--)
@@ -4997,7 +5002,7 @@ QoreParseClassHelper::~QoreParseClassHelper() {
     setParseClass(old);
 }
 
-void QoreMemberMap::parseInit() {
+void QoreMemberMap::parseInit(LocalVar& selfid) {
     //printd(5, "QoreMemberMap::parseInit() this: %p init: %d\n", this, init);
     if (init) {
         return;
@@ -5006,7 +5011,7 @@ void QoreMemberMap::parseInit() {
     for (auto& i : member_list) {
         printd(5, "QoreMemberMap::parseInit() this: %p mem: '%s' (%p) type: %s (%d)\n", this, i.first, i.second.get(), i.second->exp.getTypeName(), i.second->exp.getType());
         if (i.second) {
-            i.second->parseInit(i.first);
+            i.second->parseInit(i.first, selfid);
         }
     }
 }

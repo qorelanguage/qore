@@ -213,6 +213,10 @@ public:
         selfid = n_selfid;
     }
 
+    DLLLOCAL LocalVar* getSelfId() const {
+        return selfid;
+    }
+
     DLLLOCAL virtual const QoreParseTypeInfo* getParseParamTypeInfo(unsigned num) const {
         return num < parseTypeList.size() ? parseTypeList[num] : nullptr;
     }
@@ -355,7 +359,7 @@ protected:
     bool restore_stack = false;
 
     DLLLOCAL void init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
-        const qore_class_private* cctx);
+        const qore_class_private* cctx, QoreObject* self);
 
     DLLLOCAL void setCallName(const QoreFunction* func);
 };
@@ -438,6 +442,9 @@ public:
         //printd(5, "AbstractQoreFunctionVariant::isSignatureIdentical() this: %p '%s' == '%s': %d\n", this, getSignature()->getSignatureText(), sig.getSignatureText(), *(getSignature()) == sig);
         return *(getSignature()) == sig;
     }
+
+    // only returns a non-nullptr value for normal user method variants
+    DLLLOCAL LocalVar* getSelfId() const;
 
     DLLLOCAL AbstractQoreFunctionVariant* ref() {
         ROreference();
@@ -526,6 +533,10 @@ public:
     DLLLOCAL void parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo);
 
     DLLLOCAL void parseInitPopLocalVars();
+
+    DLLLOCAL void setSelfId(LocalVar* selfid) {
+        signature.setSelfId(selfid);
+    }
 
     DLLLOCAL void parseCommit();
 };

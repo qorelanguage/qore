@@ -1556,7 +1556,7 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper() {
 
 OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
     if (qc) {
-        ThreadData* td  = thread_data.get();
+        ThreadData* td = thread_data.get();
         old_class = td->current_class;
         td->current_class = qc;
     }
@@ -1564,27 +1564,41 @@ OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const q
 
 OptionalClassOnlySubstitutionHelper::~OptionalClassOnlySubstitutionHelper() {
     if (subst) {
-        ThreadData* td  = thread_data.get();
+        ThreadData* td = thread_data.get();
         td->current_class = old_class;
     }
 }
 
 OptionalClassObjSubstitutionHelper::OptionalClassObjSubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
-   if (qc) {
-      ThreadData* td  = thread_data.get();
-      old_obj = td->current_obj;
-      old_class = td->current_class;
-      td->current_obj = 0;
-      td->current_class = qc;
-   }
+    if (qc) {
+        ThreadData* td = thread_data.get();
+        old_obj = td->current_obj;
+        old_class = td->current_class;
+        td->current_obj = nullptr;
+        td->current_class = qc;
+    }
 }
 
 OptionalClassObjSubstitutionHelper::~OptionalClassObjSubstitutionHelper() {
-   if (subst) {
-      ThreadData* td  = thread_data.get();
-      td->current_obj = old_obj;
-      td->current_class = old_class;
-   }
+    if (subst) {
+        ThreadData* td = thread_data.get();
+        td->current_obj = old_obj;
+        td->current_class = old_class;
+    }
+}
+
+OptionalObjectOnlySubstitutionHelper::OptionalObjectOnlySubstitutionHelper(QoreObject* obj) : subst(obj ? true : false) {
+    if (obj) {
+        ThreadData* td = thread_data.get();
+        old_obj = td->current_obj;
+        td->current_obj = obj;
+    }
+}
+
+OptionalObjectOnlySubstitutionHelper::~OptionalObjectOnlySubstitutionHelper() {
+    if (subst) {
+        thread_data.get()->current_obj = old_obj;
+    }
 }
 
 CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink, bool ref_obj) : xsink(xsink) {

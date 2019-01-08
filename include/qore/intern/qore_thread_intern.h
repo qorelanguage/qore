@@ -675,6 +675,16 @@ private:
     bool subst;
 };
 
+class OptionalObjectOnlySubstitutionHelper {
+public:
+    DLLLOCAL OptionalObjectOnlySubstitutionHelper(QoreObject* obj);
+    DLLLOCAL ~OptionalObjectOnlySubstitutionHelper();
+
+private:
+    bool subst;
+    QoreObject* old_obj;
+};
+
 class ThreadSafeLocalVarRuntimeEnvironmentHelper {
 private:
    const QoreClosureBase* prev;
