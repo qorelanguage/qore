@@ -195,6 +195,9 @@
       - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
         - Swagger module does not accept multipart/form-data content-type and also does not work with list and hash parameters
           (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
+      - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a>:
+        - added stopping connection from server side via @ref WebSocketHandler::WebSocketConnection::stop(), @ref WebSocketHandler::WebSocketHandler::stopOne()
+          and WebSocketClient handling of WSCC_GoingAway event
     - @ref relative_dates "Relative date" changes
       - Fractional seconds are accepted in the @ref single_reldates
       - Fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>

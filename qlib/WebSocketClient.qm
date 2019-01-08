@@ -92,6 +92,7 @@ c.waitForZero();
     - added the @ref WebSocketClient::WebSocketConnectionObject::getConstructorInfo() "WebSocketConnectionObject::getConstructorInfo()"
       method to allow connections to be created dynamically, potentially in another process from a network
       call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
+    - add WebSocketClient handling of WSCC_GoingAway event
 
     @subsection wsc_v1_6_3 v1.6.3
     - added missing exception handling in the connection close callback
@@ -428,6 +429,7 @@ ws.clearStats();
                 c.dec();
             }
             while (True) {
+
                 if (stop) {
                     sendClose(stop);
                     logDebug("event loop stopping on user request");
@@ -451,6 +453,11 @@ ws.clearStats();
                         }
                         logDebug("client sent WSOP_Close code %d (%s): %s", h.close, WSCCMap.(h.close), h.msg);
                         sendClose(h.close, h.msg);
+                        break;
+                    }
+
+                    if (h.op == WSCC_GoingAway) {
+                        logDebug("server sent WSOP_GoingAway; closing immediately");
                         break;
                     }
 
