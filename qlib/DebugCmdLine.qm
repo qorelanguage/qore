@@ -1210,7 +1210,7 @@ public namespace DebugCmdLine {
             return ret;
         }
 
-        public showFileNames(hash fn) {
+        public showFileNames(*hash fn) {
             foreach string k in (keys fn) {
                 printfImpl("%s", k);
                 if (fn{k}) {
