@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -228,6 +228,60 @@ public:
         else
             lvars = new LVList(lvids);
     }
+};
+
+// parse variable stack
+class VNode {
+public:
+    LocalVar* lvar;
+    VNode* next;
+
+    DLLLOCAL VNode(LocalVar* lv, const QoreProgramLocation* n_loc = nullptr, int n_refs = 0,
+        bool n_top_level = false);
+
+    DLLLOCAL ~VNode();
+
+    DLLLOCAL void appendLocation(QoreString& str);
+
+    DLLLOCAL void setRef() {
+        ++refs;
+    }
+
+    DLLLOCAL bool setBlockStart(bool bs = true) {
+        bool rc = block_start;
+        block_start = bs;
+        return rc;
+    }
+
+    DLLLOCAL bool isBlockStart() const {
+        return block_start;
+    }
+
+    DLLLOCAL bool isReferenced() const {
+        return refs;
+    }
+
+    DLLLOCAL int refCount() const {
+        return refs;
+    }
+
+    DLLLOCAL bool isTopLevel() const {
+        return top_level;
+    }
+
+    DLLLOCAL const char* getName() const;
+
+    // searches to marker and then jumps to global thread-local variables
+    DLLLOCAL VNode* nextSearch() const;
+
+protected:
+    // # of times this variable is referenced in code
+    int refs;
+
+    // to store parse location in case of errors
+    const QoreProgramLocation* loc;
+    bool block_start;
+    bool top_level;
 };
 
 #endif // _QORE_STATEMENT_BLOCK_H

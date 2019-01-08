@@ -736,17 +736,24 @@ int qore_class_private::initializeIntern() {
 
     QoreParseClassHelper qpch(cls);
 
+    // issue #3242 ensure that any current local vars are not resolved when initializing the class
+    LVarStackBreakHelper lvar_stack_helper;
+
     // first resolve types in pending variants in all method signatures (incl. return types)
     // since abstract method functions are copied by reference from the normal list; this resolves all pending
     // method function signatures as well
-    for (auto& i : hm)
+    for (auto& i : hm) {
         i.second->priv->func->resolvePendingSignatures();
-    for (auto& i : shm)
+    }
+    for (auto& i : shm) {
         i.second->priv->func->resolvePendingSignatures();
+    }
 
     QoreProgram* pgm = getProgram();
-    if (pgm && !sys && (qore_program_private::parseAddDomain(pgm, domain)))
-        parseException(*loc, "ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that is restricted by current parse options", name.c_str());
+    if (pgm && !sys && (qore_program_private::parseAddDomain(pgm, domain))) {
+        parseException(*loc, "ILLEGAL-CLASS-DEFINITION", "class '%s' inherits functionality from base classes that " \
+        "is restricted by current parse options", name.c_str());
+    }
 
     // signature string - also processed in parseCommit()
     QoreString csig;
@@ -826,9 +833,9 @@ int qore_class_private::initializeIntern() {
         }
 
         has_sig_changes = false;
-    }
-    else
+    } else {
         assert(csig.empty());
+    }
 
     return 0;
 }

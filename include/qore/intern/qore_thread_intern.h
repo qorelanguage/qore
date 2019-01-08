@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -88,7 +88,6 @@ class ThreadProgramData;
 struct ThreadLocalProgramData;
 class QoreAbstractModule;
 class QoreRWLock;
-
 
 DLLLOCAL extern Operator* OP_BACKGROUND;
 
@@ -360,6 +359,15 @@ DLLLOCAL const QoreTypeInfo* parse_get_return_type_info();
 DLLLOCAL QoreProgram* get_set_program_call_context(QoreProgram* new_pgm);
 DLLLOCAL void set_program_call_context(QoreProgram* new_pgm);
 
+class LVarStackBreakHelper {
+public:
+    DLLLOCAL LVarStackBreakHelper();
+    DLLLOCAL ~LVarStackBreakHelper();
+
+private:
+    VNode* vnode;
+};
+
 class ProgramCallContextHelper {
 public:
     DLLLOCAL ProgramCallContextHelper(QoreProgram* new_pgm)
@@ -584,6 +592,7 @@ DLLLOCAL int thread_set_closure_var_value(int frame, const char* name, const Qor
 DLLLOCAL int get_implicit_element();
 DLLLOCAL int save_implicit_element(int n_element);
 
+DLLLOCAL VNode* update_get_vstack(VNode* vn);
 DLLLOCAL void save_global_vnode(VNode* vn);
 DLLLOCAL VNode* get_global_vnode();
 

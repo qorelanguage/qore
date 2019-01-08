@@ -518,13 +518,31 @@ namespace Issue2744_A {
     }
 }
 
+class Test_3240 {
+    int get() {
+        return 0;
+    }
+}
+
 class Issue_3193_3240 {
     public {
         int i = 1;
 
         int x = get0();
 
+        Test_3240 t;
+
         static int si = 2;
+    }
+
+    constructor() {
+        t = new Test_3240();
+    }
+
+    destructor() {
+        if (get2() != 0) {
+            throw "ERR";
+        }
     }
 
     int get0(int x = i) {
@@ -532,6 +550,10 @@ class Issue_3193_3240 {
     }
 
     int get1(int x = si) {
+        return x;
+    }
+
+    private:internal int get2(int x = t.get()) {
         return x;
     }
 }

@@ -40,6 +40,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/ModuleInfo.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/StatementBlock.h"
 
 // to register object types
 #include "qore/intern/QC_Queue.h"
@@ -1521,6 +1522,22 @@ void ModuleContextFunctionList::clear() {
    mcfl_t::clear();
 }
 
+LVarStackBreakHelper::LVarStackBreakHelper() {
+    ThreadData* td = thread_data.get();
+    if (!td->vstack || !td->vstack->lvar) {
+        vnode = nullptr;
+    } else {
+        vnode = td->vstack;
+        td->vstack = nullptr;
+    }
+}
+
+LVarStackBreakHelper::~LVarStackBreakHelper() {
+    if (vnode) {
+        thread_data.get()->vstack = vnode;
+    }
+}
+
 QoreProgramContextHelper::QoreProgramContextHelper(QoreProgram* pgm) {
     // allow the program context to be skipped with a nullptr arg
     if (!pgm) {
@@ -1999,6 +2016,13 @@ void updateVStack(VNode* nvs) {
 
 VNode* getVStack() {
    return (thread_data.get())->vstack;
+}
+
+VNode* update_get_vstack(VNode* vn) {
+    ThreadData* td = thread_data.get();
+    VNode* rv = td->vstack;
+    td->vstack = vn;
+    return rv;
 }
 
 void save_global_vnode(VNode* vn) {
