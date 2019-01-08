@@ -1524,7 +1524,7 @@ void ModuleContextFunctionList::clear() {
 
 LVarStackBreakHelper::LVarStackBreakHelper() {
     ThreadData* td = thread_data.get();
-    if (!td->vstack || !td->vstack->lvar) {
+    if (!td->vstack) {
         vnode = nullptr;
     } else {
         vnode = td->vstack;

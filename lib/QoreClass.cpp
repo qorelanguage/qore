@@ -736,7 +736,9 @@ int qore_class_private::initializeIntern() {
 
     QoreParseClassHelper qpch(cls);
 
-    // issue #3242 ensure that any current local vars are not resolved when initializing the class
+    // issue #3242 ensure that any current local vars not related to this class are not resolved when
+    // initializing the class in out of order parse initialization; this will ensure that the local var stack
+    // is empty when initializing classes (which can be done at any time during parsing)
     LVarStackBreakHelper lvar_stack_helper;
 
     // first resolve types in pending variants in all method signatures (incl. return types)
