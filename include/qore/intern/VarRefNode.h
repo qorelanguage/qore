@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -124,10 +124,11 @@ public:
 
     DLLLOCAL VarRefNode(const QoreProgramLocation* loc, char* n, LocalVar* n_id, bool in_closure) : ParseNode(loc, NT_VARREF, true, false), name(n), new_decl(false), explicit_scope(false) {
         ref.id = n_id;
-        if (in_closure)
+        if (in_closure) {
             setClosureIntern();
-        else
+        } else {
             type = VT_LOCAL;
+        }
     }
 
     DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const;

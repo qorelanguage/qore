@@ -240,6 +240,11 @@ public:
         qmethod = n_qm;
     }
 
+    DLLLOCAL void setNormalUserMethod(QoreMethod* n_qm, LocalVar* selfid) {
+        setMethod(n_qm);
+        getUserVariantBase()->setSelfId(selfid);
+    }
+
     DLLLOCAL const QoreMethod* method() const {
         assert(qmethod);
         return qmethod;
@@ -323,39 +328,39 @@ public:
 
 class UserMethodVariant : public MethodVariant, public UserVariantBase {
 protected:
-   bool synchronized;
+    bool synchronized;
 
 public:
-   DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_access, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, false), synchronized(synced) {
-   }
+    DLLLOCAL UserMethodVariant(ClassAccess n_access, bool n_final, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract) : MethodVariant(n_access, n_final, n_flags, true, is_abstract), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, false), synchronized(synced) {
+    }
 
-   DLLLOCAL ~UserMethodVariant() {
-   }
+    DLLLOCAL ~UserMethodVariant() {
+    }
 
-   // the following defines the pure virtual functions that are common to all user variants
-   COMMON_USER_VARIANT_FUNCTIONS
+    // the following defines the pure virtual functions that are common to all user variants
+    COMMON_USER_VARIANT_FUNCTIONS
 
-   DLLLOCAL virtual void parseInit(QoreFunction* f) {
-      MethodFunctionBase* mf = static_cast<MethodFunctionBase*>(f);
+    DLLLOCAL virtual void parseInit(QoreFunction* f) {
+        MethodFunctionBase* mf = static_cast<MethodFunctionBase*>(f);
 
-      signature.resolve();
-      // parseResolve and push current return type on stack
-      ParseCodeInfoHelper rtih(mf->getName(), signature.getReturnTypeInfo());
+        signature.resolve();
+        // parseResolve and push current return type on stack
+        ParseCodeInfoHelper rtih(mf->getName(), signature.getReturnTypeInfo());
 
-      // must be called even if "statements" is NULL
-      if (!mf->isStatic()) {
-         if (!isAbstract())
-            statements->parseInitMethod(mf->MethodFunctionBase::getClass()->getTypeInfo(), this);
-      }
-      else
-         statements->parseInit(this);
+        // must be called even if "statements" is NULL
+        if (!mf->isStatic()) {
+            if (!isAbstract())
+                statements->parseInitMethod(mf->MethodFunctionBase::getClass()->getTypeInfo(), this);
+        }
+        else
+            statements->parseInit(this);
 
-      // recheck types against committed types if necessary
-      if (recheck)
-         f->parseCheckDuplicateSignatureCommitted(&signature);
-   }
+        // recheck types against committed types if necessary
+        if (recheck)
+            f->parseCheckDuplicateSignatureCommitted(&signature);
+    }
 
-   DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const;
+    DLLLOCAL virtual QoreValue evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const;
 };
 
 #define UMV(f) (reinterpret_cast<UserMethodVariant*>(f))
@@ -992,7 +997,7 @@ public:
     }
 
     // initializes the member
-    DLLLOCAL void parseInit(const char* name);
+    DLLLOCAL void parseInit(const char* name, LocalVar& selfid);
 
     // sets the transient flag
     DLLLOCAL void setTransient() {
@@ -1195,7 +1200,7 @@ public:
         member_list.insert(member_list.begin(), std::make_pair(name, std::unique_ptr<QoreMemberInfo>(info)));
     }
 
-    DLLLOCAL void parseInit();
+    DLLLOCAL void parseInit(LocalVar& selfid);
 
 private:
     bool init = false;
@@ -1603,13 +1608,13 @@ public:
 };
 
 struct SelfInstantiatorHelper {
-   LocalVar* selfid;
-   DLLLOCAL SelfInstantiatorHelper(LocalVar* n_selfid, QoreObject* self) : selfid(n_selfid) {
-      selfid->instantiateSelf(self);
-   }
-   DLLLOCAL ~SelfInstantiatorHelper() {
-      selfid->uninstantiateSelf();
-   }
+    LocalVar* selfid;
+    DLLLOCAL SelfInstantiatorHelper(LocalVar* n_selfid, QoreObject* self) : selfid(n_selfid) {
+        selfid->instantiateSelf(self);
+    }
+    DLLLOCAL ~SelfInstantiatorHelper() {
+        selfid->uninstantiateSelf();
+    }
 };
 
 // signature hash size - we use SHA1 for performance reasons (and because we don't necessarily need the best cryptographic security)

@@ -109,6 +109,14 @@ bool AbstractQoreFunctionVariant::hasBody() const {
    return is_user ? getUserVariantBase()->hasBody() : true;
 }
 
+LocalVar* AbstractQoreFunctionVariant::getSelfId() const {
+    const UserVariantBase* uvb = getUserVariantBase();
+    if (!uvb) {
+        return nullptr;
+    }
+    return uvb->getUserSignature()->getSelfId();
+}
+
 static void do_call_name(QoreString &desc, const QoreFunction* func) {
    const char* class_name = func->className();
    if (class_name)
@@ -154,7 +162,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
         return;
     }
 
-    init(func, variant, is_copy, cctx);
+    init(func, variant, is_copy, cctx, self);
 }
 
 CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
@@ -175,7 +183,7 @@ CodeEvaluationHelper::CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFun
         return;
     }
 
-    init(func, variant, is_copy, cctx);
+    init(func, variant, is_copy, cctx, self);
 }
 
 CodeEvaluationHelper::~CodeEvaluationHelper() {
@@ -200,7 +208,7 @@ void CodeEvaluationHelper::setCallName(const QoreFunction* func) {
 }
 
 void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunctionVariant*& variant, bool is_copy,
-    const qore_class_private* cctx) {
+    const qore_class_private* cctx, QoreObject* self) {
     //printd(5, "CodeEvaluationHelper::init() this: %p '%s()' file: %s line: %d\n", this, func->getName(),
     //    loc->getFile(), loc->start_line);
 
@@ -230,7 +238,7 @@ void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunc
         }
     }
 
-    if (processDefaultArgs(func, variant, true, is_copy)) {
+    if (processDefaultArgs(func, variant, true, is_copy, self)) {
         return;
     }
 
@@ -246,7 +254,8 @@ void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunc
     restore_stack = true;
 }
 
-int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy) {
+int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant,
+    bool check_args, bool is_copy, QoreObject* self) {
     // get default argument list of variant
     AbstractFunctionSignature* sig = variant->getSignature();
     const arg_vec_t& defaultArgList = sig->getDefaultArgList();
@@ -256,6 +265,13 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
     for (unsigned i = 0; i < max; ++i) {
         if (i < defaultArgList.size() && defaultArgList[i] && (!tmp || tmp->retrieveEntry(i).isNothing())) {
             QoreValue& p = tmp.getEntryReference(i);
+
+            // issue #3240: set self in case the default arg expression references a member of the current object
+            // must be set only for evaluation, cannot be set when verifying types below in
+            // QoreTypeInfo::acceptInputParam() as it will cause errors handling references related to the current
+            // object - "self" is the object for the call but not necessarily the current "self"
+            OptionalObjectOnlySubstitutionHelper self_helper(self);
+
             p = defaultArgList[i].eval(xsink);
             if (*xsink)
                 return -1;
@@ -521,40 +537,44 @@ void UserSignature::pushParam(VarRefNode* v, QoreValue defArg, bool needs_types)
 }
 
 void UserSignature::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {
-   lv.reserve(parseTypeList.size());
+    lv.reserve(parseTypeList.size());
 
-   if (selfid)
-      push_local_var(selfid, loc);
-   else if (classTypeInfo)
-      selfid = push_local_var("self", loc, classTypeInfo, true, 1);
+    if (selfid) {
+        push_local_var(selfid, loc);
+    } else if (classTypeInfo) {
+        selfid = push_local_var("self", loc, classTypeInfo, true, 1);
+    }
 
-   // push $argv var on stack and save id
-   argvid = push_local_var("argv", loc, listOrNothingTypeInfo, true, 1);
-   printd(5, "UserSignature::parseInitPushLocalVars() this: %p argvid: %p\n", this, argvid);
+    // push argv var on stack and save id
+    argvid = push_local_var("argv", loc, listOrNothingTypeInfo, true, 1);
+    printd(5, "UserSignature::parseInitPushLocalVars() this: %p (%s) argvid: %p selfid: %p\n", this, getSignatureText(), argvid, selfid);
 
-   resolve();
+    resolve();
 
-   // init param ids and push local parameter vars on stack
-   for (unsigned i = 0; i < typeList.size(); ++i) {
-      // check for dups but do not check if the variables are referenced in the block
-      // push args declared as type "*reference" as "any"; if no value passed, then they have no type restrictions
-      // NOTE that when complex types are supported, the type restriction should be that of the reference's subtype
-      lv.push_back(push_local_var(names[i].c_str(), loc, typeList[i] == referenceOrNothingTypeInfo ? anyTypeInfo : typeList[i], true, 1));
-      printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id: %p)\n", names[i].c_str(), lv[i]);
-   }
+    // init param ids and push local parameter vars on stack
+    for (unsigned i = 0; i < typeList.size(); ++i) {
+        // check for dups but do not check if the variables are referenced in the block
+        // push args declared as type "*reference" as "any"; if no value passed, then they have no type restrictions
+        // NOTE that when complex types are supported, the type restriction should be that of the reference's subtype
+        lv.push_back(push_local_var(names[i].c_str(), loc,
+            typeList[i] == referenceOrNothingTypeInfo ? anyTypeInfo : typeList[i], true, 1));
+        printd(5, "UserSignature::parseInitPushLocalVars() registered local var %s (id: %p)\n", names[i].c_str(), lv[i]);
+    }
 }
 
 void UserSignature::parseInitPopLocalVars() {
-   // remove local variables from stack and unset the parse_assigned flag
-   for (unsigned i = 0; i < typeList.size(); ++i)
-      pop_local_var(true);
+    // remove local variables from stack and unset the parse_assigned flag
+    for (unsigned i = 0; i < typeList.size(); ++i) {
+        pop_local_var(true);
+    }
 
-   // pop $argv param off stack
-   pop_local_var();
+    // pop argv param off stack
+    pop_local_var();
 
-   // pop $self off stack if present
-   if (selfid)
-      pop_local_var();
+    // pop $self off stack if present
+    if (selfid) {
+        pop_local_var();
+    }
 }
 
 void UserSignature::resolve() {
@@ -565,7 +585,7 @@ void UserSignature::resolve() {
 
     if (!returnTypeInfo) {
         returnTypeInfo = QoreParseTypeInfo::resolveAndDelete(parseReturnTypeInfo, loc);
-        parseReturnTypeInfo = 0;
+        parseReturnTypeInfo = nullptr;
     }
 #ifdef DEBUG
     else assert(!parseReturnTypeInfo);
@@ -580,7 +600,7 @@ void UserSignature::resolve() {
         // initialize default arguments
         if (defaultArgList[i]) {
             int lvids = 0;
-            const QoreTypeInfo* argTypeInfo = 0;
+            const QoreTypeInfo* argTypeInfo = nullptr;
             parse_init_value(defaultArgList[i], selfid, 0, lvids, argTypeInfo);
             if (lvids) {
                 parse_error(*loc, "illegal local variable declaration in default value expression in parameter '%s'", names[i].c_str());

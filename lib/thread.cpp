@@ -40,6 +40,7 @@
 #include "qore/intern/qore_program_private.h"
 #include "qore/intern/ModuleInfo.h"
 #include "qore/intern/QoreHashNodeIntern.h"
+#include "qore/intern/StatementBlock.h"
 
 // to register object types
 #include "qore/intern/QC_Queue.h"
@@ -1521,6 +1522,22 @@ void ModuleContextFunctionList::clear() {
    mcfl_t::clear();
 }
 
+LVarStackBreakHelper::LVarStackBreakHelper() {
+    ThreadData* td = thread_data.get();
+    if (!td->vstack) {
+        vnode = nullptr;
+    } else {
+        vnode = td->vstack;
+        td->vstack = nullptr;
+    }
+}
+
+LVarStackBreakHelper::~LVarStackBreakHelper() {
+    if (vnode) {
+        thread_data.get()->vstack = vnode;
+    }
+}
+
 QoreProgramContextHelper::QoreProgramContextHelper(QoreProgram* pgm) {
     // allow the program context to be skipped with a nullptr arg
     if (!pgm) {
@@ -1556,7 +1573,7 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper() {
 
 OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
     if (qc) {
-        ThreadData* td  = thread_data.get();
+        ThreadData* td = thread_data.get();
         old_class = td->current_class;
         td->current_class = qc;
     }
@@ -1564,27 +1581,41 @@ OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const q
 
 OptionalClassOnlySubstitutionHelper::~OptionalClassOnlySubstitutionHelper() {
     if (subst) {
-        ThreadData* td  = thread_data.get();
+        ThreadData* td = thread_data.get();
         td->current_class = old_class;
     }
 }
 
 OptionalClassObjSubstitutionHelper::OptionalClassObjSubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
-   if (qc) {
-      ThreadData* td  = thread_data.get();
-      old_obj = td->current_obj;
-      old_class = td->current_class;
-      td->current_obj = 0;
-      td->current_class = qc;
-   }
+    if (qc) {
+        ThreadData* td = thread_data.get();
+        old_obj = td->current_obj;
+        old_class = td->current_class;
+        td->current_obj = nullptr;
+        td->current_class = qc;
+    }
 }
 
 OptionalClassObjSubstitutionHelper::~OptionalClassObjSubstitutionHelper() {
-   if (subst) {
-      ThreadData* td  = thread_data.get();
-      td->current_obj = old_obj;
-      td->current_class = old_class;
-   }
+    if (subst) {
+        ThreadData* td = thread_data.get();
+        td->current_obj = old_obj;
+        td->current_class = old_class;
+    }
+}
+
+OptionalObjectOnlySubstitutionHelper::OptionalObjectOnlySubstitutionHelper(QoreObject* obj) : subst(obj ? true : false) {
+    if (obj) {
+        ThreadData* td = thread_data.get();
+        old_obj = td->current_obj;
+        td->current_obj = obj;
+    }
+}
+
+OptionalObjectOnlySubstitutionHelper::~OptionalObjectOnlySubstitutionHelper() {
+    if (subst) {
+        thread_data.get()->current_obj = old_obj;
+    }
 }
 
 CodeContextHelperBase::CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink, bool ref_obj) : xsink(xsink) {
@@ -1985,6 +2016,13 @@ void updateVStack(VNode* nvs) {
 
 VNode* getVStack() {
    return (thread_data.get())->vstack;
+}
+
+VNode* update_get_vstack(VNode* vn) {
+    ThreadData* td = thread_data.get();
+    VNode* rv = td->vstack;
+    td->vstack = vn;
+    return rv;
 }
 
 void save_global_vnode(VNode* vn) {
