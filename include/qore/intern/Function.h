@@ -264,14 +264,38 @@ class AbstractQoreFunctionVariant;
 
 class CodeEvaluationHelper : public QoreStackLocation {
 public:
-    // saves current program location in case there's an exception
+    //!
+    /**
+        @param func the code being called
+        @param variant the variant to be called, if known, may be nullptr, in which case it will be resolved in the
+        call
+
+        @param is_copy set to true if this is a call to a copy method
+        @param self the object of the call target; not (necessarily) the current contextual object where the call is
+        made.  "self" is needed to handle executing default argument expressions for normal (non-static) methods in
+        case they reference class members or methods
+
+        saves current program location in case there's an exception
+    */
     DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
         const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr,
         QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
         bool is_copy = false, const qore_class_private* cctx = nullptr);
 
-    // saves current program location in case there's an exception
-    // performs destructive evaluation of "args"
+    //!
+    /**
+        @param func the code being called
+        @param variant the variant to be called, if known, may be nullptr, in which case it will be resolved in the
+        call
+
+        @param is_copy set to true if this is a call to a copy method
+        @param self the object of the call target; not (necessarily) the current contextual object where the call is
+        made.  "self" is needed to handle executing default argument expressions for normal (non-static) methods in
+        case they reference class members or methods
+
+        saves current program location in case there's an exception;
+        performs destructive evaluation of "args"
+    */
     DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
         const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args,
         QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
@@ -288,8 +312,20 @@ public:
         ct = n_ct;
     }
 
+    //! process default arguments for a function, method, or closure call
+    /** @param func the code being called
+        @param variant the variant to be called, if known, may be nullptr, in which case it will be resolved in the
+        call
+        @param check_args set to true if argument compatibility with parameters should be validated
+        @param is_copy set to true if this is a call to a copy method
+        @param self the object of the call target; not (necessarily) the current contextual object where the call is
+        made.  "self" is needed to handle executing default argument expressions for normal (non-static) methods in
+        case they reference class members or methods
+
+        @return 0 = OK, -1 Qore-language exception raised
+    */
     DLLLOCAL int processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant,
-        bool check_args, bool is_copy = false);
+        bool check_args, bool is_copy, QoreObject* self);
 
     DLLLOCAL void setArgs(QoreListNode* n_args) {
         assert(!*tmp);

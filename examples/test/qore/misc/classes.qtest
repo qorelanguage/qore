@@ -519,8 +519,28 @@ namespace Issue2744_A {
 }
 
 class Test_3240 {
+    public {}
+
+    private {
+        int x;
+    }
+
+    constructor(int x) {
+        self.x = x;
+        check();
+    }
+
     int get() {
-        return 0;
+        return x;
+    }
+
+    ref(reference<int> i) {
+    }
+
+    private check(int val = x) {
+        if (val != 0) {
+            throw "ERR";
+        }
     }
 }
 
@@ -536,7 +556,7 @@ class Issue_3193_3240 {
     }
 
     constructor() {
-        t = new Test_3240();
+        t = new Test_3240(0);
     }
 
     destructor() {
@@ -551,6 +571,10 @@ class Issue_3193_3240 {
 
     int get1(int x = si) {
         return x;
+    }
+
+    testRefCall() {
+        t.ref(\i);
     }
 
     private:internal int get2(int x = t.get()) {
@@ -593,6 +617,8 @@ public class ClassesTest inherits QUnit::Test {
             assertThrows("PARSE-EXCEPTION", \p.parse(),
                 ("class T { public { int x = 1; } static int test(int i = x) { return i; } }", ""));
         }
+
+        assertNothing(i.testRefCall());
     }
 
     issue3070() {

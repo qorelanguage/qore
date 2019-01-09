@@ -238,9 +238,7 @@ void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunc
         }
     }
 
-    OptionalObjectOnlySubstitutionHelper self_helper(self);
-
-    if (processDefaultArgs(func, variant, true, is_copy)) {
+    if (processDefaultArgs(func, variant, true, is_copy, self)) {
         return;
     }
 
@@ -256,7 +254,8 @@ void CodeEvaluationHelper::init(const QoreFunction* func, const AbstractQoreFunc
     restore_stack = true;
 }
 
-int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant, bool check_args, bool is_copy) {
+int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const AbstractQoreFunctionVariant* variant,
+    bool check_args, bool is_copy, QoreObject* self) {
     // get default argument list of variant
     AbstractFunctionSignature* sig = variant->getSignature();
     const arg_vec_t& defaultArgList = sig->getDefaultArgList();
@@ -266,6 +265,13 @@ int CodeEvaluationHelper::processDefaultArgs(const QoreFunction* func, const Abs
     for (unsigned i = 0; i < max; ++i) {
         if (i < defaultArgList.size() && defaultArgList[i] && (!tmp || tmp->retrieveEntry(i).isNothing())) {
             QoreValue& p = tmp.getEntryReference(i);
+
+            // issue #3240: set self in case the default arg expression references a member of the current object
+            // must be set only for evaluation, cannot be set when verifying types below in
+            // QoreTypeInfo::acceptInputParam() as it will cause errors handling references related to the current
+            // object - "self" is the object for the call but not necessarily the current "self"
+            OptionalObjectOnlySubstitutionHelper self_helper(self);
+
             p = defaultArgList[i].eval(xsink);
             if (*xsink)
                 return -1;
