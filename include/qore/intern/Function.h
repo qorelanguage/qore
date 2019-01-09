@@ -264,7 +264,7 @@ class AbstractQoreFunctionVariant;
 
 class CodeEvaluationHelper : public QoreStackLocation {
 public:
-    //!
+    //! Creates the object for evaluating the given function with the given arguments
     /**
         @param func the code being called
         @param variant the variant to be called, if known, may be nullptr, in which case it will be resolved in the
@@ -282,7 +282,7 @@ public:
         QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
         bool is_copy = false, const qore_class_private* cctx = nullptr);
 
-    //!
+    //! Creates the object
     /**
         @param func the code being called
         @param variant the variant to be called, if known, may be nullptr, in which case it will be resolved in the
