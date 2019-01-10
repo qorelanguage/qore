@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     NOTE that 2 copies of connection values are kept in case
     the values are changed while a connection is in use
@@ -274,25 +274,25 @@ int Datasource::rollback(ExceptionSink* xsink) {
 }
 
 int Datasource::open(ExceptionSink* xsink) {
-   assert(xsink);
-   int rc;
+    assert(xsink);
+    int rc;
 
-   if (!priv->isopen) {
-      // copy pending connection values to connection values
-      setConnectionValues();
+    if (!priv->isopen) {
+        // copy pending connection values to connection values
+        setConnectionValues();
 
-      priv->connection_aborted = false;
+        priv->connection_aborted = false;
 
-      rc = qore_dbi_private::get(*priv->dsl)->init(this, xsink);
-      if (!*xsink) {
-         assert(priv->qorecharset);
-         priv->isopen = true;
-      }
-   }
-   else
-      rc = 0;
+        rc = qore_dbi_private::get(*priv->dsl)->init(this, xsink);
+        if (!*xsink) {
+            assert(priv->qorecharset);
+            priv->isopen = true;
+        }
+    } else {
+        rc = 0;
+    }
 
-   return rc;
+    return rc;
 }
 
 int Datasource::close() {
@@ -481,7 +481,13 @@ int Datasource::setOption(const char* opt, const QoreValue val, ExceptionSink* x
     // maintain a copy of the option internally
     priv->setOption(opt, val, xsink);
     // only set options in private data if private data is already set
-    return priv->private_data ? qore_dbi_private::get(*priv->dsl)->opt_set(this, opt, val, xsink) : 0;
+    if (priv->private_data) {
+        return qore_dbi_private::get(*priv->dsl)->opt_set(this, opt, val, xsink);
+    }
+
+    // issue #3243: validate options before sending them to the driver
+    OptInputHelper opt_helper(xsink, *qore_dbi_private::get(*priv->dsl), opt, true, val);
+    return *xsink ? -1 : 0;
 }
 
 const QoreHashNode* Datasource::getConnectOptions() const {

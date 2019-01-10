@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -449,7 +449,7 @@ QoreHashNode* ManagedDatasource::getOptionHash(ExceptionSink* xsink) {
 }
 
 int ManagedDatasource::setOptionInit(const char* opt, const QoreValue val, ExceptionSink* xsink) {
-   return Datasource::setOption(opt, val, xsink);
+    return Datasource::setOption(opt, val, xsink);
 }
 
 int ManagedDatasource::setOption(const char* opt, const QoreValue val, ExceptionSink* xsink) {
