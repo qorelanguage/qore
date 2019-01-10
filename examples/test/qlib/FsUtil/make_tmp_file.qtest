@@ -1,0 +1,74 @@
+#!/usr/bin/env qore
+
+%requires Util
+
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class MakeTmpFileTest
+
+public class MakeTmpFileTest inherits QUnit::Test {
+
+    private {
+        list params = (
+            # (prefix, suffix)
+            (NOTHING, NOTHING),
+            ("FOO", NOTHING),
+            (NOTHING, "BAR"),
+            ("", ""),
+            ("FOO", ""),
+            ("", "BAR"),
+            ("FOO", "BAR"),
+        );
+    }
+
+    constructor() : Test ("MakeTmpFileTest", "1.0") {
+        addTestCase("make_tmp_file test - standard temp location", \test_make_tmp_file_std());
+        addTestCase("make_tmp_file test - custom temp location", \test_make_tmp_file_custom());
+        addTestCase("make_tmp_file exception test", \test_make_tmp_file_exception());
+        set_return_value(main());
+    }
+
+    test_make_tmp_file_std() {
+        string tmp_path = tmp_location();
+
+        foreach list p in (params) {
+            hash<TmpFileHash> tmp_file = make_tmp_file(p[0], p[1]);
+            assertTrue(is_file(tmp_file.path));
+            assertTrue(is_writable(tmp_file.path));
+            assertEq(0, tmp_file.file.close());
+            assertEq(0, unlink(tmp_file.path));
+
+            assertTrue(string_starts_with(tmp_file.path, tmp_path));
+            assertTrue(string_starts_with(tmp_file.path, join_paths(tmp_path, p[0])));
+            assertTrue(string_ends_with(tmp_file.path, p[1] ?? ""));
+        }
+    }
+
+    test_make_tmp_file_custom() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            rmdir(tmp_path);
+        }
+
+        foreach list p in (params) {
+            hash<TmpFileHash> tmp_file = make_tmp_file(p[0], p[1], tmp_path);
+            assertTrue(is_file(tmp_file.path));
+            assertTrue(is_writable(tmp_file.path));
+            assertEq(0, tmp_file.file.close());
+            assertEq(0, unlink(tmp_file.path));
+
+            assertTrue(string_starts_with(tmp_file.path, tmp_path));
+            assertTrue(string_starts_with(tmp_file.path, join_paths(tmp_path, p[0])));
+            assertTrue(string_ends_with(tmp_file.path, p[1] ?? ""));
+        }
+    }
+
+    test_make_tmp_file_exception() {
+        assertThrows("FILE-WRITE-ERROR", \make_tmp_file(), (NOTHING, NOTHING, "/"));
+    }
+}

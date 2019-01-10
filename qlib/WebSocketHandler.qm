@@ -22,8 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.13 or better
-%requires qore >= 0.8.13
+# minimum Qore version
+%requires qore >= 0.9
 
 # require type definitions everywhere
 %require-types
@@ -66,6 +66,7 @@ module WebSocketHandler {
     @subsection websockethandler_v1_4_3 Version 1.4.3
     - added missing exception handling to connection registration code
       (<a href="https://github.com/qorelanguage/qore/issues/3215">issue 3215</a>)
+    - added @ref WebSocketHandler::WebSocketConnection::stop() and @ref WebSocketHandler::WebSocketHandler::stopOne()
 
     @subsection websockethandler_v1_4_2 Version 1.4.2
     - added support for heartbeat messages
@@ -109,6 +110,9 @@ public namespace WebSocketHandler {
 
             # wait a maximum of 1/2 second for data
             const DefaultQueuePollingInterval = 500ms;
+
+            # stop connection flag
+            bool stop_flag = False;
         }
 
         private {
@@ -170,6 +174,12 @@ public namespace WebSocketHandler {
             @since %WebSocketHandler 1.4
         */
         registered() {
+        }
+
+        #! force closing socket related to connection
+        stop() {
+            stop_flag = True;
+            queue.push(''); # to get a dummy data in polling thread immediately (unless stop called from the WebSocketHandler::startImpl() thread)
         }
     }
 
@@ -299,7 +309,7 @@ public namespace WebSocketHandler {
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parseURL())
             - \c id: the unique HTTP connection ID; this ID is also used to identify the websocket client connection in @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()"
-            - \c listener-id: the HTTP server listener ID (see @ref HttpServer::HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo() )
             - \c user: the current RBAC username (if any)
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
@@ -340,7 +350,7 @@ public namespace WebSocketHandler {
         #! get list of socket connection ids
         /**
         */
-        *list getConnectionIds() {
+        *list<string> getConnectionIds() {
             rwl.readLock();
             on_exit rwl.readUnlock();
             return keys ch;
@@ -356,7 +366,7 @@ public namespace WebSocketHandler {
             - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parseURL())
             - \c id: the unique HTTP connection ID
-            - \c listener-id: the HTTP server listener ID (see @ref HttpServer::HttpServer::getListenerInfo())
+            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
             @param hdr a hash of headers in the request
             @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
@@ -399,8 +409,9 @@ public namespace WebSocketHandler {
             int timestamp = clock_getmillis() / 1000;
 
             while (True) {
-                if (stop || lsh{lid}) {
-                    #logDebug("WebSocketHandler::startImpl() cid: %y stopping; stop: %y lsh{%y}: %y", cx.id, stop, lid, lsh{lid});
+                #logDebug("WebSocketHandler::startImpl() loop cid: %y", cx.id);
+                if (stop || lsh{lid} || wsc.stop_flag) {
+                    logDebug("WebSocketHandler::startImpl() cid: %y stopping; stop: %y lsh{%y}: %y, wsc.stop_flag: %y", cx.id, stop, lid, lsh{lid}, wsc.stop_flag);
                     sendClose(sock, WSCC_GoingAway);
                     break;
                 }
@@ -412,7 +423,7 @@ public namespace WebSocketHandler {
                     if (d) {
                         update = True;
                     }
-                    while (d) {
+                    while (d && !wsc.stop_flag) {
                         #printf("WebSocketHandler::startImpl() cid: %y sending msg %d bytes\n", cx.id, d.size());
                         sock.send(d, DefaultSocketSendTimeout);
                         d = wsc.pollDataImmediate();
@@ -421,6 +432,9 @@ public namespace WebSocketHandler {
                         }
                     }
 
+                    if (wsc.stop_flag) {
+                        continue;
+                    }
                     if (!sock.isDataAvailable(0)) {
                         int now = clock_getmillis() / 1000;
                         if (!update) {
@@ -485,8 +499,7 @@ public namespace WebSocketHandler {
                     break;
                 }
             }
-
-            #logDebug("WebSocketHandler::startImpl() exiting");
+            #logDebug("WebSocketHandler::startImpl() exiting, cid: %y", cx.id);
         }
 
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
@@ -522,10 +535,21 @@ public namespace WebSocketHandler {
             rwl.readLock();
             on_exit rwl.readUnlock();
 
-            if (!ch{id})
+            if (!exists ch{id})
                 throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", id, ch.keys());
             #logDebug("sending data to connection: %y", id);
             ch{id}.send(d);
+        }
+
+        #! stop given connection ID
+        stopOne(softstring id) {
+            rwl.readLock();
+            on_exit rwl.readUnlock();
+
+            if (!exists ch{id})
+                throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", id, ch.keys());
+            #logDebug("stopping connection: %y", id);
+            ch{id}.stop();
         }
 
         private sendClose(Qore::Socket sock, int code, *string txtmsg) {

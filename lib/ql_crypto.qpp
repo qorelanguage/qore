@@ -1,40 +1,40 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ql_crypto.qpp
+    ql_crypto.qpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
 #include "qore/intern/ql_crypto.h"
 #include "qore/intern/EncryptionTransforms.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include <openssl/err.h>
 #include <openssl/rand.h>
@@ -68,7 +68,7 @@ private:
       return n == 1 ? "first" : (n == 2 ? "second" : "third");
    }
 
-   DLLLOCAL void setKey(const QoreValueList *args, int n) {
+   DLLLOCAL void setKey(const QoreListNode *args, int n) {
       assert(n > 0 && n <= 3);
       const QoreValue pt = get_param_value(args, n);
       if (pt.getType() == NT_STRING) {
@@ -83,7 +83,7 @@ private:
       keylen[n - 1] = b->size();
    }
 
-   DLLLOCAL void setEncoding(const QoreValueList* args, int n) {
+   DLLLOCAL void setEncoding(const QoreListNode* args, int n) {
       QoreValue qv = get_param_value(args, n);
       qe = qv.getType() == NT_STRING ? QEM.findCreate(qv.get<const QoreStringNode>()) : QCS_DEFAULT;
    }
@@ -139,7 +139,7 @@ public:
       return str;
    }
 
-   DLLLOCAL int setSingleKey(const char *err, const QoreValueList *params, ExceptionSink *xsink, bool has_encoding = false) {
+   DLLLOCAL int setSingleKey(const char *err, const QoreListNode *params, ExceptionSink *xsink, bool has_encoding = false) {
       if (setIV(err, get_param_value(params, 2), xsink))
          return -1;
 
@@ -3004,13 +3004,13 @@ hash h = get_crypto_info();
     @since %Qore 0.8.13
  */
 hash get_crypto_info() [flags=CONSTANT] {
-   ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode, xsink);
 
-   for (auto& i : crypto_map) {
-      rv->setKeyValue(i.first.c_str(), i.second.getInfo(), nullptr);
-   }
+    for (auto& i : crypto_map) {
+        rv->setKeyValue(i.first.c_str(), i.second.getInfo(), nullptr);
+    }
 
-   return rv.release();
+    return rv.release();
 }
 
 //! returns a binary object of random bytes using openssl
@@ -3029,18 +3029,18 @@ binary b = get_random_bytes(16);
     @since %Qore 0.8.13
 */
 binary get_random_bytes(int size) [flags=RET_VALUE_ONLY] {
-   SimpleRefHolder<BinaryNode> rv(new BinaryNode);
-   if (size > 0) {
-      rv->preallocate(size);
-      int rc = RAND_bytes((unsigned char*)rv->getPtr(), size);
-      if (rc <= 0) {
-         unsigned long err = ERR_get_error();
-         char buf[121];
-         ERR_error_string(err, buf);
-         xsink->raiseException("GET-RANDOM-BYTES-ERROR", "the RAND_bytes() returned error code %d with a request of length %d: %s", rc, (int)size, buf);
-         return QoreValue();
-      }
-   }
-   return rv.release();
+    SimpleRefHolder<BinaryNode> rv(new BinaryNode);
+    if (size > 0) {
+        rv->preallocate(size);
+        int rc = RAND_bytes((unsigned char*)rv->getPtr(), size);
+        if (rc <= 0) {
+            unsigned long err = ERR_get_error();
+            char buf[121];
+            ERR_error_string(err, buf);
+            xsink->raiseException("GET-RANDOM-BYTES-ERROR", "the RAND_bytes() returned error code %d with a request of length %d: %s", rc, (int)size, buf);
+            return QoreValue();
+        }
+    }
+    return rv.release();
 }
 //@}

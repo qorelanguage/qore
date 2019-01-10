@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9.0
 
 # require type definitions everywhere
 %require-types
@@ -38,7 +38,7 @@
 %requires(reexport) SqlUtil
 
 module BulkSqlUtil {
-    version = "1.2";
+    version = "1.3";
     desc = "user module performing bulk DML operations with SqlUtil";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -65,6 +65,9 @@ module BulkSqlUtil {
     See the above classes for detailed information and examples.
 
     @section bulksqlutil_relnotes Release Notes
+
+    @subsection bulksqlutil_v1_3 BulkSqlUtil v1.3
+    - updated the module to use the @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" class instead of the @ref Qore::SQL::SQLStatement "SQLStatement"
 
     @subsection bulksqlutil_v1_2 BulkSqlUtil v1.2
     - updated the module to support drivers without bulk DML
@@ -574,7 +577,7 @@ on_error ds.rollback();
     public class BulkInsertOperation inherits BulkSqlUtil::AbstractBulkOperation {
         private {
             #! statement for DML
-            SQLStatement stmt;
+            AbstractSQLStatement stmt;
 
             #! per-row @ref closure or @ref call_reference for inserts
             *code rowcode;
@@ -685,11 +688,11 @@ inserter.setRowCode(rowcode);
                 # insert the data
                 rh = table.insert(hbuf + cval + static_ret_expr, \sql, rowcode ? ("returning": ret_args) : NOTHING);
                 # create the statement for future inserts
-                stmt = new SQLStatement(table.getDatasource());
+                stmt = table.getDatasource().getSQLStatement();
                 stmt.prepare(sql);
             }
             else {
-                # execute the SQLStatement on the args
+                # execute the statement on the args
                 if (table.hasArrayBind()) {
                     stmt.execArgs((hbuf + cval + static_ret_expr).values());
                     rh = stmt.getOutput();
@@ -761,7 +764,7 @@ on_error ds.rollback();
 }
         @endcode
 
-        @note Wach bulk DML object must be manually flush()ed before committing or manually
+        @note Each bulk DML object must be manually flush()ed before committing or manually
         discard()ed before rolling back to ensure that all data is managed properly in the same
         transaction and to ensure that no exception is thrown in the destructor().
         See the example above for more information.
@@ -812,7 +815,7 @@ on_error ds.rollback();
             if (!upsert)
                 upsert = table.getBulkUpsertClosure(hbuf + cval, upsert_strategy);
 
-            # execute the SQLStatement on the args
+            # execute the statement on the args
             upsert(hbuf);
         }
     }

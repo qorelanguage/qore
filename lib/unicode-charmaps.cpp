@@ -29,7 +29,8 @@
 */
 
 #include <qore/Qore.h>
-#include <ctype.h>
+
+#include <cctype>
 
 typedef std::map<unsigned, unsigned> unicodemap_t;
 

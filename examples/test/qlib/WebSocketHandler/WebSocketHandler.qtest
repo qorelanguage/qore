@@ -35,14 +35,18 @@ class MyWsConnection inherits WebSocketConnection {
     }
 
     gotMessage(string msg) {
-        send("RESPONSE:"+msg);
+        if (msg == "STOP") {
+            stop();
+        } else {
+            send("RESPONSE:"+msg);
+        }
         #printf("GOT MSG: %y\n", msg);
     }
 }
 
 class MyWsHandler inherits WebSocketHandler {
     public {
-        list<string> errs();
+        Queue errs();
     }
 
     constructor(*hash<auto> opts) : WebSocketHandler(NOTHING, opts) {
@@ -53,8 +57,9 @@ class MyWsHandler inherits WebSocketHandler {
     }
 
     logError(string fmt) {
-        errs += vsprintf(fmt, argv);
+        errs.push(vsprintf(fmt, argv));
     }
+
 }
 
 class MyWsClient inherits WebSocketClient {
@@ -68,7 +73,10 @@ class MyWsClient inherits WebSocketClient {
 
     private handlePing(hash<auto> h) {
         WebSocketClient::handlePing(h);
-        cnt.dec();
+        # in case of a race condition; only decrement once
+        if (cnt.getCount()) {
+            cnt.dec();
+        }
     }
 }
 
@@ -105,11 +113,12 @@ class WebSocketHandlerTest inherits QUnit::Test {
         assertEq(1, wsHandler.getHeartbeat());
         assertEq("test", wsHandler.getHeartbeatMessage());
 
-        Counter c(1);
         {
+            Counter c(1);
             MyWsClient wsc(sub (*data msg) {}, {"url": "ws://localhost:" + port}, c);
             wsc.connect();
             c.waitForZero();
+            assertTrue(wsc.isOpen());
             assertTrue(True);
         }
 
@@ -119,7 +128,21 @@ class WebSocketHandlerTest inherits QUnit::Test {
             wsc.connect({"hdr": {"Bad": 1}});
             wsc.disconnect();
         }
-        assertEq(1, wsHandler.errs.size());
+
+        # check close connection from server side
+        {
+            Counter c(1);
+            wsHandler.setHeartbeat(20);  # to not decrement counter
+            MyWsClient wsc(sub (*data msg) {c.dec(); }, {"url": "ws://localhost:" + port}, c);
+            wsc.connect();
+            assertTrue(wsc.isOpen());
+            wsc.send("STOP");
+            c.waitForZero();
+            assertFalse(wsc.isOpen());
+            #wsc.send("sending to closed socket");
+        }
+        wsHandler.errs.get(10s);
+        assertEq(0, wsHandler.errs.size());
     }
 
     private log(string str) {

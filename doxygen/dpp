@@ -1,7 +1,10 @@
 #!/bin/sh
 
+# Expand macros in Doxyfile (related to source Doxyfile.tmpl)
+# Params: qoreversion, filename, mydot, mygetver
 ver="$1"
 
 nd="`echo $3|sed 's/\//\\\\\//g'`"
+ngetrev="`echo $4|sed 's/\//\\\\\//g'`"
 
-sed -e "s/MYDOT/$nd/" -e "s/QORE_VERSION/$ver/" $2
+sed -e "s/MYDOT/$nd/" -e "s/QORE_VERSION/$ver/" -e "s/MYGETREV/$ngetrev/" $2

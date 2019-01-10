@@ -66,7 +66,7 @@ auto cx_value(string key) [flags=RET_VALUE_ONLY] {
    if (!tmp)
       return QoreValue();
 
-   return c->evalValue(tmp->getBuffer(), xsink);
+   return c->eval(tmp->getBuffer(), xsink);
 }
 
 //! Returns @ref True if currently iterating the first element in a @ref context "context statement", @ref False if not

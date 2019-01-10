@@ -28,12 +28,14 @@
     |@ref broken-loop-statement "%broken-loop-statement"|Accept @ref break "break" and @ref continue "continue" outside of loops as with pre-0.8.13
     |@ref broken-operators "%broken-operators"|Accept spaces in multi-character operators as with pre-0.8.12
     |@ref broken-references "%broken-references"|Do not enforce @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions as with pre-0.8.13
-    |@ref correct-int-assignments "%correct-int-assignments"|revert the effect of the @ref broken-int-assignments "%broken-int-assignments" parse options
-    |@ref correct-list-parsing "%correct-list-parsing"|revert the effect of the @ref broken-list-parsing "%broken-list-parsing" parse options
-    |@ref correct-logic-precedence "%correct-logic-precedence"|revert the effect of the @ref broken-logic-precedence "%broken-logic-precedence" parse options
-    |@ref correct-loop-statement "%correct-loop-statement"|revert the effect of the @ref broken-loop-statement "%broken-loop-statement" parse options
-    |@ref correct-operators "%correct-operators"|revert the effect of the @ref broken-operators "%broken-operators" parse options
-    |@ref correct-references "%correct-references"|revert the effect of the @ref broken-references "%broken-references" parse options
+    |@ref broken-sprintf "%broken-sprintf"|Use pre-0.9 sprintf format handling where no argument is handled differently than @ref nothing
+    |@ref correct-int-assignments "%correct-int-assignments"|revert the effect of the @ref broken-int-assignments "%broken-int-assignments" parse option
+    |@ref correct-list-parsing "%correct-list-parsing"|revert the effect of the @ref broken-list-parsing "%broken-list-parsing" parse option
+    |@ref correct-logic-precedence "%correct-logic-precedence"|revert the effect of the @ref broken-logic-precedence "%broken-logic-precedence" parse option
+    |@ref correct-loop-statement "%correct-loop-statement"|revert the effect of the @ref broken-loop-statement "%broken-loop-statement" parse option
+    |@ref correct-operators "%correct-operators"|revert the effect of the @ref broken-operators "%broken-operators" parse option
+    |@ref correct-references "%correct-references"|revert the effect of the @ref broken-references "%broken-references" parse option
+    |@ref correct-sprintf "%correct-sprintf"|revert the effect of the @ref broken-sprintf "%broken-sprintf" parse option
     |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
     |@ref disable-all-warnings "%disable-all-warnings"|Turns off all @ref warnings "warnings"
     |@ref disable-warning "%disable-warning" <em>@ref warnings "warning-code"</em>|Disables the named @ref warnings "warning" until @ref enable-warning "%enable-warning" is encountered with the same code or @ref enable-all-warnings "%enable-all-warnings" is encountered
@@ -70,6 +72,7 @@
     |@ref no-network "%no-network"|Disallows access to the network; equivalent to parse option @ref Qore::PO_NO_NETWORK and the <tt>-</tt><tt>-no-network</tt> command line option
     |@ref no-new "%no-new"|Disallows use of the @ref new "new operator"; equivalent to parse option @ref Qore::PO_NO_NEW and the <tt>-</tt><tt>-no-new</tt> command line option
     |@ref no-process-control "%no-process-control"|Disallows access to functions that would affect the current process (see @ref no-process-control "%no-process-control" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_PROCESS_CONTROL and the <tt>-</tt><tt>-no-process-control</tt> command line option
+    |@ref no-reflection "%no-reflection"|Disallows access to the reflection API provided by the <a href="../../modules/reflection/html/index.html">reflection</a> module; equivalent to parse option @ref Qore::PO_NO_REFLECTION<br><br>Since %Qore 0.9
     |@ref no-subroutine-defs "%no-subroutine-defs"|Disallows subroutine (function) definitions; equivalent to parse option @ref Qore::PO_NO_SUBROUTINE_DEFS and the <tt>-</tt><tt>-no-subroutine-defs</tt> command line option
     |@ref no-terminal-io "%no-terminal-io"|Disallows access to terminal I/O (see @ref no-terminal-io "%no-terminal-io" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_TERMINAL_IO and the <tt>-pno-terminal-io</tt> command line option
     |@ref no-thread-classes "%no-thread-classes"|Disallows access to thread classes (see @ref no-thread-classes "%no-thread-classes" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_CLASSES and the <tt>-</tt><tt>-no-thread-classes</tt> command line option
@@ -77,6 +80,7 @@
     |@ref no-thread-info "%no-thread-info"|Disallows any access to functionality that provides threading information (see @ref no-thread-info "%no-thread-info" for a list of features not available with this parse option); equivalent to parse option @ref Qore::PO_NO_THREAD_INFO and the <tt>-</tt><tt>-no-thread-info</tt> command line option
     |@ref no-threads "%no-threads"|Disallows access to all thread control operations and thread classes (equivalent to <tt>-</tt><tt>-no-thread-control</tt> and <tt>-</tt><tt>-no-thread-classes</tt> together); equivalent to parse option @ref Qore::PO_NO_THREADS and the <tt>-</tt><tt>-no-threads</tt> command line option
     |@ref no-top-level "%no-top-level"|Disallows any further top level code; equivalent to parse option @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS and the <tt>-</tt><tt>-no-top-level</tt> command line option
+    |@ref no-transient "%no-transient"|Removes the @ref transient keyword for backwards-compatibility; equivalent to parse option @ref Qore::PO_NO_TRANSIENT
     |@ref no-uncontrolled-apis "%no-uncontrolled-apis"|Disallows access to uncontrolled APIs such as external language bindings or direct generic system call APIs that could bypass %Qore's sandboxing controls
     |@ref perl-bool-eval "%perl-bool-eval"|Set to mimic perl's boolean evaluation; this is the default with qore >= 0.8.6; prior to this version, by default qore used strict mathematic boolean evaluation, where any value converted to 0 is @ref Qore::False "False" and otherwise it's is @ref Qore::True "True". <br><br>As of %Qore 0.8.6+, this parse option is only needed if @ref strict-bool-eval "%strict-bool-eval" is set. <br><br>When this option is set, boolean evaluation follows the same rules as <value>::val(); see also @ref strict-bool-eval "%strict-bool-eval"<br><br>Since %Qore 0.8.6
     |@ref push-parse-options "%push-parse-options"|Stores parse options so that they will be restored when the current file is done parsing; use in include files to ensure parse options are set appropriately for the file being parsed
@@ -142,7 +146,7 @@
     @since %Qore 0.8.13
 
     <hr>
-    @section allow-injection %%allow-injection
+    @section allow-injection %allow-injection
 
     @par Parse Directive:
     <tt>%%allow-injection</tt>
@@ -166,7 +170,7 @@
     @since %Qore 0.8.12
 
     <hr>
-    @section allow-weak-references %%allow-weak-references
+    @section allow-weak-references %allow-weak-references
 
     @par Parse Directive:
     <tt>%%allow-weak-references</tt>
@@ -415,6 +419,25 @@ i+ =4;
     @since %Qore 0.8.3
 
     <hr>
+    @section broken-sprintf %broken-sprintf
+
+    @par Parse Directive:
+    <tt>%%broken-sprintf</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-pbroken-sprintf</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_SPRINTF
+
+    @par Description:
+    Use pre-0.9 sprintf format handling where no argument is handled differently than @ref nothing
+
+    @see @ref correct-sprintf "%correct-sprintf"
+
+    @since %Qore 0.9
+
+    <hr>
     @section correct-int-assignments %broken-int-assignments
 
     @par Parse Directive:
@@ -527,6 +550,25 @@ i+ =4;
     @see @ref broken-operators "%broken-references"
 
     @since %Qore 0.8.13
+
+    <hr>
+    @section correct-sprintf %correct-sprintf
+
+    @par Parse Directive:
+    <tt>%%correct-sprintf</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-sprintf "%broken-sprintf" parse option.
+
+    @see @ref broken-sprintf "%broken-sprintf"
+
+    @since %Qore 0.9
 
     <hr>
     @section define %define
@@ -1185,6 +1227,7 @@ i+ =4;
     - chdir()
     - exit()
     - fork()
+    - get_module_option()
     - load_module()
     - remove_signal_handler()
     - setegid()
@@ -1193,6 +1236,7 @@ i+ =4;
     - setgid()
     - setgroups()
     - setsid()
+    - set_module_option()
     - set_signal_handler()
     - setuid()
     - sleep()
@@ -1201,6 +1245,23 @@ i+ =4;
     - umask()
     - unsetenv()
     - usleep()
+
+    <hr>
+    @section no-reflection %no-reflection
+
+    @par Parse Directive:
+    <tt>%%no-reflection</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-pno-reflection</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_REFLECTION
+
+    @par Description:
+    Disallows access to the reflection API provided by the <a href="../../modules/reflection/html/index.html">reflection</a> module.
+
+    @since %Qore 0.9
 
     <hr>
     @section no-subroutine-defs %no-subroutine-defs
@@ -1294,11 +1355,12 @@ i+ =4;
     - remove_thread_data()
     - remove_thread_resource()
     - save_thread_data()
+    - set_default_thread_stack_size()
+    - set_thread_name()
     - set_thread_resource()
     - throw_thread_resource_exceptions()
     - throw_thread_resource_exceptions_to_mark()
     The following deprecated functions are also unavailable:
-    - getAllThreadCallStacks()
     - throwThreadResourceExceptions()
 
     <hr>
@@ -1315,12 +1377,18 @@ i+ =4;
 
     @par Description:
     Disallows access to functionality that provides information about threading. The following features are unavailable with this option:
-    - get_all_thread_data() function
-    - get_thread_data() function
-    - gettid() function
-    - getAllThreadCallStacks() function
-    - num_threads() function
-    - thread_list() function
+    - get_all_thread_call_stacks()
+    - get_all_thread_data()
+    - get_default_thread_stack_size()
+    - get_stack_size()
+    - get_thread_call_stack()
+    - get_thread_data()
+    - get_thread_name()
+    - gettid()
+    - num_threads()
+    - thread_list()
+    The following deprecated functions are also unavailable:
+    - getAllThreadCallStacks()
 
     <hr>
     @section no-threads %no-threads
@@ -1351,6 +1419,23 @@ i+ =4;
 
     @par Description:
     Disallows top level code from this point on, any top level statements before this directive are still allowed and become part of the @ref Qore::Program "Program" context.
+
+    <hr>
+    @section no-transient %no-transient
+
+    @par Parse Directive:
+    <tt>%%no-transient</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-pno-transient</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_NO_TRANSIENT
+
+    @par Description:
+    Removes the @ref transient keyword for backwards-compatibility.
+
+    @since %Qore 0.9
 
     <hr>
     @section no-uncontrolled-apis %no-uncontrolled-apis

@@ -31,10 +31,9 @@
 #include <qore/Qore.h>
 #include <qore/AutoVLock.h>
 
-#include <assert.h>
-
-#include <vector>
+#include <cassert>
 #include <string>
+#include <vector>
 
 struct qore_obj_notification_s {
    QoreObject *obj;

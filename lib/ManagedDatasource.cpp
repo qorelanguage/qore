@@ -32,8 +32,8 @@
 #include "qore/intern/ManagedDatasource.h"
 #include "qore/intern/qore_ds_private.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 DatasourceActionHelper::~DatasourceActionHelper() {
    if (ok) {
@@ -97,43 +97,43 @@ void ManagedDatasource::deref() {
 }
 
 int ManagedDatasource::grabLockIntern() {
-   int ctid = gettid();
+    int ctid = gettid();
 
-   if (tid == ctid)
-      return 0;
+    if (tid == ctid)
+        return 0;
 
-   while (tid != -1) {
-      ++waiting;
-      if (tl_timeout_ms) {
-         int rc = cond.wait(&ds_lock, tl_timeout_ms);
-         --waiting;
-         if (!rc)
-            continue;
-         printd(5, "ManagedDatasource::grabLockIntern() this=%p timed out after %dms waiting for tid %d to release lock\n", this, tl_timeout_ms, tid);
-         return -1;
-      }
-      else
-         cond.wait(&ds_lock);
-      --waiting;
-   }
+    while (tid != -1) {
+        ++waiting;
+        if (tl_timeout_ms) {
+            int rc = cond.wait(&ds_lock, tl_timeout_ms);
+            --waiting;
+            if (!rc)
+                continue;
+            printd(5, "ManagedDatasource::grabLockIntern() this=%p timed out after %dms waiting for tid %d to release lock\n", this, tl_timeout_ms, tid);
+            return -1;
+        }
+        else
+            cond.wait(&ds_lock);
+        --waiting;
+    }
 
-   tid = ctid;
+    tid = ctid;
 
-   return 0;
+    return 0;
 }
 
 int ManagedDatasource::grabLock(ExceptionSink *xsink) {
-   if (grabLockIntern() < 0) {
-      endDBActionIntern();
-      const char *un = getUsername();
-      const char *db = getDBName();
-      xsink->raiseException("TRANSACTION-LOCK-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d",
-                            getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(),
-                            gettid(), un ? un : "<n/a>", db ? db : "<n/a>", tl_timeout_ms,
-                            tl_timeout_ms == 1 ? "" : "s", tid);
-      return -1;
-   }
-   return 0;
+    if (grabLockIntern() < 0) {
+        endDBActionIntern();
+        const char *un = getUsername();
+        const char *db = getDBName();
+        xsink->raiseException("TRANSACTION-LOCK-TIMEOUT", "%s:%s@%s: TID %d timed out on datasource '%s@%s' after waiting %d millisecond%s on transaction lock held by TID %d",
+                                getDriverName(), getUsernameStr().c_str(), getDBNameStr().c_str(),
+                                gettid(), un ? un : "<n/a>", db ? db : "<n/a>", tl_timeout_ms,
+                                tl_timeout_ms == 1 ? "" : "s", tid);
+        return -1;
+    }
+    return 0;
 }
 
 void ManagedDatasource::releaseLockIntern() {
@@ -164,25 +164,25 @@ int ManagedDatasource::acquireLock(ExceptionSink *xsink) {
 }
 
 int ManagedDatasource::startDBAction(ExceptionSink *xsink, bool &new_transaction) {
-   AutoLocker al(&ds_lock);
+    AutoLocker al(&ds_lock);
 
-   // save previous trans lock status
-   new_transaction = (tid != gettid());
+    // save previous trans lock status
+    new_transaction = (tid != gettid());
 
-   // first grab the transaction lock
-   if (grabLock(xsink))
-      return -1;
+    // first grab the transaction lock
+    if (grabLock(xsink))
+        return -1;
 
-   // open the datasource if necessary
-   if (!isOpen() && (Datasource::open(xsink) || *xsink)) {
-      // release transaction lock if necessary
-      if (new_transaction)
-         releaseLockIntern();
-      return -1;
-   }
+    // open the datasource if necessary
+    if (!isOpen() && (Datasource::open(xsink) || *xsink)) {
+        // release transaction lock if necessary
+        if (new_transaction)
+            releaseLockIntern();
+        return -1;
+    }
 
-   //printd(5, "ManagedDatasource::startDBAction() this=%p need_lock=%d new_trans=%p had_lock=%d\n", this, need_transaction_lock, new_transaction, had_lock);
-   return 0;
+    //printd(5, "ManagedDatasource::startDBAction() this=%p need_lock=%d new_trans=%p had_lock=%d\n", this, need_transaction_lock, new_transaction, had_lock);
+    return 0;
 }
 
 bool ManagedDatasource::endDBActionIntern(char cmd, bool new_transaction) {
@@ -226,59 +226,61 @@ void ManagedDatasource::setAutoCommit(bool ac, ExceptionSink *xsink) {
 }
 
 QoreHashNode* ManagedDatasource::getConfigHash(ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
-   if (!dbah)
-      return 0;
+    DatasourceActionHelper dbah(*this, xsink);
+    if (!dbah) {
+        return nullptr;
+    }
 
-   return Datasource::getConfigHash();
+    return Datasource::getConfigHash();
 }
 
 QoreStringNode* ManagedDatasource::getConfigString(ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
-   if (!dbah)
-      return 0;
+    DatasourceActionHelper dbah(*this, xsink);
+    if (!dbah) {
+        return nullptr;
+    }
 
-   return Datasource::getConfigString();
+    return Datasource::getConfigString();
 }
 
-AbstractQoreNode* ManagedDatasource::select(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
-   if (!dbah)
-      return nullptr;
+QoreValue ManagedDatasource::select(const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+    DatasourceActionHelper dbah(*this, xsink);
+    if (!dbah)
+        return QoreValue();
 
-   return Datasource::select(query_str, args, xsink);
+    return Datasource::select(query_str, args, xsink);
 }
 
 QoreHashNode* ManagedDatasource::selectRow(const QoreString *sql, const QoreListNode *args, ExceptionSink *xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
-   if (!dbah)
-      return nullptr;
+    DatasourceActionHelper dbah(*this, xsink);
+    if (!dbah)
+        return nullptr;
 
-   return Datasource::selectRow(sql, args, xsink);
+    return Datasource::selectRow(sql, args, xsink);
 }
 
-AbstractQoreNode* ManagedDatasource::selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
-   if (!dbah)
-      return nullptr;
+QoreValue ManagedDatasource::selectRows(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
+    DatasourceActionHelper dbah(*this, xsink);
+    if (!dbah)
+        return QoreValue();
 
-   return Datasource::selectRows(query_str, args, xsink);
+    return Datasource::selectRows(query_str, args, xsink);
 }
 
-AbstractQoreNode *ManagedDatasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
+QoreValue ManagedDatasource::exec(const QoreString *query_str, const QoreListNode *args, ExceptionSink *xsink) {
+    DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NOCHANGE : DAH_ACQUIRE);
+    if (!dbah)
+        return QoreValue();
+
+    //printd(5, "ManagedDatasource::exec() st=%d tid=%d\n", start_transaction, tid);
+
+    return Datasource::exec(query_str, args, xsink);
+}
+
+QoreValue ManagedDatasource::execRaw(const QoreString *query_str, ExceptionSink *xsink) {
    DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NOCHANGE : DAH_ACQUIRE);
    if (!dbah)
-      return nullptr;
-
-   //printd(5, "ManagedDatasource::exec() st=%d tid=%d\n", start_transaction, tid);
-
-   return Datasource::exec(query_str, args, xsink);
-}
-
-AbstractQoreNode *ManagedDatasource::execRaw(const QoreString *query_str, ExceptionSink *xsink) {
-   DatasourceActionHelper dbah(*this, xsink, getAutoCommit() ? DAH_NOCHANGE : DAH_ACQUIRE);
-   if (!dbah)
-      return nullptr;
+      return QoreValue();
 
    return Datasource::execRaw(query_str, xsink);
 }
@@ -427,23 +429,23 @@ int ManagedDatasource::getPendingPort() const {
    return Datasource::getPendingPort();
 }
 
-AbstractQoreNode *ManagedDatasource::getServerVersion(ExceptionSink *xsink) {
-   DatasourceActionHelper dbah(*this, xsink);
-   if (!dbah)
-      return 0;
+QoreValue ManagedDatasource::getServerVersion(ExceptionSink *xsink) {
+    DatasourceActionHelper dbah(*this, xsink);
+    if (!dbah)
+        return QoreValue();
 
-   return Datasource::getServerVersion(xsink);
+    return Datasource::getServerVersion(xsink);
 }
 
-AbstractQoreNode *ManagedDatasource::getClientVersion(ExceptionSink *xsink) const {
+QoreValue ManagedDatasource::getClientVersion(ExceptionSink *xsink) const {
    return Datasource::getClientVersion(xsink);
 }
 
 QoreHashNode* ManagedDatasource::getOptionHash(ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
-   if (!dbah)
-      return 0;
-   return Datasource::getOptionHash();
+    DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
+    if (!dbah)
+        return nullptr;
+    return Datasource::getOptionHash();
 }
 
 int ManagedDatasource::setOptionInit(const char* opt, const QoreValue val, ExceptionSink* xsink) {
@@ -451,20 +453,20 @@ int ManagedDatasource::setOptionInit(const char* opt, const QoreValue val, Excep
 }
 
 int ManagedDatasource::setOption(const char* opt, const QoreValue val, ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
-   if (!dbah)
-      return 0;
-   return Datasource::setOption(opt, val, xsink);
+    DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
+    if (!dbah)
+        return QoreValue();
+    return Datasource::setOption(opt, val, xsink);
 }
 
-AbstractQoreNode* ManagedDatasource::getOption(const char* opt, ExceptionSink* xsink) {
-   DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
-   if (!dbah)
-      return 0;
-   return Datasource::getOption(opt, xsink);
+QoreValue ManagedDatasource::getOption(const char* opt, ExceptionSink* xsink) {
+    DatasourceActionHelper dbah(*this, xsink, DAH_NOCONN);
+    if (!dbah)
+        return QoreValue();
+    return Datasource::getOption(opt, xsink);
 }
 
-void ManagedDatasource::setEventQueue(Queue* q, AbstractQoreNode* arg, ExceptionSink* xsink) {
-   AutoLocker al(&ds_lock);
-   Datasource::setEventQueue(q, arg, xsink);
+void ManagedDatasource::setEventQueue(Queue* q, QoreValue arg, ExceptionSink* xsink) {
+    AutoLocker al(&ds_lock);
+    Datasource::setEventQueue(q, arg, xsink);
 }

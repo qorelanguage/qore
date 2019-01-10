@@ -13,9 +13,9 @@
 
 public class DatasourceTest inherits QUnit::Test {
     public {
-        const MyOpts = Opts + (
+        const MyOpts = Opts + {
             "connstr": "c,conn=s",
-            );
+        };
 
         const OptionColumn = 22;
     }
@@ -24,6 +24,7 @@ public class DatasourceTest inherits QUnit::Test {
         addTestCase("invalid option test", \invalidOptionTest());
         addTestCase("Datasource string test", \datasourceStringTest());
         addTestCase("oracle test", \oracleTest());
+        addTestCase("serialization test", \serializationTest());
 
         set_return_value(main());
     }
@@ -60,6 +61,32 @@ public class DatasourceTest inherits QUnit::Test {
         assertEq(Type::String, dsp.getConfigString().type());
     }
 
+    serializationTest() {
+        Datasource ds = getAnyDatasource();
+
+        hash<SerializationInfo> h = ds.serializeToData();
+        #printf("h: %N\n", h);
+
+        Datasource ds1 = Serializable::deserialize(h);
+        assertEq(ds.getConfigString(), ds1.getConfigString());
+
+        hash<auto> h1 = h;
+        assertEq(Type::String, (remove h1._index."0"._class_data."Qore::SQL::Datasource".conf).type());
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+        h1 = h;
+        assertEq(Type::Hash, (remove h1._index."0"._class_data."Qore::SQL::Datasource").type());
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+        h1 = h;
+        h1._index."0"._class_data."Qore::extra" = {};
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+
+        h1 = h;
+        h1._index."0"._class_data."Qore::Serializable" = {};
+        assertThrows("DESERIALIZATION-ERROR", \Serializable::deserialize(), h1);
+    }
+
     Datasource getOracleDatasource() {
         string connstr = m_options.connstr ?? ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@xbox";
         try {
@@ -69,6 +96,21 @@ public class DatasourceTest inherits QUnit::Test {
                     "\"oracle\"", ds.getDriverName()));
             }
             return ds;
+        } catch (hash<ExceptionInfo> ex) {
+            testSkip("skipping test: " + ex.err + ": " + ex.desc);
+        }
+    }
+
+    Datasource getAnyDatasource() {
+        string connstr = m_options.connstr
+            ?? ENV.QORE_DB_CONNSTR
+            ?? ENV.QORE_DB_CONNSTR_PGSQL
+            ?? ENV.QORE_DB_CONNSTR_ORACLE
+            ?? ENV.QORE_DB_CONNSTR_MYSQL
+            ?? "oracle:omquser/omquser@xbox";
+
+        try {
+            return new Datasource(connstr);
         } catch (hash<ExceptionInfo> ex) {
             testSkip("skipping test: " + ex.err + ": " + ex.desc);
         }

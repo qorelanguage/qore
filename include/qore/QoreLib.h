@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QoreLib.h
+    QoreLib.h
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2017 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QORE_QORELIB_H
@@ -38,14 +38,13 @@
 #include <qore/qore_bitopts.h>
 #include <qore/safe_dslist>
 
-#include <time.h>
-#include <string.h>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <strings.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h>
 #include <sys/types.h>
-
 #include <vector>
 
 //! signal vector
@@ -128,16 +127,16 @@ typedef std::vector<int> sig_vec_t;
 #define _QORE_HAS_DATETIME_ADD_SECONDS_TO 1
 
 // qore code flags
-#define QC_NO_FLAGS                 0   //! no flag
-#define QC_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
-#define QC_USES_EXTRA_ARGS    (1 << 1)  //! code accesses arguments beyond the declared parameter list
-#define QC_CONSTANT_INTERN    (1 << 2)  //! internal constant flag, use QC_CONSTANT instead
-#define QC_DEPRECATED         (1 << 3)  //! function or method is deprecated and will be removed in a later release
-#define QC_RET_VALUE_ONLY     (1 << 4)  //! code only returns a value and has no other side effects
-#define QC_RUNTIME_NOOP       (1 << 5)  //! this variant is a noop like QC_NOOP, but additionally is not available to programs executing with %require-types (PO_REQUIRE_TYPES)
+#define QCF_NO_FLAGS                 0   //! no flag
+#define QCF_NOOP               (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
+#define QCF_USES_EXTRA_ARGS    (1 << 1)  //! code accesses arguments beyond the declared parameter list
+#define QCF_CONSTANT_INTERN    (1 << 2)  //! internal constant flag, use QCF_CONSTANT instead
+#define QCF_DEPRECATED         (1 << 3)  //! function or method is deprecated and will be removed in a later release
+#define QCF_RET_VALUE_ONLY     (1 << 4)  //! code only returns a value and has no other side effects
+#define QCF_RUNTIME_NOOP       (1 << 5)  //! this variant is a noop like QCF_NOOP, but additionally is not available to programs executing with %require-types (PO_REQUIRE_TYPES)
 
 // composite flags
-#define QC_CONSTANT (QC_CONSTANT_INTERN | QC_RET_VALUE_ONLY) //! code is safe to use in a constant expression (i.e. has no side effects, does not change internal state, cannot throw an exception under any circumstances, just returns a calculation based on its arguments)
+#define QCF_CONSTANT (QCF_CONSTANT_INTERN | QCF_RET_VALUE_ONLY) //! code is safe to use in a constant expression (i.e. has no side effects, does not change internal state, cannot throw an exception under any circumstances, just returns a calculation based on its arguments)
 
 class BinaryNode;
 class QoreStringNode;
@@ -153,10 +152,10 @@ DLLEXPORT QoreStringNode* q_sprintf(const QoreListNode* params, int field, int o
 DLLEXPORT QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
 
 //! a string formatting function that works with Qore data structures
-DLLEXPORT QoreStringNode* q_sprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink);
+DLLEXPORT QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
 
 //! a string formatting function that works with Qore data structures
-DLLEXPORT QoreStringNode* q_vsprintf(const QoreValueList* params, int field, int offset, ExceptionSink* xsink);
+DLLEXPORT QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
 
 //! thread-safe version of "localtime()"
 DLLEXPORT struct tm* q_localtime(const time_t* clock, struct tm* tms);
@@ -286,34 +285,34 @@ static inline char* strtoupper(char* str) {
 }
 
 //! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getSecZeroInt(const AbstractQoreNode* a);
+DLLEXPORT int getSecZeroInt(QoreValue a);
 
 //! for getting an integer number of seconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getSecZeroBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getSecZeroBigInt(QoreValue a);
 
 //! for getting an integer number of seconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int getSecMinusOneInt(const AbstractQoreNode* a);
+DLLEXPORT int getSecMinusOneInt(QoreValue a);
 
 //! for getting an integer number of seconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getSecMinusOneBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getSecMinusOneBigInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMsZeroInt(const AbstractQoreNode* a);
+DLLEXPORT int getMsZeroInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMsZeroBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getMsZeroBigInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMsMinusOneInt(const AbstractQoreNode* a);
+DLLEXPORT int getMsMinusOneInt(QoreValue a);
 
 //! for getting an integer number of milliseconds, with -1 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMsMinusOneBigInt(const AbstractQoreNode* a);
+DLLEXPORT int64 getMsMinusOneBigInt(QoreValue a);
 
 //! for getting an integer number of microseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int getMicroSecZeroInt(const AbstractQoreNode* a);
+DLLEXPORT int getMicroSecZeroInt(QoreValue a);
 
 //! for getting an integer number of microseconds, with 0 as the default, from either a relative time value or an integer value
-DLLEXPORT int64 getMicroSecZeroInt64(const AbstractQoreNode* a);
+DLLEXPORT int64 getMicroSecZeroInt64(QoreValue a);
 
 //! to check if an AbstractQoreNode object is NOTHING
 static inline bool is_nothing(const AbstractQoreNode* n) {
@@ -449,6 +448,10 @@ DLLEXPORT const char* tz_get_region_name(const AbstractQoreZoneInfo* tz);
 #define QORE_OPT_FUNC_SETSID             "setsid()"
 //! option: is_executable() function available
 #define QORE_OPT_FUNC_IS_EXECUTABLE      "is_executable()"
+//! option: close_all_fd() function available
+#define QORE_OPT_FUNC_CLOSE_ALL_FD       "close_all_fd()"
+//! option: get_netif_list() function available
+#define QORE_OPT_FUNC_GET_NETIF_LIST     "get_netif_list()"
 
 //! option type feature
 #define QO_OPTION     0
@@ -534,7 +537,8 @@ DLLEXPORT int qore_release_signals(const sig_vec_t& sig_vec, const char* name);
 //! macro to return the minimum of 2 numbers
 #define QORE_MIN(a, b) ((a) < (b) ? (a) : (b))
 
-#define QORE_PARAM_NO_ARG (NULL)
+//! macro for no argument
+#define QORE_PARAM_NO_ARG QoreSimpleValue().assign(nullptr)
 
 // define QORE_PATH_MAX
 #ifndef QORE_PATH_MAX
@@ -563,7 +567,7 @@ DLLEXPORT bool qore_is_gc_enabled();
 DLLEXPORT bool q_path_is_readable(const char* path);
 
 //! tries to parse a boolean value - standard conversion or uses q_parse_bool(const char*) if it's a string
-DLLEXPORT bool q_parse_bool(const AbstractQoreNode* n);
+DLLEXPORT bool q_parse_bool(QoreValue n);
 
 //! parses a string and returns a boolean (ie case-insensitive "on","true","enable*","yes" are True, the rest is interpreted as a number where 0=false, everything else=true)
 DLLEXPORT bool q_parse_bool(const char* str);
@@ -643,5 +647,54 @@ DLLEXPORT int q_set_thread_var_value(int frame, const char* name, const QoreValu
 
 //! returns the pointer and size for string or binary data (return 0); no change for other data (return -1)
 DLLEXPORT int q_get_data(const QoreValue& data, const char*& ptr, size_t& len);
+
+//! returns a list<string> of parse option strings for the given bitfield; a Qore-language exception is raised for invalid values
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreListNode* parse_option_bitfield_to_string_list(int64 i, ExceptionSink* xsink);
+
+//! returns a list<string> of domain strings for the given bitfield; a Qore-language exception is raised for invalid values
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreListNode* domain_bitfield_to_string_list(int64 i, ExceptionSink* xsink);
+
+//! returns the "or nothing" type for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreTypeInfo* get_or_nothing_type_check(const QoreTypeInfo* typeInfo);
+
+//! returns the pseudo-class for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreClass* qore_pseudo_get_class(qore_type_t t);
+
+//! returns the pseudo-class for the given type
+/** @since %Qore 0.9
+*/
+DLLEXPORT const QoreClass* qore_pseudo_get_class(const QoreTypeInfo* t);
+
+//! returns the caller's Program context, if any
+/** @since %Qore 0.9
+*/
+DLLEXPORT QoreProgram* qore_get_call_program_context();
+
+//! sets a module option for the given module
+/** @param mod the module name
+    @param opt the option name
+    @param value the option value; must be already referenced for the assignment
+
+    @since %Qore 0.9
+*/
+DLLEXPORT void qore_set_module_option(std::string mod, std::string opt, QoreValue val);
+
+//! get module option for the given module
+/** @param mod the module name
+    @param opt the option name
+
+    @return the referenced option value; if a value is returned here, it must be dereferenced
+
+    @since %Qore 0.9
+*/
+DLLEXPORT QoreValue qore_get_module_option(std::string mod, std::string opt);
 
 #endif // _QORE_QORELIB_H
