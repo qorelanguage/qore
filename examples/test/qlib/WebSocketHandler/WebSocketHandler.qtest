@@ -138,8 +138,6 @@ class WebSocketHandlerTest inherits QUnit::Test {
             assertTrue(wsc.isOpen());
             wsc.send("STOP");
             c.waitForZero();
-            assertFalse(wsc.isOpen());
-            #wsc.send("sending to closed socket");
         }
         wsHandler.errs.get(10s);
         assertEq(0, wsHandler.errs.size());

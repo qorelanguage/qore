@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     The Datasource class provides the low-level interface to Qore DBI drivers.
 
@@ -146,7 +146,11 @@ struct qore_ds_private {
         return private_data ? qore_dbi_private::get(*dsl)->getOptionHash(ds) : opt->hashRefSelf();
     }
 
-        DLLLOCAL QoreHashNode* getCurrentOptionHash(bool ensure_hash = false) const;
+    DLLLOCAL QoreHashNode* getCurrentOptionHash(bool ensure_hash = false) const;
+
+    DLLLOCAL QoreHashNode* getConfigHash() const;
+
+    DLLLOCAL QoreStringNode* getConfigString() const;
 
     DLLLOCAL void setEventQueue(Queue* q, QoreValue arg, ExceptionSink* xsink) {
         if (event_queue)

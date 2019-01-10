@@ -215,6 +215,10 @@
       or integrating code in other programming languages at runtime
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
+    - fixed bugs where @ref Qore::SQL::Datasource::getConfigString() "Datasource::getConfigString()" and
+      @ref Qore::SQL::Datasource::getConfigHash() "Datasource::getConfigHash()" would require a connection to the
+      server, making it impossible to check option before connecting
+      (<a href="https://github.com/qorelanguage/qore/issues/3247">issue 3247</a>)
     - fixed a bug with @ref weak_assignment_operator "weak references" in some assignment expressions
       (<a href="https://github.com/qorelanguage/qore/issues/3202">issue 3202</a>)
     - fixed bugs in @ref Qore::sprintf() "sprintf()", @ref Qore::vsprintf() "vsprintf()", and all variants where

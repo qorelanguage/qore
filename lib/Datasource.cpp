@@ -63,21 +63,160 @@ QoreHashNode* qore_ds_private::getCurrentOptionHash(bool ensure_hash) const {
     ReferenceHolder<QoreHashNode> opts(getOptionHash(), nullptr);
     ConstHashIterator hi(*opts);
     while (hi.next()) {
-        const QoreHashNode* ov = hi.get().get<const QoreHashNode>();
-        const QoreValue v = ov->getKeyValue("value");
-        if (v.isNothing() || (v.getType() == NT_BOOLEAN && !v.getAsBool()))
+        QoreValue v = hi.get();
+        // if we have private data, then we are dealing with runtime data
+        if (private_data) {
+            const QoreHashNode* ov = hi.get().get<const QoreHashNode>();
+            v = ov->getKeyValue("value");
+        }
+        // otherwise for pending data, we already have the value in "v"
+        if (v.isNothing() || (v.getType() == NT_BOOLEAN && !v.getAsBool())) {
             continue;
+        }
 
-        if (!options)
+        if (!options) {
             options = new QoreHashNode;
+        }
 
         qore_hash_private::get(*options)->setKeyValueIntern(hi.getKey(), v.refSelf());
     }
 
-    if (ensure_hash && !options)
+    if (ensure_hash && !options) {
         options = new QoreHashNode;
+    }
 
     return options;
+}
+
+QoreHashNode* qore_ds_private::getConfigHash() const {
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), nullptr);
+
+    h->setKeyValue("type", new QoreStringNode(dsl->getName()), nullptr);
+    if (private_data) {
+        if (!username.empty()) {
+            h->setKeyValue("user", new QoreStringNode(username), nullptr);
+        }
+        if (!password.empty()) {
+            h->setKeyValue("pass", new QoreStringNode(password), nullptr);
+        }
+        if (!dbname.empty()) {
+            h->setKeyValue("db", new QoreStringNode(dbname), nullptr);
+        }
+        if (!db_encoding.empty()) {
+            h->setKeyValue("charset", new QoreStringNode(db_encoding), nullptr);
+        }
+        if (!hostname.empty()) {
+            h->setKeyValue("host", new QoreStringNode(hostname), nullptr);
+        }
+        if (port) {
+            h->setKeyValue("port", port, nullptr);
+        }
+    } else {
+        if (!p_username.empty()) {
+            h->setKeyValue("user", new QoreStringNode(p_username), nullptr);
+        }
+        if (!p_password.empty()) {
+            h->setKeyValue("pass", new QoreStringNode(p_password), nullptr);
+        }
+        if (!p_dbname.empty()) {
+            h->setKeyValue("db", new QoreStringNode(p_dbname), nullptr);
+        }
+        if (!p_db_encoding.empty()) {
+            h->setKeyValue("charset", new QoreStringNode(p_db_encoding), nullptr);
+        }
+        if (!p_hostname.empty()) {
+            h->setKeyValue("host", new QoreStringNode(p_hostname), nullptr);
+        }
+        if (p_port) {
+            h->setKeyValue("port", p_port, nullptr);
+        }
+    }
+
+    QoreHashNode* options = getCurrentOptionHash();
+    if (options) {
+        h->setKeyValue("options", options, nullptr);
+    }
+
+    return h.release();
+}
+
+QoreStringNode* qore_ds_private::getConfigString() const {
+    SimpleRefHolder<QoreStringNode> str(new QoreStringNode(dsl->getName()));
+    str->concat(':');
+
+    if (private_data) {
+        if (!username.empty()) {
+            str->concat(username);
+        }
+        if (!password.empty()) {
+            str->sprintf("/%s", password.c_str());
+        }
+        if (!dbname.empty()) {
+            str->sprintf("@%s", dbname.c_str());
+        }
+        if (!db_encoding.empty()) {
+            str->sprintf("(%s)", db_encoding.c_str());
+        }
+        if (!hostname.empty()) {
+            str->sprintf("%%%s", hostname.c_str());
+        }
+        if (port) {
+            str->sprintf(":%d", port);
+        }
+    } else {
+        if (!p_username.empty()) {
+            str->concat(p_username);
+        }
+        if (!p_password.empty()) {
+            str->sprintf("/%s", p_password.c_str());
+        }
+        if (!p_dbname.empty()) {
+            str->sprintf("@%s", p_dbname.c_str());
+        }
+        if (!p_db_encoding.empty()) {
+            str->sprintf("(%s)", p_db_encoding.c_str());
+        }
+        if (!p_hostname.empty()) {
+            str->sprintf("%%%s", p_hostname.c_str());
+        }
+        if (p_port) {
+            str->sprintf(":%d", p_port);
+        }
+    }
+
+    bool first = false;
+    ReferenceHolder<QoreHashNode> opts(getOptionHash(), nullptr);
+    ConstHashIterator hi(*opts);
+    while (hi.next()) {
+        QoreValue v = hi.get();
+        // if we have private data, then we are dealing with runtime data
+        if (private_data) {
+            const QoreHashNode* ov = hi.get().get<const QoreHashNode>();
+            v = ov->getKeyValue("value");
+        }
+        // otherwise for pending data, we already have the value in "v"
+        if (v.isNothing() || (v.getType() == NT_BOOLEAN && !v.getAsBool()))
+            continue;
+
+        if (first) {
+            str->concat(',');
+        } else {
+            str->concat('{');
+            first = true;
+        }
+        str->concat(hi.getKey());
+        if (v.getType() == NT_BOOLEAN && v.getAsBool()) {
+            continue;
+        }
+
+        QoreStringValueHelper sv(v);
+        str->sprintf("=%s", sv->getBuffer());
+    }
+    if (first) {
+        str->concat('}');
+    }
+
+    return str.release();
 }
 
 Datasource::Datasource(DBIDriver* ndsl, DatasourceStatementHelper* dsh) : priv(new qore_ds_private(this, ndsl, dsh)) {
@@ -499,76 +638,15 @@ QoreValue Datasource::getOption(const char* opt, ExceptionSink* xsink) {
 }
 
 QoreHashNode* Datasource::getConfigHash() const {
-    QoreHashNode* h = new QoreHashNode(autoTypeInfo);
-
-    h->setKeyValue("type", new QoreStringNode(priv->dsl->getName()), nullptr);
-    if (!priv->username.empty())
-        h->setKeyValue("user", new QoreStringNode(priv->username), nullptr);
-    if (!priv->password.empty())
-        h->setKeyValue("pass", new QoreStringNode(priv->password), nullptr);
-    if (!priv->dbname.empty())
-        h->setKeyValue("db", new QoreStringNode(priv->dbname), nullptr);
-    if (!priv->db_encoding.empty())
-        h->setKeyValue("charset", new QoreStringNode(priv->db_encoding), nullptr);
-    if (!priv->hostname.empty())
-        h->setKeyValue("host", new QoreStringNode(priv->hostname), nullptr);
-    if (priv->port)
-        h->setKeyValue("port", priv->port, nullptr);
-
-    QoreHashNode* options = priv->getCurrentOptionHash();
-    if (options)
-        h->setKeyValue("options", options, nullptr);
-
-    return h;
+    return priv->getConfigHash();
 }
 
 QoreHashNode* Datasource::getCurrentOptionHash() const {
-   return priv->getCurrentOptionHash();
+    return priv->getCurrentOptionHash();
 }
 
 QoreStringNode* Datasource::getConfigString() const {
-    QoreStringNode* str = new QoreStringNode(priv->dsl->getName());
-    str->concat(':');
-
-    if (!priv->username.empty())
-        str->concat(priv->username);
-    if (!priv->password.empty())
-        str->sprintf("/%s", priv->password.c_str());
-    if (!priv->dbname.empty())
-        str->sprintf("@%s", priv->dbname.c_str());
-    if (!priv->db_encoding.empty())
-        str->sprintf("(%s)", priv->db_encoding.c_str());
-    if (!priv->hostname.empty())
-        str->sprintf("%%%s", priv->hostname.c_str());
-    if (priv->port)
-        str->sprintf(":%d", priv->port);
-
-    bool first = false;
-    ReferenceHolder<QoreHashNode> opts(qore_dbi_private::get(*priv->dsl)->getOptionHash(this), nullptr);
-    ConstHashIterator hi(*opts);
-    while (hi.next()) {
-        const QoreHashNode* ov = hi.get().get<const QoreHashNode>();
-        const QoreValue v = ov->getKeyValue("value");
-        if (v.isNothing() || (v.getType() == NT_BOOLEAN && !v.getAsBool()))
-            continue;
-
-        if (first)
-            str->concat(',');
-        else {
-            str->concat('{');
-            first = true;
-        }
-        str->concat(hi.getKey());
-        if (v.getType() == NT_BOOLEAN && v.getAsBool())
-            continue;
-
-        QoreStringValueHelper sv(v);
-        str->sprintf("=%s", sv->getBuffer());
-    }
-    if (first)
-        str->concat('}');
-
-    return str;
+    return priv->getConfigString();
 }
 
 void Datasource::setEventQueue(Queue* q, QoreValue arg, ExceptionSink* xsink) {
