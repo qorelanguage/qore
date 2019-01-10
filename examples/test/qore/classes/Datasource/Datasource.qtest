@@ -21,6 +21,7 @@ public class DatasourceTest inherits QUnit::Test {
     }
 
     constructor() : Test("DatasourceTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("offline option test", \offlineOptionTest());
         addTestCase("invalid option test", \invalidOptionTest());
         addTestCase("Datasource string test", \datasourceStringTest());
         addTestCase("oracle test", \oracleTest());
@@ -32,6 +33,13 @@ public class DatasourceTest inherits QUnit::Test {
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-c,--conn=ARG", "set DB connection argument (ex: \"oracle:user/pass@db\")", OptionColumn);
+    }
+
+    offlineOptionTest() {
+        # issue #3247 ensure that we can get options for unconnected Datasources
+        Datasource ds("pgsql:u/p@db");
+        assertEq(Type::String, ds.getConfigString().type());
+        assertEq(Type::Hash, ds.getConfigHash().type());
     }
 
     invalidOptionTest() {
@@ -53,7 +61,9 @@ public class DatasourceTest inherits QUnit::Test {
         assertEq(Type::String, str.type());
 
         ds.open();
-        assertEq(ds.getConfigHash(), h);
+        # issue #3247: we have to get the config hash again after connecting as the DBI driver will set default option values
+        h = ds.getConfigHash();
+        assertEq(Type::Hash, h.type());
 
         # issue #2153
         DatasourcePool dsp(ds.getConfigString());
