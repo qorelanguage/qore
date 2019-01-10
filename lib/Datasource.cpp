@@ -454,11 +454,17 @@ QoreHashNode* Datasource::getOptionHash() const {
 }
 
 int Datasource::setOption(const char* opt, const QoreValue v, ExceptionSink* xsink) {
-   ReferenceHolder<> val(v.getReferencedValue(), xsink);
-   // maintain a copy of the option internally
-   priv->setOption(opt, *val, xsink);
-   // only set options in private data if private data is already set
-   return priv->private_data ? qore_dbi_private::get(*priv->dsl)->opt_set(this, opt, *val, xsink) : 0;
+    ReferenceHolder<> val(v.getReferencedValue(), xsink);
+    // maintain a copy of the option internally
+    priv->setOption(opt, *val, xsink);
+    // only set options in private data if private data is already set
+    if (priv->private_data) {
+        return qore_dbi_private::get(*priv->dsl)->opt_set(this, opt, *val, xsink);
+    }
+
+    // issue #3243: validate options before sending them to the driver
+    OptInputHelper opt_helper(xsink, *qore_dbi_private::get(*priv->dsl), opt, true, *val);
+    return *xsink ? -1 : 0;
 }
 
 int Datasource::setOption(const char* opt, const AbstractQoreNode* val, ExceptionSink* xsink) {
