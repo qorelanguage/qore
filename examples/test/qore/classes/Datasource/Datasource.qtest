@@ -21,6 +21,7 @@ public class DatasourceTest inherits QUnit::Test {
     }
 
     constructor() : Test("DatasourceTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("invalid option test", \invalidOptionTest());
         addTestCase("Datasource string test", \datasourceStringTest());
         addTestCase("oracle test", \oracleTest());
 
@@ -32,19 +33,17 @@ public class DatasourceTest inherits QUnit::Test {
         printOption("-c,--conn=ARG", "set DB connection argument (ex: \"oracle:user/pass@db\")", OptionColumn);
     }
 
+    invalidOptionTest() {
+        assertThrows("DBI-OPTION-ERROR", sub () { new Datasource("pgsql:u/p@db{invalid}"); });
+    }
+
     datasourceStringTest() {
         assertThrows("DATASOURCE-PARSE-ERROR", "driver is missing", sub() { Datasource ds("a/b@c(utf8)"); });
         assertThrows("DATASOURCE-PARSE-ERROR", "driver is missing", sub() { Datasource ds("a/b@c(utf8)%localhost:5432"); });
     }
 
     oracleTest() {
-        Datasource ds;
-        try {
-            ds = getOracleDatasource();
-        }
-        catch (hash ex) {
-            testSkip("skipping oracle tests: " + ex.err + ": " + ex.desc);
-        }
+        Datasource ds = getOracleDatasource();
 
         hash h = ds.getConfigHash();
         assertEq(Type::Hash, h.type());
@@ -62,12 +61,16 @@ public class DatasourceTest inherits QUnit::Test {
     }
 
     Datasource getOracleDatasource() {
-        if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@xbox";
-        Datasource ds(m_options.connstr);
-        if (ds.getDriverName() != "oracle")
-            throw "ORACLE-ERROR", sprintf("cannot execute these tests on a connection using driver %y; expecting \"oracle\"", ds.getDriverName());
-        return ds;
+        string connstr = m_options.connstr ?? ENV.QORE_DB_CONNSTR_ORACLE ?? "oracle:omquser/omquser@xbox";
+        try {
+            Datasource ds(connstr);
+            if (ds.getDriverName() != "oracle") {
+                testSkip(sprintf("skipping test: cannot execute these tests on a connection using driver %y; expecting "
+                    "\"oracle\"", ds.getDriverName()));
+            }
+            return ds;
+        } catch (hash<ExceptionInfo> ex) {
+            testSkip("skipping test: " + ex.err + ": " + ex.desc);
+        }
     }
-
 }
