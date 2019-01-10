@@ -91,7 +91,6 @@ protected:
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
     DLLLOCAL void parseInitImpl(QoreValue& val, LocalVar* oflag, int pflag, int& lvids, const QoreTypeInfo*& typeInfo) {
-        assert(false);
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
