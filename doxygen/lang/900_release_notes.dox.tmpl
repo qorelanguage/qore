@@ -8,6 +8,9 @@
     Bugfix release; see details below
 
     @subsection qore_08139_bug_fixes Bug Fixes in Qore
+    - fixed a bug handling invalid DB driver options in datasource creation that could lead to a crash with some
+      drivers
+      (<a href="https://github.com/qorelanguage/qore/issues/3243">issue 3243</a>)
     - fixed a memory error in internal list handling that could lead to memory corruption and crashes
       (<a href="https://github.com/qorelanguage/qore/issues/3206">issue 3206</a>)
     - fixed calls to Dir::list*() methods which failed whenever there was a symlink with a non-existent target in a directory
