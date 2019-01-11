@@ -27,6 +27,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
         addTestCase("fs deprecated", \fsConnectionTestDeprecated());
         addTestCase("invalid", \invalidConnectionTest());
         addTestCase("custom parseUrl", \customParseUrlTest());
+        addTestCase("custom option validation", \customValidateOptions());
 
         # Return for compatibility with a test harness that checks the return value
         set_return_value(main());
@@ -186,6 +187,32 @@ public class ConnectionProviderTest inherits QUnit::Test {
 
         # safe url
         assertEq("pgsql:user@db%host:1234", db.safe_url);
+    }
+
+    private customValidateOptions() {
+        hash opts = {"foo": "bar"};
+
+        try {
+            HttpConnection h("foo", "bar", "http://localhost", {}, opts);
+            assertEq(False, exists h);
+        }
+        catch (hash ex) {
+            assertEq("CONNECTION-ERROR", ex.err);
+            assertEq(True, ex.desc =~ /unknown option/);
+        }
+
+        IgnoreOptionsConnection h("foo", "bar", "http://localhost", {}, opts);
+        assertEq(opts, h.opts);
+    }
+}
+
+class IgnoreOptionsConnection inherits HttpConnection {
+    constructor(string name, string desc, string url, hash attrs, hash opts)
+        : HttpConnection(name, desc, url, attrs, opts) {
+    }
+
+    hash validateOptions(hash options) {
+        return orig_opts;
     }
 }
 

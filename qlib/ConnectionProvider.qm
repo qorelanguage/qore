@@ -429,7 +429,17 @@ string connstr = get_connection(str);
             self.locked = attributes.locked ?? False;
 
             self.orig_opts = options;
+            self.opts = validateOptions(options);
+        }
 
+        #! performs options validation in the constructor
+        /** @param options a has with options from the constructor
+            @return hash validated option hash
+
+            This method can be overloaded in connections where are options
+            created dynamically for example.
+         */
+        hash validateOptions(hash options) {
             options = getDefaultOptions() + options;
             if (options) {
                 *hash<auto> oh = getOptions();
@@ -438,7 +448,7 @@ string connstr = get_connection(str);
                         throw "CONNECTION-ERROR", sprintf("connection %y (type %y url %y) has unknown option %y (known options: %y)", name, urlh.protocol, url, opt, oh.keys());
                 }
             }
-            self.opts = options;
+            return options;
         }
 
         #! Parse the URL to a hash
