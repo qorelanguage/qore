@@ -42,8 +42,10 @@
 #include "qore/intern/ModuleInfo.h"
 extern QoreModuleManager QMM;
 
+#ifndef WARN_MODULES
 // needed so that the Qore default argument value in sinatures below will match a C++ value
 #define WARN_MODULES QP_WARN_MODULES
+#endif
 
 //! source location information
 /**
@@ -907,19 +909,11 @@ Program::copy() {
 /**
  */
 Program::destructor() {
-   printd(5, "Program::destructor() pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
+   printd(5, "Program::destructor() pgm: %p pgmid: %d self: %p\n", p, p->getProgramId(), self);
    // inherited system object destructor is not executed
    //p->unregisterQoreObject(self, xsink);
 
    p->waitForTerminationAndDeref(xsink);
-   /*
-   if (p->is_unique()) {
-      p->waitForTerminationAndDeref(xsink);
-   } else {
-      // if the underlying object is created from C++ then it has reference and cannot be terminated
-      p->deref(xsink);
-   }
-   */
 }
 
 //! Parses the string argument and adds the code to the Program object
@@ -1740,8 +1734,12 @@ pgm.loadModule("mysql");
 
     @see
     - Program::loadApplyToPrivateUserModule()
+    - Program::loadApplyToPrivateUserModuleWarn()
     - Program::loadApplyToUserModule()
+    - Program::loadApplyToUserModuleWarn()
+    - Program::loadModuleWarn()
     - Program::loadUserModuleWithProgram()
+    - Program::loadUserModuleWithProgramWarn()
     - get_module_hash()
     - get_feature_list()
 
@@ -1750,7 +1748,46 @@ pgm.loadModule("mysql");
     - %Qore 0.9 added the \c warning_mask parameter
 */
 Program::loadModule(string name, int warning_mask = WARN_MODULES) [dom=MODULES] {
-   QMM.runTimeLoadModule(*xsink, name->c_str(), p, nullptr, QMLO_NONE, warning_mask);
+   QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), p, nullptr, QMLO_NONE, warning_mask);
+}
+
+//! Loads a %Qore module into the Program object at run-time
+/** If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
+
+    Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded prior to parsing.
+
+    @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
+    @param warning_mask the warning mask to use when loading the module; any warnings will be returned in the return value
+
+    @return any warnings found while parsing the module (if the module is a user module)
+
+    @par Example:
+    @code{.py}
+pgm.loadModule("mysql");
+    @endcode
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
+
+    @see
+    - Program::loadApplyToPrivateUserModule()
+    - Program::loadApplyToPrivateUserModuleWarn()
+    - Program::loadApplyToUserModule()
+    - Program::loadApplyToUserModuleWarn()
+    - Program::loadModule()
+    - Program::loadUserModuleWithProgram()
+    - Program::loadUserModuleWithProgramWarn()
+    - get_module_hash()
+    - get_feature_list()
+
+    @since %Qore 0.9 introduced this method
+*/
+*hash<ExceptionInfo> Program::loadModuleWarn(string name, int warning_mask = WARN_MODULES) [dom=MODULES] {
+    ExceptionSink wsink;
+    QMM.runTimeLoadModule(*xsink, wsink, name->c_str(), p, nullptr, QMLO_NONE, warning_mask);
+    if (!*xsink && wsink) {
+        return wsink.catchException()->makeExceptionObjectAndDelete(xsink);
+    }
+    return QoreValue();
 }
 
 //! Loads a %Qore user module into the Program object at run-time using the given @ref Qore::Program "Program" object as the container for the user module code
@@ -1772,8 +1809,12 @@ pgm.loadUserModuleWithProgram("MyModule", p);
 
     @see
     - Program::loadApplyToPrivateUserModule()
+    - Program::loadApplyToPrivateUserModuleWarn()
     - Program::loadApplyToUserModule()
+    - Program::loadApplyToUserModuleWarn()
     - Program::loadModule()
+    - Program::loadModuleWarn()
+    - Program::loadUserModuleWithProgramWarn()
     - get_module_hash()
     - get_feature_list()
 
@@ -1782,7 +1823,48 @@ pgm.loadUserModuleWithProgram("MyModule", p);
     - %Qore 0.9 added the \c warning_mask parameter
 */
 Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm, int warning_mask = WARN_MODULES) [dom=MODULES,INJECTION] {
-    QMM.runTimeLoadModule(*xsink, name->getBuffer(), p, pgm, QMLO_INJECT, warning_mask);
+    QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), p, pgm, QMLO_INJECT, warning_mask);
+}
+
+//! Loads a %Qore user module into the Program object at run-time using the given @ref Qore::Program "Program" object as the container for the user module code
+/** This method allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+    If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
+
+    Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded prior to parsing.
+
+    @par Example:
+    @code{.py}
+pgm.loadUserModuleWithProgram("MyModule", p);
+    @endcode
+
+    @param name the name or path of the user module to load
+    @param pgm the @ref Qore::Program "Program" object to use as a container for the new user module, presumably this has a custom API that the user module can use; note that after this call the @ref Qore::Program "Program" object will be owned by the user module, therefore the object itself will no longer be valid and any accesses to the object after this call will result in an exception
+    @param warning_mask the warning mask to use when loading the module; any warnings will be returned in the return value
+
+    @return any warnings found while parsing the module (if the module is a user module)
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, module defines symbols already defined in the target object, etc
+
+    @see
+    - Program::loadApplyToPrivateUserModule()
+    - Program::loadApplyToPrivateUserModuleWarn()
+    - Program::loadApplyToUserModule()
+    - Program::loadApplyToUserModuleWarn()
+    - Program::loadModule()
+    - Program::loadModuleWarn()
+    - Program::loadUserModuleWithProgram()
+    - get_module_hash()
+    - get_feature_list()
+
+    @since %Qore 0.9 introduced this method
+*/
+*hash<ExceptionInfo> Program::loadUserModuleWithProgramWarn(string name, !Qore::Program[QoreProgram] pgm, int warning_mask = WARN_MODULES) [dom=MODULES,INJECTION] {
+    ExceptionSink wsink;
+    QMM.runTimeLoadModule(*xsink, wsink, name->c_str(), p, pgm, QMLO_INJECT, warning_mask);
+    if (!*xsink && wsink) {
+        return wsink.catchException()->makeExceptionObjectAndDelete(xsink);
+    }
+    return QoreValue();
 }
 
 //! Loads a %Qore user module into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
@@ -1800,8 +1882,12 @@ Program::loadUserModuleWithProgram(string name, !Qore::Program[QoreProgram] pgm,
 
     @see
     - Program::loadApplyToPrivateUserModule()
+    - Program::loadApplyToPrivateUserModuleWarn()
+    - Program::loadApplyToUserModuleWarn()
     - Program::loadModule()
+    - Program::loadModuleWarn()
     - Program::loadUserModuleWithProgram()
+    - Program::loadUserModuleWithProgramWarn()
     - get_module_hash()
     - get_feature_list()
 
@@ -1818,12 +1904,64 @@ Program::loadApplyToUserModule(string name, *softbool reinject, int warning_mask
     assert(pgm == p);
 #endif
     if (!*xsink) {
-        QMM.runTimeLoadModule(*xsink, name->c_str(), 0, p, QMLO_INJECT | (reinject ? QMLO_REINJECT : 0),
+        QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), 0, p, QMLO_INJECT | (reinject ? QMLO_REINJECT : 0),
             warning_mask);
         // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
         //p->unregisterQoreObject(self, xsink);
         self->doDelete(xsink);
     }
+}
+
+//! Loads a %Qore user module into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
+/** This method allows a user module to be loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+
+    @param name the name or path of the user module to load
+    @param reinject if @ref Qore::True "True" then the module will be reloaded even if already loaded previously; if the module was not already loaded then it is loaded with this call
+    @param warning_mask the warning mask to use when loading the module; any warnings will be returned in the return value
+
+    @return any warnings found while parsing the module (if the module is a user module)
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, etc
+
+    @note
+    - it is not an error to set the \a reinject argument to @ref Qore::True "True" when the given module has not already been loaded
+    - after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
+
+    @see
+    - Program::loadApplyToPrivateUserModule()
+    - Program::loadApplyToPrivateUserModuleWarn()
+    - Program::loadApplyToUserModule()
+    - Program::loadModule()
+    - Program::loadModuleWarn()
+    - Program::loadUserModuleWithProgram()
+    - Program::loadUserModuleWithProgramWarn()
+    - get_module_hash()
+    - get_feature_list()
+
+    @since %Qore 0.9 added the \c warning_mask parameter
+ */
+*hash<ExceptionInfo> Program::loadApplyToUserModuleWarn(string name, *softbool reinject, int warning_mask = WARN_MODULES) [dom=MODULES,INJECTION] {
+    // remove the QoreProgram private data from the object
+    printd(5, "Program::loadApplyToUserModule pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
+#ifdef DEBUG
+    QoreProgram* pgm = (QoreProgram*)
+#endif
+    qore_object_private::get(*self)->getAndRemovePrivateData(CID_PROGRAM, xsink);
+#ifdef DEBUG
+    assert(pgm == p);
+#endif
+    if (!*xsink) {
+        ExceptionSink wsink;
+        QMM.runTimeLoadModule(*xsink, wsink, name->c_str(), 0, p, QMLO_INJECT | (reinject ? QMLO_REINJECT : 0),
+            warning_mask);
+        // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
+        //p->unregisterQoreObject(self, xsink);
+        self->doDelete(xsink);
+        if (!*xsink && wsink) {
+            return wsink.catchException()->makeExceptionObjectAndDelete(xsink);
+        }
+    }
+    return QoreValue();
 }
 
 //! Loads a %Qore user module privately into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
@@ -1839,9 +1977,13 @@ Program::loadApplyToUserModule(string name, *softbool reinject, int warning_mask
     - this module will not be available for use in other Program objects; this method is useful for loading modules that register themselves with an injected API in code that does not have @ref Qore::PO_ALLOW_INJECTION set or where the module's functionality should be protected from other %Qore code
 
     @see
+    - Program::loadApplyToPrivateUserModuleWarn()
     - Program::loadApplyToUserModule()
+    - Program::loadApplyToUserModuleWarn()
     - Program::loadModule()
+    - Program::loadModuleWarn()
     - Program::loadUserModuleWithProgram()
+    - Program::loadUserModuleWithProgramWarn()
     - get_module_hash()
     - get_feature_list()
 
@@ -1858,11 +2000,61 @@ Program::loadApplyToPrivateUserModule(string name, int warning_mask = WARN_MODUL
     assert(pgm == p);
 #endif
     if (!*xsink) {
-        QMM.runTimeLoadModule(*xsink, name->c_str(), 0, p, QMLO_INJECT | QMLO_PRIVATE, warning_mask);
+        QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), 0, p, QMLO_INJECT | QMLO_PRIVATE, warning_mask);
         // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
         //p->unregisterQoreObject(self, xsink);
         self->doDelete(xsink);
     }
+}
+
+//! Loads a %Qore user module privately into the given Program container at run-time; after this call the Program object is owned by the user module and is no longer accessible in the object used for the call
+/** This method allows a user module to be privately loaded with a custom API already present in the user module's @ref Qore::Program "Program" container.
+
+    @param name the name or path of the user module to load
+    @param warning_mask the warning mask to use when loading the module; any warnings will be returned in the return value
+
+    @return any warnings found while parsing the module (if the module is a user module)
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: binary modules cannot be loaded in @ref Qore::Program "Program" containers, etc
+
+    @note
+    - after this call the Program object will be owned by the user module and will no longer be valid, so any accesses to the object after this call will result in an exception
+    - this module will not be available for use in other Program objects; this method is useful for loading modules that register themselves with an injected API in code that does not have @ref Qore::PO_ALLOW_INJECTION set or where the module's functionality should be protected from other %Qore code
+
+    @see
+    - Program::loadApplyToPrivateUserModuleWarn()
+    - Program::loadApplyToUserModule()
+    - Program::loadApplyToUserModuleWarn()
+    - Program::loadModule()
+    - Program::loadModuleWarn()
+    - Program::loadUserModuleWithProgram()
+    - Program::loadUserModuleWithProgramWarn()
+    - get_module_hash()
+    - get_feature_list()
+
+    @since %Qore 0.9 added the \c warning_mask parameter
+ */
+*hash<ExceptionInfo> Program::loadApplyToPrivateUserModuleWarn(string name, int warning_mask = WARN_MODULES) [dom=MODULES] {
+    // remove the QoreProgram private data from the object
+    printd(5, "Program::loadApplyToPrivateUserModule pgm: %p, pgmid: %d, self: %p\n", p, p->getProgramId(), self);
+#ifdef DEBUG
+    QoreProgram* pgm = (QoreProgram*)
+#endif
+    qore_object_private::get(*self)->getAndRemovePrivateData(CID_PROGRAM, xsink);
+#ifdef DEBUG
+    assert(pgm == p);
+#endif
+    if (!*xsink) {
+        ExceptionSink wsink;
+        QMM.runTimeLoadModule(*xsink, wsink, name->c_str(), 0, p, QMLO_INJECT | QMLO_PRIVATE, warning_mask);
+        // getAndRemovePrivateData removed private data, so destructor is not executed. We must remove reference to this object
+        //p->unregisterQoreObject(self, xsink);
+        self->doDelete(xsink);
+        if (!*xsink && wsink) {
+            return wsink.catchException()->makeExceptionObjectAndDelete(xsink);
+        }
+    }
+    return QoreValue();
 }
 
 //! imports system classes into a Program container at runtime; will throw an exception if the Program was not created with @ref Qore::PO_NO_INHERIT_SYSTEM_CLASSES
