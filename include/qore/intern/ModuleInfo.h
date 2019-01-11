@@ -406,6 +406,7 @@ private:
     //! loads separated module. see #2966
     DLLLOCAL QoreAbstractModule* loadSeparatedModule(
         ExceptionSink& xsink,
+        ExceptionSink& wsink,
         const QoreString& path,
         const char* feature,
         QoreProgram* tpgm,
@@ -446,19 +447,20 @@ protected:
     DLLLOCAL void loadModuleIntern(const char* name, QoreProgram* pgm, ExceptionSink& xsink) {
         AutoLocker sl(mutex); // make sure checking and loading are atomic
 
-        loadModuleIntern(xsink, name, pgm);
+        loadModuleIntern(xsink, xsink, name, pgm);
     }
 
-    DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false,
-        mod_op_e op = MOD_OP_NONE, version_list_t* version = nullptr, const char* src = nullptr,
-        QoreProgram* mpgm = nullptr, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES);
+    DLLLOCAL void loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
+        bool reexport = false, mod_op_e op = MOD_OP_NONE, version_list_t* version = nullptr,
+        const char* src = nullptr, QoreProgram* mpgm = nullptr, unsigned load_opt = QMLO_NONE,
+        int warning_mask = QP_WARN_MODULES);
 
     DLLLOCAL QoreAbstractModule* loadBinaryModuleFromPath(ExceptionSink& xsink, const char* path, const char* feature = 0, QoreProgram* pgm = 0, bool reexport = false);
-    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, const char* path,
+    DLLLOCAL QoreAbstractModule* loadUserModuleFromPath(ExceptionSink& xsink, ExceptionSink& wsink, const char* path,
         const char* feature = nullptr, QoreProgram* tpgm = nullptr, bool reexport = false, QoreProgram* pgm = nullptr,
         QoreProgram* path_pgm = nullptr, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES);
-    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, const char* path, const char* feature,
-        QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = nullptr,
+    DLLLOCAL QoreAbstractModule* loadUserModuleFromSource(ExceptionSink& xsink, ExceptionSink& wsink, const char* path,
+        const char* feature, QoreProgram* tpgm, const char* src, bool reexport, QoreProgram* pgm = nullptr,
         int warning_mask = QP_WARN_MODULES);
     DLLLOCAL QoreAbstractModule* setupUserModule(ExceptionSink& xsink, std::unique_ptr<QoreUserModule>& mi,
         QoreUserModuleDefContextHelper& qmd, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES);
@@ -493,8 +495,9 @@ public:
         return findModuleUnlocked(name);
     }
 
-    DLLLOCAL void parseLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm, bool reexport = false);
-    DLLLOCAL int runTimeLoadModule(ExceptionSink& xsink, const char* name, QoreProgram* pgm,
+    DLLLOCAL void parseLoadModule(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
+        bool reexport = false);
+    DLLLOCAL int runTimeLoadModule(ExceptionSink& xsink, ExceptionSink& wsink, const char* name, QoreProgram* pgm,
         QoreProgram* mpgm = nullptr, unsigned load_opt = QMLO_NONE, int warning_mask = QP_WARN_MODULES);
 
     DLLLOCAL QoreHashNode* getModuleHash();

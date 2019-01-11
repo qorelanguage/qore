@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -130,10 +130,13 @@ public:
         //printd(5, "KeyList::getAndClearPtr this: %p, key: %d, end: %d\n", this, key, i == keymap.end());
         if (i == keymap.end() || i->second.second) {
             //printd(5, "KeyList::getAndClearPtr second: %d\n", i->second.second);
-            return 0;
+            return nullptr;
         }
         //printd(5, "KeyList::getAndClearPtr first: %p\n", i->second.first);
-        return i->second.first;
+        // we must clear the private data when this function is called or a crash will result
+        AbstractPrivateData* rv = i->second.first;
+        keymap.erase(i);
+        return rv;
     }
 
     DLLLOCAL AbstractPrivateData* getAndRemovePtr(qore_classid_t key) {

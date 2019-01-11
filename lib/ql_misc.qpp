@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,11 @@
 #include <cerrno>
 #include <cstring>
 #include <ctime>
+
+#ifndef WARN_MODULES
+// needed so that the Qore default argument value in sinatures below will match a C++ value
+#define WARN_MODULES QP_WARN_MODULES
+#endif
 
 static const QoreFunction* get_builtin_func(const QoreStringNode* str, ExceptionSink* xsink) {
    const qore_ns_private* ns;
@@ -2264,6 +2269,7 @@ nothing strtoint() [flags=RUNTIME_NOOP] {
     Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the @ref requires "%requires directive" instead, unless all references to the objects provided by the module will be made in code embedded in child Program objects.
 
     @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
+    @param warning_mask the warning mask to use when loading the module; note that warnings are treated as errors
 
     @par Example:
     @code{.py}
@@ -2276,10 +2282,44 @@ load_module("mysql");
     - get_module_hash()
     - get_feature_list()
 
-    @since %Qore 0.8.7 this function can also be used in user module code
+    @since
+    - %Qore 0.8.7 this function can also be used in user module code
+    - %Qore 0.9 added the \c warning_mask parameter
 */
-nothing load_module(string name) [dom=MODULES] {
-   MM.runTimeLoadModule(name->getBuffer(), xsink);
+nothing load_module(string name, int warning_mask = WARN_MODULES) [dom=MODULES] {
+    QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), getProgram(), nullptr, QMLO_NONE, warning_mask);
+}
+
+//! Loads in a %Qore module at run-time
+/** If a feature with the same name already exists, then this feature's code is imported into the current Program object if necessary and no further action is taken.
+
+    Note that modules providing objects resolved at parse time (classes, constants, functions, etc) must be loaded with the @ref requires "%requires directive" instead, unless all references to the objects provided by the module will be made in code embedded in child Program objects.
+
+    @param name either a feature name (a module will be searched with this feature name) or a path to a module to load
+    @param warning_mask the warning mask to use when loading the module; note that warnings are treated as errors
+
+    @par Example:
+    @code{.py}
+load_module("mysql");
+    @endcode
+
+    @throw LOAD-MODULE-ERROR module cannot be loaded: API incompatibility, module defines symbols already defined in the target object, etc
+
+    @see
+    - get_module_hash()
+    - get_feature_list()
+
+    @since
+    - %Qore 0.8.7 this function can also be used in user module code
+    - %Qore 0.9 added the \c warning_mask parameter
+*/
+*hash<ExceptionInfo> load_module_warn(string name, int warning_mask = WARN_MODULES) [dom=MODULES] {
+    ExceptionSink wsink;
+    QMM.runTimeLoadModule(*xsink, wsink, name->c_str(), getProgram(), nullptr, QMLO_NONE, warning_mask);
+    if (!*xsink && wsink) {
+        return wsink.catchException()->makeExceptionObjectAndDelete(xsink);
+    }
+    return QoreValue();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -2304,7 +2344,7 @@ load_user_module_with_program("MyModule", p);
     @since %Qore 0.8.12
  */
 nothing load_user_module_with_program(string name, !Qore::Program[QoreProgram] pgm) [dom=MODULES] {
-   QMM.runTimeLoadModule(*xsink, name->getBuffer(), getProgram(), pgm);
+    QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), getProgram(), pgm);
 }
 
 //! Reloads an already-loaded %Qore module subject to code injection at run-time into %Qore; the module's code is not imported into the current Program object
@@ -2328,7 +2368,7 @@ reload_module("FixedLengthUtil");
     @since %Qore 0.8.12
 */
 nothing reload_module(string name) [dom=MODULES,INJECTION] {
-   QMM.runTimeLoadModule(*xsink, name->getBuffer(), 0, 0, QMLO_RELOAD);
+    QMM.runTimeLoadModule(*xsink, *xsink, name->getBuffer(), 0, 0, QMLO_RELOAD);
 }
 
 //! Decodes percent numeric codes in a URL string and returns the decoded string in UTF-8 encoding
