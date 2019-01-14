@@ -356,6 +356,46 @@ public namespace Logger {
             }
         }
 
+        #! Returns closest lower logger level
+        /**
+            @param \c Loggerlevel
+            @return \c Loggerlevel or \c NOTHING if there is no lower level
+
+            @throw LOGGER-ERROR if level not found
+        */
+        public static *LoggerLevel getNextLowerLevel(int level) {
+            HashIterator hi(LEVEL_TO_LEVEL_STR);
+            while (hi.next()) {
+                if (level == hi.getKey()) {
+                    if (hi.prev()) {
+                        return getLevel(hi.getKey());
+                    }
+                    break;
+                }
+            }
+            return NOTHING;
+        }
+
+        #! Returns closest higher logger level
+        /**
+            @param \c Loggerlevel
+            @return \c Loggerlevel or \c NOTHING if there is no higher level
+
+            @throw LOGGER-ERROR if level not found
+        */
+        public static *LoggerLevel getNextHigherLevel(int level) {
+            HashIterator hi(LEVEL_TO_LEVEL_STR);
+            while (hi.next()) {
+                if (level == hi.getKey()) {
+                    if (hi.next()) {
+                        return getLevel(hi.getKey());
+                    }
+                    break;
+                }
+            }
+            return NOTHING;
+        }
+
         #! Converts the input argument to a level.
         /**
             Return value is either instantiated or used the existing one if there is any.
@@ -2482,6 +2522,34 @@ public namespace Logger {
         */
         public setLevel(int level) {
             setLevel(LoggerLevel::getLevel(level));
+        }
+
+        #! Decrement logger level
+        /**
+            @return current \c LoggerLevel
+        */
+        public *LoggerLevel decLevel() {
+            if (currentLevel) {
+                *LoggerLevel lvl = getNextLowerLevel(currentLevel.getValue());
+                if (lvl) {
+                    setLevel(lvl);
+                }
+            }
+            return currentLevel;
+        }
+
+        #! Increment logger level
+        /**
+            @return current \c LoggerLevel
+        */
+        public *LoggerLevel incLevel() {
+            if (currentLevel) {
+                *LoggerLevel lvl = getNextHigherLevel(currentLevel.getValue());
+                if (lvl) {
+                    setLevel(lvl);
+                }
+            }
+            return currentLevel;
         }
 
         #! Sets the additivity flag; when additivity is active, events are passed to parent loggers.
