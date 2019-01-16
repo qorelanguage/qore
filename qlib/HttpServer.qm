@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file HttpServer.qm HTTP multi-threaded server module definition
 
-/*  HttpServer.qm Copyright (C) 2012 - 2018 Qore Technologies, s.r.o.
+/*  HttpServer.qm Copyright (C) 2012 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -74,14 +74,14 @@ module HttpServer {
 %new-style
 
 class MyHandler inherits AbstractHttpRequestHandler {
-    hash handleRequest(hash cx, hash hdr, *data body) {
+    hash handleRequest(hash<auto> cx, hash<auto> hdr, *data body) {
         # NOTE: change "%y" to "%N" to get a more readable multi-line output format for container values
         log("request received on %s from %s: context: %y hdr: %y body size: %d byte%s", cx."peer-info".desc, cx."socket-info".desc, cx, hdr, body.size(), body.size() == 1 ? "" : "s");
-        return (
+        return {
             "code": 200,
             "body": sprintf("<title>Test Page</title><body><h1>Qore HTTP server v%s</h1><p>%y on %s PID %s TID %d connection %d</p><p>Qore %s</p></body>", HttpServer::Version, now_us(), gethostname(), getpid(), gettid(), cx.id, Qore::VersionString),
             "close": True,
-            );
+        };
     }
 }
 
@@ -113,6 +113,8 @@ log("started listener on %s", lh.desc);
     @section http_relnotes HttpServer Module Release Notes
 
     @subsection http0313 HttpServer 0.3.13
+    - added the \c "header-info" hash to the context argument when calling handlers
+      (<a href="https://github.com/qorelanguage/qore/issues/3026">issue 3026</a>)
     - added support for adding new HTTP methods to the server with the
       @ref HttpServer::HttpServer::addHttpMethod() "HttpServer::addHttpMethod()" method
       (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
@@ -310,7 +312,7 @@ class HttpServer::HandlerInfo {
     }
 
     #! called when matching a request; returns a code giving the match level; 0 = no match, 1 = only the Content-Type matches, 2 = special header matches, 3 = URL matches
-    int matchRequest(hash hdr, int score) {
+    int matchRequest(hash<auto> hdr, int score) {
         if (path && hdr.path && isregex && regex(hdr.path, path)) {
             return 3;
         }
@@ -366,7 +368,7 @@ class HttpServer::HttpHandlerList {
     }
 
     # matches a handler to the request
-    *HandlerInfo findHandler(hash hdr, reference<int> score, bool finalv = False, *reference<string> root_path) {
+    *HandlerInfo findHandler(hash<auto> hdr, reference<int> score, bool finalv = False, *reference<string> root_path) {
         if (!handlers)
             return;
 
@@ -492,7 +494,7 @@ class HttpServer::DynamicHttpHandlerList inherits HttpServer::HttpHandlerList {
         c.waitForZero();
     }
 
-    *DynamicHandlerInfo findHandler(hash hdr, reference<int> score, reference<DynamicHandlerHelper> dhh, *reference<string> root_path) {
+    *DynamicHandlerInfo findHandler(hash<auto> hdr, reference<int> score, reference<DynamicHandlerHelper> dhh, *reference<string> root_path) {
         dhl.readLock();
         on_exit dhl.readUnlock();
 
@@ -624,7 +626,7 @@ public class HttpServer::HttpServer inherits HttpServer::AbstractLogger {
         ThreadPool threadPool(-1, DefaultIdleThreads);
 
         # other misc response headers
-        hash hdr;
+        hash<auto> hdr;
 
         # override message body encoding if none is received from the sender; http://tools.ietf.org/html/rfc2616#section-3.7.1 states that it must be iso-8850-1
         *string override_encoding;
@@ -1194,7 +1196,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! sends an HTTP error message on the socket
-    sendHttpError(HttpListener listener, hash cx, Socket s, int code, string msg, *hash extra_hdrs, *string encoding, bool head) {
+    sendHttpError(HttpListener listener, hash<auto> cx, Socket s, int code, string msg, *hash extra_hdrs, *string encoding, bool head) {
         if (!s.isOpen()) {
             listener.log("cid %d: connection closed by peer", cx.id);
             return;
@@ -1338,7 +1340,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! helper method to set HTTP response headers
-    static nothing setReplyHeaders(Socket s, hash cx, reference<hash> rv) {
+    static nothing setReplyHeaders(Socket s, hash<auto> cx, reference<hash> rv) {
         return HttpServer::http_set_reply_headers(s, cx, \rv);
     }
 
@@ -1437,7 +1439,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private hash<HttpResponseInfo> noHandlerError(hash cx, hash hdr, auto body) {
+    final private hash<HttpResponseInfo> noHandlerError(hash<auto> cx, hash<auto> hdr, auto body) {
         string str = "";
         if (hdr.path)
             str = sprintf("url=%y", hdr.path);
@@ -1458,7 +1460,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
     # don't reimplement this method; fix/enhance it in the module
-    final handleRequest(HttpListener listener, Socket s, reference<hash> cx, hash hdr, hash hh, *data body, bool head = False, HttpPersistentHandlerInfo phi, hash<auto> info) {
+    final handleRequest(HttpListener listener, Socket s, reference<hash> cx, hash<auto> hdr, *data body, bool head = False, HttpPersistentHandlerInfo phi, hash<auto> info) {
         if (!http_methods{hdr.method}) {
             string err = sprintf("unknown / unsupported HTTP method %n", hdr.method);
             string str = sprintf("%s: received from %s via %s", err, info.address_desc, listener.getListenerSocketInfo().address_desc);
@@ -1468,13 +1470,17 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             return;
         }
 
-        foreach string enc in (hh."accept-encoding") {
+        # get first supported encoding for response
+        foreach string enc in (cx."header-info"."accept-encoding") {
             *string e = ContentEncodings{enc};
             if (!e)
                 continue;
             cx.encoding = e;
             break;
         }
+
+        # convert "accept-encoding" to a hash
+        cx."header-info"."accept-encoding" = map {$1: True}, cx."header-info"."accept-encoding";
 
         # erase the encoding string on exit
         on_exit remove cx.encoding;
@@ -1483,17 +1489,17 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         if (body && body.typeCode() == NT_STRING && override_encoding && hdr."_qore_orig_content_type" !~ /charset=/)
             body = force_encoding(body, override_encoding);
 
-        hash url = (
+        hash url = {
             "path": hdr.path,
-            );
+        };
 
         # add logging functions and url
-        cx += (
+        cx += {
             "logfunc"     : logfunc,
             "errlogfunc"  : errlogfunc,
             "url"         : url,
             "debug"       : debug,
-            );
+        };
 
         HttpServer::AbstractHttpRequestHandler handler;
         # the dynamic handler helper maintains the request count for dynamic handlers so any call to remove the handler will only return after all in-progress requests are completed; the object is only allocated if needed
@@ -1501,8 +1507,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
         if (phi.handler) {
             handler = phi.handler;
-        }
-        else {
+        } else {
             # find a handler for the request
             *HandlerInfo hi;
             int score = 0;
@@ -1517,8 +1522,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                         return;
                     }
                 }
-            }
-            else {
+            } else {
                 hi = handlers.findHandler(hdr, \score, False, \root_path);
                 if (score < 3) {
                     *HandlerInfo dhi = dhandlers.findHandler(hdr, \score, \dhh, \root_path);
@@ -1552,8 +1556,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             if (!handler) {
                 cx.handler_name = "error";
                 rv = noHandlerError(cx, hdr, body);
-            }
-            else {
+            } else {
                 # check for authentication info
                 #printf("HTTP DEBUG: handler: %y (auth: %y) hdr: %y\n", cx.handler_name, exists handler.auth && handler.auth.requiresAuthentication(), hdr);
 
@@ -1594,12 +1597,12 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 if (!phi.handler) {
                     if (handler.isPersistent())
                         phi.assign(dhh, handler);
-                }
-                else if (!handler.isPersistent())
+                } else if (!handler.isPersistent())
                     phi.clear();
 
-                if (rv.reply_sent)
+                if (rv.reply_sent) {
                     return;
+                }
             }
 
             sendReply(listener, s, handler, rv, \cx, hdr, head);
@@ -1628,7 +1631,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
     # sends a reply to a request
     # don't reimplement this method; fix/enhance it in the module
-    final sendReply(HttpListener listener, Socket s, HttpServer::AbstractHttpRequestHandler handler, hash rv, reference<hash> cx, hash hdr, bool head) {
+    final sendReply(HttpListener listener, Socket s, HttpServer::AbstractHttpRequestHandler handler, hash rv, reference<hash> cx, hash<auto> hdr, bool head) {
         if (exists rv.close)
             cx.close = boolean(rv.close);
 
@@ -1679,7 +1682,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             #printf("\n**** RESPONSE: %d ct: %s encoding: %y: %N\n", rv.code, rv.hdr."Content-Type", cx.encoding, rv.body);
 
             # compress body if eligible for compression
-            if (rv.body && rv.body.size() > CompressionThreshold) {
+            if (rv.body && !rv.hdr."Content-Encoding" && rv.body.size() > CompressionThreshold) {
                 if (cx.encoding == "deflate") {
                     rv.hdr."Content-Encoding" = "deflate";
                     rv.body = compress(rv.body);
@@ -2017,7 +2020,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         }
     }
 
-    logResponse(hash cx, int code, *data body, *hash hdr) {
+    logResponse(hash<auto> cx, int code, *data body, *hash<auto> hdr) {
         # do log msg
         string lstr = sprintf("cid %d: HTTP/1.1 %d %s", cx.id, code, HttpServer::HttpCodes{code});
         if (cx.handler_name)
@@ -2036,7 +2039,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
             log("cid %d: SEND BODY: %y", cx.id, body);
     }
 
-    logResponse(hash cx, hash rv) {
+    logResponse(hash<auto> cx, hash<auto> rv) {
         logResponse(cx, rv.code, rv.body, rv.hdr);
     }
 
@@ -2145,16 +2148,16 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
         if (info.port)
             info.desc += ":" + info.port;
 
-        hash cx = (
+        hash<auto> cx = {
             "socket": socket,
             "socket-info": socket_info,
             "peer-info": info,
             "id": ss.next(),
             "ssl": ssl,
             "listener-id": id,
-            );
+        };
 
-        my (hash hdr, auto body);
+        my (hash<auto> hdr, auto body);
 
         # set TCP_NODELAY on incoming socket
         #s.setNoDelay(True);
@@ -2178,9 +2181,9 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     continue;
                 }
 
-                hash hi;
+                hash<auto> header_info;
                 try {
-                    hdr = s.readHTTPHeader(HttpServer::ReadTimeout, \hi);
+                    hdr = s.readHTTPHeader(HttpServer::ReadTimeout, \header_info);
                 } catch (hash<ExceptionInfo> ex) {
                     # according to RFC 2616 sec 8.1.2.1 (http://tools.ietf.org/html/rfc2616#section-8.1.2), clients claiming http 1.1
                     # protocol compatibility SHOULD only close the connection after
@@ -2212,7 +2215,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                     log("RECV HEADER: %y", hdr);
 
                 # DEBUG:
-                #printf("HTTP DEBUG: id: %d, hdr: %y, hi: %y\n", cx.id, hdr, hi);
+                #printf("HTTP DEBUG: id: %d, hdr: %y, header_info: %y\n", cx.id, hdr, header_info);
 
                 # process ascii encodings in url if present
                 cx.raw_path = hdr.path;
@@ -2229,17 +2232,17 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 # save original content-type
                 if (hdr."content-type")
                     hdr."_qore_orig_content_type" = hdr."content-type";
-                hdr."content-type" = hi."body-content-type";
+                hdr."content-type" = header_info."body-content-type";
 
                 # the Socket's encoding is set in Socket::readHTTPHeader() according to any charset declaration in the Content-Type
                 cx.char_encoding = s.getEncoding();
-                cx."response-encoding" = hi."accept-charset";
+                cx."response-encoding" = header_info."accept-charset";
 
                 # check if we need to close the connection
                 # RFC 2068 19.7.1: Persistent connections in HTTP/1.0 must be explicitly negotiated as they are not the default behavior
                 # RFC 1945 1.3: Except for experimental applications, current practice requires that the connection be established by the client prior to each request and closed by the server after sending the response.
                 # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open: the above rules are followed by Socket::readHTTPHeader()
-                cx.close = hi.close;
+                cx.close = header_info.close;
 
                 # if we need to get a body
                 if (hdr."content-length") {
@@ -2249,8 +2252,7 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                         else
                             body = s.recv(hdr."content-length", HttpServer::ReadTimeout);
                         #printf("HTTP DEBUG: %s\n", body);
-                    }
-                    catch (hash<ExceptionInfo> ex) {
+                    } catch (hash<ExceptionInfo> ex) {
                         string etxt = sprintf("error reading body in %s (Content-Length: %d): %s: %s", hdr.method, hdr."content-length", ex.err, ex.desc);
                         string str = sprintf("%s: received from %s via %s (header=%n)", etxt, info.address_desc, socket_info.address_desc, hdr);
                         logError(str);
@@ -2291,7 +2293,8 @@ class HttpServer::HttpListener inherits Qore::Socket, HttpServer::HttpListenerIn
                 }
 
                 cx.uctx = get_thread_data("uctx");
-                serv.handleRequest(self, s, \cx, hdr, hi, body, hdr.method == "HEAD", phi, info);
+                cx."header-info" = header_info;
+                serv.handleRequest(self, s, \cx, hdr, body, hdr.method == "HEAD", phi, info);
 
                 #log("DBG cid %d: cx.close: %y", cx.id, cx.close);
 

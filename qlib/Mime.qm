@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Mime.qm Mime module definition
 
-/*  Mime.qm Copyright (C) 2012 - 2018 Qore Technologies, s.r.o.
+/*  Mime.qm Copyright (C) 2012 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -90,6 +90,9 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
     @section mimereleasenotes Release Notes
 
     @subsection mime_1_4_1 v1.4.1
+    - allow the default type for unknown extensions to be overridden in
+      @ref Mime::get_mime_type_from_ext() "get_mime_type_from_ext()"
+      (<a href="https://github.com/qorelanguage/qore/issues/3260">issue 3260</a>)
     - fixed a bug in @ref Mime::mime_parse_form_urlencoded_string() "mime_parse_form_urlencoded_string()" where
       repeated elements would be overwriteen by subsequent keys with the same name
       (<a href="https://github.com/qorelanguage/qore/issues/2761">issue 2761</a>)
@@ -746,10 +749,10 @@ public namespace Mime {
     /** @defgroup MimeMiscFunctions Misc MIME Functions
      */
     #@{
-    #! returns the mime type for the given filename from the extension or @ref Mime::MimeTypeUnknown if the extension is not present or unknown
-    public string sub get_mime_type_from_ext(string path) {
+    #! returns the mime type for the given filename from the extension or the default type if the extension is not present or unknown
+    public string sub get_mime_type_from_ext(string path, string def_type = MimeTypeUnknown) {
         *string ext = (path =~ x/\.([a-z0-9]+)$/i)[0];
-        return (ext && (ext = MimeTypes{ext.lwr()})) ? ext : MimeTypeUnknown;
+        return (ext && (ext = MimeTypes{ext.lwr()})) ? ext : def_type;
     }
 
     #! returns a single string in MIME URL encoded format
