@@ -149,11 +149,19 @@
           connections to be created dynamically, potentially in another process from a network call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
         - The \c AbstractConnection has new public flag \c enabled. Also constructors are updated. (<a href="https://github.com/qorelanguage/qore/issues/3001">issue 3001</a>)
         - The \c AbstractConnection has new constructors, old ones are obsolete. Custom URL/URI parsing is possible (<a href="https://github.com/qorelanguage/qore/issues/3162">issue 3162</a>)
+      - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
+        - Added public methods \c AbstractCsvIterator::getRawLine() and \c AbstractCsvIterator::getRawLineValues() (<a href="https://github.com/qorelanguage/qore/issues/2739">issue 2739</a>)
       - <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> module changes:
         - Added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module changes:
+        - added the \c "header-info" hash to the context argument when calling handlers
+          (<a href="https://github.com/qorelanguage/qore/issues/3260">issue 3260</a>)
         - Added support for adding new HTTP methods to the server with the \c HttpServer::addHttpMethod() method
           (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
+      - <a href="../../modules/Mime/html/index.html">Mime</a> module changes:
+        - allow the default type for unknown extensions to be overridden in
+          @ref Mime::get_mime_type_from_ext() "get_mime_type_from_ext()"
+          (<a href="https://github.com/qorelanguage/qore/issues/3260">issue 3260</a>)
       - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module changes:
         - Added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
       - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module changes:
@@ -188,6 +196,9 @@
           @ref Qore::SQL::SQLStatement "SQLStatement"
           (<a href="https://github.com/qorelanguage/qore/issues/2326">issue 2326</a>)
         - Added support for serializing and deserializing \c AbstractTable objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+      - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
+        - Swagger module does not accept multipart/form-data content-type and also does not work with list and hash parameters
+          (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
       - <a href="../../modules/Util/html/index.html">Util</a> module updates:
         - Added public function \c parse_ranges() (<a href="https://github.com/qorelanguage/qore/issues/2438">issue 2438</a>)
         - Added public function \c check_ip_address() (<a href="https://github.com/qorelanguage/qore/issues/2483">issue 2483</a>)
@@ -196,14 +207,12 @@
           (<a href="https://github.com/qorelanguage/qore/issues/3138">issue 3138</a>)
         - updated @ref Util::get_exception_string() "get_exception_string()" to show the \c lang value
           (<a href="https://github.com/qorelanguage/qore/issues/3182">issue 3182</a>)
-      - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module updates:
-        - Added public methods \c AbstractCsvIterator::getRawLine() and \c AbstractCsvIterator::getRawLineValues() (<a href="https://github.com/qorelanguage/qore/issues/2739">issue 2739</a>)
-      - <a href="../../modules/Swagger/html/index.html">Swagger</a>:
-        - Swagger module does not accept multipart/form-data content-type and also does not work with list and hash parameters
-          (<a href="https://github.com/qorelanguage/qore/issues/2932">issue 2932</a>)
       - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a>:
         - added stopping connection from server side via @ref WebSocketHandler::WebSocketConnection::stop(), @ref WebSocketHandler::WebSocketHandler::stopOne()
           and WebSocketClient handling of WSCC_GoingAway event
+      - <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module changes:
+        - updated to allow more control over file serving
+          (<a href="https://github.com/qorelanguage/qore/issues/3260">issue 3260</a>)
     - @ref relative_dates "Relative date" changes
       - Fractional seconds are accepted in the @ref single_reldates
       - Fractional date components are accepted in the @ref short_reldates based on <a href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO-8601 durations</a>
@@ -1656,7 +1665,7 @@
       - \c schema member incorrectly set by @ref Qore::SQL::AbstractDatasource::getUserName() "AbstractDatasource::getUserName()" instead of @ref Qore::SQL::AbstractDatasource::getDBName() "AbstractDatasource::getDBName()" (<a href="https://github.com/qorelanguage/qore/pull/519">issue 519</a>)
     -  <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module fixes:
       - fixed a bug where template programs with @ref Qore::PO_ALLOW_BARE_REFS set did not work
-      - fixed a bug serviing index files in \c FileHandler::tryServeRequest() where index files could be incorrectly served with a \c "204 No Content" response (<a href="https://github.com/qorelanguage/qore/issues/616">issue 616</a>)
+      - fixed a bug serving index files in \c FileHandler::tryServeRequest() where index files could be incorrectly served with a \c "204 No Content" response (<a href="https://github.com/qorelanguage/qore/issues/616">issue 616</a>)
     - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module fixes:
       - fixed a bug where the connection object was deleted when the connection closes which could cause excess exceptions in multithreaded server code
       - added the WebSocketConnection::connectionClosed() method to be called when the connection is closed

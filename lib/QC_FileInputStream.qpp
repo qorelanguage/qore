@@ -3,7 +3,7 @@
 /*
   Qore Programming Language
 
-  Copyright (C) 2016 - 2018 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2019 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -67,6 +67,8 @@ qclass FileInputStream [system_constructor=FILEINPUTSTREAM_system_constructor; a
     @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates
            "relative date/time value"; integer arguments will be assumed to be milliseconds);
            if not given or negative the operations will never time out
+
+    @throws FILE-OPEN2-ERROR if the file cannot be opened (does not exist, permission error, etc)
  */
 FileInputStream::constructor(string fileName, timeout timeout_ms = -1) {
    SimpleRefHolder<FileInputStream> fis(new FileInputStream(fileName, timeout_ms, xsink));

@@ -25,10 +25,9 @@ class TestFileHandler inherits FileHandler {
     }
 
     constructor(string fileRoot, string urlRoot = "/", *hash opt) : FileHandler(fileRoot, urlRoot, opt) {
-        #
     }
 
-    private *hash getResponseHeadersForFile(string path, hash cx, hash hdr) {
+    private *hash<auto> getResponseHeadersForFile(string path, hash<auto> cx, hash<auto> hdr) {
         if (addHeaders)
             return {"Cache-Control": "private, max-age=86400"};
     }
@@ -73,6 +72,9 @@ public class WebUtilTest inherits QUnit::Test {
         result = client.get("/test_file.txt", NOTHING, \info);
         respHdr = info."response-headers";
         assertEq("abc", trim(result));
+        # remove the "charset" from the content-type
+        respHdr."content-type" =~ s/;.*//;
+        assertEq(MimeTypeHtml, respHdr."content-type");
         assertTrue(respHdr.hasKey("Cache-Control") || respHdr.hasKey("cache-control"));
     }
 }
