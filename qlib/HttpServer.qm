@@ -114,7 +114,7 @@ log("started listener on %s", lh.desc);
 
     @subsection http0313 HttpServer 0.3.13
     - added the \c "header-info" hash to the context argument when calling handlers
-      (<a href="https://github.com/qorelanguage/qore/issues/XXXX">issue XXXX</a>)
+      (<a href="https://github.com/qorelanguage/qore/issues/3026">issue 3026</a>)
     - added support for adding new HTTP methods to the server with the
       @ref HttpServer::HttpServer::addHttpMethod() "HttpServer::addHttpMethod()" method
       (<a href="https://github.com/qorelanguage/qore/issues/2805">issue 2805</a>)
