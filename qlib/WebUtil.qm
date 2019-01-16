@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file WebUtil.qm Qore user module supprting web server operations
 
-/*  WebUtil.qm Copyright (C) 2013 - 2018 Qore Technologies, s.r.o.
+/*  WebUtil.qm Copyright (C) 2013 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -68,6 +68,8 @@ module WebUtil {
     @section webutil_relnotes Release Notes
 
     @subsection webutil_v1_5 WebUtil v1.5
+    - added support for custom file serving
+      (<a href="https://github.com/qorelanguage/qore/issues/3260">issue 3260</a>)
     - updated for Qore 0.9
 
     @subsection webutil_v1_4_1 WebUtil v1.4.1
@@ -102,19 +104,16 @@ public namespace WebUtil {
             ReadOnlyFile f;
             #! text flag
             bool txt;
-            #! Content-Type
-            string ct;
             #! chunk size
             int cs;
             #! response headers
-            *hash respHdr;
+            *hash<auto> respHdr;
         }
 
         #! creates the object
-        constructor(HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile file, bool textflag, string content_type, int chunk_size, *hash respHdr) : HttpServer::AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
+        constructor(HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, Qore::ReadOnlyFile file, bool textflag, int chunk_size, *hash<auto> respHdr) : HttpServer::AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
             f = file;
             txt = textflag;
-            ct = content_type;
             cs = chunk_size;
             self.respHdr = respHdr;
         }
@@ -124,7 +123,6 @@ public namespace WebUtil {
             return {
                 "code": 200,
                 "hdr": {
-                    "Content-Type": ct,
                     "Transfer-Encoding": "chunked",
                  } + respHdr,
             };
@@ -133,6 +131,45 @@ public namespace WebUtil {
         #! returns data to send
         private auto sendImpl() {
             return txt ? f.read(cs, 1m) : f.readBinary(cs, 1m);
+        }
+    }
+
+    #! this class handles chunked file sends
+    public class InputStreamRequest inherits HttpServer::AbstractStreamRequest {
+        public {}
+
+        private {
+            #! input stream object
+            InputStream stream;
+            #! chunk size
+            int cs;
+            #! response headers
+            *hash<auto> respHdr;
+        }
+
+        #! creates the object
+        constructor(HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler,
+            Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, InputStream stream,
+            int chunk_size, *hash<auto> respHdr)
+            : HttpServer::AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
+            self.stream = stream;
+            cs = chunk_size;
+            self.respHdr = respHdr;
+        }
+
+        #! returns the reponse headers
+        private hash getResponseHeaderMessageImpl() {
+            return {
+                "code": 200,
+                "hdr": {
+                    "Transfer-Encoding": "chunked",
+                 } + respHdr,
+            };
+        }
+
+        #! returns data to send
+        private auto sendImpl() {
+            return stream.read(cs);
         }
     }
 
@@ -150,7 +187,7 @@ string qhtml = "<form id=\"upload_form\" enctype=\"multipart/form-data\" method=
     <fieldset class=\"workflow_list\">
         <legend>Step 1: Select Workflow</legend>
           <select class=\"worfklows\" name=\"workflow\" id=\"workflow\">
-            {% foreach my hash $h ($ctx.workflows.pairIterator()) { %}
+            {% foreach my hash<auto> $h ($ctx.workflows.pairIterator()) { %}
             <option value="{{ $h.key }}">{{ $h.value.label }}</option>
             {% } %}
           </select>
@@ -210,7 +247,7 @@ StaticTextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
             # check if PO_ALLOW_BARE_REFS is set in the template program
             softbool bare_refs = (p.getParseOptions() & PO_ALLOW_BARE_REFS);
 
-            foreach hash h in (\l) {
+            foreach hash<auto> h in (\l) {
                 switch (h.type) {
                     case "text": h.text =~ s/"/\"/g; src += h.text; break;
                     case "exp": src += StaticTextTemplateBase::getCode(bare_refs, "\";my auto $tmp_TEMPLATE_%d=(%s);$rv_TEMPLATE_str+=(($tmp_TEMPLATE_%d.strp()||!exists $tmp_TEMPLATE_%d||$tmp_TEMPLATE_%d===NULL)?$tmp_TEMPLATE_%d.toString():sprintf(\"%%y\",$tmp_TEMPLATE_%d));$rv_TEMPLATE_str+=\"", vc, h.text, vc, vc, vc, vc, vc); ++vc; break;
@@ -345,7 +382,7 @@ StaticTextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
         #! explicitly renders the given template with the given argument
         /** @par Example:
             @code{.py}
-hash h = qft.render(ctx);
+hash<auto> h = qft.render(ctx);
             @endcode
 
             @param new_mtime the modified date/time of the file, used to determine if the template should be recomiled or not
@@ -358,7 +395,7 @@ hash h = qft.render(ctx);
             - \c body: the rendered template
             - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's \c "Content-Type" value)
         */
-        hash render(date new_mtime, hash ctx, int code = 200, *hash hdr) {
+        hash<auto> render(date new_mtime, hash ctx, int code = 200, *hash<auto> hdr) {
             rwl.readLock();
             on_exit rwl.readUnlock();
 
@@ -449,7 +486,7 @@ hash h = tm.render(resource_path, path, mtime, ctx);
             - \c body: the rendered template
             - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's "Content-Type" value)
         */
-        hash render(string tname, string path, date mtime, hash ctx, int code = 200, *hash hdr) {
+        hash render(string tname, string path, date mtime, hash ctx, int code = 200, *hash<auto> hdr) {
             {
                 rwl.readLock();
                 on_exit rwl.readUnlock();
@@ -585,7 +622,7 @@ hash h = tm.render("html/index.qhtml", ctx);
 
             @throw TEMPLATE-ERROR the given template does not exist
         */
-        hash render(string tname, hash ctx, int code = 200, *hash hdr) {
+        hash render(string tname, hash ctx, int code = 200, *hash<auto> hdr) {
             *hash vth = th{tname};
             if (!vth)
                 throw "TEMPLATE-ERROR", sprintf("no template %y exists; known templates: %y", tname, th.keys());
@@ -613,7 +650,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             - \c body: the rendered template
             - \c hdr: a hash of headers corresponding to the \a hdr argument plus the \c "Content-Type" key set from the template's "Content-Type" value)
         */
-        *hash tryRender(string tname, hash ctx, int code = 200, *hash hdr) {
+        *hash tryRender(string tname, hash ctx, int code = 200, *hash<auto> hdr) {
             *hash vth = th{tname};
             if (!vth) {
                 return;
@@ -672,6 +709,9 @@ hash h = tm.render("html/index.qhtml", ctx);
 
             #! flag for UNIX operating systems
             const Unix = (PlatformOS != "Windows");
+
+            #! default read timeout for serving files
+            const DefaultFileReadTimeout = 20s;
 
             #! directory separator character
             /** actually defined in Qore, exported here for backwards-compatibility
@@ -809,7 +849,7 @@ hash h = tm.render("html/index.qhtml", ctx);
 
             If handleRequestImpl() returns @ref nothing and the requested path cannot be matched and served, then unhandledRequest() is called to handle the error
         */
-        hash handleRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body) {
+        hash handleRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
             # get local request path and "localize" it and strip off any query args
             string path = getRelativePath(hdr.path);
 
@@ -829,9 +869,7 @@ hash h = tm.render("html/index.qhtml", ctx);
                 }
                 if (h)
                     return h;
-
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 return serverError(cx, ex);
             }
 
@@ -856,7 +894,7 @@ hash h = tm.render("html/index.qhtml", ctx);
         #! this method returns a 404 \c "Not Found" error code to \c GET requests and a 501 \c "Not Implemented" error code to all other requests
         /** this method is called when a request cannot be handled; reimplement this method in subclasses to customize unhandled request error handling
         */
-        private hash unhandledRequest(hash cx, hash hdr, *data body) {
+        private hash unhandledRequest(hash<auto> cx, hash<auto> hdr, *data body) {
             return hdr.method == "GET"
                 ? makeResponse(404, "The requested page cannot be found")
                 : make501("The requested operation is not supported");
@@ -865,14 +903,14 @@ hash h = tm.render("html/index.qhtml", ctx);
         #! this method returns a 400 \c "Bad Request" error code when a file should be served that's not a regular file
         /** this method is called when a file cannot be served because it's not a regular file; reimplement this method in subclasses to customize error handling
         */
-        private hash fileError(hash cx, hash sh) {
+        private hash fileError(hash<auto> cx, hash sh) {
             return makeResponse(400, "The requested resource cannot be served");
         }
 
         #! this method returns a 500 \c "Internal Server Error" error code when an exception occurs
         /** this method is called when an exception occurs; reimplement this method in subclasses to customize error handling
         */
-        private hash serverError(hash cx, hash ex) {
+        private hash serverError(hash<auto> cx, hash ex) {
             string errstr = get_exception_string(ex);
             logError(errstr);
             string desc;
@@ -886,21 +924,15 @@ hash h = tm.render("html/index.qhtml", ctx);
         }
 
         #! tries to serve the request from the filesystem
-        private *hash tryServeRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body) {
-            *string path = cx.resource_path;
-
-            # use Windows directory separator chars on Windows
-            if (!Unix)
-                path =~ s/\//\\/g;
-
-            path = file_root + path;
-
-            *hash sh = hstat(path);
-            if (!sh)
+        private *hash tryServeRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
+            string path;
+            *hash<StatInfo> stat_hash = statPath(cx, hdr, \path);
+            if (!stat_hash) {
                 return;
+            }
 
             # add index if the request corresponds to a directory
-            if (sh.type == "DIRECTORY") {
+            if (stat_hash.type == "DIRECTORY") {
                 bool found = False;
                 foreach string idx in (indexes) {
                     string p = path + DirSep + idx;
@@ -912,66 +944,95 @@ hash h = tm.render("html/index.qhtml", ctx);
                         break;
                     }
                 }
-                if (!found)
+                if (!found) {
                     return renderDirectory(cx, path);
+                }
+            } else if (stat_hash.type != "REGULAR") {
+                return fileError(cx, stat_hash);
             }
-            else if (sh.type != "REGULAR")
-                return fileError(cx, sh);
 
             # see if we should handle as a template
             *string ext = (cx.resource_path =~ x/\.([a-z0-9]+)$/i)[0];
-            if (ext && template_extensions{ext})
-                return render(cx.resource_path, path, sh.mtime, cx);
-
-            ReadOnlyFile f;
-            try {
-                f = new ReadOnlyFile(path);
-                sh = f.hstat();
+            if (ext && template_extensions{ext}) {
+                return render(cx.resource_path, path, stat_hash.mtime, cx);
             }
-            catch (hash<ExceptionInfo> ex) {
-                if (ex.err == "READONLYFILE-OPEN-ERROR")
+
+            return sendFilePath(listener, s, cx, hdr, body, path, stat_hash);
+        }
+
+        private *hash<auto> sendFilePath(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx,
+            hash<auto> hdr, *data body, string path, hash<StatInfo> stat_hash) {
+            # send an empty response for an empty file
+            if (!stat_hash.size) {
+                return makeResponse(204, "");
+            }
+
+            FileInputStream stream;
+            try {
+                stream = new FileInputStream(path, DefaultFileReadTimeout);
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err == "FILE-OPEN2-ERROR") {
                     return;
+                }
                 rethrow;
             }
 
-            if (!sh.size)
-                return makeResponse(204, "");
-
-            string ct = get_mime_type_from_ext(path);
-            bool txt = (ext =~ /^text\//) || (ext =~ /^application\/.*(json|xml|yaml|javascript|tex|tcl|troff|postscript)/);
-
-            *hash respHdr = getResponseHeadersForFile(path, cx, hdr);
-            return sh.size > chunked_threshold ? sendFileChunked(listener, s, cx, hdr, body, f, txt, ct, respHdr) : sendFile(f, txt, ct, respHdr);
+            *hash<auto> respHdr = getResponseHeadersForFile(path, cx, hdr);
+            # add the content type if it's missing for backwards compatibilitye
+            if (!hdr."Content-Type") {
+                hdr."Content-Type" = get_mime_type_from_ext(path);
+            }
+            return stat_hash.size > chunked_threshold
+                ? sendFileChunked(listener, s, cx, hdr, body, stream, respHdr)
+                : sendFile(stream, respHdr);
         }
 
-        #! must return a FileStreamRequest object to stream the requested file with chunked transfer encoding
-        private FileStreamRequest getFileStreamRequestImpl(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile f, bool txt, string ct, *hash respHdr) {
-            return new FileStreamRequest(listener, self, s, cx, hdr, body, f, txt, ct, chunk_size, respHdr);
+        private *hash<StatInfo> statPath(hash<auto> cx, hash<auto> hdr, reference<string> path) {
+            path = file_root + cx.resource_path;
+            # no need to convert UNIX-style dir separators to Windows-style on Windows
+            # because Windows supports UNIX-style dir separators as well
+            return hstat(path);
         }
 
-        #! this method returns @ref nothing by default but can be subclassed to add headers to the response
-        /** this method is called before a file is sent to get additional headers to include in response; reimplement this method in subclasses to add response headers
+        #! must return a AbstractStreamRequest object to stream the requested file with chunked transfer encoding
+        private AbstractStreamRequest getStreamRequestImpl(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, InputStream stream, *hash<auto> respHdr) {
+            return new InputStreamRequest(listener, self, s, cx, hdr, body, stream, chunk_size, respHdr);
+        }
+
+        #! this method returns a hash giving response headers with a default content type for the file to be served based on its extenion and can be subclassed to add headers to the response
+        /** This method is called before a file is sent to get additional headers to include in response; reimplement
+            this method in subclasses to add response headers.  This method must return the content type for the file
+            being served.
 
             @param path filepath
             @param cx original request cx hash
-            @param hdr original request headers
+            @param request_hdr original request headers
+
+            @return a hash giving response headers with a default content type for the file to be served based on its
+            extenion and can be subclassed to add headers to the response
         */
-        private *hash getResponseHeadersForFile(string path, hash cx, hash hdr) {
-            return NOTHING;
+        private hash<auto> getResponseHeadersForFile(string path, hash<auto> cx, hash<auto> request_hdr) {
+            return {
+                "Content-Type": get_mime_type_from_ext(path),
+            };
         }
 
-        #! returns a handler hash response with the file's data to be sent in a monolithic message
-        private hash sendFile(ReadOnlyFile f, bool txt, string ct, *hash respHdr) {
-            return (
+        #! returns a handler hash response with the data to be sent in a monolithic message
+        private hash<auto> sendFile(InputStream stream, *hash<auto> respHdr) {
+            binary rv;
+            while (*binary bin = stream.read(1024 * 16)) {
+                rv += bin;
+            }
+            return {
                 "code": 200,
-                "body": txt ? f.read(-1) : f.readBinary(-1),
-                "hdr": ("Content-Type": ct) + respHdr,
-                );
+                "body": rv,
+                "hdr": respHdr,
+            };
         }
 
         #! returns a handler hash response with the file's data to be sent in a HTTP message with chunked transfer encoding
-        private hash sendFileChunked(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash cx, hash hdr, *data body, Qore::ReadOnlyFile f, bool txt, string ct, *hash respHdr) {
-            FileStreamRequest fsr = getFileStreamRequestImpl(listener, s, cx, hdr, body, f, txt, ct, respHdr);
+        private hash<auto> sendFileChunked(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, InputStream stream, *hash<auto> respHdr) {
+            AbstractStreamRequest fsr = getStreamRequestImpl(listener, s, cx, hdr, body, stream, respHdr);
             return fsr.handleRequest();
         }
 
@@ -979,7 +1040,7 @@ hash h = tm.render("html/index.qhtml", ctx);
         /** if this method returns @ref nothing then any \a default_target will be used, so to turn off directory rendering,
             subclass this class and have the reimplemented method return @ref nothing
         */
-        *hash renderDirectory(hash cx, string path) {
+        *hash<auto> renderDirectory(hash<auto> cx, string path) {
             cx += (
                 "path": path,
                 "parent_url": "/" + dirname(cx.hdr.path),
@@ -1019,7 +1080,7 @@ hash h = tm.render("html/index.qhtml", ctx);
             - this method has the following additional keys in the \a cx hash: \c resource_path, \c url_root, and \c isregex
             - the default implementation simply returns @ref nothing all requests; reimplement this method in a subclass to provide the required functionality
         */
-        private *hash handleRequestImpl(reference<hash> cx, hash hdr, *data body) {
+        private *hash handleRequestImpl(reference<hash> cx, hash<auto> hdr, *data body) {
         }
     }
 }
