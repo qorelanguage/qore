@@ -422,7 +422,8 @@ Datasource* DatasourcePool::getDSIntern(bool& new_ds, int64& wait_total, Excepti
 
       // see if we can open a new connection
       if (cmax < max) {
-         ds = pool[cmax] = config.get(this);
+         ds = pool[cmax] = config.get(this, xsink);
+         assert(!*xsink);
 
          tmap[tid] = cmax;
          tid_list[cmax++] = tid;

@@ -111,7 +111,7 @@ public:
 
     // the first connection (opened in the DatasourcePool constructor) is passed with an xsink obj
     // because invalid options can cause an exception to be thrown
-    DLLLOCAL Datasource* get(DatasourceStatementHelper* dsh, ExceptionSink* xsink = nullptr) const;
+    DLLLOCAL Datasource* get(DatasourceStatementHelper* dsh, ExceptionSink* xsink) const;
 
     DLLLOCAL void setQueue(Queue* n_q, QoreValue n_arg, ExceptionSink* xsink) {
         if (q)
