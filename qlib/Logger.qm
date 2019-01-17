@@ -368,7 +368,7 @@ public namespace Logger {
             while (hi.next()) {
                 if (level == hi.getKey()) {
                     if (hi.prev()) {
-                        return getLevel(hi.getKey());
+                        return LoggerLevel::getLevel(hi.getKey());
                     }
                     break;
                 }
@@ -388,7 +388,7 @@ public namespace Logger {
             while (hi.next()) {
                 if (level == hi.getKey()) {
                     if (hi.next()) {
-                        return getLevel(hi.getKey());
+                        return LoggerLevel::getLevel(hi.getKey());
                     }
                     break;
                 }
@@ -2530,7 +2530,7 @@ public namespace Logger {
         */
         public *LoggerLevel decLevel() {
             if (currentLevel) {
-                *LoggerLevel lvl = getNextLowerLevel(currentLevel.getValue());
+                *LoggerLevel lvl = LoggerLevel::getNextLowerLevel(currentLevel.getValue());
                 if (lvl) {
                     setLevel(lvl);
                 }
@@ -2544,7 +2544,7 @@ public namespace Logger {
         */
         public *LoggerLevel incLevel() {
             if (currentLevel) {
-                *LoggerLevel lvl = getNextHigherLevel(currentLevel.getValue());
+                *LoggerLevel lvl = LoggerLevel::getNextHigherLevel(currentLevel.getValue());
                 if (lvl) {
                     setLevel(lvl);
                 }
