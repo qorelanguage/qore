@@ -6,6 +6,8 @@
 %require-types
 %strict-args
 
+%requires reflection
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class ExceptionTest
@@ -16,10 +18,29 @@ class ExceptionTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("Exception test", "1.0") {
+        addTestCase("return test", \returnTest());
         addTestCase("Test simple try/catch block", \testSimpleTryCatch());
         addTestCase("Test rethrow", \testRethrow());
         addTestCase("misc tests", \miscTests());
         set_return_value(main());
+    }
+
+    returnTest() {
+        try {
+            error();
+            assertTrue(False);
+        } catch (hash<ExceptionInfo> ex) {
+            # make sure that the exception refers to the line of the method missing the return statement
+            # by usig reflection, we don't have to hardcode the line
+            int line = Class::forName("ExceptionTest").getNormalMethod("error").getVariant().getSourceLocation().line;
+            assertEq(line, ex.line);
+        }
+    }
+
+    bool error() {
+        if (False) {
+            return True;
+        }
     }
 
     testSimpleTryCatch() {
