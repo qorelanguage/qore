@@ -74,6 +74,8 @@ module Schema {
     @subsection schema_v1_3 Schema Module v1.3
     - improved logging output when performing schema alignments
       (<a href="https://github.com/qorelanguage/qore/issues/3114">issue 3114</a>)
+    - fixed AbstractSchema::checkExistence()
+      (<a href="https://github.com/qorelanguage/qore/issues/3266">issue 3266</a>)
 
     @subsection schema_v1_2 Schema Module v1.2
     - added the following public functions: (<a href="https://github.com/qorelanguage/qore/issues/1851">issue 1851</a>)
@@ -977,18 +979,43 @@ public namespace Schema {
         }
 
         #! returns @ref Qore::True "True" if the method can detect that DB objects defined in the schema exist in the database
-        /** Currently this method checks if at least one of the first tables, sequences, functions, or procedures defined in the schema template exists.
+        /** Currently this method checks if any of tables, sequences, functions, or procedures defined in the schema template exists.
             If so, this method returns @ref Qore::True "True", otherwise it returns @ref Qore::False "False"
         */
         private bool checkExistence() {
-            if (schema.tables)
-                return db.getTable(schema.tables.firstKey()) ? True : False;
-            if (schema.sequences)
-                return db.getSequence(schema.sequences.firstKey()) ? True : False;
-            if (schema.functions)
-                return db.getFunction(schema.functions.firstKey()) ? True : False;
-            if (schema.procedures)
-                return db.getProcedure(schema.procedures.firstKey()) ? True : False;
+            # NOTE: we cannot check firstKey() only as before. It fails
+            # if the tables hash is changed to contain non-existing table
+            # at the 1st place.
+
+            # object types are sorted by their cost of construction DESC
+            if (db.supportsSequences() && schema.sequences) {
+                foreach string name in (keys schema.sequences) {
+                    if (db.getSequence(name)) {
+                        return True;
+                    }
+                }
+            }
+            if (schema.functions) {
+                foreach string name in (keys schema.functions) {
+                    if (db.getFunction(name)) {
+                        return True;
+                    }
+                }
+            }
+            if (schema.procedures) {
+                foreach string name in (keys schema.procedures) {
+                    if (db.getProcedure(name)) {
+                        return True;
+                    }
+                }
+            }
+            if (schema.tables) {
+                foreach string name in (keys schema.tables) {
+                    if (db.getTable(name)) {
+                        return True;
+                    }
+                }
+            }
             return False;
         }
 
