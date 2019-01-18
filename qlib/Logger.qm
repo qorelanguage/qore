@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Logger.qm Logger library
 
-/*  Logger.qm Copyright 2018 Qore Technologies, s.r.o.
+/*  Logger.qm Copyright 2018 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -2560,7 +2560,7 @@ public namespace Logger {
         }
 
         private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
-            bool check_throwable, date time_stamp = now_us() ) {
+            bool check_throwable, date time_stamp = now_us()) {
             if (isEnabledFor(level)) {
                 *hash<ExceptionInfo> throwable;
                 if (args.size() && check_throwable) {
@@ -2588,7 +2588,8 @@ public namespace Logger {
             }
         }
 
-        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location, *hash<ExceptionInfo> throwable, date time_stamp) {
+        private:internal logIntern(LoggerLevel level, string message, *list args, *hash<CallStackInfo> location,
+            *hash<ExceptionInfo> throwable, date time_stamp) {
             if (isEnabledFor(level)) {
                 callAppenders(new LoggerEvent(self, level, message, args, location, gettid(), time_stamp, throwable));
             }
