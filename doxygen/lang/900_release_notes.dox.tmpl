@@ -230,8 +230,10 @@
       or integrating code in other programming languages at runtime
 
     @subsection qore_09_bug_fixes Bug Fixes in Qore
-    - fixed a crash in acquiring a new connection with dataource options
+    - fixed a crash in acquiring a new connection with datasource options
       (<a href="https://github.com/qorelanguage/qore/issues/3262">issue 3262</a>)
+    - fixed a bug reporting the source location for runtime type errors related to missing return statements
+      (<a href="https://github.com/qorelanguage/qore/issues/3255">issue 3255</a>)
     - fixed bugs where @ref Qore::SQL::Datasource::getConfigString() "Datasource::getConfigString()" and
       @ref Qore::SQL::Datasource::getConfigHash() "Datasource::getConfigHash()" would require a connection to the
       server, making it impossible to check option before connecting
