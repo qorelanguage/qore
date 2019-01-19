@@ -473,6 +473,15 @@ class qdx {
                 foreach string e in (\xl[1]) {
                     if (e !~ /(private:internal|private:hierarchy|private|public)[^A-Za-z0-9_]/)
                         e = "public " + e;
+                    else {
+                        if (e =~ /private:hierarchy/) {
+                            e = replace(e, "private:hierarchy", "protected");
+                        } else if (e =~ /private:internal/) {
+                            e = replace(e, "private:internal", "private");
+                        } else if (e =~ /private/) {
+                            e = replace(e, "private", "protected");
+                        }
+                    }
                 }
                 trim(xl[0]);
                 line = xl[0] + " : " + join(",", xl[1]) + xl[2] + "\n";
@@ -539,13 +548,44 @@ class qdx {
                         }
                     }
 
+                    if (*list<string> strlist = (line =~ x/^(\s*)(public|private|private(?::internal|:hierarchy)?)\s+{(.*)}/)) {
+                        switch (strlist[1]) {
+                            case "private":
+                            case "private:hierarchy":
+                                strlist[1] = "protected";
+                                break;
+                            case "private:internal":
+                                strlist[1] = "private";
+                                break;
+                        }
+                        if (strlist[1] != "public") {
+                            w.printf("%s:\n", strlist[1]);
+                        }
+                        w.printf("%s%s\n", strlist[0], strlist[2]);
+                        if (strlist[1] != "public") {
+                            w.printf("public:\n");
+                        }
+                        continue;
+                    }
+                    /*
                     if (exists (xs = (line =~ x/(public|private:internal|private:hierarchy|private)[ \t]+{(.*)}/)[1])) {
                         w.printf("private:\n%s\npublic:\n", xs);
                         continue;
-                    } else if (!ppc) {
-                        if (regex(line, "(public|private:internal|private:hierarchy|private)[[:space:]]*{")) {
+                    } */ else if (!ppc) {
+                        if (line =~ /(public|private:internal|private:hierarchy|private)[[:space:]]*{/) {
                             ++ppc;
-                            line = regex_subst(line, "[\\s+]{", ":");
+                            line =~ s/[\\s+]{/:/;
+                            if (line =~ /private:hierarchy/) {
+                                line = replace(line, "private:hierarchy", "protected");
+                            } else if (line =~ /private:internal/) {
+                                line = replace(line, "private:internal", "private");
+                            } else if (line =~ /private/) {
+                                line = replace(line, "private", "protected");
+                            }
+
+                            w.printf("private:\n%s\npublic:\n", xs);
+                            continue;
+
                             #printf("PP line: %s\n", line);
                         }
                     } else {
