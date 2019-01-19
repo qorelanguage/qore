@@ -6,13 +6,13 @@
 %require-types
 %strict-args
 
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 %requires Qdx
 
 %exec-class qdx
 
-const opts = (
+const opts = {
     "moddx": "M,module-dx=s",
     "post": "p,post",
     "tag": "t,tag=s@",
@@ -21,7 +21,7 @@ const opts = (
     "nmp": "N,no-mainpage",
     "keepdollar": "k,keep-dollar",
     "help": "h,help"
-    );
+};
 
 class qdx {
     private {
@@ -224,7 +224,7 @@ class qdx {
 
             # remove <!--% ... %--> comments to allow for invisible spacing, to allow for "*/" to be output in
             # particular places, for example
-            line =~ s/<!--%.*%-->//g;
+            #line =~ s/<!--%.*%-->//g;
 
             comment += line;
         }
@@ -343,13 +343,13 @@ class qdx {
                 continue;
             }
             # see if the line is the start of a doxygen block comment
-            if (line =~ /^[[:blank:]]*\/\*\*/) { #/){
+            if (line =~ /^[[:blank:]]*\/\*\*/) {
                 line = getComment(line, ins);
                 w.write(line);
                 continue;
             }
 
-            if (line =~ /^[[:blank:]]*\/\*/){ #/){
+            if (line =~ /^[[:blank:]]*\/\*/){
                 if (line !~ /\*\//) {
                     in_doc = True;
                 }
@@ -374,7 +374,7 @@ class qdx {
 
             # change hashdecl to struct
             if (line =~ /[^a-zA-Z0-9_]hashdecl /) {
-                line =~ s/([^a-zA-Z0-9_])hashdecl /$1struct /g;
+                line =~ s/([^a-zA-Z0-9_])?hashdecl /$1struct /g;
                 hashdecl_flag = True;
             }
 
@@ -392,11 +392,38 @@ class qdx {
                 continue;
             }
 
+            # see if we have a function or method declaration that spans multiple lines
+            if (line =~ /\w+\s?(\(|\))/) {
+                # copy of line to check it without parens in quotes
+                string line_copy = line;
+                line_copy =~ s/"(?:[^"\\]|\\.)*"/""/g;
+                # count how many open curly brackets
+                int ob = (line_copy =~ x/(\()/g).size();
+                # count how many close curly brackets
+                int cb = (line_copy =~ x/(\))/g).size();
+                int tot = (ob - cb);
+                if (tot > 0) {
+                    trim line;
+                    # read until we have an open bracket
+                    while (ins.next()) {
+                        string new_line = ins.getValue();
+                        trim new_line;
+                        line += " " + new_line;
+                        #printf("FOUND COMPLEX LINE: %s\n", line);
+                        if (new_line =~ /{\s?(#.*)?$/) {
+                            break;
+                        }
+                    }
+                    line += "\n";
+                }
+            }
+
             # see if the line is the start of a method or function declaration
             if (regex(line, '\(.*\)[[:blank:]]*{[[:blank:]]*(#.*)?$')
                 && line !~ /const .*=/
                 && line !~ /extern .*=.*\(.*\)/
                 && !regex(line, '^[[:blank:]]*\"') ) {
+                if (line =~ /code.*cve/) { printf("GOT IT: %s\n", line);}
                 # printf("method or func: %s", line);
 
                 # remove "$" signs
@@ -406,7 +433,8 @@ class qdx {
                 line =~ s/#.*$//;
 
                 # make into a declaration (also remove any parent class constructor calls)
-                line = regex_subst(line, '[[:blank:]]*(?:([^:]):[^:].*\(.*)?{[[:blank:]]*$', "$1;");
+                line =~ s/[[:blank:]]*(?:([^:A-za-z]):[^:].*\(.*)?{[[:blank:]]*$/$1;/;
+                #line = regex_subst(line, '[[:blank:]]*(?:([^:]):[^:].*\(.*)?{[[:blank:]]*$', "$1;");
 
                 # modify string default value quoted by quotes to apostroph
                 line = adjustQuotedStrings(line);
@@ -443,8 +471,17 @@ class qdx {
                 xl = regex_extract(line, '(.*) inherits ([^{]+)(.*)');
                 xl[1] = split(",", xl[1]);
                 foreach string e in (\xl[1]) {
-                    if (e !~ /(private|public)[^A-Za-z0-9_]/)
+                    if (e !~ /(private:internal|private:hierarchy|private|public)[^A-Za-z0-9_]/)
                         e = "public " + e;
+                    else {
+                        if (e =~ /private:hierarchy/) {
+                            e = replace(e, "private:hierarchy", "protected");
+                        } else if (e =~ /private:internal/) {
+                            e = replace(e, "private:internal", "private");
+                        } else if (e =~ /private/) {
+                            e = replace(e, "private", "protected");
+                        }
+                    }
                 }
                 trim(xl[0]);
                 line = xl[0] + " : " + join(",", xl[1]) + xl[2] + "\n";
@@ -475,8 +512,7 @@ class qdx {
 
                 w.write(line);
                 continue;
-            }
-            else {
+            } else {
                 xs = (line =~ x/^[[:space:]]*class[[:space:]]+(\w+(::\w+)?)/)[0];
 
                 if (xs.val()) {
@@ -499,8 +535,7 @@ class qdx {
 
                     w.write(line);
                     continue;
-                }
-                else if (class_name) {
+                } else if (class_name) {
                     if (line =~ /({|})/) {
                         # count how many open curly brackets
                         int ob = (line =~ x/({)/g).size();
@@ -513,40 +548,65 @@ class qdx {
                         }
                     }
 
-                    if (exists (xs = (line =~ x/(public|private)[ \t]+{(.*)}/)[1])) {
-                        w.printf("private:\n%s\npublic:\n", xs);
+                    if (*list<string> strlist = (line =~ x/^(\s*)(public|private|private(?::internal|:hierarchy)?)\s+{(.*)}/)) {
+                        switch (strlist[1]) {
+                            case "private":
+                            case "private:hierarchy":
+                                strlist[1] = "protected";
+                                break;
+                            case "private:internal":
+                                strlist[1] = "private";
+                                break;
+                        }
+                        if (strlist[1] != "public") {
+                            w.printf("%s:\n", strlist[1]);
+                        }
+                        w.printf("%s%s\n", strlist[0], strlist[2]);
+                        if (strlist[1] != "public") {
+                            w.printf("public:\n");
+                        }
                         continue;
                     }
-                    else if (!ppc) {
-                        if (regex(line, "(public|private)[[:space:]]*{")) {
+                    /*
+                    if (exists (xs = (line =~ x/(public|private:internal|private:hierarchy|private)[ \t]+{(.*)}/)[1])) {
+                        w.printf("private:\n%s\npublic:\n", xs);
+                        continue;
+                    } */ else if (!ppc) {
+                        if (line =~ /(public|private:internal|private:hierarchy|private)[[:space:]]*{/) {
                             ++ppc;
-                            line = regex_subst(line, "{", ":");
+                            line =~ s/[\\s+]{/:/;
+                            if (line =~ /private:hierarchy/) {
+                                line = replace(line, "private:hierarchy", "protected");
+                            } else if (line =~ /private:internal/) {
+                                line = replace(line, "private:internal", "private");
+                            } else if (line =~ /private/) {
+                                line = replace(line, "private", "protected");
+                            }
+
+                            w.printf("private:\n%s\npublic:\n", xs);
+                            continue;
+
                             #printf("PP line: %s\n", line);
                         }
-                    }
-                    else {
+                    } else {
                         if (regex(line, "{") ) {
                             if (!regex(line, "}") )
                                 ++ppc;
-                        }
-                        else if (regex(line, "}")) {
+                        } else if (regex(line, "}")) {
                             if (!--ppc)
                                 line = "\npublic:\n";
                         }
                     }
-                }
-                else if (hashdecl_flag) {
+                } else if (hashdecl_flag) {
                     if (regex(line, "}") ) {
                         line = regex_subst(line, "}", "};");
                         remove hashdecl_flag;
                     }
-                }
-                else if (ns_name) {
+                } else if (ns_name) {
                     if (regex(line, "{")) {
                         if (!regex(line, "}"))
                             ++nbc;
-                    }
-                    else if (regex(line, "}")) {
+                    } else if (regex(line, "}")) {
                         --nbc;
                         if (!nbc) {
                             line = regex_subst(line, "}", "};");
@@ -557,15 +617,16 @@ class qdx {
             }
 
             if (!ppc && line !~ /^[ \t]*\/\//) {
-                list mods = ();
+                list<string> mods();
+
                 if (line =~ /\(.*\)/) {
                 #if (line !~ /"/) {
-                    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|static|private:internal|private:hierarchy)([^A-Za-z0-9_].*)/))) {
-                        l[1] =~ s/:.*//;
+                    while (exists (*list l = (line =~ x/(.*)(deprecated|synchronized|static|private(?::internal|:hierarchy)?)(?:\s?)([^A-Za-z0-9_].*)/))) {
+                        #l[1] =~ s/:.*//;
                         mods += l[1];
                         line = l[0] + l[2];
                     }
-                    while (exists (*list l = (line =~ x/(.*)(private|public)([^-:A-Za-z0-9_].*)/))) {
+                    while (exists (*list l = (line =~ x/(.*)(public|private(?::internal|:hierarchy)?)(?:\s?)([^-:A-Za-z0-9_].*)/))) {
                         mods += l[1];
                         line = l[0] + l[2];
                     }
@@ -573,17 +634,21 @@ class qdx {
 
                 if (!mods.empty()) {
                     trim mods;
-                    #printf("mods=%n line=%n\n",mods, line);
+                    #printf("mods: %y line: %y\n", mods, line);
                     foreach string mod in (mods) {
-                        if (mod == "private") {
+                        if (mod == "private" || mod == "private:hierarchy") {
                             if (!mpp) {
                                 mpp = True;
-                                w.write("\nprivate:\n");
+                                w.write("\protected:\n");
+                            }
+                        } else if (mod == "private:internal") {
+                            if (!mpp) {
+                                mpp = True;
+                                w.write("\private:\n");
                             }
                         }
-                        #line = regex_subst(line, mod, "");
                     }
-                    mods = select mods, $1 != "private" && $1 != "public";
+                    mods = select mods, $1 !~ /^private/ && $1 != "public";
                     if (!mods.empty()) {
                         line = regex_subst(line, "^([[:blank:]]+)(.*)", "$1 " + join(" ", mods) + " $2");
                     }
