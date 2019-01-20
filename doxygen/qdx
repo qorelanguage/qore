@@ -300,6 +300,9 @@ class qdx {
         # class member public/private bracket count
         int ppc = 0;
 
+        # public/private block type
+        string pp_type;
+
         # method private flag
         bool mpp;
 
@@ -548,7 +551,7 @@ class qdx {
                         }
                     }
 
-                    if (*list<string> strlist = (line =~ x/^(\s*)(public|private|private(?::internal|:hierarchy)?)\s+{(.*)}/)) {
+                    if (*list<string> strlist = (line =~ x/^(\s*)(public|private(?::internal|:hierarchy)?)\s+{(.*)}/)) {
                         switch (strlist[1]) {
                             case "private":
                             case "private:hierarchy":
@@ -567,34 +570,40 @@ class qdx {
                         }
                         continue;
                     }
-                    /*
-                    if (exists (xs = (line =~ x/(public|private:internal|private:hierarchy|private)[ \t]+{(.*)}/)[1])) {
-                        w.printf("private:\n%s\npublic:\n", xs);
+                    if (exists (xs = (line =~ x/(?:public|private(?::internal|:hierarchy)?)\s*{(.*)}/)[0])) {
+                        string mod = getDoxMod(xs);
+                        if (mod != "public") {
+                            w.printf("%s:\n%s\npublic:\n", mod, xs);
+                        } else {
+                            w.printf("%s\n", xs);
+                        }
                         continue;
-                    } */ else if (!ppc) {
-                        if (line =~ /(public|private:internal|private:hierarchy|private)[[:space:]]*{/) {
+                    } else if (!ppc) {
+                        if (exists (xs = (line =~ x/\s*(public|private(?::internal|:hierarchy)?)\s*{\s*(#.*)?$/)[0])) {
+                            pp_type = xs;
+                            xs = getDoxMod(xs);
                             ++ppc;
-                            line =~ s/[\\s+]{/:/;
-                            if (line =~ /private:hierarchy/) {
-                                line = replace(line, "private:hierarchy", "protected");
-                            } else if (line =~ /private:internal/) {
-                                line = replace(line, "private:internal", "private");
-                            } else if (line =~ /private/) {
-                                line = replace(line, "private", "protected");
+                            if (xs != "public") {
+                                w.printf("%s:\n", xs);
                             }
-
-                            w.printf("private:\n%s\npublic:\n", xs);
-                            continue;
-
                             #printf("PP line: %s\n", line);
+                            continue;
                         }
                     } else {
-                        if (regex(line, "{") ) {
-                            if (!regex(line, "}") )
-                                ++ppc;
-                        } else if (regex(line, "}")) {
-                            if (!--ppc)
-                                line = "\npublic:\n";
+                        # count how many open curly brackets
+                        int ob = (line =~ x/({)/g).size();
+                        # count how many close curly brackets
+                        int cb = (line =~ x/(})/g).size();
+                        int tot = (ob - cb);
+                        if (tot) {
+                            ppc += tot;
+                            if (!ppc) {
+                                if (pp_type != "public") {
+                                    w.write("\npublic:\n");
+                                }
+                                remove pp_type;
+                                continue;
+                            }
                         }
                     }
                 } else if (hashdecl_flag) {
@@ -668,6 +677,20 @@ class qdx {
                     mpp = False;
                 }
             }
+        }
+    }
+
+    private string getDoxMod(string mod) {
+        switch (mod) {
+            case "private":
+            case "private:hierarchy":
+                return "protected";
+            case "private:internal":
+                return "private";
+            case "public":
+                return mod;
+            default:
+                throw "MOD-ERROR", sprintf("unrecognized protection attribute %y", mod);
         }
     }
 

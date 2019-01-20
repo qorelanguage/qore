@@ -3,7 +3,7 @@
 
     Qore programming language exception handling support
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -74,6 +74,7 @@ ExceptionSink::operator bool () const {
 }
 
 void ExceptionSink::overrideLocation(const QoreProgramLocation& loc) {
+    //printd(5, "ExceptionSink::overrideLocation() loc: %p: %s:%d\n", &loc, loc.getFileValue(), loc.start_line);
     QoreException *w = priv->head;
     while (w) {
         w->set(loc);
