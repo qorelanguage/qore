@@ -364,11 +364,11 @@ public namespace Logger {
             @throw LOGGER-ERROR if level not found
         */
         public static *LoggerLevel getNextLowerLevel(int level) {
-            HashIterator hi(LEVEL_TO_LEVEL_STR);
+            HashIterator hi(LEVELSTR_TO_LEVEL);
             while (hi.next()) {
-                if (level == hi.getKey()) {
+                if (level == hi.getValue()) {
                     if (hi.prev()) {
-                        return LoggerLevel::getLevel(hi.getKey());
+                        return LoggerLevel::getLevel(hi.getValue());
                     }
                     break;
                 }
@@ -384,11 +384,11 @@ public namespace Logger {
             @throw LOGGER-ERROR if level not found
         */
         public static *LoggerLevel getNextHigherLevel(int level) {
-            HashIterator hi(LEVEL_TO_LEVEL_STR);
+            HashIterator hi(LEVELSTR_TO_LEVEL);
             while (hi.next()) {
-                if (level == hi.getKey()) {
+                if (level == hi.getValue()) {
                     if (hi.next()) {
-                        return LoggerLevel::getLevel(hi.getKey());
+                        return LoggerLevel::getLevel(hi.getValue());
                     }
                     break;
                 }
