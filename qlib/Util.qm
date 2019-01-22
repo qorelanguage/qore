@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Util.qm Qore user module for generally useful routines
 
-/*  Util.qm Copyright 2014 - 2018 Qore Technologies, s.r.o.
+/*  Util.qm Copyright 2014 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -892,9 +892,18 @@ string pass = get_random_string();
         string str;
 
         while (True) {
-            str += sprintf("%s exception: %s: %s: %s%s\ncall stack:",
-                            ex.type, get_ex_pos(ex), ex.err, ex.desc,
-                            ex.arg ? sprintf(" (arg: %y)", ex.arg) : "");
+            str += sprintf("%s exception: %s: %s: %s",
+                            ex.type, get_ex_pos(ex), ex.err, ex.desc);
+            if (exists ex.arg) {
+                if (ex.arg.ex instanceof hash<ExceptionInfo>) {
+                    if (ex.arg.size() > 1) {
+                        str += sprintf(" (arg: %y)", ex.arg - "ex");
+                    }
+                    str += sprintf("; source exception: %s", get_exception_string(ex.arg.ex));
+                } else {
+                    str += sprintf(" (arg: %y)", ex.arg);
+                }
+            }
 
             if (ex.callstack) {
                 foreach hash<auto> l in (ex.callstack) {

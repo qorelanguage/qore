@@ -1374,7 +1374,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
       \\\n                              yylval->Trans->concatSource('\n');
       \\\/                              yylval->Trans->concatSource('/');
       \\.                               yylval->Trans->concatSource(yytext[1]);
-      [^\n\\/\-]+                               {
+      [^\n\\/\-]+                       {
                                            char* yptr = yytext;
                                            while (*yptr)
                                               yylval->Trans->concatSource(*(yptr++));
@@ -1394,7 +1394,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                            unput(c);
                                            yylloc->restoreFirst();
                                            BEGIN(INITIAL);
-                                           yylval->Regex->parse();
+                                           yylval->Regex->parse([&] () { return get_loc(yylloc); });
                                            return REGEX;
                                         }
       \n                                yylval->Regex->concat('\n');
@@ -1420,7 +1420,7 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
                                            unput(c);
                                            yylloc->restoreFirst();
                                            BEGIN(INITIAL);
-                                           yylval->Regex->parse();
+                                           yylval->Regex->parse([&] () { return get_loc(yylloc); });
                                            return REGEX_EXTRACT;
                                         }
       \n                                yylval->Regex->concat('\n');

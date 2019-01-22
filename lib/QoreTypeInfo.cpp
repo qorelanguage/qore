@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -910,12 +910,20 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
                 if (rv == QTI_NOT_EQUAL) {
                     return rv;
                 }
+                // issue #3272: do not return a match for deleted objects
+                if (!n.get<const QoreObject>()->isValid()) {
+                    return QTI_NOT_EQUAL;
+                }
                 return (rv == QTI_IDENT && exact) ? QTI_IDENT : QTI_AMBIGUOUS;
             } else if (ot == NT_WEAKREF) {
                 qore_type_result_e rv = qore_class_private::runtimeCheckCompatibleClass(*u.qc,
                     *n.get<const WeakReferenceNode>()->get()->getClass());
                 if (rv == QTI_NOT_EQUAL) {
                     return rv;
+                }
+                // issue #3272: do not return a match for deleted objects
+                if (!n.get<const WeakReferenceNode>()->get()->isValid()) {
+                    return QTI_NOT_EQUAL;
                 }
                 return (rv == QTI_IDENT && exact) ? QTI_IDENT : QTI_AMBIGUOUS;
             }
