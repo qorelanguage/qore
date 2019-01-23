@@ -48,5 +48,7 @@ public class ParseToQoreValueTest inherits QUnit::Test {
         assertEq((("a": ("b": (("c": "x"), 2016-05-18T20:47, 3))), False), parse_to_qore_value(" a = ( b = ( c = x , 2016-05-18T20:47, 3) ) , False "));
         assertEq((("a": ("b ": (("c": "x"), 2016-05-18T20:47:16.356788, 3))), True), parse_to_qore_value(" a = ( \"b \" = ( c = x , 2016-05-18T20:47:16.356788 , 3) ) , true "));
         assertEq((("a": 500), ("a": 1.234)), parse_to_qore_value("(a = 500),a=1.234"));
+
+        assertEq({"a": 1, "b": (1, 2)}, parse_to_qore_value("{a=1,b=(1,2)}"));
     }
 }
