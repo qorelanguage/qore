@@ -943,6 +943,30 @@ class Test inherits QUnit::Test {
         hash<CallStackInfo> loc = get_thread_call_stack()[0];
 
         assertEq(sprintf("%s:%d", loc.file, loc.line-1), sos1.getData());
+
+        # inc, dec middle level
+        l1.setLevel(Logger::LoggerLevel::DEBUG);
+        assertEq(Logger::LoggerLevel::getLevel("DEBUG"), l1.getLevel());
+        l1.decLevel();
+        assertEq(Logger::LoggerLevel::getLevel("TRACE"), l1.getLevel());
+        l1.incLevel();
+        assertEq(Logger::LoggerLevel::getLevel("DEBUG"), l1.getLevel());
+
+        # dec minimum level
+        l1.setLevel(Logger::LoggerLevel::ALL);
+        assertEq(Logger::LoggerLevel::getLevel("ALL"), l1.getLevel());
+        l1.decLevel();
+        assertEq(Logger::LoggerLevel::getLevel("ALL"), l1.getLevel());
+        l1.incLevel();
+        assertEq(Logger::LoggerLevel::getLevel("TRACE"), l1.getLevel());
+
+        # inc maximum level
+        l1.setLevel(Logger::LoggerLevel::OFF);
+        assertEq(Logger::LoggerLevel::getLevel("OFF"), l1.getLevel());
+        l1.incLevel();
+        assertEq(Logger::LoggerLevel::getLevel("OFF"), l1.getLevel());
+        l1.decLevel();
+        assertEq(Logger::LoggerLevel::getLevel("FATAL"), l1.getLevel());
     }
 
 }
