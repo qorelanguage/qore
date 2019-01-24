@@ -896,7 +896,9 @@ string pass = get_random_string();
             str += sprintf("%s exception: %s: %s: %s",
                             ex.type, get_ex_pos(ex), ex.err, ex.desc);
             if (exists ex.arg) {
-                if (ex.arg.ex instanceof hash<ExceptionInfo>) {
+                if (ex.arg.ex instanceof hash<ExceptionInfo>
+                    || (ex.arg.ex.typeCode() == NT_STRING && ex.arg.desc.typeCode() == NT_STRING
+                        && ex.arg.callstack.typeCode() == NT_LIST)) {
                     if (ex.arg.size() > 1) {
                         str += sprintf(" (arg: %y)", ex.arg - "ex");
                     }

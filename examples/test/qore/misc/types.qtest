@@ -37,6 +37,7 @@ const TestList = (1, 2, 3);
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("issue 3278", \issue3278());
         addTestCase("issue 3210", \issue3210());
         addTestCase("issue 3157", \issue3157());
         addTestCase("issue 2980", \issue2980());
@@ -52,6 +53,35 @@ class TypeTest inherits QUnit::Test {
         addTestCase("issue 2647", \issue2647());
 
         set_return_value(main());
+    }
+
+    issue3278() {
+        auto x = ();
+        {
+            hash h = map {$1: True}, x;
+            assertEq({}, h);
+            assertEq("hash", h.fullType());
+        }
+        {
+            hash<auto> h = map {$1: True}, x;
+            assertEq({}, h);
+            assertEq("hash<string, bool>", h.fullType());
+        }
+        /*
+        {
+            hash<string, bool> h = map {$1: True}, x;
+            assertEq({}, h);
+            assertEq("hash<string, bool>", h.fullType());
+        }
+        */
+        /*
+        {
+            *list<int> x = ();
+            list<int> v = x;
+            assertEq((), v);
+            assertEq("list<int>", v.fullType());
+        }
+        */
     }
 
     issue3210() {
