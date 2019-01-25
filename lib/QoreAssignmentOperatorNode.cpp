@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -70,17 +70,15 @@ void QoreAssignmentOperatorNode::parseInitIntern(LocalVar* oflag, int pflag, int
             ident = true;
         }
         res = QTI_IDENT;
-    }
-    else if (QoreTypeInfo::hasType(ti)) {
+    } else if (QoreTypeInfo::hasType(ti)) {
         bool may_not_match = false;
         bool may_need_filter = false;
         res = QoreTypeInfo::parseAccepts(ti, r, may_not_match, may_need_filter);
         // issue #2106 do not set the ident flag for any other type in case runtime types are more specific (complex) than parse types and require filtering
-    }
-    else
+        //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d may_need_filter: %d ident: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(r), res, may_not_match, may_need_filter, ident);
+    } else {
         res = QTI_AMBIGUOUS;
-
-    //printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d may_need_filter: %d ident: %d\n", QoreTypeInfo::getName(ti), QoreTypeInfo::getName(r), res, may_not_match, may_need_filter, ident);
+    }
 
     if (getProgram()->getParseExceptionSink() && !res) {
         QoreStringNode* edesc = new QoreStringNodeMaker("lvalue for %sassignment operator '%s' expects ", weak_assignment ? "weak " : "", weak_assignment ? ":=" : "=");
