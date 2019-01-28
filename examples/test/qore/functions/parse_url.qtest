@@ -13,6 +13,7 @@
 public class parseUrlTest inherits QUnit::Test {
     constructor() : Test("parse_url test", "1.0") {
         addTestCase("Test 1", \test());
+        addTestCase("port test", \portTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -68,5 +69,37 @@ public class parseUrlTest inherits QUnit::Test {
 
         # corner case: two leading backslashes are returned as a UNC path
         assertEq(("path": "\\\\hostname"), parse_url("\\\\hostname"));
+    }
+
+    private portTest() {
+        # non num chars in port
+        try {
+            parse_url("http://localhost:abc");
+            fail("it must throw an exception");
+        }
+        catch (hash ex) {
+            assertEq("PARSE-URL-ERROR", ex.err);
+            assertEq(True, ex.desc =~ /has an invalid non-numeric character in the port specification/, ex.desc);
+        }
+
+        # out of INT range port
+        try {
+            parse_url("http://localhost:999999999999999");
+            fail("it must throw an exception");
+        }
+        catch (hash ex) {
+            assertEq("PARSE-URL-ERROR", ex.err);
+            assertEq(True, ex.desc =~ /has an invalid argument for port. It has to be between 0-65535/, ex.desc);
+        }
+
+        # out of int16 range: 0-65535
+        try {
+            parse_url("http://localhost:65536");
+            fail("it must throw an exception");
+        }
+        catch (hash ex) {
+            assertEq("PARSE-URL-ERROR", ex.err);
+            assertEq(True, ex.desc =~ /has an invalid port value: 65536. Allowed is 0-65535/, ex.desc);
+        }
     }
 }
