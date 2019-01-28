@@ -1838,7 +1838,7 @@ order by
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
             sql += "\n)";
 
-            *string ts = opt.tablespace ? opt.tablespace : filegroup;
+            *string ts = opt.data_tablespace ? opt.data_tablespace : filegroup;
             if (ts)
                 sql += sprintf(" on %s", ts);
 
