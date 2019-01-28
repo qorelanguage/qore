@@ -132,6 +132,7 @@ private:
                 invalidate();
                 return;
             }
+            std::string port_str;
             for (size_t i = port_start + 1; i < sbuf.size(); ++i) {
                if (!isdigit(sbuf[i])) {
                   if (xsink)
@@ -139,9 +140,33 @@ private:
                   invalidate();
                   return;
                }
+               port_str += sbuf[i];
             }
 
-            port = atoi(sbuf.c_str() + port_start + 1);
+            // convert string to a real port
+            try {
+                port = std::stoi(port_str);
+            }
+            catch (std::out_of_range e) {
+                if (xsink) {
+                    xsink->raiseException("PARSE-URL-ERROR",
+                                          "URL '%s' has an invalid argument for port. It has to be between 0-65535",
+                                          buf);
+                }
+                invalidate();
+                return;
+            }
+
+            if (port < 0 || port > UINT16_MAX) {
+                if (xsink) {
+                    xsink->raiseException("PARSE-URL-ERROR",
+                                          "URL '%s' has an invalid port value: %s. Allowed is 0-65535",
+                                          buf, port_str.c_str());
+                }
+                invalidate();
+                return;
+            }
+
             sbuf = sbuf.substr(0, port_start);
             has_port = true;
             printd(5, "QoreURL::parse_intern port=%d\n", port);
