@@ -86,20 +86,18 @@ public class parseUrlTest inherits QUnit::Test {
         try {
             parse_url("http://localhost:999999999999999");
             fail("it must throw an exception");
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("PARSE-URL-ERROR", ex.err);
-            assertEq(True, ex.desc =~ /has an invalid argument for port. It has to be between 0-65535/, ex.desc);
+            assertRegex("invalid port.*between.*0.*65535", ex.desc);
         }
 
         # out of int16 range: 0-65535
         try {
             parse_url("http://localhost:65536");
             fail("it must throw an exception");
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("PARSE-URL-ERROR", ex.err);
-            assertEq(True, ex.desc =~ /has an invalid port value: 65536. Allowed is 0-65535/, ex.desc);
+            assertRegex("invalid port.*between.*0.*65535", ex.desc);
         }
     }
 }

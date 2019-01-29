@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2018 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2019 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -146,12 +146,9 @@ private:
             // convert string to a real port
             try {
                 port = std::stoi(port_str);
-            }
-            catch (std::out_of_range e) {
+            } catch (std::out_of_range e) {
                 if (xsink) {
-                    xsink->raiseException("PARSE-URL-ERROR",
-                                          "URL '%s' has an invalid argument for port. It has to be between 0-65535",
-                                          buf);
+                    doInvalidPortException(xsink, buf);
                 }
                 invalidate();
                 return;
@@ -159,9 +156,7 @@ private:
 
             if (port < 0 || port > UINT16_MAX) {
                 if (xsink) {
-                    xsink->raiseException("PARSE-URL-ERROR",
-                                          "URL '%s' has an invalid port value: %s. Allowed is 0-65535",
-                                          buf, port_str.c_str());
+                    doInvalidPortException(xsink, buf);
                 }
                 invalidate();
                 return;
@@ -190,6 +185,12 @@ private:
             host = new QoreStringNode(sbuf.c_str());
          }
       }
+   }
+
+   static void doInvalidPortException(ExceptionSink* xsink, const char* buf) {
+       xsink->raiseException("PARSE-URL-ERROR",
+                             "URL '%s' has an invalid port value; it must be between 0 and 65535",
+                             buf);
    }
 
 public:
